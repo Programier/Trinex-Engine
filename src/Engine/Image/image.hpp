@@ -1,7 +1,9 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
+
 namespace Engine
 {
 
@@ -57,7 +59,9 @@ namespace Engine
         std::vector<unsigned char>::iterator begin();
         std::vector<unsigned char>::iterator end();
         std::vector<unsigned char>& vector();
+        glm::vec2 size() const;
         bool empty();
         ~Image();
+        Image sub_image(const glm::vec2& begin, const glm::vec2& end);
     };
 }// namespace Engine

@@ -28,6 +28,11 @@ namespace Engine
         return _M_height;
     }
 
+    glm::vec2 Image::size() const
+    {
+        return {_M_width, _M_height};
+    }
+
     int Image::channels() const
     {
         return _M_channels;
@@ -230,6 +235,35 @@ namespace Engine
         std::copy(pixel._M_data, pixel._M_data + std::min(_M_channels, pixel._M_channels), _M_data);
 
         return *this;
+    }
+
+    Image Image::sub_image(const glm::vec2& begin, const glm::vec2& end)
+    {
+        Image image;
+        auto size = end - begin;
+        if (size.x < 0 || size.y < 0)
+            throw std::runtime_error("Image: Imcorrect index");
+        if (end.x >= _M_width || begin.x >= _M_width || end.y >= _M_height || begin.y >= _M_height)
+            throw std::runtime_error("Image: Index out of range");
+
+        image._M_width = static_cast<int>(size.x + 0.5);
+        image._M_height = static_cast<int>(size.y + 0.5);
+        image._M_channels = _M_channels;
+
+        image._M_data.reserve(image._M_width * image._M_height * _M_channels);
+
+        int start_index = (_M_width * _M_channels * image._M_height) + image._M_width;
+        for (int i = 0; i < image._M_height; i++)
+        {
+            image._M_data.insert(image.end(), _M_data.begin() + start_index,
+                                 _M_data.begin() + start_index +
+                                         image._M_width * image._M_channels);
+            start_index += _M_width * _M_channels;
+        }
+
+        image.configure();
+
+        return image;
     }
 
 
