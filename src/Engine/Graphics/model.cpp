@@ -27,7 +27,8 @@ struct EqualSizeListStruct {
 
 namespace Engine
 {
-    void Model::load_textures(const std::vector<std::pair<std::string, const char*>>& names)
+    void Model::load_textures(const std::vector<std::pair<std::string, const char*>>& names,
+                              const bool& invert_textures)
     {
         _M_models.clear();
         _M_models.resize(names.size());
@@ -61,7 +62,7 @@ namespace Engine
             {
                 std::clog << "Model loader: Loading file " << name << std::endl;
                 _M_images.emplace_back();
-                _M_images.back().load(name, true);
+                _M_images.back().load(name, invert_textures);
                 if (_M_images.back().empty())
                 {
                     std::clog << "Model loader: Failed to load " << name << " , skipping model "
@@ -120,6 +121,7 @@ namespace Engine
     Model& Model::load_model(const std::string& model_file, const DrawMode& mode,
                              const bool& invert)
     {
+        _M_mode = mode;
         const std::string directory = model_file.substr(0, model_file.find_last_of('/')) + "/";
 
         Assimp::Importer importer;
@@ -167,7 +169,7 @@ namespace Engine
             }
 
             // Loading textures
-            load_textures(names);
+            load_textures(names, invert);
         }
 
         // Generating meshes
@@ -230,6 +232,30 @@ namespace Engine
             (*mesh_iterator++).draw(Engine::TRIANGLE);
         }
         return *this;
+    }
+
+    const DrawMode& Model::mode()
+    {
+        return _M_mode;
+    }
+
+    Model& Model::mode(const DrawMode& mode)
+    {
+        _M_mode = mode;
+        auto m = _M_mode == LINEAR ? GL_LINEAR : GL_NEAREST;
+        for (auto& ID : _M_texture_array)
+        {
+            glBindTexture(GL_TEXTURE_2D_ARRAY, ID);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, m);
+            glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, m);
+        }
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+        return *this;
+    }
+
+    Model::Model(const std::string& model_file, const DrawMode& mode, const bool& invert)
+    {
+        load_model(model_file, mode, invert);
     }
 
 

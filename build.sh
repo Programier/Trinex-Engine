@@ -13,4 +13,3 @@ mkdir $DIR/build
 cd $DIR/build
 cmake ..
 make -j$(nproc)
-
