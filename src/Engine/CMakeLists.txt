@@ -12,8 +12,8 @@ set(GRAPHICS Graphics/shader.cpp
              Graphics/camera.cpp
              Graphics/mesh.cpp
              Graphics/texturearray.cpp
-             Graphics/obj_loader.cpp
-             Graphics/basic_texturearray.cpp)
+             Graphics/basic_texturearray.cpp
+             Graphics/model.cpp)
 
 add_library(Init SHARED ${INIT})
 add_library(Window SHARED ${WINDOW})
@@ -22,5 +22,5 @@ add_library(Graphics SHARED ${GRAPHICS})
 
 target_link_libraries(Init glfw GL GLEW)
 target_link_libraries(Window Image Init)
-target_link_libraries(Graphics Init)
+target_link_libraries(Graphics Init assimp)
 

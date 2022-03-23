@@ -676,7 +676,7 @@ namespace Engine
                 parameters._M_backup.push_back(pos.x);
                 parameters._M_backup.push_back(pos.y);
                 parameters._M_backup.push_back(_size.x);
-                parameters._M_backup.push_back(_size.x);
+                parameters._M_backup.push_back(_size.y);
             }
 
             glfwSetWindowMonitor(glfw_window, mode == FULLSCREEN ? Monitor::monitor : nullptr, 0, 0,

@@ -3,6 +3,7 @@
 #include "../Image/image.hpp"
 #include "texture.hpp"
 #include <glm/glm.hpp>
+#include <list>
 #include <string>
 
 
@@ -23,16 +24,21 @@ namespace Engine
         TextureArray(const TextureArray&);
         TextureArray(const std::vector<std::string>& textures,
                      const DrawMode& mode = Engine::DrawMode::LINEAR, const bool& invert = true);
+        TextureArray(const std::list<std::string>& textures,
+                     const DrawMode& mode = Engine::DrawMode::LINEAR, const bool& invert = true);
         TextureArray& operator=(const TextureArray&);
 
         TextureArray& load(const std::vector<std::string>& textures,
+                           const DrawMode& mode = Engine::DrawMode::LINEAR,
+                           const bool& invert = true);
+        TextureArray& load(const std::list<std::string>& textures,
                            const DrawMode& mode = Engine::DrawMode::LINEAR,
                            const bool& invert = true);
         TextureArray& draw_mode(const DrawMode& mode);
         const DrawMode& draw_mode();
         TextureArray& bind();
         static void unbind();
-        glm::vec2 get_max_size();
+        glm::vec2 get_size();
         const std::vector<Image>& images() const;
         ~TextureArray();
     };

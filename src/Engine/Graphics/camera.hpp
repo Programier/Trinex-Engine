@@ -16,7 +16,7 @@ namespace Engine
         glm::vec3 _M_position;
         float _M_viewingAngle, _M_x_rotation, _M_y_rotation, _M_z_rotation;
         glm::mat4 _M_rotation;
-        float _M_maxRenderDistance = 1500.0f, _M_minRenderDistance = 0.1f;
+        float _M_maxRenderDistance = 1000.0f, _M_minRenderDistance = 0.1f;
 
     public:
         Camera(glm::vec3 position, float fov);
@@ -27,6 +27,8 @@ namespace Engine
         Camera& viewing_angle(float angle);
         float viewing_angle();
         Camera& rotate(float x, float y, float z);
+        Camera& rotate(const glm::vec3& rotation);
+        glm::vec3 rotation();
         Camera& move(float forward, float right, float up);
         Camera& move_along_axes(float forward, float right, float up, glm::vec3 front_a,
                                 glm::vec3 right_a, glm::vec3 up_a);
@@ -37,7 +39,6 @@ namespace Engine
         glm::mat4 projection(Window& window);
         glm::mat4 view();
         glm::vec3 coords();
-        glm::vec3 rotation();
         Camera& coords(const glm::vec3& coords);
     };
 

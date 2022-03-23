@@ -127,4 +127,10 @@ namespace Engine
     {
         return _M_viewingAngle;
     }
+
+    Camera& Camera::rotate(const glm::vec3& _M_rotation)
+    {
+        return rotate(_M_rotation.x, _M_rotation.y, _M_rotation.z);
+    }
+
 }// namespace Engine

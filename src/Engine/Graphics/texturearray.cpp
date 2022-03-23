@@ -35,6 +35,12 @@ namespace Engine
         load(textures, mode, invert);
     }
 
+    TextureArray::TextureArray(const std::list<std::string>& textures, const DrawMode& mode,
+                               const bool& invert)
+    {
+        load(textures, mode, invert);
+    }
+
     TextureArray& TextureArray::operator=(const TextureArray& texture_array)
     {
         if (this == &texture_array)
@@ -84,6 +90,43 @@ namespace Engine
         return *this;
     }
 
+    TextureArray& TextureArray::load(const std::list<std::string>& textures, const DrawMode& mode,
+                                     const bool& invert)
+    {
+        if (textures.size() == 0)
+            return *this;
+        _M_mode = mode;
+        _M_max_width = _M_max_height = 0;
+        if (_M_ID != 0)
+            glDeleteTextures(1, &_M_ID);
+        _M_images.clear();
+
+        // Loading images
+        auto iterator = textures.begin();
+        std::clog << "TextureArray: Loading " << (*iterator) << std::endl;
+        _M_images.reserve(textures.size());
+        _M_images.push_back(Image());
+        img.load((*iterator), invert);
+        _M_max_width = img.width();
+        _M_max_height = img.height();
+        if (img.empty())
+            THROW;
+
+        auto end = textures.end();
+        while (++iterator != end)
+        {
+            auto& texture = *iterator;
+            std::clog << "TextureArray: Loading " << texture << std::endl;
+            _M_images.push_back(Image());
+            img.load(texture, invert);
+            if (img.empty() || img.width() != _M_max_width || img.height() != _M_max_height)
+                THROW;
+        }
+
+        create();
+        return *this;
+    }
+
     TextureArray& TextureArray::draw_mode(const DrawMode& mode)
     {
         _M_mode = mode;
@@ -120,7 +163,7 @@ namespace Engine
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
 
-    glm::vec2 TextureArray::get_max_size()
+    glm::vec2 TextureArray::get_size()
     {
         return glm::vec2(_M_max_width, _M_max_height);
     }
