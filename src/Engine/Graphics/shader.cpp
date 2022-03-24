@@ -88,6 +88,19 @@ namespace Engine
 
         std::string vertex_code, fragment_code;
         std::ifstream vertex_file(vertex_path), fragment_file(fragment_path);
+        if (!vertex_file.is_open())
+        {
+            _M_done = false;
+            std::clog << "Shader: Failed to open " << vertex_path << std::endl;
+            return *this;
+        }
+
+        if (!fragment_file.is_open())
+        {
+            _M_done = false;
+            std::clog << "Shader: Failed to open " << fragment_path << std::endl;
+            return *this;
+        }
         try
         {
             std::stringstream buffer1, buffer2;
@@ -114,7 +127,7 @@ namespace Engine
         glGetShaderiv(vertex, GL_COMPILE_STATUS, &succes);
         if (!succes)
         {
-            std::cerr << "Shader: Failed to compile vertex shader" << std::endl;
+            std::cerr << "Shader: Failed to compile vertex shader '" << vertex_path << "'" << std::endl;
             glGetShaderInfoLog(vertex, 1024, nullptr, log);
             std::cerr << log << std::endl;
             _M_done = false;
@@ -130,7 +143,7 @@ namespace Engine
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &succes);
         if (!succes)
         {
-            std::cerr << "Shader: Failed to compile fragment shader" << std::endl;
+            std::cerr << "Shader: Failed to compile fragment shader '" << fragment_path << "'" << std::endl;
             glGetShaderInfoLog(fragment, 1024, nullptr, log);
             std::cerr << log << std::endl;
             _M_done = false;
