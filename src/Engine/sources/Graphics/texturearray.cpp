@@ -1,5 +1,5 @@
-#include "texturearray.hpp"
-#include "basic_texturearray.hpp"
+#include <Graphics/texturearray.hpp>
+#include <Graphics/basic_texturearray.hpp>
 #include <GL/glew.h>
 #include <iostream>
 #include <stdexcept>

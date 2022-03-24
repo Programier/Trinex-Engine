@@ -1,7 +1,7 @@
 #pragma once
 #include <list>
 #include <vector>
-#include "../Image/image.hpp"
+#include <Image/image.hpp>
 #include <glm/glm.hpp>
 
 

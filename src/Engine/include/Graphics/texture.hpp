@@ -1,5 +1,5 @@
 #pragma once
-#include "../Image/image.hpp"
+#include <Image/image.hpp>
 #include <string>
 
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Image/image.hpp"
-#include "texture.hpp"
+#include <Image/image.hpp>
+#include <Graphics/texture.hpp>
 #include <glm/glm.hpp>
 #include <list>
 #include <string>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Window/window.hpp"
+#include <Window/window.hpp>
 #include <glm/glm.hpp>
 namespace Engine
 {

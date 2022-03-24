@@ -1,7 +1,7 @@
 #pragma once
 
-#include "mesh.hpp"
-#include "texturearray.hpp"
+#include <Graphics/mesh.hpp>
+#include <Graphics/texturearray.hpp>
 #include <list>
 
 

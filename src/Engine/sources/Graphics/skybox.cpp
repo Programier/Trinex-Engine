@@ -1,5 +1,5 @@
-#include "skybox.hpp"
-#include "mesh.hpp"
+#include <Graphics/skybox.hpp>
+#include <Graphics/mesh.hpp>
 #include <GL/glew.h>
 #include <iostream>
 

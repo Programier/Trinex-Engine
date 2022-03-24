@@ -1,5 +1,5 @@
-#include "model.hpp"
-#include "basic_texturearray.hpp"
+#include <Graphics/model.hpp>
+#include <Graphics/basic_texturearray.hpp>
 #include <GL/glew.h>
 #include <algorithm>
 #include <assimp/Importer.hpp>

@@ -1,4 +1,4 @@
-#include "basic_texturearray.hpp"
+#include <Graphics/basic_texturearray.hpp>
 #include <GL/glew.h>
 #include <unordered_map>
 

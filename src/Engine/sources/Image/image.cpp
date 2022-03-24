@@ -1,5 +1,5 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "image.hpp"
+#include <Image/image.hpp>
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
 #include <iostream>

@@ -1,4 +1,4 @@
-#include "cursor.hpp"
+#include <Window/cursor.hpp>
 #include <GLFW/glfw3.h>
 #include <iostream>
 

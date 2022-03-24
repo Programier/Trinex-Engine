@@ -1,4 +1,4 @@
-#include "mesh.hpp"
+#include <Graphics/mesh.hpp>
 #include <GL/glew.h>
 
 namespace Engine

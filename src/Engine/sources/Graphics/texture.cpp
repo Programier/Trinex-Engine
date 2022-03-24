@@ -1,4 +1,4 @@
-#include "texture.hpp"
+#include <Graphics/texture.hpp>
 #include <GL/glew.h>
 #include <iostream>
 #include <stdexcept>
