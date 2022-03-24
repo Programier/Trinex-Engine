@@ -250,7 +250,8 @@ namespace Engine
 
         image._M_data.reserve(image._M_width * image._M_height * _M_channels);
 
-        int start_index = (_M_width * _M_channels * image._M_height) + image._M_width;
+        int start_index = (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) +
+                          static_cast<int>(begin.x + 0.5) * _M_channels;
         for (int i = 0; i < image._M_height; i++)
         {
             image._M_data.insert(image.end(), _M_data.begin() + start_index,
