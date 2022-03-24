@@ -5,8 +5,8 @@
 
 #define RIGHT 0
 #define LEFT 1
-#define BOTTOM 2
-#define TOP 3
+#define BOTTOM 3
+#define TOP 2
 #define FRONT 4
 #define BACK 5
 
