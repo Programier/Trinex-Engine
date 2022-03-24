@@ -1,0 +1,1650 @@
+newmtl roof_RidgeChimney_7
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v10.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_6
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v7.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_7
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert2SG_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd ornament_grey.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_16
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl texturedFacets23_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win3_hole.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_12
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v6.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WegTex
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd boden.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_8
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v8.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WieseTex_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_8
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_17
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Mauerside
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd mauer.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl initialShadingGroup
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd metal_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePiece_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WallTexturing_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd OuterWallTexture_v1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl initialShadingGroup_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd sandBag_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert3SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tonne.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Concrete
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd brokenAsphalt.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Car_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd golf_red.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePiece_4.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WallTexturing
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd OuterWallTexture_v2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePatch_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Car_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd golf_grey.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePiece_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl phong1SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd strassenlampe128.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Car
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd golf_blue.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert2SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd litfass.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePiece_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Car_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd golf_green.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_5
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePatch_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WallTexturing_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd OuterWallTexture_v3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_13
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert2SG_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1k.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_12
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.2625
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_FloorTexture_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd courtyard_floor_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_FloorTexture_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd courtyard_floor_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_9
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v6.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Fenster_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_17
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.35
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_16
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.116667
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v3.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_5
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 1.05
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert3SG_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1_textur_tile_dmg.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_10
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.175
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_Rooftex_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rooftex_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert20SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win2_hole.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert17SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd fuckedupWindow2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_6
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.110526
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl VoxMtl
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd bark.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WindowOrHole
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win1_hole.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert2SG_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd baum_texture.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v4.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl texturedFacets12
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_dach_dmg.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_LawnTexture_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v5.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_6
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubblePatch_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_19
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.3
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_Rooftex_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rooftex_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_11
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.15
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl texturedFacets23
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win1_hole.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.190909
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.13125
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert7SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v9.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_Rooftex_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rooftex_5.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_8
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.7
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_scatterRule_PutScatteredAsset_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd crater_4.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_13
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.123529
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert16SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd fuckeupWindow.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_9
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.21
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_18
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.14
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_scatterRule_PutScatteredAsset_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd crater_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v5.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert3SG_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1k.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert15SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_pillar.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Pavement
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd pavement.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_21
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.105
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_scatterRule_PutScatteredAsset
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd crater_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_14
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.233333
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Floor
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rubble.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_LawnTexture
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Curbs
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd curb.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_20
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.161538
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_15
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.42
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Fenster_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney_6
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v9.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 2.1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_7
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.525
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl texturedFacets25
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd mauerbruchstuecke.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_FloorTexture
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd courtyard_floor_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v2.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl initialShadingGroup1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd pillarTex_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl initialShadingGroup1_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd pillarTex_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert13SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_shop3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl CityEngineMaterial
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert9SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_win_small.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Fenster
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_Rooftex
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rooftex_4.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert11SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_shop2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v10.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert10SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_door.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert14SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_shop_round1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WallTexturing_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd OuterWallTexture_v1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WieseTex
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_30
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0724138
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_31
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0636364
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_32
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0677419
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_33
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.07
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_11
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v3.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_29
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.065625
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_28
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.075
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert3SG_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd railingTex.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v4.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl exteriorAssets_v8_lambert143SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd treeHole_1_v4.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_9
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl exteriorAssets_v8_lambert145SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd treeHole_1_v1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert30SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1k.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl altstadthaus_WindowOrHole_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win2_hole.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v1.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert5SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1_textur_loch2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl altstadthaus_WindowOrHole_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win3_hole.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl exteriorAssets_v8_lambert141SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd treeHole_1_v3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert6SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1_textur_fenster.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Fenster_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert2SG_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1_textur_tile.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_5
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_8
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd crater_5.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl initialShadingGroup1_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd plaster.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_10
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v8.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Fronttex
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1k.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_11
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_12
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_RidgeChimney_5
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v1.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_FloorTexture_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd courtyard_floor_4.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl exteriorAssets_v8_lambert144SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd treeHole_1_v5.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl altstadthaus_WindowOrHole
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_Rooftex_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd rooftex_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_15
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl scatterRule_PutScatteredAsset_7
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd crater_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl altstadthaus_WindowOrHole_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd tex_ornate_win3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl lambert10SG_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd haus1_textur_door.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_LawnTexture_2
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl cy_LawnTexture_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_4.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_10
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_1.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_3
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_27
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.084
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl WieseTex_1
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd grass_2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl exteriorAssets_v8_lambert142SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd treeHole_1_v2.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney_5
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v7.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_6
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_26
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0875
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl roof_PutChimney_4
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd chimneyTex_v2.png
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl Wall_14
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd wall_3.jpg
+    Kd 1 1 1
+    d 1
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_23
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0913043
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_25
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0777778
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_22
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0954545
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl smoke_SmokeRec_24
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd smokeSprite.png
+    Kd 1 1 1
+    d 0.0807692
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+newmtl kirche_friedhof_phong2SG
+    illum 3
+    Ks 0 0 0
+    Ns 0
+    map_Kd kirche_friedhof_texture_COLOR.jpg
+    Kd 1 1 1
+    d 0.0807692
+    Ka 0 0 0
+    Tf 1.0 1.0 1.0
+    Ni 1.0
+
