@@ -13,7 +13,8 @@ set(GRAPHICS Graphics/shader.cpp
              Graphics/mesh.cpp
              Graphics/texturearray.cpp
              Graphics/basic_texturearray.cpp
-             Graphics/model.cpp)
+             Graphics/model.cpp
+             Graphics/skybox.cpp)
 
 add_library(Init SHARED ${INIT})
 add_library(Window SHARED ${WINDOW})

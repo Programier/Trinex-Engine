@@ -22,17 +22,15 @@ namespace Engine
     public:
         TextureArray();
         TextureArray(const TextureArray&);
-        TextureArray(const std::vector<std::string>& textures,
-                     const DrawMode& mode = Engine::DrawMode::LINEAR, const bool& invert = true);
-        TextureArray(const std::list<std::string>& textures,
-                     const DrawMode& mode = Engine::DrawMode::LINEAR, const bool& invert = true);
+        TextureArray(const std::vector<std::string>& textures, const DrawMode& mode = Engine::DrawMode::NEAREST,
+                     const bool& invert = true);
+        TextureArray(const std::list<std::string>& textures, const DrawMode& mode = Engine::DrawMode::NEAREST,
+                     const bool& invert = true);
         TextureArray& operator=(const TextureArray&);
 
-        TextureArray& load(const std::vector<std::string>& textures,
-                           const DrawMode& mode = Engine::DrawMode::LINEAR,
+        TextureArray& load(const std::vector<std::string>& textures, const DrawMode& mode = Engine::DrawMode::NEAREST,
                            const bool& invert = true);
-        TextureArray& load(const std::list<std::string>& textures,
-                           const DrawMode& mode = Engine::DrawMode::LINEAR,
+        TextureArray& load(const std::list<std::string>& textures, const DrawMode& mode = Engine::DrawMode::NEAREST,
                            const bool& invert = true);
         TextureArray& draw_mode(const DrawMode& mode);
         const DrawMode& draw_mode();

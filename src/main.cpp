@@ -3,6 +3,7 @@
 #include <Graphics/mesh.hpp>
 #include <Graphics/model.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/skybox.hpp>
 #include <Graphics/texture.hpp>
 #include <Graphics/texturearray.hpp>
 #include <Window/window.hpp>
@@ -15,51 +16,42 @@ int main()
     bool light = false;
 
     Engine::Window window(1280, 720, "test", true);
-    Engine::Shader shader(
-            "Shaders/main.vert",
-            "Shaders/main.frag");
+    Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
-    Engine::Model model;
-    model.load_model("resources/de_dust2.obj");
+    Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
+    Engine::Model model("resources/Downtown_Damage_0.obj");
 
-    Engine::Camera camera(glm::vec3(321.011, 2419.2, -61.7113), glm::radians(70.f));
-    camera.rotate(1.54167, 0, 3.11172);
+    Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
+                                                   "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
+                                                   "resources/skybox/front.jpg", "resources/skybox/back.jpg"});
+
+    Engine::Camera camera(glm::vec3(-7.35696, 25.5047, -92.4169), glm::radians(70.f));
+    camera.rotate(-0.0777782, -0.139584, 0);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    shader.use();
-
     while (window.is_open())
     {
-        float speed = 200 * window.event.diff_time();
+        float speed = 15 * window.event.diff_time();
         window.event.poll_events();
         window.clear_buffer();
         if (window.event.keyboard.just_pressed() == Engine::KEY_TAB)
         {
-            window.event.mouse.cursor_status(window.event.mouse.cursor_status() == Engine::NORMAL
-                                                     ? Engine::DISABLED
-                                                     : Engine::NORMAL);
+            window.event.mouse.cursor_status(window.event.mouse.cursor_status() == Engine::NORMAL ? Engine::DISABLED
+                                                                                                  : Engine::NORMAL);
         }
 
         if (window.event.keyboard.just_pressed() == Engine::KEY_R)
         {
-
-            shader.load("Shaders/main.vert",
-                        "Shaders/main.frag")
-                    .use();
+            shader.load("Shaders/main.vert", "Shaders/main.frag");
+            skybox_shader.load("Shaders/skybox.vert", "Shaders/skybox.frag");
         }
 
         auto coords = camera.coords();
-        shader.set("camera", coords);
-        shader.set("light", light);
-        shader.set("projview", camera.projection(window) * camera.view());
-        std::string title = "x: " + std::to_string(coords.x) + ", y: " + std::to_string(coords.y) +
-                            ", z: " + std::to_string(coords.z);
-        window.title(title);
         const auto& offset = window.event.mouse.offset();
         if (window.event.mouse.cursor_status() == Engine::DISABLED)
-            camera.rotate(offset.y / (window.height()), 0, -offset.x / (window.width()));
+            camera.rotate(offset.y / (window.height()), -offset.x / (window.width()), 0);
 
         if (window.event.pressed(Engine::KEY_W))
         {
@@ -86,8 +78,7 @@ int main()
             auto coords = camera.coords();
             std::cout << "Coords: " << coords.x << " " << coords.y << " " << coords.z << std::endl;
             auto rotation = camera.rotation();
-            std::cout << "Rotation: " << rotation.x << " " << rotation.y << " " << rotation.z
-                      << std::endl;
+            std::cout << "Rotation: " << rotation.x << " " << rotation.y << " " << rotation.z << std::endl;
         }
 
 
@@ -96,7 +87,13 @@ int main()
             light = !light;
         }
 
+        auto projection = camera.projection(window);
+        shader.use().set("camera", coords).set("light", light).set("projview", projection * camera.view());
         model.draw();
+        skybox_shader.use()
+                .set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view())))
+                .set("light", light);
+        skybox.draw();
 
         if (window.event.keyboard.just_pressed() == Engine::KEY_ENTER)
         {

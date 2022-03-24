@@ -55,8 +55,7 @@ namespace Engine
             Image* current_image = _M_loaded[name];
             if (current_image != nullptr)
             {
-                std::clog << "Model loader: Skipping loading file " << name
-                          << ", file already loaded" << std::endl;
+                std::clog << "Model loader: Skipping loading file " << name << ", file already loaded" << std::endl;
             }
             else
             {
@@ -65,8 +64,8 @@ namespace Engine
                 _M_images.back().load(name, invert_textures);
                 if (_M_images.back().empty())
                 {
-                    std::clog << "Model loader: Failed to load " << name << " , skipping model "
-                              << _M_pair.second << std::endl;
+                    std::clog << "Model loader: Failed to load " << name << " , skipping model " << _M_pair.second
+                              << std::endl;
                     _M_images.pop_back();
                     continue;
                 }
@@ -118,8 +117,7 @@ namespace Engine
         }
     }
 
-    Model& Model::load_model(const std::string& model_file, const DrawMode& mode,
-                             const bool& invert)
+    Model& Model::load_model(const std::string& model_file, const DrawMode& mode, const bool& invert)
     {
         _M_mode = mode;
         const std::string directory = model_file.substr(0, model_file.find_last_of('/')) + "/";
@@ -195,18 +193,14 @@ namespace Engine
 
                     (*model_mesh._M_mesh).data().push_back(uv.x);
                     (*model_mesh._M_mesh).data().push_back(uv.y);
-                    (*model_mesh._M_mesh)
-                            .data()
-                            .push_back(static_cast<float>(model_mesh._M_local_index));
+                    (*model_mesh._M_mesh).data().push_back(static_cast<float>(model_mesh._M_local_index));
                 }
             }
         }
 
         for (auto& model_mesh : _M_mesh)
         {
-            model_mesh.attributes({3, 3})
-                    .vertices_count(model_mesh.data().size() / 6)
-                    .update_buffers();
+            model_mesh.attributes({3, 3}).vertices_count(model_mesh.data().size() / 6).update_buffers();
         }
 
         return *this;
@@ -231,6 +225,7 @@ namespace Engine
             glBindTexture(GL_TEXTURE_2D_ARRAY, (*texture_iterator++));
             (*mesh_iterator++).draw(Engine::TRIANGLE);
         }
+        glBindTexture(GL_PROXY_TEXTURE_2D_ARRAY, 0);
         return *this;
     }
 

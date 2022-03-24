@@ -101,6 +101,7 @@ namespace Engine
             std::clog << "Shader: Failed to open " << fragment_path << std::endl;
             return *this;
         }
+
         try
         {
             std::stringstream buffer1, buffer2;
