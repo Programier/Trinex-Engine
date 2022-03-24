@@ -49,8 +49,7 @@ namespace Engine
 
     void Image::configure()
     {
-        auto glfw_img =
-                _M_glfw_image == nullptr ? new GLFWimage() : static_cast<GLFWimage*>(_M_glfw_image);
+        auto glfw_img = _M_glfw_image == nullptr ? new GLFWimage() : static_cast<GLFWimage*>(_M_glfw_image);
 
         glfw_img->height = _M_height;
         glfw_img->width = _M_width;
@@ -189,8 +188,7 @@ namespace Engine
 
     //          PIXEL
 
-    Image::ImageRow::Pixel::Pixel(unsigned char* data, int channels)
-        : _M_data(data), _M_channels(channels)
+    Image::ImageRow::Pixel::Pixel(unsigned char* data, int channels) : _M_data(data), _M_channels(channels)
     {}
 
     unsigned char& Image::ImageRow::Pixel::R()
@@ -243,7 +241,7 @@ namespace Engine
         auto size = end - begin;
         if (size.x < 0 || size.y < 0)
             throw std::runtime_error("Image: Imcorrect index");
-        if (end.x >= _M_width || begin.x >= _M_width || end.y >= _M_height || begin.y >= _M_height)
+        if (end.x > _M_width || begin.x > _M_width || end.y > _M_height || begin.y > _M_height)
             throw std::runtime_error("Image: Index out of range");
 
         image._M_width = static_cast<int>(size.x + 0.5);
@@ -256,8 +254,7 @@ namespace Engine
         for (int i = 0; i < image._M_height; i++)
         {
             image._M_data.insert(image.end(), _M_data.begin() + start_index,
-                                 _M_data.begin() + start_index +
-                                         image._M_width * image._M_channels);
+                                 _M_data.begin() + start_index + image._M_width * image._M_channels);
             start_index += _M_width * _M_channels;
         }
 
