@@ -20,7 +20,7 @@ vec4 get_color()
     if (light == 0)
         return get_texture_color();
 
-    float max = 1000;
+    float max = 100;
     float diff = abs(distance(pixel, camera));
     if (diff > max)
         return vec4(0, 0, 0, 1);
