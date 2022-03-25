@@ -5,6 +5,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-Wall)
 
+if(WIN32)
+    link_directories("./libs/")
+    include_directories("./libs")
+	set(OPENGL opengl32)
+	set(GLEW_LIB glew32)
+	set(ASSIMP assimp-5)
+else()
+	set(OPENGL GL)
+	set(GLEW_LIB GLEW)
+	set(ASSIMP assimp)
+endif()
 
 set(INIT_DIR "sources/Init/")
 set(WINDOW_DIR "sources/Window/")
@@ -36,7 +47,7 @@ add_library(Graphics SHARED ${GRAPHICS})
 
 include_directories("include/")
 
-target_link_libraries(Init glfw GL GLEW)
+target_link_libraries(Init glfw ${OPENGL} ${GLEW_LIB})
 target_link_libraries(Window Image Init)
-target_link_libraries(Graphics Init assimp)
+target_link_libraries(Graphics Image Window Init ${ASSIMP})
 
