@@ -2,17 +2,17 @@
 
 in vec4 a_color;
 
-in vec3 texture_coords;
+in vec2 texture_coords;
 in vec3 pixel;
 out vec4 f_color;
 
-uniform sampler2DArray textures;
+uniform sampler2D texture0;
 uniform vec3 camera;
 uniform int light = 1;
 
 vec4 get_texture_color()
 {
-    return texture(textures, vec3(texture_coords));
+    return texture(texture0, texture_coords);
 }
 
 vec4 get_color()

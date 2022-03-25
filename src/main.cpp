@@ -10,7 +10,6 @@
 #include <glm/ext.hpp>
 #include <iostream>
 
-
 int main()
 {
     bool light = false;
@@ -30,6 +29,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     while (window.is_open())
     {

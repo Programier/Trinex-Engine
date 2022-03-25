@@ -11,7 +11,7 @@ namespace Engine
         LINEAR
     };
 
-    class Texture : Image
+    class Texture : public Image
     {
         unsigned int _M_ID = 0;
 
@@ -21,12 +21,10 @@ namespace Engine
     public:
         Texture();
         Texture(const Texture& texture);
-        Texture(const std::string& texture, const DrawMode& mode = NEAREST,
-                const bool& invert = true);
+        Texture(const std::string& texture, const DrawMode& mode = NEAREST, const bool& invert = true);
 
         Texture& operator=(const Texture&);
-        Texture& load(const std::string& texture, const DrawMode& mode = NEAREST,
-                      const bool& invert = true);
+        Texture& load(const std::string& texture, const DrawMode& mode = NEAREST, const bool& invert = true);
 
         Texture& draw_mode(const DrawMode& mode);
         const DrawMode& draw_mode();
