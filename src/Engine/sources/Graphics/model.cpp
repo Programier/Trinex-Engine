@@ -86,6 +86,15 @@ namespace Engine
             return *this;
         }
 
+        static const aiTextureType texture_types[] = {
+                aiTextureType_AMBIENT,        aiTextureType_AMBIENT_OCCLUSION, aiTextureType_BASE_COLOR,
+                aiTextureType_DIFFUSE,        aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_DISPLACEMENT,
+                aiTextureType_EMISSION_COLOR, aiTextureType_EMISSIVE,          aiTextureType_HEIGHT,
+                aiTextureType_LIGHTMAP,       aiTextureType_METALNESS,         aiTextureType_METALNESS,
+                aiTextureType_NORMALS,        aiTextureType_NORMAL_CAMERA,     aiTextureType_OPACITY,
+                aiTextureType_REFLECTION,     aiTextureType_SHININESS,         aiTextureType_SPECULAR,
+                aiTextureType_UNKNOWN};
+
         // Getting filenames of textures
         {
             std::vector<std::pair<std::string, const char*>> names;
@@ -96,31 +105,15 @@ namespace Engine
                 auto mat = scene->mMaterials[i];
 
                 aiString name;
-
-                mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &name);
-                std::string tmp(name.C_Str());
-
-                if (tmp == "")
+                std::string tmp;
+                for (auto& type : texture_types)
                 {
                     name.Clear();
-                    mat->GetTexture(aiTextureType_SPECULAR, 0, &name);
+                    mat->GetTexture(type, 0, &name);
                     tmp = std::string(name.C_Str());
+                    if (tmp != "")
+                        break;
                 }
-
-                if (tmp == "")
-                {
-                    name.Clear();
-                    mat->GetTexture(aiTextureType_HEIGHT, 0, &name);
-                    tmp = std::string(name.C_Str());
-                }
-
-                if (tmp == "")
-                {
-                    name.Clear();
-                    mat->GetTexture(aiTextureType_AMBIENT, 0, &name);
-                    tmp = std::string(name.C_Str());
-                }
-
 
                 names.push_back({directory + tmp, mat->GetName().C_Str()});
             }
@@ -149,20 +142,29 @@ namespace Engine
                     if (scene_mesh->mTextureCoords[0] == nullptr)
                         continue;
 
+                    // Vertex coords
                     auto uv = scene_mesh->mTextureCoords[0][face.mIndices[f]];
                     (*model_mesh._M_mesh).data().push_back(vert.x);
                     (*model_mesh._M_mesh).data().push_back(vert.y);
                     (*model_mesh._M_mesh).data().push_back(vert.z);
 
+                    // Texture coords
                     (*model_mesh._M_mesh).data().push_back(uv.x);
                     (*model_mesh._M_mesh).data().push_back(uv.y);
+
+                    // Normals
+                    auto& normal = scene_mesh->mNormals[face.mIndices[f]];
+                    (*model_mesh._M_mesh).data().push_back(normal.x);
+                    (*model_mesh._M_mesh).data().push_back(normal.y);
+                    (*model_mesh._M_mesh).data().push_back(normal.z);
                 }
             }
         }
 
         for (auto& model_mesh : _M_meshes)
-            model_mesh.attributes({3, 2}).vertices_count(model_mesh.data().size() / 5).update_buffers();
+            model_mesh.attributes({3, 2, 3}).vertices_count(model_mesh.data().size() / 8).update_buffers();
 
+        std::clog << "Model loader: Loading the \"" << model_file << "\" model completed successfully" << std::endl;
         return *this;
     }
 
