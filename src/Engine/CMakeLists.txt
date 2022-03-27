@@ -38,7 +38,8 @@ set(GRAPHICS ${GRAPHICS_DIR}/shader.cpp
              ${GRAPHICS_DIR}/texturearray.cpp
              ${GRAPHICS_DIR}/basic_texturearray.cpp
              ${GRAPHICS_DIR}/model.cpp
-             ${GRAPHICS_DIR}/skybox.cpp)
+             ${GRAPHICS_DIR}/skybox.cpp
+             ${GRAPHICS_DIR}/line.cpp)
 
 add_library(Init SHARED ${INIT})
 add_library(Window SHARED ${WINDOW})

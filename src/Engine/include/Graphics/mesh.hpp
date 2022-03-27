@@ -22,6 +22,7 @@ namespace Engine
 
     class Mesh
     {
+    protected:
         std::vector<float> _M_data;
         unsigned int _M_VAO = 0, _M_VBO = 0;
         unsigned int _M_vertices = 0;

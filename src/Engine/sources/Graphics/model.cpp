@@ -46,7 +46,8 @@ namespace Engine
             auto& current_pair = _M_loaded[name];
             if (current_pair.empty())
             {
-                std::clog << "Model loader: Loading texture from " << name << std::endl;
+                std::clog << "Model loader: Loading texture from " << name << ", model name is " << _name.second
+                          << std::endl;
                 _M_textures.emplace_back();
                 bool has_exception = false;
                 try
@@ -154,10 +155,19 @@ namespace Engine
                     (*model_mesh._M_mesh).data().push_back(uv.y);
 
                     // Normals
-                    auto& normal = scene_mesh->mNormals[face.mIndices[f]];
-                    (*model_mesh._M_mesh).data().push_back(normal.x);
-                    (*model_mesh._M_mesh).data().push_back(normal.y);
-                    (*model_mesh._M_mesh).data().push_back(normal.z);
+                    if (scene_mesh->mNormals != nullptr)
+                    {
+                        auto& normal = scene_mesh->mNormals[face.mIndices[f]];
+                        (*model_mesh._M_mesh).data().push_back(normal.x);
+                        (*model_mesh._M_mesh).data().push_back(normal.y);
+                        (*model_mesh._M_mesh).data().push_back(normal.z);
+                    }
+                    else
+                    {
+                        (*model_mesh._M_mesh).data().push_back(0);
+                        (*model_mesh._M_mesh).data().push_back(0);
+                        (*model_mesh._M_mesh).data().push_back(0);
+                    }
                 }
             }
         }
@@ -208,6 +218,21 @@ namespace Engine
     Model::Model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap, const bool& invert)
     {
         load_model(model_file, mode, mipmap, invert);
+    }
+
+    const std::list<Texture>& Model::textures() const
+    {
+        return _M_textures;
+    }
+
+    const std::list<Mesh>& Model::meshes() const
+    {
+        return _M_meshes;
+    }
+
+    const std::vector<Model::pair>& Model::parts() const
+    {
+        return _M_parts;
     }
 
 

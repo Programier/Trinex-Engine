@@ -36,6 +36,10 @@ namespace Engine
         Model& draw();
         const DrawMode& mode();
         Model& mode(const DrawMode& mode);
+
+        const std::list<Texture>& textures() const;
+        const std::list<Mesh>& meshes() const;
+        const std::vector<pair>& parts() const;
         ~Model();
     };
 }// namespace Engine

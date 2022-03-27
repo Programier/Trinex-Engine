@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <Graphics/camera.hpp>
+#include <Graphics/line.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/model.hpp>
 #include <Graphics/shader.hpp>
@@ -18,18 +19,23 @@ int main()
     Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
     Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::Model model("resources/Downtown_Damage_0.obj", Engine::LINEAR, 80);
+    Engine::Model model("resources/Downtown_Damage_0.obj", Engine::NEAREST, 80);
 
     Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
                                                    "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
                                                    "resources/skybox/front.jpg", "resources/skybox/back.jpg"});
 
+    Engine::Shader line("Shaders/lines.vert", "Shaders/lines.frag");
+
     Engine::Camera camera(glm::vec3(-7.35696, 25.5047, -92.4169), glm::radians(70.f));
     camera.rotate(-0.0777782, -0.139584, 0);
+    Engine::Line lines;
+    lines.lines_from(model).line_width(0.5f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    bool lines_draw = false;
 
     while (window.is_open())
     {
@@ -87,9 +93,24 @@ int main()
             light = !light;
         }
 
+        if (window.event.keyboard.just_pressed() == Engine::KEY_Y)
+            lines_draw = !lines_draw;
         auto projection = camera.projection(window);
-        shader.use().set("camera", coords).set("light", light).set("projview", projection * camera.view());
-        model.draw();
+
+        if (lines_draw == false)
+        {
+            shader.use()
+                    .set("camera", coords)
+                    .set("lines", lines_draw)
+                    .set("light", light)
+                    .set("projview", projection * camera.view());
+            model.draw();
+        }
+        else
+        {
+            line.use().set("projview", projection * camera.view()).set("color", glm::vec3(1, 0, 0));
+            lines.draw();
+        }
         skybox_shader.use()
                 .set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view())))
                 .set("light", light);
