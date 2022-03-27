@@ -4,14 +4,12 @@
 
 namespace Engine
 {
-#define BASIC_TEXTURE                                                                              \
-    {                                                                                              \
-            -1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 1.0f, 1.0f,                        \
-            -1.0f, 1.0f,  0.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 0.0f, 1.0f, 1.0f,                        \
-            1.0f,  1.0f,  0.0f, 1.0f, 0.0f, -1.0f, 1.0f,  0.0f, 0.0f, 0.0f},                       \
-            6,                                                                                     \
-    {                                                                                              \
-        3, 2                                                                                       \
+#define BASIC_TEXTURE                                                                                                  \
+    {-1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f,                     \
+     1.0f,  -1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,  0.0f, 1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f},                    \
+            6,                                                                                                         \
+    {                                                                                                                  \
+        3, 2                                                                                                           \
     }
 
     enum Primitive
@@ -36,11 +34,9 @@ namespace Engine
         Mesh();
         Mesh(const Mesh&);
         Mesh& operator=(const Mesh&);
-        Mesh& load(const std::vector<float> data, unsigned int vertices,
-                   const std::vector<int>& attributes);
+        Mesh& load(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes);
 
-        Mesh(const std::vector<float> data, unsigned int vertices,
-             const std::vector<int>& attributes);
+        Mesh(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes);
         Mesh& draw(const Primitive& primitive);
 
         std::vector<float>& data();
