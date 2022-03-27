@@ -1,6 +1,6 @@
-#include <Graphics/texturearray.hpp>
-#include <Graphics/basic_texturearray.hpp>
 #include <GL/glew.h>
+#include <Graphics/basic_texturearray.hpp>
+#include <Graphics/texturearray.hpp>
 #include <iostream>
 #include <stdexcept>
 
@@ -12,12 +12,13 @@ namespace Engine
 
     void TextureArray::create()
     {
-        _M_ID = Engine::basic_texturearray::gen_texture_array(
-                _M_images, glm::vec2((float) _M_max_width, (float) _M_max_height));
+        _M_ID = Engine::basic_texturearray::gen_texture_array(_M_images,
+                                                              glm::vec2((float) _M_max_width, (float) _M_max_height));
         bind();
         auto m = _M_mode == LINEAR ? GL_LINEAR : GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, m);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, m);
+        glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
         unbind();
     }
 
@@ -30,15 +31,15 @@ namespace Engine
     }
 
     TextureArray::TextureArray(const std::vector<std::string>& textures, const DrawMode& mode,
-                               const bool& invert)
+                               const unsigned int& mipmap, const bool& invert)
     {
-        load(textures, mode, invert);
+        load(textures, mode, mipmap, invert);
     }
 
-    TextureArray::TextureArray(const std::list<std::string>& textures, const DrawMode& mode,
+    TextureArray::TextureArray(const std::list<std::string>& textures, const DrawMode& mode, const unsigned int& mipmap,
                                const bool& invert)
     {
-        load(textures, mode, invert);
+        load(textures, mode, mipmap, invert);
     }
 
     TextureArray& TextureArray::operator=(const TextureArray& texture_array)
@@ -47,6 +48,7 @@ namespace Engine
             return *this;
         _M_mode = texture_array._M_mode;
         _M_images = texture_array._M_images;
+        _M_mipmap = texture_array._M_mipmap;
 
         if (_M_ID != 0)
             glDeleteTextures(1, &_M_ID);
@@ -55,8 +57,9 @@ namespace Engine
     }
 
     TextureArray& TextureArray::load(const std::vector<std::string>& textures, const DrawMode& mode,
-                                     const bool& invert)
+                                     const unsigned int& mipmap, const bool& invert)
     {
+        _M_mipmap = mipmap;
         if (textures.size() == 0)
             return *this;
         _M_mode = mode;
@@ -91,10 +94,11 @@ namespace Engine
     }
 
     TextureArray& TextureArray::load(const std::list<std::string>& textures, const DrawMode& mode,
-                                     const bool& invert)
+                                     const unsigned int& mipmap, const bool& invert)
     {
         if (textures.size() == 0)
             return *this;
+        _M_mipmap = mipmap;
         _M_mode = mode;
         _M_max_width = _M_max_height = 0;
         if (_M_ID != 0)
@@ -132,7 +136,6 @@ namespace Engine
         _M_mode = mode;
         bind();
         auto m = _M_mode == LINEAR ? GL_LINEAR : GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, m);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, m);
         unbind();
         return *this;

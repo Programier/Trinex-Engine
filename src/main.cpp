@@ -18,7 +18,7 @@ int main()
     Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
     Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::Model model("resources/Downtown_Damage_0.obj");
+    Engine::Model model("resources/Downtown_Damage_0.obj", Engine::LINEAR, 80);
 
     Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
                                                    "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",

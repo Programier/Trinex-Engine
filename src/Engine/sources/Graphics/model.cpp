@@ -29,7 +29,7 @@ namespace Engine
         return _M_texture == nullptr && _M_mesh == nullptr;
     }
 
-    void Model::load_textures(const std::vector<std::pair<std::string, const char*>>& names,
+    void Model::load_textures(const std::vector<std::pair<std::string, const char*>>& names, const unsigned int& mipmap,
                               const bool& invert_textures)
     {
 
@@ -51,7 +51,7 @@ namespace Engine
                 bool has_exception = false;
                 try
                 {
-                    _M_textures.back().load(name, _M_mode, invert_textures);
+                    _M_textures.back().load(name, _M_mode, mipmap, invert_textures);
                 }
                 catch (...)
                 {
@@ -73,7 +73,8 @@ namespace Engine
         }
     }
 
-    Model& Model::load_model(const std::string& model_file, const DrawMode& mode, const bool& invert)
+    Model& Model::load_model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
+                             const bool& invert)
     {
         _M_mode = mode;
         const std::string directory = model_file.substr(0, model_file.find_last_of('/')) + "/";
@@ -119,7 +120,7 @@ namespace Engine
             }
 
             // Loading textures
-            load_textures(names, invert);
+            load_textures(names, mipmap, invert);
         }
 
         std::clog << "Model loader: Generating meshes" << std::endl;
@@ -204,9 +205,9 @@ namespace Engine
         return *this;
     }
 
-    Model::Model(const std::string& model_file, const DrawMode& mode, const bool& invert)
+    Model::Model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap, const bool& invert)
     {
-        load_model(model_file, mode, invert);
+        load_model(model_file, mode, mipmap, invert);
     }
 
 

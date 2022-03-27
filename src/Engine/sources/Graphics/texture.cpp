@@ -1,5 +1,5 @@
-#include <Graphics/texture.hpp>
 #include <GL/glew.h>
+#include <Graphics/texture.hpp>
 #include <iostream>
 #include <stdexcept>
 
@@ -7,8 +7,10 @@
 namespace Engine
 {
 
-    void Texture::private_load(const std::string& name, const DrawMode& mode, const bool& invert)
+    void Texture::private_load(const std::string& name, const DrawMode& mode, const unsigned int& mipmap,
+                               const bool& invert)
     {
+        _M_mipmap = mipmap;
         _M_mode = mode;
         Image::load(name, invert);
         if (Image::empty())
@@ -19,18 +21,20 @@ namespace Engine
         glBindTexture(GL_TEXTURE_2D, ID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Image::width(), Image::height(), 0,
-                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE,
-                     (GLvoid*) Image::data());
+                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE, (GLvoid*) Image::data());
         auto gl_mode = mode == NEAREST ? GL_NEAREST : GL_LINEAR;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_mode);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _M_mipmap);
+        glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
         _M_ID = ID;
     }
 
-    Texture::Texture(const std::string& file, const DrawMode& mode, const bool& invert)
+    Texture::Texture(const std::string& file, const DrawMode& mode, const unsigned int& mipmap, const bool& invert)
     {
-        private_load(file, mode, invert);
+        private_load(file, mode, mipmap, invert);
     }
 
     void Texture::unbind()
@@ -58,7 +62,6 @@ namespace Engine
 
         glBindTexture(GL_TEXTURE_2D, _M_ID);
         auto gl_mode = mode == NEAREST ? GL_NEAREST : GL_LINEAR;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_mode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -70,11 +73,12 @@ namespace Engine
         return _M_mode;
     }
 
-    Texture& Texture::load(const std::string& texture, const DrawMode& mode, const bool& invert)
+    Texture& Texture::load(const std::string& texture, const DrawMode& mode, const unsigned int& mipmap,
+                           const bool& invert)
     {
         if (_M_ID != 0)
             glDeleteTextures(1, &_M_ID);
-        private_load(texture, mode, invert);
+        private_load(texture, mode, mipmap, invert);
         return *this;
     }
 
@@ -88,16 +92,15 @@ namespace Engine
             glDeleteTextures(1, &_M_ID);
         dynamic_cast<Image&>(*this) = dynamic_cast<const Image&>(texture);
         _M_mode = texture._M_mode;
-
+        _M_mipmap = texture._M_mipmap;
         unsigned int ID;
         glGenTextures(1, &ID);
         glBindTexture(GL_TEXTURE_2D, ID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Image::width(), Image::height(), 0,
-                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE,
-                     (GLvoid*) Image::data());
+                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE, (GLvoid*) Image::data());
         auto gl_mode = _M_mode == NEAREST ? GL_NEAREST : GL_LINEAR;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_mode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
         glBindTexture(GL_TEXTURE_2D, 0);
         _M_ID = ID;
