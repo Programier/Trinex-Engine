@@ -1,5 +1,5 @@
-#include <Graphics/mesh.hpp>
 #include <GL/glew.h>
+#include <Graphics/mesh.hpp>
 
 namespace Engine
 {
@@ -15,8 +15,7 @@ namespace Engine
 
         glBindVertexArray(_M_VAO);
         glBindBuffer(GL_ARRAY_BUFFER, _M_VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _M_vertices, _M_data.data(),
-                     GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _M_vertices, _M_data.data(), GL_STATIC_DRAW);
 
         // Setting attributes values
         int offset = 0;
@@ -57,8 +56,7 @@ namespace Engine
         return *this;
     }
 
-    Mesh& Mesh::load(const std::vector<float> data, unsigned int vertices,
-                     const std::vector<int>& attributes)
+    Mesh& Mesh::load(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes)
     {
         delete_vbo_vao();
         _M_data = data;
@@ -69,8 +67,7 @@ namespace Engine
         return *this;
     }
 
-    Mesh::Mesh(const std::vector<float> data, unsigned int vertices,
-               const std::vector<int>& attributes)
+    Mesh::Mesh(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes)
         : _M_data(data), _M_vertices(vertices), _M_attrib(attributes)
     {
         gen_vbo_vao();
@@ -79,9 +76,7 @@ namespace Engine
     Mesh& Mesh::draw(const Primitive& primitive)
     {
         glBindVertexArray(_M_VAO);
-        auto gl_primitive = primitive == POINT  ? GL_POINTS
-                            : primitive == LINE ? GL_LINES
-                                                : GL_TRIANGLES;
+        auto gl_primitive = primitive == POINT ? GL_POINTS : primitive == LINE ? GL_LINES : GL_TRIANGLES;
         glDrawArrays(gl_primitive, 0, _M_vertices);
         glBindVertexArray(0);
         return *this;
