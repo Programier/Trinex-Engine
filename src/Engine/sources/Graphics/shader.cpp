@@ -1,12 +1,88 @@
-#include <Graphics/shader.hpp>
 #include <GL/glew.h>
+#include <Graphics/shader.hpp>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <sstream>
+#include <vector>
+
+#define delete_program(id)                                                                                             \
+    if ((id) != 0)                                                                                                     \
+    glDeleteProgram(id)
+#define delete_shader(id)                                                                                              \
+    if ((id) != 0)                                                                                                     \
+    glDeleteShader(id)
+
+
+static void read_file(const std::string& filename, std::string& out)
+{
+    std::ifstream input_file(filename);
+    if (!input_file.is_open())
+    {
+        std::cerr << "Shader: Failed to open " << filename << std::endl;
+        throw -1;
+    }
+
+    try
+    {
+        std::stringstream buffer;
+        buffer << input_file.rdbuf();
+        out = buffer.str();
+    }
+    catch (...)
+    {
+        std::cerr << "Shader: Failed to read " << filename << std::endl;
+    }
+}
+
+static void compile_shader(const GLchar* code, unsigned int& ID, int SHADER_TYPE, const std::string& path)
+{
+    static GLchar log[1024];
+    ID = glCreateShader(SHADER_TYPE);
+    glShaderSource(ID, 1, &code, nullptr);
+    glCompileShader(ID);
+    GLint succes;
+    glGetShaderiv(ID, GL_COMPILE_STATUS, &succes);
+    if (!succes)
+    {
+        std::cerr << "Shader: Failed to compile shader '" << path << "'" << std::endl;
+        glGetShaderInfoLog(ID, 1024, nullptr, log);
+        std::cerr << log << std::endl;
+        glDeleteShader(ID);
+        ID = 0;
+        throw -1;
+    }
+}
+
+static void link_shader(unsigned int& ID, const std::vector<unsigned int>& shaders)
+{
+    static GLchar log[1024];
+    ID = glCreateProgram();
+    for (auto& ell : shaders) glAttachShader(ID, ell);
+
+    glLinkProgram(ID);
+    GLint succes;
+    glGetProgramiv(ID, GL_LINK_STATUS, &succes);
+    if (!succes)
+    {
+        glGetProgramInfoLog(ID, 1024, nullptr, log);
+        std::cerr << "Shader: Failed to link shader program" << std::endl;
+        std::cerr << log << std::endl;
+        glDeleteProgram(ID);
+        ID = 0;
+        throw -1;
+    }
+}
 
 namespace Engine
 {
+    void Shader::delete_shaders()
+    {
+        delete_program(_M_id);
+        delete_shader(vertex);
+        delete_shader(fragment);
+    }
+
     Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
     {
         load(vertex_path, fragment_path);
@@ -18,15 +94,12 @@ namespace Engine
             glUseProgram(_M_id);
         return *this;
     }
+
     Shader::~Shader()
     {
-        if (_M_done)
-        {
-            glDeleteProgram(_M_id);
-            glDeleteShader(vertex);
-            glDeleteShader(fragment);
-        }
+        delete_shaders();
     }
+
     bool Shader::loaded()
     {
         return _M_done;
@@ -78,95 +151,50 @@ namespace Engine
 
     Shader& Shader::load(const std::string& vertex_path, const std::string& fragment_path)
     {
-        if (_M_done)
-        {
-            glDeleteProgram(_M_id);
-            glDeleteShader(vertex);
-            glDeleteShader(fragment);
-        }
-
+        delete_shaders();
 
         std::string vertex_code, fragment_code;
-        std::ifstream vertex_file(vertex_path), fragment_file(fragment_path);
-        if (!vertex_file.is_open())
-        {
-            _M_done = false;
-            std::clog << "Shader: Failed to open " << vertex_path << std::endl;
-            return *this;
-        }
-
-        if (!fragment_file.is_open())
-        {
-            _M_done = false;
-            std::clog << "Shader: Failed to open " << fragment_path << std::endl;
-            return *this;
-        }
-
         try
         {
-            std::stringstream buffer1, buffer2;
-            buffer1 << vertex_file.rdbuf();
-            buffer2 << fragment_file.rdbuf();
-
-            vertex_code = buffer1.str();
-            fragment_code = buffer2.str();
+            read_file(vertex_path, vertex_code);
+            read_file(fragment_path, fragment_code);
+            compile_shader(vertex_code.c_str(), vertex, GL_VERTEX_SHADER, vertex_path);
+            compile_shader(fragment_code.c_str(), fragment, GL_FRAGMENT_SHADER, fragment_path);
+            link_shader(_M_id, {vertex, fragment});
         }
-        catch (std::ifstream::failure& e)
+        catch (...)
         {
-            std::cerr << e.what() << std::endl;
             _M_done = false;
             return *this;
-        }
-
-        // Compiling shaders
-        GLint succes;
-        GLchar log[1024];
-        const GLchar* v_code = vertex_code.c_str();
-        vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &v_code, nullptr);
-        glCompileShader(vertex);
-        glGetShaderiv(vertex, GL_COMPILE_STATUS, &succes);
-        if (!succes)
-        {
-            std::cerr << "Shader: Failed to compile vertex shader '" << vertex_path << "'" << std::endl;
-            glGetShaderInfoLog(vertex, 1024, nullptr, log);
-            std::cerr << log << std::endl;
-            _M_done = false;
-            glDeleteShader(vertex);
-            return *this;
-        }
-
-        const GLchar* f_code = fragment_code.c_str();
-
-        fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &f_code, nullptr);
-        glCompileShader(fragment);
-        glGetShaderiv(fragment, GL_COMPILE_STATUS, &succes);
-        if (!succes)
-        {
-            std::cerr << "Shader: Failed to compile fragment shader '" << fragment_path << "'" << std::endl;
-            glGetShaderInfoLog(fragment, 1024, nullptr, log);
-            std::cerr << log << std::endl;
-            _M_done = false;
-            glDeleteShader(fragment);
-            return *this;
-        }
-
-        _M_id = glCreateProgram();
-        glAttachShader(_M_id, fragment);
-        glAttachShader(_M_id, vertex);
-        glLinkProgram(_M_id);
-        glGetProgramiv(_M_id, GL_LINK_STATUS, &succes);
-        if (!succes)
-        {
-            glGetProgramInfoLog(_M_id, 1024, nullptr, log);
-            std::cerr << "Shader: Failed to link shader program" << std::endl;
-            std::cerr << log << std::endl;
-            glDeleteProgram(_M_id);
         }
 
         std::clog << "Shader: Compilation complete" << std::endl;
         _M_done = true;
         return *this;
+    }
+
+    Shader& Shader::load(const std::string& compute_path)
+    {
+        delete_shaders();
+        std::string code;
+        try
+        {
+            read_file(compute_path, code);
+            compile_shader(code.c_str(), compute, GL_COMPUTE_SHADER, compute_path);
+            link_shader(_M_id, {compute});
+        }
+        catch (...)
+        {
+            _M_done = false;
+            return *this;
+        }
+        std::clog << "Shader: Compilation complete" << std::endl;
+        _M_done = true;
+        return *this;
+    }
+
+    Shader::Shader(const std::string& compute)
+    {
+        load(compute);
     }
 }// namespace Engine

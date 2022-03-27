@@ -9,12 +9,15 @@ namespace Engine
     {
         bool _M_done = false;
         unsigned int _M_id = 0;
-        unsigned int vertex = 0, fragment = 0;
+        unsigned int vertex = 0, fragment = 0, compute = 0;
+        void delete_shaders();
 
     public:
         Shader();
         Shader(const std::string& vertex, const std::string& fragment);
+        Shader(const std::string& compute);
         Shader& load(const std::string& vertex, const std::string& fragment);
+        Shader& load(const std::string& compute);
         Shader(const Shader&) = delete;
         Shader& use();
         bool loaded();
