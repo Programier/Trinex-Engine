@@ -38,7 +38,7 @@ int main()
 
     // Text renderer
     Engine::Shader text_shader("Shaders/text.vert", "Shaders/text.frag");
-    Engine::Text text_renderer("/usr/share/fonts/stix-fonts/STIX2Text-Bold.otf", 25);
+    Engine::Text text_renderer("resources/fonts/STIX2Text-Bold.otf", 25);
 
     bool lines_draw = false;
     std::string LOG_POS;
