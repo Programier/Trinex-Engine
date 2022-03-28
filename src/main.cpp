@@ -5,6 +5,7 @@
 #include <Graphics/model.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/skybox.hpp>
+#include <Graphics/text.hpp>
 #include <Graphics/texture.hpp>
 #include <Graphics/texturearray.hpp>
 #include <Window/window.hpp>
@@ -35,8 +36,14 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    bool lines_draw = false;
+    // Text renderer
+    Engine::Shader text_shader("Shaders/text.vert", "Shaders/text.frag");
+    Engine::Text text_renderer("/usr/share/fonts/stix-fonts/STIX2Text-Bold.otf", 25);
 
+    bool lines_draw = false;
+    std::string LOG_POS;
+    std::string FPS;
+    unsigned int frame = 0;
     while (window.is_open())
     {
         float speed = 15 * window.event.diff_time();
@@ -96,19 +103,16 @@ int main()
         if (window.event.keyboard.just_pressed() == Engine::KEY_Y)
             lines_draw = !lines_draw;
         auto projection = camera.projection(window);
+        auto projview = projection * camera.view();
 
         if (lines_draw == false)
         {
-            shader.use()
-                    .set("camera", coords)
-                    .set("lines", lines_draw)
-                    .set("light", light)
-                    .set("projview", projection * camera.view());
+            shader.use().set("camera", coords).set("lines", lines_draw).set("light", light).set("projview", projview);
             model.draw();
         }
         else
         {
-            line.use().set("projview", projection * camera.view()).set("color", glm::vec3(1, 0, 0));
+            line.use().set("projview", projview).set("color", glm::vec3(1, 0, 0));
             lines.draw();
         }
         skybox_shader.use()
@@ -125,6 +129,15 @@ int main()
                 mode = Engine::NONE;
             window.mode(mode);
         }
+
+        LOG_POS = "X: " + std::to_string(coords.x) + ", Y: " + std::to_string(coords.y) +
+                  ", Z: " + std::to_string(coords.z);
+        auto w_size = window.size();
+        text_shader.use().set("color", glm::vec3(1, 1, 1)).set("projview", glm::ortho(0.0f, w_size.x, 0.0f, w_size.y));
+        text_renderer.draw(LOG_POS, 5, w_size.y - 25, 1);
+        if (frame++ % 30 == 0)
+            FPS = "FPS: " + std::to_string(int(1 / window.event.diff_time()));
+        text_renderer.draw(FPS, 5, w_size.y - 55, 1);
         window.swap_buffers();
     }
 

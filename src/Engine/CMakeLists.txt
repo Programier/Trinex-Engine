@@ -15,6 +15,7 @@ else()
 	set(OPENGL GL)
 	set(GLEW_LIB GLEW)
 	set(ASSIMP assimp)
+        include_directories("/usr/include/freetype2")
 endif()
 
 set(INIT_DIR "sources/Init/")
@@ -39,7 +40,8 @@ set(GRAPHICS ${GRAPHICS_DIR}/shader.cpp
              ${GRAPHICS_DIR}/basic_texturearray.cpp
              ${GRAPHICS_DIR}/model.cpp
              ${GRAPHICS_DIR}/skybox.cpp
-             ${GRAPHICS_DIR}/line.cpp)
+             ${GRAPHICS_DIR}/line.cpp
+             ${GRAPHICS_DIR}/text.cpp)
 
 add_library(Init SHARED ${INIT})
 add_library(Window SHARED ${WINDOW})
@@ -50,5 +52,5 @@ include_directories("include/")
 
 target_link_libraries(Init glfw ${OPENGL} ${GLEW_LIB})
 target_link_libraries(Window Image Init)
-target_link_libraries(Graphics Image Window Init ${ASSIMP})
+target_link_libraries(Graphics Image Window Init ${ASSIMP} freetype)
 

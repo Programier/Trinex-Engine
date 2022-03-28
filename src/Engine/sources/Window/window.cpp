@@ -1,7 +1,7 @@
-#include <Window/window.hpp>
-#include <Init/init.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <Init/init.hpp>
+#include <Window/window.hpp>
 #include <algorithm>
 #include <iostream>
 #include <list>
@@ -10,34 +10,34 @@
 
 #define glfw_window static_cast<GLFWwindow*>(parameters._M_window)
 
-#define CHECK(type)                                                                                \
-    if (parameters._M_is_closed == true)                                                           \
+#define CHECK(type)                                                                                                    \
+    if (parameters._M_is_closed == true)                                                                               \
     return static_cast<type>(-1)
 
-#define ENGINE_WINDOW                                                                              \
-    auto engine_window = find_window(window);                                                      \
-    if (engine_window == nullptr)                                                                  \
-    {                                                                                              \
-        std::cerr << "Engine::Window size callback: Filed to found window" << std::endl;           \
-        return;                                                                                    \
+#define ENGINE_WINDOW                                                                                                  \
+    auto engine_window = find_window(window);                                                                          \
+    if (engine_window == nullptr)                                                                                      \
+    {                                                                                                                  \
+        std::cerr << "Engine::Window size callback: Filed to found window" << std::endl;                               \
+        return;                                                                                                        \
     }
 
-#define IMPLEMENT(struct_name, first_param, second_param, type)                                    \
-    struct_name::struct_name() = default;                                                          \
-    struct_name::struct_name(const type& first_param, const type& second_param)                    \
-        : first_param(first_param), second_param(second_param)                                     \
-    {}                                                                                             \
-    struct_name& struct_name::operator=(const struct_name&) = default;                             \
-    struct_name::struct_name(const std::initializer_list<type>& list)                              \
-    {                                                                                              \
-        auto begin = list.begin();                                                                 \
-        if (begin == list.end())                                                                   \
-            return;                                                                                \
-        first_param = (*begin++);                                                                  \
-        if (begin == list.end())                                                                   \
-            return;                                                                                \
-        second_param = (*begin);                                                                   \
-    }                                                                                              \
+#define IMPLEMENT(struct_name, first_param, second_param, type)                                                        \
+    struct_name::struct_name() = default;                                                                              \
+    struct_name::struct_name(const type& first_param, const type& second_param)                                        \
+        : first_param(first_param), second_param(second_param)                                                         \
+    {}                                                                                                                 \
+    struct_name& struct_name::operator=(const struct_name&) = default;                                                 \
+    struct_name::struct_name(const std::initializer_list<type>& list)                                                  \
+    {                                                                                                                  \
+        auto begin = list.begin();                                                                                     \
+        if (begin == list.end())                                                                                       \
+            return;                                                                                                    \
+        first_param = (*begin++);                                                                                      \
+        if (begin == list.end())                                                                                       \
+            return;                                                                                                    \
+        second_param = (*begin);                                                                                       \
+    }                                                                                                                  \
     struct_name::struct_name(const struct_name&) = default;
 
 
@@ -295,8 +295,7 @@ namespace Engine
     const Key WEvent::Keyboard::just_pressed()
     {
         auto& keys = window->parameters.keys;
-        return keys._M_keys[keys._M_last_key] == JUST_PRESSED ? to_key(keys._M_last_key - 1)
-                                                              : KEY_UNKNOWN;
+        return keys._M_keys[keys._M_last_key] == JUST_PRESSED ? to_key(keys._M_last_key - 1) : KEY_UNKNOWN;
     }
 
     const std::string& WEvent::Keyboard::last_symbol()
@@ -348,9 +347,7 @@ namespace Engine
     const Key WEvent::Keyboard::just_released()
     {
         auto& keys = window->parameters.keys;
-        return keys._M_keys[keys._M_last_released] == JUST_RELEASED
-                       ? to_key(keys._M_last_released - 1)
-                       : KEY_UNKNOWN;
+        return keys._M_keys[keys._M_last_released] == JUST_RELEASED ? to_key(keys._M_last_released - 1) : KEY_UNKNOWN;
     }
 
 
@@ -365,8 +362,8 @@ namespace Engine
 
     Window& WEvent::Mouse::position(const Position& pos)
     {
-        glfwSetCursorPos(static_cast<GLFWwindow*>(window->parameters._M_window),
-                         static_cast<double>(pos.x), static_cast<double>(pos.y));
+        glfwSetCursorPos(static_cast<GLFWwindow*>(window->parameters._M_window), static_cast<double>(pos.x),
+                         static_cast<double>(pos.y));
         window->parameters._M_mouse_position = pos;
         return *window;
     }
@@ -399,9 +396,7 @@ namespace Engine
     const Key WEvent::Mouse::just_pressed()
     {
         auto& keys = window->parameters.keys;
-        return keys._M_keys[keys._M_last_mouse_key] == JUST_PRESSED
-                       ? to_key(keys._M_last_mouse_key - 1)
-                       : KEY_UNKNOWN;
+        return keys._M_keys[keys._M_last_mouse_key] == JUST_PRESSED ? to_key(keys._M_last_mouse_key - 1) : KEY_UNKNOWN;
     }
 
     const Key WEvent::Mouse::last_pressed()
@@ -412,9 +407,8 @@ namespace Engine
     const Key WEvent::Mouse::just_released()
     {
         auto& keys = window->parameters.keys;
-        return keys._M_keys[keys._M_last_mouse_released] == JUST_RELEASED
-                       ? to_key(keys._M_last_mouse_released - 1)
-                       : KEY_UNKNOWN;
+        return keys._M_keys[keys._M_last_mouse_released] == JUST_RELEASED ? to_key(keys._M_last_mouse_released - 1)
+                                                                          : KEY_UNKNOWN;
     }
 
 
@@ -485,19 +479,17 @@ namespace Engine
 
 
     //              WINDOW CLASS
-    Window::Window(int width, int height, std::string name, bool rezisable)
-        : parameters(name), event(this)
+    Window::Window(int width, int height, std::string name, bool rezisable) : parameters(name), event(this)
     {
         auto error = []() {
             std::cerr << "Window: Failed to create new window" << std::endl;
             throw std::runtime_error("Window: Failed to create Window");
         };
 
-        std::clog << "Window: Creating new window '" << name << "',\taddress of window: " << this
-                  << std::endl;
+        std::clog << "Window: Creating new window '" << name << "',\taddress of window: " << this << std::endl;
         glfwWindowHint(GLFW_RESIZABLE, static_cast<int>(rezisable));
-        parameters._M_window = static_cast<void*>(
-                glfwCreateWindow(width, height, parameters._M_name.c_str(), nullptr, nullptr));
+        parameters._M_window =
+                static_cast<void*>(glfwCreateWindow(width, height, parameters._M_name.c_str(), nullptr, nullptr));
 
         if (parameters._M_window == nullptr)
         {
@@ -509,9 +501,8 @@ namespace Engine
         if (glewInit() != GLEW_OK)
             error();
         glViewport(0, 0, width, height);
-        glfwSetWindowSizeLimits(glfw_window, parameters._M_limits.min_size.x,
-                                parameters._M_limits.min_size.y, parameters._M_limits.max_size.x,
-                                parameters._M_limits.max_size.y);
+        glfwSetWindowSizeLimits(glfw_window, parameters._M_limits.min_size.x, parameters._M_limits.min_size.y,
+                                parameters._M_limits.max_size.x, parameters._M_limits.max_size.y);
 
         // Callbacks
         glfwSetWindowSizeCallback(glfw_window, window_size_callback);
@@ -610,6 +601,8 @@ namespace Engine
 
     WindowSize Window::size()
     {
+        if (parameters._M_is_closed == true)
+            return {-1, -1};
         int width, height;
         glfwGetWindowSize(glfw_window, &width, &height);
         return {width, height};
@@ -660,9 +653,8 @@ namespace Engine
 
         if (mode == NONE)
         {
-            glfwSetWindowMonitor(glfw_window, nullptr, parameters._M_backup[0],
-                                 parameters._M_backup[1], parameters._M_backup[2],
-                                 parameters._M_backup[3], Monitor::getRefreshRate());
+            glfwSetWindowMonitor(glfw_window, nullptr, parameters._M_backup[0], parameters._M_backup[1],
+                                 parameters._M_backup[2], parameters._M_backup[3], Monitor::getRefreshRate());
             parameters._M_backup.clear();
         }
         else
@@ -679,8 +671,7 @@ namespace Engine
             }
 
             glfwSetWindowMonitor(glfw_window, mode == FULLSCREEN ? Monitor::monitor : nullptr, 0, 0,
-                                 Monitor::getWidth(), Monitor::getHeight(),
-                                 Monitor::getRefreshRate());
+                                 Monitor::getWidth(), Monitor::getHeight(), Monitor::getRefreshRate());
         }
         parameters._M_mode = mode;
         return *this;
@@ -786,8 +777,8 @@ namespace Engine
 
     Window& Window::size_limits(const SizeLimits& limits)
     {
-        glfwSetWindowSizeLimits(glfw_window, limits.min_size.x, limits.min_size.y,
-                                limits.max_size.x, limits.max_size.y);
+        glfwSetWindowSizeLimits(glfw_window, limits.min_size.x, limits.min_size.y, limits.max_size.x,
+                                limits.max_size.y);
         parameters._M_limits = limits;
         return *this;
     }
@@ -822,8 +813,7 @@ namespace Engine
     Window& Window::icon(const std::string& path)
     {
         glfwSetWindowIcon(glfw_window, 1,
-                          static_cast<GLFWimage*>(
-                                  parameters._M_icon.load(path).add_alpha_channel().glfw_image()));
+                          static_cast<GLFWimage*>(parameters._M_icon.load(path).add_alpha_channel().glfw_image()));
         return *this;
     }
 
@@ -835,9 +825,7 @@ namespace Engine
     Window& Window::icon(const Image& icon)
     {
         parameters._M_icon = icon;
-        glfwSetWindowIcon(
-                glfw_window, 1,
-                static_cast<GLFWimage*>(parameters._M_icon.add_alpha_channel().glfw_image()));
+        glfwSetWindowIcon(glfw_window, 1, static_cast<GLFWimage*>(parameters._M_icon.add_alpha_channel().glfw_image()));
         return *this;
         glfwCreateCursor(nullptr, 0, 0);
     }
@@ -858,8 +846,8 @@ namespace Engine
     {
         if (parameters._M_is_closed == false)
         {
-            std::clog << "Engine::Window: Window '" << parameters._M_name
-                      << "' closed,\taddress of window: " << this << std::endl;
+            std::clog << "Engine::Window: Window '" << parameters._M_name << "' closed,\taddress of window: " << this
+                      << std::endl;
             glfwDestroyWindow(glfw_window);
         }
 
