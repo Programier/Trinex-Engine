@@ -18,6 +18,8 @@ mat4 get_model()
 
 void main() {
     texture_coords = v_texture_coords;
-    pixel = v_position;
-    gl_Position = projview * get_model() * vec4(v_position, 1.0);
+    mat4 object_model = get_model();
+    vec4 _pixel = object_model * vec4(v_position, 1.0);
+    pixel = vec3(_pixel);
+    gl_Position = projview * _pixel;
  }
