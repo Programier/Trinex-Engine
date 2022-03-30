@@ -645,7 +645,7 @@ namespace Engine
         return parameters._M_mode;
     }
 
-    Window& Window::mode(const WindowMode& mode)
+    Window& Window::mode(const WindowMode& mode, const WindowSize& _size)
     {
         if (mode == parameters._M_mode)
             return *this;
@@ -669,9 +669,9 @@ namespace Engine
                 parameters._M_backup.push_back(_size.x);
                 parameters._M_backup.push_back(_size.y);
             }
-
             glfwSetWindowMonitor(glfw_window, mode == FULLSCREEN ? Monitor::monitor : nullptr, 0, 0,
-                                 Monitor::getWidth(), Monitor::getHeight(), Monitor::getRefreshRate());
+                                 _size.x == -1 ? Monitor::getWidth() : _size.x,
+                                 _size.y == -1 ? Monitor::getHeight() : _size.x, Monitor::getRefreshRate());
         }
         parameters._M_mode = mode;
         return *this;

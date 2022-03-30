@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 
-#define METHODS(name, type)                                                                        \
-    name();                                                                                        \
-    name(const type&, const type&);                                                                \
-    name(const name&);                                                                             \
-    name(const std::initializer_list<type>& list);                                                 \
+#define METHODS(name, type)                                                                                            \
+    name();                                                                                                            \
+    name(const type&, const type&);                                                                                    \
+    name(const name&);                                                                                                 \
+    name(const std::initializer_list<type>& list);                                                                     \
     name& operator=(const name&);
 
 namespace Engine
@@ -171,7 +171,7 @@ namespace Engine
         Window& title(const std::string& title);
 
         const WindowMode& mode();
-        Window& mode(const WindowMode& mode);
+        Window& mode(const WindowMode& mode, const WindowSize& size = WindowSize(-1, -1));
 
         const Position& position();
         Window& position(const Position& position);
