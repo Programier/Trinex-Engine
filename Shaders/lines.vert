@@ -3,6 +3,7 @@ layout(location = 0) in vec3 v_position;
 
 uniform mat4 projview;
 uniform mat4 model;
+out vec3 pixel;
 mat4 get_model()
 {
     if (model == mat4(0))
@@ -13,5 +14,7 @@ mat4 get_model()
 
 void main()
 {
-    gl_Position = projview * get_model() * vec4(v_position, 1.0);
+    vec4 _coord = get_model() * vec4(v_position, 1.0);
+    pixel = vec3(_coord);
+    gl_Position = projview * _coord;
 }

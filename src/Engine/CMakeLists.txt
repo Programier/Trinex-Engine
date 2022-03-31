@@ -22,6 +22,7 @@ set(INIT_DIR "sources/Init/")
 set(WINDOW_DIR "sources/Window/")
 set(IMAGE_DIR "sources/Image/")
 set(GRAPHICS_DIR "sources/Graphics/")
+set(PHISICS_DIR "sources/Phisics/")
 
 set(INIT ${INIT_DIR}/init.cpp)
 
@@ -41,16 +42,21 @@ set(GRAPHICS ${GRAPHICS_DIR}/shader.cpp
              ${GRAPHICS_DIR}/model.cpp
              ${GRAPHICS_DIR}/skybox.cpp
              ${GRAPHICS_DIR}/line.cpp
-             ${GRAPHICS_DIR}/text.cpp)
+             ${GRAPHICS_DIR}/text.cpp
+             ${GRAPHICS_DIR}/heightmap.cpp)
+
+set(PHISICS ${PHISICS_DIR}/terrain_collision.cpp)
 
 add_library(Init SHARED ${INIT})
 add_library(Window SHARED ${WINDOW})
 add_library(Image SHARED ${IMAGE})
 add_library(Graphics SHARED ${GRAPHICS})
+add_library(Phisics SHARED ${PHISICS})
 
 include_directories("include/")
 
 target_link_libraries(Init glfw ${OPENGL} ${GLEW_LIB})
 target_link_libraries(Window Image Init)
 target_link_libraries(Graphics Image Window Init ${ASSIMP} freetype)
+target_link_libraries(Phisics Graphics)
 

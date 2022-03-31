@@ -15,5 +15,5 @@ if (WIN32)
 endif()
 add_executable(Engine3D_RUN src/main.cpp)
 add_subdirectory(src/Engine)
-target_link_libraries(Engine3D_RUN Window Graphics)
+target_link_libraries(Engine3D_RUN Window Graphics Phisics)
 

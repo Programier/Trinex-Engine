@@ -98,7 +98,7 @@ namespace Engine
         return *this;
     }
 
-    unsigned int Mesh::vertices_count()
+    unsigned int Mesh::vertices_count() const
     {
         return _M_vertices;
     }
@@ -109,7 +109,7 @@ namespace Engine
         return *this;
     }
 
-    const std::vector<int>& Mesh::attributes()
+    const std::vector<int>& Mesh::attributes() const
     {
         return _M_attrib;
     }
@@ -119,6 +119,11 @@ namespace Engine
         delete_vbo_vao();
         gen_vbo_vao();
         return *this;
+    }
+
+    const std::vector<float>& Mesh::data() const
+    {
+        return _M_data;
     }
 
 }// namespace Engine

@@ -73,7 +73,15 @@ namespace Engine
             _M_parts.push_back(current_pair);
         }
     }
-
+#define check_vert(v)                                                                                                  \
+    if (_M_limits.min.v > vert.v)                                                                                      \
+    {                                                                                                                  \
+        _M_limits.min.v = vert.v;                                                                                      \
+    }                                                                                                                  \
+    if (_M_limits.max.v < vert.v)                                                                                      \
+    {                                                                                                                  \
+        _M_limits.max.v = vert.v;                                                                                      \
+    }
     Model& Model::load_model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
                              const bool& invert)
     {
@@ -124,6 +132,7 @@ namespace Engine
             load_textures(names, mipmap, invert);
         }
 
+        bool start = true;
         std::clog << "Model loader: Generating meshes" << std::endl;
         // Generating meshes
         auto meshes_count = scene->mNumMeshes;
@@ -146,6 +155,17 @@ namespace Engine
 
                     // Vertex coords
                     auto uv = scene_mesh->mTextureCoords[0][face.mIndices[f]];
+                    if (start)
+                    {
+                        start = false;
+                        _M_limits.max = _M_limits.min = {vert.x, vert.y, vert.z};
+                    }
+                    else
+                    {
+                        check_vert(x);
+                        check_vert(y);
+                        check_vert(z);
+                    }
                     (*model_mesh._M_mesh).data().push_back(vert.x);
                     (*model_mesh._M_mesh).data().push_back(vert.y);
                     (*model_mesh._M_mesh).data().push_back(vert.z);
@@ -233,6 +253,11 @@ namespace Engine
     const std::vector<Model::pair>& Model::parts() const
     {
         return _M_parts;
+    }
+
+    const Model::Limits& Model::limits() const
+    {
+        return _M_limits;
     }
 
 

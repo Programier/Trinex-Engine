@@ -10,12 +10,19 @@ namespace Engine
 {
     class Model
     {
+    public:
+        struct Limits {
+            glm::vec3 min;
+            glm::vec3 max;
+        };
+
         struct pair {
             Texture* _M_texture = nullptr;
             Mesh* _M_mesh = nullptr;
             bool empty();
         };
 
+    private:
         std::list<Texture> _M_textures;
         std::list<Mesh> _M_meshes;
 
@@ -25,6 +32,8 @@ namespace Engine
 
         void load_textures(const std::vector<std::pair<std::string, const char*>>& names, const unsigned int& mipmap,
                            const bool& invert_textures);
+
+        Model::Limits _M_limits;
 
     public:
         Model();
@@ -40,6 +49,7 @@ namespace Engine
         const std::list<Texture>& textures() const;
         const std::list<Mesh>& meshes() const;
         const std::vector<pair>& parts() const;
+        const Model::Limits& limits() const;
         ~Model();
     };
 }// namespace Engine

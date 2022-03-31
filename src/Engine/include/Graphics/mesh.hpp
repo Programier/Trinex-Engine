@@ -41,12 +41,13 @@ namespace Engine
         Mesh& draw(const Primitive& primitive);
 
         std::vector<float>& data();
+        const std::vector<float>& data() const;
 
         Mesh& vertices_count(const unsigned int& vertices);
-        unsigned int vertices_count();
+        unsigned int vertices_count() const;
 
         Mesh& attributes(const std::vector<int>& attributes);
-        const std::vector<int>& attributes();
+        const std::vector<int>& attributes() const;
 
         Mesh& update_buffers();
         ~Mesh();
