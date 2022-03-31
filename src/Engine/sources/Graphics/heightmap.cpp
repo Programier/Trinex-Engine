@@ -223,7 +223,7 @@ namespace Engine
 
                 for (auto& value : tmp)
                 {
-                    _M_array[value.x][value.y][value.z] = value.result;
+                    _M_array[value.x][value.y][value.z] += value.result;
                 }
             }
         }
