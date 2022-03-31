@@ -23,12 +23,6 @@
 
 const unsigned int processor_count = std::thread::hardware_concurrency();
 
-struct size_limit {
-    std::size_t x;
-    std::size_t y;
-    std::size_t z;
-};
-
 struct line {
     glm::vec3 begin;
     glm::vec3 end;
@@ -66,7 +60,7 @@ static bool in_triangle(const glm::vec3& A, const glm::vec3& B, const glm::vec3&
 
 static void calculate_height(std::vector<HeightPoint>& output, const float* values, std::size_t size,
                              std::size_t triangle_point_size, float block_size, Engine::Model::Limits* limits,
-                             float local_block_size, const glm::mat4& model_matrix, const size_limit& size_limit)
+                             float local_block_size, const glm::mat4& model_matrix)
 {
     auto& _M_limits = *limits;
     float triangle_block = triangle_point_size * 3;
@@ -144,19 +138,13 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
 
                 if (plane[1] == 0)
                 {
-                    float y_end = max(max(a.y, b.y), c.y);
                     // TODO
                 }
                 else
                 {
                     float y_value = (-plane[3] - (plane[0] * x) - (plane[2] * z)) / plane[1];
+                    y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
                     std::size_t y_coord = to_array_index(_M_limits.min.y, y_value, block_size);
-                    if (x_coord >= size_limit.x)
-                        x_coord = size_limit.x - 1;
-                    if (y_coord >= size_limit.y)
-                        y_coord = size_limit.y - 1;
-                    if (z_coord >= size_limit.z)
-                        z_coord = size_limit.z - 1;
                     output.push_back({x_coord, y_coord, z_coord, normal});
                 }
             }
@@ -178,6 +166,7 @@ namespace Engine
         std::clog << "HeightMap: Generating height map" << std::endl;
         _M_array.clear();
         _M_limits = model.limits();
+
         _M_limits.max = use_model(_M_limits.max);
         _M_limits.min = use_model(_M_limits.min);
 
@@ -186,28 +175,13 @@ namespace Engine
                 std::swap(_M_limits.min[i], _M_limits.max[i]);
 
         _M_block_size = block_size;
-        size_limit _M_size_limit;
+
         // Resizing array
         {
             std::size_t x_count = calculate_count(_M_limits.min.x, _M_limits.max.x, block_size) + 1;
             std::size_t y_count = calculate_count(_M_limits.min.y, _M_limits.max.y, block_size) + 1;
-            std::size_t z_count = calculate_count(_M_limits.min.x, _M_limits.max.z, block_size) + 1;
-            std::clog << x_count << "\t" << y_count << "\t" << z_count << std::endl;
-            _M_size_limit = {x_count, y_count, z_count};
+            std::size_t z_count = calculate_count(_M_limits.min.z, _M_limits.max.z, block_size) + 1;
             _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, glm::vec3(0.f))));
-
-            std::clog << "TESTING ARRAY" << std::endl;
-            for (auto& vec1 : _M_array)
-            {
-                for (auto& vec2 : vec1)
-                {
-                    for (auto& vec3 : vec2)
-                    {
-                        vec3 = {0.f, 0.f, 0.f};
-                    }
-                }
-            }
-            std::clog << "TESTING COMPLETE" << std::endl;
         }
 
 
@@ -232,13 +206,13 @@ namespace Engine
                 threads.emplace_back(calculate_height, std::ref(vectors[i]),
                                      vector + block * i * triangle_point_size * 3, block * triangle_point_size * 3,
                                      triangle_point_size, block_size, &_M_limits, local_block_size,
-                                     std::ref(model_matrix), std::ref(_M_size_limit));
+                                     std::ref(model_matrix));
             }
 
             // Calculate last part of mesh in main thread
             calculate_height(vectors.back(), vector + (block * (processor_count - 1) * triangle_point_size * 3),
                              size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size,
-                             block_size, &_M_limits, local_block_size, model_matrix, _M_size_limit);
+                             block_size, &_M_limits, local_block_size, model_matrix);
 
             // Waiting for end of calculation
             for (auto& thread : threads) thread.join();
@@ -249,13 +223,7 @@ namespace Engine
 
                 for (auto& value : tmp)
                 {
-                    auto& g1 = _M_array[value.x];
-                    auto& g2 = g1[value.y];
-                    glm::vec3& g3 = g2[value.z];
-
-                    g3.x += value.result.x;
-                    g3.y += value.result.y;
-                    g3.z += value.result.z;
+                    _M_array[value.x][value.y][value.z] = value.result;
                 }
             }
         }
