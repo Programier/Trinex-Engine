@@ -76,7 +76,7 @@ int main()
         player.position = camera.coords();
         const auto& offset = window.event.mouse.offset();
         if (window.event.mouse.cursor_status() == Engine::DISABLED)
-            camera.rotate(offset.y * 2 / (window.height()), -offset.x * 2 / (window.width()), 0);
+            camera.rotate(-offset.y * 2 / (window.height()), -offset.x * 2 / (window.width()), 0);
 
         if (window.event.pressed(Engine::KEY_W))
         {
