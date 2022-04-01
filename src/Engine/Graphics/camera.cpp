@@ -38,8 +38,7 @@ namespace Engine
     glm::mat4 Camera::projection(Window& window)
     {
         float aspect = (float) window.width() / (float) window.height();
-        return glm::perspective(_M_viewingAngle, aspect, _M_minRenderDistance,
-                                _M_maxRenderDistance);
+        return glm::perspective(_M_viewingAngle, aspect, _M_minRenderDistance, _M_maxRenderDistance);
     }
 
     glm::mat4 Camera::view()
@@ -47,7 +46,7 @@ namespace Engine
         return glm::lookAt(_M_position, _M_position + _M_front, _M_up);
     }
 
-    Camera& Camera::move(float forward, float right, float up)
+    Camera& Camera::move(const float& right, const float& up, const float& forward)
     {
         _M_position += _M_front * forward;
         _M_position += _M_right * right;
@@ -55,13 +54,24 @@ namespace Engine
         return *this;
     }
 
-    Camera& Camera::move_along_axes(float forward, float right, float up, glm::vec3 front_a,
-                                    glm::vec3 right_a, glm::vec3 up_a)
+    Camera& Camera::move(const glm::vec3& move_vector)
+    {
+        return move(move_vector[0], move_vector[1], move_vector[2]);
+    }
+
+    Camera& Camera::move_along_axes(const float& right, const float& up, const float& forward, const glm::vec3& right_a,
+                                    const glm::vec3& up_a, const glm::vec3& front_a)
     {
         _M_position += front_a * forward;
         _M_position += right_a * right;
         _M_position += up_a * up;
         return *this;
+    }
+
+    Camera& Camera::move_along_axes(const glm::vec3& move_vector, const glm::vec3& right_a, const glm::vec3& up_a,
+                                    const glm::vec3& front_a)
+    {
+        return move_along_axes(move_vector[0], move_vector[1], move_vector[2], right_a, up_a, front_a);
     }
 
     glm::vec3 Camera::front_vector()

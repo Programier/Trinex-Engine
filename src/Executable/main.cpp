@@ -51,12 +51,12 @@ int main()
     std::string FPS;
 
     unsigned int frame = 0;
-    Engine::ObjectParameters player = {camera.coords(), {0.f, 0.f, 0.f}, 4};
+    Engine::ObjectParameters player = {camera.coords(), {0.f, 0.f, 0.f}, 4, 1};
 
 
     while (window.is_open())
     {
-        player.force = glm::vec3(0, 0, player.force[2]);
+        player.force = glm::vec3(0, player.force[1], 0);
         float speed = 15 * window.event.diff_time();
         window.event.poll_events();
         window.clear_buffer();
@@ -87,27 +87,27 @@ int main()
 
         if (window.event.pressed(Engine::KEY_W))
         {
-            player.force[0] = speed;
+            player.force.z = speed;
         }
 
         if (window.event.pressed(Engine::KEY_S))
         {
-            player.force[0] = -speed;
+            player.force.z = -speed;
         }
 
         if (window.event.pressed(Engine::KEY_A))
         {
-            player.force[1] = -speed;
+            player.force.x = -speed;
         }
 
         if (window.event.pressed(Engine::KEY_D))
         {
-            player.force[1] = speed;
+            player.force.x = speed;
         }
 
         if (window.event.keyboard.just_pressed() == Engine::KEY_SPACE)
         {
-            player.force[2] = 0.25;
+            player.force.y = 0.25;
         }
 
         if (window.event.pressed(Engine::KEY_UP))
@@ -166,9 +166,9 @@ int main()
         camera.coords(player.position);
         auto rotation = camera.rotation();
 
-        camera.move_along_axes(player.force[0], player.force[1], player.force[2],
-                               {-glm::sin(rotation.y), 0, -glm::cos(rotation.y)},
-                               {glm::cos(rotation.y), 0, -glm::sin(rotation.y)}, {0.f, 1.f, 0.f});
+        camera.move_along_axes(player.force, {glm::cos(rotation.y), 0, -glm::sin(rotation.y)}, {0.f, 1.f, 0.f},
+                               {-glm::sin(rotation.y), 0, -glm::cos(rotation.y)});
+
         auto projection = camera.projection(window);
         auto projview = projection * camera.view();
 

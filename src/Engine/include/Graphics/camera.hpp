@@ -29,9 +29,12 @@ namespace Engine
         Camera& rotate(float x, float y, float z);
         Camera& rotate(const glm::vec3& rotation);
         glm::vec3 rotation();
-        Camera& move(float forward, float right, float up);
-        Camera& move_along_axes(float forward, float right, float up, glm::vec3 front_a, glm::vec3 right_a,
-                                glm::vec3 up_a);
+        Camera& move(const float& right, const float& up, const float& forward);
+        Camera& move(const glm::vec3& move_vector);
+        Camera& move_along_axes(const float& right, const float& up, const float& forward, const glm::vec3& right_a,
+                                const glm::vec3& up_a, const glm::vec3& front_a);
+        Camera& move_along_axes(const glm::vec3& move_vector, const glm::vec3& right_a, const glm::vec3& up_a,
+                                const glm::vec3& front_a);
         glm::vec3 front_vector();
         glm::vec3 right_vector();
         glm::vec3 up_vector();
