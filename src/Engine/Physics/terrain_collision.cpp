@@ -20,36 +20,6 @@ static void normalize_force(Engine::Force& force)
     force /= force[force_max_index];
 }
 
-
-static Engine::ArrayIndex binary_search(const Engine::HeightMapValueArray* array, Engine::HeightMapValue& value)
-{
-    const auto& data = (*array).data();
-    Engine::ArrayIndex left = 0, right = (*array).size() - 1, left_prev = 0;
-
-    while (left < right && data[left] < value)
-    {
-        left_prev = left;
-        Engine::ArrayIndex center = (left + right) / 2;
-        if (data[center] < value)
-            left = center + 1;
-        else if (data[center] > value)
-            right = center - 1;
-        else
-            return center;
-    }
-
-    if (data[left] <= value)
-        return left;
-    if (left > 0)
-    {
-        if (data[left - 1] <= value)
-            return left - 1;
-        else if (data[left_prev] <= value)
-            return left_prev;
-    }
-    return ~0;
-}
-
 namespace Engine
 {
 
@@ -65,7 +35,6 @@ namespace Engine
             auto expected_position = object.position + object.force;
             HeightMapValue object_height_map_value;
             object_height_map_value.position = expected_position;
-            const std::vector<HeightMapValue>* block = nullptr;
             const HeightMapValue* value = nullptr;
 
             // Calculating indexes of height map
@@ -75,18 +44,11 @@ namespace Engine
                 object_height_map_value.y = height_map.to_y_index(expected_position.y - object.height);
                 object_height_map_value.z = height_map.to_z_index(expected_position.z);
 
-                block = &(height_map.array()[object_height_map_value.x][object_height_map_value.y]
+                value = &(height_map.array()[object_height_map_value.x][object_height_map_value.y]
                                             [object_height_map_value.z]);
             }
             catch (...)
             {
-            }
-
-            if (block)
-            {
-                Engine::ArrayIndex index = binary_search(block, object_height_map_value);
-                if (index != ~0)
-                    value = &(*block)[index];
             }
 
             if (!value)

@@ -61,9 +61,6 @@ static bool in_triangle(const glm::vec3& A, const glm::vec3& B, const glm::vec3&
 }
 
 
-#undef check_sort
-
-
 static void calculate_height(std::vector<HeightPoint>& output, const float* values, std::size_t size,
                              std::size_t triangle_point_size, float block_size, Engine::Model::Limits* limits,
                              float local_block_size, const glm::mat4& model_matrix)
@@ -239,8 +236,7 @@ namespace Engine
             std::size_t y_count = calculate_count(_M_limits.min.y, _M_limits.max.y, block_size) + 1;
             std::size_t z_count = calculate_count(_M_limits.min.z, _M_limits.max.z, block_size) + 1;
 
-            _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, {
-                height_map_value}
+            _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, height_map_value
         })));
     }
 
@@ -282,15 +278,13 @@ namespace Engine
 
             for (auto& value : tmp)
             {
-                _M_array[value.x][value.y][value.z].push_back(value);
+                auto& out = _M_array[value.x][value.y][value.z];
+                out.normal += value.normal;
+                if (out < value)
+                    out.position = value.position;
             }
         }
     }
-
-    std::clog << std::endl << "Sorting arrays" << std::endl;
-    for (auto& y : _M_array)
-        for (auto& z : y)
-            for (auto& block : z) std::sort(block.begin(), block.end());
     return *this;
 }// namespace Engine
 
