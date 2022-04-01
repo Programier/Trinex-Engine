@@ -1,8 +1,5 @@
-include_directories("./libs/freetype/include/")
 add_subdirectory("./libs/freetype/")
 set(FREETYPE freetype)
-
-include_directories("./libs/glfw/include/")
 add_subdirectory("./libs/glfw3/")
 add_subdirectory("./libs/glew/build/cmake")
 set(GLFW glfw)
