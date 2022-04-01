@@ -1,16 +1,22 @@
+include_directories("./libs/freetype/include/")
+add_subdirectory("./libs/freetype/")
+set(FREETYPE freetype)
+
+include_directories("./libs/glfw/include/")
+add_subdirectory("./libs/glfw/")
+set(GLFW glfw)
+
 if(WIN32)
     link_directories("./libs/")
-    include_directories("./libs")
+    include_directories("./libs/include/")
 	set(OPENGL opengl32)
 	set(GLEW_LIB glew32)
 	set(ASSIMP assimp-5)
-	set(GLFW glfw3)
 else()
 	set(OPENGL GL)
 	set(GLEW_LIB GLEW)
 	set(ASSIMP assimp)
-	set(GLFW glfw)
-        include_directories("/usr/include/freetype2")
+    include_directories("/usr/include/freetype2")
 endif()
 
 set(INIT_DIR "sources/Init/")
@@ -41,4 +47,4 @@ set(ENGINE ${INIT_DIR}/init.cpp
 add_library(Engine SHARED ${ENGINE})
 
 include_directories("include/")
-target_link_libraries(Engine ${GLFW} ${OPENGL} ${GLEW_LIB} ${ASSIMP} freetype)
+target_link_libraries(Engine ${GLFW} ${OPENGL} ${GLEW_LIB} ${ASSIMP} ${FREETYPE})

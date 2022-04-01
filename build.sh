@@ -6,7 +6,7 @@ if [ "$DIR" = "" ]; then
 fi
 
 if ! [ -d $DIR/build/ ]; then
-    rm -rf $DIR/build
+    rm -rf $DIR/build/
 fi
 
 mkdir $DIR/build
