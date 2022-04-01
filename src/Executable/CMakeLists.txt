@@ -1,4 +1,5 @@
 include_directories("../Engine/include/")
+include_directories("../Engine/libs/include/glm_headers")
 if (WIN32)
     include_directories("../Engine/libs/include/")
     link_directories("../Engine/libs")
