@@ -10,6 +10,7 @@ namespace Engine
         glm::vec3 position = {0, 0, 0};
         glm::vec3 force = {0, 0, 0};
         float height = 0;
+        float width = 0;
     } ObjectParameters;
 
     extern float gravity;

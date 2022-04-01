@@ -53,19 +53,19 @@ namespace Engine
 
             if (!value)
             {
-                object.force.z -= gravity;
+                object.force.y -= gravity;
 
                 continue;
             }// 10.0999	6.39999
-            if (value->position.y - (object.position.y - object.height + (object.force.z - gravity)) >= 0)
+            if (value->position.y - (object.position.y - object.height + (object.force.y - gravity)) >= 0)
             {
                 object.position.y = value->position.y + object.height;
-                if (object.force.z < 0)
-                    object.force.z = 0;
+                if (object.force.y < 0)
+                    object.force.y = 0;
             }
             else
             {
-                object.force.z -= gravity;
+                object.force.y -= gravity;
             }
         }
 
