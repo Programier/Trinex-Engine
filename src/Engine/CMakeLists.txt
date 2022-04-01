@@ -1,7 +1,6 @@
 add_subdirectory("./libs/freetype/")
 add_subdirectory("./libs/glfw3/")
 add_subdirectory("./libs/glew/build/cmake")
-include_directories("./libs/include/glm_headers")
 include_directories("./libs/glew/include/")
 
 if(WIN32)
