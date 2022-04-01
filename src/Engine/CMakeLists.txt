@@ -3,7 +3,7 @@ add_subdirectory("./libs/freetype/")
 set(FREETYPE freetype)
 
 include_directories("./libs/glfw/include/")
-add_subdirectory("./libs/glfw/")
+add_subdirectory("./libs/glfw3/")
 set(GLFW glfw)
 
 if(WIN32)
