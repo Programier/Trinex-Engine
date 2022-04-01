@@ -1,6 +1,7 @@
 add_subdirectory("./libs/freetype/")
 add_subdirectory("./libs/glfw3/")
 add_subdirectory("./libs/glew/build/cmake")
+include_directories("./libs/include/glm_headers")
 
 if(WIN32)
     link_directories("./libs/")
@@ -10,7 +11,6 @@ if(WIN32)
 else()
 	set(OPENGL GL)
 	set(ASSIMP assimp)
-    include_directories("/usr/include/freetype2")
 endif()
 
 set(WINDOW_DIR "./Window/")
