@@ -6,4 +6,4 @@ endif()
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_ROOT}/build)
 add_executable(Engine3D_RUN main.cpp)
-target_link_libraries(Engine3D_RUN Window Graphics Physics)
+target_link_libraries(Engine3D_RUN Engine)
