@@ -17,24 +17,26 @@
 #define point_to_height_point(point)                                                                                   \
     {                                                                                                                  \
         to_array_index(_M_limits.min.x, point.x, block_size), to_array_index(_M_limits.min.y, point.y, block_size),    \
-                to_array_index(_M_limits.min.z, point.z, block_size), normal                                           \
+                to_array_index(_M_limits.min.z, point.z, block_size), point, normal                                    \
     }
 
+#define height_map_value                                                                                               \
+    {                                                                                                                  \
+        ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), _M_limits.min,                         \
+        {                                                                                                              \
+            0.f, 0.f, 0.f                                                                                              \
+        }
 
-//const unsigned int processor_count = std::thread::hardware_concurrency();
-#define processor_count 1
+
+const unsigned int processor_count = std::thread::hardware_concurrency();
+
 
 struct line {
     glm::vec3 begin;
     glm::vec3 end;
 };
 
-struct HeightPoint {
-    std::size_t x = 0;
-    std::size_t y = 0;
-    std::size_t z = 0;
-    Engine::HeightMapValue result;
-};
+using HeightPoint = Engine::HeightMapValue;
 
 #define vec_mult(a, b)                                                                                                 \
     glm::vec3((a).y*(b).z - (a).z * (b).y, (a).z * (b).x - (a).x * (b).z, (a).x * (b).y - (a).y * (b).x)
@@ -57,6 +59,9 @@ static bool in_triangle(const glm::vec3& A, const glm::vec3& B, const glm::vec3&
         return false;
     return true;
 }
+
+
+#undef check_sort
 
 
 static void calculate_height(std::vector<HeightPoint>& output, const float* values, std::size_t size,
@@ -109,13 +114,16 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
             for (float start = min(line.begin[use_coord], line.end[use_coord]); start < end; start += local_block_size)
             {
                 float t = (start - line.begin[use_coord]) / v[use_coord];
+                float x_value = (v.x * t) + line.begin.x;
                 float y_value = (v.y * t) + line.begin.y;
                 y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
                 y_value = y_value < _M_limits.min.y ? _M_limits.min.y : y_value;
-                std::size_t x = to_array_index(_M_limits.min.x, (v.x * t) + line.begin.x, block_size);
+                float z_value = (v.z * t) + line.begin.z;
+
+                std::size_t x = to_array_index(_M_limits.min.x, x_value, block_size);
                 std::size_t y = to_array_index(_M_limits.min.y, y_value, block_size);
-                std::size_t z = to_array_index(_M_limits.min.z, (v.z * t) + line.begin.z, block_size);
-                output.push_back({x, y, z, normal});
+                std::size_t z = to_array_index(_M_limits.min.z, z_value, block_size);
+                output.push_back({x, y, z, {x_value, y_value, z_value}, normal});
             }
         }
 
@@ -150,7 +158,7 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
                     y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
                     y_value = y_value < _M_limits.min.y ? _M_limits.min.y : y_value;
                     std::size_t y_coord = to_array_index(_M_limits.min.y, y_value, block_size);
-                    output.push_back({x_coord, y_coord, z_coord, normal});
+                    output.push_back({x_coord, y_coord, z_coord, {x, y_value, z}, normal});
                 }
             }
         }
@@ -159,6 +167,50 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
 
 namespace Engine
 {
+    bool HeightMapValue::operator<(const HeightMapValue& v) const
+    {
+        if (position.x < v.position.x)
+            return true;
+        else if (position.x > v.position.x)
+            return false;
+
+        if (position.y < v.position.y)
+            return true;
+        else if (position.y > v.position.y)
+            return false;
+
+        if (position.z < v.position.z)
+            return true;
+        else if (position.z > v.position.z)
+            return false;
+        return false;
+    }
+
+    bool HeightMapValue::operator<=(const HeightMapValue& v) const
+    {
+        return (*this < v) || (*this == v);
+    }
+
+    bool HeightMapValue::operator>(const HeightMapValue& v) const
+    {
+        return (!(*this < v)) && (*this != v);
+    }
+
+    bool HeightMapValue::operator>=(const HeightMapValue& v) const
+    {
+        return !(*this < v);
+    }
+
+    bool HeightMapValue::operator==(const HeightMapValue& v) const
+    {
+        return position.x == v.position.x && position.y == v.position.y && position.z == v.position.z;
+    }
+
+    bool HeightMapValue::operator!=(const HeightMapValue& v) const
+    {
+        return !(*this == v);
+    }
+
     HeightMap::HeightMap() = default;
 
     HeightMap::HeightMap(const Model& model, const float& block_size, const glm::mat4& model_matrix)
@@ -186,92 +238,97 @@ namespace Engine
             std::size_t x_count = calculate_count(_M_limits.min.x, _M_limits.max.x, block_size) + 1;
             std::size_t y_count = calculate_count(_M_limits.min.y, _M_limits.max.y, block_size) + 1;
             std::size_t z_count = calculate_count(_M_limits.min.z, _M_limits.max.z, block_size) + 1;
-            _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, glm::vec3(0.f))));
-        }
+
+            _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, {
+                height_map_value}
+        })));
+    }
 
 
-        std::size_t index = 1;
-        std::size_t count = model.meshes().size();
-        float local_block_size = block_size * 0.3;
+    std::size_t index = 1;
+    std::size_t count = model.meshes().size();
+    float local_block_size = block_size * 0.3;
 
-        for (auto& mesh : model.meshes())
+    for (auto& mesh : model.meshes())
+    {
+        std::clog << "\rHeightMap: Calculating mesh " << index++ << " of " << count << std::flush;
+        auto triangle_point_size = std::accumulate(mesh.attributes().begin(), mesh.attributes().end(), 0);
+
+        // Generating array of threads for calculating height in part of mesh
+        std::vector<std::thread> threads;
+        std::vector<std::vector<HeightPoint>> vectors(processor_count);
+        auto vector = mesh.data().data();
+        auto size = mesh.data().size();
+        auto block = (size / (triangle_point_size * 3)) / processor_count;
+
+        for (unsigned int i = 0; i < processor_count - 1; i++)
         {
-            std::clog << "\rHeightMap: Calculating mesh " << index++ << " of " << count << std::flush;
-            auto triangle_point_size = std::accumulate(mesh.attributes().begin(), mesh.attributes().end(), 0);
-
-            // Generating array of threads for calculating height in part of mesh
-            std::vector<std::thread> threads;
-            std::vector<std::vector<HeightPoint>> vectors(processor_count);
-            auto vector = mesh.data().data();
-            auto size = mesh.data().size();
-            auto block = (size / (triangle_point_size * 3)) / processor_count;
-
-            for (unsigned int i = 0; i < processor_count - 1; i++)
-            {
-                threads.emplace_back(calculate_height, std::ref(vectors[i]),
-                                     vector + block * i * triangle_point_size * 3, block * triangle_point_size * 3,
-                                     triangle_point_size, block_size, &_M_limits, local_block_size,
-                                     std::ref(model_matrix));
-            }
-
-            // Calculate last part of mesh in main thread
-            calculate_height(vectors.back(), vector + (block * (processor_count - 1) * triangle_point_size * 3),
-                             size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size,
-                             block_size, &_M_limits, local_block_size, model_matrix);
-
-            // Waiting for end of calculation
-            for (auto& thread : threads) thread.join();
-
-            // Updating data
-            for (auto& tmp : vectors)
-            {
-
-                for (auto& value : tmp)
-                {
-                    _M_array[value.x][value.y][value.z] += value.result;
-                }
-            }
+            threads.emplace_back(calculate_height, std::ref(vectors[i]), vector + block * i * triangle_point_size * 3,
+                                 block * triangle_point_size * 3, triangle_point_size, block_size, &_M_limits,
+                                 local_block_size, std::ref(model_matrix));
         }
 
-        std::clog << std::endl;
-        return *this;
+        // Calculate last part of mesh in main thread
+        calculate_height(vectors.back(), vector + (block * (processor_count - 1) * triangle_point_size * 3),
+                         size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size,
+                         block_size, &_M_limits, local_block_size, model_matrix);
+
+        // Waiting for end of calculation
+        for (auto& thread : threads) thread.join();
+
+        // Updating data
+        for (auto& tmp : vectors)
+        {
+
+            for (auto& value : tmp)
+            {
+                _M_array[value.x][value.y][value.z].push_back(value);
+            }
+        }
     }
 
-    const HeightMapArray& HeightMap::array() const
-    {
-        return _M_array;
-    }
+    std::clog << std::endl << "Sorting arrays" << std::endl;
+    for (auto& y : _M_array)
+        for (auto& z : y)
+            for (auto& block : z) std::sort(block.begin(), block.end());
+    return *this;
+}// namespace Engine
 
-    std::size_t HeightMap::to_x_index(const float& x_coord) const
-    {
+const HeightMapArray& HeightMap::array() const
+{
+    return _M_array;
+}
 
-        std::size_t index = to_array_index(_M_limits.min.x, x_coord, _M_block_size);
-        if (index >= _M_array.size())
-            throw std::runtime_error("HeightMap: Index out of range");
+std::size_t HeightMap::to_x_index(const float& x_coord) const
+{
 
-        return index;
-    }
+    std::size_t index = to_array_index(_M_limits.min.x, x_coord, _M_block_size);
+    if (index >= _M_array.size())
+        throw std::runtime_error("HeightMap: Index out of range");
 
-    std::size_t HeightMap::to_y_index(const float& y_coord) const
-    {
-        std::size_t index = to_array_index(_M_limits.min.y, y_coord, _M_block_size);
-        if (index >= _M_array[0].size())
-            throw std::runtime_error("HeightMap: Index out of range");
-        return index;
-    }
+    return index;
+}
 
-    std::size_t HeightMap::to_z_index(const float& z_coord) const
-    {
+std::size_t HeightMap::to_y_index(const float& y_coord) const
+{
+    std::size_t index = to_array_index(_M_limits.min.y, y_coord, _M_block_size);
+    if (index >= _M_array[0].size())
+        throw std::runtime_error("HeightMap: Index out of range");
+    return index;
+}
 
-        std::size_t index = to_array_index(_M_limits.min.z, z_coord, _M_block_size);
-        if (index >= _M_array[0][0].size())
-            throw std::runtime_error("HeightMap: Index out of range");
+std::size_t HeightMap::to_z_index(const float& z_coord) const
+{
 
-        return index;
-    }
+    std::size_t index = to_array_index(_M_limits.min.z, z_coord, _M_block_size);
+    if (index >= _M_array[0][0].size())
+        throw std::runtime_error("HeightMap: Index out of range");
 
-    const Model::Limits& HeightMap::limits() const
-    {
-        return _M_limits;
-    }
+    return index;
+}
+
+const Model::Limits& HeightMap::limits() const
+{
+    return _M_limits;
+}
 }// namespace Engine

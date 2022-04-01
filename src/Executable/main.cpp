@@ -44,7 +44,7 @@ int main()
     Engine::Text text_renderer("resources/fonts/STIX2Text-Bold.otf", 25);
     glm::mat4 model_matrix =
             glm::scale(glm::rotate(glm::mat4(1.0f), glm::radians(90.f), {-1., 0., 0.f}), {0.05f, 0.05f, 0.05f});
-    Engine::HeightMap height_map(model, 0.4f, model_matrix);
+    Engine::HeightMap height_map(model, 1.0f, model_matrix);
 
     bool lines_draw = false;
     std::string LOG_POS;
