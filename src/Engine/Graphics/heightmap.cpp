@@ -4,7 +4,7 @@
 #include <numeric>
 #include <thread>
 
-#define calculate_count(min, max, block_size) (static_cast<std::size_t>((max - min) / block_size))
+#define calculate_count(min, max, block_size) (static_cast<std::size_t>(((max - min) / block_size)) + 1)
 #define to_array_index(min, value, block_size) (static_cast<std::size_t>((value - min) / block_size))
 #define from_index(index, min, block_size) ((static_cast<float>(index) * block_size) + min)
 #define minor(a, b, c, d) (((a) * (d)) - ((b) * (c)))
@@ -21,7 +21,8 @@
     }
 
 
-const unsigned int processor_count = std::thread::hardware_concurrency();
+//const unsigned int processor_count = std::thread::hardware_concurrency();
+#define processor_count 1
 
 struct line {
     glm::vec3 begin;
@@ -108,8 +109,11 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
             for (float start = min(line.begin[use_coord], line.end[use_coord]); start < end; start += local_block_size)
             {
                 float t = (start - line.begin[use_coord]) / v[use_coord];
+                float y_value = (v.y * t) + line.begin.y;
+                y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
+                y_value = y_value < _M_limits.min.y ? _M_limits.min.y : y_value;
                 std::size_t x = to_array_index(_M_limits.min.x, (v.x * t) + line.begin.x, block_size);
-                std::size_t y = to_array_index(_M_limits.min.y, (v.y * t) + line.begin.y, block_size);
+                std::size_t y = to_array_index(_M_limits.min.y, y_value, block_size);
                 std::size_t z = to_array_index(_M_limits.min.z, (v.z * t) + line.begin.z, block_size);
                 output.push_back({x, y, z, normal});
             }
@@ -144,6 +148,7 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
                 {
                     float y_value = (-plane[3] - (plane[0] * x) - (plane[2] * z)) / plane[1];
                     y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
+                    y_value = y_value < _M_limits.min.y ? _M_limits.min.y : y_value;
                     std::size_t y_coord = to_array_index(_M_limits.min.y, y_value, block_size);
                     output.push_back({x_coord, y_coord, z_coord, normal});
                 }

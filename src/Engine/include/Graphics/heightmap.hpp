@@ -7,6 +7,7 @@ namespace Engine
 {
 
     typedef glm::vec3 HeightMapValue;
+    typedef HeightMapValue Force;
     typedef std::vector<HeightMapValue> HeightMap_Z_Axis;
     typedef std::vector<HeightMap_Z_Axis> HeightMap_Y_Axis;
     typedef std::vector<HeightMap_Y_Axis> HeightMapArray;
