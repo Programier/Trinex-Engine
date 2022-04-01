@@ -1,6 +1,6 @@
 include_directories("../Engine/include/")
 if (WIN32)
-    include_directories("../Engine/libs")
+    include_directories("../Engine/libs/include/")
     link_directories("../Engine/libs")
 endif()
 
