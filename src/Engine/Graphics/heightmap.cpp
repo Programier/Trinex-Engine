@@ -13,6 +13,7 @@
 #define in_range(value, min_value, max_value) (value >= min_value && value <= max_value)
 #define use_model(variable) (glm::vec3(model_matrix * glm::vec4((variable), 1.0f)))
 #define get_normal (glm::vec3(plane))
+#define empty_normal(normal) (normal[0] == 0 && normal[1] == 0 && normal[2] == 0)
 
 #define point_to_height_point(point)                                                                                   \
     {                                                                                                                  \
@@ -188,13 +189,23 @@ static void calculate_height(std::list<HeightPoint>& output, const float* values
         a = use_model(a);
         b = use_model(b);
         c = use_model(c);
-        glm::vec4 plane = {minor(b.y - a.y, c.y - a.y, b.z - a.z, c.z - a.z),
-                           minor(b.x - a.x, c.x - a.x, b.z - a.z, c.z - a.z) * (-1),
-                           minor(b.x - a.x, c.x - a.x, b.y - a.y, c.y - a.y), 0};
+        glm::vec4 plane;
+
+        glm::vec3 normal =
+                triangle_block >= 8 ? glm::vec3(values[i + 5], values[i + 6], values[i + 7]) : glm::vec3(0.f, 0.f, 0.f);
+
+        if (triangle_block < 8 || empty_normal(normal))
+        {
+            plane = {minor(b.y - a.y, c.y - a.y, b.z - a.z, c.z - a.z),
+                     minor(b.x - a.x, c.x - a.x, b.z - a.z, c.z - a.z) * (-1),
+                     minor(b.x - a.x, c.x - a.x, b.y - a.y, c.y - a.y), 0};
+            normal = get_normal;
+        }
+        else
+        {
+            plane = glm::vec4(normal, 0.f);
+        }
         plane[3] = (-a.x) * plane[0] + (-a.y) * plane[1] + (-a.z) * plane[2];
-
-
-        auto normal = get_normal;
 
         output.push_back(point_to_height_point(a));
         output.push_back(point_to_height_point(b));
