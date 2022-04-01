@@ -19,13 +19,12 @@ else()
     include_directories("/usr/include/freetype2")
 endif()
 
-set(INIT_DIR "sources/Init/")
-set(WINDOW_DIR "sources/Window/")
-set(IMAGE_DIR "sources/Image/")
-set(GRAPHICS_DIR "sources/Graphics/")
-set(PHYSICS_DIR "sources/Physics/")
+set(WINDOW_DIR "./Window/")
+set(IMAGE_DIR "./Image/")
+set(GRAPHICS_DIR "./Graphics/")
+set(PHYSICS_DIR "./Physics/")
 
-set(ENGINE ${INIT_DIR}/init.cpp
+set(ENGINE Init.cpp
            ${WINDOW_DIR}/window.cpp
            ${WINDOW_DIR}/keyboard.cpp
            ${WINDOW_DIR}/color.cpp
