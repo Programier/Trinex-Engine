@@ -25,7 +25,8 @@
         ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), _M_limits.min,                         \
         {                                                                                                              \
             0.f, 0.f, 0.f                                                                                              \
-        }
+        }                                                                                                              \
+    }
 
 
 const unsigned int processor_count = std::thread::hardware_concurrency();
@@ -60,8 +61,116 @@ static bool in_triangle(const glm::vec3& A, const glm::vec3& B, const glm::vec3&
     return true;
 }
 
+struct use_point {
+    int point1;
+    int point2;
+};
 
-static void calculate_height(std::vector<HeightPoint>& output, const float* values, std::size_t size,
+static void calculate_triangle_points(use_point points, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c,
+                                      const float& local_block_size, const float& block_size,
+                                      const Engine::Model::Limits& _M_limits, const glm::vec4& plane,
+                                      const glm::vec3& normal, std::list<Engine::HeightMapValue>& output)
+{
+    float max_1 = max(max(a[points.point1], b[points.point1]), c[points.point1]);
+    float max_2 = max(max(a[points.point2], b[points.point2]), c[points.point2]);
+
+    float min_1 = min(min(a[points.point1], b[points.point1]), c[points.point1]);
+    float min_2 = min(min(a[points.point2], b[points.point2]), c[points.point2]);
+
+    glm::vec2 A(a[points.point1], a[points.point2]);
+    glm::vec2 B(b[points.point1], b[points.point2]);
+    glm::vec2 C(c[points.point1], c[points.point2]);
+
+    int result_point = 3 - points.point1 - points.point2;
+    Engine::ArrayIndex result_coords[3];
+    glm::vec3 global_point;
+
+
+    for (float first = min_1; first < max_1; first += local_block_size)
+    {
+        for (float second = min_2; second < max_2; second += local_block_size)
+        {
+
+            glm::vec2 P(first, second);
+            if (!in_triangle(glm::vec3(A, 1.f), glm::vec3(B, 1.0f), glm::vec3(C, 1.0f), glm::vec3(P, 1.0f)))
+                continue;
+
+            result_coords[points.point1] = to_array_index(_M_limits.min[points.point1], first, block_size);
+            result_coords[points.point2] = to_array_index(_M_limits.min[points.point2], second, block_size);
+
+            global_point[points.point1] = first;
+            global_point[points.point2] = second;
+
+            if (plane[result_point] == 0)
+            {
+                // TODO
+            }
+            else
+            {
+                global_point[result_point] =
+                        (-plane[3] - (plane[points.point1] * first) - (plane[points.point2] * second)) /
+                        plane[result_point];
+
+                global_point[result_point] = global_point[result_point] > _M_limits.max[result_point]
+                                                     ? _M_limits.max[result_point]
+                                                     : global_point[result_point];
+
+                global_point[result_point] = global_point[result_point] < _M_limits.min[result_point]
+                                                     ? _M_limits.min[result_point]
+                                                     : global_point[result_point];
+
+                result_coords[result_point] =
+                        to_array_index(_M_limits.min[result_point], global_point[result_point], block_size);
+
+                output.push_back({result_coords[0], result_coords[1], result_coords[2], global_point, normal});
+            }
+        }
+    }
+}
+
+
+static void calculate_lines(use_point points, const std::vector<line>& lines, const float& local_block_size,
+                            const Engine::Model::Limits& _M_limits, const float& block_size, const glm::vec3& normal,
+                            std::list<Engine::HeightMapValue>& output)
+{
+    for (const auto& line : lines)
+    {
+        auto v = line.end - line.begin;
+        if (v[points.point1] == 0 && v[points.point2] == 0)
+            continue;
+        int use_coord = -1;
+
+        if (v[points.point1] == 0 || v[points.point2] == 0)
+            use_coord = v[points.point1] == 0 ? points.point2 : points.point1;
+        else
+            use_coord = glm::abs(v[points.point1]) > glm::abs(v[points.point2]) ? points.point1 : points.point2;
+
+        Engine::ArrayIndex indexes[3];
+        glm::vec3 result;
+        float end = max(line.begin[use_coord], line.end[use_coord]);
+        int result_coord = 3 - points.point1 - points.point2;
+        for (float start = min(line.begin[use_coord], line.end[use_coord]); start < end; start += local_block_size)
+        {
+            float t = (start - line.begin[use_coord]) / v[use_coord];
+            result[points.point1] = (v[points.point1] * t) + line.begin[points.point1];
+            result[points.point2] = (v[points.point2] * t) + line.begin[points.point2];
+
+            result[result_coord] = (v[result_coord] * t) + line.begin[result_coord];
+            result[result_coord] = result[result_coord] > _M_limits.max[result_coord] ? _M_limits.max[result_coord]
+                                                                                      : result[result_coord];
+            result[result_coord] = result[result_coord] < _M_limits.min[result_coord] ? _M_limits.min[result_coord]
+                                                                                      : result[result_coord];
+
+            indexes[points.point1] = to_array_index(_M_limits.min[points.point1], result[points.point1], block_size);
+            indexes[points.point2] = to_array_index(_M_limits.min[points.point2], result[points.point2], block_size);
+            indexes[result_coord] = to_array_index(_M_limits.min[result_coord], result[result_coord], block_size);
+
+            output.push_back({indexes[0], indexes[1], indexes[2], result, normal});
+        }
+    }
+}
+
+static void calculate_height(std::list<HeightPoint>& output, const float* values, std::size_t size,
                              std::size_t triangle_point_size, float block_size, Engine::Model::Limits* limits,
                              float local_block_size, const glm::mat4& model_matrix)
 {
@@ -85,9 +194,6 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
         plane[3] = (-a.x) * plane[0] + (-a.y) * plane[1] + (-a.z) * plane[2];
 
 
-        glm::vec2 A(a.x, a.z);
-        glm::vec2 B(b.x, b.z);
-        glm::vec2 C(c.x, c.z);
         auto normal = get_normal;
 
         output.push_back(point_to_height_point(a));
@@ -95,70 +201,17 @@ static void calculate_height(std::vector<HeightPoint>& output, const float* valu
         output.push_back(point_to_height_point(c));
 
 
-        for (const auto& line : {line({a, b}), line({a, c}), line({b, c})})
-        {
-            auto v = line.end - line.begin;
-            if (v.x == 0 && v.z == 0)
-                continue;
-            int use_coord = -1;
+        std::vector<line> lines = {line({a, b}), line({a, c}), line({b, c})};
+        calculate_lines({0, 2}, lines, local_block_size, _M_limits, block_size, normal, output);
+        calculate_lines({1, 2}, lines, local_block_size, _M_limits, block_size, normal, output);
+        calculate_lines({1, 2}, lines, local_block_size, _M_limits, block_size, normal, output);
 
-            if (v.x == 0 || v.z == 0)
-                use_coord = v.x == 0 ? 2 : 0;
-            else
-                use_coord = glm::abs(v.x) > glm::abs(v.z) ? 0 : 2;
-
-            float end = max(line.begin[use_coord], line.end[use_coord]);
-            for (float start = min(line.begin[use_coord], line.end[use_coord]); start < end; start += local_block_size)
-            {
-                float t = (start - line.begin[use_coord]) / v[use_coord];
-                float x_value = (v.x * t) + line.begin.x;
-                float y_value = (v.y * t) + line.begin.y;
-                y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
-                y_value = y_value < _M_limits.min.y ? _M_limits.min.y : y_value;
-                float z_value = (v.z * t) + line.begin.z;
-
-                std::size_t x = to_array_index(_M_limits.min.x, x_value, block_size);
-                std::size_t y = to_array_index(_M_limits.min.y, y_value, block_size);
-                std::size_t z = to_array_index(_M_limits.min.z, z_value, block_size);
-                output.push_back({x, y, z, {x_value, y_value, z_value}, normal});
-            }
-        }
-
-        float max_x = max(max(a.x, b.x), c.x);
-        float max_z = max(max(a.z, b.z), c.z);
-
-        float min_x = from_index(to_array_index(_M_limits.min.x, min(min(a.x, b.x), c.x), block_size), _M_limits.min.x,
-                                 block_size);
-
-        float min_z = from_index(to_array_index(_M_limits.min.z, min(min(a.z, b.z), c.z), block_size), _M_limits.min.z,
-                                 block_size);
-
-        for (float x = min_x; x < max_x; x += local_block_size)
-        {
-            for (float z = min_z; z < max_z; z += local_block_size)
-            {
-
-                glm::vec2 P(x, z);
-                if (!in_triangle(glm::vec3(A, 1.f), glm::vec3(B, 1.0f), glm::vec3(C, 1.0f), glm::vec3(P, 1.0f)))
-                    continue;
-
-                std::size_t x_coord = to_array_index(_M_limits.min.x, x, block_size);
-                std::size_t z_coord = to_array_index(_M_limits.min.z, z, block_size);
-
-                if (plane[1] == 0)
-                {
-                    // TODO
-                }
-                else
-                {
-                    float y_value = (-plane[3] - (plane[0] * x) - (plane[2] * z)) / plane[1];
-                    y_value = y_value > _M_limits.max.y ? _M_limits.max.y : y_value;
-                    y_value = y_value < _M_limits.min.y ? _M_limits.min.y : y_value;
-                    std::size_t y_coord = to_array_index(_M_limits.min.y, y_value, block_size);
-                    output.push_back({x_coord, y_coord, z_coord, {x, y_value, z}, normal});
-                }
-            }
-        }
+        calculate_triangle_points({0, 2}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
+        calculate_triangle_points({2, 0}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
+        calculate_triangle_points({0, 1}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
+        calculate_triangle_points({1, 0}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
+        calculate_triangle_points({1, 2}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
+        calculate_triangle_points({2, 1}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
     }
 }
 
@@ -236,93 +289,98 @@ namespace Engine
             std::size_t y_count = calculate_count(_M_limits.min.y, _M_limits.max.y, block_size) + 1;
             std::size_t z_count = calculate_count(_M_limits.min.z, _M_limits.max.z, block_size) + 1;
 
-            _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, height_map_value
-        })));
-    }
-
-
-    std::size_t index = 1;
-    std::size_t count = model.meshes().size();
-    float local_block_size = block_size * 0.3;
-
-    for (auto& mesh : model.meshes())
-    {
-        std::clog << "\rHeightMap: Calculating mesh " << index++ << " of " << count << std::flush;
-        auto triangle_point_size = std::accumulate(mesh.attributes().begin(), mesh.attributes().end(), 0);
-
-        // Generating array of threads for calculating height in part of mesh
-        std::vector<std::thread> threads;
-        std::vector<std::vector<HeightPoint>> vectors(processor_count);
-        auto vector = mesh.data().data();
-        auto size = mesh.data().size();
-        auto block = (size / (triangle_point_size * 3)) / processor_count;
-
-        for (unsigned int i = 0; i < processor_count - 1; i++)
-        {
-            threads.emplace_back(calculate_height, std::ref(vectors[i]), vector + block * i * triangle_point_size * 3,
-                                 block * triangle_point_size * 3, triangle_point_size, block_size, &_M_limits,
-                                 local_block_size, std::ref(model_matrix));
+            _M_array.resize(x_count, HeightMap_Y_Axis(y_count, HeightMap_Z_Axis(z_count, height_map_value)));
         }
 
-        // Calculate last part of mesh in main thread
-        calculate_height(vectors.back(), vector + (block * (processor_count - 1) * triangle_point_size * 3),
-                         size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size,
-                         block_size, &_M_limits, local_block_size, model_matrix);
 
-        // Waiting for end of calculation
-        for (auto& thread : threads) thread.join();
+        std::size_t index = 1;
+        std::size_t count = model.meshes().size();
+        float local_block_size = block_size * 0.3;
 
-        // Updating data
-        for (auto& tmp : vectors)
+        for (auto& mesh : model.meshes())
         {
+            std::clog << "\rHeightMap: Calculating mesh " << index++ << " of " << count << std::flush;
+            auto triangle_point_size = std::accumulate(mesh.attributes().begin(), mesh.attributes().end(), 0);
 
-            for (auto& value : tmp)
+            // Generating array of threads for calculating height in part of mesh
+            std::vector<std::thread> threads;
+            std::vector<std::list<HeightPoint>> vectors(processor_count);
+            auto vector = mesh.data().data();
+            auto size = mesh.data().size();
+            auto block = (size / (triangle_point_size * 3)) / processor_count;
+
+            for (unsigned int i = 0; i < processor_count - 1; i++)
             {
-                auto& out = _M_array[value.x][value.y][value.z];
-                out.normal += value.normal;
-                if (out < value)
-                    out.position = value.position;
+                threads.emplace_back(calculate_height, std::ref(vectors[i]),
+                                     vector + block * i * triangle_point_size * 3, block * triangle_point_size * 3,
+                                     triangle_point_size, block_size, &_M_limits, local_block_size,
+                                     std::ref(model_matrix));
+            }
+
+            // Calculate last part of mesh in main thread
+            calculate_height(vectors.back(), vector + (block * (processor_count - 1) * triangle_point_size * 3),
+                             size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size,
+                             block_size, &_M_limits, local_block_size, model_matrix);
+
+            // Waiting for end of calculation
+            for (auto& thread : threads) thread.join();
+
+            // Updating data
+            for (auto& tmp : vectors)
+            {
+
+                for (auto& value : tmp)
+                {
+                    auto& out = _M_array[value.x][value.y][value.z];
+                    out.normal += value.normal;
+                    if (out < value)
+                        out.position = value.position;
+                }
             }
         }
+        return *this;
+    }// namespace Engine
+
+    const HeightMapArray& HeightMap::array() const
+    {
+        return _M_array;
     }
-    return *this;
-}// namespace Engine
 
-const HeightMapArray& HeightMap::array() const
-{
-    return _M_array;
-}
+    std::size_t HeightMap::to_x_index(const float& x_coord) const
+    {
 
-std::size_t HeightMap::to_x_index(const float& x_coord) const
-{
+        std::size_t index = to_array_index(_M_limits.min.x, x_coord, _M_block_size);
+        if (index >= _M_array.size())
+            throw std::runtime_error("HeightMap: Index out of range");
 
-    std::size_t index = to_array_index(_M_limits.min.x, x_coord, _M_block_size);
-    if (index >= _M_array.size())
-        throw std::runtime_error("HeightMap: Index out of range");
+        return index;
+    }
 
-    return index;
-}
+    std::size_t HeightMap::to_y_index(const float& y_coord) const
+    {
+        std::size_t index = to_array_index(_M_limits.min.y, y_coord, _M_block_size);
+        if (index >= _M_array[0].size())
+            throw std::runtime_error("HeightMap: Index out of range");
+        return index;
+    }
 
-std::size_t HeightMap::to_y_index(const float& y_coord) const
-{
-    std::size_t index = to_array_index(_M_limits.min.y, y_coord, _M_block_size);
-    if (index >= _M_array[0].size())
-        throw std::runtime_error("HeightMap: Index out of range");
-    return index;
-}
+    std::size_t HeightMap::to_z_index(const float& z_coord) const
+    {
 
-std::size_t HeightMap::to_z_index(const float& z_coord) const
-{
+        std::size_t index = to_array_index(_M_limits.min.z, z_coord, _M_block_size);
+        if (index >= _M_array[0][0].size())
+            throw std::runtime_error("HeightMap: Index out of range");
 
-    std::size_t index = to_array_index(_M_limits.min.z, z_coord, _M_block_size);
-    if (index >= _M_array[0][0].size())
-        throw std::runtime_error("HeightMap: Index out of range");
+        return index;
+    }
 
-    return index;
-}
+    const Model::Limits& HeightMap::limits() const
+    {
+        return _M_limits;
+    }
 
-const Model::Limits& HeightMap::limits() const
-{
-    return _M_limits;
-}
+    float HeightMap::block_size() const
+    {
+        return _M_block_size;
+    }
 }// namespace Engine

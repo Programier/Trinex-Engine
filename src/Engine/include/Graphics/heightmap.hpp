@@ -57,5 +57,6 @@ namespace Engine
         ArrayIndex to_y_index(const float& y_coord) const;
         ArrayIndex to_z_index(const float& z_coord) const;
         const Model::Limits& limits() const;
+        float block_size() const;
     };
 }// namespace Engine
