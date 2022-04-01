@@ -1,8 +1,6 @@
 add_subdirectory("./libs/freetype/")
-set(FREETYPE freetype)
 add_subdirectory("./libs/glfw3/")
 add_subdirectory("./libs/glew/build/cmake")
-set(GLFW glfw)
 
 if(WIN32)
     link_directories("./libs/")
@@ -42,4 +40,4 @@ set(ENGINE Init.cpp
 add_library(Engine SHARED ${ENGINE})
 
 include_directories("include/")
-target_link_libraries(Engine ${GLFW} ${OPENGL} glew_s ${ASSIMP} ${FREETYPE})
+target_link_libraries(Engine glfw ${OPENGL} glew_s ${ASSIMP} freetype)
