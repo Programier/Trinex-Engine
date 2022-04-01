@@ -53,9 +53,9 @@ namespace Engine
 
             if (!value)
             {
-                //object.force.z -= gravity;
-                if (object.force.z < 0)
-                    object.force.z = 0;
+                object.force.z -= gravity;
+
+                continue;
             }// 10.0999	6.39999
             if (value->position.y - (object.position.y - object.height + (object.force.z - gravity)) >= 0)
             {
