@@ -37,6 +37,7 @@ namespace Engine
         const HeightMapArray& array() const;
 
         std::size_t to_x_index(const float& x_coord) const;
+        std::size_t to_y_index(const float& y_coord) const;
         std::size_t to_z_index(const float& z_coord) const;
         const Model::Limits& limits() const;
     };

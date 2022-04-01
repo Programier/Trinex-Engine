@@ -247,11 +247,19 @@ namespace Engine
         return index;
     }
 
+    std::size_t HeightMap::to_y_index(const float& y_coord) const
+    {
+        std::size_t index = to_array_index(_M_limits.min.y, y_coord, _M_block_size);
+        if (index >= _M_array[0].size())
+            throw std::runtime_error("HeightMap: Index out of range");
+        return index;
+    }
+
     std::size_t HeightMap::to_z_index(const float& z_coord) const
     {
 
         std::size_t index = to_array_index(_M_limits.min.z, z_coord, _M_block_size);
-        if (_M_array.empty() || index >= _M_array[0].size())
+        if (index >= _M_array[0][0].size())
             throw std::runtime_error("HeightMap: Index out of range");
 
         return index;
