@@ -338,6 +338,7 @@ namespace Engine
                 }
             }
         }
+        std::clog << std::endl;
         return *this;
     }// namespace Engine
 
