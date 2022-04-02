@@ -93,7 +93,7 @@ namespace Engine
         return *this;
     }
 
-    Line& Line::lines_from(Model& model)
+    Line& Line::lines_from(TerrainModel& model)
     {
         auto data = model.meshes();
         std::size_t result_size = 0;

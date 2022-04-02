@@ -1,6 +1,6 @@
 #pragma once
 #include <Graphics/mesh.hpp>
-#include <Graphics/model.hpp>
+#include <Graphics/terrainmodel.hpp>
 
 
 namespace Engine
@@ -18,7 +18,7 @@ namespace Engine
 
         Line& push_line(const glm::vec3& point1, const glm::vec3& point2);
         Line& load_from(const std::string& model);
-        Line& lines_from(Model& model);
+        Line& lines_from(TerrainModel& model);
         float line_width();
         Line& line_width(const float& width);
         Line& draw();

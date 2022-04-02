@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#include <Graphics/model.hpp>
+#include <Graphics/terrainmodel.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/cimport.h>
 #include <assimp/matrix4x4.h>
@@ -24,13 +24,13 @@ struct EqualSizeListStruct {
 
 namespace Engine
 {
-    bool Model::pair::empty()
+    bool TerrainModel::pair::empty()
     {
         return _M_texture == nullptr && _M_mesh == nullptr;
     }
 
-    void Model::load_textures(const std::vector<std::pair<std::string, const char*>>& names, const unsigned int& mipmap,
-                              const bool& invert_textures)
+    void TerrainModel::load_textures(const std::vector<std::pair<std::string, const char*>>& names,
+                                     const unsigned int& mipmap, const bool& invert_textures)
     {
 
         _M_meshes.clear();
@@ -82,8 +82,8 @@ namespace Engine
     {                                                                                                                  \
         _M_limits.max.v = vert.v;                                                                                      \
     }
-    Model& Model::load_model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
-                             const bool& invert)
+    TerrainModel& TerrainModel::load_model(const std::string& model_file, const DrawMode& mode,
+                                           const unsigned int& mipmap, const bool& invert)
     {
         _M_mode = mode;
         const std::string directory = model_file.substr(0, model_file.find_last_of('/')) + "/";
@@ -199,13 +199,13 @@ namespace Engine
         return *this;
     }
 
-    Model::~Model()
+    TerrainModel::~TerrainModel()
     {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    Model::Model() = default;
-    Model& Model::draw()
+    TerrainModel::TerrainModel() = default;
+    TerrainModel& TerrainModel::draw()
     {
         auto mesh_iterator = _M_meshes.begin();
         auto texture_iterator = _M_textures.begin();
@@ -222,12 +222,12 @@ namespace Engine
         return *this;
     }
 
-    const DrawMode& Model::mode()
+    const DrawMode& TerrainModel::mode()
     {
         return _M_mode;
     }
 
-    Model& Model::mode(const DrawMode& mode)
+    TerrainModel& TerrainModel::mode(const DrawMode& mode)
     {
         _M_mode = mode;
         for (auto& texture : _M_textures) texture.draw_mode(mode);
@@ -235,27 +235,28 @@ namespace Engine
         return *this;
     }
 
-    Model::Model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap, const bool& invert)
+    TerrainModel::TerrainModel(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
+                               const bool& invert)
     {
         load_model(model_file, mode, mipmap, invert);
     }
 
-    const std::list<Texture>& Model::textures() const
+    const std::list<Texture>& TerrainModel::textures() const
     {
         return _M_textures;
     }
 
-    const std::list<Mesh>& Model::meshes() const
+    const std::list<Mesh>& TerrainModel::meshes() const
     {
         return _M_meshes;
     }
 
-    const std::vector<Model::pair>& Model::parts() const
+    const std::vector<TerrainModel::pair>& TerrainModel::parts() const
     {
         return _M_parts;
     }
 
-    const Model::Limits& Model::limits() const
+    const TerrainModel::Limits& TerrainModel::limits() const
     {
         return _M_limits;
     }

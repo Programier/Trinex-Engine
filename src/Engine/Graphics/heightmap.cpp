@@ -69,7 +69,7 @@ struct use_point {
 
 static void calculate_triangle_points(use_point points, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c,
                                       const float& local_block_size, const float& block_size,
-                                      const Engine::Model::Limits& _M_limits, const glm::vec4& plane,
+                                      const Engine::TerrainModel::Limits& _M_limits, const glm::vec4& plane,
                                       const glm::vec3& normal, std::list<Engine::HeightMapValue>& output)
 {
     float max_1 = max(max(a[points.point1], b[points.point1]), c[points.point1]);
@@ -131,8 +131,8 @@ static void calculate_triangle_points(use_point points, const glm::vec3& a, cons
 
 
 static void calculate_lines(use_point points, const std::vector<line>& lines, const float& local_block_size,
-                            const Engine::Model::Limits& _M_limits, const float& block_size, const glm::vec3& normal,
-                            std::list<Engine::HeightMapValue>& output)
+                            const Engine::TerrainModel::Limits& _M_limits, const float& block_size,
+                            const glm::vec3& normal, std::list<Engine::HeightMapValue>& output)
 {
     for (const auto& line : lines)
     {
@@ -172,7 +172,7 @@ static void calculate_lines(use_point points, const std::vector<line>& lines, co
 }
 
 static void calculate_height(std::list<HeightPoint>& output, const float* values, std::size_t size,
-                             std::size_t triangle_point_size, float block_size, Engine::Model::Limits* limits,
+                             std::size_t triangle_point_size, float block_size, Engine::TerrainModel::Limits* limits,
                              float local_block_size, const glm::mat4& model_matrix)
 {
     auto& _M_limits = *limits;
@@ -274,12 +274,12 @@ namespace Engine
 
     HeightMap::HeightMap() = default;
 
-    HeightMap::HeightMap(const Model& model, const float& block_size, const glm::mat4& model_matrix)
+    HeightMap::HeightMap(const TerrainModel& model, const float& block_size, const glm::mat4& model_matrix)
     {
         from_model(model, block_size, model_matrix);
     }
 
-    HeightMap& HeightMap::from_model(const Model& model, const float& block_size, const glm::mat4& model_matrix)
+    HeightMap& HeightMap::from_model(const TerrainModel& model, const float& block_size, const glm::mat4& model_matrix)
     {
         std::clog << "HeightMap: Generating height map" << std::endl;
         _M_array.clear();
@@ -386,7 +386,7 @@ namespace Engine
         return index;
     }
 
-    const Model::Limits& HeightMap::limits() const
+    const TerrainModel::Limits& HeightMap::limits() const
     {
         return _M_limits;
     }

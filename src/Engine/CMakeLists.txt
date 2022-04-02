@@ -30,7 +30,7 @@ set(ENGINE Init.cpp
            ${GRAPHICS_DIR}/mesh.cpp
            ${GRAPHICS_DIR}/texturearray.cpp
            ${GRAPHICS_DIR}/basic_texturearray.cpp
-           ${GRAPHICS_DIR}/model.cpp
+           ${GRAPHICS_DIR}/terrainmodel.cpp
            ${GRAPHICS_DIR}/skybox.cpp
            ${GRAPHICS_DIR}/line.cpp
            ${GRAPHICS_DIR}/text.cpp

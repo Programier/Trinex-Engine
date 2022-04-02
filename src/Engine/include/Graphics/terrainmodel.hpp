@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    class Model
+    class TerrainModel
     {
     public:
         struct Limits {
@@ -33,23 +33,23 @@ namespace Engine
         void load_textures(const std::vector<std::pair<std::string, const char*>>& names, const unsigned int& mipmap,
                            const bool& invert_textures);
 
-        Model::Limits _M_limits;
+        TerrainModel::Limits _M_limits;
 
     public:
-        Model();
-        Model(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
+        TerrainModel();
+        TerrainModel(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
               const unsigned int& mipmap_level = 4, const bool& invert = true);
-        Model(const Model&) = delete;
-        Model& load_model(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
+        TerrainModel(const TerrainModel&) = delete;
+        TerrainModel& load_model(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
                           const unsigned int& mipmap_level = 4, const bool& invert = true);
-        Model& draw();
+        TerrainModel& draw();
         const DrawMode& mode();
-        Model& mode(const DrawMode& mode);
+        TerrainModel& mode(const DrawMode& mode);
 
         const std::list<Texture>& textures() const;
         const std::list<Mesh>& meshes() const;
         const std::vector<pair>& parts() const;
-        const Model::Limits& limits() const;
-        ~Model();
+        const TerrainModel::Limits& limits() const;
+        ~TerrainModel();
     };
 }// namespace Engine

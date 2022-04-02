@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/model.hpp>
+#include <Graphics/terrainmodel.hpp>
 #include <vector>
 
 
@@ -43,20 +43,20 @@ namespace Engine
 
     private:
         float _M_block_size;
-        Model::Limits _M_limits;
+        TerrainModel::Limits _M_limits;
         HeightMapArray _M_array;
 
     public:
         HeightMap();
-        HeightMap(const Model& model, const float& block_size, const glm::mat4& model_matrix = glm::mat4(1.0f));
-        HeightMap& from_model(const Model& model, const float& block_size,
+        HeightMap(const TerrainModel& model, const float& block_size, const glm::mat4& model_matrix = glm::mat4(1.0f));
+        HeightMap& from_model(const TerrainModel& model, const float& block_size,
                               const glm::mat4& model_matrix = glm::mat4(1.0f));
         const HeightMapArray& array() const;
 
         ArrayIndex to_x_index(const float& x_coord) const;
         ArrayIndex to_y_index(const float& y_coord) const;
         ArrayIndex to_z_index(const float& z_coord) const;
-        const Model::Limits& limits() const;
+        const TerrainModel::Limits& limits() const;
         float block_size() const;
     };
 }// namespace Engine

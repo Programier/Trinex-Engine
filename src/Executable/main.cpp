@@ -3,9 +3,9 @@
 #include <Graphics/heightmap.hpp>
 #include <Graphics/line.hpp>
 #include <Graphics/mesh.hpp>
-#include <Graphics/model.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/skybox.hpp>
+#include <Graphics/terrainmodel.hpp>
 #include <Graphics/text.hpp>
 #include <Graphics/texture.hpp>
 #include <Graphics/texturearray.hpp>
@@ -23,7 +23,7 @@ int main()
     Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
     Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::Model model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 80);
+    Engine::TerrainModel model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 80);
 
     Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
                                                    "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
