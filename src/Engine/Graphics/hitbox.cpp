@@ -19,7 +19,6 @@ static glm::vec3 rotate_point(const glm::vec3& p, const glm::vec3& r)
     return glm::vec3(result * glm::vec4(p, 0.f));
 }
 
-
 static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
     auto point = rotate_point(point1.position(), point1.rotation());
@@ -32,19 +31,33 @@ static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHit
     auto vector = point - cube;
 
     int index = 0;
+    int count = 0;
+    float max_diff = 0;
+    int s_index = -1;
     for (int i = 0; i < 3; i++)
     {
         if (glm::abs(vector[i]) <= size[i])
+        {
             index += i;
+            count++;
+            if (glm::abs(max_diff) < glm::abs(vector[i]))
+            {
+                max_diff = vector[i];
+                s_index = i;
+            }
+            vector[i] += cube[i];
+        }
         else
             vector[i] = vector[i] < 0 ? min[i] : max[i];
     }
-    return (index != 0) ? glm::distance(point, cube) - size[3 - index] : glm::distance(point, vector);
+    return (count == 3)   ? glm::distance(point, cube) - (size[s_index] - max_diff)
+           : (count == 2) ? glm::distance(point, cube) - size[3 - index]
+                          : glm::distance(point, vector);
 }
 
 static float from_point_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    return glm::abs(glm::distance(point1.position(), point2.position())) - point2.size().r;
+    return glm::distance(point1.position(), point2.position()) - point2.size().r;
 }
 
 static float from_point_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
