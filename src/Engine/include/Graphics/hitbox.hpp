@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Graphics/line.hpp>
 #include <glm/glm.hpp>
 
 
@@ -34,39 +35,45 @@ namespace Engine
         glm::vec3& size();
     };
 
-    class Point : public IHitBox
+    class PointHB : public IHitBox
     {
     public:
-        Point(const glm::vec3& position);
-        Point(const Point&);
-        Point& operator = (const Point& point);
+        PointHB(const glm::vec3& position);
+        PointHB(const PointHB&);
+        PointHB& operator=(const PointHB& point);
         float distance_to(const IHitBox& hitbox) override;
     };
 
-    class Box : public IHitBox
+    class BoxHB : public IHitBox
     {
+    private:
+        Line _M_lines;
+
     public:
-        Box(const glm::vec3& position);
-        Box(const Box&);
-        Box& operator = (const Box& box);
+        BoxHB(const glm::vec3& position, const glm::vec3& size);
+        BoxHB(const BoxHB&);
+        BoxHB& operator=(const BoxHB& box);
+        float distance_to(const IHitBox& hitbox) override;
+
+        BoxHB& draw(const float& width = 2.0f);
+    };
+
+    class SphereHB : public IHitBox
+    {
+
+    public:
+        SphereHB(const glm::vec3& position);
+        SphereHB(const SphereHB&);
+        SphereHB& operator=(const SphereHB& sphere);
         float distance_to(const IHitBox& hitbox) override;
     };
 
-    class Sphere : public IHitBox
+    class CylinderHB : public IHitBox
     {
     public:
-        Sphere(const glm::vec3& position);
-        Sphere(const Sphere&);
-        Sphere& operator = (const Sphere& sphere);
-        float distance_to(const IHitBox& hitbox) override;
-    };
-
-    class Cylinder : public IHitBox
-    {
-    public:
-        Cylinder(const glm::vec3& position);
-        Cylinder(const Cylinder&);
-        Cylinder& operator = (const Cylinder& point);
+        CylinderHB(const glm::vec3& position);
+        CylinderHB(const CylinderHB&);
+        CylinderHB& operator=(const CylinderHB& point);
         float distance_to(const IHitBox& hitbox) override;
     };
 }// namespace Engine

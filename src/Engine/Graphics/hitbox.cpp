@@ -1,51 +1,14 @@
 #include <Graphics/hitbox.hpp>
 #include <glm/ext.hpp>
+#include <iostream>
 #include <vector>
 
-
-/*
-
-    class Point : public IHitBox
-    {
-    public:
-        Point(const glm::vec3& position);
-        Point(const Point&);
-        Point& operator = (const Point& point);
-        float distance_to(const IHitBox& hitbox) override;
-    };
-
-    class Box : public IHitBox
-    {
-    public:
-        Box(const glm::vec3& position);
-        Box(const Box&);
-        Box& operator = (const Box& box);
-        float distance_to(const IHitBox& hitbox) override;
-    };
-
-    class Sphere : public IHitBox
-    {
-    public:
-        Sphere(const glm::vec3& position);
-        Sphere(const Sphere&);
-        Sphere& operator = (const Sphere& sphere);
-        float distance_to(const IHitBox& hitbox) override;
-    };
-
-    class Cylinder : public IHitBox
-    {
-    public:
-        Cylinder(const glm::vec3& position);
-        Cylinder(const Cylinder&);
-        Cylinder& operator = (const Cylinder& point);
-        float distance_to(const IHitBox& hitbox) override;
-    };
-*/
+#define in_range(value, min, max) (value >= min && value <= max)
 
 // From point distance
 static float from_point_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    return glm::abs(glm::distance(point1.position(), point2.position()));
+    return glm::distance(point1.position(), point2.position());
 }
 
 static glm::vec3 rotate_point(const glm::vec3& p, const glm::vec3& r)
@@ -66,36 +29,17 @@ static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHit
     auto min = cube - size;
     auto max = cube + size;
 
-    if (point.x <= max.x && point.x >= min.x && point.z <= max.z && point.z >= min.z)
-        return glm::abs(glm::distance(point, cube)) - size.y;
+    auto vector = point - cube;
 
-    if (point.x <= max.x && point.x >= min.x && point.y <= max.y && point.y >= min.y)
-        return glm::abs(glm::distance(point, cube)) - size.z;
-
-    if (point.y <= max.y && point.y >= min.y && point.z <= max.z && point.z >= min.z)
-        return glm::abs(glm::distance(point, cube)) - size.x;
-
-
-    if (point.x > max.x && point.y > max.y)
-        return glm::abs(glm::distance(point, {max.x, max.y, point.z}));
-
-    if (point.x > max.x && point.z > max.z)
-        return glm::abs(glm::distance(point, {max.x, point.y, max.z}));
-
-    if (point.y > max.y && point.z > max.z)
-        return glm::abs(glm::distance(point, {point.x, max.y, max.z}));
-
-
-    if (point.x < min.x && point.y < min.y)
-        return glm::abs(glm::distance(point, {min.x, min.y, point.z}));
-
-    if (point.x < min.x && point.z < min.z)
-        return glm::abs(glm::distance(point, {min.x, point.y, min.z}));
-
-    if (point.y < min.y && point.z < min.z)
-        return glm::abs(glm::distance(point, {point.x, min.y, min.z}));
-
-    return 0;
+    int index = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        if (glm::abs(vector[i]) <= size[i])
+            index += i;
+        else
+            vector[i] = vector[i] < 0 ? min[i] : max[i];
+    }
+    return (index != 0) ? glm::distance(point, cube) - size[3 - index] : glm::distance(point, vector);
 }
 
 static float from_point_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
@@ -170,19 +114,69 @@ namespace Engine
 
     // Point hitbox implementation
 
-    Point::Point(const glm::vec3& position)
+    PointHB::PointHB(const glm::vec3& position)
     {
         _M_position = position;
         _M_rotate = {0.f, 0.f, 0.f};
         _M_size = {0.f, 0.f, 0.f};
     }
 
-    Point::Point(const Point& point) = default;
-    Point& Point::operator=(const Point& point) = default;
+    PointHB::PointHB(const PointHB& point) = default;
+    PointHB& PointHB::operator=(const PointHB& point) = default;
 
-    float Point::distance_to(const IHitBox& hitbox)
+    float PointHB::distance_to(const IHitBox& hitbox)
     {
         return distance_function_array[0][static_cast<int>(hitbox.type())](*this, hitbox);
     }
+
+    // Box hitbox
+    BoxHB::BoxHB(const glm::vec3& position, const glm::vec3& size)
+    {
+        _M_position = position;
+        _M_size = size;
+        _M_type = HitBoxType::BOX;
+
+        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z - size.z},
+                           {position.x + size.x, position.y - size.y, position.z - size.z});
+        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z - size.z},
+                           {position.x - size.x, position.y + size.y, position.z - size.z});
+        _M_lines.push_line({position.x + size.x, position.y - size.y, position.z - size.z},
+                           {position.x + size.x, position.y + size.y, position.z - size.z});
+        _M_lines.push_line({position.x + size.x, position.y + size.y, position.z - size.z},
+                           {position.x - size.x, position.y + size.y, position.z - size.z});
+
+        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z + size.z},
+                           {position.x + size.x, position.y - size.y, position.z + size.z});
+        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z + size.z},
+                           {position.x - size.x, position.y + size.y, position.z + size.z});
+        _M_lines.push_line({position.x + size.x, position.y - size.y, position.z + size.z},
+                           {position.x + size.x, position.y + size.y, position.z + size.z});
+        _M_lines.push_line({position.x + size.x, position.y + size.y, position.z + size.z},
+                           {position.x - size.x, position.y + size.y, position.z + size.z});
+
+        _M_lines.push_line({position.x + size.x, position.y - size.y, position.z - size.z},
+                           {position.x + size.x, position.y - size.y, position.z + size.z});
+        _M_lines.push_line({position.x + size.x, position.y + size.y, position.z - size.z},
+                           {position.x + size.x, position.y + size.y, position.z + size.z});
+
+        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z - size.z},
+                           {position.x - size.x, position.y - size.y, position.z + size.z});
+        _M_lines.push_line({position.x - size.x, position.y + size.y, position.z - size.z},
+                           {position.x - size.x, position.y + size.y, position.z + size.z});
+    }
+
+    BoxHB::BoxHB(const BoxHB&) = default;
+    BoxHB& BoxHB::operator=(const BoxHB& box) = default;
+    float BoxHB::distance_to(const IHitBox& hitbox)
+    {
+        return 0;
+    }
+
+    BoxHB& BoxHB::draw(const float& width)
+    {
+        _M_lines.line_width(width).draw();
+        return *this;
+    }
+
 
 }// namespace Engine
