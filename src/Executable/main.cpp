@@ -54,7 +54,7 @@ int main()
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.coords(), {0.f, 0.f, 0.f}, 4, 1};
-    Engine::BoxHB box({65.6901f, 10.4f, -146.858f}, {1.f, 1.f, 1.f});
+    Engine::CylinderHB box({65.6901f, 10.4f, -146.858f}, 1, 2);
 
 
     while (window.is_open())
@@ -193,8 +193,6 @@ int main()
                     .set("light", light)
                     .set("camera", player.position);
             lines.draw();
-            line.set("color", {0, 1, 0}).set("model", glm::mat4(1.0f));
-            box.draw();
         }
 
 
@@ -221,11 +219,10 @@ int main()
         text_shader.use().set("color", glm::vec3(1, 1, 1)).set("projview", glm::ortho(0.0f, w_size.x, 0.0f, w_size.y));
         text_renderer.draw(LOG_POS, 5, w_size.y - 25, 1);
         if (frame++ % 30 == 0)
-        {
             FPS = "FPS: " + std::to_string(int(1 / window.event.diff_time()));
 
-            TO_HITBOX = "TO HITBOX: " + std::to_string(Engine::PointHB(player.position).distance_to(box));
-        }
+
+        TO_HITBOX = "TO HITBOX: " + std::to_string(Engine::PointHB(player.position).distance_to(box));
         text_renderer.draw(FPS, 5, w_size.y - 55, 1);
         text_renderer.draw(TO_HITBOX, 5, w_size.y - 85, 1);
         window.swap_buffers();

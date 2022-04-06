@@ -1,6 +1,4 @@
 #pragma once
-
-#include <Graphics/line.hpp>
 #include <glm/glm.hpp>
 
 
@@ -46,23 +44,18 @@ namespace Engine
 
     class BoxHB : public IHitBox
     {
-    private:
-        Line _M_lines;
-
     public:
-        BoxHB(const glm::vec3& position, const glm::vec3& size);
+        BoxHB(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation = {0.f, 0.f, 0.f});
         BoxHB(const BoxHB&);
         BoxHB& operator=(const BoxHB& box);
         float distance_to(const IHitBox& hitbox) override;
-
-        BoxHB& draw(const float& width = 2.0f);
     };
 
     class SphereHB : public IHitBox
     {
 
     public:
-        SphereHB(const glm::vec3& position);
+        SphereHB(const glm::vec3& position, const float& radius);
         SphereHB(const SphereHB&);
         SphereHB& operator=(const SphereHB& sphere);
         float distance_to(const IHitBox& hitbox) override;
@@ -71,7 +64,7 @@ namespace Engine
     class CylinderHB : public IHitBox
     {
     public:
-        CylinderHB(const glm::vec3& position);
+        CylinderHB(const glm::vec3& position, const float& radius, const float& height);
         CylinderHB(const CylinderHB&);
         CylinderHB& operator=(const CylinderHB& point);
         float distance_to(const IHitBox& hitbox) override;

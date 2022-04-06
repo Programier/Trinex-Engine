@@ -5,6 +5,7 @@
 
 #define in_range(value, min, max) (value >= min && value <= max)
 
+
 // From point distance
 static float from_point_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
@@ -62,7 +63,21 @@ static float from_point_to_sphere(const Engine::IHitBox& point1, const Engine::I
 
 static float from_point_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    return 0;
+    auto point = rotate_point(point1.position(), point2.rotation());
+    auto& size = point2.size();
+    auto& cylinder = point2.position();
+    auto vector = point - point2.position();
+
+    if (glm::abs(vector[1]) <= size[1])
+        return glm::distance(point, cylinder) - size.r;
+    if ((vector[0] * vector[0] + vector[2] * vector[2]) <= (size.r * size.r))
+        return glm::distance(point, cylinder) - size.y;
+    float K = vector[2] == 0 ? 0 : vector[0] / vector[2];
+    float X = size.r * glm::sqrt(1.0f / (1.0f + K * K));
+    vector[0] = cylinder.x + X;
+    vector[1] = vector[1] > 0 ? cylinder.y + size.y : cylinder.y - size.y;
+    vector[2] = cylinder.z + X * K;
+    return glm::distance(vector, point);
 }
 
 // From box distance
@@ -132,6 +147,7 @@ namespace Engine
         _M_position = position;
         _M_rotate = {0.f, 0.f, 0.f};
         _M_size = {0.f, 0.f, 0.f};
+        _M_type = Engine::HitBoxType::POINT;
     }
 
     PointHB::PointHB(const PointHB& point) = default;
@@ -143,39 +159,12 @@ namespace Engine
     }
 
     // Box hitbox
-    BoxHB::BoxHB(const glm::vec3& position, const glm::vec3& size)
+    BoxHB::BoxHB(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation)
     {
         _M_position = position;
         _M_size = size;
+        _M_rotate = rotation;
         _M_type = HitBoxType::BOX;
-
-        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z - size.z},
-                           {position.x + size.x, position.y - size.y, position.z - size.z});
-        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z - size.z},
-                           {position.x - size.x, position.y + size.y, position.z - size.z});
-        _M_lines.push_line({position.x + size.x, position.y - size.y, position.z - size.z},
-                           {position.x + size.x, position.y + size.y, position.z - size.z});
-        _M_lines.push_line({position.x + size.x, position.y + size.y, position.z - size.z},
-                           {position.x - size.x, position.y + size.y, position.z - size.z});
-
-        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z + size.z},
-                           {position.x + size.x, position.y - size.y, position.z + size.z});
-        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z + size.z},
-                           {position.x - size.x, position.y + size.y, position.z + size.z});
-        _M_lines.push_line({position.x + size.x, position.y - size.y, position.z + size.z},
-                           {position.x + size.x, position.y + size.y, position.z + size.z});
-        _M_lines.push_line({position.x + size.x, position.y + size.y, position.z + size.z},
-                           {position.x - size.x, position.y + size.y, position.z + size.z});
-
-        _M_lines.push_line({position.x + size.x, position.y - size.y, position.z - size.z},
-                           {position.x + size.x, position.y - size.y, position.z + size.z});
-        _M_lines.push_line({position.x + size.x, position.y + size.y, position.z - size.z},
-                           {position.x + size.x, position.y + size.y, position.z + size.z});
-
-        _M_lines.push_line({position.x - size.x, position.y - size.y, position.z - size.z},
-                           {position.x - size.x, position.y - size.y, position.z + size.z});
-        _M_lines.push_line({position.x - size.x, position.y + size.y, position.z - size.z},
-                           {position.x - size.x, position.y + size.y, position.z + size.z});
     }
 
     BoxHB::BoxHB(const BoxHB&) = default;
@@ -185,10 +174,34 @@ namespace Engine
         return 0;
     }
 
-    BoxHB& BoxHB::draw(const float& width)
+    // Sphere hitbox
+    SphereHB::SphereHB(const glm::vec3& position, const float& radius)
     {
-        _M_lines.line_width(width).draw();
-        return *this;
+        _M_position = position;
+        _M_size = {radius, radius, radius};
+        _M_type = Engine::HitBoxType::SPHERE;
+    }
+
+    SphereHB::SphereHB(const SphereHB&) = default;
+    SphereHB& SphereHB::operator=(const SphereHB& box) = default;
+    float SphereHB::distance_to(const IHitBox& hitbox)
+    {
+        return 0;
+    }
+
+    // Cylinder hitbox
+    CylinderHB::CylinderHB(const glm::vec3& position, const float& radius, const float& height)
+    {
+        _M_position = position;
+        _M_size = {radius, height, radius};
+        _M_type = HitBoxType::CYLINDER;
+    }
+
+    CylinderHB::CylinderHB(const CylinderHB&) = default;
+    CylinderHB& CylinderHB::operator=(const CylinderHB&) = default;
+    float CylinderHB::distance_to(const IHitBox& hitbox)
+    {
+        return 0;
     }
 
 
