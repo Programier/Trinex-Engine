@@ -4,6 +4,7 @@
 #include <vector>
 
 #define in_range(value, min, max) (value >= min && value <= max)
+#define THROW throw std::runtime_error(std::string("Not implemented method ") + __FUNCTION__)
 
 
 // From point distance
@@ -81,6 +82,25 @@ static float from_point_to_cylinder(const Engine::IHitBox& point1, const Engine:
 }
 
 // From box distance
+static float from_box_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    return from_point_to_box(point2, point1);
+}
+
+static float from_box_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    THROW;
+}
+
+static float from_box_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    return from_point_to_box(point2, point1) - point2.size().r;
+}
+
+static float from_box_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    THROW;
+}
 
 // From sphere distance
 static float from_sphere_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
@@ -88,17 +108,50 @@ static float from_sphere_to_point(const Engine::IHitBox& point1, const Engine::I
     return from_point_to_sphere(point2, point1);
 }
 
-static float from_sphere_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+static float from_sphere_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    return glm::abs(glm::distance(point1.position(), point2.position())) - point1.size().r - point2.size().r;
+    THROW;
 }
 
+static float from_sphere_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    return glm::distance(point1.position(), point2.position()) - point1.size().r - point2.size().r;
+}
+
+static float from_sphere_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    THROW;
+}
+
+// From cylinder distance
+static float from_cylinder_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    return from_point_to_cylinder(point2, point1);
+}
+
+static float from_cylinder_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    THROW;
+}
+
+static float from_cylinder_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    return from_point_to_cylinder(point2, point1) - point2.size().x;
+}
+
+static float from_cylinder_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    THROW;
+}
 
 // From cylinder distance
 
 static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&,
                                                                                 const Engine::IHitBox&) = {
-        {from_point_to_point, from_point_to_box, from_point_to_sphere, from_point_to_cylinder}};
+        {from_point_to_point, from_point_to_box, from_point_to_sphere, from_point_to_cylinder},
+        {from_box_to_point, from_box_to_box, from_box_to_sphere, from_box_to_cylinder},
+        {from_sphere_to_point, from_sphere_to_box, from_sphere_to_sphere, from_sphere_to_cylinder},
+        {from_cylinder_to_point, from_cylinder_to_box, from_cylinder_to_sphere, from_cylinder_to_cylinder}};
 
 namespace Engine
 {
@@ -140,6 +193,11 @@ namespace Engine
         return _M_size;
     }
 
+    float IHitBox::distance_to(const IHitBox& hitbox)
+    {
+        return distance_function_array[static_cast<int>(_M_type)][static_cast<int>(hitbox.type())](*this, hitbox);
+    }
+
     // Point hitbox implementation
 
     PointHB::PointHB(const glm::vec3& position)
@@ -153,11 +211,6 @@ namespace Engine
     PointHB::PointHB(const PointHB& point) = default;
     PointHB& PointHB::operator=(const PointHB& point) = default;
 
-    float PointHB::distance_to(const IHitBox& hitbox)
-    {
-        return distance_function_array[0][static_cast<int>(hitbox.type())](*this, hitbox);
-    }
-
     // Box hitbox
     BoxHB::BoxHB(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation)
     {
@@ -169,10 +222,6 @@ namespace Engine
 
     BoxHB::BoxHB(const BoxHB&) = default;
     BoxHB& BoxHB::operator=(const BoxHB& box) = default;
-    float BoxHB::distance_to(const IHitBox& hitbox)
-    {
-        return 0;
-    }
 
     // Sphere hitbox
     SphereHB::SphereHB(const glm::vec3& position, const float& radius)
@@ -184,10 +233,6 @@ namespace Engine
 
     SphereHB::SphereHB(const SphereHB&) = default;
     SphereHB& SphereHB::operator=(const SphereHB& box) = default;
-    float SphereHB::distance_to(const IHitBox& hitbox)
-    {
-        return 0;
-    }
 
     // Cylinder hitbox
     CylinderHB::CylinderHB(const glm::vec3& position, const float& radius, const float& height)
@@ -199,10 +244,6 @@ namespace Engine
 
     CylinderHB::CylinderHB(const CylinderHB&) = default;
     CylinderHB& CylinderHB::operator=(const CylinderHB&) = default;
-    float CylinderHB::distance_to(const IHitBox& hitbox)
-    {
-        return 0;
-    }
 
 
 }// namespace Engine

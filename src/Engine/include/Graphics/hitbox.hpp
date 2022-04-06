@@ -22,7 +22,7 @@ namespace Engine
         glm::vec3 _M_size;
 
     public:
-        virtual float distance_to(const IHitBox& hitbox) = 0;
+        float distance_to(const IHitBox& hitbox);
         const glm::vec3& rotation() const;
         const glm::vec3& position() const;
         const HitBoxType& type() const;
@@ -39,7 +39,6 @@ namespace Engine
         PointHB(const glm::vec3& position);
         PointHB(const PointHB&);
         PointHB& operator=(const PointHB& point);
-        float distance_to(const IHitBox& hitbox) override;
     };
 
     class BoxHB : public IHitBox
@@ -48,7 +47,6 @@ namespace Engine
         BoxHB(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation = {0.f, 0.f, 0.f});
         BoxHB(const BoxHB&);
         BoxHB& operator=(const BoxHB& box);
-        float distance_to(const IHitBox& hitbox) override;
     };
 
     class SphereHB : public IHitBox
@@ -58,7 +56,6 @@ namespace Engine
         SphereHB(const glm::vec3& position, const float& radius);
         SphereHB(const SphereHB&);
         SphereHB& operator=(const SphereHB& sphere);
-        float distance_to(const IHitBox& hitbox) override;
     };
 
     class CylinderHB : public IHitBox
@@ -67,6 +64,5 @@ namespace Engine
         CylinderHB(const glm::vec3& position, const float& radius, const float& height);
         CylinderHB(const CylinderHB&);
         CylinderHB& operator=(const CylinderHB& point);
-        float distance_to(const IHitBox& hitbox) override;
     };
 }// namespace Engine
