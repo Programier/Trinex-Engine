@@ -63,6 +63,43 @@ static glm::vec3 min_distance_from_point_to_box_point(const Engine::IHitBox& poi
     return rotate_point(vector, -rotation);
 }
 
+static glm::vec3 min_distance_from_point_to_cylinder_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2,
+                                                           bool* inside_result = nullptr)
+{
+    auto rotation = point2.rotation();
+    auto point = rotate_point(point1.position(), rotation);
+    auto& size = point2.size();
+    auto& cylinder = point2.position();
+    auto vector = point - point2.position();
+    if (inside_result)
+        *inside_result = false;
+    float K = vector[2] == 0 ? 0 : vector[0] / vector[2];
+    float X = size.r * glm::sqrt(1.0f / (1.0f + K * K));
+    if (glm::abs(vector[1]) <= size[1])
+    {
+        vector[0] = cylinder.x + X;
+        vector[1] += cylinder.y;
+        vector[2] = cylinder.z + X * K;
+        if (inside_result && vector[0] * vector[0] + vector[2] * vector[2] <= size.r * size.r)
+            *inside_result = true;
+    }
+    else if ((vector[0] * vector[0] + vector[2] * vector[2]) <= (size.r * size.r))
+    {
+        if (inside_result && glm::abs(vector[1]) <= size[1])
+            *inside_result = true;
+        vector[0] += cylinder[0];
+        vector[1] = vector[1] < 0 ? cylinder.y - size.y : cylinder.y + size.y;
+        vector[2] += cylinder[2];
+    }
+    else
+    {
+        vector[0] = cylinder.x + X;
+        vector[1] = vector[1] > 0 ? cylinder.y + size.y : cylinder.y - size.y;
+        vector[2] = cylinder.z + X * K;
+    }
+    return vector;
+}
+
 // From point distance
 static float from_point_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
@@ -83,21 +120,10 @@ static float from_point_to_sphere(const Engine::IHitBox& point1, const Engine::I
 
 static float from_point_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    auto point = rotate_point(point1.position(), point2.rotation());
-    auto& size = point2.size();
-    auto& cylinder = point2.position();
-    auto vector = point - point2.position();
 
-    if (glm::abs(vector[1]) <= size[1])
-        return glm::distance(point, cylinder) - size.r;
-    if ((vector[0] * vector[0] + vector[2] * vector[2]) <= (size.r * size.r))
-        return glm::distance(point, cylinder) - size.y;
-    float K = vector[2] == 0 ? 0 : vector[0] / vector[2];
-    float X = size.r * glm::sqrt(1.0f / (1.0f + K * K));
-    vector[0] = cylinder.x + X;
-    vector[1] = vector[1] > 0 ? cylinder.y + size.y : cylinder.y - size.y;
-    vector[2] = cylinder.z + X * K;
-    return glm::distance(vector, point);
+    bool inside = false;
+    auto result = min_distance_from_point_to_cylinder_point(point1, point2, &inside);
+    return inside ? -glm::distance(point1.position(), result) : glm::distance(point1.position(), result);
 }
 
 // From box distance
@@ -121,7 +147,10 @@ static float from_box_to_sphere(const Engine::IHitBox& point1, const Engine::IHi
 
 static float from_box_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    THROW;
+    bool inside_1 = false, inside_2 = false;
+    auto point_1 = min_distance_from_point_to_cylinder_point(point1, point2, &inside_1);
+    auto point_2 = min_distance_from_point_to_box_point(Engine::PointHB(point_1), point1, &inside_2);
+    return (inside_1 || inside_2) ? -glm::distance(point_1, point_2) : glm::distance(point_1, point_2);
 }
 
 // From sphere distance
@@ -142,7 +171,7 @@ static float from_sphere_to_sphere(const Engine::IHitBox& point1, const Engine::
 
 static float from_sphere_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    THROW;
+    return from_point_to_cylinder(point1, point2) - point1.size().r;
 }
 
 // From cylinder distance
@@ -153,7 +182,7 @@ static float from_cylinder_to_point(const Engine::IHitBox& point1, const Engine:
 
 static float from_cylinder_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    THROW;
+    return from_box_to_cylinder(point2, point1);
 }
 
 static float from_cylinder_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
@@ -163,7 +192,10 @@ static float from_cylinder_to_sphere(const Engine::IHitBox& point1, const Engine
 
 static float from_cylinder_to_cylinder(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    THROW;
+    bool inside_1 = false, inside_2 = false;
+    auto point_1 = min_distance_from_point_to_cylinder_point(point1, point2, &inside_1);
+    auto point_2 = min_distance_from_point_to_cylinder_point(Engine::PointHB(point_1), point1, &inside_2);
+    return (inside_1 || inside_2) ? -glm::distance(point_1, point_2) : glm::distance(point_1, point_2);
 }
 
 static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&,

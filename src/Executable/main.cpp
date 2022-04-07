@@ -224,7 +224,8 @@ int main()
 
 
         TO_HITBOX = "FROM POINT: " + std::to_string(Engine::PointHB(player.position).distance_to(box));
-        TO_HITBOX2 = "FROM BOX: " + std::to_string(Engine::BoxHB(player.position, {1, 1, 1}).distance_to(box));
+
+        TO_HITBOX2 = "FROM Cylinder: " + std::to_string(Engine::CylinderHB(player.position, 1, 1).distance_to(box));
         text_renderer.draw(FPS, 5, w_size.y - 55, 1);
         text_renderer.draw(TO_HITBOX, 5, w_size.y - 85, 1);
         text_renderer.draw(TO_HITBOX2, 5, w_size.y - 105, 1);
