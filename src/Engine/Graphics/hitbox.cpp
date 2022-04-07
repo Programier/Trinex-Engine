@@ -132,7 +132,7 @@ static float from_sphere_to_point(const Engine::IHitBox& point1, const Engine::I
 
 static float from_sphere_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    THROW;
+    return Engine::PointHB(point1.position()).distance_to(point2) - point1.size().x;
 }
 
 static float from_sphere_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
