@@ -6,12 +6,7 @@
 #define in_range(value, min, max) (value >= min && value <= max)
 #define THROW throw std::runtime_error(std::string("Not implemented method ") + __FUNCTION__)
 
-
-// From point distance
-static float from_point_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
-{
-    return glm::distance(point1.position(), point2.position());
-}
+//      DISTANCE FUNCTIONS
 
 static glm::vec3 rotate_point(const glm::vec3& p, const glm::vec3& r)
 {
@@ -21,9 +16,14 @@ static glm::vec3 rotate_point(const glm::vec3& p, const glm::vec3& r)
     return glm::vec3(result * glm::vec4(p, 0.f));
 }
 
-static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+static glm::vec3 min_distance_from_point_to_box_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2,
+                                                      bool* inside_result = nullptr)
 {
-    auto point = rotate_point(point1.position(), point1.rotation());
+    auto rotation = point1.rotation();
+    auto point = rotate_point(point1.position(), rotation);
+
+    if (inside_result)
+        *inside_result = false;
     auto& cube = point2.position();
     auto& size = point2.size();
 
@@ -32,19 +32,17 @@ static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHit
 
     auto vector = point - cube;
 
-    int index = 0;
     int count = 0;
     float max_diff = 0;
-    int s_index = -1;
+    int s_index = 0;
     for (int i = 0; i < 3; i++)
     {
         if (glm::abs(vector[i]) <= size[i])
         {
-            index += i;
             count++;
-            if (glm::abs(max_diff) < glm::abs(vector[i]))
+            if (max_diff < glm::abs(vector[i]))
             {
-                max_diff = vector[i];
+                max_diff = glm::abs(vector[i]);
                 s_index = i;
             }
             vector[i] += cube[i];
@@ -52,9 +50,30 @@ static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHit
         else
             vector[i] = vector[i] < 0 ? min[i] : max[i];
     }
-    return (count == 3)   ? glm::distance(point, cube) - (size[s_index] - max_diff)
-           : (count == 2) ? glm::distance(point, cube) - size[3 - index]
-                          : glm::distance(point, vector);
+
+    if (count == 3)
+    {
+        glm::vec3 tmp = {0.f, 0.f, 0.f};
+        tmp[s_index] = (size[s_index] - max_diff) * (vector[s_index] - cube[s_index] > 0 ? 1.f : -1.f);
+        vector += tmp;
+        if (inside_result)
+            *inside_result = true;
+    }
+
+    return rotate_point(vector, -rotation);
+}
+
+// From point distance
+static float from_point_to_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    return glm::distance(point1.position(), point2.position());
+}
+
+static float from_point_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
+{
+    bool inside = false;
+    auto point_2 = min_distance_from_point_to_box_point(point1, point2, &inside);
+    return inside ? -glm::distance(point1.position(), point_2) : glm::distance(point1.position(), point_2);
 }
 
 static float from_point_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
@@ -89,7 +108,10 @@ static float from_box_to_point(const Engine::IHitBox& point1, const Engine::IHit
 
 static float from_box_to_box(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
 {
-    THROW;
+    bool inside_1 = false, inside_2 = false;
+    auto point_1 = min_distance_from_point_to_box_point(point1, point2, &inside_1);
+    auto point_2 = min_distance_from_point_to_box_point(Engine::PointHB(point_1), point1, &inside_2);
+    return (inside_1 || inside_2) ? -glm::distance(point_1, point_2) : glm::distance(point_1, point_2);
 }
 
 static float from_box_to_sphere(const Engine::IHitBox& point1, const Engine::IHitBox& point2)
@@ -143,8 +165,6 @@ static float from_cylinder_to_cylinder(const Engine::IHitBox& point1, const Engi
 {
     THROW;
 }
-
-// From cylinder distance
 
 static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&,
                                                                                 const Engine::IHitBox&) = {

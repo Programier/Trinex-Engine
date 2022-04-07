@@ -51,10 +51,11 @@ int main()
     std::string LOG_POS;
     std::string FPS;
     std::string TO_HITBOX;
+    std::string TO_HITBOX2;
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.coords(), {0.f, 0.f, 0.f}, 4, 1};
-    Engine::CylinderHB box({65.6901f, 10.4f, -146.858f}, 1, 2);
+    Engine::BoxHB box({65.6901f, 10.4f, -146.858f}, {1, 1, 1});
 
 
     while (window.is_open())
@@ -222,9 +223,11 @@ int main()
             FPS = "FPS: " + std::to_string(int(1 / window.event.diff_time()));
 
 
-        TO_HITBOX = "TO HITBOX: " + std::to_string(Engine::PointHB(player.position).distance_to(box));
+        TO_HITBOX = "FROM POINT: " + std::to_string(Engine::PointHB(player.position).distance_to(box));
+        TO_HITBOX2 = "FROM BOX: " + std::to_string(Engine::BoxHB(player.position, {1, 1, 1}).distance_to(box));
         text_renderer.draw(FPS, 5, w_size.y - 55, 1);
         text_renderer.draw(TO_HITBOX, 5, w_size.y - 85, 1);
+        text_renderer.draw(TO_HITBOX2, 5, w_size.y - 105, 1);
         window.swap_buffers();
     }
 
