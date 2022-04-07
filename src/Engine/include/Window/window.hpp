@@ -26,7 +26,7 @@ namespace Engine
     };
 
     typedef glm::vec2 WindowSize;
-    typedef glm::vec2 Position;
+    typedef glm::vec2 Position2D;
     typedef glm::vec2 Offset;
 
     std::ostream& print(const glm::vec2& vector, std::ostream& stream);
@@ -79,7 +79,7 @@ namespace Engine
         unsigned int _M_last_symbol;
 
         // Mouse parameters
-        Position _M_mouse_position;
+        Position2D _M_mouse_position;
         Offset _M_offset;
         Offset _M_scroll_offset;
         CursorStatus _M_cursor_status = CursorStatus::NORMAL;
@@ -127,8 +127,8 @@ namespace Engine
 
             public:
                 Mouse(Window* window);
-                const Position& position();
-                Window& position(const Position& position);
+                const Position2D& position();
+                Window& position(const Position2D& position);
                 const Offset& offset();
                 const Offset& scroll_offset();
                 Window& cursor_status(const CursorStatus& status);
@@ -173,8 +173,8 @@ namespace Engine
         const WindowMode& mode();
         Window& mode(const WindowMode& mode, const WindowSize& size = WindowSize(-1, -1));
 
-        const Position& position();
-        Window& position(const Position& position);
+        const Position2D& position();
+        Window& position(const Position2D& position);
 
         void focus();
         bool focused();

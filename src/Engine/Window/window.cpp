@@ -355,12 +355,12 @@ namespace Engine
     WEvent::Mouse::Mouse(Window* window) : window(window)
     {}
 
-    const Position& WEvent::Mouse::position()
+    const Position2D& WEvent::Mouse::position()
     {
         return window->parameters._M_mouse_position;
     }
 
-    Window& WEvent::Mouse::position(const Position& pos)
+    Window& WEvent::Mouse::position(const Position2D& pos)
     {
         glfwSetCursorPos(static_cast<GLFWwindow*>(window->parameters._M_window), static_cast<double>(pos.x),
                          static_cast<double>(pos.y));
@@ -624,9 +624,9 @@ namespace Engine
         return size({size().x, height});
     }
 
-    const Position& Window::position()
+    const Position2D& Window::position()
     {
-        static Position pos;
+        static Position2D pos;
         int x, y;
         glfwGetWindowPos(glfw_window, &x, &y);
         pos.x = static_cast<float>(x);
@@ -634,7 +634,7 @@ namespace Engine
         return pos;
     }
 
-    Window& Window::position(const Position& position)
+    Window& Window::position(const Position2D& position)
     {
         glfwSetWindowPos(glfw_window, position.x, position.y);
         return *this;
