@@ -1,6 +1,7 @@
-#include <Init/init.hpp>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <Init/init.hpp>
+#include <thread>
 
 #include <iostream>
 
@@ -47,6 +48,7 @@ public:
 
 namespace Engine
 {
+    const unsigned int processor_count = std::thread::hardware_concurrency();
     bool is_inited()
     {
         return EngineController.is_inited();

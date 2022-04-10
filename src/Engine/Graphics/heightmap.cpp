@@ -1,4 +1,5 @@
 #include <Graphics/heightmap.hpp>
+#include <Init/init.hpp>
 #include <algorithm>
 #include <iostream>
 #include <numeric>
@@ -28,9 +29,6 @@
             0.f, 0.f, 0.f                                                                                              \
         }                                                                                                              \
     }
-
-
-const unsigned int processor_count = std::thread::hardware_concurrency();
 
 
 struct line {

@@ -36,6 +36,7 @@ set(ENGINE Init.cpp
            ${GRAPHICS_DIR}/text.cpp
            ${GRAPHICS_DIR}/heightmap.cpp
            ${GRAPHICS_DIR}/hitbox.cpp
+           ${GRAPHICS_DIR}/object.cpp
            ${PHYSICS_DIR}/terrain_collision.cpp)
 
 add_library(Engine SHARED ${ENGINE})
