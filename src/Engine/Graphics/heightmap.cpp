@@ -1,5 +1,5 @@
+#include <BasicFunctional/basic_functional.hpp>
 #include <Graphics/heightmap.hpp>
-#include <Init/init.hpp>
 #include <algorithm>
 #include <iostream>
 #include <numeric>

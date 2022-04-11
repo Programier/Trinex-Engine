@@ -1,27 +1,11 @@
+#include <BasicFunctional/basic_functional.hpp>
 #include <Graphics/object.hpp>
-#include <Init/init.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <thread>
 
 
 namespace Engine
 {
-    static glm::vec3 get_rotation_from_matrix(const glm::mat4& m)
-    {
-        glm::vec3 R(0.f, 0.f, 0.f);
-        for (int coord = 0; coord < 3; coord++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                if (j == coord)
-                    continue;
-                R[coord] += m[j][j];
-            }
-            R[coord] = glm::acos(R[coord] / 2);
-        }
-        return R;
-    }
-
     static void rotate_part_of_hitboxes(IHitBox* data, std::size_t size, const glm::vec3* rotation)
     {
         for (std::size_t i = 0; i < size; i++) data[i].rotation() += *rotation;

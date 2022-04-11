@@ -19,6 +19,7 @@ set(GRAPHICS_DIR "./Graphics/")
 set(PHYSICS_DIR "./Physics/")
 
 set(ENGINE Init.cpp
+           basic_functional.cpp
            ${WINDOW_DIR}/window.cpp
            ${WINDOW_DIR}/keyboard.cpp
            ${WINDOW_DIR}/color.cpp

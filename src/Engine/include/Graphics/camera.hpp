@@ -2,6 +2,9 @@
 
 #include <Window/window.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+
 namespace Engine
 {
 
@@ -12,10 +15,10 @@ namespace Engine
         glm::vec3 _M_front;
         glm::vec3 _M_up;
         glm::vec3 _M_right;
-
+        glm::quat _M_quaternion;
         glm::vec3 _M_position;
-        float _M_viewingAngle, _M_x_rotation, _M_y_rotation, _M_z_rotation;
-        glm::mat4 _M_rotation;
+        float _M_viewingAngle;
+        glm::vec3 _M_euler_angles;
         float _M_maxRenderDistance = 1000.0f, _M_minRenderDistance = 0.1f;
 
     public:
@@ -26,9 +29,11 @@ namespace Engine
         Camera& min_render_distance(float distance);
         Camera& viewing_angle(float angle);
         float viewing_angle();
-        Camera& rotate(float x, float y, float z);
-        Camera& rotate(const glm::vec3& rotation);
-        glm::vec3 rotation();
+        Camera& rotate(float x, float y, float z, const bool& add_values = true);
+        Camera& rotate(const glm::vec3& rotation, const bool& add_values = true);
+        Camera& rotate(const float& angle, const glm::vec3& axis, const bool& add_values = true);
+        const glm::quat& quaternion();
+        const glm::vec3& rotation();
         Camera& move(const float& right, const float& up, const float& forward);
         Camera& move(const glm::vec3& move_vector);
         Camera& move_along_axes(const float& right, const float& up, const float& forward, const glm::vec3& right_a,

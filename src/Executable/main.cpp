@@ -1,3 +1,4 @@
+#include <BasicFunctional/basic_functional.hpp>
 #include <GL/glew.h>
 #include <Graphics/camera.hpp>
 #include <Graphics/heightmap.hpp>
@@ -50,13 +51,9 @@ int main()
     bool lines_draw = false;
     std::string LOG_POS;
     std::string FPS;
-    std::string TO_HITBOX;
-    std::string TO_HITBOX2;
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.coords(), {0.f, 0.f, 0.f}, 4, 1};
-    Engine::BoxHB box({65.6901f, 10.4f, -146.858f}, {1, 1, 1});
-
 
     while (window.is_open())
     {
@@ -124,20 +121,6 @@ int main()
             player.position.y -= speed;
         }
 
-        if (window.event.keyboard.just_pressed() == Engine::KEY_C)
-        {
-            auto coords = camera.coords();
-            std::cout << "Coords: " << coords.x << " " << coords.y << " " << coords.z << std::endl;
-            auto rotation = camera.rotation();
-            std::cout << "Rotation: " << rotation.x << " " << rotation.y << " " << rotation.z << std::endl;
-            const auto& l = model.limits();
-
-            auto print = [](std::string name, auto a) {
-                std::cout << name << ": {" << a.x << " : " << a.y << " : " << a.z << "}" << std::endl;
-            };
-            print("Min: ", l.min);
-            print("Max: ", l.max);
-        }
 
         if (window.event.pressed(Engine::KEY_LEFT_SHIFT))
         {
@@ -168,6 +151,7 @@ int main()
 
         player = Engine::check_terrain_collision(height_map, {player})[0];
         camera.coords(player.position);
+
         auto rotation = camera.rotation();
 
         camera.move_along_axes(player.force, {glm::cos(rotation.y), 0, -glm::sin(rotation.y)}, {0.f, 1.f, 0.f},
@@ -222,13 +206,7 @@ int main()
         if (frame++ % 30 == 0)
             FPS = "FPS: " + std::to_string(int(1 / window.event.diff_time()));
 
-
-        TO_HITBOX = "FROM POINT: " + std::to_string(Engine::PointHB(player.position).distance_to(box));
-
-        TO_HITBOX2 = "FROM Cylinder: " + std::to_string(Engine::CylinderHB(player.position, 1, 1).distance_to(box));
         text_renderer.draw(FPS, 5, w_size.y - 55, 1);
-        text_renderer.draw(TO_HITBOX, 5, w_size.y - 85, 1);
-        text_renderer.draw(TO_HITBOX2, 5, w_size.y - 105, 1);
         window.swap_buffers();
     }
 

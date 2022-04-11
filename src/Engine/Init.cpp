@@ -48,7 +48,6 @@ public:
 
 namespace Engine
 {
-    const unsigned int processor_count = std::thread::hardware_concurrency();
     bool is_inited()
     {
         return EngineController.is_inited();
