@@ -4,7 +4,12 @@
 
 namespace Engine
 {
+
     const unsigned int processor_count = std::thread::hardware_concurrency();
+    const glm::vec3 OX(1.f, 0.f, 0.f);
+    const glm::vec3 OY(0.f, 1.f, 0.f);
+    const glm::vec3 OZ(0.f, 0.f, 1.f);
+    const float PI = glm::pi<float>();
 
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m)
     {
@@ -24,5 +29,12 @@ namespace Engine
     float angle_between(glm::vec3 first, glm::vec3 second)
     {
         return glm::acos(scalar_mult(glm::normalize(first), glm::normalize(second)));
+    }
+
+    glm::vec3 remove_coord(const glm::vec3& vector, const Coord& coord)
+    {
+        auto result = vector;
+        result[static_cast<int>(coord)] = 0.f;
+        return glm::normalize(result);
     }
 }// namespace Engine

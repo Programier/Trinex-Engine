@@ -13,19 +13,19 @@
 #include <Graphics/texturearray.hpp>
 #include <Physics/terrain_collision.hpp>
 #include <Window/window.hpp>
-#include <glm/ext.hpp>
 #include <iostream>
 #include <thread>
 
+
 int main()
 {
-    bool light = false;
 
+    bool light = false;
     Engine::Window window(1280, 720, "test", true);
     Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
     Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::TerrainModel model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 80);
+    Engine::TerrainModel model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 4);
 
     Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
                                                    "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
@@ -53,7 +53,7 @@ int main()
     std::string FPS;
 
     unsigned int frame = 0;
-    Engine::ObjectParameters player = {camera.coords(), {0.f, 0.f, 0.f}, 4, 1};
+    Engine::ObjectParameters player = {camera.position(), {0.f, 0.f, 0.f}, 4, 1};
 
     while (window.is_open())
     {
@@ -74,16 +74,18 @@ int main()
             line.load("Shaders/lines.vert", "Shaders/lines.frag");
         }
 
-        player.position = camera.coords();
+        player.position = camera.position();
         const auto& offset = window.event.mouse.offset();
         if (window.event.mouse.cursor_status() == Engine::DISABLED)
         {
-            float y_rotation = -offset.y * 2 / (window.height());
-            if (camera.rotation().x > glm::radians(89.0f) && y_rotation > 0)
-                y_rotation = 0;
-            if (camera.rotation().x < -glm::radians(89.0f) && y_rotation < 0)
-                y_rotation = 0;
-            camera.rotate(y_rotation, -offset.x * 2 / (window.width()), 0);
+            const auto& up = camera.up_vector();
+            float angle = Engine::angle_between(up, Engine::OY) * (camera.front_vector()[1] < 0 ? -1 : 1);
+            float y_offset = offset.y * 2 / (window.height());
+            float x_offset = offset.x * 2 / (window.width());
+            camera.rotate(x_offset, Engine::OY);
+            bool rotate = glm::abs(angle) <= glm::radians(89.f) || angle * y_offset > 0;
+            if (rotate)
+                camera.rotate(y_offset, camera.right_vector());
         }
 
         if (window.event.pressed(Engine::KEY_W))
@@ -146,16 +148,16 @@ int main()
             light = !light;
         }
 
+
         if (window.event.keyboard.just_pressed() == Engine::KEY_Y)
             lines_draw = !lines_draw;
 
         player = Engine::check_terrain_collision(height_map, {player})[0];
-        camera.coords(player.position);
 
-        auto rotation = camera.rotation();
+        camera.move(player.position, false);
 
-        camera.move_along_axes(player.force, {glm::cos(rotation.y), 0, -glm::sin(rotation.y)}, {0.f, 1.f, 0.f},
-                               {-glm::sin(rotation.y), 0, -glm::cos(rotation.y)});
+        camera.move(player.force, Engine::remove_coord(camera.right_vector(), Engine::Coord::Y), Engine::OY,
+                    Engine::remove_coord(camera.front_vector(), Engine::Coord::Y));
 
         auto projection = camera.projection(window);
         auto projview = projection * camera.view();
@@ -190,9 +192,7 @@ int main()
         {
             auto mode = window.mode();
             if (mode == Engine::NONE)
-            {
                 mode = Engine::FULLSCREEN;
-            }
             else
                 mode = Engine::NONE;
             window.mode(mode);

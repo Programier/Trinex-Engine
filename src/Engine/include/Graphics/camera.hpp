@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Graphics/basic_object.hpp>
 #include <Window/window.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -8,17 +9,10 @@
 namespace Engine
 {
 
-    class Camera
+    class Camera : public BasicObject<TranslateObject, RotateObject>
     {
     private:
-        void updateVectors();
-        glm::vec3 _M_front;
-        glm::vec3 _M_up;
-        glm::vec3 _M_right;
-        glm::quat _M_quaternion;
-        glm::vec3 _M_position;
         float _M_viewingAngle;
-        glm::vec3 _M_euler_angles;
         float _M_maxRenderDistance = 1000.0f, _M_minRenderDistance = 0.1f;
 
     public:
@@ -29,25 +23,8 @@ namespace Engine
         Camera& min_render_distance(float distance);
         Camera& viewing_angle(float angle);
         float viewing_angle();
-        Camera& rotate(float x, float y, float z, const bool& add_values = true);
-        Camera& rotate(const glm::vec3& rotation, const bool& add_values = true);
-        Camera& rotate(const float& angle, const glm::vec3& axis, const bool& add_values = true);
-        const glm::quat& quaternion();
-        const glm::vec3& rotation();
-        Camera& move(const float& right, const float& up, const float& forward);
-        Camera& move(const glm::vec3& move_vector);
-        Camera& move_along_axes(const float& right, const float& up, const float& forward, const glm::vec3& right_a,
-                                const glm::vec3& up_a, const glm::vec3& front_a);
-        Camera& move_along_axes(const glm::vec3& move_vector, const glm::vec3& right_a, const glm::vec3& up_a,
-                                const glm::vec3& front_a);
-        glm::vec3 front_vector();
-        glm::vec3 right_vector();
-        glm::vec3 up_vector();
-
         glm::mat4 projection(Window& window);
         glm::mat4 view();
-        glm::vec3 coords();
-        Camera& coords(const glm::vec3& coords);
     };
 
 }// namespace Engine

@@ -2,19 +2,32 @@
 #include <glm/glm.hpp>
 #include <iomanip>
 #include <ostream>
+#include <utility>
 
 #define not_implemented (std::runtime_error(std::string("Not implemented method: ") + __PRETTY_FUNCTION__))
 
 namespace Engine
 {
+    enum class Coord
+    {
+        X,
+        Y,
+        Z
+    };
+
     extern const unsigned int processor_count;
+    extern const glm::vec3 OX;
+    extern const glm::vec3 OY;
+    extern const glm::vec3 OZ;
+    extern const float PI;
+
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m);
     glm::mat4 quaternion_matrix(const glm::vec3& rotation);
     float scalar_mult(const glm::vec3& first, const glm::vec3& second);
     float angle_between(glm::vec3 first, glm::vec3 second);
+    glm::vec3 remove_coord(const glm::vec3& vector, const Coord& coord);
 }// namespace Engine
 
-#include <utility>
 
 // PRINTING GLM OBJECT
 template<typename T, typename = void>
@@ -56,15 +69,20 @@ typename std::enable_if<is_member_of_glm<Type>::value, int>::type digits_of_numb
 
 // Printing glm value
 
-static int glm_print_call_nummber = 0;
-static std::size_t glm_print_width = 0;
 template<typename Type>
-typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type operator<<(std::ostream& stream,
-                                                                                       const Type& value)
+typename std::enable_if<!is_member_of_glm<Type>::value, std::ostream&>::type
+print_glm_object(std::ostream& stream, const Type& value, const std::size_t& glm_print_width = 0)
+{
+    return stream << std::fixed << std::setw(glm_print_width) << value << std::flush;
+}
+
+template<typename Type>
+typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type
+print_glm_object(std::ostream& stream, const Type& value, std::size_t glm_print_width = 0)
+
 {
 
-    glm_print_call_nummber++;
-    if (glm_print_call_nummber == 1)
+    if (glm_print_width == 1)
         glm_print_width = 7 + digits_of_number(value);
     int length = value.length();
     bool contain_glm = is_member_of_glm<decltype(value[0])>::value;
@@ -73,10 +91,29 @@ typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type oper
         stream << "{";
     for (int i = 0; i < length; i++)
     {
-        stream << std::fixed << (contain_glm ? std::setw(0) : std::setw(glm_print_width)) << value[i] << std::flush;
+        print_glm_object(stream, value[i], glm_print_width);
+
         if (!contain_glm)
-            stream << (i == length - 1 ? "}\n" : ", ") << std::flush;
+            stream << (i == length - 1 ? "}" : ", ") << std::flush;
+        else
+            stream << std::endl;
     }
-    glm_print_call_nummber--;
     return stream;
 }
+
+template<typename Type>
+typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type operator<<(std::ostream& stream,
+                                                                                       const Type& value)
+{
+    return print_glm_object(stream, value);
+}
+
+namespace Engine
+{
+    template<typename Type>
+    typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type operator<<(std::ostream& stream,
+                                                                                           const Type& value)
+    {
+        return print_glm_object(stream, value);
+    }
+}// namespace Engine
