@@ -4,7 +4,9 @@
 #include <ostream>
 #include <utility>
 
-#define not_implemented (std::runtime_error(std::string("Not implemented method: ") + __PRETTY_FUNCTION__))
+#define not_implemented                                                                                                \
+    (std::runtime_error(std::string(__FILE__) + str::string(":") + std::string(__LINE__) +                             \
+                        std::string(" Not implemented method: ") + __PRETTY_FUNCTION__))
 
 namespace Engine
 {
@@ -77,7 +79,7 @@ print_glm_object(std::ostream& stream, const Type& value, const std::size_t& glm
 }
 
 template<typename Type>
-typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type
+typename std::enable_if<is_member_of_glm<Type>::value && !std::is_pointer<Type>::value, std::ostream&>::type
 print_glm_object(std::ostream& stream, const Type& value, std::size_t glm_print_width = 0)
 
 {
@@ -102,8 +104,8 @@ print_glm_object(std::ostream& stream, const Type& value, std::size_t glm_print_
 }
 
 template<typename Type>
-typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type operator<<(std::ostream& stream,
-                                                                                       const Type& value)
+typename std::enable_if<is_member_of_glm<Type>::value && !std::is_pointer<Type>::value, std::ostream&>::type
+operator<<(std::ostream& stream, const Type& value)
 {
     return print_glm_object(stream, value);
 }
@@ -111,8 +113,8 @@ typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type oper
 namespace Engine
 {
     template<typename Type>
-    typename std::enable_if<is_member_of_glm<Type>::value, std::ostream&>::type operator<<(std::ostream& stream,
-                                                                                           const Type& value)
+    typename std::enable_if<is_member_of_glm<Type>::value && !std::is_pointer<Type>::value, std::ostream&>::type
+    operator<<(std::ostream& stream, const Type& value)
     {
         return print_glm_object(stream, value);
     }
