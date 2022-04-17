@@ -17,7 +17,7 @@
 #include <thread>
 
 
-int main()
+int start_engine()
 {
 
     bool light = false;
@@ -54,7 +54,7 @@ int main()
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.position(), {0.f, 0.f, 0.f}, 4, 1};
-
+    glEnable(GL_LIGHT0);
     while (window.is_open())
     {
         player.force = glm::vec3(0, player.force[1], 0);
@@ -211,4 +211,10 @@ int main()
     }
 
     return 0;
+}
+
+
+int main()
+{
+    return start_engine();
 }
