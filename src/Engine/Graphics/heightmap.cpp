@@ -16,18 +16,18 @@
 #define get_normal (glm::vec3(plane))
 #define empty_normal(normal) (normal[0] == 0 && normal[1] == 0 && normal[2] == 0)
 
-#define point_to_height_point(point)                                                                                   \
-    {                                                                                                                  \
-        to_array_index(_M_limits.min.x, point.x, block_size), to_array_index(_M_limits.min.y, point.y, block_size),    \
-                to_array_index(_M_limits.min.z, point.z, block_size), point, normal                                    \
+#define point_to_height_point(point)                                                                                                  \
+    {                                                                                                                                 \
+        to_array_index(_M_limits.min.x, point.x, block_size), to_array_index(_M_limits.min.y, point.y, block_size),                   \
+                to_array_index(_M_limits.min.z, point.z, block_size), point, normal_normalized                                        \
     }
 
-#define height_map_value                                                                                               \
-    {                                                                                                                  \
-        ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), _M_limits.min,                         \
-        {                                                                                                              \
-            0.f, 0.f, 0.f                                                                                              \
-        }                                                                                                              \
+#define height_map_value                                                                                                              \
+    {                                                                                                                                 \
+        ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), ~Engine::ArrayIndex(0), _M_limits.min,                                        \
+        {                                                                                                                             \
+            0.f, 0.f, 0.f                                                                                                             \
+        }                                                                                                                             \
     }
 
 
@@ -38,8 +38,7 @@ struct line {
 
 using HeightPoint = Engine::HeightMapValue;
 
-#define vec_mult(a, b)                                                                                                 \
-    glm::vec3((a).y*(b).z - (a).z * (b).y, (a).z * (b).x - (a).x * (b).z, (a).x * (b).y - (a).y * (b).x)
+#define vec_mult(a, b) glm::vec3((a).y*(b).z - (a).z * (b).y, (a).z * (b).x - (a).x * (b).z, (a).x * (b).y - (a).y * (b).x)
 
 
 static bool in_triangle(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C, const glm::vec3& P)
@@ -67,8 +66,8 @@ struct use_point {
 
 static void calculate_triangle_points(use_point points, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c,
                                       const float& local_block_size, const float& block_size,
-                                      const Engine::TerrainModel::Limits& _M_limits, const glm::vec4& plane,
-                                      const glm::vec3& normal, std::list<Engine::HeightMapValue>& output)
+                                      const Engine::TerrainModel::Limits& _M_limits, const glm::vec4& plane, const glm::vec3& normal,
+                                      std::list<Engine::HeightMapValue>& output, const glm::vec3& normalized_normal)
 {
     float max_1 = max(max(a[points.point1], b[points.point1]), c[points.point1]);
     float max_2 = max(max(a[points.point2], b[points.point2]), c[points.point2]);
@@ -107,21 +106,17 @@ static void calculate_triangle_points(use_point points, const glm::vec3& a, cons
             else
             {
                 global_point[result_point] =
-                        (-plane[3] - (plane[points.point1] * first) - (plane[points.point2] * second)) /
-                        plane[result_point];
+                        (-plane[3] - (plane[points.point1] * first) - (plane[points.point2] * second)) / plane[result_point];
 
-                global_point[result_point] = global_point[result_point] > _M_limits.max[result_point]
-                                                     ? _M_limits.max[result_point]
-                                                     : global_point[result_point];
+                global_point[result_point] = global_point[result_point] > _M_limits.max[result_point] ? _M_limits.max[result_point]
+                                                                                                      : global_point[result_point];
 
-                global_point[result_point] = global_point[result_point] < _M_limits.min[result_point]
-                                                     ? _M_limits.min[result_point]
-                                                     : global_point[result_point];
+                global_point[result_point] = global_point[result_point] < _M_limits.min[result_point] ? _M_limits.min[result_point]
+                                                                                                      : global_point[result_point];
 
-                result_coords[result_point] =
-                        to_array_index(_M_limits.min[result_point], global_point[result_point], block_size);
+                result_coords[result_point] = to_array_index(_M_limits.min[result_point], global_point[result_point], block_size);
 
-                output.push_back({result_coords[0], result_coords[1], result_coords[2], global_point, normal});
+                output.push_back({result_coords[0], result_coords[1], result_coords[2], global_point, normalized_normal});
             }
         }
     }
@@ -129,8 +124,8 @@ static void calculate_triangle_points(use_point points, const glm::vec3& a, cons
 
 
 static void calculate_lines(use_point points, const std::vector<line>& lines, const float& local_block_size,
-                            const Engine::TerrainModel::Limits& _M_limits, const float& block_size,
-                            const glm::vec3& normal, std::list<Engine::HeightMapValue>& output)
+                            const Engine::TerrainModel::Limits& _M_limits, const float& block_size, const glm::vec3& normal,
+                            std::list<Engine::HeightMapValue>& output, const glm::vec3& normalized_normal)
 {
     for (const auto& line : lines)
     {
@@ -155,23 +150,23 @@ static void calculate_lines(use_point points, const std::vector<line>& lines, co
             result[points.point2] = (v[points.point2] * t) + line.begin[points.point2];
 
             result[result_coord] = (v[result_coord] * t) + line.begin[result_coord];
-            result[result_coord] = result[result_coord] > _M_limits.max[result_coord] ? _M_limits.max[result_coord]
-                                                                                      : result[result_coord];
-            result[result_coord] = result[result_coord] < _M_limits.min[result_coord] ? _M_limits.min[result_coord]
-                                                                                      : result[result_coord];
+            result[result_coord] =
+                    result[result_coord] > _M_limits.max[result_coord] ? _M_limits.max[result_coord] : result[result_coord];
+            result[result_coord] =
+                    result[result_coord] < _M_limits.min[result_coord] ? _M_limits.min[result_coord] : result[result_coord];
 
             indexes[points.point1] = to_array_index(_M_limits.min[points.point1], result[points.point1], block_size);
             indexes[points.point2] = to_array_index(_M_limits.min[points.point2], result[points.point2], block_size);
             indexes[result_coord] = to_array_index(_M_limits.min[result_coord], result[result_coord], block_size);
 
-            output.push_back({indexes[0], indexes[1], indexes[2], result, normal});
+            output.push_back({indexes[0], indexes[1], indexes[2], result, normalized_normal});
         }
     }
 }
 
-static void calculate_height(std::list<HeightPoint>& output, const float* values, std::size_t size,
-                             std::size_t triangle_point_size, float block_size, Engine::TerrainModel::Limits* limits,
-                             float local_block_size, const glm::mat4& model_matrix)
+static void calculate_height(std::list<HeightPoint>& output, const float* values, std::size_t size, std::size_t triangle_point_size,
+                             float block_size, Engine::TerrainModel::Limits* limits, float local_block_size,
+                             const glm::mat4& model_matrix)
 {
     auto& _M_limits = *limits;
     float triangle_block = triangle_point_size * 3;
@@ -179,8 +174,7 @@ static void calculate_height(std::list<HeightPoint>& output, const float* values
     {
         // Calculation of the formula of the triangle plane
         glm::vec3 a(values[i], values[i + 1], values[i + 2]);
-        glm::vec3 b(values[i + triangle_point_size], values[i + 1 + triangle_point_size],
-                    values[i + 2 + triangle_point_size]);
+        glm::vec3 b(values[i + triangle_point_size], values[i + 1 + triangle_point_size], values[i + 2 + triangle_point_size]);
         glm::vec3 c(values[i + (2 * triangle_point_size)], values[i + 1 + (2 * triangle_point_size)],
                     values[i + 2 + (2 * triangle_point_size)]);
 
@@ -189,13 +183,11 @@ static void calculate_height(std::list<HeightPoint>& output, const float* values
         c = use_model(c);
         glm::vec4 plane;
 
-        glm::vec3 normal =
-                triangle_block >= 8 ? glm::vec3(values[i + 5], values[i + 6], values[i + 7]) : glm::vec3(0.f, 0.f, 0.f);
+        glm::vec3 normal = triangle_block >= 8 ? glm::vec3(values[i + 5], values[i + 6], values[i + 7]) : glm::vec3(0.f, 0.f, 0.f);
 
         if (triangle_block < 8 || empty_normal(normal))
         {
-            plane = {minor(b.y - a.y, c.y - a.y, b.z - a.z, c.z - a.z),
-                     minor(b.x - a.x, c.x - a.x, b.z - a.z, c.z - a.z) * (-1),
+            plane = {minor(b.y - a.y, c.y - a.y, b.z - a.z, c.z - a.z), minor(b.x - a.x, c.x - a.x, b.z - a.z, c.z - a.z) * (-1),
                      minor(b.x - a.x, c.x - a.x, b.y - a.y, c.y - a.y), 0};
             normal = get_normal;
         }
@@ -204,6 +196,7 @@ static void calculate_height(std::list<HeightPoint>& output, const float* values
             plane = glm::vec4(normal, 0.f);
         }
         plane[3] = (-a.x) * plane[0] + (-a.y) * plane[1] + (-a.z) * plane[2];
+        auto normal_normalized = glm::normalize(normal);
 
         output.push_back(point_to_height_point(a));
         output.push_back(point_to_height_point(b));
@@ -211,16 +204,16 @@ static void calculate_height(std::list<HeightPoint>& output, const float* values
 
 
         std::vector<line> lines = {line({a, b}), line({a, c}), line({b, c})};
-        calculate_lines({0, 2}, lines, local_block_size, _M_limits, block_size, normal, output);
-        calculate_lines({1, 2}, lines, local_block_size, _M_limits, block_size, normal, output);
-        calculate_lines({1, 2}, lines, local_block_size, _M_limits, block_size, normal, output);
+        calculate_lines({0, 2}, lines, local_block_size, _M_limits, block_size, normal, output, normal_normalized);
+        calculate_lines({1, 2}, lines, local_block_size, _M_limits, block_size, normal, output, normal_normalized);
+        calculate_lines({1, 2}, lines, local_block_size, _M_limits, block_size, normal, output, normal_normalized);
 
-        calculate_triangle_points({0, 2}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
-        calculate_triangle_points({2, 0}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
-        calculate_triangle_points({0, 1}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
-        calculate_triangle_points({1, 0}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
-        calculate_triangle_points({1, 2}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
-        calculate_triangle_points({2, 1}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output);
+        calculate_triangle_points({0, 2}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output, normal_normalized);
+        calculate_triangle_points({2, 0}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output, normal_normalized);
+        calculate_triangle_points({0, 1}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output, normal_normalized);
+        calculate_triangle_points({1, 0}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output, normal_normalized);
+        calculate_triangle_points({1, 2}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output, normal_normalized);
+        calculate_triangle_points({2, 1}, a, b, c, local_block_size, block_size, _M_limits, plane, normal, output, normal_normalized);
     }
 }
 
@@ -320,16 +313,15 @@ namespace Engine
 
             for (unsigned int i = 0; i < processor_count - 1; i++)
             {
-                threads.emplace_back(calculate_height, std::ref(vectors[i]),
-                                     vector + block * i * triangle_point_size * 3, block * triangle_point_size * 3,
-                                     triangle_point_size, block_size, &_M_limits, local_block_size,
+                threads.emplace_back(calculate_height, std::ref(vectors[i]), vector + block * i * triangle_point_size * 3,
+                                     block * triangle_point_size * 3, triangle_point_size, block_size, &_M_limits, local_block_size,
                                      std::ref(model_matrix));
             }
 
             // Calculate last part of mesh in main thread
             calculate_height(vectors.back(), vector + (block * (processor_count - 1) * triangle_point_size * 3),
-                             size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size,
-                             block_size, &_M_limits, local_block_size, model_matrix);
+                             size - (block * triangle_point_size * 3 * (processor_count - 1)), triangle_point_size, block_size,
+                             &_M_limits, local_block_size, model_matrix);
 
             // Waiting for end of calculation
             for (auto& thread : threads) thread.join();
@@ -341,13 +333,31 @@ namespace Engine
                 for (auto& value : tmp)
                 {
                     auto& out = _M_array[value.x][value.y][value.z];
-                    out.normal += value.normal;
+                    out.normal = glm::normalize(out.normal + value.normal);
                     if (out < value)
                         out.position = value.position;
                 }
             }
         }
         std::clog << std::endl;
+        const glm::vec3 bottom = _M_array[0][0][0].position;
+
+        for (auto& x : _M_array)
+        {
+            auto length_z = x[0].size();
+            auto length_y = x.size();
+            for (decltype(length_z) z = 0; z < length_z; z++)
+            {
+                auto position = x[0][z].position;
+                for (decltype(length_y) y = 0; y < length_y; y++)
+                {
+                    if (x[y][z].position == bottom)
+                        x[y][z].position = position;
+                    else
+                        position = x[y][z].position;
+                }
+            }
+        }
         return *this;
     }// namespace Engine
 

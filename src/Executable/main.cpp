@@ -25,7 +25,7 @@ int start_engine()
     Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
     Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::TerrainModel model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 4);
+    Engine::TerrainModel model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 80);
 
     Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
                                                    "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
@@ -44,13 +44,13 @@ int start_engine()
     // Text renderer
     Engine::Shader text_shader("Shaders/text.vert", "Shaders/text.frag");
     Engine::Text text_renderer("resources/fonts/STIX2Text-Bold.otf", 25);
-    glm::mat4 model_matrix =
-            glm::scale(glm::rotate(glm::mat4(1.0f), glm::radians(90.f), {-1., 0., 0.f}), {0.05f, 0.05f, 0.05f});
+    glm::mat4 model_matrix = glm::scale(glm::rotate(glm::mat4(1.0f), glm::radians(90.f), {-1., 0., 0.f}), {0.05f, 0.05f, 0.05f});
     Engine::HeightMap height_map(model, 1.f, model_matrix);
 
     bool lines_draw = false;
     std::string LOG_POS;
     std::string FPS;
+    std::string TO_GROUND;
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.position(), {0.f, 0.f, 0.f}, 4, 1};
@@ -63,8 +63,7 @@ int start_engine()
         window.clear_buffer();
         if (window.event.keyboard.just_pressed() == Engine::KEY_TAB)
         {
-            window.event.mouse.cursor_status(window.event.mouse.cursor_status() == Engine::NORMAL ? Engine::DISABLED
-                                                                                                  : Engine::NORMAL);
+            window.event.mouse.cursor_status(window.event.mouse.cursor_status() == Engine::NORMAL ? Engine::DISABLED : Engine::NORMAL);
         }
 
         if (window.event.keyboard.just_pressed() == Engine::KEY_R)
@@ -141,6 +140,8 @@ int start_engine()
                 player.position.y += 0.2;
             }
         }
+        if (window.event.keyboard.just_pressed() == Engine::KEY_H)
+            player.position.y += 1000;
 
 
         if (window.event.keyboard.just_pressed() == Engine::KEY_L)
@@ -164,11 +165,7 @@ int start_engine()
 
         if (lines_draw == false)
         {
-            shader.use()
-                    .set("camera", player.position)
-                    .set("light", light)
-                    .set("projview", projview)
-                    .set("model", model_matrix);
+            shader.use().set("camera", player.position).set("light", light).set("projview", projview).set("model", model_matrix);
             model.draw();
         }
         else
@@ -183,9 +180,7 @@ int start_engine()
         }
 
 
-        skybox_shader.use()
-                .set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view())))
-                .set("light", light);
+        skybox_shader.use().set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view()))).set("light", light);
         skybox.draw();
 
         if (window.event.keyboard.just_pressed() == Engine::KEY_ENTER)
@@ -203,10 +198,25 @@ int start_engine()
         auto w_size = window.size();
         text_shader.use().set("color", glm::vec3(1, 1, 1)).set("projview", glm::ortho(0.0f, w_size.x, 0.0f, w_size.y));
         text_renderer.draw(LOG_POS, 5, w_size.y - 25, 1);
+
+        {
+            try
+            {
+                auto x = height_map.to_x_index(player.position.x);
+                auto y = height_map.to_y_index(player.position.y - player.height);
+                auto z = height_map.to_z_index(player.position.z);
+                TO_GROUND = "TO GROUND: " + std::to_string(player.position.y - height_map.array()[x][y][z].position.y);
+            }
+            catch (...)
+            {
+                TO_GROUND = "TO GROUND: OUT OF RANGE";
+            }
+        }
         if (frame++ % 30 == 0)
             FPS = "FPS: " + std::to_string(int(1 / window.event.diff_time()));
 
         text_renderer.draw(FPS, 5, w_size.y - 55, 1);
+        text_renderer.draw(TO_GROUND, 5, w_size.y - 85, 1);
         window.swap_buffers();
     }
 
@@ -216,5 +226,9 @@ int start_engine()
 
 int main()
 {
-    return start_engine();
+    Engine::BasicObject<Engine::RotateObject, Engine::TranslateObject> obj1, obj2;
+    obj1.sync_with(obj2);
+
+    obj2.move(10, 12, 14);
+    std::cout << obj1.model() << std::endl;
 }

@@ -3,10 +3,10 @@
 #include <stdexcept>
 
 #define mod(x) (x < 0 ? -x : x)
-#define max_force_index(force)                                                                                         \
-    ((mod(force.x) > mod(force.y) && mod(force.x) > mod(force.z))   ? 0                                                \
-     : (mod(force.y) > mod(force.x) && mod(force.y) > mod(force.z)) ? 1                                                \
-     : (mod(force.z) > mod(force.x) && mod(force.z) > mod(force.y)) ? 2                                                \
+#define max_force_index(force)                                                                                                        \
+    ((mod(force.x) > mod(force.y) && mod(force.x) > mod(force.z))   ? 0                                                               \
+     : (mod(force.y) > mod(force.x) && mod(force.y) > mod(force.z)) ? 1                                                               \
+     : (mod(force.z) > mod(force.x) && mod(force.z) > mod(force.y)) ? 2                                                               \
                                                                     : 0)
 
 #define empty_force(force) (force[0] == 0 && force[1] == 0 && force[2] == 0)
@@ -24,8 +24,7 @@ namespace Engine
 {
 
     float gravity = 0.01;
-    std::vector<ObjectParameters> check_terrain_collision(HeightMap& height_map,
-                                                          const std::vector<ObjectParameters>& objects)
+    std::vector<ObjectParameters> check_terrain_collision(HeightMap& height_map, const std::vector<ObjectParameters>& objects)
     {
         static Engine::ArrayIndex frame = 0;
         frame++;
@@ -44,8 +43,7 @@ namespace Engine
                 object_height_map_value.y = height_map.to_y_index(expected_position.y - object.height);
                 object_height_map_value.z = height_map.to_z_index(expected_position.z);
 
-                value = &(height_map.array()[object_height_map_value.x][object_height_map_value.y]
-                                            [object_height_map_value.z]);
+                value = &(height_map.array()[object_height_map_value.x][object_height_map_value.y][object_height_map_value.z]);
             }
             catch (...)
             {
