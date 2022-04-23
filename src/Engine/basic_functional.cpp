@@ -10,6 +10,7 @@ namespace Engine
     const glm::vec3 OY(0.f, 1.f, 0.f);
     const glm::vec3 OZ(0.f, 0.f, 1.f);
     const float PI = glm::pi<float>();
+    const float E = glm::e<float>();
 
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m)
     {
@@ -23,7 +24,7 @@ namespace Engine
 
     float scalar_mult(const glm::vec3& first, const glm::vec3& second)
     {
-        return first[0] * second[0] + first[1] * second[1] + first[2] * second[2];
+        return glm::dot(first, second);
     }
 
     float angle_between(glm::vec3 first, glm::vec3 second)

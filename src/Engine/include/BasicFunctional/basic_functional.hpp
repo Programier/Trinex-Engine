@@ -22,6 +22,7 @@ namespace Engine
     extern const glm::vec3 OY;
     extern const glm::vec3 OZ;
     extern const float PI;
+    extern const float E;
 
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m);
     glm::mat4 quaternion_matrix(const glm::vec3& rotation);
