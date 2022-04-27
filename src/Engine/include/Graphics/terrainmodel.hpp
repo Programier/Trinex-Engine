@@ -1,14 +1,14 @@
 #pragma once
 
+#include <Graphics/basic_object.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/texture.hpp>
 #include <glm/glm.hpp>
-#include <list>
 
 
 namespace Engine
 {
-    class TerrainModel
+    class TerrainModel : public BasicObject<TranslateObject, RotateObject, ScaleObject>
     {
     public:
         struct Limits {
@@ -37,11 +37,11 @@ namespace Engine
 
     public:
         TerrainModel();
-        TerrainModel(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
-              const unsigned int& mipmap_level = 4, const bool& invert = true);
+        TerrainModel(const std::string& model_file, const DrawMode& mode = Engine::LINEAR, const unsigned int& mipmap_level = 4,
+                     const bool& invert = true);
         TerrainModel(const TerrainModel&) = delete;
         TerrainModel& load_model(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
-                          const unsigned int& mipmap_level = 4, const bool& invert = true);
+                                 const unsigned int& mipmap_level = 4, const bool& invert = true);
         TerrainModel& draw();
         const DrawMode& mode();
         TerrainModel& mode(const DrawMode& mode);

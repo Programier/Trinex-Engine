@@ -12,13 +12,6 @@
 #define empty_force(force) (force[0] == 0 && force[1] == 0 && force[2] == 0)
 #define print_force(force) std::clog << force.x << "\t " << force.y << "\t " << force.z << std::endl
 
-static void normalize_force(Engine::Force& force)
-{
-    std::size_t force_max_index = max_force_index(force);
-    if (force[force_max_index] == 0)
-        return;
-    force /= force[force_max_index];
-}
 
 namespace Engine
 {
@@ -31,7 +24,7 @@ namespace Engine
         std::vector<ObjectParameters> result_object = objects;
         for (auto& object : result_object)
         {
-            auto expected_position = object.position + object.force;
+            auto expected_position = object.position;
             HeightMapValue object_height_map_value;
             object_height_map_value.position = expected_position;
             const HeightMapValue* value = nullptr;
@@ -55,7 +48,8 @@ namespace Engine
 
                 continue;
             }// 10.0999	6.39999
-            if (value->position.y - (object.position.y - object.height + (object.force.y - gravity)) >= 0)
+
+            if (object.position.y - object.height - value->position.y <= -(object.force.y - gravity))
             {
                 object.position.y = value->position.y + object.height;
                 if (object.force.y < 0)
@@ -63,6 +57,7 @@ namespace Engine
             }
             else
             {
+
                 object.force.y -= gravity;
             }
         }

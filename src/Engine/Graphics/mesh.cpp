@@ -22,8 +22,7 @@ namespace Engine
         int index = 0;
         for (const auto& value : _M_attrib)
         {
-            glVertexAttribPointer(index, value, GL_FLOAT, GL_FALSE, vertex_size * sizeof(float),
-                                  (GLvoid*) (offset * sizeof(float)));
+            glVertexAttribPointer(index, value, GL_FLOAT, GL_FALSE, vertex_size * sizeof(float), (GLvoid*) (offset * sizeof(float)));
             glEnableVertexAttribArray(index++);
             offset += value;
         }
@@ -48,7 +47,7 @@ namespace Engine
     {
         if (this == &mesh)
             return *this;
-
+        delete_vbo_vao();
         _M_data = mesh._M_data;
         _M_vertices = mesh._M_vertices;
         _M_attrib = mesh._M_attrib;

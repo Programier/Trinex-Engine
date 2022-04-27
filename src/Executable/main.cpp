@@ -35,6 +35,7 @@ int start_engine()
 
     Engine::Camera camera(glm::vec3(65.6901f, 10.5f, -146.858f), glm::radians(70.f));
     camera.rotate(-0.130556, -3.32162, 0);
+    //camera.rotate(-0.0000, -3.32162, 0);
     Engine::Line lines;
     lines.lines_from(model).line_width(0.5f);
     glEnable(GL_DEPTH_TEST);
@@ -44,7 +45,10 @@ int start_engine()
     // Text renderer
     Engine::Shader text_shader("Shaders/text.vert", "Shaders/text.frag");
     Engine::Text text_renderer("resources/fonts/STIX2Text-Bold.otf", 25);
-    glm::mat4 model_matrix = glm::scale(glm::rotate(glm::mat4(1.0f), glm::radians(90.f), {-1., 0., 0.f}), {0.05f, 0.05f, 0.05f});
+    model.rotate(glm::radians(90.f), {-1., 0., 0.f});
+    glm::mat4 model_matrix = model.scale({0.05f, 0.05f, 0.05f}).model();
+
+
     Engine::HeightMap height_map(model, 1.f, model_matrix);
 
     bool lines_draw = false;
@@ -54,7 +58,15 @@ int start_engine()
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.position(), {0.f, 0.f, 0.f}, 4, 1};
-    glEnable(GL_LIGHT0);
+
+    Engine::BoxHB cube;
+    cube.move(camera.position(), false);
+    cube.scale({1.f, 2.f, 1.f});
+    cube.lines().line_width(4.f);
+
+    std::cout << cube.model() << std::endl;
+    //cube.TranslateObject::link_to(camera);
+
     while (window.is_open())
     {
         player.force = glm::vec3(0, player.force[1], 0);
@@ -81,15 +93,24 @@ int start_engine()
             float angle = Engine::angle_between(up, Engine::OY) * (camera.front_vector()[1] < 0 ? -1 : 1);
             float y_offset = offset.y * 2 / (window.height());
             float x_offset = offset.x * 2 / (window.width());
-            camera.rotate(x_offset, Engine::OY);
+            camera.rotate(-x_offset, Engine::OY);
             bool rotate = glm::abs(angle) <= glm::radians(89.f) || angle * y_offset > 0;
             if (rotate)
-                camera.rotate(y_offset, camera.right_vector());
+            {
+                camera.rotate(-y_offset, camera.right_vector());
+            }
         }
 
         if (window.event.pressed(Engine::KEY_W))
         {
             player.force.z = speed;
+        }
+
+        if (window.event.get_key_status(Engine::KEY_P) != Engine::KeyStatus::RELEASED &&
+            window.event.get_key_status(Engine::KEY_F) == Engine::KeyStatus::JUST_PRESSED)
+        {
+            player.force.y = 0;
+            Engine::gravity = Engine::gravity == 0.f ? 0.01f : 0.f;
         }
 
         if (window.event.pressed(Engine::KEY_S))
@@ -180,6 +201,14 @@ int start_engine()
         }
 
 
+        line.use()
+                .set("projview", projview)
+                .set("color", glm::vec3(0, 1, 0))
+                .set("model", cube.model())
+                .set("light", light)
+                .set("camera", player.position);
+        cube.lines().draw();
+
         skybox_shader.use().set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view()))).set("light", light);
         skybox.draw();
 
@@ -224,11 +253,15 @@ int start_engine()
 }
 
 
+static int debug_function()
+{
+    return 0;
+}
+
 int main()
 {
-    Engine::BasicObject<Engine::RotateObject, Engine::TranslateObject> obj1, obj2;
-    obj1.sync_with(obj2);
-
-    obj2.move(10, 12, 14);
-    std::cout << obj1.model() << std::endl;
+    std::string buffer;
+    std::cout << "Input command: ";
+    getline(std::cin, buffer);
+    return buffer == "debug" ? debug_function() : start_engine();
 }

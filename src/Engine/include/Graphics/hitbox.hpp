@@ -1,4 +1,6 @@
 #pragma once
+#include <Graphics/basic_object.hpp>
+#include <Graphics/line.hpp>
 #include <glm/glm.hpp>
 
 
@@ -13,24 +15,19 @@ namespace Engine
         CYLINDER
     };
 
-    class IHitBox
+    class IHitBox : public BasicObject<RotateObject, TranslateObject, ScaleObject>
     {
     protected:
-        glm::vec3 _M_rotate = {0.f, 0.f, 0.f};
-        glm::vec3 _M_position;
         HitBoxType _M_type;
         glm::vec3 _M_size;
+        Line _M_lines;
 
     public:
         float distance_to(const IHitBox& hitbox);
-        const glm::vec3& rotation() const;
-        const glm::vec3& position() const;
         const HitBoxType& type() const;
         const glm::vec3& size() const;
-
-        glm::vec3& rotation();
-        glm::vec3& position();
         glm::vec3& size();
+        Line& lines();
     };
 
     class PointHB : public IHitBox
@@ -44,7 +41,8 @@ namespace Engine
     class BoxHB : public IHitBox
     {
     public:
-        BoxHB(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation = {0.f, 0.f, 0.f});
+        BoxHB(const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& size = {1.f, 1.f, 1.f},
+              const glm::vec3& rotation = {0.f, 0.f, 0.f});
         BoxHB(const BoxHB&);
         BoxHB& operator=(const BoxHB& box);
     };

@@ -57,5 +57,10 @@ namespace Engine
         {
             return get();
         }
+
+        bool is_null() const
+        {
+            return _M_value.is_null();
+        }
     };
 }// namespace Engine

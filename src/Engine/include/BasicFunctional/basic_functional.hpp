@@ -4,9 +4,9 @@
 #include <ostream>
 #include <utility>
 
-#define not_implemented                                                                                                \
-    (std::runtime_error(std::string(__FILE__) + str::string(":") + std::string(__LINE__) +                             \
-                        std::string(" Not implemented method: ") + __PRETTY_FUNCTION__))
+#define not_implemented                                                                                                               \
+    (std::runtime_error(std::string(__FILE__) + str::string(":") + std::string(__LINE__) + std::string(" Not implemented method: ") + \
+                        __PRETTY_FUNCTION__))
 
 namespace Engine
 {
@@ -23,6 +23,7 @@ namespace Engine
     extern const glm::vec3 OZ;
     extern const float PI;
     extern const float E;
+    extern const glm::mat4 identity_matrix;
 
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m);
     glm::mat4 quaternion_matrix(const glm::vec3& rotation);
@@ -73,8 +74,8 @@ typename std::enable_if<is_member_of_glm<Type>::value, int>::type digits_of_numb
 // Printing glm value
 
 template<typename Type>
-typename std::enable_if<!is_member_of_glm<Type>::value, std::ostream&>::type
-print_glm_object(std::ostream& stream, const Type& value, const std::size_t& glm_print_width = 0)
+typename std::enable_if<!is_member_of_glm<Type>::value, std::ostream&>::type print_glm_object(std::ostream& stream, const Type& value,
+                                                                                              const std::size_t& glm_print_width = 0)
 {
     return stream << std::fixed << std::setw(glm_print_width) << value << std::flush;
 }

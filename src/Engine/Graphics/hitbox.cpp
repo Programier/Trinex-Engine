@@ -6,20 +6,26 @@
 #define in_range(value, min, max) (value >= min && value <= max)
 #define THROW throw std::runtime_error(std::string("Not implemented method ") + __FUNCTION__)
 
+
+static const std::vector<float> cube_mesh = {-1.f, -1.f, -1.f, -1.f, 1.f,  -1.f, -1.f, -1.f, -1.f, 1.f,  -1.f, -1.f, -1.f, -1.f, -1.f,
+                                             -1.f, -1.f, 1.f,  -1.f, 1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, 1.f,  -1.f, 1.f,  1.f,  -1.f,
+                                             1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, -1.f, -1.f, 1.f,  -1.f, 1.f,  1.f,  -1.f, 1.f,  1.f,
+                                             1.f,  1.f,  1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, 1.f,  1.f,  -1.f, 1.f,  1.f,  1.f,  1.f,
+                                             1.f,  -1.f, 1.f,  1.f,  -1.f, -1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  -1.f};
+static const std::vector<float> sphere;
+
+
 //      DISTANCE FUNCTIONS
 
-static glm::vec3 rotate_point(const glm::vec3& p, const glm::vec3& r)
+static glm::vec3 rotate_point(const glm::vec3& p, glm::quat r)
 {
-    glm::mat4 result = glm::rotate(glm::mat4(1.0f), -r.x, {1, 0, 0});
-    result = glm::rotate(result, -r.y, {0, 1, 0});
-    result = glm::rotate(result, -r.z, {0, 0, 1});
-    return glm::vec3(result * glm::vec4(p, 0.f));
+    return p * glm::inverse(r);
 }
 
 static glm::vec3 min_distance_from_point_to_box_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2,
                                                       bool* inside_result = nullptr)
 {
-    auto rotation = point1.rotation();
+    auto rotation = point1.quaternion();
     auto point = rotate_point(point1.position(), rotation);
 
     if (inside_result)
@@ -60,13 +66,13 @@ static glm::vec3 min_distance_from_point_to_box_point(const Engine::IHitBox& poi
             *inside_result = true;
     }
 
-    return rotate_point(vector, -rotation);
+    return rotate_point(vector, glm::inverse(rotation));
 }
 
 static glm::vec3 min_distance_from_point_to_cylinder_point(const Engine::IHitBox& point1, const Engine::IHitBox& point2,
                                                            bool* inside_result = nullptr)
 {
-    auto rotation = point2.rotation();
+    auto rotation = point2.quaternion();
     auto point = rotate_point(point1.position(), rotation);
     auto& size = point2.size();
     auto& cylinder = point2.position();
@@ -198,27 +204,15 @@ static float from_cylinder_to_cylinder(const Engine::IHitBox& point1, const Engi
     return (inside_1 || inside_2) ? -glm::distance(point_1, point_2) : glm::distance(point_1, point_2);
 }
 
-static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&,
-                                                                                const Engine::IHitBox&) = {
+static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&, const Engine::IHitBox&) = {
         {from_point_to_point, from_point_to_box, from_point_to_sphere, from_point_to_cylinder},
         {from_box_to_point, from_box_to_box, from_box_to_sphere, from_box_to_cylinder},
         {from_sphere_to_point, from_sphere_to_box, from_sphere_to_sphere, from_sphere_to_cylinder},
         {from_cylinder_to_point, from_cylinder_to_box, from_cylinder_to_sphere, from_cylinder_to_cylinder}};
 
+
 namespace Engine
 {
-    // Hitbox interface implementation
-    const glm::vec3& IHitBox::rotation() const
-    {
-        return _M_rotate;
-    }
-
-    const glm::vec3& IHitBox::position() const
-    {
-        return _M_position;
-    }
-
-
     const HitBoxType& IHitBox::type() const
     {
         return _M_type;
@@ -227,17 +221,6 @@ namespace Engine
     const glm::vec3& IHitBox::size() const
     {
         return _M_size;
-    }
-
-
-    glm::vec3& IHitBox::rotation()
-    {
-        return _M_rotate;
-    }
-
-    glm::vec3& IHitBox::position()
-    {
-        return _M_position;
     }
 
     glm::vec3& IHitBox::size()
@@ -250,12 +233,16 @@ namespace Engine
         return distance_function_array[static_cast<int>(_M_type)][static_cast<int>(hitbox.type())](*this, hitbox);
     }
 
+    Line& IHitBox::lines()
+    {
+        return _M_lines;
+    }
+
     // Point hitbox implementation
 
     PointHB::PointHB(const glm::vec3& position)
     {
-        _M_position = position;
-        _M_rotate = {0.f, 0.f, 0.f};
+        move(position, false);
         _M_size = {0.f, 0.f, 0.f};
         _M_type = Engine::HitBoxType::POINT;
     }
@@ -266,10 +253,13 @@ namespace Engine
     // Box hitbox
     BoxHB::BoxHB(const glm::vec3& position, const glm::vec3& size, const glm::vec3& rotation)
     {
-        _M_position = position;
+        move(position, false);
         _M_size = size;
-        _M_rotate = rotation;
+        rotate(rotation, false);
         _M_type = HitBoxType::BOX;
+
+        _M_lines.data() = cube_mesh;
+        _M_lines.attributes({3}).vertices_count(24).update_buffers();
     }
 
     BoxHB::BoxHB(const BoxHB&) = default;

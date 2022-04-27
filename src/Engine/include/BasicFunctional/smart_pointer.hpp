@@ -118,6 +118,11 @@ namespace Engine
             return *(*this);
         }
 
+        bool is_null() const
+        {
+            return _M_data == nullptr;
+        }
+
         ~SmartPointer()
         {
             change_references(false);

@@ -20,7 +20,7 @@ namespace Engine
 
     glm::mat4 Camera::view()
     {
-        return glm::lookAt(_M_position, _M_position + _M_front, _M_up);
+        return glm::lookAt(_M_position.get(), _M_position.get() + _M_front.get(), _M_up.get());
     }
 
 
