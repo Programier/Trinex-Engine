@@ -12,6 +12,10 @@ namespace Engine
     const float PI = glm::pi<float>();
     const float E = glm::e<float>();
     const glm::mat4 identity_matrix = glm::mat4(1.0f);
+    const glm::mat4 zero_matrix = glm::mat4();
+    const glm::vec4 identity_vector = glm::vec4(1.f, 1.f, 1.f, 1.f);
+    const glm::vec4 zero_vector = glm::vec4(0.f, 0.f, 0.f, 0.f);
+
 
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m)
     {

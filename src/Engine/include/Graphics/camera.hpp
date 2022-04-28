@@ -12,11 +12,12 @@ namespace Engine
     class Camera : public BasicObject<TranslateObject, RotateObject>
     {
     private:
+        float _M_z_vector_mult;
         float _M_viewingAngle;
         float _M_maxRenderDistance = 1000.0f, _M_minRenderDistance = 0.1f;
 
     public:
-        Camera(glm::vec3 position, float fov);
+        Camera(glm::vec3 position, float fov, const bool& invert_z_vector = true);
         float max_render_distance();
         float min_render_distance();
         Camera& max_render_distance(float distance);

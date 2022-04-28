@@ -42,6 +42,8 @@ namespace Engine
                               const bool& add_values = true);
         TranslateObject& move(const float& distance, const glm::vec3& axis, const bool& add_value = true);
         const glm::vec3& position() const;
+
+        TranslateObject& link_to(TranslateObject& obj);
         ~TranslateObject();
     };
 
@@ -56,6 +58,7 @@ namespace Engine
         const glm::vec3& scale() const;
         ScaleObject& scale(const glm::vec3& sc, const bool& add_values = true);
         ScaleObject& scale(const float& x, const float& y, const float& z, const bool& add_values = true);
+        ScaleObject& link_to(ScaleObject& obj);
     };
 
 
@@ -82,6 +85,8 @@ namespace Engine
         const glm::vec3& front_vector() const;
         const glm::vec3& right_vector() const;
         const glm::vec3& up_vector() const;
+
+        RotateObject& link_to(RotateObject& obj);
     };
 
 
@@ -98,7 +103,6 @@ namespace Engine
     template<typename... BaseClasses>
     class BasicObject : public BaseClasses...
     {
-    public:
     };
 
 }// namespace Engine

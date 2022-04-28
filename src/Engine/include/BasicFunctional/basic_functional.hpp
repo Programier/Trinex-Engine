@@ -24,6 +24,10 @@ namespace Engine
     extern const float PI;
     extern const float E;
     extern const glm::mat4 identity_matrix;
+    extern const glm::mat4 zero_matrix;
+    extern const glm::vec4 identity_vector;
+    extern const glm::vec4 zero_vector;
+
 
     glm::vec3 get_rotation_from_matrix(const glm::mat4& m);
     glm::mat4 quaternion_matrix(const glm::vec3& rotation);

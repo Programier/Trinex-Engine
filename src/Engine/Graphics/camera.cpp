@@ -7,8 +7,9 @@
 
 namespace Engine
 {
-    Camera::Camera(glm::vec3 position, float viewingAngle) : _M_viewingAngle(viewingAngle)
+    Camera::Camera(glm::vec3 position, float viewingAngle, const bool& invert_z_vector) : _M_viewingAngle(viewingAngle)
     {
+        _M_z_vector_mult = invert_z_vector ? -1.f : 1.f;
         move(position, false);
     }
 
@@ -20,7 +21,7 @@ namespace Engine
 
     glm::mat4 Camera::view()
     {
-        return glm::lookAt(_M_position.get(), _M_position.get() + _M_front.get(), _M_up.get());
+        return glm::lookAt(_M_position.get(), _M_position.get() + _M_z_vector_mult * _M_front.get(), _M_up.get());
     }
 
 

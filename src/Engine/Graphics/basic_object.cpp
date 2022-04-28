@@ -108,6 +108,13 @@ namespace Engine
         return move(axis * distance, OX, OY, OZ, add_value);
     }
 
+    TranslateObject& TranslateObject::link_to(TranslateObject& obj)
+    {
+        _M_models[TRANSLATE_INDEX] = obj._M_models[TRANSLATE_INDEX];
+        _M_position = obj._M_position;
+        return *this;
+    }
+
 
     TranslateObject::~TranslateObject()
     {}
@@ -145,6 +152,13 @@ namespace Engine
         return scale({x, y, z}, add_values);
     }
 
+    ScaleObject& ScaleObject::link_to(ScaleObject& obj)
+    {
+        _M_scale_matrix() = obj._M_scale_matrix();
+        _M_scale = obj._M_scale;
+        return *this;
+    }
+
     //      ROTATION
     RotateObject::RotateObject()
     {
@@ -164,19 +178,20 @@ namespace Engine
     void RotateObject::update_model(const glm::quat& q, const bool& add_values)
     {
         auto& quat = _M_quaternion.get();
+        auto& matrix = _M_rotation_matrix();
         if (add_values)
             _M_quaternion = q * quat;
         else
         {
             quat.w = -quat.w;
-            _M_rotation_matrix() *= glm::mat4_cast(quat);
+            matrix = identity_matrix;
             quat = q;
         }
 
-        _M_rotation_matrix() *= glm::mat4_cast(q);
+        matrix = glm::mat4_cast(q) * matrix;
         _M_euler_angles.get() = glm::eulerAngles(quat);
 
-        _M_front = glm::normalize(quat * -OZ);
+        _M_front = glm::normalize(quat * OZ);
         _M_up = glm::normalize(quat * OY);
         _M_right = glm::normalize(quat * OX);
     }
@@ -219,6 +234,17 @@ namespace Engine
     const glm::vec3& RotateObject::up_vector() const
     {
         return _M_up.get();
+    }
+
+    RotateObject& RotateObject::link_to(RotateObject& obj)
+    {
+        _M_quaternion = obj._M_quaternion;
+        _M_euler_angles = obj._M_euler_angles;
+        _M_front = obj._M_front;
+        _M_right = obj._M_right;
+        _M_up = obj._M_up;
+        _M_models[ROTATE_INDEX] = obj._M_models[ROTATE_INDEX];
+        return *this;
     }
 
 

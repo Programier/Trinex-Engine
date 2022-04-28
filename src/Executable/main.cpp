@@ -61,12 +61,12 @@ int start_engine()
 
     Engine::BoxHB cube;
     cube.move(camera.position(), false);
-    cube.scale({1.f, 2.f, 1.f});
+    //cube.scale({0.5f, 4.f, 0.5f});
     cube.lines().line_width(4.f);
 
     std::cout << cube.model() << std::endl;
     //cube.TranslateObject::link_to(camera);
-
+    cube.RotateObject::link_to(camera);
     while (window.is_open())
     {
         player.force = glm::vec3(0, player.force[1], 0);
@@ -90,7 +90,7 @@ int start_engine()
         if (window.event.mouse.cursor_status() == Engine::DISABLED)
         {
             const auto& up = camera.up_vector();
-            float angle = Engine::angle_between(up, Engine::OY) * (camera.front_vector()[1] < 0 ? -1 : 1);
+            float angle = Engine::angle_between(up, Engine::OY) * (camera.front_vector()[1] > 0 ? -1 : 1);
             float y_offset = offset.y * 2 / (window.height());
             float x_offset = offset.x * 2 / (window.width());
             camera.rotate(-x_offset, Engine::OY);
@@ -179,7 +179,7 @@ int start_engine()
         camera.move(player.position, false);
 
         camera.move(player.force, Engine::remove_coord(camera.right_vector(), Engine::Coord::Y), Engine::OY,
-                    Engine::remove_coord(camera.front_vector(), Engine::Coord::Y));
+                    Engine::remove_coord(-camera.front_vector(), Engine::Coord::Y));
 
         auto projection = camera.projection(window);
         auto projview = projection * camera.view();
@@ -258,10 +258,7 @@ static int debug_function()
     return 0;
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    std::string buffer;
-    std::cout << "Input command: ";
-    getline(std::cin, buffer);
-    return buffer == "debug" ? debug_function() : start_engine();
+    return argc > 1 ? debug_function() : start_engine();
 }
