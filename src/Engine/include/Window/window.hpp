@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 
-#define METHODS(name, type)                                                                                            \
-    name();                                                                                                            \
-    name(const type&, const type&);                                                                                    \
-    name(const name&);                                                                                                 \
-    name(const std::initializer_list<type>& list);                                                                     \
+#define METHODS(name, type)                                                                                                           \
+    name();                                                                                                                           \
+    name(const type&, const type&);                                                                                                   \
+    name(const name&);                                                                                                                \
+    name(const std::initializer_list<type>& list);                                                                                    \
     name& operator=(const name&);
 
 namespace Engine
@@ -92,6 +92,8 @@ namespace Engine
         Cursor _M_cursor;
 
         float _M_diff_time = 0;
+
+        bool _M_vsync = true;
         WindowParameters(const std::string& name);
         WindowParameters(const WindowParameters& param);
         ~WindowParameters();
@@ -204,6 +206,9 @@ namespace Engine
         Window& cursor(const Cursor& cursor);
         const Cursor& cursor();
         void destroy();
+
+        bool vsync() const;
+        Window& vsync(const bool& value);
         friend WindowParameters& get_parameters(Window* window);
         ~Window();
     };
