@@ -854,6 +854,7 @@ namespace Engine
     Window& Window::vsync(const bool& value)
     {
         parameters._M_vsync = value;
+        make_current();
         glfwSwapInterval(static_cast<int>(value));
         return *this;
     }
