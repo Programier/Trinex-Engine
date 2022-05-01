@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    class TerrainModel : public BasicObject<TranslateObject, RotateObject, ScaleObject>
+    class TerrainModel : public BasicObject<Translate, Rotate, Scale>
     {
     public:
         struct Limits {

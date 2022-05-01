@@ -15,7 +15,7 @@ namespace Engine
         CYLINDER
     };
 
-    class IHitBox : public BasicObject<RotateObject, TranslateObject, ScaleObject>
+    class IHitBox : public BasicObject<Rotate, Translate, Scale>
     {
     protected:
         HitBoxType _M_type;

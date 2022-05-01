@@ -7,7 +7,7 @@
 namespace Engine
 {
     Object::Object(const Object&) = default;
-    Object::Object(const glm::vec3& _position, const glm::vec3& _rotation, const Scale& _scale)
+    Object::Object(const glm::vec3& _position, const glm::vec3& _rotation, const glm::vec3& _scale)
     {}
 
     Object& Object::operator=(const Object&) = default;

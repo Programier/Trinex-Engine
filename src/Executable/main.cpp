@@ -35,7 +35,7 @@ int start_engine()
 
     Engine::Camera camera(glm::vec3(65.6901f, 10.5f, -146.858f), glm::radians(70.f));
     camera.rotate(-0.130556, -3.32162, 0);
-    //camera.rotate(-0.0000, -3.32162, 0);
+
     Engine::Line lines;
     lines.lines_from(model).line_width(0.5f);
     glEnable(GL_DEPTH_TEST);
@@ -50,7 +50,6 @@ int start_engine()
 
 
     Engine::HeightMap height_map(model, 1.f, model_matrix);
-
     bool lines_draw = false;
     std::string LOG_POS;
     std::string FPS;
@@ -65,14 +64,21 @@ int start_engine()
     cube.lines().line_width(4.f);
 
     std::cout << cube.model() << std::endl;
-    //cube.TranslateObject::link_to(camera);
-    cube.RotateObject::link_to(camera);
+    //cube.Translate::link_to(camera);
+    cube.Rotate::link_to(camera);
     while (window.is_open())
     {
         player.force = glm::vec3(0, player.force[1], 0);
         float speed = 15 * window.event.diff_time();
+
+
         window.event.poll_events();
         window.clear_buffer();
+        if (window.event.keyboard.just_pressed() == Engine::KEY_1)
+        {
+            std::cout << window.event.diff_time() << std::endl;
+            window.vsync(!window.vsync());
+        }
         if (window.event.keyboard.just_pressed() == Engine::KEY_TAB)
         {
             window.event.mouse.cursor_status(window.event.mouse.cursor_status() == Engine::NORMAL ? Engine::DISABLED : Engine::NORMAL);
@@ -106,11 +112,10 @@ int start_engine()
             player.force.z = speed;
         }
 
-        if (window.event.get_key_status(Engine::KEY_P) != Engine::KeyStatus::RELEASED &&
-            window.event.get_key_status(Engine::KEY_F) == Engine::KeyStatus::JUST_PRESSED)
+        if (window.event.keyboard.just_pressed() == Engine::KEY_2)
         {
             player.force.y = 0;
-            Engine::gravity = Engine::gravity == 0.f ? 0.01f : 0.f;
+            Engine::gravity = Engine::gravity == 0.f ? 0.00025f / window.event.diff_time() : 0.f;
         }
 
         if (window.event.pressed(Engine::KEY_S))
@@ -170,14 +175,12 @@ int start_engine()
             light = !light;
         }
 
-
         if (window.event.keyboard.just_pressed() == Engine::KEY_Y)
             lines_draw = !lines_draw;
 
         player = Engine::check_terrain_collision(height_map, {player})[0];
 
         camera.move(player.position, false);
-
         camera.move(player.force, Engine::remove_coord(camera.right_vector(), Engine::Coord::Y), Engine::OY,
                     Engine::remove_coord(-camera.front_vector(), Engine::Coord::Y));
 

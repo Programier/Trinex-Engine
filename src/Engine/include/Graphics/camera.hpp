@@ -9,7 +9,7 @@
 namespace Engine
 {
 
-    class Camera : public BasicObject<TranslateObject, RotateObject>
+    class Camera : public BasicObject<Translate, Rotate>
     {
     private:
         float _M_z_vector_mult;

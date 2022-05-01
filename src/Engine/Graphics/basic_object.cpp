@@ -2,7 +2,7 @@
 #include <Graphics/basic_object.hpp>
 #include <algorithm>
 #include <glm/ext.hpp>
-
+#include <numeric>
 
 #define TRANSLATE_INDEX 0
 #define ROTATE_INDEX 1
@@ -14,80 +14,76 @@
 namespace Engine
 {
 
-    const glm::mat4& ModelMatrixObject::rotation_matrix() const
+    const glm::mat4& ModelMatrix::rotation_matrix() const
     {
         return get_model(ROTATE_INDEX);
     }
 
-    const glm::mat4& ModelMatrixObject::scale_matrix() const
+    const glm::mat4& ModelMatrix::scale_matrix() const
     {
         return get_model(SCALE_INDEX);
     }
 
-    const glm::mat4& ModelMatrixObject::translate_matrix() const
+    const glm::mat4& ModelMatrix::translate_matrix() const
     {
         return get_model(TRANSLATE_INDEX);
     }
 
-    glm::mat4& ModelMatrixObject::_M_rotation_matrix()
+    glm::mat4& ModelMatrix::_M_rotation_matrix()
     {
         return _M_models[1].get();
     }
 
-    glm::mat4& ModelMatrixObject::_M_scale_matrix()
+    glm::mat4& ModelMatrix::_M_scale_matrix()
     {
         return _M_models[2].get();
     }
 
-    glm::mat4& ModelMatrixObject::_M_translate_matrix()
+    glm::mat4& ModelMatrix::_M_translate_matrix()
     {
         return _M_models[0].get();
     }
 
-    glm::mat4 ModelMatrixObject::model() const
+    glm::mat4 ModelMatrix::model() const
     {
-        glm::mat4 result(1.0f);
-        for (auto& ell : _M_models)
-        {
-            if (!ell.is_null())
-            {
-                result *= ell.get();
-            }
-        }
+        glm::mat4 result = _M_shift_models[3].get();
+        for (auto& ell : _M_models) result *= ell.get();
         return result;
+    }
+
+    ModelMatrix& ModelMatrix::recalculate_shift()
+    {
+        _M_shift_models[3] = identity_matrix;
+        for (std::size_t i = 0; i < 3; i++) _M_shift_models[3].get() *= _M_shift_models[i].get();
+        return *this;
     }
 
 
     //      TRANSLATE
 
-    TranslateObject::TranslateObject()
+    glm::vec3 Translate::position() const
     {
-        _M_models[TRANSLATE_INDEX] = identity_matrix;
+        return _M_position.get() + _M_shift_position;
     }
 
-    const glm::vec3& TranslateObject::position() const
-    {
-        return _M_position.get();
-    }
-
-    TranslateObject& TranslateObject::move(const float& x, const float& y, const float& z, const bool& add_values)
+    Translate& Translate::move(const float& x, const float& y, const float& z, const bool& add_values)
     {
         return move({x, y, z}, OX, OY, OZ, add_values);
     }
 
-    TranslateObject& TranslateObject::move(const glm::vec3& move_vector, const bool& add_values)
+    Translate& Translate::move(const glm::vec3& move_vector, const bool& add_values)
     {
         return move(move_vector, OX, OY, OZ, add_values);
     }
 
-    TranslateObject& TranslateObject::move(const float& x, const float& y, const float& z, const glm::vec3& right, const glm::vec3& up,
-                                           const glm::vec3& front, const bool& add_values)
+    Translate& Translate::move(const float& x, const float& y, const float& z, const glm::vec3& right, const glm::vec3& up,
+                               const glm::vec3& front, const bool& add_values)
     {
         return move({x, y, z}, right, up, front, add_values);
     }
 
-    TranslateObject& TranslateObject::move(const glm::vec3 move_vector, const glm::vec3& right, const glm::vec3& up,
-                                           const glm::vec3& front, const bool& add_values)
+    Translate& Translate::move(const glm::vec3 move_vector, const glm::vec3& right, const glm::vec3& up, const glm::vec3& front,
+                               const bool& add_values)
     {
         glm::vec3 result_move = (right * move_vector.x) + (up * move_vector.y) + (front * move_vector.z);
 
@@ -95,7 +91,7 @@ namespace Engine
             this->_M_position.get() += result_move;
         else
         {
-            result_move = (-this->_M_position.get()) + move_vector;
+            _M_translate_matrix() = identity_matrix;
             this->_M_position = move_vector;
         }
 
@@ -103,12 +99,12 @@ namespace Engine
         return *this;
     }
 
-    TranslateObject& TranslateObject::move(const float& distance, const glm::vec3& axis, const bool& add_value)
+    Translate& Translate::move(const float& distance, const glm::vec3& axis, const bool& add_value)
     {
         return move(axis * distance, OX, OY, OZ, add_value);
     }
 
-    TranslateObject& TranslateObject::link_to(TranslateObject& obj)
+    Translate& Translate::link_to(Translate& obj)
     {
         _M_models[TRANSLATE_INDEX] = obj._M_models[TRANSLATE_INDEX];
         _M_position = obj._M_position;
@@ -116,21 +112,18 @@ namespace Engine
     }
 
 
-    TranslateObject::~TranslateObject()
+    Translate::~Translate()
     {}
 
-    //          SCALE
-    ScaleObject::ScaleObject()
-    {
-        _M_models[SCALE_INDEX] = identity_matrix;
-    }
 
-    const glm::vec3& ScaleObject::scale() const
+    //          SCALE
+
+    const glm::vec3& Scale::scale() const
     {
         return _M_scale.get();
     }
 
-    ScaleObject& ScaleObject::scale(const glm::vec3& sc, const bool& add_values)
+    Scale& Scale::scale(const glm::vec3& sc, const bool& add_values)
     {
         glm::vec3 new_sc;
         if (add_values)
@@ -147,12 +140,12 @@ namespace Engine
         return *this;
     }
 
-    ScaleObject& ScaleObject::scale(const float& x, const float& y, const float& z, const bool& add_values)
+    Scale& Scale::scale(const float& x, const float& y, const float& z, const bool& add_values)
     {
         return scale({x, y, z}, add_values);
     }
 
-    ScaleObject& ScaleObject::link_to(ScaleObject& obj)
+    Scale& Scale::link_to(Scale& obj)
     {
         _M_scale_matrix() = obj._M_scale_matrix();
         _M_scale = obj._M_scale;
@@ -160,22 +153,18 @@ namespace Engine
     }
 
     //      ROTATION
-    RotateObject::RotateObject()
-    {
-        _M_models[ROTATE_INDEX] = identity_matrix;
-    }
 
-    const glm::vec3& RotateObject::euler_angles() const
+    const glm::vec3& Rotate::euler_angles() const
     {
         return _M_euler_angles.get();
     }
 
-    RotateObject& RotateObject::rotate(const float& x, const float& y, const float& z, const bool& add_values)
+    Rotate& Rotate::rotate(const float& x, const float& y, const float& z, const bool& add_values)
     {
         return rotate(glm::quat(glm::vec3(x, y, z)), add_values);
     }
 
-    void RotateObject::update_model(const glm::quat& q, const bool& add_values)
+    void Rotate::update_model(const glm::quat& q, const bool& add_values)
     {
         auto& quat = _M_quaternion.get();
         auto& matrix = _M_rotation_matrix();
@@ -196,47 +185,47 @@ namespace Engine
         _M_right = glm::normalize(quat * OX);
     }
 
-    RotateObject& RotateObject::rotate(const glm::vec3& r, const bool& add_values)
+    Rotate& Rotate::rotate(const glm::vec3& r, const bool& add_values)
     {
         glm::quat q(r);
         update_model(q, add_values);
         return *this;
     }
 
-    RotateObject& RotateObject::rotate(const float& angle, const glm::vec3& axis, const bool& add_values)
+    Rotate& Rotate::rotate(const float& angle, const glm::vec3& axis, const bool& add_values)
     {
         glm::quat q = glm::rotate(glm::quat(glm::vec3(0.f, 0.f, 0.f)), angle, axis);
         update_model(q, add_values);
         return *this;
     }
 
-    RotateObject& RotateObject::rotate(const glm::quat& q, const bool& add_values)
+    Rotate& Rotate::rotate(const glm::quat& q, const bool& add_values)
     {
         update_model(q, add_values);
         return *this;
     }
 
-    const glm::quat& RotateObject::quaternion() const
+    const glm::quat& Rotate::quaternion() const
     {
         return _M_quaternion.get();
     }
 
-    const glm::vec3& RotateObject::front_vector() const
+    const glm::vec3& Rotate::front_vector() const
     {
         return _M_front.get();
     }
 
-    const glm::vec3& RotateObject::right_vector() const
+    const glm::vec3& Rotate::right_vector() const
     {
         return _M_right.get();
     }
 
-    const glm::vec3& RotateObject::up_vector() const
+    const glm::vec3& Rotate::up_vector() const
     {
         return _M_up.get();
     }
 
-    RotateObject& RotateObject::link_to(RotateObject& obj)
+    Rotate& Rotate::link_to(Rotate& obj)
     {
         _M_quaternion = obj._M_quaternion;
         _M_euler_angles = obj._M_euler_angles;

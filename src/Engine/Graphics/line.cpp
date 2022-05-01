@@ -1,3 +1,4 @@
+#include <BasicFunctional/basic_functional.hpp>
 #include <GL/glew.h>
 #include <Graphics/line.hpp>
 #include <assimp/Importer.hpp>
@@ -5,10 +6,71 @@
 #include <assimp/matrix4x4.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <glm/glm.hpp>
 #include <iostream>
+
 
 namespace Engine
 {
+    static glm::mat4 mat4(const aiMatrix4x4& matrix)
+    {
+        glm::mat4 result;
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++) result[i][j] = matrix[i][j];
+        return result;
+    }
+
+    static glm::vec3 vec3(const aiVector3D& vector)
+    {
+        return glm::vec3(vector.x, vector.y, vector.z);
+    }
+
+    static glm::quat quat(const aiQuaternion& q)
+    {
+        glm::quat quat;
+        quat.x = q.x;
+        quat.y = q.y;
+        quat.z = q.z;
+        quat.w = q.w;
+        return quat;
+    }
+
+
+    void load_scene(const aiScene* scene, aiNode* node, std::vector<float>& out, glm::mat4 model_matrix = glm::mat4(1.0f))
+    {
+        std::clog << "Line loader: Loading " << node->mName.C_Str() << std::endl;
+
+        model_matrix = mat4(node->mTransformation.Transpose()) * model_matrix;
+        for (unsigned int i = 0; i < node->mNumMeshes; i++)
+        {
+            auto& mesh = scene->mMeshes[node->mMeshes[i]];
+            for (unsigned int f = 0; f < mesh->mNumFaces; f++)
+            {
+                auto& face = mesh->mFaces[f];
+                for (unsigned int index = 0; index < face.mNumIndices; index++)
+                {
+                    auto begin = vec3(mesh->mVertices[face.mIndices[index]]);
+                    begin = model_matrix * glm::vec4(begin, 1.f);
+                    for (unsigned int g = index + 1; g < face.mNumIndices; g++)
+                    {
+                        auto end = vec3(mesh->mVertices[face.mIndices[g]]);
+                        end = model_matrix * glm::vec4(end, 1.f);
+                        out.push_back(begin.x);
+                        out.push_back(begin.y);
+                        out.push_back(begin.z);
+
+                        out.push_back(end.x);
+                        out.push_back(end.y);
+                        out.push_back(end.z);
+                    }
+                }
+            }
+        }
+
+
+        for (unsigned int i = 0; i < node->mNumChildren; i++) load_scene(scene, node->mChildren[i], out, model_matrix);
+    }
+
     std::size_t sum(const std::vector<int>& vec)
     {
         std::size_t res = 0;
@@ -60,34 +122,8 @@ namespace Engine
             return *this;
         }
 
-
-        std::clog << "Lines loader: Generating meshes" << std::endl;
-        // Generating meshes
-        auto meshes_count = scene->mNumMeshes;
-        for (decltype(meshes_count) i = 0; i < meshes_count; i++)
-        {
-            auto& scene_mesh = scene->mMeshes[i];
-            auto face_count = scene_mesh->mNumFaces;
-            for (decltype(face_count) j = 0; j < face_count; j++)
-            {
-                auto& face = scene_mesh->mFaces[j];
-                for (unsigned int f = 0; f < face.mNumIndices; f++)
-                {
-                    auto& begin = scene_mesh->mVertices[face.mIndices[f]];
-                    for (unsigned int g = f + 1; g < face.mNumIndices; g++)
-                    {
-                        auto& end = scene_mesh->mVertices[face.mIndices[g]];
-                        _M_data.push_back(begin.x);
-                        _M_data.push_back(begin.y);
-                        _M_data.push_back(begin.z);
-
-                        _M_data.push_back(end.x);
-                        _M_data.push_back(end.y);
-                        _M_data.push_back(end.z);
-                    }
-                }
-            }
-        }
+        std::clog << "Lines loader: Loading scene" << std::endl;
+        load_scene(scene, scene->mRootNode, _M_data);
         Mesh::attributes({3}).vertices_count(_M_data.size() / 3).update_buffers();
         std::clog << "Lines loader: Loading the \"" << model << "\" model completed successfully" << std::endl;
         return *this;

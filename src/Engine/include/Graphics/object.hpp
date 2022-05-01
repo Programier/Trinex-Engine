@@ -5,8 +5,6 @@
 
 namespace Engine
 {
-    typedef glm::vec3 ObjectPosition;
-    typedef glm::vec3 Scale;
     class Object
     {
     protected:
@@ -16,7 +14,7 @@ namespace Engine
         // Methods
         Object(const Object&);
         Object(const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& rotation = {0.f, 0.f, 0.f},
-               const Scale& scale = {1.f, 1.f, 1.f});
+               const glm::vec3& scale = {1.f, 1.f, 1.f});
         Object& operator=(const Object&);
         const std::vector<IHitBox>& hitboxes() const;
         std::vector<IHitBox>& hitboxes();

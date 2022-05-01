@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    class Line : public Mesh
+    class Line : public Mesh, public BasicObject<Translate, Rotate, Scale>
     {
         void update();
         float _M_line_width = 1;

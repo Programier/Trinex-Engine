@@ -30,7 +30,7 @@ static glm::vec3 min_distance_from_point_to_box_point(const Engine::IHitBox& poi
 
     if (inside_result)
         *inside_result = false;
-    auto& cube = point2.position();
+    auto cube = point2.position();
     auto& size = point2.size();
 
     auto min = cube - size;
@@ -75,7 +75,7 @@ static glm::vec3 min_distance_from_point_to_cylinder_point(const Engine::IHitBox
     auto rotation = point2.quaternion();
     auto point = rotate_point(point1.position(), rotation);
     auto& size = point2.size();
-    auto& cylinder = point2.position();
+    auto cylinder = point2.position();
     auto vector = point - point2.position();
     if (inside_result)
         *inside_result = false;
