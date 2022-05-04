@@ -17,8 +17,7 @@ namespace Engine
         unsigned int _M_mipmap = 4;
 
         DrawMode _M_mode;
-        void private_load(const std::string& name, const DrawMode& mode, const unsigned int& mipmap,
-                          const bool& invert);
+        void private_load(const std::string& name, const DrawMode& mode, const unsigned int& mipmap, const bool& invert);
 
     public:
         Texture();
@@ -34,6 +33,7 @@ namespace Engine
         const DrawMode& draw_mode();
         Texture& bind();
         static void unbind();
+        Texture& update();
 
         ~Texture();
     };

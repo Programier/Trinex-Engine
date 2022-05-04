@@ -7,7 +7,9 @@ namespace Engine
 {
     class Line : public Mesh, public BasicObject<Translate, Rotate, Scale>
     {
-        void update();
+        Line& update();
+        Line& load_from_bsp(const std::string& filename);
+        Line& _M_push_line(const glm::vec3& point1, const glm::vec3& point2);
         float _M_line_width = 1;
 
     public:

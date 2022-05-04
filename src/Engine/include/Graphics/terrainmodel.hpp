@@ -4,6 +4,7 @@
 #include <Graphics/mesh.hpp>
 #include <Graphics/texture.hpp>
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 
 namespace Engine
@@ -16,24 +17,20 @@ namespace Engine
             glm::vec3 max;
         };
 
-        struct pair {
-            Texture* _M_texture = nullptr;
-            Mesh* _M_mesh = nullptr;
-            bool empty();
+        struct Material {
+            std::size_t index = 0;
+            bool render = true;
+            std::string name;
+            Texture texture;
+            Mesh mesh;
         };
 
     private:
-        std::list<Texture> _M_textures;
-        std::list<Mesh> _M_meshes;
-
-        std::vector<pair> _M_parts;
-
-        Engine::DrawMode _M_mode;
-
-        void load_textures(const std::vector<std::pair<std::string, const char*>>& names, const unsigned int& mipmap,
-                           const bool& invert_textures);
-
+        glm::vec<4, u_char, glm::defaultp> _M_default_color;
         TerrainModel::Limits _M_limits;
+        Engine::DrawMode _M_mode;
+        std::vector<Material> _M_materials;
+
 
     public:
         TerrainModel();
@@ -45,11 +42,11 @@ namespace Engine
         TerrainModel& draw();
         const DrawMode& mode();
         TerrainModel& mode(const DrawMode& mode);
-
-        const std::list<Texture>& textures() const;
-        const std::list<Mesh>& meshes() const;
-        const std::vector<pair>& parts() const;
+        const std::vector<Material>& materials() const;
         const TerrainModel::Limits& limits() const;
+        glm::vec<4, u_char, glm::defaultp> default_color() const;
+        TerrainModel& default_color(const glm::vec<4, u_char, glm::defaultp>& color);
+        bool& material_render_status(const std::size_t& material_index);
         ~TerrainModel();
     };
 }// namespace Engine

@@ -296,11 +296,12 @@ namespace Engine
 
 
         std::size_t index = 1;
-        std::size_t count = model.meshes().size();
+        std::size_t count = model.materials().size();
         float local_block_size = block_size * 0.3;
 
-        for (auto& mesh : model.meshes())
+        for (auto& material : model.materials())
         {
+            auto& mesh = material.mesh;
             std::clog << "\rHeightMap: Calculating mesh " << index++ << " of " << count << std::flush;
             auto triangle_point_size = std::accumulate(mesh.attributes().begin(), mesh.attributes().end(), 0);
 

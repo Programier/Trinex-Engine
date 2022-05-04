@@ -25,13 +25,16 @@ int start_engine()
     Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
 
     Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::TerrainModel model("resources/de_dust2/de_dust2.obj", Engine::NEAREST, 80);
+    Engine::TerrainModel model("/home/programier/3D/models/cs-office-csgo-real-light-version/source/1.fbx", Engine::LINEAR, 80);
+
 
     Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
                                                    "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
                                                    "resources/skybox/front.jpg", "resources/skybox/back.jpg"});
 
     Engine::Shader line("Shaders/lines.vert", "Shaders/lines.frag");
+    bool command_line = false;
+    std::string command;
 
     Engine::Camera camera(glm::vec3(65.6901f, 10.5f, -146.858f), glm::radians(70.f));
     camera.rotate(-0.130556, -3.32162, 0);
@@ -45,15 +48,17 @@ int start_engine()
     // Text renderer
     Engine::Shader text_shader("Shaders/text.vert", "Shaders/text.frag");
     Engine::Text text_renderer("resources/fonts/STIX2Text-Bold.otf", 25);
-    model.rotate(glm::radians(90.f), {-1., 0., 0.f});
+    //model.rotate(glm::radians(90.f), {-1., 0., 0.f});
     glm::mat4 model_matrix = model.scale({0.05f, 0.05f, 0.05f}).model();
 
+    //bsp_testing.rotate(glm::radians(-90.f), 0, 0);
 
-    Engine::HeightMap height_map(model, 1.f, model_matrix);
+    //Engine::HeightMap height_map(model, 1.f, model_matrix);
     bool lines_draw = false;
     std::string LOG_POS;
     std::string FPS;
     std::string TO_GROUND;
+    std::string command_draw;
 
     unsigned int frame = 0;
     Engine::ObjectParameters player = {camera.position(), {0.f, 0.f, 0.f}, 4, 1};
@@ -63,14 +68,12 @@ int start_engine()
     //cube.scale({0.5f, 4.f, 0.5f});
     cube.lines().line_width(4.f);
 
-    std::cout << cube.model() << std::endl;
     //cube.Translate::link_to(camera);
     cube.Rotate::link_to(camera);
     while (window.is_open())
     {
         player.force = glm::vec3(0, player.force[1], 0);
         float speed = 15 * window.event.diff_time();
-
 
         window.event.poll_events();
         window.clear_buffer();
@@ -89,6 +92,37 @@ int start_engine()
             shader.load("Shaders/main.vert", "Shaders/main.frag");
             skybox_shader.load("Shaders/skybox.vert", "Shaders/skybox.frag");
             line.load("Shaders/lines.vert", "Shaders/lines.frag");
+        }
+
+        if (command_line)
+        {
+            std::string text = window.event.keyboard.last_symbol();
+            if (!text.empty())
+            {
+                command += text;
+            }
+            command_draw = "--> " + command;
+        }
+
+
+        if (window.event.keyboard.just_pressed() == Engine::KEY_Z)
+        {
+            if (command_line)
+            {
+                std::stringstream ss;
+                ss << command;
+                int index;
+                ss >> index;
+                bool& flag = model.material_render_status(index);
+                flag = !flag;
+                command_line = false;
+            }
+            else
+            {
+                command_line = true;
+                command = "";
+                window.event.keyboard.last_symbol();
+            }
         }
 
         player.position = camera.position();
@@ -178,7 +212,7 @@ int start_engine()
         if (window.event.keyboard.just_pressed() == Engine::KEY_Y)
             lines_draw = !lines_draw;
 
-        player = Engine::check_terrain_collision(height_map, {player})[0];
+        //      player = Engine::check_terrain_collision(height_map, {player})[0];
 
         camera.move(player.position, false);
         camera.move(player.force, Engine::remove_coord(camera.right_vector(), Engine::Coord::Y), Engine::OY,
@@ -191,6 +225,8 @@ int start_engine()
         {
             shader.use().set("camera", player.position).set("light", light).set("projview", projview).set("model", model_matrix);
             model.draw();
+            //            shader.set("model", bsp_testing.model());
+            //            bsp_testing.draw();
         }
         else
         {
@@ -203,14 +239,6 @@ int start_engine()
             lines.draw();
         }
 
-
-        line.use()
-                .set("projview", projview)
-                .set("color", glm::vec3(0, 1, 0))
-                .set("model", cube.model())
-                .set("light", light)
-                .set("camera", player.position);
-        cube.lines().draw();
 
         skybox_shader.use().set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view()))).set("light", light);
         skybox.draw();
@@ -234,10 +262,10 @@ int start_engine()
         {
             try
             {
-                auto x = height_map.to_x_index(player.position.x);
-                auto y = height_map.to_y_index(player.position.y - player.height);
-                auto z = height_map.to_z_index(player.position.z);
-                TO_GROUND = "TO GROUND: " + std::to_string(player.position.y - height_map.array()[x][y][z].position.y);
+                //                auto x = height_map.to_x_index(player.position.x);
+                //                auto y = height_map.to_y_index(player.position.y - player.height);
+                //                auto z = height_map.to_z_index(player.position.z);
+                //                TO_GROUND = "TO GROUND: " + std::to_string(player.position.y - height_map.array()[x][y][z].position.y);
             }
             catch (...)
             {
@@ -249,6 +277,8 @@ int start_engine()
 
         text_renderer.draw(FPS, 5, w_size.y - 55, 1);
         text_renderer.draw(TO_GROUND, 5, w_size.y - 85, 1);
+        if (command_line)
+            text_renderer.draw(command_draw, 5, w_size.y - 115, 1);
         window.swap_buffers();
     }
 

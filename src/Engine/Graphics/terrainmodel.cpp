@@ -5,9 +5,18 @@
 #include <assimp/matrix4x4.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 
+static const aiTextureType texture_types[] = {
+        aiTextureType_AMBIENT,        aiTextureType_AMBIENT_OCCLUSION, aiTextureType_BASE_COLOR,
+        aiTextureType_DIFFUSE,        aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_DISPLACEMENT,
+        aiTextureType_EMISSION_COLOR, aiTextureType_EMISSIVE,          aiTextureType_HEIGHT,
+        aiTextureType_LIGHTMAP,       aiTextureType_METALNESS,         aiTextureType_METALNESS,
+        aiTextureType_NORMALS,        aiTextureType_NORMAL_CAMERA,     aiTextureType_OPACITY,
+        aiTextureType_REFLECTION,     aiTextureType_SHININESS,         aiTextureType_SPECULAR,
+        aiTextureType_UNKNOWN};
 
 struct GlobalIndexAndImage {
     std::vector<int> _M_index;
@@ -24,137 +33,49 @@ struct EqualSizeListStruct {
 
 namespace Engine
 {
-    bool TerrainModel::pair::empty()
+    static glm::mat4 mat4(const aiMatrix4x4& matrix)
     {
-        return _M_texture == nullptr && _M_mesh == nullptr;
+        glm::mat4 result;
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++) result[i][j] = matrix[i][j];
+        return result;
     }
 
-    void TerrainModel::load_textures(const std::vector<std::pair<std::string, const char*>>& names,
-                                     const unsigned int& mipmap, const bool& invert_textures)
+    static glm::vec3 vec3(const aiVector3D& vector)
     {
-
-        _M_meshes.clear();
-        _M_textures.clear();
-        _M_parts.clear();
-        _M_parts.reserve(names.size());
-
-        std::unordered_map<std::string, pair> _M_loaded;
-
-        for (const auto& _name : names)
-        {
-            auto& name = _name.first;
-            auto& current_pair = _M_loaded[name];
-            if (current_pair.empty())
-            {
-                std::clog << "Model loader: Loading texture from " << name << ", model name is " << _name.second
-                          << std::endl;
-                _M_textures.emplace_back();
-                bool has_exception = false;
-                try
-                {
-                    _M_textures.back().load(name, _M_mode, mipmap, invert_textures);
-                }
-                catch (...)
-                {
-                    std::cerr << "Model loader: Failed to load " << name << ", model name is " << _name.second
-                              << std::endl;
-                    _M_textures.pop_back();
-                    has_exception = true;
-                }
-
-                if (!has_exception)
-                {
-                    _M_meshes.emplace_back();
-                    current_pair._M_mesh = &_M_meshes.back();
-                    current_pair._M_texture = &_M_textures.back();
-                }
-            }
-
-            _M_parts.push_back(current_pair);
-        }
+        return glm::vec3(vector.x, vector.y, vector.z);
     }
-#define check_vert(v)                                                                                                  \
-    if (_M_limits.min.v > vert.v)                                                                                      \
-    {                                                                                                                  \
-        _M_limits.min.v = vert.v;                                                                                      \
-    }                                                                                                                  \
-    if (_M_limits.max.v < vert.v)                                                                                      \
-    {                                                                                                                  \
-        _M_limits.max.v = vert.v;                                                                                      \
+
+
+#define check_vert(v)                                                                                                                 \
+    if (_M_limits.min.v > vert.v)                                                                                                     \
+    {                                                                                                                                 \
+        _M_limits.min.v = vert.v;                                                                                                     \
+    }                                                                                                                                 \
+    if (_M_limits.max.v < vert.v)                                                                                                     \
+    {                                                                                                                                 \
+        _M_limits.max.v = vert.v;                                                                                                     \
     }
-    TerrainModel& TerrainModel::load_model(const std::string& model_file, const DrawMode& mode,
-                                           const unsigned int& mipmap, const bool& invert)
+
+    static void load_vertices(const aiScene* scene, aiNode* node, std::vector<TerrainModel::Material>& materials,
+                              TerrainModel::Limits& _M_limits, bool& start, glm::mat4 matrix = identity_matrix)
     {
-        _M_mode = mode;
-        const std::string directory = model_file.substr(0, model_file.find_last_of('/')) + "/";
-
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(model_file, aiProcess_Triangulate);
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        matrix *= mat4(node->mTransformation.Transpose());
+        for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
-            std::clog << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-            return *this;
-        }
+            auto& ai_mesh = scene->mMeshes[node->mMeshes[i]];
+            auto& ai_UV = ai_mesh->mTextureCoords[0];
+            auto& mesh = materials[ai_mesh->mMaterialIndex].mesh.data();
 
-        static const aiTextureType texture_types[] = {
-                aiTextureType_AMBIENT,        aiTextureType_AMBIENT_OCCLUSION, aiTextureType_BASE_COLOR,
-                aiTextureType_DIFFUSE,        aiTextureType_DIFFUSE_ROUGHNESS, aiTextureType_DISPLACEMENT,
-                aiTextureType_EMISSION_COLOR, aiTextureType_EMISSIVE,          aiTextureType_HEIGHT,
-                aiTextureType_LIGHTMAP,       aiTextureType_METALNESS,         aiTextureType_METALNESS,
-                aiTextureType_NORMALS,        aiTextureType_NORMAL_CAMERA,     aiTextureType_OPACITY,
-                aiTextureType_REFLECTION,     aiTextureType_SHININESS,         aiTextureType_SPECULAR,
-                aiTextureType_UNKNOWN};
-
-        // Getting filenames of textures
-        {
-            std::vector<std::pair<std::string, const char*>> names;
-            names.reserve(scene->mNumMaterials);
-
-            for (unsigned int i = 0; i < scene->mNumMaterials; i++)
+            for (unsigned int f = 0; f < ai_mesh->mNumFaces; f++)
             {
-                auto mat = scene->mMaterials[i];
+                auto& face = ai_mesh->mFaces[f];
 
-                aiString name;
-                std::string tmp;
-                for (auto& type : texture_types)
+                for (unsigned int index = 0; index < face.mNumIndices; index++)
                 {
-                    name.Clear();
-                    mat->GetTexture(type, 0, &name);
-                    tmp = std::string(name.C_Str());
-                    if (tmp != "")
-                        break;
-                }
-
-                names.push_back({directory + tmp, mat->GetName().C_Str()});
-            }
-
-            // Loading textures
-            load_textures(names, mipmap, invert);
-        }
-
-        bool start = true;
-        std::clog << "Model loader: Generating meshes" << std::endl;
-        // Generating meshes
-        auto meshes_count = scene->mNumMeshes;
-        for (decltype(meshes_count) i = 0; i < meshes_count; i++)
-        {
-            auto& scene_mesh = scene->mMeshes[i];
-            auto& model_mesh = _M_parts[scene_mesh->mMaterialIndex];
-            if (model_mesh._M_mesh == nullptr)
-                continue;
-            // [x y z tx ty tz]
-            auto face_count = scene_mesh->mNumFaces;
-            for (decltype(face_count) j = 0; j < face_count; j++)
-            {
-                auto& face = scene_mesh->mFaces[j];
-                for (unsigned int f = 0; f < face.mNumIndices; f++)
-                {
-                    auto& vert = scene_mesh->mVertices[face.mIndices[f]];
-                    if (scene_mesh->mTextureCoords[0] == nullptr)
-                        continue;
-
-                    // Vertex coords
-                    auto uv = scene_mesh->mTextureCoords[0][face.mIndices[f]];
+                    auto v_index = face.mIndices[index];
+                    auto vert = vec3(ai_mesh->mVertices[v_index]);
+                    vert = matrix * glm::vec4(vert, 1.f);
                     if (start)
                     {
                         start = false;
@@ -166,36 +87,106 @@ namespace Engine
                         check_vert(y);
                         check_vert(z);
                     }
-                    (*model_mesh._M_mesh).data().push_back(vert.x);
-                    (*model_mesh._M_mesh).data().push_back(vert.y);
-                    (*model_mesh._M_mesh).data().push_back(vert.z);
+                    glm::vec2 uv = ai_UV ? glm::vec2(ai_UV[v_index].x, ai_UV[v_index].y) : glm::vec2(0.f, 0.f);
 
-                    // Texture coords
-                    (*model_mesh._M_mesh).data().push_back(uv.x);
-                    (*model_mesh._M_mesh).data().push_back(uv.y);
+                    // Pushing values
+                    mesh.push_back(vert.x);
+                    mesh.push_back(vert.y);
+                    mesh.push_back(vert.z);
+                    mesh.push_back(uv.x);
+                    mesh.push_back(uv.y);
 
                     // Normals
-                    if (scene_mesh->mNormals != nullptr)
+                    if (ai_mesh->mNormals != nullptr)
                     {
-                        auto& normal = scene_mesh->mNormals[face.mIndices[f]];
-                        (*model_mesh._M_mesh).data().push_back(normal.x);
-                        (*model_mesh._M_mesh).data().push_back(normal.y);
-                        (*model_mesh._M_mesh).data().push_back(normal.z);
+                        auto& normal = ai_mesh->mNormals[face.mIndices[index]];
+                        mesh.push_back(normal.x);
+                        mesh.push_back(normal.y);
+                        mesh.push_back(normal.z);
                     }
                     else
                     {
-                        (*model_mesh._M_mesh).data().push_back(0);
-                        (*model_mesh._M_mesh).data().push_back(0);
-                        (*model_mesh._M_mesh).data().push_back(0);
+                        mesh.push_back(0);
+                        mesh.push_back(0);
+                        mesh.push_back(0);
                     }
                 }
             }
         }
 
-        for (auto& model_mesh : _M_meshes)
-            model_mesh.attributes({3, 2, 3}).vertices_count(model_mesh.data().size() / 8).update_buffers();
+        for (unsigned int i = 0; i < node->mNumChildren; i++)
+            load_vertices(scene, node->mChildren[i], materials, _M_limits, start, matrix);
+    }
 
-        std::clog << "Model loader: Loading the \"" << model_file << "\" model completed successfully" << std::endl;
+
+    TerrainModel& TerrainModel::load_model(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
+                                           const bool& invert)
+    {
+        std::string path = model_file.substr(0, model_file.find_last_of('/') + 1);
+        _M_materials.clear();
+
+        Assimp::Importer importer;
+        auto scene = importer.ReadFile(model_file, aiProcess_Triangulate);
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        {
+            std::clog << "Terrain loader: Failed to load " << model_file << std::endl;
+            return *this;
+        }
+
+        std::clog << "Terraing model: Material num: " << scene->mNumMaterials << std::endl;
+        _M_materials.resize(scene->mNumMaterials);
+
+        // Loading materials
+        for (unsigned int i = 0; i < scene->mNumMaterials; i++)
+        {
+            auto& ai_material = scene->mMaterials[i];
+            auto& material = _M_materials[i];
+            material.index = i;
+            material.name = ai_material->GetName().C_Str();
+            std::clog << "Terrain loader: loading " << material.name << ", index = " << i << std::endl;
+
+            aiString filename;
+            for (auto& type : texture_types)
+            {
+                ai_material->GetTexture(type, 0, &filename);
+                if (std::string(filename.C_Str()) != "")
+                {
+                    std::string std_filename(filename.C_Str());
+                    try
+                    {
+                        std_filename = path + std_filename;
+                        std::clog << "Terrain model: Loading " << std_filename << ", material num: " << i << std::endl;
+                        material.texture.load(std_filename, mode, mipmap, invert);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        std::clog << e.what() << std::endl;
+                    }
+
+                    break;
+                }
+            }
+
+            if (filename.length == 0)
+            {
+                material.texture.vector() = {255, 255, 255, 255};
+                material.texture.size({1, 1});
+                material.texture.update();
+            }
+        }
+
+        bool start = true;
+        load_vertices(scene, scene->mRootNode, _M_materials, _M_limits, start);
+        std::size_t triangles = 0;
+        for (auto& material : _M_materials)
+        {
+            auto& model_mesh = material.mesh;
+            model_mesh.attributes({3, 2, 3}).vertices_count(model_mesh.data().size() / 8).update_buffers();
+            triangles += model_mesh.data().size() / 24;
+        }
+
+        std::clog << "Terrain model: Loaded " << triangles << " triangles" << std::endl;
+
         return *this;
     }
 
@@ -205,19 +196,21 @@ namespace Engine
     }
 
     TerrainModel::TerrainModel() = default;
+
     TerrainModel& TerrainModel::draw()
     {
-        auto mesh_iterator = _M_meshes.begin();
-        auto texture_iterator = _M_textures.begin();
-
-        auto mesh_end = _M_meshes.end();
-        auto textures_end = _M_textures.end();
-
-        while (mesh_iterator != mesh_end && texture_iterator != textures_end)
+        std::size_t size = _M_materials.size();
+        for (std::size_t i = 0; i < size; i++)
         {
-            (*texture_iterator++).bind();
-            (*mesh_iterator++).draw(TRIANGLE);
+            auto& m = _M_materials[i];
+            if (m.render)
+            {
+                m.texture.bind();
+                m.mesh.draw(TRIANGLE);
+            }
         }
+
+        Texture::unbind();
 
         return *this;
     }
@@ -230,36 +223,40 @@ namespace Engine
     TerrainModel& TerrainModel::mode(const DrawMode& mode)
     {
         _M_mode = mode;
-        for (auto& texture : _M_textures) texture.draw_mode(mode);
+        for (auto& material : _M_materials) material.texture.draw_mode(mode);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         return *this;
     }
 
-    TerrainModel::TerrainModel(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
-                               const bool& invert)
+    TerrainModel::TerrainModel(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap, const bool& invert)
     {
         load_model(model_file, mode, mipmap, invert);
     }
 
-    const std::list<Texture>& TerrainModel::textures() const
+    const std::vector<TerrainModel::Material>& TerrainModel::materials() const
     {
-        return _M_textures;
+        return _M_materials;
     }
-
-    const std::list<Mesh>& TerrainModel::meshes() const
-    {
-        return _M_meshes;
-    }
-
-    const std::vector<TerrainModel::pair>& TerrainModel::parts() const
-    {
-        return _M_parts;
-    }
-
     const TerrainModel::Limits& TerrainModel::limits() const
     {
         return _M_limits;
     }
 
+    glm::vec<4, u_char, glm::defaultp> TerrainModel::default_color() const
+    {
+        return _M_default_color;
+    }
 
+    TerrainModel& TerrainModel::default_color(const glm::vec<4, u_char, glm::defaultp>& color)
+    {
+        _M_default_color = color;
+        return *this;
+    }
+
+    bool& TerrainModel::material_render_status(const std::size_t& material_index)
+    {
+        if (material_index >= _M_materials.size())
+            throw std::runtime_error("Terrain model::Material array: Index out of range");
+        return _M_materials[material_index].render;
+    }
 }// namespace Engine

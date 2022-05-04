@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include <Image/image.hpp>
 #include "stb_image.h"
 #include <GLFW/glfw3.h>
+#include <Image/image.hpp>
 #include <iostream>
 #include <stdexcept>
 
@@ -28,9 +28,19 @@ namespace Engine
         return _M_height;
     }
 
-    glm::vec2 Image::size() const
+    glm::vec<2, std::size_t, glm::defaultp> Image::size() const
     {
         return {_M_width, _M_height};
+    }
+
+    Image& Image::size(const glm::vec<2, std::size_t, glm::defaultp>& _size)
+    {
+        if (_size.x * _size.y * _M_channels >= _M_data.size())
+            throw std::runtime_error("Image: Size out of range");
+        _M_width = _size.x;
+        _M_height = _size.y;
+        configure();
+        return *this;
     }
 
     int Image::channels() const
@@ -174,8 +184,7 @@ namespace Engine
 
 
     //          IMAGE ROW
-    Image::ImageRow::ImageRow(unsigned char* data, int length, int channels)
-        : _M_data(data), _M_length(length), _M_channels(channels)
+    Image::ImageRow::ImageRow(unsigned char* data, int length, int channels) : _M_data(data), _M_length(length), _M_channels(channels)
     {}
 
     Image::ImageRow::Pixel Image::ImageRow::operator[](int index)
@@ -250,8 +259,7 @@ namespace Engine
 
         image._M_data.reserve(image._M_width * image._M_height * _M_channels);
 
-        int start_index = (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) +
-                          static_cast<int>(begin.x + 0.5) * _M_channels;
+        int start_index = (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) + static_cast<int>(begin.x + 0.5) * _M_channels;
         for (int i = 0; i < image._M_height; i++)
         {
             image._M_data.insert(image.end(), _M_data.begin() + start_index,

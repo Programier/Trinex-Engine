@@ -25,16 +25,6 @@ namespace Engine
         return glm::vec3(vector.x, vector.y, vector.z);
     }
 
-    static glm::quat quat(const aiQuaternion& q)
-    {
-        glm::quat quat;
-        quat.x = q.x;
-        quat.y = q.y;
-        quat.z = q.z;
-        quat.w = q.w;
-        return quat;
-    }
-
 
     void load_scene(const aiScene* scene, aiNode* node, std::vector<float>& out, glm::mat4 model_matrix = glm::mat4(1.0f))
     {
@@ -78,9 +68,10 @@ namespace Engine
         return res;
     }
 
-    void Line::update()
+    Line& Line::update()
     {
         Mesh::attributes({3}).vertices_count(_M_data.size() / 3).update_buffers();
+        return *this;
     }
 
     Line::Line() = default;
@@ -91,7 +82,7 @@ namespace Engine
 
     Line& Line::operator=(const Line& line) = default;
 
-    Line& Line::push_line(const glm::vec3& point1, const glm::vec3& point2)
+    Line& Line::_M_push_line(const glm::vec3& point1, const glm::vec3& point2)
     {
         _M_data.push_back(point1.x);
         _M_data.push_back(point1.y);
@@ -100,8 +91,12 @@ namespace Engine
         _M_data.push_back(point2.x);
         _M_data.push_back(point2.y);
         _M_data.push_back(point2.z);
-        update();
         return *this;
+    }
+
+    Line& Line::push_line(const glm::vec3& point1, const glm::vec3& point2)
+    {
+        return _M_push_line(point1, point2).update();
     }
 
     Line& Line::draw()
@@ -114,6 +109,7 @@ namespace Engine
 
     Line& Line::load_from(const std::string& model)
     {
+        _M_data.clear();
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(model, aiProcess_Triangulate);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -124,21 +120,23 @@ namespace Engine
 
         std::clog << "Lines loader: Loading scene" << std::endl;
         load_scene(scene, scene->mRootNode, _M_data);
-        Mesh::attributes({3}).vertices_count(_M_data.size() / 3).update_buffers();
+        update();
         std::clog << "Lines loader: Loading the \"" << model << "\" model completed successfully" << std::endl;
         return *this;
     }
 
     Line& Line::lines_from(TerrainModel& model)
     {
-        auto data = model.meshes();
+        auto data = model.materials();
+
         std::size_t result_size = 0;
-        for (auto& mesh : data) result_size += mesh.vertices_count() * 6;
+        for (auto& material : data) result_size += material.mesh.vertices_count() * 6;
         _M_data.clear();
         _M_data.reserve(result_size);
 
-        for (auto& mesh : data)
+        for (auto& material : data)
         {
+            auto& mesh = material.mesh;
             auto& vector = mesh.data();
             auto len = vector.size();
             std::size_t attr_sum = sum(mesh.attributes());
