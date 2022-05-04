@@ -242,12 +242,12 @@ namespace Engine
         return _M_limits;
     }
 
-    glm::vec<4, u_char, glm::defaultp> TerrainModel::default_color() const
+    glm::vec<4, unsigned char, glm::defaultp> TerrainModel::default_color() const
     {
         return _M_default_color;
     }
 
-    TerrainModel& TerrainModel::default_color(const glm::vec<4, u_char, glm::defaultp>& color)
+    TerrainModel& TerrainModel::default_color(const glm::vec<4, unsigned char, glm::defaultp>& color)
     {
         _M_default_color = color;
         return *this;

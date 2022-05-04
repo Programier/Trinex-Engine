@@ -26,7 +26,7 @@ namespace Engine
         };
 
     private:
-        glm::vec<4, u_char, glm::defaultp> _M_default_color;
+        glm::vec<4, unsigned char, glm::defaultp> _M_default_color;
         TerrainModel::Limits _M_limits;
         Engine::DrawMode _M_mode;
         std::vector<Material> _M_materials;
@@ -44,8 +44,8 @@ namespace Engine
         TerrainModel& mode(const DrawMode& mode);
         const std::vector<Material>& materials() const;
         const TerrainModel::Limits& limits() const;
-        glm::vec<4, u_char, glm::defaultp> default_color() const;
-        TerrainModel& default_color(const glm::vec<4, u_char, glm::defaultp>& color);
+        glm::vec<4, unsigned char, glm::defaultp> default_color() const;
+        TerrainModel& default_color(const glm::vec<4, unsigned char, glm::defaultp>& color);
         bool& material_render_status(const std::size_t& material_index);
         ~TerrainModel();
     };
