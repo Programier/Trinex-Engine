@@ -1,297 +1,445 @@
-#include <BasicFunctional/basic_functional.hpp>
-#include <GL/glew.h>
 #include <Graphics/camera.hpp>
-#include <Graphics/heightmap.hpp>
-#include <Graphics/hitbox.hpp>
+#include <Graphics/enable_param.hpp>
+#include <Graphics/light.hpp>
 #include <Graphics/line.hpp>
-#include <Graphics/mesh.hpp>
-#include <Graphics/shader.hpp>
+#include <Graphics/shader_system.hpp>
 #include <Graphics/skybox.hpp>
 #include <Graphics/terrainmodel.hpp>
 #include <Graphics/text.hpp>
-#include <Graphics/texture.hpp>
-#include <Graphics/texturearray.hpp>
-#include <Physics/terrain_collision.hpp>
+#include <Init/init.hpp>
+#include <Window/color.hpp>
 #include <Window/window.hpp>
+#include <engine.hpp>
+#include <glm/glm.hpp>
 #include <iostream>
-#include <thread>
+#include <list>
+#include <sstream>
 
 
-int start_engine()
-{
-
-    bool light = false;
-    Engine::Window window(1280, 720, "test", true);
-    Engine::Shader skybox_shader("Shaders/skybox.vert", "Shaders/skybox.frag");
-
-    Engine::Shader shader("Shaders/main.vert", "Shaders/main.frag");
-    Engine::TerrainModel model("/home/programier/3D/models/cs-office-csgo-real-light-version/source/1.fbx", Engine::LINEAR, 80);
+using namespace Engine;
+#define cmd [](std::wstringstream & stream, Program & p)
 
 
-    Engine::Skybox skybox(std::vector<std::string>{"resources/skybox/right.jpg", "resources/skybox/left.jpg",
-                                                   "resources/skybox/top.jpg", "resources/skybox/bottom.jpg",
-                                                   "resources/skybox/front.jpg", "resources/skybox/back.jpg"});
+struct Program {
 
-    Engine::Shader line("Shaders/lines.vert", "Shaders/lines.frag");
-    bool command_line = false;
-    std::string command;
+    Window window;
 
-    Engine::Camera camera(glm::vec3(65.6901f, 10.5f, -146.858f), glm::radians(70.f));
-    camera.rotate(-0.130556, -3.32162, 0);
+    Cursor cursor;
 
-    Engine::Line lines;
-    lines.lines_from(model).line_width(0.5f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    Text text_renderer;
+    std::list<std::wstring> window_log;
 
-    // Text renderer
-    Engine::Shader text_shader("Shaders/text.vert", "Shaders/text.frag");
-    Engine::Text text_renderer("resources/fonts/STIX2Text-Bold.otf", 25);
-    //model.rotate(glm::radians(90.f), {-1., 0., 0.f});
-    glm::mat4 model_matrix = model.scale({0.05f, 0.05f, 0.05f}).model();
+    TerrainModel scene;
+    glm::mat4 scene_matrix;
+    Line scene_polygones;
 
-    //bsp_testing.rotate(glm::radians(-90.f), 0, 0);
+    Camera main_camera = Camera({0, 0, 0}, glm::radians(90.f));
+    Camera* camera = &main_camera;
+    glm::mat4 proj;
+    glm::mat4 view;
+    glm::mat4 projview;
+    Image icon;
 
-    //Engine::HeightMap height_map(model, 1.f, model_matrix);
-    bool lines_draw = false;
-    std::string LOG_POS;
-    std::string FPS;
-    std::string TO_GROUND;
-    std::string command_draw;
+    Skybox skybox;
 
-    unsigned int frame = 0;
-    Engine::ObjectParameters player = {camera.position(), {0.f, 0.f, 0.f}, 4, 1};
+    int current_fps = 60;
+    Key current_key;
+    std::wstring string_fps;
+    std::size_t frame = 0;
 
-    Engine::BoxHB cube;
-    cube.move(camera.position(), false);
-    //cube.scale({0.5f, 4.f, 0.5f});
-    cube.lines().line_width(4.f);
 
-    //cube.Translate::link_to(camera);
-    cube.Rotate::link_to(camera);
-    while (window.is_open())
+    float mouse_sensitive = 10;
+    bool active_console = false;
+
+    float speed = 15;
+    float speed_k = 1.f;
+    float diff_time;
+    float line_width = 1.5f;
+
+    static constexpr float angle_limit = glm::radians(89.f);
+
+    std::wstring current_command;
+
+    std::map<std::wstring, std::function<void(std::wstringstream& stream, Program& p)>> command_map;
+
+    enum RenderType : int
     {
-        player.force = glm::vec3(0, player.force[1], 0);
-        float speed = 15 * window.event.diff_time();
+        Scene = 0,
+        Polygones = 1,
+        All = 2
+    } Render = RenderType::Scene;
 
-        window.event.poll_events();
-        window.clear_buffer();
-        if (window.event.keyboard.just_pressed() == Engine::KEY_1)
-        {
-            std::cout << window.event.diff_time() << std::endl;
-            window.vsync(!window.vsync());
-        }
-        if (window.event.keyboard.just_pressed() == Engine::KEY_TAB)
-        {
-            window.event.mouse.cursor_status(window.event.mouse.cursor_status() == Engine::NORMAL ? Engine::DISABLED : Engine::NORMAL);
-        }
+    Light light;
+    Light::Material material;
+    Camera light_camera = Camera({0, 0, 0}, glm::radians(90.f));
+    bool lighting = true;
+    glm::mat4 light_projview;
 
-        if (window.event.keyboard.just_pressed() == Engine::KEY_R)
-        {
-            shader.load("Shaders/main.vert", "Shaders/main.frag");
-            skybox_shader.load("Shaders/skybox.vert", "Shaders/skybox.frag");
-            line.load("Shaders/lines.vert", "Shaders/lines.frag");
-        }
+    bool depth_rendering = true;
+    Mesh depth_mesh;
+    glm::mat3 transposed_inversed_model;
 
-        if (command_line)
+    // Methods
+
+    Program()
+        : window(1280, 720, "Scene", true), cursor("resources/cursor.png", 0, 0),
+          text_renderer("resources/fonts/font.otf", {0.f, 100.f}), icon("resources/icon.jpg")
+    {
+        icon.add_alpha_channel();
+        window.cursor(cursor).icon(icon);
+        // Run programm
+        init_map();
+        init_shader();
+        load_resources();
+        enable(EnableCap::Blend)(EnableCap::DepthTest);
+        blend_func(BlendFunc::SrcAlpha, BlendFunc::OneMinusSrcAlpha);
+        camera->max_render_distance(200.f);
+        //window.vsync(false);
+        current_command.reserve(50);
+
+
+        material.shininess = 32.f;
+        material.ambient = material.specular = LightColor(0.3f);
+        material.diffuse = LightColor(1.f);
+
+        light.type = LightType::Point;
+        light.specular = light.ambient = material.ambient;
+        light.diffuse = material.diffuse;
+        light.buffer.gen(Monitor::size());
+
+
+        while (window.is_open())
         {
-            std::string text = window.event.keyboard.last_symbol();
-            if (!text.empty())
+            window.event.poll_events();
+            window.clear_buffer();
+            diff_time = window.event.diff_time();
+            current_key = window.event.keyboard.just_pressed();
+
+            if (frame % 30 == 0)
+                string_fps = std::to_wstring((current_fps = static_cast<int>(1.f / window.event.diff_time())));
+
+            if (!active_console)
             {
-                command += text;
+                camera_proccess();
+                control();
             }
-            command_draw = "--> " + command;
-        }
 
-
-        if (window.event.keyboard.just_pressed() == Engine::KEY_Z)
-        {
-            if (command_line)
+            proj = main_camera.projection(window);
+            view = main_camera.view();
+            projview = proj * view;
+            if (lighting)
             {
-                std::stringstream ss;
-                ss << command;
-                int index;
-                ss >> index;
-                bool& flag = model.material_render_status(index);
-                flag = !flag;
-                command_line = false;
+                light.buffer.bind();
+                light.buffer.bind_texture();
+                light.buffer.view_port({0, 0}, Monitor::size()).clear_buffer();
+                light_render();
+
+                window.bind().update_view_port();
             }
-            else
+
+
+            render_scene();
+
+            if (depth_rendering)
             {
-                command_line = true;
-                command = "";
-                window.event.keyboard.last_symbol();
+                ShaderSystem::DepthRenderer::shader.use();
+                light.buffer.bind_texture(0);
+
+                depth_mesh.draw(Primitive::TRIANGLE);
             }
+
+            update_text().render_text();
+            frame++;
+            window.swap_buffers();
         }
-
-        player.position = camera.position();
-        const auto& offset = window.event.mouse.offset();
-        if (window.event.mouse.cursor_status() == Engine::DISABLED)
-        {
-            const auto& up = camera.up_vector();
-            float angle = Engine::angle_between(up, Engine::OY) * (camera.front_vector()[1] > 0 ? -1 : 1);
-            float y_offset = offset.y * 2 / (window.height());
-            float x_offset = offset.x * 2 / (window.width());
-            camera.rotate(-x_offset, Engine::OY);
-            bool rotate = glm::abs(angle) <= glm::radians(89.f) || angle * y_offset > 0;
-            if (rotate)
-            {
-                camera.rotate(-y_offset, camera.right_vector());
-            }
-        }
-
-        if (window.event.pressed(Engine::KEY_W))
-        {
-            player.force.z = speed;
-        }
-
-        if (window.event.keyboard.just_pressed() == Engine::KEY_2)
-        {
-            player.force.y = 0;
-            Engine::gravity = Engine::gravity == 0.f ? 0.00025f / window.event.diff_time() : 0.f;
-        }
-
-        if (window.event.pressed(Engine::KEY_S))
-        {
-            player.force.z = -speed;
-        }
-
-        if (window.event.pressed(Engine::KEY_A))
-        {
-            player.force.x = -speed;
-        }
-
-        if (window.event.pressed(Engine::KEY_D))
-        {
-            player.force.x = speed;
-        }
-
-        if (window.event.keyboard.just_pressed() == Engine::KEY_SPACE)
-        {
-            player.force.y = 0.25;
-        }
-
-        if (window.event.pressed(Engine::KEY_UP))
-        {
-            player.position.y += speed;
-        }
-
-        if (window.event.pressed(Engine::KEY_DOWN))
-        {
-            player.position.y -= speed;
-        }
-
-
-        if (window.event.pressed(Engine::KEY_LEFT_SHIFT))
-        {
-            if (player.height > 2)
-            {
-                player.height -= 0.2;
-                player.position.y -= 0.2;
-            }
-        }
-        else
-        {
-
-            if (player.height < 4)
-            {
-                player.height += 0.2;
-                player.position.y += 0.2;
-            }
-        }
-        if (window.event.keyboard.just_pressed() == Engine::KEY_H)
-            player.position.y += 1000;
-
-
-        if (window.event.keyboard.just_pressed() == Engine::KEY_L)
-        {
-            light = !light;
-        }
-
-        if (window.event.keyboard.just_pressed() == Engine::KEY_Y)
-            lines_draw = !lines_draw;
-
-        //      player = Engine::check_terrain_collision(height_map, {player})[0];
-
-        camera.move(player.position, false);
-        camera.move(player.force, Engine::remove_coord(camera.right_vector(), Engine::Coord::Y), Engine::OY,
-                    Engine::remove_coord(-camera.front_vector(), Engine::Coord::Y));
-
-        auto projection = camera.projection(window);
-        auto projview = projection * camera.view();
-
-        if (lines_draw == false)
-        {
-            shader.use().set("camera", player.position).set("light", light).set("projview", projview).set("model", model_matrix);
-            model.draw();
-            //            shader.set("model", bsp_testing.model());
-            //            bsp_testing.draw();
-        }
-        else
-        {
-            line.use()
-                    .set("projview", projview)
-                    .set("color", glm::vec3(1, 0, 0))
-                    .set("model", model_matrix)
-                    .set("light", light)
-                    .set("camera", player.position);
-            lines.draw();
-        }
-
-
-        skybox_shader.use().set("projview", camera.projection(window) * glm::mat4(glm::mat3(camera.view()))).set("light", light);
-        skybox.draw();
-
-        if (window.event.keyboard.just_pressed() == Engine::KEY_ENTER)
-        {
-            auto mode = window.mode();
-            if (mode == Engine::NONE)
-                mode = Engine::FULLSCREEN;
-            else
-                mode = Engine::NONE;
-            window.mode(mode);
-        }
-
-        LOG_POS = "X: " + std::to_string(player.position.x) + ", Y: " + std::to_string(player.position.y) +
-                  ", Z: " + std::to_string(player.position.z);
-        auto w_size = window.size();
-        text_shader.use().set("color", glm::vec3(1, 1, 1)).set("projview", glm::ortho(0.0f, w_size.x, 0.0f, w_size.y));
-        text_renderer.draw(LOG_POS, 5, w_size.y - 25, 1);
-
-        {
-            try
-            {
-                //                auto x = height_map.to_x_index(player.position.x);
-                //                auto y = height_map.to_y_index(player.position.y - player.height);
-                //                auto z = height_map.to_z_index(player.position.z);
-                //                TO_GROUND = "TO GROUND: " + std::to_string(player.position.y - height_map.array()[x][y][z].position.y);
-            }
-            catch (...)
-            {
-                TO_GROUND = "TO GROUND: OUT OF RANGE";
-            }
-        }
-        if (frame++ % 30 == 0)
-            FPS = "FPS: " + std::to_string(int(1 / window.event.diff_time()));
-
-        text_renderer.draw(FPS, 5, w_size.y - 55, 1);
-        text_renderer.draw(TO_GROUND, 5, w_size.y - 85, 1);
-        if (command_line)
-            text_renderer.draw(command_draw, 5, w_size.y - 115, 1);
-        window.swap_buffers();
     }
 
-    return 0;
-}
+
+    void init_map()
+    {
+        command_map[L"vsync"] = cmd
+        {
+            bool value;
+            stream >> value;
+            p.window.vsync(value);
+        };
+
+        command_map[L"mouse_sensitive"] = cmd
+        {
+            float value;
+            stream >> value;
+            p.mouse_sensitive = value;
+        };
+
+        command_map[L"speed"] = cmd
+        {
+            float value;
+            stream >> value;
+            p.speed = value;
+        };
+
+        command_map[L"line_width"] = cmd
+        {
+            float value;
+            stream >> value;
+            p.line_width = value;
+        };
+
+        command_map[L"min_render"] = cmd
+        {
+            float value;
+            stream >> value;
+            p.camera->min_render_distance(std::abs(value));
+        };
+
+        command_map[L"max_render"] = cmd
+        {
+            float value;
+            stream >> value;
+            p.camera->max_render_distance(std::abs(value));
+        };
+
+        command_map[L"fovy"] = cmd
+        {
+            float value;
+            stream >> value;
+            p.camera->viewing_angle(std::abs(glm::radians(value)));
+        };
+
+        command_map[L"cam"] = cmd
+        {
+            int value;
+            stream >> value;
+            static Camera* cameras[] = {&p.main_camera, &p.light_camera};
+            p.camera = cameras[glm::abs(value) % (sizeof(cameras) / sizeof(Camera*))];
+        };
+
+        command_map[L"lighting"] = cmd
+        {
+            stream >> p.lighting;
+        };
+
+        command_map[L"depth_rendering"] = cmd
+        {
+            stream >> p.depth_rendering;
+        };
+    }
+
+    void parse_command()
+    {
+        std::wstringstream stream(current_command);
+        std::wstring command;
+        stream >> command;
+        try
+        {
+            command_map.at(command)(stream, *this);
+        }
+        catch (...)
+        {}
+
+        current_command.clear();
+    }
 
 
-static int debug_function()
+    void console()
+    {
+        if (current_key == KEY_TAB && (active_console = !active_console))
+        {
+            window.event.keyboard.last_symbol();
+            return current_command.clear();
+        }
+
+        if (!active_console)
+            return;
+
+        static const std::wstring arrow = L"--> ";
+        unsigned int last_symbol = window.event.keyboard.last_symbol();
+        if (last_symbol)
+            current_command.push_back(last_symbol);
+
+        if (current_key == Key::KEY_BACKSPACE && !current_command.empty())
+            current_command.pop_back();
+
+        if (current_key == Key::KEY_ENTER)
+            parse_command();
+
+
+        window_log.push_back(arrow + current_command);
+    }
+
+    Program& update_text()
+    {
+        window_log.clear();
+        window_log.push_back(std::wstring(L"FPS: ") + string_fps);
+        console();
+        return *this;
+    }
+
+    Program& render_text()
+    {
+        float current_pos = window.height();
+
+        ShaderSystem::Text::shader.use()
+                .set(ShaderSystem::Text::projview, glm::ortho(0.f, window.width(), 0.f, window.height(), 0.f, 1.f))
+                .set(ShaderSystem::Text::color, glm::vec4(White));
+
+        for (auto& line : window_log)
+        {
+            current_pos -= (text_renderer.font_size().y * 0.2f + 2);
+            text_renderer.draw(line, 10, current_pos, 0.2f);
+        }
+
+        return *this;
+    }
+
+    void render_scene_textured()
+    {
+        ShaderSystem::Scene::shader.use()
+                .set(ShaderSystem::Scene::lighting, lighting)
+                .set(ShaderSystem::Scene::camera_pos, main_camera.position())
+                .set(ShaderSystem::Scene::model, scene_matrix)
+                .set(ShaderSystem::Scene::projview, projview)
+                .set(ShaderSystem::Scene::light_projview, light_projview)
+                .set(ShaderSystem::Scene::transposed_inversed_model, transposed_inversed_model)
+                .set("texture1", 1);
+        light.buffer.bind_texture(1);
+        light.send_to_shader(ShaderSystem::Scene::shader, "light");
+        material.send_to_shader(ShaderSystem::Scene::shader, "material");
+
+        scene.draw();
+    }
+
+    void light_render()
+    {
+        light_projview = light_camera.projection(Monitor::size()) * light_camera.view();
+        light.position = light_camera.position();
+        light.direction = -light_camera.front_vector();
+        ShaderSystem::Depth::shader.use()
+                .set(ShaderSystem::Depth::model, scene_matrix)
+                .set(ShaderSystem::Depth::projview, light_projview);
+        scene.draw();
+    }
+
+    void render_scene()
+    {
+        if (Render == RenderType::Scene)
+            render_scene_textured();
+        else if (Render == RenderType::Polygones)
+            render_scene_polygones();
+        else
+        {
+            render_scene_textured();
+            render_scene_polygones();
+        }
+        render_skybox();
+    }
+
+    void render_scene_polygones()
+    {
+        ShaderSystem::Line::shader.use()
+                .set(ShaderSystem::Line::projview, projview)
+                .set(ShaderSystem::Line::model, scene_matrix)
+                .set(ShaderSystem::Line::color, Red);
+        scene_polygones.line_width(line_width).draw();
+        render_skybox();
+    }
+
+
+    void render_skybox()
+    {
+        ShaderSystem::SkyBox::shader.use().set(ShaderSystem::SkyBox::projview, proj * glm::mat4(glm::mat3(view)));
+        skybox.draw();
+    }
+
+    void load_resources()
+    {
+        skybox.load("resources/skybox/skybox.png");
+        scene.load_model("resources/scene/scene.gltf", DrawMode::LINEAR, 90);
+        scene_matrix = scene.model();
+        transposed_inversed_model = glm::transpose(glm::inverse(glm::mat3(scene_matrix)));
+        scene_polygones.lines_from(scene);
+
+        depth_mesh.data() = {0.5,  0.5,  0, 0, 0, 0.5, 1.f, 0.f, 0.f, 1.f, 1, 1,   0, 1, 1,
+                             0.5f, 0.5f, 0, 0, 0, 1,   1,   0,   1,   1,   1, 0.5, 0, 1, 0};
+        depth_mesh.attributes({3, 2}).vertices_count(6).update_buffers();
+    }
+
+
+    void control()
+    {
+        switch (current_key)
+        {
+
+            case KEY_H:
+                window.cursor_mode(window.cursor_mode() == CursorMode::DISABLED ? CursorMode::NORMAL : CursorMode::DISABLED);
+                break;
+
+            case KEY_F:
+                window.mode(window.mode() == WindowMode::FULLSCREEN ? WindowMode::NONE : WindowMode::FULLSCREEN);
+                break;
+            case KEY_0:
+                Render = RenderType::Scene;
+                break;
+            case KEY_1:
+                Render = RenderType::Polygones;
+                break;
+
+            case KEY_2:
+                Render = RenderType::All;
+                break;
+
+            case KEY_R:
+                ShaderSystem::init();
+                break;
+
+
+            default:
+                break;
+        }
+    }
+
+    void camera_proccess()
+    {
+        if (window.cursor_mode() == CursorMode::DISABLED)
+        {
+            auto offset = (mouse_sensitive * window.event.mouse.offset() / (window.size())) * speed * diff_time;
+            float angle = Engine::angle_between(camera->up_vector(), Engine::OY) * (camera->front_vector()[1] > 0 ? 1 : -1);
+
+            if (glm::abs(angle) <= angle_limit || angle * offset.y > 0)
+                camera->rotate(offset.y, camera->right_vector());
+            camera->rotate(-offset.x, OY);
+        }
+
+        if (window.event.pressed(KEY_W))
+            camera->move(remove_coord(-camera->front_vector(), Coord::Y) * speed * diff_time * speed_k);
+
+        if (window.event.pressed(KEY_S))
+            camera->move(remove_coord(camera->front_vector(), Coord::Y) * speed * diff_time * speed_k);
+
+        if (window.event.pressed(KEY_A))
+            camera->move(-camera->right_vector() * speed * diff_time * speed_k);
+
+        if (window.event.pressed(KEY_D))
+            camera->move(camera->right_vector() * speed * diff_time * speed_k);
+
+        if (window.event.pressed(KEY_UP))
+            camera->move(OY * speed * diff_time * speed_k);
+
+        if (window.event.pressed(KEY_DOWN))
+            camera->move(-OY * speed * diff_time * speed_k);
+
+        if (window.event.pressed(KEY_LEFT_SHIFT))
+            speed_k = 0.1;
+        else if (window.event.pressed(KEY_SPACE))
+            speed_k = 10.f;
+        else
+            speed_k = 1.f;
+    }
+};
+
+
+int main()
 {
-    return 0;
-}
-
-int main(int argc, char** argv)
-{
-    return argc > 1 ? debug_function() : start_engine();
+    Engine::init();
+    Program p;
 }

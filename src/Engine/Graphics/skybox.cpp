@@ -1,6 +1,6 @@
-#include <Graphics/skybox.hpp>
-#include <Graphics/mesh.hpp>
 #include <GL/glew.h>
+#include <Graphics/mesh.hpp>
+#include <Graphics/skybox.hpp>
 #include <iostream>
 
 #define RIGHT 0
@@ -29,6 +29,8 @@ void init_mesh()
                    -1.0f, 1.0f,  -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
                    -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f,
                    -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+
+    //    mesh.data() = {-1, -1, 1, -1, 1, 1, 1, 1, 1, -1, -1, 1, 1, 1, 1, 1, -1, 1};
     mesh.vertices_count(mesh.data().size() / 3);
     mesh.update_buffers();
     mesh_is_inited = true;
@@ -52,25 +54,29 @@ namespace Engine
     void Skybox::update_id()
     {
         init_mesh();
-        glGenTextures(1, &_M_ID);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _M_ID);
-        unsigned i = 0;
 
-        for (auto& img : _M_images)
+        if (_M_type == SkyboxType::CubeMap)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, img.width(), img.height(), 0,
-                         img.channels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, img.data());
-        }
+            glGenTextures(1, &_M_ID);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, _M_ID);
+            unsigned i = 0;
 
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            for (auto& img : _M_images)
+            {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i++, 0, GL_RGB, img.width(), img.height(), 0,
+                             img.channels() == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, img.data());
+            }
+
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        }
     }
 
-    Skybox& Skybox::load(const std::vector<std::string>& filenames, const bool& invert)
+    Skybox& Skybox::load(const DynamicArray<std::string>& filenames, const bool& invert)
     {
         delete_skybox();
         if (filenames.size() != 6)
@@ -95,33 +101,44 @@ namespace Engine
         return *this;
     }
 
-    Skybox& Skybox::load(const std::string& filename, const bool& invert)
+    Skybox& Skybox::load(const std::string& filename, const SkyboxType& type, const bool& invert)
     {
+        _M_type = type;
         delete_skybox();
-        Image img(filename, invert);
-
-        if (img.empty())
+        if (_M_type == SkyboxType::CubeMap)
         {
-            std::cerr << "Skybox: Failed to load skybox" << std::endl;
-            return *this;
+            Image img(filename, invert);
+
+            if (img.empty())
+            {
+                std::cerr << "Skybox: Failed to load skybox" << std::endl;
+                return *this;
+            }
+            int block_width = img.width() / 4;
+            int block_height = img.height() / 3;
+
+
+            _M_images[TOP] = invert ? img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3})
+                                    : img.sub_image({block_width, 0}, {block_width * 2, block_height});
+
+
+            _M_images[BOTTOM] = invert ? img.sub_image({block_width, 0}, {block_width * 2, block_height})
+                                       : img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3});
+
+            _M_images[LEFT] = img.sub_image({0, block_height}, {block_width, block_height * 2});
+            _M_images[RIGHT] = img.sub_image({block_width * 2, block_height}, {block_width * 3, block_height * 2});
+            _M_images[FRONT] = img.sub_image({block_width * 1, block_height}, {block_width * 2, block_height * 2});
+            _M_images[BACK] = img.sub_image({block_width * 3, block_height}, {block_width * 4, block_height * 2});
         }
-        int block_width = img.width() / 4;
-        int block_height = img.height() / 3;
-
-
-        _M_images[TOP] = invert ? img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3})
-                                : img.sub_image({block_width, 0}, {block_width * 2, block_height});
-
-
-        _M_images[BOTTOM] =
-                invert ? img.sub_image({block_width, 0}, {block_width * 2, block_height})
-                       : img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3});
-
-        _M_images[LEFT] = img.sub_image({0, block_height}, {block_width, block_height * 2});
-        _M_images[RIGHT] = img.sub_image({block_width * 2, block_height}, {block_width * 3, block_height * 2});
-        _M_images[FRONT] = img.sub_image({block_width * 1, block_height}, {block_width * 2, block_height * 2});
-        _M_images[BACK] = img.sub_image({block_width * 3, block_height}, {block_width * 4, block_height * 2});
-
+        else
+        {
+            _M_cylindric_texture.load(filename, DrawMode::LINEAR, 1, !invert);
+            if (_M_cylindric_texture.empty())
+            {
+                std::cerr << "Skybox: Failed to load skybox" << std::endl;
+                return *this;
+            }
+        }
         update_id();
         return *this;
     }
@@ -129,10 +146,14 @@ namespace Engine
     Skybox& Skybox::draw()
     {
         glDepthFunc(GL_LEQUAL);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, _M_ID);
+        if (_M_type == SkyboxType::CubeMap)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, _M_ID);
+        else
+            _M_cylindric_texture.bind();
+
+        auto gl_texture_type = _M_type == SkyboxType::CubeMap ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
         mesh.draw(TRIANGLE);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        glBindTexture(gl_texture_type, 0);
         glDepthFunc(GL_LESS);
         return *this;
     }
@@ -142,12 +163,12 @@ namespace Engine
         delete_skybox();
     }
 
-    Skybox::Skybox(const std::string& filename, const bool& invert)
+    Skybox::Skybox(const std::string& filename, const SkyboxType& type, const bool& invert)
     {
-        load(filename, invert);
+        load(filename, type, invert);
     }
 
-    Skybox::Skybox(const std::vector<std::string>& filenames, const bool& invert)
+    Skybox::Skybox(const DynamicArray<std::string>& filenames, const bool& invert)
     {
         load(filenames, invert);
     }
@@ -165,5 +186,10 @@ namespace Engine
         for (int i = 0; i < 6; i++) _M_images[i] = skybox._M_images[i];
         update_id();
         return *this;
+    }
+
+    SkyboxType Skybox::type() const
+    {
+        return _M_type;
     }
 }// namespace Engine

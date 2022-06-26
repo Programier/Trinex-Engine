@@ -1,6 +1,6 @@
-#include <BasicFunctional/basic_functional.hpp>
 #include <Graphics/basic_object.hpp>
 #include <algorithm>
+#include <engine.hpp>
 #include <glm/ext.hpp>
 #include <numeric>
 
@@ -61,28 +61,28 @@ namespace Engine
 
     //      TRANSLATE
 
-    glm::vec3 Translate::position() const
+    Point3D Translate::position() const
     {
         return _M_position.get() + _M_shift_position;
     }
 
-    Translate& Translate::move(const float& x, const float& y, const float& z, const bool& add_values)
+    Translate& Translate::move(const Point1D& x, const Point1D& y, const Point1D& z, const bool& add_values)
     {
         return move({x, y, z}, OX, OY, OZ, add_values);
     }
 
-    Translate& Translate::move(const glm::vec3& move_vector, const bool& add_values)
+    Translate& Translate::move(const Vector3D& move_vector, const bool& add_values)
     {
         return move(move_vector, OX, OY, OZ, add_values);
     }
 
-    Translate& Translate::move(const float& x, const float& y, const float& z, const glm::vec3& right, const glm::vec3& up,
-                               const glm::vec3& front, const bool& add_values)
+    Translate& Translate::move(const Point1D& x, const Point1D& y, const Point1D& z, const Vector3D& right,
+                               const Vector3D& up, const Vector3D& front, const bool& add_values)
     {
         return move({x, y, z}, right, up, front, add_values);
     }
 
-    Translate& Translate::move(const glm::vec3 move_vector, const glm::vec3& right, const glm::vec3& up, const glm::vec3& front,
+    Translate& Translate::move(const Vector3D move_vector, const Vector3D& right, const Vector3D& up, const Vector3D& front,
                                const bool& add_values)
     {
         glm::vec3 result_move = (right * move_vector.x) + (up * move_vector.y) + (front * move_vector.z);
@@ -99,7 +99,7 @@ namespace Engine
         return *this;
     }
 
-    Translate& Translate::move(const float& distance, const glm::vec3& axis, const bool& add_value)
+    Translate& Translate::move(const Distance& distance, const glm::vec3& axis, const bool& add_value)
     {
         return move(axis * distance, OX, OY, OZ, add_value);
     }
@@ -118,14 +118,14 @@ namespace Engine
 
     //          SCALE
 
-    const glm::vec3& Scale::scale() const
+    const Scale3D& Scale::scale() const
     {
         return _M_scale.get();
     }
 
-    Scale& Scale::scale(const glm::vec3& sc, const bool& add_values)
+    Scale& Scale::scale(const Scale3D& sc, const bool& add_values)
     {
-        glm::vec3 new_sc;
+        Scale3D new_sc;
         if (add_values)
         {
             new_sc = sc;
@@ -140,7 +140,7 @@ namespace Engine
         return *this;
     }
 
-    Scale& Scale::scale(const float& x, const float& y, const float& z, const bool& add_values)
+    Scale& Scale::scale(const Scale1D& x, const Scale1D& y, const Scale1D& z, const bool& add_values)
     {
         return scale({x, y, z}, add_values);
     }
@@ -154,17 +154,17 @@ namespace Engine
 
     //      ROTATION
 
-    const glm::vec3& Rotate::euler_angles() const
+    const EulerAngle3D& Rotate::euler_angles() const
     {
         return _M_euler_angles.get();
     }
 
-    Rotate& Rotate::rotate(const float& x, const float& y, const float& z, const bool& add_values)
+    Rotate& Rotate::rotate(const EulerAngle1D& x, const EulerAngle1D& y, const EulerAngle1D& z, const bool& add_values)
     {
         return rotate(glm::quat(glm::vec3(x, y, z)), add_values);
     }
 
-    void Rotate::update_model(const glm::quat& q, const bool& add_values)
+    void Rotate::update_model(const Quaternion& q, const bool& add_values)
     {
         auto& quat = _M_quaternion.get();
         auto& matrix = _M_rotation_matrix();
@@ -177,7 +177,8 @@ namespace Engine
             quat = q;
         }
 
-        matrix = glm::mat4_cast(q) * matrix;
+        _M_quaternion.get() = glm::normalize(_M_quaternion.get());
+        matrix = glm::mat4_cast(glm::normalize(q)) * matrix;
         _M_euler_angles.get() = glm::eulerAngles(quat);
 
         _M_front = glm::normalize(quat * OZ);
@@ -185,42 +186,42 @@ namespace Engine
         _M_right = glm::normalize(quat * OX);
     }
 
-    Rotate& Rotate::rotate(const glm::vec3& r, const bool& add_values)
+    Rotate& Rotate::rotate(const EulerAngle3D& r, const bool& add_values)
     {
-        glm::quat q(r);
+        Quaternion q(r);
         update_model(q, add_values);
         return *this;
     }
 
-    Rotate& Rotate::rotate(const float& angle, const glm::vec3& axis, const bool& add_values)
+    Rotate& Rotate::rotate(const EulerAngle1D& angle, const Vector3D& axis, const bool& add_values)
     {
         glm::quat q = glm::rotate(glm::quat(glm::vec3(0.f, 0.f, 0.f)), angle, axis);
         update_model(q, add_values);
         return *this;
     }
 
-    Rotate& Rotate::rotate(const glm::quat& q, const bool& add_values)
+    Rotate& Rotate::rotate(const Quaternion& q, const bool& add_values)
     {
         update_model(q, add_values);
         return *this;
     }
 
-    const glm::quat& Rotate::quaternion() const
+    const Quaternion& Rotate::quaternion() const
     {
         return _M_quaternion.get();
     }
 
-    const glm::vec3& Rotate::front_vector() const
+    const Vector3D& Rotate::front_vector() const
     {
         return _M_front.get();
     }
 
-    const glm::vec3& Rotate::right_vector() const
+    const Vector3D& Rotate::right_vector() const
     {
         return _M_right.get();
     }
 
-    const glm::vec3& Rotate::up_vector() const
+    const Vector3D& Rotate::up_vector() const
     {
         return _M_up.get();
     }

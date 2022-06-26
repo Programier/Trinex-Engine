@@ -47,20 +47,21 @@ namespace Engine
     }
 
 
-#define check_vert(v)                                                                                                                 \
-    if (_M_limits.min.v > vert.v)                                                                                                     \
-    {                                                                                                                                 \
-        _M_limits.min.v = vert.v;                                                                                                     \
-    }                                                                                                                                 \
-    if (_M_limits.max.v < vert.v)                                                                                                     \
-    {                                                                                                                                 \
-        _M_limits.max.v = vert.v;                                                                                                     \
+#define check_vert(v)                                                                                                       \
+    if (_M_limits.min.v > vert.v)                                                                                           \
+    {                                                                                                                       \
+        _M_limits.min.v = vert.v;                                                                                           \
+    }                                                                                                                       \
+    if (_M_limits.max.v < vert.v)                                                                                           \
+    {                                                                                                                       \
+        _M_limits.max.v = vert.v;                                                                                           \
     }
 
     static void load_vertices(const aiScene* scene, aiNode* node, std::vector<TerrainModel::Material>& materials,
                               TerrainModel::Limits& _M_limits, bool& start, glm::mat4 matrix = identity_matrix)
     {
         matrix *= mat4(node->mTransformation.Transpose());
+        glm::mat3 normal_matrix = glm::transpose(glm::inverse(matrix));
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             auto& ai_mesh = scene->mMeshes[node->mMeshes[i]];
@@ -99,7 +100,7 @@ namespace Engine
                     // Normals
                     if (ai_mesh->mNormals != nullptr)
                     {
-                        auto& normal = ai_mesh->mNormals[face.mIndices[index]];
+                        glm::vec3 normal = glm::normalize(normal_matrix * vec3(ai_mesh->mNormals[face.mIndices[index]]));
                         mesh.push_back(normal.x);
                         mesh.push_back(normal.y);
                         mesh.push_back(normal.z);
@@ -126,7 +127,8 @@ namespace Engine
         _M_materials.clear();
 
         Assimp::Importer importer;
-        auto scene = importer.ReadFile(model_file, aiProcess_Triangulate);
+        auto scene =
+                importer.ReadFile(model_file, aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_GenNormals);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
             std::clog << "Terrain loader: Failed to load " << model_file << std::endl;
@@ -143,36 +145,30 @@ namespace Engine
             auto& material = _M_materials[i];
             material.index = i;
             material.name = ai_material->GetName().C_Str();
-            std::clog << "Terrain loader: loading " << material.name << ", index = " << i << std::endl;
 
             aiString filename;
-            for (auto& type : texture_types)
-            {
-                ai_material->GetTexture(type, 0, &filename);
-                if (std::string(filename.C_Str()) != "")
-                {
-                    std::string std_filename(filename.C_Str());
-                    try
-                    {
-                        std_filename = path + std_filename;
-                        std::clog << "Terrain model: Loading " << std_filename << ", material num: " << i << std::endl;
-                        material.texture.load(std_filename, mode, mipmap, invert);
-                    }
-                    catch (const std::exception& e)
-                    {
-                        std::clog << e.what() << std::endl;
-                    }
+            ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &filename);
+            std::string texture_file(filename.C_Str());
+            auto& texture = _M_textures[texture_file];
 
-                    break;
+            if (texture.texture.empty())
+            {
+                try
+                {
+                    texture_file = path + texture_file;
+                    std::clog << "Terrain model: Loading " << texture_file << ", material num: " << i << std::endl;
+                    texture.texture.load(texture_file, mode, mipmap, invert);
+                }
+                catch (const std::exception& e)
+                {
+                    std::clog << e.what() << std::endl;
+                    texture.texture.vector() = {255, 255, 255, 255};
+                    texture.texture.size({1, 1});
+                    texture.texture.update();
+                    texture.default_texture = true;
                 }
             }
-
-            if (filename.length == 0)
-            {
-                material.texture.vector() = {255, 255, 255, 255};
-                material.texture.size({1, 1});
-                material.texture.update();
-            }
+            material.texture = ReferenceWrapper(texture.texture);
         }
 
         bool start = true;
@@ -186,6 +182,8 @@ namespace Engine
         }
 
         std::clog << "Terrain model: Loaded " << triangles << " triangles" << std::endl;
+        std::clog << "Terrain model: Materials count: " << _M_materials.size() << std::endl;
+        std::clog << "Terrain model: Textures count: " << _M_textures.size() << std::endl;
 
         return *this;
     }
@@ -205,7 +203,7 @@ namespace Engine
             auto& m = _M_materials[i];
             if (m.render)
             {
-                m.texture.bind();
+                m.texture.get().bind();
                 m.mesh.draw(TRIANGLE);
             }
         }
@@ -223,12 +221,13 @@ namespace Engine
     TerrainModel& TerrainModel::mode(const DrawMode& mode)
     {
         _M_mode = mode;
-        for (auto& material : _M_materials) material.texture.draw_mode(mode);
+        for (auto& key : _M_textures) key.second.texture.draw_mode(mode);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
         return *this;
     }
 
-    TerrainModel::TerrainModel(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap, const bool& invert)
+    TerrainModel::TerrainModel(const std::string& model_file, const DrawMode& mode, const unsigned int& mipmap,
+                               const bool& invert)
     {
         load_model(model_file, mode, mipmap, invert);
     }
@@ -249,7 +248,17 @@ namespace Engine
 
     TerrainModel& TerrainModel::default_color(const glm::vec<4, unsigned char, glm::defaultp>& color)
     {
-        _M_default_color = color;
+        //_M_default_color = color;
+        for (auto& value : _M_textures)
+        {
+            auto& texture = value.second;
+            if (texture.default_texture)
+            {
+                texture.texture.vector() = {color.r, color.g, color.b, color.a};
+                texture.texture.size({1, 1});
+                texture.texture.update();
+            }
+        }
         return *this;
     }
 

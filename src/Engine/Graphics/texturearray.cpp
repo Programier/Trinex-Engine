@@ -12,8 +12,7 @@ namespace Engine
 
     void TextureArray::create()
     {
-        _M_ID = Engine::basic_texturearray::gen_texture_array(_M_images,
-                                                              glm::vec2((float) _M_max_width, (float) _M_max_height));
+        _M_ID = Engine::basic_texturearray::gen_texture_array(_M_images, _M_max_size);
         bind();
         auto m = _M_mode == LINEAR ? GL_LINEAR : GL_NEAREST;
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
@@ -30,8 +29,8 @@ namespace Engine
         *this = t;
     }
 
-    TextureArray::TextureArray(const std::vector<std::string>& textures, const DrawMode& mode,
-                               const unsigned int& mipmap, const bool& invert)
+    TextureArray::TextureArray(const std::vector<std::string>& textures, const DrawMode& mode, const unsigned int& mipmap,
+                               const bool& invert)
     {
         load(textures, mode, mipmap, invert);
     }
@@ -56,14 +55,14 @@ namespace Engine
         return *this;
     }
 
-    TextureArray& TextureArray::load(const std::vector<std::string>& textures, const DrawMode& mode,
-                                     const unsigned int& mipmap, const bool& invert)
+    TextureArray& TextureArray::load(const std::vector<std::string>& textures, const DrawMode& mode, const unsigned int& mipmap,
+                                     const bool& invert)
     {
         _M_mipmap = mipmap;
         if (textures.size() == 0)
             return *this;
         _M_mode = mode;
-        _M_max_width = _M_max_height = 0;
+        _M_max_size = {0.f, 0.f};
         if (_M_ID != 0)
             glDeleteTextures(1, &_M_ID);
         _M_images.clear();
@@ -73,8 +72,7 @@ namespace Engine
         _M_images.reserve(textures.size());
         _M_images.push_back(Image());
         img.load(textures[0], invert);
-        _M_max_width = img.width();
-        _M_max_height = img.height();
+        _M_max_size = {img.width(), img.height()};
         if (img.empty())
             THROW;
 
@@ -85,7 +83,7 @@ namespace Engine
             std::clog << "TextureArray: Loading " << texture << std::endl;
             _M_images.push_back(Image());
             img.load(texture, invert);
-            if (img.empty() || img.width() != _M_max_width || img.height() != _M_max_height)
+            if (img.empty() || img.width() != _M_max_size.x || img.height() != _M_max_size.y)
                 THROW;
         }
 
@@ -93,14 +91,14 @@ namespace Engine
         return *this;
     }
 
-    TextureArray& TextureArray::load(const std::list<std::string>& textures, const DrawMode& mode,
-                                     const unsigned int& mipmap, const bool& invert)
+    TextureArray& TextureArray::load(const std::list<std::string>& textures, const DrawMode& mode, const unsigned int& mipmap,
+                                     const bool& invert)
     {
         if (textures.size() == 0)
             return *this;
         _M_mipmap = mipmap;
         _M_mode = mode;
-        _M_max_width = _M_max_height = 0;
+        _M_max_size = {0.f, 0.f};
         if (_M_ID != 0)
             glDeleteTextures(1, &_M_ID);
         _M_images.clear();
@@ -111,8 +109,8 @@ namespace Engine
         _M_images.reserve(textures.size());
         _M_images.push_back(Image());
         img.load((*iterator), invert);
-        _M_max_width = img.width();
-        _M_max_height = img.height();
+
+        _M_max_size = {img.width(), img.height()};
         if (img.empty())
             THROW;
 
@@ -123,7 +121,7 @@ namespace Engine
             std::clog << "TextureArray: Loading " << texture << std::endl;
             _M_images.push_back(Image());
             img.load(texture, invert);
-            if (img.empty() || img.width() != _M_max_width || img.height() != _M_max_height)
+            if (img.empty() || img.width() != _M_max_size.x || img.height() != _M_max_size.y)
                 THROW;
         }
 
@@ -166,9 +164,9 @@ namespace Engine
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
     }
 
-    glm::vec2 TextureArray::get_size()
+    Size2D TextureArray::size()
     {
-        return glm::vec2(_M_max_width, _M_max_height);
+        return _M_max_size;
     }
 
     const std::vector<Image>& TextureArray::images() const

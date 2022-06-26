@@ -6,11 +6,11 @@
 #include <sstream>
 #include <vector>
 
-#define delete_program(id)                                                                                             \
-    if ((id) != 0)                                                                                                     \
+#define delete_program(id)                                                                                                  \
+    if ((id) != 0)                                                                                                          \
     glDeleteProgram(id)
-#define delete_shader(id)                                                                                              \
-    if ((id) != 0)                                                                                                     \
+#define delete_shader(id)                                                                                                   \
+    if ((id) != 0)                                                                                                          \
     glDeleteShader(id)
 
 
@@ -88,7 +88,7 @@ namespace Engine
         load(vertex_path, fragment_path);
     }
 
-    Shader& Shader::use()
+    const Shader& Shader::use() const
     {
         if (_M_done)
             glUseProgram(_M_id);
@@ -100,50 +100,69 @@ namespace Engine
         delete_shaders();
     }
 
-    bool Shader::loaded()
+    bool Shader::loaded() const
     {
         return _M_done;
     }
 
-    Shader& Shader::set(const std::string& value_name, float value)
+    const Shader& Shader::set(const std::string& value_name, const ShaderMode& mode) const
+    {
+        return set(value_name, static_cast<int>(mode));
+    }
+
+    const Shader& Shader::set(const std::string& value_name, float value) const
     {
         GLuint transformLoc = glGetUniformLocation(_M_id, value_name.c_str());
         glUniform1f(transformLoc, value);
         return *this;
     }
 
-    Shader& Shader::set(const std::string& value_name, int value)
+    const Shader& Shader::set(const std::string& value_name, int value) const
     {
         GLuint transformLoc = glGetUniformLocation(_M_id, value_name.c_str());
         glUniform1i(transformLoc, value);
         return *this;
     }
 
-    Shader& Shader::set(const std::string& value_name, const glm::mat4& value)
+    const Shader& Shader::set(const std::string& value_name, const glm::mat4& value) const
     {
         GLuint loc = glGetUniformLocation(_M_id, value_name.c_str());
         glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
         return *this;
     }
 
-    Shader& Shader::set(const std::string& value_name, const bool& value)
+    const Shader& Shader::set(const std::string& value_name, const glm::mat3& value) const
+    {
+        GLuint loc = glGetUniformLocation(_M_id, value_name.c_str());
+        glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+        return *this;
+    }
+
+    const Shader& Shader::set(const std::string& value_name, const bool& value) const
     {
         GLuint loc = glGetUniformLocation(_M_id, value_name.c_str());
         glUniform1i(loc, static_cast<int>(value));
         return *this;
     }
 
-    Shader& Shader::set(const std::string& value_name, const glm::vec2& value)
+    const Shader& Shader::set(const std::string& value_name, const glm::vec2& value) const
     {
         GLuint loc = glGetUniformLocation(_M_id, value_name.c_str());
         glUniform2fv(loc, 1, glm::value_ptr(value));
         return *this;
     }
 
-    Shader& Shader::set(const std::string& value_name, const glm::vec3& value)
+    const Shader& Shader::set(const std::string& value_name, const glm::vec3& value) const
     {
         GLuint loc = glGetUniformLocation(_M_id, value_name.c_str());
         glUniform3fv(loc, 1, glm::value_ptr(value));
+        return *this;
+    }
+
+    const Shader& Shader::set(const std::string& value_name, const Vector4D& value) const
+    {
+        GLuint loc = glGetUniformLocation(_M_id, value_name.c_str());
+        glUniform4fv(loc, 1, glm::value_ptr(value));
         return *this;
     }
 
@@ -153,6 +172,7 @@ namespace Engine
     {
         delete_shaders();
 
+        std::clog << "Loading shaders: " << vertex_path << ", " << fragment_path << std::endl;
         std::string vertex_code, fragment_code;
         try
         {

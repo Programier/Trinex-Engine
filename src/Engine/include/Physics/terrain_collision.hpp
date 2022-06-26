@@ -1,20 +1,16 @@
 #pragma once
-#include <Graphics/heightmap.hpp>
-#include <glm/glm.hpp>
+#include <BasicFunctional/engine_types.hpp>
 #include <vector>
 
 
 namespace Engine
 {
-    typedef struct {
-        glm::vec3 position = {0, 0, 0};
-        glm::vec3 force = {0, 0, 0};
+    struct ObjectParameters{
+        Point3D position = {0, 0, 0};
+        Force force = {0, 0, 0};
         float height = 0;
         float width = 0;
-    } ObjectParameters;
+    };
 
     extern float gravity;
-
-    std::vector<ObjectParameters> check_terrain_collision(HeightMap& height_map,
-                                                          const std::vector<ObjectParameters>& objects);
 }// namespace Engine

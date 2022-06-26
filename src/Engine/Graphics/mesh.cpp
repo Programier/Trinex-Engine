@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <Graphics/mesh.hpp>
+#include <numeric>
 
 namespace Engine
 {
@@ -22,7 +23,8 @@ namespace Engine
         int index = 0;
         for (const auto& value : _M_attrib)
         {
-            glVertexAttribPointer(index, value, GL_FLOAT, GL_FALSE, vertex_size * sizeof(float), (GLvoid*) (offset * sizeof(float)));
+            glVertexAttribPointer(index, value, GL_FLOAT, GL_FALSE, vertex_size * sizeof(float),
+                                  (GLvoid*) (offset * sizeof(float)));
             glEnableVertexAttribArray(index++);
             offset += value;
         }
@@ -124,5 +126,8 @@ namespace Engine
     {
         return _M_data;
     }
+
+    Mesh& Mesh::sub_mesh(Mesh& mesh, std::size_t primitive_offset, std::size_t primitive_count)
+    {}
 
 }// namespace Engine

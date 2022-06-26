@@ -1,5 +1,5 @@
-#include <BasicFunctional/basic_functional.hpp>
 #include <Graphics/camera.hpp>
+#include <engine.hpp>
 #include <functional>
 #include <glm/ext.hpp>
 #include <iostream>
@@ -17,6 +17,11 @@ namespace Engine
     {
         float aspect = (float) window.width() / (float) window.height();
         return glm::perspective(_M_viewingAngle, aspect, _M_minRenderDistance, _M_maxRenderDistance);
+    }
+
+    glm::mat4 Camera::projection(const glm::vec2& size)
+    {
+        return glm::perspective(_M_viewingAngle, size.x / size.y, _M_minRenderDistance, _M_maxRenderDistance);
     }
 
     glm::mat4 Camera::view()

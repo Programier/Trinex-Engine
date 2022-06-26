@@ -12,21 +12,24 @@ namespace Engine
     class TerrainModel : public BasicObject<Translate, Rotate, Scale>
     {
     public:
-        struct Limits {
-            glm::vec3 min;
-            glm::vec3 max;
-        };
+        typedef SizeLimits3D Limits;
 
         struct Material {
             std::size_t index = 0;
             bool render = true;
             std::string name;
-            Texture texture;
+            ReferenceWrapper<Texture> texture;
             Mesh mesh;
         };
 
+        struct TerrainTexture {
+            Texture texture;
+            bool default_texture = false;
+        };
+
     private:
-        glm::vec<4, unsigned char, glm::defaultp> _M_default_color;
+        std::unordered_map<std::string, TerrainTexture> _M_textures;
+        Color _M_default_color;
         TerrainModel::Limits _M_limits;
         Engine::DrawMode _M_mode;
         std::vector<Material> _M_materials;
@@ -34,18 +37,18 @@ namespace Engine
 
     public:
         TerrainModel();
-        TerrainModel(const std::string& model_file, const DrawMode& mode = Engine::LINEAR, const unsigned int& mipmap_level = 4,
+        TerrainModel(const std::string& model_file, const DrawMode& mode = Engine::LINEAR, const MipMapLevel& mipmap_level = 4,
                      const bool& invert = true);
         TerrainModel(const TerrainModel&) = delete;
         TerrainModel& load_model(const std::string& model_file, const DrawMode& mode = Engine::LINEAR,
-                                 const unsigned int& mipmap_level = 4, const bool& invert = true);
+                                 const MipMapLevel& mipmap_level = 4, const bool& invert = true);
         TerrainModel& draw();
         const DrawMode& mode();
         TerrainModel& mode(const DrawMode& mode);
         const std::vector<Material>& materials() const;
         const TerrainModel::Limits& limits() const;
-        glm::vec<4, unsigned char, glm::defaultp> default_color() const;
-        TerrainModel& default_color(const glm::vec<4, unsigned char, glm::defaultp>& color);
+        Color default_color() const;
+        TerrainModel& default_color(const Color& color);
         bool& material_render_status(const std::size_t& material_index);
         ~TerrainModel();
     };

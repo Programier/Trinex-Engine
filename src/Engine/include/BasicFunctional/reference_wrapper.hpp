@@ -15,21 +15,20 @@ namespace Engine
         ReferenceWrapper() = default;
         ReferenceWrapper(Type& value)
         {
-            _M_value = &value;
-            _M_value.delete_value(false);
+            _M_value = SmartPointer<Type>(&value, fake_delete<Type>);
         }
 
         ReferenceWrapper(const Type& value)
         {
-            _M_value.delete_value(true) = new Type(value);
+            _M_value = SmartPointer<Type>(new Type(value), delete_value<Type>);
         }
+
+        ReferenceWrapper(const ReferenceWrapper&) = default;
 
         ReferenceWrapper& operator=(const Type& value)
         {
             if (_M_value.get() == nullptr)
-            {
-                _M_value.delete_value(true) = new Type(value);
-            }
+                _M_value = SmartPointer<Type>(new Type(value), delete_value<Type>);
             else
                 *_M_value = value;
             return *this;
@@ -60,7 +59,12 @@ namespace Engine
 
         bool is_null() const
         {
-            return _M_value.is_null();
+            return _M_value.get() == nullptr;
+        }
+
+        std::size_t references() const
+        {
+            return _M_value.use_count();
         }
     };
 }// namespace Engine

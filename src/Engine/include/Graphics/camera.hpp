@@ -2,8 +2,6 @@
 
 #include <Graphics/basic_object.hpp>
 #include <Window/window.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 
 namespace Engine
@@ -13,18 +11,19 @@ namespace Engine
     {
     private:
         float _M_z_vector_mult;
-        float _M_viewingAngle;
-        float _M_maxRenderDistance = 1000.0f, _M_minRenderDistance = 0.1f;
+        EulerAngle1D _M_viewingAngle;
+        Distance _M_maxRenderDistance = 100.0f, _M_minRenderDistance = 0.5f;
 
     public:
-        Camera(glm::vec3 position, float fov, const bool& invert_z_vector = true);
-        float max_render_distance();
-        float min_render_distance();
+        Camera(Point3D position, float fov, const bool& invert_z_vector = true);
+        Distance max_render_distance();
+        Distance min_render_distance();
         Camera& max_render_distance(float distance);
         Camera& min_render_distance(float distance);
         Camera& viewing_angle(float angle);
-        float viewing_angle();
+        EulerAngle1D viewing_angle();
         glm::mat4 projection(Window& window);
+        glm::mat4 projection(const Size2D& size);
         glm::mat4 view();
     };
 

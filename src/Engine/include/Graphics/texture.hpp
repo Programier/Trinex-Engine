@@ -13,20 +13,22 @@ namespace Engine
 
     class Texture : public Image
     {
-        unsigned int _M_ID = 0;
-        unsigned int _M_mipmap = 4;
+        ObjectID _M_ID = 0;
+        MipMapLevel _M_mipmap = 4;
 
         DrawMode _M_mode;
-        void private_load(const std::string& name, const DrawMode& mode, const unsigned int& mipmap, const bool& invert);
+        Texture& private_load(const std::string& name, const DrawMode& mode, const MipMapLevel& mipmap, const bool& invert);
+        Texture& gen_ID();
+        Texture& delete_ID();
 
     public:
         Texture();
         Texture(const Texture& texture);
-        Texture(const std::string& texture, const DrawMode& mode = NEAREST, const unsigned int& mipmap_level = 4,
+        Texture(const std::string& texture, const DrawMode& mode = NEAREST, const MipMapLevel& mipmap_level = 4,
                 const bool& invert = true);
 
         Texture& operator=(const Texture&);
-        Texture& load(const std::string& texture, const DrawMode& mode = NEAREST, const unsigned int& mipmap_level = 4,
+        Texture& load(const std::string& texture, const DrawMode& mode = NEAREST, const MipMapLevel& mipmap_level = 4,
                       const bool& invert = true);
 
         Texture& draw_mode(const DrawMode& mode);

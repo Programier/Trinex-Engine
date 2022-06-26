@@ -1,8 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include <GLFW/glfw3.h>
 #include <Image/image.hpp>
 #include <iostream>
+#include <stb_image.h>
 #include <stdexcept>
 
 namespace Engine
@@ -18,32 +18,32 @@ namespace Engine
         return _M_data.data();
     }
 
-    int Image::width() const
+    Size1D Image::width() const
     {
-        return _M_width;
+        return static_cast<Size1D>(_M_width);
     }
 
-    int Image::height() const
+    Size1D Image::height() const
     {
-        return _M_height;
+        return static_cast<Size1D>(_M_height);
     }
 
-    glm::vec<2, std::size_t, glm::defaultp> Image::size() const
+    Size2D Image::size() const
     {
-        return {_M_width, _M_height};
+        return {width(), height()};
     }
 
-    Image& Image::size(const glm::vec<2, std::size_t, glm::defaultp>& _size)
+    Image& Image::size(const Size2D& _size)
     {
         if (_size.x * _size.y * _M_channels >= _M_data.size())
             throw std::runtime_error("Image: Size out of range");
-        _M_width = _size.x;
-        _M_height = _size.y;
+        _M_width = static_cast<int>(_size.x);
+        _M_height = static_cast<int>(_size.y);
         configure();
         return *this;
     }
 
-    int Image::channels() const
+    Size1D Image::channels() const
     {
         return _M_channels;
     }

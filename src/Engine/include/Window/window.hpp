@@ -1,215 +1,133 @@
 #pragma once
-#include "Image/image.hpp"
-#include "color.hpp"
-#include "cursor.hpp"
-#include "keyboard.hpp"
-#include <glm/glm.hpp>
-#include <initializer_list>
-#include <ostream>
+#include <Window/cursor.hpp>
+#include <Window/keyboard.hpp>
+#include <engine.hpp>
 #include <string>
 #include <vector>
 
-#define METHODS(name, type)                                                                                                           \
-    name();                                                                                                                           \
-    name(const type&, const type&);                                                                                                   \
-    name(const name&);                                                                                                                \
-    name(const std::initializer_list<type>& list);                                                                                    \
-    name& operator=(const name&);
-
 namespace Engine
 {
-    enum CursorStatus
-    {
-        NORMAL,
-        DISABLED,
-        HIDDEN
-    };
 
-    typedef glm::vec2 WindowSize;
-    typedef glm::vec2 Position2D;
-    typedef glm::vec2 Offset;
+    struct Window {
+        // Window Event system
+        struct Event {
 
-    std::ostream& print(const glm::vec2& vector, std::ostream& stream);
-    enum WindowMode
-    {
-        NONE,
-        WIN_FULLSCREEN,
-        FULLSCREEN
-    };
-
-    std::ostream& operator<<(std::ostream& stream, const WindowMode& mode);
-
-    struct SizeLimits {
-        WindowSize min_size;
-        WindowSize max_size;
-        METHODS(SizeLimits, WindowSize);
-    };
-
-    std::ostream& operator<<(std::ostream& stream, const SizeLimits& limits);
-
-    struct AspectRation {
-        int numer;
-        int denom;
-        METHODS(AspectRation, int);
-    };
-
-    std::ostream& operator<<(std::ostream& stream, const AspectRation& ar);
-
-    struct WindowParameters {
-        // Window parameters
-        void* _M_window;
-        std::string _M_name;
-        bool _M_is_closed;
-        std::vector<std::string> _M_dropped_paths;
-        SizeLimits _M_limits;
-        WindowMode _M_mode = NONE;
-        std::vector<int> _M_backup = {};
-        Color _M_color;
-        AspectRation _M_aspect_ration;
-
-        // Keyboard parameters
-        struct {
-            KeyStatus* _M_keys;
-            int _M_last_key = -1;
-            int _M_last_released;
-
-            int _M_last_mouse_key = -1;
-            int _M_last_mouse_released;
-        } keys;
-        unsigned int _M_last_symbol;
-
-        // Mouse parameters
-        Position2D _M_mouse_position;
-        Offset _M_offset;
-        Offset _M_scroll_offset;
-        CursorStatus _M_cursor_status = CursorStatus::NORMAL;
-
-
-        // Icon
-        Image _M_icon;
-
-        // Cursor
-        Cursor _M_cursor;
-
-        float _M_diff_time = 0;
-
-        bool _M_vsync = true;
-        WindowParameters(const std::string& name);
-        WindowParameters(const WindowParameters& param);
-        ~WindowParameters();
-    };
-
-    class Window
-    {
-    private:
-        WindowParameters parameters;
-        void event_preprocessing();
-
-    public:
-        class WindowEvent
-        {
-            Engine::Window* window;
-
-        public:
-            class Keyboard
-            {
-                Engine::Window* window;
-
-            public:
-                Keyboard(Window*);
-                const Key just_pressed();
-                const std::string& last_symbol();
-                const Key last_pressed();
-                const Key just_released();
+            struct Keyboard {
+                static const Key just_pressed();
+                static unsigned int last_symbol(bool reset = true);
+                static const Key last_pressed();
+                static const Key just_released();
             } keyboard;
 
-            class Mouse
-            {
-                Engine::Window* window;
+            struct Mouse {
+                static const Point2D& position();
+                static const Window& position(const Point2D& position);
+                static const Offset2D& offset();
+                static const Offset2D& scroll_offset();
 
-            public:
-                Mouse(Window* window);
-                const Position2D& position();
-                Window& position(const Position2D& position);
-                const Offset& offset();
-                const Offset& scroll_offset();
-                Window& cursor_status(const CursorStatus& status);
-                CursorStatus& cursor_status();
-
-                const Key just_pressed();
-                const Key last_pressed();
-                const Key just_released();
-
+                static const Key just_pressed();
+                static const Key last_pressed();
+                static const Key just_released();
             } mouse;
 
-            KeyStatus get_key_status(const Key& key);
-            bool pressed(const Key& key);
-            WindowEvent(Engine::Window*);
-            static void poll_events();
-            float diff_time();
+            static const Window& poll_events();
+            static const Window& wait_for_events();
+            static float diff_time();
+            static float time();
+            static KeyStatus get_key_status(const Key& key);
+            static bool pressed(const Key& key);
         } event;
 
 
-        Window(int width, int height, std::string name = "", bool rezisable = true);
-        Window(const Window& window) = delete;
-        bool is_open() const;
-        void clear_buffer();
-        void swap_buffers();
-        void make_current();
+        // Window struct methods
+        static const Window& init(float width, float height, const std::string& title = "", bool rezisable = true);
+        static const Window& init(const Size2D& size, const std::string& title = "", bool rezisable = true);
+        static const Window& close();
+        static bool is_open();
+        static const Window& swap_buffers();
 
-        int width();
-        Window& width(const int& width);
-        int height();
-        Window& height(const int& height);
-        WindowSize size();
-        Window& size(const WindowSize& size);
+        static Size1D width();
+        static const Window& width(const Size1D& width);
+        static Size1D height();
+        static const Window& height(const Size1D& height);
+        static const Size2D& size();
+        static const Window& size(const Size2D& size);
 
-        void clear_dropped_path();
-        const std::vector<std::string>& get_dropped_paths();
-        bool rezisable();
-        Window& rezisable(bool value);
 
-        const std::string& title();
-        Window& title(const std::string& title);
+        static int swap_interval();
+        static const Window& swap_interval(int value);
 
-        const WindowMode& mode();
-        Window& mode(const WindowMode& mode, const WindowSize& size = WindowSize(-1, -1));
+        static bool vsync();
+        static const Window& vsync(const bool& value);
 
-        const Position2D& position();
-        Window& position(const Position2D& position);
+        static const std::string& title();
+        static const Window& title(const std::string& title);
 
-        void focus();
-        bool focused();
-        void show();
-        void hide();
-        bool is_visible();
-        Color& background_color();
-        Window& background_color(const Color& color);
-        bool is_iconify();
-        Window& iconify();
-        bool is_restored();
-        Window& restore();
-        Window& opacity(float value);
-        float opacity();
-        bool center_cursor();
-        Window& center_cursor(bool value);
-        Window& size_limits(const SizeLimits& limits);
-        const SizeLimits& size_limits();
-        void close();
-        void use_default_cursor();
-        Window& aspect_ration(const AspectRation& ration);
-        const AspectRation& aspect_ration();
-        void disable_aspect_ration();
-        Window& icon(const std::string& path);
-        const Image& icon();
-        Window& icon(const Image& icon);
-        Window& cursor(const Cursor& cursor);
-        const Cursor& cursor();
-        void destroy();
+        static const Point2D& position();
+        static const Window& position(const Point2D& position);
 
-        bool vsync() const;
-        Window& vsync(const bool& value);
-        friend WindowParameters& get_parameters(Window* window);
+        static const std::vector<std::string>& dropped_paths();
+        static const Window& clear_dropped_paths();
+
+        static bool rezisable();
+        static const Window& rezisable(bool value);
+
+        static const Window& focus();
+        static bool focused();
+
+        static const Window& show();
+        static const Window& hide();
+        static bool is_visible();
+
+        static Color& background_color();
+        static const Window& background_color(const Color& color);
+
+        static const Window& clear_buffer(const BufferType& buffer = COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
+
+        static bool is_iconify();
+        static const Window& iconify();
+        static bool is_restored();
+        static const Window& restore();
+
+        static const Window& opacity(float value);
+        static float opacity();
+
+        static bool center_cursor();
+        static const Window& center_cursor(bool value);
+
+        static const Window& size_limits(const SizeLimits2D& limits);
+        static const SizeLimits2D& size_limits();
+
+        static const Window& cursor(const Cursor& cursor);
+        static const Cursor& cursor();
+
+        static const Window& icon(const Image& image);
+        static const Window& icon(const std::string& image);
+        static const Image& icon();
+
+        static const Window& aspect_ration(const AspectRation& ration);
+        static const AspectRation& aspect_ration();
+
+        static const Window& attribute(const WindowAttrib& attrib, bool value);
+        static bool attribute(const WindowAttrib& attrib);
+
+        static const WindowMode& mode();
+        static const Window& mode(const WindowMode& mode, const Size2D& size = {-1, -1});
+
+        static const Window& cursor_mode(const CursorMode& mode);
+        static const CursorMode& cursor_mode();
+
+        static const Window& bind();
+        static const Window& update_view_port();
+
+
+        // Constructors
+
+        Window();
+        Window(float width, float height, const std::string& title = "", bool rezisable = true);
+        Window(const Size2D& size, const std::string& title = "", bool rezisable = true);
+        Window(const Window& window);
+        Window& operator=(const Window& window);
         ~Window();
     };
 }// namespace Engine

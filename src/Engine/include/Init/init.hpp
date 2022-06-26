@@ -1,8 +1,23 @@
 #pragma once
-#include <glm/glm.hpp>
+#include <BasicFunctional/engine_types.hpp>
 
 namespace Engine
 {
+    namespace Monitor
+    {
+        void* monitor();
+        int red_bits();
+        int green_bits();
+        int blue_bits();
+        Size1D height();
+        Size1D width();
+        int refresh_rate();
+        Size2D size();
+
+    }// namespace Monitor
+
+    void init(const EngineAPI& API = EngineAPI::OpenGL);
+    const EngineAPI& API();
+    void except_init_check();
     bool is_inited();
-    bool float_equal(const float& a, const float& b, float e = 0.000001);
 }// namespace Engine

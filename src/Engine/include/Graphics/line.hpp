@@ -8,9 +8,8 @@ namespace Engine
     class Line : public Mesh, public BasicObject<Translate, Rotate, Scale>
     {
         Line& update();
-        Line& load_from_bsp(const std::string& filename);
-        Line& _M_push_line(const glm::vec3& point1, const glm::vec3& point2);
-        float _M_line_width = 1;
+        Line& _M_push_line(const Point3D& point1, const Point3D& point2);
+        Size1D _M_line_width = 1;
 
     public:
         Line();
@@ -18,11 +17,11 @@ namespace Engine
         Line(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes);
         Line& operator=(const Line& line);
 
-        Line& push_line(const glm::vec3& point1, const glm::vec3& point2);
+        Line& push_line(const Point3D& point1, const Point3D& point2);
         Line& load_from(const std::string& model);
         Line& lines_from(TerrainModel& model);
-        float line_width();
-        Line& line_width(const float& width);
+        Size1D line_width();
+        Line& line_width(const Size1D& width);
         Line& draw();
     };
 

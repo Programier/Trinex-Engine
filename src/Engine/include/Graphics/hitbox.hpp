@@ -1,7 +1,6 @@
 #pragma once
 #include <Graphics/basic_object.hpp>
 #include <Graphics/line.hpp>
-#include <glm/glm.hpp>
 
 
 namespace Engine
@@ -19,13 +18,13 @@ namespace Engine
     {
     protected:
         HitBoxType _M_type;
-        glm::vec3 _M_size;
+        Size3D _M_size;
         Line _M_lines;
 
     public:
-        float distance_to(const IHitBox& hitbox);
+        Distance distance_to(const IHitBox& hitbox);
         const HitBoxType& type() const;
-        const glm::vec3& size() const;
+        const Size3D& size() const;
         glm::vec3& size();
         Line& lines();
     };
@@ -33,7 +32,7 @@ namespace Engine
     class PointHB : public IHitBox
     {
     public:
-        PointHB(const glm::vec3& position);
+        PointHB(const Point3D& position);
         PointHB(const PointHB&);
         PointHB& operator=(const PointHB& point);
     };
@@ -41,8 +40,8 @@ namespace Engine
     class BoxHB : public IHitBox
     {
     public:
-        BoxHB(const glm::vec3& position = {0.f, 0.f, 0.f}, const glm::vec3& size = {1.f, 1.f, 1.f},
-              const glm::vec3& rotation = {0.f, 0.f, 0.f});
+        BoxHB(const Point3D& position = {0.f, 0.f, 0.f}, const Size3D& size = {1.f, 1.f, 1.f},
+              const EulerAngle3D& rotation = {0.f, 0.f, 0.f});
         BoxHB(const BoxHB&);
         BoxHB& operator=(const BoxHB& box);
     };
@@ -51,7 +50,7 @@ namespace Engine
     {
 
     public:
-        SphereHB(const glm::vec3& position, const float& radius);
+        SphereHB(const Point3D& position, const float& radius);
         SphereHB(const SphereHB&);
         SphereHB& operator=(const SphereHB& sphere);
     };
@@ -59,7 +58,7 @@ namespace Engine
     class CylinderHB : public IHitBox
     {
     public:
-        CylinderHB(const glm::vec3& position, const float& radius, const float& height);
+        CylinderHB(const glm::vec3& position, const float& radius, const Size1D& height);
         CylinderHB(const CylinderHB&);
         CylinderHB& operator=(const CylinderHB& point);
     };
