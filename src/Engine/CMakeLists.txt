@@ -9,6 +9,7 @@ if(WIN32)
     include_directories("./libs/include/")
         set(OPENGL opengl32)
         set(ASSIMP assimp-5)
+        set(WIN_NET ws2_32)
 else()
         set(OPENGL GL)
         set(ASSIMP assimp)
@@ -54,4 +55,4 @@ set(ENGINE
 add_library(Engine SHARED ${ENGINE})
 
 include_directories("include/")
-target_link_libraries(Engine glfw ${OPENGL} glew_s ${ASSIMP} freetype)
+target_link_libraries(Engine glfw ${OPENGL} glew_s ${ASSIMP} freetype ${WIN_NET})
