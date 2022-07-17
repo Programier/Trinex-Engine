@@ -1,6 +1,6 @@
 # Game Engine
 
-![alt text](screenshots/Screenshot_20220324_185108.png)​
+![alt text](screenshots/screen.jpg)​
 
 ## Compile from source (command line)
 
