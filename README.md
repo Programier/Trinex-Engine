@@ -11,7 +11,7 @@
 ```cmd
     ./build.sh
 ```
-### Window
+### Windows
 1. Clone or download the repository in a directory
 2. Install [CMake](https://cmake.org/download/)
 3. Install [MinGW](https://sourceforge.net/projects/mingw/)
