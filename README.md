@@ -6,11 +6,18 @@
 
 ### Linux
 1. Clone or download the repository in a directory
-2. Download [file](https://drive.google.com/file/d/1gCR1wzF849_joRvBJ2IgRszyxYX3lJSu/view?usp=sharing) and move file to folder PROJECT_SOURCES/resources/
-3. Install libraries: ```glfw3 GL glew assimp cmake g++```
-4. Open terminal in source forder and start compilation
+2. Install libraries: ```glfw3 GL glew assimp cmake g++```
+3. Open terminal in source forder and start compilation
 ```cmd
     ./build.sh
+```
+### Window
+1. Clone or download the repository in a directory
+2. Install [CMake](https://cmake.org/download/)
+3. Install [MinGW](https://sourceforge.net/projects/mingw/)
+4. Open command line in source folder and start compilation
+```cmd
+    .\build.bat
 ```
 
 ## Run
