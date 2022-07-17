@@ -1,3 +1,4 @@
+#include <BasicFunctional/octree.hpp>
 #include <Graphics/camera.hpp>
 #include <Graphics/enable_param.hpp>
 #include <Graphics/light.hpp>
@@ -19,8 +20,10 @@
 using namespace Engine;
 #define cmd [](std::wstringstream & stream, Program & p)
 
-
 struct Program {
+
+    std::list<std::wstring> prev_commands;
+    std::list<std::wstring>::iterator command_iterator;
 
     Window window;
 
@@ -71,13 +74,17 @@ struct Program {
 
     Light light;
     Light::Material material;
-    Camera light_camera = Camera({0, 0, 0}, glm::radians(90.f));
+    Camera light_camera = Camera({18.101824f, 13.483343f, -34.785542f}, glm::radians(90.f));
+
     bool lighting = true;
+    bool runtime_lighting = false;
     glm::mat4 light_projview;
 
     bool depth_rendering = true;
     Mesh depth_mesh;
     glm::mat3 transposed_inversed_model;
+    bool render_skybox_status = true;
+
 
     // Methods
 
@@ -96,16 +103,19 @@ struct Program {
         camera->max_render_distance(200.f);
         //window.vsync(false);
         current_command.reserve(50);
+        light_camera.rotate({2.469812, 0.377793, 3.141592}, false);
 
 
         material.shininess = 32.f;
-        material.ambient = material.specular = LightColor(0.3f);
+        material.ambient = LightColor(0.2);
+        material.specular = LightColor(1.f);
         material.diffuse = LightColor(1.f);
 
         light.type = LightType::Point;
-        light.specular = light.ambient = material.ambient;
+        light.specular = material.specular;
+        light.ambient = material.ambient;
         light.diffuse = material.diffuse;
-        light.buffer.gen(Monitor::size());
+        light.buffer.gen(Monitor::size() * 8.f);
 
 
         while (window.is_open())
@@ -127,11 +137,13 @@ struct Program {
             proj = main_camera.projection(window);
             view = main_camera.view();
             projview = proj * view;
-            if (lighting)
+            if ((lighting && runtime_lighting) || frame == 0)
             {
+                if (frame == 0)
+                    std::clog << "Generating light map" << std::endl;
                 light.buffer.bind();
                 light.buffer.bind_texture();
-                light.buffer.view_port({0, 0}, Monitor::size()).clear_buffer();
+                light.buffer.view_port({0, 0}, light.buffer.size()).clear_buffer();
                 light_render();
 
                 window.bind().update_view_port();
@@ -219,9 +231,35 @@ struct Program {
             stream >> p.lighting;
         };
 
+        command_map[L"skybox"] = cmd
+        {
+            stream >> p.render_skybox_status;
+        };
+
         command_map[L"depth_rendering"] = cmd
         {
             stream >> p.depth_rendering;
+        };
+
+        command_map[L"light_buffer_size"] = cmd
+        {
+            float x, y;
+            stream >> x >> y;
+            p.light.buffer.gen(x, y);
+        };
+
+        command_map[L"runtime_lighting"] = cmd
+        {
+            stream >> p.runtime_lighting;
+        };
+
+        command_map[L"cam_info"] = cmd
+        {
+            std::clog << "Pos: " << p.camera->position() << std::endl;
+            std::clog << "Rot: " << p.camera->euler_angles() << std::endl;
+            std::clog << "Front vector: " << -p.camera->front_vector() << std::endl;
+            std::clog << "Right vector: " << -p.camera->right_vector() << std::endl;
+            std::clog << "Up vector: " << -p.camera->up_vector() << std::endl;
         };
     }
 
@@ -246,11 +284,13 @@ struct Program {
         if (current_key == KEY_TAB && (active_console = !active_console))
         {
             window.event.keyboard.last_symbol();
+            command_iterator = prev_commands.end();
             return current_command.clear();
         }
 
         if (!active_console)
             return;
+
 
         static const std::wstring arrow = L"--> ";
         unsigned int last_symbol = window.event.keyboard.last_symbol();
@@ -261,7 +301,33 @@ struct Program {
             current_command.pop_back();
 
         if (current_key == Key::KEY_ENTER)
+        {
+            prev_commands.push_back(current_command);
+            command_iterator = prev_commands.end();
             parse_command();
+        }
+
+        if (current_key == Key::KEY_UP)
+        {
+            try
+            {
+                command_iterator--;
+                current_command = *command_iterator;
+            }
+            catch (...)
+            {}
+        }
+
+        if (current_key == Key::KEY_DOWN)
+        {
+            try
+            {
+                command_iterator++;
+                current_command = *command_iterator;
+            }
+            catch (...)
+            {}
+        }
 
 
         window_log.push_back(arrow + current_command);
@@ -311,7 +377,7 @@ struct Program {
 
     void light_render()
     {
-        light_projview = light_camera.projection(Monitor::size()) * light_camera.view();
+        light_projview = light_camera.projection(light.buffer.size()) * light_camera.view();
         light.position = light_camera.position();
         light.direction = -light_camera.front_vector();
         ShaderSystem::Depth::shader.use()
@@ -347,6 +413,8 @@ struct Program {
 
     void render_skybox()
     {
+        if (!render_skybox_status)
+            return;
         ShaderSystem::SkyBox::shader.use().set(ShaderSystem::SkyBox::projview, proj * glm::mat4(glm::mat3(view)));
         skybox.draw();
     }
@@ -355,7 +423,7 @@ struct Program {
     {
         skybox.load("resources/skybox/skybox.png");
         scene.load_model("resources/scene/scene.gltf", DrawMode::LINEAR, 90);
-        scene_matrix = scene.model();
+        scene_matrix = scene.scale(0.05, 0.05, 0.05).model();
         transposed_inversed_model = glm::transpose(glm::inverse(glm::mat3(scene_matrix)));
         scene_polygones.lines_from(scene);
 
@@ -442,4 +510,14 @@ int main()
 {
     Engine::init();
     Program p;
+
+    Engine::AABB_3D box = {{0, 0, 0}, {64, 64, 64}};
+    Engine::AABB_3D box2 = {{0, 0, 0}, {66, 64, 66}};
+    Engine::Octree<int> tree;
+    tree.push(0, box);
+    tree.push(1, box2);
+
+    auto a = tree.aabb();
+
+    std::clog << a.min << "\t" << a.max << std::endl;
 }

@@ -62,6 +62,7 @@ namespace Engine
         Point3D max;
     } SizeLimits3D;
 
+
     typedef SizeLimits1D AABB_1D;
     typedef SizeLimits2D AABB_2D;
     typedef SizeLimits3D AABB_3D;

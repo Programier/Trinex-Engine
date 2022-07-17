@@ -65,10 +65,9 @@ namespace Engine
         return glm::normalize(result);
     }
 
-    bool float_equal(const float& a, const float& b, float e)
+    bool get_bit(const std::size_t& value, int bit)
     {
-        e = e > 0 ? e : -e;
-        return a > (b - e) && a < (b + e);
+        return (value >> (bit - 1)) & 1;
     }
 
     namespace OpenGL

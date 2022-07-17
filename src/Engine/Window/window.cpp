@@ -87,6 +87,13 @@ static struct WindowData {
     Offset2D _M_mouse_offset;
     Offset2D _M_scroll_offset;
 
+    // Callbacks
+    struct {
+        std::function<void(const Size2D&)> _M_resize_callback = nullptr;
+        std::function<void(const Point2D&)> _M_position_callback = nullptr;
+        std::function<void(int, const char*[])> _M_dropped_paths_callback = nullptr;
+    } callbacks;
+
     std::size_t _M_objects = 0;
 
 } data;
@@ -115,6 +122,8 @@ static void size_callback(GLFWwindow*, int x, int y)
     if (!data._M_enable_ration)
         data._M_ration = {x, y};
     win_resize[cast(int, api)]();
+    if (data.callbacks._M_resize_callback)
+        data.callbacks._M_resize_callback(data._M_size);
 }
 
 
@@ -123,6 +132,8 @@ static void size_callback(GLFWwindow*, int x, int y)
 static void pos_callback(GLFWwindow*, int x, int y)
 {
     data._M_position = {cast(Size1D, x), cast(Size1D, y)};
+    if (data.callbacks._M_position_callback)
+        data.callbacks._M_position_callback(data._M_position);
 }
 
 //      DROPPED PATHS CALLBACK
@@ -130,6 +141,8 @@ static void pos_callback(GLFWwindow*, int x, int y)
 static void dropped_path_callback(GLFWwindow*, int path_count, const char* paths[])
 {
     for (int i = 0; i < path_count; i++) data._M_dropped_paths.push_back(paths[i]);
+    if (data.callbacks._M_dropped_paths_callback)
+        data.callbacks._M_dropped_paths_callback(path_count, paths);
 }
 
 //      KEY CALLBACK
@@ -213,6 +226,19 @@ static void event_preprocessing()
     data._M_time = glfwGetTime();
     data._M_diff_time = data._M_time - data._M_last_time;
     data._M_last_time = data._M_time;
+}
+
+
+//      ENGINE CALLBACKS
+
+std::function<void(const Size2D&)>& Window::Callbacks::resize_callback()
+{
+    return data.callbacks._M_resize_callback;
+}
+
+std::function<void(const Point2D&)>& Window::Callbacks::position_callback()
+{
+    return data.callbacks._M_position_callback;
 }
 
 

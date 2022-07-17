@@ -2,6 +2,7 @@
 #include <Window/cursor.hpp>
 #include <Window/keyboard.hpp>
 #include <engine.hpp>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -38,6 +39,11 @@ namespace Engine
             static bool pressed(const Key& key);
         } event;
 
+        struct Callbacks
+        {
+            static std::function<void(const Size2D&)>& resize_callback();
+            static std::function<void(const Point2D&)>& position_callback();
+        } callbacks;
 
         // Window struct methods
         static const Window& init(float width, float height, const std::string& title = "", bool rezisable = true);
@@ -130,4 +136,6 @@ namespace Engine
         Window& operator=(const Window& window);
         ~Window();
     };
+
+
 }// namespace Engine

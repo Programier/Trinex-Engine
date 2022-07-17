@@ -37,7 +37,8 @@ namespace Engine
     float scalar_mult(const Vector3D& first, const Vector3D& second);
     float angle_between(Vector3D first, Vector3D second);
     Vector3D remove_coord(const Vector3D& vector, const Coord& coord);
-    bool float_equal(const float& a, const float& b, float e = 0.000001);
+    bool get_bit(const std::size_t& value, int bit);
+
 }// namespace Engine
 
 
