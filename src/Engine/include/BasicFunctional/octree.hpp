@@ -20,7 +20,7 @@ namespace Engine
             std::list<Type> _M_objects;
 
             Node* push(const Type& value, const AABB_3D& box, Node* head = nullptr);
-            Node* push_to_head(const Type& value, const AABB_3D& box, int mode);
+            AABB_3D calc_new_head(const Type& value, const AABB_3D& box, int mode);
             ~Node();
         };
 
@@ -37,10 +37,9 @@ namespace Engine
     //      Node implementation
 
     template<typename Type>
-    typename Octree<Type>::Node* Octree<Type>::Node::push_to_head(const Type& value, const AABB_3D& box, int mode)
+    AABB_3D Octree<Type>::Node::calc_new_head(const Type& value, const AABB_3D& box, int mode)
     {
-        Node* head = new Node;
-
+        AABB_3D aabb;
         // {min : center}
         Point3D limits[2] = {_M_box.min, _M_box.max};
 
@@ -53,19 +52,13 @@ namespace Engine
         }
 
         // Calculate AABB
-        head->_M_box.min = limits[0];
-        head->_M_box.max = (limits[1] * 2.f) - limits[0];
+        aabb.min = limits[0];
+        aabb.max = (limits[1] * 2.f) - limits[0];
 
         for (int i = 0; i < 3; i++)
-            if (head->_M_box.min[i] > head->_M_box.max[i])
-                std::swap(head->_M_box.min[i], head->_M_box.max[i]);
-
-        this->_M_prev = head;
-
-        head->_M_objects.push_back(value);
-        head->_M_parts[mode >> 3] = this;
-        DEBUG_CODE(std::clog << "Octree: Pushing leaf at block with num " << (mode >> 3) << std::endl;);
-        return head;
+            if (aabb.min[i] > aabb.max[i])
+                std::swap(aabb.min[i], aabb.max[i]);
+        return aabb;
     }
 
     // Return head of octree
@@ -80,16 +73,31 @@ namespace Engine
         int min_value, max_value;
         int pow_value = 1;
         AABB_3D new_aabb;
-
-        for (int i = 0; i < 3; i++) (push_to <<= 1) += cast(int, _M_box.min[i] > box.min[i]);
-        for (int i = 0; i < 3; i++) (push_to <<= 1) += cast(int, _M_box.max[i] < box.max[i]);
-
-
-        if (push_to)
-            return this->push_to_head(value, box, push_to);
+        bool check_size = true;
 
         while (this_object)
         {
+            push_to = 0;
+            pow_value = 1;
+            if (check_size)
+            {
+                for (int i = 0; i < 3; i++) (push_to <<= 1) += cast(int, this_object->_M_box.min[i] > box.min[i]);
+                for (int i = 0; i < 3; i++) (push_to <<= 1) += cast(int, this_object->_M_box.max[i] < box.max[i]);
+
+                if (push_to)
+                {
+                    Node* new_head = new Node;
+                    new_head->_M_box = this_object->calc_new_head(value, box, push_to);
+                    head->_M_prev = new_head;
+                    new_head->_M_parts[push_to >> 3] = head;
+                    head = new_head;
+                    this_object = new_head;
+                    continue;
+                }
+                else
+                    check_size = false;
+            }
+
             Point3D center = (this_object->_M_box.min + this_object->_M_box.max) / 2.f;
             push_to = -7;
             for (int i = 0; i < 3; i++)
@@ -106,12 +114,12 @@ namespace Engine
                 if (max_value)
                 {
                     new_aabb.min[i] = center[i];
-                    new_aabb.max[i] = _M_box.max[i];
+                    new_aabb.max[i] = this_object->_M_box.max[i];
                 }
                 else
                 {
                     new_aabb.max[i] = center[i];
-                    new_aabb.min[i] = _M_box.min[i];
+                    new_aabb.min[i] = this_object->_M_box.min[i];
                 }
 
                 push_to += pow_value + max_value * pow_value;

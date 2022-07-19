@@ -10,6 +10,7 @@
 #include <Init/init.hpp>
 #include <Window/color.hpp>
 #include <Window/window.hpp>
+#include <chrono>
 #include <engine.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -506,18 +507,46 @@ struct Program {
 };
 
 
+float rand_float(float min, float max)
+{
+    return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) / (max - min));
+}
+
+void box_check(AABB_3D& box)
+{
+    for (int i = 0; i < 3; i++)
+        if (box.min[i] > box.max[i])
+            std::swap(box.min[i], box.max[i]);
+}
+
+void test_octree(int num = 73)
+{
+    srand(time(NULL));
+    std::clog << "OCTREE TESTING" << std::endl;
+    std::list<AABB_3D> boxes;
+    for (int i = 0; i < num; i++)
+    {
+        boxes.push_back({{rand_float(-999999, 999999), rand_float(-999999, 999999), rand_float(-999999, 999999)},
+                         {rand_float(-999999, 999999), rand_float(-999999, 999999), rand_float(-999999, 999999)}});
+        box_check(boxes.back());
+    }
+
+    Engine::Octree<int> tree;
+    std::clog << "START TESTING" << std::endl;
+    auto begin = std::chrono::steady_clock::now();
+    for (auto& box : boxes) tree.push(0, box);
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
+    std::clog << "Octree generation time: " << time << " milliseconds" << std::endl;
+    std::clog << "Added " << num << " objects" << std::endl;
+    auto a = tree.aabb();
+
+
+    std::clog << "Octree aabb: " << a.min << "\t" << a.max << std::endl;
+}
+
 int main()
 {
     Engine::init();
     Program p;
-
-    Engine::AABB_3D box = {{0, 0, 0}, {64, 64, 64}};
-    Engine::AABB_3D box2 = {{0, 0, 0}, {66, 64, 66}};
-    Engine::Octree<int> tree;
-    tree.push(0, box);
-    tree.push(1, box2);
-
-    auto a = tree.aabb();
-
-    std::clog << a.min << "\t" << a.max << std::endl;
+    //test_octree();
 }
