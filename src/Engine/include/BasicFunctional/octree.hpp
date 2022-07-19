@@ -19,18 +19,30 @@ namespace Engine
 
             std::list<Type> _M_objects;
 
+        private:
             Node* push(const Type& value, const AABB_3D& box, Node* head = nullptr);
             AABB_3D calc_new_head(const Type& value, const AABB_3D& box, int mode);
+
+        public:
             ~Node();
         };
 
         Node* _M_head = nullptr;
 
+
     public:
         Octree();
+        Octree(const AABB_3D& box);
+        Octree(const Octree& tree);
+        Octree(Octree&& tree);
+        Octree& operator=(const Octree& tree);
         Octree& push(const Type& value, const AABB_3D& box);
+        Octree& clear();
         AABB_3D aabb() const;
         ~Octree();
+
+    private:
+        void copy_tree(Node*& to, Node* node, Node* prev = nullptr);
     };
 
 
@@ -155,6 +167,26 @@ namespace Engine
     Octree<Type>::Octree() = default;
 
     template<typename Type>
+    Octree<Type>::Octree(const AABB_3D& box)
+    {
+        _M_head = new Node;
+        _M_head->_M_box = box;
+    }
+
+    template<typename Type>
+    Octree<Type>::Octree(const Octree& tree)
+    {
+        *this = tree;
+    }
+
+    template<typename Type>
+    Octree<Type>::Octree(Octree&& tree)
+    {
+        _M_head = std::move(tree._M_head);
+        tree._M_head = nullptr;
+    }
+
+    template<typename Type>
     Octree<Type>& Octree<Type>::push(const Type& value, const AABB_3D& box)
     {
         if (!_M_head)
@@ -173,6 +205,36 @@ namespace Engine
     AABB_3D Octree<Type>::aabb() const
     {
         return _M_head ? _M_head->_M_box : AABB_3D();
+    }
+
+
+    template<typename Type>
+    Octree<Type>& Octree<Type>::operator=(const Octree<Type>& tree)
+    {
+        if (this == &tree)
+            return *this;
+        clear();
+        copy_tree(_M_head, tree._M_head, nullptr);
+    }
+
+    // Recursive copy
+    template<typename Type>
+    void Octree<Type>::copy_tree(Node*& to, Node* node, Node* prev)
+    {
+        to = new Node;
+        to->_M_box = node->_M_box;
+        to->_M_prev = prev;
+        to->_M_objects = node->_M_objects;
+        for (int i = 0; i < 8; i++) copy_tree(to->_M_parts[i], node->_M_parts[i], to);
+    }
+
+    template<typename Type>
+    Octree<Type>& Octree<Type>::clear()
+    {
+        if (_M_head)
+            delete _M_head;
+        _M_head = nullptr;
+        return *this;
     }
 
 

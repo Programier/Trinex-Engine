@@ -519,7 +519,7 @@ void box_check(AABB_3D& box)
             std::swap(box.min[i], box.max[i]);
 }
 
-void test_octree(int num = 73)
+void test_octree(int num = 1000)
 {
     srand(time(NULL));
     std::clog << "OCTREE TESTING" << std::endl;
@@ -546,7 +546,7 @@ void test_octree(int num = 73)
 
 int main()
 {
-    Engine::init();
-    Program p;
-    //test_octree();
+    //    Engine::init();
+    //    Program p;
+    DEBUG_CODE(test_octree());
 }
