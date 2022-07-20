@@ -10,30 +10,54 @@
 
 namespace Engine
 {
+
+
     TEMPLATE
     class Octree
     {
+    public:
+        struct Index {
+            bool x = false;
+            bool y = false;
+            bool z = false;
+
+            int get() const;
+            operator int() const;
+        };
+
     private:
         struct Node {
-            Node* _M_parts[8] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-            Node* _M_prev = nullptr;
-            AABB_3D _M_box;
-
-            std::list<Type> _M_objects;
 
         private:
             Octree* _M_tree = nullptr;
             AABB_3D calc_new_head(const AABB_3D& box, int mode);
+            void set_base_class(Octree *tree);
 
         public:
+            Node* _M_parts[8] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+            Node* _M_prev = nullptr;
+            AABB_3D _M_box;
+            std::list<Type> _M_objects;
+
+
             Node* push(const Type& value, const AABB_3D& box);
             Node* push_box(const AABB_3D& box);
             std::size_t depth() const;
+
+            Node* get(const Octree::Index& index);
+            Node& operator[](const Octree::Index& index);
+            const Node* get(const Octree::Index& index) const;
+            const Node& operator[](const Octree::Index& index) const;
+
+            Octree& tree();
+            const Octree& tree() const;
+
             friend class Octree;
             ~Node();
         };
 
         Node* _M_head = nullptr;
+        std::size_t _M_size = 0;
 
         DEBUG_CODE(std::size_t _M_alloc_count = 0; std::size_t _M_dealloc_count = 0);
 
@@ -49,6 +73,12 @@ namespace Engine
         Octree& clear();
         AABB_3D aabb() const;
         std::size_t depth() const;
+        std::size_t size() const;
+
+        Node* get(const Octree::Index& index);
+        Node& operator[](const Octree::Index& index);
+        const Node* get(const Octree::Index& index) const;
+        const Node& operator[](const Octree::Index& index) const;
 
 
         DEBUG_CODE(std::size_t alloc_count() const; std::size_t dealloc_count() const);
@@ -56,9 +86,23 @@ namespace Engine
 
     private:
         void copy_tree(Node*& to, Node* node, Node* prev = nullptr);
+        void set_base_class();
         Node* new_node(Node* prev = nullptr, const AABB_3D& box = AABB_3D());
     };
 
+
+    //  Index implementation
+    TEMPLATE
+    int Octree<Type>::Index::get() const
+    {
+        return cast(int, x) + 2 * cast(int, y) + 4 * cast(int, z);
+    }
+
+    TEMPLATE
+    Octree<Type>::Index::operator int() const
+    {
+        return get();
+    }
 
     //      Node implementation
 
@@ -173,6 +217,7 @@ namespace Engine
     {
         Node* node = push_box(box);
         node->_M_objects.push_back(value);
+        _M_tree->_M_size++;
         return node;
     }
 
@@ -186,7 +231,60 @@ namespace Engine
                 delete _M_parts[i];
     }
 
-    // Octree implementation
+    TEMPLATE
+    typename Octree<Type>::Node* Octree<Type>::Node::get(const Octree<Type>::Index& index)
+    {
+        return _M_parts[index.get()];
+    }
+
+    TEMPLATE
+    typename Octree<Type>::Node& Octree<Type>::Node::operator[](const Octree<Type>::Index& index)
+    {
+        Node* node = get(index);
+        if (!node)
+            throw std::runtime_error("Octree: Index out of range");
+        return *node;
+    }
+
+    TEMPLATE
+    const typename Octree<Type>::Node* Octree<Type>::Node::get(const Octree<Type>::Index& index) const
+    {
+        return _M_parts[index.get()];
+    }
+
+    TEMPLATE
+    const typename Octree<Type>::Node& Octree<Type>::Node::operator[](const Octree<Type>::Index& index) const
+    {
+        Node* node = get(index);
+        if (!node)
+            throw std::runtime_error("Octree: Index out of range");
+        return *node;
+    }
+
+    TEMPLATE
+    Octree<Type>& Octree<Type>::Node::tree()
+    {
+        return *_M_tree;
+    }
+
+    TEMPLATE
+    const Octree<Type>& Octree<Type>::Node::tree() const
+    {
+        return *_M_tree;
+    }
+
+    TEMPLATE
+    void Octree<Type>::Node::set_base_class(Octree<Type>* tree)
+    {
+        _M_tree = tree;
+        for(Node*& ell : _M_parts)
+            if(ell)
+                ell->set_base_class(tree);
+    }
+
+
+
+    // OCTREE IMPLEMENTATION
 
     TEMPLATE
     Octree<Type>::Octree() = default;
@@ -206,8 +304,7 @@ namespace Engine
     TEMPLATE
     Octree<Type>::Octree(Octree&& tree)
     {
-        _M_head = std::move(tree._M_head);
-        tree._M_head = nullptr;
+        *this = tree;
     }
 
     TEMPLATE
@@ -217,6 +314,7 @@ namespace Engine
         {
             _M_head = new_node(nullptr, box);
             _M_head->_M_objects.push_back(value);
+            _M_size++;
             return *this;
         }
 
@@ -247,7 +345,13 @@ namespace Engine
             return *this;
 
         _M_head = std::move(tree._M_head);
+        _M_size = std::move(tree._M_size);
+        DEBUG_CODE(_M_alloc_count = std::move(tree._M_alloc_count); _M_dealloc_count = std::move(tree._M_dealloc_count));
+        DEBUG_CODE(tree._M_dealloc_count = tree._M_alloc_count = 0);
         tree._M_head = nullptr;
+        tree._M_size = 0;
+        if(_M_head)
+            _M_head->set_base_class(this);
         return *this;
     }
 
@@ -257,6 +361,7 @@ namespace Engine
     {
         to = new_node(prev, node->_M_box);
         to->_M_objects = node->_M_objects;
+        _M_size += to->_M_objects.size();
         for (int i = 0; i < 8; i++) copy_tree(to->_M_parts[i], node->_M_parts[i], to);
     }
 
@@ -266,6 +371,7 @@ namespace Engine
         if (_M_head)
             delete _M_head;
         _M_head = nullptr;
+        _M_size = 0;
         return *this;
     }
 
@@ -299,6 +405,41 @@ namespace Engine
     {
         return _M_head ? _M_head->depth() : 0;
     }
+
+    TEMPLATE
+    typename Octree<Type>::Node* Octree<Type>::get(const Octree::Index& index)
+    {
+        return _M_head ? _M_head->get(index) : nullptr;
+    }
+
+    TEMPLATE
+    typename Octree<Type>::Node& Octree<Type>::operator[](const Octree::Index& index)
+    {
+        if (_M_head)
+            return (*_M_head)[index];
+        throw std::runtime_error("Octree: Index out of range");
+    }
+
+    TEMPLATE
+    const typename Octree<Type>::Node* Octree<Type>::get(const Octree::Index& index) const
+    {
+        return _M_head ? _M_head->get(index) : nullptr;
+    }
+
+    TEMPLATE
+    const typename Octree<Type>::Node& Octree<Type>::operator[](const Octree::Index& index) const
+    {
+        if (_M_head)
+            return (*_M_head)[index];
+        throw std::runtime_error("Octree: Index out of range");
+    }
+
+    TEMPLATE
+    std::size_t Octree<Type>::size() const
+    {
+        return _M_size;
+    }
+
 }// namespace Engine
 
 #undef TEMPLATE
