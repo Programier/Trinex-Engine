@@ -6,9 +6,11 @@
 #include <iostream>
 #include <list>
 
+#define TEMPLATE template<typename Type>
+
 namespace Engine
 {
-    template<typename Type>
+    TEMPLATE
     class Octree
     {
     private:
@@ -20,14 +22,20 @@ namespace Engine
             std::list<Type> _M_objects;
 
         private:
-            Node* push(const Type& value, const AABB_3D& box, Node* head = nullptr);
-            AABB_3D calc_new_head(const Type& value, const AABB_3D& box, int mode);
+            Octree* _M_tree = nullptr;
+            AABB_3D calc_new_head(const AABB_3D& box, int mode);
 
         public:
+            Node* push(const Type& value, const AABB_3D& box);
+            Node* push_box(const AABB_3D& box);
+            std::size_t depth() const;
+            friend class Octree;
             ~Node();
         };
 
         Node* _M_head = nullptr;
+
+        DEBUG_CODE(std::size_t _M_alloc_count = 0; std::size_t _M_dealloc_count = 0);
 
 
     public:
@@ -36,20 +44,36 @@ namespace Engine
         Octree(const Octree& tree);
         Octree(Octree&& tree);
         Octree& operator=(const Octree& tree);
+        Octree& operator=(Octree&& tree);
         Octree& push(const Type& value, const AABB_3D& box);
         Octree& clear();
         AABB_3D aabb() const;
+        std::size_t depth() const;
+
+
+        DEBUG_CODE(std::size_t alloc_count() const; std::size_t dealloc_count() const);
         ~Octree();
 
     private:
         void copy_tree(Node*& to, Node* node, Node* prev = nullptr);
+        Node* new_node(Node* prev = nullptr, const AABB_3D& box = AABB_3D());
     };
 
 
     //      Node implementation
 
-    template<typename Type>
-    AABB_3D Octree<Type>::Node::calc_new_head(const Type& value, const AABB_3D& box, int mode)
+    TEMPLATE
+    std::size_t Octree<Type>::Node::depth() const
+    {
+        std::size_t d = 0;
+        for (auto& node : _M_parts)
+            if (node)
+                d = std::max(d, node->depth());
+        return 1 + d;
+    }
+
+    TEMPLATE
+    AABB_3D Octree<Type>::Node::calc_new_head(const AABB_3D& box, int mode)
     {
         AABB_3D aabb;
         // {min : center}
@@ -73,14 +97,10 @@ namespace Engine
         return aabb;
     }
 
-    // Return head of octree
-    template<typename Type>
-    typename Octree<Type>::Node* Octree<Type>::Node::push(const Type& value, const AABB_3D& box, Node* head)
+    TEMPLATE
+    typename Octree<Type>::Node* Octree<Type>::Node::push_box(const AABB_3D& box)
     {
         Node* this_object = this;
-        if (!head)
-            head = this_object;
-
         int push_to = 0;
         int min_value, max_value;
         int pow_value = 1;
@@ -98,12 +118,15 @@ namespace Engine
 
                 if (push_to)
                 {
-                    Node* new_head = new Node;
-                    new_head->_M_box = this_object->calc_new_head(value, box, push_to);
-                    head->_M_prev = new_head;
-                    new_head->_M_parts[push_to >> 3] = head;
-                    head = new_head;
-                    this_object = new_head;
+                    if (!this_object->_M_prev)
+                    {
+                        Node* new_head = _M_tree->new_node(nullptr, this_object->calc_new_head(box, push_to));
+                        this_object->_M_prev = new_head;
+                        new_head->_M_parts[push_to >> 3] = this_object;
+                        _M_tree->_M_head = new_head;
+                    }
+
+                    this_object = this_object->_M_prev;
                     continue;
                 }
                 else
@@ -111,17 +134,14 @@ namespace Engine
             }
 
             Point3D center = (this_object->_M_box.min + this_object->_M_box.max) / 2.f;
-            push_to = -7;
+            push_to = 0;
             for (int i = 0; i < 3; i++)
             {
                 min_value = cast(int, center[i] >= box.min[i]);
                 max_value = cast(int, center[i] < box.max[i]);
 
                 if (min_value == max_value)
-                {
-                    this_object->_M_objects.push_back(value);
-                    return head;
-                }
+                    return this_object;
 
                 if (max_value)
                 {
@@ -134,28 +154,33 @@ namespace Engine
                     new_aabb.min[i] = this_object->_M_box.min[i];
                 }
 
-                push_to += pow_value + max_value * pow_value;
+                push_to += max_value * pow_value;
                 pow_value <<= 1;
             }
 
             Node* tmp = this_object->_M_parts[push_to];
             if (!tmp)
-            {
-                tmp = new Node;
-                tmp->_M_prev = this_object;
-                tmp->_M_box = new_aabb;
-                this_object->_M_parts[push_to] = tmp;
-            }
+                this_object->_M_parts[push_to] = tmp = _M_tree->new_node(this_object, new_aabb);
 
             this_object = tmp;
         }
-        return head;
+        return this_object;
     }
 
-    template<typename Type>
+    // Return node with value
+    TEMPLATE
+    typename Octree<Type>::Node* Octree<Type>::Node::push(const Type& value, const AABB_3D& box)
+    {
+        Node* node = push_box(box);
+        node->_M_objects.push_back(value);
+        return node;
+    }
+
+    TEMPLATE
     Octree<Type>::Node::~Node()
     {
         // Recursive delete leaf
+        DEBUG_CODE(_M_tree->_M_dealloc_count++);
         for (int i = 0; i < 8; i++)
             if (_M_parts[i])
                 delete _M_parts[i];
@@ -163,52 +188,50 @@ namespace Engine
 
     // Octree implementation
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>::Octree() = default;
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>::Octree(const AABB_3D& box)
     {
-        _M_head = new Node;
-        _M_head->_M_box = box;
+        _M_head = new_node(nullptr, box);
     }
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>::Octree(const Octree& tree)
     {
         *this = tree;
     }
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>::Octree(Octree&& tree)
     {
         _M_head = std::move(tree._M_head);
         tree._M_head = nullptr;
     }
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>& Octree<Type>::push(const Type& value, const AABB_3D& box)
     {
         if (!_M_head)
         {
-            _M_head = new Node;
-            _M_head->_M_box = box;
+            _M_head = new_node(nullptr, box);
             _M_head->_M_objects.push_back(value);
             return *this;
         }
 
-        _M_head = _M_head->push(value, box);
+        _M_head->push(value, box);
         return *this;
     }
 
-    template<typename Type>
+    TEMPLATE
     AABB_3D Octree<Type>::aabb() const
     {
         return _M_head ? _M_head->_M_box : AABB_3D();
     }
 
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>& Octree<Type>::operator=(const Octree<Type>& tree)
     {
         if (this == &tree)
@@ -217,18 +240,27 @@ namespace Engine
         copy_tree(_M_head, tree._M_head, nullptr);
     }
 
+    TEMPLATE
+    Octree<Type>& Octree<Type>::operator=(Octree&& tree)
+    {
+        if (this == &tree)
+            return *this;
+
+        _M_head = std::move(tree._M_head);
+        tree._M_head = nullptr;
+        return *this;
+    }
+
     // Recursive copy
-    template<typename Type>
+    TEMPLATE
     void Octree<Type>::copy_tree(Node*& to, Node* node, Node* prev)
     {
-        to = new Node;
-        to->_M_box = node->_M_box;
-        to->_M_prev = prev;
+        to = new_node(prev, node->_M_box);
         to->_M_objects = node->_M_objects;
         for (int i = 0; i < 8; i++) copy_tree(to->_M_parts[i], node->_M_parts[i], to);
     }
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>& Octree<Type>::clear()
     {
         if (_M_head)
@@ -238,11 +270,35 @@ namespace Engine
     }
 
 
-    template<typename Type>
+    TEMPLATE
     Octree<Type>::~Octree()
     {
         if (_M_head)
+        {
             delete _M_head;
+        }
     }
 
+    TEMPLATE
+    typename Octree<Type>::Node* Octree<Type>::new_node(Octree<Type>::Node* prev, const AABB_3D& box)
+    {
+        DEBUG_CODE(_M_alloc_count++);
+        Node* node = new Node;
+        node->_M_prev = prev;
+        node->_M_tree = this;
+        node->_M_box = box;
+        return node;
+    }
+
+
+    DEBUG_CODE(TEMPLATE std::size_t Octree<Type>::alloc_count() const { return _M_alloc_count; });
+    DEBUG_CODE(TEMPLATE std::size_t Octree<Type>::dealloc_count() const { return _M_dealloc_count; });
+
+    TEMPLATE
+    std::size_t Octree<Type>::depth() const
+    {
+        return _M_head ? _M_head->depth() : 0;
+    }
 }// namespace Engine
+
+#undef TEMPLATE

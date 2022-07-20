@@ -519,29 +519,35 @@ void box_check(AABB_3D& box)
             std::swap(box.min[i], box.max[i]);
 }
 
-void test_octree(int num = 1000)
+void test_octree(int num = 9999999, float limit = 100)
 {
     srand(time(NULL));
     std::clog << "OCTREE TESTING" << std::endl;
     std::list<AABB_3D> boxes;
+    std::clog << "BOXES" << std::endl;
     for (int i = 0; i < num; i++)
     {
-        boxes.push_back({{rand_float(-999999, 999999), rand_float(-999999, 999999), rand_float(-999999, 999999)},
-                         {rand_float(-999999, 999999), rand_float(-999999, 999999), rand_float(-999999, 999999)}});
+        boxes.push_back({{rand_float(-limit, limit), rand_float(-limit, limit), rand_float(-limit, limit)},
+                         {rand_float(-limit, limit), rand_float(-limit, limit), rand_float(-limit, limit)}});
         box_check(boxes.back());
+        //std::clog << boxes.back().min << " " << boxes.back().max << std::endl;
     }
 
     Engine::Octree<int> tree;
+
     std::clog << "START TESTING" << std::endl;
     auto begin = std::chrono::steady_clock::now();
+
     for (auto& box : boxes) tree.push(0, box);
     auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
     std::clog << "Octree generation time: " << time << " milliseconds" << std::endl;
     std::clog << "Added " << num << " objects" << std::endl;
     auto a = tree.aabb();
-
-
     std::clog << "Octree aabb: " << a.min << "\t" << a.max << std::endl;
+    std::clog << "Tree depth: " << tree.depth() << std::endl;
+    tree.clear();
+    DEBUG_CODE(std::clog << "Alloc count: " << tree.alloc_count() << std::endl);
+    DEBUG_CODE(std::clog << "Dealloc count: " << tree.dealloc_count() << std::endl);
 }
 
 int main()
