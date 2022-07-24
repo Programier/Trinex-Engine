@@ -545,9 +545,14 @@ void test_octree(int num = 1000000, float limit = 100)
     auto a = tree.aabb();
     std::clog << "Octree aabb: " << a.min << "\t" << a.max << std::endl;
     std::clog << "Tree depth: " << tree.depth() << std::endl;
+    std::clog << "Nodes count before clear: " << tree.nodes_count() << std::endl;
     tree.clear();
+    std::clog << "Nodes count after clear: " << tree.nodes_count() << std::endl;
     DEBUG_CODE(std::clog << "Alloc count: " << tree.alloc_count() << std::endl);
     DEBUG_CODE(std::clog << "Dealloc count: " << tree.dealloc_count() << std::endl);
+
+
+    // Test 2
 }
 
 int main()
