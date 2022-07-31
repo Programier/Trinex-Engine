@@ -8,6 +8,14 @@
 
 namespace Engine
 {
+
+#define MOVE_METHODS(Obj)                                                                                                   \
+    Obj() = default;                                                                                                        \
+    Obj(const Obj&) = default;                                                                                              \
+    Obj(Obj&&) = default;                                                                                                   \
+    Obj& operator=(const Obj&) = default;                                                                                   \
+    Obj& operator=(Obj&&) = default;
+
     class ModelMatrix
     {
     protected:
@@ -31,6 +39,7 @@ namespace Engine
         const glm::mat4& scale_matrix() const;
         const glm::mat4& translate_matrix() const;
         glm::mat4 model() const;
+        MOVE_METHODS(ModelMatrix);
     };
 
 
@@ -58,6 +67,7 @@ namespace Engine
 
 
         Translate& link_to(Translate& obj);
+        MOVE_METHODS(Translate);
         ~Translate();
     };
 
@@ -72,6 +82,7 @@ namespace Engine
         Scale& scale(const Scale3D& sc, const bool& add_values = true);
         Scale& scale(const Scale1D& x, const Scale1D& y, const Scale1D& z, const bool& add_values = true);
         Scale& link_to(Scale& obj);
+        MOVE_METHODS(Scale);
     };
 
 
@@ -99,12 +110,16 @@ namespace Engine
         const Vector3D& up_vector() const;
 
         Rotate& link_to(Rotate& obj);
+        MOVE_METHODS(Rotate);
     };
 
 
     template<typename... BaseClasses>
     class BasicObject : public BaseClasses...
     {
+
     };
+
+#undef MOVE_METHODS
 
 }// namespace Engine

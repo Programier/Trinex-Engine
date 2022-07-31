@@ -6,7 +6,7 @@ namespace Engine
     class ReturnFunctionWrapper
     {
     private:
-        Out (*_M_function)(Args...);
+        Out (*_M_function)(Args...) = nullptr;
 
     public:
         ReturnFunctionWrapper(Out (*function)(Args...)) : _M_function(function)

@@ -57,6 +57,26 @@ namespace Engine
         return *this;
     }
 
+    Mesh::Mesh(Mesh&& mesh)
+    {
+        *this = std::move(mesh);
+    }
+
+    Mesh& Mesh::operator=(Mesh&& mesh)
+    {
+        if (this == &mesh)
+            return *this;
+
+        delete_vbo_vao();
+
+        _M_data = std::move(mesh._M_data);
+        _M_VAO = mesh._M_VAO, _M_VBO = mesh._M_VBO;
+        _M_vertices = mesh._M_vertices;
+        _M_attrib = std::move(mesh._M_attrib);
+        mesh._M_VAO = mesh._M_VBO = mesh._M_vertices = 0;
+        return *this;
+    }
+
     Mesh& Mesh::load(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes)
     {
         delete_vbo_vao();

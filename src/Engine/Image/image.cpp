@@ -8,6 +8,17 @@
 namespace Engine
 {
 
+    void Image::delete_image()
+    {
+        if (_M_glfw_image)
+        {
+            delete static_cast<GLFWimage*>(_M_glfw_image);
+            _M_glfw_image = nullptr;
+        }
+
+        _M_height = 0, _M_width = 0, _M_channels = 0;
+    }
+
     bool Image::empty()
     {
         return _M_data.empty() || _M_channels == 0 || _M_width == 0 || _M_height == 0;
@@ -178,13 +189,13 @@ namespace Engine
 
     Image::~Image()
     {
-        delete static_cast<GLFWimage*>(_M_glfw_image);
-        _M_glfw_image = nullptr;
+        delete_image();
     }
 
 
     //          IMAGE ROW
-    Image::ImageRow::ImageRow(unsigned char* data, int length, int channels) : _M_data(data), _M_length(length), _M_channels(channels)
+    Image::ImageRow::ImageRow(unsigned char* data, int length, int channels)
+        : _M_data(data), _M_length(length), _M_channels(channels)
     {}
 
     Image::ImageRow::Pixel Image::ImageRow::operator[](int index)
@@ -259,7 +270,8 @@ namespace Engine
 
         image._M_data.reserve(image._M_width * image._M_height * _M_channels);
 
-        int start_index = (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) + static_cast<int>(begin.x + 0.5) * _M_channels;
+        int start_index =
+                (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) + static_cast<int>(begin.x + 0.5) * _M_channels;
         for (int i = 0; i < image._M_height; i++)
         {
             image._M_data.insert(image.end(), _M_data.begin() + start_index,
@@ -270,6 +282,28 @@ namespace Engine
         image.configure();
 
         return image;
+    }
+
+    Image::Image(Image&& img)
+    {
+        *this = std::move(img);
+    }
+
+    Image& Image::operator=(Image&& img)
+    {
+        if (this == &img)
+            return *this;
+
+        delete_image();
+        _M_data = std::move(img._M_data);
+        _M_channels = img._M_channels;
+        _M_width = img._M_width;
+        _M_height = img._M_height;
+        _M_glfw_image = img._M_glfw_image;
+
+        img._M_channels = img._M_height = img._M_width = 0;
+        img._M_glfw_image = nullptr;
+        return *this;
     }
 
 

@@ -88,6 +88,24 @@ namespace Engine
         load(vertex_path, fragment_path);
     }
 
+
+    Shader::Shader(Shader&& sh)
+    {
+        *this = std::move(sh);
+    }
+
+    Shader& Shader::operator=(Shader&& sh)
+    {
+        if (this == &sh)
+            return *this;
+        delete_shaders();
+        _M_id = sh._M_id;
+        _M_done = sh._M_done;
+        sh._M_id = 0;
+        sh._M_done = false;
+        return *this;
+    }
+
     const Shader& Shader::use() const
     {
         if (_M_done)

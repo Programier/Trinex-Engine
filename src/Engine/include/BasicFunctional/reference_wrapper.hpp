@@ -40,6 +40,9 @@ namespace Engine
             return *this;
         }
 
+        ReferenceWrapper(ReferenceWrapper&&) = default;
+        ReferenceWrapper& operator = (ReferenceWrapper&&) = default;
+
         Type& get() const
         {
             if (_M_value.get() == nullptr)

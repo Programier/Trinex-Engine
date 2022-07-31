@@ -13,6 +13,7 @@ namespace Engine
         int _M_height = 0, _M_width = 0, _M_channels = 0;
         void* _M_glfw_image = nullptr;
         void configure();
+        void delete_image();
 
     public:
         class ImageRow
@@ -47,6 +48,9 @@ namespace Engine
         Image(const std::string& path, const bool& invert_horizontal = false);
         Image(const Image&);
         Image& operator=(const Image&);
+        Image(Image&&);
+        Image& operator=(Image&&);
+
         const byte* data() const;
         Size1D width() const;
         Size1D height() const;

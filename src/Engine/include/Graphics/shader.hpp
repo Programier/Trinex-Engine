@@ -17,6 +17,8 @@ namespace Engine
         Shader();
         Shader(const std::string& vertex, const std::string& fragment);
         Shader(const std::string& compute);
+        Shader(Shader&&);
+        Shader& operator =(Shader&&);
         Shader& load(const std::string& vertex, const std::string& fragment);
         Shader& load(const std::string& compute);
         Shader(const Shader&) = delete;

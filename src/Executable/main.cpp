@@ -557,7 +557,7 @@ void test_octree(int num = 1000000, float limit = 100)
 
 int main()
 {
-    //    Engine::init();
-    //    Program p;
+    Engine::init();
+    Program p;
     DEBUG_CODE(test_octree());
 }

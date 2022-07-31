@@ -95,6 +95,8 @@ namespace Engine
         DynamicArray(const std::initializer_list<ArrayType>& array);
         DynamicArray(ArrayType* data, std::size_t size, bool delete_memory = false);
         DynamicArray(const DynamicArray& array, bool copy = false);
+        DynamicArray(const DynamicArray&&);
+        DynamicArray& operator = (DynamicArray&&);
 
         INPUT_ITERATOR DynamicArray(InputIterator first, InputIterator last);
 
@@ -336,7 +338,7 @@ namespace Engine
         _M_data = _M_base;
         _M_size = array.size();
         _M_capacity = _M_size;
-        std::copy(array.begin(), array.end(), _M_data.get());
+        std::move(array.begin(), array.end(), _M_data.get());
     }
 
     TEMPLATE INPUT_ITERATOR DynamicArray<ArrayType>::DynamicArray(InputIterator first, const InputIterator last)
@@ -465,7 +467,7 @@ namespace Engine
             make_capacity(_M_capacity);
             Pointer new_data(new ArrayType[_M_capacity], delete_array<ArrayType>);
             if (_M_size != 0)
-                std::copy(_M_data.get(), _M_data.get() + _M_size, new_data.get());
+                std::move(_M_data.get(), _M_data.get() + _M_size, new_data.get());
             _M_need_realloc = false;
             _M_data = _M_base = new_data;
         }
@@ -481,7 +483,7 @@ namespace Engine
             make_capacity(_M_capacity);
             Pointer new_data(new ArrayType[_M_capacity], delete_array<ArrayType>);
             if (_M_size != 0)
-                std::copy(_M_data.get(), _M_data.get() + _M_size - 1, new_data.get());
+                std::move(_M_data.get(), _M_data.get() + _M_size - 1, new_data.get());
             _M_need_realloc = false;
             _M_data = _M_base = new_data;
         }
@@ -498,15 +500,15 @@ namespace Engine
             _M_capacity = _M_size + 1;
             make_capacity(_M_capacity);
             Pointer new_data(new ArrayType[_M_capacity], delete_array<ArrayType>);
-            std::copy(_M_data.get(), _M_data.get() + to._M_index, new_data.get());
-            std::copy(_M_data.get() + to._M_index, _M_data.get() + _M_size, new_data.get() + to._M_index + 1);
+            std::move(_M_data.get(), _M_data.get() + to._M_index, new_data.get());
+            std::move(_M_data.get() + to._M_index, _M_data.get() + _M_size, new_data.get() + to._M_index + 1);
             new_data.get()[to._M_index] = value;
             _M_need_realloc = false;
             _M_data = _M_base = new_data;
         }
         else
         {
-            std::copy(_M_data.get() + to._M_index, _M_data.get() + _M_size, _M_data.get() + to._M_index + 1);
+            std::move(_M_data.get() + to._M_index, _M_data.get() + _M_size, _M_data.get() + to._M_index + 1);
             _M_data.get()[to._M_index] = value;
         }
         _M_size++;
@@ -528,15 +530,15 @@ namespace Engine
             _M_capacity = _M_size + diff_size;
             make_capacity(_M_capacity);
             Pointer new_data(new ArrayType[_M_capacity], delete_array<ArrayType>);
-            std::copy(_M_data.get(), _M_data.get() + to._M_index, new_data.get());
+            std::move(_M_data.get(), _M_data.get() + to._M_index, new_data.get());
             std::copy(first, last, new_data.get() + to._M_index);
-            std::copy(_M_data.get() + to._M_index, _M_data.get() + _M_size, new_data.get() + to._M_index + diff_size);
+            std::move(_M_data.get() + to._M_index, _M_data.get() + _M_size, new_data.get() + to._M_index + diff_size);
             _M_need_realloc = false;
             _M_data = _M_base = new_data;
         }
         else
         {
-            std::copy(_M_data.get() + to._M_index, _M_data.get() + _M_size, _M_data.get() + to._M_index + diff_size);
+            std::move(_M_data.get() + to._M_index, _M_data.get() + _M_size, _M_data.get() + to._M_index + diff_size);
             std::copy(first, last, _M_data.get() + to._M_index);
         }
         _M_size += diff_size;
@@ -553,13 +555,13 @@ namespace Engine
             _M_capacity = _M_size - 1;
             make_capacity(_M_capacity);
             Pointer new_data(new ArrayType[_M_capacity], delete_array<ArrayType>);
-            std::copy(_M_data.get(), _M_data.get() + it._M_index, new_data.get());
-            std::copy(_M_data.get() + it._M_index + 1, _M_data.get() + _M_size, new_data.get() + it._M_index);
+            std::move(_M_data.get(), _M_data.get() + it._M_index, new_data.get());
+            std::move(_M_data.get() + it._M_index + 1, _M_data.get() + _M_size, new_data.get() + it._M_index);
             _M_data = _M_base = new_data;
             _M_need_realloc = false;
         }
         else
-            std::copy(_M_data.get() + it._M_index + 1, _M_data.get() + _M_size, _M_data.get() + it._M_index);
+            std::move(_M_data.get() + it._M_index + 1, _M_data.get() + _M_size, _M_data.get() + it._M_index);
 
 
         _M_size--;
@@ -579,13 +581,13 @@ namespace Engine
             _M_capacity = _M_size - diff;
             make_capacity(_M_capacity);
             Pointer new_data(new ArrayType[_M_capacity], delete_array<ArrayType>);
-            std::copy(_M_data.get(), _M_data.get() + first._M_index, new_data.get());
-            std::copy(_M_data.get() + last._M_index, _M_data.get() + _M_size, new_data.get() + first._M_index);
+            std::move(_M_data.get(), _M_data.get() + first._M_index, new_data.get());
+            std::move(_M_data.get() + last._M_index, _M_data.get() + _M_size, new_data.get() + first._M_index);
             _M_data = _M_base = new_data;
             _M_need_realloc = false;
         }
         else
-            std::copy(_M_data.get() + last._M_index, _M_data.get() + _M_size, _M_data.get() + first._M_index);
+            std::move(_M_data.get() + last._M_index, _M_data.get() + _M_size, _M_data.get() + first._M_index);
 
 
         _M_size -= diff;
@@ -635,7 +637,7 @@ namespace Engine
         make_capacity(_capacity);
         Pointer new_data(new ArrayType[_capacity], delete_array<ArrayType>);
         //std::copy(this->, new_size > _M_size ? this->end() : this->begin() + new_size, iterator(new_data, new_data, new_size, 0));
-        std::copy(_M_data.get(), _M_data.get() + std::min(new_size, _M_size), new_data.get());
+        std::move(_M_data.get(), _M_data.get() + std::min(new_size, _M_size), new_data.get());
         _M_size = new_size;
         _M_capacity = _capacity;
         _M_base = _M_data = new_data;
@@ -649,7 +651,7 @@ namespace Engine
             return *this;
 
         Pointer ptr(new ArrayType[new_capacity], delete_array<ArrayType>);
-        std::copy(begin(), end(), ptr.get());
+        std::move(begin(), end(), ptr.get());
         _M_capacity = new_capacity;
         _M_data = _M_base = ptr;
     }
@@ -675,6 +677,29 @@ namespace Engine
     {
         _M_check_size();
         return _M_data.get()[index % (_M_size + 1)];
+    }
+
+    TEMPLATE
+    DynamicArray<ArrayType>::DynamicArray(const DynamicArray&&)
+    {
+
+    }
+
+    TEMPLATE
+    DynamicArray<ArrayType>& DynamicArray<ArrayType>::operator = (DynamicArray&& array)
+    {
+        if(this == &array)
+            return *this;
+
+        _M_base = std::move(array._M_base);
+        _M_data = std::move(array._M_data);
+        _M_size = array._M_size;
+        array._M_size = 0;
+        _M_capacity = array._M_capacity;
+        _M_need_realloc = array._M_need_realloc;
+        array._M_capacity = 0;
+        array._M_need_realloc = false;
+        return *this;
     }
 
     TEMPLATE template<template<class, class...> class Container, typename... Args, typename _>

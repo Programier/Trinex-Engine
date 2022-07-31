@@ -181,7 +181,6 @@ namespace Engine
     float Line::line_width()
     {
         return _M_line_width;
-        ;
     }
 
     Line& Line::line_width(const float& width)
@@ -189,4 +188,7 @@ namespace Engine
         _M_line_width = width;
         return *this;
     }
+
+    Line::Line(Line&& line) = default;
+    Line& Line::operator=(Line&& line) = default;
 }// namespace Engine

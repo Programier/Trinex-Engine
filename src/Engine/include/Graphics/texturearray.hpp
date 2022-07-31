@@ -29,6 +29,9 @@ namespace Engine
                      const MipMapLevel& mipmap = 4, const bool& invert = true);
         TextureArray& operator=(const TextureArray&);
 
+        TextureArray(TextureArray&&);
+        TextureArray& operator = (TextureArray&&);
+
         TextureArray& load(const std::vector<std::string>& textures, const DrawMode& mode = Engine::DrawMode::NEAREST,
                            const MipMapLevel& mipmap = 4, const bool& invert = true);
         TextureArray& load(const std::list<std::string>& textures, const DrawMode& mode = Engine::DrawMode::NEAREST,

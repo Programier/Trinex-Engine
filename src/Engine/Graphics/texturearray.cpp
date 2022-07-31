@@ -55,8 +55,36 @@ namespace Engine
         return *this;
     }
 
-    TextureArray& TextureArray::load(const std::vector<std::string>& textures, const DrawMode& mode, const unsigned int& mipmap,
-                                     const bool& invert)
+    TextureArray::TextureArray(TextureArray&& array)
+    {
+        *this = std::move(array);
+    }
+
+    TextureArray& TextureArray::operator=(TextureArray&& array)
+    {
+        if (this == &array)
+            return *this;
+
+        if (_M_ID != 0)
+            glDeleteTextures(1, &_M_ID);
+
+        _M_ID = array._M_ID;
+        _M_mipmap = array._M_mipmap;
+        _M_images = std::move(array._M_images);
+        _M_max_size = array._M_max_size;
+        _M_mode = array._M_mode;
+
+
+        array._M_ID = 0;
+        array._M_mipmap = 0;
+        array._M_max_size = Size2D();
+        array._M_mode = DrawMode();
+
+        return *this;
+    }
+
+    TextureArray& TextureArray::load(const std::vector<std::string>& textures, const DrawMode& mode,
+                                     const unsigned int& mipmap, const bool& invert)
     {
         _M_mipmap = mipmap;
         if (textures.size() == 0)
@@ -91,8 +119,8 @@ namespace Engine
         return *this;
     }
 
-    TextureArray& TextureArray::load(const std::list<std::string>& textures, const DrawMode& mode, const unsigned int& mipmap,
-                                     const bool& invert)
+    TextureArray& TextureArray::load(const std::list<std::string>& textures, const DrawMode& mode,
+                                     const unsigned int& mipmap, const bool& invert)
     {
         if (textures.size() == 0)
             return *this;
