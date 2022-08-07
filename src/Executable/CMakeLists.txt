@@ -1,10 +1,13 @@
-include_directories("../Engine/include/")
-include_directories("../Engine/libs/glew/include/")
+include_directories("${ENGINE_ROOT}/include/")
+include_directories("${ENGINE_ROOT}/libs/glew/include/")
 if (WIN32)
-    include_directories("../Engine/libs/include/")
-    link_directories("../Engine/libs")
+    include_directories("${ENGINE_ROOT}/libs/include/")
+    link_directories("${ENGINE_ROOT}/libs")
 endif()
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_ROOT}/build)
-add_executable(Engine3D_RUN main.cpp)
-target_link_libraries(Engine3D_RUN Engine)
+set(EXECUTABLE_NAME ${PROJECT_NAME})
+
+add_executable(${EXECUTABLE_NAME} main.cpp)
+target_link_libraries(${EXECUTABLE_NAME} Engine)
+
+install(TARGETS ${EXECUTABLE_NAME} Engine DESTINATION "./")

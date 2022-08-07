@@ -21,5 +21,5 @@
 ```
 
 ## Run
-1. Run executable file PROJECT_SOURCE/build/Engine3D_RUN
+1. Run executable file PROJECT_SOURCE/Exec/Engine3D_RUN
 

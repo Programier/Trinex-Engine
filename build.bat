@@ -7,9 +7,5 @@ if exist "./build" (
 mkdir build
 cd build 
 cmake .. -G "MinGW Makefiles"
-mingw32-make -j%NUMBER_OF_PROCESSOR%
-
-for /r "..\src\Engine\" %%x in (*.dll) do copy "%%x" ".\"
-for /r "src\Engine\" %%x in (*.dll) do copy "%%x" ".\"
-
+mingw32-make install -j%NUMBER_OF_PROCESSOR%
 pause

@@ -11,6 +11,5 @@ fi
 
 mkdir $DIR/build
 cd $DIR/build
-cmake ..
-make install -j$(nproc)
-
+mingw64-cmake ..
+mingw64-make install -j$(nproc)

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(Engine3D_RUN LANGUAGES CXX)
 
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,8 +9,17 @@ include(compilerFlags)
 
 set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SOURCES_ROOT ${PROJECT_ROOT}/src)
+set(CMAKE_INSTALL_PREFIX ${PROJECT_ROOT}/Exec/)
+set(ENGINE_ROOT ${SOURCES_ROOT}/Engine/)
 
-file(COPY ${PROJECT_ROOT}/resources DESTINATION ${PROJECT_ROOT}/build/)
-file(COPY ${SOURCES_ROOT}/Shaders DESTINATION ${PROJECT_ROOT}/build/)
+set(COMPILE_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${COMPILE_DIR})
+set(LIBRARY_OUTPUT_PATH ${COMPILE_DIR})
+
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_ROOT}/resources ${COMPILE_DIR}/resources)
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_ROOT}/src/Shaders ${COMPILE_DIR}/Shaders)
 
 add_subdirectory(src)
+
+install(DIRECTORY ${PROJECT_ROOT}/resources DESTINATION "./")
+install(DIRECTORY ${PROJECT_ROOT}/src/Shaders DESTINATION "./")
