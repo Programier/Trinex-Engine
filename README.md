@@ -6,7 +6,7 @@
 
 ### Linux
 1. Clone or download the repository in a directory
-2. Install libraries: ```glfw3 GL glew assimp cmake g++```
+2. Install libraries: ```assimp cmake g++```
 3. Open terminal in source forder and start compilation
 ```cmd
     ./build.sh
