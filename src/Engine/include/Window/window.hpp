@@ -6,6 +6,10 @@
 #include <string>
 #include <vector>
 
+
+
+
+
 namespace Engine
 {
 
@@ -33,21 +37,20 @@ namespace Engine
 
             static const Window& poll_events();
             static const Window& wait_for_events();
-            static float diff_time();
-            static float time();
+            static std::size_t diff_time();
+            static std::size_t time();
             static KeyStatus get_key_status(const Key& key);
             static bool pressed(const Key& key);
         } event;
 
-        struct Callbacks
-        {
+        struct Callbacks {
             static std::function<void(const Size2D&)>& resize_callback();
             static std::function<void(const Point2D&)>& position_callback();
         } callbacks;
 
         // Window struct methods
-        static const Window& init(float width, float height, const std::string& title = "", bool rezisable = true);
-        static const Window& init(const Size2D& size, const std::string& title = "", bool rezisable = true);
+        static const Window& init(float width, float height, const std::string& title = "", uint16_t attrib = 0);
+        static const Window& init(const Size2D& size, const std::string& title = "", uint16_t attrib = 0);
         static const Window& close();
         static bool is_open();
         static const Window& swap_buffers();
@@ -99,7 +102,6 @@ namespace Engine
         static float opacity();
 
         static bool center_cursor();
-        static const Window& center_cursor(bool value);
 
         static const Window& size_limits(const SizeLimits2D& limits);
         static const SizeLimits2D& size_limits();
@@ -117,21 +119,25 @@ namespace Engine
         static const Window& attribute(const WindowAttrib& attrib, bool value);
         static bool attribute(const WindowAttrib& attrib);
 
-        static const WindowMode& mode();
-        static const Window& mode(const WindowMode& mode, const Size2D& size = {-1, -1});
-
         static const Window& cursor_mode(const CursorMode& mode);
         static const CursorMode& cursor_mode();
 
         static const Window& bind();
         static const Window& update_view_port();
 
+        static const Window& X11_compositing(bool value);
+
+        static void* SDL();
+        static void *SDL_OpenGL_context();
+
+        static std::vector<void(*)(void*)>& event_callbacks();
+
 
         // Constructors
 
         Window();
-        Window(float width, float height, const std::string& title = "", bool rezisable = true);
-        Window(const Size2D& size, const std::string& title = "", bool rezisable = true);
+        Window(float width, float height, const std::string& title = "", uint16_t attrib = 0);
+        Window(const Size2D& size, const std::string& title = "", uint16_t attrib = 0);
         Window(const Window& window);
         Window& operator=(const Window& window);
         ~Window();

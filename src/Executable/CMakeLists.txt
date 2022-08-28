@@ -5,9 +5,9 @@ if (WIN32)
     link_directories("${ENGINE_ROOT}/libs")
 endif()
 
-set(EXECUTABLE_NAME ${PROJECT_NAME})
 
-add_executable(${EXECUTABLE_NAME} main.cpp)
-target_link_libraries(${EXECUTABLE_NAME} Engine)
 
-install(TARGETS ${EXECUTABLE_NAME} Engine DESTINATION "./")
+add_executable(${OUTPUT_BIN} main.cpp application_debug.cpp GUI.cpp Application.cpp)
+target_link_libraries(${OUTPUT_BIN} Engine ImGUI)
+
+install(TARGETS ${OUTPUT_BIN} Engine DESTINATION "./")

@@ -97,34 +97,39 @@ namespace Engine
         Vulkan = 1
     };
 
-    enum class WindowMode
-    {
-        NONE,
-        WIN_FULLSCREEN,
-        FULLSCREEN
-    };
-
     typedef glm::vec<2, int, glm::defaultp> AspectRation;
 
-    enum class WindowAttrib : unsigned int
+    enum WindowAttrib : uint16_t
     {
-        RESIZABLE,
-        VISIBLE,
-        DECORATED,
-        FOCUSED,
-        AUTO_ICONIFY,
-        FLOATING,
-        MAXIMIZED,
-        CENTER_CURSOR,
-        TRANSPARENT_FRAMEBUFFER,
-        FOCUS_ON_SHOW,
-        SCALE_TO_MONITOR,
+        WIN_NONE = 0,
+        WIN_RESIZABLE = 1,
+        WIN_FULLSCREEN = 2,
+        WIN_FULLSCREEN_DESKTOP = 4,
+        WIN_SHOWN = 8,
+        WIN_HIDDEN = 16,
+        WIN_BORDERLESS = 32,
+        WIN_MOUSE_FOCUS = 64,
+        WIN_INPUT_FOCUS = 128,
+        WIN_INPUT_GRABBED = 256,
+        WIN_MINIMIZED = 512,
+        WIN_MAXIMIZED = 1024,
+        WIN_TRANSPARENT_FRAMEBUFFER = 2048,
+        WIN_MOUSE_CAPTURE = 4096,
+        WIN_ALLOW_HIGHDPI = 8192,
+        WIN_MOUSE_GRABBED = 16384,
+        WIN_KEYBOARD_GRABBED = 32768
     };
 
     enum class CursorMode
     {
         NORMAL,
-        DISABLED,
         HIDDEN
+    };
+
+
+    struct OpenGL_Version_S
+    {
+        int major;
+        int minor;
     };
 }// namespace Engine

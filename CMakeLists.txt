@@ -1,25 +1,28 @@
 cmake_minimum_required(VERSION 3.5)
-project(Engine3D_RUN LANGUAGES CXX)
+project(Engine3D_Game LANGUAGES CXX)
 
+
+set(OUTPUT_BIN Engine3D_Game)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(compilerFlags)
 
-set(PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-set(SOURCES_ROOT ${PROJECT_ROOT}/src)
-set(CMAKE_INSTALL_PREFIX ${PROJECT_ROOT}/Exec/)
-set(ENGINE_ROOT ${SOURCES_ROOT}/Engine/)
+set(GAME_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(GAME_SOURCES_ROOT ${GAME_PROJECT_ROOT}/src)
+set(GAME_CMAKE_INSTALL_PREFIX ${GAME_PROJECT_ROOT}/Exec/)
+set(GAME_ENGINE_ROOT ${GAME_SOURCES_ROOT}/Engine/)
 
-set(COMPILE_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(GAME_COMPILE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${COMPILE_DIR})
 set(LIBRARY_OUTPUT_PATH ${COMPILE_DIR})
 
-execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_ROOT}/resources ${COMPILE_DIR}/resources)
-execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_ROOT}/src/Shaders ${COMPILE_DIR}/Shaders)
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${GAME_COMPILE_DIR}/resources)
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/src/Shaders ${GAME_COMPILE_DIR}/Shaders)
 
 add_subdirectory(src)
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")
 
-install(DIRECTORY ${PROJECT_ROOT}/resources DESTINATION "./")
-install(DIRECTORY ${PROJECT_ROOT}/src/Shaders DESTINATION "./")
+install(DIRECTORY ${GAME_PROJECT_ROOT}/resources DESTINATION "./")
+install(DIRECTORY ${GAME_PROJECT_ROOT}/src/Shaders DESTINATION "./")

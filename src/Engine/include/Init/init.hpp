@@ -13,9 +13,10 @@ namespace Engine
         Size1D width();
         int refresh_rate();
         Size2D size();
+        void update();
+    }// namespace
 
-    }// namespace Monitor
-
+    extern OpenGL_Version_S OpenGL_Ver;
     void init(const EngineAPI& API = EngineAPI::OpenGL);
     const EngineAPI& API();
     void except_init_check();

@@ -1,0 +1,6 @@
+[submodule "src/Engine/libs/SDL"]
+	path = src/Engine/libs/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/Engine/libs/assimp"]
+	path = src/Engine/libs/assimp
+	url = https://github.com/assimp/assimp.git

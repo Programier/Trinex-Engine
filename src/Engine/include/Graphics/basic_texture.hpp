@@ -8,8 +8,6 @@ namespace Engine
 {
     enum class TextureType
     {
-        Texture_1D,
-        Texture_1D_Array,
         Texture_2D,
         Texture_2D_Array,
         Texture_2D_MultiSample,
@@ -17,7 +15,6 @@ namespace Engine
         Texture_3D,
         Texture_CubeMap,
         Texture_CubeMapArray,
-        Texture_Rectangle
     };
 
     enum class TextureParameter
@@ -26,7 +23,6 @@ namespace Engine
         Texture_Base_Level,
         Texture_Compare_Func,
         Texture_Compare_Mode,
-        Texture_Lod_Bias,
         Texture_Min_Filter,
         Texture_Mag_Filter,
         Texture_Min_Lod,

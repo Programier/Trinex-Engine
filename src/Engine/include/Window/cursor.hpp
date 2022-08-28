@@ -10,9 +10,10 @@ namespace Engine
         SmartPointer<Image> _M_image = nullptr;;
         int _M_x_hotspot;
         int _M_y_hotspot;
-        SmartPointer<void> _M_glfw_cursor;
+        SmartPointer<void> _M_SDL_cursor;
+        SmartPointer<void> _M_SDL_surface;
 
-        void update_cursor();
+        void update_cursor(bool only_cursor = false);
 
     public:
         Cursor();
@@ -29,7 +30,7 @@ namespace Engine
         const Image& image() const;
         Cursor& image(const Image&);
 
-        void* glfw_cursor() const;
+        void* sdl_cursor() const;
         ~Cursor();
     };
 

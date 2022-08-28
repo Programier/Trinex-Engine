@@ -3,18 +3,18 @@
 #include <string>
 namespace Engine
 {
-    enum KeyStatus
+    enum class KeyStatus : unsigned int
     {
+        RELEASED = 0,
         JUST_RELEASED,
-        RELEASED,
         JUST_PRESSED,
         PRESSED,
         REPEAT
     };
 
-    enum Key
+    enum Key : unsigned int
     {
-        KEY_UNKNOWN,
+        KEY_UNKNOWN = 0,
         KEY_SPACE,
         KEY_APOSTROPHE,
         KEY_COMMA,
@@ -63,8 +63,7 @@ namespace Engine
         KEY_BACKSLASH,
         KEY_RIGHT_BRACKET,
         KEY_GRAVE_ACCENT,
-        KEY_WORLD_1,
-        KEY_WORLD_2,
+        KEY_WWW,
 
         /* Function keys */
         KEY_ESCAPE,
@@ -110,7 +109,6 @@ namespace Engine
         KEY_F22,
         KEY_F23,
         KEY_F24,
-        KEY_F25,
         KEY_KP_0,
         KEY_KP_1,
         KEY_KP_2,
@@ -139,20 +137,13 @@ namespace Engine
         KEY_MENU,
 
         // Mouse Keys
-        MOUSE_BUTTON_1,
-        MOUSE_BUTTON_2,
-        MOUSE_BUTTON_3,
-        MOUSE_BUTTON_4,
-        MOUSE_BUTTON_5,
-        MOUSE_BUTTON_6,
-        MOUSE_BUTTON_7,
-        MOUSE_BUTTON_8,
         MOUSE_BUTTON_LEFT,
         MOUSE_BUTTON_RIGHT,
         MOUSE_BUTTON_MIDDLE
     };
-    int to_glfw_key(const Key& key);
+    int to_SDL_scancode(const Key& key);
     Key to_key(int);
     const std::string& get_key_name(const Key& key);
     std::ostream& operator<<(std::ostream& stream, const KeyStatus& status);
+    unsigned int key_count();
 }// namespace Engine

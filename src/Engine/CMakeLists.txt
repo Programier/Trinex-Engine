@@ -1,63 +1,73 @@
 set(BUILD_SHARED_LIBS off)
 
-add_subdirectory("./libs/freetype/" EXCLUDE_FROM_ALL)
-add_subdirectory("./libs/glfw3/" EXCLUDE_FROM_ALL)
-add_subdirectory("./libs/glew/build/cmake" EXCLUDE_FROM_ALL)
-include_directories("./libs/glew/include/")
-include_directories("./EngineHeaders/")
+project(Engine3D_RUN LANGUAGES CXX)
 
-if(WIN32)
-    set(LIBS_DIR "./libs/")
-    link_directories(${LIBS_DIR})
-    include_directories("./libs/include/")
-    set(OPENGL opengl32)
-    set(ASSIMP assimp-5)
-    file(COPY ${LIBS_DIR}/lib${ASSIMP}.dll DESTINATION ${LIBRARY_OUTPUT_PATH})
-    install(FILES ${LIBS_DIR}/lib${ASSIMP}.dll DESTINATION "./")
-    set(WIN_NET ws2_32)
-else()
-    set(OPENGL GL)
-    set(ASSIMP assimp)
+#Compile parameters
+set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(ENGINE_SRC ${ENGINE_ROOT}/src)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
+add_subdirectory("${ENGINE_ROOT}/libs/freetype/" EXCLUDE_FROM_ALL)
+
+if(NOT ANDROID)
+    add_subdirectory("${ENGINE_ROOT}/libs/glew/build/cmake" EXCLUDE_FROM_ALL)
+    include_directories("./libs/glew/include/")
 endif()
 
-set(WINDOW_DIR "./Window/")
-set(IMAGE_DIR "./Image/")
-set(GRAPHICS_DIR "./Graphics/")
-set(PHYSICS_DIR "./Physics/")
-set(INTERNAL_DIR "./InternalFunctions/")
-set(NET_DIR "./net")
+#SDL
+set(SDL_DIR "${ENGINE_ROOT}/libs/SDL")
+add_subdirectory(${SDL_DIR})
+set_target_properties(SDL2-static PROPERTIES COMPILE_OPTIONS "-fPIC")
+include_directories("${SDL_DIR}/include")
 
-set(ENGINE
-           ${WINDOW_DIR}/keyboard.cpp
-           ${WINDOW_DIR}/cursor.cpp
-           ${WINDOW_DIR}/window.cpp
-           ${IMAGE_DIR}/image.cpp
-           ${GRAPHICS_DIR}/shader.cpp
-           ${GRAPHICS_DIR}/basic_framebuffer.cpp
-           ${GRAPHICS_DIR}/basic_texture.cpp
-           ${GRAPHICS_DIR}/enable_param.cpp
-           ${GRAPHICS_DIR}/framebuffer.cpp
-           ${GRAPHICS_DIR}/texture.cpp
-           ${GRAPHICS_DIR}/camera.cpp
-           ${GRAPHICS_DIR}/mesh.cpp
-           ${GRAPHICS_DIR}/texturearray.cpp
-           ${GRAPHICS_DIR}/basic_texturearray.cpp
-           ${GRAPHICS_DIR}/terrainmodel.cpp
-           ${GRAPHICS_DIR}/skybox.cpp
-           ${GRAPHICS_DIR}/line.cpp
-           ${GRAPHICS_DIR}/text.cpp
-           ${GRAPHICS_DIR}/light.cpp
-           ${GRAPHICS_DIR}/object.cpp
-           ${GRAPHICS_DIR}/shader_system.cpp
-           ${GRAPHICS_DIR}/basic_object.cpp
-           ${GRAPHICS_DIR}/scene.cpp
-           ${PHYSICS_DIR}/terrain_collision.cpp
-           ${INTERNAL_DIR}/engine.cpp
-           ${INTERNAL_DIR}/Init.cpp
-           ${INTERNAL_DIR}/model_loader.cpp
-           ${INTERNAL_DIR}/opengl.cpp
-           #[[${NET_DIR}/server/server.cpp]])
+#IMGUI
+add_subdirectory("${ENGINE_ROOT}/libs/ImGUI")
+
+#Assimp
+#set(ENGINE_BUILD_ASSIMP on)
+
+add_subdirectory("${ENGINE_ROOT}/libs/assimp" EXCLUDE_FROM_ALL)
+include_directories("${ENGINE_ROOT}/libs/assimp/include/")
+
+include_directories("${ENGINE_SRC}/EngineHeaders/")
+
+
+
+if(WIN32)
+    set(OPENGL opengl32 glew_s)
+    set(WIN_NET ws2_32)
+elseif(ANDROID)
+    set(OPENGL EGL
+               GLESv2)
+else()
+    set(OPENGL GL glew_s)
+endif()
+
+set(WINDOW_DIR "${ENGINE_SRC}/Window/")
+set(IMAGE_DIR "${ENGINE_SRC}/Image/")
+set(GRAPHICS_DIR "${ENGINE_SRC}/Graphics/")
+set(PHYSICS_DIR "${ENGINE_SRC}/Physics/")
+set(INTERNAL_DIR "${ENGINE_SRC}/InternalFunctions/")
+set(NET_DIR "${ENGINE_SRC}/net")
+
+# Find sources
+
+file(GLOB WINDOW_SRC "${WINDOW_DIR}*.cpp")
+file(GLOB IMAGE_SRC "${IMAGE_DIR}*.cpp")
+file(GLOB GRAPHICS_SRC "${GRAPHICS_DIR}*.cpp")
+file(GLOB PHYSICS_SRC "${PHYSICS_DIR}*.cpp")
+file(GLOB INTERNAL_SRC "${INTERNAL_DIR}*.cpp")
+file(GLOB NET_SRC "${NET_DIR}*.cpp")
+
+set(ENGINE  ${WINDOW_SRC}
+            ${IMAGE_SRC}
+            ${GRAPHICS_SRC}
+            ${PHYSICS_SRC}
+            ${INTERNAL_SRC}
+            #[[${NET_SRC}]])
 
 add_library(Engine SHARED ${ENGINE})
-include_directories("include/")
-target_link_libraries(Engine glfw ${OPENGL} glew_s ${ASSIMP} freetype ${WIN_NET})
+target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>")
+target_link_libraries(Engine SDL2-static ${OPENGL} glew_s assimp freetype ${WIN_NET} ImGUI)

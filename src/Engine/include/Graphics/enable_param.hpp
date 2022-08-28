@@ -7,11 +7,9 @@ namespace Engine
 {
     enum class EnableCap : unsigned int
     {
-        AlphaTest = 0,
-        AutoNormal = 1,
-        Blend = 2,
-        DepthTest = 3,
-        CullFace = 4
+        Blend = 0,
+        DepthTest = 1,
+        CullFace = 2
     };
 
     enum class BlendFunc : unsigned int
