@@ -2,7 +2,6 @@
 #include <Graphics/basic_object.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/texture.hpp>
-#include <assimp/texture.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Engine

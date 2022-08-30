@@ -2,7 +2,6 @@
 #include <BasicFunctional/engine_types.hpp>
 #include <GUI.hpp>
 #include <Init/init.hpp>
-#include <SDL.h>
 #include <application_debug.hpp>
 #include <glm/ext.hpp>
 #include <imgui.h>
@@ -49,6 +48,7 @@ struct {
     Panel* panels[3] = {&LeftPanel, &RightPanel, &ViewPort};
     Size2D window_size;
     bool vsync = true;
+    float widget_size = 1.5f;
 } GUI_data;
 
 
@@ -66,17 +66,23 @@ void GUI::init(Engine::Application* _app)
 {
     std::clog << __PRETTY_FUNCTION__ << std::endl;
     app = _app;
+#ifdef __ANDROID__
+    const char* glsl_ver = "#version 300 es";
+#else
     const char* glsl_ver = "#version 330";
+#endif
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
     // Setup Platform/Renderer backends
+
     ImGui_ImplSDL2_InitForOpenGL((SDL_Window*) app->window.SDL(), app->window.SDL_OpenGL_context());
     ImGui_ImplOpenGL3_Init(glsl_ver);
+
     io = &ImGui::GetIO();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    Font.font = imgui_load_font();
+    //Font.font = imgui_load_font();
 
     LeftPanel.size = {app->window_size.x / 5, app->window_size.y};
     RightPanel.size = LeftPanel.size;
@@ -116,6 +122,7 @@ static void render_menu_bar()
     /////////////////////////   Menu   /////////////////////////
     static bool render_about = false;
     ImGui::BeginMainMenuBar();
+    ImGui::SetWindowFontScale(GUI_data.widget_size);
     ImGui::SetNextWindowSize({350, 0});
     if (ImGui::BeginMenu("File"))
     {
@@ -178,7 +185,7 @@ void render_left_panel()
     /////////////////////////   Left PANEL  /////////////////////////
 
     ImGui::Begin("Left Panel", 0, GUI_data.flags);
-
+    ImGui::SetWindowFontScale(GUI_data.widget_size);
     change_size(LeftPanel);
     ImGui::SetWindowSize(LeftPanel.size);
     ImGui::SetWindowPos(LeftPanel.position);
@@ -186,10 +193,15 @@ void render_left_panel()
     if (ImGui::CollapsingHeader("Window"))
     {
         if (ImGui::ColorEdit4("Color", glm::value_ptr(app->background_color)))
+        {
+            std::clog << app->background_color << std::endl;
             app->window.background_color(app->background_color);
+        }
 
         if (ImGui::InputText("Title", app->window_title, 100))
             app->window.title(app->window_title);
+
+#ifndef __ANDROID__
 
         if (ImGui::Checkbox("Fullscren", &GUI_data.fullscren_mode))
         {
@@ -206,6 +218,9 @@ void render_left_panel()
                 app->window.size(GUI_data.window_size).event.poll_events();
             }
         }
+#endif
+
+        ImGui::SliderFloat("Widget size", &GUI_data.widget_size, 0.1f, 4.f);
 
         if (ImGui::Checkbox("Vsync", &GUI_data.vsync))
             app->window.vsync(GUI_data.vsync);
@@ -219,7 +234,7 @@ void render_right_panel()
     /////////////////////////   RIGHT PANEL  /////////////////////////
 
     ImGui::Begin("Right Panel", 0, GUI_data.flags);
-
+    ImGui::SetWindowFontScale(GUI_data.widget_size);
     change_size(RightPanel);
     RightPanel.position.x = app->window_size.x - RightPanel.size.x;
     ImGui::SetWindowPos(RightPanel.position);
@@ -232,6 +247,8 @@ void render_viewport()
     /////////////////////////   VIEW PORT /////////////////////////
 
     ImGui::Begin("ViewPort", 0, GUI_data.flags);
+
+    ImGui::SetWindowFontScale(GUI_data.widget_size);
     ViewPort.size.x = app->window_size.x - LeftPanel.size.x - RightPanel.size.x;
     ViewPort.size.y = app->window_size.y;
     ImGui::SetWindowSize(ViewPort.size);

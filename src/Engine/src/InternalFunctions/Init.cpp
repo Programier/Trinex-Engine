@@ -9,7 +9,7 @@
 
 namespace Engine
 {
-    OpenGL_Version_S OpenGL_Version{3, 3};
+    OpenGL_Version_S OpenGL_Version{3, 0};
     static bool engine_init_status = false;
     static EngineAPI Engine_API;
 
@@ -66,8 +66,11 @@ namespace Engine
     {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OpenGL_Version.major);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OpenGL_Version.minor);
-
+#ifdef __ANDROID__
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 #ifndef __ANDROID__

@@ -1,8 +1,4 @@
 #include <Graphics/object.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/cimport.h>
-#include <assimp/matrix4x4.h>
-#include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <engine.hpp>
 #include <glm/gtc/matrix_transform.hpp>

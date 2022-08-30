@@ -5,9 +5,13 @@ if (WIN32)
     link_directories("${ENGINE_ROOT}/libs")
 endif()
 
+set(SOURCES main.cpp application_debug.cpp GUI.cpp Application.cpp)
 
+if(ANDROID)
+    add_library(${OUTPUT_BIN} SHARED ${SOURCES})
+else()
+    add_executable(${OUTPUT_BIN} ${SOURCES})
+endif()
 
-add_executable(${OUTPUT_BIN} main.cpp application_debug.cpp GUI.cpp Application.cpp)
 target_link_libraries(${OUTPUT_BIN} Engine ImGUI)
-
 install(TARGETS ${OUTPUT_BIN} Engine DESTINATION "./")

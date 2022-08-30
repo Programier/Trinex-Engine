@@ -1,5 +1,5 @@
 #pragma once
-#include "Window/window.hpp"
+#include <Window/window.hpp>
 #include <list>
 #include <GUI.hpp>
 
@@ -15,7 +15,7 @@ namespace Engine
         std::list<void (*)()> additional_funcs;
         Window window;
         const Size2D& window_size = window.size();
-        glm::vec4 background_color;
+        glm::vec4 background_color = {0.f, 0.f, 0.f, 0.f};
         char window_title[100] = "Engine";
 
     public:
@@ -27,3 +27,6 @@ namespace Engine
         ~Application();
     };
 }// namespace Engine
+
+
+int game_main(int argc, char* argv[]);

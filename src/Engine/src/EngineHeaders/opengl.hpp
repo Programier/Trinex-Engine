@@ -1,8 +1,6 @@
 #pragma once
 #include <BasicFunctional/engine_types.hpp>
 
-#define __ANDROID__
-
 #ifdef __ANDROID__
 #include <GLES3/gl32.h>
 #else

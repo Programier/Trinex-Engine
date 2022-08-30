@@ -1,11 +1,8 @@
 #include <Graphics/terrainmodel.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/cimport.h>
-#include <assimp/matrix4x4.h>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
+#include <LibLoader/lib_loader.hpp>
 #include <fstream>
 #include <iostream>
+#include <model_loader.hpp>
 #include <opengl.hpp>
 #include <stdexcept>
 
@@ -126,12 +123,25 @@ namespace Engine
         std::string path = model_file.substr(0, model_file.find_last_of('/') + 1);
         _M_materials.clear();
 
-        Assimp::Importer importer;
-        auto scene =
-                importer.ReadFile(model_file, aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_GenNormals);
+        Library assimp = load_library("assimp");
+        if (!assimp.has_lib())
+            return *this;
+
+
+        auto assimp_ReleaseImport = assimp.get<void, const C_STRUCT aiScene*>(lib_function(aiReleaseImport));
+
+        auto assimp_mat_texture = assimp.get<aiReturn, const C_STRUCT aiMaterial*, aiTextureType, unsigned int, aiString*>(
+                lib_function(aiGetMaterialTexture));
+
+        //        auto assimp_material_name = assimp.get();
+
+
+        auto scene = load_scene(model_file);
+
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
             std::clog << "Terrain loader: Failed to load " << model_file << std::endl;
+            assimp_ReleaseImport(scene);
             return *this;
         }
 
@@ -144,10 +154,10 @@ namespace Engine
             auto& ai_material = scene->mMaterials[i];
             auto& material = _M_materials[i];
             material.index = i;
-            material.name = ai_material->GetName().C_Str();
+            // material.name = ai_material->GetName().C_Str();
 
             aiString filename;
-            ai_material->GetTexture(aiTextureType_DIFFUSE, 0, &filename);
+            assimp_mat_texture(ai_material, aiTextureType_DIFFUSE, 0, &filename);
             std::string texture_file(filename.C_Str());
             auto& texture = _M_textures[texture_file];
 
@@ -184,7 +194,7 @@ namespace Engine
         std::clog << "Terrain model: Loaded " << triangles << " triangles" << std::endl;
         std::clog << "Terrain model: Materials count: " << _M_materials.size() << std::endl;
         std::clog << "Terrain model: Textures count: " << _M_textures.size() << std::endl;
-
+        assimp_ReleaseImport(scene);
         return *this;
     }
 
@@ -241,12 +251,12 @@ namespace Engine
         return _M_limits;
     }
 
-    glm::vec<4, unsigned char, glm::defaultp> TerrainModel::default_color() const
+    Color TerrainModel::default_color() const
     {
         return _M_default_color;
     }
 
-    TerrainModel& TerrainModel::default_color(const glm::vec<4, unsigned char, glm::defaultp>& color)
+    TerrainModel& TerrainModel::default_color(const Color& color)
     {
         //_M_default_color = color;
         for (auto& value : _M_textures)
@@ -254,7 +264,8 @@ namespace Engine
             auto& texture = value.second;
             if (texture.default_texture)
             {
-                texture.texture.vector() = {color.r, color.g, color.b, color.a};
+                texture.texture.vector() = {cast(byte, color.r * 255), cast(byte, color.g * 255), cast(byte, color.b * 255),
+                                            cast(byte, color.a * 255)};
                 texture.texture.size({1, 1});
                 texture.texture.update();
             }

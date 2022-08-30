@@ -22,7 +22,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/src/Shaders ${GAME_COMPILE_DIR}/Shaders)
 
 add_subdirectory(src)
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")
+target_include_directories(${OUTPUT_BIN} PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")
 
 install(DIRECTORY ${GAME_PROJECT_ROOT}/resources DESTINATION "./")
 install(DIRECTORY ${GAME_PROJECT_ROOT}/src/Shaders DESTINATION "./")

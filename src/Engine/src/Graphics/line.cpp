@@ -1,13 +1,11 @@
 #include <Graphics/line.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/cimport.h>
-#include <assimp/matrix4x4.h>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 #include <engine.hpp>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <model_loader.hpp>
 #include <opengl.hpp>
+
+#include <LibLoader/lib_loader.hpp>
 
 
 namespace Engine
@@ -110,11 +108,16 @@ namespace Engine
     Line& Line::load_from(const std::string& model)
     {
         _M_data.clear();
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(model, aiProcess_Triangulate);
+        Library assimp = load_library("assimp");
+        if (!assimp.has_lib())
+            return *this;
+
+        auto assimp_ReleaseImport = assimp.get<void, const C_STRUCT aiScene*>(lib_function(aiReleaseImport));
+
+        const aiScene* scene = load_scene(model);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            std::clog << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+            assimp_ReleaseImport(scene);
             return *this;
         }
 
@@ -122,6 +125,7 @@ namespace Engine
         load_scene(scene, scene->mRootNode, _M_data);
         update();
         std::clog << "Lines loader: Loading the \"" << model << "\" model completed successfully" << std::endl;
+        assimp_ReleaseImport(scene);
         return *this;
     }
 

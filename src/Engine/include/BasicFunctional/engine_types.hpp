@@ -38,7 +38,7 @@ namespace Engine
 
 
     typedef glm::vec4 Vector4D;
-    typedef glm::vec<4, byte, glm::defaultp> Color;
+    typedef glm::vec<4, float, glm::defaultp> Color;
 
 
     typedef std::size_t ArrayIndex;
