@@ -1,8 +1,8 @@
 #include <Application.hpp>
 #include <BasicFunctional/engine_types.hpp>
 #include <GUI.hpp>
+#include <ImGui/ImGuiFileBrowser.h>
 #include <ImGui/imgui.h>
-#include <ImGui/imgui_filebrowser.h>
 #include <ImGui/imgui_init.hpp>
 #include <Init/init.hpp>
 #include <Window/monitor.hpp>
@@ -43,8 +43,10 @@ struct {
     Size2D window_size;
     bool vsync = true;
     float widget_size = 1.5f;
-    ImGui::FileBrowser browser;
+
     const float dpi_mult_value = 0.013025f;
+    imgui_addons::ImGuiFileBrowser file_dialog;
+    bool open_file = false;
 } GUI_data;
 
 
@@ -77,7 +79,6 @@ void GUI::init(Engine::Application* _app)
 
     GUI_data.window_size = app->window.size();
 
-    GUI_data.browser.SetTitle("Open file");
     std::clog << Monitor::dpi().ddpi << std::endl;
     GUI_data.widget_size = Monitor::dpi().ddpi * GUI_data.dpi_mult_value;
 }
@@ -114,7 +115,7 @@ static void render_menu_bar()
     {
         if (ImGui::MenuItem("Open", "Open model"))
         {
-            GUI_data.browser.Open();
+            GUI_data.open_file = true;
         }
 
         if (ImGui::MenuItem("Close", "Close the Engine"))
@@ -263,13 +264,19 @@ void GUI::render()
         else if (panel != &ViewPort)
             change_size(*panel);
 
-    GUI_data.browser.Display();
-    ImGui::Render();
-    if (GUI_data.browser.HasSelected())
+    if (GUI_data.open_file)
     {
-        app->load_scene(GUI_data.browser.GetSelected().string());
-        GUI_data.browser.ClearSelected();
+        ImGui::OpenPopup("Open File");
+        GUI_data.open_file = false;
     }
+
+    if (GUI_data.file_dialog.showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310)))
+    {
+        std::cout << GUI_data.file_dialog.selected_fn << std::endl;
+        std::cout << GUI_data.file_dialog.selected_path << std::endl;
+    }
+
+    ImGui::Render();
     ImGuiInit::render();
     GUI_data.frame++;
 }

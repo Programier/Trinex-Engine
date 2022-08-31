@@ -84,9 +84,9 @@ set(ENGINE  ${WINDOW_SRC}
             ${LIB_LOADER_SRC}
             ${IMGUI_SRC})
 
-# Include dirs for imgui
-include_directories("./include/ImGui/")
-include_directories("./src/EngineHeaders/ImGui-Private/")
+# Include private headers for imgui
+include_directories(${ENGINE_SRC}/EngineHeaders/ImGui-Private/)
+
 
 add_library(Engine SHARED ${ENGINE})
 target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>"

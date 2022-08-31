@@ -1,6 +1,5 @@
-#include <SDL_log.h>
-#define STB_IMAGE_IMPLEMENTATION
 #include <Image/image.hpp>
+#include <SDL_log.h>
 #include <stb_image.h>
 #include <stdexcept>
 
