@@ -89,5 +89,6 @@ include_directories("./include/ImGui/")
 include_directories("./src/EngineHeaders/ImGui-Private/")
 
 add_library(Engine SHARED ${ENGINE})
-target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>")
+target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>"
+                                         "$<BUILD_INTERFACE:${ENGINE_ROOT}/include/ImGui>")
 target_link_libraries(Engine PRIVATE SDL2-static ${OPENGL} ${ASSIMP_LIB} freetype ${WIN_NET})

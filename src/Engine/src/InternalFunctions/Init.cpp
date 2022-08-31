@@ -1,5 +1,6 @@
 #include <Init/init.hpp>
 #include <SDL.h>
+#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <engine.hpp>
 #include <opengl.hpp>
@@ -11,53 +12,6 @@ namespace Engine
     static bool engine_init_status = false;
     static EngineAPI Engine_API;
 
-
-    // Monitor init
-    namespace Monitor
-    {
-        SDL_DisplayMode mode;
-
-        void update()
-        {
-            SDL_GetCurrentDisplayMode(0, &mode);
-        }
-
-
-        int red_bits()
-        {
-            throw not_implemented;
-        }
-
-        int green_bits()
-        {
-            throw not_implemented;
-        }
-
-        int blue_bits()
-        {
-            throw not_implemented;
-        }
-
-        Size1D height()
-        {
-            return static_cast<Size1D>(mode.h);
-        }
-
-        Size1D width()
-        {
-            return static_cast<Size1D>(mode.w);
-        }
-
-        int refresh_rate()
-        {
-            return mode.refresh_rate;
-        }
-
-        Size2D size()
-        {
-            return {width(), height()};
-        }
-    }// namespace Monitor
 
     // API initialization
     static void open_gl_init()

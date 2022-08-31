@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_log.h>
 #include <Window/keyboard.hpp>
+#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <list>
 #include <opengl.hpp>

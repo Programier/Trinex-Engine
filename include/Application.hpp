@@ -22,6 +22,7 @@ namespace Engine
         Application();
         Application& loop();
         Application& init_gui();
+        Application& load_scene(const std::string& filename);
 
 
         ~Application();

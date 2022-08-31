@@ -1,10 +1,11 @@
 #include <Application.hpp>
 #include <BasicFunctional/engine_types.hpp>
-#include <GL/gl.h>
 #include <GUI.hpp>
 #include <ImGui/imgui.h>
+#include <ImGui/imgui_filebrowser.h>
 #include <ImGui/imgui_init.hpp>
 #include <Init/init.hpp>
+#include <Window/monitor.hpp>
 #include <application_debug.hpp>
 #include <glm/ext.hpp>
 #include <iostream>
@@ -19,13 +20,6 @@ static void render_right_panel();
 static void render_viewport();
 
 static Engine::Application* app = nullptr;
-
-struct {
-    ImFont* font = nullptr;
-    const char* filename = R"(resources/fonts/font2.otf)";
-    float size = 16.f;
-} Font;
-
 ImGuiIO* io = nullptr;
 
 
@@ -49,13 +43,9 @@ struct {
     Size2D window_size;
     bool vsync = true;
     float widget_size = 1.5f;
+    ImGui::FileBrowser browser;
+    const float dpi_mult_value = 0.013025f;
 } GUI_data;
-
-
-static ImFont* imgui_load_font()
-{
-    return io->Fonts->AddFontFromFileTTF(Font.filename, Font.size);
-}
 
 
 void GUI::init(Engine::Application* _app)
@@ -86,6 +76,10 @@ void GUI::init(Engine::Application* _app)
     ViewPort.render = render_viewport;
 
     GUI_data.window_size = app->window.size();
+
+    GUI_data.browser.SetTitle("Open file");
+    std::clog << Monitor::dpi().ddpi << std::endl;
+    GUI_data.widget_size = Monitor::dpi().ddpi * GUI_data.dpi_mult_value;
 }
 
 
@@ -118,6 +112,11 @@ static void render_menu_bar()
     ImGui::SetNextWindowSize({350, 0});
     if (ImGui::BeginMenu("File"))
     {
+        if (ImGui::MenuItem("Open", "Open model"))
+        {
+            GUI_data.browser.Open();
+        }
+
         if (ImGui::MenuItem("Close", "Close the Engine"))
             app->window.close();
 
@@ -255,8 +254,6 @@ void GUI::render()
     ImGuiInit::new_frame();
     ImGui::NewFrame();
 
-    if (Font.font)
-        ImGui::PushFont(Font.font);
 
     render_menu_bar();
 
@@ -266,12 +263,13 @@ void GUI::render()
         else if (panel != &ViewPort)
             change_size(*panel);
 
-
-    if (Font.font)
-        ImGui::PopFont();
-
-
+    GUI_data.browser.Display();
     ImGui::Render();
+    if (GUI_data.browser.HasSelected())
+    {
+        app->load_scene(GUI_data.browser.GetSelected().string());
+        GUI_data.browser.ClearSelected();
+    }
     ImGuiInit::render();
     GUI_data.frame++;
 }

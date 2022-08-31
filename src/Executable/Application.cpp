@@ -1,5 +1,6 @@
 #include <Application.hpp>
 #include <Init/init.hpp>
+#include <Window/monitor.hpp>
 #include <engine.hpp>
 #include <iostream>
 
@@ -67,6 +68,13 @@ Application* parse_args(int argc, char** argv, Application* app)
     return app;
 }
 
+
+Application& Application::load_scene(const std::string& filename)
+{
+    std::clog << "Loading scene: " << filename << std::endl;
+    return *this;
+}
+
 int game_main(int argc, char* argv[])
 try
 {
@@ -76,4 +84,5 @@ try
 catch (const std::exception& e)
 {
     std::clog << e.what() << std::endl;
+    return 1;
 }
