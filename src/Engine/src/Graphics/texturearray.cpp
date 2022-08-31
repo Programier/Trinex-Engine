@@ -1,6 +1,6 @@
 #include <Graphics/basic_texturearray.hpp>
 #include <Graphics/texturearray.hpp>
-#include <iostream>
+#include <SDL_log.h>
 #include <opengl.hpp>
 #include <stdexcept>
 
@@ -96,7 +96,7 @@ namespace Engine
         _M_images.clear();
 
         // Loading images
-        std::clog << "TextureArray: Loading " << textures[0] << std::endl;
+        SDL_Log("TextureArray: Loading %s\n", textures[0].c_str());
         _M_images.reserve(textures.size());
         _M_images.push_back(Image());
         img.load(textures[0], invert);
@@ -108,7 +108,7 @@ namespace Engine
         for (decltype(len) i = 1; i < len; i++)
         {
             auto& texture = textures[i];
-            std::clog << "TextureArray: Loading " << texture << std::endl;
+            SDL_Log("TextureArray: Loading %s\n", texture.c_str());
             _M_images.push_back(Image());
             img.load(texture, invert);
             if (img.empty() || img.width() != _M_max_size.x || img.height() != _M_max_size.y)
@@ -133,7 +133,8 @@ namespace Engine
 
         // Loading images
         auto iterator = textures.begin();
-        std::clog << "TextureArray: Loading " << (*iterator) << std::endl;
+
+        SDL_Log("TextureArray: Loading %s\n", (*iterator).c_str());
         _M_images.reserve(textures.size());
         _M_images.push_back(Image());
         img.load((*iterator), invert);
@@ -146,7 +147,7 @@ namespace Engine
         while (++iterator != end)
         {
             auto& texture = *iterator;
-            std::clog << "TextureArray: Loading " << texture << std::endl;
+            SDL_Log("TextureArray: Loading %s\n", texture.c_str());
             _M_images.push_back(Image());
             img.load(texture, invert);
             if (img.empty() || img.width() != _M_max_size.x || img.height() != _M_max_size.y)

@@ -1,7 +1,7 @@
 #include <LibLoader/lib_loader.hpp>
+#include <SDL_log.h>
 #include <iostream>
 #include <unordered_map>
-
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -67,11 +67,11 @@ namespace Engine
 #ifdef WIN32
             void* handle = (void*) LoadLibrary((LPCSTR) fullname.c_str());
             if (!handle)
-                std::clog << "Failed to load " + fullname << std::endl;
+                SDL_Log("Failed to load %s\n", fullname.c_str());
 #else
             void* handle = dlopen(fullname.c_str(), RTLD_LAZY);
             if (!handle)
-                std::clog << dlerror() << std::endl;
+                SDL_Log("%s\n", dlerror());
 #endif
             lib = handle;
             return Library(handle, libname);
@@ -103,7 +103,7 @@ namespace Engine
     static struct Controller {
         ~Controller()
         {
-            std::clog << "LibrariesController: Closing all opened libs" << std::endl;
+            SDL_Log("LibrariesController: Closing all opened libs\n");
             for (auto& ell : _M_libraries) close_lib_ptr(ell.second);
         }
     } controller;

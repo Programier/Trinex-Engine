@@ -1,7 +1,8 @@
 #include <Graphics/text.hpp>
+#include <SDL_log.h>
 #include <ft2build.h>
-#include <iostream>
 #include <opengl.hpp>
+#include <stdexcept>
 #include FT_FREETYPE_H
 
 namespace Engine
@@ -68,7 +69,7 @@ namespace Engine
         // Load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
-            std::cerr << "ERROR::FREETYTPE: Failed to load symbol with ASCII value  " << (int) c << std::endl;
+            SDL_Log("ERROR::FREETYTPE: Failed to load symbol with ASCII value %d\n", int(c));
             return *this;
         }
         // Generate texture
@@ -172,7 +173,7 @@ namespace Engine
                 }
                 catch (const std::exception& e2)
                 {
-                    std::clog << e2.what() << std::endl;
+                    SDL_Log("%s\n", e2.what());
                     continue;
                 }
             }

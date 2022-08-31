@@ -1,9 +1,9 @@
 #include <Graphics/shader_system.hpp>
 #include <Init/init.hpp>
 #include <SDL.h>
+#include <SDL_log.h>
 #include <Window/keyboard.hpp>
 #include <Window/window.hpp>
-#include <iostream>
 #include <list>
 #include <opengl.hpp>
 #include <sdl_surface.hpp>
@@ -157,7 +157,7 @@ static void free_icon_surface()
     SDL_SetWindowIcon(sdl_window, nullptr);
     if (data._M_icon_surface)
     {
-        std::clog << "Window: Destroy icon surface" << std::endl;
+        SDL_Log("Window: Destroy icon surface\n");
         SDL_FreeSurface(data._M_icon_surface);
     }
     data._M_icon_surface = nullptr;
@@ -225,12 +225,12 @@ static const Window& OpenGL_window_init(float width, float height, const std::st
     data._M_limits.max = Monitor::size();
 
     auto error = []() {
-        std::cerr << "Window: Failed to create new window" << std::endl;
+        SDL_Log("Window: Failed to create new window\n");
         Window::close();
         throw std::runtime_error("Window: Failed to create Window");
     };
 
-    std::clog << "Window: Creating new window '" << title << "'" << std::endl;
+    SDL_Log("Window: Creating new window '%s'\n", title.c_str());
 
     uint32_t attrib = to_sdl_attrib(attribs);
     data._M_title = title;
@@ -307,7 +307,7 @@ static const Window& OpenGL_window_close()
 {
     check_init(window);
 
-    std::clog << "Engine::Window: Window '" << data._M_title << "' closed" << std::endl;
+    SDL_Log("Engine::Window: Window '%s' closed\n", data._M_title.c_str());
 
     if (data._M_GL_context)
         SDL_GL_DeleteContext(data._M_GL_context);
@@ -333,7 +333,7 @@ const Window& Window::close()
 {
     check_init(window);
     free_icon_surface();
-    std::clog << "Closing window" << std::endl;
+    SDL_Log("Closing window\n");
     return window_close[cast(unsigned int, api)]();
 }
 
@@ -1050,8 +1050,7 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
                 case WindowAttrib::WIN_TRANSPARENT_FRAMEBUFFER:
                 {
                     if (data._M_is_inited)
-                        std::clog << "Window: Cannot change flag WIN_TRANSPARENT_FRAMEBUFFER after creating window"
-                                  << std::endl;
+                        SDL_Log("Window: Cannot change flag WIN_TRANSPARENT_FRAMEBUFFER after creating window\n");
                     else
                         data._M_is_transparent_framebuffer = value;
                     break;
@@ -1067,7 +1066,7 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
     }
     catch (const std::exception& e)
     {
-        std::clog << "Window: " << e.what() << std::endl;
+        SDL_Log("Window: %s\n", e.what());
     }
 
     return window;
@@ -1088,7 +1087,7 @@ bool Window::attribute(const WindowAttrib& attrib)
     }
     catch (const std::exception& e)
     {
-        std::clog << e.what() << std::endl;
+        SDL_Log("%s\n", e.what());
         return false;
     }
 }

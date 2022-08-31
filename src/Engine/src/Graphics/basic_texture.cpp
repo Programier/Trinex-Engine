@@ -1,6 +1,5 @@
-//#include <GL/glew.h>
-#include <GLES3/gl32.h>
 #include <Graphics/basic_texture.hpp>
+#include <opengl.hpp>
 #include <unordered_map>
 
 namespace Engine

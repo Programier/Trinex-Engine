@@ -1,4 +1,5 @@
 #include <LibLoader/lib_loader.hpp>
+#include <SDL_log.h>
 #include <iostream>
 #include <model_loader.hpp>
 
@@ -19,7 +20,7 @@ namespace Engine
                                        aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenBoundingBoxes);
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            std::clog << "Model loader: " << assimp_GetErrorString() << std::endl;
+            SDL_Log("Model loader: %s\n", assimp_GetErrorString());
             return nullptr;
         }
         return scene;

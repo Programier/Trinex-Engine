@@ -1,17 +1,16 @@
 #include <Graphics/hitbox.hpp>
 #include <glm/ext.hpp>
-#include <iostream>
 #include <vector>
 
 #define in_range(value, min, max) (value >= min && value <= max)
 #define THROW throw std::runtime_error(std::string("Not implemented method ") + __FUNCTION__)
 
 
-static const std::vector<float> cube_mesh = {-1.f, -1.f, -1.f, -1.f, 1.f,  -1.f, -1.f, -1.f, -1.f, 1.f,  -1.f, -1.f, -1.f, -1.f, -1.f,
-                                             -1.f, -1.f, 1.f,  -1.f, 1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, 1.f,  -1.f, 1.f,  1.f,  -1.f,
-                                             1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, -1.f, -1.f, 1.f,  -1.f, 1.f,  1.f,  -1.f, 1.f,  1.f,
-                                             1.f,  1.f,  1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, 1.f,  1.f,  -1.f, 1.f,  1.f,  1.f,  1.f,
-                                             1.f,  -1.f, 1.f,  1.f,  -1.f, -1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  -1.f};
+static const std::vector<float> cube_mesh = {
+        -1.f, -1.f, -1.f, -1.f, 1.f, -1.f, -1.f, -1.f, -1.f, 1.f, -1.f, -1.f, -1.f, -1.f, -1.f, -1.f, -1.f, 1.f,
+        -1.f, 1.f,  -1.f, -1.f, 1.f, 1.f,  -1.f, 1.f,  -1.f, 1.f, 1.f,  -1.f, 1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f,
+        -1.f, -1.f, 1.f,  -1.f, 1.f, 1.f,  -1.f, 1.f,  1.f,  1.f, 1.f,  1.f,  -1.f, -1.f, 1.f,  1.f,  -1.f, 1.f,
+        1.f,  -1.f, 1.f,  1.f,  1.f, 1.f,  1.f,  -1.f, 1.f,  1.f, -1.f, -1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  -1.f};
 static const std::vector<float> sphere;
 
 
@@ -204,7 +203,8 @@ static float from_cylinder_to_cylinder(const Engine::IHitBox& point1, const Engi
     return (inside_1 || inside_2) ? -glm::distance(point_1, point_2) : glm::distance(point_1, point_2);
 }
 
-static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&, const Engine::IHitBox&) = {
+static float (*distance_function_array[HITBOX_TYPES_COUNT][HITBOX_TYPES_COUNT])(const Engine::IHitBox&,
+                                                                                const Engine::IHitBox&) = {
         {from_point_to_point, from_point_to_box, from_point_to_sphere, from_point_to_cylinder},
         {from_box_to_point, from_box_to_box, from_box_to_sphere, from_box_to_cylinder},
         {from_sphere_to_point, from_sphere_to_box, from_sphere_to_sphere, from_sphere_to_cylinder},

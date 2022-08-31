@@ -1,23 +1,22 @@
 #include <SDL.h>
+#include <SDL_log.h>
 #include <Window/cursor.hpp>
-#include <iostream>
 #include <sdl_surface.hpp>
 #include <stb_image.h>
 
 
 namespace Engine
 {
-
     static void delete_cursor(void* cursor)
     {
-        std::clog << "Cursor: Destroy cursor: " << cursor << std::endl;
+        SDL_Log("Cursor: Destroy cursor: %p\n", cursor);
         if (cursor)
             SDL_FreeCursor(static_cast<SDL_Cursor*>(cursor));
     }
 
     static void delete_surface(void* surface)
     {
-        std::clog << "Cursor: Destroy surface: " << surface << std::endl;
+        SDL_Log("Cursor: Destroy surface: %p\n", surface);
         if (surface)
             SDL_FreeSurface(static_cast<SDL_Surface*>(surface));
     }
@@ -33,7 +32,7 @@ namespace Engine
                 SDL_CreateColorCursor(static_cast<SDL_Surface*>(_M_SDL_surface.get()), _M_x_hotspot, _M_y_hotspot),
                 delete_cursor);
         if (!_M_SDL_cursor.get())
-            std::clog << "Cursor: Failed to load cursor" << std::endl;
+            SDL_Log("Cursor: Failed to load cursor\n");
     }
 
     Cursor::Cursor() : _M_SDL_cursor(nullptr)

@@ -18,16 +18,12 @@ endif()
 
 #SDL
 set(SDL_DIR "${ENGINE_ROOT}/libs/SDL")
-add_subdirectory(${SDL_DIR})
+add_subdirectory(${SDL_DIR} EXCLUDE_FROM_ALL)
 set_target_properties(SDL2-static PROPERTIES COMPILE_OPTIONS "-fPIC")
 include_directories("${SDL_DIR}/include")
 
-#IMGUI
-add_subdirectory("${ENGINE_ROOT}/libs/ImGUI")
-
 #Assimp
 #set(ENGINE_BUILD_ASSIMP on)
-
 
 if(ENGINE_BUILD_ASSIMP)
     add_subdirectory("${ENGINE_ROOT}/libs/assimp" EXCLUDE_FROM_ALL)
@@ -62,6 +58,8 @@ set(PHYSICS_DIR "${ENGINE_SRC}/Physics/")
 set(INTERNAL_DIR "${ENGINE_SRC}/InternalFunctions/")
 set(NET_DIR "${ENGINE_SRC}/net/")
 set(LIB_LOADER_DIR "${ENGINE_SRC}/LibLoader/")
+set(IMGUI_DIR "${ENGINE_SRC}/ImGui/")
+
 
 
 # Find sources
@@ -73,6 +71,9 @@ file(GLOB PHYSICS_SRC "${PHYSICS_DIR}*.cpp")
 file(GLOB INTERNAL_SRC "${INTERNAL_DIR}*.cpp")
 file(GLOB NET_SRC "${NET_DIR}*.cpp")
 file(GLOB LIB_LOADER_SRC "${LIB_LOADER_DIR}*.cpp")
+file(GLOB IMGUI_SRC "${IMGUI_DIR}*.cpp")
+
+
 
 set(ENGINE  ${WINDOW_SRC}
             ${IMAGE_SRC}
@@ -80,8 +81,13 @@ set(ENGINE  ${WINDOW_SRC}
             ${PHYSICS_SRC}
             ${INTERNAL_SRC}
             #[[${NET_SRC}]]
-            ${LIB_LOADER_SRC})
+            ${LIB_LOADER_SRC}
+            ${IMGUI_SRC})
+
+# Include dirs for imgui
+include_directories("./include/ImGui/")
+include_directories("./src/EngineHeaders/ImGui-Private/")
 
 add_library(Engine SHARED ${ENGINE})
 target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>")
-target_link_libraries(Engine SDL2-static ${OPENGL} ${ASSIMP_LIB} freetype ${WIN_NET} ImGUI)
+target_link_libraries(Engine PRIVATE SDL2-static ${OPENGL} ${ASSIMP_LIB} freetype ${WIN_NET})

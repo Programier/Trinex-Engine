@@ -2,7 +2,6 @@
 #include <engine.hpp>
 #include <functional>
 #include <glm/ext.hpp>
-#include <iostream>
 
 
 namespace Engine

@@ -1,5 +1,4 @@
 #include <Graphics/texture.hpp>
-#include <iostream>
 #include <opengl.hpp>
 #include <stdexcept>
 

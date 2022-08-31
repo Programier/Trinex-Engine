@@ -1,7 +1,7 @@
 #include <Graphics/terrainmodel.hpp>
 #include <LibLoader/lib_loader.hpp>
+#include <SDL_log.h>
 #include <fstream>
-#include <iostream>
 #include <model_loader.hpp>
 #include <opengl.hpp>
 #include <stdexcept>
@@ -140,12 +140,12 @@ namespace Engine
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            std::clog << "Terrain loader: Failed to load " << model_file << std::endl;
+            SDL_Log("Terrain loader: Failed to load %s\n", model_file.c_str());
             assimp_ReleaseImport(scene);
             return *this;
         }
 
-        std::clog << "Terraing model: Material num: " << scene->mNumMaterials << std::endl;
+        SDL_Log("Terraing model: Material num: %u\n", scene->mNumMaterials);
         _M_materials.resize(scene->mNumMaterials);
 
         // Loading materials
@@ -166,12 +166,12 @@ namespace Engine
                 try
                 {
                     texture_file = path + texture_file;
-                    std::clog << "Terrain model: Loading " << texture_file << ", material num: " << i << std::endl;
+                    SDL_Log("Terrain model: Loading %s, material num: %u\n", texture_file.c_str(), i);
                     texture.texture.load(texture_file, mode, mipmap, invert);
                 }
                 catch (const std::exception& e)
                 {
-                    std::clog << e.what() << std::endl;
+                    SDL_Log("%s\n", e.what());
                     texture.texture.vector() = {255, 255, 255, 255};
                     texture.texture.size({1, 1});
                     texture.texture.update();
@@ -191,9 +191,10 @@ namespace Engine
             triangles += model_mesh.data().size() / 24;
         }
 
-        std::clog << "Terrain model: Loaded " << triangles << " triangles" << std::endl;
-        std::clog << "Terrain model: Materials count: " << _M_materials.size() << std::endl;
-        std::clog << "Terrain model: Textures count: " << _M_textures.size() << std::endl;
+
+        SDL_Log("Terrain model: Loaded %zu triangles\n", triangles);
+        SDL_Log("Terrain model: Materials count %zu\n", _M_materials.size());
+        SDL_Log("Terrain model: Textures count %zu\n", _M_textures.size());
         assimp_ReleaseImport(scene);
         return *this;
     }

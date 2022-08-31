@@ -1,6 +1,6 @@
+#include <SDL_log.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <Image/image.hpp>
-#include <iostream>
 #include <stb_image.h>
 #include <stdexcept>
 
@@ -102,7 +102,7 @@ namespace Engine
             return *this;
         if (_M_channels != 4)
         {
-            std::cerr << "Image: Cannot remove alpha channel" << std::endl;
+            SDL_Log("Image: Cannot remove alpha channel\n");
             return *this;
         }
 
@@ -126,7 +126,7 @@ namespace Engine
             return *this;
         if (_M_channels != 3)
         {
-            std::cerr << "Image: Cannot add alpha channel" << std::endl;
+            SDL_Log("Image: Cannot add alpha channel\n");
             return *this;
         }
 

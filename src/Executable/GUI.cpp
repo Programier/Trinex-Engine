@@ -1,12 +1,12 @@
 #include <Application.hpp>
 #include <BasicFunctional/engine_types.hpp>
+#include <GL/gl.h>
 #include <GUI.hpp>
+#include <ImGui/imgui.h>
+#include <ImGui/imgui_init.hpp>
 #include <Init/init.hpp>
 #include <application_debug.hpp>
 #include <glm/ext.hpp>
-#include <imgui.h>
-#include <imgui_impl_opengl3.h>
-#include <imgui_impl_sdl.h>
 #include <iostream>
 
 
@@ -57,14 +57,9 @@ static ImFont* imgui_load_font()
     return io->Fonts->AddFontFromFileTTF(Font.filename, Font.size);
 }
 
-static void event_proccess(void* sdl_event)
-{
-    ImGui_ImplSDL2_ProcessEvent(static_cast<const SDL_Event*>(sdl_event));
-}
 
 void GUI::init(Engine::Application* _app)
 {
-    std::clog << __PRETTY_FUNCTION__ << std::endl;
     app = _app;
 #ifdef __ANDROID__
     const char* glsl_ver = "#version 300 es";
@@ -76,8 +71,7 @@ void GUI::init(Engine::Application* _app)
     ImGui::StyleColorsDark();
     // Setup Platform/Renderer backends
 
-    ImGui_ImplSDL2_InitForOpenGL((SDL_Window*) app->window.SDL(), app->window.SDL_OpenGL_context());
-    ImGui_ImplOpenGL3_Init(glsl_ver);
+    ImGuiInit::init(glsl_ver);
 
     io = &ImGui::GetIO();
     ImGuiIO& io = ImGui::GetIO();
@@ -91,15 +85,13 @@ void GUI::init(Engine::Application* _app)
     RightPanel.render = render_right_panel;
     ViewPort.render = render_viewport;
 
-    app->window.event_callbacks().push_back(event_proccess);
     GUI_data.window_size = app->window.size();
 }
 
 
 void GUI::terminate()
 {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGuiInit::terminate();
     ImGui::DestroyContext();
 }
 
@@ -260,8 +252,7 @@ void render_viewport()
 
 void GUI::render()
 {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
+    ImGuiInit::new_frame();
     ImGui::NewFrame();
 
     if (Font.font)
@@ -281,6 +272,6 @@ void GUI::render()
 
 
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGuiInit::render();
     GUI_data.frame++;
 }

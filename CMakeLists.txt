@@ -19,7 +19,6 @@ set(EXECUTABLE_OUTPUT_PATH ${COMPILE_DIR})
 set(LIBRARY_OUTPUT_PATH ${COMPILE_DIR})
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${GAME_COMPILE_DIR}/resources)
-execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/src/Shaders ${GAME_COMPILE_DIR}/Shaders)
 
 add_subdirectory(src)
 target_include_directories(${OUTPUT_BIN} PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")

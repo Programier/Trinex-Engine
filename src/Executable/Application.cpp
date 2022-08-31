@@ -10,7 +10,7 @@ Application::Application()
 {
     // Window params
     init();
-    window.init(Monitor::size(), window_title, WIN_RESIZABLE | WIN_FULLSCREEN_DESKTOP);
+    window.init(Monitor::size() / 2.f, window_title, WIN_RESIZABLE);
 }
 
 
@@ -24,6 +24,11 @@ Application& Application::loop()
         if (_M_gui)
             GUI::render();
 
+        if (window.event.keyboard.just_pressed() == KEY_SPACE)
+        {
+            init_gui();
+        }
+
         window.swap_buffers();
         window.event.poll_events();
     }
@@ -32,8 +37,11 @@ Application& Application::loop()
 
 Application& Application::init_gui()
 {
-    GUI::init(this);
-    _M_gui = true;
+    if (_M_gui == false)
+        GUI::init(this);
+    else
+        GUI::terminate();
+    _M_gui = !_M_gui;
     return *this;
 }
 

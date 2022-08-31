@@ -1,6 +1,6 @@
 #include <Graphics/mesh.hpp>
 #include <Graphics/skybox.hpp>
-#include <iostream>
+#include <SDL_log.h>
 #include <opengl.hpp>
 
 #define RIGHT 0
@@ -19,7 +19,8 @@ void init_mesh()
     static bool mesh_is_inited = false;
     if (mesh_is_inited)
         return;
-    std::clog << "Skybox: Init skybox mesh" << std::endl;
+
+    SDL_Log("Skybox: Init skybox mesh\n");
     mesh.attributes({3});
     mesh.data() = {-1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,
                    -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
@@ -94,18 +95,18 @@ namespace Engine
         delete_skybox();
         if (filenames.size() != 6)
         {
-            std::cerr << "SkyBox: Failed to load faces, faces count must be 6" << std::endl;
+            SDL_Log("SkyBox: Failed to load faces, faces count must be 6\n");
             return *this;
         }
 
         int index = 0;
         for (auto& file : filenames)
         {
-            std::clog << "Skybox: Loading " << file << std::endl;
+            SDL_Log("Skybox: Loading %s\n", file.c_str());
             _M_images[index].load(file, invert);
             if (_M_images[index++].empty())
             {
-                std::clog << "Skybox: Failed to load " << file << std::endl;
+                SDL_Log("Skybox: Failed to load %s\n", file.c_str());
                 return *this;
             }
         };
@@ -123,7 +124,7 @@ namespace Engine
 
         if (img.empty())
         {
-            std::cerr << "Skybox: Failed to load skybox" << std::endl;
+            SDL_Log("Skybox: Failed to load skybox\n");
             return *this;
         }
         int block_width = img.width() / 4;

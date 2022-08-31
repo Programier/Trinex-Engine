@@ -5,8 +5,6 @@
 #include <opengl.hpp>
 #include <thread>
 
-#include <iostream>
-
 namespace Engine
 {
     OpenGL_Version_S OpenGL_Version{3, 0};
@@ -110,19 +108,20 @@ namespace Engine
     {
         if (engine_init_status)
         {
-            std::clog << "Engine: Failed to init engine. Engine already inited" << std::endl;
+            SDL_Log("Engine: Failed to init engine. Engine already inited\n");
             return;
         }
 
         Engine_API = API;
-        std::clog << "Engine: Start init Engine" << std::endl;
+
+        SDL_Log("Engine: Start init Engine\n");
 
         if (SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO))
             throw std::runtime_error(SDL_GetError());
 
         init_api[static_cast<unsigned int>(API)]();
         Monitor::update();
-        std::clog << "Engine: Init done" << std::endl;
+        SDL_Log("Engine: Init done\n");
         engine_init_status = true;
     }
 
@@ -145,7 +144,8 @@ namespace Engine
         {
             if (!engine_init_status)
                 return;
-            std::clog << "Engine: Terminate" << std::endl;
+
+            SDL_Log("Engine: Terminate\n");
             Window::close();
             termiante_api[static_cast<unsigned int>(Engine_API)]();
             engine_init_status = false;

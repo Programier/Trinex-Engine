@@ -1,4 +1,5 @@
 #include <Graphics/shader_system.hpp>
+#include <shader_code.hpp>
 
 namespace sh_s = Engine::ShaderSystem;
 using namespace Engine;
@@ -43,14 +44,15 @@ const std::string sh_s::DepthRenderer::power = "power";
 
 void sh_s::init()
 {
-    //    if (inited)
-    //        return;
+    if (inited)
+        return;
 
-    sh_s::SkyBox::shader.load("Shaders/skybox/shader.vert", "Shaders/skybox/shader.frag");
-    sh_s::Text::shader.load("Shaders/text/shader.vert", "Shaders/text/shader.frag");
-    sh_s::Scene::shader.load("Shaders/scene/shader.vert", "Shaders/scene/shader.frag");
-    sh_s::Line::shader.load("Shaders/line/shader.vert", "Shaders/line/shader.frag");
-    sh_s::Depth::shader.load("Shaders/depth/shader.vert", "Shaders/depth/shader.frag");
-    sh_s::DepthRenderer::shader.load("Shaders/DepthRender/shader.vert", "Shaders/DepthRender/shader.frag");
+    sh_s::SkyBox::shader.load(skybox_shader_vert, skybox_shader_frag, false);
+    sh_s::Text::shader.load(text_shader_vert, text_shader_frag, false);
+    sh_s::Scene::shader.load(scene_shader_vert, scene_shader_frag, false);
+    sh_s::Line::shader.load(line_shader_vert, line_shader_frag, false);
+    sh_s::Depth::shader.load(depth_shader_vert, depth_shader_frag, false);
+    sh_s::DepthRenderer::shader.load(DepthRender_shader_vert, DepthRender_shader_frag, false);
+
     inited = true;
 }

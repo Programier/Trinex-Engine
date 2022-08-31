@@ -1,11 +1,10 @@
 #include <Graphics/line.hpp>
+#include <LibLoader/lib_loader.hpp>
+#include <SDL_log.h>
 #include <engine.hpp>
 #include <glm/glm.hpp>
-#include <iostream>
 #include <model_loader.hpp>
 #include <opengl.hpp>
-
-#include <LibLoader/lib_loader.hpp>
 
 
 namespace Engine
@@ -26,7 +25,7 @@ namespace Engine
 
     void load_scene(const aiScene* scene, aiNode* node, std::vector<float>& out, glm::mat4 model_matrix = glm::mat4(1.0f))
     {
-        std::clog << "Line loader: Loading " << node->mName.C_Str() << std::endl;
+        SDL_Log("Line loader: Loading %s\n", node->mName.C_Str());
 
         model_matrix = mat4(node->mTransformation.Transpose()) * model_matrix;
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -121,10 +120,11 @@ namespace Engine
             return *this;
         }
 
-        std::clog << "Lines loader: Loading scene" << std::endl;
+        SDL_Log("Lines loader: Loading scene\n");
         load_scene(scene, scene->mRootNode, _M_data);
         update();
-        std::clog << "Lines loader: Loading the \"" << model << "\" model completed successfully" << std::endl;
+
+        SDL_Log("Lines loader: Loading the \"%s\" model completed successfully\n", model.c_str());
         assimp_ReleaseImport(scene);
         return *this;
     }

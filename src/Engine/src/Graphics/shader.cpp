@@ -1,7 +1,7 @@
 #include <Graphics/shader.hpp>
+#include <SDL_log.h>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 #include <opengl.hpp>
 #include <sstream>
 #include <vector>
@@ -19,7 +19,7 @@ static void read_file(const std::string& filename, std::string& out)
     std::ifstream input_file(filename);
     if (!input_file.is_open())
     {
-        std::cerr << "Shader: Failed to open " << filename << std::endl;
+        SDL_Log("Shader: Failed to open %s\n", filename.c_str());
         throw -1;
     }
 
@@ -31,11 +31,11 @@ static void read_file(const std::string& filename, std::string& out)
     }
     catch (...)
     {
-        std::cerr << "Shader: Failed to read " << filename << std::endl;
+        SDL_Log("Shader: Failed to read %s\n", filename.c_str());
     }
 }
 
-static void compile_shader(const GLchar* code, unsigned int& ID, int SHADER_TYPE, const std::string& path)
+static void compile_shader(const GLchar* code, unsigned int& ID, int SHADER_TYPE, const char* path)
 {
     static GLchar log[1024];
     ID = glCreateShader(SHADER_TYPE);
@@ -45,9 +45,9 @@ static void compile_shader(const GLchar* code, unsigned int& ID, int SHADER_TYPE
     glGetShaderiv(ID, GL_COMPILE_STATUS, &succes);
     if (!succes)
     {
-        std::cerr << "Shader: Failed to compile shader '" << path << "'" << std::endl;
+        SDL_Log("Shader: Failed to compile shader %s\n", path);
         glGetShaderInfoLog(ID, 1024, nullptr, log);
-        std::cerr << log << std::endl;
+        SDL_Log("%s\n", log);
         glDeleteShader(ID);
         ID = 0;
         throw -1;
@@ -66,8 +66,7 @@ static void link_shader(unsigned int& ID, const std::vector<unsigned int>& shade
     if (!succes)
     {
         glGetProgramInfoLog(ID, 1024, nullptr, log);
-        std::cerr << "Shader: Failed to link shader program" << std::endl;
-        std::cerr << log << std::endl;
+        SDL_Log("Shader: Failed to link shader program\n%s\n", log);
         glDeleteProgram(ID);
         ID = 0;
         throw -1;
@@ -83,9 +82,9 @@ namespace Engine
         delete_shader(fragment);
     }
 
-    Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
+    Shader::Shader(const std::string& vertex_path, const std::string& fragment_path, bool is_files)
     {
-        load(vertex_path, fragment_path);
+        load(vertex_path, fragment_path, is_files);
     }
 
 
@@ -186,18 +185,27 @@ namespace Engine
 
     Shader::Shader() = default;
 
-    Shader& Shader::load(const std::string& vertex_path, const std::string& fragment_path)
+    Shader& Shader::load(const std::string& _vertex, const std::string& _fragment, bool is_files)
     {
         delete_shaders();
+        if (is_files)
+        {
+            SDL_Log("Loading shaders: %s, %s\n", _vertex.c_str(), _fragment.c_str());
+        }
 
-        std::clog << "Loading shaders: " << vertex_path << ", " << fragment_path << std::endl;
         std::string vertex_code, fragment_code;
+        const std::string *out_code_vs = &_vertex, *out_code_fs = &_fragment;
         try
         {
-            read_file(vertex_path, vertex_code);
-            read_file(fragment_path, fragment_code);
-            compile_shader(vertex_code.c_str(), vertex, GL_VERTEX_SHADER, vertex_path);
-            compile_shader(fragment_code.c_str(), fragment, GL_FRAGMENT_SHADER, fragment_path);
+            if (is_files)
+            {
+                read_file(_vertex, vertex_code);
+                read_file(_fragment, fragment_code);
+                out_code_vs = &vertex_code;
+                out_code_fs = &fragment_code;
+            }
+            compile_shader(out_code_vs->c_str(), vertex, GL_VERTEX_SHADER, (is_files ? _vertex.c_str() : ""));
+            compile_shader(out_code_fs->c_str(), fragment, GL_FRAGMENT_SHADER, (is_files ? _fragment.c_str() : ""));
             link_shader(_M_id, {vertex, fragment});
         }
         catch (...)
@@ -206,7 +214,7 @@ namespace Engine
             return *this;
         }
 
-        std::clog << "Shader: Compilation complete" << std::endl;
+        SDL_Log("Shader: Compilation complete\n");
         _M_done = true;
         return *this;
     }
@@ -218,7 +226,7 @@ namespace Engine
         try
         {
             read_file(compute_path, code);
-            compile_shader(code.c_str(), compute, GL_COMPUTE_SHADER, compute_path);
+            compile_shader(code.c_str(), compute, GL_COMPUTE_SHADER, compute_path.c_str());
             link_shader(_M_id, {compute});
         }
         catch (...)
@@ -226,7 +234,8 @@ namespace Engine
             _M_done = false;
             return *this;
         }
-        std::clog << "Shader: Compilation complete" << std::endl;
+
+        SDL_Log("Shader: Compilation complete\n");
         _M_done = true;
         return *this;
     }
