@@ -7,3 +7,6 @@
 [submodule "src/Engine/libs/glew"]
 	path = src/Engine/libs/glew
 	url = https://github.com/nigels-com/glew.git
+[submodule "src/Engine/libs/freetype"]
+	path = src/Engine/libs/freetype
+	url = https://github.com/freetype/freetype.git
