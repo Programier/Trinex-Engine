@@ -4,3 +4,6 @@
 [submodule "src/Engine/libs/assimp"]
 	path = src/Engine/libs/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "src/Engine/libs/glew"]
+	path = src/Engine/libs/glew
+	url = https://github.com/nigels-com/glew.git
