@@ -10,9 +10,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 add_subdirectory("${ENGINE_ROOT}/libs/freetype/" EXCLUDE_FROM_ALL)
+set_target_properties(freetype PROPERTIES COMPILE_OPTIONS "-fPIC")
 
 if(NOT ANDROID)
     add_subdirectory("${ENGINE_ROOT}/libs/glew/build/cmake" EXCLUDE_FROM_ALL)
+    set_target_properties(glew_s PROPERTIES COMPILE_OPTIONS "-fPIC")
     include_directories("./libs/glew/include/")
 endif()
 
