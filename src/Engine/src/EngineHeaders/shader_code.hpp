@@ -2,15 +2,15 @@
 
 namespace Engine
 {
-	const char* DepthRender_shader_frag = R"***(
-#version 330 core
+	const char* DepthRender_shader_frag = R"***(#version 320 es
+precision mediump float;
 
 uniform sampler2D texture0;
 
 in vec2 coord;
 out vec4 color;
 
-uniform float power = 32;
+uniform float power;
 
 void main()
 {
@@ -20,8 +20,8 @@ void main()
 
 
 
-	const char* DepthRender_shader_vert = R"***(
-#version 330 core
+	const char* DepthRender_shader_vert = R"***(#version 320 es
+precision mediump float;
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
 
@@ -36,8 +36,8 @@ void main()
 
 
 
-	const char* main_frag = R"***(
-#version 430 core
+	const char* main_frag = R"***(#version 320 es
+precision mediump float;
 
 out vec4 f_color;
 
@@ -172,8 +172,8 @@ void main()
 
 
 
-	const char* depthBuffer_frag = R"***(
-#version 330 core
+	const char* depthBuffer_frag = R"***(#version 320 es
+precision mediump float;
 
 void main()
 {
@@ -183,8 +183,41 @@ void main()
 
 
 
-	const char* scene_shader_frag = R"***(
-#version 430 core
+	const char* frame_shader_frag = R"***(#version 320 es
+precision mediump float;
+
+uniform sampler2D texture0;
+
+in vec2 pos;
+out vec4 color;
+
+
+void main()
+{
+
+    color = texture(texture0, pos);
+}
+)***";
+
+
+
+	const char* frame_shader_vert = R"***(#version 320 es
+precision mediump float;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec2 aTexCoord;
+
+out vec2 pos;
+void main()
+{
+    gl_Position = vec4(aPos, 1.f);
+    pos = vec2(aTexCoord);
+}
+)***";
+
+
+
+	const char* scene_shader_frag = R"***(#version 320 es
+precision mediump float;
 
 out vec4 f_color;
 
@@ -197,7 +230,7 @@ uniform sampler2D texture0;// Diffuse
 uniform sampler2D texture1;// Shadow
 
 uniform vec3 camera;
-uniform int lighting = 0;
+uniform int lighting;
 
 struct Material {
     vec3 ambient;
@@ -230,7 +263,7 @@ vec4 get_texture_color()
 float get_shadow(vec3 lightDir, vec3 viewDir)
 {
 
-    vec2 texelSize = 1.0 / textureSize(texture1, 0);
+    vec2 texelSize = 1.0 / vec2(textureSize(texture1, 0));
     vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
@@ -241,7 +274,7 @@ float get_shadow(vec3 lightDir, vec3 viewDir)
 
 
     // Calculating bias value
-    float bias = abs(dot(normal, -lightDir)) * ((texelSize.y) / 4);
+    float bias = abs(dot(normal, -lightDir)) * ((texelSize.y) / 4.f);
 
     // Calculating shadows
     vec2 coord_shift = mod(projCoords.xy, texelSize);
@@ -250,9 +283,13 @@ float get_shadow(vec3 lightDir, vec3 viewDir)
 
     float shadow = 0.f;
     for (int x = 0; x <= 1; x += 1)
+    {
         for (int y = 0; y <= 1; y += 1)
+        {
             shadow += currentDepth - bias > texture(texture1, center + vec2(x, y) * texelSize).r ? 1.f : 0.0;
-    return shadow / 4;
+        }
+    }
+    return float(shadow / 4.f);
 }
 
 void main()
@@ -284,14 +321,14 @@ void main()
     }
 
     f_color = vec4(result * vec3(get_texture_color()), 1.f);
-   // f_color = vec4(1, 0, 0, 1);
+    // f_color = vec4(1, 0, 0, 1);
 }
 )***";
 
 
 
-	const char* scene_shader_vert = R"***(
-#version 430 core
+	const char* scene_shader_vert = R"***(#version 320 es
+precision mediump float;
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec2 v_texture_coords;
 layout(location = 2) in vec3 v_normals;
@@ -323,9 +360,9 @@ void main()
 
 
 
-	const char* text_shader_frag = R"***(
-#version 430 core
-uniform vec4 color = vec4(1, 1, 1, 1);
+	const char* text_shader_frag = R"***(#version 320 es
+precision mediump float;
+uniform vec4 color;
 uniform sampler2D text;
 out vec4 out_color;
 in vec2 coords;
@@ -338,8 +375,8 @@ void main()
 
 
 
-	const char* text_shader_vert = R"***(
-#version 430 core
+	const char* text_shader_vert = R"***(#version 320 es
+precision mediump float;
 layout (location = 0) in vec4 vertex;
 out vec2 coords;
 uniform mat4 projview;
@@ -353,9 +390,8 @@ void main()
 
 
 
-	const char* skybox_shader_frag = R"***(
-#version 430 core
-
+	const char* skybox_shader_frag = R"***(#version 320 es
+precision mediump float;
 in vec3 view_dir;
 uniform samplerCube cubemap;
 
@@ -371,8 +407,8 @@ void main()
 
 
 
-	const char* skybox_shader_vert = R"***(
-#version 430 core
+	const char* skybox_shader_vert = R"***(#version 320 es
+precision mediump float;
 
 layout (location = 0) in vec3 v_pos;
 out vec3 view_dir;
@@ -387,8 +423,8 @@ void main()
 
 
 
-	const char* line_lol_shader_frag = R"***(
-#version 430 core
+	const char* line_shader_frag = R"***(#version 320 es
+precision mediump float;
 
 out vec4 out_color;
 uniform vec4 color;
@@ -401,8 +437,8 @@ void main()
 
 
 
-	const char* line_lol_shader_vert = R"***(
-#version 430 core
+	const char* line_shader_vert = R"***(#version 320 es
+precision mediump float;
 layout(location = 0) in vec3 v_position;
 
 uniform mat4 projview;
@@ -416,37 +452,8 @@ void main()
 
 
 
-	const char* line_shader_frag = R"***(
-#version 430 core
-
-out vec4 out_color;
-uniform vec4 color;
-
-void main()
-{
-    out_color = color;
-}
-)***";
-
-
-
-	const char* line_shader_vert = R"***(
-#version 430 core
-layout(location = 0) in vec3 v_position;
-
-uniform mat4 projview;
-uniform mat4 model;
-
-void main()
-{
-    gl_Position = projview * (model == mat4(0.f) ? mat4(1.f) : model) * vec4(v_position, 1.0);;
-}
-)***";
-
-
-
-	const char* lines_frag = R"***(
-#version 430 core
+	const char* lines_frag = R"***(#version 320 es
+precision mediump float;
 
 out vec4 out_color;
 uniform vec3 color;
@@ -474,8 +481,8 @@ void main()
 
 
 
-	const char* depth_shader_frag = R"***(
-#version 330 core
+	const char* depth_shader_frag = R"***(#version 320 es
+precision mediump float;
 
 void main()
 {
@@ -485,8 +492,8 @@ void main()
 
 
 
-	const char* depth_shader_vert = R"***(
-#version 330 core
+	const char* depth_shader_vert = R"***(#version 320 es
+precision mediump float;
 layout (location = 0) in vec3 aPos;
 
 uniform mat4 projview;
@@ -500,8 +507,8 @@ void main()
 
 
 
-	const char* main_vert = R"***(
-#version 430 core
+	const char* main_vert = R"***(#version 320 es
+precision mediump float;
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec2 v_texture_coords;
 layout(location = 2) in vec3 v_normals;
@@ -558,8 +565,8 @@ void main()
 
 
 
-	const char* depthBuffer_vert = R"***(
-#version 330 core
+	const char* depthBuffer_vert = R"***(#version 320 es
+precision mediump float;
 layout (location = 0) in vec3 aPos;
 
 uniform mat4 projview;
@@ -573,8 +580,8 @@ void main()
 
 
 
-	const char* lines_vert = R"***(
-#version 430 core
+	const char* lines_vert = R"***(#version 320 es
+precision mediump float;
 layout(location = 0) in vec3 v_position;
 
 uniform mat4 projview;

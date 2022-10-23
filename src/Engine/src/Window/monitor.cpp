@@ -1,6 +1,6 @@
+#include <Core/engine.hpp>
 #include <SDL.h>
 #include <Window/monitor.hpp>
-#include <engine.hpp>
 
 namespace Engine
 {
@@ -10,49 +10,49 @@ namespace Engine
         SDL_DisplayMode mode;
         DPI display_dpi;
 
-        void update()
+        ENGINE_EXPORT void update()
         {
             SDL_GetCurrentDisplayMode(0, &mode);
             SDL_GetDisplayDPI(0, &display_dpi.ddpi, &display_dpi.hdpi, &display_dpi.vdpi);
         }
 
 
-        int red_bits()
+        ENGINE_EXPORT int red_bits()
         {
             throw not_implemented;
         }
 
-        int green_bits()
+        ENGINE_EXPORT int green_bits()
         {
             throw not_implemented;
         }
 
-        int blue_bits()
+        ENGINE_EXPORT int blue_bits()
         {
             throw not_implemented;
         }
 
-        Size1D height()
+        ENGINE_EXPORT Size1D height()
         {
             return static_cast<Size1D>(mode.h);
         }
 
-        Size1D width()
+        ENGINE_EXPORT Size1D width()
         {
             return static_cast<Size1D>(mode.w);
         }
 
-        int refresh_rate()
+        ENGINE_EXPORT int refresh_rate()
         {
             return mode.refresh_rate;
         }
 
-        Size2D size()
+        ENGINE_EXPORT Size2D size()
         {
             return {width(), height()};
         }
 
-        const DPI& dpi()
+        ENGINE_EXPORT const DPI& dpi()
         {
             return display_dpi;
         }

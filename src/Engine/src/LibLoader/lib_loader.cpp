@@ -1,5 +1,5 @@
+#include <Core/logger.hpp>
 #include <LibLoader/lib_loader.hpp>
-#include <SDL_log.h>
 #include <iostream>
 #include <unordered_map>
 #ifdef WIN32
@@ -14,16 +14,18 @@ static std::unordered_map<std::string, void*> _M_libraries;
 
 namespace Engine
 {
-    std::string library_dir;
+    ENGINE_EXPORT std::string library_dir;
 
-    static std::string get_full_libname(const std::string& libname)
+    static std::string get_libname(const std::string& libname, bool full = true)
     {
 #ifdef WIN32
         static const std::string format = ".dll";
 #else
         static const std::string format = ".so";
 #endif
-        return library_dir + str("lib") + libname + format;
+        if (full)
+            return library_dir + str("/lib") + libname + format;
+        return str("lib") + libname + format;
     }
 
     Library::Library(void* handle, const std::string& libname)
@@ -35,10 +37,13 @@ namespace Engine
     void* Library::load_function(void* handle, const std::string& name)
     {
 #ifdef WIN32
-        return (void*) GetProcAddress((HMODULE) (handle), (LPCSTR) (name.c_str()));
+        void* func = (void*) GetProcAddress((HMODULE) (handle), (LPCSTR) (name.c_str()));
 #else
-        return dlsym(handle, name.c_str());
+        void* func = dlsym(handle, name.c_str());
 #endif
+        if (func == nullptr)
+            logger->log("Failed to load function %s from lib %s\n", name.c_str(), _M_libname.c_str());
+        return func;
     }
 
     void Library::close()
@@ -58,26 +63,33 @@ namespace Engine
     }
 
 
-    Library load_library(const std::string& libname)
+    ENGINE_EXPORT Library load_library(const std::string& libname)
     {
-        std::string fullname = get_full_libname(libname);
-        void*& lib = _M_libraries[fullname];
-        if (!lib)
+        std::string libnames[2] = {get_libname(libname), get_libname(libname, false)};
+
+        for (auto& name : libnames)
         {
+            void*& lib = _M_libraries[name];
+            if (!lib)
+            {
 #ifdef WIN32
-            void* handle = (void*) LoadLibrary((LPCSTR) fullname.c_str());
-            if (!handle)
-                SDL_Log("Failed to load %s\n", fullname.c_str());
+                lib = (void*) LoadLibrary((LPCSTR) name.c_str());
 #else
-            void* handle = dlopen(fullname.c_str(), RTLD_LAZY);
-            if (!handle)
-                SDL_Log("%s\n", dlerror());
+                lib = dlopen(name.c_str(), RTLD_LAZY);
 #endif
-            lib = handle;
-            return Library(handle, libname);
+            }
+
+            if (lib)
+                return Library(lib, libname);
         }
 
-        return Library(lib, libname);
+
+#ifdef WIN32
+        logger->log("Failed to load %s\n", libname.c_str());
+#else
+        logger->log("%s\n", dlerror());
+#endif
+        return Library(nullptr, libname);
     }
 
     static void close_lib_ptr(void*& lib)
@@ -94,16 +106,21 @@ namespace Engine
         }
     }
 
-    void close_library(const std::string& libname)
+    ENGINE_EXPORT void close_library(const std::string& libname)
     {
-        std::string fullname = get_full_libname(libname);
-        close_lib_ptr(_M_libraries[fullname]);
+        std::string names[2] = {get_libname(libname), get_libname(libname, false)};
+        for (auto& name : names)
+        {
+            void*& lib = _M_libraries[name];
+            if (lib)
+                close_lib_ptr(lib);
+        }
     }
 
     static struct Controller {
         ~Controller()
         {
-            SDL_Log("LibrariesController: Closing all opened libs\n");
+            logger->log("LibrariesController: Closing all opened libs\n");
             for (auto& ell : _M_libraries) close_lib_ptr(ell.second);
         }
     } controller;

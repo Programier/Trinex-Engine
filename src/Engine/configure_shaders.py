@@ -35,7 +35,7 @@ def generate_header(header_name: str, shaders: list) -> None:
     for shader in shaders:
         try:
             shader_num += 1
-            prototype = "\tconst char* " + str(shader[0]).replace('.', '_') + " = R\"***(\n"
+            prototype = "\tconst char* " + str(shader[0]).replace('.', '_') + " = R\"***("
             header.write(prototype)
             for line in shader[1]:
                 header.write(line)

@@ -1,5 +1,5 @@
+#include <Core/engine.hpp>
 #include <Graphics/scene.hpp>
-#include <engine.hpp>
 
 using namespace Engine;
 

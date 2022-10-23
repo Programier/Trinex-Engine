@@ -1,4 +1,5 @@
-#version 330 core
+#version 320 es
+precision mediump float;
 
 void main()
 {

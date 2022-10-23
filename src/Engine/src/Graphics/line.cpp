@@ -1,7 +1,8 @@
+#include <Core/engine.hpp>
+#include <Core/logger.hpp>
 #include <Graphics/line.hpp>
 #include <LibLoader/lib_loader.hpp>
-#include <SDL_log.h>
-#include <engine.hpp>
+#include <api_funcs.hpp>
 #include <glm/glm.hpp>
 #include <model_loader.hpp>
 #include <opengl.hpp>
@@ -23,9 +24,11 @@ namespace Engine
     }
 
 
-    void load_scene(const aiScene* scene, aiNode* node, std::vector<float>& out, glm::mat4 model_matrix = glm::mat4(1.0f))
+    static void load_scene(const aiScene* scene, aiNode* node, std::vector<float>& out,
+                           glm::mat4 model_matrix = glm::mat4(1.0f))
     {
-        SDL_Log("Line loader: Loading %s\n", node->mName.C_Str());
+        logger->log("Line loader: Loading %s\n", node->mName.C_Str());
+        logger->log("MESHES: %u\n", node->mNumMeshes);
 
         model_matrix = mat4(node->mTransformation.Transpose()) * model_matrix;
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -58,7 +61,7 @@ namespace Engine
         for (unsigned int i = 0; i < node->mNumChildren; i++) load_scene(scene, node->mChildren[i], out, model_matrix);
     }
 
-    std::size_t sum(const std::vector<int>& vec)
+    static std::size_t sum(const std::vector<int>& vec)
     {
         std::size_t res = 0;
         for (auto& ell : vec) res += ell;
@@ -67,27 +70,37 @@ namespace Engine
 
     Line& Line::update()
     {
-        Mesh::attributes({3}).vertices_count(_M_data.size() / 3).update_buffers();
+        attributes = {{3, BufferValueType::FLOAT}};
+        vertices = data.size() / 3;
+        if (Mesh::id() == 0)
+        {
+            Mesh::mode = DrawMode::STATIC_DRAW;
+            Mesh::gen();
+        }
+        set_data().update_atributes();
         return *this;
     }
 
     Line::Line() = default;
     Line::Line(const Line& line) = default;
-    Line::Line(const std::vector<float>& data, unsigned int vertices, const std::vector<int>& attributes)
-        : Mesh(data, vertices, attributes)
-    {}
+    Line::Line(const std::vector<float>& data, unsigned int vertices, const std::vector<MeshAtribute>& attributes)
+    {
+        this->data = data;
+        this->vertices = vertices;
+        this->attributes = attributes;
+    }
 
     Line& Line::operator=(const Line& line) = default;
 
     Line& Line::_M_push_line(const glm::vec3& point1, const glm::vec3& point2)
     {
-        _M_data.push_back(point1.x);
-        _M_data.push_back(point1.y);
-        _M_data.push_back(point1.z);
+        data.push_back(point1.x);
+        data.push_back(point1.y);
+        data.push_back(point1.z);
 
-        _M_data.push_back(point2.x);
-        _M_data.push_back(point2.y);
-        _M_data.push_back(point2.z);
+        data.push_back(point2.x);
+        data.push_back(point2.y);
+        data.push_back(point2.z);
         return *this;
     }
 
@@ -98,15 +111,13 @@ namespace Engine
 
     Line& Line::draw()
     {
-        glLineWidth(_M_line_width);
-        Mesh::draw(Engine::LINE);
-        glLineWidth(1.0f);
+        BasicMesh::draw(Engine::Primitive::LINE);
         return *this;
     }
 
     Line& Line::load_from(const std::string& model)
     {
-        _M_data.clear();
+        data.clear();
         Library assimp = load_library("assimp");
         if (!assimp.has_lib())
             return *this;
@@ -120,76 +131,24 @@ namespace Engine
             return *this;
         }
 
-        SDL_Log("Lines loader: Loading scene\n");
-        load_scene(scene, scene->mRootNode, _M_data);
+        logger->log("Lines loader: Loading scene\n");
+        load_scene(scene, scene->mRootNode, data);
         update();
 
-        SDL_Log("Lines loader: Loading the \"%s\" model completed successfully\n", model.c_str());
+        logger->log("Lines loader: Loading the \"%s\" model completed successfully\n", model.c_str());
         assimp_ReleaseImport(scene);
         return *this;
     }
 
-    Line& Line::lines_from(TerrainModel& model)
-    {
-        auto data = model.materials();
-
-        std::size_t result_size = 0;
-        for (auto& material : data) result_size += material.mesh.vertices_count() * 6;
-        _M_data.clear();
-        _M_data.reserve(result_size);
-
-        for (auto& material : data)
-        {
-            auto& mesh = material.mesh;
-            auto& vector = mesh.data();
-            auto len = vector.size();
-            std::size_t attr_sum = sum(mesh.attributes());
-            auto block = attr_sum * 3;
-            if (len < block)
-                continue;
-            for (std::size_t i = 0; i < len; i += block)
-            {
-                // First line
-                _M_data.push_back(vector[i]);
-                _M_data.push_back(vector[i + 1]);
-                _M_data.push_back(vector[i + 2]);
-
-                _M_data.push_back(vector[i + attr_sum]);
-                _M_data.push_back(vector[i + 1 + attr_sum]);
-                _M_data.push_back(vector[i + 2 + attr_sum]);
-
-                // Second line
-
-                _M_data.push_back(vector[i]);
-                _M_data.push_back(vector[i + 1]);
-                _M_data.push_back(vector[i + 2]);
-
-                _M_data.push_back(vector[i + (2 * attr_sum)]);
-                _M_data.push_back(vector[i + 1 + (2 * attr_sum)]);
-                _M_data.push_back(vector[i + 2 + (2 * attr_sum)]);
-
-                // Third line
-                _M_data.push_back(vector[i + attr_sum]);
-                _M_data.push_back(vector[i + 1 + attr_sum]);
-                _M_data.push_back(vector[i + 2 + attr_sum]);
-
-                _M_data.push_back(vector[i + (2 * attr_sum)]);
-                _M_data.push_back(vector[i + 1 + (2 * attr_sum)]);
-                _M_data.push_back(vector[i + 2 + (2 * attr_sum)]);
-            }
-        }
-        Mesh::attributes({3}).vertices_count(_M_data.size() / 3).update_buffers();
-        return *this;
-    }
 
     float Line::line_width()
     {
-        return _M_line_width;
+        return get_current_line_rendering_width();
     }
 
     Line& Line::line_width(const float& width)
     {
-        _M_line_width = width;
+        set_line_rendering_width(width);
         return *this;
     }
 

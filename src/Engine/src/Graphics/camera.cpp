@@ -1,5 +1,5 @@
+#include <Core/engine.hpp>
 #include <Graphics/camera.hpp>
-#include <engine.hpp>
 #include <functional>
 #include <glm/ext.hpp>
 
@@ -41,12 +41,22 @@ namespace Engine
         return *this;
     }
 
-    float Camera::max_render_distance()
+    Distance& Camera::max_render_distance()
     {
         return _M_maxRenderDistance;
     }
 
-    float Camera::min_render_distance()
+    Distance& Camera::min_render_distance()
+    {
+        return _M_minRenderDistance;
+    }
+
+    const Distance& Camera::max_render_distance() const
+    {
+        return _M_maxRenderDistance;
+    }
+
+    const Distance& Camera::min_render_distance() const
     {
         return _M_minRenderDistance;
     }
@@ -57,7 +67,12 @@ namespace Engine
         return *this;
     }
 
-    float Camera::viewing_angle()
+    Engine::EulerAngle1D& Camera::viewing_angle()
+    {
+        return _M_viewingAngle;
+    }
+
+    const Engine::EulerAngle1D& Camera::viewing_angle() const
     {
         return _M_viewingAngle;
     }

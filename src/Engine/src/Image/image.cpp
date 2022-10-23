@@ -1,5 +1,5 @@
+#include <Core/logger.hpp>
 #include <Image/image.hpp>
-#include <SDL_log.h>
 #include <stb_image.h>
 #include <stdexcept>
 
@@ -101,7 +101,7 @@ namespace Engine
             return *this;
         if (_M_channels != 4)
         {
-            SDL_Log("Image: Cannot remove alpha channel\n");
+            logger->log("Image: Cannot remove alpha channel\n");
             return *this;
         }
 
@@ -125,7 +125,7 @@ namespace Engine
             return *this;
         if (_M_channels != 3)
         {
-            SDL_Log("Image: Cannot add alpha channel\n");
+            logger->log("Image: Cannot add alpha channel\n");
             return *this;
         }
 

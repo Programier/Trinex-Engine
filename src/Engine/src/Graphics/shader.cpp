@@ -1,5 +1,5 @@
+#include <Core/logger.hpp>
 #include <Graphics/shader.hpp>
-#include <SDL_log.h>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <opengl.hpp>
@@ -19,7 +19,7 @@ static void read_file(const std::string& filename, std::string& out)
     std::ifstream input_file(filename);
     if (!input_file.is_open())
     {
-        SDL_Log("Shader: Failed to open %s\n", filename.c_str());
+        Engine::logger->log("Shader: Failed to open %s\n", filename.c_str());
         throw -1;
     }
 
@@ -31,7 +31,7 @@ static void read_file(const std::string& filename, std::string& out)
     }
     catch (...)
     {
-        SDL_Log("Shader: Failed to read %s\n", filename.c_str());
+        Engine::logger->log("Shader: Failed to read %s\n", filename.c_str());
     }
 }
 
@@ -45,9 +45,9 @@ static void compile_shader(const GLchar* code, unsigned int& ID, int SHADER_TYPE
     glGetShaderiv(ID, GL_COMPILE_STATUS, &succes);
     if (!succes)
     {
-        SDL_Log("Shader: Failed to compile shader %s\n", path);
+        Engine::logger->log("Shader: Failed to compile shader %s\n", path);
         glGetShaderInfoLog(ID, 1024, nullptr, log);
-        SDL_Log("%s\n", log);
+        Engine::logger->log("%s\n", log);
         glDeleteShader(ID);
         ID = 0;
         throw -1;
@@ -66,7 +66,7 @@ static void link_shader(unsigned int& ID, const std::vector<unsigned int>& shade
     if (!succes)
     {
         glGetProgramInfoLog(ID, 1024, nullptr, log);
-        SDL_Log("Shader: Failed to link shader program\n%s\n", log);
+        Engine::logger->log("Shader: Failed to link shader program\n%s\n", log);
         glDeleteProgram(ID);
         ID = 0;
         throw -1;
@@ -190,7 +190,7 @@ namespace Engine
         delete_shaders();
         if (is_files)
         {
-            SDL_Log("Loading shaders: %s, %s\n", _vertex.c_str(), _fragment.c_str());
+            logger->log("Loading shaders: %s, %s\n", _vertex.c_str(), _fragment.c_str());
         }
 
         std::string vertex_code, fragment_code;
@@ -214,7 +214,7 @@ namespace Engine
             return *this;
         }
 
-        SDL_Log("Shader: Compilation complete\n");
+        logger->log("Shader: Compilation complete\n");
         _M_done = true;
         return *this;
     }
@@ -235,7 +235,7 @@ namespace Engine
             return *this;
         }
 
-        SDL_Log("Shader: Compilation complete\n");
+        logger->log("Shader: Compilation complete\n");
         _M_done = true;
         return *this;
     }

@@ -1,4 +1,5 @@
-#version 430 core
+#version 320 es
+precision mediump float;
 
 out vec4 f_color;
 
@@ -11,7 +12,7 @@ uniform sampler2D texture0;// Diffuse
 uniform sampler2D texture1;// Shadow
 
 uniform vec3 camera;
-uniform int lighting = 0;
+uniform int lighting;
 
 struct Material {
     vec3 ambient;
@@ -44,7 +45,7 @@ vec4 get_texture_color()
 float get_shadow(vec3 lightDir, vec3 viewDir)
 {
 
-    vec2 texelSize = 1.0 / textureSize(texture1, 0);
+    vec2 texelSize = 1.0 / vec2(textureSize(texture1, 0));
     vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
@@ -55,7 +56,7 @@ float get_shadow(vec3 lightDir, vec3 viewDir)
 
 
     // Calculating bias value
-    float bias = abs(dot(normal, -lightDir)) * ((texelSize.y) / 4);
+    float bias = abs(dot(normal, -lightDir)) * ((texelSize.y) / 4.f);
 
     // Calculating shadows
     vec2 coord_shift = mod(projCoords.xy, texelSize);
@@ -64,9 +65,13 @@ float get_shadow(vec3 lightDir, vec3 viewDir)
 
     float shadow = 0.f;
     for (int x = 0; x <= 1; x += 1)
+    {
         for (int y = 0; y <= 1; y += 1)
+        {
             shadow += currentDepth - bias > texture(texture1, center + vec2(x, y) * texelSize).r ? 1.f : 0.0;
-    return shadow / 4;
+        }
+    }
+    return float(shadow / 4.f);
 }
 
 void main()
@@ -98,5 +103,5 @@ void main()
     }
 
     f_color = vec4(result * vec3(get_texture_color()), 1.f);
-   // f_color = vec4(1, 0, 0, 1);
+    // f_color = vec4(1, 0, 0, 1);
 }

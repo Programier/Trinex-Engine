@@ -11,5 +11,6 @@ namespace Engine
         void init(Application *app);
         void render();
         void terminate();
+        void init_logger();
     }
 }

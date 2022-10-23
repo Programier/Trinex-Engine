@@ -1,11 +1,12 @@
-#version 330 core
+#version 320 es
+precision mediump float;
 
 uniform sampler2D texture0;
 
 in vec2 coord;
 out vec4 color;
 
-uniform float power = 32;
+uniform float power;
 
 void main()
 {

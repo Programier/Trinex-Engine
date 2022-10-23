@@ -1,6 +1,6 @@
+#include <Core/engine.hpp>
 #include <Graphics/basic_object.hpp>
 #include <algorithm>
-#include <engine.hpp>
 #include <glm/ext.hpp>
 #include <numeric>
 
@@ -9,7 +9,7 @@
 #define SCALE_INDEX 2
 
 
-#define get_model(index) _M_models[index].is_null() ? identity_matrix : _M_models[index].get();
+#define get_model(index) _M_models[index].is_null() ? Constants::identity_matrix : _M_models[index].get();
 
 namespace Engine
 {
@@ -53,7 +53,7 @@ namespace Engine
 
     ModelMatrix& ModelMatrix::recalculate_shift()
     {
-        _M_shift_models[3] = identity_matrix;
+        _M_shift_models[3] = Constants::identity_matrix;
         for (std::size_t i = 0; i < 3; i++) _M_shift_models[3].get() *= _M_shift_models[i].get();
         return *this;
     }
@@ -68,12 +68,12 @@ namespace Engine
 
     Translate& Translate::move(const Point1D& x, const Point1D& y, const Point1D& z, const bool& add_values)
     {
-        return move({x, y, z}, OX, OY, OZ, add_values);
+        return move({x, y, z}, Constants::OX, Constants::OY, Constants::OZ, add_values);
     }
 
     Translate& Translate::move(const Vector3D& move_vector, const bool& add_values)
     {
-        return move(move_vector, OX, OY, OZ, add_values);
+        return move(move_vector, Constants::OX, Constants::OY, Constants::OZ, add_values);
     }
 
     Translate& Translate::move(const Point1D& x, const Point1D& y, const Point1D& z, const Vector3D& right,
@@ -91,7 +91,7 @@ namespace Engine
             this->_M_position.get() += result_move;
         else
         {
-            _M_translate_matrix() = identity_matrix;
+            _M_translate_matrix() = Constants::identity_matrix;
             this->_M_position = move_vector;
         }
 
@@ -101,7 +101,7 @@ namespace Engine
 
     Translate& Translate::move(const Distance& distance, const glm::vec3& axis, const bool& add_value)
     {
-        return move(axis * distance, OX, OY, OZ, add_value);
+        return move(axis * distance, Constants::OX, Constants::OY, Constants::OZ, add_value);
     }
 
     Translate& Translate::link_to(Translate& obj)
@@ -125,18 +125,17 @@ namespace Engine
 
     Scale& Scale::scale(const Scale3D& sc, const bool& add_values)
     {
-        Scale3D new_sc;
         if (add_values)
         {
-            new_sc = sc;
             _M_scale.get() *= sc;
+            _M_scale_matrix() = glm::scale(_M_scale_matrix(), sc);
         }
         else
         {
-            new_sc = (1.f / _M_scale.get()) * sc;
             _M_scale = sc;
+            _M_scale_matrix() = glm::scale(Constants::identity_matrix, sc);
         }
-        _M_scale_matrix() = glm::scale(_M_scale_matrix(), new_sc);
+
         return *this;
     }
 
@@ -173,7 +172,7 @@ namespace Engine
         else
         {
             quat.w = -quat.w;
-            matrix = identity_matrix;
+            matrix = Constants::identity_matrix;
             quat = q;
         }
 
@@ -181,9 +180,9 @@ namespace Engine
         matrix = glm::mat4_cast(glm::normalize(q)) * matrix;
         _M_euler_angles.get() = glm::eulerAngles(quat);
 
-        _M_front = glm::normalize(quat * OZ);
-        _M_up = glm::normalize(quat * OY);
-        _M_right = glm::normalize(quat * OX);
+        _M_front = glm::normalize(quat * Constants::OZ);
+        _M_up = glm::normalize(quat * Constants::OY);
+        _M_right = glm::normalize(quat * Constants::OX);
     }
 
     Rotate& Rotate::rotate(const EulerAngle3D& r, const bool& add_values)

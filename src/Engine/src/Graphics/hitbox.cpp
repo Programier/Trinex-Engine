@@ -258,8 +258,10 @@ namespace Engine
         rotate(rotation, false);
         _M_type = HitBoxType::BOX;
 
-        _M_lines.data() = cube_mesh;
-        _M_lines.attributes({3}).vertices_count(24).update_buffers();
+        _M_lines.data = cube_mesh;
+        _M_lines.attributes = {{3, BufferValueType::FLOAT}};
+        _M_lines.vertices = 24;
+        _M_lines.set_data().update_atributes();
     }
 
     BoxHB::BoxHB(const BoxHB&) = default;

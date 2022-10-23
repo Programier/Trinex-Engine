@@ -1,4 +1,5 @@
-#version 430 core
+#version 320 es
+precision mediump float;
 layout (location = 0) in vec4 vertex;
 out vec2 coords;
 uniform mat4 projview;

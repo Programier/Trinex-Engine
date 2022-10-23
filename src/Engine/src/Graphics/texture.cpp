@@ -1,152 +1,186 @@
+#include <Core/implement.hpp>
 #include <Graphics/texture.hpp>
-#include <opengl.hpp>
-#include <stdexcept>
+#include <api_funcs.hpp>
 
-#define str(a) std::string(a)
-namespace Engine
+using namespace Engine;
+
+implement_class_cpp(Texture);
+
+Texture::Texture(const TextureParams& params)
 {
+    create(params);
+}
 
-    Texture& Texture::private_load(const std::string& name, const DrawMode& mode, const MipMapLevel& mipmap,
-                                   const bool& invert)
-    {
-        _M_mipmap = mipmap;
-        _M_mode = mode;
-        Image::load(name, invert);
-        if (Image::empty() || Image::channels() < 3)
-            throw std::runtime_error("Texture: Failed to load texture " + name);
-        gen_ID();
-        glBindTexture(GL_TEXTURE_2D, _M_ID);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Image::width(), Image::height(), 0,
-                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE, (GLvoid*) Image::data());
-        auto gl_mode = mode == NEAREST ? GL_NEAREST : GL_LINEAR;
+Texture& Texture::create(const TextureParams& params)
+{
+    Object::destroy();
+    create_texture(_M_ID, params);
+    return *this;
+}
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _M_mipmap);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        return *this;
-    }
+const Texture& Texture::bind(unsigned int num) const
+{
+    bind_texture(_M_ID, num);
+    return *this;
+}
 
-    Texture& Texture::gen_ID()
-    {
-        if (_M_ID == 0)
-        {
-            glGenTextures(1, &_M_ID);
-        }
-        return *this;
-    }
+int Texture::base_level() const
+{
+    return get_base_level_texture(_M_ID);
+}
 
-    Texture& Texture::delete_ID()
-    {
-        if (_M_ID != 0)
-        {
-            glDeleteTextures(1, &_M_ID);
-            _M_ID = 0;
-        }
-        return *this;
-    }
+Texture& Texture::base_level(int level)
+{
+    set_base_level_texture(_M_ID, level);
+    return *this;
+}
 
-    Texture& Texture::update()
-    {
-        gen_ID();
-        glBindTexture(GL_TEXTURE_2D, _M_ID);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Image::width(), Image::height(), 0,
-                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE, (GLvoid*) Image::data());
-        auto gl_mode = _M_mode == NEAREST ? GL_NEAREST : GL_LINEAR;
+Texture& Texture::depth_stencil_mode(DepthStencilMode mode)
+{
+    set_depth_stencil_mode_texture(_M_ID, mode);
+    return *this;
+}
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _M_mipmap);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        return *this;
-    }
+DepthStencilMode Texture::depth_stencil_mode() const
+{
+    return get_depth_stencil_mode_texture(_M_ID);
+}
 
-    Texture::Texture(const std::string& file, const DrawMode& mode, const MipMapLevel& mipmap, const bool& invert)
-    {
-        private_load(file, mode, mipmap, invert);
-    }
+CompareFunc Texture::compare_func() const
+{
+    return get_compare_func_texture(_M_ID);
+}
 
-    void Texture::unbind()
-    {
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+Texture& Texture::compare_func(CompareFunc func)
+{
+    set_compare_func_texture(_M_ID, func);
+    return *this;
+}
 
+Texture& Texture::compare_mode(CompareMode mode)
+{
+    set_compare_mode_texture(_M_ID, mode);
+    return *this;
+}
 
-    Texture& Texture::bind()
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _M_ID);
-        return *this;
-    }
+CompareMode Texture::compare_mode() const
+{
+    return get_compare_mode_texture(_M_ID);
+}
 
+const TextureFilter Texture::min_filter() const
+{
+    return get_min_filter_texture(_M_ID);
+}
 
-    Texture::~Texture()
-    {
-        delete_ID();
-    }
+const TextureFilter Texture::mag_filter() const
+{
+    return get_mag_filter_texture(_M_ID);
+}
 
-    Texture& Texture::draw_mode(const DrawMode& mode)
-    {
-        _M_mode = mode;
+Texture& Texture::min_filter(TextureFilter filter)
+{
+    set_min_filter_texture(_M_ID, filter);
+    return *this;
+}
 
-        glBindTexture(GL_TEXTURE_2D, _M_ID);
-        auto gl_mode = mode == NEAREST ? GL_NEAREST : GL_LINEAR;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
-        glBindTexture(GL_TEXTURE_2D, 0);
+Texture& Texture::mag_filter(TextureFilter filter)
+{
+    set_mag_filter_texture(_M_ID, filter);
+    return *this;
+}
 
-        return *this;
-    }
+Texture& Texture::min_lod_level(int value)
+{
+    set_min_lod_level_texture(_M_ID, value);
+    return *this;
+}
 
-    const DrawMode& Texture::draw_mode()
-    {
-        return _M_mode;
-    }
+Texture& Texture::max_lod_level(int value)
+{
+    set_max_lod_level_texture(_M_ID, value);
+    return *this;
+}
 
-    Texture& Texture::load(const std::string& texture, const DrawMode& mode, const MipMapLevel& mipmap, const bool& invert)
-    {
-        delete_ID();
-        private_load(texture, mode, mipmap, invert);
-        return *this;
-    }
+Texture& Texture::max_mipmap_level(int value)
+{
+    set_max_mipmap_level_texture(_M_ID, value);
+    return *this;
+}
 
+int Texture::min_lod_level() const
+{
+    return get_min_lod_level_texture(_M_ID);
+}
 
-    Texture::Texture()
-    {
-        gen_ID();
-    }
+int Texture::max_lod_level() const
+{
+    return get_max_lod_level_texture(_M_ID);
+}
 
-    Texture& Texture::operator=(const Texture& texture)
-    {
-        if (this == &texture)
-            return *this;
-        if (_M_ID != 0)
-            glDeleteTextures(1, &_M_ID);
-        dynamic_cast<Image&>(*this) = dynamic_cast<const Image&>(texture);
-        _M_mode = texture._M_mode;
-        _M_mipmap = texture._M_mipmap;
-        unsigned int ID;
-        glGenTextures(1, &ID);
-        glBindTexture(GL_TEXTURE_2D, ID);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Image::width(), Image::height(), 0,
-                     (Image::channels() == 3 ? GL_RGB : GL_RGBA), GL_UNSIGNED_BYTE, (GLvoid*) Image::data());
-        auto gl_mode = _M_mode == NEAREST ? GL_NEAREST : GL_LINEAR;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mode);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        _M_ID = ID;
+int Texture::max_mipmap_level() const
+{
+    return get_max_mipmap_level_texture(_M_ID);
+}
 
-        return *this;
-    }
+SwizzleRGBA Texture::swizzle() const
+{
+    return get_swizzle_texture(_M_ID);
+}
 
-    Texture::Texture(const Texture& texture)
-    {
-        *this = texture;
-    }
+Texture& Texture::swizzle(const SwizzleRGBA& value)
+{
+    set_swizzle_texture(_M_ID, value);
+    return *this;
+}
 
+Texture& Texture::wrap_s(WrapValue& wrap)
+{
+    set_wrap_s_texture(_M_ID, wrap);
+    return *this;
+}
 
-}// namespace Engine
+Texture& Texture::wrap_t(WrapValue& wrap)
+{
+    set_wrap_t_texture(_M_ID, wrap);
+    return *this;
+}
+
+Texture& Texture::wrap_r(WrapValue& wrap)
+{
+    set_wrap_r_texture(_M_ID, wrap);
+    return *this;
+}
+
+WrapValue Texture::wrap_s() const
+{
+    return get_wrap_s_texture(_M_ID);
+}
+
+WrapValue Texture::wrap_t() const
+{
+    return get_wrap_t_texture(_M_ID);
+}
+
+WrapValue Texture::wrap_r() const
+{
+    return get_wrap_r_texture(_M_ID);
+}
+
+Texture& Texture::generate_mipmap()
+{
+    generate_texture_mipmap(_M_ID);
+    return *this;
+}
+
+Size3D Texture::size(int level) const
+{
+    Size3D _M_size;
+    get_size_texture(_M_ID, _M_size, level);
+    return _M_size;
+}
+
+ObjID Texture::internal_id() const
+{
+    return texture_id(_M_ID);
+}

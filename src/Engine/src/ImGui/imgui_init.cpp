@@ -1,6 +1,7 @@
+#include <Core/engine.hpp>
+#include <Core/logger.hpp>
 #include <ImGui-Private/imgui_impl_opengl3.h>
 #include <ImGui-Private/imgui_impl_sdl.h>
-#include <Init/init.hpp>
 #include <Window/window.hpp>
 #include <imgui_init.hpp>
 
@@ -32,7 +33,7 @@ namespace Engine::ImGuiInit
         throw not_implemented;
     }
 
-    static void (*terminate_imgui[2])() = {opengl_imgui_terminate, vulkan_imgui_terminate};
+    static void (*terminate_imgui_funcs[2])() = {opengl_imgui_terminate, vulkan_imgui_terminate};
 
 
     static void opengl_imgui_render()
@@ -68,23 +69,26 @@ namespace Engine::ImGuiInit
 
     void init(const char* glsl_version)
     {
-        init_imgui[cast(int, Engine::API())](glsl_version);
-        Window::event_callbacks().push_back(imgui_event);
+        init_imgui[static_cast<int>(Engine::Engine_API())](glsl_version);
+        Engine::Event::sdl_callbacks.push_back(imgui_event);
     }
 
-    void terminate()
+    void terminate_imgui()
     {
-        terminate_imgui[cast(int, Engine::API())]();
+        auto it = std::find(Engine::Event::sdl_callbacks.begin(), Engine::Event::sdl_callbacks.end(), imgui_event);
+        if (it != Engine::Event::sdl_callbacks.end())
+            Engine::Event::sdl_callbacks.erase(it);
+        terminate_imgui_funcs[cast(int, Engine::Engine_API())]();
     }
 
     void render()
     {
-        render_imgui[cast(int, Engine::API())]();
+        render_imgui[cast(int, Engine::Engine_API())]();
     }
 
     void new_frame()
     {
-        frame_imgui[cast(int, Engine::API())]();
+        frame_imgui[cast(int, Engine::Engine_API())]();
     }
 
 }// namespace Engine::ImGuiInit

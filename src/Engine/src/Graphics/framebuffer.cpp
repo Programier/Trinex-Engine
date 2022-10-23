@@ -1,85 +1,28 @@
 #include <Graphics/framebuffer.hpp>
+#include <api_funcs.hpp>
 #include <opengl.hpp>
 
 namespace Engine
 {
-    FrameBuffer::FrameBuffer() = default;
-
-    FrameBuffer::FrameBuffer(const Size1D& width, const Size1D& height)
+    implement_class_cpp(FrameBuffer);
+    FrameBuffer& FrameBuffer::gen(FrameBufferType type)
     {
-        gen(width, height);
-    }
-
-    FrameBuffer::FrameBuffer(const Size2D& size)
-    {
-        gen(size.x, size.y);
-    }
-
-
-    FrameBuffer::FrameBuffer(const FrameBuffer& buffer) = default;
-    FrameBuffer& FrameBuffer::delete_data()
-    {
-
-        if (_M_framebuffer_id.references() == 1 && _M_framebuffer_id.get() != 0)
-            glDeleteFramebuffers(1, &_M_framebuffer_id.get());
-        if (_M_texture_id.references() == 1 && _M_texture_id.get() != 0)
-            glDeleteTextures(1, &_M_texture_id.get());
+        Object::destroy();
+        _M_type = type;
+        gen_framebuffer(_M_ID, type);
         return *this;
     }
 
-    FrameBuffer& FrameBuffer::operator=(const FrameBuffer& buffer) = default;
-
-
-    FrameBuffer& FrameBuffer::gen(const Size1D& width, const Size1D& height)
+    FrameBuffer& FrameBuffer::attach_texture(const Texture2D& texture, FrameBufferAttach attach, unsigned int num, int level)
     {
-        ObjectID FB_ID;
-        glGenFramebuffers(1, &FB_ID);
-
-        ObjectID TEX_ID;
-        glGenTextures(1, &TEX_ID);
-        glBindTexture(GL_TEXTURE_2D, TEX_ID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0,
-                     GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glBindFramebuffer(GL_FRAMEBUFFER, FB_ID);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, TEX_ID, 0);
-
-#ifndef __ANDROID__
-        glDrawBuffer(GL_NONE);
-#endif
-        glReadBuffer(GL_NONE);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        delete_data();
-        _M_framebuffer_id = ReferenceWrapper(const_cast<const unsigned int&>(FB_ID));
-        _M_texture_id = ReferenceWrapper(const_cast<const unsigned int&>(TEX_ID));
-        _M_size = {width, height};
+        attach_texture_to_framebuffer(_M_ID, texture.id(), attach, num, level);
+        _M_textures.push_back(texture);
         return *this;
     }
 
-    FrameBuffer& FrameBuffer::gen(const Size2D& size)
-    {
-        return gen(size.x, size.y);
-    }
 
-
-    FrameBuffer& FrameBuffer::bind_texture(int num)
+    const std::vector<Texture2D> FrameBuffer::textures() const
     {
-        glActiveTexture(GL_TEXTURE0 + num);
-        glBindTexture(GL_TEXTURE_2D, _M_texture_id.get());
-        return *this;
-    }
-
-    Size2D FrameBuffer::size() const
-    {
-        return _M_size;
-    }
-
-    FrameBuffer::~FrameBuffer()
-    {
-        delete_data();
+        return _M_textures;
     }
 }// namespace Engine

@@ -1,7 +1,8 @@
+#include <Core/keyboard.hpp>
 #include <SDL_keyboard.h>
 #include <SDL_mouse.h>
-#include <Window/keyboard.hpp>
 #include <unordered_map>
+
 namespace Engine
 {
     static std::unordered_map<Key, int> keyboard = {{KEY_UNKNOWN, SDL_SCANCODE_UNKNOWN},
@@ -261,22 +262,22 @@ namespace Engine
                                                              {MOUSE_BUTTON_MIDDLE, "MOUSE_BUTTON_MIDDLE"}};
 
 
-    int to_SDL_scancode(const Key& key)
+    ENGINE_EXPORT int to_SDL_scancode(const Key& key)
     {
         return keyboard.at(key);
     }
 
-    Key to_key(int value)
+    ENGINE_EXPORT Key to_key(int value)
     {
         return reversed_keyboard.at(value);
     }
 
-    const std::string& get_key_name(const Key& key)
+    ENGINE_EXPORT const std::string& get_key_name(const Key& key)
     {
         return key_names.at(key);
     }
 
-    std::ostream& operator<<(std::ostream& stream, const KeyStatus& status)
+    ENGINE_EXPORT std::ostream& operator<<(std::ostream& stream, const KeyStatus& status)
     {
         static std::unordered_map<KeyStatus, const char*> names = {{KeyStatus::JUST_RELEASED, "JUST_RELEASED"},
                                                                    {KeyStatus::RELEASED, "RELEASED"},
@@ -286,7 +287,7 @@ namespace Engine
         return stream << names.at(status);
     }
 
-    unsigned int key_count()
+    ENGINE_EXPORT unsigned int key_count()
     {
         return 130;
     }

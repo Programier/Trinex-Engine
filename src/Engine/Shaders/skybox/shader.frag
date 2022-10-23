@@ -1,5 +1,5 @@
-#version 430 core
-
+#version 320 es
+precision mediump float;
 in vec3 view_dir;
 uniform samplerCube cubemap;
 

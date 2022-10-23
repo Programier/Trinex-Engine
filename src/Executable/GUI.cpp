@@ -1,54 +1,82 @@
 #include <Application.hpp>
-#include <BasicFunctional/engine_types.hpp>
+#include <Core/engine_types.hpp>
+#include <Core/init.hpp>
 #include <GUI.hpp>
-#include <ImGui/ImGuiFileBrowser.h>
+#include <ImGui/ImGuiFileDialog.h>
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_init.hpp>
-#include <Init/init.hpp>
+#include <LibLoader/lib_loader.hpp>
+#include <Sensors/sensor.hpp>
 #include <Window/monitor.hpp>
 #include <application_debug.hpp>
 #include <glm/ext.hpp>
 #include <iostream>
 
+#include <Core/logger.hpp>
+
+static std::list<std::string> _M_logs;
+
+class GUI_Logger : public Engine::Logger
+{
+public:
+    GUI_Logger& log(const char* format, ...) override
+    {
+        va_list args;
+        va_start(args, format);
+        char buffer[1024];
+
+        vsprintf(buffer, format, args);
+        Engine::standart_logger().log("%s", buffer);
+        va_end(args);
+        _M_logs.push_back(buffer);
+        return *this;
+    }
+} gui_logger;
+
+
+struct Panel {
+    void (*render_func)() = nullptr;
+    bool render = true;
+    const char* name;
+};
+
 
 using namespace Engine;
-
-// Prototypes
-static void render_menu_bar();
-static void render_left_panel();
-static void render_right_panel();
-static void render_viewport();
 
 static Engine::Application* app = nullptr;
 ImGuiIO* io = nullptr;
 
-
-static struct Panel {
-    ImVec2 size = {0., 0.};
-    ImVec2 position;
-    bool is_open = true;
-    std::string name;
-    void (*render)() = nullptr;
-
-    Panel(const std::string& name = "") : name(name)
-    {}
-} LeftPanel("Left Panel"), RightPanel("Right Panel"), ViewPort("ViewPort");
-
 struct {
     bool fullscren_mode = false;
-    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings |
+                                   ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize |
+                                   ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_MenuBar;
     std::size_t frame = 0;
     std::size_t active_panels = 3;
-    Panel* panels[3] = {&LeftPanel, &RightPanel, &ViewPort};
-    Size2D window_size;
+    const Engine::Size2D* _M_engine_win_size = nullptr;
     bool vsync = true;
-    float widget_size = 1.5f;
-
+    float font_scale = 1.5f;
     const float dpi_mult_value = 0.013025f;
-    imgui_addons::ImGuiFileBrowser file_dialog;
-    bool open_file = false;
+    Engine::Sensor sensor;
+    ImVec2 _M_window_size;
+
+    Panel panels[3];
+    char window_title[100];
+    bool buttons = false;
+    float button_size_k = 1.f;
+    bool render_depth = false;
+    Size2D view_offset;
 } GUI_data;
 
+
+void left_pane();
+void right_pane();
+void viewport_pane();
+
+void GUI::init_logger()
+{
+    Engine::logger = &gui_logger;
+}
 
 void GUI::init(Engine::Application* _app)
 {
@@ -56,7 +84,7 @@ void GUI::init(Engine::Application* _app)
 #ifdef __ANDROID__
     const char* glsl_ver = "#version 300 es";
 #else
-    const char* glsl_ver = "#version 330";
+    const char* glsl_ver = "#version 300 es";
 #endif
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -67,56 +95,82 @@ void GUI::init(Engine::Application* _app)
 
     io = &ImGui::GetIO();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.WantCaptureKeyboard = true;
+    io.ConfigFlags = ImGuiConfigFlags_IsTouchScreen | ImGuiConfigFlags_NoMouseCursorChange;
+
     //Font.font = imgui_load_font();
 
-    LeftPanel.size = {app->window_size.x / 5, app->window_size.y};
-    RightPanel.size = LeftPanel.size;
 
-    LeftPanel.render = render_left_panel;
-    RightPanel.render = render_right_panel;
-    ViewPort.render = render_viewport;
+    GUI_data._M_engine_win_size = &app->window.size();
+    GUI_data.font_scale = Monitor::dpi().ddpi * GUI_data.dpi_mult_value;
+    GUI_data.sensor.open(1);
 
-    GUI_data.window_size = app->window.size();
 
-    std::clog << Monitor::dpi().ddpi << std::endl;
-    GUI_data.widget_size = Monitor::dpi().ddpi * GUI_data.dpi_mult_value;
+    // Init panels structure
+    GUI_data.panels[0].render_func = left_pane;
+    GUI_data.panels[1].render_func = viewport_pane;
+    GUI_data.panels[2].render_func = right_pane;
+
+    GUI_data.panels[0].name = "Left panel";
+    GUI_data.panels[1].name = "ViewPort";
+    GUI_data.panels[2].name = "Right pane";
+
+    strcpy(GUI_data.window_title, app->window.title().c_str());
+    init_logger();
 }
-
 
 void GUI::terminate()
 {
-    ImGuiInit::terminate();
+    ImGuiInit::terminate_imgui();
     ImGui::DestroyContext();
+    Engine::logger = &Engine::standart_logger();
 }
 
 
-void change_size(Panel& panel)
+static void scroll_event(float value = 5.f)
 {
-    if (!panel.is_open)
-    {
-        panel.size = {0, 0};
+    auto fingers = app->window.event.touchscreen.fingers_count();
+    if (fingers < 2)
         return;
-    }
 
-    if (GUI_data.frame)
-        panel.size.x = std::min(ImGui::GetWindowSize().x, app->window_size.x / static_cast<float>(GUI_data.active_panels));
-    panel.size.y = app->window_size.y;
+    float scroll_y = 0;
+    for (unsigned int i = 0; i < fingers; i++) scroll_y += app->window.event.touchscreen.get_finger(i).offset.y;
+
+    scroll_y /= static_cast<float>(fingers);
+    //scroll_y = scroll_y < 0 ? -value : value;
+    io->AddMouseWheelEvent(0.f, scroll_y * value);
 }
 
-static void render_menu_bar()
+
+void menu_bar()
 {
     /////////////////////////   Menu   /////////////////////////
     static bool render_about = false;
     ImGui::BeginMainMenuBar();
-    ImGui::SetWindowFontScale(GUI_data.widget_size);
+
     ImGui::SetNextWindowSize({350, 0});
     if (ImGui::BeginMenu("File"))
     {
         if (ImGui::MenuItem("Open", "Open model"))
         {
-            GUI_data.open_file = true;
+#ifdef __ANDROID__
+            static const char* path = "/sdcard/";
+#else
+            static const char* path = ".";
+#endif
+            ImGuiFileDialog::Instance()->OpenDialog("OpenFile", "Open File", "*.*", path);
         }
+
+        if (ImGui::MenuItem("Open skybox", "skybox"))
+        {
+#ifdef __ANDROID__
+            static const char* path = "/sdcard/";
+#else
+            static const char* path = ".";
+#endif
+            ImGuiFileDialog::Instance()->OpenDialog("OpenSkybox", "Open Skybox", "*.*", path);
+        }
+
 
         if (ImGui::MenuItem("Close", "Close the Engine"))
             app->window.close();
@@ -124,16 +178,49 @@ static void render_menu_bar()
         ImGui::EndMenu();
     }
 
+
+    if (ImGuiFileDialog::Instance()->IsOpened("OpenFile"))
+    {
+        ImVec2 _M_size(app->window.width(), app->window.height());
+        ImGui::SetNextWindowPos({0, 0});
+        scroll_event();
+        if (ImGuiFileDialog::Instance()->Display(
+                    "OpenFile", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse, _M_size,
+                    _M_size))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                app->load_scene(ImGuiFileDialog::Instance()->GetFilePathName());
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
+    }
+    else if (ImGuiFileDialog::Instance()->IsOpened("OpenSkybox"))
+    {
+        ImVec2 _M_size(app->window.width(), app->window.height());
+        ImGui::SetNextWindowPos({0, 0});
+        scroll_event();
+        if (ImGuiFileDialog::Instance()->Display(
+                    "OpenSkybox", ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse, _M_size,
+                    _M_size))
+        {
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                app->load_skybox(ImGuiFileDialog::Instance()->GetFilePathName());
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
+    }
+
     if (ImGui::BeginMenu("View"))
     {
-        for (auto panel : GUI_data.panels)
+        for (auto& panel : GUI_data.panels)
         {
-            if (ImGui::Checkbox(panel->name.c_str(), &panel->is_open))
-            {
-                GUI_data.active_panels += (-1 + (cast(int, panel->is_open) << 1));
-            }
+            ImGui::Checkbox(panel.name, &panel.render);
         }
 
+        ImGui::Checkbox("Buttons", &GUI_data.buttons);
+        ImGui::Checkbox("Depth buffer", &GUI_data.render_depth);
         ImGui::EndMenu();
     }
 
@@ -144,6 +231,7 @@ static void render_menu_bar()
         ImGui::Button("Hello");
         ImGui::EndMenu();
     }
+
     ImGui::SetNextWindowSize({350, 0});
     if (ImGui::BeginMenu("Help"))
     {
@@ -156,126 +244,312 @@ static void render_menu_bar()
     if (render_about)
     {
         ImGui::Begin("About", &render_about,
-                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::SetWindowFocus();
-        ImGui::SetWindowSize({280, 78});
-        auto tmp = (app->window_size / 2.f) - Size2D({140.f, 39.f});
+        auto tmp = (app->window_size / 2.f) - Size2D({ImGui::GetWindowSize().x / 2.f, ImGui::GetWindowSize().y / 2.f});
         ImGui::SetWindowPos({tmp.x, tmp.y});
         ImGui::Text("Vladyslav Reminskyi - Programmer\n@Programier - Telegram");
 
         ImGui::End();
     }
 
-
-    LeftPanel.position.y = RightPanel.position.y = ViewPort.position.y = ImGui::GetWindowHeight();
     ImGui::EndMainMenuBar();
 }
 
-
-void render_left_panel()
+void left_pane()
 {
+    float pos = ImGui::GetCursorPosY();
+    ImGui::BeginChild("##left_pane", {ImGui::GetColumnWidth(0), GUI_data._M_window_size.y - pos}, false,
+                      ImGuiWindowFlags_NoSavedSettings);
+
+
     /////////////////////////   Left PANEL  /////////////////////////
 
-    ImGui::Begin("Left Panel", 0, GUI_data.flags);
-    ImGui::SetWindowFontScale(GUI_data.widget_size);
-    change_size(LeftPanel);
-    ImGui::SetWindowSize(LeftPanel.size);
-    ImGui::SetWindowPos(LeftPanel.position);
+    ImGui::Text("FPS: %.2f\n", io->Framerate);
+    ImGui::NewLine();
 
     if (ImGui::CollapsingHeader("Window"))
     {
-        if (ImGui::ColorEdit4("Color", glm::value_ptr(app->background_color)))
-        {
-            std::clog << app->background_color << std::endl;
-            app->window.background_color(app->background_color);
-        }
-
-        if (ImGui::InputText("Title", app->window_title, 100))
-            app->window.title(app->window_title);
+        if (ImGui::InputText("Title", GUI_data.window_title, 100))
+            app->window.title(GUI_data.window_title);
 
 #ifndef __ANDROID__
 
-        if (ImGui::Checkbox("Fullscren", &GUI_data.fullscren_mode))
+        if (ImGui::Checkbox("Fullscreen", &GUI_data.fullscren_mode))
         {
             app->window.attribute(WIN_FULLSCREEN_DESKTOP, GUI_data.fullscren_mode);
-            GUI_data.window_size = app->window.event.poll_events().size();
-        }
-
-        if (!GUI_data.fullscren_mode)
-        {
-            bool changed = ImGui::SliderFloat("Width", &GUI_data.window_size.x, 100, Engine::Monitor::width());
-            changed = changed || ImGui::SliderFloat("Height", &GUI_data.window_size.y, 100, Engine::Monitor::height() - 50);
-            if (changed)
-            {
-                app->window.size(GUI_data.window_size).event.poll_events();
-            }
+            app->window.event.poll_events();
         }
 #endif
 
-        ImGui::SliderFloat("Widget size", &GUI_data.widget_size, 0.1f, 4.f);
+        ImGui::DragScalarN("Size", ImGuiDataType_Float, (void*) glm::value_ptr(app->window.size()), 2, 0);
+        ImGui::SliderFloat("Font size", &GUI_data.font_scale, 0.1f, 4.f);
+
+        ImGui::SliderFloat("Virtual button size", &GUI_data.button_size_k, 0.1f, 4.f);
 
         if (ImGui::Checkbox("Vsync", &GUI_data.vsync))
             app->window.vsync(GUI_data.vsync);
     }
 
-    ImGui::End();
+    ImGui::NewLine();
+
+    if (ImGui::CollapsingHeader("Scene"))
+    {
+        if (ImGui::InputFloat3("Scene scale", glm::value_ptr(app->model_scale)))
+        {
+            app->update_model_matrix();
+        }
+
+        ImGui::SliderFloat("Speed", &app->speed, 0.01f, 50.f);
+        ImGui::SliderFloat("Min Render", &app->camera->min_render_distance(), 0.00001f, 1.f);
+        ImGui::SliderFloat("Max Render", &app->camera->max_render_distance(), 10, 1000.f);
+        ImGui::DragFloat3("POS", (float*) glm::value_ptr(app->camera->position()), 0.f);
+        ImGui::DragFloat3("Angles", (float*) glm::value_ptr(glm::degrees(app->camera->euler_angles())), 0.f);
+        static const float pi = 2 * glm::pi<float>();
+        ImGui::SliderFloat("View angle", &app->camera->viewing_angle(), 0, pi);
+
+        static int value = (int) app->skybox.min_filter();
+        static int value2 = (int) app->skybox.mag_filter();
+        if (ImGui::SliderInt("MIN", &value, 0, 5))
+        {
+            app->skybox.min_filter((TextureFilter) (unsigned int) value);
+        }
+
+        if (ImGui::SliderInt("MAG", &value2, 0, 5))
+        {
+            auto f = (TextureFilter) (unsigned int) value2;
+            app->skybox.mag_filter(f);
+        }
+
+        //        static Size2D texture_size = app->texture_2D.size();
+        //        if (ImGui::SliderFloat2("Texture size", glm::value_ptr(texture_size), 1, 8000))
+        //        {
+        //            app->generate_texture(texture_size);
+        //            value = (int) app->texture_2D.min_filter();
+        //            value2 = (int) app->texture_2D.mag_filter();
+        //        }
+
+        ImGui::Text("Offset: {%.3f : %.3f}", MouseEvent::offset().x, MouseEvent::offset().y);
+    }
+
+
+    ImGui::EndChild();
 }
 
-void render_right_panel()
+void viewport_pane()
 {
-    /////////////////////////   RIGHT PANEL  /////////////////////////
+    float width = ImGui::GetColumnWidth(1);
+    ImGui::BeginChild("viewport_pane", {width, GUI_data._M_window_size.y - 50}, false, ImGuiWindowFlags_NoSavedSettings);
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    app->viewport_size = {width, GUI_data._M_engine_win_size->y};
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    auto tmp = ImVec2(pos.x + width, GUI_data._M_window_size.y);
 
-    ImGui::Begin("Right Panel", 0, GUI_data.flags);
-    ImGui::SetWindowFontScale(GUI_data.widget_size);
-    change_size(RightPanel);
-    RightPanel.position.x = app->window_size.x - RightPanel.size.x;
-    ImGui::SetWindowPos(RightPanel.position);
-    ImGui::SetWindowSize(RightPanel.size);
-    ImGui::End();
+    GUI_data.view_offset = app->viewport_size / app->monitor_size;
+
+    drawList->AddImage((void*) app->view_image.internal_id(), pos, tmp, ImVec2(0, GUI_data.view_offset.y),
+                       ImVec2(GUI_data.view_offset.x, 0));
+
+    ImGui::EndChild();
 }
 
-void render_viewport()
+void right_pane()
 {
-    /////////////////////////   VIEW PORT /////////////////////////
+    float pos = ImGui::GetCursorPosY();
+    ImGui::BeginChild("##right_pane", {ImGui::GetColumnWidth(2), GUI_data._M_window_size.y - pos}, false,
+                      ImGuiWindowFlags_NoSavedSettings);
+    for (auto& text : _M_logs) ImGui::Text("%s", text.c_str());
 
-    ImGui::Begin("ViewPort", 0, GUI_data.flags);
+    ImGui::EndChild();
+}
 
-    ImGui::SetWindowFontScale(GUI_data.widget_size);
-    ViewPort.size.x = app->window_size.x - LeftPanel.size.x - RightPanel.size.x;
-    ViewPort.size.y = app->window_size.y;
-    ImGui::SetWindowSize(ViewPort.size);
-    ViewPort.position.x = LeftPanel.size.x;
-    ImGui::SetWindowPos(ViewPort.position);
+void render_buttons()
+{
+    ImGui::Begin("Buttons", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
+    float win_size = 250.f * GUI_data.button_size_k;
+    float button_size = win_size / 3.f;
+    auto b_size = ImVec2(button_size, button_size);
+    ImGui::SetWindowSize({win_size + 20, button_size * 5});
+    ImGui::Columns(3, nullptr, false);
+    ImGui::NextColumn();
+
+    for (int i = 0; i < 2; i++) ImGui::SetColumnWidth(i, win_size / 3);
+
+    struct VirtualKey {
+        const char* name;
+        Key key;
+        unsigned int prev_status = 0;
+    };
+
+    static VirtualKey virtual_keys[4] = {{"W", KEY_W, 0}, {"A", KEY_A, 0}, {"D", KEY_D, 0}, {"S", KEY_S, 0}};
+
+    ImGui::PushButtonRepeat(true);
+
+    for (auto& vkey : virtual_keys)
+    {
+        if (ImGui::Button(vkey.name, b_size))
+        {
+            if (!Engine::KeyboardEvent::pressed(vkey.key) && vkey.prev_status == 0)
+                Engine::KeyboardEvent::push_event(vkey.key, Engine::KeyStatus::PRESSED);
+            vkey.prev_status = 2;
+        }
+        else if (Engine::KeyboardEvent::pressed(vkey.key))
+        {
+            if (vkey.prev_status == 0)
+                Engine::KeyboardEvent::push_event(vkey.key, Engine::KeyStatus::RELEASED);
+            vkey.prev_status >>= 1;
+        }
+
+
+        ImGui::NextColumn();
+        ImGui::NextColumn();
+    }
+
+
+    ImGui::Columns(2);
+
+    static VirtualKey virtual_keys2[2] = {{"UP", KEY_UP, 0}, {"DOWN", KEY_DOWN, 0}};
+
+    for (auto& vkey : virtual_keys2)
+    {
+        ImGui::NewLine();
+
+        if (ImGui::Button(vkey.name, b_size))
+        {
+            if (!Engine::KeyboardEvent::pressed(vkey.key) && vkey.prev_status == 0)
+                Engine::KeyboardEvent::push_event(vkey.key, Engine::KeyStatus::PRESSED);
+            vkey.prev_status = 2;
+        }
+        else if (Engine::KeyboardEvent::pressed(vkey.key))
+        {
+            if (vkey.prev_status == 0)
+                Engine::KeyboardEvent::push_event(vkey.key, Engine::KeyStatus::RELEASED);
+            vkey.prev_status >>= 1;
+        }
+
+
+        ImGui::NextColumn();
+    }
+
+    ImGui::PopButtonRepeat();
     ImGui::End();
 }
 
+
+void render_depth()
+{
+    ImGui::Begin("Depth buffer", nullptr, ImGuiWindowFlags_NoSavedSettings);
+
+    if (GUI_data.frame == 0)
+        ImGui::SetWindowSize({100, 100});
+
+    auto size = ImGui::GetWindowSize();
+
+    ImGui::Image(reinterpret_cast<void*>(app->depth_image.internal_id()), size, {0, GUI_data.view_offset.y},
+                 {GUI_data.view_offset.x, 0});
+
+    ImGui::End();
+}
+
+
+void tmp()
+{
+    ImGui::Begin("window", nullptr, GUI_data.flags);
+    ImGui::SetWindowPos({0, 0});
+    static auto pos = ImGui::GetCursorPosY();
+
+    ImGui::GetFont()->Scale = GUI_data.font_scale;
+    GUI_data._M_window_size.x = app->window.width();
+    GUI_data._M_window_size.y = app->window.height();
+
+    auto content_width = ImGui::GetWindowContentRegionWidth();
+    ImGui::SetNextWindowContentSize({content_width, GUI_data._M_window_size.y - pos});
+
+
+    ImGui::SetWindowSize(GUI_data._M_window_size);
+    menu_bar();
+
+
+    static const float mults[2] = {0.2, 0.6};
+    ImGui::Columns(3, nullptr, true);
+
+    if (GUI_data.frame == 1)
+        for (int i = 0; i < 2; i++) ImGui::SetColumnWidth(i, content_width * mults[i]);
+
+
+    for (auto panel : GUI_data.panels)
+    {
+        if (!panel.render)
+        {
+            ImGui::NextColumn();
+            continue;
+        }
+        panel.render_func();
+        ImGui::NextColumn();
+    }
+
+    ImGui::End();
+
+
+    if (GUI_data.buttons)
+        render_buttons();
+
+    if (GUI_data.render_depth)
+        render_depth();
+}
+
+
+void toolbar()
+{
+    ImGui::BeginMenuBar();
+
+
+    static const char* names[] = {"File", "Edit", "Settings", "View", "About"};
+    for (auto name : names)
+    {
+        if (ImGui::BeginMenu(name))
+        {
+            ImGui::EndMenu();
+        }
+    }
+
+    ImGui::EndMenuBar();
+}
+
+
+void new_window()
+{
+    ImGui::Begin("Window", nullptr,
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                         ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar);
+    ImGui::SetWindowPos({0, 0});
+    ImGui::SetWindowSize({app->window_size.x, app->window_size.y});
+    toolbar();
+
+    ImGui::Columns(3, "Grid", true);
+
+    for (int i = 0; i < 3; i++)
+    {
+
+        ImGui::BeginChild(std::to_string(i).c_str(), {0, 0}, true);
+
+        for (int j = 0; j < 100; j++) ImGui::Button(std::string(std::to_string(i) + std::to_string(j)).c_str());
+        ImGui::EndChild();
+        ImGui::NextColumn();
+    }
+
+    ImGui::End();
+}
 
 void GUI::render()
 {
     ImGuiInit::new_frame();
     ImGui::NewFrame();
 
+    new_window();
 
-    render_menu_bar();
-
-    for (auto panel : GUI_data.panels)
-        if (panel->is_open)
-            panel->render();
-        else if (panel != &ViewPort)
-            change_size(*panel);
-
-    if (GUI_data.open_file)
-    {
-        ImGui::OpenPopup("Open File");
-        GUI_data.open_file = false;
-    }
-
-    if (GUI_data.file_dialog.showFileDialog("Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN, ImVec2(700, 310)))
-    {
-        std::cout << GUI_data.file_dialog.selected_fn << std::endl;
-        std::cout << GUI_data.file_dialog.selected_path << std::endl;
-    }
-
+    ImGui::EndFrame();
     ImGui::Render();
     ImGuiInit::render();
     GUI_data.frame++;
