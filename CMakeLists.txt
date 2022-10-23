@@ -24,6 +24,10 @@ set(BUILD_OPENGL on)
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${GAME_OUTPUT_DIR}/resources)
 
+if (WIN32)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${GAME_PROJECT_ROOT}/src/Engine/libs/libglew.dll ${GAME_OUTPUT_DIR}/glew32.dll)
+endif()
+
 add_subdirectory(src)
 target_include_directories(${OUTPUT_BIN} PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")
 
