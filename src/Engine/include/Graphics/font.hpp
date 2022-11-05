@@ -1,10 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <map>
-#include <string>
+#include <Graphics/mesh.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <TemplateFunctional/smart_pointer.hpp>
-#include <Graphics/mesh.hpp>
+#include <map>
+#include <string>
 
 namespace Engine
 {
@@ -25,20 +25,22 @@ namespace Engine
         Mesh<float> _M_mesh;
 
         Font& terminate();
-        Font& push_char(unsigned long ch);
+        Font& push_char(wchar_t ch);
 
     public:
         Font();
         Font(const Font& font);
-        Font(Font&& font);
+        Font(Font && font);
         Font(const std::string& font, const Size2D& size = {0.f, 16.f});
-        Font& operator = (const Font& font);
-        Font& operator = (Font&& font);
+        Font& operator=(const Font& font);
+        Font& operator=(Font&& font);
 
         Font& draw(const std::string& Font, Size1D x, Size1D y, float scale = 1.f);
         Font& draw(const std::string& Font, const Size2D& pos, float scale = 1.f);
         Font& draw(const std::wstring& Font, Size1D x, Size1D y, float scale = 1.f);
         Font& draw(const std::wstring& Font, const Size2D& pos, float scale = 1.f);
+        Texture2D texture_of(char ch);
+        Texture2D texture_of(wchar_t ch);
         const Size2D& font_size() const;
         Font& font_size(const Size2D& size);
         const std::string& font_path() const;

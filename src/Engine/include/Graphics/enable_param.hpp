@@ -9,13 +9,22 @@ namespace Engine
 {
     STRUCT EngineEnable {
         const EngineEnable& operator()(EnableCap cap) const;
-    } enable;
+    };
 
     STRUCT EngineDisable {
         const EngineDisable& operator()(EnableCap cap) const;
-    } disable;
+    };
 
     STRUCT EngineBlendFunc {
         const EngineBlendFunc& operator()(BlendFunc sfactor, BlendFunc dfactor) const;
-    } blend_func;
+    };
+
+    STRUCT EngineDepthFunc {
+        const EngineDepthFunc& operator()(CompareFunc func) const;
+    };
+
+    extern ENGINE_EXPORT EngineEnable enable;
+    extern ENGINE_EXPORT EngineDisable disable;
+    extern ENGINE_EXPORT EngineBlendFunc blend_func;
+    extern ENGINE_EXPORT EngineDepthFunc depth_func;
 }// namespace Engine

@@ -6,19 +6,11 @@
 using namespace Engine;
 
 
-API void api_destroy_mesh(ObjID& ID)
+void OpenGL_Mesh::destroy()
 {
-    check_id(ID, );
-    make_mesh(mesh, ID);
-
-    if (mesh)
-    {
-        glDeleteBuffers(1, &mesh->_M_VBO);
-        glDeleteVertexArrays(1, &mesh->_M_VAO);
-        mesh->_M_VAO = mesh->_M_VBO = 0;
-        delete mesh;
-        object_of(ID)->_M_data = nullptr;
-    }
+    glDeleteBuffers(1, &_M_VBO);
+    glDeleteVertexArrays(1, &_M_VAO);
+    _M_VAO = _M_VBO = 0;
 }
 
 API void api_generate_mesh(ObjID& ID)
@@ -26,18 +18,14 @@ API void api_generate_mesh(ObjID& ID)
     if (ID)
         api_destroy_object_instance(ID);
 
-    OpenGL_Object* object = new OpenGL_Object();
-    ID = reinterpret_cast<ObjID>(object);
-    object->_M_references = 1;
-    object->_M_type = Type::MESH;
-
     OpenGL_Mesh* mesh = new OpenGL_Mesh();
-    object->_M_data = static_cast<void*>(mesh);
 
     glGenVertexArrays(1, &mesh->_M_VAO);
     glGenBuffers(1, &mesh->_M_VBO);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    ID = object_id_of(mesh);
 }
 
 API void api_set_mesh_data(const ObjID& ID, MeshInfo& info, void* data)

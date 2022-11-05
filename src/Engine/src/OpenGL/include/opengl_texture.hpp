@@ -1,13 +1,15 @@
 #pragma once
 #include <opengl.hpp>
+#include <opengl_object.hpp>
 #include <Core/engine_types.hpp>
 
-#define texture(id) static_cast<OpenGL_Texture*>(object_of(id)->_M_data)
+#define texture(id) object_of<OpenGL_Texture>(id)
 #define make_texture(variable, id) OpenGL_Texture* variable = texture(id)
 
 namespace Engine
 {
-    struct OpenGL_Texture {
+    class OpenGL_Texture  : public OpenGL_Object{
+    public:
         GLuint _M_ID;
         TextureParams _M_params;
 
@@ -15,7 +17,6 @@ namespace Engine
         GLuint _M_GL_format;
         GLuint _M_GL_pixel_type;
 
-        std::size_t _M_references = 0;
         int _M_base_level = 0;
         DepthStencilMode _M_depth_stencil_mode = DepthStencilMode::DEPTH;
         CompareFunc _M_compare_func;
@@ -28,6 +29,8 @@ namespace Engine
         WrapValue _M_wrap_s = WrapValue::REPEAT;
         WrapValue _M_wrap_t = WrapValue::REPEAT;
         WrapValue _M_wrap_r = WrapValue::REPEAT;
+
+        void destroy() override;
     };
 
 }

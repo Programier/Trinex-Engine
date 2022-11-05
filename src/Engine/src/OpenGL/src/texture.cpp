@@ -6,8 +6,18 @@
 #include <unordered_map>
 
 
-namespace Engine::NewTexture
+namespace Engine
 {
+    void OpenGL_Texture::destroy()
+    {
+        if (_M_ID)
+        {
+            glDeleteTextures(1, &_M_ID);
+            printf("DELETING TEXTURE\n");
+            _M_ID = 0;
+        }
+    }
+
     API void api_generate_texture_mipmap(const ObjID& ID)
     {
         check_id(ID, );
@@ -28,40 +38,19 @@ namespace Engine::NewTexture
         glBindTexture(texture->_M_GL_type, 0);
     }
 
-    API void api_destroy_texture_instance(ObjID& ID)
-    {
-        check_id(ID, );
-        make_texture(texture, ID);
-
-        if (texture->_M_references)
-            --(texture->_M_references);
-
-        if (!texture->_M_references)
-        {
-            if (texture->_M_ID)
-            {
-                glDeleteTextures(1, &texture->_M_ID);
-                printf("DELETING TEXTURE\n");
-            }
-            texture->_M_ID = 0;
-            delete texture;
-        }
-    }
-
     API void api_create_texture_instance(ObjID& ID, const TextureParams& params)
     {
         if (ID)
             api_destroy_object_instance(ID);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        OpenGL_Object* object = new OpenGL_Object();
-        object->_M_type = Type::TEXTURE;
-        OpenGL_Texture* texture = new OpenGL_Texture();
-        object->_M_references = 1;
-        object->_M_data = static_cast<void*>(texture);
 
-        ID = reinterpret_cast<ObjID>(object);
+        OpenGL_Texture* texture = new OpenGL_Texture();
+
+        ID = object_id_of(texture);
         texture->_M_params = params;
+
+        get_external_logger()->log("Msg: %zu -> %zu\n", ID, texture(ID)->_M_references);
 
         // Copy memory from data to texture->_M_data
         texture->_M_GL_format = _M_pixel_formats.at(params.format);
@@ -448,4 +437,4 @@ namespace Engine::NewTexture
                      texture->_M_GL_pixel_type, data);
     }
 
-}// namespace Engine::NewTexture
+}// namespace Engine

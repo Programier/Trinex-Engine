@@ -1,27 +1,29 @@
 #pragma once
-#include <cstddef>
-#include <opengl_types.hpp>
 #include <Core/logger.hpp>
+#include <cstddef>
 #include <opengl_export.hpp>
+#include <opengl_types.hpp>
 
 
-
-enum class Type : std::size_t
+class OpenGL_Object
 {
-    UNDEFINED = 0,
-    TEXTURE = 1,
-    MESH = 2,
-    FRAMEBUFFER = 3,
+public:
+    std::size_t _M_references = 1;
+    OpenGL_Object();
+    virtual ~OpenGL_Object();
+    virtual void destroy();
 };
 
 
-struct OpenGL_Object {
-    Type _M_type = Type::UNDEFINED;
-    std::size_t _M_references = 0;
-    void* _M_data = nullptr;
-};
+template<typename ObjectType = OpenGL_Object>
+ObjectType* object_of(ObjID ID)
+{
+    OpenGL_Object* object = reinterpret_cast<OpenGL_Object*>(ID);
+    return dynamic_cast<ObjectType*>(object);
+}
 
-#define object_of(id) reinterpret_cast<OpenGL_Object*>(id)
+ObjID object_id_of(const OpenGL_Object* object);
+
 
 #define API extern "C" OPENGL_EXPORT
 

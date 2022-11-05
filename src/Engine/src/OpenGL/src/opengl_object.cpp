@@ -6,29 +6,33 @@
 
 using namespace Engine;
 
+OpenGL_Object::OpenGL_Object()
+{
+    _M_references = 1;
+}
 
-static void empty_destroy(ObjID& ID)
+void OpenGL_Object::destroy()
 {}
 
-API void api_destroy_texture_instance(ObjID& ID);
-API void api_destroy_mesh(ObjID& ID);
-API void destroy_framebuffer(ObjID& ID);
-
-void (*destroy[])(Engine::ObjID& ID) = {empty_destroy, api_destroy_texture_instance, api_destroy_mesh, destroy_framebuffer};
-
+OpenGL_Object::~OpenGL_Object()
+{}
 
 API void api_destroy_object_instance(ObjID& ID)
 {
     check_id(ID, );
-    auto object = object_of(ID);
-    if (object->_M_references == 0)
-        return;
-    --(object->_M_references);
-
-    if (object->_M_references == 0)
+    auto object = object_of<OpenGL_Object>(ID);
+    if (object)
     {
-        destroy[static_cast<std::size_t>(object->_M_type)](ID);
-        delete object;
+        if (object->_M_references == 0)
+            return;
+
+        --(object->_M_references);
+
+        if (object->_M_references == 0)
+        {
+            object->destroy();
+            delete object;
+        }
     }
     ID = 0;
 }
@@ -43,6 +47,11 @@ API void api_link_object(const ObjID& SRC_ID, ObjID& DST_ID)
 
     DST_ID = SRC_ID;
     ++(object_of(SRC_ID)->_M_references);
+}
+
+ObjID object_id_of(const OpenGL_Object* object)
+{
+    return reinterpret_cast<ObjID>(object);
 }
 
 

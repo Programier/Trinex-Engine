@@ -4,10 +4,11 @@
 #include <Core/engine_types.hpp>
 #include <string>
 #include <Core/export.hpp>
+#include <Core/object.hpp>
 
 namespace Engine
 {
-    CLASS Shader
+    CLASS Shader : public Object
     {
         bool _M_done = false;
         ObjectID _M_id = 0;

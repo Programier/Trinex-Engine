@@ -72,8 +72,16 @@ namespace Engine
         return *this;
     }
 
-    Font& Font::push_char(unsigned long c)
+    Font& Font::push_char(wchar_t c)
     {
+        try
+        {
+            _M_characters.at(c);
+            return *this;
+        }
+        catch (...)
+        {}
+
         FT_Face face = static_cast<FT_Face>(_M_face.get());
         // Load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
@@ -100,7 +108,6 @@ namespace Engine
 
         // Now store character for later use
         _M_characters.insert(std::pair<unsigned long, Character>(c, character));
-
         return *this;
     }
 
@@ -217,6 +224,24 @@ namespace Engine
     const std::string& Font::font_path() const
     {
         return _M_font_path;
+    }
+
+    Texture2D Font::texture_of(char ch)
+    {
+        return texture_of(static_cast<wchar_t>(ch));
+    }
+
+    Texture2D Font::texture_of(wchar_t ch)
+    {
+        push_char(ch);
+        try
+        {
+            return _M_characters.at(ch).gliph;
+        }
+        catch (...)
+        {
+            return Texture2D();
+        }
     }
 
 }// namespace Engine

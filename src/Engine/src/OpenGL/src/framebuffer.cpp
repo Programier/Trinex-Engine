@@ -3,20 +3,9 @@
 #include <opengl_types.hpp>
 
 
-//extern void (*clear_frame_buffer)(const ObjID& _M_ID, BufferType type);
-
-
-API void destroy_framebuffer(ObjID& ID)
+void OpenGL_FrameBuffer::destroy()
 {
-    check_id(ID, );
-    make_frame_buffer(buffer, ID);
-
-    if (buffer->_M_ID)
-    {
-        glDeleteFramebuffers(1, &buffer->_M_ID);
-        buffer->_M_ID = 0;
-        delete buffer;
-    }
+    glDeleteFramebuffers(1, &_M_ID);
 }
 
 
@@ -25,16 +14,11 @@ API void api_gen_framebuffer(ObjID& ID, FrameBufferType type)
     if (ID)
         api_destroy_object_instance(ID);
 
-    OpenGL_Object* object = new OpenGL_Object();
-    object->_M_references = 1;
-    object->_M_type = Type::FRAMEBUFFER;
-
     OpenGL_FrameBuffer* buffer = new OpenGL_FrameBuffer();
-    object->_M_data = static_cast<void*>(buffer);
     buffer->_M_type = _M_framebuffer_types.at(type);
 
     glGenFramebuffers(1, &buffer->_M_ID);
-    ID = reinterpret_cast<ObjID>(object);
+    ID = object_id_of(buffer);
 }
 
 API void api_bind_framebuffer(const ObjID& ID)
@@ -58,7 +42,6 @@ API void api_set_framebuffer_viewport(const ObjID& ID, const Point2D& pos, const
 }
 
 
-//#include <Core/logger.hpp>
 API void api_attach_texture_to_framebuffer(const ObjID& ID, const ObjID& _texture, FrameBufferAttach attach,
                                            unsigned int num, int level)
 {

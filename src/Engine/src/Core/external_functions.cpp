@@ -73,6 +73,7 @@ namespace Engine
     void (*api_enable)(Engine::EnableCap cap) = nullptr;
     void (*api_disable)(Engine::EnableCap cap) = nullptr;
     void (*set_blend_func)(Engine::BlendFunc, Engine::BlendFunc) = nullptr;
+    void (*set_depth_func)(Engine::CompareFunc func) = nullptr;
     float (*get_current_line_rendering_width)() = nullptr;
     void (*set_line_rendering_width)(float value) = nullptr;
 
@@ -136,6 +137,7 @@ namespace Engine
             {(void**) &api_enable, "api_enable"},
             {(void**) &api_disable, "api_disable"},
             {(void**) &set_blend_func, "api_blend_func"},
+            {(void**) &set_depth_func, "api_set_depth_func"},
             {(void**) &get_current_line_rendering_width, "api_get_current_line_rendering_width"},
             {(void**) &set_line_rendering_width, "api_set_line_rendering_width"},
 

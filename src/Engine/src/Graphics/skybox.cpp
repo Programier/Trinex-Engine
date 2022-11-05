@@ -1,8 +1,7 @@
 #include <Core/logger.hpp>
+#include <Graphics/enable_param.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/skybox.hpp>
-#include <opengl.hpp>
-
 
 static Engine::Mesh<float> mesh;
 
@@ -93,10 +92,10 @@ namespace Engine
 
     Skybox& Skybox::draw()
     {
-        glDepthFunc(GL_LEQUAL);
+        Engine::depth_func(CompareFunc::Lequal);
         TextureCubeMap::bind(0);
         mesh.draw(Primitive::TRIANGLE);
-        glDepthFunc(GL_LESS);
+        Engine::depth_func(CompareFunc::Less);
         return *this;
     }
 

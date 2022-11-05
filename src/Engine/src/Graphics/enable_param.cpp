@@ -25,5 +25,14 @@ namespace Engine
         return *this;
     }
 
+    const EngineDepthFunc& EngineDepthFunc::operator()(CompareFunc func) const
+    {
+        set_depth_func(func);
+        return *this;
+    }
 
+    ENGINE_EXPORT EngineEnable enable;
+    ENGINE_EXPORT EngineDisable disable;
+    ENGINE_EXPORT EngineBlendFunc blend_func;
+    ENGINE_EXPORT EngineDepthFunc depth_func;
 }// namespace Engine

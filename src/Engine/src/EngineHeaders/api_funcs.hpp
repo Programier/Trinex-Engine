@@ -81,6 +81,7 @@ namespace Engine
     extern void (*api_enable)(Engine::EnableCap cap);
     extern void (*api_disable)(Engine::EnableCap cap);
     extern void (*set_blend_func)(Engine::BlendFunc, Engine::BlendFunc);
+    extern void (*set_depth_func)(Engine::CompareFunc);
     extern float (*get_current_line_rendering_width)();
     extern void (*set_line_rendering_width)(float value);
 }// namespace Engine
