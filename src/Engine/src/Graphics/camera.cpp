@@ -12,9 +12,9 @@ namespace Engine
         move(position, false);
     }
 
-    glm::mat4 Camera::projection(Window& window)
+    glm::mat4 Camera::projection()
     {
-        float aspect = (float) window.width() / (float) window.height();
+        float aspect = (float) Window::width() / (float) Window::height();
         return glm::perspective(_M_viewingAngle, aspect, _M_minRenderDistance, _M_maxRenderDistance);
     }
 

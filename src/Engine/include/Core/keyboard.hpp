@@ -144,6 +144,7 @@ namespace Engine
         MOUSE_BUTTON_MIDDLE
     };
     ENGINE_EXPORT int to_SDL_scancode(const Key& key);
+    ENGINE_EXPORT wchar_t to_character(const Key& key);
     ENGINE_EXPORT Key to_key(int);
     ENGINE_EXPORT const std::string& get_key_name(const Key& key);
     ENGINE_EXPORT std::ostream& operator<<(std::ostream& stream, const KeyStatus& status);

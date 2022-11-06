@@ -81,6 +81,7 @@ namespace Engine
             status = KeyStatus::JUST_PRESSED;
             keys._M_last_key = key;
             keys._M_last_evented_keys.push_back(key);
+            keys._M_last_symbol = SDL_GetKeyFromScancode(event.keysym.scancode);
         }
         else
         {

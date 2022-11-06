@@ -267,6 +267,11 @@ namespace Engine
         return keyboard.at(key);
     }
 
+    ENGINE_EXPORT wchar_t to_character(const Key& key)
+    {
+        return SDL_GetKeyFromScancode((SDL_Scancode) to_SDL_scancode(key));
+    }
+
     ENGINE_EXPORT Key to_key(int value)
     {
         return reversed_keyboard.at(value);

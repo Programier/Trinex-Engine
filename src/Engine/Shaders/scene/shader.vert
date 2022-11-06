@@ -25,5 +25,4 @@ void main()
     gl_Position = projview * _pixel;
     normal = normalize(transposed_inversed_model * v_normals);
     FragPosLightSpace = light_projview * _pixel;
-    return;
 }

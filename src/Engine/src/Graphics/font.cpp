@@ -155,9 +155,16 @@ namespace Engine
 
     Font& Font::draw(const std::wstring& Font, Size1D x, Size1D y, float scale)
     {
+        Size2D orig = {x, y};
         // Iterate through all characters
         for (const auto& symbol : Font)
         {
+            if (symbol == L'\n')
+            {
+                y -= this->_M_size.y;
+                x = orig.x;
+                continue;
+            }
             unsigned long c = static_cast<unsigned long>(symbol);
             const Character* ch_ptr = nullptr;
             try

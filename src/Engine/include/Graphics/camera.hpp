@@ -26,7 +26,7 @@ namespace Engine
         Camera& viewing_angle(float angle);
         EulerAngle1D& viewing_angle();
         const EulerAngle1D& viewing_angle() const;
-        glm::mat4 projection(Window& window);
+        glm::mat4 projection();
         glm::mat4 projection(const Size2D& size);
         glm::mat4 view();
     };

@@ -103,5 +103,4 @@ void main()
     }
 
     f_color = vec4(result * vec3(get_texture_color()), 1.f);
-    // f_color = vec4(1, 0, 0, 1);
 }
