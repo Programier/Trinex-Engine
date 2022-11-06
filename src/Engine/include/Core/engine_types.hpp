@@ -4,11 +4,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <vector>
+#include <string>
 
 
 namespace Engine
 {
-    typedef unsigned char byte;
+    typedef std::uint8_t byte;
 
     typedef float Point1D;
     typedef float Offset1D;
@@ -303,6 +304,26 @@ namespace Engine
         OneMinusConstantColor,
         ConstantAlpha,
         OneMinusConstantAlpha
+    };
+
+
+    enum class DataType{
+        Text = 0,
+        Binary
+    };
+
+
+    using ShaderSourceType = DataType;
+    using FileBuffer = std::vector<byte>;
+
+    struct ShaderParams
+    {
+        ShaderSourceType source_type;
+        std::string name;
+        FileBuffer vertex;
+        FileBuffer fragment;
+        FileBuffer compute;
+        FileBuffer geometry;
     };
 
 }// namespace Engine

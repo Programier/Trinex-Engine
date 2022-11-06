@@ -23,14 +23,6 @@ namespace Engine
 
     static Shader shader;
 
-    ENGINE_EXPORT void init_shader()
-    {
-        {
-            shader.load("Shaders/main.vert", "Shaders/main.frag");
-            for (int i = 0; i < 3; i++) shader.set("texture" + std::to_string(i), i);
-        }
-    }
-
     ENGINE_EXPORT const Shader& engine_shader()
     {
         return shader;

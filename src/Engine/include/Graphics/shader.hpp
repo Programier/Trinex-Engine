@@ -1,32 +1,27 @@
 #pragma once
 
-#include <Graphics/shader_mode.hpp>
 #include <Core/engine_types.hpp>
-#include <string>
 #include <Core/export.hpp>
+#include <Core/implement.hpp>
 #include <Core/object.hpp>
+#include <string>
 
 namespace Engine
 {
     CLASS Shader : public Object
     {
-        bool _M_done = false;
-        ObjectID _M_id = 0;
-        ObjectID vertex = 0, fragment = 0, compute = 0;
-        void delete_shaders();
-
     public:
-        Shader();
-        Shader(const std::string& vertex_file, const std::string& fragment_file, bool is_files = true);
-        Shader(const std::string& compute);
-        Shader(Shader&&);
-        Shader& operator =(Shader&&);
-        Shader& load(const std::string& vertex, const std::string& fragment, bool is_files = true);
-        Shader& load(const std::string& compute);
-        Shader(const Shader&) = delete;
-        const Shader& use() const;
-        bool loaded() const;
+        implement_class_hpp(Shader);
+        Shader(const ShaderParams& params);
+        Shader(const std::string& name, const std::string& vertex, const std::string& fragment, const std::string& compute,
+               const std::string& geometry, ShaderSourceType type = ShaderSourceType::Text);
 
+        Shader& load(const ShaderParams& params);
+        Shader& load(const std::string& name, const std::string& vertex, const std::string& fragment,
+                     const std::string& compute, const std::string& geometry,
+                     ShaderSourceType type = ShaderSourceType::Text);
+
+        const Shader& use() const;
         const Shader& set(const std::string& value_name, float value) const;
         const Shader& set(const std::string& value_name, int value) const;
         const Shader& set(const std::string& value_name, const glm::mat4& value) const;
@@ -35,8 +30,6 @@ namespace Engine
         const Shader& set(const std::string& value_name, const Vector2D& value) const;
         const Shader& set(const std::string& value_name, const Vector3D& value) const;
         const Shader& set(const std::string& value_name, const Vector4D& value) const;
-        const Shader& set(const std::string& value_name, const ShaderMode& mode) const;
-        ~Shader();
     };
 
 }// namespace Engine

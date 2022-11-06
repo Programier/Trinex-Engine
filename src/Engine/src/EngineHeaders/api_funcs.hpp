@@ -84,4 +84,17 @@ namespace Engine
     extern void (*set_depth_func)(Engine::CompareFunc);
     extern float (*get_current_line_rendering_width)();
     extern void (*set_line_rendering_width)(float value);
+
+    // Shader system
+
+    extern void (*create_shader)(ObjID& ID, const ShaderParams& params);
+    extern void (*use_shader)(const ObjID& ID);
+    extern void (*set_shader_float_value)(const ObjID& ID, const std::string& name, float value);
+    extern void (*set_shader_int_value)(const ObjID& ID, const std::string& name, int value);
+    extern void (*set_shader_mat3_float_value)(const ObjID& ID, const std::string& name, const glm::mat3& matrix);
+    extern void (*set_shader_mat4_float_value)(const ObjID& ID, const std::string& name, const glm::mat4& matrix);
+    extern void (*set_shader_vec2_float_value)(const ObjID& ID, const std::string& name, const glm::vec2& matrix);
+    extern void (*set_shader_vec3_float_value)(const ObjID& ID, const std::string& name, const glm::vec3& matrix);
+    extern void (*set_shader_vec4_float_value)(const ObjID& ID, const std::string& name, const glm::vec4& matrix);
+
 }// namespace Engine

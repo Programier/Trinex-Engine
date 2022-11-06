@@ -31,7 +31,6 @@ namespace Engine
     };
 
     ENGINE_EXPORT const Shader& engine_shader();
-    ENGINE_EXPORT void init_shader();
 
     ENGINE_EXPORT EulerAngle3D get_rotation_from_matrix(const glm::mat4& m);
     ENGINE_EXPORT glm::mat4 quaternion_matrix(const glm::vec3& rotation);

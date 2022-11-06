@@ -19,8 +19,9 @@ OpenGL_Object::~OpenGL_Object()
 
 API void api_destroy_object_instance(ObjID& ID)
 {
-    check_id(ID, );
     auto object = object_of<OpenGL_Object>(ID);
+    check(object, );
+
     if (object)
     {
         if (object->_M_references == 0)
@@ -73,19 +74,13 @@ public:
 } empty_logger;
 
 
-Logger** engine_logger = nullptr;
-
-Logger* get_external_logger()
-{
-    if (engine_logger && *engine_logger)
-        return *engine_logger;
-    return &empty_logger;
-}
+Logger* external_logger = nullptr;
 
 
 API void api_set_logger(Logger*& logger)
 {
-    engine_logger = &logger;
+
+    external_logger = logger ? logger : &empty_logger;
 }
 
 

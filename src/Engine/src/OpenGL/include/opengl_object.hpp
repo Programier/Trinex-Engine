@@ -31,7 +31,8 @@ ObjID object_id_of(const OpenGL_Object* object);
     if (!id)                                                                                                                \
     return out
 
+#define check check_id
 API void api_destroy_object_instance(ObjID& ID);
 
-Engine::Logger* get_external_logger();
+extern Engine::Logger* external_logger;
 int get_current_binding(GLint obj);

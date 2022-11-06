@@ -30,8 +30,8 @@ API void api_generate_mesh(ObjID& ID)
 
 API void api_set_mesh_data(const ObjID& ID, MeshInfo& info, void* data)
 {
-    check_id(ID, );
     make_mesh(mesh, ID);
+    check(mesh, );
     glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
 
     mesh->_M_buffer_size = 0;
@@ -43,8 +43,8 @@ API void api_set_mesh_data(const ObjID& ID, MeshInfo& info, void* data)
 
 API void api_update_mesh_attributes(const ObjID& ID, MeshInfo& info)
 {
-    check_id(ID, );
     make_mesh(mesh, ID);
+    check(mesh, );
     glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
     glBindVertexArray(mesh->_M_VAO);
     // Setting attributes values
@@ -69,8 +69,8 @@ API void api_update_mesh_attributes(const ObjID& ID, MeshInfo& info)
 
 API void api_draw_mesh(const ObjID& ID, Primitive primitive, std::size_t vertices, unsigned int start_index)
 {
-    check_id(ID, );
     make_mesh(mesh, ID);
+    check(mesh, );
     glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
     glBindVertexArray(mesh->_M_VAO);
     glDrawArrays(_M_primitives.at(primitive), start_index, vertices);
@@ -80,8 +80,8 @@ API void api_draw_mesh(const ObjID& ID, Primitive primitive, std::size_t vertice
 
 API void api_update_mesh_data(const ObjID& ID, std::size_t offset, std::size_t size, void* data)
 {
-    check_id(ID, );
     make_mesh(mesh, ID);
+    check(mesh, );
     if (mesh->_M_buffer_size < offset + size)
         return;
 

@@ -42,17 +42,35 @@ const std::string sh_s::Depth::model = "model";
 Shader sh_s::DepthRenderer::shader;
 const std::string sh_s::DepthRenderer::power = "power";
 
+
+static void copy_data(FileBuffer& buffer, const std::string& data)
+{
+    buffer.clear();
+    buffer.resize(data.size() + 1);
+    buffer.back() = 0;
+    std::copy(data.begin(), data.end(), buffer.begin());
+}
+
+#define init_system(ns, type, params)                                                                                       \
+    copy_data(params.vertex, type##_shader_vert);                                                                           \
+    copy_data(params.fragment, type##_shader_frag);                                                                         \
+    params.name = #ns;                                                                                                      \
+    sh_s::ns::shader.load(params);
+
 void sh_s::init()
 {
     if (inited)
         return;
 
-    sh_s::SkyBox::shader.load(skybox_shader_vert, skybox_shader_frag, false);
-    sh_s::Text::shader.load(text_shader_vert, text_shader_frag, false);
-    sh_s::Scene::shader.load(scene_shader_vert, scene_shader_frag, false);
-    sh_s::Line::shader.load(line_shader_vert, line_shader_frag, false);
-    sh_s::Depth::shader.load(depth_shader_vert, depth_shader_frag, false);
-    sh_s::DepthRenderer::shader.load(DepthRender_shader_vert, DepthRender_shader_frag, false);
+    ShaderParams params;
+    params.source_type = ShaderSourceType::Text;
+
+    init_system(SkyBox, skybox, params);
+    init_system(Text, text, params);
+    init_system(Scene, scene, params);
+    init_system(Line, line, params);
+    init_system(Depth, depth, params);
+    init_system(DepthRenderer, DepthRender, params);
 
     inited = true;
 }

@@ -26,6 +26,8 @@ API void api_bind_framebuffer(const ObjID& ID)
     if (ID)
     {
         make_frame_buffer(buffer, ID);
+        check(buffer, );
+
         glBindFramebuffer(buffer->_M_type, buffer->_M_ID);
     }
     else
@@ -45,9 +47,9 @@ API void api_set_framebuffer_viewport(const ObjID& ID, const Point2D& pos, const
 API void api_attach_texture_to_framebuffer(const ObjID& ID, const ObjID& _texture, FrameBufferAttach attach,
                                            unsigned int num, int level)
 {
-    check_id(ID, );
-
     make_frame_buffer(buffer, ID);
+    check(buffer, );
+
     glBindFramebuffer(buffer->_M_type, buffer->_M_ID);
 
     if (_texture)

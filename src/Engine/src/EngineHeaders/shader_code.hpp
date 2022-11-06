@@ -1,8 +1,9 @@
 #pragma once
+#include <string>
 
 namespace Engine
 {
-	const char* DepthRender_shader_frag = R"***(#version 320 es
+	const std::string DepthRender_shader_frag = R"***(#version 320 es
 precision mediump float;
 
 uniform sampler2D texture0;
@@ -20,7 +21,7 @@ void main()
 
 
 
-	const char* DepthRender_shader_vert = R"***(#version 320 es
+	const std::string DepthRender_shader_vert = R"***(#version 320 es
 precision mediump float;
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
@@ -36,7 +37,7 @@ void main()
 
 
 
-	const char* main_frag = R"***(#version 320 es
+	const std::string main_frag = R"***(#version 320 es
 precision mediump float;
 
 out vec4 f_color;
@@ -172,7 +173,7 @@ void main()
 
 
 
-	const char* depthBuffer_frag = R"***(#version 320 es
+	const std::string depthBuffer_frag = R"***(#version 320 es
 precision mediump float;
 
 void main()
@@ -183,7 +184,7 @@ void main()
 
 
 
-	const char* frame_shader_frag = R"***(#version 320 es
+	const std::string frame_shader_frag = R"***(#version 320 es
 precision mediump float;
 
 uniform sampler2D texture0;
@@ -201,7 +202,7 @@ void main()
 
 
 
-	const char* frame_shader_vert = R"***(#version 320 es
+	const std::string frame_shader_vert = R"***(#version 320 es
 precision mediump float;
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
@@ -216,7 +217,7 @@ void main()
 
 
 
-	const char* scene_shader_frag = R"***(#version 320 es
+	const std::string scene_shader_frag = R"***(#version 320 es
 precision mediump float;
 
 out vec4 f_color;
@@ -327,7 +328,7 @@ void main()
 
 
 
-	const char* scene_shader_vert = R"***(#version 320 es
+	const std::string scene_shader_vert = R"***(#version 320 es
 precision mediump float;
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec2 v_texture_coords;
@@ -360,7 +361,7 @@ void main()
 
 
 
-	const char* text_shader_frag = R"***(#version 320 es
+	const std::string text_shader_frag = R"***(#version 320 es
 precision mediump float;
 uniform vec4 color;
 uniform sampler2D text;
@@ -369,13 +370,13 @@ in vec2 coords;
 
 void main()
 {
-    out_color = color * vec4(1.0, 1.0, 1.0, texture(text, coords).r);
+    out_color = color * vec4(1.0, 1.0, 1.0, texture(text, coords).r); //
 }
 )***";
 
 
 
-	const char* text_shader_vert = R"***(#version 320 es
+	const std::string text_shader_vert = R"***(#version 320 es
 precision mediump float;
 layout (location = 0) in vec4 vertex;
 out vec2 coords;
@@ -390,7 +391,7 @@ void main()
 
 
 
-	const char* skybox_shader_frag = R"***(#version 320 es
+	const std::string skybox_shader_frag = R"***(#version 320 es
 precision mediump float;
 in vec3 view_dir;
 uniform samplerCube cubemap;
@@ -407,7 +408,7 @@ void main()
 
 
 
-	const char* skybox_shader_vert = R"***(#version 320 es
+	const std::string skybox_shader_vert = R"***(#version 320 es
 precision mediump float;
 
 layout (location = 0) in vec3 v_pos;
@@ -423,7 +424,7 @@ void main()
 
 
 
-	const char* line_shader_frag = R"***(#version 320 es
+	const std::string line_shader_frag = R"***(#version 320 es
 precision mediump float;
 
 out vec4 out_color;
@@ -437,7 +438,7 @@ void main()
 
 
 
-	const char* line_shader_vert = R"***(#version 320 es
+	const std::string line_shader_vert = R"***(#version 320 es
 precision mediump float;
 layout(location = 0) in vec3 v_position;
 
@@ -452,7 +453,7 @@ void main()
 
 
 
-	const char* lines_frag = R"***(#version 320 es
+	const std::string lines_frag = R"***(#version 320 es
 precision mediump float;
 
 out vec4 out_color;
@@ -481,7 +482,7 @@ void main()
 
 
 
-	const char* depth_shader_frag = R"***(#version 320 es
+	const std::string depth_shader_frag = R"***(#version 320 es
 precision mediump float;
 
 void main()
@@ -492,7 +493,7 @@ void main()
 
 
 
-	const char* depth_shader_vert = R"***(#version 320 es
+	const std::string depth_shader_vert = R"***(#version 320 es
 precision mediump float;
 layout (location = 0) in vec3 aPos;
 
@@ -507,7 +508,7 @@ void main()
 
 
 
-	const char* main_vert = R"***(#version 320 es
+	const std::string main_vert = R"***(#version 320 es
 precision mediump float;
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec2 v_texture_coords;
@@ -565,7 +566,7 @@ void main()
 
 
 
-	const char* depthBuffer_vert = R"***(#version 320 es
+	const std::string depthBuffer_vert = R"***(#version 320 es
 precision mediump float;
 layout (location = 0) in vec3 aPos;
 
@@ -580,7 +581,7 @@ void main()
 
 
 
-	const char* lines_vert = R"***(#version 320 es
+	const std::string lines_vert = R"***(#version 320 es
 precision mediump float;
 layout(location = 0) in vec3 v_position;
 

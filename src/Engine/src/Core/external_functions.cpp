@@ -77,6 +77,18 @@ namespace Engine
     float (*get_current_line_rendering_width)() = nullptr;
     void (*set_line_rendering_width)(float value) = nullptr;
 
+    // Shader system
+    void (*create_shader)(ObjID& ID, const ShaderParams& params) = nullptr;
+    void (*use_shader)(const ObjID& ID) = nullptr;
+    void (*set_shader_float_value)(const ObjID& ID, const std::string& name, float value) = nullptr;
+    void (*set_shader_int_value)(const ObjID& ID, const std::string& name, int value) = nullptr;
+    void (*set_shader_mat3_float_value)(const ObjID& ID, const std::string& name, const glm::mat3& matrix) = nullptr;
+    void (*set_shader_mat4_float_value)(const ObjID& ID, const std::string& name, const glm::mat4& matrix) = nullptr;
+    void (*set_shader_vec2_float_value)(const ObjID& ID, const std::string& name, const glm::vec2& matrix) = nullptr;
+    void (*set_shader_vec3_float_value)(const ObjID& ID, const std::string& name, const glm::vec3& matrix) = nullptr;
+    void (*set_shader_vec4_float_value)(const ObjID& ID, const std::string& name, const glm::vec4& matrix) = nullptr;
+
+
     std::vector<std::pair<void**, const char*>> _M_extern_funcs = {
             {(void**) &set_logger, "api_set_logger"},
             {(void**) &api_init, "api_init"},
@@ -140,6 +152,15 @@ namespace Engine
             {(void**) &set_depth_func, "api_set_depth_func"},
             {(void**) &get_current_line_rendering_width, "api_get_current_line_rendering_width"},
             {(void**) &set_line_rendering_width, "api_set_line_rendering_width"},
+            {(void**) &create_shader, "api_create_shader"},
+            {(void**) &use_shader, "api_use_shader"},
+            {(void**) &set_shader_float_value, "api_set_shader_float_value"},
+            {(void**) &set_shader_int_value, "api_set_shader_int_value"},
+            {(void**) &set_shader_mat3_float_value, "api_set_shader_mat3_float_value"},
+            {(void**) &set_shader_mat4_float_value, "api_set_shader_mat4_float_value"},
+            {(void**) &set_shader_vec2_float_value, "api_set_shader_vec2_float_value"},
+            {(void**) &set_shader_vec3_float_value, "api_set_shader_vec3_float_value"},
+            {(void**) &set_shader_vec4_float_value, "api_set_shader_vec4_float_value"},
 
-    };
+    };// namespace Engine
 }// namespace Engine

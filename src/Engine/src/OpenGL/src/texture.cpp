@@ -13,15 +13,14 @@ namespace Engine
         if (_M_ID)
         {
             glDeleteTextures(1, &_M_ID);
-            printf("DELETING TEXTURE\n");
             _M_ID = 0;
         }
     }
 
     API void api_generate_texture_mipmap(const ObjID& ID)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_MAX_LEVEL, texture->_M_max_mipmap_level);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_MIN_LOD, texture->_M_min_lod_level);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_MAX_LOD, texture->_M_max_lod_level);
@@ -31,8 +30,8 @@ namespace Engine
 
     static void set_filter(const ObjID& ID, TextureFilter filter, GLuint filter_name)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glTexParameteri(texture->_M_GL_type, filter_name, _M_texture_filters.at(filter));
         glBindTexture(texture->_M_GL_type, 0);
@@ -49,8 +48,6 @@ namespace Engine
 
         ID = object_id_of(texture);
         texture->_M_params = params;
-
-        get_external_logger()->log("Msg: %zu -> %zu\n", ID, texture(ID)->_M_references);
 
         // Copy memory from data to texture->_M_data
         texture->_M_GL_format = _M_pixel_formats.at(params.format);
@@ -76,8 +73,8 @@ namespace Engine
 
     API void api_bind_texture(const ObjID& ID, unsigned int num)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glActiveTexture(GL_TEXTURE0 + num);
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
     }
@@ -106,8 +103,8 @@ namespace Engine
 
     API void api_set_depth_stencil_texture(const ObjID& ID, DepthStencilMode mode)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         texture->_M_depth_stencil_mode = mode;
         glTexParameteri(texture->_M_GL_type, GL_DEPTH_STENCIL_TEXTURE_MODE,
@@ -130,8 +127,8 @@ namespace Engine
 
     API void api_set_compare_func_texture(const ObjID& ID, CompareFunc func)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         texture->_M_compare_func = func;
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_COMPARE_FUNC, _M_compare_funcs.at(func));
@@ -140,8 +137,8 @@ namespace Engine
 
     API void api_set_compare_mode_texture(const ObjID& ID, CompareMode mode)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_COMPARE_MODE, _M_compare_modes.at(mode));
         texture->_M_compare_mode = mode;
@@ -149,15 +146,17 @@ namespace Engine
 
     API CompareMode api_get_compare_mode_texture(const ObjID& ID)
     {
-        check_id(ID, CompareMode());
-        return texture(ID)->_M_compare_mode;
+        make_texture(texture, ID);
+        check(texture, CompareMode());
+        return texture->_M_compare_mode;
     }
 
 
     static TextureFilter get_filter(const ObjID& ID, GLenum filter_name)
     {
-        check_id(ID, TextureFilter());
         make_texture(texture, ID);
+        check(texture, TextureFilter());
+
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
 
         GLint filter = 0;
@@ -194,8 +193,8 @@ namespace Engine
 
     API void api_set_min_lod_level_texture(const ObjID& ID, int value)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         texture->_M_min_lod_level = value;
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glBindTexture(texture->_M_GL_type, 0);
@@ -203,8 +202,8 @@ namespace Engine
 
     API void api_set_max_lod_level_texture(const ObjID& ID, int value)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         texture->_M_max_lod_level = value;
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glBindTexture(texture->_M_GL_type, 0);
@@ -212,8 +211,8 @@ namespace Engine
 
     API void api_set_max_mipmap_level_texture(const ObjID& ID, int value)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         texture->_M_max_mipmap_level = value;
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glBindTexture(texture->_M_GL_type, 0);
@@ -221,26 +220,29 @@ namespace Engine
 
     API int api_get_min_lod_level_texture(const ObjID& ID)
     {
-        check_id(ID, 0);
-        return texture(ID)->_M_min_lod_level;
+        make_texture(texture, ID);
+        check(texture, 0);
+        return texture->_M_min_lod_level;
     }
 
     API int api_get_max_lod_level_texture(const ObjID& ID)
     {
-        check_id(ID, 0);
-        return texture(ID)->_M_max_lod_level;
+        make_texture(texture, ID);
+        check(texture, 0);
+        return texture->_M_max_lod_level;
     }
 
     API int api_get_max_mipmap_level_texture(const ObjID& ID)
     {
-        check_id(ID, 0);
-        return texture(ID)->_M_max_mipmap_level;
+        make_texture(texture, ID);
+        check(texture, 0);
+        return texture->_M_max_mipmap_level;
     }
 
     API void api_set_swizzle_texture(const ObjID& ID, const SwizzleRGBA& swizzle)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         texture->_M_swizzle = swizzle;
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         GLint values[4] = {_M_swizzle_values.at(swizzle.R), _M_swizzle_values.at(swizzle.G), _M_swizzle_values.at(swizzle.B),
@@ -252,14 +254,15 @@ namespace Engine
 
     API SwizzleRGBA api_get_swizzle_texture(const ObjID& ID)
     {
-        check_id(ID, SwizzleRGBA());
-        return reinterpret_cast<OpenGL_Texture*>(ID)->_M_swizzle;
+        make_texture(texture, ID);
+        check(texture, SwizzleRGBA());
+        return texture->_M_swizzle;
     }
 
     static OpenGL_Texture* set_wrap(const ObjID& ID, WrapValue wrap, GLint wrap_type)
     {
-        check_id(ID, nullptr);
         make_texture(texture, ID);
+        check(texture, nullptr);
         texture->_M_wrap_s = wrap;
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glTexParameteri(texture->_M_GL_type, wrap_type, _M_wrap_values.at(wrap));
@@ -291,26 +294,29 @@ namespace Engine
 
     API WrapValue api_get_wrap_s_texture(const ObjID& ID)
     {
-        check_id(ID, WrapValue());
-        return texture(ID)->_M_wrap_s;
+        make_texture(texture, ID);
+        check(texture, WrapValue());
+        return texture->_M_wrap_s;
     }
 
     API WrapValue api_get_wrap_t_texture(const ObjID& ID)
     {
-        check_id(ID, WrapValue());
-        return texture(ID)->_M_wrap_t;
+        make_texture(texture, ID);
+        check(texture, WrapValue());
+        return texture->_M_wrap_t;
     }
 
     API WrapValue api_get_wrap_r_texture(const ObjID& ID, WrapValue wrap)
     {
-        check_id(ID, WrapValue());
-        return texture(ID)->_M_wrap_r;
+        make_texture(texture, ID);
+        check(texture, WrapValue());
+        return texture->_M_wrap_r;
     }
 
     API void api_copy_read_buffer_to_texture_2D(const ObjID& ID, const Size2D& size, const Point2D& pos, int mipmap)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
 
         glCopyTexImage2D(texture->_M_GL_type, mipmap, texture->_M_GL_format, static_cast<GLint>(pos.x),
@@ -322,8 +328,8 @@ namespace Engine
     API void api_texture_2D_update_from_current_read_buffer(const ObjID& ID, const Size2D& size, const Offset2D& offset,
                                                             const Point2D& pos, int mipmap)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
 
         glCopyTexSubImage2D(texture->_M_GL_type, mipmap, static_cast<GLint>(offset.x), static_cast<GLint>(offset.y),
@@ -335,8 +341,8 @@ namespace Engine
 
     API void api_gen_texture_2D(const ObjID& ID, const Size2D& size, int level, void* data)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
 
         glTexImage2D(texture->_M_GL_type, static_cast<GLint>(level), texture->_M_GL_format, static_cast<GLsizei>(size.x),
@@ -349,8 +355,8 @@ namespace Engine
 
     API void api_update_texture_2D(const ObjID& ID, const Size2D& size, const Offset2D& offset, int level, void* data)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
 
         glTexSubImage2D(texture->_M_GL_type, static_cast<GLint>(level), static_cast<GLsizei>(offset.x),
@@ -362,8 +368,8 @@ namespace Engine
 
     API void api_get_size_texture(const ObjID& ID, Size3D& size, int level)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         GLint _size[3];
         glGetTexLevelParameteriv(texture->_M_GL_type, level, GL_TEXTURE_WIDTH, &_size[0]);
@@ -377,11 +383,11 @@ namespace Engine
     API void api_read_texture_2D_data(const ObjID& ID, std::vector<byte>& data, int num)
     {
         // Generating framebuffer
-        check_id(ID, );
         Size3D size;
         api_get_size_texture(ID, size, num);
         int current_framebuffer = get_current_binding(GL_FRAMEBUFFER);
         make_texture(texture, ID);
+        check(texture, );
 
         std::size_t buffer_len = size.x * size.y * size.z * _M_buffer_value_type_sizes.at(texture->_M_params.pixel_type) * 4;
         if (data.size() < buffer_len)
@@ -413,6 +419,8 @@ namespace Engine
 
         make_texture(texture, ID);
         make_texture(attach_texture, attach);
+        check(texture, );
+        check(attach_texture, );
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         Size3D size;
         api_get_size_texture(attach, size, attach_texture->_M_base_level);
@@ -428,8 +436,8 @@ namespace Engine
     API void api_cubemap_texture_attach_data(const ObjID& ID, TextureCubeMapFace index, const Size2D& size, int level,
                                              void* data)
     {
-        check_id(ID, );
         make_texture(texture, ID);
+        check(texture, );
 
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glTexImage2D(_M_cubemap_indexes.at(index), level, texture->_M_GL_format, static_cast<GLsizei>(size.x),

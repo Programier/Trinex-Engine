@@ -28,14 +28,14 @@ def generate_header(header_name: str, shaders: list) -> None:
     if not header_name.endswith('.hpp') and not header_name.endswith(".h"):
         header_name = header_name + ".hpp"
     header = open(header_name, 'w')
-    header.write("#pragma once\n\nnamespace Engine\n{\n")
+    header.write("#pragma once\n#include <string>\n\nnamespace Engine\n{\n")
 
     shaders_count = len(shaders)
     shader_num = 0
     for shader in shaders:
         try:
             shader_num += 1
-            prototype = "\tconst char* " + str(shader[0]).replace('.', '_') + " = R\"***("
+            prototype = "\tconst std::string " + str(shader[0]).replace('.', '_') + " = R\"***("
             header.write(prototype)
             for line in shader[1]:
                 header.write(line)
