@@ -2,6 +2,7 @@
 #include <functional>
 #include <string>
 #include <Core/export.hpp>
+#include <Core/implement.hpp>
 
 #define lib_function(prototype) #prototype
 
@@ -17,6 +18,7 @@ namespace Engine
         Library(void* _M_handle, const std::string& libname);
 
     public:
+        implement_class_hpp(Library);
         bool has_lib() const;
         const std::string& libname() const;
         void close();

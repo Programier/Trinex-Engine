@@ -37,9 +37,9 @@ namespace Engine
     int (*get_max_mipmap_level_texture)(const ObjID& ID) = nullptr;
     void (*set_swizzle_texture)(const ObjID& ID, const SwizzleRGBA& value) = nullptr;
     SwizzleRGBA (*get_swizzle_texture)(const ObjID& ID) = nullptr;
-    void (*set_wrap_s_texture)(const ObjID& ID, WrapValue& wrap) = nullptr;
-    void (*set_wrap_t_texture)(const ObjID& ID, WrapValue& wrap) = nullptr;
-    void (*set_wrap_r_texture)(const ObjID& ID, WrapValue& wrap) = nullptr;
+    void (*set_wrap_s_texture)(const ObjID& ID, const WrapValue& wrap) = nullptr;
+    void (*set_wrap_t_texture)(const ObjID& ID, const WrapValue& wrap) = nullptr;
+    void (*set_wrap_r_texture)(const ObjID& ID, const WrapValue& wrap) = nullptr;
     WrapValue (*get_wrap_s_texture)(const ObjID& ID) = nullptr;
     WrapValue (*get_wrap_t_texture)(const ObjID& ID) = nullptr;
     WrapValue (*get_wrap_r_texture)(const ObjID& ID) = nullptr;

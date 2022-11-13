@@ -3,11 +3,11 @@
 #include <cstdio>
 #include <opengl_object.hpp>
 
-
 using namespace Engine;
 
 OpenGL_Object::OpenGL_Object()
 {
+    ALLOC_INFO;
     _M_references = 1;
 }
 
@@ -15,7 +15,9 @@ void OpenGL_Object::destroy()
 {}
 
 OpenGL_Object::~OpenGL_Object()
-{}
+{
+    DEALLOC_INFO;
+}
 
 API void api_destroy_object_instance(ObjID& ID)
 {
@@ -31,7 +33,6 @@ API void api_destroy_object_instance(ObjID& ID)
 
         if (object->_M_references == 0)
         {
-            object->destroy();
             delete object;
         }
     }

@@ -1,65 +1,45 @@
 #pragma once
-#include <Graphics/basic_object.hpp>
-#include <Graphics/line.hpp>
+#include <Core/engine_types.hpp>
+#include <Core/export.hpp>
+#include <Core/implement.hpp>
+#include <Graphics/frustum.hpp>
 
 
 namespace Engine
 {
-#define HITBOX_TYPES_COUNT 4
-    enum class HitBoxType
+
+    CLASS HitBox
     {
-        POINT,
-        BOX,
-        SPHERE,
-        CYLINDER
+    public:
+        virtual void render(const glm::mat4& model) = 0;
+        virtual bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const = 0;
+        virtual ~HitBox();
     };
 
-    CLASS IHitBox : public BasicObject<Rotate, Translate, Scale>
+
+    CLASS BoxHB : public HitBox
     {
     protected:
-        HitBoxType _M_type;
-        Size3D _M_size;
-        Line _M_lines;
+        AABB_3D _M_aabb;
+        Point3D _M_center;
+        Size3D _M_half_sizes;
 
     public:
-        Distance distance_to(const IHitBox& hitbox);
-        const HitBoxType& type() const;
-        const Size3D& size() const;
-        glm::vec3& size();
-        Line& lines();
+        implement_class_hpp(BoxHB);
+        BoxHB(const AABB_3D& box);
+        const AABB_3D& aabb() const;
+        BoxHB& aabb(const AABB_3D& box);
+        bool is_on_or_forward_plan(const Plane& plan) const;
+        bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const override;
+        void render(const glm::mat4& model) override;
     };
 
-    CLASS PointHB : public IHitBox
-    {
-    public:
-        PointHB(const Point3D& position);
-        PointHB(const PointHB&);
-        PointHB& operator=(const PointHB& point);
-    };
+    //    CLASS SphereHB : public HitBox
+    //    {
 
-    CLASS BoxHB : public IHitBox
-    {
-    public:
-        BoxHB(const Point3D& position = {0.f, 0.f, 0.f}, const Size3D& size = {1.f, 1.f, 1.f},
-              const EulerAngle3D& rotation = {0.f, 0.f, 0.f});
-        BoxHB(const BoxHB&);
-        BoxHB& operator=(const BoxHB& box);
-    };
-
-    CLASS SphereHB : public IHitBox
-    {
-
-    public:
-        SphereHB(const Point3D& position, const float& radius);
-        SphereHB(const SphereHB&);
-        SphereHB& operator=(const SphereHB& sphere);
-    };
-
-    CLASS CylinderHB : public IHitBox
-    {
-    public:
-        CylinderHB(const glm::vec3& position, const float& radius, const Size1D& height);
-        CylinderHB(const CylinderHB&);
-        CylinderHB& operator=(const CylinderHB& point);
-    };
+    //    public:
+    //        SphereHB(const Point3D& position, const float& radius);
+    //        SphereHB(const SphereHB&);
+    //        SphereHB& operator=(const SphereHB& sphere);
+    //    };
 }// namespace Engine

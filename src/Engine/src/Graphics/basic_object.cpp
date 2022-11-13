@@ -2,64 +2,154 @@
 #include <Graphics/basic_object.hpp>
 #include <algorithm>
 #include <glm/ext.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 #include <numeric>
 
 #define TRANSLATE_INDEX 0
-#define ROTATE_INDEX 1
-#define SCALE_INDEX 2
+#define ROTATE_INDEX 0
+#define SCALE_INDEX 0
 
 
 #define get_model(index) _M_models[index].is_null() ? Constants::identity_matrix : _M_models[index].get();
 
+#define NEW_VARIANT 1
+
 namespace Engine
 {
 
-    const glm::mat4& ModelMatrix::rotation_matrix() const
+
+    ModelMatrix::ModelMatrix() = default;
+    ModelMatrix::ModelMatrix(const ModelMatrix& m)
     {
-        return get_model(ROTATE_INDEX);
+        *this = m;
     }
 
-    const glm::mat4& ModelMatrix::scale_matrix() const
+    ModelMatrix::ModelMatrix(ModelMatrix&& m)
     {
-        return get_model(SCALE_INDEX);
+        *this = std::move(m);
     }
 
-    const glm::mat4& ModelMatrix::translate_matrix() const
+
+    ModelMatrix& ModelMatrix::operator=(const ModelMatrix& m)
     {
-        return get_model(TRANSLATE_INDEX);
+        if (this == &m)
+            return *this;
+
+        _M_model = ReferenceWrapper<glm::mat4>(m._M_model);
+        _M_shift = ReferenceWrapper<glm::mat4>(m._M_shift);
+
+
+        _M_position = ReferenceWrapper<Vector3D>(m._M_position);
+        _M_scale = ReferenceWrapper<Vector3D>(m._M_scale);
+        _M_rotation = ReferenceWrapper<Vector3D>(m._M_rotation);
+
+        _M_shift_position = m._M_shift_position;
+        _M_shift_scale = m._M_shift_scale;
+        _M_shift_rotation = m._M_shift_rotation;
+
+        _M_quaternion = ReferenceWrapper<Quaternion>(m._M_quaternion);
+        _M_euler_angles = ReferenceWrapper<EulerAngle3D>(m._M_euler_angles);
+        _M_front = m._M_up;
+        _M_right = m._M_front;
+        _M_up = m._M_right;
+
+        return *this;
     }
 
-    glm::mat4& ModelMatrix::_M_rotation_matrix()
+    ModelMatrix& ModelMatrix::operator=(ModelMatrix&& m)
     {
-        return _M_models[1].get();
-    }
+        _M_model = std::move(m._M_model);
+        _M_shift = std::move(m._M_shift);
 
-    glm::mat4& ModelMatrix::_M_scale_matrix()
-    {
-        return _M_models[2].get();
-    }
+        _M_position = std::move(m._M_position);
+        _M_scale = std::move(m._M_scale);
+        _M_rotation = std::move(m._M_rotation);
 
-    glm::mat4& ModelMatrix::_M_translate_matrix()
-    {
-        return _M_models[0].get();
+        _M_shift_position = std::move(m._M_shift_position);
+        _M_shift_scale = std::move(m._M_shift_scale);
+        _M_shift_rotation = std::move(m._M_shift_rotation);
+
+        _M_quaternion = std::move(m._M_quaternion);
+        _M_euler_angles = std::move(m._M_euler_angles);
+        _M_front = std::move(m._M_up);
+        _M_right = std::move(m._M_front);
+        _M_up = std::move(m._M_right);
+        return *this;
     }
 
     glm::mat4 ModelMatrix::model() const
     {
-        glm::mat4 result = _M_shift_models[3].get();
-        for (auto& ell : _M_models) result *= ell.get();
-        return result;
+        return _M_shift.get() * _M_model.get();
     }
 
-    ModelMatrix& ModelMatrix::recalculate_shift()
+    ModelMatrix& ModelMatrix::link_to(ModelMatrix& obj)
     {
-        _M_shift_models[3] = Constants::identity_matrix;
-        for (std::size_t i = 0; i < 3; i++) _M_shift_models[3].get() *= _M_shift_models[i].get();
+        _M_model = obj._M_model;
+        return *this;
+    }
+
+    ModelMatrix& ModelMatrix::update_shift_data()
+    {
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        Quaternion q;
+
+        glm::decompose(_M_shift.get(), _M_shift_scale, q, _M_shift_position, skew, perspective);
+        _M_shift_rotation = glm::eulerAngles(q);
+        return *this;
+    }
+
+    ModelMatrix& ModelMatrix::update_data()
+    {
+        glm::vec3 skew;
+        glm::vec4 perspective;
+
+        glm::decompose(_M_model.get(), _M_scale.get(), _M_quaternion.get(), _M_position.get(), skew, perspective);
+
+        _M_euler_angles = glm::eulerAngles(_M_quaternion.get());
+        update_vectors();
+        return *this;
+    }
+
+    const ModelMatrix& ModelMatrix::update_vectors() const
+    {
+        Quaternion tmp(_M_euler_angles.get() + _M_shift_rotation);
+        _M_front = glm::normalize(tmp * Constants::OZ);
+        _M_up = glm::normalize(tmp * Constants::OY);
+        _M_right = glm::normalize(tmp * Constants::OX);
+        return *this;
+    }
+
+    ModelMatrix& ModelMatrix::model(const glm::mat4& m)
+    {
+        _M_model.get() = m;
+        update_data();
         return *this;
     }
 
 
     //      TRANSLATE
+
+    Translate::Translate() = default;
+    Translate::Translate(const Translate& obj)
+    {
+        *this = obj;
+    }
+
+    Translate::Translate(Translate&& obj)
+    {
+        *this = std::move(obj);
+    }
+
+    Translate& Translate::operator=(const Translate& obj)
+    {
+        return *this;
+    }
+
+    Translate& Translate::operator=(Translate&& obj)
+    {
+        return *this;
+    }
 
     Point3D Translate::position() const
     {
@@ -88,14 +178,22 @@ namespace Engine
         glm::vec3 result_move = (right * move_vector.x) + (up * move_vector.y) + (front * move_vector.z);
 
         if (add_values)
+        {
             this->_M_position.get() += result_move;
+            _M_model.get() = glm::translate(_M_model.get(), result_move);
+        }
         else
         {
-            _M_translate_matrix() = Constants::identity_matrix;
-            this->_M_position = move_vector;
+            _M_model.get() = glm::translate(_M_model.get(), -_M_position.get() + result_move);
+            _M_position = move_vector;
         }
 
-        this->_M_translate_matrix() = glm::translate(this->_M_translate_matrix(), result_move);
+
+        for (auto func : _M_on_translate)
+        {
+            func(this);
+        }
+
         return *this;
     }
 
@@ -104,23 +202,41 @@ namespace Engine
         return move(axis * distance, Constants::OX, Constants::OY, Constants::OZ, add_value);
     }
 
-    Translate& Translate::link_to(Translate& obj)
-    {
-        _M_models[TRANSLATE_INDEX] = obj._M_models[TRANSLATE_INDEX];
-        _M_position = obj._M_position;
-        return *this;
-    }
-
-
-    Translate::~Translate()
-    {}
-
 
     //          SCALE
 
-    const Scale3D& Scale::scale() const
+    Scale::Scale() = default;
+    Scale::Scale(const Scale& obj)
     {
-        return _M_scale.get();
+        *this = obj;
+    }
+
+    Scale::Scale(Scale&& obj)
+    {
+        *this = std::move(obj);
+    }
+
+    Scale& Scale::operator=(const Scale& obj)
+    {
+        if (this != &obj)
+        {
+            this->_M_scale = obj._M_scale;
+        }
+        return *this;
+    }
+
+    Scale& Scale::operator=(Scale&& obj)
+    {
+        if (this != &obj)
+        {
+            this->_M_scale = std::move(obj._M_scale);
+        }
+        return *this;
+    }
+
+    Scale3D Scale::scale() const
+    {
+        return _M_scale.get() * _M_shift_scale;
     }
 
     Scale& Scale::scale(const Scale3D& sc, const bool& add_values)
@@ -128,12 +244,18 @@ namespace Engine
         if (add_values)
         {
             _M_scale.get() *= sc;
-            _M_scale_matrix() = glm::scale(_M_scale_matrix(), sc);
+            _M_model.get() = glm::scale(_M_model.get(), sc);
         }
         else
         {
+            _M_model.get() = glm::scale(_M_model.get(), 1.f / _M_scale.get());
             _M_scale = sc;
-            _M_scale_matrix() = glm::scale(Constants::identity_matrix, sc);
+            _M_model.get() = glm::scale(_M_model.get(), sc);
+        }
+
+        for (auto func : _M_on_scale)
+        {
+            func(this);
         }
 
         return *this;
@@ -144,18 +266,51 @@ namespace Engine
         return scale({x, y, z}, add_values);
     }
 
-    Scale& Scale::link_to(Scale& obj)
-    {
-        _M_scale_matrix() = obj._M_scale_matrix();
-        _M_scale = obj._M_scale;
-        return *this;
-    }
 
     //      ROTATION
 
-    const EulerAngle3D& Rotate::euler_angles() const
+    Rotate::Rotate() = default;
+    Rotate::Rotate(const Rotate& obj)
     {
-        return _M_euler_angles.get();
+        *this = obj;
+    }
+
+    Rotate::Rotate(Rotate&& obj)
+    {
+        *this = std::move(obj);
+    }
+
+    Rotate& Rotate::operator=(const Rotate& obj)
+    {
+        if (this != &obj)
+        {
+            this->_M_quaternion = obj._M_quaternion;
+            this->_M_euler_angles = obj._M_euler_angles;
+            this->_M_front = obj._M_front;
+            this->_M_right = obj._M_right;
+            this->_M_up = obj._M_up;
+        }
+
+        return *this;
+    }
+
+    Rotate& Rotate::operator=(Rotate&& obj)
+    {
+        if (this != &obj)
+        {
+            this->_M_quaternion = std::move(obj._M_quaternion);
+            this->_M_euler_angles = std::move(obj._M_euler_angles);
+            this->_M_front = std::move(obj._M_front);
+            this->_M_right = std::move(obj._M_right);
+            this->_M_up = std::move(obj._M_up);
+        }
+
+        return *this;
+    }
+
+    EulerAngle3D Rotate::euler_angles() const
+    {
+        return _M_euler_angles.get() + _M_shift_rotation;
     }
 
     Rotate& Rotate::rotate(const EulerAngle1D& x, const EulerAngle1D& y, const EulerAngle1D& z, const bool& add_values)
@@ -166,23 +321,26 @@ namespace Engine
     void Rotate::update_model(const Quaternion& q, const bool& add_values)
     {
         auto& quat = _M_quaternion.get();
-        auto& matrix = _M_rotation_matrix();
+
         if (add_values)
             _M_quaternion = q * quat;
         else
         {
             quat.w = -quat.w;
-            matrix = Constants::identity_matrix;
+            _M_model.get() = glm::mat4_cast(quat) * _M_model.get();
             quat = q;
         }
 
         _M_quaternion.get() = glm::normalize(_M_quaternion.get());
-        matrix = glm::mat4_cast(glm::normalize(q)) * matrix;
+        _M_model.get() = glm::mat4_cast(glm::normalize(q)) * _M_model.get();
         _M_euler_angles.get() = glm::eulerAngles(quat);
 
-        _M_front = glm::normalize(quat * Constants::OZ);
-        _M_up = glm::normalize(quat * Constants::OY);
-        _M_right = glm::normalize(quat * Constants::OX);
+        update_vectors();
+
+        for (auto func : _M_on_rotate)
+        {
+            func(this);
+        }
     }
 
     Rotate& Rotate::rotate(const EulerAngle3D& r, const bool& add_values)
@@ -205,36 +363,37 @@ namespace Engine
         return *this;
     }
 
-    const Quaternion& Rotate::quaternion() const
+    Quaternion Rotate::quaternion() const
     {
-        return _M_quaternion.get();
+        return Quaternion(_M_shift_scale) * _M_quaternion.get();
     }
 
-    const Vector3D& Rotate::front_vector() const
+    Vector3D Rotate::front_vector(bool update) const
     {
-        return _M_front.get();
+        if (update)
+            update_vectors();
+        return _M_front;
     }
 
-    const Vector3D& Rotate::right_vector() const
+    const Vector3D& Rotate::right_vector(bool update) const
     {
-        return _M_right.get();
+        if (update)
+            update_vectors();
+        return _M_right;
     }
 
-    const Vector3D& Rotate::up_vector() const
+    const Vector3D& Rotate::up_vector(bool update) const
     {
-        return _M_up.get();
+        if (update)
+            update_vectors();
+        return _M_up;
     }
 
-    Rotate& Rotate::link_to(Rotate& obj)
-    {
-        _M_quaternion = obj._M_quaternion;
-        _M_euler_angles = obj._M_euler_angles;
-        _M_front = obj._M_front;
-        _M_right = obj._M_right;
-        _M_up = obj._M_up;
-        _M_models[ROTATE_INDEX] = obj._M_models[ROTATE_INDEX];
-        return *this;
-    }
+    // Destructors
+    ModelMatrix::~ModelMatrix() = default;
+    Translate::~Translate() = default;
+    Rotate::~Rotate() = default;
+    Scale::~Scale() = default;
 
 
 }// namespace Engine

@@ -5,6 +5,16 @@
 #include <opengl_types.hpp>
 
 
+#ifdef ENGINE_DEBUG
+#define ALLOC_INFO external_logger->log("API: Allocate memory: %p, %s\n", this, __PRETTY_FUNCTION__)
+#define DEALLOC_INFO external_logger->log("API: Deallocate memory: %p, %s\n", this, __PRETTY_FUNCTION__)
+#else
+#define ALLOC_INFO
+#define DEALLOC_INFO
+#endif
+
+
+
 class OpenGL_Object
 {
 public:
@@ -14,6 +24,12 @@ public:
     virtual void destroy();
 };
 
+#define declare_hpp_destructor(object) virtual ~object()
+#define declare_cpp_destructor(object)                                                                                      \
+    object::~object()                                                                                                       \
+    {                                                                                                                       \
+        destroy();                                                                                                          \
+    }
 
 template<typename ObjectType = OpenGL_Object>
 ObjectType* object_of(ObjID ID)

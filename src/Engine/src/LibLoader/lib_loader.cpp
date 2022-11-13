@@ -16,6 +16,8 @@ namespace Engine
 {
     ENGINE_EXPORT std::string library_dir;
 
+    implement_class_cpp(Library);
+
     static std::string get_libname(const std::string& libname, bool full = true)
     {
 #ifdef WIN32

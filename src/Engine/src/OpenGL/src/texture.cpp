@@ -14,17 +14,23 @@ namespace Engine
         {
             glDeleteTextures(1, &_M_ID);
             _M_ID = 0;
+            DEALLOC_INFO;
         }
     }
+
+    declare_cpp_destructor(OpenGL_Texture);
 
     API void api_generate_texture_mipmap(const ObjID& ID)
     {
         make_texture(texture, ID);
         check(texture, );
+
+        glBindTexture(texture->_M_GL_type, texture->_M_ID);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_MAX_LEVEL, texture->_M_max_mipmap_level);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_MIN_LOD, texture->_M_min_lod_level);
         glTexParameteri(texture->_M_GL_type, GL_TEXTURE_MAX_LOD, texture->_M_max_lod_level);
         glGenerateMipmap(texture->_M_GL_type);
+        glBindTexture(texture->_M_GL_type, 0);
     }
 
 
@@ -196,8 +202,6 @@ namespace Engine
         make_texture(texture, ID);
         check(texture, );
         texture->_M_min_lod_level = value;
-        glBindTexture(texture->_M_GL_type, texture->_M_ID);
-        glBindTexture(texture->_M_GL_type, 0);
     }
 
     API void api_set_max_lod_level_texture(const ObjID& ID, int value)
@@ -205,8 +209,6 @@ namespace Engine
         make_texture(texture, ID);
         check(texture, );
         texture->_M_max_lod_level = value;
-        glBindTexture(texture->_M_GL_type, texture->_M_ID);
-        glBindTexture(texture->_M_GL_type, 0);
     }
 
     API void api_set_max_mipmap_level_texture(const ObjID& ID, int value)
@@ -214,8 +216,6 @@ namespace Engine
         make_texture(texture, ID);
         check(texture, );
         texture->_M_max_mipmap_level = value;
-        glBindTexture(texture->_M_GL_type, texture->_M_ID);
-        glBindTexture(texture->_M_GL_type, 0);
     }
 
     API int api_get_min_lod_level_texture(const ObjID& ID)
@@ -270,21 +270,21 @@ namespace Engine
         return texture;
     }
 
-    API void api_set_wrap_s_texture(const ObjID& ID, WrapValue wrap)
+    API void api_set_wrap_s_texture(const ObjID& ID, const WrapValue& wrap)
     {
         auto texture = set_wrap(ID, wrap, GL_TEXTURE_WRAP_S);
         if (texture)
             texture->_M_wrap_s = wrap;
     }
 
-    API void api_set_wrap_t_texture(const ObjID& ID, WrapValue wrap)
+    API void api_set_wrap_t_texture(const ObjID& ID, const WrapValue& wrap)
     {
         auto texture = set_wrap(ID, wrap, GL_TEXTURE_WRAP_T);
         if (texture)
             texture->_M_wrap_t = wrap;
     }
 
-    API void api_set_wrap_r_texture(const ObjID& ID, WrapValue wrap)
+    API void api_set_wrap_r_texture(const ObjID& ID, const WrapValue& wrap)
     {
         auto texture = set_wrap(ID, wrap, GL_TEXTURE_WRAP_R);
         if (texture)

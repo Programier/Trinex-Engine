@@ -1,10 +1,10 @@
 #pragma once
 
-#include <BasicFunctional/debug.hpp>
-#include <BasicFunctional/engine_types.hpp>
-#include <engine.hpp>
+#include <Core/engine.hpp>
+#include <Core/engine_types.hpp>
 #include <iostream>
 #include <list>
+#include <unordered_set>
 
 #define TEMPLATE template<typename Type>
 
@@ -13,506 +13,659 @@ namespace Engine
     TEMPLATE
     class Octree
     {
+
     public:
         struct Index {
             bool x = false;
             bool y = false;
             bool z = false;
 
-            int get() const;
-            operator int() const;
+            Index() = default;
+            Index(bool x, bool y, bool z) : x(x), y(y), z(z)
+            {}
+
+            Index(const Index&) = default;
+            Index& operator=(const Index&) = default;
+
+            Index(int index)
+            {
+                x = cast(bool, index& Octree::x_mask);
+                y = cast(bool, index& Octree::y_mask);
+                z = cast(bool, index& Octree::z_mask);
+            }
+
+            operator int() const
+            {
+                int _x = cast(int, x);
+                int _y = cast(int, y);
+                int _z = cast(int, z);
+
+                return _x << 2 | _y << 1 | _z;
+            }
+
+            bool operator[](int index) const
+            {
+                switch (index)
+                {
+                    case 0:
+                        return x;
+                    case 1:
+                        return y;
+                    case 2:
+                        return z;
+                    default:
+                        return false;
+                }
+            }
         };
 
-        struct Value;
 
-        struct Node {
+        template<typename Access>
+        class Iterator
+        {
+        protected:
+            Access* _M_current = nullptr;
+            Access* _M_root = nullptr;
+            std::vector<Access*> _M_stack;
+            bool _M_is_end = false;
 
-        private:
-            Octree* _M_tree = nullptr;
-            int _M_part_number = -1;
-            AABB_3D calc_new_head(const AABB_3D& box, int mode);
-            void set_base_class(Octree* tree);
+            Iterator(Access* root, bool is_end = false)
+            {
+                _M_is_end = is_end;
+                _M_root = _M_current = root;
+            }
 
         public:
-            Node* _M_parts[8] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-            Node* _M_prev = nullptr;
-            AABB_3D _M_box;
-            std::list<Value> _M_objects;
+#if __cplusplus >= 201703L
+            using iterator_category = std::random_access_iterator_tag;
+            using difference_type = std::ptrdiff_t;
+            using value_type = Access;
+            using pointer = value_type*;
+            using reference = value_type&;
+#endif
 
 
-            Node* push(const Type& value, const AABB_3D& box);
-            Node* push_box(const AABB_3D& box);
-            std::size_t depth() const;
+            Iterator(const Iterator&) = default;
+            Iterator(Iterator&&) = default;
+            Iterator& operator=(const Iterator&) = default;
+            Iterator& operator=(Iterator&&) = default;
+            Iterator& operator++()
+            {
+                for (byte i = 0; i < Octree::xyz_mask; ++i)
+                {
+                    pointer ptr = _M_current->get(i);
+                    if (ptr)
+                        _M_stack.push_back(ptr);
+                }
 
-            Node* get(const Octree::Index& index);
-            Node& operator[](const Octree::Index& index);
-            const Node* get(const Octree::Index& index) const;
-            const Node& operator[](const Octree::Index& index) const;
-            std::size_t size() const;
+                if (!_M_stack.empty())
+                {
+                    _M_current = _M_stack.back();
+                    _M_stack.pop_back();
+                }
+                else
+                {
+                    _M_current = _M_root;
+                    _M_is_end = !_M_is_end;
+                }
 
-            Octree& tree();
-            const Octree& tree() const;
+                return *this;
+            }
+
+
+            bool operator==(const Iterator& it) const
+            {
+                return _M_current == it._M_current && it._M_is_end == _M_is_end;
+            }
+
+            bool operator!=(const Iterator& it) const
+            {
+                return !(*this == it);
+            }
+
+            reference operator*() const
+            {
+                return *_M_current;
+            }
+
+            pointer base() const
+            {
+                return _M_current;
+            }
+
+            Iterator operator++(int)
+            {
+                Iterator prev = *this;
+                ++(*this);
+                return prev;
+            }
 
             friend class Octree;
-            ~Node();
         };
 
-        struct Value {
-            Type value;
-            AABB_3D box;
-            Node* node = nullptr;
-
-            Value(const Type& value, const AABB_3D& box, Node* node);
-        };
+        using const_iterator = Iterator<const Octree<Type>>;
+        using basic_iterator = Iterator<Octree<Type>>;
 
     private:
-        Node* _M_head = nullptr;
-        mutable std::size_t _M_size = 0;
-        std::size_t _M_nodes_count = 0;
+        static const byte x_mask = 1 << 2;
+        static const byte y_mask = 1 << 1;
+        static const byte z_mask = 1;
+        static const byte xyz_mask = (x_mask | y_mask | z_mask) + 1;
+        static Octree default_value;
 
-        DEBUG_CODE(std::size_t _M_alloc_count = 0; std::size_t _M_dealloc_count = 0);
+        Octree* _M_parent = nullptr;
+        Index _M_parent_index;
+        Octree* _M_parts[2][2][2];
+
+        std::size_t _M_size = 0;
+        std::size_t _M_nodes = 0;
+        std::size_t _M_depth = 0;
+
+        AABB_3D _M_aabb;
+        std::unordered_set<Type> _M_objects;
+
+        Size3D _M_min_sizes = {0.1f, 0.1f, 0.1f};
+        Size3D _M_min_half_sizes = {0.05f, 0.05f, 0.05f};
+
+
+        void check_box(AABB_3D& box) const
+        {
+            box.max = glm::max(box.max, box.min);
+            box.min = glm::min(box.max, box.min);
+
+            Point3D center = (box.max + box.min) / 2.f;
+
+            for (int i = 0; i < 3; i++)
+            {
+                if(box.max[i] - center[i] < _M_min_half_sizes[i])
+                {
+                    box.max[i] = center[i] + _M_min_half_sizes[i];
+                }
+
+                if(center[i] - box.min[i] < _M_min_half_sizes[i])
+                {
+                    box.min[i] = center[i] - _M_min_half_sizes[i];
+                }
+            }
+        }
+
+        Octree*& get(int index)
+        {
+            int indexes[3] = {0, 0, 0};
+            for (int i = 0; i < 3; i++)
+            {
+                indexes[2 - i] = index % 2;
+                index >>= 1;
+            }
+
+            return _M_parts[indexes[0]][indexes[1]][indexes[2]];
+        }
+
+        const Octree* get(int index) const
+        {
+            int indexes[3] = {0, 0, 0};
+            for (int i = 0; i < 3; i++)
+            {
+                indexes[2 - i] = index % 2;
+                index >>= 1;
+            }
+
+            return _M_parts[indexes[0]][indexes[1]][indexes[2]];
+        }
+
+        AABB_3D get_box(const Size3D& new_center, const Size3D& center)
+        {
+            Size3D double_center = new_center * 2.f;
+            AABB_3D new_box = _M_aabb;
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (new_center[i] - center[i] > 0)
+                    new_box.max[i] = double_center[i] - new_box.min[i];
+                else
+                    new_box.min[i] = double_center[i] - new_box.max[i];
+            }
+
+            check_box(new_box);
+            return new_box;
+        }
+
+        Octree* create_new_head(const Size3D& new_center, const Size3D& center)
+        {
+            // This object is head
+
+            AABB_3D new_box = get_box(new_center, center);
+
+            // Allocate memory
+            Octree* new_node = new Octree();
+            *new_node = std::move(*this);
+            _M_aabb = new_box;
+            this->push_node(new_node);
+            return this;
+        }
+
+        template<typename Access>
+        Access* basic_find_by_box(AABB_3D box) const
+        {
+            check_box(box);
+
+            Access* this_object = const_cast<Access*>(this);
+            Size3D box_half_sizes = (box.max - box.min) / 2.f;
+            Size3D box_center = box.max - box_half_sizes;
+
+            while (this_object)
+            {
+                Size3D center = (this_object->_M_aabb.min + this_object->_M_aabb.max) / 2.f;
+                Size3D current_half_size = this_object->_M_aabb.max - center;
+                Size3D center_offset = box_center - center;
+
+                bool need_continue = false;
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (glm::abs(center_offset[i]) + box_half_sizes[i] > current_half_size[i])
+                    {
+                        need_continue = true;
+                        if (this_object->_M_parent)
+                            this_object = this_object->_M_parent;
+                        else
+                            return nullptr;
+                        break;
+                    }
+                }
+
+                if (need_continue)
+                    continue;
+
+                // Now we know, that box is inside this_object
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (glm::abs(center_offset[i]) < box_half_sizes[i])
+                    {
+                        return this_object;
+                    }
+                }
+
+                // Get subbox inside this box
+                this_object = this_object->get(Index(center_offset.x > 0, center_offset.y > 0, center_offset.z > 0));
+            }
+
+            return this_object;
+        }
+
+        Octree* find_by_box_private(AABB_3D box, bool create = false)
+        {
+            check_box(box);
+            Octree* this_object = this;
+            Size3D box_half_sizes = (box.max - box.min) / 2.f;
+            Size3D box_center = box.max - box_half_sizes;
+
+            while (this_object)
+            {
+                Size3D center = (this_object->_M_aabb.min + this_object->_M_aabb.max) / 2.f;
+                Size3D current_half_size = this_object->_M_aabb.max - center;
+                Size3D center_offset = box_center - center;
+
+                bool need_continue = false;
+                bool need_create = false;
+                Size3D direction = Constants::zero_vector;
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (glm::abs(center_offset[i]) + box_half_sizes[i] > current_half_size[i])
+                    {
+                        need_continue = true;
+                        if (this_object->_M_parent)
+                        {
+                            this_object = this_object->_M_parent;
+                        }
+                        else if (create)
+                        {
+                            // Generate direction
+                            need_create = true;
+                            direction[i] = center_offset[i] > 0 ? 1.f : -1.f;
+                        }
+                        else
+                            return nullptr;
+                    }
+                }
+
+                if (need_continue)
+                {
+                    if (need_create && create)
+                        this_object = create_new_head(center + current_half_size * direction, center);
+                    continue;
+                }
+
+                // Now we know, that box is inside this_object
+
+                for (int i = 0; i < 3; i++)
+                {
+                    if (glm::abs(center_offset[i]) < box_half_sizes[i])
+                    {
+                        return this_object;
+                    }
+                }
+
+                // Get subbox inside this box
+                Index index(center_offset.x > 0, center_offset.y > 0, center_offset.z > 0);
+                Octree*& tmp = this_object->get(index);
+                if (tmp == nullptr && create)
+                {
+                    AABB_3D tmp_aabb;
+                    tmp_aabb.min = center;
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        float h = current_half_size[i];
+                        if (h / 2.f < _M_min_sizes[i])
+                        {
+                            return this_object;
+                        }
+
+                        float k = index[i] ? 1.f : -1.f;
+                        float m = center[i] + h * 0.5f * k;
+                        m *= 2;
+                        tmp_aabb.max[i] = m - tmp_aabb.min[i];
+                    }
+
+                    tmp = new Octree(this_object, index);
+                    tmp->_M_aabb = tmp_aabb;
+
+                    check_box(tmp->_M_aabb);
+                }
+
+                this_object = tmp;
+            }
+
+            return this_object;
+        }
+
+
+        Octree& push_node(Octree* node)
+        {
+            Octree* new_node = find_by_box_private(node->_M_aabb, true);
+            if (new_node)
+            {
+                Octree*& part = new_node->_M_parent->get(new_node->_M_parent_index);
+                *new_node = std::move(*node);
+                part = new_node;
+                delete node;
+            }
+            return *this;
+        }
+
+        Octree(Octree* parent, Index index) : Octree()
+        {
+            _M_parent = parent;
+            _M_parent_index = index;
+        }
 
 
     public:
-        Octree();
-        Octree(const AABB_3D& box);
-        Octree(const Octree& tree);
-        Octree(Octree&& tree);
-        Octree& operator=(const Octree& tree);
-        Octree& operator=(Octree&& tree);
-        Octree& push(const Type& value, const AABB_3D& box);
-        Octree& clear();
-        AABB_3D aabb() const;
-        std::size_t depth() const;
-        std::size_t size() const;
-        Octree& recalculate_size() const;
-        std::size_t nodes_count() const;
-
-        Node* get(const Octree::Index& index);
-        Node& operator[](const Octree::Index& index);
-        const Node* get(const Octree::Index& index) const;
-        const Node& operator[](const Octree::Index& index) const;
-        Node* head();
-        const Node* head() const;
-
-
-        DEBUG_CODE(std::size_t alloc_count() const; std::size_t dealloc_count() const);
-        ~Octree();
-
-    private:
-        void copy_tree(Node*& to, Node* node, Node* prev = nullptr);
-        void set_base_class();
-        Node* new_node(Node* prev = nullptr, const AABB_3D& box = AABB_3D());
-    };
-
-
-    //  Index implementation
-    TEMPLATE
-    int Octree<Type>::Index::get() const
-    {
-        return cast(int, x) + 2 * cast(int, y) + 4 * cast(int, z);
-    }
-
-    TEMPLATE
-    Octree<Type>::Index::operator int() const
-    {
-        return get();
-    }
-
-    //      Node implementation
-
-    TEMPLATE
-    std::size_t Octree<Type>::Node::depth() const
-    {
-        std::size_t d = 0;
-        for (auto& node : _M_parts)
-            if (node)
-                d = std::max(d, node->depth());
-        return 1 + d;
-    }
-
-    TEMPLATE
-    AABB_3D Octree<Type>::Node::calc_new_head(const AABB_3D& box, int mode)
-    {
-        AABB_3D aabb;
-        // {min : center}
-        Point3D limits[2] = {_M_box.min, _M_box.max};
-
-        for (int i = 0; i < 3; i++)
+        Octree()
         {
-            bool bit = get_bit(mode, 6 - i);
-            if (!bit)
-                continue;
-            std::swap(limits[1][i], limits[0][i]);
+            for (byte i = 0; i < xyz_mask; ++i)
+            {
+                get(i) = nullptr;
+            }
         }
 
-        // Calculate AABB
-        aabb.min = limits[0];
-        aabb.max = (limits[1] * 2.f) - limits[0];
 
-        for (int i = 0; i < 3; i++)
-            if (aabb.min[i] > aabb.max[i])
-                std::swap(aabb.min[i], aabb.max[i]);
-        return aabb;
-    }
-
-    TEMPLATE
-    typename Octree<Type>::Node* Octree<Type>::Node::push_box(const AABB_3D& box)
-    {
-        Node* this_object = this;
-        int push_to = 0;
-        int min_value, max_value;
-        int pow_value = 1;
-        AABB_3D new_aabb;
-        bool check_size = true;
-
-        while (this_object)
+        Octree(const Octree& tree) : Octree()
         {
-            push_to = 0;
-            pow_value = 1;
-            if (check_size)
-            {
-                for (int i = 0; i < 3; i++) (push_to <<= 1) += cast(int, this_object->_M_box.min[i] > box.min[i]);
-                for (int i = 0; i < 3; i++) (push_to <<= 1) += cast(int, this_object->_M_box.max[i] < box.max[i]);
-
-                if (push_to)
-                {
-                    if (!this_object->_M_prev)
-                    {
-                        Node* new_head = _M_tree->new_node(nullptr, this_object->calc_new_head(box, push_to));
-                        this_object->_M_prev = new_head;
-                        new_head->_M_parts[push_to >> 3] = this_object;
-                        _M_tree->_M_head = new_head;
-                    }
-
-                    this_object = this_object->_M_prev;
-                    continue;
-                }
-                else
-                    check_size = false;
-            }
-
-            Point3D center = (this_object->_M_box.min + this_object->_M_box.max) / 2.f;
-            push_to = 0;
-            for (int i = 0; i < 3; i++)
-            {
-                min_value = cast(int, center[i] >= box.min[i]);
-                max_value = cast(int, center[i] < box.max[i]);
-
-                if (min_value == max_value)
-                    return this_object;
-
-                if (max_value)
-                {
-                    new_aabb.min[i] = center[i];
-                    new_aabb.max[i] = this_object->_M_box.max[i];
-                }
-                else
-                {
-                    new_aabb.max[i] = center[i];
-                    new_aabb.min[i] = this_object->_M_box.min[i];
-                }
-
-                push_to += max_value * pow_value;
-                pow_value <<= 1;
-            }
-
-            Node* tmp = this_object->_M_parts[push_to];
-            if (!tmp)
-            {
-                this_object->_M_parts[push_to] = tmp = _M_tree->new_node(this_object, new_aabb);
-                tmp->_M_part_number = push_to;
-            }
-
-            this_object = tmp;
+            *this = tree;
         }
-        return this_object;
-    }
 
-    // Return node with value
-    TEMPLATE
-    typename Octree<Type>::Node* Octree<Type>::Node::push(const Type& value, const AABB_3D& box)
-    {
-        Node* node = push_box(box);
-        node->_M_objects.emplace_back(value, box, node);
-        _M_tree->_M_size++;
-        return node;
-    }
-
-    TEMPLATE
-    Octree<Type>::Node::~Node()
-    {
-        // Recursive delete leaf
-        DEBUG_CODE(_M_tree->_M_dealloc_count++);
-        _M_tree->_M_size -= _M_objects.size();
-
-        if (_M_prev && _M_part_number != -1)
-            _M_prev->_M_parts[_M_part_number] = nullptr;
-
-        _M_tree->_M_nodes_count--;
-
-        for (int i = 0; i < 8; i++)
-            if (_M_parts[i])
-                delete _M_parts[i];
-    }
-
-    TEMPLATE
-    typename Octree<Type>::Node* Octree<Type>::Node::get(const Octree<Type>::Index& index)
-    {
-        return _M_parts[index.get()];
-    }
-
-    TEMPLATE
-    typename Octree<Type>::Node& Octree<Type>::Node::operator[](const Octree<Type>::Index& index)
-    {
-        Node* node = get(index);
-        if (!node)
-            throw std::runtime_error("Octree: Index out of range");
-        return *node;
-    }
-
-    TEMPLATE
-    const typename Octree<Type>::Node* Octree<Type>::Node::get(const Octree<Type>::Index& index) const
-    {
-        return _M_parts[index.get()];
-    }
-
-    TEMPLATE
-    const typename Octree<Type>::Node& Octree<Type>::Node::operator[](const Octree<Type>::Index& index) const
-    {
-        Node* node = get(index);
-        if (!node)
-            throw std::runtime_error("Octree: Index out of range");
-        return *node;
-    }
-
-    TEMPLATE
-    Octree<Type>& Octree<Type>::Node::tree()
-    {
-        return *_M_tree;
-    }
-
-    TEMPLATE
-    const Octree<Type>& Octree<Type>::Node::tree() const
-    {
-        return *_M_tree;
-    }
-
-    TEMPLATE
-    void Octree<Type>::Node::set_base_class(Octree<Type>* tree)
-    {
-        _M_tree = tree;
-        for (Node*& ell : _M_parts)
-            if (ell)
-                ell->set_base_class(tree);
-    }
-
-    TEMPLATE
-    std::size_t Octree<Type>::Node::size() const
-    {
-        std::size_t _M_size = 0;
-        for (int i = 0; i < 8; i++)
-            if (_M_parts[i])
-                _M_size += _M_parts[i]->size();
-        return _M_size + _M_objects.size();
-    }
-
-    // VALUE STRUCT IMPLEMENTATION
-
-    TEMPLATE
-    Octree<Type>::Value::Value(const Type& value, const AABB_3D& box, Node* node) : value(value), box(box), node(node)
-    {}
-
-
-    // OCTREE IMPLEMENTATION
-
-    TEMPLATE
-    Octree<Type>::Octree() = default;
-
-    TEMPLATE
-    Octree<Type>::Octree(const AABB_3D& box)
-    {
-        _M_head = new_node(nullptr, box);
-    }
-
-    TEMPLATE
-    Octree<Type>::Octree(const Octree& tree)
-    {
-        *this = tree;
-    }
-
-    TEMPLATE
-    Octree<Type>::Octree(Octree&& tree)
-    {
-        *this = tree;
-    }
-
-    TEMPLATE
-    Octree<Type>& Octree<Type>::push(const Type& value, const AABB_3D& box)
-    {
-        if (!_M_head)
+        Octree(Octree&& tree)
         {
-            _M_head = new_node(nullptr, box);
-            _M_head->_M_objects.emplace_back(value, box, _M_head);
+            *this = std::move(tree);
+        }
+
+        Octree& recalculate_data()
+        {
+            _M_depth = 0;
+            _M_size = _M_objects.size();
+            _M_nodes = 0;
+
+            for (byte i = 0; i < xyz_mask; i++)
+            {
+                Octree* ptr = get(i);
+                if (ptr)
+                {
+                    ++_M_nodes;
+                    ptr->recalculate_data();
+                    _M_depth = std::max(_M_depth, ptr->_M_depth);
+                    _M_size += ptr->_M_size;
+                }
+            }
+
+            ++_M_depth;
+            return *this;
+        }
+
+
+        Octree& operator=(const Octree& tree)
+        {
+            if (this == &tree)
+                return *this;
+
+            clear();
+
+            _M_aabb = tree._M_aabb;
+            _M_objects = tree._M_objects;
+
+            for (byte i = 0; i < xyz_mask; ++i)
+            {
+                const Octree* ptr = tree.get(i);
+                if (ptr)
+                {
+                    get(i) = new Octree(*ptr);
+                    Octree* _ptr = get(i);
+                    _ptr->_M_parent = this;
+                    _ptr->_M_parent_index = Index(i);
+                }
+            }
+
+            return *this;
+        }
+
+        Octree& operator=(Octree&& tree)
+        {
+            if (this == &tree)
+                return *this;
+
+            clear();
+
+            _M_aabb = std::move(tree._M_aabb);
+            tree._M_aabb = AABB_3D();
+            _M_objects = std::move(tree._M_objects);
+            tree._M_objects.clear();
+
+            for (byte i = 0; i < xyz_mask; ++i)
+            {
+                Octree*& ptr = tree.get(i);
+                if (ptr)
+                {
+                    ptr->_M_parent = this;
+                    get(i) = ptr;
+                    ptr = nullptr;
+                }
+            }
+
+            if (tree._M_parent)
+            {
+                int i = cast(int, tree._M_parent_index);
+                tree.get(i) = this;
+            }
+
+            return *this;
+        }
+
+
+        Octree& push(const Type& value, const AABB_3D& box)
+        {
+            Octree* ptr = nullptr;
+            if (_M_size == 0)
+            {
+                _M_size++;
+                _M_aabb = box;
+                check_box(_M_aabb);
+                ptr = this;
+            }
+            else
+                ptr = find_by_box_private(box, true);
+            ptr->_M_objects.insert(value);
+
             _M_size++;
             return *this;
         }
 
-        _M_head->push(value, box);
-        return *this;
-    }
-
-    TEMPLATE
-    AABB_3D Octree<Type>::aabb() const
-    {
-        return _M_head ? _M_head->_M_box : AABB_3D();
-    }
-
-
-    TEMPLATE
-    Octree<Type>& Octree<Type>::operator=(const Octree<Type>& tree)
-    {
-        if (this == &tree)
-            return *this;
-        clear();
-        copy_tree(_M_head, tree._M_head, nullptr);
-    }
-
-    TEMPLATE
-    Octree<Type>& Octree<Type>::operator=(Octree&& tree)
-    {
-        if (this == &tree)
-            return *this;
-
-        _M_head = std::move(tree._M_head);
-        _M_size = std::move(tree._M_size);
-        _M_nodes_count = std::move(tree._M_nodes_count);
-        DEBUG_CODE(_M_alloc_count = std::move(tree._M_alloc_count); _M_dealloc_count = std::move(tree._M_dealloc_count));
-        DEBUG_CODE(tree._M_dealloc_count = tree._M_alloc_count = 0);
-        tree._M_head = nullptr;
-        tree._M_size = 0;
-        tree._M_nodes_count = 0;
-        if (_M_head)
-            _M_head->set_base_class(this);
-        return *this;
-    }
-
-    // Recursive copy
-    TEMPLATE
-    void Octree<Type>::copy_tree(Node*& to, Node* node, Node* prev)
-    {
-        to = new_node(prev, node->_M_box);
-        to->_M_objects = node->_M_objects;
-        _M_size += to->_M_objects.size();
-        _M_nodes_count++;
-        for (int i = 0; i < 8; i++) copy_tree(to->_M_parts[i], node->_M_parts[i], to);
-    }
-
-    TEMPLATE
-    Octree<Type>& Octree<Type>::clear()
-    {
-        if (_M_head)
-            delete _M_head;
-        _M_head = nullptr;
-        _M_size = 0;
-        _M_nodes_count = 0;
-        return *this;
-    }
-
-
-    TEMPLATE
-    Octree<Type>::~Octree()
-    {
-        if (_M_head)
+        Octree& remove(const Type& value, const AABB_3D& box)
         {
-            delete _M_head;
+            Octree* node = find(box, false);
+            if (node)
+                node->_M_objects.erase(value);
+            return *this;
         }
-    }
 
-    TEMPLATE
-    typename Octree<Type>::Node* Octree<Type>::new_node(Octree<Type>::Node* prev, const AABB_3D& box)
-    {
-        DEBUG_CODE(_M_alloc_count++);
-        Node* node = new Node;
-        node->_M_prev = prev;
-        node->_M_tree = this;
-        node->_M_box = box;
-        _M_nodes_count++;
-        return node;
-    }
+        Octree* find(const AABB_3D& box)
+        {
+            return basic_find_by_box<Octree>(box);
+        }
 
+        const Octree* find(const AABB_3D& box) const
+        {
+            return basic_find_by_box<const Octree>(box);
+        }
 
-    DEBUG_CODE(TEMPLATE std::size_t Octree<Type>::alloc_count() const { return _M_alloc_count; });
-    DEBUG_CODE(TEMPLATE std::size_t Octree<Type>::dealloc_count() const { return _M_dealloc_count; });
+        Octree& clear()
+        {
+            for (byte i = 0; i < xyz_mask; ++i)
+            {
+                auto& ptr = get(i);
+                if (ptr)
+                    delete ptr;
+                ptr = nullptr;
+            }
 
-    TEMPLATE
-    std::size_t Octree<Type>::depth() const
-    {
-        return _M_head ? _M_head->depth() : 0;
-    }
+            if (_M_parent)
+            {
+                int index = static_cast<int>(_M_parent_index);
+                _M_parent->get(index) = nullptr;
+            }
+            return *this;
+        }
 
-    TEMPLATE
-    typename Octree<Type>::Node* Octree<Type>::get(const Octree::Index& index)
-    {
-        return _M_head ? _M_head->get(index) : nullptr;
-    }
+        const std::unordered_set<Type>& objects() const
+        {
+            return _M_objects;
+        }
 
-    TEMPLATE
-    typename Octree<Type>::Node& Octree<Type>::operator[](const Octree::Index& index)
-    {
-        if (_M_head)
-            return (*_M_head)[index];
-        throw std::runtime_error("Octree: Index out of range");
-    }
+        std::unordered_set<Type>& objects()
+        {
+            return _M_objects;
+        }
 
-    TEMPLATE
-    const typename Octree<Type>::Node* Octree<Type>::get(const Octree::Index& index) const
-    {
-        return _M_head ? _M_head->get(index) : nullptr;
-    }
+        const AABB_3D& aabb() const
+        {
+            return _M_aabb;
+        }
 
-    TEMPLATE
-    const typename Octree<Type>::Node& Octree<Type>::operator[](const Octree::Index& index) const
-    {
-        if (_M_head)
-            return (*_M_head)[index];
-        throw std::runtime_error("Octree: Index out of range");
-    }
+        const std::size_t& depth() const
+        {
+            return _M_depth;
+        }
 
-    TEMPLATE
-    std::size_t Octree<Type>::size() const
-    {
-        return _M_size;
-    }
+        Octree& recalculate_size() const
+        {
+            throw not_implemented;
+            return *this;
+        }
 
-    TEMPLATE
-    Octree<Type>& Octree<Type>::recalculate_size() const
-    {
-        _M_size = _M_head ? _M_head->size() : 0;
-        return *this;
-    }
+        Octree& operator[](int index)
+        {
+            Octree* ptr = get(index);
+            if (ptr)
+                return *ptr;
+            return default_value;
+        }
 
-    TEMPLATE
-    std::size_t Octree<Type>::nodes_count() const
-    {
-        return _M_nodes_count;
-    }
+        const Octree& operator[](int index) const
+        {
+            Octree* ptr = get(index);
+            if (ptr)
+                return *ptr;
+            return default_value;
+        }
 
-    TEMPLATE
-    typename Octree<Type>::Node* Octree<Type>::head()
-    {
-        return _M_head;
-    }
+        bool has_parent()
+        {
+            return _M_parent != nullptr;
+        }
 
-    TEMPLATE
-    const typename Octree<Type>::Node* Octree<Type>::head() const
-    {
-        return _M_head;
-    }
+        const Octree& parent()
+        {
+            return *_M_parent;
+        }
 
+        const Size3D& min_sizes() const
+        {
+            return _M_min_sizes;
+        }
 
-    TEMPLATE
-    using OctreeIndex = typename Octree<Type>::Index;
+        Octree& min_sizes(const Size3D& sizes)
+        {
+            _M_min_sizes = sizes;
+        }
+
+        const std::size_t& size() const
+        {
+            return _M_size;
+        }
+
+        const std::size_t& nodes_count() const
+        {
+            return _M_nodes;
+        }
+
+        basic_iterator begin()
+        {
+            return basic_iterator(this);
+        }
+
+        basic_iterator end()
+        {
+            return basic_iterator(this, true);
+        }
+
+        const_iterator begin() const
+        {
+            return const_iterator(this);
+        }
+
+        const_iterator end() const
+        {
+            return const_iterator(this, true);
+        }
+
+        bool empty() const
+        {
+            for (const Octree& ell : *this)
+            {
+                if (!ell._M_objects.empty())
+                    return false;
+            }
+            return true;
+        }
+
+        ~Octree()
+        {
+            clear();
+        }
+    };
 }// namespace Engine
+
 
 #undef TEMPLATE

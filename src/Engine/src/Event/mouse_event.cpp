@@ -1,6 +1,7 @@
 #include <Event/keyboard_event.hpp>
 #include <Event/mouse_event.hpp>
 #include <SDL_events.h>
+#include <SDL_mouse.h>
 #include <Window/window.hpp>
 #include <private_event.hpp>
 
@@ -14,7 +15,7 @@ namespace Engine
     void mouse_process_event(SDL_MouseMotionEvent& event)
     {
         _M_mouse_position = {event.x, event.y};
-        _M_mouse_offset = {event.xrel, event.yrel};
+        _M_mouse_offset = {cast(float, event.xrel), cast(float, event.yrel)};
     }
 
     void mouse_process_event(SDL_MouseButtonEvent& event)
@@ -54,7 +55,7 @@ namespace Engine
 
     ENGINE_EXPORT void MouseEvent::position(const Point2D& position)
     {
-        SDL_WarpMouseInWindow(cast(SDL_Window*, Window::SDL()), cast(int, position.x), cast(int, position.y));
+        //SDL_WarpMouseInWindow(cast(SDL_Window*, Window::SDL()), cast(int, position.x), cast(int, position.y));
     }
 
     ENGINE_EXPORT const Offset2D& MouseEvent::offset()
@@ -98,6 +99,16 @@ namespace Engine
     ENGINE_EXPORT const std::list<Key>& MouseEvent::just_evented_keys()
     {
         return KeyboardEvent::just_evented_keys();
+    }
+
+    ENGINE_EXPORT bool MouseEvent::relative_mode()
+    {
+        return SDL_GetRelativeMouseMode() == SDL_TRUE;
+    }
+
+    ENGINE_EXPORT void MouseEvent::relative_mode(bool value)
+    {
+        SDL_SetRelativeMouseMode(static_cast<SDL_bool>(value));
     }
 
 

@@ -120,8 +120,17 @@ namespace Engine
 
     Font& Font::draw(const std::string& text, Size1D x, Size1D y, float scale)
     {
+        Size2D orig = {x, y};
+
         for (char c : text)
         {
+            if (c == '\n')
+            {
+                y -= this->_M_size.y;
+                x = orig.x;
+                continue;
+            }
+
             Character* ch_ptr = nullptr;
             try
             {

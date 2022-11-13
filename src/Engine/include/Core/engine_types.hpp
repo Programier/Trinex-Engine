@@ -47,20 +47,30 @@ namespace Engine
 
     typedef unsigned char TextureBindIndex;
 
-    typedef struct {
-        float min;
-        float max;
-    } SizeLimits1D;
+    template<typename Type>
+    struct SizeLimits
+    {
+        Type min;
+        Type max;
 
-    typedef struct {
-        Point2D min;
-        Point2D max;
-    } SizeLimits2D;
+        Type& operator[](bool _min)
+        {
+            if(_min)
+                return min;
+            return max;
+        }
 
-    typedef struct {
-        Point3D min;
-        Point3D max;
-    } SizeLimits3D;
+        const Type& operator[](bool _min) const
+        {
+            if(_min)
+                return min;
+            return max;
+        }
+    };
+
+    using SizeLimits1D = SizeLimits<Size1D>;
+    using SizeLimits2D = SizeLimits<Size2D>;
+    using SizeLimits3D = SizeLimits<Size3D>;
 
 
     typedef SizeLimits1D AABB_1D;

@@ -39,9 +39,9 @@ namespace Engine
         int max_mipmap_level() const;
         SwizzleRGBA swizzle() const;
         Texture& swizzle(const SwizzleRGBA& value);
-        Texture& wrap_s(WrapValue& wrap);
-        Texture& wrap_t(WrapValue& wrap);
-        Texture& wrap_r(WrapValue& wrap);
+        Texture& wrap_s(const WrapValue& wrap);
+        Texture& wrap_t(const WrapValue& wrap);
+        Texture& wrap_r(const WrapValue& wrap);
         WrapValue wrap_s() const;
         WrapValue wrap_t() const;
         WrapValue wrap_r() const;

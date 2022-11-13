@@ -11,4 +11,5 @@ public:
     std::size_t _M_buffer_size;
 
     void destroy() override;
+   declare_hpp_destructor(OpenGL_Mesh);
 };

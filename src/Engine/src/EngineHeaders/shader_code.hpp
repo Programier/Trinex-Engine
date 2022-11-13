@@ -218,7 +218,7 @@ void main()
 
 
 	const std::string scene_shader_frag = R"***(#version 320 es
-precision mediump float;
+precision highp float;
 
 out vec4 f_color;
 
@@ -328,10 +328,11 @@ void main()
 
 
 	const std::string scene_shader_vert = R"***(#version 320 es
-precision mediump float;
+precision highp float;
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec2 v_texture_coords;
 layout(location = 2) in vec3 v_normals;
+
 
 
 out vec2 texture_coords;
@@ -445,7 +446,7 @@ uniform mat4 model;
 
 void main()
 {
-    gl_Position = projview * (model == mat4(0.f) ? mat4(1.f) : model) * vec4(v_position, 1.0);;
+    gl_Position = projview * model * vec4(v_position, 1.0);;
 }
 )***";
 

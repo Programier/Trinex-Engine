@@ -3,6 +3,10 @@ set(BUILD_SHARED_LIBS off)
 project(GameEngine LANGUAGES CXX)
 add_definitions(-DENABLE_ENGINE_EXPORTS)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DENGINE_DEBUG)
+endif()
+
 #Compile parameters
 set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(ENGINE_SRC "${ENGINE_ROOT}/src")
@@ -105,4 +109,6 @@ target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/inclu
 
 target_link_libraries(Engine PRIVATE SDL2 ${OPENGL} ${ASSIMP_LIB} freetype ${PlatformLibs})
 
-add_subdirectory(Editor)
+if(!ANDROID)
+    add_subdirectory(Editor)
+endif()

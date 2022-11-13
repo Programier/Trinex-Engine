@@ -32,9 +32,17 @@ namespace Engine
         return *this;
     }
 
-    BasicMesh& BasicMesh::update_data(std::size_t offset, std::size_t size, void* data)
+    BasicMesh& BasicMesh::update_data(std::size_t offset, std::size_t count, void* data)
     {
-        update_mesh_date(_M_ID, offset, size, data);
+        if (!data && (offset + count) <= size() * mesh_type_size())
+        {
+            byte* address = mesh_data();
+            address += offset;
+            data = reinterpret_cast<void*>(address);
+        }
+
+        if (data)
+            update_mesh_date(_M_ID, offset, count, data);
         return *this;
     }
 

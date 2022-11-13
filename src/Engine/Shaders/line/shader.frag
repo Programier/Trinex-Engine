@@ -1,5 +1,5 @@
 #version 320 es
-precision mediump float;
+precision highp float;
 
 out vec4 out_color;
 uniform vec4 color;

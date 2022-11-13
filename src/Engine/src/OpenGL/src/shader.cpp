@@ -19,7 +19,10 @@ void OpenGL_Shader::destroy()
     {
         delete_shader(id);
     }
+    DEALLOC_INFO;
 }
+
+declare_cpp_destructor(OpenGL_Shader);
 
 
 static bool compile_shader(const FileBuffer& code, GLuint& ID, int SHADER_TYPE, const ShaderParams& params,
@@ -71,7 +74,7 @@ static bool link_shader(OpenGL_Shader* shader, const ShaderParams& params)
     if (!succes)
     {
         glGetProgramInfoLog(shader->_M_shader_id, 1024, nullptr, log);
-        Engine::logger->log("Shader: Failed to link shader program '%s'\n\n%s\n", params.name.c_str(), log);
+        external_logger->log("Shader: Failed to link shader program '%s'\n\n%s\n", params.name.c_str(), log);
         return false;
     }
 

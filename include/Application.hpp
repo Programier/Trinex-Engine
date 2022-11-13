@@ -8,6 +8,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <Window/window.hpp>
 #include <list>
+#include <Graphics/scene.hpp>
 
 namespace Engine
 {
@@ -16,7 +17,7 @@ namespace Engine
     {
         Window window;
         Font font;
-        std::wstring text = L"";
+        Scene scene;
         void keyboard_procces();
 
     public:

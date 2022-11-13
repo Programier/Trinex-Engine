@@ -3,13 +3,14 @@
 #include <SDL.h>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
+#include <chrono>
 #include <private_event.hpp>
 
 // Internal event system functions
 
-static std::size_t _M_time = 0;
-static std::size_t _M_diff_time = 0;
-static std::size_t _M_last_time = 0;
+static double _M_diff_time = 0;
+static auto _M_prev_time = std::chrono::steady_clock::now();
+static std::size_t _M_frame_number = 0;
 
 
 namespace Engine
@@ -52,12 +53,8 @@ namespace Engine
         return event;
     }
 
-    ENGINE_EXPORT std::size_t Event::time()
-    {
-        return _M_time;
-    }
 
-    ENGINE_EXPORT std::size_t Event::diff_time()
+    ENGINE_EXPORT double Event::diff_time()
     {
         return _M_diff_time;
     }
@@ -65,6 +62,11 @@ namespace Engine
     ENGINE_EXPORT const Event& get_event()
     {
         return event;
+    }
+
+    ENGINE_EXPORT std::size_t Event::frame_number()
+    {
+        return _M_frame_number;
     }
 }// namespace Engine
 
@@ -76,13 +78,14 @@ namespace Engine::UpdateEvent
 
     static void clear_event_system()
     {
-        _M_time = SDL_GetTicks64();
-        _M_diff_time = _M_time - _M_last_time;
-        _M_last_time = _M_time;
-
+        auto current = std::chrono::steady_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(current - _M_prev_time).count();
+        _M_prev_time = current;
+        _M_diff_time = static_cast<double>(diff) / 1000000.0;
         clear_keyboard_events();
         clear_mouse_event();
         clear_touchscreen_events();
+        _M_frame_number++;
     }
 
 
@@ -91,24 +94,6 @@ namespace Engine::UpdateEvent
     {
         for (auto func : container) func(args...);
     }
-
-    //    /* Audio hotplug events */
-    //    SDL_AUDIODEVICEADDED = 0x1100, /**< A new audio device is available */
-    //    SDL_AUDIODEVICEREMOVED,        /**< An audio device has been removed. */
-
-
-    //SDL_JoyAxisEvent jaxis; /**< Joystick axis event data */
-    //SDL_JoyBallEvent jball;                 /**< Joystick ball event data */
-    //SDL_JoyHatEvent jhat;                   /**< Joystick hat event data */
-    //SDL_JoyButtonEvent jbutton;             /**< Joystick button event data */
-    //SDL_JoyDeviceEvent jdevice;             /**< Joystick device change event data */
-    //SDL_JoyBatteryEvent jbattery;           /**< Joystick battery event data */
-    //SDL_ControllerAxisEvent caxis;          /**< Game Controller axis event data */
-    //SDL_ControllerButtonEvent cbutton;      /**< Game Controller button event data */
-    //SDL_ControllerDeviceEvent cdevice;      /**< Game Controller device event data */
-    //SDL_ControllerTouchpadEvent ctouchpad;  /**< Game Controller touchpad event data */
-    //SDL_ControllerSensorEvent csensor;      /**< Game Controller sensor event data */
-    //SDL_AudioDeviceEvent adevice; /**< Audio device event data */
 
     static void process_event()
     {

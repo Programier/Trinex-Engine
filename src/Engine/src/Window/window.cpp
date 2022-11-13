@@ -169,6 +169,7 @@ const Window& Window::init(float width, float height, const std::string& title, 
 
 
     auto sdl_window_api = (Engine::Engine_API() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
+
     sdl_window = SDL_CreateWindow(data._M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, cast(int, width),
                                   cast(int, height), sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
@@ -194,7 +195,6 @@ const Window& Window::init(float width, float height, const std::string& title, 
     data._M_is_inited = true;
 
     data._M_flags = SDL_GetWindowFlags(sdl_window);
-
     return window;
 }
 
@@ -366,6 +366,7 @@ bool Window::vsync()
 
 const Window& Window::vsync(const bool& value)
 {
+    data._M_swap_interval = cast(int, value);
     return swap_interval(cast(int, value));
 }
 
@@ -431,6 +432,7 @@ const Window& Window::clear_dropped_paths()
 
 bool Window::rezisable()
 {
+    data._M_flags = SDL_GetWindowFlags(sdl_window);
     return cast(bool, data._M_flags& SDL_WINDOW_RESIZABLE);
 }
 
@@ -453,6 +455,7 @@ const Window& Window::focus()
 bool Window::focused()
 {
     check_init(false);
+    data._M_flags = SDL_GetWindowFlags(sdl_window);
     return cast(bool, data._M_flags& SDL_WINDOW_INPUT_FOCUS);
 }
 
@@ -505,6 +508,7 @@ const Window& Window::hide()
 bool Window::is_visible()
 {
     check_init(false);
+    data._M_flags = SDL_GetWindowFlags(sdl_window);
     return cast(bool, data._M_flags& SDL_WINDOW_SHOWN);
 }
 
@@ -537,6 +541,7 @@ const Window& Window::clear_buffer(const BufferType& buffer)
 bool Window::is_iconify()
 {
     check_init(false);
+    data._M_flags = SDL_GetWindowFlags(sdl_window);
     return cast(bool, data._M_flags& SDL_WINDOW_MINIMIZED);
 }
 
@@ -643,6 +648,7 @@ const AspectRation& Window::aspect_ration()
 const Window& Window::attribute(const WindowAttrib& attrib, bool value)
 {
     check_init(window);
+    data._M_flags = SDL_GetWindowFlags(sdl_window);
     try
     {
         auto list = parse_win_attibutes(attrib);
@@ -747,6 +753,7 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
 
 bool Window::attribute(const WindowAttrib& attrib)
 {
+    data._M_flags = SDL_GetWindowFlags(sdl_window);
     check_init(false);
     try
     {

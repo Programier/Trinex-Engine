@@ -1,12 +1,13 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/line.hpp>
+#include <Graphics/scene.hpp>
+#include <Graphics/shader_system.hpp>
 #include <LibLoader/lib_loader.hpp>
 #include <api_funcs.hpp>
 #include <glm/glm.hpp>
 #include <model_loader.hpp>
 #include <opengl.hpp>
-
 
 namespace Engine
 {
@@ -61,13 +62,6 @@ namespace Engine
         for (unsigned int i = 0; i < node->mNumChildren; i++) load_scene(scene, node->mChildren[i], out, model_matrix);
     }
 
-    static std::size_t sum(const std::vector<int>& vec)
-    {
-        std::size_t res = 0;
-        for (auto& ell : vec) res += ell;
-        return res;
-    }
-
     Line& Line::update()
     {
         attributes = {{3, BufferValueType::FLOAT}};
@@ -109,10 +103,38 @@ namespace Engine
         return _M_push_line(point1, point2).update();
     }
 
-    Line& Line::draw()
+    DrawableObject* Line::copy() const
     {
+        throw not_implemented;
+    }
+
+    void Line::render_layer(const glm::mat4& prev_model)
+    {
+        if (!_M_visible)
+            return;
+
+        Scene* scene = Scene::get_active_scene();
+        if (!scene)
+        {
+            throw std::runtime_error("No active scene found!");
+        }
+
+        Scene::ActiveCamera& active_camera = scene->active_camera();
+
+        if (!active_camera.camera)
+        {
+            throw std::runtime_error("No active camera found!");
+        }
+
+        namespace shd = ShaderSystem::Line;
+
+        auto model = prev_model * this->_M_model.get();
+        shd::shader.use().set(shd::model, model).set(shd::color, color).set(shd::projview, active_camera.projview);
+
+        float tmp = get_current_line_rendering_width();
+        set_line_rendering_width(_M_line_width);
         BasicMesh::draw(Engine::Primitive::LINE);
-        return *this;
+        set_line_rendering_width(tmp);
     }
 
     Line& Line::load_from(const std::string& model)
@@ -143,12 +165,12 @@ namespace Engine
 
     float Line::line_width()
     {
-        return get_current_line_rendering_width();
+        return _M_line_width;
     }
 
     Line& Line::line_width(const float& width)
     {
-        set_line_rendering_width(width);
+        _M_line_width = width;
         return *this;
     }
 

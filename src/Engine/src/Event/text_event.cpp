@@ -1,9 +1,8 @@
 #include <Core/logger.hpp>
+#include <Core/string_convert.hpp>
 #include <Event/text_event.hpp>
 #include <SDL_clipboard.h>
 #include <SDL_events.h>
-#include <codecvt>
-#include <locale>
 #include <string>
 
 namespace Engine
@@ -44,16 +43,10 @@ namespace Engine
         return _M_text_event;
     }
 
-    static std::wstring to_wstring(const std::string& str)
-    {
-        static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convertor;
-        return convertor.from_bytes(str);
-    }
-
     void process_text_event(SDL_TextInputEvent& event)
     {
         std::string str(event.text);
-        if ((_M_last_symbol = to_wstring(str)[0]) && TextEvent::enable_text_writing)
+        if ((_M_last_symbol = Strings::to_wstring(str)[0]) && TextEvent::enable_text_writing)
         {
             _M_text += str;
             _M_wtext.push_back(_M_last_symbol);
@@ -78,6 +71,6 @@ namespace Engine
 
     ENGINE_EXPORT std::wstring TextEvent::get_clipboard_wtext()
     {
-        return to_wstring(get_clipboard_text());
+        return Strings::to_wstring(get_clipboard_text());
     }
 }// namespace Engine

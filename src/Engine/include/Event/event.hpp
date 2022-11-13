@@ -18,8 +18,7 @@ namespace Engine
 
         static ENGINE_EXPORT const Event& poll_events();
         static ENGINE_EXPORT const Event& wait_for_event();
-        static ENGINE_EXPORT std::size_t time();
-        static ENGINE_EXPORT std::size_t diff_time();
+        static ENGINE_EXPORT double diff_time();
 
         // Callbacks
         static ENGINE_EXPORT std::vector<void (*)(void*)> sdl_callbacks;
@@ -29,6 +28,7 @@ namespace Engine
         static ENGINE_EXPORT std::vector<void(*)()> on_resume;
         static ENGINE_EXPORT std::vector<void(*)()> on_pause;
         static ENGINE_EXPORT std::vector<void(*)()> on_low_memory;
+        static ENGINE_EXPORT std::size_t frame_number();
     };
 }// namespace Engine
 

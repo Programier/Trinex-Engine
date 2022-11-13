@@ -31,6 +31,7 @@ namespace Engine
         WrapValue _M_wrap_r = WrapValue::REPEAT;
 
         void destroy() override;
+        declare_hpp_destructor(OpenGL_Texture);
     };
 
 }

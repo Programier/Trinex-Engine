@@ -44,9 +44,9 @@ namespace Engine
 
     extern void (*set_swizzle_texture)(const ObjID& ID, const SwizzleRGBA& value);
     extern SwizzleRGBA (*get_swizzle_texture)(const ObjID& ID);
-    extern void (*set_wrap_s_texture)(const ObjID& ID, WrapValue& wrap);
-    extern void (*set_wrap_t_texture)(const ObjID& ID, WrapValue& wrap);
-    extern void (*set_wrap_r_texture)(const ObjID& ID, WrapValue& wrap);
+    extern void (*set_wrap_s_texture)(const ObjID& ID, const WrapValue& wrap);
+    extern void (*set_wrap_t_texture)(const ObjID& ID, const WrapValue& wrap);
+    extern void (*set_wrap_r_texture)(const ObjID& ID, const WrapValue& wrap);
     extern WrapValue (*get_wrap_s_texture)(const ObjID& ID);
     extern WrapValue (*get_wrap_t_texture)(const ObjID& ID);
     extern WrapValue (*get_wrap_r_texture)(const ObjID& ID);

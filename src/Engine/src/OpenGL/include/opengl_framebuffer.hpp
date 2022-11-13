@@ -10,4 +10,5 @@ public:
     GLuint _M_ID;
     GLuint _M_type;
     void destroy() override;
+    declare_hpp_destructor(OpenGL_FrameBuffer);
 };

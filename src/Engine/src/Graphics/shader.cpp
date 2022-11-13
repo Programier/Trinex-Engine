@@ -35,6 +35,7 @@ static void read_file(const std::string& filename, std::vector<Engine::byte>& ou
 namespace Engine
 {
     implement_class_cpp(Shader);
+    static ObjID _M_current = 0;
 
     Shader::Shader(const ShaderParams& params)
     {
@@ -76,7 +77,12 @@ namespace Engine
 
     const Shader& Shader::use() const
     {
-        use_shader(_M_ID);
+        if (_M_ID != _M_current)
+        {
+            _M_current = _M_ID;
+            use_shader(_M_ID);
+        }
+
         return *this;
     }
 

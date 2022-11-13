@@ -5,6 +5,7 @@
 using namespace Engine;
 
 implement_class_cpp(Texture);
+static ObjID _M_current_binded = 0;
 
 Texture::Texture(const TextureParams& params)
 {
@@ -20,6 +21,9 @@ Texture& Texture::create(const TextureParams& params)
 
 const Texture& Texture::bind(unsigned int num) const
 {
+    if (_M_ID == _M_current_binded)
+        return *this;
+    _M_current_binded = _M_ID;
     bind_texture(_M_ID, num);
     return *this;
 }
@@ -134,19 +138,19 @@ Texture& Texture::swizzle(const SwizzleRGBA& value)
     return *this;
 }
 
-Texture& Texture::wrap_s(WrapValue& wrap)
+Texture& Texture::wrap_s(const WrapValue& wrap)
 {
     set_wrap_s_texture(_M_ID, wrap);
     return *this;
 }
 
-Texture& Texture::wrap_t(WrapValue& wrap)
+Texture& Texture::wrap_t(const WrapValue& wrap)
 {
     set_wrap_t_texture(_M_ID, wrap);
     return *this;
 }
 
-Texture& Texture::wrap_r(WrapValue& wrap)
+Texture& Texture::wrap_r(const WrapValue& wrap)
 {
     set_wrap_r_texture(_M_ID, wrap);
     return *this;

@@ -45,14 +45,39 @@ namespace Engine
         return _M_ID != 0;
     }
 
-    bool Object::operator==(const Object& obj)
+    bool Object::operator==(const Object& obj) const
     {
         return _M_ID == obj._M_ID;
     }
 
-    bool Object::operator!=(const Object& obj)
+    bool Object::operator!=(const Object& obj) const
     {
         return _M_ID != obj._M_ID;
+    }
+
+    bool Object::operator<(const Object& obj) const
+    {
+        return _M_ID < obj._M_ID;
+    }
+
+    bool Object::operator<=(const Object& obj) const
+    {
+        return _M_ID <= obj._M_ID;
+    }
+
+    bool Object::operator>(const Object& obj) const
+    {
+        return _M_ID > obj._M_ID;
+    }
+
+    bool Object::operator>=(const Object& obj) const
+    {
+        return _M_ID >= obj._M_ID;
+    }
+
+    Object::operator ObjID() const
+    {
+        return _M_ID;
     }
 
     Object& Object::destroy()

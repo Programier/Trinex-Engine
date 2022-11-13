@@ -2,7 +2,6 @@
 #include <Graphics/framebuffer.hpp>
 #include <Graphics/shader.hpp>
 
-
 namespace Engine
 {
     enum class LightType : int
@@ -13,9 +12,10 @@ namespace Engine
         Area
     };
 
-    STRUCT Light {
-
-        STRUCT Material {
+    STRUCT Light
+    {
+        STRUCT Material
+        {
             LightColor ambient;
             LightColor diffuse;
             LightColor specular;

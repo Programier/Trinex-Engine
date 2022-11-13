@@ -19,4 +19,5 @@ public:
     GLuint _M_shader_id = 0;
 
     void destroy() override;
+    declare_hpp_destructor(OpenGL_Shader);
 };

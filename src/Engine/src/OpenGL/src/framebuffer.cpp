@@ -6,7 +6,10 @@
 void OpenGL_FrameBuffer::destroy()
 {
     glDeleteFramebuffers(1, &_M_ID);
+    DEALLOC_INFO;
 }
+
+declare_cpp_destructor(OpenGL_FrameBuffer);
 
 
 API void api_gen_framebuffer(ObjID& ID, FrameBufferType type)

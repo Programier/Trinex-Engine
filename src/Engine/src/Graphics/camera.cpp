@@ -6,26 +6,29 @@
 
 namespace Engine
 {
-    Camera::Camera(glm::vec3 position, float viewingAngle, const bool& invert_z_vector) : _M_viewingAngle(viewingAngle)
+    Camera::Camera(glm::vec3 position, float viewingAngle, const std::wstring& name)
+        : _M_viewingAngle(viewingAngle), name(name)
     {
-        _M_z_vector_mult = invert_z_vector ? -1.f : 1.f;
         move(position, false);
     }
 
     glm::mat4 Camera::projection()
     {
-        float aspect = (float) Window::width() / (float) Window::height();
-        return glm::perspective(_M_viewingAngle, aspect, _M_minRenderDistance, _M_maxRenderDistance);
+        _M_aspect = (float) Window::width() / (float) Window::height();
+        return glm::perspective(_M_viewingAngle, _M_aspect, _M_minRenderDistance, _M_maxRenderDistance);
     }
 
     glm::mat4 Camera::projection(const glm::vec2& size)
     {
-        return glm::perspective(_M_viewingAngle, size.x / size.y, _M_minRenderDistance, _M_maxRenderDistance);
+        _M_aspect = size.x / size.y;
+        return glm::perspective(_M_viewingAngle, _M_aspect, _M_minRenderDistance, _M_maxRenderDistance);
     }
 
     glm::mat4 Camera::view()
     {
-        return glm::lookAt(_M_position.get(), _M_position.get() + _M_z_vector_mult * _M_front.get(), _M_up.get());
+        auto front = front_vector();
+        auto up = up_vector(false);
+        return glm::lookAt(_M_position.get(), _M_position.get() + front, up);
     }
 
 
@@ -75,5 +78,21 @@ namespace Engine
     const Engine::EulerAngle1D& Camera::viewing_angle() const
     {
         return _M_viewingAngle;
+    }
+
+    Vector3D Camera::front_vector(bool update) const
+    {
+        return -Rotate::front_vector(update);
+    }
+
+    float Camera::aspect() const
+    {
+        return _M_aspect;
+    }
+
+    Camera& Camera::aspect(float value)
+    {
+        _M_aspect = value;
+        return *this;
     }
 }// namespace Engine

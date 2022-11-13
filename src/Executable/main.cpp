@@ -2,29 +2,40 @@
 #include <Core/logger.hpp>
 #include <cstdarg>
 #include <fstream>
+#include <iostream>
+
+#include <Graphics/scene.hpp>
 
 using namespace Engine;
 
+#define PATH "resources/scene/simple_scene.gltf"
 
-std::ofstream out("log.txt");
-
-class RenderDoc_logger : public Engine::Logger
+static void scene_test()
 {
-public:
-    RenderDoc_logger& log(const char* format, ...) override
-    {
-        va_list args;
-        va_start(args, format);
-        char buffer[1024];
-        vsprintf(buffer, format, args);
-        va_end(args);
-        out << buffer << std::endl;
-        return *this;
-    }
-} tmp_logger;
+    Scene scene;
+    scene.load(PATH);
+    std::clog << scene.sub_objects().size() << std::endl;
+}
+
+
+std::unordered_map<std::string, void (*)()> _M_funcs = {
+        {"scene_test", scene_test},
+};
 
 int main(int argc, char** argv)
 {
-    //Engine::logger = &tmp_logger;
-    return game_main(argc, argv);
+
+    bool has_parameter = false;
+    for (int i = 1; i < argc; i++)
+    {
+        try
+        {
+            _M_funcs.at(std::string(argv[i]))();
+            has_parameter = true;
+        }
+        catch (...)
+        {}
+    }
+
+    return has_parameter ? 0 : game_main(argc, argv);
 }

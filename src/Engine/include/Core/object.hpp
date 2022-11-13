@@ -17,8 +17,14 @@ namespace Engine
         Object& operator=(const Object&);
         ObjID id() const;
         bool has_object() const;
-        bool operator==(const Object& obj);
-        bool operator!=(const Object& obj);
+        bool operator==(const Object& obj) const;
+        bool operator!=(const Object& obj) const;
+        bool operator < (const Object& obj) const;
+        bool operator <= (const Object& obj) const;
+        bool operator > (const Object& obj) const;
+        bool operator >= (const Object& obj) const;
+
+        operator ObjID() const;
         Object& destroy();
 
     protected:

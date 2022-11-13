@@ -11,7 +11,10 @@ void OpenGL_Mesh::destroy()
     glDeleteBuffers(1, &_M_VBO);
     glDeleteVertexArrays(1, &_M_VAO);
     _M_VAO = _M_VBO = 0;
+    DEALLOC_INFO;
 }
+
+declare_cpp_destructor(OpenGL_Mesh);
 
 API void api_generate_mesh(ObjID& ID)
 {

@@ -19,6 +19,10 @@ namespace Engine
 
         static ENGINE_EXPORT KeyStatus get_key_status(const Key& key);
         static ENGINE_EXPORT bool pressed(const Key& key);
-        ENGINE_EXPORT const std::list<Key>& just_evented_keys();
+        static ENGINE_EXPORT const std::list<Key>& just_evented_keys();
+
+        static ENGINE_EXPORT bool relative_mode();
+        static ENGINE_EXPORT void relative_mode(bool value);
+
     };
 }
