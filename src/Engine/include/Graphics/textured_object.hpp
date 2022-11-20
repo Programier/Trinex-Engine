@@ -20,7 +20,7 @@ namespace Engine
         const Texture2D& diffuse_texture() const;
         TexturedObject& diffuse_texture(const Texture2D& texture);
 
-
-        void render_layer(const glm::mat4& prev) override;
+        bool is_empty_layer() const override;
+        void render_layer(const glm::mat4& prev, on_render_layer_func = empty_drawable_callback_handler) const override;
     };
 }

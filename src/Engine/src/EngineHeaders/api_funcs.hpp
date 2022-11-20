@@ -66,10 +66,10 @@ namespace Engine
 
     ////////////////////////////////// MESH //////////////////////////////////
     extern void (*generate_mesh)(ObjID& ID);
-    extern void (*set_mesh_data)(const ObjID& ID, MeshInfo& info, void* data);
-    extern void (*update_mesh_attributes)(const ObjID& ID, MeshInfo& info);
-    extern void (*draw_mesh)(const ObjID& ID, Primitive primitive, std::size_t vertices, unsigned int start_index);
-    extern void (*update_mesh_date)(const ObjID& ID, std::size_t offset, std::size_t size, void* data);
+    extern void (*set_mesh_data)(const ObjID& ID, std::size_t buffer_len, DrawMode mode, void* data);
+    extern void (*update_mesh_attributes)(const ObjID& ID, const MeshInfo& info);
+    extern void (*draw_mesh)(const ObjID& ID, Primitive primitive, std::size_t vertices, std::size_t offset);
+    extern void (*update_mesh_data)(const ObjID& ID, std::size_t offset, std::size_t size, void* data);
 
     extern void (*gen_framebuffer)(ObjID& ID, FrameBufferType type);
     extern void (*clear_frame_buffer)(const ObjID& ID, BufferType type);
@@ -84,6 +84,8 @@ namespace Engine
     extern void (*set_depth_func)(Engine::CompareFunc);
     extern float (*get_current_line_rendering_width)();
     extern void (*set_line_rendering_width)(float value);
+    extern void (*set_mesh_indexes_array)(const ObjID& ID, const MeshInfo& info, std::size_t bytes,
+                                          const BufferValueType& data_type, void* data);
 
     // Shader system
 

@@ -1,11 +1,12 @@
 #include <Core/logger.hpp>
+#include <Graphics/hitbox.hpp>
 #include <editor.hpp>
+
 
 int main()
 try
 {
-    Engine::Editor editor;
-    editor.loop();
+    delete &(*new Editor::Application()).loop();
     return 0;
 }
 catch (const std::exception& e)

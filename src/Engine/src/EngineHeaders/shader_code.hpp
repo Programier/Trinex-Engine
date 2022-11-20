@@ -255,7 +255,7 @@ struct Light {
 uniform Material material;
 uniform Light light;
 
-vec4 get_texture_color()
+vec4 get_diffuse_color()
 {
     return texture(texture0, texture_coords);
 }
@@ -321,7 +321,8 @@ void main()
         result = ambient + (1.f - shadow) * (diffuse + specular);
     }
 
-    f_color = vec4(result * vec3(get_texture_color()), 1.f);
+    vec4 texture_color = get_diffuse_color();
+    f_color = vec4(result * vec3(texture_color), texture_color.a);
 }
 )***";
 
@@ -424,7 +425,7 @@ void main()
 
 
 	const std::string line_shader_frag = R"***(#version 320 es
-precision mediump float;
+precision highp float;
 
 out vec4 out_color;
 uniform vec4 color;
@@ -438,7 +439,7 @@ void main()
 
 
 	const std::string line_shader_vert = R"***(#version 320 es
-precision mediump float;
+precision highp float;
 layout(location = 0) in vec3 v_position;
 
 uniform mat4 projview;

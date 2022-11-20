@@ -13,8 +13,14 @@ namespace Engine
         static ENGINE_EXPORT const Key just_released();
         static ENGINE_EXPORT KeyStatus get_key_status(const Key& key);
         static ENGINE_EXPORT bool pressed(const Key& key);
-        static ENGINE_EXPORT const std::list<Key>& just_evented_keys();
 
+        template <typename... Args>
+        static bool pressed(const Key& key, const Key& second_key, const Args&... args)
+        {
+            return pressed(key) && pressed(second_key, args...);
+        }
+
+        static ENGINE_EXPORT const std::list<Key>& just_evented_keys();
         static ENGINE_EXPORT void push_event(Key key, KeyStatus status);
     };
 }

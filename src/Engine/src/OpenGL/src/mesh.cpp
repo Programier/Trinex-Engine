@@ -3,14 +3,20 @@
 #include <opengl_object.hpp>
 
 
+#define NEW_MESH
+
 using namespace Engine;
 
 
 void OpenGL_Mesh::destroy()
 {
+
     glDeleteBuffers(1, &_M_VBO);
+    glDeleteBuffers(1, &_M_EBO);
     glDeleteVertexArrays(1, &_M_VAO);
     _M_VAO = _M_VBO = 0;
+    _M_EBO = 0;
+
     DEALLOC_INFO;
 }
 
@@ -23,33 +29,34 @@ API void api_generate_mesh(ObjID& ID)
 
     OpenGL_Mesh* mesh = new OpenGL_Mesh();
 
-    glGenVertexArrays(1, &mesh->_M_VAO);
     glGenBuffers(1, &mesh->_M_VBO);
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glGenBuffers(1, &mesh->_M_EBO);
+    glGenVertexArrays(1, &mesh->_M_VAO);
 
     ID = object_id_of(mesh);
 }
 
-API void api_set_mesh_data(const ObjID& ID, MeshInfo& info, void* data)
+API void api_set_mesh_data(const ObjID& ID, std::size_t buffer_len, DrawMode mode, void* data)
 {
     make_mesh(mesh, ID);
     check(mesh, );
     glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
 
-    mesh->_M_buffer_size = 0;
-    for (auto& attrib : info.attributes) mesh->_M_buffer_size += _M_buffer_value_type_sizes.at(attrib.type) * attrib.count;
-    mesh->_M_buffer_size *= info.vertices;
-    glBufferData(GL_ARRAY_BUFFER, mesh->_M_buffer_size, data, _M_draw_modes.at(info.mode));
+    mesh->_M_buffer_size = buffer_len;
+
+    glBufferData(GL_ARRAY_BUFFER, mesh->_M_buffer_size, data, _M_draw_modes.at(mode));
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-API void api_update_mesh_attributes(const ObjID& ID, MeshInfo& info)
+API void api_update_mesh_attributes(const ObjID& ID, const MeshInfo& info)
 {
     make_mesh(mesh, ID);
     check(mesh, );
     glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
     glBindVertexArray(mesh->_M_VAO);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->_M_EBO);
+
     // Setting attributes values
     std::uintptr_t offset = 0;
     int index = 0;
@@ -67,18 +74,20 @@ API void api_update_mesh_attributes(const ObjID& ID, MeshInfo& info)
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 
-API void api_draw_mesh(const ObjID& ID, Primitive primitive, std::size_t vertices, unsigned int start_index)
+API void api_draw_mesh(const ObjID& ID, Primitive primitive, std::size_t vertices, std::size_t offset)
 {
     make_mesh(mesh, ID);
     check(mesh, );
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
+
     glBindVertexArray(mesh->_M_VAO);
-    glDrawArrays(_M_primitives.at(primitive), start_index, vertices);
+
+    glDrawElements(_M_primitives.at(primitive), vertices, mesh->_M_indexes_type, reinterpret_cast<void*>(offset));
+
     glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 API void api_update_mesh_data(const ObjID& ID, std::size_t offset, std::size_t size, void* data)
@@ -89,8 +98,21 @@ API void api_update_mesh_data(const ObjID& ID, std::size_t offset, std::size_t s
         return;
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->_M_VBO);
-    glBindVertexArray(mesh->_M_VAO);
     glBufferSubData(GL_ARRAY_BUFFER, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size), data);
-    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+API void api_set_mesh_indexes_array(const ObjID& ID, const MeshInfo& info, std::size_t bytes,
+                                    const BufferValueType& data_type, void* data)
+{
+    make_mesh(mesh, ID);
+    check(mesh, );
+
+    glBindVertexArray(mesh->_M_VAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->_M_EBO);
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bytes, data, _M_draw_modes.at(info.mode));
+    mesh->_M_indexes_type = _M_buffer_value_types.at(data_type);
+
+    glBindVertexArray(0);
 }

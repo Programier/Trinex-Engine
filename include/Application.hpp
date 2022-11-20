@@ -20,6 +20,8 @@ namespace Engine
         Scene scene;
         void keyboard_procces();
 
+        Line _M_mesh;
+
     public:
         Application();
         void render();

@@ -70,8 +70,9 @@ namespace Engine::ObjectLoader
         {
             if (!assimp_load_scene)
                 return nullptr;
-            auto scene = assimp_load_scene(filename.c_str(),
-                                           aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenBoundingBoxes);
+            auto scene = assimp_load_scene(filename.c_str(), aiProcess_Triangulate | aiProcess_GenNormals |
+                                                                     aiProcess_GenBoundingBoxes | aiProcess_ForceGenNormals |
+                                                                     aiProcess_SplitLargeMeshes | aiProcess_RemoveComponent);
 
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
             {
@@ -142,10 +143,13 @@ namespace Engine::ObjectLoader
             Type* engine_object = nullptr;
             aiNode* object_node = nullptr;
 
-            Node(Type* eo, aiNode* on)
+            Type* prev = nullptr;
+
+            Node(Type* eo, aiNode* on, Type* prev_node = nullptr)
             {
                 engine_object = eo;
                 object_node = on;
+                prev = prev_node;
             }
         };
 
@@ -168,11 +172,16 @@ namespace Engine::ObjectLoader
 
             callback(scene, node.object_node, node.engine_object, dirname);
 
+            if (node.prev)
+            {
+                node.prev->push_object(node.engine_object);
+            }
+
             for (unsigned int i = 0; i < node.object_node->mNumChildren; i++)
             {
                 Type* new_node = new Type();
-                _M_nodes.push(Node(new_node, node.object_node->mChildren[i]));
-                node.engine_object->push_object(new_node);
+                Node tmp(new_node, node.object_node->mChildren[i], node.engine_object);
+                _M_nodes.push(tmp);
             }
         }
 
@@ -183,35 +192,53 @@ namespace Engine::ObjectLoader
 
     /////////////////////// POLYGONAL MESH OBJECT ///////////////////////
 
-    void polygonal_object_load_callback(const aiScene* scene, aiNode* ainode, Line* object, const std::string&)
+
+    Line* procces_polygonal_mesh(DrawableObject* root, aiMesh* mesh, unsigned int mesh_index)
     {
-        for (unsigned int i = 0; i < ainode->mNumMeshes; i++)
+        AABB_3D aabb;
+        aabb.min = aiVec3_to_vec3(mesh->mAABB.mMin);
+        aabb.max = aiVec3_to_vec3(mesh->mAABB.mMax);
+
+
+        Line* line = new Line();
+        line->name(root->name() + std::wstring(L".Mesh_") + std::to_wstring(mesh_index));
+        line->aabb(aabb);
+        root->push_object(line);
+
+        std::unordered_map<unsigned int, unsigned int> _M_points;
+
+        for (unsigned int f = 0; f < mesh->mNumFaces; f++)
         {
-            auto& mesh = scene->mMeshes[ainode->mMeshes[i]];
-
-            AABB_3D aabb;
-            aabb.min = aiVec3_to_vec3(mesh->mAABB.mMin);
-            aabb.max = aiVec3_to_vec3(mesh->mAABB.mMax);
-
-
-            Line* line = new Line();
-            line->name(object->name() + std::wstring(L".Mesh_") + std::to_wstring(i));
-            line->aabb(aabb);
-            object->push_object(line);
-
-            for (unsigned int f = 0; f < mesh->mNumFaces; f++)
+            auto& face = mesh->mFaces[f];
+            for (unsigned int index = 0; index < face.mNumIndices; index++)
             {
-                auto& face = mesh->mFaces[f];
-                for (unsigned int index = 0; index < face.mNumIndices; index++)
+
+                if (!_M_points.contains(face.mIndices[index]))
                 {
                     auto begin = aiVec3_to_vec3(mesh->mVertices[face.mIndices[index]]);
 
-                    for (unsigned int g = index + 1; g < face.mNumIndices; g++)
+                    _M_points.insert({face.mIndices[index], line->data.size() / 3});
+
+                    line->data.push_back(begin.x);
+                    line->data.push_back(begin.y);
+                    line->data.push_back(begin.z);
+                }
+
+
+                for (unsigned int g = index + 1; g < face.mNumIndices; g++)
+                {
+                    line->indexes.push_back(_M_points.at(face.mIndices[index]));
+
+                    if (_M_points.contains(face.mIndices[g]))
                     {
+                        line->indexes.push_back(_M_points.at(face.mIndices[g]));
+                    }
+                    else
+                    {
+                        line->indexes.push_back(line->data.size() / 3);
+                        _M_points.insert({face.mIndices[g], line->data.size() / 3});
+
                         auto end = aiVec3_to_vec3(mesh->mVertices[face.mIndices[g]]);
-                        line->data.push_back(begin.x);
-                        line->data.push_back(begin.y);
-                        line->data.push_back(begin.z);
 
                         line->data.push_back(end.x);
                         line->data.push_back(end.y);
@@ -219,8 +246,18 @@ namespace Engine::ObjectLoader
                     }
                 }
             }
-            line->test = true;
-            line->update();
+        }
+
+        line->update();
+        return line;
+    }
+
+    void polygonal_object_load_callback(const aiScene* scene, aiNode* ainode, Line* object, const std::string&)
+    {
+        for (unsigned int i = 0; i < ainode->mNumMeshes; i++)
+        {
+            auto& mesh = scene->mMeshes[ainode->mMeshes[i]];
+            procces_polygonal_mesh(object, mesh, i + 1);
         }
     }
 
@@ -246,13 +283,15 @@ namespace Engine::ObjectLoader
     static void init_object(TexturedObject* object)
     {
         object->attributes = {{3, BufferValueType::FLOAT}, {2, BufferValueType::FLOAT}, {3, BufferValueType::FLOAT}};
-        object->vertices = object->data.size() / 8;
+        object->vertices = object->indexes.size();
         if (object->Mesh::id() == 0)
         {
             object->Mesh::mode = DrawMode::STATIC_DRAW;
             object->Mesh::gen();
         }
-        object->set_data().update_atributes();
+
+        object->set_data();
+        object->update_atributes().update_indexes();
     }
 
     static Texture2D& get_texture(const std::string& dir, unsigned int index, const aiMaterial* material,
@@ -282,8 +321,9 @@ namespace Engine::ObjectLoader
         Image image(dir + filename, true);
         TextureParams params;
 
-
-        params.format = image.channels() == 3 ? PixelFormat::RGB : PixelFormat::RGBA;
+        static PixelFormat _M_formats[5] = {PixelFormat::RGBA, PixelFormat::DEPTH, PixelFormat::DEPTH, PixelFormat::RGB,
+                                            PixelFormat::RGBA};
+        params.format = _M_formats[static_cast<int>(image.channels())];
 
         params.pixel_type = BufferValueType::UNSIGNED_BYTE;
         params.type = TextureType::Texture_2D;
@@ -293,11 +333,12 @@ namespace Engine::ObjectLoader
         texture.create(params);
         if (image.empty())
         {
-            std::vector<byte> tmp = {255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255};// White color;
-            texture.gen({2, 2}, 0, (void*) tmp.data());
+            std::vector<byte> tmp = {100, 100, 100, 255};
+            texture.gen({1, 1}, 0, (void*) tmp.data());
         }
         else
         {
+            logger->log("Image data: %zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
             texture.gen(image.size(), 0, (void*) image.vector().data()).max_mipmap_level(2).generate_mipmap();
         }
 
@@ -317,6 +358,12 @@ namespace Engine::ObjectLoader
         {
             auto& mesh = scene->mMeshes[ainode->mMeshes[i]];
 
+            if (mesh->mPrimitiveTypes == aiPrimitiveType_LINE)
+            {
+                procces_polygonal_mesh(object, mesh, i + 1);
+                continue;
+            }
+
             AABB_3D aabb;
             aabb.min = aiVec3_to_vec3(mesh->mAABB.mMin);
             aabb.max = aiVec3_to_vec3(mesh->mAABB.mMax);
@@ -335,34 +382,45 @@ namespace Engine::ObjectLoader
                     get_texture(dir, mesh->mMaterialIndex, material, aiTextureType_DIFFUSE, get_diffuse_from_texture_node));
 
 
+            std::unordered_map<unsigned int, unsigned int> _M_vertices;
+
             for (unsigned int f = 0; f < mesh->mNumFaces; f++)
             {
                 auto& face = mesh->mFaces[f];
                 for (unsigned int index = 0; index < face.mNumIndices; index++)
                 {
-                    auto& face_point = mesh->mVertices[face.mIndices[index]];
-                    Vector2D UV = mesh->mTextureCoords[0] ? aiVec3_to_vec3(mesh->mTextureCoords[0][face.mIndices[index]])
-                                                          : Vector2D{0.f, 0.f};
-                    //auto& normal = mesh->mNormals[face.mIndices[index]];
+                    if (_M_vertices.contains(face.mIndices[index]))
+                    {
+                        node->indexes.push_back(_M_vertices.at(face.mIndices[index]));
+                    }
+                    else
+                    {
+                        node->indexes.push_back(node->data.size() / 8);
+                        _M_vertices.insert({face.mIndices[index], node->data.size() / 8});
 
-                    // Coords
-                    node->data.push_back(face_point.x);
-                    node->data.push_back(face_point.y);
-                    node->data.push_back(face_point.z);
+                        auto& face_point = mesh->mVertices[face.mIndices[index]];
+                        Vector2D UV = mesh->mTextureCoords[0] ? aiVec3_to_vec3(mesh->mTextureCoords[0][face.mIndices[index]])
+                                                              : Vector2D{0.f, 0.f};
+                        //auto& normal = mesh->mNormals[face.mIndices[index]];
 
-                    // UV
-                    node->data.push_back(UV.x);
-                    node->data.push_back(UV.y);
+                        // Coords
+                        node->data.push_back(face_point.x);
+                        node->data.push_back(face_point.y);
+                        node->data.push_back(face_point.z);
 
-                    // Normals
-                    node->data.push_back(0);
-                    node->data.push_back(0);
-                    node->data.push_back(0);
+                        // UV
+                        node->data.push_back(UV.x);
+                        node->data.push_back(UV.y);
+
+                        // Normals
+                        node->data.push_back(0);
+                        node->data.push_back(0);
+                        node->data.push_back(0);
+                    }
                 }
             }
 
             init_object(node);
-            node->test = true;
         }
     }
 

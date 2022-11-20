@@ -19,8 +19,27 @@ using namespace Engine;
 #define SCENE_PATH "/sdcard/GameEngine/resources/scene/new/scene.gltf"
 #else
 #define FONT_PATH "resources/fonts/font.otf"
-#define SCENE_PATH "resources/scene/simple_scene.glb"
+#define SCENE_PATH "/home/programier/GameEngine/resources/scene/scene.gltf"
 #endif
+#include <iostream>
+
+
+void print_tree(DrawableObject* tree, const glm::mat4& matrix)
+{
+    static int tabs = 0;
+    auto aabb1 = tree->aabb().apply_model(matrix);
+    auto aabb2 = tree->octree().box();
+    std::clog << std::string(tabs, '\t') << aabb1.center() << "\t" << aabb1.half_size() << std::endl;
+    std::clog << std::string(tabs, '\t') << aabb2.center() << "\t" << aabb2.half_size() << std::endl;
+
+    tabs++;
+    for (auto ell : tree->sub_objects())
+    {
+        print_tree(ell, matrix * tree->model());
+    }
+    tabs--;
+}
+
 
 Application::Application()
 {
@@ -53,13 +72,10 @@ Application::Application()
     scene.name(L"Scene");
     scene.set_as_active_scene().add_camera(camera).active_camera(camera);
     scene.load(SCENE_PATH, ObjectLoader::TexturedObjectLoader());
-    //scene.visible(false);
-
-    // scene.scale({100.f, 100.f, 100.f});
 
     enable(EnableCap::Blend)(EnableCap::DepthTest);
     blend_func(BlendFunc::SrcAlpha, BlendFunc::OneMinusSrcAlpha);
-    camera->max_render_distance(100.f).viewing_angle(glm::radians(70.f)).min_render_distance(1.f);
+    camera->max_render_distance(1000.f).viewing_angle(glm::radians(70.f)).min_render_distance(1.f);
     ShaderSystem::Line::shader.use().set(ShaderSystem::Line::color, Color::Red);
     //enable(EnableCap::CullFace);
 }
@@ -100,7 +116,7 @@ static Offset2D get_offset()
 
 #else
 
-    return (1.5f * MouseEvent::offset() / (Window::size()));
+    return (3.5f * MouseEvent::offset() / (Window::size()));
 #endif
 }
 
@@ -205,7 +221,8 @@ void Application::keyboard_procces()
         camera.rotate(-offset.y, camera.right_vector());
 
 
-        scene.scale(Constants::identity_vector + MouseEvent::scroll_offset().y * 0.1f);
+        if (MouseEvent::scroll_offset().y != 0.f)
+            scene.scale(Constants::identity_vector + MouseEvent::scroll_offset().y * 0.1f);
     }
 
     active_camera.update_info();
@@ -215,7 +232,6 @@ void Application::render()
 {
 
     scene.render();
-
 
     int FPS = static_cast<int>(1.f / Event::diff_time());
     static std::string text;
@@ -228,7 +244,7 @@ void Application::render()
     }
 
     ShaderSystem::Text::shader.use()
-            .set("color", Color::Red)
+            .set("color", Color::White)
             .set("projview", glm::ortho(0.f, window.width(), 0.f, window.height(), 0.f, 1.f));
     font.draw(text, {10, window.size().y - 26});
 }

@@ -28,8 +28,10 @@ namespace Engine
         Line& line_width(const Size1D& width);
         Line& update();
 
-        DrawableObject* copy() const;
-        void render_layer(const glm::mat4& prev_model = Constants::identity_matrix);
+        DrawableObject* copy() const override;
+        bool is_empty_layer() const override;
+        void render_layer(const glm::mat4& prev_model = Constants::identity_matrix,
+                          on_render_layer_func = empty_drawable_callback_handler) const override;
     };
 
 }// namespace Engine

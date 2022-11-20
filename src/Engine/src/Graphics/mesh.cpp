@@ -16,7 +16,7 @@ namespace Engine
 
     BasicMesh& BasicMesh::set_data(void* data)
     {
-        set_mesh_data(_M_ID, dynamic_cast<MeshInfo&>(*this), data);
+        set_mesh_data(_M_ID, mesh_type_size() * size(), mode, static_cast<void*>(mesh_data()));
         return *this;
     }
 
@@ -26,9 +26,15 @@ namespace Engine
         return *this;
     }
 
-    BasicMesh& BasicMesh::draw(Primitive primitive, unsigned int vertices, unsigned int start_index)
+    BasicMesh& BasicMesh::update_indexes()
     {
-        draw_mesh(_M_ID, primitive, (vertices ? vertices : dynamic_cast<MeshInfo&>(*this).vertices), start_index);
+        set_mesh_indexes_array(_M_ID, dynamic_cast<MeshInfo&>(*this), indexes_size(), indexes_type(), indexes_data());
+        return *this;
+    }
+
+    const BasicMesh& BasicMesh::draw(Primitive primitive, std::size_t vertices, std::size_t offset) const
+    {
+        draw_mesh(_M_ID, primitive, (vertices ? vertices : dynamic_cast<const MeshInfo&>(*this).vertices), offset);
         return *this;
     }
 
@@ -42,7 +48,7 @@ namespace Engine
         }
 
         if (data)
-            update_mesh_date(_M_ID, offset, count, data);
+            update_mesh_data(_M_ID, offset, count, data);
         return *this;
     }
 

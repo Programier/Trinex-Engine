@@ -8,7 +8,10 @@ using namespace Engine;
 
 static Scene* _M_active_scene = nullptr;
 
-Scene::Scene() = default;
+Scene::Scene()
+{
+    name(L"Scene");
+}
 
 DrawableObject* Scene::copy() const
 {
@@ -87,6 +90,17 @@ Scene& Scene::active_camera(Camera* find_camera)
     logger->log("Can't find camera with name '%s'\n", Strings::to_string(find_camera->name).c_str());
     return *this;
 }
+
+bool Scene::is_empty_layer() const
+{
+    return true;
+}
+
+
+#ifdef ENABLE_RENDER
+void Scene::render() const
+{}
+#endif
 
 Scene::~Scene()
 {

@@ -1,10 +1,11 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
+#include <Core/instance.hpp>
 
 namespace Engine
 {
-    CLASS Object
+    CLASS Object : public virtual ObjectInstance
     {
     protected:
         ObjID _M_ID = 0;

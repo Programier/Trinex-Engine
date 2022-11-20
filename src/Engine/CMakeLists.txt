@@ -108,7 +108,5 @@ target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/inclu
                                          "$<BUILD_INTERFACE:${ENGINE_ROOT}/include/ImGui>")
 
 target_link_libraries(Engine PRIVATE SDL2 ${OPENGL} ${ASSIMP_LIB} freetype ${PlatformLibs})
+add_subdirectory(Editor)
 
-if(!ANDROID)
-    add_subdirectory(Editor)
-endif()

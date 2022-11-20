@@ -2,7 +2,9 @@
 #include <Graphics/camera.hpp>
 #include <Graphics/drawable_object.hpp>
 #include <Graphics/texture.hpp>
-#include <TemplateFunctional/octree.hpp>
+
+
+//#define ENABLE_RENDER
 
 
 namespace Engine
@@ -28,8 +30,6 @@ namespace Engine
         std::unordered_set<Camera*> _M_cameras;
         ActiveCamera _M_active_camera;
 
-        Octree<DrawableObject*> _M_octree;
-
     public:
         Scene();
         DrawableObject* copy() const override;
@@ -42,7 +42,11 @@ namespace Engine
         ActiveCamera& active_camera();
         Scene& active_camera(const std::wstring& name);
         Scene& active_camera(Camera * camera);
+        bool is_empty_layer() const override;
 
+#ifdef ENABLE_RENDER
+        void render() const override;
+#endif
         ~Scene();
         friend class DrawableObject;
     };

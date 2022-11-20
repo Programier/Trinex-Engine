@@ -5,7 +5,7 @@
 #include <opengl_types.hpp>
 
 
-#ifdef ENGINE_DEBUG
+#ifndef ENGINE_DEBUG
 #define ALLOC_INFO external_logger->log("API: Allocate memory: %p, %s\n", this, __PRETTY_FUNCTION__)
 #define DEALLOC_INFO external_logger->log("API: Deallocate memory: %p, %s\n", this, __PRETTY_FUNCTION__)
 #else

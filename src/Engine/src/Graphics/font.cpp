@@ -57,9 +57,11 @@ namespace Engine
         _M_mesh.data.resize(24);
         _M_mesh.attributes = {{4, BufferValueType::FLOAT}};
         _M_mesh.vertices = 6;
+        _M_mesh.indexes = {0, 1, 2, 3, 4, 5};
         _M_mesh.mode = DrawMode::STATIC_DRAW;
         _M_mesh.gen();
         _M_mesh.set_data().update_atributes();
+        _M_mesh.update_indexes();
         return *this;
     }
 

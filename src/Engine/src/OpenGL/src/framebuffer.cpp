@@ -35,7 +35,7 @@ API void api_bind_framebuffer(const ObjID& ID)
     }
     else
     {
-        glBindFramebuffer(GL_RENDERBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }
 

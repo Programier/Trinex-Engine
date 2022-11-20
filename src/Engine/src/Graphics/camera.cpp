@@ -3,7 +3,6 @@
 #include <functional>
 #include <glm/ext.hpp>
 
-
 namespace Engine
 {
     Camera::Camera(glm::vec3 position, float viewingAngle, const std::wstring& name)
@@ -14,14 +13,14 @@ namespace Engine
 
     glm::mat4 Camera::projection()
     {
-        _M_aspect = (float) Window::width() / (float) Window::height();
+        //_M_aspect = (float) Window::width() / (float) Window::height();
         return glm::perspective(_M_viewingAngle, _M_aspect, _M_minRenderDistance, _M_maxRenderDistance);
     }
 
     glm::mat4 Camera::projection(const glm::vec2& size)
     {
-        _M_aspect = size.x / size.y;
-        return glm::perspective(_M_viewingAngle, _M_aspect, _M_minRenderDistance, _M_maxRenderDistance);
+        float temp_aspect = size.x / size.y;
+        return glm::perspective(_M_viewingAngle, temp_aspect, _M_minRenderDistance, _M_maxRenderDistance);
     }
 
     glm::mat4 Camera::view()

@@ -58,10 +58,12 @@ namespace Engine
                                         void* data) = nullptr;
 
     void (*generate_mesh)(ObjID& ID) = nullptr;
-    void (*set_mesh_data)(const ObjID& ID, MeshInfo& info, void* data) = nullptr;
-    void (*update_mesh_attributes)(const ObjID& ID, MeshInfo& info) = nullptr;
-    void (*draw_mesh)(const ObjID& ID, Primitive primitive, std::size_t vertices, unsigned int start_index) = nullptr;
-    void (*update_mesh_date)(const ObjID& ID, std::size_t offset, std::size_t size, void* data) = nullptr;
+    void (*set_mesh_data)(const ObjID& ID, std::size_t buffer_len, DrawMode mode, void* data) = nullptr;
+    void (*update_mesh_attributes)(const ObjID& ID, const MeshInfo& info) = nullptr;
+    void (*draw_mesh)(const ObjID& ID, Primitive primitive, std::size_t vertices, std::size_t offset) = nullptr;
+    void (*update_mesh_data)(const ObjID& ID, std::size_t offset, std::size_t size, void* data) = nullptr;
+    void (*set_mesh_indexes_array)(const ObjID& ID, const MeshInfo& info, std::size_t bytes,
+                                   const BufferValueType& data_type, void*) = nullptr;
 
     void (*gen_framebuffer)(ObjID& ID, FrameBufferType type) = nullptr;
     void (*clear_frame_buffer)(const ObjID& _M_ID, BufferType type) = nullptr;
@@ -135,10 +137,11 @@ namespace Engine
             {(void**) &read_texture_2D_data, "api_read_texture_2D_data"},
             {(void**) &texture_id, "api_texture_id"},
             {(void**) &generate_mesh, "api_generate_mesh"},
+            {(void**) &set_mesh_indexes_array, "api_set_mesh_indexes_array"},
             {(void**) &set_mesh_data, "api_set_mesh_data"},
             {(void**) &update_mesh_attributes, "api_update_mesh_attributes"},
             {(void**) &draw_mesh, "api_draw_mesh"},
-            {(void**) &update_mesh_date, "api_update_mesh_data"},
+            {(void**) &update_mesh_data, "api_update_mesh_data"},
             {(void**) &gen_framebuffer, "api_gen_framebuffer"},
             {(void**) &clear_frame_buffer, "api_clear_frame_buffer"},
             {(void**) &bind_framebuffer, "api_bind_framebuffer"},

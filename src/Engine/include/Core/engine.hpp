@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <ostream>
 #include <utility>
+#include <Core/constants.hpp>
 
 #define not_implemented                                                                                                     \
     (std::runtime_error(std::string(__FILE__) + std::string(":") + std::to_string(__LINE__) +                               \
@@ -15,21 +16,6 @@
 
 namespace Engine
 {
-    STRUCT Constants
-    {
-        static const unsigned int processor_count;
-        static const Vector3D OX;
-        static const Vector3D OY;
-        static const Vector3D OZ;
-        static const float PI;
-        static const float E;
-        static const glm::mat4 identity_matrix;
-        static const glm::mat4 zero_matrix;
-        static const Vector4D identity_vector;
-        static const Vector4D zero_vector;
-        static const std::string ShaderModeValue;
-    };
-
     ENGINE_EXPORT const Shader& engine_shader();
 
     ENGINE_EXPORT EulerAngle3D get_rotation_from_matrix(const glm::mat4& m);

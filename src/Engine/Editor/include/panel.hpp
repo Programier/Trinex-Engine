@@ -1,14 +1,13 @@
 #pragma once
-#include <string>
 
-namespace Engine
+namespace Editor
 {
     class Panel
     {
+    protected:
+        bool cursor_on_panel() const;
     public:
-        bool need_render = true;
-        std::string name;
         virtual void render() = 0;
-        virtual ~Panel(){};
+        virtual ~Panel();
     };
-}// namespace Engine
+}// namespace Editor

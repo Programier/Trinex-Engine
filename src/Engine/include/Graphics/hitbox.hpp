@@ -3,6 +3,7 @@
 #include <Core/export.hpp>
 #include <Core/implement.hpp>
 #include <Graphics/frustum.hpp>
+#include <Graphics/ray.hpp>
 
 
 namespace Engine
@@ -11,27 +12,43 @@ namespace Engine
     CLASS HitBox
     {
     public:
-        virtual void render(const glm::mat4& model) = 0;
+        virtual void render(const glm::mat4& model) const = 0;
         virtual bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const = 0;
+        virtual bool is_in_frustum(const Frustum& frustum) const = 0;
+        virtual Vector2D intersect(const Ray& ray) const = 0;
         virtual ~HitBox();
     };
 
 
-    CLASS BoxHB : public HitBox
+    CLASS BoxHB : public HitBox, public AABB_3D
     {
     protected:
-        AABB_3D _M_aabb;
         Point3D _M_center;
         Size3D _M_half_sizes;
 
     public:
         implement_class_hpp(BoxHB);
         BoxHB(const AABB_3D& box);
+        BoxHB(const Size3D& _min, const Size3D& _max);
         const AABB_3D& aabb() const;
         BoxHB& aabb(const AABB_3D& box);
+        BoxHB& aabb(const BoxHB& box);
+        BoxHB& aabb(const Size3D& _min, const Size3D& _max);
         bool is_on_or_forward_plan(const Plane& plan) const;
         bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const override;
-        void render(const glm::mat4& model) override;
+        bool is_in_frustum(const Frustum& frustum) const override;
+        void render(const glm::mat4& model) const override;
+        BoxHB apply_model(const glm::mat4& model) const;
+        Vector2D intersect(const Ray& ray) const override;
+
+
+        BoxHB max_box(const AABB_3D& box) const;
+        bool contains(const AABB_3D& box) const;
+        bool contains(const BoxHB& box) const;
+        bool inside(const AABB_3D& box) const;
+        bool inside(const BoxHB& box) const;
+        const Point3D& center() const;
+        const Size3D& half_size() const;
     };
 
     //    CLASS SphereHB : public HitBox

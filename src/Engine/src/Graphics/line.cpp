@@ -65,13 +65,13 @@ namespace Engine
     Line& Line::update()
     {
         attributes = {{3, BufferValueType::FLOAT}};
-        vertices = data.size() / 3;
+        vertices = indexes.size();
         if (Mesh::id() == 0)
         {
             Mesh::mode = DrawMode::STATIC_DRAW;
             Mesh::gen();
         }
-        set_data().update_atributes();
+        set_data().update_atributes().update_indexes();
         return *this;
     }
 
@@ -88,6 +88,10 @@ namespace Engine
 
     Line& Line::_M_push_line(const glm::vec3& point1, const glm::vec3& point2)
     {
+        unsigned int index = data.size() / 3;
+        indexes.push_back(index);
+        indexes.push_back(index + 1);
+
         data.push_back(point1.x);
         data.push_back(point1.y);
         data.push_back(point1.z);
@@ -108,10 +112,16 @@ namespace Engine
         throw not_implemented;
     }
 
-    void Line::render_layer(const glm::mat4& prev_model)
+    bool Line::is_empty_layer() const
     {
-        if (!_M_visible)
+        return data.empty();
+    }
+
+    void Line::render_layer(const glm::mat4& prev_model, on_render_layer_func on_render_layer) const
+    {
+        if (!_M_visible || is_empty_layer())
             return;
+
 
         Scene* scene = Scene::get_active_scene();
         if (!scene)
@@ -128,13 +138,15 @@ namespace Engine
 
         namespace shd = ShaderSystem::Line;
 
-        auto model = prev_model * this->_M_model.get();
+        const auto model = prev_model * this->_M_model.get();
         shd::shader.use().set(shd::model, model).set(shd::color, color).set(shd::projview, active_camera.projview);
 
         float tmp = get_current_line_rendering_width();
         set_line_rendering_width(_M_line_width);
         BasicMesh::draw(Engine::Primitive::LINE);
         set_line_rendering_width(tmp);
+
+        on_render_layer(this, prev_model);
     }
 
     Line& Line::load_from(const std::string& model)

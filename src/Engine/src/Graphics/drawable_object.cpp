@@ -8,12 +8,57 @@
 namespace Engine
 {
 
-    DrawableObject::DrawableObject() : _M_aabb({{0.f, 0.f, 0.f}, {0.f, 0.f, 0.f}})
+    DrawableObject::DrawableObject() : _M_aabb({0.f, 0.f, 0.f}, {0.f, 0.f, 0.f}), _M_octree(0.01f)
     {
         // Init callbacks
+        _M_on_before_set_model.insert(DrawableObject::on_before_set_model);
+        _M_on_set_model.insert(DrawableObject::on_set_model);
+
         _M_on_translate.insert(DrawableObject::on_translate);
         _M_on_rotate.insert(DrawableObject::on_rotate);
         _M_on_scale.insert(DrawableObject::on_scale);
+
+        _M_on_before_translate.insert(DrawableObject::on_before_translate);
+        _M_on_before_rotate.insert(DrawableObject::on_before_rotate);
+        _M_on_before_scale.insert(DrawableObject::on_before_scale);
+    }
+
+    void DrawableObject::on_set_model(ModelMatrix* self)
+    {
+        DrawableObject* object = dynamic_cast<DrawableObject*>(self);
+
+        if (object)
+            object->on_changed_spatial_parameters();
+    }
+
+    void DrawableObject::on_before_set_model(ModelMatrix* self)
+    {
+        DrawableObject* object = dynamic_cast<DrawableObject*>(self);
+
+        if (object)
+            object->on_before_changed_spatial_parameters();
+    }
+
+    void DrawableObject::on_before_translate(Translate* self)
+    {
+        DrawableObject* object = dynamic_cast<DrawableObject*>(self);
+
+        if (object)
+            object->on_before_changed_spatial_parameters();
+    }
+
+    void DrawableObject::on_before_rotate(Rotate* self)
+    {
+        DrawableObject* object = dynamic_cast<DrawableObject*>(self);
+        if (object)
+            object->on_before_changed_spatial_parameters();
+    }
+
+    void DrawableObject::on_before_scale(Scale* self)
+    {
+        DrawableObject* object = dynamic_cast<DrawableObject*>(self);
+        if (object)
+            object->on_before_changed_spatial_parameters();
     }
 
     void DrawableObject::on_translate(Translate* self)
@@ -21,42 +66,76 @@ namespace Engine
         DrawableObject* object = dynamic_cast<DrawableObject*>(self);
 
         if (object)
-            on_changed_spatial_parameters(object);
+            object->on_changed_spatial_parameters();
     }
 
     void DrawableObject::on_rotate(Rotate* self)
     {
         DrawableObject* object = dynamic_cast<DrawableObject*>(self);
         if (object)
-            on_changed_spatial_parameters(object);
+            object->on_changed_spatial_parameters();
     }
 
     void DrawableObject::on_scale(Scale* self)
     {
         DrawableObject* object = dynamic_cast<DrawableObject*>(self);
         if (object)
-            on_changed_spatial_parameters(object);
+            object->on_changed_spatial_parameters();
     }
 
-    void DrawableObject::on_changed_spatial_parameters(DrawableObject* self)
-    {}
-
-    const AABB_3D& DrawableObject::aabb() const
+    void DrawableObject::on_before_changed_spatial_parameters()
     {
-        return _M_aabb.aabb();
+        unlink_object_from_head();
     }
 
-    void DrawableObject::recalculate_aabb()
+    void DrawableObject::on_changed_spatial_parameters()
     {
-        struct Node {
-            DrawableObject* obj;
-            glm::mat4 matrix;
+        _M_cached_matrix = model();
+        _M_octree.clear();
+        _M_aabb = _M_original_aabb.apply_model(_M_cached_matrix);
 
-            Node(DrawableObject* _obj, const glm::mat4& mat) : obj(_obj), matrix(mat)
-            {}
-        };
+        for (auto& object : _M_sub_objects)
+        {
+            auto box = object->_M_aabb.apply_model(_M_cached_matrix);
+            _M_octree.push(object, box);
+        }
 
-        std::list<Node> _M_stack = {Node(this, this->model())};
+        update_aabb();
+
+        link_object_to_head();
+    }
+
+    const BoxHB& DrawableObject::aabb() const
+    {
+        return _M_aabb;
+    }
+
+    const BoxHB DrawableObject::original_aabb() const
+    {
+        return _M_original_aabb;
+    }
+
+    const glm::mat4& DrawableObject::get_cached_matrix() const
+    {
+        return _M_cached_matrix;
+    }
+
+    glm::mat4 DrawableObject::global_model()
+    {
+        // Generate stack
+        std::list<DrawableObject*> _M_stack = {this};
+        while (!_M_stack.back()->_M_parent) _M_stack.push_back(_M_stack.back()->_M_parent);
+
+        // Calculate result matrix
+        glm::mat4 _M_global_matrix = Constants::identity_matrix;
+
+        while (!_M_stack.empty())
+        {
+            _M_global_matrix = _M_stack.front()->model() * _M_global_matrix;
+            _M_stack.pop_front();
+        }
+
+        return _M_global_matrix;
     }
 
     DrawableObject& DrawableObject::aabb(const AABB_3D& aabb)
@@ -64,9 +143,50 @@ namespace Engine
         if (_M_sub_objects.size() != 0)
             return *this;
 
-        _M_aabb = BoxHB(aabb);
         _M_original_aabb = BoxHB(aabb);
+        _M_aabb = _M_original_aabb.apply_model(model());
+
         return *this;
+    }
+
+    void DrawableObject::unlink_object_from_head()
+    {
+        DrawableObject* layer = this;
+        while (layer->_M_parent)
+        {
+            layer->_M_parent->private_remove_object(layer);
+            layer = layer->_M_parent;
+        }
+    }
+
+    void DrawableObject::update_aabb()
+    {
+        _M_aabb = _M_original_aabb.apply_model(_M_cached_matrix);
+        auto head = _M_octree.head();
+        if (head)
+            _M_aabb = _M_aabb.half_size().x == 0.f ? head->box() : _M_aabb.max_box(head->box());
+    }
+
+    void DrawableObject::link_object_to_head()
+    {
+        DrawableObject* layer = this->_M_parent;
+        DrawableObject* object = this;
+        while (layer)
+        {
+            auto box = object->_M_aabb.apply_model(layer->_M_cached_matrix);
+            layer->_M_octree.push(object, box);
+            layer->update_aabb();
+            layer->_M_sub_objects.insert(object);
+            object = layer;
+            layer = layer->_M_parent;
+        }
+    }
+
+
+    void DrawableObject::repush_object()
+    {
+        unlink_object_from_head();
+        link_object_to_head();
     }
 
     DrawableObject& DrawableObject::push_object(DrawableObject* object)
@@ -76,24 +196,49 @@ namespace Engine
             return *this;
         }
 
-        object->recalculate_aabb();
-        _M_sub_objects.insert(object);
+        if (object->_M_parent)
+            object->_M_parent->private_remove_object(object);
+
         object->_M_parent = this;
+        unlink_object_from_head();
+        auto box = object->_M_aabb.apply_model(_M_cached_matrix);
 
-
-        Scene* _M_scene = scene();
-
-
+        _M_octree.push(object, box);
+        _M_sub_objects.insert(object);
+        update_aabb();
+        link_object_to_head();
         return *this;
     }
 
-    DrawableObject& DrawableObject::remove_object(DrawableObject* object)
+    void DrawableObject::private_remove_object(DrawableObject* object)
     {
         if (object && object->_M_parent == this)
         {
             _M_sub_objects.erase(object);
-            object->_M_parent = nullptr;
+            auto octree_node = _M_octree.find(object->aabb().apply_model(_M_cached_matrix));
+            if (!octree_node)
+                return;
+            octree_node->values.erase(object);
+
+            if (!octree_node->values.empty())
+                return;
+
+            bool need_delete = true;
+            for (byte i = 0; i < 8 && need_delete; i++)
+            {
+                if (octree_node->get(i))
+                    need_delete = false;
+            }
+
+            if (need_delete)
+                octree_node->destroy();
         }
+    }
+
+    DrawableObject& DrawableObject::remove_object(DrawableObject* object)
+    {
+        private_remove_object(object);
+        object->_M_parent = nullptr;
         return *this;
     }
 
@@ -158,70 +303,110 @@ namespace Engine
         return *this;
     }
 
-    void DrawableObject::render()
+
+    void empty_drawable_callback_handler(const DrawableObject*, const glm::mat4&)
+    {}
+
+    void DrawableObject::render(void (*on_render_layer)(const DrawableObject*, const glm::mat4&)) const
     {
-        using Node = std::pair<DrawableObject*, glm::mat4>;
-        std::list<Node> _M_stack = {{this, Constants::identity_matrix}};
+        if (!_M_visible)
+            return;
 
-        Scene* _scene = this->scene();
+        // Try to find scene
+        const Scene* _M_scene = scene();
+        if (!_M_scene || !_M_scene->_M_active_camera.camera)
+            throw std::runtime_error("No scene or camera found!");
 
+        Frustum frustum(*_M_scene->_M_active_camera.camera);
 
-        if (!_scene)
+        // List of allocated objects
+        std::list<glm::mat4*> _M_matrix_objects;
+
+        // Create node for stack
+        using OctreeNode = const Octree<DrawableObject*>::OctreeNode*;
+
+        struct Node {
+            OctreeNode _M_node;
+            glm::mat4* _M_matrix;
+            glm::mat4* _M_prev_matrix;
+
+            Node(OctreeNode node = nullptr, glm::mat4* matrix = nullptr, glm::mat4* prev_matrix = nullptr)
+                : _M_node(node), _M_matrix(matrix), _M_prev_matrix(prev_matrix)
+            {}
+        };
+
+        render_layer(Constants::identity_matrix, on_render_layer);
+
+        std::list<Node> _M_stack;
+
+        // Init first node
         {
-            throw std::runtime_error("No scene found!");
+            auto octree_head = _M_octree.head();
+            if (octree_head)
+            {
+                glm::mat4* prev_matrix = new glm::mat4(1.f);
+                glm::mat4* current_matrix = new glm::mat4(_M_cached_matrix);
+                _M_stack.emplace_back(octree_head, current_matrix, prev_matrix);
+
+                _M_matrix_objects.push_back(prev_matrix);
+                _M_matrix_objects.push_back(current_matrix);
+            }
         }
-
-        Scene* active = _scene->get_active_scene();
-
-        if (!_scene->contains_item(active))
-        {
-            throw std::runtime_error("No scene found!");
-        }
-
-        if (active->active_camera().camera == nullptr)
-        {
-            throw std::runtime_error("No active camera found found!");
-        }
-
-        Frustum frustum(*active->active_camera().camera);
-
-#ifdef ENGINE_DEBUG
-        std::size_t cpu_processed = 0;
-        std::size_t gpu_processed = 0;
-#endif
 
         while (!_M_stack.empty())
         {
             Node node = _M_stack.back();
             _M_stack.pop_back();
-#ifdef ENGINE_DEBUG
-            cpu_processed += cast(int, node.first->test);
-#endif
 
-            auto matrix = node.second * node.first->model();
-            if ((node.first->_M_aabb.is_in_frustum(frustum, matrix)) || !node.first->test)
+            if (node._M_node->box().is_in_frustum(frustum, *node._M_prev_matrix))
             {
-                node.first->render_layer(node.second);
-#ifdef ENGINE_DEBUG
-                gpu_processed += cast(int, node.first->test);
-#endif
-
-                for (auto& ell : node.first->_M_sub_objects)
+                for (auto& ell : node._M_node->values)
                 {
-                    _M_stack.push_back({ell, node.second * node.first->_M_model.get()});
+                    if (!ell->_M_visible)
+                        continue;
+
+                    glm::mat4* global_ell_matrix = new glm::mat4((*node._M_matrix) * ell->_M_cached_matrix);
+                    _M_matrix_objects.push_back(global_ell_matrix);
+
+                    if (!ell->is_empty_layer() && ell->_M_original_aabb.is_in_frustum(frustum, *global_ell_matrix))
+                        ell->render_layer(*node._M_matrix, on_render_layer);
+
+
+                    auto octree_head = ell->_M_octree.head();
+                    if (octree_head)
+                    {
+                        _M_stack.emplace_back(octree_head, global_ell_matrix, node._M_matrix);
+                    }
+                }
+
+                for (byte i = 0; i < 8; i++)
+                {
+                    auto sub_node = node._M_node->get(i);
+                    if (sub_node)
+                    {
+                        _M_stack.emplace_back(sub_node, node._M_matrix, node._M_prev_matrix);
+                    }
                 }
             }
         }
 
-#ifdef ENGINE_DEBUG
-        if (Event::frame_number() % 60 == 0)
-            logger->log("Total processed on cpu: %zu, proccessed on gpu: %zu\n", cpu_processed, gpu_processed);
-#endif
+        // Free memory of matrix list
+        for (auto& ell : _M_matrix_objects) delete ell;
     }
 
-    void DrawableObject::render_layer(const glm::mat4& prev_model)
+
+    void DrawableObject::render_layer(const glm::mat4& prev_model,
+                                      void (*on_render_layer)(const DrawableObject*, const glm::mat4&)) const
     {
         // empty method
+    }
+
+    const Octree<DrawableObject*>& DrawableObject::octree() const
+    {
+        const Scene* _M_scene = scene();
+        if (!_M_scene)
+            throw std::runtime_error("No scene found!");
+        return _M_scene->_M_octree;
     }
 
     DrawableObject& DrawableObject::load(const std::string& filename, const ObjectLoader::DrawableLoader& loader)
@@ -250,6 +435,7 @@ namespace Engine
     {
         return get_scene<const Scene>(this);
     }
+
 
     bool DrawableObject::contains_item(const DrawableObject* object) const
     {

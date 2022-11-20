@@ -1,15 +1,16 @@
 #pragma once
 #include <Core/engine.hpp>
 #include <Core/engine_types.hpp>
-#include <TemplateFunctional//reference_wrapper.hpp>
+#include <TemplateFunctional/reference_wrapper.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <list>
 #include <unordered_set>
+#include <Core/instance.hpp>
 
 namespace Engine
 {
 
-    CLASS ModelMatrix
+    CLASS ModelMatrix : public virtual ObjectInstance
     {
     protected:
         ReferenceWrapper<glm::mat4> _M_model = ReferenceWrapper<glm::mat4>(Constants::identity_matrix);
@@ -36,6 +37,10 @@ namespace Engine
         ModelMatrix& update_shift_data();
         const ModelMatrix& update_vectors() const;
 
+    protected:
+        std::unordered_set<void(*)(ModelMatrix*)> _M_on_before_set_model;
+        std::unordered_set<void(*)(ModelMatrix*)> _M_on_set_model;
+
     public:
         ModelMatrix();
         ModelMatrix(const ModelMatrix&);
@@ -55,6 +60,7 @@ namespace Engine
 
     protected:
         std::unordered_set<void (*)(Translate*)> _M_on_translate;
+        std::unordered_set<void (*)(Translate*)> _M_on_before_translate;
 
     public:
         Translate();
@@ -82,6 +88,7 @@ namespace Engine
     {
     protected:
         std::unordered_set<void (*)(Scale*)> _M_on_scale;
+        std::unordered_set<void (*)(Scale*)> _M_on_before_scale;
 
     public:
         Scale();
@@ -104,6 +111,7 @@ namespace Engine
 
     protected:
         std::unordered_set<void (*)(Rotate*)> _M_on_rotate;
+        std::unordered_set<void (*)(Rotate*)> _M_on_before_rotate;
 
     public:
         Rotate();

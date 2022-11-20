@@ -122,8 +122,12 @@ namespace Engine
 
     ModelMatrix& ModelMatrix::model(const glm::mat4& m)
     {
+        for (auto func : _M_on_before_set_model) func(this);
+
         _M_model.get() = m;
         update_data();
+
+        for (auto func : _M_on_set_model) func(this);
         return *this;
     }
 
@@ -175,6 +179,12 @@ namespace Engine
     Translate& Translate::move(const Vector3D move_vector, const Vector3D& right, const Vector3D& up, const Vector3D& front,
                                const bool& add_values)
     {
+        for (auto func : _M_on_before_translate)
+        {
+            func(this);
+        }
+
+
         glm::vec3 result_move = (right * move_vector.x) + (up * move_vector.y) + (front * move_vector.z);
 
         if (add_values)
@@ -241,17 +251,26 @@ namespace Engine
 
     Scale& Scale::scale(const Scale3D& sc, const bool& add_values)
     {
+        if (sc.x == 0.f || sc.y == 0.f || sc.z == 0.f)
+            return *this;
+
+        for (auto func : _M_on_before_scale)
+        {
+            func(this);
+        }
+
+
         if (add_values)
         {
             _M_scale.get() *= sc;
-            _M_model.get() = glm::scale(_M_model.get(), sc);
         }
         else
         {
             _M_model.get() = glm::scale(_M_model.get(), 1.f / _M_scale.get());
             _M_scale = sc;
-            _M_model.get() = glm::scale(_M_model.get(), sc);
         }
+
+        _M_model.get() = glm::scale(_M_model.get(), sc);
 
         for (auto func : _M_on_scale)
         {
@@ -320,6 +339,11 @@ namespace Engine
 
     void Rotate::update_model(const Quaternion& q, const bool& add_values)
     {
+        for (auto func : _M_on_before_rotate)
+        {
+            func(this);
+        }
+
         auto& quat = _M_quaternion.get();
 
         if (add_values)
@@ -327,12 +351,12 @@ namespace Engine
         else
         {
             quat.w = -quat.w;
-            _M_model.get() = glm::mat4_cast(quat) * _M_model.get();
+            _M_model.get() = _M_model.get() * glm::mat4_cast(quat);
             quat = q;
         }
 
         _M_quaternion.get() = glm::normalize(_M_quaternion.get());
-        _M_model.get() = glm::mat4_cast(glm::normalize(q)) * _M_model.get();
+        _M_model.get() = _M_model.get() * glm::mat4_cast(glm::normalize(q));
         _M_euler_angles.get() = glm::eulerAngles(quat);
 
         update_vectors();

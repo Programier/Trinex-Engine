@@ -70,8 +70,7 @@ namespace Engine
 
     ENGINE_EXPORT const Key MouseEvent::just_pressed()
     {
-        return keys._M_keys[keys._M_last_mouse_key] == KeyStatus::JUST_PRESSED ? to_key(keys._M_last_mouse_key - 1)
-                                                                               : KEY_UNKNOWN;
+        return keys._M_keys[keys._M_last_mouse_key] == KeyStatus::JUST_PRESSED ? keys._M_last_mouse_key : KEY_UNKNOWN;
     }
 
     ENGINE_EXPORT const Key MouseEvent::last_pressed()
@@ -81,9 +80,8 @@ namespace Engine
 
     ENGINE_EXPORT const Key MouseEvent::just_released()
     {
-        return keys._M_keys[keys._M_last_mouse_released] == KeyStatus::JUST_RELEASED
-                       ? to_key(keys._M_last_mouse_released - 1)
-                       : KEY_UNKNOWN;
+        return keys._M_keys[keys._M_last_mouse_released] == KeyStatus::JUST_RELEASED ? keys._M_last_mouse_released
+                                                                                     : KEY_UNKNOWN;
     }
 
     ENGINE_EXPORT KeyStatus MouseEvent::get_key_status(const Key& key)

@@ -4,13 +4,17 @@
 #include <Core/implement.hpp>
 #include <Graphics/basic_object.hpp>
 #include <Graphics/drawable_loader.hpp>
+#include <Graphics/hitbox.hpp>
+#include <Graphics/octree.hpp>
 #include <unordered_set>
 #include <vector>
-#include <Graphics/hitbox.hpp>
 
 namespace Engine
 {
     class Scene;
+    class DrawableObject;
+    void empty_drawable_callback_handler(const DrawableObject*, const glm::mat4&);
+    using on_render_layer_func = void (*)(const DrawableObject*, const glm::mat4&);
 
     class ENGINE_EXPORT DrawableObject : virtual public BasicObject<Translate, Rotate, Scale>
     {
@@ -103,10 +107,27 @@ namespace Engine
         using const_iterator = Iterator<const DrawableObject>;
 
     private:
-        static void on_changed_spatial_parameters(DrawableObject* self);
+        void on_changed_spatial_parameters();
+        void on_before_changed_spatial_parameters();
+
+        static void on_set_model(ModelMatrix* self);
+        static void on_before_set_model(ModelMatrix* self);
         static void on_scale(Scale* self);
         static void on_translate(Translate* self);
         static void on_rotate(Rotate* self);
+        static void on_before_scale(Scale* self);
+        static void on_before_translate(Translate* self);
+        static void on_before_rotate(Rotate* self);
+
+        void private_remove_object(DrawableObject* object);
+
+        mutable glm::mat4 _M_cached_matrix = Constants::identity_matrix;
+
+        void unlink_object_from_head();
+        void link_object_to_head();
+        void repush_object();
+
+        void update_aabb();
 
     protected:
         DrawableObject* _M_parent = nullptr;
@@ -117,19 +138,22 @@ namespace Engine
         std::wstring _M_name;
         std::size_t _M_sub_objects_count = 0;
 
+        Octree<DrawableObject*> _M_octree;
         std::unordered_set<DrawableObject*> _M_sub_objects;
 
         DrawableObject();
 
+        const glm::mat4& get_cached_matrix() const;
+
     public:
-        bool test = false;
-        void recalculate_aabb();
+        glm::mat4 global_model();
         DrawableObject& push_object(DrawableObject* object);
         DrawableObject& remove_object(DrawableObject* object);
         const std::unordered_set<DrawableObject*> sub_objects() const;
         bool visible() const;
         DrawableObject& visible(bool status);
-        const AABB_3D& aabb() const;
+        const BoxHB& aabb() const;
+        const BoxHB original_aabb() const;
         DrawableObject& aabb(const AABB_3D& aabb);
         DrawableObject* parent();
         const DrawableObject* parent() const;
@@ -154,9 +178,13 @@ namespace Engine
 
         Scene* scene();
         const Scene* scene() const;
+        const Octree<DrawableObject*>& octree() const;
 
-        virtual void render_layer(const glm::mat4& prev_model = Constants::identity_matrix);
-        void render();
+
+        virtual void render_layer(const glm::mat4& prev_model = Constants::identity_matrix,
+                                  on_render_layer_func = empty_drawable_callback_handler) const;
+        virtual void render(on_render_layer_func = empty_drawable_callback_handler) const;
+        virtual bool is_empty_layer() const = 0;
         virtual ~DrawableObject();
     };
 

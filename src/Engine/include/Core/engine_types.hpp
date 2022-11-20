@@ -48,23 +48,27 @@ namespace Engine
     typedef unsigned char TextureBindIndex;
 
     template<typename Type>
-    struct SizeLimits
+    class SizeLimits
     {
+    public:
         Type min;
         Type max;
 
-        Type& operator[](bool _min)
+        SizeLimits() = default;
+        SizeLimits(const Type& _min, const Type& _max) : min(_min), max(_max) {}
+
+        Type& operator[](bool _max)
         {
-            if(_min)
-                return min;
-            return max;
+            if(_max)
+                return max;
+            return min;
         }
 
-        const Type& operator[](bool _min) const
+        const Type& operator[](bool _max) const
         {
-            if(_min)
-                return min;
-            return max;
+            if(_max)
+                return max;
+            return min;
         }
     };
 
@@ -335,5 +339,4 @@ namespace Engine
         FileBuffer compute;
         FileBuffer geometry;
     };
-
 }// namespace Engine
