@@ -1,4 +1,5 @@
 #include <Core/init.hpp>
+#include <Core/logger.hpp>
 #include <Graphics/enable_param.hpp>
 #include <ImGui/imgui.h>
 #include <ImGui/imgui_init.hpp>
@@ -11,9 +12,14 @@
 
 namespace Editor
 {
+    Application* application = nullptr;
+
     Application::Application()
     {
+        application = this;
+
         Engine::init(Engine::EngineAPI::OpenGL);
+
         _M_window.init({1280, 720}, "Editor", Engine::WindowAttrib::WIN_RESIZABLE);
 
         // Init GUI
@@ -25,8 +31,11 @@ namespace Editor
         Engine::ImGuiInit::init(glsl_ver);
 
         _M_panels = {new MenuBar, new LeftPanel, new ViewPort, new RightPanel};
-        Engine::enable(Engine::EnableCap::DepthTest)(Engine::EnableCap::Blend);
+        Engine::enable(Engine::EnableCap::DepthTest)(Engine::EnableCap::Blend)(Engine::EnableCap::StencilTest);
         Engine::blend_func(Engine::BlendFunc::SrcAlpha, Engine::BlendFunc::OneMinusSrcAlpha);
+        Engine::stencil_option(Engine::StencilOption::KEEP, Engine::StencilOption::KEEP, Engine::StencilOption::REPLACE);
+        Engine::stencil_func(Engine::CompareFunc::Always, 1, 0xFF);
+        Engine::stencil_mask(0xFF);
     }
 
     Application& Application::loop()
@@ -60,6 +69,7 @@ namespace Editor
 
             for (auto it = ++_M_panels.begin(); it != _M_panels.end(); ++it)
             {
+                (*it)->proccess_commands();
                 (*it)->render();
                 ImGui::NextColumn();
             }

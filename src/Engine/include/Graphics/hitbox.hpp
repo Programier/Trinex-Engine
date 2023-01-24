@@ -12,7 +12,8 @@ namespace Engine
     CLASS HitBox
     {
     public:
-        virtual void render(const glm::mat4& model) const = 0;
+        virtual void render(const glm::mat4& model = Constants::identity_matrix, const Color& color = Color::Red)
+                const = 0;
         virtual bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const = 0;
         virtual bool is_in_frustum(const Frustum& frustum) const = 0;
         virtual Vector2D intersect(const Ray& ray) const = 0;
@@ -27,9 +28,11 @@ namespace Engine
         Size3D _M_half_sizes;
 
     public:
-        implement_class_hpp(BoxHB);
+        BoxHB();
         BoxHB(const AABB_3D& box);
         BoxHB(const Size3D& _min, const Size3D& _max);
+        copy_constructors_hpp(BoxHB);
+
         const AABB_3D& aabb() const;
         BoxHB& aabb(const AABB_3D& box);
         BoxHB& aabb(const BoxHB& box);
@@ -37,7 +40,8 @@ namespace Engine
         bool is_on_or_forward_plan(const Plane& plan) const;
         bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const override;
         bool is_in_frustum(const Frustum& frustum) const override;
-        void render(const glm::mat4& model) const override;
+        void render(const glm::mat4& model = Constants::identity_matrix, const Color& color = Color::Red)
+                const override;
         BoxHB apply_model(const glm::mat4& model) const;
         Vector2D intersect(const Ray& ray) const override;
 

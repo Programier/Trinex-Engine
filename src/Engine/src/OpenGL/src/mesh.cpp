@@ -1,7 +1,8 @@
+#include <algorithm>
 #include <cstdio>
 #include <opengl_mesh.hpp>
 #include <opengl_object.hpp>
-
+#include <unordered_set>
 
 #define NEW_MESH
 
@@ -58,16 +59,31 @@ API void api_update_mesh_attributes(const ObjID& ID, const MeshInfo& info)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->_M_EBO);
 
     // Setting attributes values
-    std::uintptr_t offset = 0;
     int index = 0;
 
-    std::size_t size = 0;
-    for (auto& attrib : info.attributes) size += _M_buffer_value_type_sizes.at(attrib.type) * attrib.count;
+    auto it = std::max_element(info.attributes.begin(), info.attributes.end(),
+                               [](MeshAtribute a, MeshAtribute b) -> bool { return a.offset < b.offset; });
+
+    unsigned int size = (*it).offset + (*it).count * _M_buffer_value_type_sizes.at((*it).type);
+
+    static const std::unordered_set<Engine::BufferValueType> _M_attrib_types = {
+            BufferValueType::BYTE,           BufferValueType::UNSIGNED_BYTE, BufferValueType::SHORT,
+            BufferValueType::UNSIGNED_SHORT, BufferValueType::FLOAT,
+    };
 
     for (const auto& value : info.attributes)
     {
-        glVertexAttribPointer(index, value.count, _M_buffer_value_types.at(value.type), GL_FALSE, size, (GLvoid*) (offset));
-        offset += value.count * _M_buffer_value_type_sizes.at(value.type);
+
+        if (_M_attrib_types.contains(value.type))
+        {
+            glVertexAttribPointer(index, value.count, _M_buffer_value_types.at(value.type), GL_FALSE, size,
+                                  (GLvoid*) (value.offset));
+        }
+        else
+        {
+            glVertexAttribIPointer(index, value.count, _M_buffer_value_types.at(value.type), size, (GLvoid*) (value.offset));
+        }
+
         glEnableVertexAttribArray(index++);
     }
 

@@ -1,20 +1,23 @@
 #pragma once
 
+#include <Core/api_object.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
 #include <Core/implement.hpp>
-#include <Core/object.hpp>
 #include <string>
 
 namespace Engine
 {
-    CLASS Shader : public Object
+    CLASS Shader : public ApiObject
     {
+        declare_instance_info_hpp(Shader);
+
     public:
-        implement_class_hpp(Shader);
+        delete_copy_constructors(Shader);
+        constructor_hpp(Shader);
         Shader(const ShaderParams& params);
-        Shader(const std::string& name, const std::string& vertex, const std::string& fragment, const std::string& compute,
-               const std::string& geometry, ShaderSourceType type = ShaderSourceType::Text);
+        Shader(const std::string& name, const std::string& vertex, const std::string& fragment,
+               const std::string& compute, const std::string& geometry, ShaderSourceType type = ShaderSourceType::Text);
 
         Shader& load(const ShaderParams& params);
         Shader& load(const std::string& name, const std::string& vertex, const std::string& fragment,

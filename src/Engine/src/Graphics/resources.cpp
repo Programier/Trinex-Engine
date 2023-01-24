@@ -1,28 +1,21 @@
+#include <Core/destroy_controller.hpp>
+#include <Core/logger.hpp>
+#include <Graphics/drawable.hpp>
+#include <Graphics/mesh.hpp>
 #include <Graphics/resources.hpp>
+#include <Graphics/texture.hpp>
 
-namespace Engine
+namespace Engine::Resources
 {
-    static struct {
-        ResouceMap<Texture> _M_textures;
-    } _M_resources_data;
+    ENGINE_EXPORT std::vector<BasicMesh*> meshes;
+    ENGINE_EXPORT std::vector<Texture*> textures;
+    ENGINE_EXPORT std::vector<Drawable*> drawables;
 
-    static Resources _M_resources;
 
-    ENGINE_EXPORT const ResouceMap<Texture>& Resources::textures()
-    {
-        return _M_resources_data._M_textures;
-    }
-
-    const Resources& Resources::push_texture(const Texture& texture)
-    {
-        _M_resources_data._M_textures.insert_or_assign(texture.id(), texture);
-        return _M_resources;
-    }
-
-    const Resources& Resources::remove_texture(const Texture& texture)
-    {
-        _M_resources_data._M_textures.erase(texture.id());
-        return _M_resources;
-    }
-
-}// namespace Engine
+    //    DestroyController({
+    //        logger->log("Engine: Start delete resources\n");
+    //        for (auto mesh : meshes) delete mesh;
+    //        for (auto texture : textures) delete texture;
+    //        for (auto drawable : drawables) delete drawable;
+    //    });
+}// namespace Engine::Resources

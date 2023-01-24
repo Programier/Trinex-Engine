@@ -1,20 +1,18 @@
 #pragma once
-#include <Graphics/texture.hpp>
-#include <unordered_map>
-
+#include <vector>
+#include <Core/export.hpp>
 
 namespace Engine
 {
+    class BasicMesh;
+    class Texture;
+    class Drawable;
 
-    template<typename Type>
-    using ResouceMap = std::unordered_map<ObjID, Type>;
-
-    STRUCT Resources
+    namespace Resources
     {
-    public:
-        ENGINE_EXPORT static const ResouceMap<Texture>& textures();
-        ENGINE_EXPORT static const Resources& push_texture(const Texture& texture);
-        ENGINE_EXPORT static const Resources& remove_texture(const Texture& texture);
-    };
+        ENGINE_EXPORT extern std::vector<BasicMesh*> meshes;
+        ENGINE_EXPORT extern std::vector<Texture*> textures;
+        ENGINE_EXPORT extern std::vector<Drawable*> drawables;
+    }
 
 }// namespace Engine

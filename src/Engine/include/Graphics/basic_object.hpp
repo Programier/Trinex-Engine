@@ -1,73 +1,60 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/object.hpp>
 #include <TemplateFunctional/reference_wrapper.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <list>
 #include <unordered_set>
-#include <Core/instance.hpp>
 
 namespace Engine
 {
 
-    CLASS ModelMatrix : public virtual ObjectInstance
+    CLASS ModelMatrix : public virtual Object
     {
     protected:
-        ReferenceWrapper<glm::mat4> _M_model = ReferenceWrapper<glm::mat4>(Constants::identity_matrix);
-        ReferenceWrapper<glm::mat4> _M_shift = ReferenceWrapper<glm::mat4>(Constants::identity_matrix);
+        Matrix4f _M_model = Constants::identity_matrix;
+        Point3D _M_position = Constants::zero_vector;
+        Point3D _M_scale = Constants::identity_vector;
+        Point3D _M_rotation = Constants::zero_vector;
 
-        ReferenceWrapper<Point3D> _M_position = ReferenceWrapper<Point3D>(Constants::zero_vector);
-        ReferenceWrapper<Point3D> _M_scale = ReferenceWrapper<Point3D>(Constants::identity_vector);
-        ReferenceWrapper<Point3D> _M_rotation = ReferenceWrapper<Point3D>(Constants::zero_vector);
+        Quaternion _M_quaternion = Quaternion(Vector3D(0.f));
+        EulerAngle3D _M_euler_angles = Constants::zero_vector;
 
-        Point3D _M_shift_position = Constants::zero_vector;
-        Point3D _M_shift_scale = Constants::identity_vector;
-        Point3D _M_shift_rotation = Constants::zero_vector;
+        Vector3D _M_front = Constants::OZ;
+        Vector3D _M_right = Constants::OX;
+        Vector3D _M_up = Constants::OY;
 
-        ReferenceWrapper<Quaternion> _M_quaternion = ReferenceWrapper<Quaternion>(Quaternion(Vector3D(0.f)));
-
-        ReferenceWrapper<EulerAngle3D> _M_euler_angles = ReferenceWrapper<EulerAngle3D>(EulerAngle3D(0.f));
-        mutable Vector3D _M_front = Constants::OZ;
-        mutable Vector3D _M_right = Constants::OX;
-        mutable Vector3D _M_up = Constants::OY;
 
         ModelMatrix& update_data();
+        ModelMatrix& update_vectors();
 
-
-        ModelMatrix& update_shift_data();
-        const ModelMatrix& update_vectors() const;
-
-    protected:
-        std::unordered_set<void(*)(ModelMatrix*)> _M_on_before_set_model;
-        std::unordered_set<void(*)(ModelMatrix*)> _M_on_set_model;
+        declare_instance_info_hpp(ModelMatrix);
 
     public:
-        ModelMatrix();
-        ModelMatrix(const ModelMatrix&);
-        ModelMatrix(ModelMatrix &&);
-        ModelMatrix& operator=(const ModelMatrix&);
-        ModelMatrix& operator=(ModelMatrix&&);
-        glm::mat4 model() const;
-        ModelMatrix& model(const glm::mat4& m);
-        ModelMatrix& link_to(ModelMatrix & obj);
+        Callback<void, ModelMatrix*> on_before_set_model;
+        Callback<void, ModelMatrix*> on_set_model;
 
+        constructor_hpp(ModelMatrix);
+        delete_copy_constructors(ModelMatrix);
+
+        const Matrix4f& model() const;
+        ModelMatrix& model(const glm::mat4& m);
         virtual ~ModelMatrix();
     };
 
 
     CLASS Translate : public virtual ModelMatrix
     {
-
-    protected:
-        std::unordered_set<void (*)(Translate*)> _M_on_translate;
-        std::unordered_set<void (*)(Translate*)> _M_on_before_translate;
+        declare_instance_info_hpp(Translate);
 
     public:
-        Translate();
-        Translate(const Translate&);
-        Translate(Translate &&);
-        Translate& operator=(const Translate&);
-        Translate& operator=(Translate&&);
+        Callback<void, Translate*> on_translate;
+        Callback<void, Translate*> on_before_translate;
+
+        constructor_hpp(Translate);
+        delete_copy_constructors(Translate);
 
         Translate& move(const Point1D& x, const Point1D& y, const Point1D& z, const bool& add_values = true);
         Translate& move(const Vector3D& move_vector, const bool& add_values = true);
@@ -76,27 +63,22 @@ namespace Engine
         Translate& move(const Vector3D move_vector, const Vector3D& right, const Vector3D& up, const Vector3D& front,
                         const bool& add_values = true);
         Translate& move(const Distance& distance, const Vector3D& axis, const bool& add_value = true);
-        Point3D position() const;
-
-        const Point3D& shift() const;
-
+        const Point3D& position() const;
         virtual ~Translate();
     };
 
 
     CLASS Scale : public virtual ModelMatrix
     {
-    protected:
-        std::unordered_set<void (*)(Scale*)> _M_on_scale;
-        std::unordered_set<void (*)(Scale*)> _M_on_before_scale;
+        declare_instance_info_hpp(Scale);
 
     public:
-        Scale();
-        Scale(const Scale&);
-        Scale(Scale &&);
-        Scale& operator=(const Scale&);
-        Scale& operator=(Scale&&);
-        Scale3D scale() const;
+        Callback<void, Scale*> on_scale;
+        Callback<void, Scale*> on_before_scale;
+
+        constructor_hpp(Scale);
+        delete_copy_constructors(Scale);
+        const Scale3D& scale() const;
         Scale& scale(const Scale3D& sc, const bool& add_values = true);
         Scale& scale(const Scale1D& x, const Scale1D& y, const Scale1D& z, const bool& add_values = true);
 
@@ -108,37 +90,39 @@ namespace Engine
     {
     private:
         void update_model(const Quaternion& q, const bool& add_values);
-
-    protected:
-        std::unordered_set<void (*)(Rotate*)> _M_on_rotate;
-        std::unordered_set<void (*)(Rotate*)> _M_on_before_rotate;
+        declare_instance_info_hpp(Rotate);
 
     public:
-        Rotate();
-        Rotate(const Rotate&);
-        Rotate(Rotate &&);
-        Rotate& operator=(const Rotate&);
-        Rotate& operator=(Rotate&&);
+        Callback<void, Rotate*> on_rotate;
+        Callback<void, Rotate*> on_before_rotate;
 
-        EulerAngle3D euler_angles() const;
-        Rotate& rotate(const EulerAngle1D& x, const EulerAngle1D& y, const EulerAngle1D& z, const bool& add_values = true);
+        constructor_hpp(Rotate);
+        delete_copy_constructors(Rotate);
+
+        const EulerAngle3D& euler_angles() const;
+        Rotate& rotate(const EulerAngle1D& x, const EulerAngle1D& y, const EulerAngle1D& z,
+                       const bool& add_values = true);
         Rotate& rotate(const EulerAngle3D& r, const bool& add_values = true);
         Rotate& rotate(const EulerAngle1D& angle, const Vector3D& axis, const bool& add_values = true);
         Rotate& rotate(const Quaternion& q, const bool& add_values = true);
         Quaternion quaternion() const;
 
-        virtual Vector3D front_vector(bool update = true) const;
-        const Vector3D& right_vector(bool update = true) const;
-        const Vector3D& up_vector(bool update = true) const;
-
+        const Vector3D& front_vector() const;
+        const Vector3D& right_vector() const;
+        const Vector3D& up_vector() const;
         virtual ~Rotate();
     };
 
 
     template<typename... BaseClasses>
-    class BasicObject : public BaseClasses...
+    class BasicObject : public BaseClasses..., public virtual ModelMatrix
     {
+        declare_instance_info_template(BasicObject);
+
     public:
+        delete_copy_constructors(BasicObject);
+        constructor_template(BasicObject)
+        {}
         virtual ~BasicObject() = default;
     };
 

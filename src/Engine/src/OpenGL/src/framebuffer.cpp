@@ -67,7 +67,30 @@ API void api_attach_texture_to_framebuffer(const ObjID& ID, const ObjID& _textur
                                _M_framebuffer_attach.at(attach) + (attach == FrameBufferAttach::COLOR_ATTACHMENT ? num : 0),
                                GL_TEXTURE_2D, 0, level);
     }
-    glReadBuffer(GL_NONE);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    if (status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)
+    {
+        external_logger->log("Incomplete framebuffer attachments\n");
+    }
+    else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)
+    {
+        external_logger->log("incomplete missing framebuffer attachments");
+    }
+    else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)
+    {
+        external_logger->log("Incomplete framebuffer attachments dimensions\n");
+    }
+    else if (status == GL_FRAMEBUFFER_UNSUPPORTED)
+    {
+        external_logger->log(
+                "Combination of internal formats used by attachments in thef ramebuffer results in a nonrednerable target");
+    }
+    else
+    {
+        external_logger->log("Framebuffer: Attach success!\n");
+    }
 }
 
 
@@ -79,6 +102,9 @@ static int get_buffer_byte(const BufferType& buffer)
 
     if ((buffer & DEPTH_BUFFER_BIT) == DEPTH_BUFFER_BIT)
         opengl_buffer |= GL_DEPTH_BUFFER_BIT;
+
+    if ((buffer & STENCIL_BUFFER_BIT) == STENCIL_BUFFER_BIT)
+        opengl_buffer |= GL_STENCIL_BUFFER_BIT;
     return opengl_buffer;
 }
 

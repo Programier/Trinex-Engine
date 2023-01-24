@@ -1,21 +1,19 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/object.hpp>
+#include <Core/api_object.hpp>
 #include <TemplateFunctional/reference_wrapper.hpp>
 
 namespace Engine
 {
 
 
-    CLASS Texture : public Object
+    CLASS Texture : public ApiObject
     {
+                               declare_instance_info_hpp(Texture);
     public:
-        Texture();
-        Texture(const TextureParams& params);
-        Texture(const Texture& texture);
-        Texture(Texture&& texture);
-        Texture& operator=(const Texture& texture);
-        Texture& operator=(Texture&& texture);
+        constructor_hpp(Texture);
+        constructor_hpp(Texture, const TextureParams& params);
+        delete_copy_constructors(Texture);
 
         Texture& create(const TextureParams& params);
         const Texture& bind(unsigned int num = 0) const;

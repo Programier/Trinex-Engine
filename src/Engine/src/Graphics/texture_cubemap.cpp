@@ -3,7 +3,9 @@
 
 namespace Engine
 {
-    implement_class_cpp(TextureCubeMap);
+    declare_instance_info_cpp(TextureCubeMap);
+    constructor_cpp(TextureCubeMap)
+    {}
 
     TextureCubeMap& TextureCubeMap::attach_texture(const Texture2D& texture, TextureCubeMapFace index, int level)
     {

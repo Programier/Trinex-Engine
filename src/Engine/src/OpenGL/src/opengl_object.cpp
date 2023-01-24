@@ -75,7 +75,7 @@ public:
 } empty_logger;
 
 
-Logger* external_logger = nullptr;
+Logger* external_logger = &empty_logger;
 
 
 API void api_set_logger(Logger*& logger)

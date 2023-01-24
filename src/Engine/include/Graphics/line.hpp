@@ -1,37 +1,42 @@
 #pragma once
-#include <Core/color.hpp>
-#include <Graphics/basic_object.hpp>
-#include <Graphics/drawable_object.hpp>
+#include <Core/engine_types.hpp>
+#include <Core/export.hpp>
+#include <Graphics/drawable.hpp>
 #include <Graphics/mesh.hpp>
 
 
+class aiMesh;
+
 namespace Engine
 {
-    CLASS Line : public Mesh<float>, public DrawableObject
-    {
-        Line& _M_push_line(const Point3D& point1, const Point3D& point2);
-        float _M_line_width = 1.f;
-
-    public:
-        Color color = Color::White;
-
-        Line();
-        Line(const Line& line);
-        Line(const std::vector<float>& data, unsigned int vertices, const std::vector<MeshAtribute>& attributes);
-        Line& operator=(const Line& line);
-        Line(Line &&);
-        Line& operator=(Line&&);
-
-        Line& push_line(const Point3D& point1, const Point3D& point2);
-        Line& load_from(const std::string& model);
-        Size1D line_width();
-        Line& line_width(const Size1D& width);
-        Line& update();
-
-        DrawableObject* copy() const override;
-        bool is_empty_layer() const override;
-        void render_layer(const glm::mat4& prev_model = Constants::identity_matrix,
-                          on_render_layer_func = empty_drawable_callback_handler) const override;
+    ENGINE_EXPORT struct StaticLineVertex {
+        Point3D position;
     };
 
+    ENGINE_EXPORT class StaticLineMesh : public Mesh<StaticLineVertex>
+    {
+    };
+
+    class BasicMesh;
+    class Scene;
+
+    ENGINE_EXPORT class StaticLine : public Drawable
+    {
+    private:
+        StaticLineMesh* _M_mesh = nullptr;
+
+        declare_instance_info_hpp(StaticLine);
+
+    public:
+        Color color = Color::Green;
+        delete_copy_constructors(StaticLine);
+        constructor_hpp(StaticLine);
+        std::size_t render(const Matrix4f& matrix);
+        StaticLineMesh* mesh();
+        const StaticLineMesh* mesh() const;
+        StaticLine& mesh(StaticLineMesh* mesh);
+
+        ENGINE_EXPORT static StaticLine* load_from_assimp_mesh(const aiMesh* mesh);
+        ENGINE_EXPORT static void load(const std::string& filename, Scene* scene);
+    };
 }// namespace Engine

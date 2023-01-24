@@ -9,12 +9,14 @@ namespace Engine
     CLASS FrameBuffer : public BasicFrameBuffer
     {
     protected:
-        std::vector<Texture2D> _M_textures;
+        std::vector<Texture2D*> _M_textures;
 
+    declare_instance_info_hpp(FrameBuffer);
     public:
-        implement_class_hpp(FrameBuffer);
+        delete_copy_constructors(FrameBuffer);
+        constructor_hpp(FrameBuffer);
         FrameBuffer& gen(FrameBufferType type = FrameBufferType::FRAMEBUFFER);
-        FrameBuffer& attach_texture(const Texture2D& texture, FrameBufferAttach attach, unsigned int num = 0, int level = 0);
-        const std::vector<Texture2D> textures() const;
+        FrameBuffer& attach_texture(Texture2D* texture, FrameBufferAttach attach, unsigned int num = 0, int level = 0);
+        const std::vector<Texture2D*> textures() const;
     };
 }// namespace Engine

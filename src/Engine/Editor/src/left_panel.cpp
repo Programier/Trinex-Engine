@@ -1,6 +1,7 @@
 #include <Core/string_convert.hpp>
 #include <Core/string_format.hpp>
 #include <ImGui/imgui.h>
+#include <editor.hpp>
 #include <left_panel.hpp>
 #include <resouces.hpp>
 
@@ -24,6 +25,7 @@ namespace Editor
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
         {
             Resources::object_for_properties = layer;
+            application->commands.insert(Command::ObjectChanged);
         }
 
         if (state)

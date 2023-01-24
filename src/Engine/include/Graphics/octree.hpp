@@ -3,7 +3,6 @@
 #include <Core/implement.hpp>
 #include <Graphics/hitbox.hpp>
 #include <array>
-#include <iostream>
 #include <unordered_set>
 
 
@@ -19,17 +18,26 @@ namespace Engine
         OctreeIndex();
         OctreeIndex(byte value);
 
+        template<typename VectorType>
+        inline VectorType to_vector() const
+        {
+            return VectorType(Vector3D(cast(float, x), cast(float, y), cast(float, z)));
+        }
+
         operator byte();
     };
 
-    class OctreeBase
+    class OctreeBase : public Object
     {
     protected:
         float _M_min_size = 1.f;
 
+        declare_instance_info_hpp(OctreeBase);
     public:
-        implement_class_hpp(OctreeBase);
-        OctreeBase(float min_size);
+        delete_copy_constructors(OctreeBase);
+
+    protected:
+        constructor_hpp(OctreeBase, float min_size = 0.1f);
 
         void normalize_shift(Offset3D& shift);
         void generate_box(BoxHB& box);
@@ -38,40 +46,55 @@ namespace Engine
         void generate_biggest_box(const BoxHB& box, Offset3D offset, BoxHB& out);
     };
 
+    CLASS OctreeBaseNode : public Object
+    {
+    protected:
+        BoxHB _M_box;
+        OctreeIndex _M_index = 0;
+
+        declare_instance_info_hpp(OctreeBaseNode);
+
+    protected:
+        constructor_hpp(OctreeBaseNode);
+
+    public:
+        delete_copy_constructors(OctreeBaseNode);
+
+        OctreeIndex index_at_parent() const;
+        const BoxHB& box() const;
+        std::size_t render();
+        virtual OctreeBaseNode* get(const OctreeIndex& index) const = 0;
+        virtual ~OctreeBaseNode();
+    };
+
+
     template<typename Type>
-    class Octree final : protected OctreeBase
+    class Octree final : public OctreeBase
     {
 
     public:
-        struct OctreeNode {
+        struct OctreeNode : public OctreeBaseNode {
         private:
-            OctreeIndex _M_index = 0;
             OctreeNode* _M_parent = nullptr;
             std::array<std::array<std::array<OctreeNode*, 2>, 2>, 2> _M_nodes;
-            Octree* const _M_tree;
-            BoxHB _M_box;
+            Octree* _M_tree;
+
+
+            declare_instance_info_template(OctreeNode);
 
         public:
-            std::unordered_set<Type> values;
+            delete_copy_constructors(OctreeNode);
 
-            OctreeIndex index_at_parent() const
-            {
-                return _M_index;
-            }
+            std::unordered_set<Type> values;
 
             OctreeNode* parent() const
             {
                 return _M_parent;
             }
 
-            Octree* const octree() const
+            const Octree* octree() const
             {
                 return _M_tree;
-            }
-
-            const BoxHB& box() const
-            {
-                return _M_box;
             }
 
             void destroy()
@@ -84,14 +107,15 @@ namespace Engine
 
                 for (byte i = 0; i < 8; i++)
                 {
-                    auto node = get(i);
+                    Object* node = get(i);
                     if (node)
-                        delete node;
+                        node->mark_for_delete();
                 }
+                mark_for_delete();
             }
 
 
-            OctreeNode* get(const OctreeIndex& index) const
+            OctreeNode* get(const OctreeIndex& index) const override
             {
                 return _M_nodes[index.x][index.y][index.z];
             }
@@ -102,11 +126,12 @@ namespace Engine
             }
 
             friend class Octree;
+            friend class Object;
 
         private:
-            OctreeNode(Octree* const _M_tree)
-                : _M_tree(_M_tree), _M_box(Size3D(Constants::zero_vector), Size3D(Constants::zero_vector))
+            constructor_template(OctreeNode, Octree* _M_tree)
             {
+                this->_M_tree = _M_tree;
                 for (byte i = 0; i < 8; i++) private_get(i) = nullptr;
             }
 
@@ -115,14 +140,9 @@ namespace Engine
                 return _M_nodes[index.x][index.y][index.z];
             }
 
-            OctreeNode(const OctreeNode& node)
+            OctreeNode* copy_node(Octree* const tree)
             {
-                *this = node;
-            }
-
-            OctreeNode* copy(Octree* const tree)
-            {
-                OctreeNode* node = new OctreeNode(tree);
+                OctreeNode* node = Object::new_instance<OctreeNode>(tree);
                 node->_M_index = _M_index;
                 node->_M_box = _M_box;
 
@@ -131,13 +151,15 @@ namespace Engine
                     OctreeNode* part = get(i);
                     if (part)
                     {
-                        node->private_get(i) = part->copy(tree);
+                        node->private_get(i) = part->copy_node(tree);
                     }
                 }
 
                 return node;
             }
         };
+
+        declare_instance_info_template(Octree);
 
     private:
         OctreeNode* _M_head = nullptr;
@@ -177,7 +199,7 @@ namespace Engine
             const Size3D& _M_box_half_size = box.half_size();
             const Point3D& _M_box_center = box.center();
 
-           // std::clog << _M_box_center << "\t" << _M_box_center << std::endl;
+            // std::clog << _M_box_center << "\t" << _M_box_center << std::endl;
 
             // Find down
 
@@ -201,7 +223,7 @@ namespace Engine
                 OctreeNode*& _M_new_node = _M_node->private_get(index);
                 if (!_M_new_node)
                 {
-                    _M_new_node = new OctreeNode(this);
+                    _M_new_node = Object::new_instance<OctreeNode>(this);
                     _M_new_node->_M_parent = _M_node;
                     _M_new_node->_M_index = index;
                     const auto tmp = _M_node->_M_box.half_size() * _M_center_offset;
@@ -211,6 +233,8 @@ namespace Engine
                 _M_node = _M_new_node;
             }
 
+            if (_M_node->_M_parent)
+                return _M_node;
 
             // Find up
 
@@ -220,23 +244,18 @@ namespace Engine
                 Offset3D _M_center_offset = _M_box_center - _M_node_center;
                 normalize_shift(_M_center_offset);
 
-                if (_M_node->_M_parent == nullptr)
-                {
-                    _M_head = new OctreeNode(this);
 
-                    generate_biggest_box(_M_node->_M_box, _M_center_offset, _M_head->_M_box);
+                _M_head = Object::new_instance<OctreeNode>(this);
 
-                    OctreeIndex index = index_from_normalized_shift(-_M_center_offset);
-                    _M_head->private_get(index) = _M_node;
-                    _M_node->_M_index = index;
+                generate_biggest_box(_M_node->_M_box, _M_center_offset, _M_head->_M_box);
 
-                    _M_node->_M_parent = _M_head;
-                    _M_node = _M_head;
-                }
-                else
-                {
-                    throw std::runtime_error("Octree: Floating point error!");
-                }
+                OctreeIndex index = index_from_normalized_shift(-_M_center_offset);
+                _M_head->private_get(index) = _M_node;
+                _M_node->_M_index = index;
+
+                _M_node->_M_parent = _M_head;
+                _M_node = _M_head;
+
             } while (!_M_node->_M_box.contains(box));
 
             goto find_down;
@@ -259,7 +278,7 @@ namespace Engine
         Octree& operator=(const Octree& base)
         {
             clear();
-            _M_head = base._M_head->copy(this);
+            _M_head = base._M_head->copy_node(this);
             return *this;
         }
 
@@ -275,7 +294,7 @@ namespace Engine
         {
             if (!_M_head)
             {
-                _M_head = new OctreeNode(this);
+                _M_head = Object::new_instance<OctreeNode>(this);
                 _M_head->_M_box = box;
 
                 generate_box(_M_head->_M_box);
@@ -309,7 +328,10 @@ namespace Engine
         Octree& clear()
         {
             if (_M_head)
-                delete _M_head;
+            {
+                _M_head->destroy();
+                _M_head = nullptr;
+            }
             return *this;
         }
 
@@ -318,6 +340,13 @@ namespace Engine
             if (_M_head)
                 return _M_head->box();
             return BoxHB();
+        }
+
+        std::size_t render() const
+        {
+            if (_M_head)
+                return _M_head->render();
+            return 0;
         }
 
 

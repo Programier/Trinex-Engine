@@ -5,11 +5,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <resouces.hpp>
 #include <right_panel.hpp>
+#include <texture_view.hpp>
 
 namespace Editor
 {
 
-    static void render_position_object(Engine::Translate* object)
+    void RightPanel::render_position_object(Engine::Translate* object)
     {
         if (!object)
             return;
@@ -18,13 +19,13 @@ namespace Editor
         {
             auto pos = object->position();
 
-            if (ImGui::DragFloat("X", &pos.x))
+            if (ImGui::DragFloat("X", &pos.x, 0.01))
                 object->move(pos, false);
 
-            if (ImGui::DragFloat("Y", &pos.y))
+            if (ImGui::DragFloat("Y", &pos.y, 0.01))
                 object->move(pos, false);
 
-            if (ImGui::DragFloat("Z", &pos.z))
+            if (ImGui::DragFloat("Z", &pos.z, 0.01))
                 object->move(pos, false);
 
             ImGui::TreePop();
@@ -32,7 +33,7 @@ namespace Editor
     }
 
 
-    static void render_scale_object(Engine::Scale* object)
+    void RightPanel::render_scale_object(Engine::Scale* object)
     {
         if (!object)
             return;
@@ -41,20 +42,20 @@ namespace Editor
         {
             auto scale = object->scale();
 
-            if (ImGui::DragFloat("X", &scale.x))
+            if (ImGui::DragFloat("X", &scale.x, 0.01))
                 object->scale(scale, false);
 
-            if (ImGui::DragFloat("Y", &scale.y))
+            if (ImGui::DragFloat("Y", &scale.y, 0.01))
                 object->scale(scale, false);
 
-            if (ImGui::DragFloat("Z", &scale.z))
+            if (ImGui::DragFloat("Z", &scale.z, 0.01))
                 object->scale(scale, false);
 
             ImGui::TreePop();
         }
     }
 
-    static void render_rotation_object(Engine::Rotate* object)
+    void RightPanel::render_rotation_object(Engine::Rotate* object)
     {
         if (!object)
             return;
@@ -63,20 +64,20 @@ namespace Editor
         {
             auto rotation = glm::degrees(object->euler_angles());
 
-            if (ImGui::DragFloat("X", &rotation.x))
+            if (ImGui::DragFloat("X", &rotation.x, 0.01))
                 object->rotate(glm::radians(rotation), false);
 
-            if (ImGui::DragFloat("Y", &rotation.y))
+            if (ImGui::DragFloat("Y", &rotation.y, 0.01))
                 object->rotate(glm::radians(rotation), false);
 
-            if (ImGui::DragFloat("Z", &rotation.z))
+            if (ImGui::DragFloat("Z", &rotation.z, 0.01))
                 object->rotate(glm::radians(rotation), false);
 
             ImGui::TreePop();
         }
     }
 
-    static void render_transform_object(Engine::ModelMatrix* object)
+    void RightPanel::render_transform_object(Engine::ModelMatrix* object)
     {
         if (!object)
             return;
@@ -90,18 +91,22 @@ namespace Editor
         }
     }
 
-    void render_textured_object(Engine::TexturedObject* object)
+    void RightPanel::render_textured_object(Engine::TexturedObject* object)
     {
         if (!object)
             return;
 
         if (ImGui::TreeNode("Textured Object"))
         {
+            if (object->diffuse_texture().has_object() && ImGui::Button("Show Diffuse Texture"))
+            {
+                new TextureView(object->diffuse_texture(), this, "Texture View");
+            }
             ImGui::TreePop();
         }
     }
 
-    void render_drawable_object(Engine::DrawableObject* object)
+    void RightPanel::render_drawable_object(Engine::Drawable* object)
     {
         if (!object)
             return;
@@ -146,6 +151,42 @@ namespace Editor
                 Resources::object_for_rendering = object;
             }
 
+            if (ImGui::TreeNode("Bones Map"))
+            {
+                auto& bones_map = object->bones_map();
+                for (auto& ell : bones_map)
+                {
+                    if (ImGui::TreeNode(ell.first.c_str()))
+                    {
+                        ImGui::Text("ID: %zu", ell.second.ID);
+                        for (int i = 0; i < 4; i++)
+                        {
+                            float* data = const_cast<float*>(glm::value_ptr(ell.second.offset[i]));
+                            ImGui::DragFloat4(" ", data, 0.f, 0.f, 0.f, "%.3f",
+                                              ImGuiSliderFlags_NoInput | ImGuiSliderFlags_ClampOnInput);
+                        }
+
+                        ImGui::TreePop();
+                    }
+                }
+
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("Animations"))
+            {
+                for (auto& animation : object->animation())
+                {
+                    if (ImGui::TreeNode(animation->name().c_str()))
+                    {
+                        ImGui::Text("Duration: %f\n", animation->duration());
+                        ImGui::Text("Ticks: %lf\n", animation->ticks_per_second());
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::TreePop();
+            }
+
             render_textured_object(dynamic_cast<Engine::TexturedObject*>(object));
 
             ImGui::TreePop();
@@ -154,6 +195,11 @@ namespace Editor
 
     void RightPanel::render()
     {
+        for (auto panel : std::list<Panel*>(_M_windows.begin(), _M_windows.end()))
+        {
+            panel->render();
+        }
+
         ImGui::BeginChild("Parameters", {0, 0}, true);
         render_transform_object(dynamic_cast<Engine::ModelMatrix*>(Resources::object_for_properties));
         render_drawable_object(dynamic_cast<Engine::DrawableObject*>(Resources::object_for_properties));

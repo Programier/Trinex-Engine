@@ -100,6 +100,7 @@ endif()
 #if(BUILD_OPENGL)
 add_subdirectory("${ENGINE_SRC}/OpenGL")
 #endif()
+add_subdirectory("${ENGINE_SRC}/Vulkan")
 
 set(BUILD_SHARED_LIBS on)
 
@@ -108,5 +109,5 @@ target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/inclu
                                          "$<BUILD_INTERFACE:${ENGINE_ROOT}/include/ImGui>")
 
 target_link_libraries(Engine PRIVATE SDL2 ${OPENGL} ${ASSIMP_LIB} freetype ${PlatformLibs})
-add_subdirectory(Editor)
-
+#add_subdirectory(Editor)
+add_subdirectory(AssimpTreeViewer)

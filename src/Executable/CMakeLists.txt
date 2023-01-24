@@ -1,4 +1,4 @@
-set(SOURCES main.cpp Application.cpp)
+set(SOURCES main.cpp Application.cpp test.cpp)
 
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Engine/libs/)
 

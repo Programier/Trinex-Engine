@@ -11,12 +11,14 @@ namespace Engine
     public:
         BasicLogger& log(const char* format, ...)
         {
+#ifdef ENGINE_DEBUG
             va_list args;
             va_start(args, format);
             char buffer[1024];
             vsprintf(buffer, format, args);
             va_end(args);
             SDL_Log("%s", buffer);
+#endif
             return *this;
         }
     };

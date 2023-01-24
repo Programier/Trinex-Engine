@@ -1,3 +1,4 @@
+#include <Core/check.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/hitbox.hpp>
 #include <Graphics/mesh.hpp>
@@ -14,15 +15,11 @@ namespace Engine
 {
     HitBox::~HitBox() = default;
 
+
     BoxHB::BoxHB()
     {
         _M_center = _M_half_sizes = min = max = Constants::zero_vector;
     }
-
-    BoxHB::BoxHB(const BoxHB&) = default;
-    BoxHB::BoxHB(BoxHB&&) = default;
-    BoxHB& BoxHB::operator=(const BoxHB&) = default;
-    BoxHB& BoxHB::operator=(BoxHB&&) = default;
 
     BoxHB::BoxHB(const AABB_3D& box)
     {
@@ -33,6 +30,8 @@ namespace Engine
     {
         aabb(_min, _max);
     }
+
+    default_copy_constructors_cpp(BoxHB);
 
     const AABB_3D& BoxHB::aabb() const
     {
@@ -46,7 +45,8 @@ namespace Engine
 
     BoxHB& BoxHB::aabb(const BoxHB& box)
     {
-        *this = box;
+        this->_M_center = box._M_center;
+        this->_M_half_sizes = box._M_half_sizes;
         return *this;
     }
 
@@ -77,22 +77,6 @@ namespace Engine
 
     BoxHB BoxHB::apply_model(const glm::mat4& model) const
     {
-
-        //        BoxHB result;
-
-        //        //        // Calculate new center position
-
-        //        result._M_center = model * Vector4D(_M_center, 1.f);
-
-        //        result.max = model * Vector4D(max, 1.f);
-
-        //        result.max = glm::max(Point3D(model * Vector4D(-max, 1.f)), result.max);
-        //        result.max = glm::max(Point3D(model * Vector4D(max.x, max.y, min.z, 1.f)), result.max);
-
-        //        result._M_half_sizes = result.max - result._M_center;
-        //        result.min = result._M_center - result._M_half_sizes;
-
-
         Point3D points[8];
 
         Vector4D vector(max, 1.f);
@@ -145,12 +129,14 @@ namespace Engine
     static Mesh<float> _M_mesh;
 
 
-    void BoxHB::render(const glm::mat4& model) const
+    void BoxHB::render(const glm::mat4& model, const Color& color) const
     {
+
         Scene* scene = Scene::get_active_scene();
-        if (!scene || !scene->active_camera().camera)
-            throw std::runtime_error("No active scene or camera found!");
-        const Scene::ActiveCamera& active_camera = scene->active_camera();
+        check_with_message(scene, "No active scene found!");
+        Camera* camera = scene->active_camera();
+        check_with_message(camera, "No active camera found!");
+
 
         if (!_M_mesh_inited)
         {
@@ -176,7 +162,6 @@ namespace Engine
                                6, 2,//
                                3, 2,//
                                3, 7};
-            _M_mesh.vertices = _M_mesh.indexes.size();
 
             _M_mesh.mode = DrawMode::STATIC_DRAW;
             _M_mesh.gen();
@@ -200,7 +185,7 @@ namespace Engine
 
         _M_mesh.update_data(0, sizeof(float) * 24);
         namespace sh = ShaderSystem::Line;
-        sh::shader.use().set(sh::model, model).set(sh::color, Color::Red).set(sh::projview, active_camera.projview);
+        sh::shader.use().set(sh::model, model).set(sh::color, color).set(sh::projview, camera->projview());
         _M_mesh.draw(Primitive::LINE);
 
         set_line_rendering_width(_M_line_width);
@@ -229,10 +214,10 @@ namespace Engine
         return contains(BoxHB(box));
     }
 
-#define contains_check(coord)                                                                                               \
-    if (_M_half_sizes.coord < box._M_half_sizes.coord)                                                                      \
-        return false;                                                                                                       \
-    if (center_offset.coord + box._M_half_sizes.coord > _M_half_sizes.coord)                                                \
+#define contains_check(coord)                                                                                          \
+    if (_M_half_sizes.coord < box._M_half_sizes.coord)                                                                 \
+        return false;                                                                                                  \
+    if (center_offset.coord + box._M_half_sizes.coord > _M_half_sizes.coord)                                           \
     return false
 
     bool BoxHB::contains(const BoxHB& box) const
@@ -253,7 +238,7 @@ namespace Engine
 
     bool BoxHB::inside(const BoxHB& box) const
     {
-        return BoxHB(box).contains(*this);
+        return box.contains(*this);
     }
 
     Vector2D BoxHB::intersect(const Ray& ray) const

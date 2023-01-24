@@ -208,5 +208,6 @@ namespace Engine::UpdateEvent
         clear_event_system();
         SDL_WaitEvent(&event);
         process_event();
+        poll_events();
     }
 }// namespace Engine::UpdateEvent

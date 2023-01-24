@@ -1,10 +1,16 @@
+#include <Core/check.hpp>
+#include <Graphics/frustum.hpp>
 #include <Graphics/octree.hpp>
-#include <iostream>
-
+#include <Graphics/scene.hpp>
 
 namespace Engine
 {
-    implement_class_cpp(OctreeBase);
+    declare_instance_info_cpp(OctreeBase);
+    constructor_cpp(OctreeBase, float min_size)
+    {
+        this->_M_min_size = glm::abs(min_size);
+    }
+
 
     OctreeIndex::OctreeIndex(byte value)
     {
@@ -22,8 +28,6 @@ namespace Engine
         return result;
     }
 
-    OctreeBase::OctreeBase(float min_size) : _M_min_size(/*min_size == 0 ? 1.f :*/ glm::abs(min_size))
-    {}
 
     void OctreeBase::normalize_shift(Offset3D& shift)
     {
@@ -55,12 +59,12 @@ namespace Engine
     void OctreeBase::generate_box(const Point3D& point, const Point3D& new_center, BoxHB& out)
     {
         const auto half_size = point - new_center;
-        out.aabb(AABB_3D{new_center - half_size, new_center + half_size});
+        out.aabb(new_center - half_size, new_center + half_size);
     }
 
 
-#define check_offset_coord(coord)                                                                                           \
-    if (offset.coord == 0.f)                                                                                                \
+#define check_offset_coord(coord)                                                                                      \
+    if (offset.coord == 0.f)                                                                                           \
     offset.coord = 1.f
 
     void OctreeBase::generate_biggest_box(const BoxHB& box, Offset3D offset, BoxHB& out)
@@ -75,5 +79,57 @@ namespace Engine
 
         out.aabb(AABB_3D{new_center - new_half_size, new_center + new_half_size});
     }
+
+
+    declare_instance_info_cpp(OctreeBaseNode, _M_box(Constants::zero_vector, Constants::zero_vector));
+    constructor_cpp(OctreeBaseNode)
+    {}
+
+    OctreeIndex OctreeBaseNode::index_at_parent() const
+    {
+        return _M_index;
+    }
+
+    const BoxHB& OctreeBaseNode::box() const
+    {
+        return _M_box;
+    }
+
+    std::size_t OctreeBaseNode::render()
+    {
+        std::size_t count = 0;
+        auto scene = Scene::get_active_scene();
+        check_with_message(scene, "No active scene found!");
+
+        auto camera = scene->active_camera();
+        check_with_message(camera, "No active camera found!");
+
+        Frustum frustum(*camera);
+
+        std::list<OctreeBaseNode*> stack = {this};
+        while (!stack.empty())
+        {
+            OctreeBaseNode* node = stack.back();
+            stack.pop_back();
+
+            if (node->_M_box.is_in_frustum(frustum))
+            {
+                node->_M_box.render();
+                ++count;
+
+                for (byte i = 0; i < 8; i++)
+                {
+                    auto next = node->get(i);
+                    if (next)
+                        stack.push_back(next);
+                }
+            }
+        }
+
+        return count;
+    }
+
+    OctreeBaseNode::~OctreeBaseNode()
+    {}
 
 }// namespace Engine

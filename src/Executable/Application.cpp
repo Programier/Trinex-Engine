@@ -6,7 +6,9 @@
 #include <Graphics/hitbox.hpp>
 #include <Graphics/line.hpp>
 #include <Graphics/mesh.hpp>
+#include <Graphics/resources.hpp>
 #include <Graphics/shader_system.hpp>
+#include <Graphics/textured_object.hpp>
 #include <TemplateFunctional/instanceof.hpp>
 #include <iostream>
 #include <string>
@@ -19,193 +21,72 @@ using namespace Engine;
 #define SCENE_PATH "/sdcard/GameEngine/resources/scene/new/scene.gltf"
 #else
 #define FONT_PATH "resources/fonts/font.otf"
-#define SCENE_PATH "/home/programier/GameEngine/resources/scene/scene.gltf"
+std::string SCENE_PATH = "/home/programier/Games/new/scene.gltf";
 #endif
 #include <iostream>
 
+std::list<Animator*> animators;
+int test();
 
-void print_tree(DrawableObject* tree, const glm::mat4& matrix)
-{
-    static int tabs = 0;
-    auto aabb1 = tree->aabb().apply_model(matrix);
-    auto aabb2 = tree->octree().box();
-    std::clog << std::string(tabs, '\t') << aabb1.center() << "\t" << aabb1.half_size() << std::endl;
-    std::clog << std::string(tabs, '\t') << aabb2.center() << "\t" << aabb2.half_size() << std::endl;
-
-    tabs++;
-    for (auto ell : tree->sub_objects())
-    {
-        print_tree(ell, matrix * tree->model());
-    }
-    tabs--;
-}
-
-
+AnimatedTexturedObject* cube;
 Application::Application()
 {
-    Engine::init();
+
     window.set_orientation(WindowOrientation::WIN_ORIENTATION_LANDSCAPE);
     window.init(1280, 720, "Engine", WindowAttrib::WIN_RESIZABLE);
-    logger->log("Load font: '%s'\n", FONT_PATH);
-    font.load(FONT_PATH, {26, 26});
-
-    int i = 0;
-
-    //scene.load(SCENE_PATH, ObjectLoader::TexturedObjectLoader());
-
-    for (DrawableObject& ell : scene)
+    StaticTexturedObject::load(SCENE_PATH, &scene);
+    for (auto& drawable : scene.drawables())
     {
-        if (is_instance_of<Line>(ell))
+        auto a = dynamic_cast<AnimatedTexturedObject*>(drawable);
+        if (a)
         {
-            i = i == 0 ? 1 : i << 2;
-            if (i == 4)
+            for (auto& anim : a->animations())
             {
-                dynamic_cast<Line*>(&ell)->color = Color::Red;
+                animators.push_back(Object::new_instance<Animator>());
+                animators.back()->animation(anim);
             }
         }
     }
 
-
-    Camera* camera = new Camera();
-    camera->move(-camera->front_vector() * 4.f);
-    camera->name = L"MainCamera";
-    scene.name(L"Scene");
-    scene.set_as_active_scene().add_camera(camera).active_camera(camera);
-    scene.load(SCENE_PATH, ObjectLoader::TexturedObjectLoader());
-
     enable(EnableCap::Blend)(EnableCap::DepthTest);
     blend_func(BlendFunc::SrcAlpha, BlendFunc::OneMinusSrcAlpha);
-    camera->max_render_distance(1000.f).viewing_angle(glm::radians(70.f)).min_render_distance(1.f);
-    ShaderSystem::Line::shader.use().set(ShaderSystem::Line::color, Color::Red);
-    //enable(EnableCap::CullFace);
+    if (!scene.active_camera())
+        scene.active_camera(Object::new_instance<Camera>(Constants::zero_vector, glm::radians(50.f)));
+    camera = scene.set_as_active_scene().active_camera();
+    // camera->move(320.424988, 2.605027, -82.476044, false);
+    camera->max_render_distance(10000);
 }
 
-#ifdef __ANDROID__
-static const Finger* get_finger(bool left)
-{
-    if (left)
-    {
-        unsigned int fingers = TouchScreenEvent::fingers_count();
-
-        for (unsigned int i = 0; i < fingers; i++)
-        {
-            if (TouchScreenEvent::get_finger(i).position.x < Window::width() / 2.f)
-                return &TouchScreenEvent::get_finger(i);
-        }
-        return nullptr;
+#define on_pressed(key, do_action)                                                                                     \
+    if (KeyboardEvent::pressed(key))                                                                                   \
+    {                                                                                                                  \
+        do_action                                                                                                      \
     }
 
-    unsigned int fingers = TouchScreenEvent::fingers_count();
 
-    for (unsigned int i = 0; i < fingers; i++)
-    {
-        if (TouchScreenEvent::get_finger(i).position.x > Window::width() / 2.f)
-            return &TouchScreenEvent::get_finger(i);
+#define on_just_pressed(key, do_action)                                                                                \
+    if (KeyboardEvent::just_pressed() == key)                                                                          \
+    {                                                                                                                  \
+        do_action                                                                                                      \
     }
-    return nullptr;
-}
-
-#endif
-
-static Offset2D get_offset()
-{
-#ifdef __ANDROID__
-    if (TouchScreenEvent::fingers_count())
-        return get_finger(true)->offset;
-    return {0, 0};
-
-#else
-
-    return (3.5f * MouseEvent::offset() / (Window::size()));
-#endif
-}
 
 void Application::keyboard_procces()
 {
+    static const float _M_speed = 100.f;
+    float speed = _M_speed * Event::diff_time();
 
-    bool update_speed = false;
+    on_pressed(KEY_W, { camera->move(camera->front_vector() * speed); });
+    on_pressed(KEY_S, { camera->move(camera->front_vector() * -speed); });
+    on_pressed(KEY_A, { camera->move(camera->right_vector() * -speed); });
+    on_pressed(KEY_D, { camera->move(camera->right_vector() * speed); });
+    on_just_pressed(KEY_V, { window.vsync(!window.vsync()); });
 
-#define A 0.95f
-#define B 0.05f
-
-
-    auto& active_camera = scene.active_camera();
-    auto& camera = *active_camera.camera;
-
-    static Vector3D move_vector = Constants::zero_vector;
-
-    // Calculate move vector
-
-    if (KeyboardEvent::pressed(KEY_W))
-    {
-        move_vector = glm::normalize(move_vector * A + camera.front_vector() * B);
-        update_speed = true;
-    }
-
-    if (KeyboardEvent::pressed(KEY_S))
-    {
-        move_vector = glm::normalize(move_vector * A - camera.front_vector() * B);
-        update_speed = true;
-    }
-
-    if (KeyboardEvent::pressed(KEY_A))
-    {
-        move_vector = glm::normalize(move_vector * A - camera.right_vector() * B);
-        update_speed = true;
-    }
-
-    if (KeyboardEvent::pressed(KEY_D))
-    {
-        move_vector = glm::normalize(move_vector * A + camera.right_vector() * B);
-        update_speed = true;
-    }
-
-    if (KeyboardEvent::pressed(KEY_SPACE))
-    {
-        move_vector = glm::normalize(move_vector * A + Constants::OY * B);
-        update_speed = true;
-    }
-
-    if (KeyboardEvent::pressed(KEY_LEFT_SHIFT))
-    {
-        move_vector = glm::normalize(move_vector * A - Constants::OY * B);
-        update_speed = true;
-    }
-
-    if (KeyboardEvent::just_pressed() == KEY_U)
-    {
-        camera.model(Constants::identity_matrix);
-    }
-
-    if (KeyboardEvent::just_pressed() == KEY_F)
-    {
-        window.attribute(WIN_FULLSCREEN_DESKTOP, !window.attribute(WIN_FULLSCREEN_DESKTOP));
-    }
-
-
-    if (KeyboardEvent::just_pressed() == KEY_V)
-    {
-        window.vsync(!window.vsync());
-    }
-
-    float current_speed = 10 * Event::diff_time();
-    static float prev_speed = 0.f;
-
-    float speed = prev_speed * A + (update_speed ? current_speed : -current_speed) * B;
-    if (speed < 0)
-    {
-        move_vector = Constants::zero_vector;
-        speed = 0.f;
-    }
-
-    prev_speed = speed;
-
-    camera.move(move_vector * speed);
+    on_pressed(KEY_SPACE,
+               { camera->move(Constants::OY * speed * (KeyboardEvent::pressed(KEY_LEFT_SHIFT) ? -1.f : 1.f)); });
 
 
     static bool use_mouse = false;
-
-    if (KeyboardEvent::just_pressed() == KEY_UP || TouchScreenEvent::fingers_count() == 3)
+    if (MouseEvent::just_pressed() == MOUSE_BUTTON_MIDDLE)
     {
         use_mouse = !use_mouse;
         MouseEvent::relative_mode(use_mouse);
@@ -213,40 +94,32 @@ void Application::keyboard_procces()
 
     if (use_mouse)
     {
-        static Offset2D prev_offset = Constants::zero_vector;
-        auto offset = prev_offset * A + get_offset() * B;
-        prev_offset = offset;
+        auto offset = -2.f * MouseEvent::offset() / window.size();
 
-        camera.rotate(-offset.x, Constants::OY);
-        camera.rotate(-offset.y, camera.right_vector());
-
-
-        if (MouseEvent::scroll_offset().y != 0.f)
-            scene.scale(Constants::identity_vector + MouseEvent::scroll_offset().y * 0.1f);
+        camera->rotate(offset.x, Constants::OY);
+        camera->rotate(offset.y, camera->right_vector());
     }
-
-    active_camera.update_info();
 }
+
 
 void Application::render()
 {
+    //for (auto& a : animators) a.tick(Event::diff_time());
+
+    camera->aspect(window.width() / window.height());
+    namespace sh = ShaderSystem::Scene;
+    sh::shader.use().set(sh::projview, camera->projection() * camera->view()).set(sh::lighting, 0);
 
     scene.render();
+    //for (auto& drawable : scene.drawables()) drawable->aabb().render(drawable->scene_nodes().begin()->second->global_matrix());
 
-    int FPS = static_cast<int>(1.f / Event::diff_time());
-    static std::string text;
-
-    namespace sh_t = ShaderSystem::Text;
-
-    if (Event::frame_number() % 30 == 0)
+    if (Event::frame_number() % 60 == 0)
     {
-        text = Strings::format("FPS: {}\nPos: {}\n", FPS, scene.active_camera().camera->position());
+        logger->log("FPS: %1.f\n", 1.f / Event::diff_time());
+        //        for (auto& drawable : scene.drawables())
+        //            logger->log("Drawable pos: %s",
+        //                        Strings::format("{}", drawable->aabb().apply_model(drawable->scene_nodes().begin()->second->global_matrix()).center()).c_str());
     }
-
-    ShaderSystem::Text::shader.use()
-            .set("color", Color::White)
-            .set("projview", glm::ortho(0.f, window.width(), 0.f, window.height(), 0.f, 1.f));
-    font.draw(text, {10, window.size().y - 26});
 }
 
 
@@ -273,7 +146,23 @@ Application::~Application()
 int game_main(int argc, char* argv[])
 try
 {
+    for (int i = 0; i < argc; i++)
+    {
+        if (std::string(argv[i]) == "--test")
+        {
+            test();
+            goto exit;
+        }
+    }
+
+    Engine::init(EngineAPI::OpenGL);
+    printf("Arguments count: %d\n", argc);
+    if (argc > 1)
+        SCENE_PATH = argv[1];
     delete &((new Application())->loop());
+
+exit:
+    terminate();
     return 0;
 }
 catch (const std::exception& e)

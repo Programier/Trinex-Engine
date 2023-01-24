@@ -34,7 +34,11 @@ static void read_file(const std::string& filename, std::vector<Engine::byte>& ou
 
 namespace Engine
 {
-    implement_class_cpp(Shader);
+    declare_instance_info_cpp(Shader);
+
+    constructor_cpp(Shader)
+    {}
+
     static ObjID _M_current = 0;
 
     Shader::Shader(const ShaderParams& params)

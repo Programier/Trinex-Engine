@@ -24,6 +24,7 @@ namespace Engine
     ENGINE_EXPORT float angle_between(Vector3D first, Vector3D second);
     ENGINE_EXPORT Vector3D remove_coord(const Vector3D& vector, const Coord& coord);
     ENGINE_EXPORT bool get_bit(const std::size_t& value, int bit);
+    ENGINE_EXPORT std::string dirname_of(const std::string& fname);
 }// namespace Engine
 
 

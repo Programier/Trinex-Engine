@@ -26,6 +26,11 @@ const std::string sh_s::Scene::camera_pos = "camera";
 const std::string sh_s::Scene::lighting = "lighting";
 const std::string sh_s::Scene::transposed_inversed_model = "transposed_inversed_model";
 
+Shader sh_s::Anim::shader;
+const std::string sh_s::Anim::projview = "projview";
+const std::string sh_s::Anim::model = "model";
+const std::string sh_s::Anim::transposed_inversed_model = "transposed_inversed_model";
+
 // Line
 Shader sh_s::Line::shader;
 const std::string sh_s::Line::projview = "projview";
@@ -71,6 +76,7 @@ void sh_s::init()
     init_system(Line, line, params);
     init_system(Depth, depth, params);
     init_system(DepthRenderer, DepthRender, params);
+    init_system(Anim, anim, params);
 
     inited = true;
 }

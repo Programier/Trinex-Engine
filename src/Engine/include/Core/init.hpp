@@ -12,6 +12,7 @@ namespace Engine
 
     extern ENGINE_EXPORT OpenGL_Version_S OpenGL_Ver;
     extern ENGINE_EXPORT Init init;
+    ENGINE_EXPORT void terminate();
 
     ENGINE_EXPORT const EngineAPI& Engine_API();
     ENGINE_EXPORT void except_init_check();

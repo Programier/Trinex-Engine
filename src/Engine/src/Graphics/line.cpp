@@ -1,191 +1,138 @@
-#include <Core/engine.hpp>
+#include <Core/assimp_helpers.hpp>
+#include <Core/check.hpp>
 #include <Core/logger.hpp>
+#include <Core/string_convert.hpp>
+#include <Core/string_format.hpp>
+#include <Graphics/assimp.hpp>
 #include <Graphics/line.hpp>
+#include <Graphics/resources.hpp>
 #include <Graphics/scene.hpp>
 #include <Graphics/shader_system.hpp>
-#include <LibLoader/lib_loader.hpp>
-#include <api_funcs.hpp>
-#include <glm/glm.hpp>
-#include <model_loader.hpp>
-#include <opengl.hpp>
+#include <assimp/scene.h>
+#include <stack>
+
 
 namespace Engine
 {
-    static glm::mat4 mat4(const aiMatrix4x4& matrix)
+    declare_instance_info_cpp(StaticLine);
+    constructor_cpp(StaticLine)
+    {}
+
+    std::size_t StaticLine::render(const Matrix4f& matrix)
     {
-        glm::mat4 result;
-        for (int i = 0; i < 4; i++)
-            for (int j = 0; j < 4; j++) result[i][j] = matrix[i][j];
-        return result;
+        if (!_M_mesh)
+            return 0;
+
+        auto scene = Scene::get_active_scene();
+        check_with_message(scene, "No active scene found!");
+
+        auto camera = scene->active_camera();
+        check_with_message(camera, "No active camera found!");
+
+        namespace sh = ShaderSystem::Line;
+        sh::shader.use().set(sh::model, matrix * model()).set(sh::projview, camera->projview()).set(sh::color, color);
+
+        _M_mesh->draw(Primitive::LINE);
+        return 1;
     }
 
-    static glm::vec3 vec3(const aiVector3D& vector)
+
+    StaticLineMesh* StaticLine::mesh()
     {
-        return glm::vec3(vector.x, vector.y, vector.z);
+        return _M_mesh;
     }
 
-
-    static void load_scene(const aiScene* scene, aiNode* node, std::vector<float>& out,
-                           glm::mat4 model_matrix = glm::mat4(1.0f))
+    const StaticLineMesh* StaticLine::mesh() const
     {
-        logger->log("Line loader: Loading %s\n", node->mName.C_Str());
-        logger->log("MESHES: %u\n", node->mNumMeshes);
-
-        model_matrix = mat4(node->mTransformation.Transpose()) * model_matrix;
-        for (unsigned int i = 0; i < node->mNumMeshes; i++)
-        {
-            auto& mesh = scene->mMeshes[node->mMeshes[i]];
-            for (unsigned int f = 0; f < mesh->mNumFaces; f++)
-            {
-                auto& face = mesh->mFaces[f];
-                for (unsigned int index = 0; index < face.mNumIndices; index++)
-                {
-                    auto begin = vec3(mesh->mVertices[face.mIndices[index]]);
-                    begin = model_matrix * glm::vec4(begin, 1.f);
-                    for (unsigned int g = index + 1; g < face.mNumIndices; g++)
-                    {
-                        auto end = vec3(mesh->mVertices[face.mIndices[g]]);
-                        end = model_matrix * glm::vec4(end, 1.f);
-                        out.push_back(begin.x);
-                        out.push_back(begin.y);
-                        out.push_back(begin.z);
-
-                        out.push_back(end.x);
-                        out.push_back(end.y);
-                        out.push_back(end.z);
-                    }
-                }
-            }
-        }
-
-
-        for (unsigned int i = 0; i < node->mNumChildren; i++) load_scene(scene, node->mChildren[i], out, model_matrix);
+        return _M_mesh;
     }
 
-    Line& Line::update()
+    StaticLine& StaticLine::mesh(StaticLineMesh* mesh)
     {
-        attributes = {{3, BufferValueType::FLOAT}};
-        vertices = indexes.size();
-        if (Mesh::id() == 0)
-        {
-            Mesh::mode = DrawMode::STATIC_DRAW;
-            Mesh::gen();
-        }
-        set_data().update_atributes().update_indexes();
+        _M_mesh = mesh;
         return *this;
     }
 
-    Line::Line() = default;
-    Line::Line(const Line& line) = default;
-    Line::Line(const std::vector<float>& data, unsigned int vertices, const std::vector<MeshAtribute>& attributes)
+    ENGINE_EXPORT StaticLine* StaticLine::load_from_assimp_mesh(const aiMesh* assimp_mesh)
     {
-        this->data = data;
-        this->vertices = vertices;
-        this->attributes = attributes;
+        StaticLine* line = new_instance<StaticLine>();
+
+        line->aabb(BoxHB(AssimpHelpers::get_vector3(&assimp_mesh->mAABB.mMin),
+                         AssimpHelpers::get_vector3(&assimp_mesh->mAABB.mMax)));
+
+        line->mesh(new_instance<StaticLineMesh>());
+#define mesh line->_M_mesh
+
+        // Copy vertices
+        mesh->data.resize(assimp_mesh->mNumVertices);
+        for (unsigned int i = 0; i < assimp_mesh->mNumVertices; i++)
+            mesh->data[i].position = AssimpHelpers::get_vector3(&assimp_mesh->mVertices[i]);
+
+        // Copy indeces
+
+        // After triangulate postprocess, each face contains only 3 indeces
+        mesh->indexes.reserve(assimp_mesh->mNumFaces * 3);
+        for (unsigned int i = 0; i < assimp_mesh->mNumFaces; i++)
+        {
+            auto& face = assimp_mesh->mFaces[i];
+            for (unsigned int j = 0; j < face.mNumIndices; j++) mesh->indexes.push_back(face.mIndices[j]);
+        }
+
+        mesh->attributes = {
+                {3, BufferValueType::FLOAT, offsetof(StaticLineVertex, position)},
+        };
+
+        mesh->mode = DrawMode::STATIC_DRAW;
+        mesh->gen();
+        mesh->set_data().update_atributes().update_indexes();
+
+        Resources::meshes.push_back(mesh);
+
+#undef mesh
+        return line;
     }
 
-    Line& Line::operator=(const Line& line) = default;
-
-    Line& Line::_M_push_line(const glm::vec3& point1, const glm::vec3& point2)
+    ENGINE_EXPORT void StaticLine::load(const std::string& filename, Scene* scene)
     {
-        unsigned int index = data.size() / 3;
-        indexes.push_back(index);
-        indexes.push_back(index + 1);
+        check(scene);
+        const aiScene* assimp_scene = AssimpLibrary::load_scene(filename);
 
-        data.push_back(point1.x);
-        data.push_back(point1.y);
-        data.push_back(point1.z);
 
-        data.push_back(point2.x);
-        data.push_back(point2.y);
-        data.push_back(point2.z);
-        return *this;
-    }
-
-    Line& Line::push_line(const glm::vec3& point1, const glm::vec3& point2)
-    {
-        return _M_push_line(point1, point2).update();
-    }
-
-    DrawableObject* Line::copy() const
-    {
-        throw not_implemented;
-    }
-
-    bool Line::is_empty_layer() const
-    {
-        return data.empty();
-    }
-
-    void Line::render_layer(const glm::mat4& prev_model, on_render_layer_func on_render_layer) const
-    {
-        if (!_M_visible || is_empty_layer())
+        if (!assimp_scene)
+        {
+            logger->log("StaticLine: Failed to load '%s'", filename.c_str());
             return;
-
-
-        Scene* scene = Scene::get_active_scene();
-        if (!scene)
-        {
-            throw std::runtime_error("No active scene found!");
         }
 
-        Scene::ActiveCamera& active_camera = scene->active_camera();
+        struct StackNode {
+            SceneTreeNode* scene_parent_node;
+            aiNode* node;
+        };
 
-        if (!active_camera.camera)
+        std::stack<StackNode> _M_stack;
+        _M_stack.push({scene->scene_head(), assimp_scene->mRootNode});
+
+        while (!_M_stack.empty())
         {
-            throw std::runtime_error("No active camera found!");
+            StackNode node = _M_stack.top();
+            _M_stack.pop();
+            SceneTreeNode* current_scene_node = Object::new_instance<SceneTreeNode>(node.scene_parent_node);
+            current_scene_node->model(AssimpHelpers::get_matrix4(&node.node->mTransformation));
+            current_scene_node->name(Strings::to_wstring(node.node->mName.data));
+
+            for (unsigned int i = 0; i < node.node->mNumMeshes; i++)
+            {
+                auto mesh = assimp_scene->mMeshes[node.node->mMeshes[i]];
+                StaticLine* line = load_from_assimp_mesh(mesh);
+                scene->push(line, current_scene_node);
+            }
+
+            for (unsigned int i = 0; i < node.node->mNumChildren; i++)
+                _M_stack.emplace(current_scene_node, node.node->mChildren[i]);
         }
 
-        namespace shd = ShaderSystem::Line;
-
-        const auto model = prev_model * this->_M_model.get();
-        shd::shader.use().set(shd::model, model).set(shd::color, color).set(shd::projview, active_camera.projview);
-
-        float tmp = get_current_line_rendering_width();
-        set_line_rendering_width(_M_line_width);
-        BasicMesh::draw(Engine::Primitive::LINE);
-        set_line_rendering_width(tmp);
-
-        on_render_layer(this, prev_model);
-    }
-
-    Line& Line::load_from(const std::string& model)
-    {
-        data.clear();
-        Library assimp = load_library("assimp");
-        if (!assimp.has_lib())
-            return *this;
-
-        auto assimp_ReleaseImport = assimp.get<void, const C_STRUCT aiScene*>(lib_function(aiReleaseImport));
-
-        const aiScene* scene = load_scene(model);
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-        {
-            assimp_ReleaseImport(scene);
-            return *this;
-        }
-
-        logger->log("Lines loader: Loading scene\n");
-        load_scene(scene, scene->mRootNode, data);
-        update();
-
-        logger->log("Lines loader: Loading the \"%s\" model completed successfully\n", model.c_str());
-        assimp_ReleaseImport(scene);
-        return *this;
+        AssimpLibrary::close_scene(assimp_scene);
     }
 
 
-    float Line::line_width()
-    {
-        return _M_line_width;
-    }
-
-    Line& Line::line_width(const float& width)
-    {
-        _M_line_width = width;
-        return *this;
-    }
-
-    Line::Line(Line&& line) = default;
-    Line& Line::operator=(Line&& line) = default;
 }// namespace Engine

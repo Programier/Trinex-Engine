@@ -4,6 +4,9 @@
 
 namespace Engine
 {
+    declare_instance_info_cpp(BasicFrameBuffer);
+    constructor_cpp(BasicFrameBuffer)
+    {}
     const BasicFrameBuffer& BasicFrameBuffer::clear_buffer(const BufferType& type) const
     {
         clear_frame_buffer(_M_ID, type);

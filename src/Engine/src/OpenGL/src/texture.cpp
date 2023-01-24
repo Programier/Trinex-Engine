@@ -339,6 +339,24 @@ namespace Engine
         glBindTexture(texture->_M_GL_type, 0);
     }
 
+    static GLint get_internal_type_of_texture(GLint texture)
+    {
+        switch (texture)
+        {
+            case GL_STENCIL_INDEX8:
+                return GL_STENCIL_INDEX;
+            case GL_DEPTH_COMPONENT16:
+            case GL_DEPTH_COMPONENT24:
+            case GL_DEPTH_COMPONENT32F:
+                return GL_DEPTH_COMPONENT;
+            case GL_DEPTH24_STENCIL8:
+            case GL_DEPTH32F_STENCIL8:
+                return GL_DEPTH_STENCIL;
+            default:
+                return texture;
+        }
+    }
+
     API void api_gen_texture_2D(const ObjID& ID, const Size2D& size, int level, void* data)
     {
         make_texture(texture, ID);
@@ -346,10 +364,8 @@ namespace Engine
         glBindTexture(texture->_M_GL_type, texture->_M_ID);
 
         glTexImage2D(texture->_M_GL_type, static_cast<GLint>(level), texture->_M_GL_format, static_cast<GLsizei>(size.x),
-                     static_cast<GLsizei>(size.y), texture->_M_params.border, texture->_M_GL_format,
-                     texture->_M_GL_pixel_type, data);
-
-
+                     static_cast<GLsizei>(size.y), texture->_M_params.border,
+                     get_internal_type_of_texture(texture->_M_GL_format), texture->_M_GL_pixel_type, data);
         glBindTexture(texture->_M_GL_type, 0);
     }
 

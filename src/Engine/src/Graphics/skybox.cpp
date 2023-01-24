@@ -24,7 +24,6 @@ static void init_mesh()
                  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f,
                  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
 
-    mesh.vertices = mesh.data.size() / 3;
     mesh.set_data().update_atributes();
     mesh_is_inited = true;
 }
@@ -32,7 +31,9 @@ static void init_mesh()
 
 namespace Engine
 {
-    implement_class_cpp(Skybox);
+    declare_instance_info_cpp(Skybox);
+    constructor_cpp(Skybox)
+    {}
 
     Skybox& Skybox::load(const DynamicArray<std::string>& filenames, const bool& invert)
     {

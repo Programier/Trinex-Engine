@@ -1,13 +1,13 @@
 #pragma once
 
 #include <Core/export.hpp>
-#include <Core/instance.hpp>
+#include <Core/object.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/constants.hpp>
 
 namespace Engine
 {
-    class Ray final : public ObjectInstance
+    class Ray final : public Object
     {
     private:
         Point3D _M_origin;

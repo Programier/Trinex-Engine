@@ -1,11 +1,15 @@
 #include <Core/implement.hpp>
+#include <Core/logger.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <Image/image.hpp>
 #include <api_funcs.hpp>
 
 
 namespace Engine
 {
-    implement_class_cpp(Texture2D);
+    declare_instance_info_cpp(Texture2D);
+    constructor_cpp(Texture2D)
+    {}
 
     Texture2D::Texture2D(const Size2D& size, int mipmap, void* data)
     {
@@ -41,6 +45,42 @@ namespace Engine
     Texture2D& Texture2D::read_data(std::vector<byte>& data, int level)
     {
         read_texture_2D_data(_M_ID, data, level);
+        return *this;
+    }
+
+    Texture2D& Texture2D::load(const std::string& path)
+    {
+        destroy();
+
+
+        logger->log("Loading Texture '%s'\n", path.c_str());
+        Image image(path);
+
+        TextureParams params;
+
+        static PixelFormat _M_formats[5] = {PixelFormat::RGBA, PixelFormat::DEPTH, PixelFormat::DEPTH, PixelFormat::RGB,
+                                            PixelFormat::RGBA};
+        params.format = _M_formats[static_cast<int>(image.channels())];
+
+        params.pixel_type = BufferValueType::UNSIGNED_BYTE;
+        params.type = TextureType::Texture_2D;
+        params.border = false;
+
+
+        create(params);
+        if (image.empty())
+        {
+            std::vector<byte> tmp = {100, 100, 100, 255};
+            gen({1, 1}, 0, (void*) tmp.data());
+        }
+        else
+        {
+            logger->log("Image data: %zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
+            gen(image.size(), 0, (void*) image.vector().data()).max_mipmap_level(2).generate_mipmap();
+        }
+
+        min_filter(TextureFilter::LINEAR).mag_filter(TextureFilter::LINEAR);
+
         return *this;
     }
 

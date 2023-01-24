@@ -31,6 +31,14 @@ namespace Engine
             extern ENGINE_EXPORT const std::string transposed_inversed_model;
         }// namespace Scene
 
+        namespace Anim
+        {
+            extern ENGINE_EXPORT Shader shader;
+            extern ENGINE_EXPORT const std::string projview;
+            extern ENGINE_EXPORT const std::string model;
+            extern ENGINE_EXPORT const std::string transposed_inversed_model;
+        }// namespace Scene
+
         namespace Line
         {
             extern ENGINE_EXPORT Shader shader;

@@ -1,11 +1,13 @@
 #pragma once
 
+
 #include <TemplateFunctional/is_container.hpp>
 #include <TemplateFunctional/reference_wrapper.hpp>
 #include <TemplateFunctional/smart_pointer.hpp>
 #include <cstddef>
 #include <iterator>
 
+#if 0
 namespace Engine
 {
 #define TEMPLATE template<typename ArrayType>
@@ -713,3 +715,4 @@ namespace Engine
 #undef TEMPLATE
 #undef make_capacity
 }// namespace Engine
+#endif

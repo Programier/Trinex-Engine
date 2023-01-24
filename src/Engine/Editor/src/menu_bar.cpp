@@ -1,10 +1,11 @@
 #include <Core/logger.hpp>
+#include <Graphics/textured_object.hpp>
 #include <ImGui/ImGuiFileDialog.h>
 #include <ImGui/imgui.h>
 #include <Window/window.hpp>
+#include <editor.hpp>
 #include <menu_bar.hpp>
 #include <resouces.hpp>
-
 namespace Editor
 {
 
@@ -37,7 +38,7 @@ namespace Editor
 
                     try
                     {
-                        Resources::scene.load(file, Engine::ObjectLoader::TexturedObjectLoader());
+                        Engine::StaticTexturedObject::load(file, &Resources::scene);
                     }
                     catch (const std::exception& e)
                     {
@@ -50,11 +51,28 @@ namespace Editor
         }
     }
 
+    void MenuBar::view_button()
+    {
+        if (ImGui::BeginMenu("View"))
+        {
+            if (ImGui::MenuItem("Show Depth Buffer"))
+                application->commands.insert(Command::ShowDepth);
+            {
+                static bool render = false;
+                if (ImGui::Checkbox("Render Octree", &render))
+                    application->commands.insert(Command::OctreeRender);
+            }
+
+            ImGui::EndMenu();
+        }
+    }
+
     void MenuBar::render()
     {
         ImGui::BeginMainMenuBar();
 
         file_button();
+        view_button();
 
         ImGui::EndMainMenuBar();
     }

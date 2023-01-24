@@ -5,11 +5,13 @@
 
 namespace Engine
 {
-    implement_class_cpp(BasicMesh);
+    declare_instance_info_cpp(BasicMesh);
+    constructor_cpp(BasicMesh)
+    {}
 
     BasicMesh& BasicMesh::gen()
     {
-        Object::destroy();
+        ApiObject::destroy();
         generate_mesh(_M_ID);
         return *this;
     }
@@ -34,7 +36,7 @@ namespace Engine
 
     const BasicMesh& BasicMesh::draw(Primitive primitive, std::size_t vertices, std::size_t offset) const
     {
-        draw_mesh(_M_ID, primitive, (vertices ? vertices : dynamic_cast<const MeshInfo&>(*this).vertices), offset);
+        draw_mesh(_M_ID, primitive, (vertices ? vertices : vertices_count()), offset);
         return *this;
     }
 

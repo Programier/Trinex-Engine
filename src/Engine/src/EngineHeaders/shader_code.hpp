@@ -226,6 +226,7 @@ in vec3 normal;
 in vec2 texture_coords;
 in vec3 pixel;
 in vec4 FragPosLightSpace;
+in vec3 mult_by;
 
 uniform sampler2D texture0;// Diffuse
 uniform sampler2D texture1;// Shadow
@@ -296,6 +297,8 @@ float get_shadow(vec3 lightDir, vec3 viewDir)
 void main()
 {
     vec3 result = vec3(1.f);
+    vec4 texture_color;
+
     if (lighting == 1)
     {
         // ambient
@@ -319,9 +322,14 @@ void main()
 
         float shadow = get_shadow(lightDir, viewDir);
         result = ambient + (1.f - shadow) * (diffuse + specular);
+    }else
+    {
+        vec3 view_dir = normalize(camera - pixel);
+        float dot_value = abs(dot(view_dir, normalize(normal)));
+        result = vec3(0.3 + dot_value * 0.3);
     }
 
-    vec4 texture_color = get_diffuse_color();
+    texture_color = get_diffuse_color();
     f_color = vec4(result * vec3(texture_color), texture_color.a);
 }
 )***";
@@ -335,11 +343,21 @@ layout(location = 1) in vec2 v_texture_coords;
 layout(location = 2) in vec3 v_normals;
 
 
+struct SSBO_DATA
+{
+    vec3 mult;
+};
+
+layout(binding = 1) buffer SSBO
+{
+    SSBO_DATA data[];
+};
 
 out vec2 texture_coords;
 out vec3 pixel;
 out vec3 normal;
 out vec4 FragPosLightSpace;
+out vec3 mult_by;
 
 
 uniform mat4 projview;
@@ -347,15 +365,23 @@ uniform mat4 model;
 uniform mat4 light_projview;
 uniform mat3 transposed_inversed_model;
 
+
+vec4 get_vertex_position()
+{
+    return model * vec4(v_position, 1.0);
+}
+
+
 void main()
 {
     texture_coords = v_texture_coords;
-    vec4 _pixel = model * vec4(v_position, 1.0);
+    vec4 _pixel = get_vertex_position();
 
     pixel = vec3(_pixel);
     gl_Position = projview * _pixel;
-    normal = normalize(transposed_inversed_model * v_normals);
+    normal =  normalize(transposed_inversed_model * v_normals);
     FragPosLightSpace = light_projview * _pixel;
+    mult_by = data[0].mult;
 }
 )***";
 
@@ -419,6 +445,89 @@ void main()
 {
     gl_Position = vec4(projview * vec4(v_pos, 1.f)).xyww;
     view_dir = v_pos;
+}
+)***";
+
+
+
+	const std::string anim_shader_frag = R"***(#version 320 es
+precision highp float;
+
+out vec4 f_color;
+
+in vec3 normal;
+in vec2 texture_coords;
+in vec3 pixel;
+
+
+
+uniform sampler2D texture0;// Diffuse
+uniform vec3 camera;
+
+vec4 get_diffuse_color()
+{
+    return texture(texture0, texture_coords);
+}
+
+void main()
+{
+    vec3 result = vec3(abs(dot(normalize(camera - pixel), normal)));
+
+    vec4 texture_color = get_diffuse_color();
+
+    f_color = vec4(result * vec3(texture_color), texture_color.a);
+}
+)***";
+
+
+
+	const std::string anim_shader_vert = R"***(#version 320 es
+precision highp float;
+layout(location = 0) in vec3 v_position;
+layout(location = 1) in vec2 v_texture_coords;
+layout(location = 2) in vec3 v_normals;
+layout(location = 3) in ivec4 v_bones_id;
+layout(location = 4) in vec4 v_weights;
+
+
+layout(binding = 1) buffer SSBO
+{
+     mat4 bones_matrices[];
+};
+
+out vec2 texture_coords;
+out vec3 pixel;
+out vec3 normal;
+flat out ivec4 bones_id;
+out vec4 weights;
+
+uniform mat4 projview;
+uniform mat4 model;
+uniform mat3 transposed_inversed_model;
+
+vec4 get_vertex_position()
+{
+    vec3 result_pos = vec3(0.f);
+
+    for(int i = 0; i < 4; i++)
+    {
+        if(v_bones_id[i] == -1)
+            continue;
+        result_pos += mat3(bones_matrices[v_bones_id[i]]) * v_position  * v_weights[i];
+    }
+
+    return model * vec4(result_pos.xyz, 1.0);
+}
+
+
+void main()
+{
+    texture_coords = v_texture_coords;
+    vec4 _pixel = get_vertex_position();
+
+    pixel = vec3(_pixel);
+    gl_Position = projview * _pixel;
+    normal = normalize(transposed_inversed_model * v_normals);
 }
 )***";
 

@@ -3,49 +3,68 @@
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <vector>
 #include <string>
+#include <vector>
 
 
 namespace Engine
 {
-    typedef std::uint8_t byte;
+    using byte = std::uint8_t;
+    using signed_byte = std::int8_t;
+    using Vector1D = glm::vec1;
 
-    typedef float Point1D;
-    typedef float Offset1D;
-    typedef float Size1D;
-    typedef float Scale1D;
-    typedef float Translate1D;
-    typedef float Vector1D;
-    typedef float EulerAngle1D;
-    typedef float Distance;
+    using Point1D = float;
+    using Offset1D = float;
+    using Size1D = float;
+    using Scale1D = float;
+    using Translate1D = float;
+    using EulerAngle1D = float;
+    using Distance = float;
 
-    typedef glm::vec2 Point2D;
-    typedef glm::vec2 Offset2D;
-    typedef glm::vec2 Size2D;
-    typedef glm::vec2 Scale2D;
-    typedef glm::vec2 Translate2D;
-    typedef glm::vec2 Vector2D;
-    typedef glm::vec2 EulerAngle2D;
+    using Point2D = glm::vec2;
+    using Offset2D = glm::vec2;
+    using Size2D = glm::vec2;
+    using Scale2D = glm::vec2;
+    using Translate2D = glm::vec2;
+    using Vector2D = glm::vec2;
+    using EulerAngle2D = glm::vec2;
 
-    typedef glm::vec3 Point3D;
-    typedef glm::vec3 Offset3D;
-    typedef glm::vec3 Size3D;
-    typedef glm::vec3 Scale3D;
-    typedef glm::vec3 Translate3D;
-    typedef glm::vec3 Vector3D;
-    typedef glm::vec3 EulerAngle3D;
-    typedef glm::vec3 Force;
-    typedef glm::vec3 LightColor;
+    using Point3D = glm::vec3;
+    using Offset3D = glm::vec3;
+    using Size3D = glm::vec3;
+    using Scale3D = glm::vec3;
+    using Translate3D = glm::vec3;
+    using Vector3D = glm::vec3;
+    using EulerAngle3D = glm::vec3;
+    using Force = glm::vec3;
+    using LightColor = glm::vec3;
 
+    using Matrix4f = glm::mat4;
+    using Matrix3f = glm::mat3;
+    using Matrix2f = glm::mat2;
 
-    typedef glm::vec4 Vector4D;
+    using Vector4D = glm::vec4;
 
-    typedef std::size_t ArrayIndex;
+    using ArrayIndex = std::size_t;
+    using PriorityIndex = std::size_t;
+    using Counter = std::size_t;
 
-    typedef glm::quat Quaternion;
+    using Quaternion = glm::quat;
 
-    typedef unsigned char TextureBindIndex;
+    using TextureBindIndex = byte;
+
+    using AssimpObject = const void*;
+    using BitMask = std::size_t;
+    using String = std::wstring;
+
+    // Int Vectors
+    using IntVector2D = glm::ivec2;
+    using IntVector3D = glm::ivec3;
+    using IntVector4D = glm::ivec4;
+
+    using UIntVector2D = glm::uvec2;
+    using UIntVector3D = glm::uvec3;
+    using UIntVector4D = glm::uvec4;
 
     template<typename Type>
     class SizeLimits
@@ -55,18 +74,19 @@ namespace Engine
         Type max;
 
         SizeLimits() = default;
-        SizeLimits(const Type& _min, const Type& _max) : min(_min), max(_max) {}
+        SizeLimits(const Type& _min, const Type& _max) : min(_min), max(_max)
+        {}
 
         Type& operator[](bool _max)
         {
-            if(_max)
+            if (_max)
                 return max;
             return min;
         }
 
         const Type& operator[](bool _max) const
         {
-            if(_max)
+            if (_max)
                 return max;
             return min;
         }
@@ -77,13 +97,17 @@ namespace Engine
     using SizeLimits3D = SizeLimits<Size3D>;
 
 
-    typedef SizeLimits1D AABB_1D;
-    typedef SizeLimits2D AABB_2D;
-    typedef SizeLimits3D AABB_3D;
+    using AABB_1D = SizeLimits1D;
+    using AABB_2D = SizeLimits2D;
+    using AABB_3D = SizeLimits3D;
 
-    typedef uint32_t ObjectID;
-    typedef std::uintptr_t ObjID;
-    typedef unsigned int MipMapLevel;
+    using ObjectID = uint32_t;
+    using ObjID = std::uintptr_t;
+    using MipMapLevel = std::uint32_t;
+    using EnumerateType = std::uint32_t;
+
+    using int_t = std::int32_t;
+    using uint_t = std::uint32_t;
 
     enum class Coord
     {
@@ -91,8 +115,6 @@ namespace Engine
         Y,
         Z
     };
-
-    typedef std::size_t BufferType;
 
     enum class CompareFunc
     {
@@ -106,13 +128,13 @@ namespace Engine
         Never
     };
 
-    enum class EngineAPI : unsigned int
+    enum class EngineAPI : EnumerateType
     {
         OpenGL = 0,
         Vulkan = 1
     };
 
-    typedef glm::vec<2, int, glm::defaultp> AspectRation;
+    using AspectRation = glm::vec<2, std::int32_t, glm::defaultp>;
 
     enum WindowAttrib : uint16_t
     {
@@ -143,11 +165,11 @@ namespace Engine
 
 
     struct OpenGL_Version_S {
-        int major;
-        int minor;
+        int_t major;
+        int_t minor;
     };
 
-    enum WindowOrientation : unsigned int
+    enum WindowOrientation : uint_t
     {
         WIN_ORIENTATION_LANDSCAPE = 1,
         WIN_ORIENTATION_LANDSCAPE_FLIPPED = 2,
@@ -169,7 +191,7 @@ namespace Engine
         Texture_Buffer
     };
 
-    enum class PixelFormat : unsigned int
+    enum class PixelFormat : uint_t
     {
         DEPTH = 1,
         RGB = 3,
@@ -177,17 +199,35 @@ namespace Engine
         RED = 5,
         GREEN = 6,
         BLUE = 7,
-        ALPHA = 8
+        ALPHA = 8,
+        DEPTH_COMPONENT16 = 9,
+        DEPTH_COMPONENT24 = 10,
+        DEPTH_COMPONENT32F = 11,
+        DEPTH24_STENCIL8 = 12,
+        DEPTH32F_STENCIL8 = 13,
+        STENCIL_INDEX8 = 14,
     };
 
-    enum class BufferValueType : unsigned int
+    enum class BufferValueType : uint_t
     {
         FLOAT = 0,
         UNSIGNED_BYTE = 1,
         UNSIGNED_SHORT = 2,
         UNSIGNED_INT = 3,
         SHORT = 4,
-        INT = 5
+        INT = 5,
+
+        BYTE,
+        HALF_FLOAT,
+        UNSIGNED_SHORT_5_6_5,
+        UNSIGNED_SHORT_4_4_4_4,
+        UNSIGNED_SHORT_5_5_5_1,
+        UNSIGNED_INT_2_10_10_10_REV,
+
+        UNSIGNED_INT_24_8,
+        UNSIGNED_INT_10F_11F_11F_REV,
+        UNSIGNED_INT_5_9_9_9_REV,
+        FLOAT_32_UNSIGNED_INT_24_8_REV,
     };
 
     enum class DepthStencilMode
@@ -202,7 +242,7 @@ namespace Engine
         REF_TO_TEXTURE
     };
 
-    enum class TextureFilter : unsigned int
+    enum class TextureFilter : uint_t
     {
         NEAREST = 0,
         LINEAR,
@@ -214,7 +254,7 @@ namespace Engine
 
 
     struct SwizzleRGBA {
-        enum class SwizzleValue : unsigned int
+        enum class SwizzleValue : uint_t
         {
             RED = 0,
             GREEN = 1,
@@ -223,7 +263,7 @@ namespace Engine
         } R, G, B, A;
     };
 
-    enum class WrapValue : unsigned int
+    enum class WrapValue : uint_t
     {
         CLAMP_TO_EDGE,
         CLAMP_TO_BORDER,
@@ -246,38 +286,50 @@ namespace Engine
         TRIANGLE
     };
 
-    enum class DrawMode
+    enum class BufferUsage : byte
     {
-        STATIC_DRAW,
-        DYNAMIC_DRAW
+        STATIC_DRAW = 0,
+        STATIC_READ,
+        STATIC_COPY,
+        DYNAMIC_DRAW,
+        DYNAMIC_READ,
+        DYNAMIC_COPY,
+        STREAM_DRAW,
+        STREAM_READ,
+        STREAM_COPY,
     };
+
+    using DrawMode = BufferUsage;
 
 
     struct MeshAtribute {
-        int count;
+        uint_t count;
         BufferValueType type;
+        ArrayIndex offset = 0;
     };
 
     struct MeshInfo {
-        std::size_t vertices = 0;
         std::vector<MeshAtribute> attributes;
-        DrawMode mode;
+        BufferUsage mode;
     };
 
-    enum BufferBitType : unsigned int
+    enum BufferBitType : uint_t
     {
         COLOR_BUFFER_BIT = 1,
         DEPTH_BUFFER_BIT = 2,
+        STENCIL_BUFFER_BIT = 4,
     };
 
-    enum class FrameBufferType : unsigned int
+    using BufferType = std::size_t;
+
+    enum class FrameBufferType : uint_t
     {
         FRAMEBUFFER = 0,
         DRAW_FRAMEBUFFER = 1,
         READ_FRAMEBUFFER = 2,
     };
 
-    enum class FrameBufferAttach : unsigned int
+    enum class FrameBufferAttach : uint_t
     {
         COLOR_ATTACHMENT = 0,
         DEPTH_ATTACHMENT = 1,
@@ -295,14 +347,15 @@ namespace Engine
         RIGHT = 5
     };
 
-    enum class EnableCap : unsigned int
+    enum class EnableCap : uint_t
     {
         Blend = 0,
         DepthTest = 1,
-        CullFace = 2
+        CullFace = 2,
+        StencilTest = 3,
     };
 
-    enum class BlendFunc : unsigned int
+    enum class BlendFunc : uint_t
     {
         Zero,
         One,
@@ -321,7 +374,8 @@ namespace Engine
     };
 
 
-    enum class DataType{
+    enum class DataType
+    {
         Text = 0,
         Binary
     };
@@ -330,8 +384,7 @@ namespace Engine
     using ShaderSourceType = DataType;
     using FileBuffer = std::vector<byte>;
 
-    struct ShaderParams
-    {
+    struct ShaderParams {
         ShaderSourceType source_type;
         std::string name;
         FileBuffer vertex;
@@ -339,4 +392,17 @@ namespace Engine
         FileBuffer compute;
         FileBuffer geometry;
     };
+
+    enum class StencilOption : byte
+    {
+        KEEP,
+        ZERO,
+        REPLACE,
+        INCR,
+        INCR_WRAP,
+        DECR,
+        DECR_WRAP,
+        INVERT,
+    };
+
 }// namespace Engine

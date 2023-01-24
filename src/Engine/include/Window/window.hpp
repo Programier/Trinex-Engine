@@ -8,6 +8,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <Core/callback.hpp>
 
 
 namespace Engine
@@ -104,7 +105,7 @@ namespace Engine
         static const Window& stop_text_input();
         static const Window& update_viewport_on_resize(bool value);
         static bool update_viewport_on_resize();
-        static const Window& on_resize_callback(void (*)(), bool add = true);
+        static Callback<void> on_resize;
         static std::size_t frame_number();
 
         // Constructors

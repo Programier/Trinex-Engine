@@ -16,7 +16,9 @@ namespace Engine
 {
     ENGINE_EXPORT std::string library_dir;
 
-    implement_class_cpp(Library);
+    default_copy_constructors_cpp(Library);
+    Library::Library() = default;
+
 
     static std::string get_libname(const std::string& libname, bool full = true)
     {
@@ -117,6 +119,11 @@ namespace Engine
             if (lib)
                 close_lib_ptr(lib);
         }
+    }
+
+    void* Library::resolve(const std::string& name)
+    {
+        return load_function(_M_handle, name);
     }
 
     static struct Controller {

@@ -7,6 +7,7 @@ in vec3 normal;
 in vec2 texture_coords;
 in vec3 pixel;
 in vec4 FragPosLightSpace;
+in vec3 mult_by;
 
 uniform sampler2D texture0;// Diffuse
 uniform sampler2D texture1;// Shadow
@@ -77,6 +78,8 @@ float get_shadow(vec3 lightDir, vec3 viewDir)
 void main()
 {
     vec3 result = vec3(1.f);
+    vec4 texture_color;
+
     if (lighting == 1)
     {
         // ambient
@@ -100,8 +103,13 @@ void main()
 
         float shadow = get_shadow(lightDir, viewDir);
         result = ambient + (1.f - shadow) * (diffuse + specular);
+    }else
+    {
+        vec3 view_dir = normalize(camera - pixel);
+        float dot_value = abs(dot(view_dir, normalize(normal)));
+        result = vec3(0.3 + dot_value * 0.3);
     }
 
-    vec4 texture_color = get_diffuse_color();
+    texture_color = get_diffuse_color();
     f_color = vec4(result * vec3(texture_color), texture_color.a);
 }

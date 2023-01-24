@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Graphics/texture_2D.hpp>
 #include <Core/implement.hpp>
+#include <Graphics/texture_2D.hpp>
 
 
 namespace Engine
@@ -10,9 +10,13 @@ namespace Engine
     {
         Texture2D _M_textures[6];
 
+        declare_instance_info_hpp(TextureCubeMap);
+
     public:
-        implement_class_hpp(TextureCubeMap);
+        constructor_hpp(TextureCubeMap);
+        delete_copy_constructors(TextureCubeMap);
+
         TextureCubeMap& attach_texture(const Texture2D& texture, TextureCubeMapFace index, int level = 0);
         TextureCubeMap& attach_data(TextureCubeMapFace index, const Size2D& size, void* data, int level = 0);
     };
-}
+}// namespace Engine

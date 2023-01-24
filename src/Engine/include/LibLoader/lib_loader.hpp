@@ -18,7 +18,8 @@ namespace Engine
         Library(void* _M_handle, const std::string& libname);
 
     public:
-        implement_class_hpp(Library);
+        copy_constructors_hpp(Library);
+        constructor_hpp(Library);
         bool has_lib() const;
         const std::string& libname() const;
         void close();
@@ -28,6 +29,8 @@ namespace Engine
         {
             return (ReturnType(*)(Args...))(load_function(_M_handle, function_name));
         }
+
+        void* resolve(const std::string& name);
 
         friend ENGINE_EXPORT Library load_library(const std::string& libname);
     };

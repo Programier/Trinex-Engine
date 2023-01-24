@@ -22,3 +22,4 @@ extern const std::unordered_map<FrameBufferAttach, GLint> _M_framebuffer_attach;
 extern const std::unordered_map<TextureCubeMapFace, GLint> _M_cubemap_indexes;
 extern const std::unordered_map<EnableCap, GLint> _M_enable_caps;
 extern const std::unordered_map<BlendFunc, GLint> _M_blend_funcs;
+extern const std::unordered_map<StencilOption, GLint> _M_stencil_options;

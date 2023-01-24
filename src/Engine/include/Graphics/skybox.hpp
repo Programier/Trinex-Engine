@@ -1,15 +1,18 @@
 #pragma once
-#include <string>
-#include <TemplateFunctional/dynamic_array.hpp>
 #include <Graphics/texture_cubemap.hpp>
 #include <Image/image.hpp>
+#include <TemplateFunctional/array_containers.hpp>
+#include <string>
 
 namespace Engine
 {
     CLASS Skybox : public TextureCubeMap
     {
+        declare_instance_info_hpp(Skybox);
+
     public:
-        implement_class_hpp(Skybox);
+        delete_copy_constructors(Skybox);
+        constructor_hpp(Skybox);
         Skybox(const std::string& filename, const bool& invert = false);
 
         //! @brief {right, left, top, bottom, front, back}

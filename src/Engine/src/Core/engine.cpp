@@ -59,4 +59,10 @@ namespace Engine
         }
 
     }// namespace OpenGL
+
+    ENGINE_EXPORT std::string dirname_of(const std::string& fname)
+    {
+        size_t pos = fname.find_last_of("\\/");
+        return (std::string::npos == pos) ? "./" : fname.substr(0, pos + 1);
+    }
 }// namespace Engine

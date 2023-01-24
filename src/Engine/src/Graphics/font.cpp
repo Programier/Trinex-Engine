@@ -22,13 +22,11 @@ namespace Engine
             FT_Done_Face(ft);
     }
 
-    Font::Font() = default;
-    Font::Font(const Font& font) = default;
-    Font::Font(Font&& font) = default;
-    Font& Font::operator=(const Font& font) = default;
-    Font& Font::operator=(Font&& font) = default;
+    declare_instance_info_cpp(Font);
+    constructor_cpp(Font)
+    {}
 
-    Font::Font(const std::string& font, const Size2D& size)
+    constructor_cpp(Font, const std::string& font, const Size2D& size)
     {
         load(font, size);
     }
@@ -56,7 +54,6 @@ namespace Engine
 
         _M_mesh.data.resize(24);
         _M_mesh.attributes = {{4, BufferValueType::FLOAT}};
-        _M_mesh.vertices = 6;
         _M_mesh.indexes = {0, 1, 2, 3, 4, 5};
         _M_mesh.mode = DrawMode::STATIC_DRAW;
         _M_mesh.gen();
@@ -93,17 +90,17 @@ namespace Engine
         }
 
         // Generate Fonture
-        Character character = {Texture2D(), glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-                               glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-                               (unsigned int) face->glyph->advance.x};
+        Character character = {
+                Object::new_instance<Texture2D>(), glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top), (unsigned int) face->glyph->advance.x};
 
         TextureParams params;
         params.format = PixelFormat::RED;
         params.pixel_type = BufferValueType::UNSIGNED_BYTE;
         params.type = TextureType::Texture_2D;
         params.border = false;
-        character.gliph.create(params);
-        character.gliph.gen({face->glyph->bitmap.width, face->glyph->bitmap.rows}, 0, face->glyph->bitmap.buffer)
+        character.gliph->create(params);
+        character.gliph->gen({face->glyph->bitmap.width, face->glyph->bitmap.rows}, 0, face->glyph->bitmap.buffer)
                 .mag_filter(TextureFilter::LINEAR)
                 .min_filter(TextureFilter::LINEAR);
 
@@ -156,7 +153,7 @@ namespace Engine
             _M_mesh.update_data(0, _M_mesh.data.size() * sizeof(float));
 
             // Render glyph Fonture over quad
-            ch.gliph.bind();
+            ch.gliph->bind();
             _M_mesh.draw(Primitive::TRIANGLE, 6, 0);
             x += (ch.advance >> 6) * scale;// Bitshift by 6 to get value in pixels (2^6 = 64)
         }
@@ -211,7 +208,7 @@ namespace Engine
             _M_mesh.update_data(0, _M_mesh.data.size() * sizeof(float));
 
             // Render glyph Fonture over quad
-            ch.gliph.bind();
+            ch.gliph->bind();
             _M_mesh.draw(Primitive::TRIANGLE, 6, 0);
             x += (ch.advance >> 6) * scale;// Bitshift by 6 to get value in pixels (2^6 = 64)
         }
@@ -244,12 +241,12 @@ namespace Engine
         return _M_font_path;
     }
 
-    Texture2D Font::texture_of(char ch)
+    Texture2D* Font::texture_of(char ch)
     {
         return texture_of(static_cast<wchar_t>(ch));
     }
 
-    Texture2D Font::texture_of(wchar_t ch)
+    Texture2D* Font::texture_of(wchar_t ch)
     {
         push_char(ch);
         try
@@ -258,7 +255,7 @@ namespace Engine
         }
         catch (...)
         {
-            return Texture2D();
+            return Object::new_instance<Texture2D>();
         }
     }
 

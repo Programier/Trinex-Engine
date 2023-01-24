@@ -1,8 +1,8 @@
 #pragma once
+#include <Core/api_object.hpp>
 #include <Core/buffer_value_type.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
-#include <Core/object.hpp>
 #include <TemplateFunctional/reference_wrapper.hpp>
 #include <vector>
 
@@ -10,11 +10,13 @@
 namespace Engine
 {
 
-    CLASS BasicMesh : public Object, public MeshInfo
+    CLASS BasicMesh : public ApiObject, public MeshInfo
     {
-    protected:
+        declare_instance_info_hpp(BasicMesh);
+
     public:
-        implement_class_hpp(BasicMesh);
+        constructor_hpp(BasicMesh);
+        delete_copy_constructors(BasicMesh);
 
         BasicMesh& gen();
         BasicMesh& set_data(void* data);
@@ -32,6 +34,7 @@ namespace Engine
         virtual void* indexes_data() const = 0;
         virtual std::size_t indexes_size() const = 0;
         virtual BufferValueType indexes_type() const = 0;
+        virtual std::size_t vertices_count() const = 0;
     };
 
 
@@ -44,34 +47,11 @@ namespace Engine
     private:
         const BufferValueType _M_indexes_engine_type = get_type_by_typeid(typeid(IndexType));
 
+        declare_instance_info_template(Mesh);
+
     public:
-        Mesh() = default;
-        Mesh(const Mesh& obj)
-        {
-            *this = obj;
-        }
-        Mesh(Mesh && obj)
-        {
-            *this = std::move(obj);
-        }
-
-        Mesh& operator=(const Mesh& obj)
-        {
-            if(this == &obj)
-                return *this;
-            data = obj.data;
-            indexes = obj.indexes;
-            return *this;
-        }
-
-        Mesh& operator=(Mesh&& obj)
-        {
-            if(this == &obj)
-                return *this;
-            data = std::move(obj.data);
-            indexes = std::move(obj.indexes);
-            return *this;
-        }
+        constructor_hpp(Mesh) = default;
+        delete_copy_constructors(Mesh);
 
         Mesh& set_data()
         {
@@ -112,6 +92,11 @@ namespace Engine
         BufferValueType indexes_type() const override
         {
             return _M_indexes_engine_type;
+        }
+
+        std::size_t vertices_count() const override
+        {
+            return indexes.size();
         }
     };
 

@@ -19,4 +19,18 @@ namespace Editor
         }
         return false;
     }
+
+    void Panel::proccess_commands()
+    {}
+
+
+    void Panel::set_panel(Panel* panel)
+    {
+        _M_windows.insert(panel);
+    }
+
+    void Panel::remove_panel(Panel* panel)
+    {
+        _M_windows.erase(panel);
+    }
 }// namespace Editor

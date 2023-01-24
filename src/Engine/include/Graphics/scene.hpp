@@ -1,53 +1,84 @@
 #pragma once
-#include <Graphics/camera.hpp>
-#include <Graphics/drawable_object.hpp>
-#include <Graphics/texture.hpp>
 
-
-//#define ENABLE_RENDER
+#include <Core/export.hpp>
+#include <Core/object.hpp>
+#include <Graphics/drawable.hpp>
+#include <Graphics/mesh.hpp>
+#include <Graphics/octree.hpp>
+#include <TemplateFunctional/tree.hpp>
 
 
 namespace Engine
 {
-    CLASS Scene : public DrawableObject
+
+    class Scene;
+    CLASS SceneTreeNode : public Tree<std::unordered_set<Drawable*>>,
+                          public BasicObject<Translate, Rotate, Scale>,
+                          public BasicDrawable
+    {
+    private:
+        Scene* _M_scene;
+
+        SceneTreeNode(Scene * scene);
+
+    public:
+        const Scene* scene() const;
+        Scene* scene();
+        SceneTreeNode(SceneTreeNode * parent);
+        std::size_t render(const Matrix4f& matrix) override;
+        Matrix4f global_matrix() const;
+        friend class Scene;
+    };
+
+    CLASS Scene final : public virtual Object
     {
 
     public:
-        struct ActiveCamera {
-            Camera* camera = nullptr;
-            glm::mat4 projection;
-            glm::mat4 view;
-            glm::mat4 projview;
+        using OctreeNode = Octree<Drawable*>::OctreeNode;
+        using LoadFunction = void (*)(const std::string& filename, Scene* scene);
+        using DrawableSet = std::unordered_set<Drawable*>;
+        using CamerasSet = std::unordered_set<Camera*>;
+        using SceneOctree = Octree<Drawable*>;
 
-        public:
-            void update_info();
-
-        private:
-        };
 
     private:
-        // Cameras parameters
-        std::unordered_set<Camera*> _M_cameras;
-        ActiveCamera _M_active_camera;
+        SceneOctree _M_octree;
+        DrawableSet _M_drawable_set;
+
+        void remove_from_octree(Drawable * drawable);
+        void push_to_octree(Drawable * drawable);
+        SceneTreeNode* _M_head = new SceneTreeNode(this);
+
+        // Cameras block
+        CamerasSet _M_cameras;
+        Camera* _M_active_camera = nullptr;
+
+        declare_instance_info_hpp(Scene);
 
     public:
-        Scene();
-        DrawableObject* copy() const override;
-        static ENGINE_EXPORT Scene* get_active_scene();
+        delete_copy_constructors(Scene);
+        constructor_hpp(Scene);
+        Scene(float octree_box_mi_size);
+
+        std::size_t render() const;
+        Scene& clear();
+        Scene& push(Drawable * drawable, SceneTreeNode* node = nullptr);
+        Scene& remove(Drawable * drawable);
+        bool contains(Drawable * drawable);
+        SceneTreeNode* scene_head();
+        const SceneTreeNode* scene_head() const;
+        const DrawableSet& drawables() const;
+
+        Scene& load(const std::string& filename, LoadFunction loader);
+        ENGINE_EXPORT static Scene* get_active_scene();
         Scene& set_as_active_scene();
-        bool is_active() const;
-
-        const std::unordered_set<Camera*>& cameras() const;
         Scene& add_camera(Camera * camera);
-        ActiveCamera& active_camera();
-        Scene& active_camera(const std::wstring& name);
         Scene& active_camera(Camera * camera);
-        bool is_empty_layer() const override;
+        Camera* active_camera();
+        const Camera* active_camera() const;
+        const CamerasSet& cameras() const;
+        const SceneOctree& octree() const;
 
-#ifdef ENABLE_RENDER
-        void render() const override;
-#endif
         ~Scene();
-        friend class DrawableObject;
     };
 }// namespace Engine

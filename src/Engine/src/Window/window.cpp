@@ -106,7 +106,6 @@ static struct WindowData {
     Uint32 _M_flags;
     bool _M_change_viewport_on_resize = true;
     std::size_t _M_objects = 0;
-    std::vector<void (*)()> _M_on_resize_callback;
     std::size_t _M_frame = 0;
 } data;
 
@@ -313,10 +312,7 @@ namespace Engine
                 data._M_size = {event.data1, event.data2};
                 if (data._M_change_viewport_on_resize)
                     window.update_view_port();
-                for (auto callback : data._M_on_resize_callback)
-                {
-                    callback();
-                }
+                Window::on_resize.trigger();
                 break;
             }
 
@@ -874,21 +870,8 @@ bool Window::update_viewport_on_resize()
     return data._M_change_viewport_on_resize;
 }
 
-const Window& Window::on_resize_callback(void (*callback)(), bool add)
-{
-    auto it = std::find_if(data._M_on_resize_callback.begin(), data._M_on_resize_callback.end(),
-                           [&callback](void (*current)()) -> bool { return current == callback; });
+Callback<void> Window::on_resize;
 
-    if (add && it == data._M_on_resize_callback.end())
-    {
-        data._M_on_resize_callback.push_back(callback);
-    }
-    else if (!add && it != data._M_on_resize_callback.end())
-    {
-        data._M_on_resize_callback.erase(it);
-    }
-    return window;
-}
 
 std::size_t Window::frame_number()
 {

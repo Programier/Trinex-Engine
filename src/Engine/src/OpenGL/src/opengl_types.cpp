@@ -12,9 +12,19 @@ const std::unordered_map<TextureType, GLuint> _M_types = {
 };
 
 const std::unordered_map<PixelFormat, GLuint> _M_pixel_formats = {
-        {PixelFormat::RGB, GL_RGB},     {PixelFormat::RGBA, GL_RGBA},   {PixelFormat::DEPTH, GL_DEPTH_COMPONENT},
-        {PixelFormat::RED, GL_RED},     {PixelFormat::GREEN, GL_GREEN}, {PixelFormat::BLUE, GL_BLUE},
+        {PixelFormat::RGB, GL_RGB},
+        {PixelFormat::RGBA, GL_RGBA},
+        {PixelFormat::DEPTH, GL_DEPTH_COMPONENT},
+        {PixelFormat::RED, GL_RED},
+        {PixelFormat::GREEN, GL_GREEN},
+        {PixelFormat::BLUE, GL_BLUE},
         {PixelFormat::ALPHA, GL_ALPHA},
+        {PixelFormat::STENCIL_INDEX8, GL_STENCIL_INDEX8},
+        {PixelFormat::DEPTH_COMPONENT16, GL_DEPTH_COMPONENT16},
+        {PixelFormat::DEPTH_COMPONENT24, GL_DEPTH_COMPONENT24},
+        {PixelFormat::DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT32F},
+        {PixelFormat::DEPTH24_STENCIL8, GL_DEPTH24_STENCIL8},
+        {PixelFormat::DEPTH32F_STENCIL8, GL_DEPTH32F_STENCIL8},
 };
 
 
@@ -25,6 +35,16 @@ const std::unordered_map<BufferValueType, GLuint> _M_buffer_value_types = {
         {BufferValueType::UNSIGNED_INT, GL_UNSIGNED_INT},
         {BufferValueType::SHORT, GL_SHORT},
         {BufferValueType::INT, GL_INT},
+        {BufferValueType::BYTE, GL_BYTE},
+        {BufferValueType::HALF_FLOAT, GL_HALF_FLOAT},
+        {BufferValueType::UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5},
+        {BufferValueType::UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4},
+        {BufferValueType::UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_5_5_5_1},
+        {BufferValueType::UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_10F_11F_11F_REV},
+        {BufferValueType::UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_2_10_10_10_REV},
+        {BufferValueType::UNSIGNED_INT_24_8, GL_UNSIGNED_INT_24_8},
+        {BufferValueType::UNSIGNED_INT_5_9_9_9_REV, GL_UNSIGNED_INT_5_9_9_9_REV},
+        {BufferValueType::FLOAT_32_UNSIGNED_INT_24_8_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV},
 };
 
 const std::unordered_map<CompareFunc, GLuint> _M_compare_funcs = {
@@ -86,8 +106,11 @@ const std::unordered_map<BufferValueType, std::size_t> _M_buffer_value_type_size
 };
 
 const std::unordered_map<DrawMode, GLuint> _M_draw_modes{
-        {DrawMode::DYNAMIC_DRAW, GL_DYNAMIC_DRAW},
-        {DrawMode::STATIC_DRAW, GL_STATIC_DRAW},
+        {DrawMode::DYNAMIC_DRAW, GL_DYNAMIC_DRAW}, {DrawMode::STATIC_DRAW, GL_STATIC_DRAW},
+        {DrawMode::STATIC_READ, GL_STATIC_READ},   {DrawMode::STATIC_COPY, GL_STATIC_COPY},
+        {DrawMode::DYNAMIC_READ, GL_DYNAMIC_READ}, {DrawMode::DYNAMIC_COPY, GL_DYNAMIC_COPY},
+        {DrawMode::STREAM_DRAW, GL_STREAM_DRAW},   {DrawMode::STREAM_READ, GL_STREAM_READ},
+        {DrawMode::STREAM_COPY, GL_STREAM_COPY},
 };
 
 const std::unordered_map<Primitive, GLuint> _M_primitives = {
@@ -122,6 +145,7 @@ const std::unordered_map<EnableCap, GLint> _M_enable_caps = {
         {EnableCap::Blend, GL_BLEND},
         {EnableCap::DepthTest, GL_DEPTH_TEST},
         {EnableCap::CullFace, GL_CULL_FACE},
+        {EnableCap::StencilTest, GL_STENCIL_TEST},
 };
 
 const std::unordered_map<BlendFunc, GLint> _M_blend_funcs = {
@@ -139,4 +163,11 @@ const std::unordered_map<BlendFunc, GLint> _M_blend_funcs = {
         {BlendFunc::OneMinusConstantColor, GL_ONE_MINUS_CONSTANT_COLOR},
         {BlendFunc::ConstantAlpha, GL_CONSTANT_ALPHA},
         {BlendFunc::OneMinusConstantAlpha, GL_ONE_MINUS_CONSTANT_ALPHA},
+};
+
+const std::unordered_map<StencilOption, GLint> _M_stencil_options = {
+        {StencilOption::KEEP, GL_KEEP},           {StencilOption::ZERO, GL_ZERO},
+        {StencilOption::REPLACE, GL_REPLACE},     {StencilOption::INCR, GL_INCR},
+        {StencilOption::INCR_WRAP, GL_INCR_WRAP}, {StencilOption::DECR, GL_DECR},
+        {StencilOption::DECR_WRAP, GL_DECR_WRAP}, {StencilOption::INVERT, GL_INVERT},
 };
