@@ -1,8 +1,7 @@
 #include <Core/assimp_helpers.hpp>
 #include <Core/check.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_convert.hpp>
-#include <Core/string_format.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/assimp.hpp>
 #include <Graphics/line.hpp>
 #include <Graphics/resources.hpp>
@@ -92,7 +91,7 @@ namespace Engine
         return line;
     }
 
-    ENGINE_EXPORT void StaticLine::load(const std::string& filename, Scene* scene)
+    ENGINE_EXPORT void StaticLine::load(const String& filename, Scene* scene)
     {
         check(scene);
         const aiScene* assimp_scene = AssimpLibrary::load_scene(filename);
@@ -118,7 +117,7 @@ namespace Engine
             _M_stack.pop();
             SceneTreeNode* current_scene_node = Object::new_instance<SceneTreeNode>(node.scene_parent_node);
             current_scene_node->model(AssimpHelpers::get_matrix4(&node.node->mTransformation));
-            current_scene_node->name(Strings::to_wstring(node.node->mName.data));
+            current_scene_node->name(Strings::to_string(node.node->mName.data));
 
             for (unsigned int i = 0; i < node.node->mNumMeshes; i++)
             {

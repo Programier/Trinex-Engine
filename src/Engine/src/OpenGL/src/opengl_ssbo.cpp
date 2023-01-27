@@ -1,49 +1,60 @@
-#include <opengl_ssbo.hpp>
+#include <opengl_api.hpp>
 #include <opengl_types.hpp>
 
-void OpenGL_SSBO::destroy()
+
+#define internal_bind_ssbo(ID) glBindBuffer(GL_SHADER_STORAGE_BUFFER, ID)
+
+namespace Engine
 {
-    if(_M_ID)
-        glDeleteBuffers(1, &_M_ID);
-}
 
-declare_cpp_destructor(OpenGL_SSBO);
+    struct OpenGL_SSBO : OpenGL_Object {
+        OpenGL_SSBO()
+        {
+            OpenGL::_M_api->_M_current_logger->log("OpenGL: Create new SSBO\n");
+            glGenBuffers(1, &_M_instance_id);
+        }
 
+        ~OpenGL_SSBO()
+        {
+            OpenGL::_M_api->_M_current_logger->log("OpenGL: Destroy SSBO\n");
+            if (_M_instance_id)
+                glDeleteBuffers(1, &_M_instance_id);
+        }
+    };
 
-API void api_create_ssbo(ObjID& ID)
-{
-    if(ID)
-        api_destroy_object_instance(ID);
+    OpenGL& OpenGL::create_ssbo(ObjID& ID)
+    {
+        if (ID)
+            destroy_object(ID);
+        ID = get_object_id(new OpenGL_SSBO());
+        return *this;
+    }
 
-    OpenGL_SSBO* ssbo = new OpenGL_SSBO();
-    ID = reinterpret_cast<ObjID>(ssbo);
-    glGenBuffers(1, &ssbo->_M_ID);
-}
+    OpenGL& OpenGL::bind_ssbo(const ObjID& ID, int_t slot)
+    {
+        check(ID, *this);
+        auto ssbo = obj->get_instance_by_type<OpenGL_SSBO>();
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot, ssbo->_M_instance_id);
+        return *this;
+    }
 
-#define internal_bind_ssbo(ID) glBindBuffer(GL_SHADER_STORAGE_BUFFER,  ID)
+    OpenGL& OpenGL::ssbo_data(const ObjID& ID, void* data, std::size_t bytes, BufferUsage usage)
+    {
+        check(ID, *this);
+        auto ssbo = obj->get_instance_by_type<OpenGL_SSBO>();
+        internal_bind_ssbo(ssbo->_M_instance_id);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, bytes, data, _M_draw_modes.at(usage));
+        internal_bind_ssbo(0);
+        return *this;
+    }
 
-API void api_bind_ssbo(const ObjID& ID, unsigned int slot)
-{
-    make_ssbo(ssbo, ID);
-    check(ssbo, );
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot, ssbo->_M_ID);
-}
-
-API void api_set_ssbo_data(const ObjID& ID, void* data, std::size_t bytes, BufferUsage mode)
-{
-    make_ssbo(ssbo, ID);
-    check(ssbo, );
-    internal_bind_ssbo(ssbo->_M_ID);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, bytes, data, _M_draw_modes.at(mode));
-    internal_bind_ssbo(0);
-}
-
-API void api_update_ssbo_data(const ObjID& ID, void* data, std::size_t bytes, std::size_t offset)
-{
-    make_ssbo(ssbo, ID);
-    check(ssbo, );
-    internal_bind_ssbo(ssbo->_M_ID);
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, bytes, data);
-    internal_bind_ssbo(0);
-}
+    OpenGL& OpenGL::update_ssbo_data(const ObjID& ID, void* data, std::size_t bytes, std::size_t offset)
+    {
+        check(ID, *this);
+        auto ssbo = obj->get_instance_by_type<OpenGL_SSBO>();
+        internal_bind_ssbo(ssbo->_M_instance_id);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, bytes, data);
+        internal_bind_ssbo(0);
+        return *this;
+    }
+}// namespace Engine

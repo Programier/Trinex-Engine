@@ -2,23 +2,22 @@
 #include <Core/decode_typeid_name.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
-#include <Core/string_convert.hpp>
-#include <Core/string_format.hpp>
-#include <stdexcept>
 #include <Core/logger.hpp>
+#include <Core/string_functions.hpp>
+#include <stdexcept>
 
 namespace Engine
 {
 
-    class IApiFunction
+    class IFunction
     {
     protected:
         String _M_name;
         String _M_prototype_name;
-        String _M_base_name = L"";
+        String _M_base_name = STR("");
 
     public:
-        IApiFunction& base_name(const String& base_name);
+        IFunction& base_name(const String& base_name);
         const String& base_name() const;
         const String& prototype_name() const;
         const String& name() const;
@@ -29,27 +28,39 @@ namespace Engine
 
 
     template<typename ReturnType, typename... Args>
-    class ApiFunction : public IApiFunction
+    class Function : public IFunction
     {
+    public:
+        using FunctionPrototype = ReturnType (*)(Args...);
+
     private:
-        ReturnType (*_M_function)(Args...) = nullptr;
+        FunctionPrototype _M_function = nullptr;
 
     public:
-        ApiFunction(const String& function_base_name)
+        Function()
+        {}
+
+
+        Function(const String& function_base_name)
         {
             _M_prototype_name = decode_name(typeid(_M_function));
             base_name(function_base_name);
             _M_function = nullptr;
         }
 
-        ApiFunction(const ApiFunction&) = default;
-        ApiFunction(ApiFunction&&) = default;
-        ApiFunction& operator=(const ApiFunction&) = default;
-        ApiFunction& operator=(ApiFunction&&) = default;
+        Function(const Function&) = default;
+        Function(Function&&) = default;
+        Function& operator=(const Function&) = default;
+        Function& operator=(Function&&) = default;
 
         void operator=(void* _M_func) override
         {
             _M_function = reinterpret_cast<ReturnType (*)(Args...)>(_M_func);
+        }
+
+        void operator=(FunctionPrototype func)
+        {
+            _M_function = func;
         }
 
         ReturnType operator()(Args... args)
@@ -61,7 +72,8 @@ namespace Engine
             throw std::runtime_error(Strings::to_string(Strings::format(L"Null function: {}", name())));
 #else
             logger->log("No function found: %ls\n", name().c_str());
-            return ReturnType();
+            static typename std::remove_reference<ReturnType>::type result;
+            return result;
 #endif
         }
 

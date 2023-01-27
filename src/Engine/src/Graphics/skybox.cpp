@@ -1,5 +1,5 @@
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
-#include <Graphics/enable_param.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/skybox.hpp>
 
@@ -35,12 +35,12 @@ namespace Engine
     constructor_cpp(Skybox)
     {}
 
-    Skybox& Skybox::load(const DynamicArray<std::string>& filenames, const bool& invert)
+    Skybox& Skybox::load(const std::vector<String>& filenames, const bool& invert)
     {
         return *this;
     }
 
-    Skybox& Skybox::load(const std::string& filename, const bool& invert)
+    Skybox& Skybox::load(const String& filename, const bool& invert)
     {
         init_mesh();
         Image img(filename, invert);
@@ -93,20 +93,20 @@ namespace Engine
 
     Skybox& Skybox::draw()
     {
-        Engine::depth_func(CompareFunc::Lequal);
+        EngineInstance::get_instance()->depth_func(CompareFunc::Lequal);
         TextureCubeMap::bind(0);
         mesh.draw(Primitive::TRIANGLE);
-        Engine::depth_func(CompareFunc::Less);
+        EngineInstance::get_instance()->depth_func(CompareFunc::Less);
         return *this;
     }
 
 
-    Skybox::Skybox(const std::string& filename, const bool& invert)
+    Skybox::Skybox(const String& filename, const bool& invert)
     {
         load(filename, invert);
     }
 
-    Skybox::Skybox(const DynamicArray<std::string>& filenames, const bool& invert)
+    Skybox::Skybox(const std::vector<String>& filenames, const bool& invert)
     {
         load(filenames, invert);
     }

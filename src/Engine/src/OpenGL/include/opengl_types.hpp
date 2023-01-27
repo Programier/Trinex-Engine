@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
-#include <opengl.hpp>
+#include <Core/engine_types.hpp>
+#include <opengl_headers.hpp>
 
 using namespace Engine;
 

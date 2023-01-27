@@ -10,3 +10,5 @@
 #else
     #define OPENGL_EXPORT
 #endif // _WIN32
+
+#define API_EXPORT extern "C"  OPENGL_EXPORT

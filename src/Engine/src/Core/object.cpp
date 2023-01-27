@@ -1,13 +1,11 @@
+#include <Core/api_object.hpp>
 #include <Core/decode_typeid_name.hpp>
 #include <Core/destroy_controller.hpp>
-#include <Core/init.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/object_instance_flags.hpp>
 #include <Core/package.hpp>
-#include <Core/string_convert.hpp>
-#include <Core/string_format.hpp>
-#include <Graphics/scene.hpp>
+#include <Core/string_functions.hpp>
 #include <list>
 #include <typeinfo>
 
@@ -111,27 +109,39 @@ namespace Engine
         return typeid(*this).hash_code();
     }
 
-    ENGINE_EXPORT std::string Object::decode_name(const std::type_info& info)
+    ENGINE_EXPORT String Object::decode_name(const std::type_info& info)
     {
-        return Strings::to_string(Engine::decode_name(info));
+        return Engine::decode_name(info);
     }
 
-    std::string Object::class_name() const
+    ENGINE_EXPORT String Object::decode_name(const String& name)
+    {
+        return Engine::decode_name(name);
+    }
+
+    String Object::class_name() const
     {
         return decode_name(typeid(*this));
     }
 
-    void Object::delete_instance(bool force_delete) const
+    void Object::delete_instance(bool force_delete)
     {
         bool skip = has_any_flags(OI_SkipGarbageCollection);
         if ((force_delete || _M_need_delete) && _M_is_on_heap && !skip)
         {
-            logger->log("Garbage Collector: Delete object instance '%s'\n", class_name().c_str());
+            logger->log("Garbage Collector: Delete object instance '%ls'\n", class_name().c_str());
             delete this;
         }
 
         if (force_delete && (!_M_is_on_heap || skip))
+        {
+            auto obj = this->instance_cast<ApiObject>();
+            if (obj)
+            {
+                obj->destroy();
+            }
             get_instance_list().erase(const_cast<Object*>(this));
+        }
     }
 
     ENGINE_EXPORT const ObjectSet& Object::all_objects()

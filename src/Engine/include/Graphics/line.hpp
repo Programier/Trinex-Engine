@@ -37,6 +37,6 @@ namespace Engine
         StaticLine& mesh(StaticLineMesh* mesh);
 
         ENGINE_EXPORT static StaticLine* load_from_assimp_mesh(const aiMesh* mesh);
-        ENGINE_EXPORT static void load(const std::string& filename, Scene* scene);
+        ENGINE_EXPORT static void load(const String& filename, Scene* scene);
     };
 }// namespace Engine

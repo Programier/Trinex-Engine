@@ -1,12 +1,12 @@
-#include <Core/init.hpp>
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/shader_system.hpp>
 #include <SDL.h>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
-#include <api_funcs.hpp>
+#include <api.hpp>
 #include <list>
-#include <opengl.hpp>
 #include <sdl_surface.hpp>
 #include <vector>
 
@@ -17,11 +17,9 @@ static Window window;
 #define win_init_error throw std::runtime_error("Init window first")
 
 #define sdl_window data._M_window
-#define check_init(value)                                                                                                   \
-    if (!data._M_is_inited)                                                                                                 \
+#define check_init(value)                                                                                              \
+    if (!data._M_is_inited)                                                                                            \
     return value
-
-const EngineAPI& api = Engine::Engine_API();
 
 
 static const std::unordered_map<WindowAttrib, SDL_WindowFlags> window_attributes = {
@@ -48,12 +46,12 @@ static const WindowAttrib attrib_list[] = {
         WIN_INPUT_GRABBED, WIN_MINIMIZED,     WIN_MAXIMIZED,          WIN_TRANSPARENT_FRAMEBUFFER,
         WIN_MOUSE_CAPTURE, WIN_ALLOW_HIGHDPI, WIN_MOUSE_GRABBED,      WIN_KEYBOARD_GRABBED};
 
-static constexpr int attributes_count = sizeof(attrib_list) / sizeof(WindowAttrib);
+static constexpr int_t attributes_count = sizeof(attrib_list) / sizeof(WindowAttrib);
 
 static std::list<WindowAttrib> parse_win_attibutes(uint16_t attrib)
 {
     std::list<WindowAttrib> attributes;
-    for (int i = 0; i < attributes_count; i++)
+    for (int_t i = 0; i < attributes_count; i++)
     {
         if (attrib & (1 << i))
             attributes.push_back(attrib_list[i]);
@@ -81,16 +79,16 @@ static struct WindowData {
     SDL_Window* _M_window = nullptr;
     SDL_GLContext _M_GL_context = nullptr;
     bool _M_is_inited = false;
-    std::string _M_title;
+    String _M_title;
 
     SizeLimits2D _M_limits;
     Size2D _M_size = {-1, -1};
     Size2D _M_position;
 
-    int _M_swap_interval = 1;
+    int_t _M_swap_interval = 1;
     float _M_opacity = 0.f;
 
-    std::vector<std::string> _M_dropped_paths;
+    std::vector<String> _M_dropped_paths;
 
     Color _M_background_color = Color(0, 0, 0, 1);
     Cursor _M_cursor;
@@ -121,34 +119,15 @@ static void free_icon_surface()
     data._M_icon_surface = nullptr;
 }
 
-
-//          CALLBACKS
-
-
-//      RESIZE CALLBACK
-static void OpenGL_viewport_resize()
-{
-    Window::bind();
-    glViewport(0, 0, cast(GLsizei, data._M_size.x), cast(GLsizei, data._M_size.y));
-}
-
-static void Vulkan_viewport_resize()
-{
-    throw not_implemented;
-}
-
-static void (*win_viewport_resize[])() = {OpenGL_viewport_resize, Vulkan_viewport_resize};
-
-
 //          WINDOW INITIALIZATION
 
 
-const Window& Window::init(float width, float height, const std::string& title, uint16_t attributes)
+const Window& Window::init(float width, float height, const String& title, uint16_t attributes)
 {
     if (data._M_is_inited)
         return window;
 
-    if (!Engine::is_inited())
+    if (!EngineInstance::get_instance()->is_inited())
         throw std::runtime_error("Window: Init Engine first");
 
     data._M_limits.max = Monitor::size();
@@ -159,7 +138,7 @@ const Window& Window::init(float width, float height, const std::string& title, 
         throw std::runtime_error("Window: Failed to create Window");
     };
 
-    logger->log("Window: Creating new window '%s'\n", title.c_str());
+    logger->log("Window: Creating new window '%ls'\n", title.c_str());
 
     uint32_t attrib = to_sdl_attrib(parse_win_attibutes(attributes));
     data._M_title = title;
@@ -167,25 +146,27 @@ const Window& Window::init(float width, float height, const std::string& title, 
     SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, data._M_X11_compositing);
 
 
-    auto sdl_window_api = (Engine::Engine_API() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
+    auto sdl_window_api =
+            (EngineInstance::get_instance()->api() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
 
-    sdl_window = SDL_CreateWindow(data._M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, cast(int, width),
-                                  cast(int, height), sdl_window_api | SDL_WINDOW_SHOWN | attrib);
+    sdl_window = SDL_CreateWindow(Strings::to_std_string(data._M_title).c_str(), SDL_WINDOWPOS_UNDEFINED,
+                                  SDL_WINDOWPOS_UNDEFINED, cast(int, width), cast(int, height),
+                                  sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
 
     if (sdl_window == nullptr)
         error(SDL_GetError());
 
-    data._M_GL_context = api_init_window(sdl_window);
+    data._M_GL_context = EngineInstance::get_instance()->api_interface()->init_window(sdl_window);
     if (data._M_GL_context == nullptr)
     {
         error("External error");
     }
 
 
-    glViewport(0, 0, width, height);
     data._M_size = {width, height};
     data._M_ration = {width, height};
+    window.update_view_port();
 
     Window::size_limits(data._M_limits);
 
@@ -197,7 +178,7 @@ const Window& Window::init(float width, float height, const std::string& title, 
     return window;
 }
 
-const Window& Window::init(const Size2D& size, const std::string& title, uint16_t attrib)
+const Window& Window::init(const Size2D& size, const String& title, uint16_t attrib)
 {
     return init(size.x, size.y, title, attrib);
 }
@@ -212,12 +193,12 @@ const Window& Window::close()
     free_icon_surface();
     logger->log("Closing window\n");
 
-    api_destroy_window();
+    EngineInstance::get_instance()->api_interface()->destroy_window();
 
     if (data._M_window)
         SDL_DestroyWindow(data._M_window);
 
-    logger->log("Engine::Window: Window '%s' closed\n", data._M_title.c_str());
+    logger->log("Engine::Window: Window '%ls' closed\n", data._M_title.c_str());
     data = WindowData();
 
     return window;
@@ -229,28 +210,12 @@ bool Window::is_open()
     return data._M_is_inited;
 }
 
-//          SWAPPING BUFFERS
-
-static const Window& OpenGL_win_swap_buffers()
-{
-    SDL_GL_SwapWindow(data._M_window);
-    return window;
-}
-
-
-static const Window& Vulkan_win_swap_buffers()
-{
-    throw not_implemented;
-    return window;
-}
-
-static const Window& (*win_swap_buffers[])() = {OpenGL_win_swap_buffers, Vulkan_win_swap_buffers};
-
 
 const Window& Window::swap_buffers()
 {
     check_init(window);
-    return win_swap_buffers[cast(unsigned int, api)]();
+    EngineInstance::get_instance()->api_interface()->swap_buffer(data._M_window);
+    return window;
 }
 
 
@@ -333,7 +298,7 @@ namespace Engine
     {
         if (event.file)
         {
-            data._M_dropped_paths.push_back(event.file);
+            data._M_dropped_paths.push_back(Strings::to_string(event.file));
             SDL_free(event.file);
         }
     }
@@ -341,19 +306,6 @@ namespace Engine
 
 //          VSYNC
 
-static const Window& OpenGL_swap_interval(int value)
-{
-    SDL_GL_SetSwapInterval(value);
-    return window;
-}
-
-static const Window& Vulkan_swap_interval(int value)
-{
-    throw not_implemented;
-    return window;
-}
-
-const Window& (*win_swap_interval[])(int) = {OpenGL_swap_interval, Vulkan_swap_interval};
 
 bool Window::vsync()
 {
@@ -366,31 +318,33 @@ const Window& Window::vsync(const bool& value)
     return swap_interval(cast(int, value));
 }
 
-int Window::swap_interval()
+int_t Window::swap_interval()
 {
     return data._M_swap_interval;
 }
 
-const Window& Window::swap_interval(int value)
+const Window& Window::swap_interval(int_t value)
 {
     check_init(window);
-    return win_swap_interval[cast(int, api)](value);
+    data._M_swap_interval = value;
+    EngineInstance::get_instance()->api_interface()->swap_interval(value);
+    return window;
 }
 
 
 //          WINDOW TITLE
 
-const std::string& Window::title()
+const String& Window::title()
 {
     return data._M_title;
 }
 
-const Window& Window::title(const std::string& title)
+const Window& Window::title(const String& title)
 {
 
     check_init(window);
     data._M_title = title;
-    SDL_SetWindowTitle(sdl_window, data._M_title.c_str());
+    SDL_SetWindowTitle(sdl_window, Strings::to_std_string(data._M_title).c_str());
     return window;
 }
 
@@ -412,7 +366,7 @@ const Window& Window::position(const Point2D& position)
 
 
 //          DROPPED PATHS
-const std::vector<std::string>& Window::dropped_paths()
+const std::vector<String>& Window::dropped_paths()
 {
     return data._M_dropped_paths;
 }
@@ -460,28 +414,12 @@ Color& Window::background_color()
     return data._M_background_color;
 }
 
-
-static const Window& OpenGL_background_color()
-{
-    glClearColor(cast(GLclampf, data._M_background_color.r), cast(GLclampf, data._M_background_color.g),
-                 cast(GLclampf, data._M_background_color.b), cast(GLclampf, data._M_background_color.a));
-    return window;
-}
-
-static const Window& Vulkan_background_color()
-{
-    throw not_implemented;
-    return window;
-}
-
-
-static const Window& (*set_background_color[])() = {OpenGL_background_color, Vulkan_background_color};
-
 const Window& Window::background_color(const Color& color)
 {
     check_init(window);
     data._M_background_color = color;
-    return set_background_color[cast(int, api)]();
+    EngineInstance::get_instance()->api_interface()->clear_color(color);
+    return window;
 }
 
 
@@ -509,29 +447,11 @@ bool Window::is_visible()
 }
 
 
-static const Window& OpenGL_clear_buffer(const BufferType& buffer)
-{
-    int buffer_type = Engine::OpenGL::get_buffer(buffer);
-    if (buffer_type)
-        glClear(buffer_type);
-
-
-    return window;
-}
-
-static const Window& Vulkan_clear_buffer(const BufferType& buffer)
-{
-    throw not_implemented;
-    return window;
-}
-
-static const Window& (*win_clear_buffer[])(const BufferType&) = {OpenGL_clear_buffer, Vulkan_clear_buffer};
-
-
 const Window& Window::clear_buffer(const BufferType& buffer)
 {
     check_init(window);
-    return win_clear_buffer[cast(int, api)](buffer);
+    window.framebuffer()->clear_buffer(buffer);
+    return window;
 }
 
 bool Window::is_iconify()
@@ -614,7 +534,7 @@ const Window& Window::icon(const Image& image)
     return window;
 }
 
-const Window& Window::icon(const std::string& image)
+const Window& Window::icon(const String& image)
 {
     check_init(window);
     data._M_icon.load(image);
@@ -804,18 +724,18 @@ const CursorMode& Window::cursor_mode()
 const Window& Window::bind()
 {
     check_init(window);
-    bind_framebuffer(0);
+    framebuffer()->bind();
     return window;
 }
 
 const Window& Window::update_view_port()
 {
     check_init(window);
-    win_viewport_resize[cast(int, api)]();
+    framebuffer()->view_port(Point2D(), size());
     return window;
 }
 
-const Window& Window::set_orientation(unsigned int orientation)
+const Window& Window::set_orientation(uint_t orientation)
 {
     static std::unordered_map<WindowOrientation, const char*> _M_orientation_map = {
             {WindowOrientation::WIN_ORIENTATION_LANDSCAPE, "LandscapeRight"},
@@ -870,12 +790,17 @@ bool Window::update_viewport_on_resize()
     return data._M_change_viewport_on_resize;
 }
 
-Callback<void> Window::on_resize;
+CallBacks<void> Window::on_resize;
 
 
 std::size_t Window::frame_number()
 {
     return data._M_frame;
+}
+
+BasicFrameBuffer* Window::framebuffer()
+{
+    return window.instance_cast<BasicFrameBuffer>();
 }
 
 
@@ -886,12 +811,12 @@ Window::Window()
     data._M_objects++;
 }
 
-Window::Window(float width, float height, const std::string& title, uint16_t attrib) : Window()
+Window::Window(float width, float height, const String& title, uint16_t attrib) : Window()
 {
     init(width, height, title, attrib);
 }
 
-Window::Window(const Size2D& size, const std::string& title, uint16_t attrib) : Window()
+Window::Window(const Size2D& size, const String& title, uint16_t attrib) : Window()
 {
     init(size.x, size.y, title, attrib);
 }

@@ -20,12 +20,12 @@ namespace Engine
     SDL_SensorUpdate
     */
 
-    unsigned int Sensor::_M_sensor_count = 0;
+    uint_t Sensor::_M_sensor_count = 0;
     std::vector<std::string> Sensor::_M_sensor_names = {};
 
     // Static methods implementation
 
-    unsigned int Sensor::sensors_count()
+    uint_t Sensor::sensors_count()
     {
         return _M_sensor_count;
     }
@@ -35,9 +35,9 @@ namespace Engine
         return Sensor::_M_sensor_names;
     }
 
-    unsigned int Sensor::id_of(const std::string& sensor_name)
+    uint_t Sensor::id_of(const std::string& sensor_name)
     {
-        for (unsigned int id = 0; id < _M_sensor_count; id++)
+        for (uint_t id = 0; id < _M_sensor_count; id++)
             if (_M_sensor_names[id] == sensor_name)
                 return id;
         throw std::runtime_error("Sensor not found");
@@ -47,7 +47,7 @@ namespace Engine
     {
         SDL_SensorUpdate();
         _M_sensor_count = SDL_NumSensors();
-        for (unsigned int i = 0; i < _M_sensor_count; i++) _M_sensor_names.push_back(SDL_SensorGetDeviceName(i));
+        for (uint_t i = 0; i < _M_sensor_count; i++) _M_sensor_names.push_back(SDL_SensorGetDeviceName(i));
     }
 
 
@@ -69,7 +69,7 @@ namespace Engine
         open(sensor_name);
     }
 
-    Sensor::Sensor(unsigned int id)
+    Sensor::Sensor(uint_t id)
     {
         open(id);
     }
@@ -79,7 +79,7 @@ namespace Engine
     Sensor& Sensor::operator=(const Sensor& sensor) = default;
     Sensor& Sensor::operator=(Sensor&& sensor) = default;
 
-    Sensor& Sensor::open(unsigned int id)
+    Sensor& Sensor::open(uint_t id)
     {
         close();
         _M_sensor = SmartPointer<void>(SDL_SensorOpen(id), close_sensor);

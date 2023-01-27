@@ -1,7 +1,7 @@
 #include <Core/assimp_helpers.hpp>
-#include <Core/init.hpp>
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_format.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/assimp.hpp>
 #include <ImGui/ImGuiFileDialog.h>
 #include <ImGui/imgui.h>
@@ -135,8 +135,8 @@ static void color_settings()
     }
 }
 
-#define THEME_ITEM(item_code)                                                                                               \
-    item_code;                                                                                                              \
+#define THEME_ITEM(item_code)                                                                                          \
+    item_code;                                                                                                         \
     ImGui::Separator();
 
 static void theme_settings()
@@ -167,9 +167,11 @@ static void theme_settings()
         }
     });
 
-    THEME_ITEM(ImGui::DragFloat2("Window title align", reinterpret_cast<float*>(&style->WindowTitleAlign), 0.001, 0, 1));
+    THEME_ITEM(
+            ImGui::DragFloat2("Window title align", reinterpret_cast<float*>(&style->WindowTitleAlign), 0.001, 0, 1));
     THEME_ITEM(ImGui::DragFloat2("Item Spacing", reinterpret_cast<float*>(&style->ItemSpacing), 0.001, 0, 100));
-    THEME_ITEM(ImGui::DragFloat2("Item Inner Spacing", reinterpret_cast<float*>(&style->ItemInnerSpacing), 0.001, 0, 100));
+    THEME_ITEM(
+            ImGui::DragFloat2("Item Inner Spacing", reinterpret_cast<float*>(&style->ItemInnerSpacing), 0.001, 0, 100));
     THEME_ITEM(ImGui::SliderFloat("Indent Spacing", &style->IndentSpacing, 0, 100));
     THEME_ITEM(ImGui::SliderFloat("Column Min Spacing", &style->ColumnsMinSpacing, 0, 100));
     THEME_ITEM(ImGui::DragFloat2("Cell Padding", reinterpret_cast<float*>(&style->CellPadding), 0.001, 0, 100));
@@ -282,7 +284,7 @@ static void render_menubar()
                     AssimpLibrary::close_scene(scene);
                     current_pointer = {nullptr, PointerType::aiScene};
                 }
-                scene = AssimpLibrary::load_scene(instance->GetFilePathName());
+                scene = AssimpLibrary::load_scene(Strings::to_string(instance->GetFilePathName()));
             }
             instance->Close();
         }
@@ -575,8 +577,8 @@ static void aiMesh_render(const aiMesh* mesh)
                     for (unsigned int j = 0; j < face.mNumIndices; j++)
                     {
                         Vector3D point = AssimpHelpers::get_vector3(&mesh->mVertices[face.mIndices[j]]);
-                        ImGui::DragFloat3(Strings::format("##FaceVert{}{}", i, j).c_str(), glm::value_ptr(point), 0.f, 0.f,
-                                          0.f, "%.3f", ImGuiSliderFlags_NoInput);
+                        ImGui::DragFloat3(Strings::format("##FaceVert{}{}", i, j).c_str(), glm::value_ptr(point), 0.f,
+                                          0.f, 0.f, "%.3f", ImGuiSliderFlags_NoInput);
                     }
 
                     auto normal = AssimpHelpers::get_vector3(&mesh->mNormals[face.mIndices[0]]);
@@ -621,7 +623,7 @@ static void aiMesh_render(const aiMesh* mesh)
 static void init_application()
 {
     init();
-    window.init({1280, 720}, "AssimpViewer");
+    window.init({1280, 720}, STR("AssimpViewer"));
 
     const char* glsl_ver = "#version 300 es";
     IMGUI_CHECKVERSION();
@@ -644,15 +646,15 @@ static void init_application()
     }
 
     // Init render functions
-#define create_render(type)                                                                                                 \
-    render_functions.insert({PointerType::type, [](AssimpObject __object__) {                                               \
-                                 const type* object = static_cast<const type*>(__object__);                                 \
-                                 if (object == nullptr)                                                                     \
-                                 {                                                                                          \
-                                     ImGui::Text("Object: NULL");                                                           \
-                                     return;                                                                                \
-                                 }                                                                                          \
-                                 type##_render(object);                                                                     \
+#define create_render(type)                                                                                            \
+    render_functions.insert({PointerType::type, [](AssimpObject __object__) {                                          \
+                                 const type* object = static_cast<const type*>(__object__);                            \
+                                 if (object == nullptr)                                                                \
+                                 {                                                                                     \
+                                     ImGui::Text("Object: NULL");                                                      \
+                                     return;                                                                           \
+                                 }                                                                                     \
+                                 type##_render(object);                                                                \
                              }})
 
     create_render(aiScene);

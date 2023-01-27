@@ -1,6 +1,6 @@
 #include <Core/check.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_format.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/scene.hpp>
 #include <list>
 
@@ -90,7 +90,8 @@ namespace Engine
 
                     auto global_matrix = scene_node->global_matrix();
 
-                    if (object->aabb().apply_model(global_matrix).is_in_frustum(frustum))
+                    //if (object->aabb().apply_model(global_matrix).is_in_frustum(frustum))
+                    if (true)
                     {
                         count += object->render(global_matrix);
                     }
@@ -201,7 +202,6 @@ namespace Engine
     Scene::~Scene()
     {
         clear();
-        delete _M_head;
     }
 
     SceneTreeNode* Scene::scene_head()

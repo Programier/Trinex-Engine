@@ -30,7 +30,7 @@ namespace Engine
         Object* _M_parent = nullptr;
         ObjectSet _M_childs;
 
-        void delete_instance(bool force_delete = false) const;
+        void delete_instance(bool force_delete = false) ;
         Package* _M_package = nullptr;
 
     protected:
@@ -43,8 +43,9 @@ namespace Engine
     public:
         delete_copy_constructors(Object);
 
-        ENGINE_EXPORT static std::string decode_name(const std::type_info& info);
-        std::string class_name() const;
+        ENGINE_EXPORT static String decode_name(const std::type_info& info);
+        ENGINE_EXPORT static String decode_name(const String& name);
+        String class_name() const;
         Object& add_child_object(Object * child);
         Object& remove_child_object(Object * child);
         const ObjectSet& child_objects() const;
@@ -85,7 +86,7 @@ namespace Engine
         }
 
         template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, bool>::type is_instance_of()
+        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, bool>::type is_instance_of() const
         {
             return _M_instance_info[static_cast<EnumerateType>(ObjectInstanceType::instance_type)]._M_has_instance;
         }
@@ -98,6 +99,20 @@ namespace Engine
             if (_M_instance_info[index]._M_has_instance)
             {
                 byte* new_object = reinterpret_cast<byte*>(this) - _M_instance_info[index]._M_offset;
+                return reinterpret_cast<ObjectInstanceType*>(new_object);
+            }
+
+            return nullptr;
+        }
+
+        template<typename ObjectInstanceType>
+        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, const ObjectInstanceType*>::type
+        instance_cast() const
+        {
+            const EnumerateType index = static_cast<EnumerateType>(ObjectInstanceType::instance_type);
+            if (_M_instance_info[index]._M_has_instance)
+            {
+                const byte* new_object = reinterpret_cast<const byte*>(this) - _M_instance_info[index]._M_offset;
                 return reinterpret_cast<ObjectInstanceType*>(new_object);
             }
 

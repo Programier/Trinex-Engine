@@ -1,7 +1,7 @@
+#include <Core/engine.hpp>
 #include <Graphics/mesh.hpp>
-#include <api_funcs.hpp>
+#include <api.hpp>
 #include <numeric>
-#include <opengl.hpp>
 
 namespace Engine
 {
@@ -12,31 +12,34 @@ namespace Engine
     BasicMesh& BasicMesh::gen()
     {
         ApiObject::destroy();
-        generate_mesh(_M_ID);
+        EngineInstance::get_instance()->api_interface()->generate_mesh(_M_ID);
         return *this;
     }
 
     BasicMesh& BasicMesh::set_data(void* data)
     {
-        set_mesh_data(_M_ID, mesh_type_size() * size(), mode, static_cast<void*>(mesh_data()));
+        EngineInstance::get_instance()->api_interface()->mesh_data(_M_ID, mesh_type_size() * size(), mode,
+                                                                   static_cast<void*>(mesh_data()));
         return *this;
     }
 
     BasicMesh& BasicMesh::update_atributes()
     {
-        update_mesh_attributes(_M_ID, dynamic_cast<MeshInfo&>(*this));
+        EngineInstance::get_instance()->api_interface()->update_mesh_attributes(_M_ID, dynamic_cast<MeshInfo&>(*this));
         return *this;
     }
 
     BasicMesh& BasicMesh::update_indexes()
     {
-        set_mesh_indexes_array(_M_ID, dynamic_cast<MeshInfo&>(*this), indexes_size(), indexes_type(), indexes_data());
+        EngineInstance::get_instance()->api_interface()->mesh_indexes_array(
+                _M_ID, dynamic_cast<MeshInfo&>(*this), indexes_size(), indexes_type(), indexes_data());
         return *this;
     }
 
     const BasicMesh& BasicMesh::draw(Primitive primitive, std::size_t vertices, std::size_t offset) const
     {
-        draw_mesh(_M_ID, primitive, (vertices ? vertices : vertices_count()), offset);
+        EngineInstance::get_instance()->api_interface()->draw_mesh(_M_ID, primitive,
+                                                                   (vertices ? vertices : vertices_count()), offset);
         return *this;
     }
 
@@ -50,7 +53,7 @@ namespace Engine
         }
 
         if (data)
-            update_mesh_data(_M_ID, offset, count, data);
+            EngineInstance::get_instance()->api_interface()->update_mesh_data(_M_ID, offset, count, data);
         return *this;
     }
 

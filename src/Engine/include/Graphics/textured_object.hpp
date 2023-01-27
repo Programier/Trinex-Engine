@@ -54,7 +54,7 @@ namespace Engine
         StaticTexturedObjectMesh* mesh();
         const StaticTexturedObjectMesh* mesh() const;
         StaticTexturedObject& mesh(StaticTexturedObjectMesh* mesh);
-        static ENGINE_EXPORT void load(const std::string& filename, Scene* scene);
+        static ENGINE_EXPORT void load(const String& filename, Scene* scene);
     };
 
 
@@ -90,6 +90,6 @@ namespace Engine
         AnimatedTexturedObject& mesh(AnimatedTexturedObjectMesh* mesh);
         //Skeleton* skeleton() const;
 
-        static ENGINE_EXPORT void load(const std::string& filename, Scene* scene);
+        static ENGINE_EXPORT void load(const String& filename, Scene* scene);
     };
 }// namespace Engine

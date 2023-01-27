@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/export.hpp>
+#include <Core/engine_types.hpp>
 
 #include <sstream>
 #include <string>
@@ -28,17 +29,17 @@ namespace Engine::Strings
     }
 
 
-    inline std::wstring format(const std::wstring& text)
+    inline String format(const String& text)
     {
         return text;
     }
 
 
     template<typename Type, typename... Args>
-    std::wstring format(std::wstring text, const Type& value, const Args&... args)
+    String format(String text, const Type& value, const Args&... args)
     {
         auto pos = text.find(L"{}");
-        if (pos == std::wstring::npos)
+        if (pos == String::npos)
             return text;
 
         std::wstringstream stream;
@@ -49,6 +50,8 @@ namespace Engine::Strings
 
 
     ENGINE_EXPORT std::string c_style_format(const char* text, ...);
-    ENGINE_EXPORT std::wstring c_style_format(const wchar_t* text, ...);
+    ENGINE_EXPORT String c_style_format(const wchar_t* text, ...);
 
+    ENGINE_EXPORT String to_string(const std::string& str);
+    ENGINE_EXPORT std::string to_std_string(const String& str);
 }// namespace Engine::Strings

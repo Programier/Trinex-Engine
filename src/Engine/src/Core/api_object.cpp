@@ -1,5 +1,6 @@
 #include <Core/api_object.hpp>
-#include <api_funcs.hpp>
+#include <Core/engine.hpp>
+#include <api.hpp>
 
 namespace Engine
 {
@@ -60,7 +61,7 @@ namespace Engine
     ApiObject& ApiObject::destroy()
     {
         if (_M_ID)
-            destroy_object(_M_ID);
+            EngineInstance::get_instance()->api_interface()->destroy_object(_M_ID);
         return *this;
     }
 

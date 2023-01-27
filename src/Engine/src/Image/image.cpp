@@ -1,4 +1,5 @@
 #include <Core/logger.hpp>
+#include <Core/string_functions.hpp>
 #include <Image/image.hpp>
 #include <stb_image.h>
 #include <stdexcept>
@@ -16,7 +17,7 @@ namespace Engine
         return _M_data.empty() || _M_channels == 0 || _M_width == 0 || _M_height == 0;
     }
 
-    const unsigned char* Image::data() const
+    const byte* Image::data() const
     {
         return _M_data.data();
     }
@@ -50,7 +51,7 @@ namespace Engine
         return _M_channels;
     }
 
-    Image::ImageRow Image::operator[](int index)
+    Image::ImageRow Image::operator[](int_t index)
     {
 
         if (index >= _M_height || index < -_M_height)
@@ -59,13 +60,13 @@ namespace Engine
         return Image::ImageRow(_M_data.data() + _M_channels * index, _M_width, _M_channels);
     }
 
-    Image& Image::load(const std::string& image, const bool& invert_horizontal)
+    Image& Image::load(const String& image, const bool& invert_horizontal)
     {
         _M_data.clear();
         stbi_set_flip_vertically_on_load(invert_horizontal);
-        unsigned char* address = stbi_load(image.c_str(), &_M_width, &_M_height, &_M_channels, 0);
+        byte* address = stbi_load(Strings::to_std_string(image).c_str(), &_M_width, &_M_height, &_M_channels, 0);
         stbi_set_flip_vertically_on_load(false);
-        //_M_data = std::vector<unsigned char>(address, address + _M_width * _M_height * _M_channels);
+        //_M_data = std::vector<byte>(address, address + _M_width * _M_height * _M_channels);
         _M_data.insert(_M_data.begin(), address, address + _M_width * _M_height * _M_channels);
         stbi_image_free(address);
         return *this;
@@ -73,7 +74,7 @@ namespace Engine
 
     Image::Image() = default;
 
-    Image::Image(const std::string& path, const bool& invert_horizontal)
+    Image::Image(const String& path, const bool& invert_horizontal)
     {
         load(path, invert_horizontal);
     }
@@ -105,10 +106,10 @@ namespace Engine
             return *this;
         }
 
-        std::vector<unsigned char> tmp;
+        std::vector<byte> tmp;
         tmp.reserve(_M_height * _M_width * 3);
-        int len = _M_width * _M_height * _M_channels;
-        for (int i = 0; i < len; i++)
+        int_t len = _M_width * _M_height * _M_channels;
+        for (int_t i = 0; i < len; i++)
         {
             if (i % 4 != 3)
                 tmp.push_back(_M_data[i]);
@@ -129,10 +130,10 @@ namespace Engine
             return *this;
         }
 
-        std::vector<unsigned char> tmp;
+        std::vector<byte> tmp;
         tmp.reserve(_M_height * _M_width * 4);
-        int len = _M_width * _M_height * _M_channels;
-        for (int i = 0; i < len; i++)
+        int_t len = _M_width * _M_height * _M_channels;
+        for (int_t i = 0; i < len; i++)
         {
             tmp.push_back(_M_data[i]);
             if (i % 3 == 2)
@@ -143,17 +144,17 @@ namespace Engine
         return *this;
     }
 
-    std::vector<unsigned char>& Image::vector()
+    std::vector<byte>& Image::vector()
     {
         return _M_data;
     }
 
-    std::vector<unsigned char>::iterator Image::begin()
+    std::vector<byte>::iterator Image::begin()
     {
         return _M_data.begin();
     }
 
-    std::vector<unsigned char>::iterator Image::end()
+    std::vector<byte>::iterator Image::end()
     {
         return _M_data.end();
     }
@@ -165,11 +166,11 @@ namespace Engine
 
 
     //          IMAGE ROW
-    Image::ImageRow::ImageRow(unsigned char* data, int length, int channels)
+    Image::ImageRow::ImageRow(byte* data, int_t length, int_t channels)
         : _M_data(data), _M_length(length), _M_channels(channels)
     {}
 
-    Image::ImageRow::Pixel Image::ImageRow::operator[](int index)
+    Image::ImageRow::Pixel Image::ImageRow::operator[](int_t index)
     {
         if (index >= _M_length || index < -_M_length)
             std::runtime_error("Image: Index out of range");
@@ -179,25 +180,25 @@ namespace Engine
 
     //          PIXEL
 
-    Image::ImageRow::Pixel::Pixel(unsigned char* data, int channels) : _M_data(data), _M_channels(channels)
+    Image::ImageRow::Pixel::Pixel(byte* data, int_t channels) : _M_data(data), _M_channels(channels)
     {}
 
-    unsigned char& Image::ImageRow::Pixel::R()
+    byte& Image::ImageRow::Pixel::R()
     {
         return _M_data[0];
     }
 
-    unsigned char& Image::ImageRow::Pixel::G()
+    byte& Image::ImageRow::Pixel::G()
     {
         return _M_data[1];
     }
 
-    unsigned char& Image::ImageRow::Pixel::B()
+    byte& Image::ImageRow::Pixel::B()
     {
         return _M_data[2];
     }
 
-    unsigned char& Image::ImageRow::Pixel::A()
+    byte& Image::ImageRow::Pixel::A()
     {
         if (has_alpha() == false)
             throw std::runtime_error("Pixel: Alpha channel not found");
@@ -209,12 +210,12 @@ namespace Engine
         return _M_channels == 4;
     }
 
-    unsigned char* Image::ImageRow::Pixel::begin()
+    byte* Image::ImageRow::Pixel::begin()
     {
         return _M_data;
     }
 
-    unsigned char* Image::ImageRow::Pixel::end()
+    byte* Image::ImageRow::Pixel::end()
     {
         return _M_data + _M_channels;
     }
@@ -241,9 +242,9 @@ namespace Engine
 
         image._M_data.reserve(image._M_width * image._M_height * _M_channels);
 
-        int start_index =
-                (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) + static_cast<int>(begin.x + 0.5) * _M_channels;
-        for (int i = 0; i < image._M_height; i++)
+        int_t start_index = (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) +
+                            static_cast<int>(begin.x + 0.5) * _M_channels;
+        for (int_t i = 0; i < image._M_height; i++)
         {
             image._M_data.insert(image.end(), _M_data.begin() + start_index,
                                  _M_data.begin() + start_index + image._M_width * image._M_channels);

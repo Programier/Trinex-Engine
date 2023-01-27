@@ -1,25 +1,26 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/color.hpp>
 #include <Core/engine.hpp>
 #include <Core/export.hpp>
 #include <Core/keyboard.hpp>
 #include <Event/event.hpp>
+#include <Graphics/basic_framebuffer.hpp>
 #include <Window/cursor.hpp>
 #include <functional>
 #include <string>
 #include <vector>
-#include <Core/callback.hpp>
 
 
 namespace Engine
 {
 
-    STRUCT Window
+    STRUCT Window : private BasicFrameBuffer
     {
         static Event event;
         // Window struct methods
-        static const Window& init(float width, float height, const std::string& title = "", uint16_t attrib = 0);
-        static const Window& init(const Size2D& size, const std::string& title = "", uint16_t attrib = 0);
+        static const Window& init(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
+        static const Window& init(const Size2D& size, const String& title = STR(""), uint16_t attrib = 0);
         static const Window& close();
         static bool is_open();
         static const Window& swap_buffers();
@@ -32,19 +33,19 @@ namespace Engine
         static const Window& size(const Size2D& size);
 
 
-        static int swap_interval();
-        static const Window& swap_interval(int value);
+        static int_t swap_interval();
+        static const Window& swap_interval(int_t value);
 
         static bool vsync();
         static const Window& vsync(const bool& value);
 
-        static const std::string& title();
-        static const Window& title(const std::string& title);
+        static const String& title();
+        static const Window& title(const String& title);
 
         static const Point2D& position();
         static const Window& position(const Point2D& position);
 
-        static const std::vector<std::string>& dropped_paths();
+        static const std::vector<String>& dropped_paths();
         static const Window& clear_dropped_paths();
 
         static bool rezisable();
@@ -80,7 +81,7 @@ namespace Engine
         static const Cursor& cursor();
 
         static const Window& icon(const Image& image);
-        static const Window& icon(const std::string& image);
+        static const Window& icon(const String& image);
         static const Image& icon();
 
         static const Window& aspect_ration(const AspectRation& ration);
@@ -100,19 +101,20 @@ namespace Engine
         static void* SDL();
         static void* SDL_OpenGL_context();
 
-        static const Window& set_orientation(unsigned int orientation);
+        static const Window& set_orientation(uint_t orientation);
         static const Window& start_text_input();
         static const Window& stop_text_input();
         static const Window& update_viewport_on_resize(bool value);
         static bool update_viewport_on_resize();
-        static Callback<void> on_resize;
+        static CallBacks<void> on_resize;
         static std::size_t frame_number();
+        static BasicFrameBuffer* framebuffer();
 
         // Constructors
 
         Window();
-        Window(float width, float height, const std::string& title = "", uint16_t attrib = 0);
-        Window(const Size2D& size, const std::string& title = "", uint16_t attrib = 0);
+        Window(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
+        Window(const Size2D& size, const String& title = STR(""), uint16_t attrib = 0);
         Window(const Window& window);
         Window& operator=(const Window& window);
         ~Window();

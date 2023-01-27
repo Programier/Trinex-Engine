@@ -52,7 +52,7 @@ namespace Engine
 
         Tree& clear()
         {
-            for (auto node : std::list(_M_nodes.begin(), _M_nodes.end())) delete node;
+            //for (auto node : std::list(_M_nodes.begin(), _M_nodes.end()));
             return *this;
         }
 

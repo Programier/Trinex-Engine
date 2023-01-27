@@ -44,6 +44,10 @@ namespace Engine
         StaticTexturedObject,
         AnimatedTexturedObject,
         Camera,
+        SceneNode,
+        SceneTree,
+        Scene3D,
+        Application,
         Count
     };
 }// namespace Engine

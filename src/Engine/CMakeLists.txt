@@ -7,6 +7,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DENGINE_DEBUG)
 endif()
 
+add_definitions(-DENGINE_API_IMPLEMENTATION)
+
 #Compile parameters
 set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(ENGINE_SRC "${ENGINE_ROOT}/src")
@@ -42,15 +44,6 @@ endif()
 include_directories("${ENGINE_ROOT}/libs/assimp/include/")
 include_directories("${ENGINE_SRC}/EngineHeaders/")
 
-
-
-if(WIN32)
-    set(OPENGL opengl32 glew)
-elseif(ANDROID)
-    set(OPENGL GLESv3)
-else()
-    set(OPENGL GL)
-endif()
 
 set(WINDOW_DIR "${ENGINE_SRC}/Window/")
 set(EVENT_DIR "${ENGINE_SRC}/Event/")
@@ -97,9 +90,7 @@ if (WIN32)
     link_directories("${ENGINE_ROOT}/libs/")
 endif()
 
-#if(BUILD_OPENGL)
 add_subdirectory("${ENGINE_SRC}/OpenGL")
-#endif()
 add_subdirectory("${ENGINE_SRC}/Vulkan")
 
 set(BUILD_SHARED_LIBS on)
@@ -108,6 +99,7 @@ add_library(Engine SHARED ${ENGINE_SOURCE_FILES})
 target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>"
                                          "$<BUILD_INTERFACE:${ENGINE_ROOT}/include/ImGui>")
 
-target_link_libraries(Engine PRIVATE SDL2 ${OPENGL} ${ASSIMP_LIB} freetype ${PlatformLibs})
+
+
+target_link_libraries(Engine PRIVATE SDL2 ${ASSIMP_LIB} freetype ${PlatformLibs})
 #add_subdirectory(Editor)
-add_subdirectory(AssimpTreeViewer)

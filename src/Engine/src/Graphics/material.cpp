@@ -1,6 +1,6 @@
 #include <Core/check.hpp>
 #include <Core/destroy_controller.hpp>
-#include <Core/string_format.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/scene.hpp>
 #include <iostream>

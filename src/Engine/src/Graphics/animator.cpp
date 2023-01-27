@@ -1,5 +1,4 @@
 #include <Core/logger.hpp>
-#include <Core/string_convert.hpp>
 #include <Graphics/animated_object.hpp>
 #include <Graphics/animation.hpp>
 #include <Graphics/animator.hpp>

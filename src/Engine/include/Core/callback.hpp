@@ -1,10 +1,15 @@
 #pragma once
+#include <Core/function.hpp>
 #include <set>
 
 namespace Engine
 {
+
+    template<typename ReturnType, typename... Args>
+    using CallBack = Function<ReturnType, Args...>;
+
     template<typename Return, typename... Args>
-    class Callback final
+    class CallBacks final
     {
     public:
         using CallbackFunctionPrototype = Return (*)(Args...);
@@ -13,19 +18,19 @@ namespace Engine
         std::set<CallbackFunctionPrototype> _M_callbacks;
 
     public:
-        Callback& push(const CallbackFunctionPrototype& callback)
+        CallBacks& push(const CallbackFunctionPrototype& callback)
         {
             _M_callbacks.insert(callback);
             return *this;
         }
 
-        Callback& remove(const CallbackFunctionPrototype& callback)
+        CallBacks& remove(const CallbackFunctionPrototype& callback)
         {
             _M_callbacks.erase(callback);
             return *this;
         }
 
-        const Callback& trigger(Args... args) const
+        const CallBacks& trigger(Args... args) const
         {
             for (auto& ell : _M_callbacks) ell(args...);
             return *this;
@@ -36,4 +41,6 @@ namespace Engine
             return _M_callbacks;
         }
     };
+
+
 }// namespace Engine

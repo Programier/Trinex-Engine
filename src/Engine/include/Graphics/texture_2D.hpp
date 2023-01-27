@@ -17,6 +17,6 @@ namespace Engine
         Texture2D& update_from_current_read_buffer(const Size2D& size, const Offset2D& offset, const Size2D& pos = {0, 0}, int mipmap = 0);
 
         Texture2D& read_data(std::vector<byte> & data, int level = 0);
-        Texture2D& load(const std::string& filename);
+        Texture2D& load(const String& filename);
     };
 }// namespace Engine

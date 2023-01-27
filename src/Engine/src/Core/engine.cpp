@@ -1,68 +1,202 @@
+#include <Core/destroy_controller.hpp>
 #include <Core/engine.hpp>
+#include <Core/logger.hpp>
+#include <LibLoader/lib_loader.hpp>
+#include <SDL.h>
+#include <Sensors/sensor.hpp>
+#include <Window/monitor.hpp>
+#include <Window/window.hpp>
+#include <api.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <opengl.hpp>
 #include <unordered_map>
 
 namespace Engine
 {
-    const std::string ShaderModeValue = "RenderType";
-
-    static Shader shader;
-
-    ENGINE_EXPORT const Shader& engine_shader()
+    static std::vector<void (*)()>& terminate_list()
     {
-        return shader;
+        static std::vector<void (*)()> _M_terminate_list;
+        return _M_terminate_list;
     }
 
-    ENGINE_EXPORT glm::vec3 get_rotation_from_matrix(const glm::mat4& m)
+
+    EngineInstance::EngineInstance()
+    {}
+
+
+    EngineInstance* EngineInstance::_M_instance = nullptr;
+
+    ENGINE_EXPORT EngineInstance* EngineInstance::create_instance()
     {
-        return glm::eulerAngles(glm::quat(m));
+        if (_M_instance == nullptr)
+            _M_instance = new EngineInstance();
+        return _M_instance;
     }
 
-    ENGINE_EXPORT glm::mat4 quaternion_matrix(const glm::vec3& rotation)
+    ENGINE_EXPORT EngineInstance* EngineInstance::get_instance()
     {
-        return glm::mat4_cast(glm::quat(rotation));
+        return _M_instance;
     }
 
-    ENGINE_EXPORT float scalar_mult(const glm::vec3& first, const glm::vec3& second)
+    const Window* EngineInstance::window() const
     {
-        return glm::dot(first, second);
+        static Window window;
+        return &window;
     }
 
-    ENGINE_EXPORT float angle_between(glm::vec3 first, glm::vec3 second)
+    SystemType EngineInstance::system_type() const
     {
-        return glm::acos(scalar_mult(glm::normalize(first), glm::normalize(second)));
+#if defined(WIN32)
+        return SystemName::WINDOWS_OS;
+#elif defined(__ANDROID__)
+        return SystemName::ANDROID_OS;
+#else
+        return SystemType::LINUX_OS;
+#endif
     }
 
-    ENGINE_EXPORT glm::vec3 remove_coord(const glm::vec3& vector, const Coord& coord)
+    EngineAPI EngineInstance::api() const
     {
-        auto result = vector;
-        result[static_cast<int>(coord)] = 0.f;
-        return glm::normalize(result);
+        return _M_api;
     }
 
-    ENGINE_EXPORT bool get_bit(const std::size_t& value, int bit)
+
+    /////////////////// INITIALIZE ENGINE ///////////////////
+
+    bool EngineInstance::is_inited() const
     {
-        return (value >> (bit - 1)) & 1;
+        return _M_is_inited;
     }
 
-    namespace OpenGL
+
+    static std::string get_api_name(EngineAPI api)
     {
-        ENGINE_EXPORT int compare_func(const CompareFunc& func)
+        switch (api)
         {
-            static const std::unordered_map<CompareFunc, int> OpenGL_compare_func = {
-                    {CompareFunc::Lequal, GL_LEQUAL}, {CompareFunc::Gequal, GL_GEQUAL},
-                    {CompareFunc::Less, GL_LESS},     {CompareFunc::Greater, GL_GREATER},
-                    {CompareFunc::Equal, GL_EQUAL},   {CompareFunc::NotEqual, GL_NOTEQUAL},
-                    {CompareFunc::Always, GL_ALWAYS}, {CompareFunc::Never, GL_NEVER}};
-            return OpenGL_compare_func.at(func);
+            case EngineAPI::OpenGL:
+                return "OpenGL";
+
+            case EngineAPI::Vulkan:
+                return "Vulkan";
+            default:
+                return "API_NOT_FOUND!";
+        }
+    }
+
+    EngineInstance& EngineInstance::init()
+    {
+        if (_M_is_inited)
+        {
+            return *this;
         }
 
-    }// namespace OpenGL
+        if (SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO))
+            throw std::runtime_error(SDL_GetError());
 
-    ENGINE_EXPORT std::string dirname_of(const std::string& fname)
+
+        Library api_library = load_library(get_api_name(_M_api));
+
+        if (!api_library.has_lib())
+        {
+            throw std::runtime_error("Engine: Failed to load API library!");
+        }
+
+        // Try to load api loader
+        GraphicApiInterface::ApiInterface* (*loader)() =
+                api_library.get<GraphicApiInterface::ApiInterface*>("load_api");
+
+        if (!loader)
+        {
+            throw std::runtime_error("Engine: Failed to get API loader!");
+        }
+
+        // Initialize API
+        _M_api_interface = loader();
+
+        if (!_M_api_interface)
+        {
+            throw std::runtime_error("Engine: Failed to init API");
+        }
+
+        Monitor::update();
+        Sensor::update_sensors_info();
+
+        _M_is_inited = true;
+        return *this;
+    }
+
+    GraphicApiInterface::ApiInterface* EngineInstance::api_interface() const
     {
-        size_t pos = fname.find_last_of("\\/");
-        return (std::string::npos == pos) ? "./" : fname.substr(0, pos + 1);
+        return _M_api_interface;
+    }
+
+    EngineInstance& EngineInstance::enable(EnableCap cap)
+    {
+        _M_api_interface->enable(cap);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::disable(EnableCap cap)
+    {
+        _M_api_interface->disable(cap);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::blend_func(BlendFunc func, BlendFunc func2)
+    {
+        _M_api_interface->blend_func(func, func2);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::depth_func(DepthFunc func)
+    {
+        _M_api_interface->depth_func(func);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::depth_mask(bool mask)
+    {
+        _M_api_interface->depth_mask(mask);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::stencil_mask(byte mask)
+    {
+        _M_api_interface->stencil_mask(mask);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::stencil_option(StencilOption stencil_fail, StencilOption depth_fail,
+                                                   StencilOption pass)
+    {
+        _M_api_interface->stencil_option(stencil_fail, depth_fail, pass);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::stencil_func(Engine::CompareFunc func, int_t ref, byte mask)
+    {
+        _M_api_interface->stencil_func(func, ref, mask);
+        return *this;
+    }
+
+
+    EngineInstance::~EngineInstance()
+    {
+        logger->log("Engine: Terminate Engine");
+
+        for (auto func : terminate_list()) func();
+
+        delete _M_api_interface;
+        SDL_Quit();
+
+        _M_api_interface = nullptr;
+        _M_is_inited = false;
+    }
+
+
+    /////////////////// DESTROY CONTROLLER ///////////////////
+
+    DestroyController::DestroyController(void (*callback)())
+    {
+        terminate_list().push_back(callback);
     }
 }// namespace Engine

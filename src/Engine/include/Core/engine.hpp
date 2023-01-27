@@ -1,39 +1,26 @@
 #pragma once
+#include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
-#include <Core/init.hpp>
-#include <Graphics/shader.hpp>
 #include <iomanip>
 #include <ostream>
 #include <utility>
-#include <Core/constants.hpp>
 
-#define not_implemented                                                                                                     \
-    (std::runtime_error(std::string(__FILE__) + std::string(":") + std::to_string(__LINE__) +                               \
+#define not_implemented                                                                                                \
+    (std::runtime_error(std::string(__FILE__) + std::string(":") + std::to_string(__LINE__) +                          \
                         std::string(" Not implemented method: ") + __PRETTY_FUNCTION__))
 
 #define cast(type, value) static_cast<type>(value)
 
-namespace Engine
-{
-    ENGINE_EXPORT const Shader& engine_shader();
-
-    ENGINE_EXPORT EulerAngle3D get_rotation_from_matrix(const glm::mat4& m);
-    ENGINE_EXPORT glm::mat4 quaternion_matrix(const glm::vec3& rotation);
-    ENGINE_EXPORT float scalar_mult(const Vector3D& first, const Vector3D& second);
-    ENGINE_EXPORT float angle_between(Vector3D first, Vector3D second);
-    ENGINE_EXPORT Vector3D remove_coord(const Vector3D& vector, const Coord& coord);
-    ENGINE_EXPORT bool get_bit(const std::size_t& value, int bit);
-    ENGINE_EXPORT std::string dirname_of(const std::string& fname);
-}// namespace Engine
-
 
 // PRINTING GLM OBJECT
 template<typename T, typename = void>
-struct is_member_of_glm : std::false_type {};
+struct is_member_of_glm : std::false_type {
+};
 
 template<typename T>
-struct is_member_of_glm<T, decltype(adl_member_of_glm(std::declval<T>()))> : std::true_type {};
+struct is_member_of_glm<T, decltype(adl_member_of_glm(std::declval<T>()))> : std::true_type {
+};
 
 
 namespace glm
@@ -107,3 +94,53 @@ namespace glm
         return print_glm_object(stream, value);
     }
 }// namespace glm
+
+
+namespace Engine
+{
+    class Application;
+    class Window;
+
+    namespace GraphicApiInterface
+    {
+        class ApiInterface;
+    }
+
+    ENGINE_EXPORT class EngineInstance final
+    {
+    private:
+        bool _M_is_inited = false;
+        static EngineInstance* _M_instance;
+        Application* _M_application = nullptr;
+        EngineAPI _M_api;
+        GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
+
+        EngineInstance();
+
+        EngineInstance& init();
+        ENGINE_EXPORT static EngineInstance* create_instance();
+
+        ~EngineInstance();
+
+    public:
+        ENGINE_EXPORT static EngineInstance* get_instance();
+        const Window* window() const;
+        SystemType system_type() const;
+        EngineAPI api() const;
+        bool is_inited() const;
+        GraphicApiInterface::ApiInterface* api_interface() const;
+
+        EngineInstance& enable(EnableCap cap);
+        EngineInstance& disable(EnableCap cap);
+        EngineInstance& blend_func(BlendFunc func, BlendFunc func2);
+        EngineInstance& depth_func(DepthFunc func);
+        EngineInstance& depth_mask(bool mask);
+        EngineInstance& stencil_mask(byte mask);
+        EngineInstance& stencil_option(StencilOption stencil_fail, StencilOption depth_fail, StencilOption pass);
+        EngineInstance& stencil_func(Engine::CompareFunc func, int_t ref, byte mask);
+
+
+        friend class Application;
+    };
+
+}// namespace Engine

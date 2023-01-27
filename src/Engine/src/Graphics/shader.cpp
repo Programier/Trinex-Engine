@@ -1,7 +1,8 @@
+#include <Core/engine.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/shader.hpp>
-#include <api_funcs.hpp>
+#include <api.hpp>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
@@ -55,7 +56,7 @@ namespace Engine
     Shader& Shader::load(const ShaderParams& params)
     {
         destroy();
-        create_shader(_M_ID, params);
+        EngineInstance::get_instance()->api_interface()->create_shader(_M_ID, params);
         return *this;
     }
 
@@ -73,7 +74,7 @@ namespace Engine
         read_file(compute, params.compute);
         read_file(geometry, params.geometry);
 
-        create_shader(_M_ID, params);
+        EngineInstance::get_instance()->api_interface()->create_shader(_M_ID, params);
 
         return *this;
     }
@@ -81,10 +82,10 @@ namespace Engine
 
     const Shader& Shader::use() const
     {
-        if (_M_ID != _M_current)
+        //  if (_M_ID != _M_current)
         {
             _M_current = _M_ID;
-            use_shader(_M_ID);
+            EngineInstance::get_instance()->api_interface()->use_shader(_M_ID);
         }
 
         return *this;
@@ -93,49 +94,49 @@ namespace Engine
 
     const Shader& Shader::set(const std::string& value_name, float value) const
     {
-        set_shader_float_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, int value) const
     {
-        set_shader_int_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::mat4& value) const
     {
-        set_shader_mat4_float_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::mat3& value) const
     {
-        set_shader_mat3_float_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const bool& value) const
     {
-        set_shader_int_value(_M_ID, value_name, static_cast<int>(value));
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::vec2& value) const
     {
-        set_shader_vec2_float_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::vec3& value) const
     {
-        set_shader_vec3_float_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const Vector4D& value) const
     {
-        set_shader_vec4_float_value(_M_ID, value_name, value);
+        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 

@@ -11,4 +11,3 @@ endif()
 
 add_library(OpenGL SHARED ${OPENGL_SRC})
 target_link_libraries(OpenGL PRIVATE ${OPENGL} SDL2)
-target_include_directories(OpenGL PRIVATE "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>")

@@ -33,8 +33,8 @@ namespace Engine
         declare_instance_info_hpp(ModelMatrix);
 
     public:
-        Callback<void, ModelMatrix*> on_before_set_model;
-        Callback<void, ModelMatrix*> on_set_model;
+        CallBacks<void, ModelMatrix*> on_before_set_model;
+        CallBacks<void, ModelMatrix*> on_set_model;
 
         constructor_hpp(ModelMatrix);
         delete_copy_constructors(ModelMatrix);
@@ -50,8 +50,8 @@ namespace Engine
         declare_instance_info_hpp(Translate);
 
     public:
-        Callback<void, Translate*> on_translate;
-        Callback<void, Translate*> on_before_translate;
+        CallBacks<void, Translate*> on_translate;
+        CallBacks<void, Translate*> on_before_translate;
 
         constructor_hpp(Translate);
         delete_copy_constructors(Translate);
@@ -73,8 +73,8 @@ namespace Engine
         declare_instance_info_hpp(Scale);
 
     public:
-        Callback<void, Scale*> on_scale;
-        Callback<void, Scale*> on_before_scale;
+        CallBacks<void, Scale*> on_scale;
+        CallBacks<void, Scale*> on_before_scale;
 
         constructor_hpp(Scale);
         delete_copy_constructors(Scale);
@@ -93,8 +93,8 @@ namespace Engine
         declare_instance_info_hpp(Rotate);
 
     public:
-        Callback<void, Rotate*> on_rotate;
-        Callback<void, Rotate*> on_before_rotate;
+        CallBacks<void, Rotate*> on_rotate;
+        CallBacks<void, Rotate*> on_before_rotate;
 
         constructor_hpp(Rotate);
         delete_copy_constructors(Rotate);

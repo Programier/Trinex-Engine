@@ -28,6 +28,7 @@ namespace Engine
         std::size_t render(const Matrix4f& matrix) override;
         Matrix4f global_matrix() const;
         friend class Scene;
+        friend class Object;
     };
 
     CLASS Scene final : public virtual Object
@@ -47,7 +48,7 @@ namespace Engine
 
         void remove_from_octree(Drawable * drawable);
         void push_to_octree(Drawable * drawable);
-        SceneTreeNode* _M_head = new SceneTreeNode(this);
+        SceneTreeNode* _M_head = Object::new_instance<SceneTreeNode>(this);
 
         // Cameras block
         CamerasSet _M_cameras;

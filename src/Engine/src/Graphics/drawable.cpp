@@ -22,9 +22,9 @@ namespace Engine
 
     void Drawable::update_aabb(bool is_original_modified)
     {
-        throw not_implemented;
-        //        if (is_original_modified)
-        //            _M_aabb[MODIFIED_AABB] = _M_aabb[ORIGINAL_AABB];
+        //throw not_implemented;
+        if (is_original_modified)
+            _M_aabb[MODIFIED_AABB] = _M_aabb[ORIGINAL_AABB];
     }
 
     Drawable::~Drawable() = default;
@@ -36,8 +36,8 @@ namespace Engine
 
     Drawable& Drawable::aabb(const BoxHB& box, bool is_original)
     {
-        throw not_implemented;
-        //update_aabb(is_original);
+        //throw not_implemented;
+        update_aabb(is_original);
         return *this;
     }
 

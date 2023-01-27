@@ -1,8 +1,9 @@
 #include <Core/assimp_helpers.hpp>
 #include <Core/check.hpp>
+#include <Core/filesystem.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_convert.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/assimp.hpp>
 #include <Graphics/resources.hpp>
 #include <Graphics/scene.hpp>
@@ -131,13 +132,13 @@ namespace Engine
     }
 
     using LoadMeshFunction = Drawable*(const aiScene* scene, const aiMesh* mesh, TextureMap& map,
-                                       const std::string& dirname);
+                                       const String& dirname);
 
     static Drawable* create_static_object_from_mesh(const aiScene* scene, const aiMesh* mesh, TextureMap& map,
-                                                    const std::string& dirname)
+                                                    const String& dirname)
     {
         StaticTexturedObject* object = Object::new_instance<StaticTexturedObject>();
-        object->name(Strings::to_wstring(mesh->mName.data));
+        object->name(Strings::to_string(mesh->mName.data));
         object->aabb(
                 BoxHB(AssimpHelpers::get_vector3(&mesh->mAABB.mMin), AssimpHelpers::get_vector3(&mesh->mAABB.mMax)));
 
@@ -150,7 +151,9 @@ namespace Engine
         else
         {
             auto material = scene->mMaterials[mesh->mMaterialIndex];
-            std::string diffuse = dirname + AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0));
+            String diffuse =
+                    dirname +
+                    Strings::to_string(AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0)));
 
             TextureMapNode node;
             node._M_diffuse = &Object::new_instance<Texture2D>()->load(diffuse);
@@ -245,7 +248,7 @@ namespace Engine
 
         if (current_node)
         {
-            current_node->name = Strings::to_wstring(root->mName.data);
+            current_node->name = Strings::to_string(root->mName.data);
             current_node->transform = AssimpHelpers::get_matrix4(&root->mTransformation);
         }
         return current_node;
@@ -253,7 +256,7 @@ namespace Engine
 
 
     template<typename ObjectType>
-    static void foreach_mesh_in_scene(const std::string& filename, Scene* engine_scene, LoadMeshFunction callback)
+    static void foreach_mesh_in_scene(const String& filename, Scene* engine_scene, LoadMeshFunction callback)
     {
         check(engine_scene);
 
@@ -276,7 +279,7 @@ namespace Engine
 
         assimp_root->scene_node = engine_scene->scene_head();
 
-        std::string dirname = dirname_of(filename);
+        String dirname = FileSystem::dirname_of(filename);
         TextureMap texture_map;
 
         std::stack<MeshNode*> _M_stack;
@@ -313,7 +316,7 @@ namespace Engine
         AssimpLibrary::close_scene(scene);
     }
 
-    ENGINE_EXPORT void StaticTexturedObject::load(const std::string& filename, Scene* engine_scene)
+    ENGINE_EXPORT void StaticTexturedObject::load(const String& filename, Scene* engine_scene)
     {
         foreach_mesh_in_scene<StaticTexturedObject>(filename, engine_scene, create_static_object_from_mesh);
     }
@@ -410,14 +413,14 @@ namespace Engine
             skeleton = (*it).second;
         }
 
-        return skeleton->root_bone()->find_bone_by_name(Strings::to_wstring(bone->mName.data));
+        return skeleton->root_bone()->find_bone_by_name(Strings::to_string(bone->mName.data));
     }
 
     static Drawable* create_animated_object_from_mesh(const aiScene* scene, const aiMesh* mesh, TextureMap& map,
-                                                      const std::string& dirname)
+                                                      const String& dirname)
     {
         AnimatedTexturedObject* object = Object::new_instance<AnimatedTexturedObject>();
-        object->name(Strings::to_wstring(mesh->mName.data));
+        object->name(Strings::to_string(mesh->mName.data));
         object->aabb(
                 BoxHB(AssimpHelpers::get_vector3(&mesh->mAABB.mMin), AssimpHelpers::get_vector3(&mesh->mAABB.mMax)));
 
@@ -430,7 +433,9 @@ namespace Engine
         else
         {
             auto material = scene->mMaterials[mesh->mMaterialIndex];
-            std::string diffuse = dirname + AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0));
+            String diffuse =
+                    dirname +
+                    Strings::to_string(AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0)));
 
             TextureMapNode node;
             node._M_diffuse = &(Object::new_instance<Texture2D>())->load(diffuse);
@@ -489,7 +494,7 @@ namespace Engine
         return object;
     }// namespace Engine
 
-    ENGINE_EXPORT void AnimatedTexturedObject::load(const std::string& filename, Scene* engine_scene)
+    ENGINE_EXPORT void AnimatedTexturedObject::load(const String& filename, Scene* engine_scene)
     {
         foreach_mesh_in_scene<AnimatedTexturedObject>(filename, engine_scene, create_animated_object_from_mesh);
         skeletons.clear();

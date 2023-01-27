@@ -52,10 +52,12 @@ namespace Engine
     using Quaternion = glm::quat;
 
     using TextureBindIndex = byte;
+    using TextureAttachIndex = byte;
 
     using AssimpObject = const void*;
     using BitMask = std::size_t;
     using String = std::wstring;
+#define STR(text) L##text
 
     // Int Vectors
     using IntVector2D = glm::ivec2;
@@ -127,6 +129,8 @@ namespace Engine
         Always,
         Never
     };
+
+    using DepthFunc = CompareFunc;
 
     enum class EngineAPI : EnumerateType
     {
@@ -403,6 +407,13 @@ namespace Engine
         DECR,
         DECR_WRAP,
         INVERT,
+    };
+
+    enum class SystemType
+    {
+        LINUX_OS,
+        WINDOWS_OS,
+        ANDROID_OS
     };
 
 }// namespace Engine

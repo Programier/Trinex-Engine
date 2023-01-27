@@ -1,26 +1,10 @@
-#include <Core/init.hpp>
 #include <Core/object.hpp>
-#include <Core/package.hpp>
-#include <Core/string_convert.hpp>
-#include <Graphics/basic_object.hpp>
-#include <Graphics/material.hpp>
-#include <Graphics/octree.hpp>
-#include <Graphics/texture.hpp>
-#include <Graphics/textured_object.hpp>
-#include <cassert>
-#include <chrono>
+#include <Core/string_functions.hpp>
 #include <iostream>
-
 
 int test()
 {
-    using namespace Engine;
-
-    Object::new_instance<Package>(L"Test Package")
-            ->add_object(&Object::new_instance<Texture>()->name(L"Texture Example"));
-
-    std::clog << Object::find_object(L"Test Package::Texture Example") << std::endl;
-
-    std::clog << "\n\n\n#################################################################" << std::endl;
+    std::clog << Engine::Strings::to_std_string(Engine::Object::decode_name(STR("_ZTVN6Engine9VulkanAPIE")))
+              << std::endl;
     return 0;
 }

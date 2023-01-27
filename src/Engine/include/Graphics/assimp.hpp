@@ -11,7 +11,7 @@ namespace Engine
 {
     namespace AssimpLibrary
     {
-        ENGINE_EXPORT const aiScene* load_scene(const std::string& filename);
+        ENGINE_EXPORT const aiScene* load_scene(const String& filename);
         ENGINE_EXPORT void close_scene(const aiScene* scene);
         ENGINE_EXPORT std::string get_error_string();
         ENGINE_EXPORT bool init();

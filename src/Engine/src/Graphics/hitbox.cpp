@@ -1,10 +1,11 @@
 #include <Core/check.hpp>
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/hitbox.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/scene.hpp>
 #include <Graphics/shader_system.hpp>
-#include <api_funcs.hpp>
+#include <api.hpp>
 #include <iostream>
 
 
@@ -172,8 +173,8 @@ namespace Engine
         }
 
         float _M_line_offset = 0.00001f;
-        float _M_line_width = get_current_line_rendering_width();
-        set_line_rendering_width(3.f);
+        float _M_line_width = EngineInstance::get_instance()->api_interface()->line_rendering_width();
+        EngineInstance::get_instance()->api_interface()->line_rendering_width(3.f);
         _M_mesh.data = {min.x - _M_line_offset, min.y - _M_line_offset, min.z - _M_line_offset,//
                         min.x - _M_line_offset, min.y - _M_line_offset, max.z + _M_line_offset,//
                         min.x - _M_line_offset, max.y + _M_line_offset, min.z - _M_line_offset,//
@@ -188,7 +189,7 @@ namespace Engine
         sh::shader.use().set(sh::model, model).set(sh::color, color).set(sh::projview, camera->projview());
         _M_mesh.draw(Primitive::LINE);
 
-        set_line_rendering_width(_M_line_width);
+        EngineInstance::get_instance()->api_interface()->line_rendering_width(_M_line_width);
     }
 
     BoxHB BoxHB::max_box(const AABB_3D& box) const
@@ -238,7 +239,7 @@ namespace Engine
 
     bool BoxHB::inside(const BoxHB& box) const
     {
-        return box.contains(*this);
+        return BoxHB(box).contains(*this);
     }
 
     Vector2D BoxHB::intersect(const Ray& ray) const

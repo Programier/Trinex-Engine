@@ -38,14 +38,14 @@ namespace Engine
     Cursor::Cursor() : _M_SDL_cursor(nullptr)
     {}
 
-    Cursor::Cursor(const Image& image, int x_hotspot, int y_hotspot)
+    Cursor::Cursor(const Image& image, int_t x_hotspot, int_t y_hotspot)
         : _M_image(SmartPointer<Image>(new Image(image), delete_value<Image>)), _M_x_hotspot(x_hotspot),
           _M_y_hotspot(y_hotspot)
     {
         update_cursor();
     }
 
-    Cursor::Cursor(const std::string& path, int x_hotspot, int y_hotspot)
+    Cursor::Cursor(const String& path, int_t x_hotspot, int_t y_hotspot)
         : _M_image(SmartPointer<Image>(new Image(path), delete_value<Image>)), _M_x_hotspot(x_hotspot),
           _M_y_hotspot(y_hotspot)
     {
@@ -69,24 +69,24 @@ namespace Engine
         return *this;
     }
 
-    int Cursor::x_hotspot() const
+    int_t Cursor::x_hotspot() const
     {
         return _M_x_hotspot;
     }
 
-    int Cursor::y_hotspot() const
+    int_t Cursor::y_hotspot() const
     {
         return _M_y_hotspot;
     }
 
-    Cursor& Cursor::x_hotspot(int x)
+    Cursor& Cursor::x_hotspot(int_t x)
     {
         _M_x_hotspot = x;
         update_cursor();
         return *this;
     }
 
-    Cursor& Cursor::y_hotspot(int y)
+    Cursor& Cursor::y_hotspot(int_t y)
     {
         _M_y_hotspot = y;
         update_cursor();

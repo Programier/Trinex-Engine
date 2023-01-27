@@ -6,7 +6,8 @@ namespace Engine
     CLASS Logger
     {
     public:
-        virtual Logger& log(const char* format, ...) = 0;
+        virtual Logger& log(const char* format, ...);
+        virtual Logger& log(const wchar_t* format, ...);
     };
 
     extern ENGINE_EXPORT Logger* logger;

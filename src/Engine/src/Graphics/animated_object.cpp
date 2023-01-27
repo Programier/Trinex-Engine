@@ -1,7 +1,7 @@
 #include <Core/assimp_helpers.hpp>
 #include <Core/check.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_convert.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/animated_object.hpp>
 #include <Graphics/scene.hpp>
 #include <Graphics/skeleton.hpp>
@@ -34,7 +34,7 @@ namespace Engine
 
             const aiBone* ai_bone = bones.at(node->mName.data);
             check(ai_bone);
-            bone->name(Strings::to_wstring(ai_bone->mName.data));
+            bone->name(Strings::to_string(ai_bone->mName.data));
             bone->offset_matrix = AssimpHelpers::get_matrix4(&ai_bone->mOffsetMatrix);
 
             bone->weights.resize(ai_bone->mNumWeights);
