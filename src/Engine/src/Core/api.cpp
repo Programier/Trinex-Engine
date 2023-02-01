@@ -313,7 +313,7 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
-    ApiInterface& ApiInterface::framebuffer_viewport(const ObjID&, const Point2D&, const Size2D&)
+    ApiInterface& ApiInterface::framebuffer_viewport(const Point2D&, const Size2D&)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
@@ -469,7 +469,7 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
-    ApiInterface& ApiInterface::swap_interval(uint_t interval)
+    ApiInterface& ApiInterface::swap_interval(int_t interval)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
@@ -478,6 +478,31 @@ namespace Engine::GraphicApiInterface
     ApiInterface& ApiInterface::clear_color(const Color& color)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::on_window_size_changed()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::begin_render()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::end_render()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::begin_render_pass()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::end_render_pass()
+    {
         return *this;
     }
 

@@ -7,6 +7,7 @@
 
 namespace Engine
 {
+#define BENCH_CODE(code) {BenchMark _M_bench; {code} }
     template<typename duration = std::chrono::microseconds>
     class BenchMark final
     {

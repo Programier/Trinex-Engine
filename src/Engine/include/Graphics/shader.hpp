@@ -16,13 +16,8 @@ namespace Engine
         delete_copy_constructors(Shader);
         constructor_hpp(Shader);
         Shader(const ShaderParams& params);
-        Shader(const std::string& name, const std::string& vertex, const std::string& fragment,
-               const std::string& compute, const std::string& geometry, ShaderSourceType type = ShaderSourceType::Text);
 
         Shader& load(const ShaderParams& params);
-        Shader& load(const std::string& name, const std::string& vertex, const std::string& fragment,
-                     const std::string& compute, const std::string& geometry,
-                     ShaderSourceType type = ShaderSourceType::Text);
 
         const Shader& use() const;
         const Shader& set(const std::string& value_name, float value) const;

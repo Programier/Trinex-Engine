@@ -3,7 +3,6 @@
 #endif
 #include <Core/logger.hpp>
 #include <SDL.h>
-#include <fstream>
 #include <opengl_api.hpp>
 #include <opengl_export.hpp>
 #include <opengl_types.hpp>
@@ -213,7 +212,7 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::swap_interval(uint_t value)
+    OpenGL& OpenGL::swap_interval(int_t value)
     {
         SDL_GL_SetSwapInterval(value);
         return *this;
@@ -222,6 +221,11 @@ namespace Engine
     OpenGL& OpenGL::clear_color(const Color& color)
     {
         glClearColor(color.r, color.g, color.b, color.a);
+        return *this;
+    }
+
+    OpenGL& OpenGL::on_window_size_changed()
+    {
         return *this;
     }
 

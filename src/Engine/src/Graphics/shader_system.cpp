@@ -48,18 +48,20 @@ Shader sh_s::DepthRenderer::shader;
 const std::string sh_s::DepthRenderer::power = "power";
 
 
-static void copy_data(FileBuffer& buffer, const std::string& data)
+static void copy_data(std::vector<FileBuffer>& buffer, const std::string& data)
 {
-    buffer.clear();
-    buffer.resize(data.size() + 1);
-    buffer.back() = 0;
-    std::copy(data.begin(), data.end(), buffer.begin());
+    buffer.emplace_back();
+    auto current_buffer = buffer.back();
+
+    current_buffer.resize(data.size() + 1);
+    current_buffer.back() = 0;
+    std::copy(data.begin(), data.end(), current_buffer.begin());
 }
 
-#define init_system(ns, type, params)                                                                                       \
-    copy_data(params.vertex, type##_shader_vert);                                                                           \
-    copy_data(params.fragment, type##_shader_frag);                                                                         \
-    params.name = #ns;                                                                                                      \
+#define init_system(ns, type, params)                                                                                  \
+    copy_data(params.text.vertex, type##_shader_vert);                                                                 \
+    copy_data(params.text.fragment, type##_shader_frag);                                                               \
+    params.name = #ns;                                                                                                 \
     sh_s::ns::shader.load(params);
 
 void sh_s::init()
@@ -68,7 +70,6 @@ void sh_s::init()
         return;
 
     ShaderParams params;
-    params.source_type = ShaderSourceType::Text;
 
     init_system(SkyBox, skybox, params);
     init_system(Text, text, params);

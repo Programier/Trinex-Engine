@@ -15,8 +15,21 @@ namespace Engine
 
     GameApplication& GameApplication::on_init()
     {
-        window.swap_interval(20);
         return *this;
+    }
+
+    GameApplication& GameApplication::on_render_frame()
+    {
+        if (Event::keyboard.just_pressed() == Engine::KEY_SPACE)
+            window.vsync(!window.vsync());
+
+        _M_max_fps = glm::max(_M_max_fps, 1.f / float(Event::diff_time()));
+        return *this;
+    }
+
+    GameApplication::~GameApplication()
+    {
+        logger->log("Max FPS: %f", _M_max_fps);
     }
 }// namespace Engine
 

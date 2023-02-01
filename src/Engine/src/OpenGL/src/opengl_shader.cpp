@@ -36,43 +36,41 @@ namespace Engine
         }
     };
 
-    const FileBuffer& get_code(const ShaderParams& params, int index)
+    const std::vector<FileBuffer>& get_code(const ShaderParams& params, int index)
     {
         switch (index)
         {
             case 0:
-                return params.vertex;
+                return params.text.vertex;
             case 1:
-                return params.fragment;
+                return params.text.fragment;
             case 2:
-                return params.compute;
+                return params.text.compute;
             case 3:
-                return params.geometry;
+                return params.text.geometry;
             default:
                 throw std::runtime_error("Undefined index of shader");
         }
     }
 
-    static bool compile_shader(const FileBuffer& code, GLuint& ID, int SHADER_TYPE, const ShaderParams& params,
-                               const char* type = "")
+    static bool compile_shader(const std::vector<FileBuffer>& shader_code, GLuint& ID, int SHADER_TYPE,
+                               const ShaderParams& params, const char* type = "")
     {
         static GLchar log[1024];
 
         ID = glCreateShader(SHADER_TYPE);
-        const GLchar* c_code = reinterpret_cast<const GLchar*>(code.data());
 
-        if (params.source_type == ShaderSourceType::Text)
+        std::vector<const GLchar*> code;
+        code.reserve(shader_code.size());
+
+        for (auto& buffer : shader_code)
         {
-            glShaderSource(ID, 1, &c_code, nullptr);
+            if (!buffer.empty())
+                code.push_back(reinterpret_cast<const GLchar*>(buffer.data()));
         }
-        else if (params.source_type == ShaderSourceType::Binary)
-        {
-            glShaderBinary(1, &ID, (GLenum) 0, code.data(), code.size());
-        }
-        else
-        {
-            return false;
-        }
+
+        glShaderSource(ID, code.size(), code.data(), nullptr);
+
 
         glCompileShader(ID);
 
@@ -125,7 +123,7 @@ namespace Engine
 
         for (int i = 0; i < 4; i++)
         {
-            const FileBuffer& buffer = get_code(params, i);
+            const std::vector<FileBuffer>& buffer = get_code(params, i);
             if (buffer.empty())
             {
                 continue;
@@ -160,7 +158,7 @@ namespace Engine
         check(ID, *this);                                                                                              \
         auto shader = obj->get_instance_by_type<OpenGL_Shader>();                                                      \
         GLuint transformLoc = glGetUniformLocation(shader->_M_instance_id, name.c_str());                              \
-        glUniform##suffix(transformLoc, __VA_ARGS__ __VA_OPT__(, ) func(value));                                             \
+        glUniform##suffix(transformLoc, __VA_ARGS__ __VA_OPT__(, ) func(value));                                       \
         return *this;                                                                                                  \
     }
 

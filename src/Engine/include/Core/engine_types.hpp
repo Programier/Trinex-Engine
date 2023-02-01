@@ -384,17 +384,24 @@ namespace Engine
         Binary
     };
 
-
-    using ShaderSourceType = DataType;
     using FileBuffer = std::vector<byte>;
 
     struct ShaderParams {
-        ShaderSourceType source_type;
+        struct {
+            FileBuffer vertex;
+            FileBuffer fragment;
+            FileBuffer compute;
+            FileBuffer geometry;
+        } binaries;
+
+        struct {
+            std::vector<FileBuffer> vertex;
+            std::vector<FileBuffer> fragment;
+            std::vector<FileBuffer> compute;
+            std::vector<FileBuffer> geometry;
+        } text;
+
         std::string name;
-        FileBuffer vertex;
-        FileBuffer fragment;
-        FileBuffer compute;
-        FileBuffer geometry;
     };
 
     enum class StencilOption : byte

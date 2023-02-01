@@ -22,8 +22,7 @@ namespace Engine
 
     const BasicFrameBuffer& BasicFrameBuffer::view_port(const Point2D& pos, const Point2D& size) const
     {
-        bind();
-        EngineInstance::get_instance()->api_interface()->framebuffer_viewport(_M_ID, pos, size);
+        EngineInstance::get_instance()->api_interface()->framebuffer_viewport(pos, size);
         return *this;
     }
 

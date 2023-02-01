@@ -8,7 +8,7 @@
 
 // Internal event system functions
 
-static double _M_diff_time = 0;
+static double _M_diff_time = -1.f;
 static auto _M_prev_time = std::chrono::steady_clock::now();
 static std::size_t _M_frame_number = 0;
 

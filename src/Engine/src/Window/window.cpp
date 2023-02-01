@@ -166,15 +166,15 @@ const Window& Window::init(float width, float height, const String& title, uint1
 
     data._M_size = {width, height};
     data._M_ration = {width, height};
-    window.update_view_port();
-
     Window::size_limits(data._M_limits);
 
     // Init shaders
     Engine::ShaderSystem::init();
     data._M_is_inited = true;
-
     data._M_flags = SDL_GetWindowFlags(sdl_window);
+
+    window.update_view_port();
+    swap_interval(1);
     return window;
 }
 
@@ -274,6 +274,7 @@ namespace Engine
             case SDL_WINDOWEVENT_SIZE_CHANGED:
             case SDL_WINDOWEVENT_RESIZED:
             {
+                EngineInstance::get_instance()->api_interface()->on_window_size_changed();
                 data._M_size = {event.data1, event.data2};
                 if (data._M_change_viewport_on_resize)
                     window.update_view_port();

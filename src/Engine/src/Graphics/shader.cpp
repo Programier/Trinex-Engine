@@ -47,35 +47,11 @@ namespace Engine
         load(params);
     }
 
-    Shader::Shader(const std::string& name, const std::string& vertex, const std::string& fragment,
-                   const std::string& compute, const std::string& geometry, ShaderSourceType type)
-    {
-        load(name, vertex, fragment, compute, geometry, type);
-    }
 
     Shader& Shader::load(const ShaderParams& params)
     {
         destroy();
         EngineInstance::get_instance()->api_interface()->create_shader(_M_ID, params);
-        return *this;
-    }
-
-    Shader& Shader::load(const std::string& name, const std::string& vertex, const std::string& fragment,
-                         const std::string& compute, const std::string& geometry, ShaderSourceType type)
-    {
-        destroy();
-
-        ShaderParams params;
-        params.name = name;
-        params.source_type = type;
-
-        read_file(vertex, params.vertex);
-        read_file(fragment, params.fragment);
-        read_file(compute, params.compute);
-        read_file(geometry, params.geometry);
-
-        EngineInstance::get_instance()->api_interface()->create_shader(_M_ID, params);
-
         return *this;
     }
 

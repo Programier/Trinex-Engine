@@ -79,7 +79,7 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& gen_framebuffer(ObjID&, FrameBufferType) VIRTUAL_METHOD;
         virtual ApiInterface& clear_frame_buffer(const ObjID&, BufferType) VIRTUAL_METHOD;
         virtual ApiInterface& bind_framebuffer(const ObjID&) VIRTUAL_METHOD;
-        virtual ApiInterface& framebuffer_viewport(const ObjID&, const Point2D&, const Size2D&) VIRTUAL_METHOD;
+        virtual ApiInterface& framebuffer_viewport(const Point2D&, const Size2D&) VIRTUAL_METHOD;
         virtual ApiInterface& attach_texture_to_framebuffer(const ObjID&, const ObjID&, FrameBufferAttach,
                                                             TextureAttachIndex, int_t) VIRTUAL_METHOD;
         virtual ApiInterface& enable(Engine::EnableCap) VIRTUAL_METHOD;
@@ -107,8 +107,14 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& ssbo_data(const ObjID&, void*, std::size_t, BufferUsage) VIRTUAL_METHOD;
         virtual ApiInterface& update_ssbo_data(const ObjID&, void*, std::size_t, std::size_t) VIRTUAL_METHOD;
         virtual ApiInterface& swap_buffer(SDL_Window* window) VIRTUAL_METHOD;
-        virtual ApiInterface& swap_interval(uint_t interval) VIRTUAL_METHOD;
+        virtual ApiInterface& swap_interval(int_t interval) VIRTUAL_METHOD;
         virtual ApiInterface& clear_color(const Color& color) VIRTUAL_METHOD;
+        virtual ApiInterface& on_window_size_changed() VIRTUAL_METHOD;
+        virtual ApiInterface& begin_render() VIRTUAL_METHOD;
+        virtual ApiInterface& end_render() VIRTUAL_METHOD;
+        virtual ApiInterface& begin_render_pass() VIRTUAL_METHOD;
+        virtual ApiInterface& end_render_pass() VIRTUAL_METHOD;
+
 
         virtual ~ApiInterface();
     };

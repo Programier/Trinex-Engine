@@ -14,4 +14,6 @@ set(VULKAN_SOURCES_ROOT ${VULKAN_PROJECT_ROOT}/src)
 include_directories("${VULKAN_PROJECT_ROOT}/include/")
 include_directories("${ENGINE_SRC}/EngineHeaders/")
 include_directories("${ENGINE_ROOT}/include/")
+
+add_subdirectory(libs/vk-bootstrap)
 add_subdirectory(src)

@@ -67,9 +67,8 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::framebuffer_viewport(const ObjID& ID, const Point2D& pos, const Size2D& size)
+    OpenGL& OpenGL::framebuffer_viewport(const Point2D& pos, const Size2D& size)
     {
-        bind_framebuffer(ID);
         glViewport(static_cast<GLint>(pos.x), static_cast<GLint>(pos.y), static_cast<GLsizei>(size.x),
                    static_cast<GLsizei>(size.y));
         return *this;

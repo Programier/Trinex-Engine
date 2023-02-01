@@ -4,4 +4,4 @@ file(GLOB VULKAN_SRC "${VULKAN_SOURCES_DIR}/*.cpp")
 
 
 add_library(Vulkan SHARED ${VULKAN_SRC})
-target_link_libraries(Vulkan PUBLIC SDL2 vulkan)
+target_link_libraries(Vulkan PUBLIC SDL2 vulkan vk-bootstrap)

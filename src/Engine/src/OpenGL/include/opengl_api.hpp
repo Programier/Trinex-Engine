@@ -95,7 +95,7 @@ namespace Engine
         OpenGL& gen_framebuffer(ObjID&, FrameBufferType) override;
         OpenGL& clear_frame_buffer(const ObjID&, BufferType) override;
         OpenGL& bind_framebuffer(const ObjID&) override;
-        OpenGL& framebuffer_viewport(const ObjID&, const Point2D&, const Size2D&) override;
+        OpenGL& framebuffer_viewport(const Point2D&, const Size2D&) override;
         OpenGL& attach_texture_to_framebuffer(const ObjID&, const ObjID&, FrameBufferAttach, TextureAttachIndex,
                                               int_t) override;
         OpenGL& enable(Engine::EnableCap) override;
@@ -122,8 +122,10 @@ namespace Engine
         OpenGL& ssbo_data(const ObjID&, void*, std::size_t, BufferUsage) override;
         OpenGL& update_ssbo_data(const ObjID&, void*, std::size_t, std::size_t) override;
         OpenGL& swap_buffer(SDL_Window* window) override;
-        OpenGL& swap_interval(uint_t value) override;
+        OpenGL& swap_interval(int_t value) override;
         OpenGL& clear_color(const Color& color) override;
+        OpenGL& on_window_size_changed() override;
+
         ~OpenGL();
     };
 

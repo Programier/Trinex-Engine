@@ -3,6 +3,7 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Window/window.hpp>
+#include <api.hpp>
 #include <thread>
 
 
@@ -26,7 +27,6 @@ namespace Engine
         // Creating window
         window.init(init_info.window_size, init_info.window_name, init_info.window_attribs);
         _M_update_event_callback = Event::poll_events;
-
         return on_init();
     }
 
@@ -47,15 +47,23 @@ namespace Engine
 
     Application& Application::start()
     {
+        window.background_color(Color::MediumOrchid);
+
         while (window.is_open())
         {
-            BenchMark bench;
-            window.clear_buffer();
+            EngineInstance::_M_instance->api_interface()->begin_render();
 
+            window.bind().clear_buffer();
+
+            EngineInstance::_M_instance->api_interface()->begin_render_pass();
+            EngineInstance::_M_instance->api_interface()->end_render_pass();
+            EngineInstance::_M_instance->api_interface()->end_render();
             window.swap_buffers();
+
+            on_render_frame();
             _M_update_event_callback();
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
+
 
         return *this;
     }
