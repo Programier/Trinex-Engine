@@ -45,7 +45,7 @@ namespace Engine
     VulkanFramebuffer& VulkanFramebuffer::update_viewport()
     {
         _M_render_pass_info.setRenderArea(
-                vk::Rect2D({VIEW_PORT.x, VIEW_PORT.y},
+                vk::Rect2D({static_cast<std::int32_t>(VIEW_PORT.x), static_cast<std::int32_t>(VIEW_PORT.y)},
                            vk::Extent2D(API->_M_swap_chain->_M_extent.width, API->_M_swap_chain->_M_extent.height)));
         return *this;
     }

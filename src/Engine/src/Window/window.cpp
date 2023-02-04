@@ -1,3 +1,4 @@
+#include <Core/destroy_controller.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
@@ -127,7 +128,7 @@ const Window& Window::init(float width, float height, const String& title, uint1
     if (data._M_is_inited)
         return window;
 
-    if (!EngineInstance::get_instance()->is_inited())
+    if (!EngineInstance::instance()->is_inited())
         throw std::runtime_error("Window: Init Engine first");
 
     data._M_limits.max = Monitor::size();
@@ -138,7 +139,7 @@ const Window& Window::init(float width, float height, const String& title, uint1
         throw std::runtime_error("Window: Failed to create Window");
     };
 
-    logger->log("Window: Creating new window '%ls'\n", title.c_str());
+    logger->log("Window: Creating new window '%s'\n", title.c_str());
 
     uint32_t attrib = to_sdl_attrib(parse_win_attibutes(attributes));
     data._M_title = title;
@@ -147,17 +148,16 @@ const Window& Window::init(float width, float height, const String& title, uint1
 
 
     auto sdl_window_api =
-            (EngineInstance::get_instance()->api() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
+            (EngineInstance::instance()->api() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
 
-    sdl_window = SDL_CreateWindow(Strings::to_std_string(data._M_title).c_str(), SDL_WINDOWPOS_UNDEFINED,
-                                  SDL_WINDOWPOS_UNDEFINED, cast(int, width), cast(int, height),
-                                  sdl_window_api | SDL_WINDOW_SHOWN | attrib);
+    sdl_window = SDL_CreateWindow(data._M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                  cast(int, width), cast(int, height), sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
 
     if (sdl_window == nullptr)
         error(SDL_GetError());
 
-    data._M_GL_context = EngineInstance::get_instance()->api_interface()->init_window(sdl_window);
+    data._M_GL_context = EngineInstance::instance()->api_interface()->init_window(sdl_window);
     if (data._M_GL_context == nullptr)
     {
         error("External error");
@@ -169,7 +169,6 @@ const Window& Window::init(float width, float height, const String& title, uint1
     Window::size_limits(data._M_limits);
 
     // Init shaders
-    Engine::ShaderSystem::init();
     data._M_is_inited = true;
     data._M_flags = SDL_GetWindowFlags(sdl_window);
 
@@ -186,20 +185,27 @@ const Window& Window::init(const Size2D& size, const String& title, uint16_t att
 
 //          CLOSING WINDOW
 
+const Window& Window::destroy()
+{
+
+    if (data._M_window)
+    {
+        free_icon_surface();
+        EngineInstance::instance()->api_interface()->destroy_window();
+        SDL_DestroyWindow(data._M_window);
+        data = WindowData();
+    }
+    return window;
+}
 
 const Window& Window::close()
 {
     check_init(window);
-    free_icon_surface();
+
     logger->log("Closing window\n");
-
-    EngineInstance::get_instance()->api_interface()->destroy_window();
-
-    if (data._M_window)
-        SDL_DestroyWindow(data._M_window);
-
-    logger->log("Engine::Window: Window '%ls' closed\n", data._M_title.c_str());
-    data = WindowData();
+    data._M_is_inited = false;
+    SDL_HideWindow(data._M_window);
+    logger->log("Engine::Window: Window '%s' closed\n", data._M_title.c_str());
 
     return window;
 }
@@ -214,7 +220,7 @@ bool Window::is_open()
 const Window& Window::swap_buffers()
 {
     check_init(window);
-    EngineInstance::get_instance()->api_interface()->swap_buffer(data._M_window);
+    EngineInstance::instance()->api_interface()->swap_buffer(data._M_window);
     return window;
 }
 
@@ -274,7 +280,7 @@ namespace Engine
             case SDL_WINDOWEVENT_SIZE_CHANGED:
             case SDL_WINDOWEVENT_RESIZED:
             {
-                EngineInstance::get_instance()->api_interface()->on_window_size_changed();
+                EngineInstance::instance()->api_interface()->on_window_size_changed();
                 data._M_size = {event.data1, event.data2};
                 if (data._M_change_viewport_on_resize)
                     window.update_view_port();
@@ -289,7 +295,7 @@ namespace Engine
 
 
             case SDL_WINDOWEVENT_CLOSE:
-                window.close();
+                data._M_is_inited = false;
                 break;
         }
     }
@@ -299,7 +305,7 @@ namespace Engine
     {
         if (event.file)
         {
-            data._M_dropped_paths.push_back(Strings::to_string(event.file));
+            data._M_dropped_paths.push_back(event.file);
             SDL_free(event.file);
         }
     }
@@ -328,7 +334,7 @@ const Window& Window::swap_interval(int_t value)
 {
     check_init(window);
     data._M_swap_interval = value;
-    EngineInstance::get_instance()->api_interface()->swap_interval(value);
+    EngineInstance::instance()->api_interface()->swap_interval(value);
     return window;
 }
 
@@ -345,7 +351,7 @@ const Window& Window::title(const String& title)
 
     check_init(window);
     data._M_title = title;
-    SDL_SetWindowTitle(sdl_window, Strings::to_std_string(data._M_title).c_str());
+    SDL_SetWindowTitle(sdl_window, data._M_title.c_str());
     return window;
 }
 
@@ -419,7 +425,7 @@ const Window& Window::background_color(const Color& color)
 {
     check_init(window);
     data._M_background_color = color;
-    EngineInstance::get_instance()->api_interface()->clear_color(color);
+    EngineInstance::instance()->api_interface()->clear_color(color);
     return window;
 }
 
@@ -837,5 +843,5 @@ Window::~Window()
 {
     data._M_objects--;
     if (!data._M_objects)
-        this->close();
+        this->destroy();
 }

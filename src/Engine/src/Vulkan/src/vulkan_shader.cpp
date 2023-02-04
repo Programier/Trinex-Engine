@@ -1,7 +1,10 @@
+#include <iostream>
+#include <thread>
 #include <vulkan_api.hpp>
 #include <vulkan_shader.hpp>
 
-#define in :
+
+#define SHADER_DATA _M_shader_params.binaries
 
 namespace Engine
 {
@@ -39,15 +42,73 @@ namespace Engine
         return this;
     }
 
+    VulkanShader& VulkanShader::allocate_uniform_buffers()
+    {
+        _M_ubo_buffer.resize(MAIN_FRAMEBUFFERS_COUNT);
+
+        for (Counter i = 0; i < MAIN_FRAMEBUFFERS_COUNT; i++)
+        {
+            Counter var_index = 0;
+            _M_ubo_buffer[i]._M_buffers.resize(_M_shader_params.uniform_variables.size());
+
+            for (auto& variable : _M_shader_params.uniform_variables)
+            {
+                auto& ubo = _M_ubo_buffer[i]._M_buffers[var_index++];
+
+                _M_ubo_buffer[i]._M_buffer_map[variable.name] = &ubo;
+
+                vk::DeviceSize buffer_size = variable.size;
+                API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eUniformBuffer,
+                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                                   ubo._M_buffer, ubo._M_device_memory);
+                ubo._M_memory = API->_M_device.mapMemory(ubo._M_device_memory, 0, buffer_size);
+                ubo.size = variable.size;
+            }
+        }
+
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::create_descriptor_layout()
+    {
+
+        std::vector<vk::DescriptorSetLayoutBinding> ubo_layout_bindings(_M_shader_params.uniform_variables.size());
+
+        ArrayIndex index = 0;
+
+        for (auto& variable : _M_shader_params.uniform_variables)
+        {
+            ubo_layout_bindings[index++] = vk::DescriptorSetLayoutBinding(
+                    variable.binding, vk::DescriptorType::eUniformBuffer, 1,
+                    vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, nullptr);
+        }
+
+        vk::DescriptorSetLayoutCreateInfo layout_info({}, ubo_layout_bindings);
+        _M_descriptor_set_layout = API->_M_device.createDescriptorSetLayout(layout_info);
+        return *this;
+    }
+
     VulkanShader& VulkanShader::init(const ShaderParams& params)
     {
         _M_shader_params = params;
 
+        std::sort(_M_shader_params.uniform_variables.begin(), _M_shader_params.uniform_variables.end(),
+                  [](const ShaderUniformVariable& a, const ShaderUniformVariable& b) -> bool {
+                      return a.binding < b.binding;
+                  });
+
+        for (auto& ell : _M_shader_params.uniform_variables)
+        {
+            std::clog << ell.binding << std::endl;
+        }
+
+        create_descriptor_layout();
+
         std::vector<vk::ShaderModule*> shader_modules;
-        create_shader_module(_M_shader_params.binaries.vertex, shader_modules);
-        create_shader_module(_M_shader_params.binaries.fragment, shader_modules);
-        create_shader_module(_M_shader_params.binaries.compute, shader_modules);
-        create_shader_module(_M_shader_params.binaries.geometry, shader_modules);
+        create_shader_module(SHADER_DATA.vertex, shader_modules);
+        create_shader_module(SHADER_DATA.fragment, shader_modules);
+        create_shader_module(SHADER_DATA.compute, shader_modules);
+        create_shader_module(SHADER_DATA.geometry, shader_modules);
 
         std::vector<vk::PipelineShaderStageCreateInfo> pipeline_shader_stage_create_infos;
 
@@ -61,6 +122,11 @@ namespace Engine
                                                                 _M_shader_params.name.c_str());
             }
             ++index;
+        }
+
+        if (pipeline_shader_stage_create_infos.empty())
+        {
+            throw std::runtime_error("Failed to create Shader");
         }
 
 
@@ -95,27 +161,24 @@ namespace Engine
         vk::PipelineColorBlendStateCreateInfo color_blending({}, VK_FALSE, vk::LogicOp::eCopy, 1,
                                                              &color_blend_attachment, blend_constants);
 
-        VkPipelineLayoutCreateInfo pipeline_layout_info = {};
-        pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipeline_layout_info.setLayoutCount = 0;
-        pipeline_layout_info.pushConstantRangeCount = 0;
+        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, _M_descriptor_set_layout);
 
         _M_pipeline_layout = API->_M_device.createPipelineLayout(pipeline_layout_info);
 
         std::vector<vk::DynamicState> dynamic_states = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-
-        vk::PipelineDynamicStateCreateInfo dynamic_info({}, dynamic_states);
+        vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, dynamic_states);
 
         vk::GraphicsPipelineCreateInfo pipeline_info({}, pipeline_shader_stage_create_infos, &vertex_input_info,
                                                      &input_assembly, nullptr, &viewport_state, &rasterizer,
-                                                     &multisampling, nullptr, &color_blending, &dynamic_info,
+                                                     &multisampling, nullptr, &color_blending, &dynamic_state_info,
                                                      _M_pipeline_layout, API->_M_render_pass, 0, {});
-
 
         auto pipeline_result = API->_M_device.createGraphicsPipeline({}, pipeline_info);
 
         if (pipeline_result.result != vk::Result::eSuccess)
         {
+            destroy_descriptor_layout();
+            API->_M_device.destroyPipeline(_M_pipeline);
             throw std::runtime_error("Failed to create pipeline");
         }
 
@@ -130,13 +193,108 @@ namespace Engine
             }
         }
 
+        allocate_uniform_buffers();
+
+        vk::DescriptorPoolSize pool_size(vk::DescriptorType::eUniformBuffer,
+                                         MAIN_FRAMEBUFFERS_COUNT * _M_shader_params.uniform_variables.size());
+        vk::DescriptorPoolCreateInfo pool_info({}, MAIN_FRAMEBUFFERS_COUNT, pool_size);
+        _M_descriptor_pool = API->_M_device.createDescriptorPool(pool_info);
+        create_descriptor_sets();
+
+        _M_inited = true;
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::use()
+    {
+        API->_M_current_command_buffer->bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
+        API->_M_current_command_buffer->bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _M_pipeline_layout, 0, 1,
+                                                           &_M_ubo_buffer[API->_M_current_frame]._M_descriptor_set, 0,
+                                                           nullptr);
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::set_value(const String& name, void* data)
+    {
+        auto it = _M_ubo_buffer[API->_M_current_frame]._M_buffer_map.find(name);
+        if (it == _M_ubo_buffer[API->_M_current_frame]._M_buffer_map.end())
+            return *this;
+
+        const auto& buffer = *(*it).second;
+        std::memcpy(buffer._M_memory, data, buffer.size);
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::destroy_descriptor_layout()
+    {
+        API->_M_device.destroyDescriptorSetLayout(_M_descriptor_set_layout);
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::destroy_uniform_buffers()
+    {
+        for (auto& buffers : _M_ubo_buffer)
+        {
+            for (auto& buffer : buffers._M_buffers)
+            {
+                API->_M_device.destroyBuffer(buffer._M_buffer);
+                API->_M_device.freeMemory(buffer._M_device_memory);
+            }
+        }
+
+        _M_ubo_buffer.clear();
+
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::create_descriptor_sets()
+    {
+
+        std::vector<vk::DescriptorSetLayout> layouts(MAIN_FRAMEBUFFERS_COUNT, _M_descriptor_set_layout);
+        vk::DescriptorSetAllocateInfo alloc_info(_M_descriptor_pool, layouts);
+
+        auto sets = API->_M_device.allocateDescriptorSets(alloc_info);
+
+        for (Counter i = 0; i < MAIN_FRAMEBUFFERS_COUNT; i++)
+        {
+            auto& ubo = _M_ubo_buffer[i];
+            ubo._M_descriptor_set = sets[i];
+
+            std::vector<vk::DescriptorBufferInfo> _M_buffer_infos(ubo._M_buffers.size());
+
+            Counter index = 0;
+            for (auto& buffer : ubo._M_buffers)
+            {
+                _M_buffer_infos[index++] = vk::DescriptorBufferInfo(buffer._M_buffer, 0, buffer.size);
+            }
+
+            vk::WriteDescriptorSet write_descriptor(ubo._M_descriptor_set, 0, 0, vk::DescriptorType::eUniformBuffer, {},
+                                                    _M_buffer_infos);
+
+            API->_M_device.updateDescriptorSets(1, &write_descriptor, 0, nullptr);
+        }
+
+
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::destroy_descriptor_sets()
+    {
+
         return *this;
     }
 
     VulkanShader::~VulkanShader()
     {
-        API->_M_device.destroyPipeline(_M_pipeline);
-        API->_M_device.destroyPipelineLayout(_M_pipeline_layout);
+        if (_M_inited)
+        {
+            destroy_descriptor_sets();
+            API->_M_device.destroyDescriptorPool(_M_descriptor_pool);
+            destroy_uniform_buffers();
+            destroy_descriptor_layout();
+            API->_M_device.destroyPipeline(_M_pipeline);
+            API->_M_device.destroyPipelineLayout(_M_pipeline_layout);
+        }
     }
 
 }// namespace Engine

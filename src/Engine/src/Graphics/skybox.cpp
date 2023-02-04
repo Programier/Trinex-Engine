@@ -93,10 +93,10 @@ namespace Engine
 
     Skybox& Skybox::draw()
     {
-        EngineInstance::get_instance()->depth_func(CompareFunc::Lequal);
+        EngineInstance::instance()->depth_func(CompareFunc::Lequal);
         TextureCubeMap::bind(0);
         mesh.draw(Primitive::TRIANGLE);
-        EngineInstance::get_instance()->depth_func(CompareFunc::Less);
+        EngineInstance::instance()->depth_func(CompareFunc::Less);
         return *this;
     }
 

@@ -31,7 +31,7 @@ namespace Engine
             _M_stack.pop_back();
 
             bone = Object::new_instance<Bone>(node.bone);
-            bone->name(Strings::to_string(node.node->mName.data));
+            bone->name(node.node->mName.data);
             bone->model(AssimpHelpers::get_matrix4(&node.node->mTransformation));
 
             for (decltype(node.node->mNumChildren) i = 0; i < node.node->mNumChildren; i++)

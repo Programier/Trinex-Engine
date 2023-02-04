@@ -61,7 +61,7 @@ namespace Engine
     ApiObject& ApiObject::destroy()
     {
         if (_M_ID)
-            EngineInstance::get_instance()->api_interface()->destroy_object(_M_ID);
+            EngineInstance::instance()->api_interface()->destroy_object(_M_ID);
         return *this;
     }
 

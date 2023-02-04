@@ -138,7 +138,7 @@ namespace Engine
                                                     const String& dirname)
     {
         StaticTexturedObject* object = Object::new_instance<StaticTexturedObject>();
-        object->name(Strings::to_string(mesh->mName.data));
+        object->name(mesh->mName.data);
         object->aabb(
                 BoxHB(AssimpHelpers::get_vector3(&mesh->mAABB.mMin), AssimpHelpers::get_vector3(&mesh->mAABB.mMax)));
 
@@ -151,9 +151,7 @@ namespace Engine
         else
         {
             auto material = scene->mMaterials[mesh->mMaterialIndex];
-            String diffuse =
-                    dirname +
-                    Strings::to_string(AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0)));
+            String diffuse = dirname + AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0));
 
             TextureMapNode node;
             node._M_diffuse = &Object::new_instance<Texture2D>()->load(diffuse);
@@ -248,7 +246,7 @@ namespace Engine
 
         if (current_node)
         {
-            current_node->name = Strings::to_string(root->mName.data);
+            current_node->name = root->mName.data;
             current_node->transform = AssimpHelpers::get_matrix4(&root->mTransformation);
         }
         return current_node;
@@ -413,14 +411,14 @@ namespace Engine
             skeleton = (*it).second;
         }
 
-        return skeleton->root_bone()->find_bone_by_name(Strings::to_string(bone->mName.data));
+        return skeleton->root_bone()->find_bone_by_name(bone->mName.data);
     }
 
     static Drawable* create_animated_object_from_mesh(const aiScene* scene, const aiMesh* mesh, TextureMap& map,
                                                       const String& dirname)
     {
         AnimatedTexturedObject* object = Object::new_instance<AnimatedTexturedObject>();
-        object->name(Strings::to_string(mesh->mName.data));
+        object->name(mesh->mName.data);
         object->aabb(
                 BoxHB(AssimpHelpers::get_vector3(&mesh->mAABB.mMin), AssimpHelpers::get_vector3(&mesh->mAABB.mMax)));
 
@@ -433,9 +431,7 @@ namespace Engine
         else
         {
             auto material = scene->mMaterials[mesh->mMaterialIndex];
-            String diffuse =
-                    dirname +
-                    Strings::to_string(AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0)));
+            String diffuse = dirname + AssimpLibrary::get_material_string(material, AI_MATKEY_TEXTURE_DIFFUSE(0));
 
             TextureMapNode node;
             node._M_diffuse = &(Object::new_instance<Texture2D>())->load(diffuse);

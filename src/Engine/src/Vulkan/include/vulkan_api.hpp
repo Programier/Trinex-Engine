@@ -2,13 +2,13 @@
 #include <Core/logger.hpp>
 #include <SDL.h>
 #include <SDL_vulkan.h>
+#include <VkBootstrap.h>
 #include <api.hpp>
 #include <optional>
 #include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_swap_chain.hpp>
-#include <VkBootstrap.h>
 
 #define MAIN_FRAMEBUFFERS_COUNT 3
 #define API VulkanAPI::_M_vulkan
@@ -29,12 +29,7 @@ namespace Engine
     };
 
 
-    struct ViewPort {
-        int_t x = 0;
-        int_t y = 0;
-        int_t width = 0;
-        int_t height = 0;
-    };
+    using ViewPort = vk::Viewport;
 
 
     struct VulkanAPI : public GraphicApiInterface::ApiInterface {
@@ -98,6 +93,9 @@ namespace Engine
         void create_command_buffer();
         void create_semaphores();
 
+        VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                                 vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
+        uint32_t find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties);
 
         //////////////////////////////////////////////////////////////
 
@@ -115,9 +113,12 @@ namespace Engine
         VulkanAPI& clear_color(const Color& color) override;
         VulkanAPI& clear_frame_buffer(const ObjID&, BufferType) override;
         VulkanAPI& swap_interval(int_t interval) override;
+        VulkanAPI& wait_idle() override;
 
-        //ApiInterface& create_shader(ObjID&, const ShaderParams&) VIRTUAL_METHOD;
-        //ApiInterface& use_shader(const ObjID&) VIRTUAL_METHOD;
+        VulkanAPI& destroy_object(ObjID& ID) override;
+
+        VulkanAPI& create_shader(ObjID&, const ShaderParams&) override;
+        VulkanAPI& use_shader(const ObjID&) override;
         //ApiInterface& shader_value(const ObjID&, const std::string&, float) VIRTUAL_METHOD;
         //ApiInterface& shader_value(const ObjID&, const std::string&, int_t) VIRTUAL_METHOD;
         //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::mat3&) VIRTUAL_METHOD;
@@ -125,6 +126,7 @@ namespace Engine
         //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec2&) VIRTUAL_METHOD;
         //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec3&) VIRTUAL_METHOD;
         //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec4&) VIRTUAL_METHOD;
+        VulkanAPI& shader_value(const ObjID& ID, const String& name, void* data);
 
         ~VulkanAPI();
     };

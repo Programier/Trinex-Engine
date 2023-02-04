@@ -5,7 +5,7 @@ namespace Engine::FileSystem
 {
     ENGINE_EXPORT String dirname_of(const String& filename)
     {
-        auto index = filename.find_last_of(L"/\\");
+        auto index = filename.find_last_of("/\\");
         if (index == String::npos)
         {
             return STR("./");
@@ -16,7 +16,7 @@ namespace Engine::FileSystem
 
     ENGINE_EXPORT String basename_of(const String& filename)
     {
-        auto index = filename.find_last_of(L"/\\") + 1;
+        auto index = filename.find_last_of("/\\") + 1;
         return filename.substr(index, filename.length() - index);
     }
 

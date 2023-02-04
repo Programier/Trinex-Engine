@@ -415,6 +415,12 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
+    ApiInterface& ApiInterface::shader_value(const ObjID&, const String&, void*)
+    {
+        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
     ApiInterface& ApiInterface::depth_mask(bool)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
@@ -502,6 +508,11 @@ namespace Engine::GraphicApiInterface
     }
 
     ApiInterface& ApiInterface::end_render_pass()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::wait_idle()
     {
         return *this;
     }

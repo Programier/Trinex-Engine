@@ -10,14 +10,14 @@ namespace Engine
 
     TextureCubeMap& TextureCubeMap::attach_texture(const Texture2D& texture, TextureCubeMapFace index, int level)
     {
-        EngineInstance::get_instance()->api_interface()->cubemap_texture_attach_2d_texture(_M_ID, texture.id(), index,
-                                                                                           level);
+        EngineInstance::instance()->api_interface()->cubemap_texture_attach_2d_texture(_M_ID, texture.id(), index,
+                                                                                       level);
         return *this;
     }
 
     TextureCubeMap& TextureCubeMap::attach_data(TextureCubeMapFace index, const Size2D& size, void* data, int level)
     {
-        EngineInstance::get_instance()->api_interface()->cubemap_texture_attach_data(_M_ID, index, size, level, data);
+        EngineInstance::instance()->api_interface()->cubemap_texture_attach_data(_M_ID, index, size, level, data);
         return *this;
     }
 }// namespace Engine

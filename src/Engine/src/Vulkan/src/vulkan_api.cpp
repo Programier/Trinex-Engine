@@ -62,38 +62,6 @@ namespace Engine
     }
 
 
-    static void shader_test()
-    {
-        auto read_file = [](const std::string& file) -> FileBuffer {
-            std::ifstream file_stream(file, std::ios::ate | std::ios::binary);
-
-            size_t file_size = (size_t) file_stream.tellg();
-            FileBuffer buffer(file_size);
-
-            file_stream.seekg(0);
-            file_stream.read((char*) buffer.data(), static_cast<std::streamsize>(file_size));
-            file_stream.close();
-            return buffer;
-        };
-
-        std::string fragment = "/home/programier/Projects/Shaders/frag.spv";
-        std::string vertex = "/home/programier/Projects/Shaders/vert.spv";
-
-        ShaderParams params;
-        params.name = "main";
-        params.binaries.vertex = read_file(vertex);
-        params.binaries.fragment = read_file(fragment);
-        VulkanShader shader;
-        try
-        {
-            shader.init(params);
-        }
-        catch (...)
-        {
-            std::clog << "SHADER TEST FAILED!" << std::endl;
-        }
-    }
-
     void* VulkanAPI::init_window(SDL_Window* window)
     {
         _M_window = window;
@@ -114,13 +82,12 @@ namespace Engine
             return nullptr;
         }
 
-        shader_test();
         return static_cast<VkSurfaceKHR>(_M_surface);
     }
 
 
     ///////////////////////////////// INITIALIZATION /////////////////////////////////
-
+#if ENABLE_VALIDATION_LAYERS
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                         VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -130,6 +97,7 @@ namespace Engine
 
         return VK_FALSE;
     }
+#endif
 
     static std::vector<const char*> get_required_extensions(SDL_Window* window)
     {
@@ -150,7 +118,12 @@ namespace Engine
             instance_builder.enable_extension(extension);
         }
 
-        auto instance_ret = instance_builder.set_debug_callback(debugCallback).request_validation_layers().build();
+#if ENABLE_VALIDATION_LAYERS
+        instance_builder.set_debug_callback(debugCallback).request_validation_layers();
+#endif
+
+        auto instance_ret = instance_builder.build();
+
         if (!instance_ret)
         {
             throw std::runtime_error(instance_ret.error().message());
@@ -219,7 +192,7 @@ namespace Engine
 
     void VulkanAPI::recreate_swap_chain()
     {
-        _M_device.waitIdle();
+        wait_idle();
 
         _M_device.destroyCommandPool(_M_command_pool);
 
@@ -340,25 +313,20 @@ namespace Engine
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        //        if (_M_image_in_flight[_M_current_buffer_index.value])
-        //        {
-        //            (void) _M_device.waitForFences(_M_image_in_flight[_M_current_buffer_index.value], VK_TRUE, UINT64_MAX);
-        //        }
-
-        //        _M_image_in_flight[_M_current_buffer_index.value] = _M_in_flight_fences[_M_current_frame];
-
         _M_device.resetFences({_M_in_flight_fences[_M_current_frame]});
         _M_current_command_buffer = &_M_command_buffers[_M_current_frame];
         _M_current_command_buffer->reset();
 
         _M_current_command_buffer->begin(vk::CommandBufferBeginInfo());
 
+        _M_current_command_buffer->setScissor(0, vk::Rect2D({0, 0}, _M_swap_chain->_M_extent));
+        _M_current_command_buffer->setViewport(0, window_data.view_port);
+
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-
         // #########################################
         _M_current_command_buffer->end();
 
@@ -407,16 +375,52 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::end_render_pass()
     {
+        _M_current_command_buffer->draw(3, 1, 0, 0);
         _M_current_command_buffer->endRenderPass();
+        return *this;
+    }
+
+    uint32_t VulkanAPI::find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties)
+    {
+        vk::PhysicalDeviceMemoryProperties mem_properties = _M_physical_device.getMemoryProperties();
+
+        for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++)
+        {
+            if ((type_filter & (1 << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties) == properties)
+            {
+                return i;
+            }
+        }
+
+        throw std::runtime_error("Failed to find suitable memory type!");
+    }
+
+    VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
+                                        vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
+                                        vk::DeviceMemory& buffer_memory)
+    {
+        vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
+
+        buffer = _M_device.createBuffer(buffer_info);
+
+
+        vk::MemoryRequirements mem_requirements = _M_device.getBufferMemoryRequirements(buffer);
+
+        vk::MemoryAllocateInfo alloc_info(mem_requirements.size,
+                                          find_memory_type(mem_requirements.memoryTypeBits, properties));
+
+
+        buffer_memory = _M_device.allocateMemory(alloc_info);
+        _M_device.bindBufferMemory(buffer, buffer_memory, 0);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::framebuffer_viewport(const Point2D& point, const Size2D& size)
     {
-        window_data.view_port.x = static_cast<int_t>(point.x);
-        window_data.view_port.y = static_cast<int_t>(point.y);
-        window_data.view_port.width = static_cast<int_t>(size.x);
-        window_data.view_port.height = static_cast<int_t>(size.y);
+        window_data.view_port.x = point.x;
+        window_data.view_port.y = point.y;
+        window_data.view_port.width = size.x;
+        window_data.view_port.height = size.y;
 
         if (_M_current_framebuffer)
         {
@@ -457,6 +461,57 @@ namespace Engine
         interval = glm::abs(interval);
         _M_swap_chain_mode = modes.at(index);
         _M_need_recreate_swap_chain = true;
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::wait_idle()
+    {
+        _M_device.waitIdle();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::destroy_object(ObjID& ID)
+    {
+        if (ID)
+        {
+            delete OBJECT_OF(ID);
+        }
+
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::create_shader(ObjID& ID, const ShaderParams& params)
+    {
+        VulkanShader* shader = new VulkanShader();
+        try
+        {
+            shader->init(params);
+            ID = shader->ID();
+        }
+        catch (const std::exception& ex)
+        {
+            delete shader;
+            ID = 0;
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::use_shader(const ObjID& ID)
+    {
+        if (ID)
+        {
+            GET_TYPE(VulkanShader, ID)->use();
+        }
+
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::shader_value(const ObjID& ID, const String& name, void* data)
+    {
+        if (ID)
+        {
+            GET_TYPE(VulkanShader, ID)->set_value(name, data);
+        }
         return *this;
     }
 

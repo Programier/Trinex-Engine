@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <iostream>
 #include <vulkan_api.hpp>
 #include <vulkan_swap_chain.hpp>
 
@@ -28,7 +27,6 @@ namespace Engine
         }
 
         _M_bootstrap_swapchain = swap_ret.value();
-        std::clog << (int) _M_bootstrap_swapchain.image_count << std::endl;
         _M_swap_chain = vk::SwapchainKHR(_M_bootstrap_swapchain.swapchain);
 
         _M_extent.width = _M_bootstrap_swapchain.extent.width;

@@ -64,7 +64,7 @@ namespace Engine
     {
         _M_data.clear();
         stbi_set_flip_vertically_on_load(invert_horizontal);
-        byte* address = stbi_load(Strings::to_std_string(image).c_str(), &_M_width, &_M_height, &_M_channels, 0);
+        byte* address = stbi_load(image.c_str(), &_M_width, &_M_height, &_M_channels, 0);
         stbi_set_flip_vertically_on_load(false);
         //_M_data = std::vector<byte>(address, address + _M_width * _M_height * _M_channels);
         _M_data.insert(_M_data.begin(), address, address + _M_width * _M_height * _M_channels);

@@ -27,10 +27,9 @@ namespace Engine
 
         bool _M_is_on_heap = false;
         BitMask _M_flags;
-        Object* _M_parent = nullptr;
-        ObjectSet _M_childs;
+        Counter _M_references = 0;
 
-        void delete_instance(bool force_delete = false) ;
+        void delete_instance(bool force_delete = false);
         Package* _M_package = nullptr;
 
     protected:
@@ -46,11 +45,6 @@ namespace Engine
         ENGINE_EXPORT static String decode_name(const std::type_info& info);
         ENGINE_EXPORT static String decode_name(const String& name);
         String class_name() const;
-        Object& add_child_object(Object * child);
-        Object& remove_child_object(Object * child);
-        const ObjectSet& child_objects() const;
-        Object* parent_object() const;
-        Object& parent_object(Object * parent);
         std::size_t class_hash() const;
         ENGINE_EXPORT static const ObjectSet& all_objects();
         bool mark_for_delete();
@@ -68,6 +62,7 @@ namespace Engine
         Object& remove_from_package();
         Package* package() const;
         String full_name() const;
+        Counter references() const;
         ENGINE_EXPORT static Object* find_object(const String& object_name);
 
 
@@ -86,13 +81,15 @@ namespace Engine
         }
 
         template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, bool>::type is_instance_of() const
+        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, bool>::type
+        is_instance_of() const
         {
             return _M_instance_info[static_cast<EnumerateType>(ObjectInstanceType::instance_type)]._M_has_instance;
         }
 
         template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, ObjectInstanceType*>::type
+        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0,
+                                ObjectInstanceType*>::type
         instance_cast()
         {
             const EnumerateType index = static_cast<EnumerateType>(ObjectInstanceType::instance_type);
@@ -106,7 +103,8 @@ namespace Engine
         }
 
         template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, const ObjectInstanceType*>::type
+        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0,
+                                const ObjectInstanceType*>::type
         instance_cast() const
         {
             const EnumerateType index = static_cast<EnumerateType>(ObjectInstanceType::instance_type);
@@ -120,7 +118,8 @@ namespace Engine
         }
 
         template<typename ObjectInstanceType>
-        static typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, Object*>::type
+        static typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0,
+                                       Object*>::type
         find_object_checked(const String& object_name)
         {
             Object* object = find_object(object_name);
@@ -141,6 +140,7 @@ namespace Engine
         virtual ~Object();
         friend void force_garbage_collection();
         friend class Package;
+        friend class PointerBase;
     };
 
     struct __FOR_PRIVATE_USAGE__ {

@@ -24,7 +24,7 @@ namespace Engine
         return keys._M_last_evented_keys;
     }
 
-    ENGINE_EXPORT unsigned int KeyboardEvent::last_symbol(bool reset)
+    ENGINE_EXPORT uint_t KeyboardEvent::last_symbol(bool reset)
     {
         auto tmp = keys._M_last_symbol;
         keys._M_last_symbol = 0;

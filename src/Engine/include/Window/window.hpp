@@ -118,6 +118,12 @@ namespace Engine
         Window(const Window& window);
         Window& operator=(const Window& window);
         ~Window();
+
+
+        friend class Application;
+
+    private:
+        static const Window& destroy();
     };
 
 

@@ -11,6 +11,8 @@ namespace Engine
 {
     using byte = std::uint8_t;
     using signed_byte = std::int8_t;
+    using size_t = std::uint64_t;
+
     using Vector1D = glm::vec1;
 
     using Point1D = float;
@@ -45,9 +47,10 @@ namespace Engine
 
     using Vector4D = glm::vec4;
 
-    using ArrayIndex = std::size_t;
-    using PriorityIndex = std::size_t;
-    using Counter = std::size_t;
+    using ArrayIndex = size_t;
+    using PriorityIndex = size_t;
+    using Counter = size_t;
+
 
     using Quaternion = glm::quat;
 
@@ -55,9 +58,9 @@ namespace Engine
     using TextureAttachIndex = byte;
 
     using AssimpObject = const void*;
-    using BitMask = std::size_t;
-    using String = std::wstring;
-#define STR(text) L##text
+    using BitMask = size_t;
+    using String = std::string;
+#define STR(text) text
 
     // Int Vectors
     using IntVector2D = glm::ivec2;
@@ -324,7 +327,7 @@ namespace Engine
         STENCIL_BUFFER_BIT = 4,
     };
 
-    using BufferType = std::size_t;
+    using BufferType = size_t;
 
     enum class FrameBufferType : uint_t
     {
@@ -384,6 +387,12 @@ namespace Engine
         Binary
     };
 
+    struct ShaderUniformVariable {
+        String name;
+        uint_t binding;
+        size_t size;
+    };
+
     using FileBuffer = std::vector<byte>;
 
     struct ShaderParams {
@@ -400,6 +409,8 @@ namespace Engine
             std::vector<FileBuffer> compute;
             std::vector<FileBuffer> geometry;
         } text;
+
+        std::vector<ShaderUniformVariable> uniform_variables;
 
         std::string name;
     };

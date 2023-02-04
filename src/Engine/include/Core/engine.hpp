@@ -123,7 +123,7 @@ namespace Engine
         ~EngineInstance();
 
     public:
-        ENGINE_EXPORT static EngineInstance* get_instance();
+        ENGINE_EXPORT static EngineInstance* instance();
         const Window* window() const;
         SystemType system_type() const;
         EngineAPI api() const;
@@ -138,8 +138,6 @@ namespace Engine
         EngineInstance& stencil_mask(byte mask);
         EngineInstance& stencil_option(StencilOption stencil_fail, StencilOption depth_fail, StencilOption pass);
         EngineInstance& stencil_func(Engine::CompareFunc func, int_t ref, byte mask);
-
-
         friend class Application;
     };
 

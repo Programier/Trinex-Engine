@@ -12,8 +12,8 @@ namespace Engine
     };
 
     STRUCT TouchScreenEvent {
-        static ENGINE_EXPORT unsigned int fingers_count();
-        static ENGINE_EXPORT unsigned int prev_fingers_count();
-        static ENGINE_EXPORT const Finger& get_finger(unsigned int index);
+        static ENGINE_EXPORT uint_t fingers_count();
+        static ENGINE_EXPORT uint_t prev_fingers_count();
+        static ENGINE_EXPORT const Finger& get_finger(uint_t index);
     };
 }// namespace Engine

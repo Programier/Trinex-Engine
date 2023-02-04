@@ -39,9 +39,9 @@ namespace Engine
             AssimpLibrary::init();
             if (!assimp_load_scene)
                 return nullptr;
-            auto scene = assimp_load_scene(Strings::to_std_string(filename).c_str(),
-                                           aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_GenBoundingBoxes |
-                                                   aiProcess_FlipUVs | aiProcess_PopulateArmatureData);
+            auto scene = assimp_load_scene(filename.c_str(), aiProcess_Triangulate | aiProcess_GenNormals |
+                                                                     aiProcess_GenBoundingBoxes | aiProcess_FlipUVs |
+                                                                     aiProcess_PopulateArmatureData);
 
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
             {

@@ -117,7 +117,7 @@ namespace Engine
             _M_stack.pop();
             SceneTreeNode* current_scene_node = Object::new_instance<SceneTreeNode>(node.scene_parent_node);
             current_scene_node->model(AssimpHelpers::get_matrix4(&node.node->mTransformation));
-            current_scene_node->name(Strings::to_string(node.node->mName.data));
+            current_scene_node->name(node.node->mName.data);
 
             for (unsigned int i = 0; i < node.node->mNumMeshes; i++)
             {

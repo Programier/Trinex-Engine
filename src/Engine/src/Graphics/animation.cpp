@@ -33,7 +33,7 @@ namespace Engine
 
     Animation& Animation::load(const aiAnimation* anim, const std::list<const aiNodeAnim*>& ai_channels, Bone* root)
     {
-        name(Strings::to_string(anim->mName.data));
+        name(anim->mName.data);
         duration = static_cast<float>(anim->mDuration);
         ticks_per_second = static_cast<float>(anim->mTicksPerSecond);
 
@@ -41,7 +41,7 @@ namespace Engine
         {
             _M_channels.push_back(Object::new_instance<Channel>());
             auto& channel = _M_channels.back();
-            channel->name = Strings::to_string(ai_channel->mNodeName.data);
+            channel->name = ai_channel->mNodeName.data;
             channel->_M_bone = root ? root->find_bone_by_name(channel->name) : nullptr;
 
             load_keys(position_keys, PositionKeys, get_vector3);

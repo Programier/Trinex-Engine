@@ -44,65 +44,16 @@ namespace Engine
             // Creating Root Package
             // Dirty hack - Fix recursion
             _M_root_package = reinterpret_cast<Package*>(1024);
-            _M_root_package = Object::new_instance<Package>(L"Root Package");
+            _M_root_package = Object::new_instance<Package>("Root Package");
         }
         else if (_M_root_package != reinterpret_cast<Package*>(1024))
         {
             auto& objects = _M_root_package->objects();
-            _M_name = Strings::format(L"Instance {}", objects.size());
-            while (objects.contains(_M_name)) _M_name += L"_new";
+            _M_name = Strings::format("Instance {}", objects.size());
+            while (objects.contains(_M_name)) _M_name += "_new";
             _M_root_package->add_object(this);
         }
     }
-
-
-    Object& Object::add_child_object(Object* instance)
-    {
-        if (instance)
-        {
-            if (instance->_M_parent)
-                instance->_M_parent->remove_child_object(instance);
-            instance->_M_parent = this;
-            _M_childs.insert(instance);
-        }
-        return *this;
-    }
-
-    Object& Object::remove_child_object(Object* instance)
-    {
-        if (instance && instance->_M_parent == this)
-        {
-            _M_childs.erase(instance);
-            instance->_M_parent = nullptr;
-        }
-        return *this;
-    }
-
-    const ObjectSet& Object::child_objects() const
-    {
-        return _M_childs;
-    }
-
-    Object* Object::parent_object() const
-    {
-        return _M_parent;
-    }
-
-    Object& Object::parent_object(Object* parent)
-    {
-        if (_M_parent)
-        {
-            _M_parent->remove_child_object(this);
-            _M_parent = nullptr;
-        }
-
-        if (parent)
-        {
-            parent->add_child_object(this);
-        }
-        return *this;
-    }
-
 
     std::size_t Object::class_hash() const
     {
@@ -129,7 +80,7 @@ namespace Engine
         bool skip = has_any_flags(OI_SkipGarbageCollection);
         if ((force_delete || _M_need_delete) && _M_is_on_heap && !skip)
         {
-            logger->log("Garbage Collector: Delete object instance '%ls'\n", class_name().c_str());
+            logger->log("Garbage Collector: Delete object instance '%s'\n", class_name().c_str());
             delete this;
         }
 
@@ -159,28 +110,36 @@ namespace Engine
 
     bool Object::mark_for_delete()
     {
-
-        auto mark = [](Object* object) {
-            if (!object->_M_need_delete && object->_M_is_on_heap)
+        static auto mark = [](Object* object) -> bool {
+            if (!object->_M_need_delete && object->_M_is_on_heap && object->_M_references == 0)
             {
                 get_instance_list_for_delete().push_back(object);
                 object->_M_need_delete = true;
                 if (get_instance_list_for_delete().size() == MAX_GARBAGE_COLLECTION_OBJECTS)
                     Object::collect_garbage();
+                return true;
             }
+            return false;
         };
 
+        Package* package = instance_cast<Package>();
+        bool status = true;
 
-        std::list<Object*> stack = {this};
-        while (!stack.empty())
+        if (package)
         {
-            Object* object = stack.back();
-            stack.pop_back();
-            for (auto obj : object->_M_childs) stack.push_back(obj);
-            mark(object);
+            for (auto& ell : package->objects())
+            {
+                if (!ell.second->mark_for_delete())
+                    status = false;
+            }
         }
 
-        return false;
+        if (status)
+        {
+            status = mark(this);
+        }
+
+        return status;
     }
 
     bool Object::is_on_heap() const
@@ -270,11 +229,16 @@ namespace Engine
 
         while (object && object != _M_root_package)
         {
-            result = (object->_M_name + L"::") + result;
+            result = (object->_M_name + "::") + result;
             object = object->_M_package;
         }
 
         return result;
+    }
+
+    Counter Object::references() const
+    {
+        return _M_references;
     }
 
     ENGINE_EXPORT const Package* root_package()

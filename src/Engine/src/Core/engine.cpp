@@ -32,7 +32,7 @@ namespace Engine
         return _M_instance;
     }
 
-    ENGINE_EXPORT EngineInstance* EngineInstance::get_instance()
+    ENGINE_EXPORT EngineInstance* EngineInstance::instance()
     {
         return _M_instance;
     }

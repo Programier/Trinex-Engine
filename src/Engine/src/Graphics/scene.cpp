@@ -11,7 +11,7 @@ namespace Engine
     {
         check(scene);
         _M_scene = scene;
-        name(L"Scene");
+        name("Scene");
     }
 
     SceneTreeNode::SceneTreeNode(SceneTreeNode* parent) : Tree(parent)

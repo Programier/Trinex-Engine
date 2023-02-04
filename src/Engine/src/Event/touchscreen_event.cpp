@@ -7,12 +7,12 @@
 namespace Engine
 {
 
-    static unsigned int _M_num_fingers = 0;
-    static unsigned int _M_prev_num_fingers = 0;
+    static uint_t _M_num_fingers = 0;
+    static uint_t _M_prev_num_fingers = 0;
     static Finger _M_fingers[20];
 
 
-    static Finger* private_get_finger(unsigned int index)
+    static Finger* private_get_finger(uint_t index)
     {
         if (index > 19)
             return nullptr;
@@ -22,8 +22,8 @@ namespace Engine
     void clear_touchscreen_events()
     {
         _M_prev_num_fingers = _M_num_fingers;
-        unsigned int fingers = min_value(20, _M_num_fingers);
-        for (unsigned int id = 0; id < fingers; id++) _M_fingers[id].offset = {0.f, 0.f};
+        uint_t fingers = min_value(20, _M_num_fingers);
+        for (uint_t id = 0; id < fingers; id++) _M_fingers[id].offset = {0.f, 0.f};
     }
 
     void process_touchscreen_event(SDL_TouchFingerEvent& event)
@@ -45,17 +45,17 @@ namespace Engine
         finger->pressure = event.pressure;
     }
 
-    ENGINE_EXPORT unsigned int TouchScreenEvent::fingers_count()
+    ENGINE_EXPORT uint_t TouchScreenEvent::fingers_count()
     {
         return _M_num_fingers;
     }
 
-    ENGINE_EXPORT unsigned int TouchScreenEvent::prev_fingers_count()
+    ENGINE_EXPORT uint_t TouchScreenEvent::prev_fingers_count()
     {
         return _M_prev_num_fingers;
     }
 
-    ENGINE_EXPORT const Finger& TouchScreenEvent::get_finger(unsigned int index)
+    ENGINE_EXPORT const Finger& TouchScreenEvent::get_finger(uint_t index)
     {
         if (index > 19)
             throw std::runtime_error("Touchscreen: Finger index out of range");

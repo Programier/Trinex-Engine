@@ -28,6 +28,7 @@ namespace Engine
         const Shader& set(const std::string& value_name, const Vector2D& value) const;
         const Shader& set(const std::string& value_name, const Vector3D& value) const;
         const Shader& set(const std::string& value_name, const Vector4D& value) const;
+        const Shader& set(const String& value_name, void* data) const;
     };
 
 }// namespace Engine

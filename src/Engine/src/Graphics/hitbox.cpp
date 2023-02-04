@@ -173,8 +173,8 @@ namespace Engine
         }
 
         float _M_line_offset = 0.00001f;
-        float _M_line_width = EngineInstance::get_instance()->api_interface()->line_rendering_width();
-        EngineInstance::get_instance()->api_interface()->line_rendering_width(3.f);
+        float _M_line_width = EngineInstance::instance()->api_interface()->line_rendering_width();
+        EngineInstance::instance()->api_interface()->line_rendering_width(3.f);
         _M_mesh.data = {min.x - _M_line_offset, min.y - _M_line_offset, min.z - _M_line_offset,//
                         min.x - _M_line_offset, min.y - _M_line_offset, max.z + _M_line_offset,//
                         min.x - _M_line_offset, max.y + _M_line_offset, min.z - _M_line_offset,//
@@ -189,7 +189,7 @@ namespace Engine
         sh::shader.use().set(sh::model, model).set(sh::color, color).set(sh::projview, camera->projview());
         _M_mesh.draw(Primitive::LINE);
 
-        EngineInstance::get_instance()->api_interface()->line_rendering_width(_M_line_width);
+        EngineInstance::instance()->api_interface()->line_rendering_width(_M_line_width);
     }
 
     BoxHB BoxHB::max_box(const AABB_3D& box) const

@@ -51,7 +51,7 @@ namespace Engine
     Shader& Shader::load(const ShaderParams& params)
     {
         destroy();
-        EngineInstance::get_instance()->api_interface()->create_shader(_M_ID, params);
+        EngineInstance::instance()->api_interface()->create_shader(_M_ID, params);
         return *this;
     }
 
@@ -61,7 +61,7 @@ namespace Engine
         //  if (_M_ID != _M_current)
         {
             _M_current = _M_ID;
-            EngineInstance::get_instance()->api_interface()->use_shader(_M_ID);
+            EngineInstance::instance()->api_interface()->use_shader(_M_ID);
         }
 
         return *this;
@@ -70,49 +70,55 @@ namespace Engine
 
     const Shader& Shader::set(const std::string& value_name, float value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, int value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::mat4& value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::mat3& value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const bool& value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::vec2& value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const glm::vec3& value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
         return *this;
     }
 
     const Shader& Shader::set(const std::string& value_name, const Vector4D& value) const
     {
-        EngineInstance::get_instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, value);
+        return *this;
+    }
+
+    const Shader& Shader::set(const String& value_name, void* data) const
+    {
+        EngineInstance::instance()->api_interface()->shader_value(_M_ID, value_name, data);
         return *this;
     }
 

@@ -10,7 +10,7 @@ namespace Engine
         std::vector<KeyStatus> _M_keys;
         Key _M_last_key = Key::KEY_UNKNOWN;
         Key _M_last_released = Key::KEY_UNKNOWN;
-        unsigned int _M_last_symbol = 0;
+        uint_t _M_last_symbol = 0;
         Key _M_last_mouse_key = Key::KEY_UNKNOWN;
         Key _M_last_mouse_released = Key::KEY_UNKNOWN;
 

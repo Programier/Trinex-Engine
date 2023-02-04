@@ -10,19 +10,19 @@ namespace Engine
 
     const BasicFrameBuffer& BasicFrameBuffer::clear_buffer(const BufferType& type) const
     {
-        EngineInstance::get_instance()->api_interface()->clear_frame_buffer(_M_ID, type);
+        EngineInstance::instance()->api_interface()->clear_frame_buffer(_M_ID, type);
         return *this;
     }
 
     const BasicFrameBuffer& BasicFrameBuffer::bind() const
     {
-        EngineInstance::get_instance()->api_interface()->bind_framebuffer(_M_ID);
+        EngineInstance::instance()->api_interface()->bind_framebuffer(_M_ID);
         return *this;
     }
 
     const BasicFrameBuffer& BasicFrameBuffer::view_port(const Point2D& pos, const Point2D& size) const
     {
-        EngineInstance::get_instance()->api_interface()->framebuffer_viewport(pos, size);
+        EngineInstance::instance()->api_interface()->framebuffer_viewport(pos, size);
         return *this;
     }
 

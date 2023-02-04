@@ -69,7 +69,7 @@ namespace Engine::ImGuiInit
 
     void init(const char* glsl_version)
     {
-        init_imgui[static_cast<int>(Engine::EngineInstance::get_instance()->api())](glsl_version);
+        init_imgui[static_cast<int>(Engine::EngineInstance::instance()->api())](glsl_version);
         Engine::Event::sdl_callbacks.push_back(imgui_event);
     }
 
@@ -78,17 +78,17 @@ namespace Engine::ImGuiInit
         auto it = std::find(Engine::Event::sdl_callbacks.begin(), Engine::Event::sdl_callbacks.end(), imgui_event);
         if (it != Engine::Event::sdl_callbacks.end())
             Engine::Event::sdl_callbacks.erase(it);
-        terminate_imgui_funcs[cast(int, Engine::EngineInstance::get_instance()->api())]();
+        terminate_imgui_funcs[cast(int, Engine::EngineInstance::instance()->api())]();
     }
 
     void render()
     {
-        render_imgui[cast(int, Engine::EngineInstance::get_instance()->api())]();
+        render_imgui[cast(int, Engine::EngineInstance::instance()->api())]();
     }
 
     void new_frame()
     {
-        frame_imgui[cast(int, Engine::EngineInstance::get_instance()->api())]();
+        frame_imgui[cast(int, Engine::EngineInstance::instance()->api())]();
     }
 
 }// namespace Engine::ImGuiInit

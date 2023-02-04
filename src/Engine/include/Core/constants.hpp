@@ -20,6 +20,7 @@ namespace Engine
         static const float min_positive_float;
         static const Vector3D min_positive_vector;
         static const ArrayIndex index_none;
+        static const size_t max_size;
         static const IntVector4D int_zero_vector;
         static const IntVector4D int_identity_vector;
         static const IntVector4D uint_zero_vector;

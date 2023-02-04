@@ -27,7 +27,7 @@ namespace Engine
         return _M_text_event;
     }
 
-    ENGINE_EXPORT const std::wstring& TextEvent::text()
+    ENGINE_EXPORT const String& TextEvent::text()
     {
         return _M_text;
     }
@@ -40,7 +40,9 @@ namespace Engine
 
     void process_text_event(SDL_TextInputEvent& event)
     {
-        String str = Strings::to_string(event.text);
+        std::wstring str = Strings::to_wstring(event.text);
+        _M_text += event.text;
+
         if ((_M_last_symbol = str[0]) && TextEvent::enable_text_writing)
         {
             _M_text.push_back(_M_last_symbol);
@@ -60,7 +62,7 @@ namespace Engine
 
     ENGINE_EXPORT String TextEvent::clipboard_text()
     {
-        return Strings::to_string(SDL_GetClipboardText());
+        return SDL_GetClipboardText();
     }
 
 }// namespace Engine

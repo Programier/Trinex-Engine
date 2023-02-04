@@ -34,7 +34,7 @@ namespace Engine
 
             const aiBone* ai_bone = bones.at(node->mName.data);
             check(ai_bone);
-            bone->name(Strings::to_string(ai_bone->mName.data));
+            bone->name(ai_bone->mName.data);
             bone->offset_matrix = AssimpHelpers::get_matrix4(&ai_bone->mOffsetMatrix);
 
             bone->weights.resize(ai_bone->mNumWeights);

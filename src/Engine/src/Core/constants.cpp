@@ -16,6 +16,7 @@ namespace Engine
     const float Constants::min_positive_float = 0.000001f;
     const Vector3D Constants::min_positive_vector = Vector3D(0.000001f);
     const ArrayIndex Constants::index_none = ~0;
+    const size_t Constants::max_size = ~0;
     const IntVector4D Constants::int_zero_vector = IntVector4D(0);
     const IntVector4D Constants::int_identity_vector = IntVector4D(1);
     const IntVector4D Constants::uint_zero_vector = UIntVector4D(0);

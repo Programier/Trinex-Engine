@@ -52,7 +52,7 @@ namespace Engine
         std::size_t pos = 0;
         const Package* current_package = this;
 
-        while (current_package && (pos = object_name.find_first_of(L"::", prev_pos)) != String::npos)
+        while (current_package && (pos = object_name.find_first_of("::", prev_pos)) != String::npos)
         {
             auto sub_name = object_name.substr(prev_pos, pos - prev_pos);
             prev_pos = pos + 2;

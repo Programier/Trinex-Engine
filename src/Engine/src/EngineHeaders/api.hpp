@@ -90,13 +90,14 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& line_rendering_width(float) VIRTUAL_METHOD;
         virtual ApiInterface& create_shader(ObjID&, const ShaderParams&) VIRTUAL_METHOD;
         virtual ApiInterface& use_shader(const ObjID&) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, float) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, int_t) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, const glm::mat3&) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, const glm::mat4&) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec2&) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec3&) VIRTUAL_METHOD;
-        virtual ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec4&) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, float) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, int_t) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, const glm::mat3&) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, const glm::mat4&) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, const glm::vec2&) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, const glm::vec3&) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, const glm::vec4&) VIRTUAL_METHOD;
+        virtual ApiInterface& shader_value(const ObjID&, const String&, void*) VIRTUAL_METHOD;
         virtual ApiInterface& depth_mask(bool) VIRTUAL_METHOD;
         virtual ApiInterface& stencil_mask(byte) VIRTUAL_METHOD;
         virtual ApiInterface& stencil_func(Engine::CompareFunc, int_t, byte) VIRTUAL_METHOD;
@@ -114,6 +115,7 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& end_render() VIRTUAL_METHOD;
         virtual ApiInterface& begin_render_pass() VIRTUAL_METHOD;
         virtual ApiInterface& end_render_pass() VIRTUAL_METHOD;
+        virtual ApiInterface& wait_idle() VIRTUAL_METHOD;
 
 
         virtual ~ApiInterface();
