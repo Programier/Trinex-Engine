@@ -10,13 +10,13 @@ namespace Engine
     struct OpenGL_SSBO : OpenGL_Object {
         OpenGL_SSBO()
         {
-            OpenGL::_M_api->_M_current_logger->log("OpenGL: Create new SSBO\n");
+            opengl_debug_log("OpenGL: Create new SSBO\n");
             glGenBuffers(1, &_M_instance_id);
         }
 
         ~OpenGL_SSBO()
         {
-            OpenGL::_M_api->_M_current_logger->log("OpenGL: Destroy SSBO\n");
+            opengl_debug_log("OpenGL: Destroy SSBO\n");
             if (_M_instance_id)
                 glDeleteBuffers(1, &_M_instance_id);
         }

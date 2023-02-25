@@ -5,7 +5,7 @@ namespace Engine::GraphicApiInterface
 {
 
 #ifdef ENGINE_API_IMPLEMENTATION
-    ApiInterface& ApiInterface::logger(Logger*)
+    ApiInterface& ApiInterface::logger(Logger*&)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
@@ -271,11 +271,6 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
-    ApiInterface& ApiInterface::update_mesh_attributes(const ObjID&, const MeshInfo&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
     ApiInterface& ApiInterface::draw_mesh(const ObjID&, Primitive, std::size_t, std::size_t)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
@@ -288,8 +283,13 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
-    ApiInterface& ApiInterface::mesh_indexes_array(const ObjID&, const MeshInfo&, std::size_t, const BufferValueType&,
-                                                   void*)
+    ApiInterface& ApiInterface::mesh_indexes_array(const ObjID&, std::size_t, const IndexBufferComponent&, void*)
+    {
+        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::update_mesh_indexes_array(const ObjID&, size_t, size_t, void* data)
     {
         Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;

@@ -62,7 +62,7 @@ namespace Engine
         static const Window& background_color(const Color& color);
 
         static const Window& clear_buffer(const BufferType& buffer =
-                                                  BufferBitType::COLOR_BUFFER_BIT | BufferBitType::DEPTH_BUFFER_BIT);
+                                                  BufferBitType::ColorBufferBit | BufferBitType::DepthBufferBit);
 
         static bool is_iconify();
         static const Window& iconify();

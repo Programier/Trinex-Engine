@@ -31,7 +31,7 @@ namespace Engine
         namespace sh = ShaderSystem::Line;
         sh::shader.use().set(sh::model, matrix * model()).set(sh::projview, camera->projview()).set(sh::color, color);
 
-        _M_mesh->draw(Primitive::LINE);
+        _M_mesh->draw(Primitive::Line);
         return 1;
     }
 
@@ -77,13 +77,8 @@ namespace Engine
             for (unsigned int j = 0; j < face.mNumIndices; j++) mesh->indexes.push_back(face.mIndices[j]);
         }
 
-        mesh->attributes = {
-                {3, BufferValueType::FLOAT, offsetof(StaticLineVertex, position)},
-        };
-
-        mesh->mode = DrawMode::STATIC_DRAW;
         mesh->gen();
-        mesh->set_data().update_atributes().update_indexes();
+        mesh->set_data().set_indexes();
 
         Resources::meshes.push_back(mesh);
 

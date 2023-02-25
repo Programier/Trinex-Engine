@@ -13,7 +13,7 @@ namespace Engine
         struct {
             String window_name;
             Size2D window_size;
-            uint16_t window_attribs = WindowAttrib::WIN_SHOWN;
+            uint16_t window_attribs = WindowAttrib::WinShown;
             EngineAPI api = EngineAPI::OpenGL;
         } init_info;
 

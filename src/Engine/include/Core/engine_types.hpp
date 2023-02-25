@@ -1,9 +1,13 @@
 #pragma once
 
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
+#include <typeindex>
+#include <unordered_map>
 #include <vector>
 
 
@@ -62,6 +66,9 @@ namespace Engine
     using String = std::string;
 #define STR(text) text
 
+    using BoolVector2D = glm::bvec2;
+    using BoolVector3D = glm::bvec3;
+    using BoolVector4D = glm::bvec4;
     // Int Vectors
     using IntVector2D = glm::ivec2;
     using IntVector3D = glm::ivec3;
@@ -145,29 +152,29 @@ namespace Engine
 
     enum WindowAttrib : uint16_t
     {
-        WIN_NONE = 0,
-        WIN_RESIZABLE = 1,
-        WIN_FULLSCREEN = 2,
-        WIN_FULLSCREEN_DESKTOP = 4,
-        WIN_SHOWN = 8,
-        WIN_HIDDEN = 16,
-        WIN_BORDERLESS = 32,
-        WIN_MOUSE_FOCUS = 64,
-        WIN_INPUT_FOCUS = 128,
-        WIN_INPUT_GRABBED = 256,
-        WIN_MINIMIZED = 512,
-        WIN_MAXIMIZED = 1024,
-        WIN_TRANSPARENT_FRAMEBUFFER = 2048,
-        WIN_MOUSE_CAPTURE = 4096,
-        WIN_ALLOW_HIGHDPI = 8192,
-        WIN_MOUSE_GRABBED = 16384,
-        WIN_KEYBOARD_GRABBED = 32768
+        WinNone = 0,
+        WinResizable =  1,
+        WinFullScreen =  2,
+        WinFullScreenDesktop =  4,
+        WinShown =  8,
+        WinHidden =  16,
+        WinBorderLess =  32,
+        WinMouseFocus =  64,
+        WinInputFocus =  128,
+        WinInputGrabbed =  256,
+        WinMinimized =  512,
+        WinMaximized =  1024,
+        WinTransparentFramebuffer =  2048,
+        WinMouseCapture =  4096,
+        WinAllowHighDPI =  8192,
+        WinMouseGrabbed =  16384,
+        WinKeyboardGrabbed =  32768,
     };
 
     enum class CursorMode
     {
-        NORMAL,
-        HIDDEN
+        Normal,
+        Hidden
     };
 
 
@@ -178,180 +185,257 @@ namespace Engine
 
     enum WindowOrientation : uint_t
     {
-        WIN_ORIENTATION_LANDSCAPE = 1,
-        WIN_ORIENTATION_LANDSCAPE_FLIPPED = 2,
-        WIN_ORIENTATION_PORTRAIT = 4,
-        WIN_ORIENTATION_PORTRAIT_FLIPPED = 8
+        WinOrientationLandscape =  1,
+        WinOrientationLandscapeFlipped =  2,
+        WinOrientationPortrait =  4,
+        WinOrientationPortraitFlipped =  8
+
     };
 
     enum class TextureType
     {
-        Texture_1D,
-        Texture_1D_Array,
-        Texture_2D,
-        Texture_2D_Array,
-        Texture_2D_MultiSample,
-        Texture_2D_MultiSample_Array,
-        Texture_3D,
-        Texture_Rectangle,
-        Texture_Cube_Map,
-        Texture_Buffer
+        Texture2D,
+        Texture3D,
+        TextureCubeMap,
     };
 
-    enum class PixelFormat : uint_t
+    enum class PixelType : uint_t
     {
-        DEPTH = 1,
-        RGB = 3,
-        RGBA = 4,
-        RED = 5,
-        GREEN = 6,
-        BLUE = 7,
-        ALPHA = 8,
-        DEPTH_COMPONENT16 = 9,
-        DEPTH_COMPONENT24 = 10,
-        DEPTH_COMPONENT32F = 11,
-        DEPTH24_STENCIL8 = 12,
-        DEPTH32F_STENCIL8 = 13,
-        STENCIL_INDEX8 = 14,
+        Depth =  1,
+        RGB =  3,
+        RGBA =  4,
+        Red =  5,
+        DepthComponent16 =  9,
+        DepthComponent24 =  10,
+        DepthComponent32f =  11,
+        Depth24Stencil8 =  12,
+        Depth32fStencil8 =  13,
+    };
+
+    enum class PixelComponentType : uint_t
+    {
+        Float = 0,
+        UnsignedByte= 1,
+    };
+
+    enum class IndexBufferComponent : uint_t
+    {
+        UnsignedInt,
+        UnsignedShort,
+        UnsignedByte
+    };
+
+    enum class ImageFormat : uint_t
+    {
+        R32Uint,
+        VkFormatR32Uint,
+        R8g8b8a8Srgb,
     };
 
     enum class BufferValueType : uint_t
     {
-        FLOAT = 0,
-        UNSIGNED_BYTE = 1,
-        UNSIGNED_SHORT = 2,
-        UNSIGNED_INT = 3,
-        SHORT = 4,
-        INT = 5,
+        Float = 0,
+        UnsignedByte = 1,
+        UnsignedShort = 2,
+        UnsignedInt = 3,
+        Short = 4,
+        Int = 5,
 
-        BYTE,
-        HALF_FLOAT,
-        UNSIGNED_SHORT_5_6_5,
-        UNSIGNED_SHORT_4_4_4_4,
-        UNSIGNED_SHORT_5_5_5_1,
-        UNSIGNED_INT_2_10_10_10_REV,
+        Byte,
+        HalfFloat,
+        UnsignedShort565,
+        UnsignedShort4444,
+        UnsignedShort5551,
+        UnsignedInt2101010Rev,
 
-        UNSIGNED_INT_24_8,
-        UNSIGNED_INT_10F_11F_11F_REV,
-        UNSIGNED_INT_5_9_9_9_REV,
-        FLOAT_32_UNSIGNED_INT_24_8_REV,
+        UnsignedInt248,
+        UnsignedInt10f11f11fRev,
+        UnsignedInt5999Rev,
+        Float32UnsignedInt248Rev,
     };
 
     enum class DepthStencilMode
     {
-        DEPTH,
-        STENCIL
+        Depth,
+        Stencil
     };
 
     enum class CompareMode
     {
-        NONE,
-        REF_TO_TEXTURE
+        None,
+        RefToTexture
     };
 
     enum class TextureFilter : uint_t
     {
-        NEAREST = 0,
-        LINEAR,
-        NEAREST_MIPMAP_NEAREST,
-        NEAREST_MIPMAP_LINEAR,
-        LINEAR_MIPMAP_NEAREST,
-        LINEAR_MIPMAP_LINEAR
+        Nearest = 0,
+        Linear,
+        NearestMipmapNearest,
+        NearestMipmapLinear,
+        LinearMipmapNearest,
+        LinearMipmapLinear
     };
 
 
     struct SwizzleRGBA {
         enum class SwizzleValue : uint_t
         {
-            RED = 0,
-            GREEN = 1,
-            BLUE = 2,
-            ALPHA = 3
+            Red = 0,
+            Green = 1,
+            Blue = 2,
+            Alpha = 3
         } R, G, B, A;
     };
 
     enum class WrapValue : uint_t
     {
-        CLAMP_TO_EDGE,
-        CLAMP_TO_BORDER,
-        MIRRORED_REPEAT,
-        REPEAT,
-        MIRROR_CLAMP_TO_EDGE
+        ClampToEdge,
+        ClampToBorder,
+        MirroredRepeat,
+        Repeat,
+        MirrorClampToEdge
     };
 
+
     struct TextureParams {
-        TextureType type = TextureType::Texture_2D;
-        PixelFormat format = PixelFormat::RGBA;
-        BufferValueType pixel_type = BufferValueType::FLOAT;
-        bool border = false;
+        TextureType type = TextureType::Texture2D;
+        PixelType pixel_type = PixelType::RGBA;
+        PixelComponentType pixel_component_type = PixelComponentType::Float;
     };
 
     enum class Primitive
     {
-        POINT,
-        LINE,
-        TRIANGLE
+        Point,
+        Line,
+        Triangle
     };
 
     enum class BufferUsage : byte
     {
-        STATIC_DRAW = 0,
-        STATIC_READ,
-        STATIC_COPY,
-        DYNAMIC_DRAW,
-        DYNAMIC_READ,
-        DYNAMIC_COPY,
-        STREAM_DRAW,
-        STREAM_READ,
-        STREAM_COPY,
+        StaticDraw = 0,
+        StaticRead,
+        StaticCopy,
+        DynamicDraw,
+        DynamicRead,
+        DynamicCopy,
+        StreamDraw,
+        StreamRead,
+        StreamCopy,
     };
 
     using DrawMode = BufferUsage;
 
+    struct ShaderDataType {
+        enum : uint_t
+        {
+            Bool = 0,
+            Int = 1,
+            UInt = 2,
+            Float = 3,
+            Vec2 = 4,
+            Vec3 = 5,
+            Vec4 = 6,
+            IVec2 = 7,
+            IVec3 = 8,
+            IVec4 = 9,
+            UVec2 = 10,
+            UVec3 = 11,
+            UVec4 = 12,
+            BVec2 = 13,
+            BVec3 = 14,
+            BVec4 = 15,
+            Mat2 = 16,
+            Mat3 = 17,
+            Mat4 = 18
+        } type;
 
-    struct MeshAtribute {
-        uint_t count;
-        BufferValueType type;
+        size_t size = 0;
+        size_t count = 1;
+
+        template<class Type>
+        inline static ShaderDataType type_of(size_t count = 1)
+        {
+            ShaderDataType result_type;
+            result_type.size = sizeof(Type) * count;
+            result_type.count = count;
+
+            static const std::unordered_map<std::type_index, typeof(result_type.type)> types = {
+                    {std::type_index(typeid(bool)), ShaderDataType::Bool},
+                    {std::type_index(typeid(int_t)), ShaderDataType::Int},
+                    {std::type_index(typeid(uint_t)), ShaderDataType::UInt},
+                    {std::type_index(typeid(float)), ShaderDataType::Float},
+                    {std::type_index(typeid(Vector2D)), ShaderDataType::Vec2},
+                    {std::type_index(typeid(Vector3D)), ShaderDataType::Vec3},
+                    {std::type_index(typeid(Vector4D)), ShaderDataType::Vec4},
+                    {std::type_index(typeid(IntVector2D)), ShaderDataType::IVec2},
+                    {std::type_index(typeid(IntVector3D)), ShaderDataType::IVec3},
+                    {std::type_index(typeid(IntVector4D)), ShaderDataType::IVec4},
+                    {std::type_index(typeid(UIntVector2D)), ShaderDataType::UVec2},
+                    {std::type_index(typeid(UIntVector3D)), ShaderDataType::UVec3},
+                    {std::type_index(typeid(UIntVector4D)), ShaderDataType::UVec4},
+                    {std::type_index(typeid(BoolVector2D)), ShaderDataType::BVec2},
+                    {std::type_index(typeid(BoolVector3D)), ShaderDataType::BVec3},
+                    {std::type_index(typeid(BoolVector4D)), ShaderDataType::BVec4},
+                    {std::type_index(typeid(Matrix2f)), ShaderDataType::Mat2},
+                    {std::type_index(typeid(Matrix3f)), ShaderDataType::Mat3},
+                    {std::type_index(typeid(Matrix4f)), ShaderDataType::Mat4},
+            };
+
+            result_type.type = types.at(std::type_index(typeid(Type)));
+            return result_type;
+        }
+    };
+
+
+    struct VertexAtribute {
+        ShaderDataType type;
         ArrayIndex offset = 0;
     };
 
-    struct MeshInfo {
-        std::vector<MeshAtribute> attributes;
+    struct VertexBufferInfo {
+        std::vector<VertexAtribute> attributes;
+        size_t size;
+        ArrayIndex binding = 0;
         BufferUsage mode;
+    };
+
+    struct ShaderTextureSampler
+    {
+        uint_t binding = 0;
     };
 
     enum BufferBitType : uint_t
     {
-        COLOR_BUFFER_BIT = 1,
-        DEPTH_BUFFER_BIT = 2,
-        STENCIL_BUFFER_BIT = 4,
+        ColorBufferBit = 1,
+        DepthBufferBit = 2,
+        StencilBufferBit = 4,
     };
 
     using BufferType = size_t;
 
     enum class FrameBufferType : uint_t
     {
-        FRAMEBUFFER = 0,
-        DRAW_FRAMEBUFFER = 1,
-        READ_FRAMEBUFFER = 2,
+        Framebuffer = 0,
+        DrawFramebuffer = 1,
+        ReadFramebuffer = 2,
     };
 
     enum class FrameBufferAttach : uint_t
     {
-        COLOR_ATTACHMENT = 0,
-        DEPTH_ATTACHMENT = 1,
-        STENCIL_ATTACHMENT = 2,
-        DEPTH_STENCIL_ATTACHMENT = 3
+        ColorAttachment = 0,
+        DepthAttachment = 1,
+        StencilAttachment = 2,
+        DepthStencilAttachment = 3
     };
 
     enum class TextureCubeMapFace : byte
     {
-        FRONT = 0,
-        BACK = 1,
-        UP = 2,
-        DOWN = 3,
-        LEFT = 4,
-        RIGHT = 5
+        Front = 0,
+        Back = 1,
+        Up = 2,
+        Down = 3,
+        Left = 4,
+        Right = 5
     };
 
     enum class EnableCap : uint_t
@@ -387,7 +471,7 @@ namespace Engine
         Binary
     };
 
-    struct ShaderUniformVariable {
+    struct ShaderUniformBuffer {
         String name;
         uint_t binding;
         size_t size;
@@ -410,28 +494,30 @@ namespace Engine
             std::vector<FileBuffer> geometry;
         } text;
 
-        std::vector<ShaderUniformVariable> uniform_variables;
+        std::vector<ShaderUniformBuffer> uniform_buffers;
+        std::vector<ShaderTextureSampler> texture_samplers;
 
         std::string name;
+        VertexBufferInfo vertex_info;
     };
 
     enum class StencilOption : byte
     {
-        KEEP,
-        ZERO,
-        REPLACE,
-        INCR,
-        INCR_WRAP,
-        DECR,
-        DECR_WRAP,
-        INVERT,
+        Keep,
+        Zero,
+        Replace,
+        Incr,
+        IncrWrap,
+        Decr,
+        DecrWrap,
+        Invert,
     };
 
     enum class SystemType
     {
-        LINUX_OS,
-        WINDOWS_OS,
-        ANDROID_OS
+        LinuxOS,
+        WindowsOS,
+        AndroidOS
     };
 
 }// namespace Engine

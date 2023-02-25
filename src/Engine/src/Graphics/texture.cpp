@@ -8,8 +8,6 @@ using namespace Engine;
 constructor_cpp(Texture)
 {}
 
-static ObjID _M_current_binded = 0;
-
 declare_instance_info_cpp(Texture);
 
 Texture::Texture(const TextureParams& params)
@@ -26,9 +24,6 @@ Texture& Texture::create(const TextureParams& params)
 
 const Texture& Texture::bind(unsigned int num) const
 {
-    if (_M_ID == _M_current_binded)
-        return *this;
-    _M_current_binded = _M_ID;
     EngineInstance::instance()->api_interface()->bind_texture(_M_ID, num);
     return *this;
 }

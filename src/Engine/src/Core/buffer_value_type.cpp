@@ -6,15 +6,12 @@ namespace Engine
 {
 #define id(type) typeid(type).hash_code()
 
-    BufferValueType get_type_by_typeid(const std::type_info& info)
+    IndexBufferComponent get_type_by_typeid(const std::type_info& info)
     {
-        static std::unordered_map<std::size_t, BufferValueType> _M_buffer_value_types = {
-                {id(float), BufferValueType::FLOAT},
-                {id(byte), BufferValueType::UNSIGNED_BYTE},
-                {id(unsigned short), BufferValueType::UNSIGNED_SHORT},
-                {id(unsigned int), BufferValueType::UNSIGNED_INT},
-                {id(short), BufferValueType::SHORT},
-                {id(int), BufferValueType::INT},
+        static std::unordered_map<std::size_t, IndexBufferComponent> _M_buffer_value_types = {
+                {id(byte), IndexBufferComponent::UnsignedByte},
+                {id(unsigned short), IndexBufferComponent::UnsignedShort},
+                {id(unsigned int), IndexBufferComponent::UnsignedInt},
         };
 
         if (_M_buffer_value_types.contains(info.hash_code()))

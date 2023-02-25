@@ -115,6 +115,8 @@ namespace Engine
         EngineAPI _M_api;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
 
+        EngineInstance& trigger_terminate_functions();
+
         EngineInstance();
 
         EngineInstance& init();

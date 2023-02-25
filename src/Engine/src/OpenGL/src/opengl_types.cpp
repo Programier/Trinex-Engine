@@ -2,49 +2,60 @@
 
 
 const std::unordered_map<TextureType, GLuint> _M_types = {
-        {TextureType::Texture_2D, GL_TEXTURE_2D},
-        {TextureType::Texture_2D_Array, GL_TEXTURE_2D_ARRAY},
-        {TextureType::Texture_2D_MultiSample, GL_TEXTURE_2D_MULTISAMPLE},
-        {TextureType::Texture_2D_MultiSample_Array, GL_TEXTURE_2D_MULTISAMPLE_ARRAY},
-        {TextureType::Texture_3D, GL_TEXTURE_3D},
-        {TextureType::Texture_Cube_Map, GL_TEXTURE_CUBE_MAP},
-        {TextureType::Texture_Buffer, GL_TEXTURE_BUFFER},
+        {TextureType::Texture2D, GL_TEXTURE_2D},
+        {TextureType::Texture3D, GL_TEXTURE_3D},
+        {TextureType::TextureCubeMap, GL_TEXTURE_CUBE_MAP},
 };
 
-const std::unordered_map<PixelFormat, GLuint> _M_pixel_formats = {
-        {PixelFormat::RGB, GL_RGB},
-        {PixelFormat::RGBA, GL_RGBA},
-        {PixelFormat::DEPTH, GL_DEPTH_COMPONENT},
-        {PixelFormat::RED, GL_RED},
-        {PixelFormat::GREEN, GL_GREEN},
-        {PixelFormat::BLUE, GL_BLUE},
-        {PixelFormat::ALPHA, GL_ALPHA},
-        {PixelFormat::STENCIL_INDEX8, GL_STENCIL_INDEX8},
-        {PixelFormat::DEPTH_COMPONENT16, GL_DEPTH_COMPONENT16},
-        {PixelFormat::DEPTH_COMPONENT24, GL_DEPTH_COMPONENT24},
-        {PixelFormat::DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT32F},
-        {PixelFormat::DEPTH24_STENCIL8, GL_DEPTH24_STENCIL8},
-        {PixelFormat::DEPTH32F_STENCIL8, GL_DEPTH32F_STENCIL8},
+const std::unordered_map<PixelType, GLuint> _M_pixel_types = {
+        {PixelType::RGB, GL_RGB},
+        {PixelType::RGBA, GL_RGBA},
+        {PixelType::Depth, GL_DEPTH_COMPONENT},
+        {PixelType::Red, GL_RED},
+        {PixelType::DepthComponent16, GL_DEPTH_COMPONENT16},
+        {PixelType::DepthComponent24, GL_DEPTH_COMPONENT24},
+        {PixelType::DepthComponent32f, GL_DEPTH_COMPONENT32F},
+        {PixelType::Depth24Stencil8, GL_DEPTH24_STENCIL8},
+        {PixelType::Depth32fStencil8, GL_DEPTH32F_STENCIL8},
 };
 
 
 const std::unordered_map<BufferValueType, GLuint> _M_buffer_value_types = {
-        {BufferValueType::FLOAT, GL_FLOAT},
-        {BufferValueType::UNSIGNED_BYTE, GL_UNSIGNED_BYTE},
-        {BufferValueType::UNSIGNED_SHORT, GL_UNSIGNED_SHORT},
-        {BufferValueType::UNSIGNED_INT, GL_UNSIGNED_INT},
-        {BufferValueType::SHORT, GL_SHORT},
-        {BufferValueType::INT, GL_INT},
-        {BufferValueType::BYTE, GL_BYTE},
-        {BufferValueType::HALF_FLOAT, GL_HALF_FLOAT},
-        {BufferValueType::UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5},
-        {BufferValueType::UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4},
-        {BufferValueType::UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_5_5_5_1},
-        {BufferValueType::UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_10F_11F_11F_REV},
-        {BufferValueType::UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_2_10_10_10_REV},
-        {BufferValueType::UNSIGNED_INT_24_8, GL_UNSIGNED_INT_24_8},
-        {BufferValueType::UNSIGNED_INT_5_9_9_9_REV, GL_UNSIGNED_INT_5_9_9_9_REV},
-        {BufferValueType::FLOAT_32_UNSIGNED_INT_24_8_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV},
+        {BufferValueType::Float, GL_FLOAT},
+        {BufferValueType::UnsignedByte, GL_UNSIGNED_BYTE},
+        {BufferValueType::UnsignedShort, GL_UNSIGNED_SHORT},
+        {BufferValueType::UnsignedInt, GL_UNSIGNED_INT},
+        {BufferValueType::Short, GL_SHORT},
+        {BufferValueType::Int, GL_INT},
+        {BufferValueType::Byte, GL_BYTE},
+        {BufferValueType::HalfFloat, GL_HALF_FLOAT},
+        {BufferValueType::UnsignedShort565, GL_UNSIGNED_SHORT_5_6_5},
+        {BufferValueType::UnsignedShort4444, GL_UNSIGNED_SHORT_4_4_4_4},
+        {BufferValueType::UnsignedShort5551, GL_UNSIGNED_SHORT_5_5_5_1},
+        {BufferValueType::UnsignedInt10f11f11fRev, GL_UNSIGNED_INT_10F_11F_11F_REV},
+        {BufferValueType::UnsignedInt2101010Rev, GL_UNSIGNED_INT_2_10_10_10_REV},
+        {BufferValueType::UnsignedInt248, GL_UNSIGNED_INT_24_8},
+        {BufferValueType::UnsignedInt5999Rev, GL_UNSIGNED_INT_5_9_9_9_REV},
+        {BufferValueType::Float32UnsignedInt248Rev, GL_FLOAT_32_UNSIGNED_INT_24_8_REV},
+};
+
+const std::unordered_map<typeof(ShaderDataType::Int), std::pair<byte, GLuint>> _M_shader_types{
+        {ShaderDataType::Bool, {1, GL_BOOL}},          {ShaderDataType::Int, {1, GL_INT}},
+        {ShaderDataType::UInt, {1, GL_UNSIGNED_INT}},  {ShaderDataType::Float, {1, GL_FLOAT}},
+        {ShaderDataType::Vec2, {2, GL_FLOAT}},         {ShaderDataType::Vec3, {3, GL_FLOAT}},
+        {ShaderDataType::Vec4, {4, GL_FLOAT}},         {ShaderDataType::IVec2, {2, GL_INT}},
+        {ShaderDataType::IVec3, {3, GL_INT}},          {ShaderDataType::IVec4, {4, GL_INT}},
+        {ShaderDataType::UVec2, {2, GL_UNSIGNED_INT}}, {ShaderDataType::UVec3, {3, GL_UNSIGNED_INT}},
+        {ShaderDataType::UVec4, {4, GL_UNSIGNED_INT}}, {ShaderDataType::BVec2, {2, GL_BOOL}},
+        {ShaderDataType::BVec3, {3, GL_BOOL}},         {ShaderDataType::BVec4, {4, GL_BOOL}},
+        {ShaderDataType::Mat2, {4, GL_FLOAT}},         {ShaderDataType::Mat3, {9, GL_FLOAT}},
+        {ShaderDataType::Mat4, {16, GL_FLOAT}},
+};
+
+const std::unordered_map<IndexBufferComponent, GLuint> _M_index_buffer_components = {
+        {IndexBufferComponent::UnsignedByte, GL_UNSIGNED_BYTE},
+        {IndexBufferComponent::UnsignedInt, GL_UNSIGNED_INT},
+        {IndexBufferComponent::UnsignedShort, GL_UNSIGNED_SHORT},
 };
 
 const std::unordered_map<CompareFunc, GLuint> _M_compare_funcs = {
@@ -60,85 +71,85 @@ const std::unordered_map<GLint, CompareFunc> _M_revert_compare_funcs = {
 };
 
 const std::unordered_map<CompareMode, GLuint> _M_compare_modes = {
-        {CompareMode::NONE, GL_NONE},
-        {CompareMode::REF_TO_TEXTURE, GL_COMPARE_REF_TO_TEXTURE},
+        {CompareMode::None, GL_NONE},
+        {CompareMode::RefToTexture, GL_COMPARE_REF_TO_TEXTURE},
 };
 
 const std::unordered_map<TextureFilter, GLuint> _M_texture_filters = {
-        {TextureFilter::NEAREST, GL_NEAREST},
-        {TextureFilter::LINEAR, GL_LINEAR},
-        {TextureFilter::NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_NEAREST},
-        {TextureFilter::NEAREST_MIPMAP_LINEAR, GL_NEAREST_MIPMAP_LINEAR},
-        {TextureFilter::LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_NEAREST},
-        {TextureFilter::LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR},
+        {TextureFilter::Nearest, GL_NEAREST},
+        {TextureFilter::Linear, GL_LINEAR},
+        {TextureFilter::NearestMipmapNearest, GL_NEAREST_MIPMAP_NEAREST},
+        {TextureFilter::NearestMipmapLinear, GL_NEAREST_MIPMAP_LINEAR},
+        {TextureFilter::LinearMipmapNearest, GL_LINEAR_MIPMAP_NEAREST},
+        {TextureFilter::LinearMipmapLinear, GL_LINEAR_MIPMAP_LINEAR},
 };
 
 
 const std::unordered_map<GLint, TextureFilter> _M_reverse_texture_filters = {
-        {GL_NEAREST, TextureFilter::NEAREST},
-        {GL_LINEAR, TextureFilter::LINEAR},
-        {GL_NEAREST_MIPMAP_NEAREST, TextureFilter::NEAREST_MIPMAP_NEAREST},
-        {GL_NEAREST_MIPMAP_LINEAR, TextureFilter::NEAREST_MIPMAP_LINEAR},
-        {GL_LINEAR_MIPMAP_NEAREST, TextureFilter::LINEAR_MIPMAP_NEAREST},
-        {GL_LINEAR_MIPMAP_LINEAR, TextureFilter::LINEAR_MIPMAP_LINEAR},
+        {GL_NEAREST, TextureFilter::Nearest},
+        {GL_LINEAR, TextureFilter::Linear},
+        {GL_NEAREST_MIPMAP_NEAREST, TextureFilter::NearestMipmapNearest},
+        {GL_NEAREST_MIPMAP_LINEAR, TextureFilter::NearestMipmapLinear},
+        {GL_LINEAR_MIPMAP_NEAREST, TextureFilter::LinearMipmapNearest},
+        {GL_LINEAR_MIPMAP_LINEAR, TextureFilter::LinearMipmapLinear},
 };
 
 const std::unordered_map<SwizzleRGBA::SwizzleValue, GLint> _M_swizzle_values = {
-        {SwizzleRGBA::SwizzleValue::RED, GL_RED},
-        {SwizzleRGBA::SwizzleValue::GREEN, GL_GREEN},
-        {SwizzleRGBA::SwizzleValue::BLUE, GL_BLUE},
-        {SwizzleRGBA::SwizzleValue::ALPHA, GL_ALPHA},
+        {SwizzleRGBA::SwizzleValue::Red, GL_RED},
+        {SwizzleRGBA::SwizzleValue::Green, GL_GREEN},
+        {SwizzleRGBA::SwizzleValue::Blue, GL_BLUE},
+        {SwizzleRGBA::SwizzleValue::Alpha, GL_ALPHA},
 };
 
 const std::unordered_map<WrapValue, GLint> _M_wrap_values = {
-        {WrapValue::CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE},        {WrapValue::CLAMP_TO_BORDER, GL_REPEAT},
-        {WrapValue::MIRRORED_REPEAT, GL_MIRRORED_REPEAT},    {WrapValue::REPEAT, GL_CLAMP_TO_BORDER},
-        {WrapValue::MIRROR_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE},
+        {WrapValue::ClampToEdge, GL_CLAMP_TO_EDGE},       {WrapValue::ClampToBorder, GL_REPEAT},
+        {WrapValue::MirroredRepeat, GL_MIRRORED_REPEAT},  {WrapValue::Repeat, GL_CLAMP_TO_BORDER},
+        {WrapValue::MirrorClampToEdge, GL_CLAMP_TO_EDGE},
 };
 
 const std::unordered_map<BufferValueType, std::size_t> _M_buffer_value_type_sizes{
-        {BufferValueType::FLOAT, sizeof(float)},
-        {BufferValueType::UNSIGNED_BYTE, sizeof(unsigned char)},
-        {BufferValueType::UNSIGNED_SHORT, sizeof(unsigned short)},
-        {BufferValueType::UNSIGNED_INT, sizeof(unsigned int)},
-        {BufferValueType::SHORT, sizeof(short)},
-        {BufferValueType::INT, sizeof(int)},
+        {BufferValueType::Float, sizeof(float)},
+        {BufferValueType::UnsignedByte, sizeof(unsigned char)},
+        {BufferValueType::UnsignedShort, sizeof(unsigned short)},
+        {BufferValueType::UnsignedInt, sizeof(unsigned int)},
+        {BufferValueType::Short, sizeof(short)},
+        {BufferValueType::Int, sizeof(int)},
 };
 
 const std::unordered_map<DrawMode, GLuint> _M_draw_modes{
-        {DrawMode::DYNAMIC_DRAW, GL_DYNAMIC_DRAW}, {DrawMode::STATIC_DRAW, GL_STATIC_DRAW},
-        {DrawMode::STATIC_READ, GL_STATIC_READ},   {DrawMode::STATIC_COPY, GL_STATIC_COPY},
-        {DrawMode::DYNAMIC_READ, GL_DYNAMIC_READ}, {DrawMode::DYNAMIC_COPY, GL_DYNAMIC_COPY},
-        {DrawMode::STREAM_DRAW, GL_STREAM_DRAW},   {DrawMode::STREAM_READ, GL_STREAM_READ},
-        {DrawMode::STREAM_COPY, GL_STREAM_COPY},
+        {DrawMode::DynamicDraw, GL_DYNAMIC_DRAW}, {DrawMode::StaticDraw, GL_STATIC_DRAW},
+        {DrawMode::StaticRead, GL_STATIC_READ},   {DrawMode::StaticCopy, GL_STATIC_COPY},
+        {DrawMode::DynamicRead, GL_DYNAMIC_READ}, {DrawMode::DynamicCopy, GL_DYNAMIC_COPY},
+        {DrawMode::StreamDraw, GL_STREAM_DRAW},   {DrawMode::StreamRead, GL_STREAM_READ},
+        {DrawMode::StreamCopy, GL_STREAM_COPY},
 };
 
 const std::unordered_map<Primitive, GLuint> _M_primitives = {
-        {Primitive::LINE, GL_LINES},
-        {Primitive::POINT, GL_POINTS},
-        {Primitive::TRIANGLE, GL_TRIANGLES},
+        {Primitive::Line, GL_LINES},
+        {Primitive::Point, GL_POINTS},
+        {Primitive::Triangle, GL_TRIANGLES},
 };
 
 const std::unordered_map<FrameBufferType, GLint> _M_framebuffer_types = {
-        {FrameBufferType::FRAMEBUFFER, GL_FRAMEBUFFER},
-        {FrameBufferType::DRAW_FRAMEBUFFER, GL_DRAW_FRAMEBUFFER},
-        {FrameBufferType::READ_FRAMEBUFFER, GL_READ_FRAMEBUFFER},
+        {FrameBufferType::Framebuffer, GL_FRAMEBUFFER},
+        {FrameBufferType::DrawFramebuffer, GL_DRAW_FRAMEBUFFER},
+        {FrameBufferType::ReadFramebuffer, GL_READ_FRAMEBUFFER},
 };
 
 const std::unordered_map<FrameBufferAttach, GLint> _M_framebuffer_attach = {
-        {FrameBufferAttach::COLOR_ATTACHMENT, GL_COLOR_ATTACHMENT0},
-        {FrameBufferAttach::DEPTH_ATTACHMENT, GL_DEPTH_ATTACHMENT},
-        {FrameBufferAttach::DEPTH_STENCIL_ATTACHMENT, GL_DEPTH_STENCIL_ATTACHMENT},
-        {FrameBufferAttach::STENCIL_ATTACHMENT, GL_STENCIL_ATTACHMENT},
+        {FrameBufferAttach::ColorAttachment, GL_COLOR_ATTACHMENT0},
+        {FrameBufferAttach::DepthAttachment, GL_DEPTH_ATTACHMENT},
+        {FrameBufferAttach::DepthStencilAttachment, GL_DEPTH_STENCIL_ATTACHMENT},
+        {FrameBufferAttach::StencilAttachment, GL_STENCIL_ATTACHMENT},
 };
 
 const std::unordered_map<TextureCubeMapFace, GLint> _M_cubemap_indexes{
-        {TextureCubeMapFace::BACK, GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
-        {TextureCubeMapFace::FRONT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
-        {TextureCubeMapFace::UP, GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
-        {TextureCubeMapFace::DOWN, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
-        {TextureCubeMapFace::LEFT, GL_TEXTURE_CUBE_MAP_NEGATIVE_X},
-        {TextureCubeMapFace::RIGHT, GL_TEXTURE_CUBE_MAP_POSITIVE_X},
+        {TextureCubeMapFace::Back, GL_TEXTURE_CUBE_MAP_POSITIVE_Z},
+        {TextureCubeMapFace::Front, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z},
+        {TextureCubeMapFace::Up, GL_TEXTURE_CUBE_MAP_POSITIVE_Y},
+        {TextureCubeMapFace::Down, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y},
+        {TextureCubeMapFace::Left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X},
+        {TextureCubeMapFace::Right, GL_TEXTURE_CUBE_MAP_POSITIVE_X},
 };
 
 const std::unordered_map<EnableCap, GLint> _M_enable_caps = {
@@ -166,8 +177,8 @@ const std::unordered_map<BlendFunc, GLint> _M_blend_funcs = {
 };
 
 const std::unordered_map<StencilOption, GLint> _M_stencil_options = {
-        {StencilOption::KEEP, GL_KEEP},           {StencilOption::ZERO, GL_ZERO},
-        {StencilOption::REPLACE, GL_REPLACE},     {StencilOption::INCR, GL_INCR},
-        {StencilOption::INCR_WRAP, GL_INCR_WRAP}, {StencilOption::DECR, GL_DECR},
-        {StencilOption::DECR_WRAP, GL_DECR_WRAP}, {StencilOption::INVERT, GL_INVERT},
+        {StencilOption::Keep, GL_KEEP},          {StencilOption::Zero, GL_ZERO},
+        {StencilOption::Replace, GL_REPLACE},    {StencilOption::Incr, GL_INCR},
+        {StencilOption::IncrWrap, GL_INCR_WRAP}, {StencilOption::Decr, GL_DECR},
+        {StencilOption::DecrWrap, GL_DECR_WRAP}, {StencilOption::Invert, GL_INVERT},
 };

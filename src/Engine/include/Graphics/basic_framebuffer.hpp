@@ -9,7 +9,7 @@ namespace Engine
     CLASS BasicFrameBuffer : public ApiObject
     {
     protected:
-        FrameBufferType _M_type = FrameBufferType::FRAMEBUFFER;
+        FrameBufferType _M_type = FrameBufferType::Framebuffer;
 
         declare_instance_info_hpp(BasicFrameBuffer);
 

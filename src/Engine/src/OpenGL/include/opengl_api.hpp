@@ -21,14 +21,20 @@ namespace Engine
         virtual ~OpenGL_Object();
     };
 
+#ifndef opengl_debug_log
+#define opengl_debug_log (*OpenGL::_M_api->_M_engine_logger)->log
+#endif
+
+    struct OpenGL_Shader;
 
     OPENGL_EXPORT struct OpenGL : public GraphicApiInterface::ApiInterface {
-        Logger* _M_current_logger = nullptr;
+        Logger** _M_engine_logger = nullptr;
         void* _M_context = nullptr;
         float _M_current_line_rendering_width = 1.f;
         static OpenGL* _M_api;
 
     public:
+        OpenGL_Shader* _M_current_shader = nullptr;
         static OpenGL_Object* instance(const ObjID& ID);
         static OpenGL* instance();
         static ObjID get_object_id(OpenGL_Object* object);
@@ -36,8 +42,12 @@ namespace Engine
         GLuint get_gl_type_of_texture(const ObjID& ID);
 
     public:
+        OpenGL& apply_shader_vertex_attributes();
+
+
+    public:
         OpenGL();
-        OpenGL& logger(Logger*) override;
+        OpenGL& logger(Logger*&) override;
         void* init_window(SDL_Window*) override;
         OpenGL& destroy_window() override;
         OpenGL& destroy_object(ObjID&) override;
@@ -87,11 +97,11 @@ namespace Engine
 
         ////////////////////  MESH PART ////////////////////
         OpenGL& generate_mesh(ObjID&) override;
-        OpenGL& mesh_data(const ObjID&, std::size_t, DrawMode, void*) override;
-        OpenGL& update_mesh_attributes(const ObjID&, const MeshInfo&) override;
-        OpenGL& draw_mesh(const ObjID&, Primitive, std::size_t, std::size_t) override;
-        OpenGL& update_mesh_data(const ObjID&, std::size_t, std::size_t, void*) override;
-        OpenGL& mesh_indexes_array(const ObjID&, const MeshInfo&, std::size_t, const BufferValueType&, void*) override;
+        OpenGL& mesh_data(const ObjID&, size_t, DrawMode, void*) override;
+        OpenGL& draw_mesh(const ObjID&, Primitive, size_t, size_t) override;
+        OpenGL& update_mesh_data(const ObjID&, size_t, size_t, void*) override;
+        OpenGL& mesh_indexes_array(const ObjID&, size_t, const IndexBufferComponent&, void*) override;
+
         OpenGL& gen_framebuffer(ObjID&, FrameBufferType) override;
         OpenGL& clear_frame_buffer(const ObjID&, BufferType) override;
         OpenGL& bind_framebuffer(const ObjID&) override;
@@ -119,8 +129,8 @@ namespace Engine
         OpenGL& stencil_option(Engine::StencilOption, Engine::StencilOption, Engine::StencilOption) override;
         OpenGL& create_ssbo(ObjID&) override;
         OpenGL& bind_ssbo(const ObjID&, int_t slot) override;
-        OpenGL& ssbo_data(const ObjID&, void*, std::size_t, BufferUsage) override;
-        OpenGL& update_ssbo_data(const ObjID&, void*, std::size_t, std::size_t) override;
+        OpenGL& ssbo_data(const ObjID&, void*, size_t, BufferUsage) override;
+        OpenGL& update_ssbo_data(const ObjID&, void*, size_t, size_t) override;
         OpenGL& swap_buffer(SDL_Window* window) override;
         OpenGL& swap_interval(int_t value) override;
         OpenGL& clear_color(const Color& color) override;

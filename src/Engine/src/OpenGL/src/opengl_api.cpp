@@ -26,10 +26,11 @@ namespace Engine
     OpenGL_Object::~OpenGL_Object()
     {}
 
-    static Logger* default_logger()
+    static Logger** default_logger()
     {
         static NoneLogger logger;
-        return &logger;
+        static Logger* logger_ptr = &logger;
+        return &logger_ptr;
     }
 
     OpenGL_Object* OpenGL::instance(const ObjID& ID)
@@ -40,7 +41,7 @@ namespace Engine
     //////////////////// INITIALIZE API ////////////////////
     OpenGL::OpenGL()
     {
-        _M_current_logger = default_logger();
+        _M_engine_logger = default_logger();
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #ifdef _WIN32
@@ -58,7 +59,7 @@ namespace Engine
 
     OpenGL::~OpenGL()
     {
-        _M_current_logger->log("Terminate OpenGL\n");
+        opengl_debug_log("Terminate OpenGL\n");
         _M_api = nullptr;
     }
 
@@ -71,12 +72,12 @@ namespace Engine
 
         if (!_M_context)
         {
-            _M_current_logger->log("Failed to create OpenGL context: %s\n", SDL_GetError());
+            opengl_debug_log("Failed to create OpenGL context: %s\n", SDL_GetError());
             return nullptr;
         }
 
         SDL_GL_MakeCurrent(window, _M_context);
-        _M_current_logger->log("Context address: %p\n", _M_context);
+        opengl_debug_log("Context address: %p\n", _M_context);
 
 #ifdef _WIN32
         external_logger->log("Start init glew\n");
@@ -84,19 +85,22 @@ namespace Engine
         if (status != GLEW_OK)
         {
             _M_api->destroy_window();
-            _M_current_logger->log("Failed to init glew: %s\n", glewGetErrorString(status));
+            opengl_debug_log("Failed to init glew: %s\n", glewGetErrorString(status));
         }
 #endif
 
         return _M_context;
     }
 
-    OpenGL& OpenGL::logger(Logger* logger)
+    OpenGL& OpenGL::logger(Logger*& logger)
     {
         if (!logger)
-            logger = default_logger();
+        {
+            _M_engine_logger = default_logger();
+            return *this;
+        }
 
-        _M_current_logger = logger;
+        _M_engine_logger = &logger;
         return *this;
     }
 

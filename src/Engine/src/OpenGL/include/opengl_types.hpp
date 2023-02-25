@@ -6,8 +6,10 @@
 using namespace Engine;
 
 extern const std::unordered_map<TextureType, GLuint> _M_types;
-extern const std::unordered_map<PixelFormat, GLuint> _M_pixel_formats;
+extern const std::unordered_map<PixelType, GLuint> _M_pixel_types;
 extern const std::unordered_map<BufferValueType, GLuint> _M_buffer_value_types;
+extern const std::unordered_map<typeof(ShaderDataType::Int), std::pair<byte, GLuint>> _M_shader_types;
+extern const std::unordered_map<IndexBufferComponent, GLuint> _M_index_buffer_components;
 extern const std::unordered_map<CompareFunc, GLuint> _M_compare_funcs;
 extern const std::unordered_map<GLint, CompareFunc> _M_revert_compare_funcs;
 extern const std::unordered_map<CompareMode, GLuint> _M_compare_modes;

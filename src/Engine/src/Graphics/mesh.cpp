@@ -16,34 +16,44 @@ namespace Engine
         return *this;
     }
 
-    BasicMesh& BasicMesh::set_data(void* data)
+    BasicMesh& BasicMesh::set_data()
     {
-        EngineInstance::instance()->api_interface()->mesh_data(_M_ID, mesh_type_size() * size(), mode,
+        EngineInstance::instance()->api_interface()->mesh_data(_M_ID, mesh_type_size() * size(), draw_mode,
                                                                static_cast<void*>(mesh_data()));
         return *this;
     }
 
-    BasicMesh& BasicMesh::update_atributes()
+    BasicMesh& BasicMesh::set_indexes()
     {
-        EngineInstance::instance()->api_interface()->update_mesh_attributes(_M_ID, dynamic_cast<MeshInfo&>(*this));
+        EngineInstance::instance()->api_interface()->mesh_indexes_array(_M_ID, indexes_size() * indexes_type_size(),
+                                                                        indexes_type(), indexes_data());
         return *this;
     }
 
-    BasicMesh& BasicMesh::update_indexes()
+
+    BasicMesh& BasicMesh::update_indexes(size_t offset, size_t count, void* data)
     {
-        EngineInstance::instance()->api_interface()->mesh_indexes_array(_M_ID, dynamic_cast<MeshInfo&>(*this),
-                                                                        indexes_size(), indexes_type(), indexes_data());
+        if (!data && (offset + count) <= indexes_size() * indexes_type_size())
+        {
+            byte* address = indexes_data();
+            address += offset;
+            data = reinterpret_cast<void*>(address);
+        }
+
+        if (data)
+            EngineInstance::instance()->api_interface()->update_mesh_indexes_array(_M_ID, offset, count, data);
+
         return *this;
     }
 
-    const BasicMesh& BasicMesh::draw(Primitive primitive, std::size_t vertices, std::size_t offset) const
+    const BasicMesh& BasicMesh::draw(Primitive primitive, size_t vertices, size_t offset) const
     {
         EngineInstance::instance()->api_interface()->draw_mesh(_M_ID, primitive,
-                                                               (vertices ? vertices : vertices_count()), offset);
+                                                               glm::min(indexes_size() - offset, vertices), offset);
         return *this;
     }
 
-    BasicMesh& BasicMesh::update_data(std::size_t offset, std::size_t count, void* data)
+    BasicMesh& BasicMesh::update_data(size_t offset, size_t count, void* data)
     {
         if (!data && (offset + count) <= size() * mesh_type_size())
         {

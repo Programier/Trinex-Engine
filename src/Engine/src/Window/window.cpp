@@ -24,28 +24,28 @@ static Window window;
 
 
 static const std::unordered_map<WindowAttrib, SDL_WindowFlags> window_attributes = {
-        {WindowAttrib::WIN_RESIZABLE, SDL_WINDOW_RESIZABLE},
-        {WindowAttrib::WIN_FULLSCREEN, SDL_WINDOW_FULLSCREEN},
-        {WindowAttrib::WIN_FULLSCREEN_DESKTOP, SDL_WINDOW_FULLSCREEN_DESKTOP},
-        {WindowAttrib::WIN_SHOWN, SDL_WINDOW_SHOWN},
-        {WindowAttrib::WIN_HIDDEN, SDL_WINDOW_HIDDEN},
-        {WindowAttrib::WIN_BORDERLESS, SDL_WINDOW_BORDERLESS},
-        {WindowAttrib::WIN_MOUSE_FOCUS, SDL_WINDOW_MOUSE_FOCUS},
-        {WindowAttrib::WIN_INPUT_FOCUS, SDL_WINDOW_INPUT_FOCUS},
-        {WindowAttrib::WIN_INPUT_GRABBED, SDL_WINDOW_INPUT_GRABBED},
-        {WindowAttrib::WIN_MINIMIZED, SDL_WINDOW_MINIMIZED},
-        {WindowAttrib::WIN_MAXIMIZED, SDL_WINDOW_MAXIMIZED},
-        {WindowAttrib::WIN_MOUSE_CAPTURE, SDL_WINDOW_MOUSE_CAPTURE},
-        {WindowAttrib::WIN_ALLOW_HIGHDPI, SDL_WINDOW_ALLOW_HIGHDPI},
-        {WindowAttrib::WIN_MOUSE_GRABBED, SDL_WINDOW_MOUSE_GRABBED},
-        {WindowAttrib::WIN_KEYBOARD_GRABBED, SDL_WINDOW_KEYBOARD_GRABBED}};
+        {WindowAttrib::WinResizable, SDL_WINDOW_RESIZABLE},
+        {WindowAttrib::WinFullScreen, SDL_WINDOW_FULLSCREEN},
+        {WindowAttrib::WinFullScreenDesktop, SDL_WINDOW_FULLSCREEN_DESKTOP},
+        {WindowAttrib::WinShown, SDL_WINDOW_SHOWN},
+        {WindowAttrib::WinHidden, SDL_WINDOW_HIDDEN},
+        {WindowAttrib::WinBorderLess, SDL_WINDOW_BORDERLESS},
+        {WindowAttrib::WinMouseFocus, SDL_WINDOW_MOUSE_FOCUS},
+        {WindowAttrib::WinInputFocus, SDL_WINDOW_INPUT_FOCUS},
+        {WindowAttrib::WinInputGrabbed, SDL_WINDOW_INPUT_GRABBED},
+        {WindowAttrib::WinMinimized, SDL_WINDOW_MINIMIZED},
+        {WindowAttrib::WinMaximized, SDL_WINDOW_MAXIMIZED},
+        {WindowAttrib::WinMouseCapture, SDL_WINDOW_MOUSE_CAPTURE},
+        {WindowAttrib::WinAllowHighDPI, SDL_WINDOW_ALLOW_HIGHDPI},
+        {WindowAttrib::WinMouseGrabbed, SDL_WINDOW_MOUSE_GRABBED},
+        {WindowAttrib::WinKeyboardGrabbed, SDL_WINDOW_KEYBOARD_GRABBED}};
 
 
 static const WindowAttrib attrib_list[] = {
-        WIN_RESIZABLE,     WIN_FULLSCREEN,    WIN_FULLSCREEN_DESKTOP, WIN_SHOWN,
-        WIN_HIDDEN,        WIN_BORDERLESS,    WIN_MOUSE_FOCUS,        WIN_INPUT_FOCUS,
-        WIN_INPUT_GRABBED, WIN_MINIMIZED,     WIN_MAXIMIZED,          WIN_TRANSPARENT_FRAMEBUFFER,
-        WIN_MOUSE_CAPTURE, WIN_ALLOW_HIGHDPI, WIN_MOUSE_GRABBED,      WIN_KEYBOARD_GRABBED};
+        WinResizable,    WinFullScreen,   WinFullScreenDesktop, WinShown,
+        WinHidden,       WinBorderLess,   WinMouseFocus,        WinInputFocus,
+        WinInputGrabbed, WinMinimized,    WinMaximized,         WinTransparentFramebuffer,
+        WinMouseCapture, WinAllowHighDPI, WinMouseGrabbed,      WinKeyboardGrabbed};
 
 static constexpr int_t attributes_count = sizeof(attrib_list) / sizeof(WindowAttrib);
 
@@ -98,7 +98,7 @@ static struct WindowData {
     AspectRation _M_ration;
     bool _M_enable_ration = false;
 
-    CursorMode _M_cursor_mode = CursorMode::NORMAL;
+    CursorMode _M_cursor_mode = CursorMode::Normal;
     const char* _M_X11_compositing = "0";
     SDL_Surface* _M_icon_surface = nullptr;
     bool _M_is_transparent_framebuffer = false;
@@ -589,67 +589,67 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
 
             switch (attrib)
             {
-                case WindowAttrib::WIN_RESIZABLE:
+                case WindowAttrib::WinResizable:
                     SDL_SetWindowResizable(sdl_window, cast(SDL_bool, value));
                     break;
 
-                case WindowAttrib::WIN_FULLSCREEN:
+                case WindowAttrib::WinFullScreen:
                     fullscreen_mode._M_flag = value ? SDL_WINDOW_FULLSCREEN : 0;
                     fullscreen_mode._M_fullscreen = true;
                     break;
 
-                case WindowAttrib::WIN_FULLSCREEN_DESKTOP:
+                case WindowAttrib::WinFullScreenDesktop:
                     fullscreen_mode._M_flag = value ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
                     fullscreen_mode._M_fullscreen = true;
                     break;
 
-                case WindowAttrib::WIN_SHOWN:
+                case WindowAttrib::WinShown:
                 {
                     value ? show() : hide();
                     break;
                 }
-                case WindowAttrib::WIN_HIDDEN:
+                case WindowAttrib::WinHidden:
                 {
                     value ? hide() : show();
                     break;
                 }
-                case WindowAttrib::WIN_BORDERLESS:
+                case WindowAttrib::WinBorderLess:
                     SDL_SetWindowBordered(sdl_window, cast(SDL_bool, value));
                     break;
 
-                case WindowAttrib::WIN_INPUT_FOCUS:
+                case WindowAttrib::WinInputFocus:
                 {
                     if (value)
                         SDL_SetWindowInputFocus(sdl_window);
                     break;
                 }
 
-                case WindowAttrib::WIN_MINIMIZED:
+                case WindowAttrib::WinMinimized:
                 {
                     if (value)
                         SDL_MinimizeWindow(sdl_window);
                     break;
                 }
 
-                case WindowAttrib::WIN_MAXIMIZED:
+                case WindowAttrib::WinMaximized:
                 {
                     if (value)
                         SDL_MaximizeWindow(sdl_window);
                     break;
                 }
-                case WindowAttrib::WIN_MOUSE_GRABBED:
+                case WindowAttrib::WinMouseGrabbed:
                 {
                     SDL_SetWindowMouseGrab(sdl_window, cast(SDL_bool, value));
                     break;
                 }
 
-                case WindowAttrib::WIN_KEYBOARD_GRABBED:
+                case WindowAttrib::WinKeyboardGrabbed:
                 {
                     SDL_SetWindowKeyboardGrab(sdl_window, cast(SDL_bool, value));
                     break;
                 }
 
-                case WindowAttrib::WIN_TRANSPARENT_FRAMEBUFFER:
+                case WindowAttrib::WinTransparentFramebuffer:
                 {
                     if (data._M_is_inited)
                         logger->log("Window: Cannot change flag WIN_TRANSPARENT_FRAMEBUFFER after creating window\n");
@@ -684,7 +684,7 @@ bool Window::attribute(const WindowAttrib& attrib)
         if (attribute_list.size() != 1)
             throw std::runtime_error("Failed to get attibute");
         auto attrib = attribute_list.front();
-        if (attrib == WindowAttrib::WIN_TRANSPARENT_FRAMEBUFFER)
+        if (attrib == WindowAttrib::WinTransparentFramebuffer)
             return data._M_is_transparent_framebuffer;
         return cast(bool, data._M_flags& window_attributes.at(attrib));
     }
@@ -716,7 +716,7 @@ void* Window::SDL_OpenGL_context()
 
 const Window& Window::cursor_mode(const CursorMode& mode)
 {
-    if (SDL_ShowCursor((mode == CursorMode::HIDDEN ? SDL_DISABLE : SDL_ENABLE)) < 0)
+    if (SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE)) < 0)
         Engine::logger->log(SDL_GetError());
     data._M_cursor_mode = mode;
     return window;
@@ -745,13 +745,13 @@ const Window& Window::update_view_port()
 const Window& Window::set_orientation(uint_t orientation)
 {
     static std::unordered_map<WindowOrientation, const char*> _M_orientation_map = {
-            {WindowOrientation::WIN_ORIENTATION_LANDSCAPE, "LandscapeRight"},
-            {WindowOrientation::WIN_ORIENTATION_LANDSCAPE_FLIPPED, "LandscapeLeft"},
-            {WindowOrientation::WIN_ORIENTATION_PORTRAIT, "Portrait"},
-            {WindowOrientation::WIN_ORIENTATION_PORTRAIT_FLIPPED, "PortraitUpsideDown"}};
+            {WindowOrientation::WinOrientationLandscape, "LandscapeRight"},
+            {WindowOrientation::WinOrientationLandscapeFlipped, "LandscapeLeft"},
+            {WindowOrientation::WinOrientationPortrait, "Portrait"},
+            {WindowOrientation::WinOrientationPortraitFlipped, "PortraitUpsideDown"}};
 
-    static WindowOrientation orientations[] = {WIN_ORIENTATION_PORTRAIT, WIN_ORIENTATION_PORTRAIT_FLIPPED,
-                                               WIN_ORIENTATION_LANDSCAPE, WIN_ORIENTATION_LANDSCAPE_FLIPPED};
+    static WindowOrientation orientations[] = {WinOrientationPortrait, WinOrientationPortraitFlipped,
+                                               WinOrientationLandscape, WinOrientationLandscapeFlipped};
 
     if (data._M_is_inited)
     {

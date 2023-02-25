@@ -46,11 +46,11 @@ namespace Engine
     SystemType EngineInstance::system_type() const
     {
 #if defined(WIN32)
-        return SystemName::WINDOWS_OS;
+        return SystemName::WindowsOS;
 #elif defined(__ANDROID__)
-        return SystemName::ANDROID_OS;
+        return SystemName::AndroidOS;
 #else
-        return SystemType::LINUX_OS;
+        return SystemType::LinuxOS;
 #endif
     }
 
@@ -93,7 +93,9 @@ namespace Engine
             throw std::runtime_error(SDL_GetError());
 
 
-        Library api_library = load_library(get_api_name(_M_api));
+        String api_name = get_api_name(_M_api);
+        Library api_library = load_library(api_name);
+        logger->log("Engine: Using API: %s", api_name.c_str());
 
         if (!api_library.has_lib())
         {
@@ -117,6 +119,7 @@ namespace Engine
             throw std::runtime_error("Engine: Failed to init API");
         }
 
+        _M_api_interface->logger(logger);
         Monitor::update();
         Sensor::update_sensors_info();
 
@@ -178,12 +181,19 @@ namespace Engine
         return *this;
     }
 
+    EngineInstance& EngineInstance::trigger_terminate_functions()
+    {
+        for (auto& func : terminate_list())
+        {
+            func();
+        }
+
+        return *this;
+    }
 
     EngineInstance::~EngineInstance()
     {
         logger->log("Engine: Terminate Engine");
-
-        for (auto func : terminate_list()) func();
 
         delete _M_api_interface;
         SDL_Quit();

@@ -10,17 +10,17 @@ namespace Engine
         GLuint _M_GL_pixel_type;
 
         int_t _M_base_level = 0;
-        DepthStencilMode _M_depth_stencil_mode = DepthStencilMode::DEPTH;
+        DepthStencilMode _M_depth_stencil_mode = DepthStencilMode::Depth;
         CompareFunc _M_compare_func;
         CompareMode _M_compare_mode;
         int_t _M_max_lod_level = 1000;
         int_t _M_min_lod_level = -1000;
         int_t _M_max_mipmap_level = 1000;
-        SwizzleRGBA _M_swizzle = {SwizzleRGBA::SwizzleValue::RED, SwizzleRGBA::SwizzleValue::GREEN,
-                                  SwizzleRGBA::SwizzleValue::BLUE, SwizzleRGBA::SwizzleValue::ALPHA};
-        WrapValue _M_wrap_s = WrapValue::REPEAT;
-        WrapValue _M_wrap_t = WrapValue::REPEAT;
-        WrapValue _M_wrap_r = WrapValue::REPEAT;
+        SwizzleRGBA _M_swizzle = {SwizzleRGBA::SwizzleValue::Red, SwizzleRGBA::SwizzleValue::Green,
+                                  SwizzleRGBA::SwizzleValue::Blue, SwizzleRGBA::SwizzleValue::Alpha};
+        WrapValue _M_wrap_s = WrapValue::Repeat;
+        WrapValue _M_wrap_t = WrapValue::Repeat;
+        WrapValue _M_wrap_r = WrapValue::Repeat;
 
         void* instance_address() override
         {
@@ -30,36 +30,37 @@ namespace Engine
 
         OpenGL_Texture(const TextureParams& params)
         {
-            OpenGL::_M_api->_M_current_logger->log("OpenGL: Creating new texture\n");
+            opengl_debug_log("OpenGL: Creating new texture\n");
             this->_M_params = params;
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             // Copy memory from data to data
-            this->_M_GL_format = _M_pixel_formats.at(params.format);
+            this->_M_GL_format = _M_pixel_types.at(params.pixel_type);
             this->_M_GL_type = _M_types.at(params.type);
-            this->_M_GL_pixel_type = _M_buffer_value_types.at(params.pixel_type);
+            this->_M_GL_pixel_type =
+                    params.pixel_component_type == PixelComponentType::Float ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
             // Creating new texture
             glGenTextures(1, &_M_instance_id);
             glBindTexture(_M_GL_type, _M_instance_id);
 
-            filter(TextureFilter::NEAREST, GL_TEXTURE_MIN_FILTER).filter(TextureFilter::NEAREST, GL_TEXTURE_MAG_FILTER);
+            filter(TextureFilter::Nearest, GL_TEXTURE_MIN_FILTER).filter(TextureFilter::Nearest, GL_TEXTURE_MAG_FILTER);
 
             GLint value = 0;
             glGetTexParameteriv(_M_GL_type, GL_TEXTURE_COMPARE_FUNC, &value);
             _M_compare_func = _M_revert_compare_funcs.at(value);
             glGetTexParameteriv(_M_GL_type, GL_TEXTURE_COMPARE_MODE, &value);
             if (value == GL_COMPARE_REF_TO_TEXTURE)
-                _M_compare_mode = CompareMode::REF_TO_TEXTURE;
+                _M_compare_mode = CompareMode::RefToTexture;
             else
-                _M_compare_mode = CompareMode::NONE;
+                _M_compare_mode = CompareMode::None;
         }
 
         ~OpenGL_Texture()
         {
             if (_M_instance_id)
             {
-                OpenGL::_M_api->_M_current_logger->log("OpenGL: Destroy texture %p\n", this);
+                opengl_debug_log("OpenGL: Destroy texture %p\n", this);
                 glDeleteTextures(1, &_M_instance_id);
                 _M_instance_id = 0;
             }
@@ -109,7 +110,7 @@ namespace Engine
             bind();
             _M_depth_stencil_mode = mode;
             glTexParameteri(_M_GL_type, GL_DEPTH_STENCIL_TEXTURE_MODE,
-                            (mode == DepthStencilMode::DEPTH ? GL_DEPTH_COMPONENT : GL_STENCIL_INDEX));
+                            (mode == DepthStencilMode::Depth ? GL_DEPTH_COMPONENT : GL_STENCIL_INDEX));
             unbind();
             return *this;
         }
@@ -143,7 +144,7 @@ namespace Engine
             }
             catch (...)
             {
-                return TextureFilter::NEAREST;
+                return TextureFilter::Nearest;
             }
         }
 
@@ -226,8 +227,7 @@ namespace Engine
         {
             bind();
             glCopyTexImage2D(_M_GL_type, mipmap, _M_GL_format, static_cast<GLint>(pos.x), static_cast<GLint>(pos.y),
-                             static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
-                             static_cast<GLint>(_M_params.border));
+                             static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), GL_FALSE);
             return unbind();
         }
 
@@ -263,8 +263,8 @@ namespace Engine
         {
             bind();
             glTexImage2D(_M_GL_type, static_cast<GLint>(level), _M_GL_format, static_cast<GLsizei>(size.x),
-                         static_cast<GLsizei>(size.y), _M_params.border, get_internal_type_of_texture(),
-                         _M_GL_pixel_type, data);
+                         static_cast<GLsizei>(size.y), GL_FALSE, get_internal_type_of_texture(), _M_GL_pixel_type,
+                         data);
             return unbind();
         }
 
@@ -297,7 +297,9 @@ namespace Engine
             int_t current_framebuffer = OpenGL::_M_api->get_current_binding(GL_FRAMEBUFFER);
 
 
-            std::size_t buffer_len = size.x * size.y * size.z * _M_buffer_value_type_sizes.at(_M_params.pixel_type) * 4;
+            std::size_t buffer_len = size.x * size.y * size.z *
+                                     (_M_params.pixel_component_type == PixelComponentType::UnsignedByte ? 1 : 4) * 4;
+
             if (data.size() < buffer_len)
                 data.resize(buffer_len);
 
@@ -323,8 +325,8 @@ namespace Engine
             std::vector<byte> data;
             read_texture_2D_data(data, attach->_M_base_level);
 
-            glTexImage2D(_M_cubemap_indexes.at(index), level, attach->_M_GL_format, size.x, size.y,
-                         attach->_M_params.border, attach->_M_GL_format, attach->_M_GL_pixel_type, (void*) data.data());
+            glTexImage2D(_M_cubemap_indexes.at(index), level, attach->_M_GL_format, size.x, size.y, GL_FALSE,
+                         attach->_M_GL_format, attach->_M_GL_pixel_type, (void*) data.data());
             return *this;
         }
 
@@ -333,8 +335,7 @@ namespace Engine
         {
             bind();
             glTexImage2D(_M_cubemap_indexes.at(index), level, _M_GL_format, static_cast<GLsizei>(size.x),
-                         static_cast<GLsizei>(size.y), static_cast<GLint>(_M_params.border), _M_GL_format,
-                         _M_GL_pixel_type, data);
+                         static_cast<GLsizei>(size.y), GL_FALSE, _M_GL_format, _M_GL_pixel_type, data);
             return unbind();
         }
     };
@@ -395,7 +396,7 @@ namespace Engine
         auto obj = instance(ID);
         if (obj)
             return obj->get_instance_by_type<OpenGL_Texture>()->_M_depth_stencil_mode;
-        return DepthStencilMode::DEPTH;
+        return DepthStencilMode::Depth;
     }
 
 
@@ -428,7 +429,7 @@ namespace Engine
         auto obj = instance(ID);
         if (obj)
             return obj->get_instance_by_type<OpenGL_Texture>()->_M_compare_mode;
-        return CompareMode::NONE;
+        return CompareMode::None;
     }
 
     TextureFilter OpenGL::min_filter_texture(const ObjID& ID)

@@ -4,5 +4,5 @@
 
 namespace Engine
 {
-    BufferValueType get_type_by_typeid(const std::type_info& info);
+    IndexBufferComponent get_type_by_typeid(const std::type_info& info);
 }

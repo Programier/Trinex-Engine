@@ -3,14 +3,14 @@
 #include <Core/buffer_value_type.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
-#include <TemplateFunctional/reference_wrapper.hpp>
 #include <vector>
+#include <Core/constants.hpp>
 
 
 namespace Engine
 {
 
-    CLASS BasicMesh : public ApiObject, public MeshInfo
+    CLASS BasicMesh : public ApiObject
     {
         declare_instance_info_hpp(BasicMesh);
 
@@ -18,23 +18,27 @@ namespace Engine
         constructor_hpp(BasicMesh);
         delete_copy_constructors(BasicMesh);
 
-        BasicMesh& gen();
-        BasicMesh& set_data(void* data);
-        BasicMesh& update_data(std::size_t offset, std::size_t size, void* data = nullptr);
-        BasicMesh& update_atributes();
-        BasicMesh& update_indexes();
-        const BasicMesh& draw(Primitive primitive, std::size_t vertices = 0, std::size_t offset = 0) const;
+        DrawMode draw_mode = DrawMode::StaticDraw;
 
-        virtual std::size_t size() const = 0;
+        BasicMesh& gen();
+        BasicMesh& set_data();
+        BasicMesh& update_data(size_t offset, size_t size, void* data = nullptr);
+        BasicMesh& set_indexes();
+        BasicMesh& update_indexes(size_t offset, size_t size, void* data = nullptr);
+
+        const BasicMesh& draw(Primitive primitive, size_t vertices = Constants::max_size, size_t offset = 0) const;
+
+        virtual size_t size() const = 0;
         virtual std::uint8_t mesh_type_size() const = 0;
         virtual byte* mesh_data() = 0;
         virtual const byte* mesh_data() const = 0;
 
         // Indexes
-        virtual void* indexes_data() const = 0;
-        virtual std::size_t indexes_size() const = 0;
-        virtual BufferValueType indexes_type() const = 0;
-        virtual std::size_t vertices_count() const = 0;
+        virtual const byte* indexes_data() const = 0;
+        virtual byte* indexes_data() = 0;
+        virtual size_t indexes_size() const = 0;
+        virtual IndexBufferComponent indexes_type() const = 0;
+        virtual size_t indexes_type_size() const = 0;
     };
 
 
@@ -45,7 +49,7 @@ namespace Engine
         std::vector<IndexType> indexes;
 
     private:
-        const BufferValueType _M_indexes_engine_type = get_type_by_typeid(typeid(IndexType));
+        const IndexBufferComponent _M_indexes_engine_type = get_type_by_typeid(typeid(IndexType));
 
         declare_instance_info_template(Mesh);
 
@@ -53,13 +57,7 @@ namespace Engine
         constructor_hpp(Mesh) = default;
         delete_copy_constructors(Mesh);
 
-        Mesh& set_data()
-        {
-            BasicMesh::set_data(static_cast<void*>(data.data()));
-            return *this;
-        }
-
-        std::size_t size() const override
+        size_t size() const override
         {
             return data.size();
         }
@@ -79,24 +77,29 @@ namespace Engine
             return reinterpret_cast<const byte*>(data.data());
         }
 
-        void* indexes_data() const override
+        const byte* indexes_data() const override
         {
-            return (void*) (indexes.data());
+            return reinterpret_cast<const byte*>(indexes.data());
         }
 
-        std::size_t indexes_size() const override
+        byte* indexes_data() override
         {
-            return indexes.size() * sizeof(IndexType);
+            return reinterpret_cast<byte*>(indexes.data());
         }
 
-        BufferValueType indexes_type() const override
+        size_t indexes_size() const override
+        {
+            return indexes.size();
+        }
+
+        IndexBufferComponent indexes_type() const override
         {
             return _M_indexes_engine_type;
         }
 
-        std::size_t vertices_count() const override
+        size_t indexes_type_size() const override
         {
-            return indexes.size();
+            return sizeof(IndexType);
         }
     };
 

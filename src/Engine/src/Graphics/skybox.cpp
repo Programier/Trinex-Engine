@@ -14,7 +14,6 @@ static void init_mesh()
 
     Engine::logger->log("Skybox: Init skybox mesh\n");
     mesh.gen();
-    mesh.attributes = {{3, Engine::BufferValueType::FLOAT}};
     mesh.data = {-1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,
                  -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
                  1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,
@@ -24,7 +23,7 @@ static void init_mesh()
                  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f,
                  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
 
-    mesh.set_data().update_atributes();
+    mesh.set_data();
     mesh_is_inited = true;
 }
 
@@ -48,10 +47,10 @@ namespace Engine
         if (!TextureCubeMap::has_object())
         {
             TextureParams params;
-            params.border = false;
-            params.format = img.channels() == 4 ? PixelFormat::RGBA : PixelFormat::RGB;
-            params.type = TextureType::Texture_Cube_Map;
-            params.pixel_type = BufferValueType::UNSIGNED_BYTE;
+
+            params.pixel_type = img.channels() == 4 ? PixelType::RGBA : PixelType::RGB;
+            params.type = TextureType::TextureCubeMap;
+            params.pixel_component_type = PixelComponentType::UnsignedByte;
             TextureCubeMap::create(params);
         }
 
@@ -65,21 +64,21 @@ namespace Engine
 
         Image _M_images[6];
 
-        _M_images[(byte) TextureCubeMapFace::UP] =
+        _M_images[(byte) TextureCubeMapFace::Up] =
                 invert ? img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3})
                        : img.sub_image({block_width, 0}, {block_width * 2, block_height});
 
 
-        _M_images[(byte) TextureCubeMapFace::DOWN] =
+        _M_images[(byte) TextureCubeMapFace::Down] =
                 invert ? img.sub_image({block_width, 0}, {block_width * 2, block_height})
                        : img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3});
 
-        _M_images[(byte) TextureCubeMapFace::LEFT] = img.sub_image({0, block_height}, {block_width, block_height * 2});
-        _M_images[(byte) TextureCubeMapFace::RIGHT] =
+        _M_images[(byte) TextureCubeMapFace::Left] = img.sub_image({0, block_height}, {block_width, block_height * 2});
+        _M_images[(byte) TextureCubeMapFace::Right] =
                 img.sub_image({block_width * 2, block_height}, {block_width * 3, block_height * 2});
-        _M_images[(byte) TextureCubeMapFace::BACK] =
+        _M_images[(byte) TextureCubeMapFace::Back] =
                 img.sub_image({block_width * 1, block_height}, {block_width * 2, block_height * 2});
-        _M_images[(byte) TextureCubeMapFace::FRONT] =
+        _M_images[(byte) TextureCubeMapFace::Front] =
                 img.sub_image({block_width * 3, block_height}, {block_width * 4, block_height * 2});
 
 
@@ -95,7 +94,7 @@ namespace Engine
     {
         EngineInstance::instance()->depth_func(CompareFunc::Lequal);
         TextureCubeMap::bind(0);
-        mesh.draw(Primitive::TRIANGLE);
+        mesh.draw(Primitive::Triangle);
         EngineInstance::instance()->depth_func(CompareFunc::Less);
         return *this;
     }

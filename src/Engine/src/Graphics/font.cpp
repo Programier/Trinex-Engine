@@ -53,12 +53,10 @@ namespace Engine
         for (byte c = 0; c < 128; c++) push_char(c);
 
         _M_mesh.data.resize(24);
-        _M_mesh.attributes = {{4, BufferValueType::FLOAT}};
         _M_mesh.indexes = {0, 1, 2, 3, 4, 5};
-        _M_mesh.mode = DrawMode::STATIC_DRAW;
         _M_mesh.gen();
-        _M_mesh.set_data().update_atributes();
-        _M_mesh.update_indexes();
+        _M_mesh.set_data();
+        _M_mesh.set_indexes();
         return *this;
     }
 
@@ -95,14 +93,14 @@ namespace Engine
                 glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top), (unsigned int) face->glyph->advance.x};
 
         TextureParams params;
-        params.format = PixelFormat::RED;
-        params.pixel_type = BufferValueType::UNSIGNED_BYTE;
-        params.type = TextureType::Texture_2D;
-        params.border = false;
+        params.pixel_type = PixelType::Red;
+        params.pixel_component_type = PixelComponentType::UnsignedByte;
+        params.type = TextureType::Texture2D;
+
         character.gliph->create(params);
         character.gliph->gen({face->glyph->bitmap.width, face->glyph->bitmap.rows}, 0, face->glyph->bitmap.buffer)
-                .mag_filter(TextureFilter::LINEAR)
-                .min_filter(TextureFilter::LINEAR);
+                .mag_filter(TextureFilter::Linear)
+                .min_filter(TextureFilter::Linear);
 
 
         // Now store character for later use
@@ -154,7 +152,7 @@ namespace Engine
 
             // Render glyph Fonture over quad
             ch.gliph->bind();
-            _M_mesh.draw(Primitive::TRIANGLE, 6, 0);
+            _M_mesh.draw(Primitive::Triangle, 6, 0);
             x += (ch.advance >> 6) * scale;// Bitshift by 6 to get value in pixels (2^6 = 64)
         }
 
@@ -209,7 +207,7 @@ namespace Engine
 
             // Render glyph Fonture over quad
             ch.gliph->bind();
-            _M_mesh.draw(Primitive::TRIANGLE, 6, 0);
+            _M_mesh.draw(Primitive::Triangle, 6, 0);
             x += (ch.advance >> 6) * scale;// Bitshift by 6 to get value in pixels (2^6 = 64)
         }
         return *this;

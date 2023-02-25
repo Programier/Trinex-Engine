@@ -19,7 +19,7 @@ namespace Engine
 namespace Engine::GraphicApiInterface
 {
     ENGINE_EXPORT struct ApiInterface {
-        virtual ApiInterface& logger(Logger*) VIRTUAL_METHOD;
+        virtual ApiInterface& logger(Logger*&) VIRTUAL_METHOD;
         virtual void* init_window(SDL_Window*) VIRTUAL_METHOD;
         virtual ApiInterface& destroy_window() VIRTUAL_METHOD;
         virtual ApiInterface& destroy_object(ObjID&) VIRTUAL_METHOD;
@@ -70,12 +70,12 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& cubemap_texture_attach_data(const ObjID&, TextureCubeMapFace, const Size2D&, int_t,
                                                           void*) VIRTUAL_METHOD;
         virtual ApiInterface& generate_mesh(ObjID&) VIRTUAL_METHOD;
-        virtual ApiInterface& mesh_data(const ObjID&, std::size_t, DrawMode, void*) VIRTUAL_METHOD;
-        virtual ApiInterface& update_mesh_attributes(const ObjID&, const MeshInfo&) VIRTUAL_METHOD;
-        virtual ApiInterface& draw_mesh(const ObjID&, Primitive, std::size_t, std::size_t) VIRTUAL_METHOD;
-        virtual ApiInterface& update_mesh_data(const ObjID&, std::size_t, std::size_t, void*) VIRTUAL_METHOD;
-        virtual ApiInterface& mesh_indexes_array(const ObjID&, const MeshInfo&, std::size_t, const BufferValueType&,
-                                                 void*) VIRTUAL_METHOD;
+
+        virtual ApiInterface& mesh_data(const ObjID&, size_t, DrawMode, void*) VIRTUAL_METHOD;
+        virtual ApiInterface& draw_mesh(const ObjID&, Primitive, size_t, size_t) VIRTUAL_METHOD;
+        virtual ApiInterface& update_mesh_data(const ObjID&, size_t, size_t, void*) VIRTUAL_METHOD;
+        virtual ApiInterface& mesh_indexes_array(const ObjID&, size_t, const IndexBufferComponent&, void*) VIRTUAL_METHOD;
+        virtual ApiInterface& update_mesh_indexes_array(const ObjID&, size_t, size_t, void* data) VIRTUAL_METHOD;
         virtual ApiInterface& gen_framebuffer(ObjID&, FrameBufferType) VIRTUAL_METHOD;
         virtual ApiInterface& clear_frame_buffer(const ObjID&, BufferType) VIRTUAL_METHOD;
         virtual ApiInterface& bind_framebuffer(const ObjID&) VIRTUAL_METHOD;
@@ -105,8 +105,8 @@ namespace Engine::GraphicApiInterface
                                              Engine::StencilOption) VIRTUAL_METHOD;
         virtual ApiInterface& create_ssbo(ObjID&) VIRTUAL_METHOD;
         virtual ApiInterface& bind_ssbo(const ObjID&, int_t slot) VIRTUAL_METHOD;
-        virtual ApiInterface& ssbo_data(const ObjID&, void*, std::size_t, BufferUsage) VIRTUAL_METHOD;
-        virtual ApiInterface& update_ssbo_data(const ObjID&, void*, std::size_t, std::size_t) VIRTUAL_METHOD;
+        virtual ApiInterface& ssbo_data(const ObjID&, void*, size_t, BufferUsage) VIRTUAL_METHOD;
+        virtual ApiInterface& update_ssbo_data(const ObjID&, void*, size_t, size_t) VIRTUAL_METHOD;
         virtual ApiInterface& swap_buffer(SDL_Window* window) VIRTUAL_METHOD;
         virtual ApiInterface& swap_interval(int_t interval) VIRTUAL_METHOD;
         virtual ApiInterface& clear_color(const Color& color) VIRTUAL_METHOD;

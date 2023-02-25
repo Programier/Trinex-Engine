@@ -1,15 +1,19 @@
 #include <Application.hpp>
+#include <Core/decode_typeid_name.hpp>
 #include <Core/logger.hpp>
+#include <iostream>
 
 
 namespace Engine
 {
+    EngineAPI API = EngineAPI::OpenGL;
     GameApplication::GameApplication()
     {
-        this->init_info.api = EngineAPI::Vulkan;
+        std::clog << Engine::decode_name("_ZN6Engine13VulkanTextureC1Ev") << std::endl;
+        this->init_info.api = API;
         this->init_info.window_name = STR("Engine");
         this->init_info.window_size = Size2D(1280, 720);
-        this->init_info.window_attribs |= WindowAttrib::WIN_RESIZABLE;
+        this->init_info.window_attribs |= WindowAttrib::WinResizable;
         init();
     }
 
@@ -40,8 +44,21 @@ int game_main(int argc, char* argv[])
 try
 {
     for (int i = 1; i < argc; i++)
+    {
         if (std::string(argv[i]) == "--test")
             test();
+
+        else if (std::string(argv[i]) == "--opengl")
+        {
+            Engine::API = Engine::EngineAPI::OpenGL;
+        }
+        else if (std::string(argv[i]) == "--vulkan")
+        {
+            Engine::API = Engine::EngineAPI::Vulkan;
+        }
+    }
+
+
     Engine::GameApplication app;
     app.start();
     return 0;

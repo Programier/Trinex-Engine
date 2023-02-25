@@ -30,12 +30,12 @@ namespace Engine
         _M_render_pass_info.setPClearValues(API->_M_clear_values);
         _M_render_pass_info.clearValueCount = 0;
 
-        if (type & BufferBitType::COLOR_BUFFER_BIT)
+        if (type & BufferBitType::ColorBufferBit)
         {
             ++_M_render_pass_info.clearValueCount;
         }
 
-        if (type & BufferBitType::DEPTH_BUFFER_BIT)
+        if (type & BufferBitType::DepthBufferBit)
         {
             ++_M_render_pass_info.clearValueCount;
         }

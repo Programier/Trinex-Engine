@@ -108,7 +108,7 @@ namespace Engine
             _M_diffuse_texture->bind();
 
         bind_ssbo();
-        _M_mesh->draw(Primitive::TRIANGLE);
+        _M_mesh->draw(Primitive::Triangle);
         return 1;
     }
 
@@ -187,15 +187,9 @@ namespace Engine
             for (unsigned int j = 0; j < face.mNumIndices; j++) engine_mesh->indexes.push_back(face.mIndices[j]);
         }
 
-        engine_mesh->attributes = {
-                {3, BufferValueType::FLOAT, offsetof(StaticTexturedObjectVertex, position)},
-                {2, BufferValueType::FLOAT, offsetof(StaticTexturedObjectVertex, texture_coords)},
-                {3, BufferValueType::FLOAT, offsetof(StaticTexturedObjectVertex, normal)},
-        };
 
-        engine_mesh->mode = DrawMode::STATIC_DRAW;
         engine_mesh->gen();
-        engine_mesh->set_data().update_atributes().update_indexes();
+        engine_mesh->set_data().set_indexes();
 
         Resources::meshes.push_back(engine_mesh);
 
@@ -359,7 +353,7 @@ namespace Engine
             _M_diffuse_texture->bind();
 
         _M_ssbo.bind(1);
-        _M_mesh->draw(Primitive::TRIANGLE);
+        _M_mesh->draw(Primitive::Triangle);
         return 1;
     }
 
@@ -472,18 +466,8 @@ namespace Engine
         }
 
 
-        engine_mesh->attributes = {
-                {3, BufferValueType::FLOAT, offsetof(AnimatedTexturedObjectVertex, position)},
-                {2, BufferValueType::FLOAT, offsetof(AnimatedTexturedObjectVertex, texture_coords)},
-                {3, BufferValueType::FLOAT, offsetof(AnimatedTexturedObjectVertex, normal)},
-                {4, BufferValueType::INT, offsetof(AnimatedTexturedObjectVertex, vertex_weights.bones_id)},
-                {4, BufferValueType::FLOAT, offsetof(AnimatedTexturedObjectVertex, vertex_weights.weights)},
-        };
-
-
-        engine_mesh->mode = DrawMode::STATIC_DRAW;
         engine_mesh->gen();
-        engine_mesh->set_data().update_atributes().update_indexes();
+        engine_mesh->set_data().set_indexes();
 
         Resources::meshes.push_back(engine_mesh);
 

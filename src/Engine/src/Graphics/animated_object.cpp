@@ -132,7 +132,7 @@ namespace Engine
 
             _M_ssbo.destroy();
             _M_ssbo.data.clear();
-            _M_ssbo.usage = BufferUsage::DYNAMIC_COPY;
+            _M_ssbo.usage = BufferUsage::DynamicCopy;
 
             _M_ssbo.data.resize(_M_root->bones_count(), Constants::identity_matrix);
             _M_ssbo.gen().set_data();

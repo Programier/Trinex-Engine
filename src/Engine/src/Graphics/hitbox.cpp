@@ -141,7 +141,6 @@ namespace Engine
 
         if (!_M_mesh_inited)
         {
-            _M_mesh.attributes = {{3, BufferValueType::FLOAT}};
             _M_mesh.data = {-1, -1, -1,// 0
                             -1, -1, 1, // 1
                             -1, 1,  -1,// 2
@@ -164,12 +163,8 @@ namespace Engine
                                3, 2,//
                                3, 7};
 
-            _M_mesh.mode = DrawMode::STATIC_DRAW;
-            _M_mesh.gen();
 
-
-            _M_mesh.set_data();
-            _M_mesh.update_atributes().update_indexes();
+            _M_mesh.gen().set_data().set_indexes();
         }
 
         float _M_line_offset = 0.00001f;
@@ -187,7 +182,7 @@ namespace Engine
         _M_mesh.update_data(0, sizeof(float) * 24);
         namespace sh = ShaderSystem::Line;
         sh::shader.use().set(sh::model, model).set(sh::color, color).set(sh::projview, camera->projview());
-        _M_mesh.draw(Primitive::LINE);
+        _M_mesh.draw(Primitive::Line);
 
         EngineInstance::instance()->api_interface()->line_rendering_width(_M_line_width);
     }

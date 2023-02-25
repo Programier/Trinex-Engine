@@ -14,7 +14,6 @@ namespace Engine
         }
 
         swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->_M_swap_chain_mode));
-
         auto swap_ret = swapchain_builder.build();
         if (!swap_ret)
         {

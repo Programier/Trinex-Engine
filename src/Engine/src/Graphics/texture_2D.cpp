@@ -52,18 +52,17 @@ namespace Engine
     Texture2D& Texture2D::load(const String& path)
     {
         destroy();
-        logger->log("Loading Texture '%ls'\n", path.c_str());
-        Image image(path);
+        logger->log("Loading Texture '%s'\n", path.c_str());
+        Image image(path, true);
 
         TextureParams params;
 
-        static PixelFormat _M_formats[5] = {PixelFormat::RGBA, PixelFormat::DEPTH, PixelFormat::DEPTH, PixelFormat::RGB,
-                                            PixelFormat::RGBA};
-        params.format = _M_formats[static_cast<int>(image.channels())];
+        static PixelType _M_types[5] = {PixelType::RGBA, PixelType::Depth, PixelType::Depth, PixelType::RGB,
+                                        PixelType::RGBA};
+        params.pixel_type = _M_types[static_cast<int>(image.channels())];
 
-        params.pixel_type = BufferValueType::UNSIGNED_BYTE;
-        params.type = TextureType::Texture_2D;
-        params.border = false;
+        params.pixel_component_type = PixelComponentType::UnsignedByte;
+        params.type = TextureType::Texture2D;
 
 
         create(params);
@@ -78,7 +77,7 @@ namespace Engine
             gen(image.size(), 0, (void*) image.vector().data()).max_mipmap_level(2).generate_mipmap();
         }
 
-        min_filter(TextureFilter::LINEAR).mag_filter(TextureFilter::LINEAR);
+        min_filter(TextureFilter::Linear).mag_filter(TextureFilter::Linear);
 
         return *this;
     }

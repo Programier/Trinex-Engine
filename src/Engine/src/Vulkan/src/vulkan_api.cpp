@@ -6,13 +6,15 @@
 #include <string>
 #include <vulkan_api.hpp>
 #include <vulkan_export.hpp>
+#include <vulkan_mesh.hpp>
 #include <vulkan_object.hpp>
 #include <vulkan_shader.hpp>
+#include <vulkan_texture.hpp>
 
 
 namespace Engine
 {
-    std::vector<const char*> VulkanAPI::device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    std::vector<const char*> VulkanAPI::device_extensions = {VK_KHR_MAINTENANCE1_EXTENSION_NAME};
     const std::vector<const char*> validation_layers = {
 #if ENABLE_VALIDATION_LAYERS
             "VK_LAYER_KHRONOS_validation"
@@ -82,6 +84,7 @@ namespace Engine
             return nullptr;
         }
 
+
         return static_cast<VkSurfaceKHR>(_M_surface);
     }
 
@@ -93,7 +96,7 @@ namespace Engine
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                         void* pUserData)
     {
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+        std::cerr << pCallbackData->pMessage << std::endl << std::endl;
 
         return VK_FALSE;
     }
@@ -134,6 +137,11 @@ namespace Engine
         create_surface();
 
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
+        vk::PhysicalDeviceFeatures features;
+        features.samplerAnisotropy = VK_TRUE;
+        phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
+
+        phys_device_selector.add_required_extensions(device_extensions);
 
         auto phys_device_ret = phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(_M_surface)).select();
         if (!phys_device_ret)
@@ -243,7 +251,7 @@ namespace Engine
         vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlags(), _M_render_pass, attachments,
                                                           _M_swap_chain->_M_extent.width,
                                                           _M_swap_chain->_M_extent.height, 1);
-        std::size_t index = 0;
+        size_t index = 0;
         for (auto const& image_view : _M_swap_chain->_M_image_views)
         {
             attachments[0] = image_view;
@@ -293,6 +301,16 @@ namespace Engine
         return *this;
     }
 
+    static vk::Viewport inverse_viewport()
+    {
+        vk::Viewport view_port;
+        view_port.x = API->window_data.view_port.x;
+        view_port.y = API->window_data.view_port.height - view_port.x - API->window_data.view_port.y;
+        view_port.width = API->window_data.view_port.width;
+        view_port.height = -API->window_data.view_port.height;
+        return view_port;
+    }
+
     VulkanAPI& VulkanAPI::begin_render()
     {
         while (vk::Result::eTimeout ==
@@ -320,14 +338,13 @@ namespace Engine
         _M_current_command_buffer->begin(vk::CommandBufferBeginInfo());
 
         _M_current_command_buffer->setScissor(0, vk::Rect2D({0, 0}, _M_swap_chain->_M_extent));
-        _M_current_command_buffer->setViewport(0, window_data.view_port);
+        _M_current_command_buffer->setViewport(0, inverse_viewport());
 
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        // #########################################
         _M_current_command_buffer->end();
 
         vk::PipelineStageFlags wait_destination_stage_mask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
@@ -363,6 +380,7 @@ namespace Engine
         }
 
         _M_current_framebuffer = nullptr;
+        _M_current_command_buffer = nullptr;
         return *this;
     }
 
@@ -375,7 +393,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::end_render_pass()
     {
-        _M_current_command_buffer->draw(3, 1, 0, 0);
+        // _M_current_command_buffer->draw(3, 1, 0, 0);
         _M_current_command_buffer->endRenderPass();
         return *this;
     }
@@ -392,7 +410,7 @@ namespace Engine
             }
         }
 
-        throw std::runtime_error("Failed to find suitable memory type!");
+        throw std::runtime_error("VulkanAPI: Failed to find suitable memory type!");
     }
 
     VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
@@ -415,12 +433,46 @@ namespace Engine
         return *this;
     }
 
+    vk::CommandBuffer VulkanAPI::begin_single_time_command_buffer()
+    {
+        vk::CommandBufferAllocateInfo alloc_info(_M_command_pool, vk::CommandBufferLevel::ePrimary, 1);
+        vk::CommandBuffer command_buffer = _M_device.allocateCommandBuffers(alloc_info).front();
+        vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+        command_buffer.begin(begin_info);
+        return command_buffer;
+    }
+
+    VulkanAPI& VulkanAPI::end_single_time_command_buffer(const vk::CommandBuffer& command_buffer)
+    {
+        command_buffer.end();
+        vk::SubmitInfo submit_info({}, {}, command_buffer);
+        _M_graphics_queue.submit(submit_info, {});
+        _M_graphics_queue.waitIdle();
+        _M_device.freeCommandBuffers(_M_command_pool, command_buffer);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
+                                      vk::DeviceSize src_offset, vk::DeviceSize dst_offset)
+    {
+        auto command_buffer = begin_single_time_command_buffer();
+        vk::BufferCopy copy_region(src_offset, dst_offset, size);
+        command_buffer.copyBuffer(src_buffer, dst_buffer, copy_region);
+        return end_single_time_command_buffer(command_buffer);
+    }
+
     VulkanAPI& VulkanAPI::framebuffer_viewport(const Point2D& point, const Size2D& size)
     {
         window_data.view_port.x = point.x;
         window_data.view_port.y = point.y;
         window_data.view_port.width = size.x;
         window_data.view_port.height = size.y;
+
+
+        if (_M_current_command_buffer)
+        {
+            _M_current_command_buffer->setViewport(0, inverse_viewport());
+        }
 
         if (_M_current_framebuffer)
         {
@@ -482,6 +534,8 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::create_shader(ObjID& ID, const ShaderParams& params)
     {
+        destroy_object(ID);
+
         VulkanShader* shader = new VulkanShader();
         try
         {
@@ -515,4 +569,67 @@ namespace Engine
         return *this;
     }
 
+    VulkanAPI& VulkanAPI::generate_mesh(ObjID& ID)
+    {
+        destroy_object(ID);
+        ID = (new VulkanMesh)->ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::mesh_data(const ObjID& ID, size_t size, DrawMode mode, void* data)
+    {
+        if (ID)
+        {
+            GET_TYPE(VulkanMesh, ID)->data(size, mode, data);
+        }
+        return *this;
+    }
+
+
+    VulkanAPI& VulkanAPI::draw_mesh(const ObjID& ID, Primitive primitive, size_t vertices, size_t offset)
+    {
+        if (ID)
+        {
+            GET_TYPE(VulkanMesh, ID)->draw(primitive, vertices, offset);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_mesh_data(const ObjID&, size_t, size_t, void*)
+    {
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::mesh_indexes_array(const ObjID& ID, size_t size, const IndexBufferComponent& type, void* data)
+    {
+        if (ID)
+        {
+            GET_TYPE(VulkanMesh, ID)->index_buffer(size, type, data);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::create_texture(ObjID& ID, const TextureParams& params)
+    {
+        ID = (new VulkanTexture())->init(params).ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::gen_texture_2D(const ObjID& ID, const Size2D& size, int_t mipmap, void* data)
+    {
+        if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->gen_texture_2D(size, mipmap, data);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::bind_texture(const ObjID& ID, TextureBindIndex binding)
+    {
+        if (ID && _M_current_shader)
+        {
+            _M_current_shader->bind_texture(GET_TYPE(VulkanTexture, ID), binding);
+        }
+        return *this;
+    }
 }// namespace Engine

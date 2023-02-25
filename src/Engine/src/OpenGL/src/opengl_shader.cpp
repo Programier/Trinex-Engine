@@ -1,7 +1,10 @@
+#include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 #include <opengl_api.hpp>
 #include <opengl_headers.hpp>
+#include <opengl_types.hpp>
 #include <stdexcept>
+#include <unordered_set>
 
 #define delete_program(id)                                                                                             \
     if ((id) != 0)                                                                                                     \
@@ -22,12 +25,16 @@ namespace Engine
     public:
         bool _M_inided = false;
         GLuint _M_shaders_types_id[4] = {0, 0, 0, 0};
+        GLuint _M_VAO = 0;
+        ShaderParams _M_params;
 
         OpenGL_Shader()
         {}
 
         ~OpenGL_Shader()
         {
+            glDeleteVertexArrays(1, &_M_VAO);
+
             delete_program(_M_instance_id);
             for (auto id : _M_shaders_types_id)
             {
@@ -79,8 +86,7 @@ namespace Engine
         if (!succes)
         {
             glGetShaderInfoLog(ID, 1024, nullptr, log);
-            OpenGL::_M_api->_M_current_logger->log("Failed to compile %s shader '%s'\n\n%s\n", type,
-                                                   params.name.c_str(), log);
+            opengl_debug_log("Failed to compile %s shader '%s'\n\n%s\n", type, params.name.c_str(), log);
             glDeleteShader(ID);
             ID = 0;
             return false;
@@ -101,8 +107,7 @@ namespace Engine
         if (!succes)
         {
             glGetProgramInfoLog(shader->_M_instance_id, 1024, nullptr, log);
-            OpenGL::_M_api->_M_current_logger->log("Shader: Failed to link shader program '%s'\n\n%s\n",
-                                                   params.name.c_str(), log);
+            opengl_debug_log("Shader: Failed to link shader program '%s'\n\n%s\n", params.name.c_str(), log);
             return false;
         }
 
@@ -110,11 +115,19 @@ namespace Engine
     }
 
 
+    static void create_vao(OpenGL_Shader* shader, const ShaderParams& info)
+    {
+        glGenVertexArrays(1, &shader->_M_VAO);
+        glBindVertexArray(0);
+    }
+
     OpenGL& OpenGL::create_shader(ObjID& ID, const ShaderParams& params)
     {
         if (ID)
             destroy_object(ID);
         auto shader = new OpenGL_Shader();
+        shader->_M_params = params;
+
         ID = get_object_id(shader);
 
         static const GLint shader_types[4] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER,
@@ -140,14 +153,54 @@ namespace Engine
         {
             destroy_object(ID);
         }
+
+        create_vao(shader, params);
         return *this;
     }
 
     OpenGL& OpenGL::use_shader(const ObjID& ID)
     {
         check(ID, *this);
-        auto shader = obj->get_instance_by_type<OpenGL_Shader>();
-        glUseProgram(shader->_M_instance_id);
+        _M_current_shader = obj->get_instance_by_type<OpenGL_Shader>();
+        glUseProgram(_M_current_shader->_M_instance_id);
+        glBindVertexArray(_M_current_shader->_M_VAO);
+        return *this;
+    }
+
+    OpenGL& OpenGL::apply_shader_vertex_attributes()
+    {
+        // Setting attributes values
+        int index = 0;
+        if (!_M_current_shader)
+            return *this;
+
+        auto it = std::max_element(_M_current_shader->_M_params.vertex_info.attributes.begin(),
+                                   _M_current_shader->_M_params.vertex_info.attributes.end(),
+                                   [](VertexAtribute a, VertexAtribute b) -> bool { return a.offset < b.offset; });
+
+        unsigned int size = (*it).offset + (*it).type.size;
+
+        static const std::unordered_set<GLuint> _M_attrib_types = {
+                GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FLOAT,
+        };
+
+        for (const auto& value : _M_current_shader->_M_params.vertex_info.attributes)
+        {
+
+            auto type = _M_shader_types.at(value.type.type);
+
+            if (_M_attrib_types.contains(type.second))
+            {
+                glVertexAttribPointer(index, type.first, type.second, GL_FALSE, size, (GLvoid*) (value.offset));
+            }
+            else
+            {
+                glVertexAttribIPointer(index, type.first, type.second, size, (GLvoid*) (value.offset));
+            }
+
+            glEnableVertexAttribArray(index++);
+        }
+
         return *this;
     }
 

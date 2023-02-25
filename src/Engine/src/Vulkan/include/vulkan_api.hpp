@@ -30,13 +30,14 @@ namespace Engine
 
 
     using ViewPort = vk::Viewport;
-
+    struct VulkanTexture;
 
     struct VulkanAPI : public GraphicApiInterface::ApiInterface {
         static std::vector<const char*> device_extensions;
 
+#define _M_current_logger (*_M_engine_logger)
         static VulkanAPI* _M_vulkan;
-        Logger* _M_current_logger = nullptr;
+        Logger** _M_engine_logger = nullptr;
         SDL_Window* _M_window = nullptr;
         bool _M_need_recreate_swap_chain = false;
 
@@ -57,6 +58,7 @@ namespace Engine
         vk::Queue _M_present_queue;
 
         SwapChain* _M_swap_chain = nullptr;
+        class VulkanShader* _M_current_shader = nullptr;
 
         vk::RenderPass _M_render_pass;
         std::vector<VulkanFramebuffer*> _M_swap_chain_framebuffers;
@@ -97,6 +99,12 @@ namespace Engine
                                  vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
         uint32_t find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties);
 
+        vk::CommandBuffer begin_single_time_command_buffer();
+        VulkanAPI&  end_single_time_command_buffer(const vk::CommandBuffer& buffer);
+
+        VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
+                               vk::DeviceSize src_offset = 0, vk::DeviceSize dst_offset = 0);
+
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
@@ -119,15 +127,19 @@ namespace Engine
 
         VulkanAPI& create_shader(ObjID&, const ShaderParams&) override;
         VulkanAPI& use_shader(const ObjID&) override;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, float) VIRTUAL_METHOD;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, int_t) VIRTUAL_METHOD;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::mat3&) VIRTUAL_METHOD;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::mat4&) VIRTUAL_METHOD;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec2&) VIRTUAL_METHOD;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec3&) VIRTUAL_METHOD;
-        //ApiInterface& shader_value(const ObjID&, const std::string&, const glm::vec4&) VIRTUAL_METHOD;
-        VulkanAPI& shader_value(const ObjID& ID, const String& name, void* data);
+        VulkanAPI& shader_value(const ObjID& ID, const String& name, void* data) override;
 
+
+        VulkanAPI& generate_mesh(ObjID& ID) override;
+
+        VulkanAPI& mesh_data(const ObjID& ID, size_t size, DrawMode mode, void* data) override;
+        VulkanAPI& draw_mesh(const ObjID&, Primitive, size_t, size_t) override;
+        VulkanAPI& update_mesh_data(const ObjID&, size_t, size_t, void*) override;
+        VulkanAPI& mesh_indexes_array(const ObjID&, size_t, const IndexBufferComponent&, void*) override;
+
+        VulkanAPI& create_texture(ObjID& ID, const TextureParams& params) override;
+        VulkanAPI& gen_texture_2D(const ObjID&, const Size2D& size, int_t mipmap, void* data) override;
+        VulkanAPI& bind_texture(const ObjID&, TextureBindIndex binding) override;
         ~VulkanAPI();
     };
 }// namespace Engine

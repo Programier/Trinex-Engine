@@ -7,6 +7,7 @@ namespace Engine
 
 #define OBJECT_OF(ID) reinterpret_cast<VulkanObject*>(ID)
 #define GET_TYPE(TYPE, ID) reinterpret_cast<TYPE*>(OBJECT_OF(ID))
+#define DESTROY_CALL(func, instance) if(instance) API->_M_device.func(instance)
 
     struct VulkanObject {
         virtual void* get_instance_data() = 0;
