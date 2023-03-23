@@ -1,4 +1,4 @@
-# Game Engine
+# Trinex Engine
 
 ![alt text](screenshots/screen.jpg)​
 
