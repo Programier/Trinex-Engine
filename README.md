@@ -1,6 +1,6 @@
-# Trinex Engine
+# <h1 align="center">Trinex Engine</h1>
 
-![alt text](screenshots/screen.jpg)​
+![alt text](logo/logo.png)​
 
 ## Compile from source (command line)
 
