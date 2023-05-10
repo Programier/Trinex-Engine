@@ -151,7 +151,8 @@ const Window& Window::init(float width, float height, const String& title, uint1
             (EngineInstance::instance()->api() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
 
     sdl_window = SDL_CreateWindow(data._M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                  cast<int>(width), cast<int>(height), sdl_window_api | SDL_WINDOW_SHOWN | attrib);
+                                  static_cast<int>(width), static_cast<int>(height),
+                                  sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
 
     if (sdl_window == nullptr)
@@ -234,7 +235,7 @@ Size1D Window::width()
 const Window& Window::width(const Size1D& width)
 {
     check_init(window);
-    SDL_SetWindowSize(sdl_window, cast<int>(width), cast<int>(data._M_size.y));
+    SDL_SetWindowSize(sdl_window, static_cast<int>(width), static_cast<int>(data._M_size.y));
     return window;
 }
 
@@ -246,7 +247,7 @@ Size1D Window::height()
 const Window& Window::height(const Size1D& height)
 {
     check_init(window);
-    SDL_SetWindowSize(sdl_window, cast<int>(data._M_size.x), cast<int>(height));
+    SDL_SetWindowSize(sdl_window, static_cast<int>(data._M_size.x), static_cast<int>(height));
     return window;
 }
 
@@ -258,7 +259,7 @@ const Size2D& Window::size()
 const Window& Window::size(const Size2D& size)
 {
     check_init(window);
-    SDL_SetWindowSize(sdl_window, cast<int>(size.x), cast<int>(size.y));
+    SDL_SetWindowSize(sdl_window, static_cast<int>(size.x), static_cast<int>(size.y));
     return window;
 }
 
@@ -323,8 +324,8 @@ bool Window::vsync()
 
 const Window& Window::vsync(const bool& value)
 {
-    data._M_swap_interval = cast<int>(value);
-    return swap_interval(cast<int>(value));
+    data._M_swap_interval = static_cast<int>(value);
+    return swap_interval(static_cast<int>(value));
 }
 
 int_t Window::swap_interval()
@@ -369,7 +370,7 @@ const Point2D& Window::position()
 const Window& Window::position(const Point2D& position)
 {
     if (data._M_is_inited)
-        SDL_SetWindowPosition(sdl_window, cast<int>(position.x), cast<int>(position.y));
+        SDL_SetWindowPosition(sdl_window, static_cast<int>(position.x), static_cast<int>(position.y));
     return window;
 }
 
@@ -392,13 +393,13 @@ const Window& Window::clear_dropped_paths()
 bool Window::rezisable()
 {
     data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return cast<bool>(data._M_flags & SDL_WINDOW_RESIZABLE);
+    return static_cast<bool>(data._M_flags & SDL_WINDOW_RESIZABLE);
 }
 
 const Window& Window::rezisable(bool value)
 {
     check_init(window);
-    SDL_SetWindowResizable(sdl_window, cast<SDL_bool>(value));
+    SDL_SetWindowResizable(sdl_window, static_cast<SDL_bool>(value));
     return window;
 }
 
@@ -415,7 +416,7 @@ bool Window::focused()
 {
     check_init(false);
     data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return cast<bool>(data._M_flags & SDL_WINDOW_INPUT_FOCUS);
+    return static_cast<bool>(data._M_flags & SDL_WINDOW_INPUT_FOCUS);
 }
 
 
@@ -439,7 +440,7 @@ bool Window::is_visible()
 {
     check_init(false);
     data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return cast<bool>(data._M_flags & SDL_WINDOW_SHOWN);
+    return static_cast<bool>(data._M_flags & SDL_WINDOW_SHOWN);
 }
 
 
@@ -447,7 +448,7 @@ bool Window::is_iconify()
 {
     check_init(false);
     data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return cast<bool>(data._M_flags & SDL_WINDOW_MINIMIZED);
+    return static_cast<bool>(data._M_flags & SDL_WINDOW_MINIMIZED);
 }
 
 const Window& Window::iconify()
@@ -490,8 +491,10 @@ const Window& Window::size_limits(const SizeLimits2D& limits)
 {
     check_init(window);
     data._M_limits = limits;
-    SDL_SetWindowMaximumSize(sdl_window, cast<int>(data._M_limits.max.x), cast<int>(data._M_limits.max.y));
-    SDL_SetWindowMinimumSize(sdl_window, cast<int>(data._M_limits.min.x), cast<int>(data._M_limits.min.y));
+    SDL_SetWindowMaximumSize(sdl_window, static_cast<int>(data._M_limits.max.x),
+                             static_cast<int>(data._M_limits.max.y));
+    SDL_SetWindowMinimumSize(sdl_window, static_cast<int>(data._M_limits.min.x),
+                             static_cast<int>(data._M_limits.min.y));
     return window;
 }
 
@@ -572,7 +575,7 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
             switch (attrib)
             {
                 case WindowAttrib::WinResizable:
-                    SDL_SetWindowResizable(sdl_window, cast<SDL_bool>(value));
+                    SDL_SetWindowResizable(sdl_window, static_cast<SDL_bool>(value));
                     break;
 
                 case WindowAttrib::WinFullScreen:
@@ -596,7 +599,7 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
                     break;
                 }
                 case WindowAttrib::WinBorderLess:
-                    SDL_SetWindowBordered(sdl_window, cast<SDL_bool>(value));
+                    SDL_SetWindowBordered(sdl_window, static_cast<SDL_bool>(value));
                     break;
 
                 case WindowAttrib::WinInputFocus:
@@ -621,13 +624,13 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
                 }
                 case WindowAttrib::WinMouseGrabbed:
                 {
-                    SDL_SetWindowMouseGrab(sdl_window, cast<SDL_bool>(value));
+                    SDL_SetWindowMouseGrab(sdl_window, static_cast<SDL_bool>(value));
                     break;
                 }
 
                 case WindowAttrib::WinKeyboardGrabbed:
                 {
-                    SDL_SetWindowKeyboardGrab(sdl_window, cast<SDL_bool>(value));
+                    SDL_SetWindowKeyboardGrab(sdl_window, static_cast<SDL_bool>(value));
                     break;
                 }
 
@@ -668,7 +671,7 @@ bool Window::attribute(const WindowAttrib& attrib)
         auto attrib = attribute_list.front();
         if (attrib == WindowAttrib::WinTransparentFramebuffer)
             return data._M_is_transparent_framebuffer;
-        return cast<bool>(data._M_flags & window_attributes.at(attrib));
+        return static_cast<bool>(data._M_flags & window_attributes.at(attrib));
     }
     catch (const std::exception& e)
     {

@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <bitset>
 #include <vector>
+#include <tuple>
 
 
 namespace Engine
@@ -51,6 +52,9 @@ namespace Engine
     template<typename Key, typename Value, typename Compare = std::less<Key>,
              typename AllocatorType = Allocator<Pair<const Key, Value>>>
     using TreeMap = std::map<Key, Value, Compare, AllocatorType>;
+
+    template<typename... Args>
+    using Tuple = std::tuple<Args...>;
 
 
     template<size_t size>

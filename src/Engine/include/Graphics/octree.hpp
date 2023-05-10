@@ -22,7 +22,7 @@ namespace Engine
         template<typename VectorType>
         inline VectorType to_vector() const
         {
-            return VectorType(Vector3D(cast<float>(x), cast<float>(y), cast<float>(z)));
+            return VectorType(Vector3D (static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)));
         }
 
         operator byte();

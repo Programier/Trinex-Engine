@@ -18,22 +18,16 @@ namespace Engine
         return _M_parent;
     }
 
-    Class::Class(const String& _name, Class* _parent)
+    Class::Class(const String& _name)
     {
         name(_name);
-        _M_parent = _parent;
         classes_map().insert({_name, this});
+        _M_parents = {this};
     }
 
-    bool Class::contains_class(const Class* const instance, bool recursive) const
+    bool Class::contains_class(const Class* const instance) const
     {
-        if (recursive)
-        {
-            const Class* current = this;
-            while (current && current != instance) current = current->_M_parent;
-            return current != nullptr;
-        }
-        return this == instance;
+        return _M_parents.contains(instance);
     }
 
     Class* Class::find_class(const String& name)
@@ -48,6 +42,12 @@ namespace Engine
     const Class::ClassesMap& Class::classes()
     {
         return classes_map();
+    }
+
+    void Class::update_parent_classes(const Class* parent)
+    {
+        _M_parent = parent;
+        _M_parents.insert(parent->_M_parents.begin(), parent->_M_parents.end());
     }
 
     Object* Class::create() const

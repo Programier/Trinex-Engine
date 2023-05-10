@@ -18,13 +18,13 @@ static std::size_t _M_frame_number = 0;
 namespace Engine
 {
     Event event;
-    ENGINE_EXPORT Vector<void (*)(void*)> Event::sdl_callbacks;
-    ENGINE_EXPORT Vector<void (*)(unsigned int)> Event::on_sensor_update;
-    ENGINE_EXPORT Vector<void (*)()> Event::on_quit;
-    ENGINE_EXPORT Vector<void (*)()> Event::on_terminate;
-    ENGINE_EXPORT Vector<void (*)()> Event::on_resume;
-    ENGINE_EXPORT Vector<void (*)()> Event::on_pause;
-    ENGINE_EXPORT Vector<void (*)()> Event::on_low_memory;
+    ENGINE_EXPORT Set<void (*)(void*)> Event::sdl_callbacks;
+    ENGINE_EXPORT Set<void (*)(unsigned int)> Event::on_sensor_update;
+    ENGINE_EXPORT Set<void (*)()> Event::on_quit;
+    ENGINE_EXPORT Set<void (*)()> Event::on_terminate;
+    ENGINE_EXPORT Set<void (*)()> Event::on_resume;
+    ENGINE_EXPORT Set<void (*)()> Event::on_pause;
+    ENGINE_EXPORT Set<void (*)()> Event::on_low_memory;
 
     void process_keyboard_event(SDL_KeyboardEvent& event);
     void clear_keyboard_events();

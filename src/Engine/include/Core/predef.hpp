@@ -49,7 +49,6 @@
     if (!(expression))                                                                                                 \
     throw Engine::EngineException("Assertion failed: " + std::string(#expression))
 
-#define cast static_cast
 
 #define DISABLE_ALIGN __attribute((packed))
 #define ALIGNED(value) __attribute((aligned(value)))

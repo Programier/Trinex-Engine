@@ -22,13 +22,13 @@ namespace Engine
         static ENGINE_EXPORT double time();
 
         // Callbacks
-        static ENGINE_EXPORT Vector<void (*)(void*)> sdl_callbacks;
-        static ENGINE_EXPORT Vector<void (*)(unsigned int)> on_sensor_update;
-        static ENGINE_EXPORT Vector<void(*)()> on_quit;
-        static ENGINE_EXPORT Vector<void(*)()> on_terminate;
-        static ENGINE_EXPORT Vector<void(*)()> on_resume;
-        static ENGINE_EXPORT Vector<void(*)()> on_pause;
-        static ENGINE_EXPORT Vector<void(*)()> on_low_memory;
+        static ENGINE_EXPORT Set<void (*)(void*)> sdl_callbacks;
+        static ENGINE_EXPORT Set<void (*)(unsigned int)> on_sensor_update;
+        static ENGINE_EXPORT Set<void(*)()> on_quit;
+        static ENGINE_EXPORT Set<void(*)()> on_terminate;
+        static ENGINE_EXPORT Set<void(*)()> on_resume;
+        static ENGINE_EXPORT Set<void(*)()> on_pause;
+        static ENGINE_EXPORT Set<void(*)()> on_low_memory;
         static ENGINE_EXPORT std::size_t frame_number();
     };
 }// namespace Engine

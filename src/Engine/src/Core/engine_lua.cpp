@@ -49,6 +49,28 @@ namespace Engine
         }
     }
 
+    luabridge::Namespace LuaInterpretter::namespace_of(const String& class_name, size_t& namespaces,
+                                                       String& pure_class_name)
+    {
+        size_t prev_index = 0;
+        size_t index      = 0;
+
+
+        auto _namespace = luabridge::getGlobalNamespace(_M_lua);
+
+        while ((index = class_name.find_first_of("::", prev_index)) != String::npos)
+        {
+            String namespace_name = class_name.substr(prev_index, index);
+            prev_index            = index + 2;
+
+            _namespace = _namespace.beginNamespace(namespace_name.c_str());
+            ++namespaces;
+        }
+
+        pure_class_name = class_name.substr(prev_index, class_name.length() - prev_index);
+        return _namespace;
+    }
+
     LuaResult LuaInterpretter::execute_string(const char* line)
     {
         int args_count = lua_gettop(_M_lua);

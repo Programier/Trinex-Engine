@@ -2,10 +2,20 @@
 #include <Core/commandlet.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/deffered_method_invoker.hpp>
 
 
 namespace Engine
 {
+
+    struct Test {
+        void print(int a, int b)
+        {
+            std::clog << a << " " << b << std::endl;
+        }
+    };
+
+
     class LuaConsole : public CommandLet
     {
     public:

@@ -20,7 +20,7 @@ namespace Engine
 
     template<>
     const Class* const ClassMetaData<Engine::Object>::class_instance =
-            Class::register_new_class<Engine::Object, void>("Engine::Object");
+            &Class::register_new_class<Engine::Object, void>("Engine::Object");
 
     static ObjectSet& get_instance_list()
     {
@@ -79,7 +79,7 @@ namespace Engine
 
     bool Object::private_check_instance(const Class* const check_class) const
     {
-        return class_instance()->contains_class(check_class, true);
+        return class_instance()->contains_class(check_class);
     }
 
     void Object::internal_set_flag(ObjectFlags flag, bool flag_value)

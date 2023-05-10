@@ -4,8 +4,7 @@
 #define register_class(class_name, base_name, ...)                                                                     \
     template<>                                                                                                         \
     const Engine::Class* const Engine::ClassMetaData<class_name>::class_instance =                                     \
-            const_cast<const Engine::Class* const>(                                                                    \
-                    Engine::Class::register_new_class<class_name, base_name>(#class_name));
+            &Engine::Class::register_new_class<class_name, base_name>(#class_name)
 
 
 #define constructor_template(name, ...) name(__VA_ARGS__)
