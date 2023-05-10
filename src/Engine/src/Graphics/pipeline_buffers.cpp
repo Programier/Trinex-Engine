@@ -11,7 +11,7 @@
 namespace Engine
 {
 
-    REGISTER_CLASS(Engine::VertexBuffer, Engine::ApiObject);
+    register_class(Engine::VertexBuffer, Engine::ApiObject);
     VertexBuffer::VertexBuffer()
     {}
 
@@ -108,7 +108,7 @@ namespace Engine
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
 
-    REGISTER_CLASS(Engine::IndexBuffer, Engine::ApiObject);
+    register_class(Engine::IndexBuffer, Engine::ApiObject);
     IndexBuffer::IndexBuffer()
     {}
 

@@ -47,6 +47,7 @@ add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/lz4/build/cmake/")
 # Include Trinex Engine headers directories
 include_directories("${TRINEX_ENGINE_ROOT}/include/")
 include_directories("${TRINEX_ENGINE_ROOT}/include-internal/")
+include_directories("${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/")
 
 # Set source directories
 set(TRINEX_WINDOW_DIR "${TRINEX_ENGINE_SRC}/Window/")

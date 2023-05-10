@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-    REGISTER_CLASS(Engine::Shader, Engine::ApiObject);
+    register_class(Engine::Shader, Engine::ApiObject);
 
     Shader::Shader()
     {}

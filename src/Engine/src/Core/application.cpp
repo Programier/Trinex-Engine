@@ -97,7 +97,7 @@ namespace Engine
 
         for (auto& pair : Class::classes())
         {
-            logger->log("Class name: %s", pair.first.c_str());
+            info_log("Class name: %s", pair.first.c_str());
         }
 
         FileReader reader;
@@ -405,7 +405,7 @@ namespace Engine
             if (MouseEvent::scroll_offset().y != 0)
             {
                 float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
-                logger->log("Antialiazing: %f", current);
+                info_log("Antialiazing: %f", current);
                 texture.anisotropic_filtering(current);
             }
 
@@ -475,7 +475,7 @@ namespace Engine
 
     Application::~Application()
     {
-        logger->log("Terminate application");
+        info_log("Terminate application");
         EngineInstance::_M_instance->trigger_terminate_functions();
 
         window.destroy_window();

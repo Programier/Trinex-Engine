@@ -47,7 +47,7 @@ namespace Engine
         void* func                      = dlsym(handle, name.c_str());
 #endif
         if (func == nullptr)
-            logger->log("Failed to load function %s from lib %s\n", name.c_str(), _M_libname.c_str());
+            info_log("Failed to load function %s from lib %s\n", name.c_str(), _M_libname.c_str());
         return func;
     }
 
@@ -90,9 +90,9 @@ namespace Engine
 
 
 #ifdef WIN32
-        logger->log("Failed to load %s\n", libname.c_str());
+        info_log("Failed to load %s\n", libname.c_str());
 #else
-        logger->log("%s\n", dlerror());
+        info_log("%s\n", dlerror());
 #endif
         return Library(nullptr, libname);
     }
@@ -130,7 +130,7 @@ namespace Engine
     static struct Controller {
         ~Controller()
         {
-            logger->log("LibrariesController: Closing all opened libs\n");
+            info_log("LibrariesController: Closing all opened libs\n");
             for (auto& ell : _M_libraries) close_lib_ptr(ell.second);
         }
     } controller;

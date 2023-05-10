@@ -2,6 +2,7 @@
 #include <Core/config.hpp>
 #include <Core/destroy_controller.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/renderer.hpp>
@@ -97,7 +98,7 @@ namespace Engine
                 throw std::runtime_error(SDL_GetError());
 
             Library api_library = load_library(engine_config.api.c_str());
-            logger->log("Engine: Using API: %s", engine_config.api.c_str());
+            info_log("Engine: Using API: %s", engine_config.api.c_str());
 
             if (!api_library.has_lib())
             {
@@ -134,12 +135,17 @@ namespace Engine
         {
             return -1;
         }
+
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
         if (argc > 0)
         {
             root_manager->work_dir(FileManager::dirname_of(argv[0]));
         }
+
+        engine_config.init("config.cfg");
+
+        LuaInterpretter::init();
 
         for (auto func : initialize_list())
         {
@@ -148,7 +154,6 @@ namespace Engine
 
         initialize_list().clear();
 
-        engine_config.init("config.cfg");
 
         _M_api = get_api_by_name(engine_config.api);
 
@@ -206,11 +211,11 @@ namespace Engine
         auto status = command_let->execute(argc - 1, argv + 1);
         if (status == 0)
         {
-            logger->log("Engine: Commandlet execution success!");
+            info_log("Engine: Commandlet execution success!");
         }
         else
         {
-            logger->log("Engine: Failed to execute commandlet. Error code: %d", status);
+            info_log("Engine: Failed to execute commandlet. Error code: %d", status);
         }
 
         return status;
@@ -238,7 +243,9 @@ namespace Engine
 
     EngineInstance::~EngineInstance()
     {
-        logger->log("Engine: Terminate Engine");
+        LuaInterpretter::terminate();
+
+        info_log("Engine: Terminate Engine");
         EngineInstance::_M_instance->trigger_terminate_functions();
 
         Window::destroy_window();

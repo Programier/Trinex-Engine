@@ -2,7 +2,6 @@
 #include <Core/buffer_types.hpp>
 #include <Core/callback.hpp>
 #include <Core/color.hpp>
-#include <Core/engine.hpp>
 #include <Core/export.hpp>
 #include <Core/keyboard.hpp>
 #include <Event/event.hpp>

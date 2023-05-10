@@ -56,7 +56,7 @@ namespace Engine
         if (sensor)
         {
             SDL_SensorClose(static_cast<SDL_Sensor*>(sensor));
-            logger->log("Sensor: Close sensor %p\n", sensor);
+            info_log("Sensor: Close sensor %p\n", sensor);
         }
     }
 
@@ -85,11 +85,11 @@ namespace Engine
         _M_sensor = SmartPointer<void>(SDL_SensorOpen(id), close_sensor);
         if (!_M_sensor.get())
         {
-            logger->log("Sensor: Failed to load sensor with ID %d\n", id);
+            info_log("Sensor: Failed to load sensor with ID %d\n", id);
             return *this;
         }
 
-        logger->log("Sensor: Opened sensor with %p\n", _M_sensor.get());
+        info_log("Sensor: Opened sensor with %p\n", _M_sensor.get());
         _M_sensor_name = SDL_SensorGetName(static_cast<SDL_Sensor*>(_M_sensor.get()));
         return *this;
     }
@@ -102,7 +102,7 @@ namespace Engine
         }
         catch (const std::exception& e)
         {
-            logger->log("%s\n", e.what());
+            info_log("%s\n", e.what());
         }
 
         return *this;

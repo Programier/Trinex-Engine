@@ -328,7 +328,7 @@ namespace Engine
             if (MouseEvent::scroll_offset().y != 0)
             {
                 float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
-                logger->log("Antialiazing: %f", current);
+                info_log("Antialiazing: %f", current);
                 texture.anisotropic_filtering(current);
             }
 
@@ -405,6 +405,6 @@ namespace Engine
         return 0;
     }
 
-    REGISTER_CLASS(GameInit, Engine::CommandLet);
+    register_class(GameInit, Engine::CommandLet);
 
 }// namespace Engine

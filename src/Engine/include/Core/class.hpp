@@ -45,7 +45,7 @@ namespace Engine
         size_t instance_size() const;
 
         template<typename InstanceClass = void, typename BaseClass = void, typename... Args>
-        static Class* register_class(const String& class_name, Args... args)
+        static Class* register_new_class(const String& class_name, Args... args)
         {
             Class* class_instance = find_class(class_name);
             if (class_instance == nullptr)

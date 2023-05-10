@@ -44,7 +44,7 @@ namespace Engine
         {
             time = new_time;
             window.title(std::to_string(average_fps.average()));
-            //  logger->log("FPS: %lf", average_fps.average());
+            //  info_log("FPS: %lf", average_fps.average());
             average_fps.reset();
         }
 
@@ -59,7 +59,7 @@ namespace Engine
 
     GameApplication::~GameApplication()
     {
-        //logger->log("Max FPS: %f", _M_max_fps);
+        //info_log("Max FPS: %f", _M_max_fps);
     }
 }// namespace Engine
 
@@ -76,6 +76,6 @@ try
 }
 catch (const std::exception& e)
 {
-    Engine::logger->log("%s\n", e.what());
+    Engine::info_log("%s\n", e.what());
     return 1;
 }

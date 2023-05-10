@@ -24,7 +24,7 @@ namespace Engine
         return *this;
     }
 
-    REGISTER_CLASS(Engine::Camera, Engine::Object);
+    register_class(Engine::Camera, Engine::Object);
     Camera::Camera(glm::vec3 position, float viewing_angle)
     {
         _M_viewingAngle = viewing_angle;

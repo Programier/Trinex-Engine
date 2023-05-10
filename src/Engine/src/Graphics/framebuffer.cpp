@@ -6,7 +6,7 @@
 namespace Engine
 {
 
-    REGISTER_CLASS(Engine::FrameBuffer, Engine::BasicFrameBuffer);
+    register_class(Engine::FrameBuffer, Engine::BasicFrameBuffer);
 
     FrameBuffer::FrameBuffer()
     {}

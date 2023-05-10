@@ -15,7 +15,7 @@ namespace Engine
         ArrayIndex offset;
     };
 
-    REGISTER_CLASS(Engine::Package, Engine::Object);
+    register_class(Engine::Package, Engine::Object);
     Package::Package()
     {}
 

@@ -16,6 +16,7 @@ namespace Engine
             MAKE_MAP(ConfigStringValue, resources_dir),
             MAKE_MAP(ConfigStringValue, api),
             MAKE_MAP(ConfigStringValue, base_commandlet),
+            MAKE_MAP(ConfigStringValue, lua_scripts_dir),
     };
 
     static const Map<String, ArrayOffset> boolean_map = {

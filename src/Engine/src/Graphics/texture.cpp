@@ -12,7 +12,7 @@ using namespace Engine;
 Texture::Texture()
 {}
 
-REGISTER_CLASS(Engine::Texture, Engine::ApiObject);
+register_class(Engine::Texture, Engine::ApiObject);
 
 
 Texture& Texture::create()
@@ -299,7 +299,7 @@ bool Texture::serialize(BufferWriter* writer)
 
     if (_M_resources == nullptr)
     {
-        logger->log("Texture: Cannot serialize texture '%s'. Texture resources is nullptr", full_name().c_str());
+        info_log("Texture: Cannot serialize texture '%s'. Texture resources is nullptr", full_name().c_str());
         return false;
     }
     return _M_resources->serialize(writer);

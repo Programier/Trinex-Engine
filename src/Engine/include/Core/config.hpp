@@ -9,6 +9,7 @@ namespace Engine
         String resources_dir;
         String api;
         String base_commandlet;
+        String lua_scripts_dir;
         ConfigStringValue& init(class TextFileReader* reader);
     };
 

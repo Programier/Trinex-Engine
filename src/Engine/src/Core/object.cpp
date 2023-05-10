@@ -20,7 +20,7 @@ namespace Engine
 
     template<>
     const Class* const ClassMetaData<Engine::Object>::class_instance =
-            Class::register_class<Engine::Object, void>("Engine::Object");
+            Class::register_new_class<Engine::Object, void>("Engine::Object");
 
     static ObjectSet& get_instance_list()
     {
@@ -473,7 +473,7 @@ namespace Engine
         if (!shutdown)
             return;
 
-        logger->log("Engine: Triggered garbage collector!\n");
+        info_log("Engine: Triggered garbage collector!\n");
 
         Object::collect_garbage();
         while (!get_instance_list().empty())

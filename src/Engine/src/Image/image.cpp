@@ -111,7 +111,7 @@ namespace Engine
             return *this;
         if (_M_channels != 4)
         {
-            logger->log("Image: Cannot remove alpha channel\n");
+            info_log("Image: Cannot remove alpha channel\n");
             return *this;
         }
 
@@ -137,7 +137,7 @@ namespace Engine
             return *this;
         if (_M_channels != 3)
         {
-            logger->log("Image: Cannot add alpha channel\n");
+            info_log("Image: Cannot add alpha channel\n");
             return *this;
         }
 

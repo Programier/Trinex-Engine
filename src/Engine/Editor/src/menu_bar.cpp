@@ -42,7 +42,7 @@ namespace Editor
                     }
                     catch (const std::exception& e)
                     {
-                        Engine::logger->log("%s\n", e.what());
+                        Engine::info_log("%s\n", e.what());
                     }
                 }
 

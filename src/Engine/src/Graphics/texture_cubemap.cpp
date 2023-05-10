@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    REGISTER_CLASS(Engine::TextureCubeMap, Engine::Texture);
+    register_class(Engine::TextureCubeMap, Engine::Texture);
     TextureCubeMap::TextureCubeMap()
     {
         _M_type = TextureType::TextureCubeMap;

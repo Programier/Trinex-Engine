@@ -71,7 +71,7 @@ namespace Engine
 #ifdef THROW_ON_NULL_FUNC
             throw std::runtime_error(Strings::to_string(Strings::format(L"Null function: {}", name())));
 #else
-            logger->log("No function found: %ls\n", name().c_str());
+            info_log("No function found: %ls\n", name().c_str());
             static typename std::remove_reference<ReturnType>::type result;
             return result;
 #endif

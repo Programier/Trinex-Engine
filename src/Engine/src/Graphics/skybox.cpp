@@ -11,7 +11,7 @@ static void init_mesh()
 
 namespace Engine
 {
-    REGISTER_CLASS(Engine::Skybox, Engine::TextureCubeMap);
+    register_class(Engine::Skybox, Engine::TextureCubeMap);
     Skybox::Skybox()
     {}
 
@@ -27,7 +27,7 @@ namespace Engine
 
         if (img.empty())
         {
-            logger->log("Skybox: Failed to load skybox\n");
+            info_log("Skybox: Failed to load skybox\n");
             return *this;
         }
 

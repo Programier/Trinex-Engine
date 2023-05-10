@@ -43,6 +43,6 @@ try
 }
 catch (const std::exception& e)
 {
-    Engine::logger->log(e.what());
+    Engine::info_log(e.what());
     return 1;
 }

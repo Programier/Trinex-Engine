@@ -6,10 +6,10 @@ namespace Engine
 {
     int CommandLet::execute(int argc, char** argv)
     {
-        logger->log(
+        info_log(
                 "CommandLet: You must override method 'int execute(int argc, char** argv)' for usin your commandlet!");
         return 0;
     }
 
-    REGISTER_CLASS(Engine::CommandLet, Engine::Object);
+    register_class(Engine::CommandLet, Engine::Object);
 }// namespace Engine
