@@ -28,6 +28,10 @@ set(BUILD_SHARED_LIBS off)
 add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/freetype/" EXCLUDE_FROM_ALL)
 set_target_properties(freetype PROPERTIES COMPILE_OPTIONS "-fPIC")
 
+# Compile LuaJIT
+
+add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/LuaJIT/")
+
 
 # Compile SDL2 library
 set(BUILD_SHARED_LIBS on)
