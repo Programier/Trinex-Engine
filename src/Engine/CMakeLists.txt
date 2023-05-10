@@ -111,4 +111,4 @@ add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include/ImGui>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/>")
-target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static ${PlatformLibs})
+target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static liblua-static ${PlatformLibs})
