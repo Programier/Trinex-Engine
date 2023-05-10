@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../../../../GameLinux/libSDL2main.a CMakeFiles/SDL2main.dir/src/main/dummy/SDL_dummy_main.c.o
-/usr/bin/ranlib ../../../../GameLinux/libSDL2main.a
