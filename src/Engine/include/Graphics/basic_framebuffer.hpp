@@ -1,24 +1,28 @@
 #pragma once
 #include <Core/api_object.hpp>
+#include <Core/buffer_types.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
+#include <Core/render_types.hpp>
 
 
 namespace Engine
 {
-    CLASS BasicFrameBuffer : public ApiObject
+    class ENGINE_EXPORT BasicFrameBuffer : public ApiObject
     {
     protected:
-        FrameBufferType _M_type = FrameBufferType::Framebuffer;
-
-        declare_instance_info_hpp(BasicFrameBuffer);
+        ViewPort _M_viewport;
+        Scissor _M_scissor;
 
     public:
         delete_copy_constructors(BasicFrameBuffer);
-        constructor_hpp(BasicFrameBuffer);
-        const BasicFrameBuffer& clear_buffer(const BufferType& type = 3) const;
-        const BasicFrameBuffer& bind() const;
-        const BasicFrameBuffer& view_port(const Point2D& pos, const Size2D& size) const;
-        FrameBufferType type() const;
+        BasicFrameBuffer();
+        const BasicFrameBuffer& bind(size_t buffer_index = 0) const;
+        const BasicFrameBuffer& view_port(const ViewPort& viewport);
+        const BasicFrameBuffer& scissor(const Scissor& scissor);
+        const ViewPort& viewport();
+        const Scissor& scissor();
+        const BasicFrameBuffer& clear_color(const ColorClearValue& color, byte layout = 0) const;
+        const BasicFrameBuffer& clear_depth_stencil(const DepthStencilClearValue& value) const;
     };
 }// namespace Engine

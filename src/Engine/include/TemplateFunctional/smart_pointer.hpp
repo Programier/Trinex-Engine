@@ -1,5 +1,5 @@
 #pragma once
-#include <unordered_map>
+
 #include <stdexcept>
 #include <memory>
 
@@ -37,7 +37,7 @@ namespace Engine
 //    private:
 //        BasicType* _M_data = nullptr;
 //        bool _M_delete = true;
-//        static std::unordered_map<BasicType*, std::size_t> _M_references;
+//        static Map<BasicType*, std::size_t> _M_references;
 
 //        SmartPointer& change_references(const bool& increment = true)
 //        {
@@ -151,7 +151,7 @@ namespace Engine
 //    };
 
 //    template<typename BasicType, SmartPointerType DeleteType>
-//    std::unordered_map<BasicType*, std::size_t> SmartPointer<BasicType, DeleteType>::_M_references;
+//    Map<BasicType*, std::size_t> SmartPointer<BasicType, DeleteType>::_M_references;
 
 
 //    template<typename Type>

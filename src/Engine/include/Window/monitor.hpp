@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    STRUCT DPI
+    struct ENGINE_EXPORT DPI
     {
         float ddpi;
         float hdpi;
@@ -14,12 +14,9 @@ namespace Engine
     namespace Monitor
     {
         ENGINE_EXPORT void* monitor();
-        ENGINE_EXPORT int red_bits();
-        ENGINE_EXPORT int green_bits();
-        ENGINE_EXPORT int blue_bits();
         ENGINE_EXPORT Size1D height();
         ENGINE_EXPORT Size1D width();
-        ENGINE_EXPORT int refresh_rate();
+        ENGINE_EXPORT int_t refresh_rate();
         ENGINE_EXPORT Size2D size();
         ENGINE_EXPORT void update();
         ENGINE_EXPORT const DPI& dpi();

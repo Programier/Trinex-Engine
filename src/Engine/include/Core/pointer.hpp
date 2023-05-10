@@ -6,7 +6,7 @@ namespace Engine
 {
     class Object;
 
-    ENGINE_EXPORT class PointerBase
+    class ENGINE_EXPORT PointerBase
     {
     protected:
         PointerBase& add_reference(Object* object);

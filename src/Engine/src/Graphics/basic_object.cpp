@@ -5,20 +5,12 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <numeric>
 
-#define TRANSLATE_INDEX 0
-#define ROTATE_INDEX 0
-#define SCALE_INDEX 0
-
-
-#define get_model(index) _M_models[index].is_null() ? Constants::identity_matrix : _M_models[index].get();
-
-#define NEW_VARIANT 1
 
 namespace Engine
 {
 
-    declare_instance_info_cpp(ModelMatrix);
-    constructor_cpp(ModelMatrix)
+    //register_class_cpp(ModelMatrix);
+    ModelMatrix::ModelMatrix()
     {}
 
     const Matrix4f& ModelMatrix::model() const
@@ -43,7 +35,7 @@ namespace Engine
     {
         Quaternion tmp(_M_euler_angles);
         _M_front = glm::normalize(tmp * Constants::OZ);
-        _M_up = glm::normalize(tmp * Constants::OY);
+        _M_up    = glm::normalize(tmp * Constants::OY);
         _M_right = glm::normalize(tmp * Constants::OX);
         return *this;
     }
@@ -62,8 +54,8 @@ namespace Engine
 
     //      TRANSLATE
 
-    declare_instance_info_cpp(Translate);
-    constructor_cpp(Translate)
+    ////register_class_cpp(Translate);
+    Translate::Translate()
     {}
 
     const Point3D& Translate::position() const
@@ -102,7 +94,7 @@ namespace Engine
         }
         else
         {
-            _M_model = glm::translate(_M_model, -_M_position + result_move);
+            _M_model    = glm::translate(_M_model, -_M_position + result_move);
             _M_position = move_vector;
         }
 
@@ -120,8 +112,8 @@ namespace Engine
 
     //          SCALE
 
-    declare_instance_info_cpp(Scale);
-    constructor_cpp(Scale)
+    //register_class_cpp(Scale);
+    Scale::Scale()
     {}
 
 
@@ -186,13 +178,13 @@ namespace Engine
             _M_quaternion = q * quat;
         else
         {
-            quat.w = -quat.w;
+            quat.w   = -quat.w;
             _M_model = _M_model * glm::mat4_cast(quat);
-            quat = q;
+            quat     = q;
         }
 
-        _M_quaternion = glm::normalize(_M_quaternion);
-        _M_model = _M_model * glm::mat4_cast(glm::normalize(q));
+        _M_quaternion   = glm::normalize(_M_quaternion);
+        _M_model        = _M_model * glm::mat4_cast(glm::normalize(q));
         _M_euler_angles = glm::eulerAngles(quat);
 
         update_vectors();
@@ -242,9 +234,9 @@ namespace Engine
 
     // Destructors
     ModelMatrix::~ModelMatrix() = default;
-    Translate::~Translate() = default;
-    Rotate::~Rotate() = default;
-    Scale::~Scale() = default;
+    Translate::~Translate()     = default;
+    Rotate::~Rotate()           = default;
+    Scale::~Scale()             = default;
 
 
 }// namespace Engine

@@ -1,6 +1,6 @@
 #pragma once
 
-
+#ifndef ENGINE_EXPORT
 #ifdef _WIN32
     #if defined( ENABLE_ENGINE_EXPORTS )
         #define ENGINE_EXPORT __declspec(dllexport)
@@ -10,6 +10,4 @@
 #else
     #define ENGINE_EXPORT
 #endif // _WIN32
-
-#define CLASS class ENGINE_EXPORT
-#define STRUCT struct ENGINE_EXPORT
+#endif

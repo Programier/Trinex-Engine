@@ -1,105 +1,110 @@
-set(BUILD_SHARED_LIBS off)
+cmake_minimum_required(VERSION 3.5)
+project(TrinexEngine LANGUAGES CXX)
 
-project(GameEngine LANGUAGES CXX)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(flags)
+
+
 add_definitions(-DENABLE_ENGINE_EXPORTS)
+add_definitions(-DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_definitions(-DENGINE_DEBUG)
+    add_definitions(-DTRINEX_ENGINE_DEBUG)
 endif()
 
 add_definitions(-DENGINE_API_IMPLEMENTATION)
 
 #Compile parameters
-set(ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
-set(ENGINE_SRC "${ENGINE_ROOT}/src")
+set(TRINEX_ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(TRINEX_ENGINE_SRC "${TRINEX_ENGINE_ROOT}/src")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-add_subdirectory("${ENGINE_ROOT}/libs/freetype/" EXCLUDE_FROM_ALL)
+# Compile freetype library
+set(BUILD_SHARED_LIBS off)
+add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/freetype/" EXCLUDE_FROM_ALL)
 set_target_properties(freetype PROPERTIES COMPILE_OPTIONS "-fPIC")
 
-#SDL
+
+# Compile SDL2 library
 set(BUILD_SHARED_LIBS on)
 set(SDL_SHARED on)
-set(SDL_DIR "${ENGINE_ROOT}/libs/SDL")
+set(SDL_DIR "${TRINEX_ENGINE_ROOT}/libs/SDL")
 add_subdirectory(${SDL_DIR} EXCLUDE_FROM_ALL)
 include_directories("${SDL_DIR}/include")
+
+# Compile LZ4 library
 set(BUILD_SHARED_LIBS off)
+add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/lz4/build/cmake/")
 
-#Assimp
-#set(ENGINE_BUILD_ASSIMP on)
+# Include Trinex Engine headers directories
+include_directories("${TRINEX_ENGINE_ROOT}/include/")
+include_directories("${TRINEX_ENGINE_ROOT}/include-internal/")
 
-if(ENGINE_BUILD_ASSIMP)
-    add_subdirectory("${ENGINE_ROOT}/libs/assimp" EXCLUDE_FROM_ALL)
-    set(ASSIMP_LIB assimp)
-else()
-    CONFIGURE_FILE(
-      ${CMAKE_CURRENT_LIST_DIR}/libs/assimp/include/assimp/config.h.in
-      ${CMAKE_CURRENT_BINARY_DIR}/libs/assimp/include/assimp/config.h
-    )
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/libs/assimp/include/")
-endif()
-
-include_directories("${ENGINE_ROOT}/libs/assimp/include/")
-include_directories("${ENGINE_SRC}/EngineHeaders/")
-
-
-set(WINDOW_DIR "${ENGINE_SRC}/Window/")
-set(EVENT_DIR "${ENGINE_SRC}/Event/")
-set(IMAGE_DIR "${ENGINE_SRC}/Image/")
-set(GRAPHICS_DIR "${ENGINE_SRC}/Graphics/")
-set(PHYSICS_DIR "${ENGINE_SRC}/Physics/")
-set(CORE_DIR "${ENGINE_SRC}/Core/")
-set(NET_DIR "${ENGINE_SRC}/net/")
-set(LIB_LOADER_DIR "${ENGINE_SRC}/LibLoader/")
-set(IMGUI_DIR "${ENGINE_SRC}/ImGui/")
-set(SENSORS_DIR "${ENGINE_SRC}/Sensors/")
+# Set source directories
+set(TRINEX_WINDOW_DIR "${TRINEX_ENGINE_SRC}/Window/")
+set(TRINEX_EVENT_DIR "${TRINEX_ENGINE_SRC}/Event/")
+set(TRINEX_IMAGE_DIR "${TRINEX_ENGINE_SRC}/Image/")
+set(TRINEX_GRAPHICS_DIR "${TRINEX_ENGINE_SRC}/Graphics/")
+set(TRINEX_PHYSICS_DIR "${TRINEX_ENGINE_SRC}/Physics/")
+set(TRINEX_CORE_DIR "${TRINEX_ENGINE_SRC}/Core/")
+set(TRINEX_NET_DIR "${TRINEX_ENGINE_SRC}/net/")
+set(TRINEX_LIB_LOADER_DIR "${TRINEX_ENGINE_SRC}/LibLoader/")
+set(TRINEX_IMGUI_DIR "${TRINEX_ENGINE_SRC}/ImGui/")
+set(TRINEX_SENSORS_DIR "${TRINEX_ENGINE_SRC}/Sensors/")
+set(TRINEX_COMMANDLETS_DIR "${TRINEX_ENGINE_SRC}/CommandLets/")
 
 # Find sources
 
-file(GLOB WINDOW_SRC "${WINDOW_DIR}*.cpp")
-file(GLOB IMAGE_SRC "${IMAGE_DIR}*.cpp")
-file(GLOB GRAPHICS_SRC "${GRAPHICS_DIR}*.cpp")
-file(GLOB PHYSICS_SRC "${PHYSICS_DIR}*.cpp")
-file(GLOB CORE_SRC "${CORE_DIR}*.cpp")
-file(GLOB NET_SRC "${NET_DIR}*.cpp")
-file(GLOB LIB_LOADER_SRC "${LIB_LOADER_DIR}*.cpp")
-file(GLOB IMGUI_SRC "${IMGUI_DIR}*.cpp")
-file(GLOB EVENT_SRC "${EVENT_DIR}*.cpp")
-file(GLOB SENSORS_SRC "${SENSORS_DIR}*.cpp")
+file(GLOB TRINEX_WINDOW_SRC "${TRINEX_WINDOW_DIR}*.cpp")
+file(GLOB TRINEX_IMAGE_SRC "${TRINEX_IMAGE_DIR}*.cpp")
+file(GLOB TRINEX_GRAPHICS_SRC "${TRINEX_GRAPHICS_DIR}*.cpp")
+file(GLOB TRINEX_PHYSICS_SRC "${TRINEX_PHYSICS_DIR}*.cpp")
+file(GLOB TRINEX_CORE_SRC "${TRINEX_CORE_DIR}*.cpp")
+file(GLOB TRINEX_NET_SRC "${TRINEX_NET_DIR}*.cpp")
+file(GLOB TRINEX_LIB_LOADER_SRC "${TRINEX_LIB_LOADER_DIR}*.cpp")
+file(GLOB TRINEX_IMGUI_SRC "${TRINEX_IMGUI_DIR}*.cpp")
+file(GLOB TRINEX_EVENT_SRC "${TRINEX_EVENT_DIR}*.cpp")
+file(GLOB TRINEX_SENSORS_SRC "${TRINEX_SENSORS_DIR}*.cpp")
+file(GLOB TRINEX_COMMANDLETS_SRC "${TRINEX_COMMANDLETS_DIR}*.cpp")
 
-set(ENGINE_SOURCE_FILES  ${WINDOW_SRC}
-            ${IMAGE_SRC}
-            ${GRAPHICS_SRC}
-            ${PHYSICS_SRC}
-            ${CORE_SRC}
-            #[[${NET_SRC}]]
-            ${LIB_LOADER_SRC}
-            ${IMGUI_SRC}
-            ${EVENT_SRC}
-            ${SENSORS_SRC})
-
+# Write all source files to one variable
+set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_WINDOW_SRC}
+                        ${TRINEX_IMAGE_SRC}
+                        ${TRINEX_GRAPHICS_SRC}
+                        ${TRINEX_PHYSICS_SRC}
+                        ${TRINEX_CORE_SRC}
+                        ${TRINEX_LIB_LOADER_SRC}
+                        ${TRINEX_IMGUI_SRC}
+                        ${TRINEX_EVENT_SRC}
+                        ${TRINEX_SENSORS_SRC}
+                        ${TRINEX_COMMANDLETS_SRC})
 
 
 # Include private headers for imgui
-include_directories(${ENGINE_SRC}/EngineHeaders/ImGui-Private/)
+include_directories(${TRINEX_ENGINE_ROOT}/include-internal/ImGui-Private/)
 
+# Include additional lib directory and include dir if build system is Windows OS
 if (WIN32)
-    include_directories("${ENGINE_ROOT}/libs/include/")
-    link_directories("${ENGINE_ROOT}/libs/")
+    link_directories("${TRINEX_ENGINE_ROOT}/libs/")
 endif()
 
-add_subdirectory("${ENGINE_SRC}/OpenGL")
-add_subdirectory("${ENGINE_SRC}/Vulkan")
+# Compile OpenGL library
+add_subdirectory("${TRINEX_ENGINE_SRC}/OpenGL")
 
-set(BUILD_SHARED_LIBS on)
+# Compile Vulkan library (Windows OS currently not supported)
 
-add_library(Engine SHARED ${ENGINE_SOURCE_FILES})
-target_include_directories(Engine PUBLIC "$<BUILD_INTERFACE:${ENGINE_ROOT}/include>"
-                                         "$<BUILD_INTERFACE:${ENGINE_ROOT}/include/ImGui>")
+add_subdirectory("${TRINEX_ENGINE_SRC}/Vulkan")
 
 
+# Compile Trinex Engine library
+add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 
-target_link_libraries(Engine PRIVATE SDL2 ${ASSIMP_LIB} freetype ${PlatformLibs})
-#add_subdirectory(Editor)
+# Linking libraries and including directories
+target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>"
+                                         "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include/ImGui>"
+                                         "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/>")
+target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static ${PlatformLibs})

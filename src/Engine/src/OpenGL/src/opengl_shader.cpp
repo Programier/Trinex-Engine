@@ -1,73 +1,44 @@
 #include <algorithm>
-#include <glm/gtc/type_ptr.hpp>
 #include <opengl_api.hpp>
-#include <opengl_headers.hpp>
+#include <opengl_shader.hpp>
 #include <opengl_types.hpp>
-#include <stdexcept>
-#include <unordered_set>
 
-#define delete_program(id)                                                                                             \
-    if ((id) != 0)                                                                                                     \
-    glDeleteProgram(id)
-#define delete_shader(id)                                                                                              \
-    if ((id) != 0)                                                                                                     \
-    glDeleteShader(id)
 
-#define VERTEXT_ID 0
-#define FRAGMENT_ID 1
-#define COMPUTE_ID 2
-#define GEOMENTRY_ID 3
+#define DESTROY_CALL(func, id)                                                                                         \
+    if (id)                                                                                                            \
+    func(id)
+
 
 namespace Engine
 {
 
-    struct OpenGL_Shader : public OpenGL_Object {
-    public:
-        bool _M_inided = false;
-        GLuint _M_shaders_types_id[4] = {0, 0, 0, 0};
-        GLuint _M_VAO = 0;
-        ShaderParams _M_params;
+    implement_opengl_instance_cpp(OpenGL_Shader);
 
-        OpenGL_Shader()
-        {}
-
-        ~OpenGL_Shader()
-        {
-            glDeleteVertexArrays(1, &_M_VAO);
-
-            delete_program(_M_instance_id);
-            for (auto id : _M_shaders_types_id)
-            {
-                delete_shader(id);
-            }
-        }
-    };
-
-    const std::vector<FileBuffer>& get_code(const ShaderParams& params, int index)
+    static std::string shader_type_name(GLenum type)
     {
-        switch (index)
+        switch (type)
         {
-            case 0:
-                return params.text.vertex;
-            case 1:
-                return params.text.fragment;
-            case 2:
-                return params.text.compute;
-            case 3:
-                return params.text.geometry;
-            default:
-                throw std::runtime_error("Undefined index of shader");
+            case GL_VERTEX_SHADER:
+                return "vertex";
+
+            case GL_FRAGMENT_SHADER:
+                return "fragment";
         }
+
+        return "undefined type";
     }
 
-    static bool compile_shader(const std::vector<FileBuffer>& shader_code, GLuint& ID, int SHADER_TYPE,
-                               const ShaderParams& params, const char* type = "")
+    static GLint compile_shader_module(const Vector<FileBuffer>& shader_code, GLenum type, const String& name)
     {
+        GLint ID = 0;
+
+        if (shader_code.empty())
+            return ID;
+
         static GLchar log[1024];
+        ID = glCreateShader(type);
 
-        ID = glCreateShader(SHADER_TYPE);
-
-        std::vector<const GLchar*> code;
+        Vector<const GLchar*> code;
         code.reserve(shader_code.size());
 
         for (auto& buffer : shader_code)
@@ -86,116 +57,267 @@ namespace Engine
         if (!succes)
         {
             glGetShaderInfoLog(ID, 1024, nullptr, log);
-            opengl_debug_log("Failed to compile %s shader '%s'\n\n%s\n", type, params.name.c_str(), log);
+            opengl_debug_log("Failed to compile %s shader '%s'\n\n%s\n", shader_type_name(type).c_str(), name.c_str(),
+                             log);
             glDeleteShader(ID);
             ID = 0;
-            return false;
         }
 
-        return true;
+        return ID;
     }
 
-    static bool link_shader(OpenGL_Shader* shader, const ShaderParams& params)
+
+    OpenGL_Shader::~OpenGL_Shader()
     {
+        DESTROY_CALL(glDeleteShader, _M_vertex);
+        DESTROY_CALL(glDeleteShader, _M_fragment);
+        DESTROY_CALL(glDeleteProgram, _M_instance_id);
+    }
+
+    template<typename... Args>
+    static void attach_shader(GLint instance, Args... args)
+    {
+        for (auto& ell : {args...})
+        {
+            glAttachShader(instance, static_cast<GLuint>(ell));
+        }
+    }
+
+#define new_shader_command(...) shader->_M_command_buffer.next(new OpenGL_Command(__VA_ARGS__))
+
+    static void create_command_buffer(OpenGL_Shader* shader, PipelineState* state, const String& shader_name)
+    {
+        // Depth test
+        if (state->depth_test.enable)
+        {
+            new_shader_command(glEnable, static_cast<GLenum>(GL_DEPTH_TEST));
+            new_shader_command(glDepthMask, state->depth_test.write_enable);
+            new_shader_command(glDepthFunc, get_type(state->depth_test.func));
+        }
+        else
+            new_shader_command(glDisable, static_cast<GLenum>(GL_DEPTH_TEST));
+
+        // Stencil test
+        if (state->stencil_test.enable)
+        {
+            new_shader_command(glEnable, static_cast<GLenum>(GL_STENCIL_TEST));
+
+            static GLenum faces[2]                                   = {GL_FRONT, GL_BACK};
+            PipelineState::StencilTestInfo::FaceInfo* state_faces[2] = {&state->stencil_test.front,
+                                                                        &state->stencil_test.back};
+
+            for (int i = 0; i < 2; i++)
+            {
+                GLenum sfail  = static_cast<GLenum>(get_type(state_faces[i]->fail));
+                GLenum dpfail = static_cast<GLenum>(get_type(state_faces[i]->depth_fail));
+                GLenum dppass = static_cast<GLenum>(get_type(state_faces[i]->depth_pass));
+
+                shader->_M_command_buffer.next(
+                        new OpenGL_Command(glStencilOpSeparate, faces[i], sfail, dpfail, dppass));
+
+
+                new_shader_command(glStencilMaskSeparate, faces[i], static_cast<GLuint>(state_faces[i]->write_mask));
+
+                new_shader_command(glStencilFuncSeparate, faces[i],
+                                   static_cast<GLenum>(get_type(state_faces[i]->compare)),
+                                   static_cast<GLint>(state_faces[i]->reference),
+                                   static_cast<GLuint>(state_faces[i]->compare_mask));
+            }
+        }
+        else
+            new_shader_command(glDisable, static_cast<GLenum>(GL_STENCIL_TEST));
+
+        // Input assembly
+        if (state->input_assembly.primitive_restart_enable)
+            new_shader_command(glEnable, static_cast<GLenum>(GL_PRIMITIVE_RESTART_FIXED_INDEX));
+        else
+            new_shader_command(glDisable, static_cast<GLenum>(GL_PRIMITIVE_RESTART_FIXED_INDEX));
+
+        shader->_M_topology = static_cast<GLenum>(get_type(state->input_assembly.primitive_topology));
+
+        // Rasterizer settings
+
+        if (state->rasterizer.depth_clamp_enable)
+        {
+            new_shader_command(glEnable, static_cast<GLenum>(GL_DEPTH_CLAMP_EXT));
+        }
+        else
+        {
+            new_shader_command(glDisable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
+        }
+
+        if (state->rasterizer.depth_bias_enable)
+        {
+            new_shader_command(glEnable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
+            new_shader_command(glPolygonOffset, state->rasterizer.depth_bias_const_factor,
+                               state->rasterizer.depth_bias_slope_factor);
+        }
+        else
+        {
+            new_shader_command(glDisable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
+        }
+
+        if (state->rasterizer.poligon_mode != PolygonMode::Fill)
+        {
+            opengl_error("OpenGL: OpenGL support only PolygonMode::Fill");
+        }
+
+        new_shader_command(
+                glFrontFace,
+                static_cast<GLenum>(state->rasterizer.front_face == FrontFace::CounterClockWise ? GL_CCW : GL_CW));
+
+        if (state->rasterizer.cull_mode != CullMode::None)
+        {
+            new_shader_command(glDisable, static_cast<GLenum>(GL_CULL_FACE));
+            GLenum cull_mode = get_type(state->rasterizer.cull_mode);
+            new_shader_command(glCullFace, cull_mode);
+        }
+        else
+        {
+            new_shader_command(glDisable, static_cast<GLenum>(GL_CULL_FACE));
+        }
+        new_shader_command(glLineWidth, state->rasterizer.line_width);
+
+
+        // Blending
+        if (state->color_blending.logic_op_enable)
+        {
+            opengl_error("OpenGL: Logic op is not supported");
+        }
+
+        new_shader_command(glBlendColor, state->color_blending.blend_constants.vector.r,
+                           state->color_blending.blend_constants.vector.g,
+                           state->color_blending.blend_constants.vector.b,
+                           state->color_blending.blend_constants.vector.a);
+
+
+        GLuint size = static_cast<GLuint>(state->color_blending.blend_attachment.size());
+
+        for (GLuint i = 0; i < size; i++)
+        {
+            auto& attachment = state->color_blending.blend_attachment[i];
+            if (attachment.enable)
+            {
+                new_shader_command(glEnablei, static_cast<GLenum>(GL_BLEND), i);
+                GLenum src_color_func = static_cast<GLenum>(get_type(attachment.src_color_func));
+                GLenum dst_color_func = static_cast<GLenum>(get_type(attachment.dst_color_func));
+                GLenum src_alpha_func = static_cast<GLenum>(get_type(attachment.src_alpha_func));
+                GLenum dst_alpha_func = static_cast<GLenum>(get_type(attachment.dst_alpha_func));
+                GLenum color_op       = static_cast<GLenum>(get_type(attachment.color_op));
+                GLenum alpha_op       = static_cast<GLenum>(get_type(attachment.alpha_op));
+
+                new_shader_command(glBlendFuncSeparatei, i, src_color_func, dst_color_func, src_alpha_func,
+                                   dst_alpha_func);
+
+                new_shader_command(glBlendEquationSeparatei, i, color_op, alpha_op);
+
+                GLboolean r_mask = (attachment.color_mask & ColorComponent::R) == ColorComponent::R;
+                GLboolean g_mask = (attachment.color_mask & ColorComponent::G) == ColorComponent::G;
+                GLboolean b_mask = (attachment.color_mask & ColorComponent::B) == ColorComponent::B;
+                GLboolean a_mask = (attachment.color_mask & ColorComponent::A) == ColorComponent::A;
+
+                new_shader_command(glColorMaski, i, r_mask, g_mask, b_mask, a_mask);
+            }
+            else
+                new_shader_command(glDisablei, static_cast<GLenum>(GL_BLEND), static_cast<GLuint>(i));
+        }
+
+        opengl_debug_log("OpenGL: Shader '%s' has command buffer with %zu commands", shader_name.data(),
+                         shader->_M_command_buffer.length());
+    }
+
+    OpenGL& OpenGL::create_shader(Identifier& ID, const PipelineCreateInfo& info)
+    {
+        OpenGL_Shader* shader = new OpenGL_Shader();
+        ID                    = 0;
+
+        if ((shader->_M_vertex = compile_shader_module(info.text.vertex, GL_VERTEX_SHADER, info.name)) == 0)
+        {
+            delete shader;
+            shader = nullptr;
+        }
+
+        if (!shader ||
+            (shader->_M_fragment = compile_shader_module(info.text.fragment, GL_FRAGMENT_SHADER, info.name)) == 0)
+        {
+            delete shader;
+            shader = nullptr;
+        }
+
+        if (shader == nullptr)
+            return *this;
+
         static GLchar log[1024];
         shader->_M_instance_id = glCreateProgram();
-        for (auto& ell : shader->_M_shaders_types_id) glAttachShader(shader->_M_instance_id, ell);
-
+        attach_shader(shader->_M_instance_id, shader->_M_vertex, shader->_M_fragment);
         glLinkProgram(shader->_M_instance_id);
+
         GLint succes;
         glGetProgramiv(shader->_M_instance_id, GL_LINK_STATUS, &succes);
         if (!succes)
         {
             glGetProgramInfoLog(shader->_M_instance_id, 1024, nullptr, log);
-            opengl_debug_log("Shader: Failed to link shader program '%s'\n\n%s\n", params.name.c_str(), log);
-            return false;
+            opengl_debug_log("Shader: Failed to link shader program '%s'\n\n%s\n", info.name.c_str(), log);
+            delete shader;
         }
 
-        return true;
+        if (shader)
+        {
+            ID = shader->ID();
+
+            shader->_M_attributes = info.vertex_info.attributes;
+            std::sort(shader->_M_attributes.begin(), shader->_M_attributes.end(),
+                      [](VertexAtribute a, VertexAtribute b) -> bool { return a.offset < b.offset; });
+            shader->_M_vertex_size = static_cast<uint_t>(info.vertex_info.size);
+
+            for (auto& ubo : info.uniform_buffers)
+            {
+                GLuint uniform_block_index = glGetUniformBlockIndex(shader->_M_instance_id, ubo.name.c_str());
+                shader->_M_block_indices.insert({ubo.binding, uniform_block_index});
+            }
+
+            create_command_buffer(shader, info.state, info.name);
+        }
+        return *this;
     }
 
-
-    static void create_vao(OpenGL_Shader* shader, const ShaderParams& info)
-    {
-        glGenVertexArrays(1, &shader->_M_VAO);
-        glBindVertexArray(0);
-    }
-
-    OpenGL& OpenGL::create_shader(ObjID& ID, const ShaderParams& params)
+    OpenGL& OpenGL::use_shader(const Identifier& ID)
     {
         if (ID)
-            destroy_object(ID);
-        auto shader = new OpenGL_Shader();
-        shader->_M_params = params;
-
-        ID = get_object_id(shader);
-
-        static const GLint shader_types[4] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_COMPUTE_SHADER,
-                                              GL_GEOMETRY_SHADER};
-        static const char* shader_type_names[4] = {"vertex", "fragment", "compute", "geometry"};
-
-        for (int i = 0; i < 4; i++)
         {
-            const std::vector<FileBuffer>& buffer = get_code(params, i);
-            if (buffer.empty())
-            {
-                continue;
-            }
-
-            if (!compile_shader(buffer, shader->_M_shaders_types_id[i], shader_types[i], params, shader_type_names[i]))
-            {
-                destroy_object(ID);
-                return *this;
-            }
+            _M_current_shader = GET_TYPE(OpenGL_Shader, ID);
+            glUseProgram(_M_current_shader->_M_instance_id);
+            _M_current_shader->_M_command_buffer.apply();
         }
+        else
+            glUseProgram(0);
 
-        if (!link_shader(shader, params))
-        {
-            destroy_object(ID);
-        }
-
-        create_vao(shader, params);
         return *this;
     }
 
-    OpenGL& OpenGL::use_shader(const ObjID& ID)
-    {
-        check(ID, *this);
-        _M_current_shader = obj->get_instance_by_type<OpenGL_Shader>();
-        glUseProgram(_M_current_shader->_M_instance_id);
-        glBindVertexArray(_M_current_shader->_M_VAO);
-        return *this;
-    }
 
-    OpenGL& OpenGL::apply_shader_vertex_attributes()
+    OpenGL_Shader& OpenGL_Shader::apply_vertex_attributes(ArrayOffset base_offset)
     {
-        // Setting attributes values
         int index = 0;
-        if (!_M_current_shader)
-            return *this;
 
-        auto it = std::max_element(_M_current_shader->_M_params.vertex_info.attributes.begin(),
-                                   _M_current_shader->_M_params.vertex_info.attributes.end(),
-                                   [](VertexAtribute a, VertexAtribute b) -> bool { return a.offset < b.offset; });
-
-        unsigned int size = (*it).offset + (*it).type.size;
-
-        static const std::unordered_set<GLuint> _M_attrib_types = {
+        static const Set<GLuint> _M_attrib_types = {
                 GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FLOAT,
         };
 
-        for (const auto& value : _M_current_shader->_M_params.vertex_info.attributes)
+        for (const auto& value : _M_attributes)
         {
 
             auto type = _M_shader_types.at(value.type.type);
 
-            if (_M_attrib_types.contains(type.second))
+            if (_M_attrib_types.contains(type.type))
             {
-                glVertexAttribPointer(index, type.first, type.second, GL_FALSE, size, (GLvoid*) (value.offset));
+                glVertexAttribPointer(index, type.size, type.type, GL_FALSE, _M_vertex_size,
+                                      (GLvoid*) (value.offset + base_offset));
             }
             else
             {
-                glVertexAttribIPointer(index, type.first, type.second, size, (GLvoid*) (value.offset));
+                glVertexAttribIPointer(index, type.size, type.type, _M_vertex_size,
+                                       (GLvoid*) (value.offset + base_offset));
             }
 
             glEnableVertexAttribArray(index++);
@@ -204,23 +326,5 @@ namespace Engine
         return *this;
     }
 
-
-#define value_declare(type, suffix, func, ...)                                                                         \
-    OpenGL& OpenGL::shader_value(const ObjID& ID, const std::string& name, type value)                                 \
-    {                                                                                                                  \
-        check(ID, *this);                                                                                              \
-        auto shader = obj->get_instance_by_type<OpenGL_Shader>();                                                      \
-        GLuint transformLoc = glGetUniformLocation(shader->_M_instance_id, name.c_str());                              \
-        glUniform##suffix(transformLoc, __VA_ARGS__ __VA_OPT__(, ) func(value));                                       \
-        return *this;                                                                                                  \
-    }
-
-    value_declare(int_t, 1i, );
-    value_declare(float, 1f, );
-    value_declare(const glm::mat3&, Matrix3fv, glm::value_ptr, 1, GL_FALSE);
-    value_declare(const glm::mat4&, Matrix4fv, glm::value_ptr, 1, GL_FALSE);
-    value_declare(const glm::vec2&, 2fv, glm::value_ptr, 1);
-    value_declare(const glm::vec3&, 3fv, glm::value_ptr, 1);
-    value_declare(const glm::vec4&, 4fv, glm::value_ptr, 1);
 
 }// namespace Engine

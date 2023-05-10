@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    STRUCT Plane {
+    struct ENGINE_EXPORT Plane {
         Vector3D normal = Constants::zero_vector;
         float distance = 0.f;
 
@@ -15,7 +15,7 @@ namespace Engine
         float get_signed_distance_to_plan(const Point3D& point) const;
     };
 
-    STRUCT Frustum
+    struct ENGINE_EXPORT Frustum
     {
         Plane top;
         Plane bottom;

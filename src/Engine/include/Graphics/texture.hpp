@@ -1,26 +1,44 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/api_object.hpp>
+#include <Core/engine_types.hpp>
+#include <Core/render_types.hpp>
+#include <Core/texture_types.hpp>
 #include <TemplateFunctional/reference_wrapper.hpp>
+#include <Core/resource.hpp>
 
 namespace Engine
 {
-
-
-    CLASS Texture : public ApiObject
+    struct ENGINE_EXPORT TextureResources : public SerializableObject
     {
-                               declare_instance_info_hpp(Texture);
+        TextureCreateInfo info;
+        Vector<class Image> images;
+
     public:
-        constructor_hpp(Texture);
-        constructor_hpp(Texture, const TextureParams& params);
+        bool serialize(BufferWriter* writer) override;
+        bool deserialize(BufferReader* reader) override;
+        friend class Texture;
+        friend class Object;
+    };
+
+
+    class ENGINE_EXPORT Texture : public Resource<TextureResources, ApiObject>
+    {
+    protected:
+        TextureType _M_type = TextureType::Texture2D;
+        PixelType _M_pixel_type;
+
+
+    public:
+        Texture();
         delete_copy_constructors(Texture);
 
-        Texture& create(const TextureParams& params);
-        const Texture& bind(unsigned int num = 0) const;
-        int base_level() const;
-        Texture& base_level(int level);
-        Texture& depth_stencil_mode(DepthStencilMode mode);
-        DepthStencilMode depth_stencil_mode() const;
+        Texture& create();
+        Identifier internal_id() const;
+        const Texture& bind(TextureBindIndex num = 0) const;
+
+
+        MipMapLevel base_level() const;
+        Texture& base_level(MipMapLevel level);
         CompareFunc compare_func() const;
         Texture& compare_func(CompareFunc func);
         Texture& compare_mode(CompareMode mode);
@@ -29,12 +47,11 @@ namespace Engine
         const TextureFilter mag_filter() const;
         Texture& min_filter(TextureFilter filter);
         Texture& mag_filter(TextureFilter filter);
-        Texture& min_lod_level(int value);
-        Texture& max_lod_level(int value);
-        Texture& max_mipmap_level(int value);
-        int min_lod_level() const;
-        int max_lod_level() const;
-        int max_mipmap_level() const;
+        Texture& min_lod_level(LodLevel value);
+        Texture& max_lod_level(LodLevel value);
+        LodLevel min_lod_level() const;
+        LodLevel max_lod_level() const;
+        MipMapLevel max_mipmap_level() const;
         SwizzleRGBA swizzle() const;
         Texture& swizzle(const SwizzleRGBA& value);
         Texture& wrap_s(const WrapValue& wrap);
@@ -44,8 +61,21 @@ namespace Engine
         WrapValue wrap_t() const;
         WrapValue wrap_r() const;
         Texture& generate_mipmap();
-        Size3D size(int level) const;
-        ObjID internal_id() const;
+        Size2D size(MipMapLevel level) const;
+        PixelType pixel_type();
+        Texture& anisotropic_filtering(float value);
+        float anisotropic_filtering();
+        static float max_anisotropic_filtering();
+        SamplerMipmapMode sample_mipmap_mode();
+        Texture& sample_mipmap_mode(SamplerMipmapMode mode);
+        LodBias lod_bias();
+        Texture& lod_bias(LodBias bias);
+
+        bool serialize(BufferWriter* writer) override;
+        bool deserialize(BufferReader* reader) override;
+        TextureCreateInfo& info(bool create = false);
+        const TextureCreateInfo& info() const;
+        ~Texture();
     };
 
 }// namespace Engine

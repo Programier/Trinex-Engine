@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/function.hpp>
-#include <set>
+
 
 namespace Engine
 {
@@ -15,7 +15,7 @@ namespace Engine
         using CallbackFunctionPrototype = Return (*)(Args...);
 
     private:
-        std::set<CallbackFunctionPrototype> _M_callbacks;
+        Set<CallbackFunctionPrototype> _M_callbacks;
 
     public:
         CallBacks& push(const CallbackFunctionPrototype& callback)
@@ -36,11 +36,9 @@ namespace Engine
             return *this;
         }
 
-        const std::set<CallbackFunctionPrototype>& callbacks() const
+        const Set<CallbackFunctionPrototype>& callbacks() const
         {
             return _M_callbacks;
         }
     };
-
-
 }// namespace Engine

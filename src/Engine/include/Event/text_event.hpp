@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    STRUCT TextEvent
+    struct ENGINE_EXPORT TextEvent
     {
         static ENGINE_EXPORT bool enable_text_writing;
         static ENGINE_EXPORT uint_t last_symbol(bool reset = true);

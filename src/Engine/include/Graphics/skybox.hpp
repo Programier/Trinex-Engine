@@ -5,20 +5,18 @@
 
 namespace Engine
 {
-    CLASS Skybox : public TextureCubeMap
+    class ENGINE_EXPORT Skybox : public TextureCubeMap
     {
-        declare_instance_info_hpp(Skybox);
-
     public:
         delete_copy_constructors(Skybox);
-        constructor_hpp(Skybox);
+        Skybox();
         Skybox(const String& filename, const bool& invert = false);
 
         //! @brief {right, left, top, bottom, front, back}
-        Skybox(const std::vector<String>& filenames, const bool& invert = false);
+        Skybox(const Vector<String>& filenames, const bool& invert = false);
         Skybox& load(const String& filename, const bool& invert = false);
         //! @brief {right, left, top, bottom, front, back}
-        Skybox& load(const std::vector<String>& filenames, const bool& invert = false);
+        Skybox& load(const Vector<String>& filenames, const bool& invert = false);
         Skybox& draw();
     };
 

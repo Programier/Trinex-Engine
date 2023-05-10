@@ -5,32 +5,30 @@
 #include <Core/object.hpp>
 #include <TemplateFunctional/reference_wrapper.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <list>
-#include <unordered_set>
+
+
 
 namespace Engine
 {
 
-    CLASS ModelMatrix : public virtual Object
+    class ENGINE_EXPORT ModelMatrix
     {
     protected:
-        Matrix4f _M_model = Constants::identity_matrix;
+        Matrix4f _M_model   = Constants::identity_matrix;
         Point3D _M_position = Constants::zero_vector;
-        Point3D _M_scale = Constants::identity_vector;
+        Point3D _M_scale    = Constants::identity_vector;
         Point3D _M_rotation = Constants::zero_vector;
 
-        Quaternion _M_quaternion = Quaternion(Vector3D(0.f));
+        Quaternion _M_quaternion     = Quaternion(Vector3D(0.f));
         EulerAngle3D _M_euler_angles = Constants::zero_vector;
 
         Vector3D _M_front = Constants::OZ;
         Vector3D _M_right = Constants::OX;
-        Vector3D _M_up = Constants::OY;
+        Vector3D _M_up    = Constants::OY;
 
 
         ModelMatrix& update_data();
         ModelMatrix& update_vectors();
-
-        declare_instance_info_hpp(ModelMatrix);
 
     public:
         CallBacks<void, ModelMatrix*> on_before_set_model;
@@ -45,10 +43,8 @@ namespace Engine
     };
 
 
-    CLASS Translate : public virtual ModelMatrix
+    class ENGINE_EXPORT Translate : public virtual ModelMatrix
     {
-        declare_instance_info_hpp(Translate);
-
     public:
         CallBacks<void, Translate*> on_translate;
         CallBacks<void, Translate*> on_before_translate;
@@ -68,9 +64,8 @@ namespace Engine
     };
 
 
-    CLASS Scale : public virtual ModelMatrix
+    class ENGINE_EXPORT Scale : public virtual ModelMatrix
     {
-        declare_instance_info_hpp(Scale);
 
     public:
         CallBacks<void, Scale*> on_scale;
@@ -86,11 +81,10 @@ namespace Engine
     };
 
 
-    CLASS Rotate : public virtual ModelMatrix
+    class ENGINE_EXPORT Rotate : public virtual ModelMatrix
     {
     private:
         void update_model(const Quaternion& q, const bool& add_values);
-        declare_instance_info_hpp(Rotate);
 
     public:
         CallBacks<void, Rotate*> on_rotate;
@@ -115,13 +109,13 @@ namespace Engine
 
 
     template<typename... BaseClasses>
-    class BasicObject : public BaseClasses..., public virtual ModelMatrix
+    class BasicObject : public BaseClasses..., public virtual ModelMatrix, public Object
     {
-        declare_instance_info_template(BasicObject);
+
 
     public:
         delete_copy_constructors(BasicObject);
-        constructor_template(BasicObject)
+        BasicObject()
         {}
         virtual ~BasicObject() = default;
     };

@@ -1,47 +1,69 @@
-#ifdef _WIN32
-#include <GL/glew.h>
-#endif
-#include <Core/logger.hpp>
 #include <SDL.h>
+#include <cstring>
 #include <opengl_api.hpp>
-#include <opengl_export.hpp>
-#include <opengl_types.hpp>
+#include <opengl_buffer.hpp>
+#include <opengl_framebuffer.hpp>
+#include <opengl_shader.hpp>
+#include <sstream>
+
+
+#ifdef _WIN32
+#define OPENGL_EXPORT __declspec(dllexport) __cdecl
+#else
+#define OPENGL_EXPORT
+#endif
+
+#define API_EXPORT extern "C" OPENGL_EXPORT
 
 
 namespace Engine
 {
-    class NoneLogger : public Logger
+    OpenGL* OpenGL::_M_open_gl = nullptr;
+
+    static OpenGL*& get_instance()
     {
-        Logger& log(const char* format, ...) override
+        static OpenGL* opengl = nullptr;
+        if (opengl == nullptr)
         {
-            return *this;
+            opengl = new OpenGL();
         }
-    };
 
-    void* OpenGL_Object::instance_address()
-    {
-        return reinterpret_cast<void*>(this);
+        return opengl;
     }
 
-    OpenGL_Object::~OpenGL_Object()
-    {}
-
-    static Logger** default_logger()
-    {
-        static NoneLogger logger;
-        static Logger* logger_ptr = &logger;
-        return &logger_ptr;
-    }
-
-    OpenGL_Object* OpenGL::instance(const ObjID& ID)
-    {
-        return reinterpret_cast<OpenGL_Object*>(ID);
-    }
-
-    //////////////////// INITIALIZE API ////////////////////
     OpenGL::OpenGL()
     {
-        _M_engine_logger = default_logger();
+        _M_open_gl = this;
+    }
+
+    OpenGL::~OpenGL()
+    {
+        _M_open_gl = nullptr;
+    }
+
+    OpenGL& OpenGL::logger(Logger*& logger)
+    {
+        _M_logger = &logger;
+        return *this;
+    }
+
+    bool OpenGL::extension_supported(const String& extension_name)
+    {
+        static Set<std::string> _M_extentions;
+
+        if (_M_extentions.empty())
+        {
+            std::istringstream stream(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+            String extension;
+
+            while (stream >> extension) _M_extentions.insert(extension);
+        }
+
+        return _M_extentions.contains(extension_name);
+    }
+
+    void* OpenGL::init_window(SDL_Window* window)
+    {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #ifdef _WIN32
@@ -52,22 +74,10 @@ namespace Engine
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-    }
 
-
-    //////////////////// TERMINATE API ////////////////////
-
-    OpenGL::~OpenGL()
-    {
-        opengl_debug_log("Terminate OpenGL\n");
-        _M_api = nullptr;
-    }
-
-    //////////////////// API IMPLEMENTATION ////////////////////
-    void* OpenGL::OpenGL::init_window(SDL_Window* window)
-    {
         if (_M_context)
             return _M_context;
+
         _M_context = SDL_GL_CreateContext(window);
 
         if (!_M_context)
@@ -80,57 +90,24 @@ namespace Engine
         opengl_debug_log("Context address: %p\n", _M_context);
 
 #ifdef _WIN32
-        external_logger->log("Start init glew\n");
+        (*_M_logger)->log("Start init glew\n");
         auto status = glewInit();
         if (status != GLEW_OK)
         {
-            _M_api->destroy_window();
+            destroy_window();
             opengl_debug_log("Failed to init glew: %s\n", glewGetErrorString(status));
         }
 #endif
 
+        _M_support_anisotropy = !!extension_supported("GL_EXT_texture_filter_anisotropic");
         return _M_context;
     }
 
-    OpenGL& OpenGL::logger(Logger*& logger)
+    OpenGL& OpenGL::destroy_object(Identifier& ID)
     {
-        if (!logger)
-        {
-            _M_engine_logger = default_logger();
-            return *this;
-        }
-
-        _M_engine_logger = &logger;
+        delete object_of(ID);
         return *this;
     }
-
-    OpenGL* OpenGL::_M_api = nullptr;
-
-    OpenGL* OpenGL::instance()
-    {
-        if (_M_api == nullptr)
-            _M_api = new OpenGL();
-        return _M_api;
-    }
-
-    API_EXPORT Engine::GraphicApiInterface::ApiInterface* load_api()
-    {
-        Engine::GraphicApiInterface::ApiInterface* result = Engine::OpenGL::instance();
-        return result;
-    }
-
-    ObjID OpenGL::get_object_id(OpenGL_Object* object)
-    {
-        return reinterpret_cast<ObjID>(object);
-    }
-
-    int_t OpenGL::get_current_binding(GLint type)
-    {
-        int value;
-        glGetIntegerv(type, &value);
-        return value;
-    }
-
 
     OpenGL& OpenGL::destroy_window()
     {
@@ -140,75 +117,126 @@ namespace Engine
         return *this;
     }
 
-    float OpenGL::line_rendering_width()
+    OpenGL& OpenGL::on_window_size_changed()
     {
-        return _M_current_line_rendering_width;
-    }
-
-    OpenGL& OpenGL::line_rendering_width(float value)
-    {
-        _M_current_line_rendering_width = value < 0 ? -value : value;
-        glLineWidth(_M_current_line_rendering_width);
         return *this;
     }
 
-    OpenGL& OpenGL::destroy_object(ObjID& ID)
+    OpenGL& OpenGL::begin_render()
     {
-        delete instance(ID);
-        ID = 0;
         return *this;
     }
 
-    OpenGL& OpenGL::enable(Engine::EnableCap cap)
+    OpenGL& OpenGL::end_render()
     {
-        glEnable(_M_enable_caps.at(cap));
         return *this;
     }
 
-    OpenGL& OpenGL::disable(Engine::EnableCap cap)
+    OpenGL& OpenGL::wait_idle()
     {
-        glDisable(_M_enable_caps.at(cap));
         return *this;
     }
 
-    OpenGL& OpenGL::blend_func(Engine::BlendFunc func1, Engine::BlendFunc func2)
+    String OpenGL::renderer()
     {
-        glBlendFunc(_M_blend_funcs.at(func1), _M_blend_funcs.at(func2));
+        return String(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    }
+
+    OpenGL& OpenGL::create_vertex_buffer(Identifier& ID, const byte* data, size_t size)
+    {
+        ID = (new OpenGL_VertexBuffer())->create_vertex_buffer(data, size).ID();
         return *this;
     }
 
-    OpenGL& OpenGL::depth_func(Engine::DepthFunc func)
+    OpenGL& OpenGL::update_vertex_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        glDepthFunc(_M_compare_funcs.at(func));
+        GET_TYPE(OpenGL_VertexBuffer, ID)->update_vertex_buffer(offset, data, size);
         return *this;
     }
 
-    OpenGL& OpenGL::depth_mask(bool flag)
+    OpenGL& OpenGL::bind_vertex_buffer(const Identifier& ID, size_t offset)
     {
-        glDepthMask(static_cast<GLboolean>(flag));
+        GET_TYPE(OpenGL_VertexBuffer, ID)->bind_vertex_buffer(offset);
         return *this;
     }
 
-    OpenGL& OpenGL::stencil_mask(byte mask)
+    OpenGL& OpenGL::create_index_buffer(Identifier& ID, const byte* data, size_t size, IndexBufferComponent component)
     {
-        glStencilMask(mask);
+        ID = (new OpenGL_IndexBuffer())->create_index_buffer(data, size, component).ID();
         return *this;
     }
 
-    OpenGL& OpenGL::stencil_func(Engine::CompareFunc func, int_t ref, byte mask)
+    OpenGL& OpenGL::update_index_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        glStencilFunc(_M_compare_funcs.at(func), ref, mask);
+        GET_TYPE(OpenGL_IndexBuffer, ID)->update_index_buffer(offset, data, size);
         return *this;
     }
 
-    OpenGL& OpenGL::stencil_option(Engine::StencilOption stencil_fail, Engine::StencilOption depth_fail,
-                                   Engine::StencilOption pass)
+    OpenGL& OpenGL::bind_index_buffer(const Identifier& ID, size_t offset)
     {
-        glStencilOp(_M_stencil_options.at(stencil_fail), _M_stencil_options.at(depth_fail),
-                    _M_stencil_options.at(pass));
+        GET_TYPE(OpenGL_IndexBuffer, ID)->bind_index_buffer(offset);
         return *this;
     }
 
+    OpenGL& OpenGL::create_uniform_buffer(Identifier& ID, const byte* data, size_t size)
+    {
+        ID = (new OpenGL_UniformBuffer())->create_uniform_buffer(data, size).ID();
+        return *this;
+    }
+
+    OpenGL& OpenGL::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
+    {
+        GET_TYPE(OpenGL_UniformBuffer, ID)->update_uniform_buffer(offset, data, size);
+        return *this;
+    }
+
+    OpenGL& OpenGL::bind_uniform_buffer(const Identifier& ID, BindingIndex binding, size_t offset, size_t size)
+    {
+        GET_TYPE(OpenGL_UniformBuffer, ID)->bind_uniform_buffer(binding, offset, size);
+        return *this;
+    }
+
+    OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
+    {
+        glDrawElements(_M_current_shader->_M_topology, indices_count, _M_index_buffer->_M_component_type,
+                       reinterpret_cast<void*>(indices_offset));
+        return *this;
+    }
+
+
+    OpenGL& OpenGL::gen_framebuffer(Identifier& ID, const FrameBufferCreateInfo& info)
+    {
+        ID = (new OpenGL_FrameBufferSet())->gen_framebuffer(info).ID();
+        return *this;
+    }
+
+    OpenGL_FrameBufferSet* OpenGL::framebuffer(Identifier ID)
+    {
+        static OpenGL_FrameBufferSet base_framebuffer(true);
+        if (ID)
+        {
+            return GET_TYPE(OpenGL_FrameBufferSet, ID);
+        }
+        return &base_framebuffer;
+    }
+
+    OpenGL& OpenGL::bind_framebuffer(const Identifier& ID, size_t buffer_index)
+    {
+        framebuffer(ID)->bind_framebuffer((ID == 0 ? 0 : buffer_index));
+        return *this;
+    }
+
+    OpenGL& OpenGL::framebuffer_viewport(const Identifier& ID, const ViewPort& viewport)
+    {
+        framebuffer(ID)->framebuffer_viewport(viewport);
+        return *this;
+    }
+
+    OpenGL& OpenGL::framebuffer_scissor(const Identifier& ID, const Scissor& scissor)
+    {
+        framebuffer(ID)->framebuffer_scissor(scissor);
+        return *this;
+    }
 
     OpenGL& OpenGL::swap_buffer(SDL_Window* window)
     {
@@ -216,21 +244,15 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::swap_interval(int_t value)
+    OpenGL& OpenGL::swap_interval(int_t interval)
     {
-        SDL_GL_SetSwapInterval(value);
+        SDL_GL_SetSwapInterval(interval);
         return *this;
     }
-
-    OpenGL& OpenGL::clear_color(const Color& color)
-    {
-        glClearColor(color.r, color.g, color.b, color.a);
-        return *this;
-    }
-
-    OpenGL& OpenGL::on_window_size_changed()
-    {
-        return *this;
-    }
-
 }// namespace Engine
+
+
+API_EXPORT Engine::GraphicApiInterface::ApiInterface* load_api()
+{
+    return Engine::get_instance();
+}

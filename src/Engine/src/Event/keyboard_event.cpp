@@ -1,8 +1,8 @@
 #include <Event/keyboard_event.hpp>
 #include <SDL_events.h>
-#include <list>
+
 #include <private_event.hpp>
-#include <vector>
+
 
 namespace Engine
 {
@@ -14,29 +14,44 @@ namespace Engine
     }
 
 
-    ENGINE_EXPORT const Key KeyboardEvent::just_pressed()
+    ENGINE_EXPORT Key KeyboardEvent::just_pressed()
     {
         return keys._M_keys[keys._M_last_key] == KeyStatus::JUST_PRESSED ? keys._M_last_key : KEY_UNKNOWN;
     }
 
-    ENGINE_EXPORT const std::list<Key>& KeyboardEvent::just_evented_keys()
+    ENGINE_EXPORT bool KeyboardEvent::just_pressed(Key key)
+    {
+        return just_pressed() == key;
+    }
+
+    ENGINE_EXPORT bool KeyboardEvent::last_pressed(Key key)
+    {
+        return last_pressed() == key;
+    }
+
+    ENGINE_EXPORT bool KeyboardEvent::just_released(Key key)
+    {
+        return just_released() == key;
+    }
+
+    ENGINE_EXPORT const List<Key>& KeyboardEvent::just_evented_keys()
     {
         return keys._M_last_evented_keys;
     }
 
     ENGINE_EXPORT uint_t KeyboardEvent::last_symbol(bool reset)
     {
-        auto tmp = keys._M_last_symbol;
+        auto tmp            = keys._M_last_symbol;
         keys._M_last_symbol = 0;
         return tmp;
     }
 
-    ENGINE_EXPORT const Key KeyboardEvent::last_pressed()
+    ENGINE_EXPORT Key KeyboardEvent::last_pressed()
     {
         return keys._M_last_key;
     }
 
-    ENGINE_EXPORT const Key KeyboardEvent::just_released()
+    ENGINE_EXPORT Key KeyboardEvent::just_released()
     {
         return keys._M_keys[keys._M_last_released] == KeyStatus::JUST_RELEASED ? keys._M_last_released : KEY_UNKNOWN;
     }
@@ -60,8 +75,8 @@ namespace Engine
         else
             event.type = SDL_KEYDOWN;
 
-        event.key.repeat = status == KeyStatus::REPEAT;
-        event.key.type = event.type;
+        event.key.repeat          = status == KeyStatus::REPEAT;
+        event.key.type            = event.type;
         event.key.keysym.scancode = (SDL_Scancode) Engine::to_SDL_scancode(key);
         SDL_PushEvent(&event);
     }
@@ -69,7 +84,7 @@ namespace Engine
 
     void process_keyboard_event(SDL_KeyboardEvent& event)
     {
-        Key key = to_key(event.keysym.scancode);
+        Key key           = to_key(event.keysym.scancode);
         KeyStatus& status = keys._M_keys[key];
 
         if (event.repeat)
@@ -78,14 +93,14 @@ namespace Engine
         }
         else if (event.type == SDL_KEYDOWN)
         {
-            status = KeyStatus::JUST_PRESSED;
+            status           = KeyStatus::JUST_PRESSED;
             keys._M_last_key = key;
             keys._M_last_evented_keys.push_back(key);
             keys._M_last_symbol = SDL_GetKeyFromScancode(event.keysym.scancode);
         }
         else
         {
-            status = KeyStatus::JUST_RELEASED;
+            status                = KeyStatus::JUST_RELEASED;
             keys._M_last_released = key;
             keys._M_last_evented_keys.push_back(key);
         }

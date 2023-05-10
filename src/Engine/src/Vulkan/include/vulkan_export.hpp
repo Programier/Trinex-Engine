@@ -11,4 +11,4 @@
     #define VULKAN_EXPORT
 #endif // _WIN32
 
-#define API_EXPORT extern "C"  VULKAN_EXPORT
+#define API_EXPORT extern "C" VULKAN_EXPORT

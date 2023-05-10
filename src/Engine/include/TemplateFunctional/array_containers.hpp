@@ -3,12 +3,12 @@
 #include <Core/implement.hpp>
 #include <algorithm>
 #include <stdexcept>
-#include <vector>
+
 
 
 namespace Engine
 {
-#define Base std::vector<Type>
+#define Base Vector<Type>
 
 #define declare_container_functions(name, base)                                                                                                           \
     name() : base<Type>()                                                                                                                                 \
@@ -138,10 +138,10 @@ namespace Engine
     };
 
     template<typename Type>
-    class DynamicArray : protected std::vector<Type>
+    class DynamicArray : protected Vector<Type>
     {
     public:
-        declare_container_functions(DynamicArray, std::vector);
+        declare_container_functions(DynamicArray, Vector);
 
         DynamicArray(const std::initializer_list<Type>& list) : Base(list)
         {}
@@ -187,13 +187,13 @@ namespace Engine
 
 
     template<typename Type, typename Comparator = BasicComparator<Type>, bool is_set = false>
-    class SortedDynamicArray : protected std::vector<Type>
+    class SortedDynamicArray : protected Vector<Type>
     {
     private:
         Comparator comparator;
 
     public:
-        declare_container_functions(SortedDynamicArray, std::vector);
+        declare_container_functions(SortedDynamicArray, Vector);
 
 
         std::size_t size() const

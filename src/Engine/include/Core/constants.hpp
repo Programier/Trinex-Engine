@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    STRUCT Constants
+    struct ENGINE_EXPORT Constants
     {
         static const unsigned int processor_count;
         static const Vector3D OX;
@@ -25,5 +25,7 @@ namespace Engine
         static const IntVector4D int_identity_vector;
         static const IntVector4D uint_zero_vector;
         static const IntVector4D uint_identity_vector;
+        static const String package_extention;
+        static const String name_separator;
     };
 }

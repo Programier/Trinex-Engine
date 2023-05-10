@@ -10,13 +10,13 @@ namespace Engine
         vk::SwapchainKHR _M_swap_chain;
         vkb::Swapchain _M_bootstrap_swapchain;
 
-        VkExtent2D _M_extent;
-        std::vector<vk::Image> _M_images;
-        std::vector<vk::ImageView> _M_image_views;
+        vk::Extent2D _M_extent;
+        Vector<vk::Image> _M_images;
+        Vector<vk::ImageView> _M_image_views;
         vk::Format _M_format;
 
         SwapChain();
-        ~SwapChain();
+        ~SwapChain();        
     };
 
 }// namespace Engine

@@ -1,6 +1,8 @@
-# <h1 align="center">Trinex Engine</h1>
-
-![alt text](logo/logo.png)​
+<div align="center">
+  <p>
+      <img src="logo/trinex.svg" width="500" height="500" />
+  </p>
+</div>
 
 ## Compile from source (command line)
 

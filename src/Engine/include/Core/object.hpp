@@ -1,77 +1,167 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/metadata.hpp>
+#include <Core/etl/type_traits.hpp>
 #include <Core/export.hpp>
 #include <Core/implement.hpp>
-#include <Core/object_types.hpp>
+#include <Core/memory_manager.hpp>
+#include <Core/serializable_object.hpp>
 #include <string>
 #include <typeinfo>
-#include <unordered_set>
 
 namespace Engine
 {
+
     class Package;
-    using ObjectSet = std::unordered_set<class Object*>;
+    class Object;
+    using MessageList = List<String>;
+
+    enum ObjectFlags : size_t
+    {
+        OF_None = 0,
+        // Private section of flags
+        OF_IsOnHeap,
+        OF_Destructed,
+        OF_NeedDelete,
+        OF_IsCollectedByGC,
+        __OF_PRIVATE_SECTION__,
+
+        // Public section
+        __OF_COUNT__
+    };
+
+    enum class ObjectRenameStatus
+    {
+        Success,
+        Skipped,
+        Failed,
+    };
 
     // Head of all classes in the Engine
-    CLASS Object
+    class ENGINE_EXPORT Object : public SerializableObject
     {
     public:
-        struct InstanceInfo {
-            std::size_t _M_offset = 0;
-            bool _M_has_instance = false;
-        };
+        using ObjectClass = Object;
 
     private:
-        mutable bool _M_need_delete = false;
         mutable String _M_name;
+        Package* _M_package         = nullptr;
+        const class Class* _M_class = nullptr;
+        Counter _M_references       = 0;
 
-        bool _M_is_on_heap = false;
-        BitMask _M_flags;
-        Counter _M_references = 0;
+        mutable BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
 
-        void delete_instance(bool force_delete = false);
-        Package* _M_package = nullptr;
+
+        void delete_instance();
+        Object& create_default_package();
+        static bool object_is_exist(Package* package, const String& name);
 
     protected:
         Object();
         Object& mark_as_on_heap_instance();
-
-    public:
-        InstanceInfo _M_instance_info[static_cast<std::size_t>(ObjectType::Count)];
+        Object& insert_to_default_package();
+        bool private_check_instance(const class Class* const check_class) const;
+        void internal_set_flag(ObjectFlags flag, bool flag_value);
 
     public:
         delete_copy_constructors(Object);
-
+        ENGINE_EXPORT static String read_object_name(BufferReader* reader);
         ENGINE_EXPORT static String decode_name(const std::type_info& info);
         ENGINE_EXPORT static String decode_name(const String& name);
+        ENGINE_EXPORT static Package* load_package(const String& name);
         String class_name() const;
-        std::size_t class_hash() const;
+        size_t class_hash() const;
         ENGINE_EXPORT static const ObjectSet& all_objects();
-        bool mark_for_delete();
+        bool mark_for_delete(bool skip_check = false);
         bool is_on_heap() const;
         ENGINE_EXPORT static void collect_garbage();
-        BitMask flags() const;
-        Object& add_flags(BitMask flags);
-        Object& remove_flags(BitMask flags);
-        bool has_any_flags(BitMask flags) const;
-        bool has_all_flags(BitMask flags) const;
         const String& name() const;
-        Object& name(const String& name);
+        ObjectRenameStatus name(const String& name);
         virtual Object& copy(const Object* copy_from);
-        Object& add_to_package(Package * package);
+        bool add_to_package(Package* package, bool autorename = false);
         Object& remove_from_package();
         Package* package() const;
         String full_name() const;
         Counter references() const;
-        ENGINE_EXPORT static Object* find_object(const String& object_name);
+        bool flag(ObjectFlags flag) const;
+        Object& flag(ObjectFlags flag, bool status);
+        const decltype(Object::_M_flags)& flags() const;
 
+        ENGINE_EXPORT static Object* find_object(const String& object_name);
+        virtual bool can_destroy(MessageList& messages);
+        static Package* find_package(const String& name, bool create = true);
+        const class Class* class_instance() const;
+
+        bool serialize(BufferWriter* writer) override;
+        bool deserialize(BufferReader* reader) override;
+
+        // NOTE! You will manually push object to package, if you use this method!
+        template<typename Type, typename... Args>
+        static Type* new_instance_without_package(const Args&... args)
+        {
+            if constexpr (std::is_base_of_v<Object, Type>)
+            {
+                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
+                instance->mark_as_on_heap_instance();
+                instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
+                return instance;
+            }
+            else
+            {
+                return new Type(args...);
+            }
+        }
 
         template<typename Type, typename... Args>
-        inline static Type* new_instance(const Args&... args)
+        static Type* new_instance(const Args&... args)
         {
-            auto instance = new (::operator new(sizeof(Type))) Type(args...);
-            instance->mark_as_on_heap_instance();
-            return instance;
+            if constexpr (std::is_base_of_v<Object, Type>)
+            {
+                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
+                instance->mark_as_on_heap_instance();
+                instance->insert_to_default_package();
+                instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
+                return instance;
+            }
+            else
+            {
+                return new Type(args...);
+            }
+        }
+
+        template<typename Type, typename... Args>
+        static Type* new_instance_named(const String& name, Package* package, const Args&... args)
+        {
+            if constexpr (!std::is_base_of_v<Object, Type>)
+            {
+                return nullptr;
+            }
+            else
+            {
+
+                if (package == nullptr)
+                {
+                    package = root_package();
+                }
+
+                if (object_is_exist(package, name))
+                {
+                    return nullptr;
+                }
+
+                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
+                instance->mark_as_on_heap_instance();
+                instance->name(name);
+                instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
+
+                if (!instance->add_to_package(package))
+                {
+                    delete instance;
+                    instance = nullptr;
+                }
+
+                return instance;
+            }
         }
 
         template<typename Type>
@@ -80,47 +170,48 @@ namespace Engine
             return typeid(Type).hash_code();
         }
 
-        template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0, bool>::type
-        is_instance_of() const
+        template<typename Type>
+        typename std::enable_if<is_object_based<Type>::value, bool>::type is_instance_of() const
         {
-            return _M_instance_info[static_cast<EnumerateType>(ObjectInstanceType::instance_type)]._M_has_instance;
+            return private_check_instance(ClassMetaData<Type>::find_class());
         }
 
-        template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0,
-                                ObjectInstanceType*>::type
-        instance_cast()
+        template<typename Type>
+        typename std::enable_if<!is_object_based<Type>::value, bool>::type is_instance_of() const
         {
-            const EnumerateType index = static_cast<EnumerateType>(ObjectInstanceType::instance_type);
-            if (_M_instance_info[index]._M_has_instance)
-            {
-                byte* new_object = reinterpret_cast<byte*>(this) - _M_instance_info[index]._M_offset;
-                return reinterpret_cast<ObjectInstanceType*>(new_object);
-            }
+            return false;
+        }
 
+        template<typename Type>
+        typename std::enable_if<is_object_based<Type>::value, const Type*>::type instance_cast() const
+        {
+            if (!is_instance_of<Type>())
+                return nullptr;
+            return (const Type*) this;
+        }
+
+        template<typename Type>
+        typename std::enable_if<is_object_based<Type>::value, Type*>::type instance_cast()
+        {
+            if (!is_instance_of<Type>())
+                return nullptr;
+            return (Type*) this;
+        }
+
+        template<typename Type>
+        typename std::enable_if<!is_object_based<Type>::value, const Type*>::type instance_cast() const
+        {
+            return nullptr;
+        }
+
+        template<typename Type>
+        typename std::enable_if<!is_object_based<Type>::value, Type*>::type instance_cast()
+        {
             return nullptr;
         }
 
         template<typename ObjectInstanceType>
-        typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0,
-                                const ObjectInstanceType*>::type
-        instance_cast() const
-        {
-            const EnumerateType index = static_cast<EnumerateType>(ObjectInstanceType::instance_type);
-            if (_M_instance_info[index]._M_has_instance)
-            {
-                const byte* new_object = reinterpret_cast<const byte*>(this) - _M_instance_info[index]._M_offset;
-                return reinterpret_cast<ObjectInstanceType*>(new_object);
-            }
-
-            return nullptr;
-        }
-
-        template<typename ObjectInstanceType>
-        static typename std::enable_if<static_cast<EnumerateType>(ObjectInstanceType::instance_type) != 0,
-                                       Object*>::type
-        find_object_checked(const String& object_name)
+        static ObjectInstanceType* find_object_checked(const String& object_name)
         {
             Object* object = find_object(object_name);
             if (object)
@@ -130,20 +221,46 @@ namespace Engine
             return nullptr;
         }
 
-        ENGINE_EXPORT static void* operator new(std::size_t size);
-        ENGINE_EXPORT static void* operator new[](std::size_t count);
+        template<typename Type>
+        static void begin_destroy(Type* instance)
+        {
+            if constexpr (std::is_base_of_v<Object, Type>)
+            {
+                if (instance->flag(ObjectFlags::OF_IsOnHeap))
+                {
+                    instance->mark_for_delete();
+                }
+            }
+            else
+            {
+                delete instance;
+            }
+        }
+
+    private:
+        ENGINE_EXPORT static void* operator new(std::size_t size) = delete;
         ENGINE_EXPORT static void* operator new(std::size_t size, void* data);
-        ENGINE_EXPORT static void* operator new[](std::size_t size, void* data);
-        ENGINE_EXPORT static const Package* root_package();
+        ENGINE_EXPORT static void* operator new[](std::size_t count)            = delete;
+        ENGINE_EXPORT static void* operator new[](std::size_t size, void* data) = delete;
+
+    protected:
+        ENGINE_EXPORT static void operator delete(void* data);
+        ENGINE_EXPORT static void operator delete[](void* data) = delete;
+
+    public:
+        ENGINE_EXPORT static Package* root_package();
 
 
         virtual ~Object();
         friend void force_garbage_collection();
         friend class Package;
         friend class PointerBase;
+        friend class Archive;
+        friend class MemoryManager;
     };
 
     struct __FOR_PRIVATE_USAGE__ {
     };
+
 
 }// namespace Engine

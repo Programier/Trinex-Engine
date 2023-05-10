@@ -9,7 +9,7 @@ namespace Engine
     {
         float _M_max_fps = 0;
     public:
-        GameApplication();
+        GameApplication(int argc, char** argv);
         GameApplication& on_init() override;
         GameApplication& on_render_frame() override;
         ~GameApplication();

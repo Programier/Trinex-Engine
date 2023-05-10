@@ -35,7 +35,7 @@ struct AssimpPointer {
 
 using RenderAssimpObjectFunc = void (*)(AssimpObject);
 
-static std::unordered_map<PointerType, RenderAssimpObjectFunc> render_functions;
+static Map<PointerType, RenderAssimpObjectFunc> render_functions;
 
 
 // Application data
@@ -242,7 +242,7 @@ static void render_menubar()
 
         ImGui::BeginChild("Settings.LeftChild");
         static std::size_t choiced_index = 0;
-        static std::vector<std::pair<const char*, void (*)()>> menu = {
+        static Vector<std::pair<const char*, void (*)()>> menu = {
                 {"Colors", color_settings},
                 {"Theme", theme_settings},
         };

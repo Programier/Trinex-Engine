@@ -1,5 +1,5 @@
 #pragma once
-#include <unordered_set>
+
 
 namespace Editor
 {
@@ -7,7 +7,7 @@ namespace Editor
     {       
     protected:
         bool cursor_on_panel() const;
-        std::unordered_set<Panel*> _M_windows;
+        Set<Panel*> _M_windows;
 
 
     public:

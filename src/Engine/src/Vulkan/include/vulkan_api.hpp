@@ -1,3 +1,8 @@
+/*
+    The code of implementation the API does need much data hiding,
+    as this code will only be used by the engine, not the end user
+*/
+
 #pragma once
 #include <Core/logger.hpp>
 #include <SDL.h>
@@ -7,10 +12,11 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_block_allocator.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_swap_chain.hpp>
 
-#define MAIN_FRAMEBUFFERS_COUNT 3
+#define MAIN_FRAMEBUFFERS_COUNT 2
 #define API VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
 
@@ -29,23 +35,21 @@ namespace Engine
     };
 
 
-    using ViewPort = vk::Viewport;
     struct VulkanTexture;
 
     struct VulkanAPI : public GraphicApiInterface::ApiInterface {
-        static std::vector<const char*> device_extensions;
+        static Vector<const char*> device_extensions;
 
-#define _M_current_logger (*_M_engine_logger)
+#define vulkan_debug_log(...) (*(API->_M_engine_logger))->log(__VA_ARGS__)
         static VulkanAPI* _M_vulkan;
-        Logger** _M_engine_logger = nullptr;
-        SDL_Window* _M_window = nullptr;
+        Logger** _M_engine_logger        = nullptr;
+        SDL_Window* _M_window            = nullptr;
         bool _M_need_recreate_swap_chain = false;
+        String _M_renderer               = "";
 
         struct {
             int width, height;
-            ViewPort view_port;
         } window_data;
-
 
         // API DATA
         vkb::Instance _M_instance;
@@ -56,28 +60,21 @@ namespace Engine
         QueueFamilyIndices _M_graphics_and_present_index;
         vk::Queue _M_graphics_queue;
         vk::Queue _M_present_queue;
+        VulkanTexture* _M_dummy_texture = nullptr;
+        vk::PhysicalDeviceProperties _M_properties;
+        BlockAllocator<struct VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE> _M_uniform_allocator;
 
-        SwapChain* _M_swap_chain = nullptr;
-        class VulkanShader* _M_current_shader = nullptr;
+        bool _M_need_update_image_index       = true;
+        SwapChain* _M_swap_chain              = nullptr;
 
-        vk::RenderPass _M_render_pass;
-        std::vector<VulkanFramebuffer*> _M_swap_chain_framebuffers;
-        VulkanFramebuffer* _M_current_framebuffer = nullptr;
+        VulkanFramebuffer* _M_main_framebuffer = nullptr;
+
         vk::CommandPool _M_command_pool;
-        std::vector<vk::CommandBuffer> _M_command_buffers;
-        vk::CommandBuffer* _M_current_command_buffer = nullptr;
-        vk::ResultValue<uint32_t> _M_current_buffer_index;
-        vk::PresentModeKHR _M_swap_chain_mode = vk::PresentModeKHR::eFifo;
+        Vector<struct VulkanAsyncCommandBuffer*> _M_command_buffers;
+        VulkanAsyncCommandBuffer* _M_current_command_buffer = nullptr;
+        vk::PresentModeKHR _M_swap_chain_mode;
 
-        std::vector<vk::Semaphore> _M_image_available_semaphores;
-        std::vector<vk::Semaphore> _M_render_finished_semaphores;
-        std::vector<vk::Fence> _M_in_flight_fences;
-
-        uint32_t _M_current_frame = 1;
-        vk::ClearValue _M_clear_values[3];
-        float _M_min_depth = 0.f;
-        float _M_max_depth = 1.f;
-
+        uint32_t _M_current_frame = 1;        
 
         //////////////////////////////////////////////////////////////
 
@@ -86,25 +83,38 @@ namespace Engine
 
         void init();
         void create_surface();
-
-        void destroy_framebuffers();
+        void destroy_framebuffers(bool full_destroy = true);
         void recreate_swap_chain();
         void create_swap_chain();
-        void create_render_pass();
+        VulkanFramebuffer* init_base_framebuffer_renderpass(VulkanFramebuffer* framebuffer);
         void create_framebuffers();
         void create_command_buffer();
-        void create_semaphores();
 
         VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
                                  vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
         uint32_t find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties);
 
         vk::CommandBuffer begin_single_time_command_buffer();
-        VulkanAPI&  end_single_time_command_buffer(const vk::CommandBuffer& buffer);
+        VulkanAPI& end_single_time_command_buffer(const vk::CommandBuffer& buffer);
 
         VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
                                vk::DeviceSize src_offset = 0, vk::DeviceSize dst_offset = 0);
+        vk::ResultValue<uint32_t> swapchain_image_index();
+        vk::Format find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
+                                         vk::FormatFeatureFlags features);
+        bool has_stencil_component(vk::Format format);
+        vk::Format find_depth_format();
+        VulkanAPI& create_resolve_image(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
+                                        vk::ImageCreateFlags flags, vk::ImageUsageFlags usage,
+                                        vk::MemoryPropertyFlags properties, vk::Image& image,
+                                        vk::DeviceMemory& image_memory, uint32_t mip_count = 1, uint32_t layers = 1);
 
+        VulkanAPI& create_image(struct VulkanTexture* state, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
+                                vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+                                vk::DeviceMemory& image_memory, uint32_t layers);
+
+        VulkanFramebuffer* framebuffer(Identifier ID);
+        struct VulkanShader* current_shader();
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
@@ -114,32 +124,94 @@ namespace Engine
         VulkanAPI& swap_buffer(SDL_Window* window) override;
         VulkanAPI& begin_render() override;
         VulkanAPI& end_render() override;
-        VulkanAPI& begin_render_pass() override;
-        VulkanAPI& end_render_pass() override;
-        VulkanAPI& framebuffer_viewport(const Point2D& point, const Size2D& size) override;
-        VulkanAPI& bind_framebuffer(const ObjID& ID) override;
-        VulkanAPI& clear_color(const Color& color) override;
-        VulkanAPI& clear_frame_buffer(const ObjID&, BufferType) override;
+        VulkanAPI& framebuffer_viewport(const Identifier&, const ViewPort& viewport) override;
+        VulkanAPI& bind_framebuffer(const Identifier& ID, size_t buffer_index) override;
+        VulkanAPI& clear_color(const Identifier& ID, const ColorClearValue& color, byte layout) override;
         VulkanAPI& swap_interval(int_t interval) override;
         VulkanAPI& wait_idle() override;
 
-        VulkanAPI& destroy_object(ObjID& ID) override;
+        String renderer() override;
+        VulkanAPI& destroy_object(Identifier& ID) override;
 
-        VulkanAPI& create_shader(ObjID&, const ShaderParams&) override;
-        VulkanAPI& use_shader(const ObjID&) override;
-        VulkanAPI& shader_value(const ObjID& ID, const String& name, void* data) override;
+        VulkanAPI& create_shader(Identifier&, const PipelineCreateInfo&) override;
+        VulkanAPI& use_shader(const Identifier&) override;
+
+        VulkanAPI& create_vertex_buffer(Identifier&, const byte*, size_t) override;
+        VulkanAPI& update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
+        VulkanAPI& bind_vertex_buffer(const Identifier&, size_t offset) override;
+        MappedMemory map_vertex_buffer(const Identifier& ID) override;
+        VulkanAPI& unmap_vertex_buffer(const Identifier& ID) override;
+
+        VulkanAPI& create_index_buffer(Identifier&, const byte*, size_t, IndexBufferComponent) override;
+        VulkanAPI& update_index_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
+        VulkanAPI& bind_index_buffer(const Identifier&, size_t offset) override;
+        MappedMemory map_index_buffer(const Identifier& ID) override;
+        VulkanAPI& unmap_index_buffer(const Identifier& ID) override;
+        VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
+
+        VulkanAPI& create_texture(Identifier& ID, const TextureCreateInfo& info, TextureType type) override;
+        VulkanAPI& bind_texture(const Identifier&, TextureBindIndex binding) override;
+
+        MipMapLevel base_level_texture(const Identifier& ID) override;
+        VulkanAPI& base_level_texture(const Identifier& ID, MipMapLevel level) override;
+        CompareFunc compare_func_texture(const Identifier& ID) override;
+        VulkanAPI& compare_func_texture(const Identifier& ID, CompareFunc func) override;
+        CompareMode compare_mode_texture(const Identifier& ID) override;
+        VulkanAPI& compare_mode_texture(const Identifier&, CompareMode mode) override;
+        TextureFilter min_filter_texture(const Identifier& ID) override;
+        TextureFilter mag_filter_texture(const Identifier& ID) override;
+        VulkanAPI& min_filter_texture(const Identifier& ID, TextureFilter filter) override;
+        VulkanAPI& mag_filter_texture(const Identifier& ID, TextureFilter filter) override;
+        VulkanAPI& min_lod_level_texture(const Identifier&, LodLevel) override;
+        VulkanAPI& max_lod_level_texture(const Identifier&, LodLevel) override;
+        LodLevel min_lod_level_texture(const Identifier& ID) override;
+        LodLevel max_lod_level_texture(const Identifier& ID) override;
+        MipMapLevel max_mipmap_level_texture(const Identifier& ID) override;
+        VulkanAPI& swizzle_texture(const Identifier& ID, const SwizzleRGBA& swizzle) override;
+        SwizzleRGBA swizzle_texture(const Identifier& ID) override;
+        VulkanAPI& wrap_s_texture(const Identifier& ID, const WrapValue& value) override;
+        VulkanAPI& wrap_t_texture(const Identifier& ID, const WrapValue& value) override;
+        VulkanAPI& wrap_r_texture(const Identifier& ID, const WrapValue& value) override;
+        WrapValue wrap_s_texture(const Identifier&) override;
+        WrapValue wrap_t_texture(const Identifier&) override;
+        WrapValue wrap_r_texture(const Identifier&) override;
+        VulkanAPI& logger(Logger*&) override;
+        VulkanAPI& generate_texture_mipmap(const Identifier&) override;
+        VulkanAPI& update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel, const void*) override;
+        VulkanAPI& texture_size(const Identifier& ID, Size2D& size, MipMapLevel level) override;
+
+        VulkanAPI& read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel) override;
+        VulkanAPI& anisotropic_filtering_texture(const Identifier& ID, float value) override;
+        float anisotropic_filtering_texture(const Identifier& ID) override;
+        float max_anisotropic_filtering() override;
 
 
-        VulkanAPI& generate_mesh(ObjID& ID) override;
+        VulkanAPI& cubemap_texture_update_data(const Identifier&, TextureCubeMapFace, const Size2D&, const Offset2D&,
+                                               MipMapLevel, void*) override;
 
-        VulkanAPI& mesh_data(const ObjID& ID, size_t size, DrawMode mode, void* data) override;
-        VulkanAPI& draw_mesh(const ObjID&, Primitive, size_t, size_t) override;
-        VulkanAPI& update_mesh_data(const ObjID&, size_t, size_t, void*) override;
-        VulkanAPI& mesh_indexes_array(const ObjID&, size_t, const IndexBufferComponent&, void*) override;
+        SamplerMipmapMode sample_mipmap_mode_texture(const Identifier& ID) override;
+        VulkanAPI& sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode) override;
+        LodBias lod_bias_texture(const Identifier& ID) override;
+        VulkanAPI& lod_bias_texture(const Identifier& ID, LodBias bias) override;
+        LodBias max_lod_bias_texture() override;
 
-        VulkanAPI& create_texture(ObjID& ID, const TextureParams& params) override;
-        VulkanAPI& gen_texture_2D(const ObjID&, const Size2D& size, int_t mipmap, void* data) override;
-        VulkanAPI& bind_texture(const ObjID&, TextureBindIndex binding) override;
+        VulkanAPI& create_ssbo(Identifier&, const byte* data, size_t size) override;
+        VulkanAPI& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
+        VulkanAPI& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
+
+        VulkanAPI& create_uniform_buffer(Identifier&, const byte*, size_t) override;
+        VulkanAPI& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
+        VulkanAPI& bind_uniform_buffer(const Identifier&, BindingIndex binding, size_t offset, size_t size) override;
+
+        VulkanAPI& gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info) override;
+        Identifier imgui_texture_id(const Identifier&) override;
+        VulkanAPI& framebuffer_scissor(const Identifier&, const Scissor&) override;
+        VulkanAPI& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
+        bool check_format_support(PixelType type, PixelComponentType component) override;
+
+        VulkanAPI& async_render(bool flag) override;
+        bool async_render() override;
+        VulkanAPI& next_render_thread() override;
         ~VulkanAPI();
     };
 }// namespace Engine

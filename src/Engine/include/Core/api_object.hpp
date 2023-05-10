@@ -5,31 +5,34 @@
 
 namespace Engine
 {
-    CLASS ApiObject : public virtual Object
+    class ENGINE_EXPORT ApiObjectNoBase
     {
     protected:
-        ObjID _M_ID = 0;
+        Identifier _M_ID = 0;
 
-        declare_instance_info_hpp(ApiObject);
 
     public:
-        constructor_hpp(ApiObject);
-        delete_copy_constructors(ApiObject);
+        ApiObjectNoBase();
+        delete_copy_constructors(ApiObjectNoBase);
 
-        ObjID id() const;
+        Identifier id() const;
         bool has_object() const;
-        bool operator==(const ApiObject& obj) const;
-        bool operator!=(const ApiObject& obj) const;
-        bool operator<(const ApiObject& obj) const;
-        bool operator<=(const ApiObject& obj) const;
-        bool operator>(const ApiObject& obj) const;
-        bool operator>=(const ApiObject& obj) const;
+        bool operator==(const ApiObjectNoBase& obj) const;
+        bool operator!=(const ApiObjectNoBase& obj) const;
+        bool operator<(const ApiObjectNoBase& obj) const;
+        bool operator<=(const ApiObjectNoBase& obj) const;
+        bool operator>(const ApiObjectNoBase& obj) const;
+        bool operator>=(const ApiObjectNoBase& obj) const;
 
-        operator ObjID() const;
-        ApiObject& destroy();
+        operator Identifier() const;
+        ApiObjectNoBase& destroy();
 
     protected:
-        virtual ~ApiObject();
+        virtual ~ApiObjectNoBase();
+    };
+
+    class ENGINE_EXPORT ApiObject : public Object, public ApiObjectNoBase
+    {
     };
 
 

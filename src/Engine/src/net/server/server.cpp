@@ -22,7 +22,7 @@ Server::Server() = default;
 Server::Server(const Server& server) : _M_ip(server._M_ip), _M_port(server._M_port), _M_function(server._M_function)
 {}
 
-Server::Server(int port, const std::string& ip, const std::function<void(std::array<char, BUFFER_SIZE>&, int&)>& _function)
+Server::Server(int port, const std::string& ip, const std::function<void(Array<char, BUFFER_SIZE>&, int&)>& _function)
     : _M_ip(ip), _M_port(port), _M_function(_function)
 {}
 
@@ -55,12 +55,12 @@ Server& Server::ip(const std::string& _ip)
     return *this;
 }
 
-const std::array<char, BUFFER_SIZE>& Server::buffer() const
+const Array<char, BUFFER_SIZE>& Server::buffer() const
 {
     return _M_buffer;
 }
 
-std::array<char, BUFFER_SIZE>& Server::buffer()
+Array<char, BUFFER_SIZE>& Server::buffer()
 {
     return _M_buffer;
 }

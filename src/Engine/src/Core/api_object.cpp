@@ -1,71 +1,75 @@
 #include <Core/api_object.hpp>
+#include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <api.hpp>
-
 namespace Engine
 {
-    declare_instance_info_cpp(ApiObject);
 
-    // Zero is default or invalid value of ApiObject in external API
-    constructor_cpp(ApiObject)
+    REGISTER_CLASS(Engine::ApiObject, Engine::Object);
+
+    // Zero is default or invalid value of ApiObjectNoBase in external API
+    constructor_cpp(ApiObjectNoBase)
     {
         _M_ID = 0;
     }
 
 
-    ObjID ApiObject::id() const
+    Identifier ApiObjectNoBase::id() const
     {
         return _M_ID;
     }
 
-    bool ApiObject::has_object() const
+    bool ApiObjectNoBase::has_object() const
     {
         return _M_ID != 0;
     }
 
-    bool ApiObject::operator==(const ApiObject& obj) const
+    bool ApiObjectNoBase::operator==(const ApiObjectNoBase& obj) const
     {
         return _M_ID == obj._M_ID;
     }
 
-    bool ApiObject::operator!=(const ApiObject& obj) const
+    bool ApiObjectNoBase::operator!=(const ApiObjectNoBase& obj) const
     {
         return _M_ID != obj._M_ID;
     }
 
-    bool ApiObject::operator<(const ApiObject& obj) const
+    bool ApiObjectNoBase::operator<(const ApiObjectNoBase& obj) const
     {
         return _M_ID < obj._M_ID;
     }
 
-    bool ApiObject::operator<=(const ApiObject& obj) const
+    bool ApiObjectNoBase::operator<=(const ApiObjectNoBase& obj) const
     {
         return _M_ID <= obj._M_ID;
     }
 
-    bool ApiObject::operator>(const ApiObject& obj) const
+    bool ApiObjectNoBase::operator>(const ApiObjectNoBase& obj) const
     {
         return _M_ID > obj._M_ID;
     }
 
-    bool ApiObject::operator>=(const ApiObject& obj) const
+    bool ApiObjectNoBase::operator>=(const ApiObjectNoBase& obj) const
     {
         return _M_ID >= obj._M_ID;
     }
 
-    ApiObject::operator ObjID() const
+    ApiObjectNoBase::operator Identifier() const
     {
         return _M_ID;
     }
 
-    ApiObject& ApiObject::destroy()
+    ApiObjectNoBase& ApiObjectNoBase::destroy()
     {
         if (_M_ID)
+        {
             EngineInstance::instance()->api_interface()->destroy_object(_M_ID);
+            _M_ID = 0;
+        }
         return *this;
     }
 
-    ApiObject::~ApiObject()
+    ApiObjectNoBase::~ApiObjectNoBase()
     {
         destroy();
     }

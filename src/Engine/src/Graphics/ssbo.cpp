@@ -4,21 +4,43 @@
 
 namespace Engine
 {
-    declare_instance_info_cpp(BasicSSBO);
+    ShaderSharedBufferBase& ShaderSharedBufferBase::create_buffer(const byte* data, size_t size)
+    {
+        if (_M_ID)
+            destroy();
 
-    constructor_cpp(BasicSSBO)
+        EngineInstance::instance()->api_interface()->create_ssbo(_M_ID, data, size);
+        return *this;
+    }
+
+    ShaderSharedBufferBase& ShaderSharedBufferBase::update_buffer(size_t offset, const byte* data, size_t size)
+    {
+        if (_M_ID)
+            EngineInstance::instance()->api_interface()->update_ssbo(_M_ID, data, offset, size);
+        return *this;
+    }
+
+    ShaderSharedBufferBase& ShaderSharedBufferBase::bind_buffer(BindingIndex index, size_t offset, size_t size)
+    {
+        if (_M_ID)
+            EngineInstance::instance()->api_interface()->bind_ssbo(_M_ID, index, offset, size);
+        return *this;
+    }
+
+
+    BasicSSBO::BasicSSBO()
     {}
 
     BasicSSBO& BasicSSBO::gen()
     {
         destroy();
-        EngineInstance::instance()->api_interface()->create_ssbo(_M_ID);
+        // EngineInstance::instance()->api_interface()->create_ssbo(_M_ID);
         return *this;
     }
 
     BasicSSBO& BasicSSBO::set_data()
     {
-        EngineInstance::instance()->api_interface()->ssbo_data(_M_ID, data_ptr(), size() * value_size(), usage);
+        // EngineInstance::instance()->api_interface()->ssbo_data(_M_ID, data_ptr(), size() * value_size(), usage);
         return *this;
     }
 
@@ -26,15 +48,14 @@ namespace Engine
     {
         if (elem_offset + count > size())
             return *this;
-        const auto _M_value_size = value_size();
-        EngineInstance::instance()->api_interface()->update_ssbo_data(
-                _M_ID, data_ptr() + _M_value_size * elem_offset, count * _M_value_size, elem_offset * _M_value_size);
+        //  EngineInstance::instance()->api_interface()->update_ssbo_data(
+        //      _M_ID, data_ptr() + _M_value_size * elem_offset, count * _M_value_size, elem_offset * _M_value_size);
         return *this;
     }
 
     BasicSSBO& BasicSSBO::bind(unsigned int index)
     {
-        EngineInstance::instance()->api_interface()->bind_ssbo(_M_ID, index);
+        //EngineInstance::instance()->api_interface()->bind_ssbo(_M_ID, index);
         return *this;
     }
 

@@ -16,22 +16,6 @@ namespace Engine
             SDL_GetDisplayDPI(0, &display_dpi.ddpi, &display_dpi.hdpi, &display_dpi.vdpi);
         }
 
-
-        ENGINE_EXPORT int red_bits()
-        {
-            throw not_implemented;
-        }
-
-        ENGINE_EXPORT int green_bits()
-        {
-            throw not_implemented;
-        }
-
-        ENGINE_EXPORT int blue_bits()
-        {
-            throw not_implemented;
-        }
-
         ENGINE_EXPORT Size1D height()
         {
             return static_cast<Size1D>(mode.h);
@@ -42,7 +26,7 @@ namespace Engine
             return static_cast<Size1D>(mode.w);
         }
 
-        ENGINE_EXPORT int refresh_rate()
+        ENGINE_EXPORT int_t refresh_rate()
         {
             return mode.refresh_rate;
         }

@@ -9,7 +9,7 @@
 namespace Engine
 {
 
-    CLASS HitBox
+    class ENGINE_EXPORT HitBox
     {
     public:
         virtual void render(const glm::mat4& model = Constants::identity_matrix, const Color& color = Color::Red)
@@ -21,7 +21,7 @@ namespace Engine
     };
 
 
-    CLASS BoxHB : public HitBox, public AABB_3D
+    class ENGINE_EXPORT BoxHB : public HitBox, public AABB_3D
     {
     protected:
         Point3D _M_center;

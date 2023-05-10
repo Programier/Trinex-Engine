@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-    CLASS DestroyController
+    class ENGINE_EXPORT DestroyController
     {
     public:
         DestroyController(void(*)());

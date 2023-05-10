@@ -1,3 +1,4 @@
+#include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/camera.hpp>
 #include <functional>
@@ -5,12 +6,11 @@
 
 namespace Engine
 {
-    template<typename InType>
-    static void on_camera_event(InType* value)
+
+    static void on_camera_event(TransformComponents::TranslateRotate* value)
     {
-        Camera* camera = dynamic_cast<Camera*>(value);
-        if (camera)
-            camera->need_update(true);
+        Camera* camera = reinterpret_cast<Camera*>(value);
+        camera->need_update(true);
     }
 
     bool Camera::need_update() const
@@ -24,23 +24,23 @@ namespace Engine
         return *this;
     }
 
-    declare_instance_info_cpp(Camera);
-    constructor_cpp(Camera, glm::vec3 position, float viewing_angle, const std::wstring& name)
+    REGISTER_CLASS(Engine::Camera, Engine::Object);
+    Camera::Camera(glm::vec3 position, float viewing_angle)
     {
         _M_viewingAngle = viewing_angle;
         move(position, false);
-        on_set_model.push(on_camera_event<ModelMatrix>);
-        on_translate.push(on_camera_event<Translate>);
-        on_rotate.push(on_camera_event<Rotate>);
+        //on_set_model.push(on_camera_event);
+        _M_translate_fields.on_translate.push(on_camera_event);
+        _M_rotate_fields.on_rotate.push(on_camera_event);
     }
 
     Camera& Camera::update_matrices()
     {
         if (_M_need_update)
         {
-            _M_projection = glm::perspective(_M_viewingAngle, _M_aspect, _M_minRenderDistance, _M_maxRenderDistance);
-            _M_view = glm::lookAt(_M_position, _M_position + front_vector(), up_vector());
-            _M_projview = _M_projection * _M_view;
+            _M_projection  = glm::perspective(_M_viewingAngle, _M_aspect, _M_minRenderDistance, _M_maxRenderDistance);
+            _M_view        = glm::lookAt(position(), position() + front_vector(), up_vector());
+            _M_projview    = _M_projection * _M_view;
             _M_need_update = false;
         }
         return *this;
@@ -73,14 +73,14 @@ namespace Engine
     Camera& Camera::max_render_distance(float distance)
     {
         _M_maxRenderDistance = distance;
-        _M_need_update = true;
+        _M_need_update       = true;
         return *this;
     }
 
     Camera& Camera::min_render_distance(float distance)
     {
         _M_minRenderDistance = distance;
-        _M_need_update = true;
+        _M_need_update       = true;
         return *this;
     }
 
@@ -107,7 +107,7 @@ namespace Engine
     Camera& Camera::viewing_angle(float angle)
     {
         _M_viewingAngle = angle;
-        _M_need_update = true;
+        _M_need_update  = true;
         return *this;
     }
 
@@ -123,7 +123,7 @@ namespace Engine
 
     Vector3D Camera::front_vector() const
     {
-        return -Rotate::front_vector();
+        return -TransformComponent::front_vector();
     }
 
     float Camera::aspect() const
@@ -133,7 +133,7 @@ namespace Engine
 
     Camera& Camera::aspect(float value)
     {
-        _M_aspect = value;
+        _M_aspect      = value;
         _M_need_update = true;
         return *this;
     }

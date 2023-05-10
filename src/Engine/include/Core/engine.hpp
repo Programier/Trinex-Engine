@@ -5,12 +5,8 @@
 #include <iomanip>
 #include <ostream>
 #include <utility>
-
-#define not_implemented                                                                                                \
-    (std::runtime_error(std::string(__FILE__) + std::string(":") + std::to_string(__LINE__) +                          \
-                        std::string(" Not implemented method: ") + __PRETTY_FUNCTION__))
-
-#define cast(type, value) static_cast<type>(value)
+#include <Core/render_types.hpp>
+#include <Core/texture_types.hpp>
 
 
 // PRINTING GLM OBJECT
@@ -106,11 +102,12 @@ namespace Engine
         class ApiInterface;
     }
 
-    ENGINE_EXPORT class EngineInstance final
+    class ENGINE_EXPORT EngineInstance final
     {
     private:
         bool _M_is_inited = false;
         static EngineInstance* _M_instance;
+        class Renderer* _M_renderer = nullptr;
         Application* _M_application = nullptr;
         EngineAPI _M_api;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
@@ -119,27 +116,23 @@ namespace Engine
 
         EngineInstance();
 
-        EngineInstance& init();
         ENGINE_EXPORT static EngineInstance* create_instance();
+        EngineInstance& init_api();
 
         ~EngineInstance();
 
     public:
+        int start(int argc, char** argv);
         ENGINE_EXPORT static EngineInstance* instance();
         const Window* window() const;
         SystemType system_type() const;
         EngineAPI api() const;
         bool is_inited() const;
         GraphicApiInterface::ApiInterface* api_interface() const;
+        class Renderer* renderer() const;
 
-        EngineInstance& enable(EnableCap cap);
-        EngineInstance& disable(EnableCap cap);
-        EngineInstance& blend_func(BlendFunc func, BlendFunc func2);
-        EngineInstance& depth_func(DepthFunc func);
-        EngineInstance& depth_mask(bool mask);
-        EngineInstance& stencil_mask(byte mask);
-        EngineInstance& stencil_option(StencilOption stencil_fail, StencilOption depth_fail, StencilOption pass);
-        EngineInstance& stencil_func(Engine::CompareFunc func, int_t ref, byte mask);
+        bool check_format_support(PixelType type, PixelComponentType component);
+        void destroy();
         friend class Application;
     };
 

@@ -1,10 +1,8 @@
-#include <Core/check.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/predef.hpp>
 #include <Graphics/hitbox.hpp>
 #include <Graphics/mesh.hpp>
-#include <Graphics/scene.hpp>
-#include <Graphics/shader_system.hpp>
 #include <api.hpp>
 #include <iostream>
 
@@ -46,16 +44,16 @@ namespace Engine
 
     BoxHB& BoxHB::aabb(const BoxHB& box)
     {
-        this->_M_center = box._M_center;
+        this->_M_center     = box._M_center;
         this->_M_half_sizes = box._M_half_sizes;
         return *this;
     }
 
     BoxHB& BoxHB::aabb(const Size3D& _min, const Size3D& _max)
     {
-        min = glm::min(_min, _max);
-        max = glm::max(_min, _max);
-        _M_center = (max + min) / 2.f;
+        min           = glm::min(_min, _max);
+        max           = glm::max(_min, _max);
+        _M_center     = (max + min) / 2.f;
         _M_half_sizes = max - _M_center;
         return *this;
     }
@@ -83,29 +81,29 @@ namespace Engine
         Vector4D vector(max, 1.f);
         points[0] = model * vector;
 
-        vector.z = min.z;
+        vector.z  = min.z;
         points[1] = model * vector;
 
-        vector.z = max.z;
-        vector.y = min.y;
+        vector.z  = max.z;
+        vector.y  = min.y;
         points[2] = model * vector;
 
-        vector.z = min.z;
+        vector.z  = min.z;
         points[3] = model * vector;
 
-        vector.z = max.z;
-        vector.y = max.y;
-        vector.x = min.x;
+        vector.z  = max.z;
+        vector.y  = max.y;
+        vector.x  = min.x;
         points[4] = model * vector;
 
-        vector.z = min.z;
+        vector.z  = min.z;
         points[5] = model * vector;
 
-        vector.z = max.z;
-        vector.y = min.y;
+        vector.z  = max.z;
+        vector.y  = min.y;
         points[6] = model * vector;
 
-        vector.z = min.z;
+        vector.z  = min.z;
         points[7] = model * vector;
 
         AABB_3D result(points[0], points[0]);
@@ -126,72 +124,16 @@ namespace Engine
     }
 
 
-    static bool _M_mesh_inited = false;
-    static Mesh<float> _M_mesh;
-
-
     void BoxHB::render(const glm::mat4& model, const Color& color) const
     {
-
-        Scene* scene = Scene::get_active_scene();
-        check_with_message(scene, "No active scene found!");
-        Camera* camera = scene->active_camera();
-        check_with_message(camera, "No active camera found!");
-
-
-        if (!_M_mesh_inited)
-        {
-            _M_mesh.data = {-1, -1, -1,// 0
-                            -1, -1, 1, // 1
-                            -1, 1,  -1,// 2
-                            -1, 1,  1, // 3
-                            1,  -1, -1,// 4
-                            1,  -1, 1, // 5
-                            1,  1,  -1,// 6
-                            1,  1,  1};// 7
-
-            _M_mesh.indexes = {0, 1,//
-                               0, 2,//
-                               0, 4,//
-                               1, 3,//
-                               1, 5,//
-                               5, 7,//
-                               5, 4,//
-                               4, 6,//
-                               6, 7,//
-                               6, 2,//
-                               3, 2,//
-                               3, 7};
-
-
-            _M_mesh.gen().set_data().set_indexes();
-        }
-
-        float _M_line_offset = 0.00001f;
-        float _M_line_width = EngineInstance::instance()->api_interface()->line_rendering_width();
-        EngineInstance::instance()->api_interface()->line_rendering_width(3.f);
-        _M_mesh.data = {min.x - _M_line_offset, min.y - _M_line_offset, min.z - _M_line_offset,//
-                        min.x - _M_line_offset, min.y - _M_line_offset, max.z + _M_line_offset,//
-                        min.x - _M_line_offset, max.y + _M_line_offset, min.z - _M_line_offset,//
-                        min.x - _M_line_offset, max.y + _M_line_offset, max.z + _M_line_offset,//
-                        max.x + _M_line_offset, min.y - _M_line_offset, min.z - _M_line_offset,//
-                        max.x + _M_line_offset, min.y - _M_line_offset, max.z + _M_line_offset,//
-                        max.x + _M_line_offset, max.y + _M_line_offset, min.z - _M_line_offset,//
-                        max.x + _M_line_offset, max.y + _M_line_offset, max.z + _M_line_offset};
-
-        _M_mesh.update_data(0, sizeof(float) * 24);
-        namespace sh = ShaderSystem::Line;
-        sh::shader.use().set(sh::model, model).set(sh::color, color).set(sh::projview, camera->projview());
-        _M_mesh.draw(Primitive::Line);
-
-        EngineInstance::instance()->api_interface()->line_rendering_width(_M_line_width);
+        throw std::runtime_error("Not implemented");
     }
 
     BoxHB BoxHB::max_box(const AABB_3D& box) const
     {
         AABB_3D result = *this;
-        result.max = glm::max(result.max, glm::max(box.min, box.max));
-        result.min = glm::min(result.min, glm::min(box.min, box.max));
+        result.max     = glm::max(result.max, glm::max(box.min, box.max));
+        result.min     = glm::min(result.min, glm::min(box.min, box.max));
         return result;
     }
 
@@ -246,7 +188,7 @@ namespace Engine
         Vector3D t2 = glm::max(t_min, t_max);
 
         float near = glm::max(glm::max(t1.x, t1.y), t1.z);
-        float far = glm::min(glm::min(t2.x, t2.y), t2.z);
+        float far  = glm::min(glm::min(t2.x, t2.y), t2.z);
         return Vector2D(near, far);
     }
 }// namespace Engine

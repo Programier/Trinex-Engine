@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    CLASS Library final
+    class ENGINE_EXPORT Library final
     {
     private:
         std::string _M_libname;

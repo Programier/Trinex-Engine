@@ -1,8 +1,10 @@
-#include <Application.hpp>
-#include <iostream>
+#include <Core/engine.hpp>
 
 
 int main(int argc, char** argv)
 {
-    return game_main(argc, argv);
+    auto instance = Engine::EngineInstance::instance();
+    int status    = instance->start(argc, argv);
+    instance->destroy();
+    return status;
 }

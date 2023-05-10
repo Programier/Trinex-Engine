@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    STRUCT Color : public glm::vec4 {
+    struct ENGINE_EXPORT Color : public glm::vec4 {
         Color();
         Color(const Color&);
         Color(const glm::vec4&);

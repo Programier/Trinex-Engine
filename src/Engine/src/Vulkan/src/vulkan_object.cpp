@@ -3,8 +3,8 @@
 
 namespace Engine
 {
-    ObjID VulkanObject::ID()
+    Identifier VulkanObject::ID()
     {
-        return reinterpret_cast<ObjID>(this);
+        return reinterpret_cast<Identifier>(this);
     }
 }

@@ -1,40 +1,21 @@
+#include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/predef.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/skybox.hpp>
 
-static Engine::Mesh<float> mesh;
-
-
 static void init_mesh()
-{
-    static bool mesh_is_inited = false;
-    if (mesh_is_inited)
-        return;
-
-    Engine::logger->log("Skybox: Init skybox mesh\n");
-    mesh.gen();
-    mesh.data = {-1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,
-                 -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
-                 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,
-                 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f,
-                 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
-                 -1.0f, 1.0f,  -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
-                 -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f,
-                 -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
-
-    mesh.set_data();
-    mesh_is_inited = true;
-}
+{}
 
 
 namespace Engine
 {
-    declare_instance_info_cpp(Skybox);
-    constructor_cpp(Skybox)
+    REGISTER_CLASS(Engine::Skybox, Engine::TextureCubeMap);
+    Skybox::Skybox()
     {}
 
-    Skybox& Skybox::load(const std::vector<String>& filenames, const bool& invert)
+    Skybox& Skybox::load(const Vector<String>& filenames, const bool& invert)
     {
         return *this;
     }
@@ -44,23 +25,26 @@ namespace Engine
         init_mesh();
         Image img(filename, invert);
 
-        if (!TextureCubeMap::has_object())
-        {
-            TextureParams params;
-
-            params.pixel_type = img.channels() == 4 ? PixelType::RGBA : PixelType::RGB;
-            params.type = TextureType::TextureCubeMap;
-            params.pixel_component_type = PixelComponentType::UnsignedByte;
-            TextureCubeMap::create(params);
-        }
-
         if (img.empty())
         {
             logger->log("Skybox: Failed to load skybox\n");
             return *this;
         }
-        int block_width = img.width() / 4;
+
+
+        int block_width  = img.width() / 4;
         int block_height = img.height() / 3;
+
+        if (!TextureCubeMap::has_object())
+        {
+            TextureCreateInfo& params = resources(true)->info;
+
+            params.pixel_type           = img.channels() == 4 ? PixelType::RGBA : PixelType::RGB;
+            params.pixel_component_type = PixelComponentType::UnsignedByte;
+            params.mipmap_count         = 8;
+            params.size                 = Size2D(block_width, block_height);
+            TextureCubeMap::create();
+        }
 
         Image _M_images[6];
 
@@ -84,7 +68,8 @@ namespace Engine
 
         for (byte i = 0; i < 6; i++)
         {
-            TextureCubeMap::attach_data((TextureCubeMapFace) i, _M_images[i].size(), (void*) _M_images[i].data(), 0);
+            TextureCubeMap::update_data((TextureCubeMapFace) i, _M_images[i].size(), {0, 0},
+                                        (void*) _M_images[i].data(), 0);
         }
 
         return *this;
@@ -92,10 +77,7 @@ namespace Engine
 
     Skybox& Skybox::draw()
     {
-        EngineInstance::instance()->depth_func(CompareFunc::Lequal);
-        TextureCubeMap::bind(0);
-        mesh.draw(Primitive::Triangle);
-        EngineInstance::instance()->depth_func(CompareFunc::Less);
+        throw std::runtime_error(not_implemented);
         return *this;
     }
 
@@ -105,7 +87,7 @@ namespace Engine
         load(filename, invert);
     }
 
-    Skybox::Skybox(const std::vector<String>& filenames, const bool& invert)
+    Skybox::Skybox(const Vector<String>& filenames, const bool& invert)
     {
         load(filenames, invert);
     }

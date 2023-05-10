@@ -1,28 +1,61 @@
 #pragma once
-#include <unordered_map>
-#include <Core/engine_types.hpp>
-#include <opengl_headers.hpp>
+#include <Core/texture_types.hpp>
+#include <Core/shader_types.hpp>
+#include <array>
+#include <opengl_object.hpp>
+#include <stdexcept>
 
-using namespace Engine;
+namespace Engine
+{
 
-extern const std::unordered_map<TextureType, GLuint> _M_types;
-extern const std::unordered_map<PixelType, GLuint> _M_pixel_types;
-extern const std::unordered_map<BufferValueType, GLuint> _M_buffer_value_types;
-extern const std::unordered_map<typeof(ShaderDataType::Int), std::pair<byte, GLuint>> _M_shader_types;
-extern const std::unordered_map<IndexBufferComponent, GLuint> _M_index_buffer_components;
-extern const std::unordered_map<CompareFunc, GLuint> _M_compare_funcs;
-extern const std::unordered_map<GLint, CompareFunc> _M_revert_compare_funcs;
-extern const std::unordered_map<CompareMode, GLuint> _M_compare_modes;
-extern const std::unordered_map<TextureFilter, GLuint> _M_texture_filters;
-extern const std::unordered_map<GLint, TextureFilter> _M_reverse_texture_filters;
-extern const std::unordered_map<SwizzleRGBA::SwizzleValue, GLint> _M_swizzle_values;
-extern const std::unordered_map<WrapValue, GLint> _M_wrap_values;
-extern const std::unordered_map<BufferValueType, std::size_t> _M_buffer_value_type_sizes;
-extern const std::unordered_map<DrawMode, GLuint> _M_draw_modes;
-extern const std::unordered_map<Primitive, GLuint> _M_primitives;
-extern const std::unordered_map<FrameBufferType, GLint> _M_framebuffer_types;
-extern const std::unordered_map<FrameBufferAttach, GLint> _M_framebuffer_attach;
-extern const std::unordered_map<TextureCubeMapFace, GLint> _M_cubemap_indexes;
-extern const std::unordered_map<EnableCap, GLint> _M_enable_caps;
-extern const std::unordered_map<BlendFunc, GLint> _M_blend_funcs;
-extern const std::unordered_map<StencilOption, GLint> _M_stencil_options;
+#define DECLARE_GETTER(b, array)                                                                                       \
+    inline GLint get_type(const b& in_type)                                                                            \
+    {                                                                                                                  \
+        return array[static_cast<EnumerateType>(in_type)];                                                             \
+    }
+
+    template<typename ResultType, typename ElementType, std::size_t size>
+    ResultType opengl_type_to_engine_type(const Array<ElementType, size>& containter, const ElementType& elem)
+    {
+        for (std::size_t i = 0; i < size; i++)
+        {
+            if (elem == containter[i])
+                return static_cast<ResultType>(i);
+        }
+
+        throw std::runtime_error("OpenGL: Failed to convert OpenGL type to Engine type");
+    }
+
+#define DECLARE_TYPE(type, name, size)                                                                                 \
+    extern const Array<GLint, size> _M_##name;                                                                    \
+    DECLARE_GETTER(type, _M_##name)
+
+    DECLARE_TYPE(TextureType, texture_types, 2);
+    DECLARE_TYPE(PixelType, pixel_types, 6);
+    DECLARE_TYPE(PixelComponentType, pixel_component_types, 7);
+    DECLARE_TYPE(CompareFunc, compare_funcs, 8);
+    DECLARE_TYPE(CompareMode, compare_modes, 2);
+    DECLARE_TYPE(TextureFilter, texture_filters, 2);
+    DECLARE_TYPE(SamplerMipmapMode, sampler_modes, 2);
+    DECLARE_TYPE(SwizzleValue, swizzle_values, 7);
+    DECLARE_TYPE(WrapValue, wrap_values, 5);
+    DECLARE_TYPE(TextureCubeMapFace, cube_faces, 6);
+    DECLARE_TYPE(IndexBufferComponent, index_components, 3);
+    DECLARE_TYPE(StencilOp, stencil_options, 8);
+    DECLARE_TYPE(PrimitiveTopology, primitive_topologies, 11);
+    DECLARE_TYPE(BlendFunc, blend_funcs, 14);
+    DECLARE_TYPE(BlendOp, blend_ops, 5);
+    DECLARE_TYPE(CullMode, cull_modes, 4);
+
+
+    struct ShaderType
+    {
+        byte size;
+        GLenum type;
+    };
+
+    extern const Array<ShaderType, 19> _M_shader_types;
+
+#undef DECLARE_TYPE
+#undef DECLARE_GETTER
+}// namespace Engine

@@ -143,6 +143,7 @@ namespace Engine
         MOUSE_BUTTON_RIGHT,
         MOUSE_BUTTON_MIDDLE
     };
+
     ENGINE_EXPORT int to_SDL_scancode(const Key& key);
     ENGINE_EXPORT wchar_t to_character(const Key& key);
     ENGINE_EXPORT Key to_key(int);

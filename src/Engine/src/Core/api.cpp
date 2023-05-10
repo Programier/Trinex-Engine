@@ -3,487 +3,425 @@
 
 namespace Engine::GraphicApiInterface
 {
-
-#ifdef ENGINE_API_IMPLEMENTATION
     ApiInterface& ApiInterface::logger(Logger*&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
     void* ApiInterface::init_window(SDL_Window*)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return nullptr;
     }
 
     ApiInterface& ApiInterface::destroy_window()
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::destroy_object(ObjID&)
+    ApiInterface& ApiInterface::destroy_object(Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
     ///////////////// TEXTURE PART /////////////////
-    ApiInterface& ApiInterface::create_texture(ObjID&, const TextureParams&)
+    ApiInterface& ApiInterface::create_texture(Identifier&, const TextureCreateInfo&, TextureType)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::bind_texture(const ObjID&, TextureBindIndex)
+    ApiInterface& ApiInterface::bind_texture(const Identifier&, TextureBindIndex)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    const TextureParams* ApiInterface::param_texture(const ObjID&)
+    MipMapLevel ApiInterface::base_level_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return nullptr;
-    }
-
-    int_t ApiInterface::base_level_texture(const ObjID&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return 0;
     }
 
-    ApiInterface& ApiInterface::base_level_texture(const ObjID&, int_t)
+    ApiInterface& ApiInterface::base_level_texture(const Identifier&, MipMapLevel)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::depth_stencil_mode_texture(const ObjID&, DepthStencilMode)
+    CompareFunc ApiInterface::compare_func_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    DepthStencilMode ApiInterface::depth_stencil_mode_texture(const ObjID&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return DepthStencilMode();
-    }
-
-    CompareFunc ApiInterface::compare_func_texture(const ObjID&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return CompareFunc();
     }
 
-    ApiInterface& ApiInterface::compare_func_texture(const ObjID&, CompareFunc)
+    ApiInterface& ApiInterface::compare_func_texture(const Identifier&, CompareFunc)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    CompareMode ApiInterface::compare_mode_texture(const ObjID&)
+    CompareMode ApiInterface::compare_mode_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return CompareMode();
     }
 
-    ApiInterface& ApiInterface::compare_mode_texture(const ObjID&, CompareMode)
+    ApiInterface& ApiInterface::compare_mode_texture(const Identifier&, CompareMode)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    TextureFilter ApiInterface::min_filter_texture(const ObjID&)
+    TextureFilter ApiInterface::min_filter_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return TextureFilter();
     }
 
-    TextureFilter ApiInterface::mag_filter_texture(const ObjID&)
+    TextureFilter ApiInterface::mag_filter_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return TextureFilter();
     }
 
-    ApiInterface& ApiInterface::min_filter_texture(const ObjID&, TextureFilter)
+    ApiInterface& ApiInterface::min_filter_texture(const Identifier&, TextureFilter)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::mag_filter_texture(const ObjID&, TextureFilter)
+    ApiInterface& ApiInterface::mag_filter_texture(const Identifier&, TextureFilter)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::min_lod_level_texture(const ObjID&, int_t)
+    ApiInterface& ApiInterface::min_lod_level_texture(const Identifier&, LodLevel)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::max_lod_level_texture(const ObjID&, int_t)
+    ApiInterface& ApiInterface::max_lod_level_texture(const Identifier&, LodLevel)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::max_mipmap_level_texture(const ObjID&, int_t)
+    LodLevel ApiInterface::min_lod_level_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    int_t ApiInterface::min_lod_level_texture(const ObjID&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return 0;
     }
 
-    int_t ApiInterface::max_lod_level_texture(const ObjID&)
+    LodLevel ApiInterface::max_lod_level_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return 0;
     }
 
-    int_t ApiInterface::max_mipmap_level_texture(const ObjID&)
+    MipMapLevel ApiInterface::max_mipmap_level_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return 0;
     }
 
-    ApiInterface& ApiInterface::swizzle_texture(const ObjID&, const SwizzleRGBA&)
+    ApiInterface& ApiInterface::swizzle_texture(const Identifier&, const SwizzleRGBA&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    SwizzleRGBA ApiInterface::swizzle_texture(const ObjID&)
+    SwizzleRGBA ApiInterface::swizzle_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return SwizzleRGBA();
     }
 
-    ApiInterface& ApiInterface::wrap_s_texture(const ObjID&, const WrapValue&)
+    ApiInterface& ApiInterface::wrap_s_texture(const Identifier&, const WrapValue&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::wrap_t_texture(const ObjID&, const WrapValue&)
+    ApiInterface& ApiInterface::wrap_t_texture(const Identifier&, const WrapValue&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::wrap_r_texture(const ObjID&, const WrapValue&)
+    ApiInterface& ApiInterface::wrap_r_texture(const Identifier&, const WrapValue&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    WrapValue ApiInterface::wrap_s_texture(const ObjID&)
+    WrapValue ApiInterface::wrap_s_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return WrapValue();
     }
 
-    WrapValue ApiInterface::wrap_t_texture(const ObjID&)
+    WrapValue ApiInterface::wrap_t_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return WrapValue();
     }
 
-    WrapValue ApiInterface::wrap_r_texture(const ObjID&)
+    WrapValue ApiInterface::wrap_r_texture(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return WrapValue();
     }
-    ApiInterface& ApiInterface::copy_read_buffer_to_texture_2D(const ObjID&, const Size2D&, const Point2D&, int_t)
+
+    ApiInterface& ApiInterface::anisotropic_filtering_texture(const Identifier& ID, float value)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::texture_2D_update_from_current_read_buffer(const ObjID&, const Size2D&, const Offset2D&,
-                                                                           const Point2D&, int_t)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::gen_texture_2D(const ObjID&, const Size2D&, int_t, void*)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::update_texture_2D(const ObjID&, const Size2D&, const Offset2D&, int_t, void*)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::texture_size(const ObjID&, Size3D&, int_t)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::generate_texture_mipmap(const ObjID&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::ApiInterface::read_texture_2D_data(const ObjID&, std::vector<byte>& data, int_t)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ObjID ApiInterface::texture_id(const ObjID&)
+    float ApiInterface::anisotropic_filtering_texture(const Identifier& ID)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return 0.0;
+    }
+
+    float ApiInterface::max_anisotropic_filtering()
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return 0.0;
+    }
+
+    ApiInterface& ApiInterface::update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel,
+                                                  const void*)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+    ApiInterface& ApiInterface::texture_size(const Identifier&, Size2D&, MipMapLevel)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+    ApiInterface& ApiInterface::generate_texture_mipmap(const Identifier&)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+    ApiInterface& ApiInterface::ApiInterface::read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
+    Identifier ApiInterface::imgui_texture_id(const Identifier&)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return 0;
     }
 
-    ApiInterface& ApiInterface::cubemap_texture_attach_2d_texture(const ObjID&, const ObjID&, TextureCubeMapFace, int_t)
+    SamplerMipmapMode ApiInterface::sample_mipmap_mode_texture(const Identifier& ID)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return SamplerMipmapMode();
+    }
+
+    ApiInterface& ApiInterface::sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::cubemap_texture_attach_data(const ObjID&, TextureCubeMapFace, const Size2D&, int_t,
-                                                            void*)
+    LodBias ApiInterface::lod_bias_texture(const Identifier& ID)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return 0.0;
+    }
+
+    ApiInterface& ApiInterface::lod_bias_texture(const Identifier& ID, LodBias bias)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::generate_mesh(ObjID&)
+    LodBias ApiInterface::max_lod_bias_texture()
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return 0.0;
+    }
+
+    ApiInterface& ApiInterface::cubemap_texture_update_data(const Identifier&, TextureCubeMapFace, const Size2D&,
+                                                            const Offset2D&, MipMapLevel, void*)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::mesh_data(const ObjID&, std::size_t, DrawMode, void*)
+    ApiInterface& ApiInterface::create_vertex_buffer(Identifier&, const byte*, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::draw_mesh(const ObjID&, Primitive, std::size_t, std::size_t)
+    ApiInterface& ApiInterface::update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::update_mesh_data(const ObjID&, std::size_t, std::size_t, void*)
+    ApiInterface& ApiInterface::bind_vertex_buffer(const Identifier&, size_t offset)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::mesh_indexes_array(const ObjID&, std::size_t, const IndexBufferComponent&, void*)
+    MappedMemory ApiInterface::map_vertex_buffer(const Identifier& ID)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return MappedMemory(nullptr, 0);
+    }
+
+    ApiInterface& ApiInterface::unmap_vertex_buffer(const Identifier& ID)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::update_mesh_indexes_array(const ObjID&, size_t, size_t, void* data)
+    ApiInterface& ApiInterface::create_index_buffer(Identifier&, const byte*, size_t, IndexBufferComponent)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::gen_framebuffer(ObjID&, FrameBufferType)
+    ApiInterface& ApiInterface::update_index_buffer(const Identifier&, size_t offset, const byte*, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::clear_frame_buffer(const ObjID&, BufferType)
+    ApiInterface& ApiInterface::bind_index_buffer(const Identifier&, size_t offset)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::bind_framebuffer(const ObjID&)
+    MappedMemory ApiInterface::map_index_buffer(const Identifier& ID)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return MappedMemory(nullptr, 0);
+    }
+
+    ApiInterface& ApiInterface::unmap_index_buffer(const Identifier& ID)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::framebuffer_viewport(const Point2D&, const Size2D&)
+
+    ApiInterface& ApiInterface::create_uniform_buffer(Identifier&, const byte*, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-    ApiInterface& ApiInterface::attach_texture_to_framebuffer(const ObjID&, const ObjID&, FrameBufferAttach,
-                                                              TextureAttachIndex, int_t)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::enable(Engine::EnableCap)
+    ApiInterface& ApiInterface::update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::disable(Engine::EnableCap)
+    ApiInterface& ApiInterface::bind_uniform_buffer(const Identifier&, BindingIndex, size_t offset, size_t size)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::blend_func(Engine::BlendFunc, Engine::BlendFunc)
+    MappedMemory ApiInterface::map_uniform_buffer(const Identifier& ID)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        return MappedMemory(nullptr, 0);
+    }
+
+    ApiInterface& ApiInterface::unmap_uniform_buffer(const Identifier& ID)
+    {
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::depth_func(Engine::DepthFunc)
+
+    ApiInterface& ApiInterface::draw_indexed(size_t indices_count, size_t indices_offset)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    float ApiInterface::line_rendering_width()
+    ApiInterface& ApiInterface::gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return 0;
-    }
-
-    ApiInterface& ApiInterface::line_rendering_width(float)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::create_shader(ObjID&, const ShaderParams&)
+    ApiInterface& ApiInterface::bind_framebuffer(const Identifier&, size_t buffer_index)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::use_shader(const ObjID&)
+    ApiInterface& ApiInterface::framebuffer_viewport(const Identifier&, const ViewPort&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, float)
+
+    ApiInterface& ApiInterface::create_shader(Identifier&, const PipelineCreateInfo&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, int_t)
+    ApiInterface& ApiInterface::use_shader(const Identifier&)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, const glm::mat3&)
+
+    ApiInterface& ApiInterface::create_ssbo(Identifier&, const byte*, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, const glm::mat4&)
+    ApiInterface& ApiInterface::bind_ssbo(const Identifier&, BindingIndex slot, size_t, size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, const glm::vec2&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
 
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, const glm::vec3&)
+    ApiInterface& ApiInterface::update_ssbo(const Identifier&, const byte*, std::size_t, std::size_t)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const std::string&, const glm::vec4&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::shader_value(const ObjID&, const String&, void*)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::depth_mask(bool)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::stencil_mask(byte)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::stencil_func(Engine::CompareFunc, int_t, byte)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::stencil_option(Engine::StencilOption, Engine::StencilOption, Engine::StencilOption)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::create_ssbo(ObjID&)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::bind_ssbo(const ObjID&, int_t slot)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::ssbo_data(const ObjID&, void*, std::size_t, BufferUsage)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::update_ssbo_data(const ObjID&, void*, std::size_t, std::size_t)
-    {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
     ApiInterface& ApiInterface::swap_buffer(SDL_Window* window)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
     ApiInterface& ApiInterface::swap_interval(int_t interval)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    ApiInterface& ApiInterface::clear_color(const Color& color)
+    ApiInterface& ApiInterface::clear_color(const Identifier&, const ColorClearValue&, byte layout)
     {
-        Engine::logger->log("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
+        Engine::logger->warning("METHOD %s IS NOT IMPLEMENTED!", __PRETTY_FUNCTION__);
         return *this;
     }
 
@@ -502,22 +440,46 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
-    ApiInterface& ApiInterface::begin_render_pass()
-    {
-        return *this;
-    }
-
-    ApiInterface& ApiInterface::end_render_pass()
-    {
-        return *this;
-    }
-
     ApiInterface& ApiInterface::wait_idle()
     {
         return *this;
     }
 
-#endif
+    ApiInterface& ApiInterface::async_render(bool flag)
+    {
+        return *this;
+    }
+
+    bool ApiInterface::async_render()
+    {
+        return false;
+    }
+
+    ApiInterface& ApiInterface::next_render_thread()
+    {
+        return *this;
+    }
+
+    String ApiInterface::renderer()
+    {
+        return "Undefined";
+    }
+
+    bool ApiInterface::check_format_support(PixelType type, PixelComponentType component)
+    {
+        return false;
+    }
+
+    ApiInterface& ApiInterface::clear_depth_stencil(const Identifier&, const DepthStencilClearValue&)
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::framebuffer_scissor(const Identifier&, const Scissor&)
+    {
+        return *this;
+    }
+
     ApiInterface::~ApiInterface()
     {}
 }// namespace Engine::GraphicApiInterface

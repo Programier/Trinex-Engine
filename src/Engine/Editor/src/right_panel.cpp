@@ -195,7 +195,7 @@ namespace Editor
 
     void RightPanel::render()
     {
-        for (auto panel : std::list<Panel*>(_M_windows.begin(), _M_windows.end()))
+        for (auto panel : List<Panel*>(_M_windows.begin(), _M_windows.end()))
         {
             panel->render();
         }

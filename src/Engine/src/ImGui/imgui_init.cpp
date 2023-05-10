@@ -1,5 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/predef.hpp>
 #include <ImGui-Private/imgui_impl_opengl3.h>
 #include <ImGui-Private/imgui_impl_sdl.h>
 #include <Window/window.hpp>
@@ -16,7 +17,7 @@ namespace Engine::ImGuiInit
 
     static void vulkan_imgui_init(const char* glsl_version)
     {
-        throw not_implemented;
+        throw std::runtime_error(not_implemented);
     }
 
     static void (*init_imgui[2])(const char*) = {opengl_imgui_init, vulkan_imgui_init};
@@ -30,7 +31,7 @@ namespace Engine::ImGuiInit
 
     static void vulkan_imgui_terminate()
     {
-        throw not_implemented;
+        throw std::runtime_error(not_implemented);
     }
 
     static void (*terminate_imgui_funcs[2])() = {opengl_imgui_terminate, vulkan_imgui_terminate};
@@ -43,7 +44,7 @@ namespace Engine::ImGuiInit
 
     static void vulkan_imgui_render()
     {
-        throw not_implemented;
+        throw std::runtime_error(not_implemented);
     }
 
     static void (*render_imgui[2])() = {opengl_imgui_render, vulkan_imgui_render};
@@ -56,7 +57,7 @@ namespace Engine::ImGuiInit
 
     static void vulkan_imgui_frame()
     {
-        throw not_implemented;
+        throw std::runtime_error(not_implemented);
     }
 
     static void (*frame_imgui[2])() = {opengl_imgui_frame, vulkan_imgui_frame};
@@ -78,17 +79,17 @@ namespace Engine::ImGuiInit
         auto it = std::find(Engine::Event::sdl_callbacks.begin(), Engine::Event::sdl_callbacks.end(), imgui_event);
         if (it != Engine::Event::sdl_callbacks.end())
             Engine::Event::sdl_callbacks.erase(it);
-        terminate_imgui_funcs[cast(int, Engine::EngineInstance::instance()->api())]();
+        terminate_imgui_funcs[cast<int>(Engine::EngineInstance::instance()->api())]();
     }
 
     void render()
     {
-        render_imgui[cast(int, Engine::EngineInstance::instance()->api())]();
+        render_imgui[cast<int>(Engine::EngineInstance::instance()->api())]();
     }
 
     void new_frame()
     {
-        frame_imgui[cast(int, Engine::EngineInstance::instance()->api())]();
+        frame_imgui[cast<int>(Engine::EngineInstance::instance()->api())]();
     }
 
 }// namespace Engine::ImGuiInit

@@ -1,7 +1,7 @@
 #pragma once
 #include <Window/window.hpp>
 #include <panel.hpp>
-#include <unordered_set>
+
 namespace Editor
 {
 
@@ -15,10 +15,10 @@ namespace Editor
     class Application
     {
         Engine::Window _M_window;
-        std::vector<Panel*> _M_panels;
+        Vector<Panel*> _M_panels;
 
     public:
-        std::unordered_set<Command> commands;
+        Set<Command> commands;
 
         Application();
         Application& loop();

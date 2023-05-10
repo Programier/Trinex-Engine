@@ -1,12 +1,11 @@
-#include <Core/check.hpp>
+#include <Core/class.hpp>
 #include <Graphics/frustum.hpp>
 #include <Graphics/octree.hpp>
-#include <Graphics/scene.hpp>
 
 namespace Engine
 {
-    declare_instance_info_cpp(OctreeBase);
-    constructor_cpp(OctreeBase, float min_size)
+    REGISTER_CLASS(Engine::OctreeBase, Engine::Object);
+    OctreeBase::OctreeBase(float min_size)
     {
         this->_M_min_size = glm::abs(min_size);
     }
@@ -40,7 +39,7 @@ namespace Engine
     void OctreeBase::generate_box(BoxHB& box)
     {
         auto half = box.half_size();
-        float m = glm::max(glm::max(glm::max(half.x, half.y), half.z), _M_min_size);
+        float m   = glm::max(glm::max(glm::max(half.x, half.y), half.z), _M_min_size);
         box.aabb(AABB_3D{box.center() - Size3D(m), box.center() + Size3D(m)});
     }
 
@@ -81,9 +80,14 @@ namespace Engine
     }
 
 
-    declare_instance_info_cpp(OctreeBaseNode, _M_box(Constants::zero_vector, Constants::zero_vector));
-    constructor_cpp(OctreeBaseNode)
+    REGISTER_CLASS(Engine::OctreeBaseNode, Engine::Object, _M_box(Constants::zero_vector, Constants::zero_vector));
+    OctreeBaseNode::OctreeBaseNode()
     {}
+
+    OctreeBaseNode* OctreeBaseNode::get(const OctreeIndex& index) const
+    {
+        throw EngineException("OctreeBaseNode: Pure virtual call!");
+    }
 
     OctreeIndex OctreeBaseNode::index_at_parent() const
     {
@@ -97,36 +101,7 @@ namespace Engine
 
     std::size_t OctreeBaseNode::render()
     {
-        std::size_t count = 0;
-        auto scene = Scene::get_active_scene();
-        check_with_message(scene, "No active scene found!");
-
-        auto camera = scene->active_camera();
-        check_with_message(camera, "No active camera found!");
-
-        Frustum frustum(*camera);
-
-        std::list<OctreeBaseNode*> stack = {this};
-        while (!stack.empty())
-        {
-            OctreeBaseNode* node = stack.back();
-            stack.pop_back();
-
-            if (node->_M_box.is_in_frustum(frustum))
-            {
-                node->_M_box.render();
-                ++count;
-
-                for (byte i = 0; i < 8; i++)
-                {
-                    auto next = node->get(i);
-                    if (next)
-                        stack.push_back(next);
-                }
-            }
-        }
-
-        return count;
+        throw std::runtime_error(not_implemented);
     }
 
     OctreeBaseNode::~OctreeBaseNode()

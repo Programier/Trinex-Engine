@@ -1,23 +1,33 @@
+#include <Core/commandlet.hpp>
+#include <Core/config.hpp>
 #include <Core/destroy_controller.hpp>
 #include <Core/engine.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
+#include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
 #include <SDL.h>
 #include <Sensors/sensor.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <api.hpp>
+#include <cstring>
 #include <glm/gtc/quaternion.hpp>
-#include <unordered_map>
+
 
 namespace Engine
 {
-    static std::vector<void (*)()>& terminate_list()
+    Vector<void (*)()>& terminate_list()
     {
-        static std::vector<void (*)()> _M_terminate_list;
+        static Vector<void (*)()> _M_terminate_list;
         return _M_terminate_list;
     }
 
+    Vector<void (*)()>& initialize_list()
+    {
+        static Vector<void (*)()> init_list;
+        return init_list;
+    }
 
     EngineInstance::EngineInstance()
     {}
@@ -34,6 +44,8 @@ namespace Engine
 
     ENGINE_EXPORT EngineInstance* EngineInstance::instance()
     {
+        if (_M_instance == nullptr)
+            _M_instance = new EngineInstance();
         return _M_instance;
     }
 
@@ -46,9 +58,9 @@ namespace Engine
     SystemType EngineInstance::system_type() const
     {
 #if defined(WIN32)
-        return SystemName::WindowsOS;
+        return SystemType::WindowsOS;
 #elif defined(__ANDROID__)
-        return SystemName::AndroidOS;
+        return SystemType::AndroidOS;
 #else
         return SystemType::LinuxOS;
 #endif
@@ -67,64 +79,141 @@ namespace Engine
         return _M_is_inited;
     }
 
-
-    static std::string get_api_name(EngineAPI api)
+    static EngineAPI get_api_by_name(const String& name)
     {
-        switch (api)
-        {
-            case EngineAPI::OpenGL:
-                return "OpenGL";
+        if (name == "Vulkan")
+            return EngineAPI::Vulkan;
+        else if (name == "OpenGL")
+            return EngineAPI::OpenGL;
 
-            case EngineAPI::Vulkan:
-                return "Vulkan";
-            default:
-                return "API_NOT_FOUND!";
-        }
+        return EngineAPI::NoAPI;
     }
 
-    EngineInstance& EngineInstance::init()
+    EngineInstance& EngineInstance::init_api()
+    {
+        if (_M_api != EngineAPI::NoAPI)
+        {
+            if (SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO))
+                throw std::runtime_error(SDL_GetError());
+
+            Library api_library = load_library(engine_config.api.c_str());
+            logger->log("Engine: Using API: %s", engine_config.api.c_str());
+
+            if (!api_library.has_lib())
+            {
+                throw std::runtime_error("Engine: Failed to load API library!");
+            }
+
+            // Try to load api loader
+            GraphicApiInterface::ApiInterface* (*loader)() =
+                    api_library.get<GraphicApiInterface::ApiInterface*>("load_api");
+
+            if (!loader)
+            {
+                throw std::runtime_error("Engine: Failed to get API loader!");
+            }
+
+            // Initialize API
+            _M_api_interface = loader();
+
+            if (!_M_api_interface)
+            {
+                throw std::runtime_error("Engine: Failed to init API");
+            }
+        }
+        else
+        {
+            _M_api_interface = new GraphicApiInterface::ApiInterface();
+        }
+        return *this;
+    }
+
+    int EngineInstance::start(int argc, char** argv)
     {
         if (_M_is_inited)
         {
-            return *this;
+            return -1;
         }
+        FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
-        if (SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO))
-            throw std::runtime_error(SDL_GetError());
-
-
-        String api_name = get_api_name(_M_api);
-        Library api_library = load_library(api_name);
-        logger->log("Engine: Using API: %s", api_name.c_str());
-
-        if (!api_library.has_lib())
+        if (argc > 0)
         {
-            throw std::runtime_error("Engine: Failed to load API library!");
+            root_manager->work_dir(FileManager::dirname_of(argv[0]));
         }
 
-        // Try to load api loader
-        GraphicApiInterface::ApiInterface* (*loader)() =
-                api_library.get<GraphicApiInterface::ApiInterface*>("load_api");
-
-        if (!loader)
+        for (auto func : initialize_list())
         {
-            throw std::runtime_error("Engine: Failed to get API loader!");
+            func();
         }
 
-        // Initialize API
-        _M_api_interface = loader();
+        initialize_list().clear();
 
-        if (!_M_api_interface)
-        {
-            throw std::runtime_error("Engine: Failed to init API");
-        }
+        engine_config.init("config.cfg");
 
+        _M_api = get_api_by_name(engine_config.api);
+
+        init_api();
+
+        _M_renderer = new Renderer(_M_api_interface);
         _M_api_interface->logger(logger);
         Monitor::update();
         Sensor::update_sensors_info();
-
         _M_is_inited = true;
-        return *this;
+
+        // Load commandlet
+        CommandLet* command_let = nullptr;
+        if (argc > 1)
+        {
+            Class* class_instance = Class::find_class(argv[1]);
+            if (class_instance)
+            {
+                Object* object = class_instance->create();
+                command_let    = object->instance_cast<CommandLet>();
+
+                if (!command_let)
+                {
+                    logger->error("Engine: Class '%s' is not commandlet!", class_instance->name().c_str());
+                    return -1;
+                }
+            }
+            else
+            {
+                logger->error("Engine: Failed to load commandlet '%s'", argv[1]);
+                return -1;
+            }
+        }
+
+        if (!command_let)
+        {
+            Class* class_instance = Class::find_class(engine_config.base_commandlet);
+
+            if (!class_instance)
+            {
+                logger->error("Engine: Failed to load commandlet '%s'", engine_config.base_commandlet.c_str());
+                return -1;
+            }
+
+            Object* object = class_instance->create();
+            command_let    = object->instance_cast<CommandLet>();
+
+            if (!command_let)
+            {
+                logger->error("Engine: Class '%s' is not commandlet!", engine_config.base_commandlet.c_str());
+                return -1;
+            }
+        }
+
+        auto status = command_let->execute(argc - 1, argv + 1);
+        if (status == 0)
+        {
+            logger->log("Engine: Commandlet execution success!");
+        }
+        else
+        {
+            logger->log("Engine: Failed to execute commandlet. Error code: %d", status);
+        }
+
+        return status;
     }
 
     GraphicApiInterface::ApiInterface* EngineInstance::api_interface() const
@@ -132,53 +221,9 @@ namespace Engine
         return _M_api_interface;
     }
 
-    EngineInstance& EngineInstance::enable(EnableCap cap)
+    class Renderer* EngineInstance::renderer() const
     {
-        _M_api_interface->enable(cap);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::disable(EnableCap cap)
-    {
-        _M_api_interface->disable(cap);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::blend_func(BlendFunc func, BlendFunc func2)
-    {
-        _M_api_interface->blend_func(func, func2);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::depth_func(DepthFunc func)
-    {
-        _M_api_interface->depth_func(func);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::depth_mask(bool mask)
-    {
-        _M_api_interface->depth_mask(mask);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::stencil_mask(byte mask)
-    {
-        _M_api_interface->stencil_mask(mask);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::stencil_option(StencilOption stencil_fail, StencilOption depth_fail,
-                                                   StencilOption pass)
-    {
-        _M_api_interface->stencil_option(stencil_fail, depth_fail, pass);
-        return *this;
-    }
-
-    EngineInstance& EngineInstance::stencil_func(Engine::CompareFunc func, int_t ref, byte mask)
-    {
-        _M_api_interface->stencil_func(func, ref, mask);
-        return *this;
+        return _M_renderer;
     }
 
     EngineInstance& EngineInstance::trigger_terminate_functions()
@@ -194,12 +239,27 @@ namespace Engine
     EngineInstance::~EngineInstance()
     {
         logger->log("Engine: Terminate Engine");
+        EngineInstance::_M_instance->trigger_terminate_functions();
 
+        Window::destroy_window();
+
+        delete _M_renderer;
         delete _M_api_interface;
         SDL_Quit();
 
         _M_api_interface = nullptr;
-        _M_is_inited = false;
+        _M_is_inited     = false;
+    }
+
+    bool EngineInstance::check_format_support(PixelType type, PixelComponentType component)
+    {
+        return _M_api_interface->check_format_support(type, component);
+    }
+
+    void EngineInstance::destroy()
+    {
+        delete _M_instance;
+        _M_instance = nullptr;
     }
 
 

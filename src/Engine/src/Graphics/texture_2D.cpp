@@ -1,51 +1,84 @@
+#include <Core/class.hpp>
+#include <Core/config.hpp>
 #include <Core/engine.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
+#include <Core/predef.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 #include <api.hpp>
 
 namespace Engine
 {
-    declare_instance_info_cpp(Texture2D);
-    constructor_cpp(Texture2D)
-    {}
+    REGISTER_CLASS(Engine::Texture2D, Engine::Texture);
 
-    Texture2D::Texture2D(const Size2D& size, int mipmap, void* data)
+    Texture2D::Texture2D()
     {
-        gen(size, mipmap, data);
+        _M_type = TextureType::Texture2D;
     }
 
-    Texture2D& Texture2D::from_current_read_buffer(const Size2D& size, const Point2D& pos, int mipmap)
+    Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
-        EngineInstance::instance()->api_interface()->copy_read_buffer_to_texture_2D(_M_ID, size, pos, mipmap);
+        EngineInstance::instance()->api_interface()->update_texture_2D(_M_ID, size, offset, mipmap,
+                                                                       reinterpret_cast<const void*>(data));
         return *this;
     }
 
-    Texture2D& Texture2D::update_from_current_read_buffer(const Size2D& size, const Offset2D& offset, const Size2D& pos,
-                                                          int mipmap)
-    {
-        EngineInstance::instance()->api_interface()->texture_2D_update_from_current_read_buffer(_M_ID, size, offset,
-                                                                                                pos, mipmap);
-        return *this;
-    }
-
-
-    Texture2D& Texture2D::gen(const Size2D& size, int mipmap, void* data)
-    {
-        EngineInstance::instance()->api_interface()->gen_texture_2D(_M_ID, size, mipmap, data);
-        return *this;
-    }
-
-    Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, int mipmap, void* data)
-    {
-        EngineInstance::instance()->api_interface()->update_texture_2D(_M_ID, size, offset, mipmap, data);
-        return *this;
-    }
-
-    Texture2D& Texture2D::read_data(std::vector<byte>& data, int level)
+    Texture2D& Texture2D::read_data(Buffer& data, MipMapLevel level)
     {
         EngineInstance::instance()->api_interface()->read_texture_2D_data(_M_ID, data, level);
+        return *this;
+    }
+
+    Texture2D& Texture2D::load(const Image& image)
+    {
+        destroy();
+        resources(true);
+        TextureCreateInfo& params = _M_resources->info;
+
+        static PixelType _M_types[5] = {PixelType::RGBA, PixelType::Red, PixelType::Red, PixelType::RGB,
+                                        PixelType::RGBA};
+
+        params.pixel_type           = _M_types[static_cast<int>(image.channels())];
+        params.pixel_component_type = PixelComponentType::UnsignedByte;
+        params.mipmap_count         = 1;
+
+        _M_resources->images.clear();
+        _M_resources->images.resize(1);
+
+        if (image.empty())
+        {
+            Buffer tmp          = {100, 100, 100, 255};
+            params.mipmap_count = 1;
+            params.size         = {1, 1};
+            _M_resources->images[0].create(params.size, 4, tmp);
+
+            create();
+            update(params.size, {0, 0}, 0, tmp.data());
+        }
+        else
+        {
+            logger->log("Image data: %zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
+            params.mipmap_count =
+                    static_cast<MipMapLevel>(std::floor(std::log2(std::max(
+                            static_cast<MipMapLevel>(image.width()), static_cast<MipMapLevel>(image.height()))))) +
+                    1;
+
+            params.mipmap_count = 8;
+            params.size         = image.size();
+            params.min_filter   = TextureFilter::Linear;
+            params.mag_filter   = TextureFilter::Linear;
+            params.mipmap_mode  = SamplerMipmapMode::Linear;
+            params.min_lod      = 0.0f;
+            params.max_lod      = 1000.0f;
+            create();
+            update(image.size(), {0, 0}, 0, image.vector().data());
+            generate_mipmap();
+        }
+
+
+        if (engine_config.delete_resources_after_load)
+            delete_resources();
         return *this;
     }
 
@@ -54,32 +87,67 @@ namespace Engine
         destroy();
         logger->log("Loading Texture '%s'\n", path.c_str());
         Image image(path, true);
+        return load(image);
+    }
 
-        TextureParams params;
-
-        static PixelType _M_types[5] = {PixelType::RGBA, PixelType::Depth, PixelType::Depth, PixelType::RGB,
-                                        PixelType::RGBA};
-        params.pixel_type = _M_types[static_cast<int>(image.channels())];
-
-        params.pixel_component_type = PixelComponentType::UnsignedByte;
-        params.type = TextureType::Texture2D;
-
-
-        create(params);
-        if (image.empty())
+    bool Texture2D::load()
+    {
+        if (!_M_resources || _M_resources->images.size() == 0)
         {
-            std::vector<byte> tmp = {100, 100, 100, 255};
-            gen({1, 1}, 0, (void*) tmp.data());
-        }
-        else
-        {
-            logger->log("Image data: %zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
-            gen(image.size(), 0, (void*) image.vector().data()).max_mipmap_level(2).generate_mipmap();
+            logger->log("Texture2D: Cannot find resources for texture '%s'", full_name().c_str());
+            return false;
         }
 
-        min_filter(TextureFilter::Linear).mag_filter(TextureFilter::Linear);
+        create();
+        update(resource_image().size(), {0, 0}, 0, resource_image().vector().data());
+        generate_mipmap();
 
+        if (engine_config.delete_resources_after_load)
+            delete_resources();
         return *this;
+    }
+
+    Image& Texture2D::resource_image(bool create)
+    {
+        if (_M_resources == nullptr || _M_resources->images.size() == 0)
+        {
+            if (create)
+            {
+                resources(true);
+                _M_resources->images.resize(1);
+            }
+            else
+            {
+                throw EngineException("Resources is null!");
+            }
+        }
+
+        return _M_resources->images[0];
+    }
+
+    Texture2D& Texture2D::read_image(Image& image, MipMapLevel level)
+    {
+        auto mip_size   = size(level);
+        image._M_width  = static_cast<int_t>(mip_size.x);
+        image._M_height = static_cast<int_t>(mip_size.y);
+        read_data(image._M_data, level);
+        image._M_channels = image._M_data.size() / static_cast<std::size_t>(image._M_width * image._M_height);
+        return *this;
+    }
+
+    bool Texture2D::serialize(BufferWriter* writer)
+    {
+        return Texture::serialize(writer);
+    }
+
+    bool Texture2D::deserialize(BufferReader* reader)
+    {
+        if (!Texture::deserialize(reader))
+        {
+            return false;
+        }
+
+        return load();
     }
 
 }// namespace Engine

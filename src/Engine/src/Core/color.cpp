@@ -1,10 +1,11 @@
+#include <Core/class.hpp>
 #include <Core/color.hpp>
 
 
 namespace Engine
 {
 
-    Color::Color() = default;
+    Color::Color()        = default;
     Color::Color(Color&&) = default;
 
     Color& Color::operator=(const Color& color)
@@ -20,7 +21,7 @@ namespace Engine
         for (int i = 0; i < 4; i++)
         {
             float& value = glm::vec4::operator[](i);
-            value = glm::abs(color[i]);
+            value        = glm::abs(color[i]);
             if (value > 1.0f)
                 value = glm::min(1.f, value / 255.f);
         }

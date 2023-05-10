@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+
 #include <Core/export.hpp>
 
 namespace Engine
@@ -10,9 +10,9 @@ namespace Engine
 
     namespace Resources
     {
-        ENGINE_EXPORT extern std::vector<BasicMesh*> meshes;
-        ENGINE_EXPORT extern std::vector<Texture*> textures;
-        ENGINE_EXPORT extern std::vector<Drawable*> drawables;
+        ENGINE_EXPORT extern Vector<BasicMesh*> meshes;
+        ENGINE_EXPORT extern Vector<Texture*> textures;
+        ENGINE_EXPORT extern Vector<Drawable*> drawables;
     }
 
 }// namespace Engine

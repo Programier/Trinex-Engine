@@ -1,14 +1,14 @@
 #pragma once
-#include "../Image/image.hpp"
+#include <Image/image.hpp>
 #include <TemplateFunctional/smart_pointer.hpp>
 #include <Core/export.hpp>
 
 
 namespace Engine
 {
-    CLASS Cursor
+    class ENGINE_EXPORT Cursor
     {
-        SmartPointer<Image> _M_image = nullptr;;
+        SmartPointer<Image> _M_image = nullptr;
         int_t _M_x_hotspot;
         int_t _M_y_hotspot;
         SmartPointer<void> _M_SDL_cursor;

@@ -2,24 +2,35 @@
 #include <VkBootstrap.h>
 #include <fstream>
 #include <iostream>
-#include <set>
+
 #include <string>
+#include <thread>
 #include <vulkan_api.hpp>
+#include <vulkan_async_command_buffer.hpp>
 #include <vulkan_export.hpp>
 #include <vulkan_mesh.hpp>
 #include <vulkan_object.hpp>
 #include <vulkan_shader.hpp>
+#include <vulkan_ssbo.hpp>
 #include <vulkan_texture.hpp>
+#include <vulkan_types.hpp>
+#include <vulkan_uniform_buffer.hpp>
 
 
 namespace Engine
 {
-    std::vector<const char*> VulkanAPI::device_extensions = {VK_KHR_MAINTENANCE1_EXTENSION_NAME};
-    const std::vector<const char*> validation_layers = {
-#if ENABLE_VALIDATION_LAYERS
-            "VK_LAYER_KHRONOS_validation"
-#endif
+    Vector<const char*> VulkanAPI::device_extensions = {
+            VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME,
     };
+
+#if ENABLE_VALIDATION_LAYERS
+    const Vector<const char*> validation_layers = {
+            "VK_LAYER_KHRONOS_validation",
+
+    };
+#endif
 
     VulkanAPI* VulkanAPI::_M_vulkan = nullptr;
 
@@ -33,9 +44,18 @@ namespace Engine
     VulkanObject::~VulkanObject()
     {}
 
-    VulkanAPI::VulkanAPI() : _M_current_buffer_index(vk::Result::eSuccess, 0)
-    {}
+    static VulkanUniformBufferBlock* uniform_buffer_allocator(std::size_t size)
+    {
+        VulkanUniformBufferBlock* ubo = new VulkanUniformBufferBlock();
+        ubo->create(nullptr, size);
+        return ubo;
+    }
 
+    VulkanAPI::VulkanAPI()
+    {
+        _M_uniform_allocator.allocator(uniform_buffer_allocator);
+        _M_swap_chain_mode = vk::PresentModeKHR::eMailbox;
+    }
 
     VulkanAPI::~VulkanAPI()
     {}
@@ -44,35 +64,43 @@ namespace Engine
     {
         _M_device.waitIdle();
 
+        _M_uniform_allocator.destroy();
+
+        for (auto& buffer : _M_command_buffers) delete buffer;
+        _M_command_buffers.clear();
+        delete _M_dummy_texture;
         destroy_framebuffers();
         delete _M_swap_chain;
-
-        _M_device.destroyRenderPass(_M_render_pass);
-
-        for (auto& ell : _M_image_available_semaphores) _M_device.destroySemaphore(ell);
-        for (auto& ell : _M_render_finished_semaphores) _M_device.destroySemaphore(ell);
-        for (auto& ell : _M_in_flight_fences) _M_device.destroyFence(ell);
-
 
         _M_device.destroyCommandPool(_M_command_pool);
 
         _M_device.destroy();
+
 
         vk::Instance(_M_instance.instance).destroySurfaceKHR(_M_surface);
         vkb::destroy_instance(_M_instance);
         return *this;
     }
 
+    vk::Device* vulkan_device()
+    {
+        return &API->_M_device;
+    }
+
+    vk::CommandPool* vulkan_command_pool()
+    {
+        return &API->_M_command_pool;
+    }
 
     void* VulkanAPI::init_window(SDL_Window* window)
     {
-        _M_window = window;
-        auto funcs = {&VulkanAPI::init,
-                      &VulkanAPI::create_swap_chain,
-                      &VulkanAPI::create_render_pass,
-                      &VulkanAPI::create_framebuffers,
-                      &VulkanAPI::create_command_buffer,
-                      &VulkanAPI::create_semaphores};
+        _M_window  = window;
+        auto funcs = {
+                &VulkanAPI::init,
+                &VulkanAPI::create_command_buffer,
+                &VulkanAPI::create_swap_chain,
+                &VulkanAPI::create_framebuffers,
+        };
 
         try
         {
@@ -80,10 +108,21 @@ namespace Engine
         }
         catch (const std::exception& e)
         {
-            std::clog << e.what() << std::endl;
             return nullptr;
         }
 
+        {
+            TextureCreateInfo params;
+            params.size                 = {1, 1};
+            params.mipmap_count         = 1;
+            params.pixel_component_type = PixelComponentType::UnsignedByte;
+            params.pixel_type           = PixelType::RGBA;
+
+            Identifier ID;
+            create_texture(ID, params, TextureType::Texture2D);
+
+            _M_dummy_texture = reinterpret_cast<VulkanTexture*>(ID);
+        }
 
         return static_cast<VkSurfaceKHR>(_M_surface);
     }
@@ -96,18 +135,18 @@ namespace Engine
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                         void* pUserData)
     {
-        std::cerr << pCallbackData->pMessage << std::endl << std::endl;
-
+        vulkan_debug_log(pCallbackData->pMessage);
         return VK_FALSE;
     }
 #endif
 
-    static std::vector<const char*> get_required_extensions(SDL_Window* window)
+    static Vector<const char*> get_required_extensions(SDL_Window* window)
     {
         uint32_t count = 0;
 
         SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr);
-        std::vector<const char*> extensions(count);
+        Vector<const char*> extensions(count);
+
         SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data());
 
         return extensions;
@@ -116,6 +155,7 @@ namespace Engine
     void VulkanAPI::init()
     {
         vkb::InstanceBuilder instance_builder;
+
         for (auto& extension : get_required_extensions(_M_window))
         {
             instance_builder.enable_extension(extension);
@@ -123,6 +163,9 @@ namespace Engine
 
 #if ENABLE_VALIDATION_LAYERS
         instance_builder.set_debug_callback(debugCallback).request_validation_layers();
+#else
+        instance_builder.add_validation_disable(VK_VALIDATION_CHECK_ALL_EXT);
+        instance_builder.add_validation_feature_disable(VK_VALIDATION_FEATURE_DISABLE_ALL_EXT);
 #endif
 
         auto instance_ret = instance_builder.build();
@@ -139,8 +182,8 @@ namespace Engine
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
         vk::PhysicalDeviceFeatures features;
         features.samplerAnisotropy = VK_TRUE;
-        phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
 
+        phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
         phys_device_selector.add_required_extensions(device_extensions);
 
         auto phys_device_ret = phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(_M_surface)).select();
@@ -149,9 +192,17 @@ namespace Engine
             throw std::runtime_error(phys_device_ret.error().message());
         }
 
+
         _M_physical_device = vk::PhysicalDevice(phys_device_ret.value().physical_device);
 
+        _M_properties = _M_physical_device.getProperties();
+        _M_renderer   = _M_properties.deviceName._M_elems;
+
+
         vkb::DeviceBuilder device_builder(phys_device_ret.value());
+        vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
+        device_builder.add_pNext(&idx_byte_feature);
+
 
         auto device_ret = device_builder.build();
         if (!device_ret)
@@ -160,13 +211,12 @@ namespace Engine
         }
 
         _M_bootstrap_device = device_ret.value();
-        _M_device = vk::Device(device_ret.value().device);
+        _M_device           = vk::Device(device_ret.value().device);
 
-
-        auto index_1 = _M_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
-        auto index_2 = _M_bootstrap_device.get_queue_index(vkb::QueueType::present);
+        auto index_1        = _M_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
+        auto index_2        = _M_bootstrap_device.get_queue_index(vkb::QueueType::present);
         auto graphics_queue = _M_bootstrap_device.get_queue(vkb::QueueType::graphics);
-        auto present_queue = _M_bootstrap_device.get_queue(vkb::QueueType::present);
+        auto present_queue  = _M_bootstrap_device.get_queue(vkb::QueueType::present);
 
         if (!index_1 || !index_2 || !graphics_queue || !present_queue)
         {
@@ -174,10 +224,10 @@ namespace Engine
         }
 
         _M_graphics_and_present_index.graphics_family = index_1.value();
-        _M_graphics_and_present_index.present_family = index_2.value();
+        _M_graphics_and_present_index.present_family  = index_2.value();
 
         _M_graphics_queue = vk::Queue(graphics_queue.value());
-        _M_present_queue = vk::Queue(present_queue.value());
+        _M_present_queue  = vk::Queue(present_queue.value());
     }
 
 
@@ -188,81 +238,159 @@ namespace Engine
         _M_surface = vk::SurfaceKHR(_surface);
     }
 
-    void VulkanAPI::destroy_framebuffers()
+    void VulkanAPI::destroy_framebuffers(bool full_destroy)
     {
-        for (auto& framebuffer : _M_swap_chain_framebuffers)
+        if (full_destroy)
         {
-            delete framebuffer;
+            delete _M_main_framebuffer;
+            return;
         }
 
-        _M_swap_chain_framebuffers.clear();
+        _M_main_framebuffer->destroy();
     }
 
     void VulkanAPI::recreate_swap_chain()
     {
-        wait_idle();
-
-        _M_device.destroyCommandPool(_M_command_pool);
-
-        destroy_framebuffers();
-        create_swap_chain();
-        create_framebuffers();
-        create_command_buffer();
-        _M_need_recreate_swap_chain = false;
+        if (_M_need_recreate_swap_chain)
+        {
+            _M_need_recreate_swap_chain = false;
+            wait_idle();
+            destroy_framebuffers(false);
+            create_swap_chain();
+            create_framebuffers();
+        }
     }
 
 
     void VulkanAPI::create_swap_chain()
     {
         SDL_Vulkan_GetDrawableSize(_M_window, &window_data.width, &window_data.height);
+        if (_M_swap_chain)
+            delete _M_swap_chain;
+
         _M_swap_chain = new SwapChain();
     }
 
-    void VulkanAPI::create_render_pass()
+    VulkanFramebuffer* VulkanAPI::init_base_framebuffer_renderpass(VulkanFramebuffer* framebuffer)
     {
+        framebuffer->_M_attachment_descriptions.resize(1);
         vk::Format color_format = _M_swap_chain->_M_format;
-        std::array<vk::AttachmentDescription, 1> attachment_descriptions;
-        attachment_descriptions[0] = vk::AttachmentDescription(
+
+        framebuffer->_M_attachment_descriptions[0] = vk::AttachmentDescription(
                 vk::AttachmentDescriptionFlags(), color_format, vk::SampleCountFlagBits::e1,
                 vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
                 vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
 
 
-        vk::AttachmentReference color_reference(0, vk::ImageLayout::eColorAttachmentOptimal);
-        vk::SubpassDescription subpass(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, {},
-                                       color_reference);
+        framebuffer->_M_color_attachment_references = {
+                vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),
+        };
 
-        vk::SubpassDependency dependency(VK_SUBPASS_EXTERNAL, 0, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-                                         vk::PipelineStageFlagBits::eColorAttachmentOutput, {},
-                                         vk::AccessFlagBits::eColorAttachmentWrite |
-                                                 vk::AccessFlagBits::eColorAttachmentRead);
+        return framebuffer;
+    }
 
-        _M_render_pass = _M_device.createRenderPass(
-                vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), attachment_descriptions, subpass, dependency));
+    vk::Format VulkanAPI::find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
+                                                vk::FormatFeatureFlags features)
+    {
+        for (const vk::Format& format : candidates)
+        {
+            vk::FormatProperties properties = _M_physical_device.getFormatProperties(format);
+
+            if (tiling == vk::ImageTiling::eLinear && (properties.linearTilingFeatures & features) == features)
+            {
+                return format;
+            }
+            else if (tiling == vk::ImageTiling::eOptimal && (properties.optimalTilingFeatures & features) == features)
+            {
+                return format;
+            }
+        }
+
+        throw std::runtime_error("VulkanAPI: Failed to find supported format!");
+    }
+
+
+    bool VulkanAPI::has_stencil_component(vk::Format format)
+    {
+        return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
+    }
+
+    vk::Format VulkanAPI::find_depth_format()
+    {
+        static const Vector<vk::Format> candidates = {
+                vk::Format::eD32Sfloat,
+                vk::Format::eD32SfloatS8Uint,
+                vk::Format::eD24UnormS8Uint,
+        };
+
+        return find_supported_format(candidates, vk::ImageTiling::eOptimal,
+                                     vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+    }
+
+    VulkanAPI& VulkanAPI::create_resolve_image(uint32_t width, uint32_t height, vk::Format format,
+                                               vk::ImageTiling tiling, vk::ImageCreateFlags flags,
+                                               vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties,
+                                               vk::Image& image, vk::DeviceMemory& image_memory, uint32_t mip_count,
+                                               uint32_t layers)
+    {
+        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, format, vk::Extent3D(width, height, 1), mip_count,
+                                       layers, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
+
+        image                                      = API->_M_device.createImage(image_info);
+        vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
+        vk::MemoryAllocateInfo alloc_info(
+                memory_requirements.size,
+                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostCoherent));
+        image_memory = API->_M_device.allocateMemory(alloc_info);
+        API->_M_device.bindImageMemory(image, image_memory, 0);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::create_image(VulkanTexture* texture, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
+                                       vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+                                       vk::DeviceMemory& image_memory, uint32_t layers)
+    {
+        VulkanTextureState* state = &texture->state;
+
+        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, state->format,
+                                       vk::Extent3D(state->size.width, state->size.height, 1), state->mipmap_count,
+                                       layers, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
+
+        image                                      = API->_M_device.createImage(image_info);
+        vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
+        vk::MemoryAllocateInfo alloc_info(
+                memory_requirements.size,
+                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostCoherent));
+        image_memory = API->_M_device.allocateMemory(alloc_info);
+        API->_M_device.bindImageMemory(image, image_memory, 0);
+        return *this;
     }
 
 
     void VulkanAPI::create_framebuffers()
     {
-        _M_swap_chain_framebuffers.resize(_M_swap_chain->_M_images.size());
-        std::array<vk::ImageView, 1> attachments;
+        if (!_M_main_framebuffer)
+            _M_main_framebuffer = new VulkanFramebuffer();
+
+        _M_main_framebuffer->_M_buffers.clear();
+        _M_main_framebuffer->_M_buffers.resize(_M_swap_chain->_M_images.size());
 
 
-        vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlags(), _M_render_pass, attachments,
-                                                          _M_swap_chain->_M_extent.width,
-                                                          _M_swap_chain->_M_extent.height, 1);
+        init_base_framebuffer_renderpass(_M_main_framebuffer);
+        _M_main_framebuffer->_M_is_custom   = false;
+        _M_main_framebuffer->_M_size.height = _M_swap_chain->_M_extent.height;
+        _M_main_framebuffer->_M_size.width  = _M_swap_chain->_M_extent.width;
+
         size_t index = 0;
         for (auto const& image_view : _M_swap_chain->_M_image_views)
         {
-            attachments[0] = image_view;
-            _M_swap_chain_framebuffers[index] = new VulkanFramebuffer();
-            _M_swap_chain_framebuffers[index]->_M_framebuffer = _M_device.createFramebuffer(framebuffer_create_info);
-            _M_swap_chain_framebuffers[index]->_M_render_pass = _M_render_pass;
-
-            _M_swap_chain_framebuffers[index]->init_render_pass_info();
+            _M_main_framebuffer->_M_buffers[index]._M_attachments.resize(1);
+            _M_main_framebuffer->_M_buffers[index]._M_attachments[0] = image_view;
             index++;
         }
-    }
+
+        _M_main_framebuffer->create_framebuffer();
+    }// namespace Engine
 
     void VulkanAPI::create_command_buffer()
     {
@@ -270,133 +398,59 @@ namespace Engine
                 vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           _M_graphics_and_present_index.graphics_family.value()));
 
-        _M_command_buffers = _M_device.allocateCommandBuffers(vk::CommandBufferAllocateInfo(
-                _M_command_pool, vk::CommandBufferLevel::ePrimary, MAIN_FRAMEBUFFERS_COUNT));
+        _M_command_buffers.resize(MAIN_FRAMEBUFFERS_COUNT);
+        for (auto& command_buffer : _M_command_buffers) command_buffer = new VulkanAsyncCommandBuffer();
     }
 
-    void VulkanAPI::create_semaphores()
-    {
-
-        _M_image_available_semaphores.resize(MAIN_FRAMEBUFFERS_COUNT);
-        _M_render_finished_semaphores.resize(MAIN_FRAMEBUFFERS_COUNT);
-        _M_in_flight_fences.resize(MAIN_FRAMEBUFFERS_COUNT);
-
-        for (size_t i = 0; i < MAIN_FRAMEBUFFERS_COUNT; i++)
-        {
-            _M_image_available_semaphores[i] = _M_device.createSemaphore(vk::SemaphoreCreateInfo());
-            _M_render_finished_semaphores[i] = _M_device.createSemaphore(vk::SemaphoreCreateInfo());
-            _M_in_flight_fences[i] = _M_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-        }
-    }
 
     VulkanAPI& VulkanAPI::on_window_size_changed()
     {
         _M_need_recreate_swap_chain = true;
+
+        int w, h;
+        SDL_Vulkan_GetDrawableSize(_M_window, &w, &h);
+        framebuffer(0)->size(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
+
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::swap_buffer(SDL_Window* window)
+    std::size_t count_draw_calls = 0;
+    VulkanAPI& VulkanAPI::swap_buffer(SDL_Window*)
     {
         _M_current_frame = (_M_current_frame + 1) % MAIN_FRAMEBUFFERS_COUNT;
+        count_draw_calls = 0;
         return *this;
     }
 
-    static vk::Viewport inverse_viewport()
+    vk::ResultValue<uint32_t> VulkanAPI::swapchain_image_index()
     {
-        vk::Viewport view_port;
-        view_port.x = API->window_data.view_port.x;
-        view_port.y = API->window_data.view_port.height - view_port.x - API->window_data.view_port.y;
-        view_port.width = API->window_data.view_port.width;
-        view_port.height = -API->window_data.view_port.height;
-        return view_port;
+        static vk::ResultValue<uint32_t> result(vk::Result::eSuccess, 0);
+        if (_M_need_update_image_index)
+        {
+
+            result = _M_device.acquireNextImageKHR(_M_swap_chain->_M_swap_chain, UINT32_MAX,
+                                                   _M_command_buffers[_M_current_frame]->_M_available_semaphore,
+                                                   nullptr);
+
+            _M_need_update_image_index = false;
+        }
+        return result;
     }
+
 
     VulkanAPI& VulkanAPI::begin_render()
     {
-        while (vk::Result::eTimeout ==
-               _M_device.waitForFences({_M_in_flight_fences[_M_current_frame]}, VK_TRUE, UINT64_MAX))
-        {}
-
-        _M_current_buffer_index = _M_device.acquireNextImageKHR(
-                _M_swap_chain->_M_swap_chain, UINT64_MAX, _M_image_available_semaphores[_M_current_frame], nullptr);
-
-        if (_M_current_buffer_index.result == vk::Result::eErrorOutOfDateKHR)
-        {
-            recreate_swap_chain();
-            return begin_render();
-        }
-        else if (_M_current_buffer_index.result != vk::Result::eSuccess &&
-                 _M_current_buffer_index.result != vk::Result::eSuboptimalKHR)
-        {
-            throw std::runtime_error("failed to acquire swap chain image!");
-        }
-
-        _M_device.resetFences({_M_in_flight_fences[_M_current_frame]});
-        _M_current_command_buffer = &_M_command_buffers[_M_current_frame];
-        _M_current_command_buffer->reset();
-
-        _M_current_command_buffer->begin(vk::CommandBufferBeginInfo());
-
-        _M_current_command_buffer->setScissor(0, vk::Rect2D({0, 0}, _M_swap_chain->_M_extent));
-        _M_current_command_buffer->setViewport(0, inverse_viewport());
-
+        _M_current_command_buffer = _M_command_buffers[_M_current_frame];
+        _M_current_command_buffer->begin_render();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        _M_current_command_buffer->end();
-
-        vk::PipelineStageFlags wait_destination_stage_mask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        std::array<vk::Semaphore, 1> wait_semaphores = {_M_image_available_semaphores[_M_current_frame]};
-        std::array<vk::Semaphore, 1> signal_semaphores = {_M_render_finished_semaphores[_M_current_frame]};
-
-        vk::SubmitInfo submit_info(wait_semaphores, wait_destination_stage_mask, *_M_current_command_buffer,
-                                   signal_semaphores);
-
-        _M_graphics_queue.submit(submit_info, _M_in_flight_fences[_M_current_frame]);
-
-        vk::PresentInfoKHR present_info(signal_semaphores, _M_swap_chain->_M_swap_chain, _M_current_buffer_index.value);
-
-        vk::Result result = _M_present_queue.presentKHR(present_info);
-
-
-        switch (result)
-        {
-            case vk::Result::eSuccess:
-                break;
-
-            case vk::Result::eErrorOutOfDateKHR:
-            case vk::Result::eSuboptimalKHR:
-                recreate_swap_chain();
-                break;
-            default:
-                assert(false);
-        }
-
-        if (_M_need_recreate_swap_chain)
-        {
-            recreate_swap_chain();
-        }
-
-        _M_current_framebuffer = nullptr;
-        _M_current_command_buffer = nullptr;
+        _M_command_buffers[_M_current_frame]->end_render();
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::begin_render_pass()
-    {
-        _M_current_command_buffer->beginRenderPass(_M_current_framebuffer->_M_render_pass_info,
-                                                   vk::SubpassContents::eInline);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::end_render_pass()
-    {
-        // _M_current_command_buffer->draw(3, 1, 0, 0);
-        _M_current_command_buffer->endRenderPass();
-        return *this;
-    }
 
     uint32_t VulkanAPI::find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties)
     {
@@ -461,57 +515,63 @@ namespace Engine
         return end_single_time_command_buffer(command_buffer);
     }
 
-    VulkanAPI& VulkanAPI::framebuffer_viewport(const Point2D& point, const Size2D& size)
+    VulkanAPI& VulkanAPI::framebuffer_viewport(const Identifier& ID, const ViewPort& viewport)
     {
-        window_data.view_port.x = point.x;
-        window_data.view_port.y = point.y;
-        window_data.view_port.width = size.x;
-        window_data.view_port.height = size.y;
-
-
-        if (_M_current_command_buffer)
-        {
-            _M_current_command_buffer->setViewport(0, inverse_viewport());
-        }
-
-        if (_M_current_framebuffer)
-        {
-            _M_current_framebuffer->update_viewport();
-        }
-
+        framebuffer(ID)->update_viewport(viewport);
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::bind_framebuffer(const ObjID& ID)
+    static Logger** get_default_logger()
     {
-        if (ID == 0)
+        static Logger default_vulkan_logger;
+        static Logger* default_vulkan_logger_ptr = &default_vulkan_logger;
+        return &default_vulkan_logger_ptr;
+    }
+
+
+    VulkanAPI& VulkanAPI::logger(Logger*& logger)
+    {
+        if (logger)
         {
-            _M_swap_chain_framebuffers[_M_current_buffer_index.value]->bind();
+            _M_engine_logger = &logger;
         }
-
+        else
+        {
+            _M_engine_logger = get_default_logger();
+        }
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::clear_color(const Color& color)
+    VulkanAPI& VulkanAPI::bind_framebuffer(const Identifier& ID, size_t buffer_index)
     {
-        _M_clear_values[0].setColor(vk::ClearColorValue(std::array<float, 4>{color.x, color.y, color.z, color.a}));
+        VulkanFramebuffer* buffer = framebuffer(ID);
+        if (buffer == _M_main_framebuffer)
+        {
+
+            auto index = swapchain_image_index().value;
+            buffer->bind(index);
+        }
+        else
+        {
+            buffer->bind(buffer_index);
+        }
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::clear_frame_buffer(const ObjID& ID, BufferType type)
+    VulkanAPI& VulkanAPI::clear_color(const Identifier& ID, const ColorClearValue& color, byte layout)
     {
-        _M_current_framebuffer->clear_color(type);
+        framebuffer(ID)->clear_color(color, layout);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::swap_interval(int_t interval)
     {
-        static const std::unordered_map<int_t, vk::PresentModeKHR> modes = {{-1, vk::PresentModeKHR::eFifoRelaxed},
+        static const Map<int_t, vk::PresentModeKHR> modes = {{-1, vk::PresentModeKHR::eFifoRelaxed},
                                                                             {0, vk::PresentModeKHR::eMailbox},
                                                                             {1, vk::PresentModeKHR::eFifo}};
-        int_t index = interval != 0 ? interval / glm::abs(interval) : interval;
-        interval = glm::abs(interval);
-        _M_swap_chain_mode = modes.at(index);
+        int_t index                 = interval != 0 ? interval / glm::abs(interval) : interval;
+        interval                    = glm::abs(interval);
+        _M_swap_chain_mode          = modes.at(index);
         _M_need_recreate_swap_chain = true;
         return *this;
     }
@@ -522,9 +582,9 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::destroy_object(ObjID& ID)
+    VulkanAPI& VulkanAPI::destroy_object(Identifier& ID)
     {
-        if (ID)
+        // if (ID)
         {
             delete OBJECT_OF(ID);
         }
@@ -532,104 +592,564 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::create_shader(ObjID& ID, const ShaderParams& params)
+    VulkanAPI& VulkanAPI::create_shader(Identifier& ID, const PipelineCreateInfo& params)
     {
         destroy_object(ID);
 
         VulkanShader* shader = new VulkanShader();
-        try
+
+        if (shader->init(params))
         {
-            shader->init(params);
             ID = shader->ID();
         }
-        catch (const std::exception& ex)
+        else
         {
             delete shader;
             ID = 0;
         }
+
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::use_shader(const ObjID& ID)
+    VulkanAPI& VulkanAPI::use_shader(const Identifier& ID)
+    {
+        GET_TYPE(VulkanShader, ID)->use();
+        return *this;
+    }
+
+
+    VulkanAPI& VulkanAPI::create_vertex_buffer(Identifier& ID, const byte* data, size_t size)
+    {
+        ID = (new VulkanVertexBuffer())->create(data, size).ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_vertex_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanVertexBuffer, ID)->update(offset, data, size);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::bind_vertex_buffer(const Identifier& ID, size_t offset)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanVertexBuffer, ID)->bind(offset);
+        }
+        return *this;
+    }
+
+    MappedMemory VulkanAPI::map_vertex_buffer(const Identifier& ID)
+    {
+        return GET_TYPE(VulkanVertexBuffer, ID)->map_memory();
+    }
+
+    VulkanAPI& VulkanAPI::unmap_vertex_buffer(const Identifier& ID)
+    {
+        GET_TYPE(VulkanVertexBuffer, ID)->unmap_memory();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::create_index_buffer(Identifier& ID, const byte* data, size_t size, IndexBufferComponent component)
+    {
+        ID = (new VulkanIndexBuffer())->create(data, size, component).ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_index_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanIndexBuffer, ID)->update(offset, data, size);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::bind_index_buffer(const Identifier& ID, size_t offset)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanIndexBuffer, ID)->bind(offset);
+        }
+        return *this;
+    }
+
+    MappedMemory VulkanAPI::map_index_buffer(const Identifier& ID)
+    {
+        return GET_TYPE(VulkanIndexBuffer, ID)->map_memory();
+    }
+
+    VulkanAPI& VulkanAPI::unmap_index_buffer(const Identifier& ID)
+    {
+        GET_TYPE(VulkanIndexBuffer, ID)->unmap_memory();
+        return *this;
+    }
+
+
+    VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
+    {
+        _M_current_command_buffer->get()->drawIndexed(indices, 1, offset, 0, 0);
+        ++current_shader()->_M_current_descriptor_index;
+        ++count_draw_calls;
+
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::create_texture(Identifier& ID, const TextureCreateInfo& params, TextureType type)
+    {
+        ID = (new VulkanTexture())->init(params, type).ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::bind_texture(const Identifier& ID, TextureBindIndex binding)
+    {
+        current_shader()->bind_texture(GET_TYPE(VulkanTexture, ID), binding);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::swizzle_texture(const Identifier& ID, const SwizzleRGBA& swizzle)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->swizzle(swizzle);
+        }
+        return *this;
+    }
+
+    SwizzleRGBA VulkanAPI::swizzle_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->swizzle();
+        }
+        return SwizzleRGBA();
+    }
+
+    VulkanAPI& VulkanAPI::wrap_s_texture(const Identifier& ID, const WrapValue& value)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->wrap_s(value);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::wrap_t_texture(const Identifier& ID, const WrapValue& value)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->wrap_t(value);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::wrap_r_texture(const Identifier& ID, const WrapValue& value)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->wrap_r(value);
+        }
+        return *this;
+    }
+
+    WrapValue VulkanAPI::wrap_s_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->wrap_s();
+        }
+
+        return WrapValue();
+    }
+
+    WrapValue VulkanAPI::wrap_t_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->wrap_t();
+        }
+
+        return WrapValue();
+    }
+
+    WrapValue VulkanAPI::wrap_r_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->wrap_r();
+        }
+
+        return WrapValue();
+    }
+
+    VulkanAPI& VulkanAPI::min_filter_texture(const Identifier& ID, TextureFilter filter)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->min_filter(filter);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::mag_filter_texture(const Identifier& ID, TextureFilter filter)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->mag_filter(filter);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::compare_func_texture(const Identifier& ID, CompareFunc func)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->compare_func(func);
+        }
+        return *this;
+    }
+
+    CompareFunc VulkanAPI::compare_func_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->compare_func();
+        }
+
+        return CompareFunc();
+    }
+
+    VulkanAPI& VulkanAPI::compare_mode_texture(const Identifier& ID, CompareMode mode)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->compare_mode(mode);
+        }
+        return *this;
+    }
+
+    TextureFilter VulkanAPI::min_filter_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->mag_filter();
+        }
+
+        return TextureFilter();
+    }
+
+    TextureFilter VulkanAPI::mag_filter_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->mag_filter();
+        }
+        return TextureFilter();
+    }
+
+    CompareMode VulkanAPI::compare_mode_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->compare_mode();
+        }
+
+        return CompareMode::None;
+    }
+
+    MipMapLevel VulkanAPI::base_level_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->state.base_mip_level;
+        }
+        return 0;
+    }
+
+    VulkanAPI& VulkanAPI::base_level_texture(const Identifier& ID, MipMapLevel level)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->base_level(level);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::min_lod_level_texture(const Identifier& ID, LodLevel level)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->min_lod_level(level);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::max_lod_level_texture(const Identifier& ID, LodLevel level)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->max_lod_level(level);
+        }
+        return *this;
+    }
+
+    LodLevel VulkanAPI::min_lod_level_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->state.min_lod;
+        }
+        return LodLevel();
+    }
+
+    LodLevel VulkanAPI::max_lod_level_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->state.max_lod;
+        }
+        return LodLevel();
+    }
+
+    MipMapLevel VulkanAPI::max_mipmap_level_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->state.mipmap_count;
+        }
+        return LodLevel();
+    }
+
+
+    VulkanAPI& VulkanAPI::texture_size(const Identifier& ID, Size2D& size, MipMapLevel level)
+    {
+        // if (ID)
+        {
+            size = GET_TYPE(VulkanTexture, ID)->size(level);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::generate_texture_mipmap(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->generate_mipmap();
+        }
+
+        return *this;
+    }
+
+    String VulkanAPI::renderer()
+    {
+        return _M_renderer;
+    }
+
+    VulkanAPI& VulkanAPI::read_texture_2D_data(const Identifier& ID, Vector<byte>& data, MipMapLevel level)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->read_texture_2D_data(data, level);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_texture_2D(const Identifier& ID, const Size2D& size, const Offset2D& offset,
+                                            MipMapLevel level, const void* data)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->update_texture_2D(size, offset, level, 0, data);
+        }
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::anisotropic_filtering_texture(const Identifier& ID, float value)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->anisotropic_value(value);
+        }
+        return *this;
+    }
+
+    float VulkanAPI::anisotropic_filtering_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->state.anisotropy;
+        }
+
+        return 1.0;
+    }
+
+    float VulkanAPI::max_anisotropic_filtering()
+    {
+        static float value = 0.0f;
+        if (value < 1.f)
+        {
+            value = _M_properties.limits.maxSamplerAnisotropy;
+            if (value < 1.0f)
+                value = 1.0f;
+        }
+        return value;
+    }
+
+    VulkanAPI& VulkanAPI::cubemap_texture_update_data(const Identifier& ID, TextureCubeMapFace face, const Size2D& size,
+                                                      const Offset2D& offset, MipMapLevel mipmap, void* data)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)
+                    ->update_texture_2D(size, offset, mipmap, static_cast<EnumerateType>(face), data);
+        }
+        return *this;
+    }
+
+    SamplerMipmapMode VulkanAPI::sample_mipmap_mode_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->sample_mipmap_mode_texture();
+        }
+        return SamplerMipmapMode();
+    }
+
+    VulkanAPI& VulkanAPI::sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->sample_mipmap_mode_texture(mode);
+        }
+        return *this;
+    }
+
+    LodBias VulkanAPI::lod_bias_texture(const Identifier& ID)
+    {
+        // if (ID)
+        {
+            return GET_TYPE(VulkanTexture, ID)->state.mip_lod_bias;
+        }
+        return 0.0;
+    }
+
+    VulkanAPI& VulkanAPI::lod_bias_texture(const Identifier& ID, LodBias bias)
+    {
+        // if (ID)
+        {
+            GET_TYPE(VulkanTexture, ID)->lod_bias_texture(glm::min(bias, max_lod_bias_texture()));
+        }
+        return *this;
+    }
+
+    LodBias VulkanAPI::max_lod_bias_texture()
+    {
+        return _M_properties.limits.maxSamplerLodBias;
+    }
+
+    VulkanAPI& VulkanAPI::gen_framebuffer(Identifier& ID, const FrameBufferCreateInfo& info)
+    {
+        ID = (new VulkanFramebuffer())->init(info).ID();
+        return *this;
+    }
+
+    Identifier VulkanAPI::imgui_texture_id(const Identifier&)
+    {
+        throw std::runtime_error(not_implemented);
+    }
+
+    VulkanFramebuffer* VulkanAPI::framebuffer(Identifier ID)
     {
         if (ID)
+            return GET_TYPE(VulkanFramebuffer, ID);
+
+        return _M_main_framebuffer;
+    }
+
+    VulkanAPI& VulkanAPI::create_ssbo(Identifier& ID, const byte* data, size_t size)
+    {
+        ID = (new VulkanSSBO())->create(data, size).ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_ssbo(const Identifier& ID, const byte* data, size_t offset, size_t size)
+    {
+        GET_TYPE(VulkanSSBO, ID)->update(offset, data, size);
+        return *this;
+    }
+
+    VulkanShader* VulkanAPI::current_shader()
+    {
+        return _M_current_command_buffer->get_threaded_command_buffer()->_M_current_shader;
+    }
+
+    VulkanAPI& VulkanAPI::bind_ssbo(const Identifier& ID, BindingIndex index, size_t offset, size_t size)
+    {
+        current_shader()->bind_shared_buffer(GET_TYPE(VulkanSSBO, ID), offset, size, index);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::create_uniform_buffer(Identifier& ID, const byte* data, size_t size)
+    {
+        ID = (new VulkanUniformBuffer())->create(data, size).ID();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
+    {
+        GET_TYPE(VulkanUniformBuffer, ID)->update(offset, data, size);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::bind_uniform_buffer(const Identifier& ID, BindingIndex index, size_t offset, size_t size)
+    {
+        current_shader()->bind_ubo(GET_TYPE(VulkanUniformBuffer, ID), index, offset, size);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::framebuffer_scissor(const Identifier& ID, const Scissor& scissor)
+    {
+        framebuffer(ID)->update_scissor(scissor);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::clear_depth_stencil(const Identifier& ID, const DepthStencilClearValue& value)
+    {
+        framebuffer(ID)->clear_depth_stencil(value);
+        return *this;
+    }
+
+    bool VulkanAPI::check_format_support(PixelType type, PixelComponentType component)
+    {
+        try
         {
-            GET_TYPE(VulkanShader, ID)->use();
+            return static_cast<bool>(
+                    _M_physical_device.getFormatProperties(VulkanTexture::parse_format(type, component))
+                            .optimalTilingFeatures);
         }
-
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::shader_value(const ObjID& ID, const String& name, void* data)
-    {
-        if (ID)
+        catch (...)
         {
-            GET_TYPE(VulkanShader, ID)->set_value(name, data);
+            return false;
         }
+    }
+
+    VulkanAPI& VulkanAPI::async_render(bool flag)
+    {
+        _M_current_command_buffer->_M_async_enabled = flag;
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::generate_mesh(ObjID& ID)
+    bool VulkanAPI::async_render()
     {
-        destroy_object(ID);
-        ID = (new VulkanMesh)->ID();
-        return *this;
+        return _M_current_command_buffer->_M_async_enabled;
     }
 
-    VulkanAPI& VulkanAPI::mesh_data(const ObjID& ID, size_t size, DrawMode mode, void* data)
+    VulkanAPI& VulkanAPI::next_render_thread()
     {
-        if (ID)
-        {
-            GET_TYPE(VulkanMesh, ID)->data(size, mode, data);
-        }
-        return *this;
-    }
-
-
-    VulkanAPI& VulkanAPI::draw_mesh(const ObjID& ID, Primitive primitive, size_t vertices, size_t offset)
-    {
-        if (ID)
-        {
-            GET_TYPE(VulkanMesh, ID)->draw(primitive, vertices, offset);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_mesh_data(const ObjID&, size_t, size_t, void*)
-    {
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::mesh_indexes_array(const ObjID& ID, size_t size, const IndexBufferComponent& type, void* data)
-    {
-        if (ID)
-        {
-            GET_TYPE(VulkanMesh, ID)->index_buffer(size, type, data);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::create_texture(ObjID& ID, const TextureParams& params)
-    {
-        ID = (new VulkanTexture())->init(params).ID();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::gen_texture_2D(const ObjID& ID, const Size2D& size, int_t mipmap, void* data)
-    {
-        if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->gen_texture_2D(size, mipmap, data);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_texture(const ObjID& ID, TextureBindIndex binding)
-    {
-        if (ID && _M_current_shader)
-        {
-            _M_current_shader->bind_texture(GET_TYPE(VulkanTexture, ID), binding);
-        }
+        _M_current_command_buffer->next_render_thread();
         return *this;
     }
 }// namespace Engine

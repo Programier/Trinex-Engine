@@ -1,25 +1,30 @@
 #pragma once
+#include <Core/predef.hpp>
 #include <vulkan/vulkan.hpp>
-#include <Core/object_types.hpp>
 
 namespace Engine
 {
 
 #define OBJECT_OF(ID) reinterpret_cast<VulkanObject*>(ID)
 #define GET_TYPE(TYPE, ID) reinterpret_cast<TYPE*>(OBJECT_OF(ID))
-#define DESTROY_CALL(func, instance) if(instance) API->_M_device.func(instance)
+#define DESTROY_CALL(func, instance)                                                                                   \
+    {                                                                                                                  \
+        if (instance)                                                                                                  \
+            API->_M_device.func(instance);                                                                             \
+        instance = nullptr;                                                                                            \
+    }
 
     struct VulkanObject {
-        virtual void* get_instance_data() = 0;
+        void* _M_instance_address = nullptr;
 
-        ObjID ID();
+        Identifier ID();
 
         template<typename Type>
         Type* get_instance()
         {
-            return static_cast<Type*>(get_instance_data());
+            return static_cast<Type*>(_M_instance_address);
         }
 
         virtual ~VulkanObject();
     };
-}
+}// namespace Engine

@@ -1,4 +1,4 @@
-set(SOURCES main.cpp Application.cpp test.cpp)
+set(SOURCES main.cpp Application.cpp test.cpp GameInit.cpp)
 
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Engine/libs/)
 
@@ -11,4 +11,4 @@ endif()
 
 
 
-target_link_libraries(${OUTPUT_BIN} PRIVATE Engine)
+target_link_libraries(${OUTPUT_BIN} PRIVATE TrinexEngine)

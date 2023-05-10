@@ -21,7 +21,7 @@ namespace Engine
     */
 
     uint_t Sensor::_M_sensor_count = 0;
-    std::vector<std::string> Sensor::_M_sensor_names = {};
+    Vector<std::string> Sensor::_M_sensor_names = {};
 
     // Static methods implementation
 
@@ -30,7 +30,7 @@ namespace Engine
         return _M_sensor_count;
     }
 
-    const std::vector<std::string>& Sensor::sensor_list()
+    const Vector<std::string>& Sensor::sensor_list()
     {
         return Sensor::_M_sensor_names;
     }
@@ -144,7 +144,7 @@ namespace Engine
         return *this;
     }
 
-    const std::vector<float>& Sensor::data() const
+    const Vector<float>& Sensor::data() const
     {
         return _M_data;
     }

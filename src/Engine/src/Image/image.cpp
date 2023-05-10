@@ -1,9 +1,11 @@
+#include <Core/buffer_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Image/image.hpp>
-#include <stb_image.h>
+#include <stb_image/stb_image.h>
+#include <stb_image/stb_image_resize.h>
+#include <stb_image/stb_image_write.h>
 #include <stdexcept>
-
 namespace Engine
 {
 
@@ -37,16 +39,8 @@ namespace Engine
         return {width(), height()};
     }
 
-    Image& Image::size(const Size2D& _size)
-    {
-        if (_size.x * _size.y * _M_channels >= _M_data.size())
-            throw std::runtime_error("Image: Size out of range");
-        _M_width = static_cast<int>(_size.x);
-        _M_height = static_cast<int>(_size.y);
-        return *this;
-    }
 
-    Size1D Image::channels() const
+    uint_t Image::channels() const
     {
         return _M_channels;
     }
@@ -66,6 +60,12 @@ namespace Engine
         stbi_set_flip_vertically_on_load(invert_horizontal);
         byte* address = stbi_load(image.c_str(), &_M_width, &_M_height, &_M_channels, 0);
         stbi_set_flip_vertically_on_load(false);
+
+        if (address == nullptr)
+        {
+            return *this;
+        }
+
         _M_data.insert(_M_data.begin(), address, address + _M_width * _M_height * _M_channels);
         stbi_image_free(address);
         return *this;
@@ -78,6 +78,16 @@ namespace Engine
         load(path, invert_horizontal);
     }
 
+    Image::Image(const Size2D& size, uint_t channels, const Buffer& buffer)
+    {
+        create(size, channels, buffer);
+    }
+
+    Image::Image(const Size2D& size, uint_t channels, const byte* data)
+    {
+        create(size, channels, data);
+    }
+
     Image::Image(const Image& img)
     {
         *this = img;
@@ -87,9 +97,9 @@ namespace Engine
     {
         if (this == &img)
             return *this;
-        _M_data = img._M_data;
-        _M_width = img._M_width;
-        _M_height = img._M_height;
+        _M_data     = img._M_data;
+        _M_width    = img._M_width;
+        _M_height   = img._M_height;
         _M_channels = img._M_channels;
         return *this;
     }
@@ -105,15 +115,17 @@ namespace Engine
             return *this;
         }
 
-        std::vector<byte> tmp;
+        Vector<byte> tmp;
         tmp.reserve(_M_height * _M_width * 3);
         int_t len = _M_width * _M_height * _M_channels;
+
         for (int_t i = 0; i < len; i++)
         {
             if (i % 4 != 3)
                 tmp.push_back(_M_data[i]);
         }
-        _M_data = tmp;
+
+        _M_data     = std::move(tmp);
         _M_channels = 3;
         return *this;
     }
@@ -129,7 +141,7 @@ namespace Engine
             return *this;
         }
 
-        std::vector<byte> tmp;
+        Vector<byte> tmp;
         tmp.reserve(_M_height * _M_width * 4);
         int_t len = _M_width * _M_height * _M_channels;
         for (int_t i = 0; i < len; i++)
@@ -138,25 +150,41 @@ namespace Engine
             if (i % 3 == 2)
                 tmp.push_back(255);
         }
-        _M_data = tmp;
+        _M_data     = std::move(tmp);
         _M_channels = 4;
         return *this;
     }
 
-    std::vector<byte>& Image::vector()
+    Vector<byte>& Image::vector()
     {
         return _M_data;
     }
 
-    std::vector<byte>::iterator Image::begin()
+    const Buffer& Image::vector() const
+    {
+        return _M_data;
+    }
+
+    Buffer::iterator Image::begin()
     {
         return _M_data.begin();
     }
 
-    std::vector<byte>::iterator Image::end()
+    Buffer::iterator Image::end()
     {
         return _M_data.end();
     }
+
+    Buffer::const_iterator Image::begin() const
+    {
+        return _M_data.begin();
+    }
+
+    Buffer::const_iterator Image::end() const
+    {
+        return _M_data.end();
+    }
+
 
     Image::~Image()
     {
@@ -226,17 +254,18 @@ namespace Engine
         return *this;
     }
 
-    Image Image::sub_image(const glm::vec2& begin, const glm::vec2& end)
+    Image Image::sub_image(const Point2D& begin, const Size2D& size)
     {
         Image image;
-        auto size = end - begin;
+        auto end = begin + size;
+
         if (size.x < 0 || size.y < 0)
             throw std::runtime_error("Image: Imcorrect index");
         if (end.x > _M_width || begin.x > _M_width || end.y > _M_height || begin.y > _M_height)
             throw std::runtime_error("Image: Index out of range");
 
-        image._M_width = static_cast<int>(size.x + 0.5);
-        image._M_height = static_cast<int>(size.y + 0.5);
+        image._M_width    = static_cast<int>(size.x + 0.5);
+        image._M_height   = static_cast<int>(size.y + 0.5);
         image._M_channels = _M_channels;
 
         image._M_data.reserve(image._M_width * image._M_height * _M_channels);
@@ -265,14 +294,149 @@ namespace Engine
             return *this;
 
         delete_image();
-        _M_data = std::move(img._M_data);
+        _M_data     = std::move(img._M_data);
         _M_channels = img._M_channels;
-        _M_width = img._M_width;
-        _M_height = img._M_height;
+        _M_width    = img._M_width;
+        _M_height   = img._M_height;
 
         img._M_channels = img._M_height = img._M_width = 0;
         return *this;
     }
 
+    bool Image::resize(const Size2D& new_size)
+    {
+        int new_width  = static_cast<int>(new_size.x);
+        int new_height = static_cast<int>(new_size.y);
 
+        Vector<byte> resized_image(new_width * new_height * _M_channels, 0);
+
+        auto status =
+                stbir_resize_uint8(_M_data.data(), _M_width, _M_height, _M_width * _M_channels, resized_image.data(),
+                                   new_width, new_height, new_width * _M_channels, _M_channels);
+
+        _M_width  = new_width;
+        _M_height = new_height;
+        _M_data   = std::move(resized_image);
+        return status;
+    }
+
+    static String extension_of_type(ImageType type)
+    {
+        static String extensions[] = {".png", ".jpg", ".bmp", ".tga"};
+        return extensions[static_cast<EnumerateType>(type)];
+    }
+
+    bool Image::write_png(const String& filename)
+    {
+        return static_cast<bool>(stbi_write_png(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(),
+                                                _M_width * _M_channels));
+    }
+
+    bool Image::write_jpg(const String& filename)
+    {
+        return static_cast<bool>(
+                stbi_write_jpg(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(), 100));
+    }
+
+    bool Image::write_bmp(const String& filename)
+    {
+        return false;
+    }
+
+    bool Image::write_tga(const String& filename)
+    {
+        return false;
+    }
+
+    bool Image::save(String path, ImageType type)
+    {
+        path += extension_of_type(type);
+
+        static bool (Engine::Image::*write_methods[])(const String& f) = {&Image::write_png, &Image::write_jpg,
+                                                                          &Image::write_bmp, &Image::write_tga};
+
+        auto method = write_methods[static_cast<EnumerateType>(type)];
+        return ((*this).*method)(path);
+    }
+
+    Image& Image::create(const Size2D& size, uint_t channels, const Buffer& buffer)
+    {
+        _M_channels = channels;
+        _M_width    = static_cast<int_t>(size.x);
+        _M_height   = static_cast<int_t>(size.y);
+
+        _M_data.resize(_M_channels * _M_width * _M_height);
+        std::copy(buffer.begin(), buffer.end(), _M_data.begin());
+
+        return *this;
+    }
+
+    Image& Image::create(const Size2D& size, uint_t channels, const byte* buffer)
+    {
+        _M_channels = channels;
+        _M_width    = static_cast<int_t>(size.x);
+        _M_height   = static_cast<int_t>(size.y);
+
+        auto buffer_size = _M_width * _M_height * _M_channels;
+        _M_data.reserve(buffer_size);
+        if (buffer)
+            std::copy(buffer, buffer + buffer_size, _M_data.data());
+        else
+            std::fill(_M_data.begin(), _M_data.end(), 0);
+        return *this;
+    }
+
+    bool Image::serialize(BufferWriter* writer)
+    {
+        if (!SerializableObject::serialize(writer))
+        {
+            return false;
+        }
+
+        if (_M_data.empty())
+        {
+            logger->error("Image: Failed to serialize image. Data is empty!");
+            return false;
+        }
+
+        if (!writer->write(_M_width) || !writer->write(_M_height) || !writer->write(_M_channels))
+        {
+            logger->error("Image: Failed to serialize image header!");
+            return false;
+        }
+
+        if (!writer->write(_M_data.data(), _M_data.size()))
+        {
+            logger->error("Image: Failed to serialize image data!");
+            return false;
+        }
+        return true;
+    }
+
+    bool Image::deserialize(BufferReader* reader)
+    {
+        if (!SerializableObject::deserialize(reader))
+        {
+            return false;
+        }
+
+        if (!reader->read(_M_width) || !reader->read(_M_height) || !reader->read(_M_channels))
+        {
+            logger->error("Image: Failed to deserialize image header!");
+            return false;
+        }
+
+        _M_data.clear();
+        size_t size = static_cast<size_t>(_M_width) * static_cast<size_t>(_M_height) * static_cast<size_t>(_M_channels);
+
+        _M_data.resize(size);
+
+        if (!reader->read(_M_data.data(), _M_data.size()))
+        {
+            logger->error("Image: Failed to serialize image data!");
+            return false;
+        }
+
+        return true;
+    }
 }// namespace Engine

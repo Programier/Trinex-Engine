@@ -1,23 +1,21 @@
+#include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/texture_cubemap.hpp>
 #include <api.hpp>
 
 namespace Engine
 {
-    declare_instance_info_cpp(TextureCubeMap);
-    constructor_cpp(TextureCubeMap)
-    {}
-
-    TextureCubeMap& TextureCubeMap::attach_texture(const Texture2D& texture, TextureCubeMapFace index, int level)
+    REGISTER_CLASS(Engine::TextureCubeMap, Engine::Texture);
+    TextureCubeMap::TextureCubeMap()
     {
-        EngineInstance::instance()->api_interface()->cubemap_texture_attach_2d_texture(_M_ID, texture.id(), index,
-                                                                                       level);
-        return *this;
+        _M_type = TextureType::TextureCubeMap;
     }
 
-    TextureCubeMap& TextureCubeMap::attach_data(TextureCubeMapFace index, const Size2D& size, void* data, int level)
+    TextureCubeMap& TextureCubeMap::update_data(TextureCubeMapFace index, const Size2D& size, const Offset2D& offset,
+                                                void* data, MipMapLevel level)
     {
-        EngineInstance::instance()->api_interface()->cubemap_texture_attach_data(_M_ID, index, size, level, data);
+        EngineInstance::instance()->api_interface()->cubemap_texture_update_data(_M_ID, index, size, offset, level,
+                                                                                 data);
         return *this;
     }
 }// namespace Engine

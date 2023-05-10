@@ -1,12 +1,12 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <vector>
+
 #include <Core/export.hpp>
 
 
 namespace Engine
 {
-    STRUCT ObjectParameters{
+    class ObjectParameters{
         Point3D position = {0, 0, 0};
         Force force = {0, 0, 0};
         float height = 0;

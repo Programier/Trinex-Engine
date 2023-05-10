@@ -3,7 +3,8 @@
 #include <Core/implement.hpp>
 #include <Graphics/hitbox.hpp>
 #include <array>
-#include <unordered_set>
+
+#include <Core/predef.hpp>
 
 
 namespace Engine
@@ -21,7 +22,7 @@ namespace Engine
         template<typename VectorType>
         inline VectorType to_vector() const
         {
-            return VectorType(Vector3D(cast(float, x), cast(float, y), cast(float, z)));
+            return VectorType(Vector3D(cast<float>(x), cast<float>(y), cast<float>(z)));
         }
 
         operator byte();
@@ -32,18 +33,19 @@ namespace Engine
     protected:
         float _M_min_size = 1.f;
 
-        declare_instance_info_hpp(OctreeBase);
     public:
         delete_copy_constructors(OctreeBase);
 
     protected:
-        constructor_hpp(OctreeBase, float min_size = 0.1f);
+        OctreeBase(float min_size = 0.1f);
 
         void normalize_shift(Offset3D& shift);
         void generate_box(BoxHB& box);
         void generate_box(const Point3D& point, const Point3D& new_center, BoxHB& out);
         OctreeIndex index_from_normalized_shift(const Offset3D& shift);
         void generate_biggest_box(const BoxHB& box, Offset3D offset, BoxHB& out);
+
+        friend class Object;
     };
 
     CLASS OctreeBaseNode : public Object
@@ -52,10 +54,9 @@ namespace Engine
         BoxHB _M_box;
         OctreeIndex _M_index = 0;
 
-        declare_instance_info_hpp(OctreeBaseNode);
 
     protected:
-        constructor_hpp(OctreeBaseNode);
+        OctreeBaseNode();
 
     public:
         delete_copy_constructors(OctreeBaseNode);
@@ -63,8 +64,9 @@ namespace Engine
         OctreeIndex index_at_parent() const;
         const BoxHB& box() const;
         std::size_t render();
-        virtual OctreeBaseNode* get(const OctreeIndex& index) const = 0;
+        virtual OctreeBaseNode* get(const OctreeIndex& index) const;
         virtual ~OctreeBaseNode();
+        friend class Object;
     };
 
 
@@ -76,16 +78,13 @@ namespace Engine
         struct OctreeNode : public OctreeBaseNode {
         private:
             OctreeNode* _M_parent = nullptr;
-            std::array<std::array<std::array<OctreeNode*, 2>, 2>, 2> _M_nodes;
+            Array<Array<Array<OctreeNode*, 2>, 2>, 2> _M_nodes;
             Octree* _M_tree;
-
-
-            declare_instance_info_template(OctreeNode);
 
         public:
             delete_copy_constructors(OctreeNode);
 
-            std::unordered_set<Type> values;
+            Set<Type> values;
 
             OctreeNode* parent() const
             {
@@ -129,7 +128,7 @@ namespace Engine
             friend class Object;
 
         private:
-            constructor_template(OctreeNode, Octree* _M_tree)
+            OctreeNode(Octree* _M_tree)
             {
                 this->_M_tree = _M_tree;
                 for (byte i = 0; i < 8; i++) private_get(i) = nullptr;
@@ -158,8 +157,6 @@ namespace Engine
                 return node;
             }
         };
-
-        declare_instance_info_template(Octree);
 
     private:
         OctreeNode* _M_head = nullptr;

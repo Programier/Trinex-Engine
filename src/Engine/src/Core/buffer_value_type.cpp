@@ -1,14 +1,14 @@
-#include <Core/buffer_value_type.hpp>
+#include <Core/buffer_types.hpp>
 #include <stdexcept>
-#include <unordered_map>
+
 
 namespace Engine
 {
 #define id(type) typeid(type).hash_code()
 
-    IndexBufferComponent get_type_by_typeid(const std::type_info& info)
+    IndexBufferComponent index_buffer_component_of(const std::type_info& info)
     {
-        static std::unordered_map<std::size_t, IndexBufferComponent> _M_buffer_value_types = {
+        static Map<std::size_t, IndexBufferComponent> _M_buffer_value_types = {
                 {id(byte), IndexBufferComponent::UnsignedByte},
                 {id(unsigned short), IndexBufferComponent::UnsignedShort},
                 {id(unsigned int), IndexBufferComponent::UnsignedInt},

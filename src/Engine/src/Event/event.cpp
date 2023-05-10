@@ -8,21 +8,23 @@
 
 // Internal event system functions
 
-static double _M_diff_time = -1.f;
-static auto _M_prev_time = std::chrono::steady_clock::now();
+#define CURRENT_TIME std::chrono::steady_clock::now()
+static double _M_diff_time         = -1.f;
+static auto _M_prev_time           = CURRENT_TIME;
+static auto _M_start_time          = CURRENT_TIME;
 static std::size_t _M_frame_number = 0;
 
 
 namespace Engine
 {
     Event event;
-    ENGINE_EXPORT std::vector<void (*)(void*)> Event::sdl_callbacks;
-    ENGINE_EXPORT std::vector<void (*)(unsigned int)> Event::on_sensor_update;
-    ENGINE_EXPORT std::vector<void (*)()> Event::on_quit;
-    ENGINE_EXPORT std::vector<void (*)()> Event::on_terminate;
-    ENGINE_EXPORT std::vector<void (*)()> Event::on_resume;
-    ENGINE_EXPORT std::vector<void (*)()> Event::on_pause;
-    ENGINE_EXPORT std::vector<void (*)()> Event::on_low_memory;
+    ENGINE_EXPORT Vector<void (*)(void*)> Event::sdl_callbacks;
+    ENGINE_EXPORT Vector<void (*)(unsigned int)> Event::on_sensor_update;
+    ENGINE_EXPORT Vector<void (*)()> Event::on_quit;
+    ENGINE_EXPORT Vector<void (*)()> Event::on_terminate;
+    ENGINE_EXPORT Vector<void (*)()> Event::on_resume;
+    ENGINE_EXPORT Vector<void (*)()> Event::on_pause;
+    ENGINE_EXPORT Vector<void (*)()> Event::on_low_memory;
 
     void process_keyboard_event(SDL_KeyboardEvent& event);
     void clear_keyboard_events();
@@ -59,6 +61,12 @@ namespace Engine
         return _M_diff_time;
     }
 
+    ENGINE_EXPORT double Event::time()
+    {
+        auto time = std::chrono::duration_cast<std::chrono::microseconds>(CURRENT_TIME - _M_start_time).count();
+        return static_cast<double>(time) / 1000000.0;
+    }
+
     ENGINE_EXPORT const Event& get_event()
     {
         return event;
@@ -79,7 +87,7 @@ namespace Engine::UpdateEvent
     static void clear_event_system()
     {
         auto current = std::chrono::steady_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(current - _M_prev_time).count();
+        auto diff    = std::chrono::duration_cast<std::chrono::microseconds>(current - _M_prev_time).count();
         _M_prev_time = current;
         _M_diff_time = static_cast<double>(diff) / 1000000.0;
         clear_keyboard_events();

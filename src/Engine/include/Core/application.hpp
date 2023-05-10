@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    ENGINE_EXPORT class Application
+    class ENGINE_EXPORT Application
     {
     private:
     protected:
@@ -14,7 +14,6 @@ namespace Engine
             String window_name;
             Size2D window_size;
             uint16_t window_attribs = WindowAttrib::WinShown;
-            EngineAPI api = EngineAPI::OpenGL;
         } init_info;
 
         CallBack<const Event&> _M_update_event_callback;
@@ -25,7 +24,7 @@ namespace Engine
 
         delete_copy_constructors(Application);
         Application();
-        Application& init();
+        Application& init(int argc = 0, char** argv = nullptr);
 
         virtual Application& on_init();
         virtual Application& update_logic();

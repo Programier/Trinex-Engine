@@ -1,674 +1,486 @@
+#include "Core/engine_types.hpp"
+#include "Core/texture_types.hpp"
 #include <opengl_api.hpp>
+#include <opengl_texture.hpp>
 #include <opengl_types.hpp>
+
+// I hope, that it's not UB :D
+#ifndef GL_TEXTURE_LOD_BIAS
+#define GL_TEXTURE_LOD_BIAS 0x8501
+#endif
+
 
 namespace Engine
 {
-    struct OpenGL_Texture : OpenGL_Object {
-        TextureParams _M_params;
-        GLuint _M_GL_type;
-        GLuint _M_GL_format;
-        GLuint _M_GL_pixel_type;
+    implement_opengl_instance_cpp(OpenGL_Texture);
 
-        int_t _M_base_level = 0;
-        DepthStencilMode _M_depth_stencil_mode = DepthStencilMode::Depth;
-        CompareFunc _M_compare_func;
-        CompareMode _M_compare_mode;
-        int_t _M_max_lod_level = 1000;
-        int_t _M_min_lod_level = -1000;
-        int_t _M_max_mipmap_level = 1000;
-        SwizzleRGBA _M_swizzle = {SwizzleRGBA::SwizzleValue::Red, SwizzleRGBA::SwizzleValue::Green,
-                                  SwizzleRGBA::SwizzleValue::Blue, SwizzleRGBA::SwizzleValue::Alpha};
-        WrapValue _M_wrap_s = WrapValue::Repeat;
-        WrapValue _M_wrap_t = WrapValue::Repeat;
-        WrapValue _M_wrap_r = WrapValue::Repeat;
-
-        void* instance_address() override
+    static GLuint get_internal_format(OpenGL_Texture* texture)
+    {
+        switch (texture->_M_pixel_type)
         {
-            return reinterpret_cast<void*>(this);
+            case GL_DEPTH_COMPONENT:
+            {
+                switch (texture->_M_pixel_component_type)
+                {
+                    case GL_FLOAT:
+                        return GL_DEPTH_COMPONENT32F;
+
+                    case GL_UNSIGNED_SHORT:
+                        return GL_DEPTH_COMPONENT16;
+                }
+            }
+
+            case GL_STENCIL_INDEX:
+                return GL_STENCIL_INDEX8;
+
+            case GL_DEPTH_STENCIL:
+                switch (texture->_M_pixel_component_type)
+                {
+                    case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+                        return GL_DEPTH32F_STENCIL8;
+                    case GL_UNSIGNED_INT_24_8:
+                        return GL_DEPTH24_STENCIL8;
+                }
+
+            default:
+                return texture->_M_pixel_type;
+        }
+    }
+
+    OpenGL_Texture::~OpenGL_Texture()
+    {
+        if (_M_instance_id)
+        {
+            glDeleteTextures(1, &_M_instance_id);
+        }
+    }
+
+    OpenGL& OpenGL::create_texture(Identifier& ID, const TextureCreateInfo& info, TextureType type)
+    {
+        OpenGL_Texture* texture          = new OpenGL_Texture();
+        texture->_M_texture_type         = get_type(type);
+        ID                               = texture->ID();
+        texture->_M_width                = static_cast<GLsizei>(info.size.x);
+        texture->_M_height               = static_cast<GLsizei>(info.size.y);
+        texture->_M_pixel_type           = get_type(info.pixel_type);
+        texture->_M_pixel_component_type = get_type(info.pixel_component_type);
+        texture->_M_internal_format      = get_internal_format(texture);
+        glGenTextures(1, &texture->_M_instance_id);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glBindTexture(texture->_M_texture_type, texture->_M_instance_id);
+
+        glTexImage2D(texture->_M_texture_type, 0, texture->_M_internal_format, texture->size().width,
+                     texture->size().height, GL_FALSE, texture->_M_pixel_type, texture->_M_pixel_component_type,
+                     nullptr);
+
+        texture->_M_use_sampler_mode_linear = info.mipmap_mode == SamplerMipmapMode::Linear;
+
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_MAX_LEVEL),
+                                static_cast<GLint>(info.mipmap_count - 1));
+
+        API->base_level_texture(ID, info.base_mip_level)
+                .min_filter_texture(ID, info.min_filter)
+                .mag_filter_texture(ID, info.mag_filter)
+                .compare_func_texture(ID, info.compare_func)
+                .compare_mode_texture(ID, info.compare_mode)
+                .sample_mipmap_mode_texture(ID, info.mipmap_mode)
+                .wrap_s_texture(ID, info.wrap_s)
+                .wrap_t_texture(ID, info.wrap_t)
+                .wrap_r_texture(ID, info.wrap_r)
+                .lod_bias_texture(ID, info.mip_lod_bias)
+                .anisotropic_filtering_texture(ID, info.anisotropy)
+                .swizzle_texture(ID, info.swizzle)
+                .min_lod_level_texture(ID, info.min_lod)
+                .max_lod_level_texture(ID, info.max_lod)
+                .generate_texture_mipmap(ID);
+        return *this;
+    }
+
+    OpenGL& OpenGL::internal_bind_texture(OpenGL_Texture* texture)
+    {
+        static GLuint last_type = 0;
+        if (texture)
+        {
+            glBindTexture(texture->_M_texture_type, texture->_M_instance_id);
+            last_type = texture->_M_texture_type;
+        }
+        else
+        {
+            glBindTexture(last_type, 0);
+        }
+        return *this;
+    }
+
+    OpenGL& OpenGL::bind_texture(const Identifier& ID, TextureBindIndex index)
+    {
+        glActiveTexture(GL_TEXTURE0 + index);
+        internal_bind_texture(GET_TYPE(OpenGL_Texture, ID));
+        return *this;
+    }
+
+
+    template<typename ReturnType = GLint>
+    ReturnType get_parameteri(OpenGL_Texture* texture, GLenum name)
+    {
+        GLint result = 0;
+        glGetTexParameteriv(texture->_M_texture_type, name, &result);
+        return static_cast<ReturnType>(result);
+    }
+
+    template<typename ReturnType = GLfloat>
+    ReturnType get_parameterf(OpenGL_Texture* texture, GLenum name)
+    {
+        GLfloat result = 0;
+        glGetTexParameterfv(texture->_M_texture_type, name, &result);
+        return static_cast<ReturnType>(result);
+    }
+
+    MipMapLevel OpenGL::base_level_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        return texture->apply_function(get_parameteri<MipMapLevel>, texture,
+                                       static_cast<GLenum>(GL_TEXTURE_BASE_LEVEL));
+    }
+
+    OpenGL& OpenGL::base_level_texture(const Identifier& ID, MipMapLevel level)
+    {
+        auto texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function<void, GLenum, GLenum, GLint>(glTexParameteri, texture->_M_texture_type,
+                                                             GL_TEXTURE_BASE_LEVEL, level);
+        return *this;
+    }
+
+    CompareFunc OpenGL::compare_func_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        auto result =
+                texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_COMPARE_FUNC));
+        return opengl_type_to_engine_type<CompareFunc>(_M_compare_funcs, result);
+    }
+
+    OpenGL& OpenGL::compare_func_texture(const Identifier& ID, CompareFunc func)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_COMPARE_FUNC),
+                                get_type(func));
+        return *this;
+    }
+
+    CompareMode OpenGL::compare_mode_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        auto result =
+                texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_COMPARE_MODE));
+        return opengl_type_to_engine_type<CompareMode>(_M_compare_modes, result);
+    }
+
+    OpenGL& OpenGL::compare_mode_texture(const Identifier& ID, CompareMode mode)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_COMPARE_MODE),
+                                get_type(mode));
+        return *this;
+    }
+
+    TextureFilter OpenGL::min_filter_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        GLint result =
+                texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_MIN_FILTER));
+        if (result > GL_LINEAR)
+            result -= ((texture->_M_use_sampler_mode_linear * 2) + 0x100);
+
+        return opengl_type_to_engine_type<TextureFilter>(_M_texture_filters, result);
+    }
+
+    TextureFilter OpenGL::mag_filter_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+
+        GLint result =
+                texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_MAG_FILTER));
+        return opengl_type_to_engine_type<TextureFilter>(_M_texture_filters, result);
+    }
+
+    OpenGL& OpenGL::min_filter_texture(const Identifier& ID, TextureFilter filter)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+
+        GLint value = get_type(filter) + 0x100 + (texture->_M_use_sampler_mode_linear * 2);
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_MIN_FILTER),
+                                value);
+        return *this;
+    }
+
+    OpenGL& OpenGL::mag_filter_texture(const Identifier& ID, TextureFilter filter)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        GLint value             = get_type(filter);
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_MAG_FILTER),
+                                value);
+        return *this;
+    }
+
+    OpenGL& OpenGL::min_lod_level_texture(const Identifier& ID, LodLevel level)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function(glTexParameterf, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_MIN_LOD),
+                                level);
+        return *this;
+    }
+
+    OpenGL& OpenGL::max_lod_level_texture(const Identifier& ID, LodLevel level)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function(glTexParameterf, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_MAX_LOD),
+                                level);
+        return *this;
+    }
+
+    LodLevel OpenGL::min_lod_level_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        return texture->apply_function(get_parameterf<LodLevel>, texture, static_cast<GLenum>(GL_TEXTURE_MIN_LOD));
+    }
+
+    LodLevel OpenGL::max_lod_level_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        return texture->apply_function(get_parameterf<LodLevel>, texture, static_cast<GLenum>(GL_TEXTURE_MAX_LOD));
+    }
+
+    MipMapLevel OpenGL::max_mipmap_level_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        return texture->apply_function(get_parameteri<MipMapLevel>, texture, static_cast<GLenum>(GL_TEXTURE_MAX_LEVEL));
+    }
+
+    static GLint get_swizzle_value(SwizzleValue value, GLint component = 0)
+    {
+        GLint result = get_type(value);
+        if (result != 0)
+            return result;
+        return component;
+    }
+
+    OpenGL& OpenGL::swizzle_texture(const Identifier& ID, const SwizzleRGBA& swizzle)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_R),
+                                get_swizzle_value(swizzle.R, GL_RED));
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_G),
+                                get_swizzle_value(swizzle.G, GL_GREEN));
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_B),
+                                get_swizzle_value(swizzle.B, GL_BLUE));
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_A),
+                                get_swizzle_value(swizzle.A, GL_ALPHA));
+        return *this;
+    }
+
+    SwizzleRGBA OpenGL::swizzle_texture(const Identifier& ID)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+
+        GLint R = texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_R));
+        GLint G = texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_G));
+        GLint B = texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_B));
+        GLint A = texture->apply_function(get_parameteri<GLint>, texture, static_cast<GLenum>(GL_TEXTURE_SWIZZLE_A));
+
+        SwizzleRGBA result;
+
+        result.R = opengl_type_to_engine_type<SwizzleValue>(_M_swizzle_values, R);
+        result.G = opengl_type_to_engine_type<SwizzleValue>(_M_swizzle_values, G);
+        result.B = opengl_type_to_engine_type<SwizzleValue>(_M_swizzle_values, B);
+        result.A = opengl_type_to_engine_type<SwizzleValue>(_M_swizzle_values, A);
+
+        return result;
+    }
+
+    static OpenGL& texture_wrap(Identifier ID, WrapValue value, GLenum param)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        GLint wrap              = get_type(value);
+        texture->apply_function(glTexParameteri, texture->_M_texture_type, param, wrap);
+        return *API;
+    }
+
+    OpenGL& OpenGL::wrap_s_texture(const Identifier& ID, const WrapValue& value)
+    {
+        return texture_wrap(ID, value, GL_TEXTURE_WRAP_S);
+    }
+
+    OpenGL& OpenGL::wrap_t_texture(const Identifier& ID, const WrapValue& value)
+    {
+        return texture_wrap(ID, value, GL_TEXTURE_WRAP_T);
+    }
+
+    OpenGL& OpenGL::wrap_r_texture(const Identifier& ID, const WrapValue& value)
+    {
+        return texture_wrap(ID, value, GL_TEXTURE_WRAP_R);
+    }
+
+    static WrapValue get_wrap(Identifier ID, GLenum param)
+    {
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        GLint result            = texture->apply_function(get_parameteri<GLint>, texture, param);
+        return opengl_type_to_engine_type<WrapValue>(_M_wrap_values, result);
+    }
+
+    WrapValue OpenGL::wrap_s_texture(const Identifier& ID)
+    {
+        return get_wrap(ID, GL_TEXTURE_WRAP_S);
+    }
+
+    WrapValue OpenGL::wrap_t_texture(const Identifier& ID)
+    {
+        return get_wrap(ID, GL_TEXTURE_WRAP_T);
+    }
+
+    WrapValue OpenGL::wrap_r_texture(const Identifier& ID)
+    {
+        return get_wrap(ID, GL_TEXTURE_WRAP_R);
+    }
+
+    OpenGL& OpenGL::anisotropic_filtering_texture(const Identifier& ID, float value)
+    {
+        if (_M_support_anisotropy)
+        {
+            value                   = glm::max(1.0f, glm::min(value, max_anisotropic_filtering()));
+            OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+            texture->apply_function(glTexParameterf, texture->_M_texture_type,
+                                    static_cast<GLenum>(GL_TEXTURE_MAX_ANISOTROPY_EXT), static_cast<GLfloat>(value));
         }
 
+        return *this;
+    }
 
-        OpenGL_Texture(const TextureParams& params)
+    float OpenGL::anisotropic_filtering_texture(const Identifier& ID)
+    {
+        if (_M_support_anisotropy)
         {
-            opengl_debug_log("OpenGL: Creating new texture\n");
-            this->_M_params = params;
+            OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+            return texture->apply_function(get_parameterf<GLfloat>, texture,
+                                           static_cast<GLenum>(GL_TEXTURE_MAX_ANISOTROPY_EXT));
+        }
 
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            // Copy memory from data to data
-            this->_M_GL_format = _M_pixel_types.at(params.pixel_type);
-            this->_M_GL_type = _M_types.at(params.type);
-            this->_M_GL_pixel_type =
-                    params.pixel_component_type == PixelComponentType::Float ? GL_FLOAT : GL_UNSIGNED_BYTE;
+        return 1.0f;
+    }
 
-            // Creating new texture
-            glGenTextures(1, &_M_instance_id);
-            glBindTexture(_M_GL_type, _M_instance_id);
-
-            filter(TextureFilter::Nearest, GL_TEXTURE_MIN_FILTER).filter(TextureFilter::Nearest, GL_TEXTURE_MAG_FILTER);
-
-            GLint value = 0;
-            glGetTexParameteriv(_M_GL_type, GL_TEXTURE_COMPARE_FUNC, &value);
-            _M_compare_func = _M_revert_compare_funcs.at(value);
-            glGetTexParameteriv(_M_GL_type, GL_TEXTURE_COMPARE_MODE, &value);
-            if (value == GL_COMPARE_REF_TO_TEXTURE)
-                _M_compare_mode = CompareMode::RefToTexture;
+    float OpenGL::max_anisotropic_filtering()
+    {
+        GLfloat result = -1.0;
+        if (result == -1.0f)
+        {
+            if (_M_support_anisotropy)
+            {
+                glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &result);
+            }
             else
-                _M_compare_mode = CompareMode::None;
-        }
-
-        ~OpenGL_Texture()
-        {
-            if (_M_instance_id)
             {
-                opengl_debug_log("OpenGL: Destroy texture %p\n", this);
-                glDeleteTextures(1, &_M_instance_id);
-                _M_instance_id = 0;
+                result = 1.0f;
             }
         }
+        return result;
+    }
 
-        OpenGL_Texture& filter(TextureFilter filter, GLuint filter_name)
-        {
-            glTexParameteri(bind()._M_GL_type, filter_name, _M_texture_filters.at(filter));
-            unbind();
-            return *this;
-        }
-
-        OpenGL_Texture& bind(TextureBindIndex index = 0)
-        {
-            glActiveTexture(GL_TEXTURE0 + index);
-            glBindTexture(_M_GL_type, _M_instance_id);
-            return *this;
-        }
-
-        OpenGL_Texture& unbind()
-        {
-            glBindTexture(_M_GL_type, _M_instance_id);
-            return *this;
-        }
-
-        OpenGL_Texture& generate_mipmap()
-        {
-            bind();
-            glTexParameteri(_M_GL_type, GL_TEXTURE_MAX_LEVEL, _M_max_mipmap_level);
-            glTexParameteri(_M_GL_type, GL_TEXTURE_MIN_LOD, _M_min_lod_level);
-            glTexParameteri(_M_GL_type, GL_TEXTURE_MAX_LOD, _M_max_lod_level);
-            glGenerateMipmap(_M_GL_type);
-            unbind();
-            return *this;
-        }
-
-        OpenGL_Texture& base_level(int_t level)
-        {
-            bind();
-            glTexParameteri(_M_GL_type, GL_TEXTURE_BASE_LEVEL, level);
-            unbind()._M_base_level = level;
-            return *this;
-        }
-
-        OpenGL_Texture& depth_scencil_mode(DepthStencilMode mode)
-        {
-            bind();
-            _M_depth_stencil_mode = mode;
-            glTexParameteri(_M_GL_type, GL_DEPTH_STENCIL_TEXTURE_MODE,
-                            (mode == DepthStencilMode::Depth ? GL_DEPTH_COMPONENT : GL_STENCIL_INDEX));
-            unbind();
-            return *this;
-        }
-
-
-        OpenGL_Texture& compare_func_texture(CompareFunc func)
-        {
-            _M_compare_func = func;
-            bind();
-            glTexParameteri(_M_GL_type, GL_TEXTURE_COMPARE_FUNC, _M_compare_funcs.at(func));
-            unbind();
-            return *this;
-        }
-
-        OpenGL_Texture& compare_mode_texture(CompareMode mode)
-        {
-            bind();
-            glTexParameteri(_M_GL_type, GL_TEXTURE_COMPARE_MODE, _M_compare_modes.at(mode));
-            _M_compare_mode = mode;
-            return *this;
-        }
-
-        TextureFilter filter(GLenum filter_name)
-        {
-            bind();
-            GLint filter = 0;
-            glGetTexParameteriv(_M_GL_type, filter_name, &filter);
-            try
-            {
-                return _M_reverse_texture_filters.at(filter);
-            }
-            catch (...)
-            {
-                return TextureFilter::Nearest;
-            }
-        }
-
-        TextureFilter get_min_filter_texture()
-        {
-            return filter(GL_TEXTURE_MIN_FILTER);
-        }
-
-        TextureFilter get_mag_filter_texture()
-        {
-            return filter(GL_TEXTURE_MAG_FILTER);
-        }
-
-        OpenGL_Texture& set_min_filter_texture(TextureFilter value)
-        {
-            filter(value, GL_TEXTURE_MIN_FILTER);
-            return *this;
-        }
-
-        OpenGL_Texture& set_mag_filter_texture(TextureFilter value)
-        {
-            filter(value, GL_TEXTURE_MAG_FILTER);
-            return *this;
-        }
-
-        OpenGL_Texture& min_lod_level_texture(int value)
-        {
-            _M_min_lod_level = value;
-            return *this;
-        }
-
-        OpenGL_Texture& max_lod_level_texture(int value)
-        {
-            _M_max_lod_level = value;
-            return *this;
-        }
-
-        OpenGL_Texture& max_mipmap_level_texture(int value)
-        {
-            _M_max_mipmap_level = value;
-            return *this;
-        }
-
-        OpenGL_Texture& swizzle_texture(const SwizzleRGBA& swizzle)
-        {
-            _M_swizzle = swizzle;
-            bind();
-            GLint values[4] = {_M_swizzle_values.at(swizzle.R), _M_swizzle_values.at(swizzle.G),
-                               _M_swizzle_values.at(swizzle.B), _M_swizzle_values.at(swizzle.A)};
-            GLint values2[4] = {GL_TEXTURE_SWIZZLE_R, GL_TEXTURE_SWIZZLE_G, GL_TEXTURE_SWIZZLE_B, GL_TEXTURE_SWIZZLE_A};
-            for (int i = 0; i < 4; i++) glTexParameteri(_M_GL_type, values2[i], values[i]);
-            return unbind();
-        }
-
-        OpenGL_Texture& wrap(WrapValue wrap_value, GLint wrap_type)
-        {
-            _M_wrap_s = wrap_value;
-            bind();
-            glTexParameteri(_M_GL_type, wrap_type, _M_wrap_values.at(wrap_value));
-            unbind();
-            return *this;
-        }
-
-        OpenGL_Texture& wrap_s_texture(const WrapValue& wrap_value)
-        {
-            return wrap(wrap_value, GL_TEXTURE_WRAP_S);
-        }
-
-        OpenGL_Texture& wrap_t_texture(const WrapValue& wrap_value)
-        {
-            return wrap(wrap_value, GL_TEXTURE_WRAP_T);
-        }
-
-        OpenGL_Texture& wrap_r_texture(const WrapValue& wrap_value)
-        {
-            return wrap(wrap_value, GL_TEXTURE_WRAP_R);
-        }
-
-        OpenGL_Texture& copy_read_buffer_to_texture_2D(const Size2D& size, const Point2D& pos, int_t mipmap)
-        {
-            bind();
-            glCopyTexImage2D(_M_GL_type, mipmap, _M_GL_format, static_cast<GLint>(pos.x), static_cast<GLint>(pos.y),
-                             static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), GL_FALSE);
-            return unbind();
-        }
-
-        OpenGL_Texture& update_from_current_read_buffer(const Size2D& size, const Offset2D& offset, const Point2D& pos,
-                                                        int_t mipmap)
-        {
-            bind();
-            glCopyTexSubImage2D(_M_GL_type, mipmap, static_cast<GLint>(offset.x), static_cast<GLint>(offset.y),
-                                static_cast<GLint>(pos.x), static_cast<GLint>(pos.y), static_cast<GLsizei>(size.x),
-                                static_cast<GLsizei>(size.y));
-            return unbind();
-        }
-
-        GLint get_internal_type_of_texture()
-        {
-            switch (_M_GL_format)
-            {
-                case GL_STENCIL_INDEX8:
-                    return GL_STENCIL_INDEX;
-                case GL_DEPTH_COMPONENT16:
-                case GL_DEPTH_COMPONENT24:
-                case GL_DEPTH_COMPONENT32F:
-                    return GL_DEPTH_COMPONENT;
-                case GL_DEPTH24_STENCIL8:
-                case GL_DEPTH32F_STENCIL8:
-                    return GL_DEPTH_STENCIL;
-                default:
-                    return _M_GL_format;
-            }
-        }
-
-        OpenGL_Texture& gen_texture_2D(const Size2D& size, int_t level, void* data)
-        {
-            bind();
-            glTexImage2D(_M_GL_type, static_cast<GLint>(level), _M_GL_format, static_cast<GLsizei>(size.x),
-                         static_cast<GLsizei>(size.y), GL_FALSE, get_internal_type_of_texture(), _M_GL_pixel_type,
-                         data);
-            return unbind();
-        }
-
-        OpenGL_Texture& update_texture_2D(const Size2D& size, const Offset2D& offset, int_t level, void* data)
-        {
-            bind();
-            glTexSubImage2D(_M_GL_type, static_cast<GLint>(level), static_cast<GLsizei>(offset.x),
-                            static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
-                            _M_GL_format, _M_GL_pixel_type, data);
-            return unbind();
-        }
-
-        OpenGL_Texture& texture_size(Size3D& size, int_t level)
-        {
-            bind();
-            GLint _size[3];
-            glGetTexLevelParameteriv(_M_GL_type, level, GL_TEXTURE_WIDTH, &_size[0]);
-            glGetTexLevelParameteriv(_M_GL_type, level, GL_TEXTURE_HEIGHT, &_size[1]);
-            glGetTexLevelParameteriv(_M_GL_type, level, GL_TEXTURE_DEPTH, &_size[2]);
-            unbind();
-            for (int i = 0; i < 3; i++) size[i] = static_cast<decltype(size.x)>(_size[i]);
-            return *this;
-        }
-
-        OpenGL_Texture& read_texture_2D_data(std::vector<byte>& data, int_t num)
-        {
-            // Generating framebuffer
-            Size3D size;
-            texture_size(size, num);
-            int_t current_framebuffer = OpenGL::_M_api->get_current_binding(GL_FRAMEBUFFER);
-
-
-            std::size_t buffer_len = size.x * size.y * size.z *
-                                     (_M_params.pixel_component_type == PixelComponentType::UnsignedByte ? 1 : 4) * 4;
-
-            if (data.size() < buffer_len)
-                data.resize(buffer_len);
-
-            GLuint fbo;
-            glGenFramebuffers(1, &fbo);
-            glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _M_GL_type, _M_instance_id, num);
-
-            glReadPixels(0, 0, static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), _M_GL_format,
-                         _M_GL_pixel_type, (void*) data.data());
-
-            glBindFramebuffer(GL_FRAMEBUFFER, current_framebuffer);
-            glDeleteFramebuffers(1, &fbo);
-            return *this;
-        }
-
-
-        OpenGL_Texture& cubemap_texture_attach_2d_texture(OpenGL_Texture* attach, TextureCubeMapFace index, int_t level)
-        {
-            bind();
-            Size3D size;
-            attach->texture_size(size, attach->_M_base_level);
-            std::vector<byte> data;
-            read_texture_2D_data(data, attach->_M_base_level);
-
-            glTexImage2D(_M_cubemap_indexes.at(index), level, attach->_M_GL_format, size.x, size.y, GL_FALSE,
-                         attach->_M_GL_format, attach->_M_GL_pixel_type, (void*) data.data());
-            return *this;
-        }
-
-        OpenGL_Texture& cubemap_texture_attach_data(TextureCubeMapFace index, const Size2D& size, int_t level,
-                                                    void* data)
-        {
-            bind();
-            glTexImage2D(_M_cubemap_indexes.at(index), level, _M_GL_format, static_cast<GLsizei>(size.x),
-                         static_cast<GLsizei>(size.y), GL_FALSE, _M_GL_format, _M_GL_pixel_type, data);
-            return unbind();
-        }
-    };
-
-    /////////////////// API IMPLEMENTATION //////////////////////
-
-    OpenGL& OpenGL::create_texture(ObjID& ID, const TextureParams& p)
+    OpenGL& OpenGL::texture_size(const Identifier& ID, Size2D& size, MipMapLevel level)
     {
-        if (ID)
-            destroy_object(ID);
-        ID = get_object_id(new OpenGL_Texture(p));
+        level                   = glm::min(level, max_mipmap_level_texture(ID));
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        uint_t w = texture->_M_width, h = texture->_M_height;
+
+        while (level-- > 0)
+        {
+            w = w > 1 ? w >> 1 : 1;
+            w = w > 1 ? w >> 1 : 1;
+        }
+
+        size = {static_cast<float>(w), static_cast<float>(h)};
         return *this;
     }
 
-    OpenGL& OpenGL::bind_texture(const ObjID& ID, TextureBindIndex index)
+    OpenGL& OpenGL::generate_texture_mipmap(const Identifier& ID)
     {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->bind(index);
-
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function(glGenerateMipmap, texture->_M_texture_type);
         return *this;
     }
 
-    const TextureParams* OpenGL::param_texture(const ObjID& ID)
+    OpenGL& OpenGL::read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel)
     {
-        auto obj = instance(ID);
-        if (obj)
-            return &obj->get_instance_by_type<OpenGL_Texture>()->_M_params;
-        return nullptr;
-    }
-
-    int_t OpenGL::base_level_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_base_level;
-        return 0;
-    }
-
-    OpenGL& OpenGL::base_level_texture(const ObjID& ID, int_t level)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->base_level(level);
         return *this;
     }
 
-    OpenGL& OpenGL::depth_stencil_mode_texture(const ObjID& ID, DepthStencilMode mode)
+    Identifier OpenGL::imgui_texture_id(const Identifier& ID)
     {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->depth_scencil_mode(mode);
+        return GET_TYPE(OpenGL_Texture, ID)->_M_instance_id;
+    }
+
+
+    SamplerMipmapMode OpenGL::sample_mipmap_mode_texture(const Identifier& ID)
+    {
+        return GET_TYPE(OpenGL_Texture, ID)->_M_use_sampler_mode_linear ? SamplerMipmapMode::Linear
+                                                                        : SamplerMipmapMode::Nearest;
+    }
+
+    OpenGL& OpenGL::sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode)
+    {
+        auto current_filter                                      = min_filter_texture(ID);
+        GET_TYPE(OpenGL_Texture, ID)->_M_use_sampler_mode_linear = (mode == SamplerMipmapMode::Linear ? 1 : 0);
+        min_filter_texture(ID, current_filter);
         return *this;
     }
 
-    DepthStencilMode OpenGL::depth_stencil_mode_texture(const ObjID& ID)
+    LodBias OpenGL::lod_bias_texture(const Identifier& ID)
     {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_depth_stencil_mode;
-        return DepthStencilMode::Depth;
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        return texture->apply_function(get_parameterf<LodBias>, texture, static_cast<GLenum>(GL_TEXTURE_LOD_BIAS));
     }
 
-
-    CompareFunc OpenGL::compare_func_texture(const ObjID& ID)
+    OpenGL& OpenGL::lod_bias_texture(const Identifier& ID, LodBias bias)
     {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_compare_func;
-        return CompareFunc();
-    }
-
-    OpenGL& OpenGL::compare_func_texture(const ObjID& ID, CompareFunc func)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->compare_func_texture(func);
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        texture->apply_function(glTexParameterf, texture->_M_texture_type, static_cast<GLenum>(GL_TEXTURE_LOD_BIAS),
+                                static_cast<GLfloat>(bias));
         return *this;
     }
 
-    OpenGL& OpenGL::compare_mode_texture(const ObjID& ID, CompareMode mode)
+    LodBias OpenGL::max_lod_bias_texture()
     {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->compare_mode_texture(mode);
-        return *this;
+        static bool inited   = false;
+        static GLfloat value = 0.0;
+
+        if (!inited)
+        {
+            glGetFloatv(GL_MAX_TEXTURE_LOD_BIAS, &value);
+            inited = true;
+        }
+
+        return value;
     }
 
-    CompareMode OpenGL::compare_mode_texture(const ObjID& ID)
+    OpenGL& OpenGL::update_texture_2D(const Identifier& ID, const Size2D& size, const Offset2D& offset, MipMapLevel level,
+                                      const void* data)
     {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_compare_mode;
-        return CompareMode::None;
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        internal_bind_texture(texture);
+
+        glTexSubImage2D(texture->_M_texture_type, static_cast<GLint>(level), static_cast<GLsizei>(offset.x),
+                        static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
+                        texture->_M_pixel_type, texture->_M_pixel_component_type, data);
+        return internal_bind_texture(nullptr);
     }
 
-    TextureFilter OpenGL::min_filter_texture(const ObjID& ID)
+    OpenGL& OpenGL::cubemap_texture_update_data(const Identifier& ID, TextureCubeMapFace face, const Size2D& size,
+                                                const Offset2D& offset, MipMapLevel level, void* data)
     {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->filter(GL_TEXTURE_MIN_FILTER);
-        return TextureFilter();
+        OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
+        internal_bind_texture(texture);
+        glTexSubImage2D(get_type(face), static_cast<GLint>(level), static_cast<GLsizei>(offset.x),
+                        static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
+                        texture->_M_pixel_type, texture->_M_pixel_component_type, data);
+        return internal_bind_texture(nullptr);
     }
-
-    TextureFilter OpenGL::mag_filter_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->filter(GL_TEXTURE_MAG_FILTER);
-        return TextureFilter();
-    }
-
-    OpenGL& OpenGL::min_filter_texture(const ObjID& ID, TextureFilter filter_value)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->filter(filter_value, GL_TEXTURE_MIN_FILTER);
-        return *this;
-    }
-
-    OpenGL& OpenGL::mag_filter_texture(const ObjID& ID, TextureFilter filter_value)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->filter(filter_value, GL_TEXTURE_MAG_FILTER);
-        return *this;
-    }
-
-    OpenGL& OpenGL::min_lod_level_texture(const ObjID& ID, int_t level)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->_M_min_lod_level = level;
-        return *this;
-    }
-
-    OpenGL& OpenGL::max_lod_level_texture(const ObjID& ID, int_t level)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->_M_max_lod_level = level;
-        return *this;
-    }
-
-    OpenGL& OpenGL::max_mipmap_level_texture(const ObjID& ID, int_t level)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->_M_max_mipmap_level = level;
-        return *this;
-    }
-
-    int_t OpenGL::min_lod_level_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_min_lod_level;
-        return 0;
-    }
-
-    int_t OpenGL::max_lod_level_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_max_lod_level;
-        return 0;
-    }
-
-    int_t OpenGL::max_mipmap_level_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_max_mipmap_level;
-        return 0;
-    }
-
-    OpenGL& OpenGL::swizzle_texture(const ObjID& ID, const SwizzleRGBA& swizzle)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->swizzle_texture(swizzle);
-        return *this;
-    }
-
-    SwizzleRGBA OpenGL::swizzle_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_swizzle;
-        return SwizzleRGBA();
-    }
-
-    OpenGL& OpenGL::wrap_s_texture(const ObjID& ID, const WrapValue& value)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->wrap_s_texture(value);
-        return *this;
-    }
-
-    OpenGL& OpenGL::wrap_t_texture(const ObjID& ID, const WrapValue& value)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->wrap_t_texture(value);
-        return *this;
-    }
-
-    OpenGL& OpenGL::wrap_r_texture(const ObjID& ID, const WrapValue& value)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->wrap_r_texture(value);
-        return *this;
-    }
-
-    WrapValue OpenGL::wrap_s_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_wrap_s;
-        return WrapValue();
-    }
-
-    WrapValue OpenGL::wrap_t_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_wrap_t;
-        return WrapValue();
-    }
-
-    WrapValue OpenGL::wrap_r_texture(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return obj->get_instance_by_type<OpenGL_Texture>()->_M_wrap_r;
-        return WrapValue();
-    }
-
-    OpenGL& OpenGL::copy_read_buffer_to_texture_2D(const ObjID& ID, const Size2D& size, const Point2D& point,
-                                                   int_t value)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->copy_read_buffer_to_texture_2D(size, point, value);
-        return *this;
-    }
-
-    OpenGL& OpenGL::texture_2D_update_from_current_read_buffer(const ObjID& ID, const Size2D& size,
-                                                               const Offset2D& offset, const Point2D& point,
-                                                               int_t mipmap)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->update_from_current_read_buffer(size, offset, point, mipmap);
-        return *this;
-    }
-
-    OpenGL& OpenGL::gen_texture_2D(const ObjID& ID, const Size2D& size, int_t level, void* data)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->gen_texture_2D(size, level, data);
-        return *this;
-    }
-
-    OpenGL& OpenGL::update_texture_2D(const ObjID& ID, const Size2D& size, const Offset2D& offset, int_t level,
-                                      void* data)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->update_texture_2D(size, offset, level, data);
-        return *this;
-    }
-
-
-    OpenGL& OpenGL::texture_size(const ObjID& ID, Size3D& size, int_t level)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->texture_size(size, level);
-        return *this;
-    }
-
-    OpenGL& OpenGL::generate_texture_mipmap(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->generate_mipmap();
-        return *this;
-    }
-
-    OpenGL& OpenGL::read_texture_2D_data(const ObjID& ID, std::vector<byte>& data, int_t value)
-    {
-        data.clear();
-        auto obj = instance(ID);
-        if (obj)
-            obj->get_instance_by_type<OpenGL_Texture>()->read_texture_2D_data(data, value);
-        return *this;
-    }
-
-    ObjID OpenGL::texture_id(const ObjID& ID)
-    {
-        auto obj = instance(ID);
-        if (obj)
-            return static_cast<ObjID>(obj->get_instance_by_type<OpenGL_Texture>()->_M_instance_id);
-        return 0;
-    }
-
-    OpenGL& OpenGL::cubemap_texture_attach_2d_texture(const ObjID& ID, const ObjID& attach, TextureCubeMapFace face,
-                                                      int_t value)
-    {
-        auto obj = instance(ID);
-        auto attach_instance = instance(attach);
-        if (obj && attach_instance)
-            obj->get_instance_by_type<OpenGL_Texture>()->cubemap_texture_attach_2d_texture(
-                    attach_instance->get_instance_by_type<OpenGL_Texture>(), face, value);
-        return *this;
-    }
-
-    OpenGL& OpenGL::cubemap_texture_attach_data(const ObjID& id, TextureCubeMapFace face, const Size2D& size,
-                                                int_t level, void* data)
-    {
-        auto obj = instance(id);
-        if (obj && data)
-            obj->get_instance_by_type<OpenGL_Texture>()->cubemap_texture_attach_data(face, size, level, data);
-        return *this;
-    }
-
-    GLuint OpenGL::get_gl_type_of_texture(const ObjID& ID)
-    {
-        return instance(ID)->get_instance_by_type<OpenGL_Texture>()->_M_GL_type;
-    }
-
 }// namespace Engine

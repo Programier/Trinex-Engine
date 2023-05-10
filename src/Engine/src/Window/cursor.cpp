@@ -2,7 +2,7 @@
 #include <SDL.h>
 #include <Window/cursor.hpp>
 #include <sdl_surface.hpp>
-#include <stb_image.h>
+#include <stb_image/stb_image.h>
 
 
 namespace Engine

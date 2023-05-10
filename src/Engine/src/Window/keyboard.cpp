@@ -1,11 +1,12 @@
 #include <Core/keyboard.hpp>
+#include <Core/predef.hpp>
 #include <SDL_keyboard.h>
 #include <SDL_mouse.h>
-#include <unordered_map>
+
 
 namespace Engine
 {
-    static std::unordered_map<Key, int> keyboard = {{KEY_UNKNOWN, SDL_SCANCODE_UNKNOWN},
+    static Map<Key, int> keyboard = {{KEY_UNKNOWN, SDL_SCANCODE_UNKNOWN},
                                                     {KEY_SPACE, SDL_SCANCODE_SPACE},
                                                     {KEY_APOSTROPHE, SDL_SCANCODE_APOSTROPHE},
                                                     {KEY_COMMA, SDL_SCANCODE_COMMA},
@@ -128,7 +129,7 @@ namespace Engine
                                                     {MOUSE_BUTTON_RIGHT, SDL_BUTTON_RIGHT},
                                                     {MOUSE_BUTTON_MIDDLE, SDL_BUTTON_MIDDLE}};
 
-    static std::unordered_map<int, Key> reversed_keyboard;
+    static Map<int, Key> reversed_keyboard;
 
     static struct ReverseKeyboardGenerator {
         ReverseKeyboardGenerator()
@@ -138,7 +139,9 @@ namespace Engine
     } rkb_gen;
 
 
-    static std::unordered_map<Key, std::string> key_names = {{KEY_UNKNOWN, "UNKNOWN"},
+
+
+    static Map<Key, std::string> key_names = {{KEY_UNKNOWN, "UNKNOWN"},
                                                              {KEY_SPACE, "SPACE"},
                                                              {KEY_APOSTROPHE, "APOSTROPHE"},
                                                              {KEY_COMMA, "COMMA"},
@@ -284,7 +287,7 @@ namespace Engine
 
     ENGINE_EXPORT std::ostream& operator<<(std::ostream& stream, const KeyStatus& status)
     {
-        static std::unordered_map<KeyStatus, const char*> names = {{KeyStatus::JUST_RELEASED, "JUST_RELEASED"},
+        static Map<KeyStatus, const char*> names = {{KeyStatus::JUST_RELEASED, "JUST_RELEASED"},
                                                                    {KeyStatus::RELEASED, "RELEASED"},
                                                                    {KeyStatus::JUST_PRESSED, "JUST_PRESSED"},
                                                                    {KeyStatus::PRESSED, "PRESSED"},

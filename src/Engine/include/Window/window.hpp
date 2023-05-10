@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/buffer_types.hpp>
 #include <Core/callback.hpp>
 #include <Core/color.hpp>
 #include <Core/engine.hpp>
@@ -9,14 +10,54 @@
 #include <Window/cursor.hpp>
 #include <functional>
 #include <string>
-#include <vector>
+
 
 
 namespace Engine
 {
 
-    STRUCT Window : private BasicFrameBuffer
+    using AspectRation = glm::vec<2, std::int32_t, glm::defaultp>;
+
+    enum WindowAttrib : uint16_t
     {
+        WinNone                   = 0,
+        WinResizable              = 1,
+        WinFullScreen             = 2,
+        WinFullScreenDesktop      = 4,
+        WinShown                  = 8,
+        WinHidden                 = 16,
+        WinBorderLess             = 32,
+        WinMouseFocus             = 64,
+        WinInputFocus             = 128,
+        WinInputGrabbed           = 256,
+        WinMinimized              = 512,
+        WinMaximized              = 1024,
+        WinTransparentFramebuffer = 2048,
+        WinMouseCapture           = 4096,
+        WinAllowHighDPI           = 8192,
+        WinMouseGrabbed           = 16384,
+        WinKeyboardGrabbed        = 32768,
+    };
+
+    enum class CursorMode
+    {
+        Normal,
+        Hidden
+    };
+
+    enum WindowOrientation : uint_t
+    {
+        WinOrientationLandscape        = 1,
+        WinOrientationLandscapeFlipped = 2,
+        WinOrientationPortrait         = 4,
+        WinOrientationPortraitFlipped  = 8
+
+    };
+
+
+    class ENGINE_EXPORT Window : public BasicFrameBuffer
+    {
+    public:
         static Event event;
         // Window struct methods
         static const Window& init(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
@@ -45,7 +86,7 @@ namespace Engine
         static const Point2D& position();
         static const Window& position(const Point2D& position);
 
-        static const std::vector<String>& dropped_paths();
+        static const Vector<String>& dropped_paths();
         static const Window& clear_dropped_paths();
 
         static bool rezisable();
@@ -57,12 +98,6 @@ namespace Engine
         static const Window& show();
         static const Window& hide();
         static bool is_visible();
-
-        static Color& background_color();
-        static const Window& background_color(const Color& color);
-
-        static const Window& clear_buffer(const BufferType& buffer =
-                                                  BufferBitType::ColorBufferBit | BufferBitType::DepthBufferBit);
 
         static bool is_iconify();
         static const Window& iconify();
@@ -95,6 +130,7 @@ namespace Engine
 
         static const Window& bind();
         static const Window& update_view_port();
+        static const Window& update_scissor();
 
         static const Window& X11_compositing(bool value);
 
@@ -106,6 +142,8 @@ namespace Engine
         static const Window& stop_text_input();
         static const Window& update_viewport_on_resize(bool value);
         static bool update_viewport_on_resize();
+        static const Window& update_scissor_on_resize(bool value);
+        static bool update_scissor_on_resize();
         static CallBacks<void> on_resize;
         static std::size_t frame_number();
         static BasicFrameBuffer* framebuffer();
@@ -121,9 +159,10 @@ namespace Engine
 
 
         friend class Application;
+        friend class EngineInstance;
 
     private:
-        static const Window& destroy();
+        static const Window& destroy_window();
     };
 
 

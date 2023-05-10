@@ -1,7 +1,8 @@
+#include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
 #include <LibLoader/lib_loader.hpp>
 #include <iostream>
-#include <unordered_map>
+
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -9,7 +10,7 @@
 #endif
 
 
-static std::unordered_map<std::string, void*> _M_libraries;
+static Engine::Map<std::string, void*> _M_libraries;
 #define str std::string
 
 namespace Engine
@@ -34,7 +35,7 @@ namespace Engine
 
     Library::Library(void* handle, const std::string& libname)
     {
-        _M_handle = handle;
+        _M_handle  = handle;
         _M_libname = libname;
     }
 
@@ -43,7 +44,7 @@ namespace Engine
 #ifdef WIN32
         void* func = (void*) GetProcAddress((HMODULE) (handle), (LPCSTR) (name.c_str()));
 #else
-        void* func = dlsym(handle, name.c_str());
+        void* func                      = dlsym(handle, name.c_str());
 #endif
         if (func == nullptr)
             logger->log("Failed to load function %s from lib %s\n", name.c_str(), _M_libname.c_str());

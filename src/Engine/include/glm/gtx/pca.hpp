@@ -17,7 +17,7 @@
 ///
 /// Example:
 /// ```
-/// std::vector<glm::dvec3> ptData;
+/// Vector<glm::dvec3> ptData;
 /// // ... fill ptData with some point data, e.g. vertices
 /// 
 /// glm::dvec3 center = computeCenter(ptData);

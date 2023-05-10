@@ -1,6 +1,6 @@
 #pragma once
-#include <unordered_set>
-#include <list>
+
+
 
 namespace Engine
 {
@@ -9,7 +9,7 @@ namespace Engine
     {
     public:
         using Node = Tree;
-        using NodeList = std::unordered_set<Node*>;
+        using NodeList = Set<Node*>;
 
     private:
         NodeList _M_nodes;
@@ -52,7 +52,7 @@ namespace Engine
 
         Tree& clear()
         {
-            //for (auto node : std::list(_M_nodes.begin(), _M_nodes.end()));
+            //for (auto node : List(_M_nodes.begin(), _M_nodes.end()));
             return *this;
         }
 
@@ -62,7 +62,7 @@ namespace Engine
                 _M_parent->_M_nodes.erase(this);
 
             // Recursive delete subnodes
-            for (auto node : std::list(_M_nodes.begin(), _M_nodes.end()))
+            for (auto node : List(_M_nodes.begin(), _M_nodes.end()))
             {
                 delete node;
             }

@@ -2,28 +2,26 @@
 
 #include <Core/export.hpp>
 #include <Graphics/basic_object.hpp>
+#include <Graphics/transform_component.hpp>
 #include <Window/window.hpp>
 
 
 namespace Engine
 {
 
-    CLASS Camera : public BasicObject<Translate, Rotate>
+    class ENGINE_EXPORT Camera : public TransformComponents::TranslateRotate
     {
     private:
         EulerAngle1D _M_viewingAngle;
         Distance _M_maxRenderDistance = 100.0f, _M_minRenderDistance = 0.5f;
         mutable float _M_aspect = 0.f;
-        bool _M_need_update = true;
+        bool _M_need_update     = true;
 
         Matrix4f _M_projection, _M_view, _M_projview;
 
-        declare_instance_info_hpp(Camera);
-
     public:
         delete_copy_constructors(Camera);
-        constructor_hpp(Camera, Point3D position = {0.f, 0.f, 0.f}, float fov = glm::radians(90.f),
-                        const std::wstring& name = L"");
+        Camera(Point3D position = {0.f, 0.f, 0.f}, float fov = glm::radians(90.f));
         Distance& max_render_distance();
         Distance& min_render_distance();
         const Distance& max_render_distance() const;
