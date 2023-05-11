@@ -1,7 +1,7 @@
 #include <Core/commandlet.hpp>
 #include <Core/config.hpp>
-#include <Core/destroy_controller.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
@@ -143,8 +143,6 @@ namespace Engine
             root_manager->work_dir(FileManager::dirname_of(argv[0]));
         }
 
-        engine_config.init("config.cfg");
-
         LuaInterpretter::init();
 
         for (auto func : initialize_list())
@@ -154,6 +152,8 @@ namespace Engine
 
         initialize_list().clear();
 
+        engine_config.init("config.cfg");
+        LuaInterpretter::init_lua_dir();
 
         _M_api = get_api_by_name(engine_config.api);
 
@@ -275,5 +275,10 @@ namespace Engine
     DestroyController::DestroyController(void (*callback)())
     {
         terminate_list().push_back(callback);
+    }
+
+    InitializeController::InitializeController(void (*callback)())
+    {
+        initialize_list().push_back(callback);
     }
 }// namespace Engine

@@ -12,6 +12,7 @@ namespace Engine
     struct ENGINE_EXPORT LuaInterpretter {
     private:
         ENGINE_EXPORT static void init();
+        ENGINE_EXPORT static void init_lua_dir();
         ENGINE_EXPORT static void terminate();
 
 
@@ -29,6 +30,9 @@ namespace Engine
 
         ENGINE_EXPORT static LuaResult execute_string(const char* line);
         ENGINE_EXPORT static LuaResult execute_string(const String& line);
+        ENGINE_EXPORT static luabridge::Namespace global_namespace();
+        ENGINE_EXPORT static lua_State* state();
+
         friend class EngineInstance;
         friend class Class;
     };
