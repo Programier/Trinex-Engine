@@ -13,14 +13,49 @@
 
 #define MAX_GARBAGE_COLLECTION_OBJECTS 20000
 
+
+namespace luabridge
+{
+    template<>
+    struct Stack<Engine::ObjectRenameStatus> : Engine::LuaInterpretter::EnumWrapper<Engine::ObjectRenameStatus> {
+    };
+
+    template<>
+    struct Stack<Engine::ObjectFlags> : Engine::LuaInterpretter::EnumWrapper<Engine::ObjectFlags> {
+    };
+}// namespace luabridge
+
+
 namespace Engine
 {
     template<>
     const Class* const ClassMetaData<void>::class_instance = nullptr;
 
+
     template<>
     const Class* const ClassMetaData<Engine::Object>::class_instance =
-            &Class::register_new_class<Engine::Object, void>("Engine::Object");
+            &Class::register_new_class<Engine::Object, void>("Engine::Object")
+                     .register_method("root_package", Object::root_package)
+                     .register_method("class_instance", &Object::class_instance)
+                     .register_method("find_package", Object::find_package)
+                     .register_method("find_object", Object::find_object)
+                     .register_method("set_flag", static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag))
+                     .register_method("get_flag", static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag))
+                     .register_method("references", &Object::references)
+                     .register_method("full_name", &Object::full_name)
+                     .register_method("package", &Object::package)
+                     .register_method("remove_from_package", &Object::remove_from_package)
+                     .register_method("class_name", &Object::class_name)
+                     .register_method("load_package", Object::load_package)
+                     .register_method("class_hash", &Object::class_hash)
+                     .register_method("mark_for_delete", &Object::mark_for_delete)
+                     .register_method("is_on_heap", &Object::is_on_heap)
+                     .register_method("collect_garbage", Object::collect_garbage)
+                     .register_method("get_name", static_cast<const String& (Object::*) () const>(&Object::name))
+                     .register_method("set_name",
+                                      static_cast<ObjectRenameStatus (Object::*)(const String& name)>(&Object::name))
+                     .register_method("add_to_package", &Object::add_to_package);
+
 
     static ObjectSet& get_instance_list()
     {

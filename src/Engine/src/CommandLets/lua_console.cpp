@@ -8,14 +8,6 @@
 namespace Engine
 {
 
-    struct Test {
-        void print(int a, int b)
-        {
-            std::clog << a << " " << b << std::endl;
-        }
-    };
-
-
     class LuaConsole : public CommandLet
     {
     public:

@@ -63,6 +63,6 @@ namespace Engine
 
     namespace
     {
-        InitializeController a(on_init);
+        static InitializeController a(on_init);
     }
 }// namespace Engine

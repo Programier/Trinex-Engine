@@ -5,7 +5,7 @@ Engine = Engine || {}
 
 
 
-function Engine.print(t, f, recursive)
+function info_log(t, f, recursive)
 {
 
     local function print_helper(obj, output_file, cnt)

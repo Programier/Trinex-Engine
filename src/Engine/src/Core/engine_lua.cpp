@@ -49,8 +49,7 @@ namespace Engine
         }
     }
 
-    luabridge::Namespace LuaInterpretter::namespace_of(const String& class_name, size_t& namespaces,
-                                                       String& pure_class_name)
+    luabridge::Namespace LuaInterpretter::namespace_of(const String& class_name, Vector<String>& names)
     {
         size_t prev_index = 0;
         size_t index      = 0;
@@ -60,14 +59,12 @@ namespace Engine
 
         while ((index = class_name.find_first_of("::", prev_index)) != String::npos)
         {
-            String namespace_name = class_name.substr(prev_index, index);
-            prev_index            = index + 2;
-
-            _namespace = _namespace.beginNamespace(namespace_name.c_str());
-            ++namespaces;
+            names.emplace_back(class_name.substr(prev_index, index));
+            prev_index = index + 2;
+            _namespace = _namespace.beginNamespace(names.back().c_str());
         }
 
-        pure_class_name = class_name.substr(prev_index, class_name.length() - prev_index);
+        names.emplace_back(class_name.substr(prev_index, class_name.length() - prev_index));
         return _namespace;
     }
 

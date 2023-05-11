@@ -15,7 +15,10 @@ namespace Engine
         ArrayIndex offset;
     };
 
-    register_class(Engine::Package, Engine::Object);
+    register_class(Engine::Package, Engine::Object)
+            .register_method("add_object", &Package::add_object)
+            .register_method("remove_object", &Package::remove_object);
+
     Package::Package()
     {}
 
