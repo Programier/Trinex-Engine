@@ -3,7 +3,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/render_types.hpp>
 #include <Core/texture_types.hpp>
-#include <TemplateFunctional/reference_wrapper.hpp>
 #include <Core/resource.hpp>
 
 namespace Engine

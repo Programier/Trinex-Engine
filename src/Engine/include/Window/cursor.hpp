@@ -1,6 +1,5 @@
 #pragma once
 #include <Image/image.hpp>
-#include <TemplateFunctional/smart_pointer.hpp>
 #include <Core/export.hpp>
 
 

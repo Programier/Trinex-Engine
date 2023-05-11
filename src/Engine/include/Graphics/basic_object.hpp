@@ -3,7 +3,6 @@
 #include <Core/engine.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/object.hpp>
-#include <TemplateFunctional/reference_wrapper.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 

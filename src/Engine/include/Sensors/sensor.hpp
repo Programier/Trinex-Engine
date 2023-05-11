@@ -3,7 +3,6 @@
 #include <string>
 #include <Core/export.hpp>
 #include <Core/engine_types.hpp>
-#include <TemplateFunctional/smart_pointer.hpp>
 
 
 namespace Engine

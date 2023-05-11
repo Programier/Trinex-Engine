@@ -10,6 +10,7 @@
 #include <bitset>
 #include <vector>
 #include <tuple>
+#include <memory>
 
 
 namespace Engine
@@ -59,4 +60,24 @@ namespace Engine
 
     template<size_t size>
     using BitSet = std::bitset<size>;
+
+    template<typename Type>
+    using SmartPointer = std::shared_ptr<Type>;
+
+    template <typename Type>
+    void fake_delete(Type *)
+    {}
+
+    template <typename Type>
+    void delete_value(Type* value)
+    {
+        delete value;
+    }
+
+    template <typename Type>
+    void delete_array(Type *array)
+    {
+        delete[] array;
+    }
+
 }// namespace Engine
