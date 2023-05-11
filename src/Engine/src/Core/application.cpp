@@ -35,7 +35,7 @@ namespace Engine
             throw std::runtime_error("Cannot initialize another application!");
         }
 
-        EngineInstance* engine = EngineInstance::create_instance();
+        EngineInstance* engine = EngineInstance::instance();
         engine->start(argc, argv);
 
         // Creating window
@@ -476,10 +476,9 @@ namespace Engine
     Application::~Application()
     {
         info_log("Terminate application");
-        EngineInstance::_M_instance->trigger_terminate_functions();
+
 
         window.destroy_window();
-        delete EngineInstance::_M_instance;
     }
 
 }// namespace Engine

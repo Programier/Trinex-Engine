@@ -27,6 +27,26 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
+    ApiInterface& ApiInterface::imgui_init()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::imgui_terminate()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::imgui_new_frame()
+    {
+        return *this;
+    }
+
+    ApiInterface& ApiInterface::imgui_render()
+    {
+        return *this;
+    }
+
     ///////////////// TEXTURE PART /////////////////
     ApiInterface& ApiInterface::create_texture(Identifier&, const TextureCreateInfo&, TextureType)
     {

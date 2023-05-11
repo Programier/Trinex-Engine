@@ -106,17 +106,13 @@ namespace Engine
     {
     private:
         bool _M_is_inited = false;
-        static EngineInstance* _M_instance;
         class Renderer* _M_renderer = nullptr;
         Application* _M_application = nullptr;
         EngineAPI _M_api;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
 
         EngineInstance& trigger_terminate_functions();
-
         EngineInstance();
-
-        ENGINE_EXPORT static EngineInstance* create_instance();
         EngineInstance& init_api();
 
         ~EngineInstance();
@@ -136,4 +132,5 @@ namespace Engine
         friend class Application;
     };
 
+    extern EngineInstance* engine_instance;
 }// namespace Engine

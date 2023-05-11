@@ -24,6 +24,10 @@ namespace Engine::GraphicApiInterface
         virtual void* init_window(SDL_Window*) VIRTUAL_METHOD;
         virtual ApiInterface& destroy_window() VIRTUAL_METHOD;
         virtual ApiInterface& destroy_object(Identifier&) VIRTUAL_METHOD;
+        virtual ApiInterface& imgui_init() VIRTUAL_METHOD;
+        virtual ApiInterface& imgui_terminate() VIRTUAL_METHOD;
+        virtual ApiInterface& imgui_new_frame() VIRTUAL_METHOD;
+        virtual ApiInterface& imgui_render() VIRTUAL_METHOD;
 
         ///////////////// TEXTURE PART /////////////////
         virtual ApiInterface& create_texture(Identifier&, const TextureCreateInfo&, TextureType type) VIRTUAL_METHOD;

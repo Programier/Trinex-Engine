@@ -1,5 +1,5 @@
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/predef.hpp>
 #include <Core/string_functions.hpp>
@@ -130,6 +130,9 @@ const Window& Window::init(float width, float height, const String& title, uint1
 
     if (!EngineInstance::instance()->is_inited())
         throw std::runtime_error("Window: Init Engine first");
+
+    if (engine_instance->api() == EngineAPI::NoAPI)
+        throw EngineException("Cannot create window without API!");
 
     data._M_limits.max = Monitor::size();
 

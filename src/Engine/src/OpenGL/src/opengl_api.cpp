@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include <cstring>
+#include <imgui_impl_opengl3.h>
 #include <opengl_api.hpp>
 #include <opengl_buffer.hpp>
 #include <opengl_framebuffer.hpp>
@@ -114,6 +115,30 @@ namespace Engine
         if (_M_context)
             SDL_GL_DeleteContext(_M_context);
         _M_context = nullptr;
+        return *this;
+    }
+
+    OpenGL& OpenGL::imgui_init()
+    {
+        ImGui_ImplOpenGL3_Init("#version 300 es");
+        return *this;
+    }
+
+    OpenGL& OpenGL::imgui_terminate()
+    {
+        ImGui_ImplOpenGL3_Shutdown();
+        return *this;
+    }
+
+    OpenGL& OpenGL::imgui_new_frame()
+    {
+        ImGui_ImplOpenGL3_NewFrame();
+        return *this;
+    }
+
+    OpenGL& OpenGL::imgui_render()
+    {
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         return *this;
     }
 

@@ -63,6 +63,7 @@ namespace Engine
         VulkanTexture* _M_dummy_texture = nullptr;
         vk::PhysicalDeviceProperties _M_properties;
         BlockAllocator<struct VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE> _M_uniform_allocator;
+        vk::DescriptorPool _M_imgui_descriptor_pool;
 
         bool _M_need_update_image_index       = true;
         SwapChain* _M_swap_chain              = nullptr;
@@ -129,6 +130,11 @@ namespace Engine
         VulkanAPI& clear_color(const Identifier& ID, const ColorClearValue& color, byte layout) override;
         VulkanAPI& swap_interval(int_t interval) override;
         VulkanAPI& wait_idle() override;
+
+        VulkanAPI& imgui_init() override;
+        VulkanAPI& imgui_terminate() override;
+        VulkanAPI& imgui_new_frame() override;
+        VulkanAPI& imgui_render() override;
 
         String renderer() override;
         VulkanAPI& destroy_object(Identifier& ID) override;

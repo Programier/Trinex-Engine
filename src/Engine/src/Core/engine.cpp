@@ -34,20 +34,13 @@ namespace Engine
     {}
 
 
-    EngineInstance* EngineInstance::_M_instance = nullptr;
-
-    ENGINE_EXPORT EngineInstance* EngineInstance::create_instance()
-    {
-        if (_M_instance == nullptr)
-            _M_instance = new EngineInstance();
-        return _M_instance;
-    }
+    EngineInstance* engine_instance = nullptr;
 
     ENGINE_EXPORT EngineInstance* EngineInstance::instance()
     {
-        if (_M_instance == nullptr)
-            _M_instance = new EngineInstance();
-        return _M_instance;
+        if (engine_instance == nullptr)
+            engine_instance = new EngineInstance();
+        return engine_instance;
     }
 
     const Window* EngineInstance::window() const
@@ -246,7 +239,7 @@ namespace Engine
         LuaInterpretter::terminate();
 
         info_log("Engine: Terminate Engine");
-        EngineInstance::_M_instance->trigger_terminate_functions();
+        engine_instance->trigger_terminate_functions();
 
         Window::destroy_window();
 
@@ -265,8 +258,8 @@ namespace Engine
 
     void EngineInstance::destroy()
     {
-        delete _M_instance;
-        _M_instance = nullptr;
+        delete engine_instance;
+        engine_instance = nullptr;
     }
 
 

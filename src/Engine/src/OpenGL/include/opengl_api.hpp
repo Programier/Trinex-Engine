@@ -34,6 +34,10 @@ namespace Engine
         void* init_window(SDL_Window*) override;
         OpenGL& destroy_window() override;
         OpenGL& destroy_object(Identifier&) override;
+        OpenGL& imgui_init() override;
+        OpenGL& imgui_terminate() override;
+        OpenGL& imgui_new_frame() override;
+        OpenGL& imgui_render() override;
 
         //        ///////////////// TEXTURE PART /////////////////
         OpenGL& create_texture(Identifier&, const TextureCreateInfo&, TextureType type) override;

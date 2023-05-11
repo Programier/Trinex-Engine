@@ -13,6 +13,11 @@ namespace Engine
         swapchain_builder.add_image_usage_flags(static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc |
                                                                                vk::ImageUsageFlagBits::eTransferDst));
 
+        VkSurfaceFormatKHR f;
+        f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+        f.format     = VK_FORMAT_B8G8R8A8_UNORM;
+        swapchain_builder.set_desired_format(f);
+
         auto swap_ret = swapchain_builder.build();
 
         if (!swap_ret)
