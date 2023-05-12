@@ -1,10 +1,10 @@
 #pragma once
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/etl/deffered_method_invoker.hpp>
 #include <Core/object.hpp>
 #include <Core/predef.hpp>
 #include <functional>
-#include <Core/engine_loading_controllers.hpp>
 
 namespace Engine
 {
@@ -26,6 +26,7 @@ namespace Engine
         Vector<String> _M_methods;
         Vector<String> _M_static_properties;
         Vector<String> _M_properties;
+        void const* _M_lua_static_key = nullptr;
 
         template<typename Instance>
         static Instance* lua_allocate()
@@ -64,7 +65,10 @@ namespace Engine
             info_log("Class: Start initialize class '%s'", current->name().c_str());
             Vector<String> names;
             {
-                auto lua_class = LuaInterpretter::lua_class_of<InstanceClass, BaseClass>(current->name(), names);
+                auto lua_class = LuaInterpretter::lua_class_of<InstanceClass>(
+                        current->name(), names, parent ? parent->_M_lua_static_key : nullptr);
+
+                current->_M_lua_static_key = luabridge::detail::getStaticRegistryKey<InstanceClass>();
 
                 for (auto invoker : current->_M_lua_invokers)
                 {
@@ -210,5 +214,6 @@ namespace Engine
         }
 
         friend class Object;
+        friend class LuaInterpretter;
     };
 }// namespace Engine

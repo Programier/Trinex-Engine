@@ -28,12 +28,9 @@ namespace luabridge
 
 namespace Engine
 {
-    template<>
-    const Class* const ClassMetaData<void>::class_instance = nullptr;
+    static ClassMetaData<void> void_instance = nullptr;
 
-
-    template<>
-    FORCE_EXPORT const Class* const ClassMetaData<Engine::Object>::class_instance =
+    static ClassMetaData<Object> object_instance =
             &Class::register_new_class<Engine::Object, void>("Engine::Object")
                      .register_method("root_package", Object::root_package)
                      .register_method("class_instance", &Object::class_instance)

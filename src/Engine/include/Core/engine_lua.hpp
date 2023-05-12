@@ -18,11 +18,11 @@ namespace Engine
 
         static luabridge::Namespace namespace_of(const String& class_name, Vector<String>& names);
 
-        template<typename Instance, typename BaseClass = void>
-        static auto lua_class_of(const String& class_name, Vector<String>& names)
+        template<typename Instance>
+        static auto lua_class_of(const String& class_name, Vector<String>& names, void const* const key = nullptr)
         {
             auto _n = namespace_of(class_name, names);
-            if constexpr (std::is_same_v<BaseClass, void>)
+            if (key == nullptr)
             {
                 return _n.beginClass<Instance>(names.back().c_str());
             }
@@ -30,7 +30,7 @@ namespace Engine
             {
                 try
                 {
-                    return _n.deriveClass<Instance, BaseClass>(names.back().c_str());
+                    return luabridge::Namespace::Class<Instance>(names.back().c_str(), _n, key);
                 }
                 catch (std::exception& e)
                 {

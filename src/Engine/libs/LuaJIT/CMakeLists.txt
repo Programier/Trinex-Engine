@@ -15,5 +15,7 @@ enable_language(ASM)
 include (GNUInstallDirs)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/LuaJIT/")
-add_definitions("-DLUA_BUILD_AS_DLL")
+if (WIN32)
+    add_definitions("-DLUA_BUILD_AS_DLL")
+endif()
 add_subdirectory(src)

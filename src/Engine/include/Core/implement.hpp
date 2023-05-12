@@ -1,9 +1,8 @@
 #pragma once
 
-
 #define register_class(class_name, base_name, ...)                                                                     \
     template<>                                                                                                         \
-    FORCE_EXPORT const Engine::Class* const Engine::ClassMetaData<class_name>::class_instance =                       \
+    Engine::ClassMetaData<class_name> trinex_metaclass_database<class_name> =                                          \
             &Engine::Class::register_new_class<class_name, base_name>(#class_name)
 
 

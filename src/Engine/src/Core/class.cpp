@@ -8,8 +8,30 @@
 
 namespace Engine
 {
-    template<>
-    const class Engine::Class* const ClassMetaData<Engine::Class>::class_instance = nullptr;
+    static Map<std::type_index, const class Class*>& indexed_classes_map()
+    {
+        static Map<std::type_index, const class Class*> map = {};
+        return map;
+    }
+
+    ENGINE_EXPORT const class Class* ClassMetaDataHelper::find_class(const std::type_index& index)
+    {
+        static auto& map = indexed_classes_map();
+
+        auto it = map.find(index);
+        if (it == map.end())
+            return nullptr;
+
+        return it->second;
+    }
+
+    ClassMetaDataHelper::ClassMetaDataHelper(const std::type_index& index, const class Class* instance)
+    {
+        indexed_classes_map()[index] = instance;
+    }
+
+
+    static ClassMetaData<Engine::Class> class_instance = nullptr;
 
     static Class::ClassesMap& classes_map()
     {

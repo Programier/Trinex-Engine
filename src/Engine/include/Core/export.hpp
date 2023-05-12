@@ -21,3 +21,12 @@
 #endif // _WIN32
 
 #endif
+
+#ifndef FORCE_IMPORT
+#ifdef _WIN32
+    #define FORCE_IMPORT __declspec(dllexport)
+#else
+    #define FORCE_IMPORT
+#endif // _WIN32
+
+#endif

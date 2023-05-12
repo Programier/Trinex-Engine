@@ -1,5 +1,4 @@
 #include <Core/class.hpp>
-#include <Core/extern_metadata.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/package.hpp>
 #include <GameInitCommandLet.hpp>
