@@ -117,10 +117,10 @@ namespace Engine
         bool is_created_writer = false;
         if (writer == nullptr)
         {
-            String path = engine_config.resources_dir + Strings::replace_all(full_name(), "::", "/") +
-                          Constants::package_extention;
+            Path path = Path(engine_config.resources_dir) /
+                        Path(Strings::replace_all(full_name(), "::", "/") + Constants::package_extention);
 
-            String dirname = FileManager::dirname_of(path);
+            Path dirname = FileManager::dirname_of(path);
             FileManager::root_file_manager()->create_dir(dirname);
 
             writer = FileManager::root_file_manager()->create_file_writer(path, true);

@@ -9,7 +9,6 @@
 #include <memory>
 
 
-
 namespace Engine
 {
     using FileSeekDir = BufferSeekDir;
@@ -122,14 +121,10 @@ namespace Engine
         using Directories = Set<String>;
 
     private:
-        String _M_work_dir = "./";
-        Files _M_files;
-        Directories _M_directories;
-
-        FileManager& private_update(void* data);
+        Path _M_work_dir = "./";
 
     public:
-        FileManager(const String& directory = "./");
+        FileManager(const Path& directory = "./");
         FileManager(const FileManager& manager);
         FileManager(FileManager&&);
         static const FileManager* root_file_manager();
@@ -137,24 +132,19 @@ namespace Engine
         FileManager& operator=(const FileManager&);
         FileManager& operator=(FileManager&&);
 
-        static String dirname_of(const String& filename);
-        static String basename_of(const String& filename);
-        static String make_dirname(String name);
+        static Path dirname_of(const Path& filename);
+        static Path basename_of(const Path& filename);
 
+        bool work_dir(const Path& directory);
 
-        FileManager& next_dir(String directory);
-        FileManager& work_dir(String directory);
-        FileManager& update();
-        const String& work_dir() const;
+        const Path& work_dir() const;
 
-        const Files& files() const;
-        const Directories& directories() const;
-        FileReader::Pointer create_file_reader(const String& filename) const;
-        FileWriter::Pointer create_file_writer(const String& filename, bool clear = true) const;
-        TextFileReader::Pointer create_text_file_reader(const String& filename) const;
-        TextFileWriter::Pointer create_text_file_writer(const String& filename, bool clear = true) const;
-        const FileManager& remove_dir(const String& name, bool recursive = false) const;
-        const FileManager& remove_file(const String& name) const;
-        const FileManager& create_dir(const String& name) const;
+        FileReader::Pointer create_file_reader(const Path& filename) const;
+        FileWriter::Pointer create_file_writer(const Path& filename, bool clear = true) const;
+        TextFileReader::Pointer create_text_file_reader(const Path& filename) const;
+        TextFileWriter::Pointer create_text_file_writer(const Path& filename, bool clear = true) const;
+
+        bool remove(const Path& path, bool recursive = false) const;
+        bool create_dir(const Path& path) const;
     };
 }// namespace Engine

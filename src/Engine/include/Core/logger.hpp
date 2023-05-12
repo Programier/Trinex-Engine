@@ -23,4 +23,5 @@ namespace Engine
 #define debug_log(...)
 #endif
 #define info_log(...) logger->log(__VA_ARGS__)
+#define error_log(...) logger->error(__VA_ARGS__)
 }// namespace Engine

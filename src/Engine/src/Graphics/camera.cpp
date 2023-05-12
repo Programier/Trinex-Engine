@@ -29,7 +29,6 @@ namespace Engine
     {
         _M_viewingAngle = viewing_angle;
         move(position, false);
-        info_log("Created camera");
         _M_translate_fields.on_translate.push(on_camera_event);
         _M_rotate_fields.on_rotate.push(on_camera_event);
     }

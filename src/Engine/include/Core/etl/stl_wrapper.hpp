@@ -11,6 +11,7 @@
 #include <vector>
 #include <tuple>
 #include <memory>
+#include <filesystem>
 
 
 namespace Engine
@@ -80,4 +81,9 @@ namespace Engine
         delete[] array;
     }
 
+    namespace FS = std::filesystem;
+
+    using Path = FS::path;
+    using DirectoryIterator = FS::directory_iterator;
+    using RecursiveDirectoryIterator = FS::recursive_directory_iterator;
 }// namespace Engine

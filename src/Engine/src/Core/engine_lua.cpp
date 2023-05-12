@@ -10,13 +10,10 @@ namespace Engine
 
     static void make_lua_dir(String& work_dir)
     {
-        work_dir = ";" + FileManager::root_file_manager()->work_dir();
-        if (work_dir.back() != '/')
-            work_dir.push_back('/');
-        work_dir += engine_config.lua_scripts_dir;
+        work_dir = ";" + (FileManager::root_file_manager()->work_dir() / Path(engine_config.lua_scripts_dir)).string();
 
-        if (work_dir.back() != '/')
-            work_dir.push_back('/');
+        if (work_dir.back() != FS::path::preferred_separator)
+            work_dir.push_back(FS::path::preferred_separator);
 
         work_dir += "?.lua";
     }

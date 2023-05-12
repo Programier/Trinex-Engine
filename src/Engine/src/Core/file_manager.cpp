@@ -252,7 +252,7 @@ namespace Engine
     DestroyController controller(on_destroy);
 
 
-    FileManager::FileManager(const String& directory)
+    FileManager::FileManager(const Path& directory)
     {
         work_dir(directory);
     }
@@ -260,93 +260,34 @@ namespace Engine
     FileManager::FileManager(const FileManager& manager) = default;
     FileManager::FileManager(FileManager&&)              = default;
 
-    String FileManager::dirname_of(const String& filename)
+    Path FileManager::dirname_of(const Path& filename)
     {
-        auto index = filename.find_last_of("/\\");
-        if (index == String::npos)
+        return filename.parent_path();
+    }
+
+    Path FileManager::basename_of(const Path& filename)
+    {
+        return filename.filename();
+    }
+
+
+    bool FileManager::work_dir(const Path& directory)
+    {
+        Path new_path = _M_work_dir / directory;
+        if (FS::is_directory(new_path))
         {
-            return STR("./");
-        }
-
-        return filename.substr(0, index) + STR("/");
-    }
-
-    String FileManager::basename_of(const String& filename)
-    {
-        auto index = filename.find_last_of("/\\") + 1;
-        return filename.substr(index, filename.length() - index);
-    }
-
-    String FileManager::make_dirname(String name)
-    {
-        if (name.back() != '/')
-            name.push_back('/');
-        return name;
-    }
-
-    FileManager& FileManager::next_dir(String directory)
-    {
-        return work_dir(work_dir() + make_dirname(directory));
-    }
-
-    FileManager& FileManager::private_update(void* data)
-    {
-        DIR* dir = reinterpret_cast<DIR*>(data);
-        struct dirent* ent;
-
-        _M_files.clear();
-        _M_directories.clear();
-
-        while ((ent = readdir(dir)) != NULL)
-        {
-            if (ent->d_type == DT_REG)
-            {
-                _M_files.insert(ent->d_name);
-            }
-            else if (ent->d_type == DT_DIR && std::strcmp(ent->d_name, ".") != 0 && std::strcmp(ent->d_name, "..") != 0)
-            {
-                _M_directories.insert(ent->d_name);
-            }
-        }
-
-        return *this;
-    }
-
-    FileManager& FileManager::work_dir(String directory)
-    {
-        directory = make_dirname(directory);
-
-        DIR* dir = nullptr;
-
-        if ((dir = opendir(directory.c_str())) != NULL)
-        {
-            _M_work_dir = directory;
-            private_update(dir);
-            closedir(dir);
+            _M_work_dir = std::move(new_path);
+            return true;
         }
         else
         {
-            logger->error("FileManager: Directory '%s' not found!", directory.c_str());
+            error_log("FileManager: Directory '%s' not found!", directory.c_str());
+            return false;
         }
-        return *this;
     }
 
-    FileManager& FileManager::update()
-    {
-        DIR* dir = nullptr;
-        if ((dir = opendir(_M_work_dir.c_str())) != NULL)
-        {
-            private_update(dir);
-            closedir(dir);
-        }
-        else
-        {
-            throw EngineException("FileManager: Directory not found!");
-        }
-        return *this;
-    }
 
-    const String& FileManager::work_dir() const
+    const Path& FileManager::work_dir() const
     {
         return _M_work_dir;
     }
@@ -359,19 +300,9 @@ namespace Engine
     FileManager& FileManager::operator=(const FileManager&) = default;
     FileManager& FileManager::operator=(FileManager&&)      = default;
 
-    const FileManager::Files& FileManager::files() const
+    FileReader::Pointer FileManager::create_file_reader(const Path& filename) const
     {
-        return _M_files;
-    }
-
-    const FileManager::Directories& FileManager::directories() const
-    {
-        return _M_directories;
-    }
-
-    FileReader::Pointer FileManager::create_file_reader(const String& filename) const
-    {
-        FileReader* file_reader = new FileReader(_M_work_dir + filename);
+        FileReader* file_reader = new FileReader(_M_work_dir / filename);
         if (!file_reader->is_open())
         {
             delete file_reader;
@@ -381,9 +312,9 @@ namespace Engine
         return FileReader::Pointer(file_reader);
     }
 
-    FileWriter::Pointer FileManager::create_file_writer(const String& filename, bool clear) const
+    FileWriter::Pointer FileManager::create_file_writer(const Path& filename, bool clear) const
     {
-        FileWriter* file_writer = new FileWriter(_M_work_dir + filename, clear);
+        FileWriter* file_writer = new FileWriter(_M_work_dir / filename, clear);
         if (!file_writer->is_open())
         {
             delete file_writer;
@@ -392,9 +323,9 @@ namespace Engine
         return FileWriter::Pointer(file_writer);
     }
 
-    TextFileReader::Pointer FileManager::create_text_file_reader(const String& filename) const
+    TextFileReader::Pointer FileManager::create_text_file_reader(const Path& filename) const
     {
-        TextFileReader* file_reader = new TextFileReader(_M_work_dir + filename);
+        TextFileReader* file_reader = new TextFileReader(_M_work_dir / filename);
         if (!file_reader->is_open())
         {
             delete file_reader;
@@ -404,9 +335,9 @@ namespace Engine
         return TextFileReader::Pointer(file_reader);
     }
 
-    TextFileWriter::Pointer FileManager::create_text_file_writer(const String& filename, bool clear) const
+    TextFileWriter::Pointer FileManager::create_text_file_writer(const Path& filename, bool clear) const
     {
-        TextFileWriter* file_writer = new TextFileWriter(_M_work_dir + filename, clear);
+        TextFileWriter* file_writer = new TextFileWriter(_M_work_dir / filename, clear);
         if (!file_writer->is_open())
         {
             delete file_writer;
@@ -416,40 +347,60 @@ namespace Engine
     }
 
 
-    const FileManager& FileManager::remove_dir(const String& name, bool recursive) const
+    bool FileManager::remove(const Path& path, bool recursive) const
     {
-        String full_path = _M_work_dir + make_dirname(name);
+        if (FS::exists(path))
+        {
+            try
+            {
+                if (FS::is_directory(path))
+                {
+                    if (recursive)
+                    {
+                        FS::remove_all(path);
+                    }
+                    else
+                    {
+                        FS::remove(path);
+                    }
+                }
+                else
+                {
+                    FS::remove(path);
+                }
+            }
+            catch (const std::exception& e)
+            {
+                error_log("FileSystem: Failed to remove '%s': %s", path.c_str(), e.what());
+                return false;
+            }
+        }
+        else
+        {
+            error_log("FileSystem: Error: '%s' does not exist", path.c_str());
+            return false;
+        }
 
-#if PLATFORM_WINDOWS
-        String command = Strings::format("rd {} /q {}", (recursive ? "-r" : ""), full_path);
-#else
-        String command = Strings::format("rm {} {}", (recursive ? "-r" : ""), full_path);
-#endif
-        std::system(command.c_str());
-        return *this;
+        return true;
     }
 
-    const FileManager& FileManager::remove_file(const String& name) const
+    bool FileManager::create_dir(const Path& name) const
     {
-        String full_path = _M_work_dir + name;
-#if PLATFORM_WINDOWS
-        String command = Strings::format("del {}", full_path);
-#else
-        String command = Strings::format("rm {}", full_path);
-#endif
-        std::system(command.c_str());
-        return *this;
-    }
+        Path path = _M_work_dir / name;
 
-    const FileManager& FileManager::create_dir(const String& name) const
-    {
-        String full_path = _M_work_dir + make_dirname(name);
-#if PLATFORM_WINDOWS
-        String command = Strings::format("mkdir {}", full_path);
-#else
-        String command = Strings::format("mkdir -p {}", full_path);
-#endif
-        std::system(command.c_str());
-        return *this;
+        try
+        {
+            if (!FS::create_directory(path))
+            {
+                error_log("FileManager: Failed to create directory: '%s'", path.c_str());
+                return false;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            error_log("FileSystem: Failed to create directory '%s': %s", e.what());
+            return false;
+        }
+        return true;
     }
 }// namespace Engine
