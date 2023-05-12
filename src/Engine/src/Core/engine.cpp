@@ -34,8 +34,6 @@ namespace Engine
     {}
 
 
-    EngineInstance* engine_instance = nullptr;
-
     ENGINE_EXPORT EngineInstance* EngineInstance::instance()
     {
         if (engine_instance == nullptr)
@@ -121,6 +119,8 @@ namespace Engine
         }
         return *this;
     }
+
+    ENGINE_EXPORT EngineInstance* engine_instance;
 
     int EngineInstance::start(int argc, char** argv)
     {

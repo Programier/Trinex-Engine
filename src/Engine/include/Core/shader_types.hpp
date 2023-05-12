@@ -3,6 +3,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/render_types.hpp>
 #include <array>
+#include <Core/export.hpp>
 #include <optional>
 
 
@@ -67,6 +68,8 @@ namespace Engine
 
     using DepthFunc = CompareFunc;
 
+
+
     struct ShaderDataType {
         enum : EnumerateType
         {
@@ -95,37 +98,20 @@ namespace Engine
         size_t count = 1;
 
         template<class Type>
-        inline static ShaderDataType type_of(size_t count = 1)
+        static ShaderDataType type_of(size_t count = 1)
         {
+
             ShaderDataType result_type;
             result_type.size  = sizeof(Type) * count;
             result_type.count = count;
 
-            static const Map<std::type_index, typeof(result_type.type)> types = {
-                    {std::type_index(typeid(bool)), ShaderDataType::Bool},
-                    {std::type_index(typeid(int_t)), ShaderDataType::Int},
-                    {std::type_index(typeid(uint_t)), ShaderDataType::UInt},
-                    {std::type_index(typeid(float)), ShaderDataType::Float},
-                    {std::type_index(typeid(Vector2D)), ShaderDataType::Vec2},
-                    {std::type_index(typeid(Vector3D)), ShaderDataType::Vec3},
-                    {std::type_index(typeid(Vector4D)), ShaderDataType::Vec4},
-                    {std::type_index(typeid(IntVector2D)), ShaderDataType::IVec2},
-                    {std::type_index(typeid(IntVector3D)), ShaderDataType::IVec3},
-                    {std::type_index(typeid(IntVector4D)), ShaderDataType::IVec4},
-                    {std::type_index(typeid(UIntVector2D)), ShaderDataType::UVec2},
-                    {std::type_index(typeid(UIntVector3D)), ShaderDataType::UVec3},
-                    {std::type_index(typeid(UIntVector4D)), ShaderDataType::UVec4},
-                    {std::type_index(typeid(BoolVector2D)), ShaderDataType::BVec2},
-                    {std::type_index(typeid(BoolVector3D)), ShaderDataType::BVec3},
-                    {std::type_index(typeid(BoolVector4D)), ShaderDataType::BVec4},
-                    {std::type_index(typeid(Matrix2f)), ShaderDataType::Mat2},
-                    {std::type_index(typeid(Matrix3f)), ShaderDataType::Mat3},
-                    {std::type_index(typeid(Matrix4f)), ShaderDataType::Mat4},
-            };
 
-            result_type.type = types.at(std::type_index(typeid(Type)));
+            private_type_of(result_type, std::type_index(typeid(Type)));
             return result_type;
         }
+
+    private:
+        static ENGINE_EXPORT void private_type_of(ShaderDataType& result, const std::type_index& index);
     };
 
 

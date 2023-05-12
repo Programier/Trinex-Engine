@@ -17,5 +17,8 @@ namespace Engine
             sizeof(IntVector4D),// BlendIndices
     };
 
-
+    size_t StaticMeshSemanticInfo::semantic_offset(VertexBufferSemantic semantic, byte index)
+    {
+        return 0;
+    }
 }// namespace Engine

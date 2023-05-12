@@ -2,7 +2,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
 #include <LuaJIT/lua.hpp>
-
+#include <Core/logger.hpp>
 #include <LuaBridge/LuaBridge.h>
 
 namespace Engine
@@ -28,7 +28,15 @@ namespace Engine
             }
             else
             {
-                return _n.deriveClass<Instance, BaseClass>(names.back().c_str());
+                try
+                {
+                    return _n.deriveClass<Instance, BaseClass>(names.back().c_str());
+                }
+                catch (std::exception& e)
+                {
+                    error_log("LuaClassRegister: Failed to register class '%s': %s", names.back().c_str(), e.what());
+                    throw e;
+                }
             }
         }
 
@@ -38,18 +46,17 @@ namespace Engine
         ENGINE_EXPORT static luabridge::Namespace global_namespace();
         ENGINE_EXPORT static lua_State* state();
 
-        template <typename T>
-        struct EnumWrapper
-        {
-          static typename std::enable_if<std::is_enum<T>::value, void>::type push(lua_State* L, T value)
-          {
-            lua_pushnumber (L, static_cast<std::size_t> (value));
-          }
+        template<typename T>
+        struct EnumWrapper {
+            static typename std::enable_if<std::is_enum<T>::value, void>::type push(lua_State* L, T value)
+            {
+                lua_pushnumber(L, static_cast<std::size_t>(value));
+            }
 
-          static typename std::enable_if<std::is_enum<T>::value, T>::type get(lua_State* L, int index)
-          {
-            return static_cast <T> (lua_tointeger (L, index));
-          }
+            static typename std::enable_if<std::is_enum<T>::value, T>::type get(lua_State* L, int index)
+            {
+                return static_cast<T>(lua_tointeger(L, index));
+            }
         };
 
 

@@ -10,4 +10,14 @@
 #else
     #define ENGINE_EXPORT
 #endif // _WIN32
+
+#endif
+
+#ifndef FORCE_EXPORT
+#ifdef _WIN32
+    #define FORCE_EXPORT __declspec(dllexport)
+#else
+    #define FORCE_EXPORT
+#endif // _WIN32
+
 #endif

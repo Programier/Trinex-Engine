@@ -26,6 +26,8 @@
 #define IMGUI_VERSION_NUM   18957
 #define IMGUI_HAS_TABLE
 
+#include <Core/export.hpp>
+
 /*
 
 Index of this file:
@@ -71,7 +73,7 @@ Index of this file:
 // IMGUI_API is used for core imgui functions, IMGUI_IMPL_API is used for the default backends files (imgui_impl_xxx.h)
 // Using dear imgui via a shared library is not recommended, because we don't guarantee backward nor forward ABI compatibility (also function call overhead, as dear imgui is a call-heavy API)
 #ifndef IMGUI_API
-#define IMGUI_API
+#define IMGUI_API ENGINE_EXPORT
 #endif
 #ifndef IMGUI_IMPL_API
 #define IMGUI_IMPL_API              IMGUI_API

@@ -4,6 +4,7 @@
 #include <Core/object.hpp>
 #include <Core/predef.hpp>
 #include <functional>
+#include <Core/engine_loading_controllers.hpp>
 
 namespace Engine
 {
@@ -60,6 +61,7 @@ namespace Engine
                 current->update_parent_classes(parent);
             }
 
+            info_log("Class: Start initialize class '%s'", current->name().c_str());
             Vector<String> names;
             {
                 auto lua_class = LuaInterpretter::lua_class_of<InstanceClass, BaseClass>(current->name(), names);
@@ -198,9 +200,9 @@ namespace Engine
                 class_instance = Object::new_instance_without_package<Class>(class_name);
                 class_instance->create_allocator<InstanceClass>(args...);
                 class_instance->_M_instance_size = sizeof(InstanceClass);
-                extern Vector<void (*)()>& initialize_list();
+
                 class_instance->_M_post_init = Class::post_init<InstanceClass, BaseClass>;
-                initialize_list().push_back(class_instance->_M_post_init);
+                InitializeController i(class_instance->_M_post_init);
             }
 
             LuaRegistrar<InstanceClass> registrar(class_instance);

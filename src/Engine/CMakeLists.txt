@@ -101,8 +101,9 @@ endif()
 add_subdirectory("${TRINEX_ENGINE_SRC}/OpenGL")
 
 # Compile Vulkan library (Windows OS currently not supported)
-
-add_subdirectory("${TRINEX_ENGINE_SRC}/Vulkan")
+if (NOT WIN32)
+    add_subdirectory("${TRINEX_ENGINE_SRC}/Vulkan")
+endif()
 
 
 # Compile Trinex Engine library
@@ -112,4 +113,4 @@ add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include/ImGui>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/>")
-target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static liblua-static ${PlatformLibs})
+target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static libluajit ${PlatformLibs})

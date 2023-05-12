@@ -12,5 +12,5 @@ endif()
 
 
 add_library(OpenGL SHARED ${OPENGL_SRC})
-target_link_libraries(OpenGL PRIVATE ${OPENGL_LIBS} SDL2 TrinexEngine)
+target_link_libraries(OpenGL PUBLIC ${OPENGL_LIBS} SDL2 TrinexEngine)
 

@@ -1,11 +1,12 @@
 #pragma once
 #include <Core/etl/type_traits.hpp>
+#include <Core/export.hpp>
 
 namespace Engine
 {
     template<typename Type>
     class ClassMetaDataBase {
-        static const class Class* const class_instance;
+        static ENGINE_EXPORT const class Class* const class_instance;
     public:
         static inline const class Class* find_class()
         {

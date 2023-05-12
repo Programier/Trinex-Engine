@@ -69,8 +69,8 @@ namespace Engine
         //            MeshSemanticEntry entries[8];
         //        };
 
-        bool serialize(BufferWriter* writer) override;
-        bool deserialize(BufferReader* reader) override;
+       //bool serialize(BufferWriter* writer) override;
+        //bool deserialize(BufferReader* reader) override;
     };
 
 

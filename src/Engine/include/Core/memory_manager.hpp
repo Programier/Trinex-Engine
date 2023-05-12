@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    ENGINE_EXPORT class MemoryManager
+    class ENGINE_EXPORT MemoryManager
     {
     private:
         Allocator<byte> allocator;

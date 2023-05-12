@@ -132,5 +132,5 @@ namespace Engine
         friend class Application;
     };
 
-    extern EngineInstance* engine_instance;
+    ENGINE_EXPORT extern EngineInstance* engine_instance;
 }// namespace Engine

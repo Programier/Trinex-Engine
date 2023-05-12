@@ -325,7 +325,7 @@ namespace Engine
 
     TextFileReader::Pointer FileManager::create_text_file_reader(const Path& filename) const
     {
-        TextFileReader* file_reader = new TextFileReader(_M_work_dir / filename);
+        TextFileReader* file_reader = new TextFileReader((_M_work_dir / filename).string());
         if (!file_reader->is_open())
         {
             delete file_reader;
@@ -337,7 +337,7 @@ namespace Engine
 
     TextFileWriter::Pointer FileManager::create_text_file_writer(const Path& filename, bool clear) const
     {
-        TextFileWriter* file_writer = new TextFileWriter(_M_work_dir / filename, clear);
+        TextFileWriter* file_writer = new TextFileWriter((_M_work_dir / filename).string(), clear);
         if (!file_writer->is_open())
         {
             delete file_writer;

@@ -238,14 +238,14 @@ namespace Engine
         }
 
     private:
-        ENGINE_EXPORT static void* operator new(std::size_t size) = delete;
-        ENGINE_EXPORT static void* operator new(std::size_t size, void* data);
-        ENGINE_EXPORT static void* operator new[](std::size_t count)            = delete;
-        ENGINE_EXPORT static void* operator new[](std::size_t size, void* data) = delete;
+        static void* operator new(std::size_t size) = delete;
+        static void* operator new(std::size_t size, void* data);
+        static void* operator new[](std::size_t count)            = delete;
+        static void* operator new[](std::size_t size, void* data) = delete;
 
     protected:
-        ENGINE_EXPORT static void operator delete(void* data);
-        ENGINE_EXPORT static void operator delete[](void* data) = delete;
+        static void operator delete(void* data);
+        static void operator delete[](void* data) = delete;
 
     public:
         ENGINE_EXPORT static Package* root_package();

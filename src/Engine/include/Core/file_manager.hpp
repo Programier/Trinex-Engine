@@ -5,9 +5,9 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
 #include <Core/export.hpp>
+#include <Core/predef.hpp>
 #include <fstream>
 #include <memory>
-
 
 namespace Engine
 {
@@ -25,6 +25,8 @@ namespace Engine
     public:
         FileWriter();
         FileWriter(const String& filename, bool clear = true);
+        FORCE_INLINE FileWriter(const Path& path, bool clear = true) : FileWriter(path.string(), clear)
+        {}
         FileWriter(FileWriter&&);
         FileWriter& operator=(FileWriter&&);
 
@@ -51,6 +53,8 @@ namespace Engine
     public:
         FileReader();
         FileReader(const String& filename);
+        FORCE_INLINE FileReader(const Path& path) : FileReader(path.string())
+        {}
         FileReader(FileReader&&);
         FileReader& operator=(FileReader&&);
 

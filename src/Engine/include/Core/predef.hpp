@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/exception.hpp>
+#include <Core/export.hpp>
 #include <cassert>
 
 #ifdef _WIN32
@@ -12,17 +13,6 @@
 #error "Platform doesn't support!"
 #endif
 
-#ifndef ENGINE_EXPORT
-#ifdef PLATFORM_WINDOWS
-#if defined(ENABLE_ENGINE_EXPORTS)
-#define ENGINE_EXPORT __declspec(dllexport)
-#else// !BUILDING_DLL
-#define ENGINE_EXPORT __declspec(dllimport)
-#endif// BUILDING_DLL
-#else
-#define ENGINE_EXPORT
-#endif
-#endif
 
 #if __GNUC__
 #define GNU_COMPILER

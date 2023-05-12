@@ -3,7 +3,7 @@
 
 #define register_class(class_name, base_name, ...)                                                                     \
     template<>                                                                                                         \
-    const Engine::Class* const Engine::ClassMetaData<class_name>::class_instance =                                     \
+    FORCE_EXPORT const Engine::Class* const Engine::ClassMetaData<class_name>::class_instance =                       \
             &Engine::Class::register_new_class<class_name, base_name>(#class_name)
 
 

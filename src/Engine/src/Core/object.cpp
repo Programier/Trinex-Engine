@@ -33,7 +33,7 @@ namespace Engine
 
 
     template<>
-    const Class* const ClassMetaData<Engine::Object>::class_instance =
+    FORCE_EXPORT const Class* const ClassMetaData<Engine::Object>::class_instance =
             &Class::register_new_class<Engine::Object, void>("Engine::Object")
                      .register_method("root_package", Object::root_package)
                      .register_method("class_instance", &Object::class_instance)
@@ -490,12 +490,12 @@ namespace Engine
         return true;
     }
 
-    ENGINE_EXPORT void* Object::operator new(std::size_t size, void* data)
+    void* Object::operator new(std::size_t size, void* data)
     {
         return data;
     }
 
-    ENGINE_EXPORT void Object::operator delete(void* data)
+    void Object::operator delete(void* data)
     {
         logger->error("Object: Don't use operator delete! Use object->mark_for_delete() instead!");
     }

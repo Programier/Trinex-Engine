@@ -247,7 +247,7 @@ namespace Engine
             String path = engine_config.resources_dir + Strings::replace_all(full_name(), "::", "/") +
                           Constants::package_extention;
 
-            String dirname = FileManager::dirname_of(path);
+            Path dirname = FileManager::dirname_of(path);
             FileManager::root_file_manager()->create_dir(dirname);
 
             reader = FileManager::root_file_manager()->create_file_reader(path);
