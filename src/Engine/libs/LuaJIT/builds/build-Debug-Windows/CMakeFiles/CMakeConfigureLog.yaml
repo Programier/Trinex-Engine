@@ -1,0 +1,923 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineSystem.cmake:199 (message)"
+      - "CMakeLists.txt:10 (project)"
+    message: |
+      The target system is: Windows -  - 
+      The host system is: Linux - 6.2.14-703.inttf.fc37.x86_64 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/share/cmake/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:10 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /usr/bin/x86_64-w64-mingw32-gcc 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.exe"
+      
+      The C compiler identification is GNU, found in:
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/3.26.3/CompilerIdC/a.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerId.cmake:1102 (message)"
+      - "/usr/share/cmake/Modules/CMakeDetermineASMCompiler.cmake:127 (CMAKE_DETERMINE_COMPILER_ID_VENDOR)"
+      - "CMakeLists.txt:10 (project)"
+    message: |
+      Checking whether the ASM compiler is GNU using "--version" matched "(GNU assembler)|(GCC)|(Free Software Foundation)":
+      x86_64-w64-mingw32-gcc (GCC) 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37)
+      Copyright (C) 2022 Free Software Foundation, Inc.
+      This is free software; see the source for copying conditions.  There is NO
+      warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/usr/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:10 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-f3dPc9"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-f3dPc9"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-f3dPc9
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_f19f7 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -v -o CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
+        Target: x86_64-w64-mingw32
+        Configured with: ../configure --prefix=/usr --bindir=/usr/bin --includedir=/usr/include --mandir=/usr/share/man --infodir=/usr/share/info --datadir=/usr/share --build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --with-gnu-as --with-gnu-ld --verbose --without-newlib --disable-multilib --disable-plugin --with-system-zlib --disable-nls --without-included-gettext --disable-win32-registry --enable-languages=c,c++,objc,obj-c++,fortran --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-threads=posix --with-isl --enable-libgomp --target=x86_64-w64-mingw32 --with-sysroot=/usr/x86_64-w64-mingw32/sys-root --with-gxx-include-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/include/c++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib
+        gcc version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (GCC) 
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_f19f7.dir/'
+         /usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/cc1 -quiet -v -D_REENTRANT /usr/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_f19f7.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -o /tmp/cciiokeK.s
+        GNU C17 (GCC) version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (x86_64-w64-mingw32)
+        	compiled by GNU C version 12.2.1 20221121 (Red Hat 12.2.1-4), GMP version 6.2.1, MPFR version 4.1.0-p13, MPC version 1.2.1, isl version isl-0.16.1-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "/usr/x86_64-w64-mingw32/sys-root/usr/local/include"
+        ignoring nonexistent directory "/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include
+         /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include-fixed
+         /usr/x86_64-w64-mingw32/sys-root/mingw/include
+        End of search list.
+        GNU C17 (GCC) version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (x86_64-w64-mingw32)
+        	compiled by GNU C version 12.2.1 20221121 (Red Hat 12.2.1-4), GMP version 6.2.1, MPFR version 4.1.0-p13, MPC version 1.2.1, isl version isl-0.16.1-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        Compiler executable checksum: 0926ea748f6c7903e23381aa2d17a464
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_f19f7.dir/'
+         /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/bin/as -v -o CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj /tmp/cciiokeK.s
+        GNU assembler version 2.38 (x86_64-w64-mingw32) using BFD version version 2.38-8.fc37
+        COMPILER_PATH=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/bin/
+        LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.'
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj -o cmTC_f19f7.exe -Wl,--out-implib,libcmTC_f19f7.dll.a -Wl,--major-image-version,0,--minor-image-version,0   && :
+        Using built-in specs.
+        COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc
+        COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/lto-wrapper
+        Target: x86_64-w64-mingw32
+        Configured with: ../configure --prefix=/usr --bindir=/usr/bin --includedir=/usr/include --mandir=/usr/share/man --infodir=/usr/share/info --datadir=/usr/share --build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --with-gnu-as --with-gnu-ld --verbose --without-newlib --disable-multilib --disable-plugin --with-system-zlib --disable-nls --without-included-gettext --disable-win32-registry --enable-languages=c,c++,objc,obj-c++,fortran --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-threads=posix --with-isl --enable-libgomp --target=x86_64-w64-mingw32 --with-sysroot=/usr/x86_64-w64-mingw32/sys-root --with-gxx-include-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/include/c++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib
+        gcc version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (GCC) 
+        COMPILER_PATH=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/bin/
+        LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_f19f7.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_f19f7.'
+         /usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/collect2 -plugin /usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccweMs0u.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 --sysroot=/usr/x86_64-w64-mingw32/sys-root -m i386pep -Bdynamic -o cmTC_f19f7.exe /usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1 -L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib -L/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib -L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib -L/usr/x86_64-w64-mingw32/sys-root/mingw/lib CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_f19f7.dll.a --major-image-version 0 --minor-image-version 0 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtend.o
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_f19f7.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_f19f7.'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "/usr/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:10 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include]
+          add: [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include-fixed]
+          add: [/usr/x86_64-w64-mingw32/sys-root/mingw/include]
+        end of search list found
+        collapse include dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include] ==> [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include]
+        collapse include dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include-fixed] ==> [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include-fixed]
+        collapse include dir [/usr/x86_64-w64-mingw32/sys-root/mingw/include] ==> [/usr/x86_64-w64-mingw32/sys-root/mingw/include]
+        implicit include dirs: [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include;/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include-fixed;/usr/x86_64-w64-mingw32/sys-root/mingw/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:152 (message)"
+      - "/usr/share/cmake/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:10 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(x86_64-w64-mingw32-ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-f3dPc9]
+        ignore line: []
+        ignore line: [Run Build Command(s):/usr/bin/ninja-build -v cmTC_f19f7 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -v -o CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc]
+        ignore line: [Target: x86_64-w64-mingw32]
+        ignore line: [Configured with: ../configure --prefix=/usr --bindir=/usr/bin --includedir=/usr/include --mandir=/usr/share/man --infodir=/usr/share/info --datadir=/usr/share --build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --with-gnu-as --with-gnu-ld --verbose --without-newlib --disable-multilib --disable-plugin --with-system-zlib --disable-nls --without-included-gettext --disable-win32-registry --enable-languages=c,c++,objc,obj-c++,fortran --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-threads=posix --with-isl --enable-libgomp --target=x86_64-w64-mingw32 --with-sysroot=/usr/x86_64-w64-mingw32/sys-root --with-gxx-include-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/include/c++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib]
+        ignore line: [gcc version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (GCC) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_f19f7.dir/']
+        ignore line: [ /usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/cc1 -quiet -v -D_REENTRANT /usr/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_f19f7.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=x86-64 -version -o /tmp/cciiokeK.s]
+        ignore line: [GNU C17 (GCC) version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (x86_64-w64-mingw32)]
+        ignore line: [	compiled by GNU C version 12.2.1 20221121 (Red Hat 12.2.1-4)  GMP version 6.2.1  MPFR version 4.1.0-p13  MPC version 1.2.1  isl version isl-0.16.1-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "/usr/x86_64-w64-mingw32/sys-root/usr/local/include"]
+        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include]
+        ignore line: [ /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/include-fixed]
+        ignore line: [ /usr/x86_64-w64-mingw32/sys-root/mingw/include]
+        ignore line: [End of search list.]
+        ignore line: [GNU C17 (GCC) version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (x86_64-w64-mingw32)]
+        ignore line: [	compiled by GNU C version 12.2.1 20221121 (Red Hat 12.2.1-4)  GMP version 6.2.1  MPFR version 4.1.0-p13  MPC version 1.2.1  isl version isl-0.16.1-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [Compiler executable checksum: 0926ea748f6c7903e23381aa2d17a464]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_f19f7.dir/']
+        ignore line: [ /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/bin/as -v -o CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj /tmp/cciiokeK.s]
+        ignore line: [GNU assembler version 2.38 (x86_64-w64-mingw32) using BFD version version 2.38-8.fc37]
+        ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/bin/]
+        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.']
+        ignore line: [[2/2] : && /usr/bin/x86_64-w64-mingw32-gcc  -v CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj -o cmTC_f19f7.exe -Wl --out-implib libcmTC_f19f7.dll.a -Wl --major-image-version 0 --minor-image-version 0   && :]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=/usr/bin/x86_64-w64-mingw32-gcc]
+        ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/lto-wrapper]
+        ignore line: [Target: x86_64-w64-mingw32]
+        ignore line: [Configured with: ../configure --prefix=/usr --bindir=/usr/bin --includedir=/usr/include --mandir=/usr/share/man --infodir=/usr/share/info --datadir=/usr/share --build=x86_64-redhat-linux-gnu --host=x86_64-redhat-linux-gnu --with-gnu-as --with-gnu-ld --verbose --without-newlib --disable-multilib --disable-plugin --with-system-zlib --disable-nls --without-included-gettext --disable-win32-registry --enable-languages=c,c++,objc,obj-c++,fortran --with-bugurl=http://bugzilla.redhat.com/bugzilla --enable-threads=posix --with-isl --enable-libgomp --target=x86_64-w64-mingw32 --with-sysroot=/usr/x86_64-w64-mingw32/sys-root --with-gxx-include-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/include/c++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib]
+        ignore line: [gcc version 12.2.1 20221121 (Fedora MinGW 12.2.1-6.fc37) (GCC) ]
+        ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/:/usr/libexec/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/bin/]
+        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/:/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/:/usr/x86_64-w64-mingw32/sys-root/mingw/lib/]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_f19f7.exe' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_f19f7.']
+        link line: [ /usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/collect2 -plugin /usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/ccweMs0u.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmoldname -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 --sysroot=/usr/x86_64-w64-mingw32/sys-root -m i386pep -Bdynamic -o cmTC_f19f7.exe /usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/crt2.o /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtbegin.o -L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1 -L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib -L/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib -L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib -L/usr/x86_64-w64-mingw32/sys-root/mingw/lib CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_f19f7.dll.a --major-image-version 0 --minor-image-version 0 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmoldname -lmingwex -lmsvcrt -lkernel32 /usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtend.o]
+          arg [/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/collect2] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/liblto_plugin.so] ==> ignore
+          arg [-plugin-opt=/usr/libexec/gcc/x86_64-w64-mingw32/12.2.1/lto-wrapper] ==> ignore
+          arg [-plugin-opt=-fresolution=/tmp/ccweMs0u.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingw32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_eh] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmoldname] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingwex] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmsvcrt] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lpthread] ==> ignore
+          arg [-plugin-opt=-pass-through=-ladvapi32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lshell32] ==> ignore
+          arg [-plugin-opt=-pass-through=-luser32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingw32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_eh] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmoldname] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingwex] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmsvcrt] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [--sysroot=/usr/x86_64-w64-mingw32/sys-root] ==> ignore
+          arg [-m] ==> ignore
+          arg [i386pep] ==> ignore
+          arg [-Bdynamic] ==> search dynamic
+          arg [-o] ==> ignore
+          arg [cmTC_f19f7.exe] ==> ignore
+          arg [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/crt2.o] ==> obj [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/crt2.o]
+          arg [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtbegin.o] ==> obj [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtbegin.o]
+          arg [-L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1] ==> dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1]
+          arg [-L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib] ==> dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib]
+          arg [-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib] ==> dir [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib]
+          arg [-L/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib] ==> dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib]
+          arg [-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib] ==> dir [/usr/x86_64-w64-mingw32/sys-root/mingw/lib]
+          arg [CMakeFiles/cmTC_f19f7.dir/CMakeCCompilerABI.c.obj] ==> ignore
+          arg [--out-implib] ==> ignore
+          arg [libcmTC_f19f7.dll.a] ==> ignore
+          arg [--major-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [--minor-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lgcc_eh] ==> lib [gcc_eh]
+          arg [-lmoldname] ==> lib [moldname]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-ladvapi32] ==> lib [advapi32]
+          arg [-lshell32] ==> lib [shell32]
+          arg [-luser32] ==> lib [user32]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lgcc_eh] ==> lib [gcc_eh]
+          arg [-lmoldname] ==> lib [moldname]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtend.o] ==> obj [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtend.o]
+        remove lib [gcc_eh]
+        remove lib [msvcrt]
+        remove lib [gcc_eh]
+        remove lib [msvcrt]
+        collapse obj [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib/crt2.o] ==> [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/crt2.o]
+        collapse library dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1] ==> [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1]
+        collapse library dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib/../lib] ==> [/usr/x86_64-w64-mingw32/lib]
+        collapse library dir [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/../lib] ==> [/usr/x86_64-w64-mingw32/sys-root/mingw/lib]
+        collapse library dir [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/../../../../x86_64-w64-mingw32/lib] ==> [/usr/x86_64-w64-mingw32/lib]
+        collapse library dir [/usr/x86_64-w64-mingw32/sys-root/mingw/lib] ==> [/usr/x86_64-w64-mingw32/sys-root/mingw/lib]
+        implicit libs: [mingw32;gcc;moldname;mingwex;kernel32;pthread;advapi32;shell32;user32;kernel32;mingw32;gcc;moldname;mingwex;kernel32]
+        implicit objs: [/usr/x86_64-w64-mingw32/sys-root/mingw/lib/crt2.o;/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtbegin.o;/usr/lib/gcc/x86_64-w64-mingw32/12.2.1/crtend.o]
+        implicit dirs: [/usr/lib/gcc/x86_64-w64-mingw32/12.2.1;/usr/x86_64-w64-mingw32/lib;/usr/x86_64-w64-mingw32/sys-root/mingw/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CheckIncludeFile.cmake:95 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckTypeSize.cmake:252 (check_include_file)"
+      - "CMakeLists.txt:75 (CHECK_TYPE_SIZE)"
+    checks:
+      - "Looking for sys/types.h"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Dfoh8z"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Dfoh8z"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "HAVE_SYS_TYPES_H"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Dfoh8z
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_0f9a8 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc    -o CMakeFiles/cmTC_0f9a8.dir/CheckIncludeFile.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Dfoh8z/CheckIncludeFile.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc   CMakeFiles/cmTC_0f9a8.dir/CheckIncludeFile.c.obj -o cmTC_0f9a8.exe -Wl,--out-implib,libcmTC_0f9a8.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CheckIncludeFile.cmake:95 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckTypeSize.cmake:253 (check_include_file)"
+      - "CMakeLists.txt:75 (CHECK_TYPE_SIZE)"
+    checks:
+      - "Looking for stdint.h"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-V4WSDE"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-V4WSDE"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "HAVE_STDINT_H"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-V4WSDE
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_98ce6 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc    -o CMakeFiles/cmTC_98ce6.dir/CheckIncludeFile.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-V4WSDE/CheckIncludeFile.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc   CMakeFiles/cmTC_98ce6.dir/CheckIncludeFile.c.obj -o cmTC_98ce6.exe -Wl,--out-implib,libcmTC_98ce6.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CheckIncludeFile.cmake:95 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckTypeSize.cmake:254 (check_include_file)"
+      - "CMakeLists.txt:75 (CHECK_TYPE_SIZE)"
+    checks:
+      - "Looking for stddef.h"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-7eVhgp"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-7eVhgp"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "HAVE_STDDEF_H"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-7eVhgp
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_c91af && [1/2] /usr/bin/x86_64-w64-mingw32-gcc    -o CMakeFiles/cmTC_c91af.dir/CheckIncludeFile.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-7eVhgp/CheckIncludeFile.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc   CMakeFiles/cmTC_c91af.dir/CheckIncludeFile.c.obj -o cmTC_c91af.exe -Wl,--out-implib,libcmTC_c91af.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CheckTypeSize.cmake:148 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckTypeSize.cmake:273 (__check_type_size_impl)"
+      - "CMakeLists.txt:75 (CHECK_TYPE_SIZE)"
+    checks:
+      - "Check size of void*"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-B8kPGM"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-B8kPGM"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "HAVE_SIZEOF_VOID_P"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-B8kPGM
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_3760b && [1/2] /usr/bin/x86_64-w64-mingw32-gcc    -o CMakeFiles/cmTC_3760b.dir/SIZEOF_VOID_P.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-B8kPGM/SIZEOF_VOID_P.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc   CMakeFiles/cmTC_3760b.dir/SIZEOF_VOID_P.c.obj -o cmTC_3760b.exe -Wl,--out-implib,libcmTC_3760b.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CheckLibraryExists.cmake:71 (try_compile)"
+      - "CMakeLists.txt:95 (CHECK_LIBRARY_EXISTS)"
+    checks:
+      - "Looking for sin in m"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-83Yug9"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-83Yug9"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LUA_USE_LIBM"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-83Yug9
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_1cf17 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DCHECK_FUNCTION_EXISTS=sin -o CMakeFiles/cmTC_1cf17.dir/CheckFunctionExists.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-83Yug9/CheckFunctionExists.c
+        <command-line>: warning: conflicting types for built-in function 'sin'; expected 'double(double)' [-Wbuiltin-declaration-mismatch]
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-83Yug9/CheckFunctionExists.c:7:3: note: in expansion of macro 'CHECK_FUNCTION_EXISTS'
+            7 |   CHECK_FUNCTION_EXISTS(void);
+              |   ^~~~~~~~~~~~~~~~~~~~~
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-83Yug9/CheckFunctionExists.c:1:1: note: 'sin' is declared in header '<math.h>'
+          +++ |+#include <math.h>
+            1 | #ifdef CHECK_FUNCTION_EXISTS
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DCHECK_FUNCTION_EXISTS=sin  CMakeFiles/cmTC_1cf17.dir/CheckFunctionExists.c.obj -o cmTC_1cf17.exe -Wl,--out-implib,libcmTC_1cf17.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lm  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:118 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:143 (LJ_TEST_ARCH)"
+    checks:
+      - "Performing Test LJ_TARGET_X64"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-HehcLW"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-HehcLW"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_TARGET_X64"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-HehcLW
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_bde6d && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_X64 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_bde6d.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-HehcLW/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_bde6d.dir/src.c.obj -o cmTC_bde6d.exe -Wl,--out-implib,libcmTC_bde6d.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:118 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:160 (LJ_TEST_ARCH)"
+    checks:
+      - "Performing Test LJ_TARGET_ARM64"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-YVs77Q"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-YVs77Q"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_TARGET_ARM64"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-YVs77Q
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_089b5 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_ARM64 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_089b5.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-YVs77Q/src.c
+        FAILED: CMakeFiles/cmTC_089b5.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_ARM64 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_089b5.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-YVs77Q/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-YVs77Q/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:118 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:168 (LJ_TEST_ARCH)"
+    checks:
+      - "Performing Test LJ_TARGET_PPC"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-MI4I8b"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-MI4I8b"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_TARGET_PPC"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-MI4I8b
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_7021d && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_PPC -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_7021d.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-MI4I8b/src.c
+        FAILED: CMakeFiles/cmTC_7021d.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_PPC -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_7021d.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-MI4I8b/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-MI4I8b/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:118 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:178 (LJ_TEST_ARCH)"
+    checks:
+      - "Performing Test LJ_TARGET_MIPS"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-P8GYcZ"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-P8GYcZ"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_TARGET_MIPS"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-P8GYcZ
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_72d0c && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_MIPS -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_72d0c.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-P8GYcZ/src.c
+        FAILED: CMakeFiles/cmTC_72d0c.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_MIPS -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_72d0c.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-P8GYcZ/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-P8GYcZ/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:118 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:186 (LJ_TEST_ARCH)"
+    checks:
+      - "Performing Test LJ_TARGET_PS3"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-5QGLJd"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-5QGLJd"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_TARGET_PS3"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-5QGLJd
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_1288a && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_PS3 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_1288a.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-5QGLJd/src.c
+        FAILED: CMakeFiles/cmTC_1288a.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_PS3 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_1288a.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-5QGLJd/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-5QGLJd/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:192 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_LE_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-vxOhE7"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-vxOhE7"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_LE_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-vxOhE7
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_b5f55 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_LE_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_b5f55.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-vxOhE7/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_b5f55.dir/src.c.obj -o cmTC_b5f55.exe -Wl,--out-implib,libcmTC_b5f55.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:198 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_ARCH_BITS_64"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-eoE2T5"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-eoE2T5"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_ARCH_BITS_64"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-eoE2T5
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_fa0af && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_ARCH_BITS_64 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_fa0af.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-eoE2T5/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_fa0af.dir/src.c.obj -o cmTC_fa0af.exe -Wl,--out-implib,libcmTC_fa0af.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:202 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_HASJIT_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-ofuE78"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-ofuE78"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_HASJIT_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-ofuE78
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_996a6 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_HASJIT_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_996a6.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-ofuE78/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_996a6.dir/src.c.obj -o cmTC_996a6.exe -Wl,--out-implib,libcmTC_996a6.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:206 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_HASFFI_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-oC4f7E"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-oC4f7E"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_HASFFI_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-oC4f7E
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_76f9a && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_HASFFI_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_76f9a.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-oC4f7E/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_76f9a.dir/src.c.obj -o cmTC_76f9a.exe -Wl,--out-implib,libcmTC_76f9a.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:210 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_DUALNUM_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zU9QAk"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zU9QAk"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_DUALNUM_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zU9QAk
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_22bc4 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_DUALNUM_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_22bc4.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zU9QAk/src.c
+        FAILED: CMakeFiles/cmTC_22bc4.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_DUALNUM_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_22bc4.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zU9QAk/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zU9QAk/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:214 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_ARCH_HASFPU_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-9vvmZq"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-9vvmZq"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_ARCH_HASFPU_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-9vvmZq
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_383c4 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_ARCH_HASFPU_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_383c4.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-9vvmZq/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_383c4.dir/src.c.obj -o cmTC_383c4.exe -Wl,--out-implib,libcmTC_383c4.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:221 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_ABI_SOFTFP_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zHxso2"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zHxso2"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_ABI_SOFTFP_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zHxso2
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_87446 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_ABI_SOFTFP_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_87446.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zHxso2/src.c
+        FAILED: CMakeFiles/cmTC_87446.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_ABI_SOFTFP_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_87446.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zHxso2/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-zHxso2/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:228 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_NO_UNWIND_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-1IAx95"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-1IAx95"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_NO_UNWIND_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-1IAx95
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_ef9b7 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_NO_UNWIND_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_ef9b7.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-1IAx95/src.c
+        FAILED: CMakeFiles/cmTC_ef9b7.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_NO_UNWIND_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_ef9b7.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-1IAx95/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-1IAx95/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:244 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_FR2_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-JpE1rq"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-JpE1rq"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_FR2_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-JpE1rq
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_39779 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_FR2_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_39779.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-JpE1rq/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_39779.dir/src.c.obj -o cmTC_39779.exe -Wl,--out-implib,libcmTC_39779.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:254 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_TARGET_MIPSR6_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PdPkkd"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PdPkkd"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_TARGET_MIPSR6_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PdPkkd
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_008ae && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_MIPSR6_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_008ae.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PdPkkd/src.c
+        FAILED: CMakeFiles/cmTC_008ae.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_TARGET_MIPSR6_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -o CMakeFiles/cmTC_008ae.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PdPkkd/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PdPkkd/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/share/cmake/Modules/CheckCCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:291 (check_c_compiler_flag)"
+    checks:
+      - "Performing Test HAS_NO_STACK_PROTECTOR"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-IMyUf5"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-IMyUf5"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "HAS_NO_STACK_PROTECTOR"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-IMyUf5
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_aaeaa && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DHAS_NO_STACK_PROTECTOR -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE    -fno-stack-protector -o CMakeFiles/cmTC_aaeaa.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-IMyUf5/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE  CMakeFiles/cmTC_aaeaa.dir/src.c.obj -o cmTC_aaeaa.exe -Wl,--out-implib,libcmTC_aaeaa.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/share/cmake/Modules/CheckCCompilerFlag.cmake:40 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:296 (check_c_compiler_flag)"
+    checks:
+      - "Performing Test HAS_OMIT_FRAME_POINTER"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-fclMd3"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-fclMd3"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "HAS_OMIT_FRAME_POINTER"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-fclMd3
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_01bd2 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DHAS_OMIT_FRAME_POINTER -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector    -fomit-frame-pointer -o CMakeFiles/cmTC_01bd2.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-fclMd3/src.c
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector  CMakeFiles/cmTC_01bd2.dir/src.c.obj -o cmTC_01bd2.exe -Wl,--out-implib,libcmTC_01bd2.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/usr/share/cmake/Modules/CheckCSourceCompiles.cmake:76 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:130 (CHECK_C_SOURCE_COMPILES)"
+      - "CMakeLists.txt:349 (LJ_TEST_ARCH_VALUE)"
+    checks:
+      - "Performing Test LJ_HAS_OPTIMISED_HASH_1"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Ytk3ug"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Ytk3ug"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "LJ_HAS_OPTIMISED_HASH_1"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Ytk3ug
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_4bbcc && [1/2] /usr/bin/x86_64-w64-mingw32-gcc -DLJ_HAS_OPTIMISED_HASH_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double -o CMakeFiles/cmTC_4bbcc.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Ytk3ug/src.c
+        FAILED: CMakeFiles/cmTC_4bbcc.dir/src.c.obj 
+        /usr/bin/x86_64-w64-mingw32-gcc -DLJ_HAS_OPTIMISED_HASH_1 -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT -I/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double -o CMakeFiles/cmTC_4bbcc.dir/src.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Ytk3ug/src.c
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-Ytk3ug/src.c:7:2: error: #error "not defined"
+            7 | #error "not defined"
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/share/cmake/Modules/CheckLibraryExists.cmake:71 (try_compile)"
+      - "CMakeLists.txt:356 (CHECK_LIBRARY_EXISTS)"
+    checks:
+      - "Looking for pow in m"
+    directories:
+      source: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PoShjv"
+      binary: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PoShjv"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double"
+      CMAKE_MODULE_PATH: "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/cmake"
+    buildResult:
+      variable: "MINILUA_USE_LIBM"
+      cached: true
+      stdout: |
+        Change Dir: /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PoShjv
+        
+        Run Build Command(s):/usr/bin/ninja-build -v cmTC_c57a8 && [1/2] /usr/bin/x86_64-w64-mingw32-gcc   -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double -DCHECK_FUNCTION_EXISTS=pow -o CMakeFiles/cmTC_c57a8.dir/CheckFunctionExists.c.obj -c /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PoShjv/CheckFunctionExists.c
+        <command-line>: warning: conflicting types for built-in function 'pow'; expected 'double(double,  double)' [-Wbuiltin-declaration-mismatch]
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PoShjv/CheckFunctionExists.c:7:3: note: in expansion of macro 'CHECK_FUNCTION_EXISTS'
+            7 |   CHECK_FUNCTION_EXISTS(void);
+              |   ^~~~~~~~~~~~~~~~~~~~~
+        /home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/CMakeScratch/TryCompile-PoShjv/CheckFunctionExists.c:1:1: note: 'pow' is declared in header '<math.h>'
+          +++ |+#include <math.h>
+            1 | #ifdef CHECK_FUNCTION_EXISTS
+        [2/2] : && /usr/bin/x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double -DCHECK_FUNCTION_EXISTS=pow  CMakeFiles/cmTC_c57a8.dir/CheckFunctionExists.c.obj -o cmTC_c57a8.exe -Wl,--out-implib,libcmTC_c57a8.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lm  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && :
+        
+      exitCode: 0
+...

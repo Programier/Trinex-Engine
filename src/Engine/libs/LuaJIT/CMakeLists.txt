@@ -5,9 +5,10 @@
 # Debugged and (now seriously) modified by Ronan Collobert, for Torch7
 # Upgrade to luajit-2.1 by 9chu
 
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
+
 project(LuaJIT C ASM)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
 CMAKE_POLICY(VERSION 2.6)
 
 set ( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} )
@@ -109,10 +110,6 @@ ELSE (CMAKE_SHARED_LIBRARY_SUFFIX STREQUAL CMAKE_SHARED_MODULE_SUFFIX)
   SET(LUA_USE_MODULE_AND_LIBRARY 1)
 ENDIF (CMAKE_SHARED_LIBRARY_SUFFIX STREQUAL CMAKE_SHARED_MODULE_SUFFIX)
 
-## SOURCES
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/luaconf.h src/lua.h src/lauxlib.h src/lualib.h src/lua.hpp src/luajit.h
-  DESTINATION "${Lua_INSTALL_INCLUDE_SUBDIR}")
-
 MACRO(LJ_TEST_ARCH stuff)
   CHECK_C_SOURCE_COMPILES("
 #undef ${stuff}
@@ -137,7 +134,7 @@ int main() { return 0; }
 " ${stuff}_${value})
 ENDMACRO()
 
-SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
+SET(CMAKE_REQUIRED_INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include/LuaJIT/ ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 FOREACH(arch X64 X86 ARM ARM64 PPC PPCSPE MIPS MIPS64 S390X)
   LJ_TEST_ARCH(LJ_TARGET_${arch})
   if(LJ_TARGET_${arch})
@@ -148,7 +145,7 @@ FOREACH(arch X64 X86 ARM ARM64 PPC PPCSPE MIPS MIPS64 S390X)
 ENDFOREACH()
 
 IF(NOT TARGET_LJARCH)
-  MESSAGE(FATAL_ERROR "architecture not supported")
+   MESSAGE(FATAL_ERROR "architecture not supported")
 ENDIF()
 
 SET(DASM_ARCH ${TARGET_LJARCH})
@@ -420,10 +417,10 @@ SET(DEPS
   )
 
 ## COMPILE
-include_directories (BEFORE ${CMAKE_CURRENT_BINARY_DIR} dynasm src )
+include_directories (BEFORE ${CMAKE_CURRENT_BINARY_DIR} dynasm src include/LuaJIT)
 
 add_library ( liblua-static STATIC ${SRC_LJCORE} ${DEPS} )
 target_link_libraries ( liblua-static ${LIBS} )
 target_include_directories( liblua-static INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/)
-include_directories( liblua-static INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/LuaJIT/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/LuaJIT/)
 set_target_properties(liblua-static PROPERTIES COMPILE_OPTIONS "-fPIC")

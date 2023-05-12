@@ -1,0 +1,169 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "miniljs.exe"
+		},
+		{
+			"path" : "miniljs.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"TARGET_LINK_LIBRARIES",
+			"SET_TARGET_PROPERTIES",
+			"add_definitions",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 351,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 356,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 352,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 299,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 421,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double -g"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 3,
+					"define" : "LJ_ABI_SOFTFP=0"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "LJ_ARCH_HASFPU=1"
+				},
+				{
+					"backtrace" : 4,
+					"define" : "LUAJIT_OS=LUAJIT_OS_WINDOWS"
+				},
+				{
+					"backtrace" : 3,
+					"define" : "LUAJIT_TARGET=LUAJIT_ARCH_x64"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/include/LuaJIT"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/src"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/dynasm"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows"
+				}
+			],
+			"language" : "C",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"id" : "miniljs::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -fno-stack-protector -fomit-frame-pointer -malign-double -g",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lm",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
+				"role" : "libraries"
+			}
+		],
+		"language" : "C"
+	},
+	"name" : "miniljs",
+	"nameOnDisk" : "miniljs.exe",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/host/miniljs.c",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

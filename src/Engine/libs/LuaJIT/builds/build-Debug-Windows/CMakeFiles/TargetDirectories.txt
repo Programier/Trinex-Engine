@@ -1,0 +1,5 @@
+/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/miniljs.dir
+/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/buildvm.dir
+/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/liblua-static.dir
+/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/edit_cache.dir
+/home/programier/Projects/C++/TrinexEngine/src/Engine/libs/LuaJIT/builds/build-Debug-Windows/CMakeFiles/rebuild_cache.dir
