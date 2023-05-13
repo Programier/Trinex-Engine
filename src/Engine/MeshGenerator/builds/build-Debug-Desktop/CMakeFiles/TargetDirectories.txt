@@ -1,5 +1,0 @@
-/home/programier/Projects/C++/TrinexEngine/src/Engine/MeshGenerator/builds/build-Debug-Desktop/CMakeFiles/edit_cache.dir
-/home/programier/Projects/C++/TrinexEngine/src/Engine/MeshGenerator/builds/build-Debug-Desktop/CMakeFiles/rebuild_cache.dir
-/home/programier/Projects/C++/TrinexEngine/src/Engine/MeshGenerator/builds/build-Debug-Desktop/src/CMakeFiles/MeshGenerator.dir
-/home/programier/Projects/C++/TrinexEngine/src/Engine/MeshGenerator/builds/build-Debug-Desktop/src/CMakeFiles/edit_cache.dir
-/home/programier/Projects/C++/TrinexEngine/src/Engine/MeshGenerator/builds/build-Debug-Desktop/src/CMakeFiles/rebuild_cache.dir
