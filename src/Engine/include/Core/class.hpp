@@ -214,6 +214,6 @@ namespace Engine
         }
 
         friend class Object;
-        friend class LuaInterpretter;
+        friend struct LuaInterpretter;
     };
 }// namespace Engine

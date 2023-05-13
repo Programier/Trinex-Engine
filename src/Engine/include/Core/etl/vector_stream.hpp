@@ -41,7 +41,7 @@ namespace Engine
                          std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
         {
 
-            size_type& pos = (mode & std::ios_base::openmode::_S_out ? _M_write_pos : _M_read_pos);
+            size_type& pos = (mode & std::ios_base::out ? _M_write_pos : _M_read_pos);
 
             switch (dir)
             {

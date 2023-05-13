@@ -145,7 +145,7 @@ namespace Engine
 
         initialize_list().clear();
 
-        engine_config.init("config.cfg");
+        engine_config.init("TrinexEngine/configs/init_config.cfg");
         LuaInterpretter::init_lua_dir();
 
         _M_api = get_api_by_name(engine_config.api);

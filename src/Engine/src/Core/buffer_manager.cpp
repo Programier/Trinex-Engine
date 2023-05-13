@@ -34,7 +34,7 @@ namespace Engine
     {
         if (is_open())
         {
-            stream().seekp(static_cast<std::ostream::pos_type>(pos), std::ios_base::seekdir::_S_beg);
+            stream().seekp(static_cast<std::ostream::pos_type>(pos), std::ios_base::beg);
         }
         return *this;
     }
@@ -45,9 +45,9 @@ namespace Engine
         if (is_open())
         {
             std::ios_base::seekdir _M_dir =
-                    (dir == BufferSeekDir::Begin ? std::ios_base::seekdir::_S_beg
-                                                 : (dir == BufferSeekDir::Current ? std::ios_base::seekdir::_S_cur
-                                                                                  : std::ios_base::seekdir::_S_end));
+                    (dir == BufferSeekDir::Begin
+                             ? std::ios_base::beg
+                             : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
             stream().seekp(static_cast<std::ostream::pos_type>(offset), _M_dir);
         }
         return *this;
@@ -94,7 +94,7 @@ namespace Engine
     {
         if (is_open())
         {
-            stream().seekg(static_cast<std::istream::pos_type>(pos), std::ios_base::seekdir::_S_beg);
+            stream().seekg(static_cast<std::istream::pos_type>(pos), std::ios_base::beg);
         }
         return *this;
     }
@@ -104,9 +104,9 @@ namespace Engine
         if (is_open())
         {
             std::ios_base::seekdir _M_dir =
-                    (dir == BufferSeekDir::Begin ? std::ios_base::seekdir::_S_beg
-                                                 : (dir == BufferSeekDir::Current ? std::ios_base::seekdir::_S_cur
-                                                                                  : std::ios_base::seekdir::_S_end));
+                    (dir == BufferSeekDir::Begin
+                             ? std::ios_base::beg
+                             : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
             stream().seekg(static_cast<std::istream::pos_type>(offset), _M_dir);
         }
         return *this;

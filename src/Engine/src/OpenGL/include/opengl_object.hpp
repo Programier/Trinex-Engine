@@ -12,11 +12,15 @@
 #define GL_DEPTH_CLAMP_EXT GL_DEPTH_CLAMP
 #endif
 
-
 #else
 #include <GLES3/gl32.h>
 ////////////////////////
 #include <GLES2/gl2ext.h>
+
+#if !defined(GL_DEPTH_CLAMP_EXT) && defined (GL_DEPTH_CLAMP)
+    #define GL_DEPTH_CLAMP_EXT GL_DEPTH_CLAMP
+#endif
+
 #endif
 
 #include <Core/engine_types.hpp>

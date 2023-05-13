@@ -136,12 +136,13 @@ namespace Engine
         shader->_M_topology = static_cast<GLenum>(get_type(state->input_assembly.primitive_topology));
 
         // Rasterizer settings
-
+#if GL_DEPTH_CLAMP_EXT
         if (state->rasterizer.depth_clamp_enable)
         {
             new_shader_command(glEnable, static_cast<GLenum>(GL_DEPTH_CLAMP_EXT));
         }
         else
+#endif
         {
             new_shader_command(glDisable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
         }
