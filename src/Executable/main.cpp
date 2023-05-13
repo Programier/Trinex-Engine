@@ -5,8 +5,6 @@
 
 int main(int argc, char** argv)
 {
-    auto instance = Engine::EngineInstance::instance();
-    int status    = instance->start(argc, argv);
-    instance->destroy();
-    return status;
+    Engine::EngineInstance::project_name("TrinexEngineLauncher");
+    return trinex_engine_main(argc, argv);
 }

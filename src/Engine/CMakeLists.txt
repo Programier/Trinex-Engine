@@ -26,6 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Compile freetype library
 set(BUILD_SHARED_LIBS off)
+set(FT_DISABLE_HARFBUZZ on)
 add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/freetype/" EXCLUDE_FROM_ALL)
 set_target_properties(freetype PROPERTIES COMPILE_OPTIONS "-fPIC")
 

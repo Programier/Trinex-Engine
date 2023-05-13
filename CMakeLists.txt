@@ -14,11 +14,7 @@ set(GAME_ENGINE_ROOT ${GAME_SOURCES_ROOT}/Engine/)
 
 set(GAME_COMPILE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-if(ANDROID)
-    set(CMAKE_INSTALL_PREFIX "/data/data/com.termux/files/home/Game/")
-else()
-    set(CMAKE_INSTALL_PREFIX "${GAME_COMPILE_DIR}/Game/")
-endif()
+set(CMAKE_INSTALL_PREFIX "${GAME_COMPILE_DIR}/Game/")
 
 set(BUILD_OPENGL on)
 

@@ -157,7 +157,6 @@ const Window& Window::init(float width, float height, const String& title, uint1
                                   static_cast<int>(width), static_cast<int>(height),
                                   sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
-
     if (sdl_window == nullptr)
         error(SDL_GetError());
 

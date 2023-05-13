@@ -120,6 +120,8 @@ namespace Engine
     public:
         int start(int argc, char** argv);
         ENGINE_EXPORT static EngineInstance* instance();
+        ENGINE_EXPORT static const String& project_name();
+        ENGINE_EXPORT static const String& project_name(const String& name);
         const Window* window() const;
         SystemType system_type() const;
         EngineAPI api() const;
@@ -134,3 +136,8 @@ namespace Engine
 
     ENGINE_EXPORT extern EngineInstance* engine_instance;
 }// namespace Engine
+
+extern "C"
+{
+    ENGINE_EXPORT int trinex_engine_main(int argc, char** argv);
+}

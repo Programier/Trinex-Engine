@@ -41,6 +41,18 @@ namespace Engine
         return engine_instance;
     }
 
+    ENGINE_EXPORT const String& EngineInstance::project_name()
+    {
+        static String name;
+        return name;
+    }
+
+    ENGINE_EXPORT const String& EngineInstance::project_name(const String& name)
+    {
+        const_cast<String&>(project_name()) = name;
+        return project_name();
+    }
+
     const Window* EngineInstance::window() const
     {
         static Window window;
@@ -131,10 +143,15 @@ namespace Engine
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
+#if PLATFORM_ANDROID
+        root_manager->work_dir(Strings::format("/sdcard/TrinexGames/{}/", EngineInstance::project_name()));
+#else
         if (argc > 0)
         {
             root_manager->work_dir(FileManager::dirname_of(argv[0]));
         }
+#endif
+
 
         LuaInterpretter::init();
 
@@ -275,3 +292,15 @@ namespace Engine
         initialize_list().push_back(callback);
     }
 }// namespace Engine
+
+
+extern "C" {
+
+ENGINE_EXPORT int trinex_engine_main(int argc, char** argv)
+{
+    auto instance = Engine::EngineInstance::instance();
+    int status    = instance->start(argc, argv);
+    instance->destroy();
+    return status;
+}
+}
