@@ -111,7 +111,8 @@ namespace Engine
 
     bool Object::private_check_instance(const Class* const check_class) const
     {
-        return class_instance()->contains_class(check_class);
+        auto _class = class_instance();
+        return _class != nullptr && _class->contains_class(check_class);
     }
 
     void Object::internal_set_flag(ObjectFlags flag, bool flag_value)

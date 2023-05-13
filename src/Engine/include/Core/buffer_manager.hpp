@@ -3,6 +3,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
 #include <Core/export.hpp>
+#include <Core/object.hpp>
 #include <istream>
 #include <ostream>
 
@@ -31,8 +32,8 @@ namespace Engine
         BufferWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current);
         operator bool();
 
-        virtual Stream& stream()      = 0;
-        virtual bool is_open() const  = 0;
+        virtual Stream& stream()     = 0;
+        virtual bool is_open() const = 0;
         virtual BufferWriter& clear();
         virtual ~BufferWriter()
         {}
@@ -41,7 +42,21 @@ namespace Engine
         template<typename Type>
         static bool basic_element_write(BufferWriter& writer, const Type& value)
         {
-            return writer.write(reinterpret_cast<const byte*>(&value), sizeof(value));
+            using NoPointerType = std::remove_pointer_t<Type>;
+
+            if constexpr (std::is_base_of_v<NoPointerType, SerializableObject>)
+            {
+                if constexpr (std::is_pointer_v<Type>)
+                {
+                    return value->serialize(&writer);
+                }
+                else
+                {
+                    return value.serialize(&writer);
+                }
+            }
+            else
+                return writer.write(reinterpret_cast<const byte*>(&value), sizeof(value));
         }
 
         template<typename Type>
@@ -96,7 +111,33 @@ namespace Engine
         template<typename Type>
         static bool basic_element_read(BufferReader& reader, Type& value)
         {
-            return reader.read(reinterpret_cast<byte*>(&value), sizeof(value));
+            using NoPointerType = std::remove_pointer_t<Type>;
+
+            if constexpr (std::is_base_of_v<NoPointerType, SerializableObject>)
+            {
+                if constexpr (std::is_pointer_v<Type>)
+                {
+                    if (value == nullptr)
+                    {
+                        if constexpr (std::is_base_of_v<Object, NoPointerType>)
+                        {
+                            value = Object::new_instance<Type>();
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    return value->deserialize(&reader);
+                }
+                else
+                {
+                    return value.deserialize(&reader);
+                }
+            }
+            else
+                return reader.read(reinterpret_cast<byte*>(&value), sizeof(value));
         }
 
         template<typename Type>
@@ -172,16 +213,25 @@ namespace Engine
 
 
         template<typename Container>
-        typename std::enable_if<Engine::is_container<Container>::value, bool>::type read(Container& container,
-                                                                                         size_t size)
+        typename std::enable_if<Engine::is_container<Container>::value, bool>::type
+        read(Container& container, size_t size,
+             bool (*read_func)(BufferReader&,
+                               typename Container::value_type&) = basic_element_read<typename Container::value_type>)
         {
             if (!is_open())
                 return false;
 
             container.clear();
             container.resize(size);
-            return static_cast<bool>(
-                    read(reinterpret_cast<byte*>(container.data()), size * sizeof(typename Container::value_type)));
+
+            for (typename Container::value_type& element : container)
+            {
+                if (!read_func(*this, element))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     };
 

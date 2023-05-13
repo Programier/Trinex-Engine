@@ -4,10 +4,12 @@
 #include <GameInitCommandLet.hpp>
 #include <Graphics/camera.hpp>
 #include <Graphics/framebuffer.hpp>
+#include <Graphics/imgui.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/uniform_buffer.hpp>
+#include <ImGui/imgui.h>
 #include <Window/window.hpp>
 
 
@@ -307,16 +309,12 @@ namespace Engine
         }
 
 
-        UniformBuffer<ModelUBO> ubos[5000];
+        UniformBuffer<ModelUBO> ubo;
 
+        ubo.buffer.model = glm::translate(glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
+                                          Vector3D(0, 0, 0.0));
+        ubo.create();
 
-        for (int j = 0; j < 1; j++)
-        {
-            ubos[j].buffer.model =
-                    glm::translate(glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
-                                   Vector3D(0, static_cast<float>(j), 0.0));
-            ubos[j].create();
-        }
 
         Camera* current_camera = camera;
 
@@ -337,24 +335,22 @@ namespace Engine
             camera_ubo[index].buffer.projview = camera->projview();
             camera_ubo[index].update(0, sizeof(CameraUBO));
 
-            ubos[0].buffer.model = model->model();
-            ubos[0].update(0, sizeof(ModelUBO));
+            ubo.buffer.model = model->model();
+            ubo.update(0, sizeof(ModelUBO));
 
             framebuffer.bind(index);
             framebuffer_shader->use();
             index_buffer.bind();
 
 
-            for (int i = 0; i < 1; i++)
-            {
-                vertex_buffer.bind();
-                camera_ubo[index].bind_buffer(0);
+            vertex_buffer.bind();
+            camera_ubo[index].bind_buffer(0);
 
-                ubos[i].bind_buffer(1);
-                texture.bind(2);
+            ubo.bind_buffer(1);
+            texture.bind(2);
 
-                _M_renderer->draw_indexed(index_buffer.elements_count(), 0);
-            }
+            _M_renderer->draw_indexed(index_buffer.elements_count(), 0);
+
 
             window.bind();
             shader->use();
@@ -363,6 +359,12 @@ namespace Engine
             color_texture[index].bind();
 
             _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
+
+
+            ImGuiRenderer::new_frame();
+
+            ImGui::ShowMetricsWindow();
+            ImGuiRenderer::render();
 
             _M_renderer->end();
 
@@ -376,6 +378,32 @@ namespace Engine
 
             if (KeyboardEvent::just_pressed(KEY_G))
             {
+                for (Object* object : Object::all_objects())
+                {
+                    if (object->is_instance_of<VertexBuffer>())
+                    {
+                        VertexBuffer* buffer = object->instance_cast<VertexBuffer>();
+
+                        auto resources     = buffer->resources(true);
+                        auto mapped_memory = buffer->map_memory();
+                        resources->resize(mapped_memory.size());
+
+                        std::copy(mapped_memory.begin(), mapped_memory.end(), resources->begin());
+                        buffer->unmap_memory();
+                    }
+
+                    if (object->is_instance_of<IndexBuffer>())
+                    {
+                        IndexBuffer* buffer = object->instance_cast<IndexBuffer>();
+
+                        auto resources     = buffer->resources(true);
+                        auto mapped_memory = buffer->map_memory();
+                        resources->resize(mapped_memory.size());
+
+                        std::copy(mapped_memory.begin(), mapped_memory.end(), resources->begin());
+                        buffer->unmap_memory();
+                    }
+                }
                 package->save();
             }
 
@@ -398,7 +426,7 @@ namespace Engine
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window window;
         window.init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
-
+        ImGuiRenderer::init();
 
         loop();
         return 0;

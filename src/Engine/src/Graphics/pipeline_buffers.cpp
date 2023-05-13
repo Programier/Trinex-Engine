@@ -1,5 +1,6 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
+#include <Core/config.hpp>
 #include <Core/engine.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
@@ -10,6 +11,41 @@
 
 namespace Engine
 {
+    bool PipelineBuffer::serialize(BufferWriter* writer)
+    {
+        if (!ApiObject::serialize(writer))
+            return false;
+
+        if (_M_resources)
+        {
+            if (!writer->write(*_M_resources))
+            {
+                error_log("Pipeline Buffer: Failed to serialize pipeline buffer!");
+                return false;
+            }
+
+            return true;
+        }
+
+        error_log("Pipeline Buffer: Cannot find resources!");
+        return false;
+    }
+
+    bool PipelineBuffer::deserialize(BufferReader* reader)
+    {
+        if (!ApiObject::deserialize(reader))
+            return false;
+
+        auto buffer = resources(true);
+
+        if (!reader->read(*buffer))
+        {
+            error_log("Pipeline Buffer: Failed to deserialize pipeline buffer!");
+            return false;
+        }
+
+        return true;
+    }
 
     register_class(Engine::VertexBuffer, Engine::ApiObject);
     VertexBuffer::VertexBuffer()
@@ -56,53 +92,25 @@ namespace Engine
 
     bool VertexBuffer::serialize(BufferWriter* writer)
     {
-        if (_M_ID)
-        {
-            if (!ApiObject::serialize(writer))
-            {
-                return false;
-            }
-
-            MappedMemory memory = map_memory();
-            bool success        = writer->write(memory);
-            if (!success)
-            {
-                logger->error("Vertex Buffer: Failed to serialize vertex buffer");
-            }
-
-            unmap_memory();
-            return success;
-        }
-        else
-        {
-            logger->error("Vertex Buffer: Failed to serialize object. Object is empty!");
-        }
-        return false;
+        return PipelineBuffer::serialize(writer);
     }
 
     bool VertexBuffer::deserialize(BufferReader* reader)
     {
-        if (!ApiObject::deserialize(reader))
+        if (!PipelineBuffer::deserialize(reader))
         {
             return false;
         }
 
         destroy();
+        create(_M_resources->data(), _M_resources->size());
 
-        size_t size = reader->read_value<size_t>();
-        create(nullptr, size);
-
-        MappedMemory memory = map_memory();
-        check(memory.size() != 0);
-
-        bool success = reader->read(memory.data(), size);
-        unmap_memory();
-
-        if (!success)
+        if (engine_config.delete_resources_after_load)
         {
-            logger->error("Vertex Buffer: Failed to deserialize vertex buffer '%s'");
+            delete_resources();
         }
-        return success;
+
+        return true;
     }
 
 
@@ -154,55 +162,44 @@ namespace Engine
 
     bool IndexBuffer::serialize(BufferWriter* writer)
     {
-        if (_M_ID)
-        {
-            if (ApiObject::serialize(writer) == false)
-                return false;
-
-            MappedMemory memory = map_memory();
-            bool success        = writer->write(_M_component) && writer->write(memory);
-
-            if (!success)
-            {
-                logger->error("Index Buffer: Failed to serialize index buffer");
-            }
-
-            unmap_memory();
-            return success;
-        }
-        else
-        {
-            logger->error("Index Buffer: Failed to serialize object. Object is empty!");
-        }
-        return false;
-    }
-
-    bool IndexBuffer::deserialize(BufferReader* reader)
-    {
-        if (!ApiObject::deserialize(reader))
+        if (!PipelineBuffer::serialize(writer))
         {
             return false;
         }
 
-        destroy();
+        if (!writer->write(_M_component))
+        {
+            error_log("IndexBuffer: Failed to serialize component type!");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool IndexBuffer::deserialize(BufferReader* reader)
+    {
+        if (!PipelineBuffer::deserialize(reader))
+        {
+            return false;
+        }
 
         bool success = reader->read(_M_component);
 
-        if (success)
-        {
-            size_t size = reader->read_value<size_t>();
-            create(nullptr, size, _M_component);
-            MappedMemory memory = map_memory();
-            check(memory.size() != 0);
-            success = reader->read(memory.data(), size);
-            unmap_memory();
-        }
-
         if (!success)
         {
-            logger->error("Index Buffer: Failed to deserialize index buffer");
+            error_log("Index Buffer: Failed to read component type!");
+            return false;
         }
-        return success;
+
+        destroy();
+        create(_M_resources->data(), _M_resources->size(), _M_component);
+
+        if (engine_config.delete_resources_after_load)
+        {
+            delete_resources();
+        }
+
+        return true;
     }
 
     size_t IndexBuffer::component_size(IndexBufferComponent component)

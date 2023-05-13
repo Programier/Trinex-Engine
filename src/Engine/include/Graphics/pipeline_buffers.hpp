@@ -4,10 +4,11 @@
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
 #include <Core/mapped_memory.hpp>
+#include <Core/resource.hpp>
 
 namespace Engine
 {
-    class ENGINE_EXPORT PipelineBufferBase
+    class ENGINE_EXPORT PipelineBuffer : public Resource<Buffer, ApiObject>
     {
     protected:
         size_t _M_size = 0;
@@ -17,9 +18,12 @@ namespace Engine
         {
             return _M_size;
         }
+
+        bool serialize(BufferWriter* writer) override;
+        bool deserialize(BufferReader* reader) override;
     };
 
-    class ENGINE_EXPORT VertexBuffer : public ApiObject, public PipelineBufferBase
+    class ENGINE_EXPORT VertexBuffer : public PipelineBuffer
     {
     public:
         VertexBuffer();
@@ -35,7 +39,7 @@ namespace Engine
     };
 
 
-    class ENGINE_EXPORT IndexBuffer : public ApiObject, public PipelineBufferBase
+    class ENGINE_EXPORT IndexBuffer : public PipelineBuffer
     {
 
     private:
