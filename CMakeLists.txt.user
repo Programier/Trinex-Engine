@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 9.0.2, 2023-05-13T18:19:14. -->
+<!-- Written by QtCreator 9.0.2, 2023-05-13T20:06:07. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -393,13 +393,13 @@
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">RemoteLinux.DirectUploadStep</value>
       <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedFiles">
-       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngineLauncher</value>
-       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/libs/libTrinexEngine.so</value>
+       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/configs/init_config.cfg</value>
+       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/launcher.sh</value>
+       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/libs/libOpenGL.so</value>
        <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/libs/libSDL2.so</value>
        <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/configs/config.cfg</value>
-       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/configs/init_config.cfg</value>
-       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/libs/libOpenGL.so</value>
-       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/launcher.sh</value>
+       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngine/libs/libTrinexEngine.so</value>
+       <value type="QString">/tmp/QtCreator-ivYExB/data/data/com.termux/files/home/Game/TrinexEngineLauncher</value>
       </valuelist>
       <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedHosts">
        <value type="QString">192.168.0.104</value>
@@ -411,10 +411,10 @@
        <value type="QString">192.168.0.104</value>
       </valuelist>
       <valuelist type="QVariantList" key="ProjectExplorer.RunConfiguration.LastDeployedRemotePaths">
+       <value type="QString">/data/data/com.termux/files/home/Game/TrinexEngine/configs</value>
        <value type="QString">/data/data/com.termux/files/home/Game</value>
        <value type="QString">/data/data/com.termux/files/home/Game/TrinexEngine/libs</value>
        <value type="QString">/data/data/com.termux/files/home/Game/TrinexEngine/libs</value>
-       <value type="QString">/data/data/com.termux/files/home/Game/TrinexEngine/configs</value>
        <value type="QString">/data/data/com.termux/files/home/Game/TrinexEngine/configs</value>
        <value type="QString">/data/data/com.termux/files/home/Game/TrinexEngine/libs</value>
        <value type="QString">/data/data/com.termux/files/home/Game</value>
@@ -429,22 +429,22 @@
        <value type="QString"></value>
       </valuelist>
       <valuelist type="QVariantList" key="RemoteLinux.LastDeployedLocalTimes">
-       <value type="QDateTime">2023-05-13T15:07:40.000</value>
+       <value type="QDateTime">2023-05-13T15:09:09.000</value>
+       <value type="QDateTime">2023-05-13T15:08:23.000</value>
        <value type="QDateTime">2023-05-13T15:07:40.000</value>
        <value type="QDateTime">2023-05-13T15:05:12.000</value>
        <value type="QDateTime">2023-05-13T01:45:15.000</value>
-       <value type="QDateTime">2023-05-13T15:09:09.000</value>
        <value type="QDateTime">2023-05-13T15:07:40.000</value>
-       <value type="QDateTime">2023-05-13T15:08:23.000</value>
+       <value type="QDateTime">2023-05-13T15:07:40.000</value>
       </valuelist>
       <valuelist type="QVariantList" key="RemoteLinux.LastDeployedRemoteTimes">
-       <value type="QDateTime">2023-05-13T15:07:58.000</value>
-       <value type="QDateTime">2023-05-13T15:07:56.000</value>
+       <value type="QDateTime">2023-05-13T15:21:20.000</value>
+       <value type="QDateTime">2023-05-13T15:08:27.000</value>
+       <value type="QDateTime">2023-05-13T15:07:43.000</value>
        <value type="QDateTime">2023-05-13T15:06:40.000</value>
        <value type="QDateTime">2023-05-13T15:06:37.000</value>
-       <value type="QDateTime">2023-05-13T15:21:20.000</value>
-       <value type="QDateTime">2023-05-13T15:07:43.000</value>
-       <value type="QDateTime">2023-05-13T15:08:27.000</value>
+       <value type="QDateTime">2023-05-13T15:07:56.000</value>
+       <value type="QDateTime">2023-05-13T15:07:58.000</value>
       </valuelist>
      </valuemap>
      <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">3</value>

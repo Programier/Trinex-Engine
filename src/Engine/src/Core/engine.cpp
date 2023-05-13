@@ -13,6 +13,7 @@
 #include <Window/window.hpp>
 #include <api.hpp>
 #include <cstring>
+#include <Core/predef.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 
@@ -162,7 +163,7 @@ namespace Engine
 
         initialize_list().clear();
 
-        engine_config.init("TrinexEngine/configs/init_config.cfg");
+        engine_config.init(FileManager::root_file_manager()->work_dir() / Path("TrinexEngine/configs/init_config.cfg"));
         LuaInterpretter::init_lua_dir();
 
         _M_api = get_api_by_name(engine_config.api);

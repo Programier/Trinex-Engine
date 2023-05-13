@@ -117,7 +117,6 @@ target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGIN
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/>")
 target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static libluajit ${PlatformLibs})
 
-
 install(TARGETS TrinexEngine SDL2 DESTINATION "./TrinexEngine/libs/")
 install(DIRECTORY configs DESTINATION "./TrinexEngine/")
 

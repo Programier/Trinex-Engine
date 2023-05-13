@@ -3,13 +3,19 @@
 #include <Core/export.hpp>
 #include <cassert>
 
-#ifdef _WIN32
+#if  defined(_WIN32)
 #define PLATFORM_WINDOWS 1
-#elif __linux__
-#define PLATFORM_LINUX 1
-#elif __ANDROID__
+#endif
+
+#if defined(__ANDROID__) || defined(ANDROID)
 #define PLATFORM_ANDROID 1
-#else
+#endif
+
+#if defined(__linux__) && !PLATFORM_ANDROID
+#define PLATFORM_LINUX 1
+#endif
+
+#if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_LINUX) && !defined(PLATFORM_WINDOWS)
 #error "Platform doesn't support!"
 #endif
 
