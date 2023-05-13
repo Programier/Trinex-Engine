@@ -92,7 +92,7 @@ namespace Engine
         static Package* find_package(const String& name, bool create = true);
         const class Class* class_instance() const;
 
-        bool serialize(BufferWriter* writer) override;
+        bool serialize(BufferWriter* writer) const override;
         bool deserialize(BufferReader* reader) override;
 
         // NOTE! You will manually push object to package, if you use this method!

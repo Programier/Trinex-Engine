@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    bool SerializableObject::serialize(BufferWriter* writer)
+    bool SerializableObject::serialize(BufferWriter* writer) const
     {
         if (!writer)
         {

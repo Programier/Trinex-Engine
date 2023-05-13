@@ -34,7 +34,7 @@ namespace Engine
 
         Pointer(Pointer&& pointer)
         {
-            _M_instance = pointer._M_instance;
+            _M_instance         = pointer._M_instance;
             pointer._M_instance = nullptr;
         }
 
@@ -52,7 +52,7 @@ namespace Engine
         {
             if (this != &pointer)
             {
-                _M_instance = pointer._M_instance;
+                _M_instance         = pointer._M_instance;
                 pointer._M_instance = nullptr;
             }
 
@@ -73,6 +73,16 @@ namespace Engine
         }
 
         operator InstanceClass*()
+        {
+            return _M_instance;
+        }
+
+        InstanceClass* ptr()
+        {
+            return _M_instance;
+        }
+
+        const InstanceClass* ptr() const
         {
             return _M_instance;
         }

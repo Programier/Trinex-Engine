@@ -222,7 +222,7 @@ namespace Engine
     }
 
 
-    bool TextureResources::serialize(BufferWriter* writer)
+    bool TextureResources::serialize(BufferWriter* writer) const
     {
         if (!SerializableObject::serialize(writer))
         {
@@ -293,7 +293,7 @@ namespace Engine
         return true;
     }
 
-    bool Texture::serialize(BufferWriter* writer)
+    bool Texture::serialize(BufferWriter* writer) const
     {
         if (!ApiObject::serialize(writer))
             return false;

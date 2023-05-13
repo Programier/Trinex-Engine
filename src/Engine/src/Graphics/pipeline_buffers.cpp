@@ -11,9 +11,9 @@
 
 namespace Engine
 {
-    bool PipelineBuffer::serialize(BufferWriter* writer)
+    bool PipelineBuffer::serialize(BufferWriter* writer) const
     {
-        if (!ApiObject::serialize(writer))
+        if (!SerializableObject::serialize(writer))
             return false;
 
         if (_M_resources)
@@ -33,7 +33,7 @@ namespace Engine
 
     bool PipelineBuffer::deserialize(BufferReader* reader)
     {
-        if (!ApiObject::deserialize(reader))
+        if (!SerializableObject::deserialize(reader))
             return false;
 
         auto buffer = resources(true);
@@ -47,7 +47,7 @@ namespace Engine
         return true;
     }
 
-    register_class(Engine::VertexBuffer, Engine::ApiObject);
+
     VertexBuffer::VertexBuffer()
     {}
 
@@ -90,7 +90,7 @@ namespace Engine
         return *this;
     }
 
-    bool VertexBuffer::serialize(BufferWriter* writer)
+    bool VertexBuffer::serialize(BufferWriter* writer) const
     {
         return PipelineBuffer::serialize(writer);
     }
@@ -116,7 +116,7 @@ namespace Engine
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
 
-    register_class(Engine::IndexBuffer, Engine::ApiObject);
+
     IndexBuffer::IndexBuffer()
     {}
 
@@ -160,7 +160,7 @@ namespace Engine
         return *this;
     }
 
-    bool IndexBuffer::serialize(BufferWriter* writer)
+    bool IndexBuffer::serialize(BufferWriter* writer) const
     {
         if (!PipelineBuffer::serialize(writer))
         {

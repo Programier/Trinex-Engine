@@ -386,7 +386,7 @@ namespace Engine
         return *this;
     }
 
-    bool Image::serialize(BufferWriter* writer)
+    bool Image::serialize(BufferWriter* writer) const
     {
         if (!SerializableObject::serialize(writer))
         {

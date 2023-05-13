@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT PipelineBuffer : public Resource<Buffer, ApiObject>
+    class ENGINE_EXPORT PipelineBuffer : public Resource<Buffer, ApiObjectNoBase>, SerializableObject
     {
     protected:
         size_t _M_size = 0;
@@ -19,7 +19,7 @@ namespace Engine
             return _M_size;
         }
 
-        bool serialize(BufferWriter* writer) override;
+        bool serialize(BufferWriter* writer) const override;
         bool deserialize(BufferReader* reader) override;
     };
 
@@ -34,7 +34,7 @@ namespace Engine
         virtual MappedMemory map_memory();
         virtual VertexBuffer& unmap_memory();
 
-        bool serialize(BufferWriter* writer) override;
+        bool serialize(BufferWriter* writer) const override;
         bool deserialize(BufferReader* reader) override;
     };
 
@@ -57,7 +57,7 @@ namespace Engine
         virtual MappedMemory map_memory();
         virtual IndexBuffer& unmap_memory();
 
-        bool serialize(BufferWriter* writer) override;
+        bool serialize(BufferWriter* writer) const override;
         bool deserialize(BufferReader* reader) override;
 
         static size_t component_size(IndexBufferComponent component);

@@ -60,7 +60,7 @@ namespace Engine
                 MeshSemanticEntry normal;
                 MeshSemanticEntry tangent;
                 MeshSemanticEntry binormal;
-            } names_entries;
+            } named_entries;
 
             MeshSemanticEntry entries[6];
         };
@@ -81,7 +81,7 @@ namespace Engine
                 MeshSemanticEntry binormal;
                 MeshSemanticEntry blend_weight;
                 MeshSemanticEntry blend_indices;
-            } names_entries;
+            } named_entries;
 
             MeshSemanticEntry entries[8];
         };
@@ -94,13 +94,21 @@ namespace Engine
     class ENGINE_EXPORT Mesh : public Object
     {
     public:
-        struct ENGINE_EXPORT MeshLOD {
-            Pointer<VertexBuffer> vertex_buffer;
-            Pointer<IndexBuffer> index_buffer;
+        struct ENGINE_EXPORT MeshLOD : public SerializableObject {
+            VertexBuffer* vertex_buffer = nullptr;
+            IndexBuffer* index_buffer   = nullptr;
+
+            bool serialize(BufferWriter* writer) const override;
+            bool deserialize(BufferReader* reader) override;
         };
 
         Vector<MeshLOD> lods;
         virtual const MeshSemanticInfo& semantic_info() const = 0;
+
+        bool serialize(BufferWriter* writer) const override;
+        bool deserialize(BufferReader* reader) override;
+
+        ~Mesh();
     };
 
 
@@ -108,17 +116,19 @@ namespace Engine
     {
     public:
         StaticMeshSemanticInfo info;
-        Vector<MeshLOD> lods;
 
         const MeshSemanticInfo& semantic_info() const override;
+        bool serialize(BufferWriter* writer) const override;
+        bool deserialize(BufferReader* reader) override;
     };
 
     class ENGINE_EXPORT DynamicMesh : public Mesh
     {
     public:
         DynamicMeshSemanticInfo info;
-        Vector<MeshLOD> lods;
 
         const MeshSemanticInfo& semantic_info() const override;
+        bool serialize(BufferWriter* writer) const override;
+        bool deserialize(BufferReader* reader) override;
     };
 }// namespace Engine

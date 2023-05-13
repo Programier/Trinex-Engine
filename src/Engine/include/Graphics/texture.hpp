@@ -13,7 +13,7 @@ namespace Engine
         Vector<class Image> images;
 
     public:
-        bool serialize(BufferWriter* writer) override;
+        bool serialize(BufferWriter* writer) const override;
         bool deserialize(BufferReader* reader) override;
         friend class Texture;
         friend class Object;
@@ -70,7 +70,7 @@ namespace Engine
         LodBias lod_bias();
         Texture& lod_bias(LodBias bias);
 
-        bool serialize(BufferWriter* writer) override;
+        bool serialize(BufferWriter* writer) const override;
         bool deserialize(BufferReader* reader) override;
         TextureCreateInfo& info(bool create = false);
         const TextureCreateInfo& info() const;

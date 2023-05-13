@@ -452,7 +452,7 @@ namespace Engine
         return _M_class;
     }
 
-    bool Object::serialize(BufferWriter* writer)
+    bool Object::serialize(BufferWriter* writer) const
     {
         if (!SerializableObject::serialize(writer))
             return false;

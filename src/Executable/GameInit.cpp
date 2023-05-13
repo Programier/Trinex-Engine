@@ -5,6 +5,7 @@
 #include <Graphics/camera.hpp>
 #include <Graphics/framebuffer.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -285,12 +286,17 @@ namespace Engine
             package->load();
         }
 
-        VertexBuffer& vertex_buffer = *package->find_object_checked_in_package<VertexBuffer>("Vertex Buffer");
-        IndexBuffer& index_buffer   = *package->find_object_checked_in_package<IndexBuffer>("Index Buffer");
-        VertexBuffer& output_vertex_buffer =
-                *package->find_object_checked_in_package<VertexBuffer>("Output Vertex Buffer");
-        IndexBuffer& output_index_buffer = *package->find_object_checked_in_package<IndexBuffer>("Output Index Buffer");
-        Texture2D& texture               = *package->find_object_checked_in_package<Texture2D>("Trinex Texture");
+        StaticMesh* mesh1 = package->find_object_checked_in_package<StaticMesh>("Mesh 1");
+        StaticMesh* mesh2 = package->find_object_checked_in_package<StaticMesh>("Mesh 2");
+
+        VertexBuffer& vertex_buffer = *mesh1->lods[0].vertex_buffer;
+        IndexBuffer& index_buffer   = *mesh1->lods[0].index_buffer;
+
+        VertexBuffer& output_vertex_buffer = *mesh2->lods[0].vertex_buffer;
+        IndexBuffer& output_index_buffer   = *mesh2->lods[0].index_buffer;
+
+
+        Texture2D& texture = *package->find_object_checked_in_package<Texture2D>("Trinex Texture");
 
 
         UniformBuffer<CameraUBO> camera_ubo[2];
@@ -378,32 +384,6 @@ namespace Engine
 
             if (KeyboardEvent::just_pressed(KEY_G))
             {
-                for (Object* object : Object::all_objects())
-                {
-                    if (object->is_instance_of<VertexBuffer>())
-                    {
-                        VertexBuffer* buffer = object->instance_cast<VertexBuffer>();
-
-                        auto resources     = buffer->resources(true);
-                        auto mapped_memory = buffer->map_memory();
-                        resources->resize(mapped_memory.size());
-
-                        std::copy(mapped_memory.begin(), mapped_memory.end(), resources->begin());
-                        buffer->unmap_memory();
-                    }
-
-                    if (object->is_instance_of<IndexBuffer>())
-                    {
-                        IndexBuffer* buffer = object->instance_cast<IndexBuffer>();
-
-                        auto resources     = buffer->resources(true);
-                        auto mapped_memory = buffer->map_memory();
-                        resources->resize(mapped_memory.size());
-
-                        std::copy(mapped_memory.begin(), mapped_memory.end(), resources->begin());
-                        buffer->unmap_memory();
-                    }
-                }
                 package->save();
             }
 

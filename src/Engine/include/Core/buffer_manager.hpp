@@ -44,7 +44,7 @@ namespace Engine
         {
             using NoPointerType = std::remove_pointer_t<Type>;
 
-            if constexpr (std::is_base_of_v<NoPointerType, SerializableObject>)
+            if constexpr (std::is_base_of_v<SerializableObject, NoPointerType>)
             {
                 if constexpr (std::is_pointer_v<Type>)
                 {
@@ -113,7 +113,7 @@ namespace Engine
         {
             using NoPointerType = std::remove_pointer_t<Type>;
 
-            if constexpr (std::is_base_of_v<NoPointerType, SerializableObject>)
+            if constexpr (std::is_base_of_v<SerializableObject, NoPointerType>)
             {
                 if constexpr (std::is_pointer_v<Type>)
                 {
@@ -160,7 +160,16 @@ namespace Engine
             }
 
             container.clear();
-            container.resize(size);
+
+            if constexpr (std::is_pointer_v<typename Container::value_type>)
+            {
+                container.resize(size, nullptr);
+            }
+            else
+            {
+                container.resize(size);
+            }
+
 
             for (typename Container::value_type& element : container)
             {

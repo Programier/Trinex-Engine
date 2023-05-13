@@ -135,7 +135,7 @@ namespace Engine
         return *this;
     }
 
-    bool Texture2D::serialize(BufferWriter* writer)
+    bool Texture2D::serialize(BufferWriter* writer) const
     {
         return Texture::serialize(writer);
     }

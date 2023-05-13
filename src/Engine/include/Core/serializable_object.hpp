@@ -7,7 +7,7 @@ namespace Engine
     class BufferReader;
 
     struct ENGINE_EXPORT SerializableObject {
-        virtual bool serialize(BufferWriter* writer);
+        virtual bool serialize(BufferWriter* writer) const;
         virtual bool deserialize(BufferReader* reader);
         virtual ~SerializableObject();
     };
