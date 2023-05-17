@@ -1,9 +1,10 @@
 #pragma once
 #include <Core/buffer_types.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/export.hpp>
+#include <Core/predef.hpp>
 #include <Core/render_types.hpp>
 #include <array>
-#include <Core/export.hpp>
 #include <optional>
 
 
@@ -69,7 +70,6 @@ namespace Engine
     using DepthFunc = CompareFunc;
 
 
-
     struct ShaderDataType {
         enum : EnumerateType
         {
@@ -116,6 +116,7 @@ namespace Engine
 
 
     struct VertexAtribute {
+        String name;
         ShaderDataType type;
         ArrayIndex offset = 0;
     };
@@ -123,7 +124,6 @@ namespace Engine
     struct VertexBufferInfo {
         Vector<VertexAtribute> attributes;
         size_t size;
-        BindingIndex binding = 0;
     };
 
     struct ShaderTextureSampler {
@@ -220,56 +220,60 @@ namespace Engine
 
     struct PipelineState {
         struct DepthTestInfo {
-            byte enable : 1            = 1;
-            byte write_enable : 1      = 1;
-            byte bound_test_enable : 1 = 0;
             DepthFunc func             = DepthFunc::Less;
             float min_depth_bound      = 0.0;
             float max_depth_bound      = 0.0;
+            byte enable : 1            = 1;
+            byte write_enable : 1      = 1;
+            byte bound_test_enable : 1 = 0;
         } depth_test;
 
         struct StencilTestInfo {
             byte enable : 1 = 0;
 
-            struct FaceInfo{
+            struct FaceInfo {
                 StencilOp fail       = StencilOp::Decr;
                 StencilOp depth_pass = StencilOp::Decr;
                 StencilOp depth_fail = StencilOp::Decr;
                 CompareFunc compare  = CompareFunc::Less;
                 uint_t compare_mask  = 0;
                 uint_t write_mask    = 0;
-                int_t reference     = 0;
+                int_t reference      = 0;
             } front, back;
         } stencil_test;
 
         struct AssemblyInfo {
-            byte primitive_restart_enable : 1    = 0;
             PrimitiveTopology primitive_topology = PrimitiveTopology::TriangleList;
+            byte primitive_restart_enable : 1    = 0;
         } input_assembly;
 
         struct RasterizerInfo {
-            byte depth_bias_enable : 1    = 0;
-            byte discard_enable : 1       = 0;
-            byte depth_clamp_enable : 1   = 0;
             float depth_bias_const_factor = 0.0;
             float depth_bias_clamp        = 0.0;
             float depth_bias_slope_factor = 0.0;
-            PolygonMode poligon_mode      = PolygonMode::Fill;
-            CullMode cull_mode            = CullMode::Front;
-            FrontFace front_face          = FrontFace::CounterClockWise;
-            float line_width              = 1.0;
+            float line_width            = 1.0;
+
+            byte depth_bias_enable : 1  = 0;
+            byte discard_enable : 1     = 0;
+            byte depth_clamp_enable : 1 = 0;
+            PolygonMode poligon_mode    = PolygonMode::Fill;
+            CullMode cull_mode          = CullMode::Front;
+            FrontFace front_face        = FrontFace::CounterClockWise;
         } rasterizer;
 
         struct ColorBlendingInfo {
-            byte logic_op_enable : 1 = 0;
-            LogicOp logic_op         = LogicOp::And;
-            BlendConstants blend_constants;
             Vector<ColorBlendAttachmentState> blend_attachment;
+            LogicOp logic_op = LogicOp::And;
+            BlendConstants blend_constants;
+
+            byte logic_op_enable = 0;
         } color_blending;
     };
 
 
     struct PipelineCreateInfo {
+        PipelineState state;
+
         struct {
             FileBuffer vertex;
             FileBuffer fragment;
@@ -278,20 +282,19 @@ namespace Engine
         } binaries;
 
         struct {
-            Vector<FileBuffer> vertex;
-            Vector<FileBuffer> fragment;
-            Vector<FileBuffer> compute;
-            Vector<FileBuffer> geometry;
+            FileBuffer vertex;
+            FileBuffer fragment;
+            FileBuffer compute;
+            FileBuffer geometry;
         } text;
 
         Vector<ShaderUniformBuffer> uniform_buffers;
         Vector<ShaderTextureSampler> texture_samplers;
         Vector<ShaderShaderBuffer> shared_buffers;
 
-        std::string name;
+        String name;
         VertexBufferInfo vertex_info;
-        Identifier framebuffer_usage               = 0;
-        PipelineState* state                  = nullptr;
+        Identifier framebuffer_usage = 0;
         uint_t max_textures_binding_per_frame = 100;
     };
 }// namespace Engine

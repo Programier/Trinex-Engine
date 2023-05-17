@@ -4,13 +4,28 @@
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
 #include <Core/implement.hpp>
-#include <string>
+#include <Core/resource.hpp>
 #include <Core/shader_types.hpp>
+#include <string>
+#include <Core/object_ref.hpp>
 
 namespace Engine
 {
-    class ENGINE_EXPORT Shader : public ApiObject
+
+    class StaticMesh;
+
+    struct ShaderResource : SerializableObject {
+        PipelineCreateInfo create_info;
+        ObjectReference<class StaticMesh> mesh_reference;
+
+        bool archive_process(Archive* archive) override;
+    };
+
+    class ENGINE_EXPORT Shader : public Resource<ShaderResource, ApiObject>
     {
+    private:
+        Shader& load_to_gpu();
+
     public:
         delete_copy_constructors(Shader);
         constructor_hpp(Shader);
@@ -20,6 +35,8 @@ namespace Engine
 
         const Shader& use() const;
         static void unbind();
+
+        bool archive_process(Archive* archive) override;
     };
 
 }// namespace Engine

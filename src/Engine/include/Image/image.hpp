@@ -86,8 +86,7 @@ namespace Engine
         Image& create(const Size2D& size, uint_t channels, const Buffer& buffer = {});
         Image& create(const Size2D& size, uint_t channels, const byte* buffer = nullptr);
 
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
 
         ~Image();
         Image sub_image(const Point2D& point, const Size2D& size);

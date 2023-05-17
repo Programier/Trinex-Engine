@@ -44,19 +44,11 @@ namespace Engine
         {
             using NoPointerType = std::remove_pointer_t<Type>;
 
-            if constexpr (std::is_base_of_v<SerializableObject, NoPointerType>)
-            {
-                if constexpr (std::is_pointer_v<Type>)
-                {
-                    return value->serialize(&writer);
-                }
-                else
-                {
-                    return value.serialize(&writer);
-                }
-            }
-            else
-                return writer.write(reinterpret_cast<const byte*>(&value), sizeof(value));
+            static_assert(!std::is_base_of_v<SerializableObject, NoPointerType>,
+                          "You need to use Archive for serialize this object!");
+
+            static_assert(!std::is_polymorphic_v<NoPointerType>, "Cannot write polimorphic instance!");
+            return writer.write(reinterpret_cast<const byte*>(&value), sizeof(value));
         }
 
         template<typename Type>
@@ -113,31 +105,11 @@ namespace Engine
         {
             using NoPointerType = std::remove_pointer_t<Type>;
 
-            if constexpr (std::is_base_of_v<SerializableObject, NoPointerType>)
-            {
-                if constexpr (std::is_pointer_v<Type>)
-                {
-                    if (value == nullptr)
-                    {
-                        if constexpr (std::is_base_of_v<Object, NoPointerType>)
-                        {
-                            value = Object::new_instance<Type>();
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
+            static_assert(!std::is_base_of_v<SerializableObject, NoPointerType>,
+                          "You need to use Archive for deserialize this object!");
 
-                    return value->deserialize(&reader);
-                }
-                else
-                {
-                    return value.deserialize(&reader);
-                }
-            }
-            else
-                return reader.read(reinterpret_cast<byte*>(&value), sizeof(value));
+            static_assert(!std::is_polymorphic_v<NoPointerType>, "Cannot read polimorphic instance!");
+            return reader.read(reinterpret_cast<byte*>(&value), sizeof(value));
         }
 
         template<typename Type>
@@ -303,4 +275,97 @@ namespace Engine
 
     template<typename BufferClass>
     using BufferWriterWrapper = BufferManagmentWrapper<BufferClass>;
+
+    class Archive
+    {
+    private:
+        union
+        {
+            BufferReader* _M_reader;
+            BufferWriter* _M_writer;
+        };
+
+        bool _M_is_saving      = false;
+        bool _M_process_status = true;
+
+    public:
+        Archive(BufferReader* reader);
+        Archive(BufferWriter* writer);
+        Archive(const Archive&)            = delete;
+        Archive(Archive&&)                 = delete;
+        Archive& operator=(const Archive&) = delete;
+        Archive& operator=(Archive&&)      = delete;
+
+        bool is_saving() const;
+        bool is_reading() const;
+
+        BufferReader* reader() const;
+        BufferWriter* writer() const;
+
+        template<typename Type>
+        bool operator&(Type& value)
+        {
+            using NoPtrType = typename std::remove_pointer<Type>::type;
+            NoPtrType* data = nullptr;
+
+            if constexpr (std::is_pointer_v<Type>)
+            {
+                data = value;
+            }
+            else
+            {
+                data = &value;
+            }
+
+            if constexpr (Engine::is_container<NoPtrType>::value)
+            {
+                size_t size = data->size();
+                if (!((*this) & size))
+                    return false;
+
+                if (is_reading())
+                {
+                    if constexpr (std::is_pointer_v<typename Type::value_type>)
+                    {
+                        data->resize(size, nullptr);
+                    }
+                    else
+                    {
+                        data->resize(size);
+                    }
+                }
+
+                for (auto& element : (*data))
+                {
+                    if (!((*this) & element))
+                        return false;
+                }
+                return _M_process_status;
+            }
+            else if constexpr (std::is_base_of_v<SerializableObject, NoPtrType>)
+            {
+                return data->archive_process(this);
+            }
+            else
+            {
+
+                if (_M_is_saving)
+                {
+                    _M_process_status = _M_process_status && _M_writer->write(value);
+                    return _M_process_status;
+                }
+                else
+                {
+                    _M_process_status = _M_process_status && _M_reader->read(value);
+                    return _M_process_status;
+                }
+            }
+        }
+
+        inline operator bool()
+        {
+            return _M_process_status;
+        }
+    };
+
 }// namespace Engine

@@ -32,7 +32,7 @@ namespace Engine
 
     DECLARE_TYPE(TextureType, texture_types, 2);
     DECLARE_TYPE(PixelType, pixel_types, 6);
-    DECLARE_TYPE(PixelComponentType, pixel_component_types, 7);
+    DECLARE_TYPE(PixelComponentType, pixel_component_types, 8);
     DECLARE_TYPE(CompareFunc, compare_funcs, 8);
     DECLARE_TYPE(CompareMode, compare_modes, 2);
     DECLARE_TYPE(TextureFilter, texture_filters, 2);

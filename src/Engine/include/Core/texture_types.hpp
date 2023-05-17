@@ -28,6 +28,7 @@ namespace Engine
         Depth32F_Stencil8 = 4,
         Depth32F          = 5,
         Depth24_Stencil8  = 6,
+        Float16           = 7,
     };
 
     enum class CompareMode
@@ -98,12 +99,12 @@ namespace Engine
     struct TextureCreateInfo {
         Size2D size                             = {1, 1};
         MipMapLevel base_mip_level              = 0;
-        MipMapLevel mipmap_count               = 1;
+        MipMapLevel mipmap_count                = 1;
         PixelType pixel_type                    = PixelType::RGBA;
         PixelComponentType pixel_component_type = PixelComponentType::UnsignedByte;
         TextureFilter min_filter                = TextureFilter::Linear;
         TextureFilter mag_filter                = TextureFilter::Linear;
-        SamplerMipmapMode mipmap_mode          = SamplerMipmapMode::Linear;
+        SamplerMipmapMode mipmap_mode           = SamplerMipmapMode::Linear;
         WrapValue wrap_s                        = WrapValue::Repeat;
         WrapValue wrap_t                        = WrapValue::Repeat;
         WrapValue wrap_r                        = WrapValue::Repeat;

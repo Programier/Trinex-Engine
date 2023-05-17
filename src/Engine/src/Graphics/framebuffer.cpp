@@ -18,10 +18,4 @@ namespace Engine
         EngineInstance::instance()->api_interface()->gen_framebuffer(_M_ID, info);
         return *this;
     }
-
-
-    const Vector<Texture2D*> FrameBuffer::textures() const
-    {
-        return _M_textures;
-    }
 }// namespace Engine

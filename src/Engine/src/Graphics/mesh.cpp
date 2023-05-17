@@ -5,17 +5,18 @@
 #include <Core/logger.hpp>
 #include <Graphics/mesh.hpp>
 #include <numeric>
+#include <strings.h>
 
 namespace Engine
 {
     static size_t semantic_size_predicate(size_t last, const MeshSemanticEntry& entry)
     {
-        return static_cast<size_t>(entry.count) + last;
+        return static_cast<size_t>(entry.count) * entry.type_size() + last;
     }
 
     StaticMeshSemanticInfo::StaticMeshSemanticInfo()
     {
-        named_entries.vertex     = MeshSemanticEntry::semantic_of<Vector3D>();
+        named_entries.position   = MeshSemanticEntry::semantic_of<Vector3D>();
         named_entries.text_coord = MeshSemanticEntry::semantic_of<Vector2D>();
         named_entries.color      = MeshSemanticEntry::semantic_of<Vector4D>();
         named_entries.normal     = MeshSemanticEntry::semantic_of<Vector3D>();
@@ -25,7 +26,7 @@ namespace Engine
 
     DynamicMeshSemanticInfo::DynamicMeshSemanticInfo()
     {
-        named_entries.vertex        = MeshSemanticEntry::semantic_of<Vector3D>();
+        named_entries.position      = MeshSemanticEntry::semantic_of<Vector3D>();
         named_entries.text_coord    = MeshSemanticEntry::semantic_of<Vector2D>();
         named_entries.color         = MeshSemanticEntry::semantic_of<Vector4D>();
         named_entries.normal        = MeshSemanticEntry::semantic_of<Vector3D>();
@@ -48,9 +49,21 @@ namespace Engine
                entries[semantic_index].offset(index);
     }
 
+    template<size_t size>
+    static size_t calculate_vertex_size(const MeshSemanticEntry entries[size])
+    {
+        return std::accumulate(entries, entries + size, 0, semantic_size_predicate);
+    }
+
+
     size_t StaticMeshSemanticInfo::semantic_offset(VertexBufferSemantic semantic, byte index) const
     {
         return calculate_semantic_offset<sizeof(entries) / sizeof(MeshSemanticEntry)>(entries, semantic, index);
+    }
+
+    size_t StaticMeshSemanticInfo::vertex_size() const
+    {
+        return calculate_vertex_size<6>(entries);
     }
 
     size_t DynamicMeshSemanticInfo::semantic_offset(VertexBufferSemantic semantic, byte index) const
@@ -58,7 +71,13 @@ namespace Engine
         return calculate_semantic_offset<sizeof(entries) / sizeof(MeshSemanticEntry)>(entries, semantic, index);
     }
 
-    const MeshSemanticInfo& StaticMesh::semantic_info() const
+    size_t DynamicMeshSemanticInfo::vertex_size() const
+    {
+        return calculate_vertex_size<8>(entries);
+    }
+
+
+    const StaticMeshSemanticInfo& StaticMesh::semantic_info() const
     {
         return info;
     }
@@ -68,83 +87,46 @@ namespace Engine
         return info;
     }
 
-    // Mesh serialization
-    bool Mesh::MeshLOD::serialize(BufferWriter* writer) const
+
+    bool Mesh::MeshLOD::archive_process(Archive* archive)
     {
-        if (vertex_buffer == nullptr || index_buffer == nullptr)
+        if (archive->is_reading())
         {
-            error_log("MeshLOD: Cannot serialize resources!");
-            return false;
+            if (vertex_buffer == nullptr)
+                vertex_buffer = Object::new_instance<VertexBuffer>();
+            if (index_buffer == nullptr)
+                index_buffer = Object::new_instance<IndexBuffer>();
         }
 
-        if (!vertex_buffer->serialize(writer))
+        if (!vertex_buffer || !index_buffer)
         {
-            return false;
+            error_log("MeshLOD: Cannot process resources!");
         }
 
-        if (!index_buffer->serialize(writer))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    bool Mesh::MeshLOD::deserialize(BufferReader* reader)
-    {
-
-        vertex_buffer = Object::new_instance<VertexBuffer>();
-
-        if (!vertex_buffer->deserialize(reader))
+        if (!vertex_buffer->archive_process(archive) || !index_buffer->archive_process(archive))
         {
             Object::begin_destroy(vertex_buffer);
-            vertex_buffer = nullptr;
-            return false;
-        }
-
-        index_buffer = Object::new_instance<IndexBuffer>();
-
-        if (!index_buffer->deserialize(reader))
-        {
             Object::begin_destroy(index_buffer);
-            index_buffer = nullptr;
             return false;
         }
 
-        return true;
+        return static_cast<bool>(*archive);
     }
 
-
-    bool Mesh::serialize(BufferWriter* writer) const
+    bool Mesh::archive_process(Archive* archive)
     {
-        if (!Object::serialize(writer))
+        if (!Object::archive_process(archive))
         {
             return false;
         }
 
-        if (!writer->write(lods))
+        if (!((*archive) & lods))
         {
-            error_log("Mesh: Failed to serialize lods!");
+            error_log("Mesh: Failed to process lods!");
             return false;
         }
 
-        return true;
-    }
-
-    bool Mesh::deserialize(BufferReader* reader)
-    {
-        if (!Object::deserialize(reader))
-        {
-            return false;
-        }
-
-        if (!reader->read(lods))
-        {
-            error_log("Mesh: Failed to deserialize lods!");
-            return false;
-        }
-
-        return true;
+        return static_cast<bool>(*archive);
     }
 
     Mesh::~Mesh()
@@ -165,68 +147,35 @@ namespace Engine
         }
     }
 
-    bool StaticMesh::serialize(BufferWriter* writer) const
+
+    bool StaticMesh::archive_process(Archive* archive)
     {
-        if (!Mesh::serialize(writer))
+        if (!Mesh::archive_process(archive))
         {
             return false;
         }
 
-        if (!writer->write(info))
+        if (!((*archive) & info.entries))
         {
-            error_log("StaticMesh: Failed to serialize mesh info");
+            error_log("StaticMesh: Failed to process mesh info");
             return false;
         }
-
-        return true;
+        return static_cast<bool>(*archive);
     }
 
-    bool StaticMesh::deserialize(BufferReader* reader)
+    bool DynamicMesh::archive_process(Archive* archive)
     {
-        if (!Mesh::deserialize(reader))
+        if (!Mesh::archive_process(archive))
         {
             return false;
         }
 
-        if (!reader->read(info))
+        if (!((*archive) & info.entries))
         {
-            error_log("StaticMesh: Failed to deserialize mesh info");
+            error_log("StaticMesh: Failed to process mesh info");
             return false;
         }
-
-        return true;
-    }
-
-    bool DynamicMesh::serialize(BufferWriter* writer) const
-    {
-        if (!Mesh::serialize(writer))
-        {
-            return false;
-        }
-
-        if (!writer->write(info))
-        {
-            error_log("DynamicMesh: Failed to serialize mesh info");
-            return false;
-        }
-
-        return true;
-    }
-
-    bool DynamicMesh::deserialize(BufferReader* reader)
-    {
-        if (!Mesh::deserialize(reader))
-        {
-            return false;
-        }
-
-        if (!reader->read(info))
-        {
-            error_log("DynamicMesh: Failed to deserialize mesh info");
-            return false;
-        }
-
-        return true;
+        return static_cast<bool>(*archive);
     }
 
 

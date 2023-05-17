@@ -221,32 +221,36 @@ namespace Engine
         return *this;
     }
 
-
-    bool TextureResources::serialize(BufferWriter* writer) const
+    bool TextureResources::archive_process(Archive* archive_ptr)
     {
-        if (!SerializableObject::serialize(writer))
-        {
+        if (!SerializableObject::archive_process(archive_ptr))
             return false;
-        }
 
-        if (!writer->write(info))
+        Archive& archive = *archive_ptr;
+
+        if (!(archive & info))
         {
-            logger->error("TextureResources: Failed to serialize texture resources");
+            logger->error("TextureResources: Failed to process texture resources!");
             return false;
         }
 
         int_t index = 0;
         int_t count = static_cast<int_t>(images.size());
 
-        if (!writer->write(count))
+        if (!(archive & count))
         {
-            logger->error("TextureResources: Failed to serialize images count");
+            logger->error("TextureResources: Failed to process images count");
             return false;
+        }
+
+        if (archive.is_reading())
+        {
+            images.resize(count);
         }
 
         for (auto& image : images)
         {
-            if (!image.serialize(writer))
+            if (!image.archive_process(archive_ptr))
             {
                 logger->error("TextureResources: Failed to serialize image[%d]", index);
                 return false;
@@ -254,66 +258,26 @@ namespace Engine
             ++index;
         }
 
-        return true;
+        return static_cast<bool>(archive);
     }
 
-    bool TextureResources::deserialize(BufferReader* reader)
+    bool Texture::archive_process(Archive* archive)
     {
-        if (!SerializableObject::deserialize(reader))
-        {
+        if (!ApiObject::archive_process(archive))
             return false;
-        }
 
-        if (!reader->read(info))
+        if (archive->is_reading())
         {
-            logger->error("TextureResources: Failed to deserialize texture resources!");
-            return false;
+            resources(true);
         }
-
-        int_t index = 0;
-        int_t count;
-
-        if (!reader->read(count))
-        {
-            logger->error("TextureResources: Failed to deserialize images count");
-            return false;
-        }
-
-        images.resize(count);
-        for (auto& image : images)
-        {
-            if (!image.deserialize(reader))
-            {
-                logger->error("TextureResources: Failed to deserialize image[%d]", index);
-                return false;
-            }
-            ++index;
-        }
-
-        return true;
-    }
-
-    bool Texture::serialize(BufferWriter* writer) const
-    {
-        if (!ApiObject::serialize(writer))
-            return false;
 
         if (_M_resources == nullptr)
         {
-            info_log("Texture: Cannot serialize texture '%s'. Texture resources is nullptr", full_name().c_str());
-            return false;
-        }
-        return _M_resources->serialize(writer);
-    }
-
-    bool Texture::deserialize(BufferReader* reader)
-    {
-        if (!ApiObject::deserialize(reader))
-        {
+            info_log("Texture: Cannot process texture '%s'. Texture resources is nullptr", full_name().c_str());
             return false;
         }
 
-        return resources(true)->deserialize(reader);
+        return _M_resources->archive_process(archive);
     }
 
     TextureCreateInfo& Texture::info(bool create)

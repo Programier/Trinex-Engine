@@ -5,6 +5,7 @@
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
+#include <Core/predef.hpp>
 #include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
 #include <SDL.h>
@@ -13,7 +14,6 @@
 #include <Window/window.hpp>
 #include <api.hpp>
 #include <cstring>
-#include <Core/predef.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 
@@ -175,6 +175,17 @@ namespace Engine
         Monitor::update();
         Sensor::update_sensors_info();
         _M_is_inited = true;
+
+        if (engine_config.max_g_buffer_height < 200)
+        {
+            engine_config.max_g_buffer_height = static_cast<uint_t>(Monitor::height());
+        }
+
+        if (engine_config.max_g_buffer_width < 200)
+        {
+            engine_config.max_g_buffer_width = static_cast<uint_t>(Monitor::width());
+        }
+
 
         // Load commandlet
         CommandLet* command_let = nullptr;

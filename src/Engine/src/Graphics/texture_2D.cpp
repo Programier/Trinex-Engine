@@ -1,3 +1,4 @@
+#include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/config.hpp>
 #include <Core/engine.hpp>
@@ -104,7 +105,7 @@ namespace Engine
 
         if (engine_config.delete_resources_after_load)
             delete_resources();
-        return *this;
+        return true;
     }
 
     Image& Texture2D::resource_image(bool create)
@@ -135,19 +136,21 @@ namespace Engine
         return *this;
     }
 
-    bool Texture2D::serialize(BufferWriter* writer) const
+    bool Texture2D::archive_process(Archive* archive)
     {
-        return Texture::serialize(writer);
-    }
-
-    bool Texture2D::deserialize(BufferReader* reader)
-    {
-        if (!Texture::deserialize(reader))
+        if (!Texture::archive_process(archive))
         {
             return false;
         }
 
-        return load();
+        if (archive->is_reading())
+        {
+            if (engine_config.load_textures_to_gpu == false)
+                return true;
+            return load();
+        }
+
+        return static_cast<bool>(*archive);
     }
 
 }// namespace Engine

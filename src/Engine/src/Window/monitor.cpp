@@ -16,14 +16,14 @@ namespace Engine
             SDL_GetDisplayDPI(0, &display_dpi.ddpi, &display_dpi.hdpi, &display_dpi.vdpi);
         }
 
-        ENGINE_EXPORT Size1D height()
+        ENGINE_EXPORT uint height()
         {
-            return static_cast<Size1D>(mode.h);
+            return static_cast<uint>(mode.h);
         }
 
-        ENGINE_EXPORT Size1D width()
+        ENGINE_EXPORT uint width()
         {
-            return static_cast<Size1D>(mode.w);
+            return static_cast<uint>(mode.w);
         }
 
         ENGINE_EXPORT int_t refresh_rate()

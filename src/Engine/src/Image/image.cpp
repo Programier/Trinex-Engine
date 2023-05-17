@@ -386,57 +386,54 @@ namespace Engine
         return *this;
     }
 
-    bool Image::serialize(BufferWriter* writer) const
+    bool Image::archive_process(Archive* archive_ptr)
     {
-        if (!SerializableObject::serialize(writer))
+        if (!SerializableObject::archive_process(archive_ptr))
         {
             return false;
         }
 
-        if (_M_data.empty())
+        Archive& archive = *archive_ptr;
+
+        if (archive.is_saving() && _M_data.empty())
         {
             logger->error("Image: Failed to serialize image. Data is empty!");
             return false;
         }
 
-        if (!writer->write(_M_width) || !writer->write(_M_height) || !writer->write(_M_channels))
+        archive& _M_width;
+        archive& _M_height;
+        archive& _M_channels;
+
+        if (!archive)
         {
             logger->error("Image: Failed to serialize image header!");
             return false;
         }
 
-        if (!writer->write(_M_data.data(), _M_data.size()))
+        if (archive.is_reading())
         {
-            logger->error("Image: Failed to serialize image data!");
-            return false;
+            _M_data.clear();
+            size_t size =
+                    static_cast<size_t>(_M_width) * static_cast<size_t>(_M_height) * static_cast<size_t>(_M_channels);
+
+            _M_data.resize(size);
+
+            if (!archive.reader()->read(_M_data.data(), _M_data.size()))
+            {
+                logger->error("Image: Failed to serialize image data!");
+                return false;
+            }
         }
-        return true;
-    }
-
-    bool Image::deserialize(BufferReader* reader)
-    {
-        if (!SerializableObject::deserialize(reader))
+        else
         {
-            return false;
-        }
-
-        if (!reader->read(_M_width) || !reader->read(_M_height) || !reader->read(_M_channels))
-        {
-            logger->error("Image: Failed to deserialize image header!");
-            return false;
-        }
-
-        _M_data.clear();
-        size_t size = static_cast<size_t>(_M_width) * static_cast<size_t>(_M_height) * static_cast<size_t>(_M_channels);
-
-        _M_data.resize(size);
-
-        if (!reader->read(_M_data.data(), _M_data.size()))
-        {
-            logger->error("Image: Failed to serialize image data!");
-            return false;
+            if (!archive.writer()->write(_M_data.data(), _M_data.size()))
+            {
+                logger->error("Image: Failed to serialize image data!");
+                return false;
+            }
         }
 
-        return true;
+        return static_cast<bool>(archive);
     }
 }// namespace Engine

@@ -19,7 +19,6 @@ namespace Engine
         Texture2D& read_image(Image& image, MipMapLevel level = 0);
         Image& resource_image(bool create = false);
 
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive ) override;
     };
 }// namespace Engine

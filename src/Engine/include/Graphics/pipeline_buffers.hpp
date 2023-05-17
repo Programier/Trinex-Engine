@@ -19,8 +19,7 @@ namespace Engine
             return _M_size;
         }
 
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
     };
 
     class ENGINE_EXPORT VertexBuffer : public PipelineBuffer
@@ -34,8 +33,7 @@ namespace Engine
         virtual MappedMemory map_memory();
         virtual VertexBuffer& unmap_memory();
 
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
     };
 
 
@@ -57,8 +55,7 @@ namespace Engine
         virtual MappedMemory map_memory();
         virtual IndexBuffer& unmap_memory();
 
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
 
         static size_t component_size(IndexBufferComponent component);
         size_t component_size() const;

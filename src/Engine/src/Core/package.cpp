@@ -11,9 +11,34 @@
 namespace Engine
 {
 
-    struct HeaderEntry {
-        ArrayIndex offset;
+    struct HeaderEntry : SerializableObject {
+        String name       = "";
+        ArrayIndex offset = 0;
+        Object* object    = nullptr;
+
+        bool archive_process(Archive* archive) override
+        {
+            if (archive->is_saving())
+            {
+                name = object->name();
+            }
+
+            if (!((*archive) & name))
+            {
+                error_log("PackageHeader: Failed to process name of object into header!");
+                return false;
+            }
+
+            if (!((*archive) & offset))
+            {
+                error_log("PackageHeader: Failed to serialize offset of object into header!");
+                return false;
+            }
+
+            return true;
+        }
     };
+
 
     register_class(Engine::Package, Engine::Object)
             .register_method("add_object", &Package::add_object)
@@ -32,7 +57,7 @@ namespace Engine
         if (!object)
             return false;
 
-        if (object->flag(ObjectFlags::OF_NeedDelete))
+        if (object->trinex_flag(TrinexObjectFlags::OF_NeedDelete))
         {
             logger->error("Package: Cannot add object to package, wich marked for delete");
             return false;
@@ -66,7 +91,7 @@ namespace Engine
         return (*it).second;
     }
 
-    Object* Package::find_object_in_package(const String& object_name, bool recursive) const
+    Object* Package::find_object(const String& object_name, bool recursive) const
     {
         if (!recursive)
             return get_object_by_name(object_name);
@@ -152,17 +177,32 @@ namespace Engine
 
 
         // Creating header
-        Vector<HeaderEntry> header(_M_objects.size());
-        if (!temporary_buffer.write(header))
+        Vector<HeaderEntry> header;
+        header.reserve(_M_objects.size());
+
+        {
+            for (auto& pair : _M_objects)
+            {
+                if (pair.second->trinex_flag(TrinexObjectFlags::OF_IsSerializable))
+                {
+                    header.emplace_back();
+                    header.back().object = pair.second;
+                }
+            }
+        }
+
+        Archive ar(&temporary_buffer);
+
+        if (!(ar & header))
         {
             logger->error("Package: Failed to write header to file!");
             return status(false);
         }
 
         Index index = 0;
-        for (auto& pair : _M_objects)
+        for (auto& entry : header)
         {
-            Object* object = pair.second;
+            Object* object = entry.object;
             if (object->is_instance_of<Package>())
                 continue;
 
@@ -176,14 +216,14 @@ namespace Engine
                 return status(false);
             }
 
-            if (!object->serialize(&temporary_buffer))
+            if (!object->archive_process(&ar))
             {
                 return status(false);
             }
         }
 
         temporary_buffer.position(0);
-        if (!temporary_buffer.write(header))
+        if (!(ar & header))
         {
             logger->error("Package: Failed to update header in file!");
             return status(false);
@@ -224,24 +264,15 @@ namespace Engine
         return true;
     }
 
-    bool Package::load(BufferReader* reader, bool clean)
+    bool Package::load_buffer(BufferReader* reader, Vector<char>& original_buffer)
     {
         if (this == root_package())
         {
-            logger->error("Package: Cannot read root package!");
+            logger->error("Package: Cannot load root package!");
             return false;
         }
 
-        if (clean)
-        {
-            while (!_M_objects.empty())
-            {
-                _M_objects.begin()->second->mark_for_delete();
-                _M_objects.begin()->second->remove_from_package();
-            }
-        }
-
-        bool is_created_writer = false;
+        bool is_created_reader = false;
         if (reader == nullptr)
         {
             String path = engine_config.resources_dir + Strings::replace_all(full_name(), "::", "/") +
@@ -257,11 +288,11 @@ namespace Engine
                 logger->error("Package: Failed to create file '%s'", path.c_str());
                 return false;
             }
-            is_created_writer = true;
+            is_created_reader = true;
         }
 
-        auto status = [&is_created_writer, &reader](bool flag) -> bool {
-            if (is_created_writer)
+        auto status = [&is_created_reader, &reader](bool flag) -> bool {
+            if (is_created_reader)
                 delete reader;
             return flag;
         };
@@ -287,66 +318,165 @@ namespace Engine
             return status(false);
         }
 
-        Vector<char> original_data(original_size, 0);
-        Compressor::decompress(compressed_data, original_data);
+        original_buffer.resize(original_size, 0);
+        Compressor::decompress(compressed_data, original_buffer);
+        reader->offset(0, BufferSeekDir::End);
+        return true;
+    }
 
+
+    bool Package::load_entry(void* entry_ptr, Archive* archive_ptr)
+    {
+        Archive& archive   = *archive_ptr;
+        HeaderEntry& entry = *static_cast<HeaderEntry*>(entry_ptr);
+
+        if (entry.object != nullptr)
+            return true;
+
+        archive.reader()->position(entry.offset);
+
+        String class_name;
+        if (!archive.reader()->read(class_name))
+        {
+            logger->error("Package: Failed to read class name");
+            return false;
+        }
+
+        Class* object_class = Class::find_class(class_name);
+        if (object_class == nullptr)
+        {
+            logger->error("Package: Cannot find class '%s', skip loading!", class_name.c_str());
+            return false;
+        }
+
+        auto prev_flag                                      = object_class->_M_disable_pushing_to_default_package;
+        object_class->_M_disable_pushing_to_default_package = true;
+        entry.object                                        = object_class->create();
+        object_class->_M_disable_pushing_to_default_package = prev_flag;
+
+        if (entry.object == nullptr)
+        {
+            logger->error("Package: Failed to create instance '%s'", class_name.c_str());
+            return false;
+        }
+
+        entry.object->_M_name = std::move(entry.name);
+
+        if (!entry.object->archive_process(&archive))
+        {
+            entry.object->mark_for_delete(true);
+            return false;
+        }
+
+        add_object(entry.object);
+        return true;
+    }
+
+
+    bool Package::load(BufferReader* reader, bool clean)
+    {
+        if (clean)
+        {
+            while (!_M_objects.empty())
+            {
+                _M_objects.begin()->second->mark_for_delete();
+                _M_objects.begin()->second->remove_from_package();
+            }
+        }
+
+
+        Vector<char> original_data;
+
+        if (!load_buffer(reader, original_data))
+        {
+            return false;
+        }
 
         VectorInputStream temporary_stream(original_data);
         BufferReaderWrapper<BufferReader> temporary_reader(temporary_stream);
 
-        //        BufferReader& temporary_reader = *reader;
+        Archive ar(&temporary_reader);
 
         Vector<HeaderEntry> header;
-        if (!temporary_reader.read(header))
+        if (!(ar & header))
         {
             logger->error("Package: Failed to read header from file!");
-            return status(false);
+            return false;
         }
+
+        Pair<void*, BufferReader*> current_loader = {&header, &temporary_reader};
+
+        _M_loader_data = &current_loader;
 
         bool result_status = true;
 
         String class_name;
         for (HeaderEntry& entry : header)
         {
-            temporary_reader.position(entry.offset);
-
-            if (!temporary_reader.read(class_name))
+            if (!_M_objects.contains(entry.name))
             {
-                logger->error("Package: Failed to read class name");
-                result_status = false;
-                continue;
+                bool loading_status = load_entry(&entry, &ar);
+                result_status       = (result_status ? loading_status : result_status);
             }
-
-            Class* object_class = Class::find_class(class_name);
-            if (object_class == nullptr)
-            {
-                logger->error("Package: Cannot find class '%s', skip loading!", class_name.c_str());
-                result_status = false;
-                continue;
-            }
-
-            Object* object = object_class->create();
-            if (object == nullptr)
-            {
-                logger->error("Package: Failed to create instance '%s'", class_name.c_str());
-                result_status = false;
-                continue;
-            }
-
-            if (!object->deserialize(&temporary_reader))
-            {
-                object->mark_for_delete(true);
-                result_status = false;
-                continue;
-            }
-
-            add_object(object);
         }
 
-        reader->offset(0, BufferSeekDir::End);
         Object::collect_garbage();
 
-        return status(result_status);
+        _M_loader_data = nullptr;
+        return result_status;
+    }
+
+    Object* Package::load_object(const String& name, BufferReader* reader)
+    {
+        auto it = _M_objects.find(name);
+        if (it != _M_objects.end())
+            return it->second;
+
+
+        auto load_object_from_entry_list = [&]() -> Object* {
+            Vector<HeaderEntry>& entry_list = *static_cast<Vector<HeaderEntry>*>(_M_loader_data->first);
+            for (auto& entry : entry_list)
+            {
+                if (entry.name == name)
+                {
+                    Archive ar(_M_loader_data->second);
+                    load_entry(&entry, &ar);
+                    return entry.object;
+                }
+            }
+            return nullptr;
+        };
+
+        if (_M_loader_data == nullptr)
+        {
+            Vector<char> original_data;
+
+            if (!load_buffer(reader, original_data))
+            {
+                return nullptr;
+            }
+
+            VectorInputStream temporary_stream(original_data);
+            BufferReaderWrapper<BufferReader> temporary_reader(temporary_stream);
+
+
+            Archive ar(&temporary_reader);
+            Vector<HeaderEntry> header;
+            if (!(ar & header))
+            {
+                logger->error("Package: Failed to read header from file!");
+                return nullptr;
+            }
+
+            Pair<void*, BufferReader*> current_loader = {&header, &temporary_reader};
+
+            _M_loader_data = &current_loader;
+            Object* object = load_object_from_entry_list();
+            _M_loader_data = nullptr;
+            return object;
+        }
+
+        return load_object_from_entry_list();
     }
 
     Package::~Package()

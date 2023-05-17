@@ -11,40 +11,35 @@
 
 namespace Engine
 {
-    bool PipelineBuffer::serialize(BufferWriter* writer) const
+
+    bool PipelineBuffer::archive_process(Archive* archive)
     {
-        if (!SerializableObject::serialize(writer))
+        if (!SerializableObject::archive_process(archive))
             return false;
+
+        if (archive->is_reading())
+        {
+            resources(true);
+        }
 
         if (_M_resources)
         {
-            if (!writer->write(*_M_resources))
+            if (!((*archive) & *_M_resources))
             {
-                error_log("Pipeline Buffer: Failed to serialize pipeline buffer!");
+                error_log("Pipeline Buffer: Failed to process resources!");
                 return false;
             }
 
             return true;
         }
 
-        error_log("Pipeline Buffer: Cannot find resources!");
-        return false;
-    }
-
-    bool PipelineBuffer::deserialize(BufferReader* reader)
-    {
-        if (!SerializableObject::deserialize(reader))
-            return false;
-
-        auto buffer = resources(true);
-
-        if (!reader->read(*buffer))
+        if (archive->is_saving())
         {
-            error_log("Pipeline Buffer: Failed to deserialize pipeline buffer!");
+            error_log("Pipeline Buffer: Cannot find resources!");
             return false;
         }
 
-        return true;
+        return static_cast<bool>(*archive);
     }
 
 
@@ -90,27 +85,25 @@ namespace Engine
         return *this;
     }
 
-    bool VertexBuffer::serialize(BufferWriter* writer) const
+    bool VertexBuffer::archive_process(Archive* archive)
     {
-        return PipelineBuffer::serialize(writer);
-    }
-
-    bool VertexBuffer::deserialize(BufferReader* reader)
-    {
-        if (!PipelineBuffer::deserialize(reader))
+        if (!PipelineBuffer::archive_process(archive))
         {
             return false;
         }
 
-        destroy();
-        create(_M_resources->data(), _M_resources->size());
-
-        if (engine_config.delete_resources_after_load)
+        if (archive->is_reading())
         {
-            delete_resources();
+            destroy();
+            create(_M_resources->data(), _M_resources->size());
+
+            if (engine_config.delete_resources_after_load)
+            {
+                delete_resources();
+            }
         }
 
-        return true;
+        return static_cast<bool>(archive);
     }
 
 
@@ -160,46 +153,31 @@ namespace Engine
         return *this;
     }
 
-    bool IndexBuffer::serialize(BufferWriter* writer) const
+    bool IndexBuffer::archive_process(Archive* archive)
     {
-        if (!PipelineBuffer::serialize(writer))
+        if (!PipelineBuffer::archive_process(archive))
         {
             return false;
         }
 
-        if (!writer->write(_M_component))
+        if (!((*archive) & _M_component))
         {
-            error_log("IndexBuffer: Failed to serialize component type!");
+            error_log("Index Buffer: Failed to process component type!");
             return false;
         }
 
-        return true;
-    }
-
-    bool IndexBuffer::deserialize(BufferReader* reader)
-    {
-        if (!PipelineBuffer::deserialize(reader))
+        if (archive->is_reading())
         {
-            return false;
+            destroy();
+            create(_M_resources->data(), _M_resources->size(), _M_component);
+
+            if (engine_config.delete_resources_after_load)
+            {
+                delete_resources();
+            }
         }
 
-        bool success = reader->read(_M_component);
-
-        if (!success)
-        {
-            error_log("Index Buffer: Failed to read component type!");
-            return false;
-        }
-
-        destroy();
-        create(_M_resources->data(), _M_resources->size(), _M_component);
-
-        if (engine_config.delete_resources_after_load)
-        {
-            delete_resources();
-        }
-
-        return true;
+        return static_cast<bool>(archive);
     }
 
     size_t IndexBuffer::component_size(IndexBufferComponent component)

@@ -1,14 +1,18 @@
 #pragma once
+#include <Core/exception.hpp>
 #include <Core/export.hpp>
+
 
 namespace Engine
 {
     class BufferWriter;
     class BufferReader;
+    class Archive;
+
 
     struct ENGINE_EXPORT SerializableObject {
-        virtual bool serialize(BufferWriter* writer) const;
-        virtual bool deserialize(BufferReader* reader);
+        virtual bool archive_process(Archive* archive);
         virtual ~SerializableObject();
     };
+
 }// namespace Engine

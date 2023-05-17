@@ -31,12 +31,12 @@ namespace Engine
                  {PixelType::Red, GL_RED}, {PixelType::Depth, GL_DEPTH_COMPONENT},
                  {PixelType::Stencil, GL_STENCIL_INDEX}, {PixelType::DepthStencil, GL_DEPTH_STENCIL});
 
-    DECLARE_TYPE(PixelComponentType, pixel_component_types, 7, {PixelComponentType::UnsignedByte, GL_UNSIGNED_BYTE},
+    DECLARE_TYPE(PixelComponentType, pixel_component_types, 8, {PixelComponentType::UnsignedByte, GL_UNSIGNED_BYTE},
                  {PixelComponentType::Float, GL_FLOAT}, {PixelComponentType::Depth16, GL_UNSIGNED_SHORT},
                  {PixelComponentType::Stencil8, GL_UNSIGNED_BYTE},
                  {PixelComponentType::Depth32F_Stencil8, GL_FLOAT_32_UNSIGNED_INT_24_8_REV},
-                 {PixelComponentType::Depth32F, GL_FLOAT},
-                 {PixelComponentType::Depth24_Stencil8, GL_UNSIGNED_INT_24_8});
+                 {PixelComponentType::Depth32F, GL_FLOAT}, {PixelComponentType::Depth24_Stencil8, GL_UNSIGNED_INT_24_8},
+                 {PixelComponentType::Float16, GL_FLOAT});
 
     DECLARE_TYPE(CompareFunc, compare_funcs, 8, {CompareFunc::Always, GL_ALWAYS}, {CompareFunc::Lequal, GL_LEQUAL},
                  {CompareFunc::Gequal, GL_GEQUAL}, {CompareFunc::Less, GL_LEQUAL}, {CompareFunc::Greater, GL_GREATER},

@@ -5,114 +5,41 @@
 
 namespace Engine
 {
-    static vk::Format float_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::RGB:
-                return vk::Format::eR32G32B32Sfloat;
-            case Engine::PixelType::RGBA:
-                return vk::Format::eR32G32B32A32Sfloat;
-            case Engine::PixelType::Red:
-                return vk::Format::eR32Sfloat;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
+    using ComponentsArray = vk::Format[8];
+    using ColorFormat     = ComponentsArray[6];
 
-    static vk::Format byte_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::RGB:
-                return vk::Format::eR8G8B8Srgb;
-            case Engine::PixelType::RGBA:
-                return vk::Format::eR8G8B8A8Srgb;
-            case Engine::PixelType::Red:
-                return vk::Format::eR8Srgb;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
+    static ColorFormat color_formats = {
+            {vk::Format::eR8G8B8Srgb, vk::Format::eR32G32B32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined,
+             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eR16G16B16Sfloat},
 
-    static vk::Format depth16_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::Depth:
-                return vk::Format::eD16Unorm;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
+            {vk::Format::eR8G8B8A8Srgb, vk::Format::eR32G32B32A32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined,
+             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eR16G16B16A16Sfloat},
 
+            {vk::Format::eR8Uint, vk::Format::eR32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined,
+             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eR16Sfloat},
 
-    static vk::Format depth32F_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::Depth:
-                return vk::Format::eD32Sfloat;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
+            {vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eD16Unorm, vk::Format::eUndefined,
+             vk::Format::eUndefined, vk::Format::eD32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined},
 
+            {vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eS8Uint,
+             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined},
 
-    static vk::Format stencil8_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::Stencil:
-                return vk::Format::eS8Uint;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
-
-
-    static vk::Format d32_s8_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::DepthStencil:
-                return vk::Format::eD32SfloatS8Uint;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
-
-    static vk::Format d24_s8_format(PixelType type)
-    {
-        switch (type)
-        {
-            case Engine::PixelType::DepthStencil:
-                return vk::Format::eD24UnormS8Uint;
-            default:
-                throw std::runtime_error("VulkanAPI: Pixel type does't support!");
-        }
-    }
+            {vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined,
+             vk::Format::eD32SfloatS8Uint, vk::Format::eUndefined, vk::Format::eD24UnormS8Uint, vk::Format::eUndefined},
+    };
 
     vk::Format VulkanTexture::parse_format(PixelType type, PixelComponentType component)
     {
-        static vk::Format (*format_functions[7])(PixelType type) = {nullptr, nullptr, nullptr, nullptr};
+        EnumerateType pt  = static_cast<EnumerateType>(type);
+        EnumerateType pct = static_cast<EnumerateType>(component);
 
-        if (format_functions[0] == nullptr)
-        {
-            format_functions[static_cast<EnumerateType>(PixelComponentType::Float)]             = float_format;
-            format_functions[static_cast<EnumerateType>(PixelComponentType::UnsignedByte)]      = byte_format;
-            format_functions[static_cast<EnumerateType>(PixelComponentType::Depth16)]           = depth16_format;
-            format_functions[static_cast<EnumerateType>(PixelComponentType::Stencil8)]          = stencil8_format;
-            format_functions[static_cast<EnumerateType>(PixelComponentType::Depth32F_Stencil8)] = d32_s8_format;
-            format_functions[static_cast<EnumerateType>(PixelComponentType::Depth32F)]          = depth32F_format;
-            format_functions[static_cast<EnumerateType>(PixelComponentType::Depth24_Stencil8)]  = d24_s8_format;
-        }
+        if (pt > 5 || pct > 7)
+            throw EngineException("Incorect format!");
 
-        EnumerateType index = static_cast<EnumerateType>(component);
-        if (index > 6)
-            throw std::runtime_error("VulkanAPI: Undefined image format");
-
-        return format_functions[index](type);
+        vk::Format result = color_formats[pt][pct];
+        if (result == vk::Format::eUndefined)
+            throw EngineException("Incorect format!");
+        return result;
     }
 
     VulkanTextureState& VulkanTextureState::init(const TextureCreateInfo& info)
@@ -357,7 +284,7 @@ namespace Engine
                     auto current_mip_size = get_mip_size(i);
 
                     const Array<vk::Offset3D, 2> src_offsets = {vk::Offset3D(0, 0, 0),
-                                                                     vk::Offset3D(base_mip_size.x, base_mip_size.y, 1)};
+                                                                vk::Offset3D(base_mip_size.x, base_mip_size.y, 1)};
 
                     const Array<vk::Offset3D, 2> dst_offsets = {
                             vk::Offset3D(0, 0, 0), vk::Offset3D(current_mip_size.x, current_mip_size.y, 1)};
@@ -758,7 +685,13 @@ namespace Engine
 
     bool VulkanTexture::can_use_color_as_color_attachment()
     {
-        return state.format == vk::Format::eR32G32B32A32Sfloat || state.format == vk::Format::eR8G8B8A8Srgb;
+        for (auto& format : color_formats[static_cast<size_t>(PixelType::RGBA)])
+        {
+            if (state.format == format)
+                return true;
+        }
+
+        return false;
     }
 
     VulkanTexture::~VulkanTexture()

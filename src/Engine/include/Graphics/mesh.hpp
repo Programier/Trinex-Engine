@@ -48,13 +48,16 @@ namespace Engine
     {
     public:
         virtual size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const = 0;
+        virtual size_t vertex_size() const                                                  = 0;
+        ~MeshSemanticInfo()
+        {}
     };
 
     struct ENGINE_EXPORT StaticMeshSemanticInfo : public MeshSemanticInfo {
         union
         {
             struct {
-                MeshSemanticEntry vertex;
+                MeshSemanticEntry position;
                 MeshSemanticEntry text_coord;
                 MeshSemanticEntry color;
                 MeshSemanticEntry normal;
@@ -67,13 +70,14 @@ namespace Engine
 
         StaticMeshSemanticInfo();
         size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const override;
+        size_t vertex_size() const override;
     };
 
     struct ENGINE_EXPORT DynamicMeshSemanticInfo : public MeshSemanticInfo {
         union
         {
             struct {
-                MeshSemanticEntry vertex;
+                MeshSemanticEntry position;
                 MeshSemanticEntry text_coord;
                 MeshSemanticEntry color;
                 MeshSemanticEntry normal;
@@ -88,6 +92,7 @@ namespace Engine
 
         DynamicMeshSemanticInfo();
         size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const override;
+        size_t vertex_size() const override;
     };
 
 
@@ -98,15 +103,12 @@ namespace Engine
             VertexBuffer* vertex_buffer = nullptr;
             IndexBuffer* index_buffer   = nullptr;
 
-            bool serialize(BufferWriter* writer) const override;
-            bool deserialize(BufferReader* reader) override;
+            bool archive_process(Archive* archive) override;
         };
 
         Vector<MeshLOD> lods;
         virtual const MeshSemanticInfo& semantic_info() const = 0;
-
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
 
         ~Mesh();
     };
@@ -117,9 +119,8 @@ namespace Engine
     public:
         StaticMeshSemanticInfo info;
 
-        const MeshSemanticInfo& semantic_info() const override;
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        const StaticMeshSemanticInfo& semantic_info() const override;
+        bool archive_process(Archive* archive) override;
     };
 
     class ENGINE_EXPORT DynamicMesh : public Mesh
@@ -128,7 +129,6 @@ namespace Engine
         DynamicMeshSemanticInfo info;
 
         const MeshSemanticInfo& semantic_info() const override;
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
     };
 }// namespace Engine

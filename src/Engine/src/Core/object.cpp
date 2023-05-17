@@ -36,8 +36,8 @@ namespace Engine
                      .register_method("class_instance", &Object::class_instance)
                      .register_method("find_package", Object::find_package)
                      .register_method("find_object", Object::find_object)
-                     .register_method("set_flag", static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag))
-                     .register_method("get_flag", static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag))
+                     //.register_method("set_flag", static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag))
+                     //.register_method("get_flag", static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag))
                      .register_method("references", &Object::references)
                      .register_method("full_name", &Object::full_name)
                      .register_method("package", &Object::package)
@@ -65,7 +65,7 @@ namespace Engine
 
     Object& Object::mark_as_on_heap_instance()
     {
-        internal_set_flag(ObjectFlags::OF_IsOnHeap, true);
+        trinex_flag(TrinexObjectFlags::OF_IsOnHeap, true);
         return *this;
     }
 
@@ -115,15 +115,11 @@ namespace Engine
         return _class != nullptr && _class->contains_class(check_class);
     }
 
-    void Object::internal_set_flag(ObjectFlags flag, bool flag_value)
-    {
-        _M_flags[static_cast<size_t>(flag)] = flag_value;
-    }
-
     Object::Object()
     {
         get_instance_list().insert(this);
-        _M_flags.reset();
+        _M_trinex_flags.reset();
+        trinex_flag(TrinexObjectFlags::OF_IsSerializable, true);
     }
 
     std::size_t Object::class_hash() const
@@ -159,6 +155,28 @@ namespace Engine
         return package;
     }
 
+    ENGINE_EXPORT Object* Object::load_object(const String& name)
+    {
+        return Package::find_package(package_name_of(name), true)->load_object(object_name_of(name));
+    }
+
+    ENGINE_EXPORT String Object::package_name_of(const String& name)
+    {
+        return name.substr(0, name.find("->"));
+    }
+
+    ENGINE_EXPORT String Object::object_name_of(const String& name)
+    {
+        auto pos = name.find("->");
+        if (pos == String::npos)
+        {
+            return "";
+        }
+
+        pos += 2;
+        return name.substr(pos, name.length() - pos);
+    }
+
     String Object::class_name() const
     {
         return decode_name(typeid(*this));
@@ -166,12 +184,12 @@ namespace Engine
 
     void Object::delete_instance()
     {
-        if ((!flag(ObjectFlags::OF_IsOnHeap)))
+        if ((!trinex_flag(TrinexObjectFlags::OF_IsOnHeap)))
         {
             get_instance_list().erase(const_cast<Object*>(this));
         }
 
-        if (flag(ObjectFlags::OF_NeedDelete) && flag(ObjectFlags::OF_IsOnHeap))
+        if (trinex_flag(TrinexObjectFlags::OF_NeedDelete) && trinex_flag(TrinexObjectFlags::OF_IsOnHeap))
         {
             debug_log("Garbage Collector: Delete object instance '%s' with type '%s' [%p]\n", name().c_str(),
                       class_name().c_str(), this);
@@ -194,15 +212,15 @@ namespace Engine
             _M_package = nullptr;
         }
 
-        internal_set_flag(ObjectFlags::OF_Destructed, true);
+        trinex_flag(TrinexObjectFlags::OF_Destructed, true);
     }
 
 
     bool Object::mark_for_delete(bool skip_check)
     {
         static auto mark = [](Object* object) -> bool {
-            if (!object->flag(ObjectFlags::OF_NeedDelete) && object->flag(ObjectFlags::OF_IsOnHeap) &&
-                object->_M_references == 0)
+            if (!object->trinex_flag(TrinexObjectFlags::OF_NeedDelete) &&
+                object->trinex_flag(TrinexObjectFlags::OF_IsOnHeap) && object->_M_references == 0)
             {
                 get_instance_list().erase(object);
 
@@ -212,7 +230,7 @@ namespace Engine
                     object->_M_package = nullptr;
                 }
 
-                object->internal_set_flag(ObjectFlags::OF_NeedDelete, true);
+                object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
                 MemoryManager::instance().free_object(object);
                 return true;
             }
@@ -251,7 +269,7 @@ namespace Engine
 
     bool Object::is_on_heap() const
     {
-        return flag(ObjectFlags::OF_IsOnHeap);
+        return trinex_flag(TrinexObjectFlags::OF_IsOnHeap);
     }
 
     const String& Object::name() const
@@ -313,28 +331,16 @@ namespace Engine
         return *this;
     }
 
-    bool Object::flag(ObjectFlags flag) const
+    bool Object::trinex_flag(TrinexObjectFlags flag) const
     {
-        return _M_flags[flag];
+        return _M_trinex_flags[flag];
     }
 
-    Object& Object::flag(ObjectFlags flag, bool status)
+    Object& Object::trinex_flag(TrinexObjectFlags flag, bool status)
     {
-        if (static_cast<size_t>(flag) < static_cast<size_t>(ObjectFlags::__OF_PRIVATE_SECTION__))
-        {
-            logger->warning("Object: Cannot set private flag!");
-        }
-        else
-        {
-            _M_flags[static_cast<size_t>(flag)] = status;
-        }
+        _M_trinex_flags[static_cast<size_t>(flag)] = status;
 
         return *this;
-    }
-
-    const decltype(Object::_M_flags)& Object::flags() const
-    {
-        return _M_flags;
     }
 
     Package* Object::package() const
@@ -367,6 +373,23 @@ namespace Engine
         return _M_references;
     }
 
+    const decltype(Object::_M_flags)& Object::flags() const
+    {
+        return _M_flags;
+    }
+
+    const Object& Object::flag(ObjectFlags flag, bool status)
+    {
+        _M_flags[static_cast<size_t>(flag)] = status;
+        return *this;
+    }
+
+    bool Object::flag(ObjectFlags flag) const
+    {
+        return _M_flags[static_cast<size_t>(flag)];
+    }
+
+
     ENGINE_EXPORT const Package* root_package()
     {
         return _M_root_package;
@@ -374,7 +397,7 @@ namespace Engine
 
     ENGINE_EXPORT Object* Object::find_object(const String& object_name)
     {
-        return _M_root_package->find_object_in_package(object_name, true);
+        return _M_root_package->find_object(object_name, true);
     }
 
     bool Object::can_destroy(MessageList& messages)
@@ -408,7 +431,7 @@ namespace Engine
                 return nullptr;
             prev_index = index;
 
-            Object* object = package->find_object_in_package(package_name, false);
+            Object* object = package->find_object(package_name, false);
             if (object)
             {
                 Package* new_package = object->instance_cast<Package>();
@@ -452,40 +475,9 @@ namespace Engine
         return _M_class;
     }
 
-    bool Object::serialize(BufferWriter* writer) const
+    bool Object::archive_process(Archive* archive)
     {
-        if (!SerializableObject::serialize(writer))
-            return false;
-
-        bool status = writer->write(_M_name);
-        if (!status)
-        {
-            logger->error("Object: Failed to serialize object '%s'", full_name().c_str());
-        }
-
-        return status;
-    }
-
-    ENGINE_EXPORT String Object::read_object_name(BufferReader* reader)
-    {
-        if (reader)
-        {
-            return reader->read_value<String>();
-        }
-        return "";
-    }
-
-    bool Object::deserialize(BufferReader* reader)
-    {
-        if (!SerializableObject::deserialize(reader))
-            return false;
-
-        bool status = reader->read(_M_name);
-        if (!status)
-        {
-            logger->error("Object: Failed to deserialize object!");
-        }
-        return true;
+        return SerializableObject::archive_process(archive);
     }
 
     void* Object::operator new(std::size_t size, void* data)
@@ -512,7 +504,7 @@ namespace Engine
         while (!get_instance_list().empty())
         {
             Object* object = (*get_instance_list().begin());
-            object->internal_set_flag(ObjectFlags::OF_NeedDelete, true);
+            object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
             object->delete_instance();
         }
     }
@@ -529,5 +521,6 @@ namespace Engine
     }
 
     static DestroyController controller(call_force_garbage_collection);
+
 
 }// namespace Engine

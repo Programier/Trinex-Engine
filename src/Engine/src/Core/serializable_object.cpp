@@ -4,34 +4,11 @@
 
 namespace Engine
 {
-    bool SerializableObject::serialize(BufferWriter* writer) const
+    bool SerializableObject::archive_process(Archive* archive)
     {
-        if (!writer)
+        if (archive == nullptr)
         {
-            logger->error("SerializableObject: Failed to serialize object. Writer is nullptr!");
-            return false;
-        }
-
-        if (!writer->is_open())
-        {
-            logger->error("SerializableObject: Failed to serialize object. Writer is not open!");
-            return false;
-        }
-
-        return true;
-    }
-
-    bool SerializableObject::deserialize(BufferReader* reader)
-    {
-        if (!reader)
-        {
-            logger->error("SerializableObject: Failed to deserialize object. Reader is nullptr!");
-            return false;
-        }
-
-        if (!reader->is_open())
-        {
-            logger->error("SerializableObject: Failed to deserialize object. Reader is not open!");
+            error_log("SerializableObject: Archive can't be nullptr!");
             return false;
         }
 

@@ -5,8 +5,7 @@ namespace Engine
 {
 
     template<typename OutType, size_t size, typename InputType>
-    const Array<OutType, size>
-    generate_array(const std::initializer_list<const std::pair<InputType, OutType>>& list)
+    const Array<OutType, size> generate_array(const std::initializer_list<const std::pair<InputType, OutType>>& list)
     {
         Array<OutType, size> out_array;
 
@@ -88,10 +87,11 @@ namespace Engine
             {CompareFunc::Never, vk::CompareOp::eNever},
     });
 
-    const Array<vk::ImageAspectFlags, 7> _M_image_aspects =
-            generate_array<vk::ImageAspectFlags, 7, PixelComponentType>({
+    const Array<vk::ImageAspectFlags, 8> _M_image_aspects =
+            generate_array<vk::ImageAspectFlags, 8, PixelComponentType>({
                     {PixelComponentType::UnsignedByte, vk::ImageAspectFlagBits::eColor},
                     {PixelComponentType::Float, vk::ImageAspectFlagBits::eColor},
+                    {PixelComponentType::Float16, vk::ImageAspectFlagBits::eColor},
                     {PixelComponentType::Depth16, vk::ImageAspectFlagBits::eDepth},
                     {PixelComponentType::Stencil8, vk::ImageAspectFlagBits::eStencil},
                     {PixelComponentType::Depth32F_Stencil8,

@@ -17,16 +17,18 @@ namespace Engine
     private:
         const Class* _M_parent = nullptr;
         Set<const Class*> _M_parents;
-        std::function<Object*()> _M_allocate_object;
-        size_t _M_instance_size = 0;
         Vector<DefferedMethodInvokerBase*> _M_lua_invokers;
-        void (*_M_post_init)() = nullptr;
-
         Vector<String> _M_static_methods;
         Vector<String> _M_methods;
         Vector<String> _M_static_properties;
         Vector<String> _M_properties;
+        std::function<Object*()> _M_allocate_object;
+
+        size_t _M_instance_size       = 0;
         void const* _M_lua_static_key = nullptr;
+        void (*_M_post_init)()        = nullptr;
+
+        bool _M_disable_pushing_to_default_package = false;
 
         template<typename Instance>
         static Instance* lua_allocate()
@@ -99,7 +101,9 @@ namespace Engine
             }
             else
             {
-                _M_allocate_object = [&]() -> Object* {
+                _M_allocate_object = [&, this]() -> Object* {
+                    if (this->_M_disable_pushing_to_default_package)
+                        return static_cast<Object*>(Object::new_instance_without_package<Instance>(args...));
                     return static_cast<Object*>(Object::new_instance<Instance>(args...));
                 };
             }
@@ -215,5 +219,6 @@ namespace Engine
 
         friend class Object;
         friend struct LuaInterpretter;
+        friend class Package;
     };
 }// namespace Engine

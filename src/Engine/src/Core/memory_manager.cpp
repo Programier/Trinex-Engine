@@ -17,9 +17,10 @@ namespace Engine
 
     void MemoryManager::free_object(Object* object)
     {
-        if (!object->flag(ObjectFlags::OF_IsCollectedByGC) && object->flag(ObjectFlags::OF_NeedDelete))
+        if (!object->trinex_flag(TrinexObjectFlags::OF_IsCollectedByGC) &&
+            object->trinex_flag(TrinexObjectFlags::OF_NeedDelete))
         {
-            object->internal_set_flag(ObjectFlags::OF_IsCollectedByGC, true);
+            object->trinex_flag(TrinexObjectFlags::OF_IsCollectedByGC, true);
             _M_objects[object->class_instance()->instance_size()].push_back(object);
             ++_M_count;
 
@@ -64,7 +65,7 @@ namespace Engine
 
     void MemoryManager::force_call_destructor(Object* object)
     {
-        if (!object->flag(ObjectFlags::OF_Destructed))
+        if (!object->trinex_flag(TrinexObjectFlags::OF_Destructed))
         {
             object->~Object();
         }

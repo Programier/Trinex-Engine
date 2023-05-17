@@ -46,7 +46,7 @@ namespace Engine
 
     static void init_pipeline_state(VulkanPipelineState& out_state, const PipelineCreateInfo& info)
     {
-        const PipelineState& in_state                   = *info.state;
+        const PipelineState& in_state                   = info.state;
         out_state.input_assembly.primitiveRestartEnable = in_state.input_assembly.primitive_restart_enable;
         out_state.input_assembly.topology =
                 _M_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
@@ -197,9 +197,6 @@ namespace Engine
 
     bool VulkanShader::init(const PipelineCreateInfo& info)
     {
-        if (!info.state)
-            return false;
-
         _M_has_descriptors      = false;
         _M_max_descriptors_sets = info.max_textures_binding_per_frame;
         create_descriptor_layout(info);
@@ -364,12 +361,10 @@ namespace Engine
         if (info.vertex_info.attributes.empty())
             return {};
 
-        return {vk::VertexInputBindingDescription(info.vertex_info.binding, info.vertex_info.size,
-                                                  vk::VertexInputRate::eVertex)};
+        return {vk::VertexInputBindingDescription(0, info.vertex_info.size, vk::VertexInputRate::eVertex)};
     }
 
-    Vector<vk::VertexInputAttributeDescription>
-    VulkanShader::get_attribute_description(const PipelineCreateInfo& info)
+    Vector<vk::VertexInputAttributeDescription> VulkanShader::get_attribute_description(const PipelineCreateInfo& info)
     {
         if (info.vertex_info.attributes.empty())
             return {};
@@ -381,8 +376,7 @@ namespace Engine
         for (auto& attribute : info.vertex_info.attributes)
         {
             attribute_descriptions[index] = vk::VertexInputAttributeDescription(
-                    index, info.vertex_info.binding, _M_shader_data_types[static_cast<uint_t>(attribute.type.type)],
-                    attribute.offset);
+                    index, 0, _M_shader_data_types[static_cast<uint_t>(attribute.type.type)], attribute.offset);
             ++index;
         }
 

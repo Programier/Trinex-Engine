@@ -1,9 +1,12 @@
 #include <Core/class.hpp>
+#include <Core/config.hpp>
+#include <Core/etl/average.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/package.hpp>
 #include <GameInitCommandLet.hpp>
 #include <Graphics/camera.hpp>
 #include <Graphics/framebuffer.hpp>
+#include <Graphics/g_buffer.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -13,71 +16,8 @@
 #include <ImGui/imgui.h>
 #include <Window/window.hpp>
 
-
 namespace Engine
 {
-    struct Vertex {
-        Vector2D pos;
-        Vector2D coord;
-    };
-
-    static Shader* create_shader(Identifier framebuffer_id = 0)
-    {
-        PipelineState state;
-        state.rasterizer.cull_mode = CullMode::None;
-        state.depth_test.enable    = 0;
-
-        ColorBlendAttachmentState color_attachment;
-        state.color_blending.blend_attachment.push_back(color_attachment);
-
-        PipelineCreateInfo info;
-        ShaderTextureSampler sampler;
-        sampler.binding = 0;
-        info.texture_samplers.push_back(sampler);
-        info.state = &state;
-
-        info.name             = "Test Shader";
-        info.vertex_info.size = sizeof(Vertex);
-        {
-            VertexAtribute attribute;
-            attribute.offset = 0;
-            attribute.type   = ShaderDataType::type_of<Vector2D>();
-
-            info.vertex_info.attributes.push_back(attribute);
-
-            attribute.offset = offsetof(Vertex, coord);
-            info.vertex_info.attributes.push_back(attribute);
-        }
-
-        Shader* shader = Object::new_instance<Shader>();
-
-        FileReader reader;
-        String dir = "/home/programier/Projects/Shaders/new/";
-
-        {
-            reader.open(dir + "output.vm");
-            reader.read(info.binaries.vertex, reader.size());
-
-            reader.open(dir + "output.fm");
-            reader.read(info.binaries.fragment, reader.size());
-
-            info.text.fragment.emplace_back();
-            info.text.vertex.emplace_back();
-
-            reader.open(dir + "output.vert");
-            info.text.vertex[0].resize(reader.size() + 1, 0);
-            reader.read(info.text.vertex[0].data(), reader.size());
-
-            reader.open(dir + "output.frag");
-            info.text.fragment[0].resize(reader.size() + 1, 0);
-            reader.read(info.text.fragment[0].data(), reader.size());
-        }
-
-        info.framebuffer_usage = framebuffer_id;
-
-        shader->load(info);
-        return shader;
-    }
 
     struct ModelUBO {
         Matrix4f model;
@@ -87,84 +27,6 @@ namespace Engine
         Matrix4f projview;
     };
 
-    static Shader* create_framebuffer_shader(Identifier framebuffer_id = 0)
-    {
-        Shader* result = nullptr;
-        PipelineState state;
-        state.depth_test.enable    = 0;
-        state.rasterizer.cull_mode = CullMode::None;
-
-        ColorBlendAttachmentState color_attachment;
-        state.color_blending.blend_attachment.push_back(color_attachment);
-
-        PipelineCreateInfo info;
-        ShaderTextureSampler sampler;
-        sampler.binding = 2;
-        info.texture_samplers.push_back(sampler);
-        info.state = &state;
-
-        info.name             = "Test Shader 2";
-        info.vertex_info.size = sizeof(Vertex);
-        {
-            VertexAtribute attribute;
-            attribute.offset = 0;
-            attribute.type   = ShaderDataType::type_of<Vector2D>();
-
-            info.vertex_info.attributes.push_back(attribute);
-
-            attribute.offset = offsetof(Vertex, coord);
-            info.vertex_info.attributes.push_back(attribute);
-        }
-
-
-        FileReader reader;
-        String dir = "/home/programier/Projects/Shaders/new/";
-
-        {
-            reader.open(dir + "framebuffer.vm");
-            reader.read(info.binaries.vertex, reader.size());
-
-            reader.open(dir + "framebuffer.fm");
-            reader.read(info.binaries.fragment, reader.size());
-
-            info.text.fragment.emplace_back();
-            info.text.vertex.emplace_back();
-
-            reader.open(dir + "framebuffer.vert");
-            info.text.vertex[0].resize(reader.size() + 1, 0);
-            reader.read(info.text.vertex[0].data(), reader.size());
-
-            reader.open(dir + "framebuffer.frag");
-            info.text.fragment[0].resize(reader.size() + 1, 0);
-            reader.read(info.text.fragment[0].data(), reader.size());
-        }
-
-        info.framebuffer_usage = framebuffer_id;
-
-
-        ShaderUniformBuffer uniform;
-        uniform.binding = 0;
-        uniform.name    = "camera_ubo";
-        uniform.size    = sizeof(CameraUBO);
-
-        info.uniform_buffers.push_back(uniform);
-
-        uniform.binding = 1;
-        uniform.name    = "model_ubo";
-        uniform.size    = sizeof(ModelUBO);
-
-        info.uniform_buffers.push_back(uniform);
-
-        info.max_textures_binding_per_frame = 5000 * 4;
-
-        info.state->depth_test.enable       = true;
-        info.state->depth_test.write_enable = true;
-
-        result = Object::new_instance<Shader>();
-        result->load(info);
-
-        return result;
-    }
 
     static void update_camera(Camera* camera)
     {
@@ -214,90 +76,17 @@ namespace Engine
     {
         Window window;
 
-        Texture2D color_texture[2];
-        Texture2D depth_texture[2];
-        {
-            TextureCreateInfo& info1 = color_texture[0].resources(true)->info;
+        Package* package  = Object::load_package("TestResources");
+        StaticMesh* mesh1 = package->find_object_checked<StaticMesh>("Mesh 1");
+        StaticMesh* mesh2 = package->find_object_checked<StaticMesh>("Mesh 2");
 
-            info1.size                 = {1280, 720};
-            info1.pixel_type           = PixelType::RGBA;
-            info1.pixel_component_type = PixelComponentType::UnsignedByte;
-            color_texture[0].create();
-
-            TextureCreateInfo& info2 = color_texture[1].resources(true)->info;
-
-            info2.size                 = {1280, 720};
-            info2.pixel_type           = PixelType::RGBA;
-            info2.pixel_component_type = PixelComponentType::UnsignedByte;
-            color_texture[1].create();
-
-            TextureCreateInfo& depth_info1   = depth_texture[0].resources(true)->info;
-            depth_info1.pixel_component_type = PixelComponentType::Depth16;
-            depth_info1.pixel_type           = PixelType::Depth;
-            depth_info1.size                 = {1280, 720};
-            depth_texture[0].create();
-
-            TextureCreateInfo& depth_info2   = depth_texture[1].resources(true)->info;
-            depth_info2.pixel_component_type = PixelComponentType::Depth16;
-            depth_info2.pixel_type           = PixelType::Depth;
-            depth_info2.size                 = {1280, 720};
-            depth_texture[1].create();
-        }
-
-        FrameBuffer framebuffer;
-        {
-            FrameBufferCreateInfo info;
-            info.size = {1280, 720};
-
-            info.buffers.resize(2);
-            FrameBufferAttachment attachment;
-            attachment.texture_id = color_texture[0].id();
-            info.buffers[0].color_attachments.push_back(attachment);
-
-            attachment.texture_id = color_texture[1].id();
-            info.buffers[1].color_attachments.push_back(attachment);
-
-            attachment.texture_id                    = depth_texture[0].id();
-            info.buffers[0].depth_stencil_attachment = attachment;
-
-            attachment.texture_id                    = depth_texture[1].id();
-            info.buffers[1].depth_stencil_attachment = attachment;
-
-
-            FrameBufferAttachmentClearData data;
-            data.clear_on_bind     = 1;
-            data.clear_value.color = ColorClearValue(0.0, 0.0, 0.0, 1.0);
-
-            info.color_clear_data.push_back(data);
-
-            data.clear_value.depth_stencil = DepthStencilClearValue({1.0, 0});
-            info.depth_stencil_clear_data  = data;
-
-            framebuffer.create(info);
-        }
-
-        Shader* shader             = create_shader();
-        Shader* framebuffer_shader = create_framebuffer_shader(framebuffer.id());
-
-
-        Package* package = Object::find_package("TestResources", true);
-        if (package)
-        {
-            package->load();
-        }
-
-        StaticMesh* mesh1 = package->find_object_checked_in_package<StaticMesh>("Mesh 1");
-        StaticMesh* mesh2 = package->find_object_checked_in_package<StaticMesh>("Mesh 2");
-
-        VertexBuffer& vertex_buffer = *mesh1->lods[0].vertex_buffer;
-        IndexBuffer& index_buffer   = *mesh1->lods[0].index_buffer;
-
+        Shader* shader                     = package->find_object_checked<Shader>("Output Shader");
+        Shader* framebuffer_shader         = package->find_object_checked<Shader>("GBuffer Shader");
+        VertexBuffer& vertex_buffer        = *mesh1->lods[0].vertex_buffer;
+        IndexBuffer& index_buffer          = *mesh1->lods[0].index_buffer;
         VertexBuffer& output_vertex_buffer = *mesh2->lods[0].vertex_buffer;
         IndexBuffer& output_index_buffer   = *mesh2->lods[0].index_buffer;
-
-
-        Texture2D& texture = *package->find_object_checked_in_package<Texture2D>("Trinex Texture");
-
+        Texture2D& texture                 = *package->find_object_checked<Texture2D>("Trinex Texture");
 
         UniformBuffer<CameraUBO> camera_ubo[2];
 
@@ -324,6 +113,8 @@ namespace Engine
 
         Camera* current_camera = camera;
 
+
+        Average<double> fps;
         static size_t index = 0;
         while (window.is_open())
         {
@@ -344,7 +135,7 @@ namespace Engine
             ubo.buffer.model = model->model();
             ubo.update(0, sizeof(ModelUBO));
 
-            framebuffer.bind(index);
+            GBuffer::instance()->bind();
             framebuffer_shader->use();
             index_buffer.bind();
 
@@ -362,14 +153,26 @@ namespace Engine
             shader->use();
             output_vertex_buffer.bind();
             output_index_buffer.bind();
-            color_texture[index].bind();
+            GBuffer::instance()->buffer_data().albedo.ptr()->bind();
 
             _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
 
 
             ImGuiRenderer::new_frame();
 
-            ImGui::ShowMetricsWindow();
+            ImGui::Begin("TrinexEngine");
+
+            fps.push(1.0 / Event::diff_time());
+            ImGui::Text("API: %s", engine_config.api.c_str());
+            ImGui::Text("FPS: %lf", fps.average());
+
+            if (fps.count() == 60)
+            {
+                fps.reset();
+            }
+
+            ImGui::End();
+
             ImGuiRenderer::render();
 
             _M_renderer->end();
@@ -379,11 +182,9 @@ namespace Engine
             window.swap_buffers();
             update_camera(current_camera);
 
-            //index = (index + 1) % 2;
-
-
             if (KeyboardEvent::just_pressed(KEY_G))
             {
+
                 package->save();
             }
 
@@ -398,6 +199,7 @@ namespace Engine
             }
         }
 
+        engine_config.save("TrinexEngine/configs/config.cfg");
         _M_renderer->wait_idle();
     }
 

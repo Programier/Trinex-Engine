@@ -16,17 +16,20 @@ namespace Engine
     class Object;
     using MessageList = List<String>;
 
-    enum ObjectFlags : size_t
+    enum TrinexObjectFlags : size_t
     {
         OF_None = 0,
-        // Private section of flags
         OF_IsOnHeap,
         OF_Destructed,
         OF_NeedDelete,
         OF_IsCollectedByGC,
-        __OF_PRIVATE_SECTION__,
+        OF_IsSerializable,
+        __OF_COUNT__
+    };
 
-        // Public section
+    enum class ObjectFlags : size_t
+    {
+        OF_LoadWithDependencies = 0,
         __OF_COUNT__
     };
 
@@ -45,11 +48,12 @@ namespace Engine
 
     private:
         mutable String _M_name;
+        mutable BitSet<static_cast<size_t>(TrinexObjectFlags::__OF_COUNT__)> _M_trinex_flags;
+        BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
+
         Package* _M_package         = nullptr;
         const class Class* _M_class = nullptr;
         Counter _M_references       = 0;
-
-        mutable BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
 
 
         void delete_instance();
@@ -61,14 +65,17 @@ namespace Engine
         Object& mark_as_on_heap_instance();
         Object& insert_to_default_package();
         bool private_check_instance(const class Class* const check_class) const;
-        void internal_set_flag(ObjectFlags flag, bool flag_value);
+        bool trinex_flag(TrinexObjectFlags flag) const;
+        Object& trinex_flag(TrinexObjectFlags flag, bool status);
 
     public:
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static String read_object_name(BufferReader* reader);
         ENGINE_EXPORT static String decode_name(const std::type_info& info);
         ENGINE_EXPORT static String decode_name(const String& name);
         ENGINE_EXPORT static Package* load_package(const String& name);
+        ENGINE_EXPORT static Object* load_object(const String& name);
+        ENGINE_EXPORT static String package_name_of(const String& name);
+        ENGINE_EXPORT static String object_name_of(const String& name);
         String class_name() const;
         size_t class_hash() const;
         ENGINE_EXPORT static const ObjectSet& all_objects();
@@ -83,17 +90,17 @@ namespace Engine
         Package* package() const;
         String full_name() const;
         Counter references() const;
-        bool flag(ObjectFlags flag) const;
-        Object& flag(ObjectFlags flag, bool status);
         const decltype(Object::_M_flags)& flags() const;
+        const Object& flag(ObjectFlags flag, bool status);
+        bool flag(ObjectFlags flag) const;
 
         ENGINE_EXPORT static Object* find_object(const String& object_name);
         virtual bool can_destroy(MessageList& messages);
         static Package* find_package(const String& name, bool create = true);
         const class Class* class_instance() const;
 
-        bool serialize(BufferWriter* writer) const override;
-        bool deserialize(BufferReader* reader) override;
+        bool archive_process(Archive* archive) override;
+
 
         // NOTE! You will manually push object to package, if you use this method!
         template<typename Type, typename... Args>
@@ -222,11 +229,11 @@ namespace Engine
         }
 
         template<typename Type>
-        static void begin_destroy(Type* instance)
+        static void begin_destroy(const Type*& instance)
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                if (instance->flag(ObjectFlags::OF_IsOnHeap))
+                if (instance->flag(TrinexObjectFlags::OF_IsOnHeap))
                 {
                     instance->mark_for_delete();
                 }
@@ -235,6 +242,24 @@ namespace Engine
             {
                 delete instance;
             }
+        }
+
+        template<typename Type>
+        static void begin_destroy(Type*& instance)
+        {
+            if constexpr (std::is_base_of_v<Object, Type>)
+            {
+                if (instance->flag(TrinexObjectFlags::OF_IsOnHeap))
+                {
+                    instance->mark_for_delete();
+                }
+            }
+            else
+            {
+                delete instance;
+            }
+
+            instance = nullptr;
         }
 
     private:
@@ -258,9 +283,5 @@ namespace Engine
         friend class Archive;
         friend class MemoryManager;
     };
-
-    struct __FOR_PRIVATE_USAGE__ {
-    };
-
 
 }// namespace Engine

@@ -17,7 +17,7 @@ namespace Engine
     extern const Array<vk::Filter, 2> _M_texture_filters;
     extern const Array<vk::SamplerMipmapMode, 2> _M_sampler_mipmap_modes;
     extern const Array<vk::CompareOp, 8> _M_compare_funcs;
-    extern const Array<vk::ImageAspectFlags, 7> _M_image_aspects;
+    extern const Array<vk::ImageAspectFlags, 8> _M_image_aspects;
     extern const Array<vk::StencilOp, 8> _M_stencil_ops;
     extern const Array<vk::BlendFactor, 14> _M_blend_factors;
     extern const Array<vk::BlendOp, 5> _M_blend_ops;

@@ -1,8 +1,10 @@
+#include <Core/config.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/predef.hpp>
 #include <Core/string_functions.hpp>
+#include <Graphics/g_buffer.hpp>
 #include <SDL.h>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
@@ -177,6 +179,12 @@ const Window& Window::init(float width, float height, const String& title, uint1
 
     window.update_view_port().update_scissor();
     swap_interval(1);
+
+    if (engine_config.enable_g_buffer && GBuffer::instance() == nullptr)
+    {
+        GBuffer::init_g_buffer();
+    }
+
     return window;
 }
 
@@ -223,6 +231,11 @@ const Window& Window::swap_buffers()
 {
     check_init(window);
     EngineInstance::instance()->api_interface()->swap_buffer(data._M_window);
+    GBuffer* buffer = GBuffer::instance();
+    if (buffer)
+    {
+        buffer->swap_buffer();
+    }
     return window;
 }
 

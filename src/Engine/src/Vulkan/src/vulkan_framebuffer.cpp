@@ -79,9 +79,9 @@ namespace Engine
 
                 _M_clear_values[index].color =
                         vk::ClearColorValue(Array<float, 4>({info.color_clear_data[index].clear_value.color.x,
-                                                                  info.color_clear_data[index].clear_value.color.y,
-                                                                  info.color_clear_data[index].clear_value.color.z,
-                                                                  info.color_clear_data[index].clear_value.color.a}));
+                                                             info.color_clear_data[index].clear_value.color.y,
+                                                             info.color_clear_data[index].clear_value.color.z,
+                                                             info.color_clear_data[index].clear_value.color.a}));
                 ++index;
             }
 

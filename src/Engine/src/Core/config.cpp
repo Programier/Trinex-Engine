@@ -55,8 +55,16 @@ namespace Engine
 
         DECLARE_CONFIG_PROP(lz4_compression_level);
         DECLARE_CONFIG_PROP(max_gc_collected_objects);
+        DECLARE_CONFIG_PROP(min_g_buffer_width);
+        DECLARE_CONFIG_PROP(min_g_buffer_height);
+        DECLARE_CONFIG_PROP(max_g_buffer_width);
+        DECLARE_CONFIG_PROP(max_g_buffer_height);
 
         DECLARE_CONFIG_PROP(delete_resources_after_load);
+        DECLARE_CONFIG_PROP(load_shaders_to_gpu);
+        DECLARE_CONFIG_PROP(load_meshes_to_gpu);
+        DECLARE_CONFIG_PROP(load_textures_to_gpu);
+        DECLARE_CONFIG_PROP(enable_g_buffer);
 
         config_namespace.endNamespace().endNamespace();
     }

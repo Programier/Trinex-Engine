@@ -48,12 +48,11 @@ namespace Engine
     };
 
     struct FrameBufferAttachment {
-        Identifier texture_id       = 0;
-        MipMapLevel mip_level  = 0;
+        Identifier texture_id = 0;
+        MipMapLevel mip_level = 0;
     };
 
-    struct FrameBufferAttachmentClearData
-    {
+    struct FrameBufferAttachmentClearData {
         byte clear_on_bind : 1 = 1;
         FrameBufferClearValue clear_value;
     };
@@ -72,7 +71,7 @@ namespace Engine
 
     enum class VertexBufferSemantic : EnumerateType
     {
-        Vertex       = 0,
+        Position     = 0,
         TexCoord     = 1,
         Color        = 2,
         Normal       = 3,

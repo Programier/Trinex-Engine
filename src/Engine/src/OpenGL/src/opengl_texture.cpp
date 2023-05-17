@@ -14,37 +14,30 @@ namespace Engine
 {
     implement_opengl_instance_cpp(OpenGL_Texture);
 
-    static GLuint get_internal_format(OpenGL_Texture* texture)
+    static GLuint get_internal_format(OpenGL_Texture* texture, const TextureCreateInfo& info)
     {
-        switch (texture->_M_pixel_type)
-        {
-            case GL_DEPTH_COMPONENT:
-            {
-                switch (texture->_M_pixel_component_type)
-                {
-                    case GL_FLOAT:
-                        return GL_DEPTH_COMPONENT32F;
+        using ComponentsArray = GLenum[8];
+        using TypeArray       = ComponentsArray[6];
 
-                    case GL_UNSIGNED_SHORT:
-                        return GL_DEPTH_COMPONENT16;
-                }
-            }
+        static TypeArray data = {
+                {GL_RGB8, GL_RGB32F, 0, 0, 0, 0, 0, GL_RGB16F},
+                {GL_RGBA8, GL_RGBA32F, 0, 0, 0, 0, 0, GL_RGBA16F},
+                {GL_R8, GL_R32F, 0, 0, 0, 0, 0, GL_R16F},
+                {0, 0, GL_DEPTH_COMPONENT16, 0, 0, GL_DEPTH_COMPONENT32F, 0, 0},
+                {0, 0, 0, GL_STENCIL_INDEX8, 0, 0, 0, 0},
+                {0, 0, 0, 0, GL_DEPTH32F_STENCIL8, 0, GL_DEPTH24_STENCIL8, 0},
+        };
 
-            case GL_STENCIL_INDEX:
-                return GL_STENCIL_INDEX8;
+        EnumerateType pt  = static_cast<EnumerateType>(info.pixel_type);
+        EnumerateType pct = static_cast<EnumerateType>(info.pixel_component_type);
 
-            case GL_DEPTH_STENCIL:
-                switch (texture->_M_pixel_component_type)
-                {
-                    case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-                        return GL_DEPTH32F_STENCIL8;
-                    case GL_UNSIGNED_INT_24_8:
-                        return GL_DEPTH24_STENCIL8;
-                }
+        if (pt > 5 || pct > 7)
+            throw EngineException("Incorect format!");
 
-            default:
-                return texture->_M_pixel_type;
-        }
+        GLenum result = data[pt][pct];
+        if (result == 0)
+            throw EngineException("Incorect format!");
+        return result;
     }
 
     OpenGL_Texture::~OpenGL_Texture()
@@ -64,7 +57,7 @@ namespace Engine
         texture->_M_height               = static_cast<GLsizei>(info.size.y);
         texture->_M_pixel_type           = get_type(info.pixel_type);
         texture->_M_pixel_component_type = get_type(info.pixel_component_type);
-        texture->_M_internal_format      = get_internal_format(texture);
+        texture->_M_internal_format      = get_internal_format(texture, info);
         glGenTextures(1, &texture->_M_instance_id);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -461,8 +454,8 @@ namespace Engine
         return value;
     }
 
-    OpenGL& OpenGL::update_texture_2D(const Identifier& ID, const Size2D& size, const Offset2D& offset, MipMapLevel level,
-                                      const void* data)
+    OpenGL& OpenGL::update_texture_2D(const Identifier& ID, const Size2D& size, const Offset2D& offset,
+                                      MipMapLevel level, const void* data)
     {
         OpenGL_Texture* texture = GET_TYPE(OpenGL_Texture, ID);
         internal_bind_texture(texture);

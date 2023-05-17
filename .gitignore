@@ -2,3 +2,7 @@
 resources/Downtown_Damage_0.obj
 GameLinux
 CMakeLists.txt.user
+android/.gradle/
+android/.idea/
+android/app/.cxx/
+android/app/build/

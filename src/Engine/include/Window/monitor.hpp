@@ -14,8 +14,8 @@ namespace Engine
     namespace Monitor
     {
         ENGINE_EXPORT void* monitor();
-        ENGINE_EXPORT Size1D height();
-        ENGINE_EXPORT Size1D width();
+        ENGINE_EXPORT uint height();
+        ENGINE_EXPORT uint width();
         ENGINE_EXPORT int_t refresh_rate();
         ENGINE_EXPORT Size2D size();
         ENGINE_EXPORT void update();

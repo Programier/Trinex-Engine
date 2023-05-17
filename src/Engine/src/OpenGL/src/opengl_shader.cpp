@@ -28,7 +28,7 @@ namespace Engine
         return "undefined type";
     }
 
-    static GLint compile_shader_module(const Vector<FileBuffer>& shader_code, GLenum type, const String& name)
+    static GLint compile_shader_module(const FileBuffer& shader_code, GLenum type, const String& name)
     {
         GLint ID = 0;
 
@@ -38,18 +38,9 @@ namespace Engine
         static GLchar log[1024];
         ID = glCreateShader(type);
 
-        Vector<const GLchar*> code;
-        code.reserve(shader_code.size());
+        const GLchar* code = reinterpret_cast<const GLchar*>(shader_code.data());
 
-        for (auto& buffer : shader_code)
-        {
-            if (!buffer.empty())
-                code.push_back(reinterpret_cast<const GLchar*>(buffer.data()));
-        }
-
-        glShaderSource(ID, code.size(), code.data(), nullptr);
-
-
+        glShaderSource(ID, 1, &code, nullptr);
         glCompileShader(ID);
 
         GLint succes;
@@ -85,7 +76,7 @@ namespace Engine
 
 #define new_shader_command(...) shader->_M_command_buffer.next(new OpenGL_Command(__VA_ARGS__))
 
-    static void create_command_buffer(OpenGL_Shader* shader, PipelineState* state, const String& shader_name)
+    static void create_command_buffer(OpenGL_Shader* shader, const PipelineState* state, const String& shader_name)
     {
         // Depth test
         if (state->depth_test.enable)
@@ -102,9 +93,9 @@ namespace Engine
         {
             new_shader_command(glEnable, static_cast<GLenum>(GL_STENCIL_TEST));
 
-            static GLenum faces[2]                                   = {GL_FRONT, GL_BACK};
-            PipelineState::StencilTestInfo::FaceInfo* state_faces[2] = {&state->stencil_test.front,
-                                                                        &state->stencil_test.back};
+            static GLenum faces[2]                                         = {GL_FRONT, GL_BACK};
+            const PipelineState::StencilTestInfo::FaceInfo* state_faces[2] = {&state->stencil_test.front,
+                                                                              &state->stencil_test.back};
 
             for (int i = 0; i < 2; i++)
             {
@@ -277,7 +268,7 @@ namespace Engine
                 shader->_M_block_indices.insert({ubo.binding, uniform_block_index});
             }
 
-            create_command_buffer(shader, info.state, info.name);
+            create_command_buffer(shader, &info.state, info.name);
         }
         return *this;
     }
