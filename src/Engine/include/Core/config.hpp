@@ -28,9 +28,11 @@ namespace Engine
 
 
         static EngineConfig& instance();
+        EngineConfig& init_callback(void (*)(EngineConfig*));
 
     private:
         EngineConfig();
+        void (*_M_callback)(EngineConfig*) = nullptr;
     };
 
     extern ENGINE_EXPORT EngineConfig& engine_config;

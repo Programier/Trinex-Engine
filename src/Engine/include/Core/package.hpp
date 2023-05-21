@@ -24,7 +24,7 @@ namespace Engine
         Package();
         Package(const String& name);
 
-        bool add_object(Object* object);
+        bool add_object(Object* object, bool autorename = false);
         Package& remove_object(Object* object);
         Object* find_object(const String& name, bool recursive = true) const;
         const ObjectMap& objects() const;

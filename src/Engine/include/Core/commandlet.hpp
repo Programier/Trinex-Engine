@@ -9,5 +9,6 @@ namespace Engine
     {
     public:
         virtual int execute(int argc, char** argv);
+        virtual void on_config_load();
     };
 }

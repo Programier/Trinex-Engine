@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/buffer_types.hpp>
 #include <Core/constants.hpp>
+#include <Core/object_ref.hpp>
 #include <Core/pointer.hpp>
 #include <Core/predef.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -8,6 +9,9 @@
 
 namespace Engine
 {
+    class Material;
+    class MaterialApplier;
+
     struct MeshSemanticEntry {
         byte count = 0;
 
@@ -49,6 +53,7 @@ namespace Engine
     public:
         virtual size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const = 0;
         virtual size_t vertex_size() const                                                  = 0;
+        virtual MeshSemanticEntry& entry_of(VertexBufferSemantic)                           = 0;
         ~MeshSemanticInfo()
         {}
     };
@@ -71,6 +76,7 @@ namespace Engine
         StaticMeshSemanticInfo();
         size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const override;
         size_t vertex_size() const override;
+        MeshSemanticEntry& entry_of(VertexBufferSemantic) override;
     };
 
     struct ENGINE_EXPORT DynamicMeshSemanticInfo : public MeshSemanticInfo {
@@ -93,6 +99,7 @@ namespace Engine
         DynamicMeshSemanticInfo();
         size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const override;
         size_t vertex_size() const override;
+        MeshSemanticEntry& entry_of(VertexBufferSemantic) override;
     };
 
 
@@ -102,13 +109,23 @@ namespace Engine
         struct ENGINE_EXPORT MeshLOD : public SerializableObject {
             VertexBuffer* vertex_buffer = nullptr;
             IndexBuffer* index_buffer   = nullptr;
-
+            ObjectReference<Material> material_reference;
             bool archive_process(Archive* archive) override;
+
+            friend class Mesh;
+
+        private:
+            MaterialApplier* _M_material_applier = nullptr;
         };
 
+    protected:
+        void create_appliers(Archive*);
+
+    public:
         Vector<MeshLOD> lods;
         virtual const MeshSemanticInfo& semantic_info() const = 0;
         bool archive_process(Archive* archive) override;
+        MaterialApplier* material_applier(Index lod) const;
 
         ~Mesh();
     };

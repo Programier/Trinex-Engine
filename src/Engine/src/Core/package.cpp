@@ -39,7 +39,6 @@ namespace Engine
         }
     };
 
-
     register_class(Engine::Package, Engine::Object)
             .register_method("add_object", &Package::add_object)
             .register_method("remove_object", &Package::remove_object);
@@ -52,7 +51,7 @@ namespace Engine
         name(_name);
     }
 
-    bool Package::add_object(Object* object)
+    bool Package::add_object(Object* object, bool autorename)
     {
         if (!object)
             return false;
@@ -63,11 +62,25 @@ namespace Engine
             return false;
         }
 
+        if (!autorename && _M_objects.contains(object->name()))
+        {
+            logger->error("Package: Cannot add object to package. Object with name '%s' already exist in package!",
+                          object->name().c_str());
+            return false;
+        }
+
         if (object->_M_package)
-            _M_package->remove_object(object);
+        {
+            object->_M_package->_M_objects.erase(object->_M_name);
+        }
+
+        while (_M_objects.contains(object->_M_name))
+        {
+            object->_M_name += "_new";
+        }
 
         object->_M_package = this;
-        _M_objects.insert_or_assign(object->name(), object);
+        _M_objects.insert_or_assign(object->_M_name, object);
         return true;
     }
 
@@ -79,7 +92,7 @@ namespace Engine
         object->_M_package = nullptr;
         _M_objects.erase(object->name());
 
-        Object::root_package()->add_object(object);
+        Object::root_package()->add_object(object, true);
         return *this;
     }
 

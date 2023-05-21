@@ -135,6 +135,55 @@ namespace Engine
 
     ENGINE_EXPORT EngineInstance* engine_instance;
 
+
+    static CommandLet* find_command_let(int argc, char** argv)
+    {
+        // Load commandlet
+        CommandLet* command_let = nullptr;
+        if (argc > 1)
+        {
+            Class* class_instance = Class::find_class(argv[1]);
+            if (class_instance)
+            {
+                Object* object = class_instance->create();
+                command_let    = object->instance_cast<CommandLet>();
+
+                if (!command_let)
+                {
+                    logger->error("Engine: Class '%s' is not commandlet!", class_instance->name().c_str());
+                    return nullptr;
+                }
+            }
+            else
+            {
+                logger->error("Engine: Failed to load commandlet '%s'", argv[1]);
+                return nullptr;
+            }
+        }
+
+        if (!command_let)
+        {
+            Class* class_instance = Class::find_class(engine_config.base_commandlet);
+
+            if (!class_instance)
+            {
+                logger->error("Engine: Failed to load commandlet '%s'", engine_config.base_commandlet.c_str());
+                return nullptr;
+            }
+
+            Object* object = class_instance->create();
+            command_let    = object->instance_cast<CommandLet>();
+
+            if (!command_let)
+            {
+                logger->error("Engine: Class '%s' is not commandlet!", engine_config.base_commandlet.c_str());
+                return nullptr;
+            }
+        }
+
+        return command_let;
+    }
+
     int EngineInstance::start(int argc, char** argv)
     {
         if (_M_is_inited)
@@ -164,7 +213,17 @@ namespace Engine
         initialize_list().clear();
 
         engine_config.init(FileManager::root_file_manager()->work_dir() / Path("TrinexEngine/configs/init_config.cfg"));
+
+
         LuaInterpretter::init_lua_dir();
+
+        CommandLet* command_let = find_command_let(argc, argv);
+        if (!command_let)
+        {
+            return -1;
+        }
+
+        command_let->on_config_load();
 
         _M_api = get_api_by_name(engine_config.api);
 
@@ -184,50 +243,6 @@ namespace Engine
         if (engine_config.max_g_buffer_width < 200)
         {
             engine_config.max_g_buffer_width = static_cast<uint_t>(Monitor::width());
-        }
-
-
-        // Load commandlet
-        CommandLet* command_let = nullptr;
-        if (argc > 1)
-        {
-            Class* class_instance = Class::find_class(argv[1]);
-            if (class_instance)
-            {
-                Object* object = class_instance->create();
-                command_let    = object->instance_cast<CommandLet>();
-
-                if (!command_let)
-                {
-                    logger->error("Engine: Class '%s' is not commandlet!", class_instance->name().c_str());
-                    return -1;
-                }
-            }
-            else
-            {
-                logger->error("Engine: Failed to load commandlet '%s'", argv[1]);
-                return -1;
-            }
-        }
-
-        if (!command_let)
-        {
-            Class* class_instance = Class::find_class(engine_config.base_commandlet);
-
-            if (!class_instance)
-            {
-                logger->error("Engine: Failed to load commandlet '%s'", engine_config.base_commandlet.c_str());
-                return -1;
-            }
-
-            Object* object = class_instance->create();
-            command_let    = object->instance_cast<CommandLet>();
-
-            if (!command_let)
-            {
-                logger->error("Engine: Class '%s' is not commandlet!", engine_config.base_commandlet.c_str());
-                return -1;
-            }
         }
 
         auto status = command_let->execute(argc - 1, argv + 1);

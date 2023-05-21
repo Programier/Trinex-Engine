@@ -12,20 +12,8 @@
 namespace Engine
 {
 
-    class StaticMesh;
-
-    struct ShaderResource : SerializableObject {
-        PipelineCreateInfo create_info;
-        ObjectReference<class StaticMesh> mesh_reference;
-
-        bool archive_process(Archive* archive) override;
-    };
-
-    class ENGINE_EXPORT Shader : public Resource<ShaderResource, ApiObject>
+    class ENGINE_EXPORT Shader : public ApiObject
     {
-    private:
-        Shader& load_to_gpu();
-
     public:
         delete_copy_constructors(Shader);
         constructor_hpp(Shader);
@@ -35,8 +23,6 @@ namespace Engine
 
         const Shader& use() const;
         static void unbind();
-
-        bool archive_process(Archive* archive) override;
     };
 
 }// namespace Engine

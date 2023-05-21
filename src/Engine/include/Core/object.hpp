@@ -83,8 +83,8 @@ namespace Engine
         bool is_on_heap() const;
         ENGINE_EXPORT static void collect_garbage();
         const String& name() const;
-        ObjectRenameStatus name(const String& name);
-        virtual Object& copy(const Object* copy_from);
+        ObjectRenameStatus name(const String& name, bool autorename = false);
+        virtual Object* copy();
         bool add_to_package(Package* package, bool autorename = false);
         Object& remove_from_package();
         Package* package() const;
@@ -137,7 +137,7 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_instance_named(const String& name, Package* package, const Args&... args)
+        static Type* new_instance_named(const String& name, Package* package = nullptr, const Args&... args)
         {
             if constexpr (!std::is_base_of_v<Object, Type>)
             {
@@ -268,6 +268,9 @@ namespace Engine
         static void* operator new[](std::size_t count)            = delete;
         static void* operator new[](std::size_t size, void* data) = delete;
 
+        static ENGINE_EXPORT void force_garbage_collection();
+        friend void call_force_garbage_collection();
+
     protected:
         static void operator delete(void* data);
         static void operator delete[](void* data) = delete;
@@ -277,7 +280,6 @@ namespace Engine
 
 
         virtual ~Object();
-        friend void force_garbage_collection();
         friend class Package;
         friend class PointerBase;
         friend class Archive;

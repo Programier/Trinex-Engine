@@ -19,16 +19,31 @@ namespace Engine
         return config;
     }
 
+    EngineConfig& EngineConfig::init_callback(void (*callback)(EngineConfig*))
+    {
+        _M_callback = callback;
+        return *this;
+    }
+
     EngineConfig& EngineConfig::init(const String& filename)
     {
         auto loader = luabridge::getGlobal(LuaInterpretter::state(), "Engine")["load_config"];
-        loader(filename);
+        try
+        {
+            loader(filename);
+        }
+        catch (const std::exception& e)
+        {
+            error_log("Config: Failed to load config!");
+        }
 
         if (max_gc_collected_objects < 100)
         {
             max_gc_collected_objects = 2000;
         }
 
+        if (_M_callback)
+            _M_callback(this);
         return *this;
     }
 

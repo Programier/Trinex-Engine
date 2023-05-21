@@ -145,7 +145,7 @@ namespace Engine
 
         if (archive->is_reading())
         {
-            if (engine_config.load_textures_to_gpu == false)
+            if (engine_instance->api() == EngineAPI::NoAPI || engine_config.load_textures_to_gpu == false)
                 return true;
             return load();
         }

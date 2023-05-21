@@ -50,7 +50,7 @@ namespace Engine
                      .register_method("collect_garbage", Object::collect_garbage)
                      .register_method("get_name", static_cast<const String& (Object::*) () const>(&Object::name))
                      .register_method("set_name",
-                                      static_cast<ObjectRenameStatus (Object::*)(const String& name)>(&Object::name))
+                                      static_cast<ObjectRenameStatus (Object::*)(const String&, bool)>(&Object::name))
                      .register_method("add_to_package", &Object::add_to_package);
 
 
@@ -237,6 +237,9 @@ namespace Engine
             return false;
         };
 
+        if (trinex_flag(TrinexObjectFlags::OF_Destructed) || trinex_flag(TrinexObjectFlags::OF_NeedDelete))
+            return false;
+
         if (!skip_check)
         {
             MessageList errors;
@@ -277,14 +280,14 @@ namespace Engine
         return _M_name;
     }
 
-    ObjectRenameStatus Object::name(const String& new_name)
+    ObjectRenameStatus Object::name(const String& new_name, bool autorename)
     {
         if (_M_name == new_name)
             return ObjectRenameStatus::Skipped;
 
         Package* package = _M_package;
 
-        if (package && package->objects().contains(new_name))
+        if (!autorename && package && package->objects().contains(new_name))
         {
             logger->error("Object: Failed to rename object. Object with name '%s' already exist in package '%s'",
                           new_name.c_str(), _M_package->name().c_str());
@@ -292,11 +295,17 @@ namespace Engine
         }
 
         if (package)
-            package->remove_object(this);
+        {
+            package->_M_objects.erase(_M_name);
+            _M_package = nullptr;
+        }
 
         _M_name = new_name;
+
         if (package)
-            package->add_object(this);
+            return Object::add_to_package(package, autorename) ? ObjectRenameStatus::Success
+                                                               : ObjectRenameStatus::Failed;
+
         return ObjectRenameStatus::Success;
     }
 
@@ -305,23 +314,30 @@ namespace Engine
         MemoryManager::instance().collect_garbage();
     }
 
-    Object& Object::copy(const Object* copy_from)
+    Object* Object::copy()
     {
-        return *this;
+        if (_M_class == nullptr || trinex_flag(TrinexObjectFlags::OF_NeedDelete) ||
+            trinex_flag(TrinexObjectFlags::OF_Destructed))
+            return nullptr;
+
+        Object* object = nullptr;
+
+        {
+            bool flag = _M_class->_M_disable_pushing_to_default_package;
+            const_cast<Class*>(_M_class)->_M_disable_pushing_to_default_package = true;
+
+            object = _M_class->create();
+
+            const_cast<Class*>(_M_class)->_M_disable_pushing_to_default_package = flag;
+            object->_M_flags                                                    = _M_flags;
+        }
+
+        return object;
     }
 
     bool Object::add_to_package(Package* package, bool autorename)
     {
-        if (package)
-        {
-            auto& objects = package->objects();
-
-            if (autorename)
-                while (objects.contains(_M_name)) _M_name += "_new";
-
-            return package->add_object(this);
-        }
-        return false;
+        return package->add_object(this, autorename);
     }
 
     Object& Object::remove_from_package()
@@ -493,7 +509,8 @@ namespace Engine
 
     /////////////////////////////// GARBAGE CONTROLLER  ///////////////////////////////
     static bool shutdown = false;
-    void force_garbage_collection()
+
+    void Object::force_garbage_collection()
     {
         if (!shutdown)
             return;
@@ -501,18 +518,22 @@ namespace Engine
         info_log("Engine: Triggered garbage collector!\n");
 
         Object::collect_garbage();
+        MemoryManager& manager             = MemoryManager::instance();
+        manager._M_disable_collect_garbage = true;
+
         while (!get_instance_list().empty())
         {
             Object* object = (*get_instance_list().begin());
             object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
-            object->delete_instance();
+            manager.free_object(object);
+            get_instance_list().erase(object);
         }
     }
 
-    static void call_force_garbage_collection()
+    void call_force_garbage_collection()
     {
         shutdown = true;
-        force_garbage_collection();
+        Object::force_garbage_collection();
     }
 
     Package* Object::root_package()

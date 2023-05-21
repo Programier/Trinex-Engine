@@ -21,18 +21,18 @@ namespace Engine
 
     Frustum& Frustum::from_camera(const Camera& camera)
     {
-        const auto pos = camera.position();
+        const auto pos = camera.transform.position();
 
         const float _near = camera.min_render_distance();
 
         const float view_angle = camera.viewing_angle();
-        const float aspect = camera.aspect();
+        const float aspect     = camera.aspect();
         if (aspect == 0)
             throw std::runtime_error("Aspect can't be zero!");
 
-        const auto front_vector = camera.front_vector();
-        const auto up_vector = camera.up_vector();
-        const auto right_vector = camera.right_vector();
+        const auto front_vector = camera.transform.front_vector();
+        const auto up_vector    = camera.transform.up_vector();
+        const auto right_vector = camera.transform.right_vector();
 
 
         const float half_v_side = camera.max_render_distance() * glm::tan(view_angle * 0.5f);
@@ -41,11 +41,11 @@ namespace Engine
         const Vector3D front_mult_far = camera.max_render_distance() * front_vector;
 
         near = {pos + _near * front_vector, front_vector};
-        far = {pos + front_mult_far, -front_vector};
+        far  = {pos + front_mult_far, -front_vector};
 
-        right = {pos, glm::cross(up_vector, front_mult_far + right_vector * half_h_side)};
-        left = {pos, glm::cross(front_mult_far - right_vector * half_h_side, up_vector)};
-        top = {pos, glm::cross(right_vector, front_mult_far - up_vector * half_v_side)};
+        right  = {pos, glm::cross(up_vector, front_mult_far + right_vector * half_h_side)};
+        left   = {pos, glm::cross(front_mult_far - right_vector * half_h_side, up_vector)};
+        top    = {pos, glm::cross(right_vector, front_mult_far - up_vector * half_v_side)};
         bottom = {pos, glm::cross(front_mult_far + up_vector * half_v_side, right_vector)};
         return *this;
     }

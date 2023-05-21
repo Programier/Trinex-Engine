@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Core/actor.hpp>
+
 #include <Core/export.hpp>
 #include <Graphics/basic_object.hpp>
 #include <Graphics/transform_component.hpp>
@@ -9,17 +11,18 @@
 namespace Engine
 {
 
-    class ENGINE_EXPORT Camera : public TransformComponents::TranslateRotate
+    class ENGINE_EXPORT Camera : public Actor
     {
     private:
-        EulerAngle1D _M_viewingAngle;
-        Distance _M_maxRenderDistance = 100.0f, _M_minRenderDistance = 0.5f;
+        EulerAngle1D _M_viewing_angle;
+        Distance _M_max_render_distance = 100.0f, _M_min_render_distance = 0.5f;
         mutable float _M_aspect = 0.f;
-        bool _M_need_update     = true;
 
         Matrix4f _M_projection, _M_view, _M_projview;
 
+        Camera& update_projection_matrix();
     public:
+
         delete_copy_constructors(Camera);
         Camera(Point3D position = {0.f, 0.f, 0.f}, float fov = glm::radians(90.f));
         Distance& max_render_distance();
@@ -37,10 +40,7 @@ namespace Engine
         const Matrix4f& projview();
         float aspect() const;
         Camera& aspect(float value);
-        Camera& update_matrices();
-        Vector3D front_vector() const;
-        bool need_update() const;
-        Camera& need_update(bool flag);
+        Camera& update() override;
         ~Camera();
     };
 

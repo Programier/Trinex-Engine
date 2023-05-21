@@ -5,12 +5,13 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT MemoryManager
+    class ENGINE_EXPORT MemoryManager final
     {
     private:
         Allocator<byte> allocator;
         TreeMap<size_t, List<Object*>> _M_objects;
         size_t _M_count = 0;
+        bool _M_disable_collect_garbage = false;
 
         MemoryManager();
         void free_object(class Object* object);
@@ -18,6 +19,8 @@ namespace Engine
         Object* find_memory(size_t size);
         void force_destroy_object(Object* object);
         void force_call_destructor(Object* object);
+
+        ~MemoryManager();
 
     public:
         ENGINE_EXPORT static MemoryManager& instance();

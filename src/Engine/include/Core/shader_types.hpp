@@ -119,6 +119,9 @@ namespace Engine
         String name;
         ShaderDataType type;
         ArrayIndex offset = 0;
+
+        inline VertexAtribute(const String& _name = "") : name(_name)
+        {}
     };
 
     struct VertexBufferInfo {
@@ -251,7 +254,7 @@ namespace Engine
             float depth_bias_const_factor = 0.0;
             float depth_bias_clamp        = 0.0;
             float depth_bias_slope_factor = 0.0;
-            float line_width            = 1.0;
+            float line_width              = 1.0;
 
             byte depth_bias_enable : 1  = 0;
             byte discard_enable : 1     = 0;
@@ -294,7 +297,7 @@ namespace Engine
 
         String name;
         VertexBufferInfo vertex_info;
-        Identifier framebuffer_usage = 0;
+        Identifier framebuffer_usage          = 0;
         uint_t max_textures_binding_per_frame = 100;
     };
 }// namespace Engine

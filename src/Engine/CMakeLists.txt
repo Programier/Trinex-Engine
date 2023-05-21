@@ -91,6 +91,13 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_WINDOW_SRC}
                         ${TRINEX_COMMANDLETS_SRC})
 
 
+include_directories("libs/tinygltf/include/")
+set(TRINEX_TINYGLTF_DIR "${TRINEX_ENGINE_SRC}/tinygltf/")
+file(GLOB TRINEX_TINYGLTF_SRC "${TRINEX_TINYGLTF_DIR}*.cpp")
+set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_SRC})
+
+
+
 # Include private headers for imgui
 include_directories(${TRINEX_ENGINE_ROOT}/include-internal/ImGui-Private/)
 
@@ -111,11 +118,16 @@ endif()
 # Compile Trinex Engine library
 add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 
+
+
 # Linking libraries and including directories
 target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include/ImGui>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/>")
-target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static libluajit ${PlatformLibs})
+
+
+target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static libluajit)
+
 
 install(TARGETS TrinexEngine SDL2 DESTINATION "./TrinexEngine/libs/")
 install(DIRECTORY configs DESTINATION "./TrinexEngine/")

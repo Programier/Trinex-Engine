@@ -10,13 +10,13 @@ namespace Engine
 {
     class ENGINE_EXPORT PipelineBuffer : public Resource<Buffer, ApiObjectNoBase>, SerializableObject
     {
-    protected:
+    private:
         size_t _M_size = 0;
 
     public:
         inline size_t size() const
         {
-            return _M_size;
+            return _M_resources ? _M_resources->size() : _M_size;
         }
 
         bool archive_process(Archive* archive) override;
@@ -27,7 +27,7 @@ namespace Engine
     public:
         VertexBuffer();
         delete_copy_constructors(VertexBuffer);
-        virtual VertexBuffer& create(const byte* data, size_t size);
+        virtual VertexBuffer& create();
         VertexBuffer& update(size_t offset, const byte* data, size_t size);
         VertexBuffer& bind(size_t offset = 0);
         virtual MappedMemory map_memory();
@@ -47,10 +47,11 @@ namespace Engine
         IndexBuffer();
         delete_copy_constructors(IndexBuffer);
 
-        virtual IndexBuffer& create(const byte* data, size_t size, IndexBufferComponent component);
+        IndexBuffer& create();
         IndexBuffer& update(size_t offset, const byte* data, size_t size);
         IndexBuffer& bind(size_t offset = 0);
         IndexBufferComponent component() const;
+        IndexBuffer& component(IndexBufferComponent component);
 
         virtual MappedMemory map_memory();
         virtual IndexBuffer& unmap_memory();

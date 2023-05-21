@@ -29,6 +29,7 @@ namespace Engine
     public:
         static ENGINE_EXPORT GBuffer* instance();
         const GBufferData& buffer_data();
+        const GBufferData& previous_buffer_data();
         GBuffer& bind();
 
         friend class Window;

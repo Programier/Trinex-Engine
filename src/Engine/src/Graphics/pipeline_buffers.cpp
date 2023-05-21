@@ -30,6 +30,7 @@ namespace Engine
                 return false;
             }
 
+            _M_size = _M_resources->size();
             return true;
         }
 
@@ -46,11 +47,17 @@ namespace Engine
     VertexBuffer::VertexBuffer()
     {}
 
-    VertexBuffer& VertexBuffer::create(const byte* data, size_t size)
+    VertexBuffer& VertexBuffer::create()
     {
+        if (_M_resources == nullptr)
+        {
+            error_log("IndexBuffer: Cannot create vertex buffer: No resources found!");
+            return *this;
+        }
+
         destroy();
-        EngineInstance::instance()->api_interface()->create_vertex_buffer(_M_ID, data, size);
-        _M_size = size;
+        EngineInstance::instance()->api_interface()->create_vertex_buffer(_M_ID, _M_resources->data(),
+                                                                          _M_resources->size());
         return *this;
     }
 
@@ -95,7 +102,8 @@ namespace Engine
         if (archive->is_reading())
         {
             destroy();
-            create(_M_resources->data(), _M_resources->size());
+            if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
+                create();
 
             if (engine_config.delete_resources_after_load)
             {
@@ -113,12 +121,17 @@ namespace Engine
     IndexBuffer::IndexBuffer()
     {}
 
-    IndexBuffer& IndexBuffer::create(const byte* data, size_t size, IndexBufferComponent component)
+    IndexBuffer& IndexBuffer::create()
     {
+        if (_M_resources == nullptr)
+        {
+            error_log("IndexBuffer: Cannot create index buffer: No resources found!");
+            return *this;
+        }
+
         destroy();
-        EngineInstance::instance()->api_interface()->create_index_buffer(_M_ID, data, size, component);
-        _M_component = component;
-        _M_size      = size;
+        EngineInstance::instance()->api_interface()->create_index_buffer(_M_ID, _M_resources->data(),
+                                                                         _M_resources->size(), _M_component);
         return *this;
     }
 
@@ -137,6 +150,12 @@ namespace Engine
     IndexBufferComponent IndexBuffer::component() const
     {
         return _M_component;
+    }
+
+    IndexBuffer& IndexBuffer::component(IndexBufferComponent component)
+    {
+        _M_component = component;
+        return *this;
     }
 
     MappedMemory IndexBuffer::map_memory()
@@ -169,7 +188,8 @@ namespace Engine
         if (archive->is_reading())
         {
             destroy();
-            create(_M_resources->data(), _M_resources->size(), _M_component);
+            if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
+                create();
 
             if (engine_config.delete_resources_after_load)
             {
@@ -203,6 +223,6 @@ namespace Engine
 
     size_t IndexBuffer::elements_count() const
     {
-        return _M_size / component_size();
+        return PipelineBuffer::size() / component_size();
     }
 }// namespace Engine

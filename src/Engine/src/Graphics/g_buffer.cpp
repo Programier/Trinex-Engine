@@ -100,6 +100,11 @@ namespace Engine
         return _M_buffer_data[index];
     }
 
+    const GBufferData& GBuffer::previous_buffer_data()
+    {
+        return _M_buffer_data[(index + 1) % 3];
+    }
+
     GBuffer& GBuffer::bind()
     {
         BasicFrameBuffer::bind(index);

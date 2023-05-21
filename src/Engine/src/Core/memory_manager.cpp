@@ -18,16 +18,19 @@ namespace Engine
     void MemoryManager::free_object(Object* object)
     {
         if (!object->trinex_flag(TrinexObjectFlags::OF_IsCollectedByGC) &&
-            object->trinex_flag(TrinexObjectFlags::OF_NeedDelete))
+            object->trinex_flag(TrinexObjectFlags::OF_NeedDelete) &&
+            object->trinex_flag(TrinexObjectFlags::OF_IsOnHeap))
         {
             object->trinex_flag(TrinexObjectFlags::OF_IsCollectedByGC, true);
-            _M_objects[object->class_instance()->instance_size()].push_back(object);
+            if (_M_disable_collect_garbage)
+                _M_objects[0].push_back(object);
+            else
+                _M_objects[object->class_instance()->instance_size()].push_back(object);
             ++_M_count;
 
-            // Force call destructor
-            std::destroy_at(object);
+            force_call_destructor(object);
 
-            if (_M_count > static_cast<size_t>(engine_config.max_gc_collected_objects))
+            if (!_M_disable_collect_garbage && _M_count > static_cast<size_t>(engine_config.max_gc_collected_objects))
             {
                 collect_garbage();
             }
@@ -67,7 +70,7 @@ namespace Engine
     {
         if (!object->trinex_flag(TrinexObjectFlags::OF_Destructed))
         {
-            object->~Object();
+            std::destroy_at(object);
         }
     }
 
@@ -83,5 +86,10 @@ namespace Engine
 
         _M_count = 0;
         _M_objects.clear();
+    }
+
+    MemoryManager::~MemoryManager()
+    {
+        collect_garbage();
     }
 }// namespace Engine

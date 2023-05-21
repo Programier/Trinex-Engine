@@ -48,11 +48,12 @@ namespace Engine
 
     using Vector4D = glm::vec4;
 
-    using ArrayIndex    = size_t;
-    using ArrayOffset   = size_t;
-    using PriorityIndex = size_t;
-    using Counter       = size_t;
-    using Index         = size_t;
+    using ArrayIndex          = size_t;
+    using ArrayOffset         = size_t;
+    using PriorityIndex       = size_t;
+    using Counter             = size_t;
+    using Index               = size_t;
+    using MaterialLayoutIndex = size_t;
 
 
     using Quaternion = glm::quat;

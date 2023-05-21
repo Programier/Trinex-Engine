@@ -8,6 +8,7 @@
 #include <Graphics/framebuffer.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/shader.hpp>
@@ -15,6 +16,7 @@
 #include <Graphics/uniform_buffer.hpp>
 #include <ImGui/imgui.h>
 #include <Window/window.hpp>
+#include <thread>
 
 namespace Engine
 {
@@ -27,36 +29,55 @@ namespace Engine
         Matrix4f projview;
     };
 
+    struct Kek {
+        Vector3D axis;
+    };
 
+
+    static float min_time     = 100;
+    static float max_time     = 0;
+    static float current_diff = 0;
+
+
+#define K 0.5f
     static void update_camera(Camera* camera)
     {
         static float speed  = 5.0f;
-        float current_speed = speed * Event::diff_time();
+        current_diff        = (current_diff * K) + (Event::diff_time() * (1.f - K));
+        float current_speed = speed * current_diff;
+
+        if (Event::time() > 5.0)
+        {
+            min_time = std::min(min_time, current_diff);
+            max_time = std::max(max_time, current_diff);
+        }
+
+        Transform* camera_transform = &camera->transform;
 
         if (KeyboardEvent::pressed(KEY_W))
         {
-            camera->move(camera->front_vector() * current_speed);
+            camera_transform->move(camera_transform->front_vector() * current_speed);
         }
 
         if (KeyboardEvent::pressed(KEY_S))
         {
-            camera->move(camera->front_vector() * -current_speed);
+            camera_transform->move(camera_transform->front_vector() * -current_speed);
         }
 
         if (KeyboardEvent::pressed(KEY_D))
         {
-            camera->move(camera->right_vector() * current_speed);
+            camera_transform->move(camera_transform->right_vector() * current_speed);
         }
 
         if (KeyboardEvent::pressed(KEY_A))
         {
-            camera->move(camera->right_vector() * -current_speed);
+            camera_transform->move(camera_transform->right_vector() * -current_speed);
         }
 
         if (KeyboardEvent::pressed(KEY_SPACE))
         {
             float k = (KeyboardEvent::pressed(KEY_LEFT_SHIFT) ? -1.f : 1.f);
-            camera->move(camera->up_vector() * current_speed * k);
+            camera_transform->move(camera_transform->up_vector() * current_speed * k);
         }
 
         if (KeyboardEvent::just_pressed(KEY_ENTER))
@@ -66,22 +87,29 @@ namespace Engine
 
         if (MouseEvent::relative_mode())
         {
-            auto offset = MouseEvent::offset() / (Window::size());
-            camera->rotate(-offset.x, Constants::OY);
-            camera->rotate(offset.y, camera->right_vector());
+            auto offset = MouseEvent::offset() / (Window::size() / 2.f);
+            camera_transform->rotate(-offset.x, Constants::OY);
+            camera_transform->rotate(offset.y, camera_transform->right_vector());
         }
     }
+
+
+    static void update_shader(Shader* shader)
+    {}
 
     void GameInit::loop()
     {
         Window window;
 
         Package* package  = Object::load_package("TestResources");
-        StaticMesh* mesh1 = package->find_object_checked<StaticMesh>("Mesh 1");
+        StaticMesh* mesh1 = package->find_object_checked<StaticMesh>("Cube");
         StaticMesh* mesh2 = package->find_object_checked<StaticMesh>("Mesh 2");
 
-        Shader* shader                     = package->find_object_checked<Shader>("Output Shader");
-        Shader* framebuffer_shader         = package->find_object_checked<Shader>("GBuffer Shader");
+        Shader* shader             = mesh2->material_applier(0)->shader();
+        Shader* framebuffer_shader = mesh1->material_applier(0)->shader();
+
+        update_shader(framebuffer_shader);
+
         VertexBuffer& vertex_buffer        = *mesh1->lods[0].vertex_buffer;
         IndexBuffer& index_buffer          = *mesh1->lods[0].index_buffer;
         VertexBuffer& output_vertex_buffer = *mesh2->lods[0].vertex_buffer;
@@ -112,12 +140,14 @@ namespace Engine
 
 
         Camera* current_camera = camera;
-
+        UniformBuffer<Kek> fragment_ubo;
+        fragment_ubo.create();
 
         Average<double> fps;
         static size_t index = 0;
         while (window.is_open())
         {
+            camera->update();
 
             if (MouseEvent::scroll_offset().y != 0)
             {
@@ -131,8 +161,11 @@ namespace Engine
 
             camera_ubo[index].buffer.projview = camera->projview();
             camera_ubo[index].update(0, sizeof(CameraUBO));
+            fragment_ubo.buffer.axis = camera->transform.front_vector();
+            fragment_ubo.update(0, sizeof(Kek));
 
-            ubo.buffer.model = model->model();
+
+            ubo.buffer.model = model->transform.matrix();
             ubo.update(0, sizeof(ModelUBO));
 
             GBuffer::instance()->bind();
@@ -142,7 +175,6 @@ namespace Engine
 
             vertex_buffer.bind();
             camera_ubo[index].bind_buffer(0);
-
             ubo.bind_buffer(1);
             texture.bind(2);
 
@@ -154,6 +186,7 @@ namespace Engine
             output_vertex_buffer.bind();
             output_index_buffer.bind();
             GBuffer::instance()->buffer_data().albedo.ptr()->bind();
+            GBuffer::instance()->previous_buffer_data().albedo.ptr()->bind(1);
 
             _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
 
@@ -165,6 +198,12 @@ namespace Engine
             fps.push(1.0 / Event::diff_time());
             ImGui::Text("API: %s", engine_config.api.c_str());
             ImGui::Text("FPS: %lf", fps.average());
+            {
+                const Transform& transform = camera->transform;
+                ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
+                            transform.position().z);
+                ImGui::Text("Min: %f, Max: %f, Current: %f", min_time, max_time, current_diff);
+            }
 
             if (fps.count() == 60)
             {
@@ -208,6 +247,7 @@ namespace Engine
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window window;
         window.init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
+        window.vsync(true);
         ImGuiRenderer::init();
 
         loop();
