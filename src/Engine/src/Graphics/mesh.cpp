@@ -113,12 +113,6 @@ namespace Engine
 
     bool Mesh::MeshLOD::archive_process(Archive* archive)
     {
-
-        if (!vertex_buffer || !index_buffer)
-        {
-            error_log("MeshLOD: Cannot process resources!");
-        }
-
         if (!vertex_buffer.archive_process(archive) || !index_buffer.archive_process(archive))
         {
             return false;

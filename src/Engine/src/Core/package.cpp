@@ -375,6 +375,7 @@ namespace Engine
 
         if (!entry.object->archive_process(&archive))
         {
+            error_log("Package: Failed to load object '%s'", entry.name.c_str());
             entry.object->mark_for_delete(true);
             return false;
         }
