@@ -102,8 +102,8 @@ namespace Engine::GLTF
         size_t vertices = calculate_vertex_info(model, primitive, mesh->info);
 
         {
-            VertexBuffer* vertex_buffer = Object::new_instance<VertexBuffer>();
-            mesh->lods[0].vertex_buffer = vertex_buffer;
+
+            VertexBuffer* vertex_buffer = &mesh->lods[0].vertex_buffer;
 
             auto vertex_resources = vertex_buffer->resources(true);
             vertex_resources->resize(vertices * mesh->info.vertex_size(), 0);
@@ -137,7 +137,7 @@ namespace Engine::GLTF
             {
                 size_t resource_offset = (k * vertex_size) + vertex_offset;
                 float* mesh_data =
-                        reinterpret_cast<float*>(mesh->lods[0].vertex_buffer->resources()->data() + resource_offset);
+                        reinterpret_cast<float*>(mesh->lods[0].vertex_buffer.resources()->data() + resource_offset);
 
                 for (size_t i = 0; i < floats_count; i++)
                 {
@@ -148,8 +148,8 @@ namespace Engine::GLTF
 
         // Process mesh indices
         {
-            IndexBuffer* index_buffer  = Object::new_instance<IndexBuffer>();
-            mesh->lods[0].index_buffer = index_buffer;
+            IndexBuffer* index_buffer = &mesh->lods[0].index_buffer;
+
 
             const tinygltf::Accessor& accessor      = model.accessors[primitive.indices];
             const tinygltf::BufferView& buffer_view = model.bufferViews[accessor.bufferView];

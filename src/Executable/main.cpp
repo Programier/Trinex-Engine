@@ -1,10 +1,9 @@
 #include <Core/engine.hpp>
-#include <Core/predef.hpp>
-#include <Core/string_functions.hpp>
+#include <Core/engine_loading_controllers.hpp>
 
-
-int main(int argc, char** argv)
+static void preinit()
 {
     Engine::EngineInstance::project_name("TrinexEngineLauncher");
-    return trinex_engine_main(argc, argv);
 }
+
+static Engine::PreInitializeController controller(preinit);

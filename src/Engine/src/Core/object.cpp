@@ -35,9 +35,9 @@ namespace Engine
                      .register_method("root_package", Object::root_package)
                      .register_method("class_instance", &Object::class_instance)
                      .register_method("find_package", Object::find_package)
-                     .register_method("find_object", Object::find_object)
+                     //.register_method("find_object", Object::find_object)
                      //.register_method("set_flag", static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag))
-                     //.register_method("get_flag", static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag))
+                     .register_method("get_flag", static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag))
                      .register_method("references", &Object::references)
                      .register_method("full_name", &Object::full_name)
                      .register_method("package", &Object::package)
@@ -323,13 +323,8 @@ namespace Engine
         Object* object = nullptr;
 
         {
-            bool flag = _M_class->_M_disable_pushing_to_default_package;
-            const_cast<Class*>(_M_class)->_M_disable_pushing_to_default_package = true;
-
-            object = _M_class->create();
-
-            const_cast<Class*>(_M_class)->_M_disable_pushing_to_default_package = flag;
-            object->_M_flags                                                    = _M_flags;
+            object           = _M_class->create_without_package();
+            object->_M_flags = _M_flags;
         }
 
         return object;

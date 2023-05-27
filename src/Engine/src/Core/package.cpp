@@ -286,6 +286,7 @@ namespace Engine
         }
 
         bool is_created_reader = false;
+
         if (reader == nullptr)
         {
             String path = engine_config.resources_dir + Strings::replace_all(full_name(), "::", "/") +
@@ -362,10 +363,7 @@ namespace Engine
             return false;
         }
 
-        auto prev_flag                                      = object_class->_M_disable_pushing_to_default_package;
-        object_class->_M_disable_pushing_to_default_package = true;
-        entry.object                                        = object_class->create();
-        object_class->_M_disable_pushing_to_default_package = prev_flag;
+        entry.object = object_class->create_without_package();
 
         if (entry.object == nullptr)
         {

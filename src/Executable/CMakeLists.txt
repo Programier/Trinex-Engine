@@ -2,6 +2,7 @@ set(SOURCES main.cpp test.cpp GameInit.cpp)
 
 
 add_executable(TrinexEngineLauncher ${SOURCES})
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic")
 target_link_libraries(TrinexEngineLauncher PRIVATE TrinexEngine)
 
 if(ANDROID)

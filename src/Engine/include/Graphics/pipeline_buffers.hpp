@@ -25,8 +25,6 @@ namespace Engine
     class ENGINE_EXPORT VertexBuffer : public PipelineBuffer
     {
     public:
-        VertexBuffer();
-        delete_copy_constructors(VertexBuffer);
         virtual VertexBuffer& create();
         VertexBuffer& update(size_t offset, const byte* data, size_t size);
         VertexBuffer& bind(size_t offset = 0);
@@ -44,9 +42,6 @@ namespace Engine
         IndexBufferComponent _M_component;
 
     public:
-        IndexBuffer();
-        delete_copy_constructors(IndexBuffer);
-
         IndexBuffer& create();
         IndexBuffer& update(size_t offset, const byte* data, size_t size);
         IndexBuffer& bind(size_t offset = 0);

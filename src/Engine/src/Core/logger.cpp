@@ -44,7 +44,7 @@ namespace Engine
             char buffer[1024];
             vsprintf(buffer, format, args);
             va_end(args);
-            SDL_Log("%s", buffer);
+            printf("%s\n", buffer);
 #endif
             return *this;
         }
@@ -57,7 +57,7 @@ namespace Engine
             char buffer[1024];
             vsprintf(buffer, format, args);
             va_end(args);
-            SDL_Log("%s", buffer);
+            printf("%s\n", buffer);
 #endif
             return *this;
         }
@@ -70,7 +70,7 @@ namespace Engine
             char buffer[1024];
             vsprintf(buffer, format, args);
             va_end(args);
-            SDL_Log("%s", buffer);
+            printf("%s\n", buffer);
 #endif
             return *this;
         }
@@ -84,7 +84,7 @@ namespace Engine
             char buffer[1024];
             vsprintf(buffer, format, args);
             va_end(args);
-            SDL_Log("%s", buffer);
+            printf("%s\n", buffer);
 #endif
             return *this;
         }
@@ -92,11 +92,11 @@ namespace Engine
         BasicLogger& error(const String& msg, const MessageList& messages)
         {
 #ifdef TRINEX_ENGINE_DEBUG
-            SDL_Log("%s", msg.c_str());
+            printf("%s\n", msg.c_str());
 
             for (auto& str : messages)
             {
-                SDL_Log("\t%s", str.c_str());
+                printf("\t%s", str.c_str());
             }
 #endif
             return *this;

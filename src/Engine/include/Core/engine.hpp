@@ -94,7 +94,6 @@ namespace glm
 
 namespace Engine
 {
-    class Application;
     class Window;
 
     namespace GraphicApiInterface
@@ -105,23 +104,25 @@ namespace Engine
     class ENGINE_EXPORT EngineInstance final
     {
     private:
-        bool _M_is_inited = false;
         class Renderer* _M_renderer = nullptr;
-        Application* _M_application = nullptr;
-        EngineAPI _M_api;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
+
+        EngineAPI _M_api;
+        bool _M_is_inited = false;
 
         EngineInstance& trigger_terminate_functions();
         EngineInstance();
         EngineInstance& init_api();
 
         ~EngineInstance();
+        int start(int argc, char** argv);
+        void destroy();
 
     public:
-        int start(int argc, char** argv);
         ENGINE_EXPORT static EngineInstance* instance();
         ENGINE_EXPORT static const String& project_name();
         ENGINE_EXPORT static const String& project_name(const String& name);
+        ENGINE_EXPORT static int initialize(int argc, char** argv);
         const Window* window() const;
         SystemType system_type() const;
         EngineAPI api() const;
@@ -129,15 +130,9 @@ namespace Engine
         GraphicApiInterface::ApiInterface* api_interface() const;
         class Renderer* renderer() const;
 
+
         bool check_format_support(PixelType type, PixelComponentType component);
-        void destroy();
-        friend class Application;
     };
 
     ENGINE_EXPORT extern EngineInstance* engine_instance;
 }// namespace Engine
-
-extern "C"
-{
-    ENGINE_EXPORT int trinex_engine_main(int argc, char** argv);
-}

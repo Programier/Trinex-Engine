@@ -8,7 +8,6 @@
 
 namespace Engine
 {
-
     class ENGINE_EXPORT Class : public Object
     {
     public:
@@ -23,12 +22,11 @@ namespace Engine
         Vector<String> _M_static_properties;
         Vector<String> _M_properties;
         std::function<Object*()> _M_allocate_object;
+        std::function<Object*()> _M_allocate_without_package;
 
         size_t _M_instance_size       = 0;
         void const* _M_lua_static_key = nullptr;
         void (*_M_post_init)()        = nullptr;
-
-        bool _M_disable_pushing_to_default_package = false;
 
         template<typename Instance>
         static Instance* lua_allocate()
@@ -97,14 +95,17 @@ namespace Engine
         {
             if constexpr (std::is_abstract_v<Instance>)
             {
-                _M_allocate_object = []() -> Object* { return nullptr; };
+                _M_allocate_object          = []() -> Object* { return nullptr; };
+                _M_allocate_without_package = _M_allocate_object;
             }
             else
             {
                 _M_allocate_object = [&, this]() -> Object* {
-                    if (this->_M_disable_pushing_to_default_package)
-                        return static_cast<Object*>(Object::new_instance_without_package<Instance>(args...));
                     return static_cast<Object*>(Object::new_instance<Instance>(args...));
+                };
+
+                _M_allocate_without_package = [&, this]() -> Object* {
+                    return static_cast<Object*>(Object::new_instance_without_package<Instance>(args...));
                 };
             }
             return *this;
@@ -193,6 +194,7 @@ namespace Engine
         static Class* find_class(const String& name);
         static const ClassesMap& classes();
         Object* create() const;
+        Object* create_without_package() const;
         size_t instance_size() const;
         const Vector<String>& properties() const;
         const Vector<String>& static_properties() const;

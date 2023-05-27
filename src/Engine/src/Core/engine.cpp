@@ -8,7 +8,6 @@
 #include <Core/predef.hpp>
 #include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
-#include <SDL.h>
 #include <Sensors/sensor.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
@@ -19,6 +18,9 @@
 
 namespace Engine
 {
+    extern void trinex_init_sdl();
+    extern void trinex_terminate_sdl();
+
     Vector<void (*)()>& terminate_list()
     {
         static Vector<void (*)()> _M_terminate_list;
@@ -27,13 +29,18 @@ namespace Engine
 
     Vector<void (*)()>& initialize_list()
     {
-        static Vector<void (*)()> init_list;
-        return init_list;
+        static Vector<void (*)()> _M_init_list;
+        return _M_init_list;
+    }
+
+    static Vector<void (*)()>& preinitialize_list()
+    {
+        static Vector<void (*)()> _M_init_list;
+        return _M_init_list;
     }
 
     EngineInstance::EngineInstance()
     {}
-
 
     ENGINE_EXPORT EngineInstance* EngineInstance::instance()
     {
@@ -98,10 +105,9 @@ namespace Engine
     {
         if (_M_api != EngineAPI::NoAPI)
         {
-            if (SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO))
-                throw std::runtime_error(SDL_GetError());
+            trinex_init_sdl();
 
-            Library api_library = load_library(engine_config.api.c_str());
+            LibraryLoader::Library api_library = LibraryLoader::load(engine_config.api.c_str());
             info_log("Engine: Using API: %s", engine_config.api.c_str());
 
             if (!api_library.has_lib())
@@ -191,6 +197,14 @@ namespace Engine
             return -1;
         }
 
+        for (auto preinit_callback : preinitialize_list())
+        {
+            preinit_callback();
+        }
+
+        preinitialize_list().clear();
+
+
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
 #if PLATFORM_ANDROID
@@ -202,7 +216,6 @@ namespace Engine
         }
 #endif
 
-
         LuaInterpretter::init();
 
         for (auto func : initialize_list())
@@ -212,8 +225,10 @@ namespace Engine
 
         initialize_list().clear();
 
-        engine_config.init(FileManager::root_file_manager()->work_dir() / Path("TrinexEngine/configs/init_config.cfg"));
+        logger->log("Engine: Work dir is '%s'", root_manager->work_dir().c_str());
+        engine_config.init((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
 
+        logger->log("Engine: Work dir is '%s'", root_manager->work_dir().string().c_str());
 
         LuaInterpretter::init_lua_dir();
 
@@ -289,7 +304,7 @@ namespace Engine
 
         delete _M_renderer;
         delete _M_api_interface;
-        SDL_Quit();
+        trinex_terminate_sdl();
 
         _M_api_interface = nullptr;
         _M_is_inited     = false;
@@ -318,16 +333,30 @@ namespace Engine
     {
         initialize_list().push_back(callback);
     }
+
+    PreInitializeController::PreInitializeController(void (*callback)())
+    {
+        preinitialize_list().push_back(callback);
+    }
+
+
+    ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)
+    {
+        EngineInstance* instance = EngineInstance::instance();
+        if (!instance->_M_is_inited)
+        {
+            auto result = instance->start(argc, argv);
+            instance->destroy();
+            return result;
+        }
+
+        return -1;
+    }
+
+
 }// namespace Engine
 
-
-extern "C" {
-
-ENGINE_EXPORT int trinex_engine_main(int argc, char** argv)
+ENGINE_EXPORT int main(int argc, char** argv)
 {
-    auto instance = Engine::EngineInstance::instance();
-    int status    = instance->start(argc, argv);
-    instance->destroy();
-    return status;
-}
+    return Engine::EngineInstance::initialize(argc, argv);
 }

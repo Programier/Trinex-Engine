@@ -6,7 +6,7 @@
 
 #define lib_function(prototype) #prototype
 
-namespace Engine
+namespace Engine::LibraryLoader
 {
     class ENGINE_EXPORT Library final
     {
@@ -24,18 +24,19 @@ namespace Engine
         const std::string& libname() const;
         void close();
 
-        template<typename ReturnType, typename... Args>
+        template<typename ReturnType = void, typename... Args>
         auto get(const std::string& function_name)
         {
             return (ReturnType(*)(Args...))(load_function(_M_handle, function_name));
         }
 
         void* resolve(const std::string& name);
+        operator bool() const;
 
-        friend ENGINE_EXPORT Library load_library(const std::string& libname);
+        friend ENGINE_EXPORT Library load(const std::string& libname);
     };
 
-    ENGINE_EXPORT Library load_library(const std::string& libname);
-    ENGINE_EXPORT void close_library(const std::string& libname);
+    ENGINE_EXPORT Library load(const std::string& libname = "");
+    ENGINE_EXPORT void close(const std::string& libname);
     extern ENGINE_EXPORT std::string library_dir;
 }// namespace Engine

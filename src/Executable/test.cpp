@@ -143,10 +143,7 @@ namespace Engine
     public:
         int execute(int argc, char** argv)
         {
-            Package* package = Package::load_package("TestResources");
-            create_materials(package);
 
-            package->save();
             return 0;
         }
     };

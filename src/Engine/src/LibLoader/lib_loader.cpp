@@ -13,7 +13,7 @@
 static Engine::Map<std::string, void*> _M_libraries;
 #define str std::string
 
-namespace Engine
+namespace Engine::LibraryLoader
 {
     ENGINE_EXPORT std::string library_dir;
 
@@ -23,6 +23,9 @@ namespace Engine
 
     static std::string get_libname(const std::string& libname, bool full = true)
     {
+        if (libname.empty())
+            return libname;
+
 #ifdef WIN32
         static const std::string format = ".dll";
 #else
@@ -53,7 +56,7 @@ namespace Engine
 
     void Library::close()
     {
-        close_library(_M_libname);
+        Engine::LibraryLoader::close(_M_libname);
         _M_handle = nullptr;
     }
 
@@ -68,7 +71,7 @@ namespace Engine
     }
 
 
-    ENGINE_EXPORT Library load_library(const std::string& libname)
+    ENGINE_EXPORT Library load(const std::string& libname)
     {
         std::string libnames[2] = {get_libname(libname), get_libname(libname, false)};
 
@@ -80,7 +83,7 @@ namespace Engine
 #ifdef WIN32
                 lib = (void*) LoadLibrary((LPCSTR) name.c_str());
 #else
-                lib = dlopen(name.c_str(), RTLD_LAZY);
+                lib = dlopen(name.empty() ? nullptr : name.c_str(), RTLD_LAZY);
 #endif
             }
 
@@ -111,7 +114,7 @@ namespace Engine
         }
     }
 
-    ENGINE_EXPORT void close_library(const std::string& libname)
+    ENGINE_EXPORT void close(const std::string& libname)
     {
         std::string names[2] = {get_libname(libname), get_libname(libname, false)};
         for (auto& name : names)
@@ -120,6 +123,11 @@ namespace Engine
             if (lib)
                 close_lib_ptr(lib);
         }
+    }
+
+    Library::operator bool() const
+    {
+        return _M_handle != nullptr;
     }
 
     void* Library::resolve(const std::string& name)
@@ -135,4 +143,4 @@ namespace Engine
         }
     } controller;
 
-}// namespace Engine
+}// namespace Engine::LibraryLoader

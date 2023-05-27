@@ -107,9 +107,10 @@ namespace Engine
     {
     public:
         struct ENGINE_EXPORT MeshLOD : public SerializableObject {
-            VertexBuffer* vertex_buffer = nullptr;
-            IndexBuffer* index_buffer   = nullptr;
             ObjectReference<Material> material_reference;
+            VertexBuffer vertex_buffer;
+            IndexBuffer index_buffer;
+
             bool archive_process(Archive* archive) override;
 
             friend class Mesh;

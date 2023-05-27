@@ -9,10 +9,17 @@ namespace Engine
         DestroyController(void(*)());
     };
 
+
     class ENGINE_EXPORT InitializeController
     {
     public:
         InitializeController(void(*)());
+    };
+
+    class ENGINE_EXPORT PreInitializeController
+    {
+    public:
+        PreInitializeController(void(*)());
     };
 
 }// namespace Engine

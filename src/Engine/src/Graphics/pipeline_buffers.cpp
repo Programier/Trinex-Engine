@@ -44,9 +44,6 @@ namespace Engine
     }
 
 
-    VertexBuffer::VertexBuffer()
-    {}
-
     VertexBuffer& VertexBuffer::create()
     {
         if (_M_resources == nullptr)
@@ -116,10 +113,6 @@ namespace Engine
 
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
-
-
-    IndexBuffer::IndexBuffer()
-    {}
 
     IndexBuffer& IndexBuffer::create()
     {

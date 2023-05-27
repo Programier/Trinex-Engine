@@ -106,6 +106,13 @@ namespace Engine
         return nullptr;
     }
 
+    Object* Class::create_without_package() const
+    {
+        if (_M_allocate_without_package)
+            return _M_allocate_without_package();
+        return nullptr;
+    }
+
     size_t Class::instance_size() const
     {
         return _M_instance_size;

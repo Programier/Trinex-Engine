@@ -1,5 +1,6 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
+#include <Core/config.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
@@ -112,23 +113,14 @@ namespace Engine
 
     bool Mesh::MeshLOD::archive_process(Archive* archive)
     {
-        if (archive->is_reading())
-        {
-            if (vertex_buffer == nullptr)
-                vertex_buffer = Object::new_instance<VertexBuffer>();
-            if (index_buffer == nullptr)
-                index_buffer = Object::new_instance<IndexBuffer>();
-        }
 
         if (!vertex_buffer || !index_buffer)
         {
             error_log("MeshLOD: Cannot process resources!");
         }
 
-        if (!vertex_buffer->archive_process(archive) || !index_buffer->archive_process(archive))
+        if (!vertex_buffer.archive_process(archive) || !index_buffer.archive_process(archive))
         {
-            Object::begin_destroy(vertex_buffer);
-            Object::begin_destroy(index_buffer);
             return false;
         }
 
@@ -141,7 +133,7 @@ namespace Engine
 
     void Mesh::create_appliers(Archive* archive)
     {
-        if (archive->is_reading() && engine_instance->api() != EngineAPI::NoAPI)
+        if (archive->is_reading() && engine_instance->api() != EngineAPI::NoAPI && engine_config.load_shaders_to_gpu)
         {
             for (auto& lod : lods)
             {
@@ -174,22 +166,7 @@ namespace Engine
     }
 
     Mesh::~Mesh()
-    {
-        for (auto& lod : lods)
-        {
-            if (lod.vertex_buffer)
-            {
-                Object::begin_destroy(lod.vertex_buffer);
-                lod.vertex_buffer = nullptr;
-            }
-
-            if (lod.index_buffer)
-            {
-                Object::begin_destroy(lod.index_buffer);
-                lod.index_buffer = nullptr;
-            }
-        }
-    }
+    {}
 
     bool StaticMesh::archive_process(Archive* archive)
     {

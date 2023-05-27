@@ -110,10 +110,10 @@ namespace Engine
 
         update_shader(framebuffer_shader);
 
-        VertexBuffer& vertex_buffer        = *mesh1->lods[0].vertex_buffer;
-        IndexBuffer& index_buffer          = *mesh1->lods[0].index_buffer;
-        VertexBuffer& output_vertex_buffer = *mesh2->lods[0].vertex_buffer;
-        IndexBuffer& output_index_buffer   = *mesh2->lods[0].index_buffer;
+        VertexBuffer& vertex_buffer        = mesh1->lods[0].vertex_buffer;
+        IndexBuffer& index_buffer          = mesh1->lods[0].index_buffer;
+        VertexBuffer& output_vertex_buffer = mesh2->lods[0].vertex_buffer;
+        IndexBuffer& output_index_buffer   = mesh2->lods[0].index_buffer;
         Texture2D& texture                 = *package->find_object_checked<Texture2D>("Trinex Texture");
 
         UniformBuffer<CameraUBO> camera_ubo[2];
