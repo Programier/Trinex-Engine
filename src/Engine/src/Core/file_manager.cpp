@@ -88,7 +88,7 @@ namespace Engine
     {
         close();
 
-        std::ios_base::openmode mode = std::ios_base::in;
+        std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary;
 
         _M_file.open(filename, mode);
         (void) size();
@@ -390,6 +390,9 @@ namespace Engine
 
         try
         {
+            if (FS::exists(path) && FS::is_directory(path))
+                return true;
+
             if (!FS::create_directory(path))
             {
                 error_log("FileManager: Failed to create directory: '%s'", path.c_str());
