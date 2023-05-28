@@ -13,14 +13,24 @@ namespace Engine
 
     struct HeaderEntry : SerializableObject {
         String name       = "";
+        String class_name = "";
         ArrayIndex offset = 0;
-        Object* object    = nullptr;
+        size_t object_size;
+        size_t compressed_size;
+        Object* object = nullptr;
+        Vector<char> compressed_data;
 
         bool archive_process(Archive* archive) override
         {
+
             if (archive->is_saving())
             {
-                name = object->name();
+                if (object == nullptr)
+                    return false;
+
+                name            = object->name();
+                class_name      = object->class_instance()->name();
+                compressed_size = compressed_data.size();
             }
 
             if (!((*archive) & name))
@@ -35,7 +45,22 @@ namespace Engine
                 return false;
             }
 
+
+            {
+                (*archive) & object_size;
+                (*archive) & class_name;
+                (*archive) & compressed_size;
+            }
+
             return true;
+        }
+
+        size_t size() const
+        {
+            if (object == nullptr)
+                return 0;
+            return (sizeof(size_t) * 3) + object->name().length() + sizeof(offset) + sizeof(object_size) +
+                   object->class_instance()->name().length();
         }
     };
 
@@ -152,6 +177,52 @@ namespace Engine
             return false;
         }
 
+        // Creating header
+        Vector<HeaderEntry> header;
+        header.reserve(_M_objects.size());
+
+        // Write objects into buffers
+
+        size_t offset = sizeof(size_t);
+        for (auto& pair : _M_objects)
+        {
+            if (pair.second->trinex_flag(TrinexObjectFlags::OF_IsSerializable))
+            {
+                HeaderEntry entry;
+
+                entry.object = pair.second;
+                VectorOutputStream temporary_stream;
+                BufferWriterWrapper<BufferWriter> temporary_buffer(temporary_stream);
+
+                Archive ar(&temporary_buffer);
+
+                if (!entry.object->archive_process(&ar))
+                {
+                    error_log("Package: Failed to compress object '%s'", entry.object->name().c_str());
+                    continue;
+                }
+
+                // Compressing data
+                entry.object_size = temporary_stream.vector().size();
+                Compressor::compress(temporary_stream.vector(), entry.compressed_data);
+
+                header.push_back(std::move(entry));
+
+                offset += entry.size();
+            }
+        }
+
+        if (header.empty())
+            return false;
+
+        // Update offsets
+
+        for (auto& entry : header)
+        {
+            entry.offset = offset;
+            offset += entry.compressed_data.size();
+        }
+
         bool is_created_writer = false;
         if (writer == nullptr)
         {
@@ -178,81 +249,31 @@ namespace Engine
         };
 
         uint_t flag = TRINEX_ENGINE_FLAG;
-        if (!writer->write(flag))
+        Archive ar(writer);
+
+        if (!(ar & flag))
         {
-            logger->error("Package: Failed to write package to file!");
+            logger->error("Package: Failed to write flag to file!");
             return status(false);
         }
 
-        // Creating temporary buffer
-        VectorOutputStream temporary_stream;
-        BufferWriterWrapper<BufferWriter> temporary_buffer(temporary_stream);
-
-
-        // Creating header
-        Vector<HeaderEntry> header;
-        header.reserve(_M_objects.size());
-
-        {
-            for (auto& pair : _M_objects)
-            {
-                if (pair.second->trinex_flag(TrinexObjectFlags::OF_IsSerializable))
-                {
-                    header.emplace_back();
-                    header.back().object = pair.second;
-                }
-            }
-        }
-
-        Archive ar(&temporary_buffer);
-
+        info_log("OFFSET: %zu", writer->position());
         if (!(ar & header))
         {
             logger->error("Package: Failed to write header to file!");
             return status(false);
         }
 
-        Index index = 0;
         for (auto& entry : header)
         {
-            Object* object = entry.object;
-            if (object->is_instance_of<Package>())
-                continue;
-
-            header[index++].offset = temporary_buffer.position();
-
-            const String& class_name = object->class_instance()->name();
-
-            if (!temporary_buffer.write(class_name))
+            info_log("OFFSET: %zu", writer->position());
+            if (!writer->write(reinterpret_cast<const byte*>(entry.compressed_data.data()),
+                               entry.compressed_data.size()))
             {
-                logger->error("Package: Failed to serialize type of class!");
-                return status(false);
-            }
-
-            if (!object->archive_process(&ar))
-            {
+                logger->error("Package: Failed to write object '%s' to file!", entry.object->_M_name.c_str());
                 return status(false);
             }
         }
-
-        temporary_buffer.position(0);
-        if (!(ar & header))
-        {
-            logger->error("Package: Failed to update header in file!");
-            return status(false);
-        }
-
-        Vector<char> result_buffer;
-        Compressor::compress(temporary_stream.vector(), result_buffer);
-
-        size_t input_size = temporary_stream.vector().size();
-        if (!writer->write(input_size))
-        {
-            logger->error("Package: Failed to write original size to file!");
-            return status(false);
-        }
-
-        writer->write(reinterpret_cast<const byte*>(result_buffer.data()), result_buffer.size());
 
         return status(true);
     }
@@ -277,7 +298,7 @@ namespace Engine
         return true;
     }
 
-    bool Package::load_buffer(BufferReader* reader, Vector<char>& original_buffer)
+    bool Package::load_buffer(BufferReader* reader, Vector<char>& buffer)
     {
         if (this == root_package())
         {
@@ -316,25 +337,18 @@ namespace Engine
             return status(false);
         }
 
-        size_t original_size;
-        if (!reader->read(original_size))
-        {
-            logger->error("Package: Failed to original buffer size from file!");
-            return status(false);
-        }
 
         size_t buffer_size = reader->size() - reader->position();
-        Vector<char> compressed_data(buffer_size, 0);
+        buffer.clear();
+        buffer.shrink_to_fit();
+        buffer.resize(buffer_size);
 
-        if (!reader->read(reinterpret_cast<byte*>(compressed_data.data()), buffer_size))
+        if (!reader->read(reinterpret_cast<byte*>(buffer.data()), buffer_size))
         {
             logger->error("Package: Failed to read compressed data from file!");
             return status(false);
         }
 
-        original_buffer.resize(original_size, 0);
-        Compressor::decompress(compressed_data, original_buffer);
-        reader->offset(0, BufferSeekDir::End);
         return true;
     }
 
@@ -348,18 +362,22 @@ namespace Engine
             return true;
 
         archive.reader()->position(entry.offset);
+        Vector<char> compressed_data(entry.compressed_size, 0);
 
-        String class_name;
-        if (!archive.reader()->read(class_name))
-        {
-            logger->error("Package: Failed to read class name");
-            return false;
-        }
+        archive.reader()->read(reinterpret_cast<byte*>(compressed_data.data()), entry.compressed_size);
 
-        Class* object_class = Class::find_class(class_name);
+        Vector<char> original_data(entry.object_size, 0);
+        Compressor::decompress(compressed_data, original_data);
+
+        VectorInputStream stream(original_data);
+        BufferReaderWrapper<BufferReader> reader_wrapper(stream);
+
+        Archive ar(&reader_wrapper);
+
+        Class* object_class = Class::find_class(entry.class_name);
         if (object_class == nullptr)
         {
-            logger->error("Package: Cannot find class '%s', skip loading!", class_name.c_str());
+            logger->error("Package: Cannot find class '%s', skip loading!", entry.class_name.c_str());
             return false;
         }
 
@@ -367,13 +385,13 @@ namespace Engine
 
         if (entry.object == nullptr)
         {
-            logger->error("Package: Failed to create instance '%s'", class_name.c_str());
+            logger->error("Package: Failed to create instance '%s'", entry.class_name.c_str());
             return false;
         }
 
         entry.object->_M_name = std::move(entry.name);
 
-        if (!entry.object->archive_process(&archive))
+        if (!entry.object->archive_process(&ar))
         {
             error_log("Package: Failed to load object '%s'", entry.name.c_str());
             entry.object->mark_for_delete(true);
@@ -395,7 +413,6 @@ namespace Engine
                 _M_objects.begin()->second->remove_from_package();
             }
         }
-
 
         Vector<char> original_data;
 
@@ -422,7 +439,7 @@ namespace Engine
 
         bool result_status = true;
 
-        String class_name;
+
         for (HeaderEntry& entry : header)
         {
             if (!_M_objects.contains(entry.name))
@@ -471,8 +488,8 @@ namespace Engine
             VectorInputStream temporary_stream(original_data);
             BufferReaderWrapper<BufferReader> temporary_reader(temporary_stream);
 
-
             Archive ar(&temporary_reader);
+
             Vector<HeaderEntry> header;
             if (!(ar & header))
             {
