@@ -257,7 +257,6 @@ namespace Engine
             return status(false);
         }
 
-        info_log("OFFSET: %zu", writer->position());
         if (!(ar & header))
         {
             logger->error("Package: Failed to write header to file!");
@@ -266,7 +265,6 @@ namespace Engine
 
         for (auto& entry : header)
         {
-            info_log("OFFSET: %zu", writer->position());
             if (!writer->write(reinterpret_cast<const byte*>(entry.compressed_data.data()),
                                entry.compressed_data.size()))
             {
