@@ -2,7 +2,7 @@
 #include <Core/logger.hpp>
 #include <Core/predef.hpp>
 #include <Graphics/hitbox.hpp>
-#include <Graphics/mesh.hpp>
+#include <Graphics/mesh_component.hpp>
 #include <api.hpp>
 #include <iostream>
 

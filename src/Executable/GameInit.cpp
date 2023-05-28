@@ -9,7 +9,7 @@
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/mesh.hpp>
+#include <Graphics/mesh_component.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -101,9 +101,11 @@ namespace Engine
     {
         Window window;
 
-        Package* package  = Object::load_package("TestResources");
-        StaticMesh* mesh1 = package->find_object_checked<StaticMesh>("Cube");
-        StaticMesh* mesh2 = package->find_object_checked<StaticMesh>("Mesh 2");
+        Package* package = Object::load_package("TestResources");
+        if (package == nullptr)
+            return;
+        StaticMeshComponent* mesh1 = package->find_object_checked<StaticMeshComponent>("Cube");
+        StaticMeshComponent* mesh2 = package->find_object_checked<StaticMeshComponent>("Mesh 2");
 
         Shader* shader             = mesh2->material_applier(0)->shader();
         Shader* framebuffer_shader = mesh1->material_applier(0)->shader();

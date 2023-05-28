@@ -1,7 +1,7 @@
 #pragma once
-#include <Graphics/mesh.hpp>
+#include <Graphics/mesh_component.hpp>
 
 namespace Engine::GLTF
 {
-    Vector<Mesh*> load_meshes(const String& path);
+    Vector<MeshComponent*> load_meshes(const String& path);
 }

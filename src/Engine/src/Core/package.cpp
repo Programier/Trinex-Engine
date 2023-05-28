@@ -450,7 +450,6 @@ namespace Engine
 
         bool result_status = true;
 
-
         for (HeaderEntry& entry : header)
         {
             if (!_M_objects.contains(entry.name))

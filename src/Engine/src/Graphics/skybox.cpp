@@ -2,7 +2,7 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Core/predef.hpp>
-#include <Graphics/mesh.hpp>
+#include <Graphics/mesh_component.hpp>
 #include <Graphics/skybox.hpp>
 
 static void init_mesh()

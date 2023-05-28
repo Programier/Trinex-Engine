@@ -5,7 +5,7 @@
 namespace Engine
 {
     class Shader;
-    class Mesh;
+    class MeshComponent;
 
     struct ENGINE_EXPORT MaterialLayout {
         size_t vertex_size = 0;
@@ -23,7 +23,7 @@ namespace Engine
         Vector<MaterialApplier*> _M_appliers;
 
     public:
-        MaterialApplier* create_material_applier(Mesh* mesh);
+        MaterialApplier* create_material_applier(MeshComponent* mesh);
         const Material& apply_resources() const;
         bool archive_process(Archive* archive);
         ~Material();

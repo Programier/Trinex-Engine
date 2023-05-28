@@ -2,7 +2,7 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/mesh.hpp>
+#include <Graphics/mesh_component.hpp>
 #include <Graphics/shader.hpp>
 
 
@@ -75,7 +75,7 @@ namespace Engine
     }
 
 
-    MaterialApplier* Material::create_material_applier(Mesh* mesh)
+    MaterialApplier* Material::create_material_applier(MeshComponent* mesh)
     {
         if (mesh == nullptr || _M_resources == nullptr)
             return nullptr;

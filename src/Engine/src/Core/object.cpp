@@ -148,9 +148,10 @@ namespace Engine
 
         package = find_package(name, true);
 
-        if (package != nullptr)
+        if (package != nullptr && !package->load())
         {
-            package->load();
+            package->mark_for_delete(true);
+            return nullptr;
         }
 
         return package;
@@ -259,10 +260,14 @@ namespace Engine
 
         if (package)
         {
-            for (auto& ell : package->objects())
+            Package::ObjectMap& objects = const_cast<Package::ObjectMap&>(package->objects());
+            while (!objects.empty())
             {
-                if (!ell.second->mark_for_delete(true))
+                const auto& ell = objects.begin();
+                if (!ell->second->mark_for_delete(true))
                     status = false;
+
+                objects.erase(ell->first);
             }
         }
 

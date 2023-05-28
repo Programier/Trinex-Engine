@@ -129,8 +129,8 @@ namespace Engine
     {
         auto a = create_output_material(package);
         auto b = create_framebuffer_material(package);
-        package->find_object_checked<StaticMesh>("Mesh 1")->lods[0].material_reference(b);
-        package->find_object_checked<StaticMesh>("Mesh 2")->lods[0].material_reference(a);
+        package->find_object_checked<StaticMeshComponent>("Mesh 1")->lods[0].material_reference(b);
+        package->find_object_checked<StaticMeshComponent>("Mesh 2")->lods[0].material_reference(a);
         for (auto& pair : package->objects())
         {
             logger->log("OBJECT: %s", pair.first.c_str());

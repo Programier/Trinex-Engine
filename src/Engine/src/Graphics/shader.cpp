@@ -6,7 +6,7 @@
 #include <Core/logger.hpp>
 #include <Core/shader_types.hpp>
 #include <Graphics/g_buffer.hpp>
-#include <Graphics/mesh.hpp>
+#include <Graphics/mesh_component.hpp>
 #include <Graphics/shader.hpp>
 #include <api.hpp>
 #include <fstream>

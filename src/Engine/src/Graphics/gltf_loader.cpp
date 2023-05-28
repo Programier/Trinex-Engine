@@ -36,7 +36,7 @@ namespace Engine::GLTF
     }
 
     static size_t calculate_vertex_info(const tinygltf::Model& model, const tinygltf::Primitive& primitive,
-                                        MeshSemanticInfo& info)
+                                        MeshComponentSemanticInfo& info)
     {
         size_t count = 0;
 
@@ -53,8 +53,8 @@ namespace Engine::GLTF
 
             index += 1;
 
-            MeshSemanticEntry& entry = info.entry_of(it->second);
-            entry.count              = std::max(entry.count, index);
+            MeshComponentSemanticEntry& entry = info.entry_of(it->second);
+            entry.count                       = std::max(entry.count, index);
 
             const tinygltf::Accessor& accessor = model.accessors[attribute.second];
             count                              = std::max(count, accessor.count);
@@ -63,7 +63,7 @@ namespace Engine::GLTF
         return count;
     }
 
-    static bool is_dynamic_mesh(const tinygltf::Primitive& primitive)
+    static bool is_dynamic_MeshComponent(const tinygltf::Primitive& primitive)
     {
         for (auto& pair : primitive.attributes)
         {
@@ -87,8 +87,8 @@ namespace Engine::GLTF
         std::copy(indices_ptr, indices_ptr + count, index_data);
     }
 
-    static StaticMesh* load_static_mesh(const tinygltf::Model& model, const tinygltf::Primitive& primitive,
-                                        const String& name)
+    static StaticMeshComponent* load_static_MeshComponent(const tinygltf::Model& model,
+                                                          const tinygltf::Primitive& primitive, const String& name)
     {
         if (primitive.indices < 0)
         {
@@ -96,17 +96,17 @@ namespace Engine::GLTF
             return nullptr;
         }
 
-        StaticMesh* mesh = Object::new_instance_named<StaticMesh>(name);
-        mesh->lods.emplace_back();
+        StaticMeshComponent* MeshComponent = Object::new_instance_named<StaticMeshComponent>(name);
+        MeshComponent->lods.emplace_back();
 
-        size_t vertices = calculate_vertex_info(model, primitive, mesh->info);
+        size_t vertices = calculate_vertex_info(model, primitive, MeshComponent->info);
 
         {
 
-            VertexBuffer* vertex_buffer = &mesh->lods[0].vertex_buffer;
+            VertexBuffer* vertex_buffer = &MeshComponent->lods[0].vertex_buffer;
 
             auto vertex_resources = vertex_buffer->resources(true);
-            vertex_resources->resize(vertices * mesh->info.vertex_size(), 0);
+            vertex_resources->resize(vertices * MeshComponent->info.vertex_size(), 0);
         }
 
         for (auto& attribute : primitive.attributes)
@@ -128,27 +128,27 @@ namespace Engine::GLTF
             const float* data =
                     reinterpret_cast<const float*>(&(buffer.data[accessor.byteOffset + buffer_view.byteOffset]));
 
-            size_t vertex_size                = mesh->info.vertex_size();
-            MeshSemanticEntry& semantic_entry = mesh->info.entry_of(semantic_it->second);
-            size_t floats_count               = semantic_entry.type_size() / sizeof(float);
-            size_t vertex_offset              = mesh->info.semantic_offset(semantic_it->second, index);
+            size_t vertex_size                         = MeshComponent->info.vertex_size();
+            MeshComponentSemanticEntry& semantic_entry = MeshComponent->info.entry_of(semantic_it->second);
+            size_t floats_count                        = semantic_entry.type_size() / sizeof(float);
+            size_t vertex_offset = MeshComponent->info.semantic_offset(semantic_it->second, index);
 
             for (size_t k = 0; k < accessor.count; k++)
             {
-                size_t resource_offset = (k * vertex_size) + vertex_offset;
-                float* mesh_data =
-                        reinterpret_cast<float*>(mesh->lods[0].vertex_buffer.resources()->data() + resource_offset);
+                size_t resource_offset    = (k * vertex_size) + vertex_offset;
+                float* MeshComponent_data = reinterpret_cast<float*>(
+                        MeshComponent->lods[0].vertex_buffer.resources()->data() + resource_offset);
 
                 for (size_t i = 0; i < floats_count; i++)
                 {
-                    mesh_data[i] = data[(k * floats_count) + i];
+                    MeshComponent_data[i] = data[(k * floats_count) + i];
                 }
             }
         }
 
-        // Process mesh indices
+        // Process MeshComponent indices
         {
-            IndexBuffer* index_buffer = &mesh->lods[0].index_buffer;
+            IndexBuffer* index_buffer = &MeshComponent->lods[0].index_buffer;
 
 
             const tinygltf::Accessor& accessor      = model.accessors[primitive.indices];
@@ -175,24 +175,25 @@ namespace Engine::GLTF
             }
         }
 
-        return mesh;
+        return MeshComponent;
     }
 
 
     static void load_primitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const String& name,
-                               Vector<Mesh*>& result)
+                               Vector<MeshComponent*>& result)
     {
-        if (is_dynamic_mesh(primitive))
+        if (is_dynamic_MeshComponent(primitive))
         {
             // TODO
         }
         else
         {
-            result.push_back(load_static_mesh(model, primitive, name));
+            result.push_back(load_static_MeshComponent(model, primitive, name));
         }
     }
 
-    static void load_meshes(const tinygltf::Model& model, const tinygltf::Mesh& mesh, Vector<Mesh*>& result)
+    static void load_mesh_components(const tinygltf::Model& model, const tinygltf::Mesh& mesh,
+                                     Vector<MeshComponent*>& result)
     {
         Index i = 1;
 
@@ -209,7 +210,7 @@ namespace Engine::GLTF
         }
     }
 
-    Vector<Mesh*> load_meshes(const String& path)
+    Vector<MeshComponent*> load_MeshComponentes(const String& path)
     {
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
@@ -237,11 +238,11 @@ namespace Engine::GLTF
             return {};
         }
 
-        Vector<Mesh*> result;
+        Vector<MeshComponent*> result;
 
-        for (auto& mesh : model.meshes)
+        for (auto& MeshComponent : model.meshes)
         {
-            load_meshes(model, mesh, result);
+            load_mesh_components(model, MeshComponent, result);
         }
 
         return result;
