@@ -6,4 +6,3 @@ android/.gradle/
 android/.idea/
 android/app/.cxx/
 android/app/build/
-CMakeLists.txt.user

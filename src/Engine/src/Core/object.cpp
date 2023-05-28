@@ -1,6 +1,7 @@
 #include <Core/api_object.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
+#include <Core/constants.hpp>
 #include <Core/decode_typeid_name.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
@@ -162,18 +163,21 @@ namespace Engine
 
     ENGINE_EXPORT String Object::package_name_of(const String& name)
     {
-        return name.substr(0, name.find("->"));
+        auto index = name.find_last_of(Constants::name_separator);
+        if (index != String::npos)
+            index -= 1;
+        return name.substr(0, index);
     }
 
     ENGINE_EXPORT String Object::object_name_of(const String& name)
     {
-        auto pos = name.find("->");
+        auto pos = name.find_last_of(Constants::name_separator);
         if (pos == String::npos)
         {
-            return "";
+            return name;
         }
 
-        pos += 2;
+        pos += Constants::name_separator.length() - 1;
         return name.substr(pos, name.length() - pos);
     }
 
@@ -366,13 +370,13 @@ namespace Engine
 
         if (parent && parent != _M_root_package && !is_instance_of<Package>())
         {
-            result = (parent->_M_name + "->") + result;
+            result = (parent->_M_name + Constants::name_separator) + result;
             parent = parent->_M_package;
         }
 
         while (parent && parent != _M_root_package)
         {
-            result = (parent->_M_name + "::") + result;
+            result = (parent->_M_name + Constants::name_separator) + result;
             parent = parent->_M_package;
         }
 
@@ -435,7 +439,8 @@ namespace Engine
         Index prev_index = 0;
         Index index      = 0;
 
-        while ((index = name.find_first_of("::", prev_index + 2) != String::npos))
+        while ((index = name.find_first_of(Constants::name_separator,
+                                           prev_index + Constants::name_separator.length()) != String::npos))
         {
             String package_name = name.substr(prev_index, index - prev_index);
             if (package_name.empty())

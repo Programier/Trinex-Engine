@@ -35,21 +35,32 @@ namespace Engine
 
             if (!((*archive) & name))
             {
-                error_log("PackageHeader: Failed to process name of object into header!");
+                error_log("PackageHeader: Failed to process name of object!");
                 return false;
             }
 
             if (!((*archive) & offset))
             {
-                error_log("PackageHeader: Failed to serialize offset of object into header!");
+                error_log("PackageHeader: Failed to process offset of object!");
                 return false;
             }
 
-
+            if (!((*archive) & object_size))
             {
-                (*archive) & object_size;
-                (*archive) & class_name;
-                (*archive) & compressed_size;
+                error_log("PackageHeader: Failed to process size of object!");
+                return false;
+            }
+
+            if (!((*archive) & class_name))
+            {
+                error_log("PackageHeader: Failed to process class name!");
+                return false;
+            }
+
+            if (!((*archive) & compressed_size))
+            {
+                error_log("PackageHeader: Failed to process compressed size!");
+                return false;
             }
 
             return true;
@@ -129,6 +140,7 @@ namespace Engine
         return (*it).second;
     }
 
+
     Object* Package::find_object(const String& object_name, bool recursive) const
     {
         if (!recursive)
@@ -138,10 +150,10 @@ namespace Engine
         std::size_t pos                = 0;
         const Package* current_package = this;
 
-        while (current_package && (pos = object_name.find_first_of("::", prev_pos)) != String::npos)
+        while (current_package && (pos = object_name.find(Constants::name_separator, prev_pos)) != String::npos)
         {
             auto sub_name   = object_name.substr(prev_pos, pos - prev_pos);
-            prev_pos        = pos + 2;
+            prev_pos        = pos + Constants::name_separator.length();
             Object* node    = current_package->get_object_by_name(sub_name);
             current_package = node->instance_cast<Package>();
         }
@@ -227,7 +239,8 @@ namespace Engine
         if (writer == nullptr)
         {
             Path path = Path(engine_config.resources_dir) /
-                        Path(Strings::replace_all(full_name(), "::", "/") + Constants::package_extention);
+                        Path(Strings::replace_all(full_name(), Constants::name_separator, "/") +
+                             Constants::package_extention);
 
             Path dirname = FileManager::dirname_of(path);
             FileManager::root_file_manager()->create_dir(dirname);

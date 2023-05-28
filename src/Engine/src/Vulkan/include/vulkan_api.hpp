@@ -40,7 +40,7 @@ namespace Engine
     struct VulkanAPI : public GraphicApiInterface::ApiInterface {
         static Vector<const char*> device_extensions;
 
-#define vulkan_debug_log(...) (*(API->_M_engine_logger))->log(__VA_ARGS__)
+#define vulkan_debug_log(...) (*(API->_M_engine_logger))->error(__VA_ARGS__)
         static VulkanAPI* _M_vulkan;
         Logger** _M_engine_logger        = nullptr;
         SDL_Window* _M_window            = nullptr;

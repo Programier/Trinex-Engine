@@ -74,7 +74,6 @@ function info_log(t, f, recursive)
     }
 }
 
-
 function Engine.dump_config(path)
 {
     local config = Engine.config;
