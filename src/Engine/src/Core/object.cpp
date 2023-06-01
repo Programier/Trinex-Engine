@@ -437,6 +437,9 @@ namespace Engine
         return true;
     }
 
+    void Object::post_init_components()
+    {}
+
     Package* Object::find_package(const String& name, bool create)
     {
         Package* package = const_cast<Package*>(root_package());

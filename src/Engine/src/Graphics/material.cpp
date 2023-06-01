@@ -1,9 +1,11 @@
+#include "Core/engine_types.hpp"
 #include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh_component.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/texture.hpp>
 
 
 namespace Engine
@@ -128,6 +130,7 @@ namespace Engine
 
     const Material& Material::apply_resources() const
     {
+        for (auto& entry : _M_textures) entry.second.ptr()->bind(entry.first);
         return *this;
     }
 
@@ -143,6 +146,26 @@ namespace Engine
         return true;
     }
 
+    Material& Material::add_texture(BindingIndex index, Texture* texture)
+    {
+        if (texture)
+            _M_textures[index] = texture;
+        else
+            remove_texture(index);
+        return *this;
+    }
+
+    Material& Material::remove_texture(BindingIndex index)
+    {
+        _M_textures.erase(index);
+        return *this;
+    }
+
+    const Material::TexturesMap& Material::textures() const
+    {
+        return _M_textures;
+    }
+
     Material::~Material()
     {
         for (MaterialApplier* applier : _M_appliers)
@@ -154,7 +177,8 @@ namespace Engine
         _M_appliers.clear();
     }
 
-    MaterialApplier::MaterialApplier(Shader* shader, Material* material) : _M_shader(shader), _M_material(material)
+    MaterialApplier::MaterialApplier(Shader* shader, Material* material, BindingIndex global_ubo_index)
+        : _M_shader(shader), _M_material(material), _M_global_ubo_index(global_ubo_index)
     {}
 
     MaterialApplier::~MaterialApplier()

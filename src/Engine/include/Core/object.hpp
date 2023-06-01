@@ -96,6 +96,7 @@ namespace Engine
 
         ENGINE_EXPORT static Object* find_object(const String& object_name);
         virtual bool can_destroy(MessageList& messages);
+        virtual void post_init_components();
         static Package* find_package(const String& name, bool create = true);
         const class Class* class_instance() const;
 

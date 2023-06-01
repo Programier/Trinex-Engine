@@ -13,7 +13,7 @@
 #define BLUE (FOREGROUND_BLUE)
 using ConsoleColor = DWORD;
 
-static void set_output_color(WORD color, FILE*)
+static void set_output_color(ConsoleColor color, FILE*)
 {
     static HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(console, color);
@@ -28,7 +28,7 @@ static void set_output_color(WORD color, FILE*)
 
 using ConsoleColor = const char*;
 
-static void set_output_color(const char* color, FILE* output)
+static void set_output_color(ConsoleColor color, FILE* output)
 {
     fprintf(output, "%s", color);
 }

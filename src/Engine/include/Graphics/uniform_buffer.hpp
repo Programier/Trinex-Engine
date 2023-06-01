@@ -37,7 +37,7 @@ namespace Engine
             return *this;
         }
 
-        UniformBuffer& update(size_t offset, size_t size)
+        UniformBuffer& update(size_t offset = 0, size_t size = Constants::max_size)
         {
             if(offset < sizeof(Type))
             {

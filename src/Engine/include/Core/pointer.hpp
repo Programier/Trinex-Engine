@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/export.hpp>
+#include <Core/etl/stl_wrapper.hpp>
 
 namespace Engine
 {
@@ -14,6 +15,7 @@ namespace Engine
         PointerBase();
     };
 
+
     template<class InstanceClass>
     class Pointer : private PointerBase
     {
@@ -22,6 +24,14 @@ namespace Engine
 
 
     public:
+        struct HashStruct : public Hash<InstanceClass*>
+        {
+            size_t operator()(const Pointer<InstanceClass>& instance) const
+            {
+                return static_cast<Hash<InstanceClass*>>(*this)(instance._M_instance);
+            }
+        };
+
         Pointer(InstanceClass* instance = nullptr) : _M_instance(instance)
         {
             add_reference(_M_instance);
@@ -86,6 +96,16 @@ namespace Engine
         {
             return _M_instance;
         }
+
+        bool operator == (const Pointer<InstanceClass>& instance) const
+        {
+            return _M_instance == instance._M_instance;
+        }
+
+        bool operator != (const Pointer<InstanceClass>& instance) const
+        {
+            return _M_instance != instance._M_instance;
+        }      
 
         ~Pointer()
         {
