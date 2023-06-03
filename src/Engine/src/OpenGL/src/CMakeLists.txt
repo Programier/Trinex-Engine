@@ -3,7 +3,7 @@ file(GLOB OPENGL_SRC "${OPENGL_SOURCES_DIR}/*.cpp")
 
 
 if(WIN32)
-    set(OPENGL_LIBS opengl32 glew)
+    set(OPENGL_LIBS opengl32 glew_s)
 elseif(ANDROID)
     set(OPENGL_LIBS GLESv3)
 else()
