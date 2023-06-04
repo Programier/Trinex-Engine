@@ -3,10 +3,12 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
+#include <LuaJIT/lua.hpp>
 
-namespace Engine
+
+namespace Engine::Lua
 {
-    static lua_State* _M_lua = nullptr;
+    static sol::state* _M_lua = nullptr;
 
     static void make_lua_dir(String& work_dir)
     {
@@ -18,79 +20,75 @@ namespace Engine
         work_dir += "?.lua";
     }
 
-    void LuaInterpretter::init()
+    void Interpretter::init()
     {
-        _M_lua = luaL_newstate();
-        luaL_openlibs(_M_lua);
+        if (_M_lua)
+            return;
 
-        LuaInterpretter::execute_string("io.stdout->setvbuf('no');");
+        _M_lua = new sol::state();
+        _M_lua->open_libraries();
+
+        Interpretter::execute_string("io.stdout->setvbuf('no');");
 #include "lua_code.inl"
-        LuaInterpretter::execute_string(trinex_lua_code);
+        Interpretter::execute_string(trinex_lua_code);
     }
 
-    void LuaInterpretter::init_lua_dir()
+    void Interpretter::init_lua_dir()
     {
         String script_dir;
         make_lua_dir(script_dir);
 
-        auto path = luabridge::getGlobal(_M_lua, "package")["path"];
-        path      = path.tostring() + script_dir;
+        auto path = global_namespace()["package"]["path"];
+        path      = path.get<String>() + script_dir;
     }
 
-    void LuaInterpretter::terminate()
+    void Interpretter::terminate()
     {
         if (_M_lua)
         {
-            lua_close(_M_lua);
+            delete _M_lua;
             _M_lua = nullptr;
         }
     }
 
-    luabridge::Namespace LuaInterpretter::namespace_of(const String& class_name, Vector<String>& names)
+    Namespace Interpretter::namespace_of(const String& class_name, String* out_name)
     {
         size_t prev_index = 0;
         size_t index      = 0;
 
+        sol::table parent;
+        sol::table current = global_namespace().as<sol::table>();
 
-        auto _namespace = luabridge::getGlobalNamespace(_M_lua);
-
-        while ((index = class_name.find_first_of("::", prev_index)) != String::npos)
+        while ((index = class_name.find("::", prev_index)) != String::npos)
         {
-            names.emplace_back(class_name.substr(prev_index, index));
-            prev_index = index + 2;
-            _namespace = _namespace.beginNamespace(names.back().c_str());
+            parent = std::move(current);
+
+            String namespace_name = class_name.substr(prev_index, index - prev_index);
+            prev_index            = index + 2;
+
+            sol::object new_table = parent[namespace_name];
+
+            if (!new_table.valid())
+            {
+                new_table              = _M_lua->create_table();
+                parent[namespace_name] = new_table;
+            }
+
+            current = new_table.as<sol::table>();
         }
 
-        names.emplace_back(class_name.substr(prev_index, class_name.length() - prev_index));
-        return _namespace;
+        if (out_name)
+        {
+            (*out_name) = class_name.substr(prev_index, class_name.length() - prev_index);
+        }
+
+        return current;
     }
 
-    LuaResult LuaInterpretter::execute_string(const char* line)
+    Result Interpretter::execute_string(const char* line)
     try
     {
-        int args_count = lua_gettop(_M_lua);
-
-        if (luaL_loadstring(_M_lua, line) == LUA_OK)
-        {
-            lua_call(_M_lua, 0, LUA_MULTRET);
-        }
-        else
-        {
-            info_log("LuaError: %s", lua_tostring(_M_lua, -1));
-            return {};
-        }
-
-        args_count = lua_gettop(_M_lua) - args_count;
-
-        LuaResult result;
-        result.reserve(args_count);
-
-        while (args_count-- > 0)
-        {
-            result.insert(result.begin(), luabridge::LuaRef::fromStack(_M_lua));
-        }
-
-        return result;
+        return _M_lua->script(line);
     }
     catch (const std::exception& e)
     {
@@ -98,19 +96,19 @@ namespace Engine
         return {};
     }
 
-    LuaResult LuaInterpretter::execute_string(const String& line)
+    Result Interpretter::execute_string(const String& line)
     {
         return execute_string(line.c_str());
     }
 
-    ENGINE_EXPORT luabridge::Namespace LuaInterpretter::global_namespace()
+    ENGINE_EXPORT sol::global_table& Interpretter::global_namespace()
     {
-        return luabridge::getGlobalNamespace(_M_lua);
+        return _M_lua->globals();
     }
 
-    ENGINE_EXPORT lua_State* LuaInterpretter::state()
+    ENGINE_EXPORT sol::state* Interpretter::state()
     {
         return _M_lua;
     }
 
-}// namespace Engine
+}// namespace Engine::Lua

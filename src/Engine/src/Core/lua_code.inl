@@ -3,11 +3,14 @@ const char* trinex_lua_code = R"(
 
 Engine = Engine || {}
 
+function info()
+{
+    for(k, v in pairs(_G)) print(k, v);
+}
 
 
 function info_log(t, f, recursive)
 {
-
     local function print_helper(obj, output_file, cnt)
     {
         cnt = cnt || 0;
@@ -19,7 +22,8 @@ function info_log(t, f, recursive)
                 output_file->write('\n');
             }
 
-            output_file->write(string.rep("\t", cnt), "{\n"); cnt = cnt + 1;
+            output_file->write(string.rep("\t", cnt), "{\n");
+            cnt = cnt + 1;
 
             for (k, v in pairs(obj))
             {
@@ -38,7 +42,8 @@ function info_log(t, f, recursive)
                 output_file->write(",\n");
             }
 
-            cnt = cnt - 1 output_file->write(string.rep("\t", cnt), "}");
+            cnt = cnt - 1;
+            output_file->write(string.rep("\t", cnt), "}");
         }
         else if (type(obj) == "string")
         {
@@ -74,9 +79,10 @@ function info_log(t, f, recursive)
     }
 }
 
-function Engine.dump_config(path)
+function Engine.dump_config(path, config)
 {
-    local config = Engine.config;
+    if (config == nill) config = Engine.config;
+
     local config_file = io.open(path, 'w');
 
     local function convert_value(x)
@@ -91,16 +97,12 @@ function Engine.dump_config(path)
 
     config_file->write('// Auto generated config by Trinex Engine\n\n');
 
-    for (k, v in pairs(config))
+    local config_class = getmetatable(config);
+    for (k, v in pairs(config_class))
     {
-        if (type(k) == 'userdata' && type(v) == 'table')
+        if(string.sub(k, 1, 2) != '__' && type(v) != 'userdata')
         {
-            for (k1, v1 in pairs(v))
-            {
-                config_file->write('Engine.config.'..k1, ' = ', convert_value(config[k1]), ';\n');
-            }
-
-            break;
+            config_file->write('Engine.config.'..k, ' = ', convert_value(config[k]), ';\n');
         }
     }
 
@@ -129,5 +131,3 @@ function Engine.load_config(path)
 
 
 )";
-
-

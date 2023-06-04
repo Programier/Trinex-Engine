@@ -76,8 +76,8 @@ namespace Engine
     };
 
     register_class(Engine::Package, Engine::Object)
-            .register_method("add_object", &Package::add_object)
-            .register_method("remove_object", &Package::remove_object);
+            .set("add_object", &Package::add_object)
+            .set("remove_object", &Package::remove_object);
 
     Package::Package()
     {}
@@ -291,7 +291,7 @@ namespace Engine
 
     static bool check_file(BufferReader* reader)
     {
-        check(reader);
+        trinex_check(reader);
 
         uint_t flag;
         if (!reader->read(flag))

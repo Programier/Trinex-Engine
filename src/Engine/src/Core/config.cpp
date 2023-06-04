@@ -27,9 +27,15 @@ namespace Engine
 
     EngineConfig& EngineConfig::init(const String& filename)
     {
-        auto loader = luabridge::getGlobal(LuaInterpretter::state(), "Engine")["load_config"];
+        auto loader = Lua::Interpretter::global_namespace()["Engine"]["load_config"];
         try
         {
+            if (!loader.is<sol::function>())
+            {
+                logger->error("EngineConfig: Cannot find loader in Lua!");
+                return *this;
+            }
+
             loader(filename);
         }
         catch (const std::exception& e)
@@ -49,20 +55,19 @@ namespace Engine
 
     EngineConfig& EngineConfig::save(const String& filename)
     {
-        luabridge::getGlobal(LuaInterpretter::state(), "Engine")["dump_config"](filename);
+        Lua::Interpretter::global_namespace()["Engine"]["dump_config"](filename, this);
         return *this;
     }
 
     ENGINE_EXPORT EngineConfig& engine_config = EngineConfig::instance();
 
 
-#define DECLARE_CONFIG_PROP(name) config_namespace.addProperty(#name, &engine_config.name, true)
+#define DECLARE_CONFIG_PROP(name) config_namespace.set(#name, &EngineConfig::name)
 
     static void on_init()
     {
-        auto config_namespace = LuaInterpretter::global_namespace().beginNamespace("Engine").beginNamespace("config");
+        auto config_namespace = Lua::Interpretter::lua_class_of<EngineConfig>("Engine::EngineConfig");
 
-        DECLARE_CONFIG_PROP(resources_dir);
         DECLARE_CONFIG_PROP(resources_dir);
         DECLARE_CONFIG_PROP(api);
         DECLARE_CONFIG_PROP(base_commandlet);
@@ -81,7 +86,7 @@ namespace Engine
         DECLARE_CONFIG_PROP(load_textures_to_gpu);
         DECLARE_CONFIG_PROP(enable_g_buffer);
 
-        config_namespace.endNamespace().endNamespace();
+        Lua::Interpretter::namespace_of("Engine::").set("config", &engine_config);
     }
 
     namespace

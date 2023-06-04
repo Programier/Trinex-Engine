@@ -1,3 +1,4 @@
+#include "Core/logger.hpp"
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/camera.hpp>

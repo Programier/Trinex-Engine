@@ -3,7 +3,7 @@
 #include <Core/export.hpp>
 #include <cassert>
 
-#if  defined(_WIN32)
+#if defined(_WIN32)
 #define PLATFORM_WINDOWS 1
 #endif
 
@@ -41,7 +41,7 @@
 #define not_implemented FILE_POS_INFO + std::string("\n\tError: Method or function is not implemented!")
 
 
-#define check(expression)                                                                                              \
+#define trinex_check(expression)                                                                                       \
     if (!(expression))                                                                                                 \
     throw Engine::EngineException("Assertion failed: " + std::string(#expression))
 

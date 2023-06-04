@@ -29,7 +29,8 @@ namespace Engine
     }
 
     Color& Color::operator=(Color&&) = default;
-    Color::Color(float r, float g, float b, float a) : Color(glm::vec4(r, g, b, a)){};
+    Color::Color(float r, float g, float b, float a) : Color(glm::vec4(r, g, b, a))
+    {}
 
     Color::Color(const glm::vec4& color)
     {

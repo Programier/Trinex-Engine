@@ -3,22 +3,20 @@
 
 namespace Engine
 {
-
     struct DefferedMethodInvokerBase {
         virtual void invoke(void* object) = 0;
         virtual ~DefferedMethodInvokerBase(){};
     };
-
 
     template<typename ReturnType, typename Instance, typename... Args>
     class DefferedMethodInvoker : public DefferedMethodInvokerBase
     {
     private:
         ReturnType (Instance::*_M_method)(Args...);
-        Tuple<Args...> _M_args;
+        std::tuple<std::remove_cvref_t<Args>...> _M_args;
 
     public:
-        DefferedMethodInvoker(ReturnType (Instance::*method)(Args...), Args... args)
+        DefferedMethodInvoker(ReturnType (Instance::*method)(Args...), const std::remove_cvref_t<Args>&... args)
             : _M_method(method), _M_args(std::make_tuple(args...))
         {}
 

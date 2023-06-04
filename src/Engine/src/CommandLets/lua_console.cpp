@@ -25,7 +25,7 @@ namespace Engine
 
             while (get_command())
             {
-                LuaInterpretter::execute_string(command);
+                Lua::Interpretter::execute_string(command);
             }
 
             return 0;

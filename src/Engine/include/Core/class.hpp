@@ -4,7 +4,7 @@
 #include <Core/etl/deffered_method_invoker.hpp>
 #include <Core/object.hpp>
 #include <Core/predef.hpp>
-#include <functional>
+
 
 namespace Engine
 {
@@ -17,16 +17,11 @@ namespace Engine
         const Class* _M_parent = nullptr;
         Set<const Class*> _M_parents;
         Vector<DefferedMethodInvokerBase*> _M_lua_invokers;
-        Vector<String> _M_static_methods;
-        Vector<String> _M_methods;
-        Vector<String> _M_static_properties;
-        Vector<String> _M_properties;
         std::function<Object*()> _M_allocate_object;
         std::function<Object*()> _M_allocate_without_package;
 
-        size_t _M_instance_size       = 0;
-        void const* _M_lua_static_key = nullptr;
-        void (*_M_post_init)()        = nullptr;
+        size_t _M_instance_size = 0;
+        void (*_M_post_init)()  = nullptr;
 
         template<typename Instance>
         static Instance* lua_allocate()
@@ -37,8 +32,6 @@ namespace Engine
 
     private:
         Class(const String& name = "");
-        static void insert_new_name(const char* name, const String& type_name, Vector<String>& to);
-
         void update_parent_classes(const Class* parent);
 
         template<typename InstanceClass, typename BaseClass>
@@ -63,30 +56,16 @@ namespace Engine
             }
 
             info_log("Class: Start initialize class '%s'", current->name().c_str());
-            Vector<String> names;
+            sol::usertype<InstanceClass> lua_class =
+                    Lua::Interpretter::lua_class_of<InstanceClass, BaseClass>(current->name());
+
+            for (auto invoker : current->_M_lua_invokers)
             {
-                auto lua_class = LuaInterpretter::lua_class_of<InstanceClass>(
-                        current->name(), names, parent ? parent->_M_lua_static_key : nullptr);
-
-                current->_M_lua_static_key = luabridge::detail::getStaticRegistryKey<InstanceClass>();
-
-                for (auto invoker : current->_M_lua_invokers)
-                {
-                    invoker->invoke(&lua_class);
-                    delete invoker;
-                }
-
-                auto _n = lua_class.endClass();
-
-                for (size_t start = names.size() - 1; start > 0; --start)
-                {
-                    _n = _n.endNamespace();
-                }
-
-                current->_M_lua_invokers.clear();
+                invoker->invoke(&lua_class);
+                delete invoker;
             }
 
-
+            current->_M_lua_invokers.clear();
             current->_M_post_init = nullptr;
         }
 
@@ -116,12 +95,13 @@ namespace Engine
         class LuaRegistrar
         {
         private:
-            using LuaBridgeClass = luabridge::Namespace::Class<Instance>;
+            using UserType = sol::usertype<Instance>;
             Class* _M_class;
             LuaRegistrar(Class* _class) : _M_class(_class)
             {
-                register_method("create", lua_allocate<Instance>);
+                set("create", lua_allocate<Instance>);
             }
+
 
         public:
             LuaRegistrar(const LuaRegistrar&) = default;
@@ -131,57 +111,11 @@ namespace Engine
                 return _M_class;
             }
 
-            template<typename Return, typename... Args>
-            LuaRegistrar& register_method(const char* name, Return (Instance::*method)(Args... args))
+            template<typename Key, typename Value>
+            LuaRegistrar& set(Key key, Value value)
             {
-                Class::insert_new_name(name, Object::decode_name(typeid(method)), _M_class->_M_methods);
-                LuaBridgeClass& (LuaBridgeClass::*invoked_method)(const char*, Return (Instance::*)(Args...)) =
-                        &LuaBridgeClass::template addFunction<Return, Args...>;
-                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, name, method);
-                _M_class->_M_lua_invokers.push_back(invoker);
-                return *this;
-            }
-
-            template<typename Return, typename... Args>
-            LuaRegistrar& register_method(const char* name, Return (Instance::*method)(Args... args) const)
-            {
-                Class::insert_new_name(name, Object::decode_name(typeid(method)), _M_class->_M_methods);
-                LuaBridgeClass& (LuaBridgeClass::*invoked_method)(const char*, Return (Instance::*)(Args...) const) =
-                        &LuaBridgeClass::template addFunction<Return, Args...>;
-                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, name, method);
-                _M_class->_M_lua_invokers.push_back(invoker);
-                return *this;
-            }
-
-            template<typename Return, typename... Args>
-            LuaRegistrar& register_method(const char* name, Return (*method)(Args... args))
-            {
-                Class::insert_new_name(name, Object::decode_name(typeid(method)), _M_class->_M_static_methods);
-                LuaBridgeClass& (LuaBridgeClass::*invoked_method)(const char*, Return (*)(Args...)) =
-                        &LuaBridgeClass::template addStaticFunction<Return (*)(Args...)>;
-                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, name, method);
-                _M_class->_M_lua_invokers.push_back(invoker);
-                return *this;
-            }
-
-            template<typename Type>
-            LuaRegistrar& register_property(const char* name, Type* prop, bool writable = true)
-            {
-                Class::insert_new_name(name, Object::decode_name(typeid(prop)), _M_class->_M_static_properties);
-                LuaBridgeClass& (LuaBridgeClass::*invoked_method)(const char*, Type*, bool) =
-                        &LuaBridgeClass::template addStaticProperty<Type>;
-                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, name, prop, writable);
-                _M_class->_M_lua_invokers.push_back(invoker);
-                return *this;
-            }
-
-            template<typename Type>
-            LuaRegistrar& register_property(const char* name, Type Instance::*prop, bool writable = true)
-            {
-                Class::insert_new_name(name, Object::decode_name(typeid(prop)), _M_class->_M_properties);
-                LuaBridgeClass& (LuaBridgeClass::*invoked_method)(const char*, Type Instance::*, bool) =
-                        &LuaBridgeClass::template addProperty<Type>;
-                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, name, prop, writable);
+                UserType& (UserType::*invoked_method)(Key&&, Value &&) = &UserType::template set<Key, Value>;
+                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, key, value);
                 _M_class->_M_lua_invokers.push_back(invoker);
                 return *this;
             }
@@ -196,10 +130,6 @@ namespace Engine
         Object* create() const;
         Object* create_without_package() const;
         size_t instance_size() const;
-        const Vector<String>& properties() const;
-        const Vector<String>& static_properties() const;
-        const Vector<String>& methods() const;
-        const Vector<String>& static_methods() const;
 
         template<typename InstanceClass = void, typename BaseClass = void, typename... Args>
         static LuaRegistrar<InstanceClass> register_new_class(const String& class_name, Args... args)

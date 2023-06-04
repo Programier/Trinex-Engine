@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/decode_typeid_name.hpp>
+#include <Core/demangle.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
@@ -43,7 +43,7 @@ namespace Engine
 
         Function(const String& function_base_name)
         {
-            _M_prototype_name = decode_name(typeid(_M_function));
+            _M_prototype_name = Demangle::decode_name(typeid(_M_function));
             base_name(function_base_name);
             _M_function = nullptr;
         }

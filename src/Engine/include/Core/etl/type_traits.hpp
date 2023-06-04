@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include <type_traits>
 
 namespace Engine
@@ -37,7 +38,7 @@ namespace Engine
 
 
     template<typename T>
-    struct is_object_based<T, std::conditional_t<false, typename T::ObjectClass, void>>
-        : public std::true_type {
+    struct is_object_based<T, std::conditional_t<false, typename T::ObjectClass, void>> : public std::true_type {
     };
+
 }// namespace Engine

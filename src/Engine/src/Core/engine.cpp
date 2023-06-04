@@ -216,7 +216,7 @@ namespace Engine
         }
 #endif
 
-        LuaInterpretter::init();
+        Lua::Interpretter::init();
 
         for (auto func : initialize_list())
         {
@@ -230,7 +230,7 @@ namespace Engine
 
         logger->log("Engine: Work dir is '%s'", root_manager->work_dir().string().c_str());
 
-        LuaInterpretter::init_lua_dir();
+        Lua::Interpretter::init_lua_dir();
 
         CommandLet* command_let = find_command_let(argc, argv);
         if (!command_let)
@@ -295,7 +295,7 @@ namespace Engine
 
     EngineInstance::~EngineInstance()
     {
-        LuaInterpretter::terminate();
+        Lua::Interpretter::terminate();
 
         info_log("Engine: Terminate Engine");
         engine_instance->trigger_terminate_functions();

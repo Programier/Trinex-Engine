@@ -1,8 +1,9 @@
+#include "sol/overload.hpp"
 #include <Core/api_object.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
-#include <Core/decode_typeid_name.hpp>
+#include <Core/demangle.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
@@ -15,44 +16,32 @@
 #define MAX_GARBAGE_COLLECTION_OBJECTS 20000
 
 
-namespace luabridge
-{
-    template<>
-    struct Stack<Engine::ObjectRenameStatus> : Engine::LuaInterpretter::EnumWrapper<Engine::ObjectRenameStatus> {
-    };
-
-    template<>
-    struct Stack<Engine::ObjectFlags> : Engine::LuaInterpretter::EnumWrapper<Engine::ObjectFlags> {
-    };
-}// namespace luabridge
-
-
 namespace Engine
 {
     static ClassMetaData<void> void_instance = nullptr;
 
     static ClassMetaData<Object> object_instance =
             &Class::register_new_class<Engine::Object, void>("Engine::Object")
-                     .register_method("root_package", Object::root_package)
-                     .register_method("class_instance", &Object::class_instance)
-                     .register_method("find_package", Object::find_package)
+                     .set("root_package", &Object::root_package)
+                     .set("class_instance", &Object::class_instance)
+                     .set("find_package", Object::find_package)
                      //.register_method("find_object", Object::find_object)
                      //.register_method("set_flag", static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag))
-                     .register_method("get_flag", static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag))
-                     .register_method("references", &Object::references)
-                     .register_method("full_name", &Object::full_name)
-                     .register_method("package", &Object::package)
-                     .register_method("remove_from_package", &Object::remove_from_package)
-                     .register_method("class_name", &Object::class_name)
-                     .register_method("load_package", Object::load_package)
-                     .register_method("class_hash", &Object::class_hash)
-                     .register_method("mark_for_delete", &Object::mark_for_delete)
-                     .register_method("is_on_heap", &Object::is_on_heap)
-                     .register_method("collect_garbage", Object::collect_garbage)
-                     .register_method("get_name", static_cast<const String& (Object::*) () const>(&Object::name))
-                     .register_method("set_name",
-                                      static_cast<ObjectRenameStatus (Object::*)(const String&, bool)>(&Object::name))
-                     .register_method("add_to_package", &Object::add_to_package);
+                     .set("flag", sol::overload(static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag)))
+                     .set("references", &Object::references)
+                     .set("full_name", &Object::full_name)
+                     .set("package", &Object::package)
+                     .set("remove_from_package", &Object::remove_from_package)
+                     .set("class_name", &Object::class_name)
+                     .set("load_package", Object::load_package)
+                     .set("class_hash", &Object::class_hash)
+                     .set("mark_for_delete", &Object::mark_for_delete)
+                     .set("is_on_heap", &Object::is_on_heap)
+                     .set("collect_garbage", Object::collect_garbage)
+                     .set("name", sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
+                                                static_cast<ObjectRenameStatus (Object::*)(const String&, bool)>(
+                                                        &Object::name)))
+                     .set("add_to_package", &Object::add_to_package);
 
 
     static ObjectSet& get_instance_list()
@@ -130,12 +119,12 @@ namespace Engine
 
     ENGINE_EXPORT String Object::decode_name(const std::type_info& info)
     {
-        return Engine::decode_name(info);
+        return Engine::Demangle::decode_name(info);
     }
 
     ENGINE_EXPORT String Object::decode_name(const String& name)
     {
-        return Engine::decode_name(name);
+        return Engine::Demangle::decode_name(name);
     }
 
     ENGINE_EXPORT Package* Object::load_package(const String& name)
@@ -532,6 +521,8 @@ namespace Engine
         while (!get_instance_list().empty())
         {
             Object* object = (*get_instance_list().begin());
+            debug_log("Garbage Collector: Force deleting object instance '%s' with type '%s' [%p]\n",
+                      object->name().c_str(), object->class_name().c_str(), object);
             object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
             manager.free_object(object);
             get_instance_list().erase(object);

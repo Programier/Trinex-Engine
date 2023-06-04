@@ -1,24 +1,27 @@
+#include "sol/forward.hpp"
 #include <Core/class.hpp>
 #include <Core/commandlet.hpp>
+#include <Core/demangle.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/deffered_method_invoker.hpp>
 #include <Graphics/camera.hpp>
+#include <deque>
+#include <memory>
+#include <type_traits>
+#include <vector>
 
 
 namespace Engine
 {
-
     class NewLuaConsole : public CommandLet
     {
     public:
         void test()
         {
-            const char* code = "camera = Engine.Camera.create();";
-            LuaInterpretter::execute_string(code);
+            auto object = Lua::Interpretter::execute_string("return Engine.Camera.create(), Engine.Shader.create();");
 
-            luabridge::LuaRef camera = LuaInterpretter::execute_string("return camera;")[0];
-            logger->log("LUA object is instance of camera: %d", (int) camera.isInstance<Camera>());
+            for (auto obj : object) logger->log("Object is camera: %d", (int) obj.is<Camera>());
         }
 
         virtual int execute(int argc, char** argv) override
@@ -38,7 +41,7 @@ namespace Engine
                 if (command == "test")
                     test();
                 else
-                    LuaInterpretter::execute_string(command);
+                    Lua::Interpretter::execute_string(command);
             }
 
             return 0;

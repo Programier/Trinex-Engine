@@ -1,4 +1,5 @@
 #include "Core/engine_types.hpp"
+#include "Core/object.hpp"
 #include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
@@ -202,5 +203,5 @@ namespace Engine
     }
 
 
-    register_class(Engine::Material, Engine::ApiObject);
+    register_class(Engine::Material, Engine::Object);
 }// namespace Engine

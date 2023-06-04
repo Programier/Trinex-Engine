@@ -52,9 +52,9 @@ namespace Engine
             for (const FrameBufferAttachment& color_binding : buffer.color_attachments)
             {
                 VulkanTexture* texture = GET_TYPE(VulkanTexture, color_binding.texture_id);
-                check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
+                trinex_check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
                 bool usage_check = texture->can_use_color_as_color_attachment();
-                check(usage_check && "Vulkan API: Pixel type for color attachment must be RGBA");
+                trinex_check(usage_check && "Vulkan API: Pixel type for color attachment must be RGBA");
                 auto& t_state = texture->state;
 
                 if (buffer_index == 1)
@@ -89,10 +89,10 @@ namespace Engine
             {
                 auto& binding          = buffer.depth_stencil_attachment.value();
                 VulkanTexture* texture = GET_TYPE(VulkanTexture, binding.texture_id);
-                check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
+                trinex_check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
 
                 bool check_status = texture->is_depth_stencil_image();
-                check(check_status && "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
+                trinex_check(check_status && "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
                 auto& t_state = texture->state;
 
                 if (buffer_index == 1)
