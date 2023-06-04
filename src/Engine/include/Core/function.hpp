@@ -1,10 +1,8 @@
 #pragma once
 #include <Core/demangle.hpp>
-#include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
-#include <stdexcept>
 
 namespace Engine
 {
@@ -69,7 +67,7 @@ namespace Engine
                 return _M_function(args...);
 
 #ifdef THROW_ON_NULL_FUNC
-            throw std::runtime_error(Strings::to_string(Strings::format(L"Null function: {}", name())));
+            throw std::runtime_error(Strings::format("Null function: {}", name()));
 #else
             info_log("No function found: %ls\n", name().c_str());
             static typename std::remove_reference<ReturnType>::type result;

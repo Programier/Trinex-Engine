@@ -1,4 +1,3 @@
-#include "sol/forward.hpp"
 #include <Core/class.hpp>
 #include <Core/commandlet.hpp>
 #include <Core/demangle.hpp>
@@ -6,10 +5,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/deffered_method_invoker.hpp>
 #include <Graphics/camera.hpp>
-#include <deque>
-#include <memory>
-#include <type_traits>
-#include <vector>
 
 
 namespace Engine
@@ -20,7 +15,6 @@ namespace Engine
         void test()
         {
             auto object = Lua::Interpretter::execute_string("return Engine.Camera.create(), Engine.Shader.create();");
-
             for (auto obj : object) logger->log("Object is camera: %d", (int) obj.is<Camera>());
         }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/export.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>

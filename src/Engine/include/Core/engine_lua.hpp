@@ -1,10 +1,8 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
 #include <Core/logger.hpp>
 #include <sol/sol.hpp>
-#include <type_traits>
 
 
 namespace Engine
@@ -17,7 +15,7 @@ namespace Engine::Lua
     using namespace sol;
 
 
-    using Result = protected_function_result;
+    using Result    = protected_function_result;
     using Namespace = table;
 
     struct ENGINE_EXPORT Interpretter {
@@ -39,7 +37,7 @@ namespace Engine::Lua
         static auto lua_class_of(const String& class_name)
         {
             String out_name;
-            auto _n = namespace_of(class_name, &out_name);
+            auto _n                        = namespace_of(class_name, &out_name);
             sol::usertype<Instance> result = _n.new_usertype<Instance>(out_name);
             if constexpr (!std::is_same<Parent, void>::value)
             {
@@ -50,4 +48,4 @@ namespace Engine::Lua
 
         friend class Engine::EngineInstance;
     };
-}// namespace Engine
+}// namespace Engine::Lua
