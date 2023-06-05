@@ -521,8 +521,8 @@ namespace Engine
         while (!get_instance_list().empty())
         {
             Object* object = (*get_instance_list().begin());
-            debug_log("Garbage Collector: Force deleting object instance '%s' with type '%s' [%p]\n",
-                      object->name().c_str(), object->class_name().c_str(), object);
+            debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n", object->name().c_str(),
+                      object->class_name().c_str(), object);
             object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
             manager.free_object(object);
             get_instance_list().erase(object);

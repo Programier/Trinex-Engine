@@ -13,17 +13,24 @@ namespace Engine
     {
     private:
         ReturnType (Instance::*_M_method)(Args...);
-        std::tuple<std::remove_cvref_t<Args>...> _M_args;
+        Tuple<Args...> _M_args;
+
+        template<std::size_t... Indices>
+        void private_invoke(Instance* instance, std::index_sequence<Indices...>&&)
+        {
+            ((*instance).*_M_method)(std::forward<Args>(std::get<Indices>(_M_args))...);
+        }
 
     public:
-        DefferedMethodInvoker(ReturnType (Instance::*method)(Args...), const std::remove_cvref_t<Args>&... args)
-            : _M_method(method), _M_args(std::make_tuple(args...))
+        template<typename... MethodArgs>
+        DefferedMethodInvoker(ReturnType (Instance::*method)(Args...), MethodArgs&&... args)
+            : _M_method(method), _M_args(std::forward<MethodArgs>(args)...)
         {}
 
         virtual void invoke(void* object) override
         {
             Instance* instance = reinterpret_cast<Instance*>(object);
-            std::apply(_M_method, std::tuple_cat(std::make_tuple(instance), _M_args));
+            private_invoke(instance, std::index_sequence_for<Args...>());
         }
     };
 }// namespace Engine

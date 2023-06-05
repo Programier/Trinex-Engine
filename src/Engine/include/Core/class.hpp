@@ -112,10 +112,12 @@ namespace Engine
             }
 
             template<typename Key, typename Value>
-            LuaRegistrar& set(Key key, Value value)
+            LuaRegistrar& set(Key&& key, Value&& value)
             {
                 UserType& (UserType::*invoked_method)(Key&&, Value &&) = &UserType::template set<Key, Value>;
-                DefferedMethodInvokerBase* invoker = new DefferedMethodInvoker(invoked_method, key, value);
+                auto invoker =
+                        new DefferedMethodInvoker(invoked_method, std::forward<Key>(key), std::forward<Value>(value));
+
                 _M_class->_M_lua_invokers.push_back(invoker);
                 return *this;
             }
