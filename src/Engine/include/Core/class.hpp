@@ -114,12 +114,23 @@ namespace Engine
             template<typename Key, typename Value>
             LuaRegistrar& set(Key&& key, Value&& value)
             {
-                UserType& (UserType::*invoked_method)(Key&&, Value &&) = &UserType::template set<Key, Value>;
-                auto invoker =
-                        new DefferedMethodInvoker(invoked_method, std::forward<Key>(key), std::forward<Value>(value));
+                if constexpr (is_string_literal_v<Key>)
+                {
+                    return set(static_cast<const char*>(key), std::forward<Value>(value));
+                }
+                else if constexpr (is_function_reference_v<Value>)
+                {
+                    return set(std::forward<Key>(key), &value);
+                }
+                else
+                {
+                    UserType& (UserType::*invoked_method)(Key&&, Value &&) = &UserType::template set<Key, Value>;
+                    auto invoker = new DefferedMethodInvoker(invoked_method, std::forward<Key>(key),
+                                                             std::forward<Value>(value));
 
-                _M_class->_M_lua_invokers.push_back(invoker);
-                return *this;
+                    _M_class->_M_lua_invokers.push_back(invoker);
+                    return *this;
+                }
             }
 
             friend class Class;

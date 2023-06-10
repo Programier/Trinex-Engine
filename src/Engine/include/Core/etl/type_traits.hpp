@@ -39,4 +39,29 @@ namespace Engine
     struct is_object_based<T, std::conditional_t<false, typename T::ObjectClass, void>> : public std::true_type {
     };
 
+    template<typename Type>
+    struct is_function_reference : std::false_type {
+    };
+
+    template<typename Type, typename... Args>
+    struct is_function_reference<Type (&)(Args...)> : std::true_type {
+    };
+
+    template<typename Type>
+    constexpr bool is_function_reference_v = is_function_reference<Type>::value;
+
+    template<typename T>
+    struct is_string_literal : std::false_type {
+    };
+
+    template<std::size_t N>
+    struct is_string_literal<const char (&)[N]> : std::true_type {
+    };
+
+    template<std::size_t N>
+    struct is_string_literal<const wchar_t (&)[N]> : std::true_type {
+    };
+
+    template<typename T>
+    constexpr bool is_string_literal_v = is_string_literal<T>::value;
 }// namespace Engine

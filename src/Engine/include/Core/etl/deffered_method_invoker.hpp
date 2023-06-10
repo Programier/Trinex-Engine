@@ -13,7 +13,7 @@ namespace Engine
     {
     private:
         ReturnType (Instance::*_M_method)(Args...);
-        Tuple<Args...> _M_args;
+        Tuple<std::decay_t<Args>...> _M_args;
 
         template<std::size_t... Indices>
         void private_invoke(Instance* instance, std::index_sequence<Indices...>&&)
