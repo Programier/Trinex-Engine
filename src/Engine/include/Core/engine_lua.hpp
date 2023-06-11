@@ -18,6 +18,9 @@ namespace Engine::Lua
     using Result    = protected_function_result;
     using Namespace = table;
 
+    template<typename Instance>
+    using Class = usertype<Instance>;
+
     struct ENGINE_EXPORT Interpretter {
     private:
         ENGINE_EXPORT static void init();
@@ -34,10 +37,10 @@ namespace Engine::Lua
 
 
         template<typename Instance, typename Parent = void>
-        static auto lua_class_of(const String& class_name)
+        static Class<Instance> lua_class_of(const String& class_name)
         {
             String out_name;
-            auto _n                        = namespace_of(class_name, &out_name);
+            Namespace _n                        = namespace_of(class_name, &out_name);
             sol::usertype<Instance> result = _n.new_usertype<Instance>(out_name);
             if constexpr (!std::is_same<Parent, void>::value)
             {
