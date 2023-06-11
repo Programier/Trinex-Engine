@@ -99,7 +99,11 @@ namespace Engine
             Class* _M_class;
             LuaRegistrar(Class* _class) : _M_class(_class)
             {
-                set("create", lua_allocate<Instance>);
+                if constexpr (std::is_base_of_v<Engine::Object, Instance>)
+                {
+                    set(Lua::meta_function::construct, lua_allocate<Instance>);
+                    set(Lua::meta_function::to_string, &Instance::as_string);
+                }
             }
 
 
@@ -131,6 +135,17 @@ namespace Engine
                     _M_class->_M_lua_invokers.push_back(invoker);
                     return *this;
                 }
+            }
+
+            template<typename Key, typename Value, typename... Args>
+            LuaRegistrar& operator()(Key&& key, Value&& value, Args&&... args)
+            {
+                set(std::forward<Key>(key), std::forward<Value>(value));
+                if constexpr (sizeof...(args) > 2)
+                {
+                    (*this)(std::forward<Args>(args)...);
+                }
+                return *this;
             }
 
             friend class Class;

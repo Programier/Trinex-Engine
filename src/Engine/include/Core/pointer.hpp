@@ -56,6 +56,7 @@ namespace Engine
             remove_reference(_M_instance);
             _M_instance = pointer._M_instance;
             add_reference(_M_instance);
+            return *this;
         }
 
         Pointer& operator=(Pointer&& pointer)

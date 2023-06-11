@@ -24,10 +24,10 @@ namespace Engine
             &Class::register_new_class<Engine::Object, void>("Engine::Object")
                      .set("root_package", &Object::root_package)
                      .set("class_instance", &Object::class_instance)
-                     .set("find_package", Object::find_package)
-                     //.register_method("find_object", Object::find_object)
-                     //.register_method("set_flag", static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag))
-                     .set("flag", sol::overload(static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag)))
+                     .set("find_package", &Object::find_package)
+                     .set("find_object", &Object::find_object)
+                     .set("flag", sol::overload(static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag),
+                                                static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag)))
                      .set("references", &Object::references)
                      .set("full_name", &Object::full_name)
                      .set("package", &Object::package)
@@ -41,7 +41,8 @@ namespace Engine
                      .set("name", sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
                                                 static_cast<ObjectRenameStatus (Object::*)(const String&, bool)>(
                                                         &Object::name)))
-                     .set("add_to_package", &Object::add_to_package);
+                     .set("add_to_package", &Object::add_to_package)
+                     .set("as_string", &Object::as_string);
 
 
     static ObjectSet& get_instance_list()
@@ -387,7 +388,7 @@ namespace Engine
         return _M_flags;
     }
 
-    const Object& Object::flag(ObjectFlags flag, bool status)
+    Object& Object::flag(ObjectFlags flag, bool status)
     {
         _M_flags[static_cast<size_t>(flag)] = status;
         return *this;
@@ -486,6 +487,11 @@ namespace Engine
     const class Class* Object::class_instance() const
     {
         return _M_class;
+    }
+
+    String Object::as_string() const
+    {
+        return Strings::format("{}: {}", _M_class->_M_name, _M_name);
     }
 
     bool Object::archive_process(Archive* archive)

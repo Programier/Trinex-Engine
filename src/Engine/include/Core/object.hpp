@@ -91,7 +91,7 @@ namespace Engine
         String full_name() const;
         Counter references() const;
         const decltype(Object::_M_flags)& flags() const;
-        const Object& flag(ObjectFlags flag, bool status);
+        Object& flag(ObjectFlags flag, bool status);
         bool flag(ObjectFlags flag) const;
 
         ENGINE_EXPORT static Object* find_object(const String& object_name);
@@ -99,6 +99,7 @@ namespace Engine
         virtual void post_init_components();
         static Package* find_package(const String& name, bool create = true);
         const class Class* class_instance() const;
+        String as_string() const;
 
         bool archive_process(Archive* archive) override;
 
