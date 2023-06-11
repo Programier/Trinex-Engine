@@ -66,4 +66,16 @@ namespace Engine
 
         return *this;
     }
+
+    register_class(Engine::Actor)("update", &Actor::update,//
+                                  "load", &Actor::load,    //
+                                  "unload", &Actor::unload,//
+                                  "render", &Actor::render,//
+                                  "parent",
+                                  Lua::overload(static_cast<Actor& (Actor::*) (Actor*)>(&Actor::parent),
+                                                static_cast<Actor* (Actor::*) () const>(&Actor::parent)),
+                                  "childs", &Actor::childs,            //
+                                  "child", &Actor::child,              //
+                                  "remove_child", &Actor::remove_child,//
+                                  "transform", &Actor::transform);
 }// namespace Engine

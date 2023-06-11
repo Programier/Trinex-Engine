@@ -55,7 +55,7 @@ namespace Engine
         return move({x, y, z}, right, up, front, add_values);
     }
 
-    Transform& Transform::move(const Vector3D move_vector, const Vector3D& x_axis, const Vector3D& y_axis,
+    Transform& Transform::move(const Vector3D& move_vector, const Vector3D& x_axis, const Vector3D& y_axis,
                                const Vector3D& z_axis, bool add_values)
     {
         APPLY_TRANSFORM(add_values, +=, _M_position,
@@ -138,4 +138,62 @@ namespace Engine
     {
         return glm::normalize(_M_quaternion * Constants::OY);
     }
+
+    String Transform::as_string() const
+    {
+        return Strings::format("Position: {}\n"
+                               "Scale:    {}\n"
+                               "Rotation: {}",
+                               _M_position, _M_scale, euler_angles());
+    }
+
+    static void on_init()
+    {
+        Lua::Class<Transform> transform_class = Lua::Interpretter::lua_class_of<Transform>("Engine::Transform");
+
+        transform_class.set("matrix", &Transform::matrix);
+        transform_class.set("is_modified", &Transform::is_modified);
+
+        // Move methods
+        Transform& (Transform::*move1)(const Point1D&, const Point1D&, const Point1D&, bool) = &Transform::move;
+        Transform& (Transform::*move2)(const Vector3D&, bool)                                = &Transform::move;
+        Transform& (Transform::*move3)(const Point1D&, const Point1D&, const Point1D&, const Vector3D&, const Vector3D&,
+                                       const Vector3D&, bool)                                = &Transform::move;
+
+        Transform& (Transform::*move4)(const Vector3D&, const Vector3D&, const Vector3D&, const Vector3D&, bool) =
+                &Transform::move;
+        Transform& (Transform::*move5)(const Distance&, const Vector3D&, bool) = &Transform::move;
+
+        transform_class.set("move", Lua::overload(move1, move2, move3, move4, move5));
+        transform_class.set("position", &Transform::position);
+
+        // Scale methods
+
+        const Scale3D& (Transform::*scale1)() const                                           = &Transform::scale;
+        Transform& (Transform::*scale2)(const Scale3D&, bool)                                 = &Transform::scale;
+        Transform& (Transform::*scale3)(const Scale1D&, const Scale1D&, const Scale1D&, bool) = &Transform::scale;
+
+        transform_class.set("scale", Lua::overload(scale1, scale2, scale3));
+
+        // Rotation methods
+
+        transform_class.set("euler_angles", &Transform::euler_angles);
+        transform_class.set("quaternion", &Transform::quaternion);
+        transform_class.set("front_vector", &Transform::front_vector);
+        transform_class.set("right_vector", &Transform::right_vector);
+        transform_class.set("up_vector", &Transform::up_vector);
+
+        Transform& (Transform::*rotate1)(const EulerAngle1D&, const EulerAngle1D&, const EulerAngle1D&, bool) =
+                &Transform::rotate;
+        Transform& (Transform::*rotate2)(const EulerAngle3D&, bool)                  = &Transform::rotate;
+        Transform& (Transform::*rotate3)(const EulerAngle1D&, const Vector3D&, bool) = &Transform::rotate;
+        Transform& (Transform::*rotate4)(const Quaternion&, bool)                    = &Transform::rotate;
+
+        transform_class.set("rotate", Lua::overload(rotate1, rotate2, rotate3, rotate4));
+
+        transform_class.set("as_string", &Transform::as_string);
+        transform_class.set(Lua::meta_function::to_string, &Transform::as_string);
+    }
+
+    static InitializeController init(on_init);
 }// namespace Engine

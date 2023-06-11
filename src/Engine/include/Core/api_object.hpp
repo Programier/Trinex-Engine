@@ -33,6 +33,8 @@ namespace Engine
 
     class ENGINE_EXPORT ApiObject : public Object, public ApiObjectNoBase
     {
+    public:
+        using Super = Object;
     };
 
 

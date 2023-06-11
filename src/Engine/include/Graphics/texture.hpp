@@ -27,6 +27,8 @@ namespace Engine
 
 
     public:
+        using Super = ApiObject;
+
         Texture();
         delete_copy_constructors(Texture);
 

@@ -13,7 +13,7 @@ namespace Engine
     Texture::Texture()
     {}
 
-    register_class(Engine::Texture, Engine::ApiObject);
+    register_class(Engine::Texture);
 
 
     Texture& Texture::create()

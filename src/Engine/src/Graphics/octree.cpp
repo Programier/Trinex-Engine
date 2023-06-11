@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    register_class(Engine::OctreeBase, Engine::Object);
+    register_class(Engine::OctreeBase);
     OctreeBase::OctreeBase(float min_size)
     {
         this->_M_min_size = glm::abs(min_size);
@@ -80,7 +80,7 @@ namespace Engine
     }
 
 
-    register_class(Engine::OctreeBaseNode, Engine::Object, _M_box(Constants::zero_vector, Constants::zero_vector));
+    register_class(Engine::OctreeBaseNode, _M_box(Constants::zero_vector, Constants::zero_vector));
     OctreeBaseNode::OctreeBaseNode()
     {}
 

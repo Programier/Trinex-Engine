@@ -26,7 +26,7 @@ namespace Engine
         Transform& move(const Vector3D& move_vector, bool add_values = true);
         Transform& move(const Point1D& x, const Point1D& y, const Point1D& z, const Vector3D& x_axis,
                         const Vector3D& y_axis, const Vector3D& z_axis, bool add_values = true);
-        Transform& move(const Vector3D move_vector, const Vector3D& x_axis, const Vector3D& y_axis,
+        Transform& move(const Vector3D& move_vector, const Vector3D& x_axis, const Vector3D& y_axis,
                         const Vector3D& z_axis, bool add_values = true);
         Transform& move(const Distance& distance, const Vector3D& axis, bool add_value = true);
         const Point3D& position() const;
@@ -44,6 +44,8 @@ namespace Engine
         Vector3D front_vector() const;
         Vector3D right_vector() const;
         Vector3D up_vector() const;
+
+        String as_string() const;
 
         friend class Camera;
     };

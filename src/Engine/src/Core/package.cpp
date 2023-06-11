@@ -75,7 +75,7 @@ namespace Engine
         }
     };
 
-    register_class(Engine::Package, Engine::Object)
+    register_class(Engine::Package)
             .set("add_object", &Package::add_object)
             .set("remove_object", &Package::remove_object);
 

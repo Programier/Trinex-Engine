@@ -15,6 +15,8 @@ namespace Engine
         Scissor _M_scissor;
 
     public:
+        using Super = ApiObject;
+
         delete_copy_constructors(BasicFrameBuffer);
         BasicFrameBuffer();
         const BasicFrameBuffer& bind(size_t buffer_index = 0) const;

@@ -22,6 +22,7 @@ namespace Engine
 
         Camera& update_projection_matrix();
     public:
+        using Super = Actor;
 
         delete_copy_constructors(Camera);
         Camera(Point3D position = {0.f, 0.f, 0.f}, float fov = glm::radians(90.f));

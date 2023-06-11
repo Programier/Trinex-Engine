@@ -106,6 +106,8 @@ namespace Engine
     class ENGINE_EXPORT MeshComponent : public Object
     {
     public:
+        using Super = Object;
+
         struct ENGINE_EXPORT MeshComponentLOD : public SerializableObject {
             ObjectReference<Material> material_reference;
             VertexBuffer vertex_buffer;
@@ -135,6 +137,8 @@ namespace Engine
     class ENGINE_EXPORT StaticMeshComponent : public MeshComponent
     {
     public:
+        using Super = MeshComponent;
+
         StaticMeshComponentSemanticInfo info;
 
         const StaticMeshComponentSemanticInfo& semantic_info() const override;
@@ -144,6 +148,8 @@ namespace Engine
     class ENGINE_EXPORT DynamicMeshComponent : public MeshComponent
     {
     public:
+        using Super = MeshComponent;
+
         DynamicMeshComponentSemanticInfo info;
 
         const MeshComponentSemanticInfo& semantic_info() const override;

@@ -21,7 +21,8 @@ namespace Engine
 
     Frustum& Frustum::from_camera(const Camera& camera)
     {
-        const auto pos = camera.transform.position();
+        const Transform& transform = camera.transform;
+        const auto pos             = transform.position();
 
         const float _near = camera.min_render_distance();
 
@@ -30,9 +31,9 @@ namespace Engine
         if (aspect == 0)
             throw std::runtime_error("Aspect can't be zero!");
 
-        const auto front_vector = camera.transform.front_vector();
-        const auto up_vector    = camera.transform.up_vector();
-        const auto right_vector = camera.transform.right_vector();
+        const auto front_vector = transform.front_vector();
+        const auto up_vector    = transform.up_vector();
+        const auto right_vector = transform.right_vector();
 
 
         const float half_v_side = camera.max_render_distance() * glm::tan(view_angle * 0.5f);

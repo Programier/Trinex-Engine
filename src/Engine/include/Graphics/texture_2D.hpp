@@ -8,6 +8,8 @@ namespace Engine
     {
 
     public:
+        using Super = Texture;
+
         delete_copy_constructors(Texture2D);
         Texture2D();
 

@@ -21,7 +21,7 @@ namespace Engine
     static ClassMetaData<void> void_instance = nullptr;
 
     static ClassMetaData<Object> object_instance =
-            &Class::register_new_class<Engine::Object, void>("Engine::Object")
+            &Class::register_new_class<Engine::Object>("Engine::Object")
                      .set("root_package", &Object::root_package)
                      .set("class_instance", &Object::class_instance)
                      .set("find_package", &Object::find_package)

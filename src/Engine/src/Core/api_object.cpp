@@ -5,7 +5,7 @@
 namespace Engine
 {
 
-    register_class(Engine::ApiObject, Engine::Object);
+    register_class(Engine::ApiObject);
 
     // Zero is default or invalid value of ApiObjectNoBase in external API
     constructor_cpp(ApiObjectNoBase)

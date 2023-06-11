@@ -22,7 +22,7 @@ namespace Engine
         template<typename VectorType>
         inline VectorType to_vector() const
         {
-            return VectorType(Vector3D (static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)));
+            return VectorType(Vector3D(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)));
         }
 
         operator byte();
@@ -34,6 +34,7 @@ namespace Engine
         float _M_min_size = 1.f;
 
     public:
+        using Super = Object;
         delete_copy_constructors(OctreeBase);
 
     protected:
@@ -59,6 +60,8 @@ namespace Engine
         OctreeBaseNode();
 
     public:
+        using Super = Object;
+
         delete_copy_constructors(OctreeBaseNode);
 
         OctreeIndex index_at_parent() const;
@@ -75,6 +78,8 @@ namespace Engine
     {
 
     public:
+        using Super = OctreeBase;
+
         struct OctreeNode : public OctreeBaseNode {
         private:
             OctreeNode* _M_parent = nullptr;
@@ -82,6 +87,8 @@ namespace Engine
             Octree* _M_tree;
 
         public:
+            using Super = OctreeBaseNode;
+
             delete_copy_constructors(OctreeNode);
 
             Set<Type> values;
@@ -142,8 +149,8 @@ namespace Engine
             OctreeNode* copy_node(Octree* const tree)
             {
                 OctreeNode* node = Object::new_instance<OctreeNode>(tree);
-                node->_M_index = _M_index;
-                node->_M_box = _M_box;
+                node->_M_index   = _M_index;
+                node->_M_box     = _M_box;
 
                 for (byte i = 0; i < 8; i++)
                 {
@@ -166,14 +173,14 @@ namespace Engine
         {
             generate_box(box);
 
-            OctreeNode* _M_node = _M_head;
+            OctreeNode* _M_node            = _M_head;
             const Size3D& _M_box_half_size = box.half_size();
-            const Point3D& _M_box_center = box.center();
+            const Point3D& _M_box_center   = box.center();
 
             while (_M_node && _M_node->_M_box.contains(box))
             {
-                const auto _M_node_center = _M_node->_M_box.center();
-                Offset3D _M_center_offset = _M_box_center - _M_node_center;
+                const auto _M_node_center     = _M_node->_M_box.center();
+                Offset3D _M_center_offset     = _M_box_center - _M_node_center;
                 Offset3D _M_abs_center_offset = glm::abs(_M_center_offset) - Constants::min_positive_vector;
 
                 if (_M_abs_center_offset.x < _M_box_half_size.x || _M_abs_center_offset.y < _M_box_half_size.y ||
@@ -192,9 +199,9 @@ namespace Engine
         {
             generate_box(box);
 
-            OctreeNode* _M_node = _M_head;
+            OctreeNode* _M_node            = _M_head;
             const Size3D& _M_box_half_size = box.half_size();
-            const Point3D& _M_box_center = box.center();
+            const Point3D& _M_box_center   = box.center();
 
             // std::clog << _M_box_center << "\t" << _M_box_center << std::endl;
 
@@ -216,14 +223,14 @@ namespace Engine
 
                 normalize_shift(_M_center_offset);
 
-                OctreeIndex index = index_from_normalized_shift(_M_center_offset);
+                OctreeIndex index        = index_from_normalized_shift(_M_center_offset);
                 OctreeNode*& _M_new_node = _M_node->private_get(index);
                 if (!_M_new_node)
                 {
-                    _M_new_node = Object::new_instance<OctreeNode>(this);
+                    _M_new_node            = Object::new_instance<OctreeNode>(this);
                     _M_new_node->_M_parent = _M_node;
-                    _M_new_node->_M_index = index;
-                    const auto tmp = _M_node->_M_box.half_size() * _M_center_offset;
+                    _M_new_node->_M_index  = index;
+                    const auto tmp         = _M_node->_M_box.half_size() * _M_center_offset;
                     generate_box(_M_node_center, _M_node_center + tmp * 0.5f, _M_new_node->_M_box);
                 }
 
@@ -237,7 +244,7 @@ namespace Engine
 
             do
             {
-                auto _M_node_center = _M_node->_M_box.center();
+                auto _M_node_center       = _M_node->_M_box.center();
                 Offset3D _M_center_offset = _M_box_center - _M_node_center;
                 normalize_shift(_M_center_offset);
 
@@ -246,12 +253,12 @@ namespace Engine
 
                 generate_biggest_box(_M_node->_M_box, _M_center_offset, _M_head->_M_box);
 
-                OctreeIndex index = index_from_normalized_shift(-_M_center_offset);
+                OctreeIndex index           = index_from_normalized_shift(-_M_center_offset);
                 _M_head->private_get(index) = _M_node;
-                _M_node->_M_index = index;
+                _M_node->_M_index           = index;
 
                 _M_node->_M_parent = _M_head;
-                _M_node = _M_head;
+                _M_node            = _M_head;
 
             } while (!_M_node->_M_box.contains(box));
 
@@ -282,7 +289,7 @@ namespace Engine
         Octree& operator=(Octree&& base)
         {
             clear();
-            _M_head = base._M_head;
+            _M_head      = base._M_head;
             base._M_head = nullptr;
             return *this;
         }
@@ -291,7 +298,7 @@ namespace Engine
         {
             if (!_M_head)
             {
-                _M_head = Object::new_instance<OctreeNode>(this);
+                _M_head         = Object::new_instance<OctreeNode>(this);
                 _M_head->_M_box = box;
 
                 generate_box(_M_head->_M_box);

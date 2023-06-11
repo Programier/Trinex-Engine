@@ -256,6 +256,6 @@ namespace Engine
         return 0;
     }
 
-    register_class(GameInit, Engine::CommandLet);
+    register_class(GameInit);
 
 }// namespace Engine

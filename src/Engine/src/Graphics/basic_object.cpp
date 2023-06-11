@@ -8,8 +8,6 @@
 
 namespace Engine
 {
-
-    //register_class_cpp(ModelMatrix);
     ModelMatrix::ModelMatrix()
     {}
 
@@ -54,7 +52,7 @@ namespace Engine
 
     //      TRANSLATE
 
-    ////register_class_cpp(Translate);
+
     Translate::Translate()
     {}
 
@@ -111,8 +109,6 @@ namespace Engine
 
 
     //          SCALE
-
-    //register_class_cpp(Scale);
     Scale::Scale()
     {}
 

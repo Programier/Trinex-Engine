@@ -9,6 +9,8 @@ namespace Engine
     class ENGINE_EXPORT TextureCubeMap : public Texture
     {
     public:
+        using Super = Texture;
+
         TextureCubeMap();
         delete_copy_constructors(TextureCubeMap);
 

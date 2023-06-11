@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    register_class(Engine::Texture2D, Engine::Texture);
+    register_class(Engine::Texture2D);
 
     Texture2D::Texture2D()
     {

@@ -64,4 +64,15 @@ namespace Engine
 
     template<typename T>
     constexpr bool is_string_literal_v = is_string_literal<T>::value;
+
+    template<typename T, typename = void>
+    struct has_super_type : std::false_type {
+    };
+
+    template<typename T>
+    struct has_super_type<T, std::void_t<typename T::Super>> : std::true_type {
+    };
+
+    template<typename T>
+    inline constexpr bool has_super_type_v = has_super_type<T>::value;
 }// namespace Engine

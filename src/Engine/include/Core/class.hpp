@@ -34,7 +34,7 @@ namespace Engine
         Class(const String& name = "");
         void update_parent_classes(const Class* parent);
 
-        template<typename InstanceClass, typename BaseClass>
+        template<typename InstanceClass>
         static void post_init()
         {
             Class* current = const_cast<Class*>(ClassMetaData<InstanceClass>::find_class());
@@ -43,21 +43,28 @@ namespace Engine
                 return;
             }
 
-            const Class* parent = const_cast<const Class*>(ClassMetaData<BaseClass>::find_class());
+            Lua::Class<InstanceClass> lua_class = Lua::Interpretter::lua_class_of<InstanceClass>(current->name());
 
-            if (parent != nullptr)
+            if constexpr (has_super_type_v<InstanceClass>)
             {
-                if (parent->_M_post_init != nullptr)
+                const Class* parent =
+                        const_cast<const Class*>(ClassMetaData<typename InstanceClass::Super>::find_class());
+
+                if (parent != nullptr)
                 {
-                    parent->_M_post_init();
+                    if (parent->_M_post_init != nullptr)
+                    {
+                        parent->_M_post_init();
+                    }
+
+                    current->update_parent_classes(parent);
                 }
 
-                current->update_parent_classes(parent);
+                auto base_classes = Class::class_parents<typename InstanceClass::Super>();
+                lua_class.set(Lua::base_classes, base_classes);
             }
 
             info_log("Class: Start initialize class '%s'", current->name().c_str());
-            sol::usertype<InstanceClass> lua_class =
-                    Lua::Interpretter::lua_class_of<InstanceClass, BaseClass>(current->name());
 
             for (auto invoker : current->_M_lua_invokers)
             {
@@ -88,6 +95,35 @@ namespace Engine
                 };
             }
             return *this;
+        }
+
+        template<typename CurrentType, typename... Args>
+        static Lua::base_list<CurrentType, Args...> mix_parents(const Lua::base_list<Args...>&)
+        {
+            return Lua::base_list<CurrentType, Args...>();
+        }
+
+        template<typename Type>
+        static decltype(auto) class_parents()
+        {
+            constexpr bool has_parent = has_super_type<Type>::value;
+
+            if constexpr (has_parent)
+            {
+                if constexpr (std::is_base_of_v<Object, typename Type::Super>)
+                {
+                    auto p = class_parents<typename Type::Super>();
+                    return mix_parents<Type>(p);
+                }
+                else
+                {
+                    return Lua::base_list<Type>();
+                }
+            }
+            else
+            {
+                return Lua::base_list<Type>();
+            }
         }
 
     public:
@@ -141,7 +177,7 @@ namespace Engine
             LuaRegistrar& operator()(Key&& key, Value&& value, Args&&... args)
             {
                 set(std::forward<Key>(key), std::forward<Value>(value));
-                if constexpr (sizeof...(args) > 2)
+                if constexpr (sizeof...(args) > 1)
                 {
                     (*this)(std::forward<Args>(args)...);
                 }
@@ -159,7 +195,7 @@ namespace Engine
         Object* create_without_package() const;
         size_t instance_size() const;
 
-        template<typename InstanceClass = void, typename BaseClass = void, typename... Args>
+        template<typename InstanceClass = void, typename... Args>
         static LuaRegistrar<InstanceClass> register_new_class(const String& class_name, Args... args)
         {
             Class* class_instance = find_class(class_name);
@@ -169,7 +205,7 @@ namespace Engine
                 class_instance->create_allocator<InstanceClass>(args...);
                 class_instance->_M_instance_size = sizeof(InstanceClass);
 
-                class_instance->_M_post_init = Class::post_init<InstanceClass, BaseClass>;
+                class_instance->_M_post_init = Class::post_init<InstanceClass>;
                 InitializeController i(class_instance->_M_post_init);
             }
 

@@ -11,6 +11,8 @@ namespace Engine
     class LuaConsole : public CommandLet
     {
     public:
+        using Super = CommandLet;
+
         virtual int execute(int argc, char** argv) override
         {
             String command;
@@ -33,5 +35,5 @@ namespace Engine
     };
 
 
-    register_class(LuaConsole, CommandLet);
+    register_class(LuaConsole);
 }// namespace Engine

@@ -7,7 +7,7 @@ namespace Engine
 {
     enum class ActorFlags : EnumerateType
     {
-        None    = 0,
+        None      = 0,
         IsVisible = 1,
 
         __COUNT__
@@ -19,10 +19,11 @@ namespace Engine
 
     public:
         using ActorChilds = Set<Pointer<Actor>, Pointer<Actor>::HashStruct>;
+        using Super       = Object;
 
     private:
         Pointer<Actor> _M_parent;
-        ActorChilds  _M_childs;
+        ActorChilds _M_childs;
 
         BitSet<static_cast<size_t>(ActorFlags::__COUNT__)> _M_actor_flags;
 
@@ -36,9 +37,7 @@ namespace Engine
 
         Actor& parent(Actor* actor);
         Actor* parent() const;
-
-
-        const ActorChilds & childs() const;
+        const ActorChilds& childs() const;
         Actor& child(Actor* actor);
         Actor& remove_child(Actor* actor);
     };

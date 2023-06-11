@@ -1,4 +1,3 @@
-#include "Core/logger.hpp"
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/camera.hpp>
@@ -8,14 +7,13 @@
 namespace Engine
 {
 
-    register_class(Engine::Camera, Engine::Object);
+    register_class(Engine::Camera);
 
     Camera::Camera(glm::vec3 position, float viewing_angle)
     {
-        _M_viewing_angle = viewing_angle;
-        _M_aspect        = Window::width() / Window::height();
-        transform.move(position, false);
-        transform._M_revert_front_vector = 1;
+        _M_viewing_angle                                       = viewing_angle;
+        _M_aspect                                              = Window::width() / Window::height();
+        transform.move(position, false)._M_revert_front_vector = 1;
         update_projection_matrix();
     }
 

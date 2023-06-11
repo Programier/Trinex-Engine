@@ -36,17 +36,11 @@ namespace Engine::Lua
         ENGINE_EXPORT static Namespace namespace_of(const String& name, String* class_name = nullptr);
 
 
-        template<typename Instance, typename Parent = void>
+        template<typename Instance>
         static Class<Instance> lua_class_of(const String& class_name)
         {
             String out_name;
-            Namespace _n                        = namespace_of(class_name, &out_name);
-            sol::usertype<Instance> result = _n.new_usertype<Instance>(out_name);
-            if constexpr (!std::is_same<Parent, void>::value)
-            {
-                result.set(sol::base_classes, sol::bases<Parent>());
-            }
-            return result;
+            return namespace_of(class_name, &out_name).new_usertype<Instance>(out_name);
         }
 
         friend class Engine::EngineInstance;

@@ -200,7 +200,7 @@ namespace Engine
     }
 
 
-    register_class(Engine::MeshComponent, Engine::Object);
-    register_class(Engine::StaticMeshComponent, Engine::MeshComponent);
-    register_class(Engine::DynamicMeshComponent, Engine::MeshComponent);
+    register_class(Engine::MeshComponent);
+    register_class(Engine::StaticMeshComponent);
+    register_class(Engine::DynamicMeshComponent);
 }// namespace Engine

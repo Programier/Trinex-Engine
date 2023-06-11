@@ -12,6 +12,8 @@ namespace Engine
     class NewLuaConsole : public CommandLet
     {
     public:
+        using Super = CommandLet;
+
         void test()
         {
             auto object = Lua::Interpretter::execute_string("return Engine.Camera.create(), Engine.Shader.create();");
@@ -43,5 +45,5 @@ namespace Engine
     };
 
 
-    register_class(NewLuaConsole, CommandLet);
+    register_class(NewLuaConsole);
 }// namespace Engine

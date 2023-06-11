@@ -4,10 +4,10 @@
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
 #include <Core/implement.hpp>
+#include <Core/object_ref.hpp>
 #include <Core/resource.hpp>
 #include <Core/shader_types.hpp>
 #include <string>
-#include <Core/object_ref.hpp>
 
 namespace Engine
 {
@@ -15,6 +15,8 @@ namespace Engine
     class ENGINE_EXPORT Shader : public ApiObject
     {
     public:
+        using Super = ApiObject;
+
         delete_copy_constructors(Shader);
         constructor_hpp(Shader);
         Shader(const PipelineCreateInfo& params);

@@ -11,6 +11,8 @@ namespace Engine
         Engine::Renderer* _M_renderer;
 
     public:
+        using Super = CommandLet;
+
         virtual int execute(int argc, char** argv) override;
 
         void loop();

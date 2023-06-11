@@ -13,5 +13,5 @@ namespace Engine
     void CommandLet::on_config_load()
     {}
 
-    register_class(Engine::CommandLet, Engine::Object);
+    register_class(Engine::CommandLet);
 }// namespace Engine

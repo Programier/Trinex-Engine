@@ -11,6 +11,7 @@ namespace Engine
     {
     public:
         using ObjectMap = Map<String, Object*>;
+        using Super = Object;
 
     private:
         ObjectMap _M_objects;

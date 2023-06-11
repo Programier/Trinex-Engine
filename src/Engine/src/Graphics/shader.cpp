@@ -50,7 +50,7 @@ namespace Engine
         result.type = shader_types().find(index)->second;
     }
 
-    register_class(Engine::Shader, Engine::ApiObject);
+    register_class(Engine::Shader);
 
     Shader::Shader()
     {}

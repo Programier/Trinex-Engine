@@ -22,6 +22,7 @@ namespace Engine
     class ENGINE_EXPORT Material : public ShaderResource
     {
     public:
+        using Super = Object;
         using TexturesMap = TreeMap<BindingIndex, Pointer<Texture>>;
 
     private:

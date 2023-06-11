@@ -11,7 +11,7 @@ static void init_mesh()
 
 namespace Engine
 {
-    register_class(Engine::Skybox, Engine::TextureCubeMap);
+    register_class(Engine::Skybox);
     Skybox::Skybox()
     {}
 

@@ -10,6 +10,8 @@ namespace Engine
     class ENGINE_EXPORT FrameBuffer : public BasicFrameBuffer
     {
     public:
+        using Super = BasicFrameBuffer;
+
         delete_copy_constructors(FrameBuffer);
         FrameBuffer();
         FrameBuffer& create(const FrameBufferCreateInfo&);

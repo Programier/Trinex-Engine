@@ -203,5 +203,5 @@ namespace Engine
     }
 
 
-    register_class(Engine::Material, Engine::Object);
+    register_class(Engine::Material);
 }// namespace Engine
