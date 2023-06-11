@@ -8,11 +8,11 @@ namespace Engine
 {
     struct Keys {
         Vector<KeyStatus> _M_keys;
-        Key _M_last_key = Key::KEY_UNKNOWN;
-        Key _M_last_released = Key::KEY_UNKNOWN;
-        uint_t _M_last_symbol = 0;
-        Key _M_last_mouse_key = Key::KEY_UNKNOWN;
-        Key _M_last_mouse_released = Key::KEY_UNKNOWN;
+        Key _M_last_key            = Key::Unknown;
+        Key _M_last_released       = Key::Unknown;
+        uint_t _M_last_symbol      = 0;
+        Key _M_last_mouse_key      = Key::Unknown;
+        Key _M_last_mouse_released = Key::Unknown;
 
         List<Key> _M_last_evented_keys;
 

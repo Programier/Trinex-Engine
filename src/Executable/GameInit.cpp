@@ -54,33 +54,33 @@ namespace Engine
 
         Transform* camera_transform = &camera->transform;
 
-        if (KeyboardEvent::pressed(KEY_W))
+        if (KeyboardEvent::pressed(Key::W))
         {
             camera_transform->move(camera_transform->front_vector() * current_speed);
         }
 
-        if (KeyboardEvent::pressed(KEY_S))
+        if (KeyboardEvent::pressed(Key::S))
         {
             camera_transform->move(camera_transform->front_vector() * -current_speed);
         }
 
-        if (KeyboardEvent::pressed(KEY_D))
+        if (KeyboardEvent::pressed(Key::D))
         {
             camera_transform->move(camera_transform->right_vector() * current_speed);
         }
 
-        if (KeyboardEvent::pressed(KEY_A))
+        if (KeyboardEvent::pressed(Key::A))
         {
             camera_transform->move(camera_transform->right_vector() * -current_speed);
         }
 
-        if (KeyboardEvent::pressed(KEY_SPACE))
+        if (KeyboardEvent::pressed(Key::Space))
         {
-            float k = (KeyboardEvent::pressed(KEY_LEFT_SHIFT) ? -1.f : 1.f);
+            float k = (KeyboardEvent::pressed(Key::LeftShift) ? -1.f : 1.f);
             camera_transform->move(camera_transform->up_vector() * current_speed * k);
         }
 
-        if (KeyboardEvent::just_pressed(KEY_ENTER))
+        if (KeyboardEvent::just_pressed(Key::Enter))
         {
             MouseEvent::relative_mode(!MouseEvent::relative_mode());
         }
@@ -223,18 +223,18 @@ namespace Engine
             window.swap_buffers();
             update_camera(current_camera);
 
-            if (KeyboardEvent::just_pressed(KEY_G))
+            if (KeyboardEvent::just_pressed(Key::G))
             {
 
                 package->save();
             }
 
 
-            if (KeyboardEvent::just_pressed(KEY_1))
+            if (KeyboardEvent::just_pressed(Key::Num1))
             {
                 current_camera = camera;
             }
-            else if (KeyboardEvent::just_pressed(KEY_2))
+            else if (KeyboardEvent::just_pressed(Key::Num2))
             {
                 current_camera = model;
             }

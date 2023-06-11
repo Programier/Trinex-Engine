@@ -16,7 +16,8 @@ namespace Engine
 
     ENGINE_EXPORT Key KeyboardEvent::just_pressed()
     {
-        return keys._M_keys[keys._M_last_key] == KeyStatus::JUST_PRESSED ? keys._M_last_key : KEY_UNKNOWN;
+        return keys._M_keys[static_cast<EnumerateType>(keys._M_last_key)] == KeyStatus::JustPressed ? keys._M_last_key
+                                                                                                    : Key::Unknown;
     }
 
     ENGINE_EXPORT bool KeyboardEvent::just_pressed(Key key)
@@ -53,7 +54,9 @@ namespace Engine
 
     ENGINE_EXPORT Key KeyboardEvent::just_released()
     {
-        return keys._M_keys[keys._M_last_released] == KeyStatus::JUST_RELEASED ? keys._M_last_released : KEY_UNKNOWN;
+        return keys._M_keys[static_cast<EnumerateType>(keys._M_last_released)] == KeyStatus::JustReleased
+                       ? keys._M_last_released
+                       : Key::Unknown;
     }
 
     ENGINE_EXPORT KeyStatus KeyboardEvent::get_key_status(const Key& key)
@@ -63,19 +66,19 @@ namespace Engine
 
     ENGINE_EXPORT bool KeyboardEvent::pressed(const Key& key)
     {
-        return keys._M_keys[static_cast<unsigned int>(key)] != KeyStatus::RELEASED &&
-               keys._M_keys[static_cast<unsigned int>(key)] != KeyStatus::JUST_RELEASED;
+        return keys._M_keys[static_cast<unsigned int>(key)] != KeyStatus::Released &&
+               keys._M_keys[static_cast<unsigned int>(key)] != KeyStatus::JustReleased;
     }
 
     ENGINE_EXPORT void KeyboardEvent::push_event(Key key, KeyStatus status)
     {
         static SDL_Event event;
-        if (status == KeyStatus::RELEASED || status == KeyStatus::JUST_RELEASED)
+        if (status == KeyStatus::Released || status == KeyStatus::JustReleased)
             event.type = SDL_KEYUP;
         else
             event.type = SDL_KEYDOWN;
 
-        event.key.repeat          = status == KeyStatus::REPEAT;
+        event.key.repeat          = status == KeyStatus::Repeat;
         event.key.type            = event.type;
         event.key.keysym.scancode = (SDL_Scancode) Engine::to_SDL_scancode(key);
         SDL_PushEvent(&event);
@@ -85,22 +88,22 @@ namespace Engine
     void process_keyboard_event(SDL_KeyboardEvent& event)
     {
         Key key           = to_key(event.keysym.scancode);
-        KeyStatus& status = keys._M_keys[key];
+        KeyStatus& status = keys._M_keys[static_cast<EnumerateType>(key)];
 
         if (event.repeat)
         {
-            status = KeyStatus::REPEAT;
+            status = KeyStatus::Repeat;
         }
         else if (event.type == SDL_KEYDOWN)
         {
-            status           = KeyStatus::JUST_PRESSED;
+            status           = KeyStatus::JustPressed;
             keys._M_last_key = key;
             keys._M_last_evented_keys.push_back(key);
             keys._M_last_symbol = SDL_GetKeyFromScancode(event.keysym.scancode);
         }
         else
         {
-            status                = KeyStatus::JUST_RELEASED;
+            status                = KeyStatus::JustReleased;
             keys._M_last_released = key;
             keys._M_last_evented_keys.push_back(key);
         }
@@ -110,10 +113,10 @@ namespace Engine
     {
         for (auto key : keys._M_last_evented_keys)
         {
-            if (keys._M_keys[key] == KeyStatus::JUST_PRESSED)
-                keys._M_keys[key] = KeyStatus::PRESSED;
-            if (keys._M_keys[key] == KeyStatus::JUST_RELEASED)
-                keys._M_keys[key] = KeyStatus::RELEASED;
+            if (keys._M_keys[static_cast<EnumerateType>(key)] == KeyStatus::JustPressed)
+                keys._M_keys[static_cast<EnumerateType>(key)] = KeyStatus::Pressed;
+            if (keys._M_keys[static_cast<EnumerateType>(key)] == KeyStatus::JustReleased)
+                keys._M_keys[static_cast<EnumerateType>(key)] = KeyStatus::Released;
         }
 
         keys._M_last_evented_keys.clear();

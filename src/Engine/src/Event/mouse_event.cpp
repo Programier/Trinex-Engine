@@ -24,13 +24,13 @@ namespace Engine
         Key key = to_key(event.button);
         if (event.type == SDL_MOUSEBUTTONDOWN)
         {
-            keys._M_keys[key]      = KeyStatus::JUST_PRESSED;
-            keys._M_last_mouse_key = key;
+            keys._M_keys[static_cast<EnumerateType>(key)] = KeyStatus::JustPressed;
+            keys._M_last_mouse_key                        = key;
         }
         else
         {
-            keys._M_keys[key]           = KeyStatus::JUST_RELEASED;
-            keys._M_last_mouse_released = key;
+            keys._M_keys[static_cast<EnumerateType>(key)] = KeyStatus::JustReleased;
+            keys._M_last_mouse_released                   = key;
         }
 
         keys._M_last_evented_keys.push_back(key);
@@ -71,7 +71,9 @@ namespace Engine
 
     ENGINE_EXPORT Key MouseEvent::just_pressed()
     {
-        return keys._M_keys[keys._M_last_mouse_key] == KeyStatus::JUST_PRESSED ? keys._M_last_mouse_key : KEY_UNKNOWN;
+        return keys._M_keys[static_cast<EnumerateType>(keys._M_last_mouse_key)] == KeyStatus::JustPressed
+                       ? keys._M_last_mouse_key
+                       : Key::Unknown;
     }
 
     ENGINE_EXPORT Key MouseEvent::last_pressed()
@@ -81,8 +83,9 @@ namespace Engine
 
     ENGINE_EXPORT Key MouseEvent::just_released()
     {
-        return keys._M_keys[keys._M_last_mouse_released] == KeyStatus::JUST_RELEASED ? keys._M_last_mouse_released
-                                                                                     : KEY_UNKNOWN;
+        return keys._M_keys[static_cast<EnumerateType>(keys._M_last_mouse_released)] == KeyStatus::JustReleased
+                       ? keys._M_last_mouse_released
+                       : Key::Unknown;
     }
 
     ENGINE_EXPORT bool MouseEvent::just_pressed(Key key)
