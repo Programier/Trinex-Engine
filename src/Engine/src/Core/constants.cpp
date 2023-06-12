@@ -1,4 +1,6 @@
 #include <Core/constants.hpp>
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/engine_lua.hpp>
 #include <thread>
 
 namespace Engine
@@ -23,4 +25,33 @@ namespace Engine
     const IntVector4D Constants::uint_identity_vector = UIntVector4D(1);
     const String Constants::package_extention         = ".tpk";
     const String Constants::name_separator            = "::";
+
+    static void on_init()
+    {
+        Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::Constants::");
+
+#define set_value(x) _namespace.set(#x, &Constants::x)
+        set_value(processor_count);
+        set_value(OX);
+        set_value(OY);
+        set_value(OZ);
+        set_value(PI);
+        set_value(E);
+        set_value(identity_matrix);
+        set_value(zero_matrix);
+        set_value(identity_vector);
+        set_value(zero_vector);
+        set_value(min_positive_float);
+        set_value(min_positive_vector);
+        set_value(index_none);
+        set_value(max_size);
+        set_value(int_zero_vector);
+        set_value(int_identity_vector);
+        set_value(uint_zero_vector);
+        set_value(uint_identity_vector);
+        set_value(package_extention);
+        set_value(name_separator);
+    }
+
+    static InitializeController init(on_init);
 }// namespace Engine

@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/camera.hpp>
+#include <Window/window.hpp>
 #include <functional>
 #include <glm/ext.hpp>
 

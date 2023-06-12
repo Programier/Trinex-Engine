@@ -288,4 +288,16 @@ namespace Engine
         friend class MemoryManager;
     };
 
+    template<typename Return, typename... Args>
+    Return (*func_of(Return (*function)(Args...)))(Args...)
+    {
+        return function;
+    }
+
+    template<typename Return, typename Instance, typename... Args>
+    Return (Instance::*func_of(Return (Instance::*function)(Args...)))(Args...)
+    {
+        return function;
+    }
+
 }// namespace Engine

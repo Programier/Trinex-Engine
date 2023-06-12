@@ -16,7 +16,6 @@ namespace Engine
         static const Matrix4f zero_matrix;
         static const Vector4D identity_vector;
         static const Vector4D zero_vector;
-        static const std::string ShaderModeValue;
         static const float min_positive_float;
         static const Vector3D min_positive_vector;
         static const ArrayIndex index_none;

@@ -147,9 +147,17 @@ namespace Engine
 
         Average<double> fps;
         static size_t index = 0;
+
+
+        auto camera_update = Lua::Interpretter::execute_string(
+                                     "local instance = require('camera')['update']; instance(10); return instance;")
+                                     .get<Lua::function>();
+
+
         while (window.is_open())
         {
             camera->update();
+            camera_update(camera);
 
             if (MouseEvent::scroll_offset().y != 0)
             {
@@ -221,7 +229,7 @@ namespace Engine
 
             Event::poll_events();
             window.swap_buffers();
-            update_camera(current_camera);
+            //update_camera(current_camera);
 
             if (KeyboardEvent::just_pressed(Key::G))
             {

@@ -34,6 +34,8 @@ install(TARGETS TrinexEngineLauncher DESTINATION "./")
 
 if (ANDROID OR (CMAKE_BUILD_TYPE STREQUAL "Release"))
     install(DIRECTORY resources DESTINATION "./")
+    install(DIRECTORY scripts DESTINATION "./")
 else()
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${CMAKE_INSTALL_PREFIX}/resources)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/scripts ${CMAKE_INSTALL_PREFIX}/scripts)
 endif()

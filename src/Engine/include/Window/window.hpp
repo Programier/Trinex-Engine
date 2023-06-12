@@ -15,9 +15,7 @@
 namespace Engine
 {
 
-    using AspectRation = glm::vec<2, std::int32_t, glm::defaultp>;
-
-    enum WindowAttrib : uint16_t
+    enum WindowAttrib : EnumerateType
     {
         WinNone                   = 0,
         WinResizable              = 1,
@@ -38,19 +36,18 @@ namespace Engine
         WinKeyboardGrabbed        = 32768,
     };
 
-    enum class CursorMode
+    enum class CursorMode : EnumerateType
     {
         Normal,
         Hidden
     };
 
-    enum WindowOrientation : uint_t
+    enum WindowOrientation : EnumerateType
     {
         WinOrientationLandscape        = 1,
         WinOrientationLandscapeFlipped = 2,
         WinOrientationPortrait         = 4,
         WinOrientationPortraitFlipped  = 8
-
     };
 
 
@@ -106,8 +103,6 @@ namespace Engine
         static const Window& opacity(float value);
         static float opacity();
 
-        static bool center_cursor();
-
         static const Window& size_limits(const SizeLimits2D& limits);
         static const SizeLimits2D& size_limits();
 
@@ -118,14 +113,11 @@ namespace Engine
         static const Window& icon(const String& image);
         static const Image& icon();
 
-        static const Window& aspect_ration(const AspectRation& ration);
-        static const AspectRation& aspect_ration();
-
         static const Window& attribute(const WindowAttrib& attrib, bool value);
         static bool attribute(const WindowAttrib& attrib);
 
         static const Window& cursor_mode(const CursorMode& mode);
-        static const CursorMode& cursor_mode();
+        static CursorMode cursor_mode();
 
         static const Window& bind();
         static const Window& update_view_port();
@@ -144,7 +136,7 @@ namespace Engine
         static const Window& update_scissor_on_resize(bool value);
         static bool update_scissor_on_resize();
         static CallBacks<void> on_resize;
-        static std::size_t frame_number();
+        static size_t frame_number();
         static BasicFrameBuffer* framebuffer();
 
         // Constructors

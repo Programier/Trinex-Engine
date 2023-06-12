@@ -1,6 +1,7 @@
 #include <Core/config.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/engine_lua.hpp>
 #include <Core/logger.hpp>
 #include <Core/predef.hpp>
 #include <Core/string_functions.hpp>
@@ -96,7 +97,6 @@ static struct WindowData {
     Cursor _M_cursor;
 
     Image _M_icon;
-    AspectRation _M_ration;
     bool _M_enable_ration = false;
 
     CursorMode _M_cursor_mode          = CursorMode::Normal;
@@ -169,8 +169,7 @@ const Window& Window::init(float width, float height, const String& title, uint1
     }
 
 
-    data._M_size   = {width, height};
-    data._M_ration = {width, height};
+    data._M_size = {width, height};
     Window::size_limits(data._M_limits);
 
     // Init shaders
@@ -556,18 +555,6 @@ const Image& Window::icon()
     return data._M_icon;
 }
 
-const Window& Window::aspect_ration(const AspectRation& ration)
-{
-    check_init(window);
-    data._M_ration = (data._M_enable_ration = (ration.x * ration.y > 0)) ? ration : AspectRation();
-    return window;
-}
-
-const AspectRation& Window::aspect_ration()
-{
-    return data._M_ration;
-}
-
 const Window& Window::attribute(const WindowAttrib& attrib, bool value)
 {
     check_init(window);
@@ -722,7 +709,7 @@ const Window& Window::cursor_mode(const CursorMode& mode)
     return window;
 }
 
-const CursorMode& Window::cursor_mode()
+CursorMode Window::cursor_mode()
 {
     return data._M_cursor_mode;
 }
@@ -823,7 +810,7 @@ bool Window::update_scissor_on_resize()
 CallBacks<void> Window::on_resize;
 
 
-std::size_t Window::frame_number()
+size_t Window::frame_number()
 {
     return data._M_frame;
 }
@@ -866,3 +853,95 @@ Window::~Window()
 {
     data._M_objects--;
 }
+
+
+static void on_init()
+{
+    {
+        Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::");
+        _namespace.new_enum<WindowAttrib>("WindowAttrib", {{"WinNone", WindowAttrib::WinKeyboardGrabbed},
+                                                           {"WinResizable", WindowAttrib::WinMouseGrabbed},
+                                                           {"WinFullScreen", WindowAttrib::WinAllowHighDPI},
+                                                           {"WinFullScreenDesktop", WindowAttrib::WinMouseCapture},
+                                                           {"WinShown", WindowAttrib::WinTransparentFramebuffer},
+                                                           {"WinHidden", WindowAttrib::WinMaximized},
+                                                           {"WinBorderLess", WindowAttrib::WinMinimized},
+                                                           {"WinMouseFocus", WindowAttrib::WinInputGrabbed},
+                                                           {"WinInputFocus", WindowAttrib::WinInputFocus},
+                                                           {"WinInputGrabbed", WindowAttrib::WinMouseFocus},
+                                                           {"WinMinimized", WindowAttrib::WinBorderLess},
+                                                           {"WinMaximized", WindowAttrib::WinHidden},
+                                                           {"WinTransparentFramebuffer", WindowAttrib::WinShown},
+                                                           {"WinMouseCapture", WindowAttrib::WinFullScreenDesktop},
+                                                           {"WinAllowHighDPI", WindowAttrib::WinFullScreen},
+                                                           {"WinMouseGrabbed", WindowAttrib::WinResizable},
+                                                           {"WinKeyboardGrabbed", WindowAttrib::WinNone}});
+
+
+        _namespace.new_enum<CursorMode>("CursorMode", {{"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden}});
+
+
+        _namespace.new_enum<WindowOrientation>(
+                "WindowOrientation",
+                {{"WinOrientationLandscape", WindowOrientation::WinOrientationLandscape},
+                 {"WinOrientationLandscapeFlipped", WindowOrientation::WinOrientationLandscapeFlipped},
+                 {"WinOrientationPortrait", WindowOrientation::WinOrientationPortrait},
+                 {"WinOrientationPortraitFlipped", WindowOrientation::WinOrientationPortraitFlipped}});
+    }
+
+
+    Lua::Class<Window> _class = Lua::Interpretter::lua_class_of<Window>("Engine::Window");
+    _class.set("init", Lua::overload(func_of<const Window&, float>(&Window::init),
+                                     func_of<const Window&, const Size2D&, const String&, uint16_t>(&Window::init)));
+
+    _class.set("close", &Window::close);
+    _class.set("is_open", &Window::is_open);
+    _class.set("swap_buffers", &Window::swap_buffers);
+    _class.set("width",
+               Lua::overload(func_of<Size1D>(&Window::width), func_of<const Window&, const Size1D&>(&Window::width)));
+    _class.set("height",
+               Lua::overload(func_of<Size1D>(&Window::height), func_of<const Window&, const Size1D&>(&Window::height)));
+
+    _class.set("size", Lua::overload(func_of<const Size2D&>(&Window::size), func_of<const Window&>(&Window::size)));
+    _class.set("swap_interval",
+               Lua::overload(func_of<int_t>(&Window::swap_interval), func_of<const Window&>(&Window::swap_interval)));
+    _class.set("vsync", Lua::overload(func_of<bool>(&Window::vsync), func_of<const Window&>(&Window::vsync)));
+    _class.set("title", Lua::overload(func_of<const String&>(&Window::title), func_of<const Window&>(&Window::title)));
+    _class.set("position",
+               Lua::overload(func_of<const Point2D&>(&Window::position), func_of<const Window&>(&Window::position)));
+    _class.set("dropped_paths", &Window::dropped_paths);
+    _class.set("clear_dropped_paths", &Window::clear_dropped_paths);
+    _class.set("rezisable",
+               Lua::overload(func_of<bool>(&Window::rezisable), func_of<const Window&>(&Window::rezisable)));
+    _class.set("focus", &Window::focus);
+    _class.set("focused", &Window::focused);
+    _class.set("show", &Window::show);
+    _class.set("hide", &Window::hide);
+    _class.set("is_visible", &Window::is_visible);
+    _class.set("is_iconify", &Window::is_iconify);
+    _class.set("iconify", &Window::iconify);
+    _class.set("is_restored", &Window::is_restored);
+    _class.set("restore", &Window::restore);
+    _class.set("opacity", Lua::overload(func_of<float>(&Window::opacity), func_of<const Window&>(&Window::opacity)));
+    _class.set("attribute",
+               Lua::overload(func_of<bool>(&Window::attribute), func_of<const Window&>(&Window::attribute)));
+    _class.set("cursor_mode",
+               Lua::overload(func_of<CursorMode>(&Window::cursor_mode), func_of<const Window&>(&Window::cursor_mode)));
+    _class.set("bind", &Window::bind);
+    _class.set("update_view_port", &Window::update_view_port);
+    _class.set("update_scissor", &Window::update_scissor);
+    _class.set("X11_compositing", &Window::X11_compositing);
+    _class.set("SDL", &Window::SDL);
+    _class.set("SDL_OpenGL_context", &Window::SDL_OpenGL_context);
+    _class.set("set_orientation", &Window::set_orientation);
+    _class.set("start_text_input", &Window::start_text_input);
+    _class.set("stop_text_input", &Window::stop_text_input);
+    _class.set("update_viewport_on_resize", Lua::overload(func_of<bool>(&Window::update_viewport_on_resize),
+                                                          func_of<const Window&>(&Window::update_viewport_on_resize)));
+    _class.set("update_scissor_on_resize", Lua::overload(func_of<bool>(&Window::update_scissor_on_resize),
+                                                         func_of<const Window&>(&Window::update_scissor_on_resize)));
+    _class.set("frame_number", &Window::frame_number);
+    _class.set("framebuffer", &Window::framebuffer);
+}
+
+static InitializeController init_window(on_init);
