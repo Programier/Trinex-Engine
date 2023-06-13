@@ -56,25 +56,19 @@ namespace Engine::Lua
         size_t prev_index = 0;
         size_t index      = 0;
 
-        sol::table parent;
         sol::table current = global_namespace().as<sol::table>();
 
         while ((index = class_name.find("::", prev_index)) != String::npos)
         {
-            parent = std::move(current);
-
             String namespace_name = class_name.substr(prev_index, index - prev_index);
             prev_index            = index + 2;
 
-            sol::object new_table = parent[namespace_name];
+            current = current[namespace_name].get_or_create<sol::table>();
 
-            if (!new_table.valid())
+            if (!current.valid() || current.get_type() != sol::type::table)
             {
-                new_table              = _M_lua->create_table();
-                parent[namespace_name] = new_table;
+                return {};
             }
-
-            current = new_table.as<sol::table>();
         }
 
         if (out_name)
