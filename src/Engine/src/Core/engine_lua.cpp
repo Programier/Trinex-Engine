@@ -3,7 +3,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
-#include <LuaJIT/lua.hpp>
 
 
 namespace Engine::Lua
@@ -28,6 +27,7 @@ namespace Engine::Lua
         _M_lua = new sol::state();
         _M_lua->open_libraries();
 
+        Interpretter::execute_string("require('jit').opt.start(4);");
         Interpretter::execute_string("io.stdout->setvbuf('no');");
 #include "lua_code.inl"
         Interpretter::execute_string(trinex_lua_code);

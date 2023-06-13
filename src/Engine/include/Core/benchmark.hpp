@@ -51,7 +51,7 @@ namespace Engine
         ~BenchMark()
         {
             if (_M_enable_log)
-                info_log("%s: %d: %s(): %ls %d", _M_file.c_str(), _M_line, _M_function.c_str(), message.c_str(),
+                info_log("%s: %d: %s(): %s %d", _M_file.c_str(), _M_line, _M_function.c_str(), message.c_str(),
                             (int) time());
         }
     };

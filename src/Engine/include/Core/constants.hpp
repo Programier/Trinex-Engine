@@ -6,7 +6,7 @@ namespace Engine
 {
     struct ENGINE_EXPORT Constants
     {
-        static const unsigned int processor_count;
+        static const uint_t processor_count;
         static const Vector3D OX;
         static const Vector3D OY;
         static const Vector3D OZ;

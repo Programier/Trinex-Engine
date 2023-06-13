@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    const unsigned int Constants::processor_count = std::thread::hardware_concurrency();
+    const uint_t Constants::processor_count = std::thread::hardware_concurrency();
     const glm::vec3 Constants::OX(1.f, 0.f, 0.f);
     const glm::vec3 Constants::OY(0.f, 1.f, 0.f);
     const glm::vec3 Constants::OZ(0.f, 0.f, 1.f);
@@ -30,7 +30,7 @@ namespace Engine
     {
         Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::Constants::");
 
-#define set_value(x) _namespace.set(#x, &Constants::x)
+#define set_value(x) _namespace[#x] = Constants::x
         set_value(processor_count);
         set_value(OX);
         set_value(OY);

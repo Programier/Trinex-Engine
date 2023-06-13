@@ -33,69 +33,9 @@ namespace Engine
         Vector3D axis;
     };
 
-
     static float min_time     = 100;
     static float max_time     = 0;
     static float current_diff = 0;
-
-
-#define K 0.5f
-    static void update_camera(Camera* camera)
-    {
-        static float speed  = 5.0f;
-        current_diff        = (current_diff * K) + (Event::diff_time() * (1.f - K));
-        float current_speed = speed * current_diff;
-
-        if (Event::time() > 5.0)
-        {
-            min_time = std::min(min_time, current_diff);
-            max_time = std::max(max_time, current_diff);
-        }
-
-        Transform* camera_transform = &camera->transform;
-
-        if (KeyboardEvent::pressed(Key::W))
-        {
-            camera_transform->move(camera_transform->front_vector() * current_speed);
-        }
-
-        if (KeyboardEvent::pressed(Key::S))
-        {
-            camera_transform->move(camera_transform->front_vector() * -current_speed);
-        }
-
-        if (KeyboardEvent::pressed(Key::D))
-        {
-            camera_transform->move(camera_transform->right_vector() * current_speed);
-        }
-
-        if (KeyboardEvent::pressed(Key::A))
-        {
-            camera_transform->move(camera_transform->right_vector() * -current_speed);
-        }
-
-        if (KeyboardEvent::pressed(Key::Space))
-        {
-            float k = (KeyboardEvent::pressed(Key::LeftShift) ? -1.f : 1.f);
-            camera_transform->move(camera_transform->up_vector() * current_speed * k);
-        }
-
-        if (KeyboardEvent::just_pressed(Key::Enter))
-        {
-            MouseEvent::relative_mode(!MouseEvent::relative_mode());
-        }
-
-        if (MouseEvent::relative_mode())
-        {
-            auto offset = MouseEvent::offset() / (Window::size() / 2.f);
-            camera_transform->rotate(-offset.x, Constants::OY);
-            camera_transform->rotate(offset.y, camera_transform->right_vector());
-        }
-    }
-
-
-    static void update_shader(Shader* shader)
-    {}
 
     void GameInit::loop()
     {
@@ -109,8 +49,6 @@ namespace Engine
 
         Shader* shader             = mesh2->material_applier(0)->shader();
         Shader* framebuffer_shader = mesh1->material_applier(0)->shader();
-
-        update_shader(framebuffer_shader);
 
         VertexBuffer& vertex_buffer        = mesh1->lods[0].vertex_buffer;
         IndexBuffer& index_buffer          = mesh1->lods[0].index_buffer;
@@ -140,8 +78,6 @@ namespace Engine
                                           Vector3D(0, 0, 0.0));
         ubo.create();
 
-
-        Camera* current_camera = camera;
         UniformBuffer<Kek> fragment_ubo;
         fragment_ubo.create();
 
@@ -149,9 +85,7 @@ namespace Engine
         static size_t index = 0;
 
 
-        auto camera_update = Lua::Interpretter::execute_string(
-                                     "local instance = require('camera')['update']; instance(10); return instance;")
-                                     .get<Lua::function>();
+        auto camera_update = Lua::Interpretter::execute_string("return require('camera').update;").get<Lua::function>();
 
 
         while (window.is_open())
@@ -236,19 +170,8 @@ namespace Engine
 
                 package->save();
             }
-
-
-            if (KeyboardEvent::just_pressed(Key::Num1))
-            {
-                current_camera = camera;
-            }
-            else if (KeyboardEvent::just_pressed(Key::Num2))
-            {
-                current_camera = model;
-            }
         }
 
-        engine_config.save("TrinexEngine/configs/config.cfg");
         _M_renderer->wait_idle();
     }
 
