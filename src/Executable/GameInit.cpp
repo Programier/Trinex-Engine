@@ -88,10 +88,13 @@ namespace Engine
         auto camera_update = Lua::Interpretter::execute_string("return require('camera').update;").get<Lua::function>();
 
 
+        Average<float> script_average;
+
         while (window.is_open())
         {
             camera->update();
-            camera_update(camera);
+
+            script_average.push(camera_update(camera).get<float>());
 
             if (MouseEvent::scroll_offset().y != 0)
             {
@@ -147,11 +150,13 @@ namespace Engine
                 ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
                             transform.position().z);
                 ImGui::Text("Min: %f, Max: %f, Current: %f", min_time, max_time, current_diff);
+                ImGui::Text("Script time: %f ms", script_average.average());
             }
 
             if (fps.count() == 60)
             {
                 fps.reset();
+                script_average.reset();
             }
 
             ImGui::End();
