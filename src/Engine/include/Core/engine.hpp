@@ -46,6 +46,7 @@ namespace Engine
         bool is_inited() const;
         GraphicApiInterface::ApiInterface* api_interface() const;
         class Renderer* renderer() const;
+        static bool is_on_stack(void* ptr);
 
 
         bool check_format_support(PixelType type, PixelComponentType component);

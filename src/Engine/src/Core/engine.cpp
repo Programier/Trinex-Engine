@@ -283,6 +283,26 @@ namespace Engine
         return _M_renderer;
     }
 
+    asm(R"(
+is_on_stack_asm:
+    movq %rsp, %rax
+    cmpq %rdi, %rax
+    ja stack_address
+    movl $1, %eax
+    ret
+
+stack_address:
+    movl $0, %eax
+    ret
+)");
+
+    extern "C" bool is_on_stack_asm(void* ptr);
+
+    bool EngineInstance::is_on_stack(void* ptr)
+    {
+        return is_on_stack_asm(ptr);
+    }
+
     EngineInstance& EngineInstance::trigger_terminate_functions()
     {
         for (auto& func : terminate_list())
