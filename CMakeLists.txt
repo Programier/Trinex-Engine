@@ -39,3 +39,9 @@ else()
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${CMAKE_INSTALL_PREFIX}/resources)
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/scripts ${CMAKE_INSTALL_PREFIX}/scripts)
 endif()
+
+if (LINUX)
+    install(PROGRAMS launch.sh
+        DESTINATION "./"
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
+endif()
