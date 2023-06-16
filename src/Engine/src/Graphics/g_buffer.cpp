@@ -82,7 +82,7 @@ namespace Engine
 
     GBuffer::GBuffer()
     {
-        trinex_flag(TrinexObjectFlags::OF_IsSerializable, false);
+        trinex_flag(TrinexObjectFlags::IsSerializable, false);
     }
 
     ENGINE_EXPORT GBuffer* GBuffer::instance()

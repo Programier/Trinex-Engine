@@ -18,12 +18,13 @@ namespace Engine
 
     enum TrinexObjectFlags : size_t
     {
-        OF_None = 0,
-        OF_IsOnHeap,
-        OF_Destructed,
-        OF_NeedDelete,
-        OF_IsCollectedByGC,
-        OF_IsSerializable,
+        None = 0,
+        IsOnHeap,
+        IsDestructed,
+        IsNeedDelete,
+        IsCollectedByGC,
+        IsSerializable,
+        IsAllocatedByController,
         __OF_COUNT__
     };
 
@@ -62,7 +63,7 @@ namespace Engine
 
     protected:
         Object();
-        Object& mark_as_on_heap_instance();
+        Object& mark_as_allocate_by_constroller();
         Object& insert_to_default_package();
         bool private_check_instance(const class Class* const check_class) const;
         bool trinex_flag(TrinexObjectFlags flag) const;
@@ -111,7 +112,7 @@ namespace Engine
             if constexpr (std::is_base_of_v<Object, Type>)
             {
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
-                instance->mark_as_on_heap_instance();
+                instance->mark_as_allocate_by_constroller();
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
                 return instance;
             }
@@ -127,7 +128,7 @@ namespace Engine
             if constexpr (std::is_base_of_v<Object, Type>)
             {
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
-                instance->mark_as_on_heap_instance();
+                instance->mark_as_allocate_by_constroller();
                 instance->insert_to_default_package();
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
                 return instance;
@@ -159,7 +160,7 @@ namespace Engine
                 }
 
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
-                instance->mark_as_on_heap_instance();
+                instance->mark_as_allocate_by_constroller();
                 instance->name(name);
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
 
@@ -235,7 +236,7 @@ namespace Engine
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                if (instance->flag(TrinexObjectFlags::OF_IsOnHeap))
+                if (instance->flag(TrinexObjectFlags::IsOnHeap))
                 {
                     instance->mark_for_delete();
                 }
@@ -251,7 +252,7 @@ namespace Engine
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                if (instance->flag(TrinexObjectFlags::OF_IsOnHeap))
+                if (instance->flag(TrinexObjectFlags::IsOnHeap))
                 {
                     instance->mark_for_delete();
                 }

@@ -17,11 +17,11 @@ namespace Engine
 
     void MemoryManager::free_object(Object* object)
     {
-        if (!object->trinex_flag(TrinexObjectFlags::OF_IsCollectedByGC) &&
-            object->trinex_flag(TrinexObjectFlags::OF_NeedDelete) &&
-            object->trinex_flag(TrinexObjectFlags::OF_IsOnHeap))
+        if (!object->trinex_flag(TrinexObjectFlags::IsCollectedByGC) &&
+            object->trinex_flag(TrinexObjectFlags::IsNeedDelete) &&
+            object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
         {
-            object->trinex_flag(TrinexObjectFlags::OF_IsCollectedByGC, true);
+            object->trinex_flag(TrinexObjectFlags::IsCollectedByGC, true);
             if (_M_disable_collect_garbage)
                 _M_objects[0].push_back(object);
             else
@@ -68,7 +68,7 @@ namespace Engine
 
     void MemoryManager::force_call_destructor(Object* object)
     {
-        if (!object->trinex_flag(TrinexObjectFlags::OF_Destructed))
+        if (!object->trinex_flag(TrinexObjectFlags::IsDestructed))
         {
             std::destroy_at(object);
         }

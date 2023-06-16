@@ -92,7 +92,7 @@ namespace Engine
         if (!object)
             return false;
 
-        if (object->trinex_flag(TrinexObjectFlags::OF_NeedDelete))
+        if (object->trinex_flag(TrinexObjectFlags::IsNeedDelete))
         {
             logger->error("Package: Cannot add object to package, wich marked for delete");
             return false;
@@ -198,7 +198,7 @@ namespace Engine
         size_t offset = sizeof(size_t);
         for (auto& pair : _M_objects)
         {
-            if (pair.second->trinex_flag(TrinexObjectFlags::OF_IsSerializable))
+            if (pair.second->trinex_flag(TrinexObjectFlags::IsSerializable))
             {
                 HeaderEntry entry;
 

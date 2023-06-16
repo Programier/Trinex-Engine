@@ -4,16 +4,13 @@
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/demangle.hpp>
+#include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
-
 #include <typeinfo>
-
-
-#define MAX_GARBAGE_COLLECTION_OBJECTS 20000
 
 
 namespace Engine
@@ -54,9 +51,10 @@ namespace Engine
     static Package* _M_root_package = nullptr;
 
 
-    Object& Object::mark_as_on_heap_instance()
+    Object& Object::mark_as_allocate_by_constroller()
     {
-        trinex_flag(TrinexObjectFlags::OF_IsOnHeap, true);
+        trinex_flag(TrinexObjectFlags::IsOnHeap, true);
+        trinex_flag(TrinexObjectFlags::IsAllocatedByController, true);
         return *this;
     }
 
@@ -65,7 +63,7 @@ namespace Engine
         if (_M_root_package == nullptr)
         {
             _M_root_package = new (MemoryManager::instance().find_memory<Package>()) Package("Root Package");
-            _M_root_package->mark_as_on_heap_instance();
+            _M_root_package->mark_as_allocate_by_constroller();
         }
         return *this;
     }
@@ -110,7 +108,8 @@ namespace Engine
     {
         get_instance_list().insert(this);
         _M_trinex_flags.reset();
-        trinex_flag(TrinexObjectFlags::OF_IsSerializable, true);
+        trinex_flag(TrinexObjectFlags::IsSerializable, true);
+        trinex_flag(TrinexObjectFlags::IsOnHeap, !EngineInstance::is_on_stack(this));
     }
 
     std::size_t Object::class_hash() const
@@ -179,12 +178,12 @@ namespace Engine
 
     void Object::delete_instance()
     {
-        if ((!trinex_flag(TrinexObjectFlags::OF_IsOnHeap)))
+        if ((!trinex_flag(TrinexObjectFlags::IsOnHeap)))
         {
             get_instance_list().erase(const_cast<Object*>(this));
         }
 
-        if (trinex_flag(TrinexObjectFlags::OF_NeedDelete) && trinex_flag(TrinexObjectFlags::OF_IsOnHeap))
+        if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
         {
             debug_log("Garbage Collector: Delete object instance '%s' with type '%s' [%p]\n", name().c_str(),
                       class_name().c_str(), this);
@@ -207,15 +206,15 @@ namespace Engine
             _M_package = nullptr;
         }
 
-        trinex_flag(TrinexObjectFlags::OF_Destructed, true);
+        trinex_flag(TrinexObjectFlags::IsDestructed, true);
     }
 
 
     bool Object::mark_for_delete(bool skip_check)
     {
         static auto mark = [](Object* object) -> bool {
-            if (!object->trinex_flag(TrinexObjectFlags::OF_NeedDelete) &&
-                object->trinex_flag(TrinexObjectFlags::OF_IsOnHeap) && object->_M_references == 0)
+            if (!object->trinex_flag(TrinexObjectFlags::IsNeedDelete) &&
+                object->trinex_flag(TrinexObjectFlags::IsAllocatedByController) && object->_M_references == 0)
             {
                 get_instance_list().erase(object);
 
@@ -225,14 +224,14 @@ namespace Engine
                     object->_M_package = nullptr;
                 }
 
-                object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
+                object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
                 MemoryManager::instance().free_object(object);
                 return true;
             }
             return false;
         };
 
-        if (trinex_flag(TrinexObjectFlags::OF_Destructed) || trinex_flag(TrinexObjectFlags::OF_NeedDelete))
+        if (trinex_flag(TrinexObjectFlags::IsDestructed) || trinex_flag(TrinexObjectFlags::IsNeedDelete))
             return false;
 
         if (!skip_check)
@@ -271,7 +270,7 @@ namespace Engine
 
     bool Object::is_on_heap() const
     {
-        return trinex_flag(TrinexObjectFlags::OF_IsOnHeap);
+        return trinex_flag(TrinexObjectFlags::IsOnHeap);
     }
 
     const String& Object::name() const
@@ -315,8 +314,8 @@ namespace Engine
 
     Object* Object::copy()
     {
-        if (_M_class == nullptr || trinex_flag(TrinexObjectFlags::OF_NeedDelete) ||
-            trinex_flag(TrinexObjectFlags::OF_Destructed))
+        if (_M_class == nullptr || trinex_flag(TrinexObjectFlags::IsNeedDelete) ||
+            trinex_flag(TrinexObjectFlags::IsDestructed))
             return nullptr;
 
         Object* object = nullptr;
@@ -524,14 +523,32 @@ namespace Engine
         MemoryManager& manager             = MemoryManager::instance();
         manager._M_disable_collect_garbage = true;
 
+
+        Set<Object*> maybe_not_deleted_objects;
+
         while (!get_instance_list().empty())
         {
             Object* object = (*get_instance_list().begin());
-            debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n", object->name().c_str(),
-                      object->class_name().c_str(), object);
-            object->trinex_flag(TrinexObjectFlags::OF_NeedDelete, true);
-            manager.free_object(object);
+            if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
+            {
+                debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n",
+                          object->name().c_str(), object->class_name().c_str(), object);
+                object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
+                manager.free_object(object);
+                maybe_not_deleted_objects.erase(object);
+            }
+            else if (object->is_on_heap())
+            {
+                maybe_not_deleted_objects.insert(object);
+            }
             get_instance_list().erase(object);
+        }
+
+
+        for (auto& object : maybe_not_deleted_objects)
+        {
+            error_log("Garbage Collector: Object '%s' with type '%s' is dynamicly allocated and must be deleted!",
+                      object->_M_name.c_str(), object->class_name().c_str());
         }
     }
 
