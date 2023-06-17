@@ -1,3 +1,4 @@
+#include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/camera.hpp>
@@ -114,6 +115,19 @@ namespace Engine
         _M_projview = _M_projection * _M_view;
         return *this;
     }
+
+    bool Camera::archive_process(Archive* archive)
+    {
+        if (!Super::archive_process(archive))
+            return false;
+
+        (*archive) & _M_viewing_angle;
+        (*archive) & _M_max_render_distance;
+        (*archive) & _M_min_render_distance;
+
+        return static_cast<bool>(*archive);
+    }
+
 
     Camera::~Camera()
     {}

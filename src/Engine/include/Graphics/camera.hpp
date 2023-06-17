@@ -40,6 +40,9 @@ namespace Engine
         float aspect() const;
         Camera& aspect(float value);
         Camera& update() override;
+
+        bool archive_process(Archive* archive) override;
+
         ~Camera();
     };
 

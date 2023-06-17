@@ -55,16 +55,11 @@ namespace Engine
         VertexBuffer& output_vertex_buffer = mesh2->lods[0].vertex_buffer;
         IndexBuffer& output_index_buffer   = mesh2->lods[0].index_buffer;
         Texture2D& texture                 = *package->find_object_checked<Texture2D>("Trinex Texture");
+        Camera* camera                     = package->find_object_checked<Camera>("Camera");
+        camera->load();
 
         UniformBuffer<CameraUBO> camera_ubo[2];
-
-        Camera* camera = Object::new_instance<Camera>(Vector3D{0, 0, 0.3});
-
-        camera->script.load("camera");
         Camera* model = Object::new_instance<Camera>(Vector3D{0, 0, 0.0});
-
-        camera->min_render_distance(0.01).max_render_distance(1000.f);
-        camera->viewing_angle(glm::radians(70.f));
         camera->aspect(window.width() / window.height());
 
         for (int i = 0; i < 2; i++)
@@ -86,18 +81,8 @@ namespace Engine
         Average<double> fps;
         static size_t index = 0;
 
-
-        auto camera_update = Lua::Interpretter::execute_string("return require('camera').update;").get<Lua::function>();
-
-
-        Average<float> script_average;
-
         while (window.is_open())
         {
-            camera->update();
-
-            //script_average.push(camera_update(camera).get<float>());
-
             if (MouseEvent::scroll_offset().y != 0)
             {
                 float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
@@ -152,13 +137,11 @@ namespace Engine
                 ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
                             transform.position().z);
                 ImGui::Text("Min: %f, Max: %f, Current: %f", min_time, max_time, current_diff);
-                ImGui::Text("Script time: %f ms", script_average.average());
             }
 
             if (fps.count() == 60)
             {
                 fps.reset();
-                script_average.reset();
             }
 
             ImGui::End();
@@ -170,11 +153,11 @@ namespace Engine
 
             Event::poll_events();
             window.swap_buffers();
-            //update_camera(current_camera);
+            camera->update();
 
             if (KeyboardEvent::just_pressed(Key::G))
             {
-
+                package->add_object(camera);
                 package->save();
             }
         }
