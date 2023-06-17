@@ -1,4 +1,5 @@
 #include <Core/actor.hpp>
+#include <Core/buffer_manager.hpp>
 
 namespace Engine
 {
@@ -18,6 +19,11 @@ namespace Engine
     }
 
     Actor& Actor::render()
+    {
+        return *this;
+    }
+
+    Actor& Actor::ready()
     {
         return *this;
     }
@@ -65,6 +71,15 @@ namespace Engine
         }
 
         return *this;
+    }
+
+    bool Actor::archive_process(Archive* archive)
+    {
+        if (!Super::archive_process(archive))
+            return false;
+
+        (*archive) & transform;
+        return static_cast<bool>(*archive);
     }
 
     register_class(Engine::Actor)("update", &Actor::update,//

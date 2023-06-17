@@ -34,11 +34,14 @@ namespace Engine
         virtual Actor& load();
         virtual Actor& unload();
         virtual Actor& render();
+        virtual Actor& ready();
 
         Actor& parent(Actor* actor);
         Actor* parent() const;
         const ActorChilds& childs() const;
         Actor& child(Actor* actor);
         Actor& remove_child(Actor* actor);
+
+        bool archive_process(Archive* archive) override;
     };
 }// namespace Engine

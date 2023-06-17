@@ -3,6 +3,8 @@
 
 namespace Engine
 {
+    class Archive;
+
     class ENGINE_EXPORT Transform
     {
     private:
@@ -47,6 +49,11 @@ namespace Engine
 
         String as_string() const;
 
+        friend bool operator & (Archive& ar, Transform& t);
+
         friend class Camera;
     };
+
+    bool operator & (Archive& ar, Transform& t);
+
 }// namespace Engine

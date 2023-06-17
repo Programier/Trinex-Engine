@@ -1,3 +1,4 @@
+#include <Core/buffer_manager.hpp>
 #include <Core/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -145,6 +146,29 @@ namespace Engine
                                "Scale:    {}\n"
                                "Rotation: {}",
                                _M_position, _M_scale, euler_angles());
+    }
+
+    bool operator&(Archive& ar, Transform& t)
+    {
+        ar& t._M_position.x;
+        ar& t._M_position.y;
+        ar& t._M_position.z;
+
+        ar& t._M_scale.x;
+        ar& t._M_scale.y;
+        ar& t._M_scale.z;
+
+        ar& t._M_quaternion.x;
+        ar& t._M_quaternion.y;
+        ar& t._M_quaternion.z;
+        ar& t._M_quaternion.w;
+
+        if (ar.is_reading())
+        {
+            t._M_is_modified = 1;
+        }
+
+        return static_cast<bool>(ar);
     }
 
     static void on_init()
