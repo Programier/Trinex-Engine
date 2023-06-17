@@ -5,11 +5,17 @@ namespace Engine
 {
     Actor& Actor::update()
     {
+        if (script.on_update.valid())
+        {
+            script.on_update(class_instance()->to_lua_object(this));
+        }
+
         return *this;
     }
 
     Actor& Actor::load()
     {
+        script.load();
         return *this;
     }
 
@@ -25,6 +31,11 @@ namespace Engine
 
     Actor& Actor::ready()
     {
+        if (script.on_ready.valid())
+        {
+            script.on_ready(class_instance()->to_lua_object(this));
+        }
+
         return *this;
     }
 
@@ -79,6 +90,8 @@ namespace Engine
             return false;
 
         (*archive) & transform;
+        (*archive) & script;
+
         return static_cast<bool>(*archive);
     }
 

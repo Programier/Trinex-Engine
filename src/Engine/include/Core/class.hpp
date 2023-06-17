@@ -19,6 +19,7 @@ namespace Engine
         Vector<DefferedMethodInvokerBase*> _M_lua_invokers;
         std::function<Object*()> _M_allocate_object;
         std::function<Object*()> _M_allocate_without_package;
+        std::function<Lua::object(Object*)> _M_to_lua_object;
 
         size_t _M_instance_size = 0;
         void (*_M_post_init)()  = nullptr;
@@ -126,6 +127,13 @@ namespace Engine
             }
         }
 
+
+        template<typename Instance>
+        static Lua::object to_lua_object_private(Object* object)
+        {
+            return Lua::make_object(Lua::Interpretter::state()->lua_state(), reinterpret_cast<Instance*>(object));
+        }
+
     public:
         template<typename Instance>
         class LuaRegistrar
@@ -194,6 +202,7 @@ namespace Engine
         Object* create() const;
         Object* create_without_package() const;
         size_t instance_size() const;
+        Lua::object to_lua_object(Object* object) const;
 
         template<typename InstanceClass = void, typename... Args>
         static LuaRegistrar<InstanceClass> register_new_class(const String& class_name, Args... args)
@@ -206,6 +215,7 @@ namespace Engine
                 class_instance->_M_instance_size = sizeof(InstanceClass);
 
                 class_instance->_M_post_init = Class::post_init<InstanceClass>;
+                class_instance->_M_to_lua_object = to_lua_object_private<InstanceClass>;
                 InitializeController i(class_instance->_M_post_init);
             }
 

@@ -2,6 +2,7 @@
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>
+#include <Core/lua_object_script.hpp>
 
 namespace Engine
 {
@@ -22,9 +23,13 @@ namespace Engine
         using Super       = Object;
 
     private:
-        Pointer<Actor> _M_parent;
         ActorChilds _M_childs;
 
+    public:
+        LuaObjectScript script;
+
+    private:
+        Pointer<Actor> _M_parent;
         BitSet<static_cast<size_t>(ActorFlags::__COUNT__)> _M_actor_flags;
 
     public:

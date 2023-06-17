@@ -95,6 +95,22 @@ namespace Engine
         return _M_instance_size;
     }
 
+    Lua::object Class::to_lua_object(Object* object) const
+    {
+        if (object->class_instance() == this)
+        {
+            return _M_to_lua_object(object);
+        }
+        auto _class = object->class_instance();
+
+        if (_class)
+        {
+            return _class->to_lua_object(object);
+        }
+
+        return {};
+    }
+
 
     static void on_init()
     {

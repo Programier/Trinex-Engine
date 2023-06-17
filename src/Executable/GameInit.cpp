@@ -59,7 +59,9 @@ namespace Engine
         UniformBuffer<CameraUBO> camera_ubo[2];
 
         Camera* camera = Object::new_instance<Camera>(Vector3D{0, 0, 0.3});
-        Camera* model  = Object::new_instance<Camera>(Vector3D{0, 0, 0.0});
+
+        camera->script.load("camera");
+        Camera* model = Object::new_instance<Camera>(Vector3D{0, 0, 0.0});
 
         camera->min_render_distance(0.01).max_render_distance(1000.f);
         camera->viewing_angle(glm::radians(70.f));
@@ -94,7 +96,7 @@ namespace Engine
         {
             camera->update();
 
-            script_average.push(camera_update(camera).get<float>());
+            //script_average.push(camera_update(camera).get<float>());
 
             if (MouseEvent::scroll_offset().y != 0)
             {

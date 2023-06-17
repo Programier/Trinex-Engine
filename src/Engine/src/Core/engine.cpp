@@ -315,12 +315,11 @@ stack_address:
 
     EngineInstance::~EngineInstance()
     {
-        Lua::Interpretter::terminate();
-
         info_log("Engine: Terminate Engine");
         engine_instance->trigger_terminate_functions();
 
         Window::destroy_window();
+        Lua::Interpretter::terminate();
 
         delete _M_renderer;
         delete _M_api_interface;

@@ -106,6 +106,7 @@ namespace Engine
 
     Camera& Camera::update()
     {
+        Super::update();
         auto front_vector   = transform.front_vector();
         const Vector3D& pos = transform.position();
 
