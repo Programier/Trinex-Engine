@@ -157,7 +157,6 @@ namespace Engine
 
             if (KeyboardEvent::just_pressed(Key::G))
             {
-                package->add_object(camera);
                 package->save();
             }
         }

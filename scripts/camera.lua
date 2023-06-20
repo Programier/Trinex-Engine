@@ -8,7 +8,6 @@ function camera_update(camera)
 {
     current_diff        = (current_diff * K) + (Engine.Event.diff_time() * (1.0 - K));
     local current_speed = speed * current_diff;
-    local execute_time  = os.clock();
 
     if (Engine.KeyboardEvent.pressed(Engine.Key.W))
     {
@@ -47,8 +46,6 @@ function camera_update(camera)
         camera.transform->rotate(-offset.x, Engine.Constants.OY, true);
         camera.transform->rotate(offset.y, camera.transform->right_vector(), true);
     }
-
-    return (os.clock() - execute_time) * 1000.0;
 }
 
 

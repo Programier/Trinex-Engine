@@ -5,6 +5,7 @@
 #include <Core/pointer.hpp>
 #include <Core/predef.hpp>
 #include <Graphics/pipeline_buffers.hpp>
+#include <Core/scene_component.hpp>
 
 
 namespace Engine
@@ -103,10 +104,10 @@ namespace Engine
     };
 
 
-    class ENGINE_EXPORT MeshComponent : public Object
+    class ENGINE_EXPORT MeshComponent : public SceneComponent
     {
     public:
-        using Super = Object;
+        using Super = SceneComponent;
 
         struct ENGINE_EXPORT MeshComponentLOD : public SerializableObject {
             ObjectReference<Material> material_reference;

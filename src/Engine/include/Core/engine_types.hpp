@@ -111,19 +111,15 @@ namespace Engine
         SizeLimits(const Type& _min, const Type& _max) : min(_min), max(_max)
         {}
 
-        Type& operator[](bool _max)
-        {
-            if (_max)
-                return max;
-            return min;
-        }
+        SizeLimits(Type&& _min, Type&& _max) : min(std::move(_min)), max(std::move(_max))
+        {}
 
-        const Type& operator[](bool _max) const
-        {
-            if (_max)
-                return max;
-            return min;
-        }
+        SizeLimits(SizeLimits&&)      = default;
+        SizeLimits(const SizeLimits&) = default;
+
+
+        SizeLimits& operator=(const SizeLimits&) = default;
+        SizeLimits& operator=(SizeLimits&&)      = default;
     };
 
     using SizeLimits1D = SizeLimits<Size1D>;
@@ -227,7 +223,7 @@ template<typename Number>
 typename std::enable_if<std::is_arithmetic<Number>::value, int>::type digits_of_number(const Number& number)
 {
     signed long int value = static_cast<signed long int>(number);
-    int digits = value <= 0 ? 1 : 0;
+    int digits            = value <= 0 ? 1 : 0;
     while (value != 0)
     {
         digits++;
@@ -262,7 +258,7 @@ print_glm_object(std::ostream& stream, const Type& value, std::size_t glm_print_
 
     if (glm_print_width == 1)
         glm_print_width = 7 + digits_of_number(value);
-    int length = value.length();
+    int length       = value.length();
     bool contain_glm = is_member_of_glm<decltype(value[0])>::value;
 
     if (!contain_glm)
