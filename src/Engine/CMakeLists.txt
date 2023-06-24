@@ -125,8 +125,11 @@ target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGIN
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include/ImGui>"
                                          "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/libs/LuaJIT/include/>")
 
+if(ANDROID)
+    set(LOG_LIBS android log)
+endif()
 
-target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static libluajit)
+target_link_libraries(TrinexEngine PRIVATE SDL2 freetype lz4_static libluajit ${LOG_LIBS})
 
 
 install(TARGETS TrinexEngine SDL2 DESTINATION "./TrinexEngine/libs/")

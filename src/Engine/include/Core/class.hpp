@@ -87,11 +87,11 @@ namespace Engine
             }
             else
             {
-                _M_allocate_object = [&, this]() -> Object* {
+                _M_allocate_object = [&]() -> Object* {
                     return static_cast<Object*>(Object::new_instance<Instance>(args...));
                 };
 
-                _M_allocate_without_package = [&, this]() -> Object* {
+                _M_allocate_without_package = [&]() -> Object* {
                     return static_cast<Object*>(Object::new_instance_without_package<Instance>(args...));
                 };
             }

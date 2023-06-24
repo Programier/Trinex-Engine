@@ -1,9 +1,31 @@
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Core/predef.hpp>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <cwchar>
+
+#if PLATFORM_ANDROID
+#include <android/log.h>
+
+using PrioType = int;
+
+static constexpr PrioType DEBUG_PRIO   = ANDROID_LOG_DEBUG;
+static constexpr PrioType INFO_PRIO    = ANDROID_LOG_INFO;
+static constexpr PrioType WARNING_PRIO = ANDROID_LOG_WARN;
+static constexpr PrioType ERROR_PRIO   = ANDROID_LOG_ERROR;
+
+#else
+
+using PrioType = const char*;
+
+static PrioType DEBUG_PRIO   = "DEBUG";
+static PrioType INFO_PRIO    = "INFO";
+static PrioType WARNING_PRIO = "WARNING";
+static PrioType ERROR_PRIO   = "ERROR";
+
+#endif
 
 #if PLATFORM_WINDOWS
 #include <windows.h>
@@ -28,10 +50,12 @@ static void set_output_color(ConsoleColor color, FILE*)
 
 using ConsoleColor = const char*;
 
+#ifndef PLATFORM_ANDROID
 static void set_output_color(ConsoleColor color, FILE* output)
 {
     fprintf(output, "%s", color);
 }
+#endif
 
 #endif
 
@@ -71,14 +95,17 @@ namespace Engine
             return ((first == args) || ...);
         }
 
-        void write_message(const char* tag, const char* format, va_list& args, FILE* out, ConsoleColor color)
+        void write_message(PrioType prio_type, const char* format, va_list& args, FILE* out, ConsoleColor color)
         {
+#if PLATFORM_ANDROID
+            __android_log_vprint(prio_type, EngineInstance::project_name().c_str(), format, args);
+#else
             char buffer[80];
             std::time_t now = std::time(nullptr);
             std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
             set_output_color(color, out);
-            fprintf(out, "[%6s][%s]: ", tag, buffer);
+            fprintf(out, "[%6s][%s]: ", prio_type, buffer);
 
             vfprintf(out, format, args);
             set_output_color(RESET_COLOR, out);
@@ -90,6 +117,7 @@ namespace Engine
             {
                 fprintf(out, "\n");
             }
+#endif
         }
 
 
@@ -98,7 +126,7 @@ namespace Engine
         {
             va_list args;
             va_start(args, format);
-            write_message("LOG", format, args, stdout, GREEN);
+            write_message(INFO_PRIO, format, args, stdout, GREEN);
             va_end(args);
 
             return *this;
@@ -109,7 +137,7 @@ namespace Engine
 #ifdef TRINEX_ENGINE_DEBUG
             va_list args;
             va_start(args, format);
-            write_message("DEBUG", format, args, stdout, GREEN);
+            write_message(DEBUG_PRIO, format, args, stdout, GREEN);
             va_end(args);
 #endif
             return *this;
@@ -120,7 +148,7 @@ namespace Engine
 #ifdef TRINEX_ENGINE_DEBUG
             va_list args;
             va_start(args, format);
-            write_message("WARNING", format, args, stdout, BLUE);
+            write_message(WARNING_PRIO, format, args, stdout, BLUE);
             va_end(args);
 #endif
             return *this;
@@ -131,7 +159,7 @@ namespace Engine
         {
             va_list args;
             va_start(args, format);
-            write_message("ERROR", format, args, stderr, RED);
+            write_message(ERROR_PRIO, format, args, stderr, RED);
             va_end(args);
             return *this;
         }
