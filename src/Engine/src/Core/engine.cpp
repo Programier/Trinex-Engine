@@ -51,7 +51,7 @@ namespace Engine
 
     ENGINE_EXPORT const String& EngineInstance::project_name()
     {
-        static String name;
+        static String name = "Trinex Engine";
         return name;
     }
 
@@ -197,6 +197,7 @@ namespace Engine
             return -1;
         }
 
+        logger->log("START TRINEX ENGINE!");
         for (auto preinit_callback : preinitialize_list())
         {
             preinit_callback();
@@ -220,6 +221,7 @@ namespace Engine
 
         for (auto func : initialize_list())
         {
+            logger->log("TRINEX TEST");
             func();
         }
 
@@ -227,8 +229,6 @@ namespace Engine
 
         logger->log("Engine: Work dir is '%s'", root_manager->work_dir().c_str());
         engine_config.init((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
-
-        logger->log("Engine: Work dir is '%s'", root_manager->work_dir().string().c_str());
 
         Lua::Interpretter::init_lua_dir();
 
@@ -282,7 +282,22 @@ namespace Engine
     {
         return _M_renderer;
     }
+#if defined(__arm__) || defined(__aarch64__)
+    asm(R"(
+is_on_stack_asm:
+    mov x0, sp
+    cmp x0, x1
+    cset w0, gt
+    ret
 
+stack_address:
+    mov w0, #0
+    ret
+)");
+
+    extern "C" bool is_on_stack_asm(void* ptr);
+
+#elif defined(__x86_64__)
     asm(R"(
 is_on_stack_asm:
     movq %rsp, %rax
@@ -297,6 +312,12 @@ stack_address:
 )");
 
     extern "C" bool is_on_stack_asm(void* ptr);
+
+#else
+
+#error "Function is_on_stack_asm in not implemented for current arch!"
+
+#endif
 
     bool EngineInstance::is_on_stack(void* ptr)
     {
