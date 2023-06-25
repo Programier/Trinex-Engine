@@ -18,6 +18,10 @@
 #include <Window/window.hpp>
 #include <thread>
 
+#if PLATFORM_ANDROID
+#include <Window/monitor.hpp>
+#endif
+
 namespace Engine
 {
 
@@ -168,7 +172,12 @@ namespace Engine
     {
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window window;
+#if PLATFORM_ANDROID
+        window.set_orientation(WindowOrientation::WinOrientationLandscape);
+        window.init(Monitor::size().y, Monitor::size().x, "Trinex Engine", WindowAttrib::WinFullScreenDesktop);
+#else
         window.init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
+#endif
         window.vsync(true);
         ImGuiRenderer::init();
 

@@ -1,5 +1,8 @@
 #pragma once
 
+// Always use release configuration for sol2
+#define SOL_IN_DEBUG_DETECTED 0
+
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
 #include <sol/sol.hpp>
