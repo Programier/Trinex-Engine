@@ -197,7 +197,6 @@ namespace Engine
             return -1;
         }
 
-        logger->log("START TRINEX ENGINE!");
         for (auto preinit_callback : preinitialize_list())
         {
             preinit_callback();
@@ -221,7 +220,6 @@ namespace Engine
 
         for (auto func : initialize_list())
         {
-            logger->log("TRINEX TEST");
             func();
         }
 
