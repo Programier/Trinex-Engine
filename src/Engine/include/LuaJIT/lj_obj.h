@@ -836,7 +836,8 @@ static LJ_AINLINE void setlightudV(TValue *o, void *p)
 #endif
 }
 
-#if LJ_64
+
+#if LJ_64 && 0 // Check has been forcibly disabled
 #define checklightudptr(L, p) \
   (((uint64_t)(p) >> 47) ? (lj_err_msg(L, LJ_ERR_BADLU), NULL) : (p))
 #else
