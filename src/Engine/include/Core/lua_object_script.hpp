@@ -2,6 +2,7 @@
 #include <Core/engine_lua.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
+#include <Core/predef.hpp>
 
 
 namespace Engine
@@ -11,8 +12,37 @@ namespace Engine
     class ENGINE_EXPORT LuaObjectScript final
     {
     public:
-        Lua::function on_ready;
-        Lua::function on_update;
+        struct ScriptFunction {
+        private:
+            Lua::function _M_function;
+            Lua::function_result _M_result;
+            bool _M_is_valid = false;
+
+
+            void operator = (Lua::function&& function);
+
+            ScriptFunction();
+
+        public:
+            FORCE_INLINE bool is_valid() const
+            {
+                return _M_is_valid;
+            }
+
+            FORCE_INLINE const Lua::function_result& last_result() const
+            {
+                return _M_result;
+            }
+
+            void operator()(const Lua::object& object);
+            void operator()(Lua::object&& object);
+
+            friend class LuaObjectScript;
+        };
+
+        ScriptFunction on_ready;
+        ScriptFunction on_update;
+
         String path;
 
         LuaObjectScript& load();

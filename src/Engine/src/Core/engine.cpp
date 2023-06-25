@@ -383,7 +383,17 @@ stack_address:
         EngineInstance* instance = EngineInstance::instance();
         if (!instance->_M_is_inited)
         {
-            auto result = instance->start(argc, argv);
+            int result = 0;
+            try
+            {
+                result = instance->start(argc, argv);
+            }
+            catch (const std::exception& e)
+            {
+                logger->error("%s", e.what());
+                result = -1;
+            }
+
             instance->destroy();
             return result;
         }

@@ -6,6 +6,8 @@ local K            = 0.5;
 
 function camera_update(camera)
 {
+    local start = os.clock();
+
     current_diff        = (current_diff * K) + (Engine.Event.diff_time() * (1.0 - K));
     local current_speed = speed * current_diff;
 
@@ -46,6 +48,8 @@ function camera_update(camera)
         camera.transform->rotate(-offset.x, Engine.Constants.OY, true);
         camera.transform->rotate(offset.y, camera.transform->right_vector(), true);
     }
+
+    return (os.clock() - start) * 1000.0;
 }
 
 

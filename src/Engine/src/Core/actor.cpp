@@ -5,7 +5,7 @@ namespace Engine
 {
     Actor& Actor::update()
     {
-        if (script.on_update.valid())
+        if (script.on_update.is_valid())
         {
             script.on_update(class_instance()->to_lua_object(this));
         }
@@ -31,7 +31,7 @@ namespace Engine
 
     Actor& Actor::ready()
     {
-        if (script.on_ready.valid())
+        if (script.on_ready.is_valid())
         {
             script.on_ready(class_instance()->to_lua_object(this));
         }

@@ -141,6 +141,8 @@ namespace Engine
                 ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
                             transform.position().z);
                 ImGui::Text("Min: %f, Max: %f, Current: %f", min_time, max_time, current_diff);
+
+                ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
             }
 
             if (fps.count() == 60)
