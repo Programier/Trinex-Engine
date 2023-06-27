@@ -50,7 +50,7 @@ static void set_output_color(ConsoleColor color, FILE*)
 
 using ConsoleColor = const char*;
 
-#ifndef PLATFORM_ANDROID
+#if !PLATFORM_ANDROID
 static void set_output_color(ConsoleColor color, FILE* output)
 {
     fprintf(output, "%s", color);

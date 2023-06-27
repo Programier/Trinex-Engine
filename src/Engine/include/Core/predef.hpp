@@ -5,14 +5,20 @@
 
 #if defined(_WIN32)
 #define PLATFORM_WINDOWS 1
+#else
+#define PLATFORM_WINDOWS 0
 #endif
 
 #if defined(__ANDROID__) || defined(ANDROID)
 #define PLATFORM_ANDROID 1
+#else
+#define PLATFORM_ANDROID 0
 #endif
 
 #if defined(__linux__) && !PLATFORM_ANDROID
 #define PLATFORM_LINUX 1
+#else
+#define PLATFORM_LINUX 0
 #endif
 
 #if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_LINUX) && !defined(PLATFORM_WINDOWS)
@@ -36,7 +42,7 @@
 
 
 #define FILE_POS_INFO                                                                                                  \
-    (std::string(__FILE__ ":") + std::to_string(__LINE__) + std::string(": ") + std::string(__PRETTY_FUNCTION__))
+(std::string(__FILE__ ":") + std::to_string(__LINE__) + std::string(": ") + std::string(__PRETTY_FUNCTION__))
 
 #define not_implemented FILE_POS_INFO + std::string("\n\tError: Method or function is not implemented!")
 
