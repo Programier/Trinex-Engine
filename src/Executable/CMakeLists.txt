@@ -1,8 +1,7 @@
-set(SOURCES main.cpp test.cpp GameInit.cpp)
+file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 
 
 add_executable(TrinexEngineLauncher ${SOURCES})
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -rdynamic")
 target_link_libraries(TrinexEngineLauncher PRIVATE TrinexEngine)
 
 if(ANDROID)

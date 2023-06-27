@@ -1,13 +1,13 @@
 #pragma once
 #include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/singletone.hpp>
 #include <Core/export.hpp>
+#include <Core/render_types.hpp>
+#include <Core/texture_types.hpp>
 #include <iomanip>
 #include <ostream>
 #include <utility>
-#include <Core/render_types.hpp>
-#include <Core/texture_types.hpp>
-
 
 namespace Engine
 {
@@ -18,10 +18,10 @@ namespace Engine
         class ApiInterface;
     }
 
-    class ENGINE_EXPORT EngineInstance final
+    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance>
     {
     private:
-        class Renderer* _M_renderer = nullptr;
+        class Renderer* _M_renderer                         = nullptr;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
 
         EngineAPI _M_api;
@@ -33,10 +33,8 @@ namespace Engine
 
         ~EngineInstance();
         int start(int argc, char** argv);
-        void destroy();
 
     public:
-        ENGINE_EXPORT static EngineInstance* instance();
         ENGINE_EXPORT static const String& project_name();
         ENGINE_EXPORT static const String& project_name(const String& name);
         ENGINE_EXPORT static int initialize(int argc, char** argv);
@@ -48,8 +46,8 @@ namespace Engine
         class Renderer* renderer() const;
         static bool is_on_stack(void* ptr);
 
-
         bool check_format_support(PixelType type, PixelComponentType component);
+        friend class Singletone;
     };
 
     ENGINE_EXPORT extern EngineInstance* engine_instance;

@@ -30,14 +30,14 @@ namespace Engine
         using type = T*;
     };
 
-    template<typename T, typename _ = void>
-    struct is_object_based : std::false_type {
-    };
-
+    class Object;
 
     template<typename T>
-    struct is_object_based<T, std::conditional_t<false, typename T::ObjectClass, void>> : public std::true_type {
-    };
+    using is_object_based = std::is_base_of<Object, T>;
+
+    template<typename T>
+    inline constexpr bool is_object_based_v = is_object_based<T>::value;
+
 
     template<typename Type>
     struct is_function_reference : std::false_type {

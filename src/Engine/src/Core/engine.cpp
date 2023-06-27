@@ -42,13 +42,6 @@ namespace Engine
     EngineInstance::EngineInstance()
     {}
 
-    ENGINE_EXPORT EngineInstance* EngineInstance::instance()
-    {
-        if (engine_instance == nullptr)
-            engine_instance = new EngineInstance();
-        return engine_instance;
-    }
-
     ENGINE_EXPORT const String& EngineInstance::project_name()
     {
         static String name = "Trinex Engine";
@@ -139,7 +132,7 @@ namespace Engine
         return *this;
     }
 
-    ENGINE_EXPORT EngineInstance* engine_instance;
+    ENGINE_EXPORT EngineInstance* engine_instance = nullptr;
 
 
     static CommandLet* find_command_let(int argc, char** argv)
@@ -353,12 +346,6 @@ stack_address:
         return _M_api_interface->check_format_support(type, component);
     }
 
-    void EngineInstance::destroy()
-    {
-        delete engine_instance;
-        engine_instance = nullptr;
-    }
-
 
     /////////////////// DESTROY CONTROLLER ///////////////////
 
@@ -380,13 +367,14 @@ stack_address:
 
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)
     {
-        EngineInstance* instance = EngineInstance::instance();
-        if (!instance->_M_is_inited)
+        engine_instance = EngineInstance::init_instance();
+
+        if (!engine_instance->_M_is_inited)
         {
             int result = 0;
             try
             {
-                result = instance->start(argc, argv);
+                result = engine_instance->start(argc, argv);
             }
             catch (const std::exception& e)
             {
@@ -394,7 +382,8 @@ stack_address:
                 result = -1;
             }
 
-            instance->destroy();
+            engine_instance->destroy();
+            engine_instance = nullptr;
             return result;
         }
 

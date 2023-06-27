@@ -37,10 +37,6 @@ namespace Engine
         Vector3D axis;
     };
 
-    static float min_time     = 100;
-    static float max_time     = 0;
-    static float current_diff = 0;
-
     void GameInit::loop()
     {
         Window window;
@@ -140,8 +136,6 @@ namespace Engine
                 const Transform& transform = camera->transform;
                 ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
                             transform.position().z);
-                ImGui::Text("Min: %f, Max: %f, Current: %f", min_time, max_time, current_diff);
-
                 ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
             }
 
@@ -190,3 +184,11 @@ namespace Engine
     register_class(GameInit);
 
 }// namespace Engine
+
+
+static void preinit()
+{
+    Engine::EngineInstance::project_name("TrinexEngineLauncher");
+}
+
+static Engine::PreInitializeController controller(preinit);

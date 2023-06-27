@@ -107,11 +107,11 @@ namespace Engine
 
         // NOTE! You will manually push object to package, if you use this method!
         template<typename Type, typename... Args>
-        static Type* new_instance_without_package(const Args&... args)
+        static Type* new_instance_without_package(Args&&... args)
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
+                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
                 instance->mark_as_allocate_by_constroller();
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
                 return instance;
@@ -123,14 +123,12 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_instance(const Args&... args)
+        static Type* new_instance(Args&&... args)
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
-                instance->mark_as_allocate_by_constroller();
+                Type* instance = new_instance_without_package<Type>(std::forward<Args>(args)...);
                 instance->insert_to_default_package();
-                instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
                 return instance;
             }
             else
@@ -140,7 +138,7 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_instance_named(const String& name, Package* package = nullptr, const Args&... args)
+        static Type* new_instance_named(const String& name, Package* package = nullptr, Args&&... args)
         {
             if constexpr (!std::is_base_of_v<Object, Type>)
             {
@@ -159,10 +157,9 @@ namespace Engine
                     return nullptr;
                 }
 
-                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(args...);
-                instance->mark_as_allocate_by_constroller();
+                Type* instance = new_instance_without_package<Type>(std::forward<Args>(args)...);
+
                 instance->name(name);
-                instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
 
                 if (!instance->add_to_package(package))
                 {
@@ -236,7 +233,7 @@ namespace Engine
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                if (instance->flag(TrinexObjectFlags::IsOnHeap))
+                if (instance->trinex_flag(TrinexObjectFlags::IsOnHeap))
                 {
                     instance->mark_for_delete();
                 }
@@ -252,7 +249,7 @@ namespace Engine
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                if (instance->flag(TrinexObjectFlags::IsOnHeap))
+                if (instance->trinex_flag(TrinexObjectFlags::IsOnHeap))
                 {
                     instance->mark_for_delete();
                 }
@@ -301,4 +298,5 @@ namespace Engine
         return function;
     }
 
+#define TRINEX_OBJECT_HEADER_INCLUDED 1
 }// namespace Engine
