@@ -29,9 +29,8 @@ namespace Engine
                      .set("full_name", &Object::full_name)
                      .set("package", &Object::package)
                      .set("remove_from_package", &Object::remove_from_package)
-                     .set("class_name", &Object::class_name)
+                     .set("decode_name", static_cast<String (Object::*)() const>(&Object::decode_name))
                      .set("load_package", Object::load_package)
-                     .set("class_hash", &Object::class_hash)
                      .set("mark_for_delete", &Object::mark_for_delete)
                      .set("is_on_heap", &Object::is_on_heap)
                      .set("collect_garbage", Object::collect_garbage)
@@ -112,11 +111,6 @@ namespace Engine
         trinex_flag(TrinexObjectFlags::IsOnHeap, !EngineInstance::is_on_stack(this));
     }
 
-    std::size_t Object::class_hash() const
-    {
-        return typeid(*this).hash_code();
-    }
-
     ENGINE_EXPORT String Object::decode_name(const std::type_info& info)
     {
         return Engine::Demangle::decode_name(info);
@@ -171,7 +165,7 @@ namespace Engine
         return name.substr(pos, name.length() - pos);
     }
 
-    String Object::class_name() const
+    String Object::decode_name() const
     {
         return decode_name(typeid(*this));
     }
@@ -186,7 +180,7 @@ namespace Engine
         if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
         {
             debug_log("Garbage Collector: Delete object instance '%s' with type '%s' [%p]\n", name().c_str(),
-                      class_name().c_str(), this);
+                      decode_name().c_str(), this);
 
             MemoryManager::instance().force_destroy_object(this);
         }
@@ -345,7 +339,7 @@ namespace Engine
         return _M_trinex_flags[flag];
     }
 
-    Object& Object::trinex_flag(TrinexObjectFlags flag, bool status)
+    const Object& Object::trinex_flag(TrinexObjectFlags flag, bool status) const
     {
         _M_trinex_flags[static_cast<size_t>(flag)] = status;
 
@@ -485,12 +479,21 @@ namespace Engine
 
     const class Class* Object::class_instance() const
     {
+        if (_M_class == nullptr && !trinex_flag(TrinexObjectFlags::IsUnregistered))
+        {
+            _M_class = ClassMetaDataHelper::find_class(typeid(*this));
+            if (_M_class == nullptr)
+            {
+                trinex_flag(TrinexObjectFlags::IsUnregistered, true);
+            }
+        }
+
         return _M_class;
     }
 
     String Object::as_string() const
     {
-        return Strings::format("{}: {}", _M_class->_M_name, _M_name);
+        return Strings::format("{}: {}", class_instance()->_M_name, _M_name);
     }
 
     bool Object::archive_process(Archive* archive)
@@ -532,7 +535,7 @@ namespace Engine
             if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
             {
                 debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n",
-                          object->name().c_str(), object->class_name().c_str(), object);
+                          object->name().c_str(), object->decode_name().c_str(), object);
                 object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
                 manager.free_object(object);
                 maybe_not_deleted_objects.erase(object);
@@ -548,7 +551,7 @@ namespace Engine
         for (auto& object : maybe_not_deleted_objects)
         {
             error_log("Garbage Collector: Object '%s' with type '%s' is dynamicly allocated and must be deleted!",
-                      object->_M_name.c_str(), object->class_name().c_str());
+                      object->_M_name.c_str(), object->decode_name().c_str());
         }
     }
 

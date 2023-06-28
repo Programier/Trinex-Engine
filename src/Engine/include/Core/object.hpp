@@ -25,6 +25,7 @@ namespace Engine
         IsCollectedByGC,
         IsSerializable,
         IsAllocatedByController,
+        IsUnregistered,
         __OF_COUNT__
     };
 
@@ -53,7 +54,7 @@ namespace Engine
         BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
 
         Package* _M_package         = nullptr;
-        const class Class* _M_class = nullptr;
+        mutable const class Class* _M_class = nullptr;
         Counter _M_references       = 0;
 
 
@@ -67,7 +68,7 @@ namespace Engine
         Object& insert_to_default_package();
         bool private_check_instance(const class Class* const check_class) const;
         bool trinex_flag(TrinexObjectFlags flag) const;
-        Object& trinex_flag(TrinexObjectFlags flag, bool status);
+        const Object& trinex_flag(TrinexObjectFlags flag, bool status) const;
 
     public:
         delete_copy_constructors(Object);
@@ -77,8 +78,7 @@ namespace Engine
         ENGINE_EXPORT static Object* load_object(const String& name);
         ENGINE_EXPORT static String package_name_of(const String& name);
         ENGINE_EXPORT static String object_name_of(const String& name);
-        String class_name() const;
-        size_t class_hash() const;
+        String decode_name() const;
         ENGINE_EXPORT static const ObjectSet& all_objects();
         bool mark_for_delete(bool skip_check = false);
         bool is_on_heap() const;
@@ -114,6 +114,10 @@ namespace Engine
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
                 instance->mark_as_allocate_by_constroller();
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
+                if(instance->_M_class == nullptr)
+                {
+                    instance->trinex_flag(TrinexObjectFlags::IsUnregistered, true);
+                }
                 return instance;
             }
             else

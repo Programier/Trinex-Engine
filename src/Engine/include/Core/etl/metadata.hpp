@@ -31,7 +31,7 @@ namespace Engine
 
 
     template<typename Type>
-    using ClassMetaData = ClassMetaDataBase<typename add_pointer_unique<Type>::type>;
+    using ClassMetaData = ClassMetaDataBase<Type>;
 
     template<typename Type>
     ClassMetaData<Type> trinex_metaclass_database;

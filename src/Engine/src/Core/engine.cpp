@@ -132,6 +132,7 @@ namespace Engine
         return *this;
     }
 
+    EngineInstance* EngineInstance::_M_instance   = nullptr;
     ENGINE_EXPORT EngineInstance* engine_instance = nullptr;
 
 

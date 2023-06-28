@@ -23,6 +23,7 @@ namespace Engine
     private:
         class Renderer* _M_renderer                         = nullptr;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
+        static EngineInstance* _M_instance;
 
         EngineAPI _M_api;
         bool _M_is_inited = false;
