@@ -1174,9 +1174,9 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::bind_uniform_buffer(const Identifier& ID, BindingIndex index, size_t offset, size_t size)
+    VulkanAPI& VulkanAPI::bind_uniform_buffer(const Identifier& ID, BindingIndex index)
     {
-        current_shader()->bind_ubo(GET_TYPE(VulkanUniformBuffer, ID), index, offset, size);
+        current_shader()->bind_ubo(GET_TYPE(VulkanUniformBuffer, ID), index);
         return *this;
     }
 

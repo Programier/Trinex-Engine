@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/config.hpp>
+#include <Core/dynamic_struct.hpp>
 #include <Core/etl/average.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/package.hpp>
@@ -24,22 +25,10 @@
 
 namespace Engine
 {
-
-    struct ModelUBO {
-        Matrix4f model;
-    };
-
-    struct CameraUBO {
-        Matrix4f projview;
-    };
-
-    struct Kek {
-        Vector3D axis;
-    };
-
     void GameInit::loop()
     {
         Window window;
+
 
         Package* package = Object::load_package("TestResources");
         if (package == nullptr)
@@ -57,26 +46,34 @@ namespace Engine
         Texture2D& texture                 = *package->find_object_checked<Texture2D>("Trinex Texture");
         Camera* camera                     = package->find_object_checked<Camera>("Camera");
         camera->load();
-
-        UniformBuffer<CameraUBO> camera_ubo[2];
-        Camera* model = Object::new_instance<Camera>(Vector3D{0, 0, 0.0});
         camera->aspect(window.width() / window.height());
+
+
+        UniformBuffer camera_ubo;
+        camera_ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Matrix4f>());
+        camera_ubo.create();
+        DynamicStructInstance* camera_ubo_buffers[2];
+
 
         for (int i = 0; i < 2; i++)
         {
-            camera_ubo[i].buffer.projview = camera->projview();
-            camera_ubo[i].create();
+            camera_ubo_buffers[i]                       = camera_ubo.uniform_struct.create_instance();
+            camera_ubo_buffers[i]->get_ref<Matrix4f>(0) = camera->projview();
         }
 
 
-        UniformBuffer<ModelUBO> ubo;
+        UniformBuffer ubo;
+        ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Matrix4f>());
+        DynamicStructInstance* ubo_struct_instance = ubo.uniform_struct.create_instance();
+        ubo_struct_instance->get_ref<Matrix4f>(0)  = glm::translate(
+                glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX), Vector3D(0, 0, 0.0));
 
-        ubo.buffer.model = glm::translate(glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
-                                          Vector3D(0, 0, 0.0));
-        ubo.create();
+        ubo.create(ubo_struct_instance);
 
-        UniformBuffer<Kek> fragment_ubo;
+        UniformBuffer fragment_ubo;
+        fragment_ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Vector3D>());
         fragment_ubo.create();
+        auto fragment_ubo_inst = fragment_ubo.uniform_struct.create_instance();
 
         Average<double> fps;
         static size_t index = 0;
@@ -93,14 +90,11 @@ namespace Engine
 
             _M_renderer->begin();
 
-            camera_ubo[index].buffer.projview = camera->projview();
-            camera_ubo[index].update(0, sizeof(CameraUBO));
-            fragment_ubo.buffer.axis = camera->transform.front_vector();
-            fragment_ubo.update(0, sizeof(Kek));
+            camera_ubo_buffers[index]->get_ref<Matrix4f>(0) = camera->projview();
+            camera_ubo.update(camera_ubo_buffers[index]);
 
-
-            ubo.buffer.model = model->transform.matrix();
-            ubo.update(0, sizeof(ModelUBO));
+            fragment_ubo_inst->get_ref<Vector3D>(0) = camera->transform.front_vector();
+            fragment_ubo.update(fragment_ubo_inst);
 
             GBuffer::instance()->bind();
             framebuffer_shader->use();
@@ -108,8 +102,8 @@ namespace Engine
 
 
             vertex_buffer.bind();
-            camera_ubo[index].bind_buffer(0);
-            ubo.bind_buffer(1);
+            camera_ubo.bind(0);
+            ubo.bind(1);
             texture.bind(2);
 
             _M_renderer->draw_indexed(index_buffer.elements_count(), 0);

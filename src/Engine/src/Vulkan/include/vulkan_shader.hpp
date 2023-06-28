@@ -53,7 +53,7 @@ namespace Engine
         VulkanShader& update_descriptor_layout(bool force = false);
         bool init(const PipelineCreateInfo& params);
         VulkanShader& use();
-        VulkanShader& bind_ubo(struct VulkanUniformBuffer* ubo, BindingIndex binding, size_t offset, size_t size);
+        VulkanShader& bind_ubo(struct VulkanUniformBuffer* ubo, BindingIndex binding);
         VulkanShader& bind_texture(struct VulkanTexture* texture, uint_t binding);
         VulkanShader& bind_shared_buffer(class VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding);
         ~VulkanShader();

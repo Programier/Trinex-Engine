@@ -311,7 +311,7 @@ namespace Engine
     }
 
 
-    VulkanShader& VulkanShader::bind_ubo(VulkanUniformBuffer* ubo, BindingIndex binding, size_t offset, size_t size)
+    VulkanShader& VulkanShader::bind_ubo(VulkanUniformBuffer* ubo, BindingIndex binding)
     {
         if (_M_has_descriptors)
         {

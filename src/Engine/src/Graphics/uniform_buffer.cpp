@@ -4,27 +4,39 @@
 
 namespace Engine
 {
-    UniformBufferBase& UniformBufferBase::create_buffer(const byte* data, size_t size)
+    static FORCE_INLINE const byte* buffer_data(const DynamicStructInstance* buffer, DynamicStruct* uniform_struct)
+    {
+        return (buffer && buffer->struct_instance() == uniform_struct) ? buffer->data() : nullptr;
+    }
+
+    UniformBuffer& UniformBuffer::create(const DynamicStructInstance* buffer)
     {
         destroy();
-        EngineInstance::instance()->api_interface()->create_uniform_buffer(_M_ID, data, size);
+        const byte* data = buffer_data(buffer, &uniform_struct);
+
+        EngineInstance::instance()->api_interface()->create_uniform_buffer(_M_ID, data, uniform_struct.size());
         return *this;
     }
 
-    UniformBufferBase& UniformBufferBase::update_buffer(size_t offset, const byte* data, size_t size)
+    UniformBuffer& UniformBuffer::update(const DynamicStructInstance* buffer, size_t offset, size_t size)
+    {
+        const byte* data   = buffer_data(buffer, &uniform_struct);
+        size_t struct_size = uniform_struct.size();
+
+        if (_M_ID && data && offset < struct_size)
+        {
+            size = std::min(size, struct_size - offset);
+            EngineInstance::instance()->api_interface()->update_uniform_buffer(_M_ID, offset, data, size);
+        }
+
+        return *this;
+    }
+
+    UniformBuffer& UniformBuffer::bind(BindingIndex index, size_t offset, size_t size)
     {
         if (_M_ID)
-            EngineInstance::instance()->api_interface()->update_uniform_buffer(_M_ID, offset, data, size);
-        return *this;
-    }
-
-    UniformBufferBase& UniformBufferBase::bind_buffer(BindingIndex index, size_t offset, size_t size)
-    {
-        auto ubo_size = buffer_size();
-        if (offset < ubo_size && _M_ID)
         {
-            size = glm::min(size, ubo_size - offset);
-            EngineInstance::instance()->api_interface()->bind_uniform_buffer(_M_ID, index, offset, size);
+            EngineInstance::instance()->api_interface()->bind_uniform_buffer(_M_ID, index);
         }
         return *this;
     }

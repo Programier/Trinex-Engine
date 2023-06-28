@@ -90,8 +90,7 @@ namespace Engine::GraphicApiInterface
 
         virtual ApiInterface& create_uniform_buffer(Identifier&, const byte*, size_t) VIRTUAL_METHOD;
         virtual ApiInterface& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
-        virtual ApiInterface& bind_uniform_buffer(const Identifier&, BindingIndex binding, size_t offset,
-                                                  size_t size) VIRTUAL_METHOD;
+        virtual ApiInterface& bind_uniform_buffer(const Identifier&, BindingIndex binding) VIRTUAL_METHOD;
         virtual MappedMemory map_uniform_buffer(const Identifier& ID);
         virtual ApiInterface& unmap_uniform_buffer(const Identifier& ID);
 

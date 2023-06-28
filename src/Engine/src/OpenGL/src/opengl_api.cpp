@@ -215,9 +215,9 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::bind_uniform_buffer(const Identifier& ID, BindingIndex binding, size_t offset, size_t size)
+    OpenGL& OpenGL::bind_uniform_buffer(const Identifier& ID, BindingIndex binding)
     {
-        GET_TYPE(OpenGL_UniformBuffer, ID)->bind_uniform_buffer(binding, offset, size);
+        GET_TYPE(OpenGL_UniformBuffer, ID)->bind_uniform_buffer(binding);
         return *this;
     }
 

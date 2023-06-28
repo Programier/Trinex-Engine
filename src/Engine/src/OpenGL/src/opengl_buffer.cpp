@@ -128,7 +128,7 @@ namespace Engine
         return *this;
     }
 
-    OpenGL_UniformBuffer& OpenGL_UniformBuffer::bind_uniform_buffer(BindingIndex binding, size_t offset, size_t size)
+    OpenGL_UniformBuffer& OpenGL_UniformBuffer::bind_uniform_buffer(BindingIndex binding)
     {
         glBindBuffer(GL_UNIFORM_BUFFER, _M_instance_id);
 

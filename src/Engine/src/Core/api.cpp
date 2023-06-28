@@ -352,7 +352,7 @@ namespace Engine::GraphicApiInterface
         return *this;
     }
 
-    ApiInterface& ApiInterface::bind_uniform_buffer(const Identifier&, BindingIndex, size_t offset, size_t size)
+    ApiInterface& ApiInterface::bind_uniform_buffer(const Identifier&, BindingIndex)
     {
         return *this;
     }

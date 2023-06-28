@@ -26,7 +26,7 @@ namespace Engine
         implement_opengl_instance_hpp();
         OpenGL_UniformBuffer& create_uniform_buffer(const byte*, size_t);
         OpenGL_UniformBuffer& update_uniform_buffer(size_t offset, const byte*, size_t);
-        OpenGL_UniformBuffer& bind_uniform_buffer(BindingIndex binding, size_t offset, size_t size);
+        OpenGL_UniformBuffer& bind_uniform_buffer(BindingIndex binding);
         ~OpenGL_UniformBuffer();
     };
 }// namespace Engine

@@ -207,7 +207,7 @@ namespace Engine
 
         VulkanAPI& create_uniform_buffer(Identifier&, const byte*, size_t) override;
         VulkanAPI& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        VulkanAPI& bind_uniform_buffer(const Identifier&, BindingIndex binding, size_t offset, size_t size) override;
+        VulkanAPI& bind_uniform_buffer(const Identifier&, BindingIndex binding) override;
 
         VulkanAPI& gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info) override;
         Identifier imgui_texture_id(const Identifier&) override;

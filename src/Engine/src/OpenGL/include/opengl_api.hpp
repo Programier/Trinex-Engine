@@ -98,7 +98,7 @@ namespace Engine
 
         OpenGL& create_uniform_buffer(Identifier&, const byte*, size_t) override;
         OpenGL& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        OpenGL& bind_uniform_buffer(const Identifier&, BindingIndex binding, size_t offset, size_t size) override;
+        OpenGL& bind_uniform_buffer(const Identifier&, BindingIndex binding) override;
 
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
 
