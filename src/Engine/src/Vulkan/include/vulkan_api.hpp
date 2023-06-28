@@ -16,7 +16,7 @@
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_swap_chain.hpp>
 
-#define MAIN_FRAMEBUFFERS_COUNT 2
+#define MAIN_FRAMEBUFFERS_COUNT 3
 #define API VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
 
