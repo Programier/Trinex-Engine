@@ -29,7 +29,7 @@ namespace Engine
         static ENGINE_EXPORT Set<void(*)()> on_resume;
         static ENGINE_EXPORT Set<void(*)()> on_pause;
         static ENGINE_EXPORT Set<void(*)()> on_low_memory;
-        static ENGINE_EXPORT std::size_t frame_number();
+        static ENGINE_EXPORT size_t frame_number();
     };
 }// namespace Engine
 

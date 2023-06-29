@@ -2,6 +2,7 @@
 #include <Core/config.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/etl/average.hpp>
+#include <Core/etl/unique_per_frame_var.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/package.hpp>
 #include <GameInitCommandLet.hpp>
@@ -52,31 +53,29 @@ namespace Engine
         UniformBuffer camera_ubo;
         camera_ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Matrix4f>());
         camera_ubo.create();
-        DynamicStructInstance* camera_ubo_buffers[2];
 
-
-        for (int i = 0; i < 2; i++)
-        {
-            camera_ubo_buffers[i]                       = camera_ubo.uniform_struct.create_instance();
-            camera_ubo_buffers[i]->get_ref<Matrix4f>(0) = camera->projview();
-        }
+        UniquePerFrameVariable<DynamicStructInstance*> camera_ubo_buffer;
+        camera_ubo_buffer.push_by_func(3, &DynamicStruct::create_instance, camera_ubo.uniform_struct);
 
 
         UniformBuffer ubo;
         ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Matrix4f>());
+
+
         DynamicStructInstance* ubo_struct_instance = ubo.uniform_struct.create_instance();
         ubo_struct_instance->get_ref<Matrix4f>(0)  = glm::translate(
                 glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX), Vector3D(0, 0, 0.0));
-
         ubo.create(ubo_struct_instance);
+
 
         UniformBuffer fragment_ubo;
         fragment_ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Vector3D>());
         fragment_ubo.create();
-        auto fragment_ubo_inst = fragment_ubo.uniform_struct.create_instance();
+
+        UniquePerFrameVariable<DynamicStructInstance*> fragment_ubo_inst;
+        fragment_ubo_inst.push_by_func(3, &DynamicStruct::create_instance, fragment_ubo.uniform_struct);
 
         Average<double> fps;
-        static size_t index = 0;
 
         while (window.is_open())
         {
@@ -90,10 +89,10 @@ namespace Engine
 
             _M_renderer->begin();
 
-            camera_ubo_buffers[index]->get_ref<Matrix4f>(0) = camera->projview();
-            camera_ubo.update(camera_ubo_buffers[index]);
+            camera_ubo_buffer.get()->get_ref<Matrix4f>(0) = camera->projview();
+            camera_ubo.update(camera_ubo_buffer);
 
-            fragment_ubo_inst->get_ref<Vector3D>(0) = camera->transform.front_vector();
+            fragment_ubo_inst.get()->get_ref<Vector3D>(0) = camera->transform.front_vector();
             fragment_ubo.update(fragment_ubo_inst);
 
             GBuffer::instance()->bind();

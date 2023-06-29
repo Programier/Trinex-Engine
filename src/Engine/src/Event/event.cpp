@@ -72,7 +72,7 @@ namespace Engine
         return event;
     }
 
-    ENGINE_EXPORT std::size_t Event::frame_number()
+    ENGINE_EXPORT size_t Event::frame_number()
     {
         return _M_frame_number;
     }
