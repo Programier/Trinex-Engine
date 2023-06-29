@@ -13,8 +13,8 @@ namespace Engine
 
     Camera::Camera(glm::vec3 position, float viewing_angle)
     {
-        _M_viewing_angle                                       = viewing_angle;
-        _M_aspect                                              = Window::width() / Window::height();
+        _M_viewing_angle = viewing_angle;
+        _M_aspect        = Window::instance()->width() / Window::instance()->height();
         transform.move(position, false)._M_revert_front_vector = 1;
         update_projection_matrix();
     }

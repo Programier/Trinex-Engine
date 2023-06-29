@@ -13,13 +13,13 @@ namespace Engine
         struct SingletoneDestructor {
             ~SingletoneDestructor()
             {
-                Type::destroy();
+                Type::template Singletone<Type>::destroy();
             }
         };
 
     public:
         template<typename... Args>
-        static Type* init_instance(Args&&... args)
+        static Type* create_instance(Args&&... args)
         {
             if (!Type::_M_instance)
             {

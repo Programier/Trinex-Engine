@@ -316,6 +316,11 @@ stack_address:
         return is_on_stack_asm(ptr);
     }
 
+    bool EngineInstance::is_shuting_down() const
+    {
+        return _M_is_shuting_down;
+    }
+
     EngineInstance& EngineInstance::trigger_terminate_functions()
     {
         for (auto& func : terminate_list())
@@ -328,10 +333,11 @@ stack_address:
 
     EngineInstance::~EngineInstance()
     {
+        _M_is_shuting_down = true;
         info_log("Engine: Terminate Engine");
         engine_instance->trigger_terminate_functions();
+        Object::force_garbage_collection();
 
-        Window::destroy_window();
         Lua::Interpretter::terminate();
 
         delete _M_renderer;
@@ -368,7 +374,7 @@ stack_address:
 
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)
     {
-        engine_instance = EngineInstance::init_instance();
+        engine_instance = EngineInstance::create_instance();
 
         if (!engine_instance->_M_is_inited)
         {

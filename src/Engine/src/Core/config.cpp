@@ -79,6 +79,7 @@ namespace Engine
         DECLARE_CONFIG_PROP(min_g_buffer_height);
         DECLARE_CONFIG_PROP(max_g_buffer_width);
         DECLARE_CONFIG_PROP(max_g_buffer_height);
+        DECLARE_CONFIG_PROP(back_buffer_count);
 
         DECLARE_CONFIG_PROP(delete_resources_after_load);
         DECLARE_CONFIG_PROP(load_shaders_to_gpu);

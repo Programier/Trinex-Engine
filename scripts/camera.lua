@@ -44,7 +44,7 @@ function camera_update(camera)
 
     if (Engine.MouseEvent.relative_mode())
     {
-        local offset = Engine.MouseEvent.offset() / (Engine.Window.size() / 2.0);
+        local offset = Engine.MouseEvent.offset() / (Engine.Window.window->size() / 2.0);
         camera.transform->rotate(-offset.x, Engine.Constants.OY, true);
         camera.transform->rotate(offset.y, camera.transform->right_vector(), true);
     }

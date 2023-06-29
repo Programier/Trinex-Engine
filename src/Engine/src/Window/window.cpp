@@ -16,17 +16,12 @@
 
 using namespace Engine;
 
-FORCE_INLINE Window& window_instance()
-{
-    static Window* window = Object::new_instance<Window>();
-    return *window;
-}
 
 #define win_init_error throw std::runtime_error("Init window first")
 
-#define sdl_window data._M_window
+#define sdl_window _M_window
 #define check_init(value)                                                                                              \
-    if (!data._M_is_inited)                                                                                            \
+    if (!_M_is_inited)                                                                                                 \
     return value
 
 
@@ -83,56 +78,28 @@ static uint32_t to_sdl_attrib(const List<WindowAttrib>& attrib)
 }
 
 
-static struct WindowData {
-    SDL_Window* _M_window       = nullptr;
-    SDL_GLContext _M_GL_context = nullptr;
-    bool _M_is_inited           = false;
-    String _M_title;
+Window* Window::_M_instance = nullptr;
+Window* Window::window      = nullptr;
 
-    SizeLimits2D _M_limits;
-    Size2D _M_size = {-1, -1};
-    Size2D _M_position;
-
-    int_t _M_swap_interval = 1;
-    float _M_opacity       = 0.f;
-
-    Vector<String> _M_dropped_paths;
-
-    Cursor _M_cursor;
-
-    Image _M_icon;
-    bool _M_enable_ration = false;
-
-    CursorMode _M_cursor_mode          = CursorMode::Normal;
-    const char* _M_X11_compositing     = "0";
-    SDL_Surface* _M_icon_surface       = nullptr;
-    bool _M_is_transparent_framebuffer = false;
-    Uint32 _M_flags;
-    bool _M_change_viewport_on_resize = true;
-    bool _M_update_scissor_on_resize  = true;
-    std::size_t _M_objects            = 0;
-    std::size_t _M_frame              = 0;
-} data;
-
-
-static void free_icon_surface()
+Window* Window::free_icon_surface()
 {
     SDL_SetWindowIcon(sdl_window, nullptr);
-    if (data._M_icon_surface)
+    if (_M_icon_surface)
     {
         info_log("Window: Destroy icon surface\n");
-        SDL_FreeSurface(data._M_icon_surface);
+        SDL_FreeSurface(_M_icon_surface);
     }
-    data._M_icon_surface = nullptr;
+    _M_icon_surface = nullptr;
+    return this;
 }
 
 //          WINDOW INITIALIZATION
 
 
-const Window& Window::init(float width, float height, const String& title, uint16_t attributes)
+Window* Window::init(float width, float height, const String& title, uint16_t attributes)
 {
-    if (data._M_is_inited)
-        return window_instance();
+    if (_M_is_inited)
+        return Window::_M_instance;
 
     if (!EngineInstance::instance()->is_inited())
         throw std::runtime_error("Window: Init Engine first");
@@ -140,47 +107,47 @@ const Window& Window::init(float width, float height, const String& title, uint1
     if (engine_instance->api() == EngineAPI::NoAPI)
         throw EngineException("Cannot create window without API!");
 
-    data._M_limits.max = Monitor::size();
+    _M_limits.max = Monitor::size();
 
     auto error = [](const std::string& msg = "") {
         info_log("Window: Failed to create new window, error: '%s'\n", msg.c_str());
-        Window::close();
+        Window::_M_instance->close();
         throw std::runtime_error("Window: Failed to create Window");
     };
 
     info_log("Window: Creating new window '%s'\n", title.c_str());
 
     uint32_t attrib = to_sdl_attrib(parse_win_attibutes(attributes));
-    data._M_title   = title;
+    _M_title        = title;
 
-    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, data._M_X11_compositing);
+    SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, _M_X11_compositing);
 
 
     auto sdl_window_api =
             (EngineInstance::instance()->api() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
 
-    sdl_window = SDL_CreateWindow(data._M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+    sdl_window = SDL_CreateWindow(_M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                   static_cast<int>(width), static_cast<int>(height),
                                   sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
     if (sdl_window == nullptr)
         error(SDL_GetError());
 
-    data._M_GL_context = EngineInstance::instance()->api_interface()->init_window(sdl_window);
-    if (data._M_GL_context == nullptr)
+    _M_GL_context = EngineInstance::instance()->api_interface()->init_window(sdl_window);
+    if (_M_GL_context == nullptr)
     {
         error("External error");
     }
 
 
-    data._M_size = {width, height};
-    Window::size_limits(data._M_limits);
+    _M_size = {width, height};
+    Window::size_limits(_M_limits);
 
     // Init shaders
-    data._M_is_inited = true;
-    data._M_flags     = SDL_GetWindowFlags(sdl_window);
+    _M_is_inited = true;
+    _M_flags     = SDL_GetWindowFlags(sdl_window);
 
-    window_instance().update_view_port().update_scissor();
+    update_view_port()->update_scissor();
     swap_interval(1);
 
     if (engine_config.enable_g_buffer && GBuffer::instance() == nullptr)
@@ -188,10 +155,10 @@ const Window& Window::init(float width, float height, const String& title, uint1
         GBuffer::init_g_buffer();
     }
 
-    return window_instance();
+    return Window::_M_instance;
 }
 
-const Window& Window::init(const Size2D& size, const String& title, uint16_t attrib)
+Window* Window::init(const Size2D& size, const String& title, uint16_t attrib)
 {
     return init(size.x, size.y, title, attrib);
 }
@@ -199,370 +166,348 @@ const Window& Window::init(const Size2D& size, const String& title, uint16_t att
 
 //          CLOSING WINDOW
 
-const Window& Window::destroy_window()
+Window* Window::destroy_window()
 {
-    if (data._M_window)
+    if (_M_window)
     {
         free_icon_surface();
         EngineInstance::instance()->api_interface()->destroy_window();
-        SDL_DestroyWindow(data._M_window);
-        data = WindowData();
+        SDL_DestroyWindow(_M_window);
     }
-    return window_instance();
+
+    return Window::_M_instance;
 }
 
-const Window& Window::close()
+Window* Window::close()
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
 
     info_log("Closing window\n");
-    data._M_is_inited = false;
-    SDL_HideWindow(data._M_window);
-    info_log("Engine::Window: Window '%s' closed\n", data._M_title.c_str());
+    _M_is_inited = false;
+    SDL_HideWindow(_M_window);
+    info_log("Engine::Window: Window '%s' closed\n", _M_title.c_str());
 
-    return window_instance();
+    return Window::_M_instance;
 }
 
 
-bool Window::is_open()
+bool Window::is_open() const
 {
-    return data._M_is_inited;
+    return _M_is_inited;
 }
 
 
-const Window& Window::swap_buffers()
+const Window* Window::swap_buffers() const
 {
-    check_init(window_instance());
-    EngineInstance::instance()->api_interface()->swap_buffer(data._M_window);
+    check_init(Window::_M_instance);
+    EngineInstance::instance()->api_interface()->swap_buffer(_M_window);
     GBuffer* buffer = GBuffer::instance();
     if (buffer)
     {
         buffer->swap_buffer();
     }
-    return window_instance();
+    return Window::_M_instance;
 }
 
 
 //          CHANGING SIZE OF WINDOW
 
-Size1D Window::width()
+Size1D Window::width() const
 {
-    return data._M_size.x;
+    return _M_size.x;
 }
 
-const Window& Window::width(const Size1D& width)
+const Window* Window::width(const Size1D& width) const
 {
-    check_init(window_instance());
-    SDL_SetWindowSize(sdl_window, static_cast<int>(width), static_cast<int>(data._M_size.y));
-    return window_instance();
+    check_init(Window::_M_instance);
+    SDL_SetWindowSize(sdl_window, static_cast<int>(width), static_cast<int>(_M_size.y));
+    return Window::_M_instance;
 }
 
-Size1D Window::height()
+Size1D Window::height() const
 {
-    return data._M_size.y;
+    return _M_size.y;
 }
 
-const Window& Window::height(const Size1D& height)
+const Window* Window::height(const Size1D& height) const
 {
-    check_init(window_instance());
-    SDL_SetWindowSize(sdl_window, static_cast<int>(data._M_size.x), static_cast<int>(height));
-    return window_instance();
+    check_init(Window::_M_instance);
+    SDL_SetWindowSize(sdl_window, static_cast<int>(_M_size.x), static_cast<int>(height));
+    return Window::_M_instance;
 }
 
-const Size2D& Window::size()
+const Size2D& Window::size() const
 {
-    return data._M_size;
+    return _M_size;
 }
 
-const Window& Window::size(const Size2D& size)
+const Window* Window::size(const Size2D& size) const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_SetWindowSize(sdl_window, static_cast<int>(size.x), static_cast<int>(size.y));
-    return window_instance();
+    return Window::_M_instance;
 }
 
 
-namespace Engine
+void Window::process_window_event(SDL_WindowEvent& event)
 {
-    void process_window_event(SDL_WindowEvent& event)
+    switch (event.event)
     {
-        ++data._M_frame;
-        switch (event.event)
+        case SDL_WINDOWEVENT_MOVED:
         {
-            case SDL_WINDOWEVENT_MOVED:
-            {
-                data._M_position = {event.data1, event.data2};
-                break;
-            }
-
-            case SDL_WINDOWEVENT_SIZE_CHANGED:
-            case SDL_WINDOWEVENT_RESIZED:
-            {
-                EngineInstance::instance()->api_interface()->on_window_size_changed();
-                data._M_size = {event.data1, event.data2};
-                if (data._M_change_viewport_on_resize)
-                    window_instance().update_view_port();
-                if (data._M_update_scissor_on_resize)
-                    window_instance().update_scissor();
-
-                Window::on_resize.trigger();
-                break;
-            }
-
-            case SDL_WINDOWEVENT_ENTER:
-            {
-                break;
-            }
-
-
-            case SDL_WINDOWEVENT_CLOSE:
-                data._M_is_inited = false;
-                break;
+            _M_position = {event.data1, event.data2};
+            break;
         }
-    }
 
-
-    void process_paths_event(SDL_DropEvent& event)
-    {
-        if (event.file)
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+        case SDL_WINDOWEVENT_RESIZED:
         {
-            data._M_dropped_paths.push_back(event.file);
-            SDL_free(event.file);
+            EngineInstance::instance()->api_interface()->on_window_size_changed();
+            _M_size = {event.data1, event.data2};
+            if (_M_change_viewport_on_resize)
+                update_view_port();
+            if (_M_update_scissor_on_resize)
+                update_scissor();
+
+            Window::on_resize.trigger();
+            break;
         }
+
+        case SDL_WINDOWEVENT_ENTER:
+        {
+            break;
+        }
+
+
+        case SDL_WINDOWEVENT_CLOSE:
+            _M_is_inited = false;
+            break;
     }
-}// namespace Engine
-
-//          VSYNC
-
-
-bool Window::vsync()
-{
-    return data._M_swap_interval > 0;
 }
 
-const Window& Window::vsync(const bool& value)
+
+void Window::process_paths_event(SDL_DropEvent& event)
 {
-    data._M_swap_interval = static_cast<int>(value);
+    if (event.file)
+    {
+        _M_dropped_paths.push_back(event.file);
+        SDL_free(event.file);
+    }
+}
+
+
+bool Window::vsync() const
+{
+    return _M_swap_interval > 0;
+}
+
+Window* Window::vsync(bool value)
+{
+    _M_swap_interval = static_cast<int>(value);
     return swap_interval(static_cast<int>(value));
 }
 
-int_t Window::swap_interval()
+int_t Window::swap_interval() const
 {
-    return data._M_swap_interval;
+    return _M_swap_interval;
 }
 
-const Window& Window::swap_interval(int_t value)
+Window* Window::swap_interval(int_t value)
 {
-    check_init(window_instance());
-    data._M_swap_interval = value;
+    check_init(Window::_M_instance);
+    _M_swap_interval = value;
     EngineInstance::instance()->api_interface()->swap_interval(value);
-    return window_instance();
+    return Window::_M_instance;
 }
 
 
-//          WINDOW TITLE
-
-const String& Window::title()
+const String& Window::title() const
 {
-    return data._M_title;
+    return _M_title;
 }
 
-const Window& Window::title(const String& title)
+Window* Window::title(const String& title)
 {
 
-    check_init(window_instance());
-    data._M_title = title;
-    SDL_SetWindowTitle(sdl_window, data._M_title.c_str());
-    return window_instance();
-}
-
-
-//          WINDOW POSITION
-
-const Point2D& Window::position()
-{
-    return data._M_position;
+    check_init(Window::_M_instance);
+    _M_title = title;
+    SDL_SetWindowTitle(sdl_window, _M_title.c_str());
+    return Window::_M_instance;
 }
 
 
-const Window& Window::position(const Point2D& position)
+const Point2D& Window::position() const
 {
-    if (data._M_is_inited)
+    return _M_position;
+}
+
+
+const Window* Window::position(const Point2D& position) const
+{
+    if (_M_is_inited)
         SDL_SetWindowPosition(sdl_window, static_cast<int>(position.x), static_cast<int>(position.y));
-    return window_instance();
+    return Window::_M_instance;
 }
 
 
-//          DROPPED PATHS
-const Vector<String>& Window::dropped_paths()
+const Vector<String>& Window::dropped_paths() const
 {
-    return data._M_dropped_paths;
+    return _M_dropped_paths;
 }
 
 
-const Window& Window::clear_dropped_paths()
+Window* Window::clear_dropped_paths()
 {
-    data._M_dropped_paths.clear();
-    return window_instance();
+    _M_dropped_paths.clear();
+    return Window::_M_instance;
 }
 
-//      REZISABLE WINDOW
-
-bool Window::rezisable()
+bool Window::rezisable() const
 {
-    data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return static_cast<bool>(data._M_flags & SDL_WINDOW_RESIZABLE);
+    return static_cast<bool>(_M_flags & SDL_WINDOW_RESIZABLE);
 }
 
-const Window& Window::rezisable(bool value)
+const Window* Window::rezisable(bool value) const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_SetWindowResizable(sdl_window, static_cast<SDL_bool>(value));
-    return window_instance();
+    return Window::_M_instance;
 }
 
-//  FOCUS WINDOW
 
-const Window& Window::focus()
+const Window* Window::focus() const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_SetWindowInputFocus(sdl_window);
-    return window_instance();
+    return Window::_M_instance;
 }
 
-bool Window::focused()
+bool Window::focused() const
 {
     check_init(false);
-    data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return static_cast<bool>(data._M_flags & SDL_WINDOW_INPUT_FOCUS);
+    return static_cast<bool>(_M_flags & SDL_WINDOW_INPUT_FOCUS);
 }
 
-
-//      OTHER FUNCTIONS
-
-const Window& Window::show()
+const Window* Window::show() const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_ShowWindow(sdl_window);
-    return window_instance();
+    return Window::_M_instance;
 }
 
-const Window& Window::hide()
+const Window* Window::hide() const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_HideWindow(sdl_window);
-    return window_instance();
+    return Window::_M_instance;
 }
 
-bool Window::is_visible()
+bool Window::is_visible() const
 {
     check_init(false);
-    data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return static_cast<bool>(data._M_flags & SDL_WINDOW_SHOWN);
+    return static_cast<bool>(_M_flags & SDL_WINDOW_SHOWN);
 }
 
 
-bool Window::is_iconify()
+bool Window::is_iconify() const
 {
     check_init(false);
-    data._M_flags = SDL_GetWindowFlags(sdl_window);
-    return static_cast<bool>(data._M_flags & SDL_WINDOW_MINIMIZED);
+    return static_cast<bool>(_M_flags & SDL_WINDOW_MINIMIZED);
 }
 
-const Window& Window::iconify()
+const Window* Window::iconify() const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_MinimizeWindow(sdl_window);
-    return window_instance();
+    return Window::_M_instance;
 }
 
-bool Window::is_restored()
+bool Window::is_restored() const
 {
     check_init(false);
     return !is_iconify();
 }
 
-const Window& Window::restore()
+const Window* Window::restore() const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_RestoreWindow(sdl_window);
-    return window_instance();
+    return Window::_M_instance;
 }
 
 
-const Window& Window::opacity(float value)
+const Window* Window::opacity(float value) const
 {
-    check_init(window_instance());
+    check_init(Window::_M_instance);
     SDL_SetWindowOpacity(sdl_window, value);
-    return window_instance();
+    return Window::_M_instance;
 }
 
-float Window::opacity()
+float Window::opacity() const
 {
     check_init(0.f);
-    SDL_GetWindowOpacity(sdl_window, &data._M_opacity);
-    return data._M_opacity;
+    float _M_opacity = 0.f;
+    SDL_GetWindowOpacity(sdl_window, &_M_opacity);
+    return _M_opacity;
 }
 
 
-const Window& Window::size_limits(const SizeLimits2D& limits)
+Window* Window::size_limits(const SizeLimits2D& limits)
 {
-    check_init(window_instance());
-    data._M_limits = limits;
-    SDL_SetWindowMaximumSize(sdl_window, static_cast<int>(data._M_limits.max.x),
-                             static_cast<int>(data._M_limits.max.y));
-    SDL_SetWindowMinimumSize(sdl_window, static_cast<int>(data._M_limits.min.x),
-                             static_cast<int>(data._M_limits.min.y));
-    return window_instance();
+    check_init(Window::_M_instance);
+    _M_limits = limits;
+    SDL_SetWindowMaximumSize(sdl_window, static_cast<int>(_M_limits.max.x), static_cast<int>(_M_limits.max.y));
+    SDL_SetWindowMinimumSize(sdl_window, static_cast<int>(_M_limits.min.x), static_cast<int>(_M_limits.min.y));
+    return Window::_M_instance;
 }
 
-const SizeLimits2D& size_limits()
+const SizeLimits2D& Window::size_limits() const
 {
-    return data._M_limits;
+    return _M_limits;
 }
 
-const Cursor& Window::cursor()
+const Cursor& Window::cursor() const
 {
-    return data._M_cursor;
+    return _M_cursor;
 }
 
-const Window& Window::cursor(const Cursor& cursor)
+Window* Window::cursor(const Cursor& cursor)
 {
-    data._M_cursor = cursor;
-    SDL_SetCursor(static_cast<SDL_Cursor*>(data._M_cursor.sdl_cursor()));
-    return window_instance();
+    _M_cursor = cursor;
+    SDL_SetCursor(static_cast<SDL_Cursor*>(_M_cursor.sdl_cursor()));
+    return Window::_M_instance;
 }
 
-const Window& Window::icon(const Image& image)
+Window* Window::icon(const Image& image)
 {
-    check_init(window_instance());
-    data._M_icon = image;
-    data._M_icon.add_alpha_channel();
+    check_init(Window::_M_instance);
+    _M_icon = image;
+    _M_icon.add_alpha_channel();
     free_icon_surface();
-    data._M_icon_surface = create_sdl_surface(data._M_icon);
-    SDL_SetWindowIcon(sdl_window, data._M_icon_surface);
-    return window_instance();
+    _M_icon_surface = create_sdl_surface(_M_icon);
+    SDL_SetWindowIcon(sdl_window, _M_icon_surface);
+    return Window::_M_instance;
 }
 
-const Window& Window::icon(const String& image)
+Window* Window::icon(const String& image)
 {
-    check_init(window_instance());
-    data._M_icon.load(image);
+    check_init(Window::_M_instance);
+    _M_icon.load(image);
     free_icon_surface();
-    data._M_icon_surface = create_sdl_surface(data._M_icon);
-    SDL_SetWindowIcon(sdl_window, data._M_icon_surface);
-    return window_instance();
+    _M_icon_surface = create_sdl_surface(_M_icon);
+    SDL_SetWindowIcon(sdl_window, _M_icon_surface);
+    return Window::_M_instance;
 }
 
-const Image& Window::icon()
+const Image& Window::icon() const
 {
-    return data._M_icon;
+    return _M_icon;
 }
 
-const Window& Window::attribute(const WindowAttrib& attrib, bool value)
+Window* Window::attribute(const WindowAttrib& attrib, bool value)
 {
-    check_init(window_instance());
-    data._M_flags = SDL_GetWindowFlags(sdl_window);
+    check_init(Window::_M_instance);
+    _M_flags = SDL_GetWindowFlags(sdl_window);
     try
     {
         auto list = parse_win_attibutes(attrib);
@@ -642,10 +587,10 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
 
                 case WindowAttrib::WinTransparentFramebuffer:
                 {
-                    if (data._M_is_inited)
+                    if (_M_is_inited)
                         info_log("Window: Cannot change flag WIN_TRANSPARENT_FRAMEBUFFER after creating window\n");
                     else
-                        data._M_is_transparent_framebuffer = value;
+                        _M_is_transparent_framebuffer = value;
                     break;
                 }
 
@@ -662,12 +607,12 @@ const Window& Window::attribute(const WindowAttrib& attrib, bool value)
         info_log("Window: %s\n", e.what());
     }
 
-    return window_instance();
+    _M_flags = SDL_GetWindowFlags(sdl_window);
+    return Window::_M_instance;
 }
 
-bool Window::attribute(const WindowAttrib& attrib)
+bool Window::attribute(const WindowAttrib& attrib) const
 {
-    data._M_flags = SDL_GetWindowFlags(sdl_window);
     check_init(false);
     try
     {
@@ -676,8 +621,8 @@ bool Window::attribute(const WindowAttrib& attrib)
             throw std::runtime_error("Failed to get attibute");
         auto attrib = attribute_list.front();
         if (attrib == WindowAttrib::WinTransparentFramebuffer)
-            return data._M_is_transparent_framebuffer;
-        return static_cast<bool>(data._M_flags & window_attributes.at(attrib));
+            return _M_is_transparent_framebuffer;
+        return static_cast<bool>(_M_flags & window_attributes.at(attrib));
     }
     catch (const std::exception& e)
     {
@@ -687,65 +632,57 @@ bool Window::attribute(const WindowAttrib& attrib)
 }
 
 
-const Window& Window::X11_compositing(bool value)
+Window* Window::X11_compositing(bool value)
 {
-    data._M_X11_compositing = (value ? "0" : "1");
-    return window_instance();
+    _M_X11_compositing = (value ? "0" : "1");
+    return Window::_M_instance;
 }
 
 
-void* Window::SDL()
+void* Window::SDL() const
 {
-    return static_cast<void*>(data._M_window);
+    return static_cast<void*>(_M_window);
 }
 
-void* Window::SDL_OpenGL_context()
+void* Window::SDL_OpenGL_context() const
 {
-    return data._M_GL_context;
+    return _M_GL_context;
 }
 
 
-const Window& Window::cursor_mode(const CursorMode& mode)
+Window* Window::cursor_mode(const CursorMode& mode)
 {
     if (SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE)) < 0)
         Engine::info_log(SDL_GetError());
-    data._M_cursor_mode = mode;
-    return window_instance();
+    _M_cursor_mode = mode;
+    return Window::_M_instance;
 }
 
-CursorMode Window::cursor_mode()
+CursorMode Window::cursor_mode() const
 {
-    return data._M_cursor_mode;
+    return _M_cursor_mode;
 }
 
-
-const Window& Window::bind()
+Window* Window::update_view_port()
 {
-    check_init(window_instance());
-    framebuffer()->bind();
-    return window_instance();
+    check_init(Window::_M_instance);
+    _M_viewport.pos  = {0, 0};
+    _M_viewport.size = size();
+    view_port(_M_viewport);
+
+    return Window::_M_instance;
 }
 
-const Window& Window::update_view_port()
+Window* Window::update_scissor()
 {
-    check_init(window_instance());
-    window_instance()._M_viewport.pos  = {0, 0};
-    window_instance()._M_viewport.size = size();
-    window_instance().view_port(window_instance()._M_viewport);
-
-    return window_instance();
+    check_init(Window::_M_instance);
+    _M_scissor.pos  = {0, 0};
+    _M_scissor.size = size();
+    scissor(_M_scissor);
+    return Window::_M_instance;
 }
 
-const Window& Window::update_scissor()
-{
-    check_init(window_instance());
-    window_instance()._M_scissor.pos  = {0, 0};
-    window_instance()._M_scissor.size = size();
-    window_instance().scissor(window_instance()._M_scissor);
-    return window_instance();
-}
-
-const Window& Window::set_orientation(uint_t orientation)
+Window* Window::set_orientation(uint_t orientation)
 {
     static Map<WindowOrientation, const char*> _M_orientation_map = {
             {WindowOrientation::WinOrientationLandscape, "LandscapeRight"},
@@ -756,10 +693,10 @@ const Window& Window::set_orientation(uint_t orientation)
     static WindowOrientation orientations[] = {WinOrientationPortrait, WinOrientationPortraitFlipped,
                                                WinOrientationLandscape, WinOrientationLandscapeFlipped};
 
-    if (data._M_is_inited)
+    if (_M_is_inited)
     {
         info_log("Window: Can't change orientation after creating window\n");
-        return window_instance();
+        return Window::_M_instance;
     }
 
     std::string result;
@@ -774,95 +711,125 @@ const Window& Window::set_orientation(uint_t orientation)
     }
 
     SDL_SetHint(SDL_HINT_ORIENTATIONS, result.c_str());
-    return window_instance();
+    return Window::_M_instance;
 }
 
-const Window& Window::start_text_input()
+const Window* Window::start_text_input() const
 {
     SDL_StartTextInput();
-    return window_instance();
+    return Window::_M_instance;
 }
 
-const Window& Window::stop_text_input()
+const Window* Window::stop_text_input() const
 {
     SDL_StopTextInput();
-    return window_instance();
+    return Window::_M_instance;
 }
 
-const Window& Window::update_viewport_on_resize(bool value)
+Window* Window::update_viewport_on_resize(bool value)
 {
-    data._M_change_viewport_on_resize = value;
-    return window_instance();
+    _M_change_viewport_on_resize = value;
+    return Window::_M_instance;
 }
 
-bool Window::update_viewport_on_resize()
+bool Window::update_viewport_on_resize() const
 {
-    return data._M_change_viewport_on_resize;
+    return _M_change_viewport_on_resize;
 }
 
-const Window& Window::update_scissor_on_resize(bool value)
+Window* Window::update_scissor_on_resize(bool value)
 {
-    data._M_update_scissor_on_resize = value;
-    return window_instance();
+    _M_update_scissor_on_resize = value;
+    return Window::_M_instance;
 }
 
-bool Window::update_scissor_on_resize()
+bool Window::update_scissor_on_resize() const
 {
-    return data._M_update_scissor_on_resize;
+    return _M_update_scissor_on_resize;
 }
-
-CallBacks<void> Window::on_resize;
 
 
 size_t Window::frame_number()
 {
-    return data._M_frame;
+    return event.frame_number();
 }
-
-BasicFrameBuffer* Window::framebuffer()
-{
-    return &window_instance();
-}
-
 
 // Window constructors
 
 Window::Window()
 {
-    data._M_objects++;
-}
-
-Window::Window(float width, float height, const String& title, uint16_t attrib) : Window()
-{
-    init(width, height, title, attrib);
-}
-
-Window::Window(const Size2D& size, const String& title, uint16_t attrib) : Window()
-{
-    init(size.x, size.y, title, attrib);
-}
-
-
-Window::Window(const Window&) : Window()
-{}
-
-
-Window& Window::operator=(const Window&)
-{
-    data._M_objects++;
-    return *this;
+    window                    = this;
+    _M_force_destroy_priority = Constants::max_size;
 }
 
 Window::~Window()
 {
-    data._M_objects--;
+    destroy_window();
+    _M_instance = nullptr;
+    window      = nullptr;
 }
 
+
+namespace Engine
+{
+    register_class(Engine::Window)
+            .set("init", Lua::overload(func_of<Window*, Window, float>(&Window::init),
+                                       func_of<Window*, Window, const Size2D&, const String&, uint16_t>(&Window::init)))
+            .set("close", &Window::close)
+            .set("is_open", &Window::is_open)
+            .set("swap_buffers", &Window::swap_buffers)
+            .set("width", Lua::overload(func_of<Size1D, Window>(&Window::width),
+                                        func_of<const Window*, Window, const Size1D&>(&Window::width)))
+
+            .set("height", Lua::overload(func_of<Size1D>(&Window::height),
+                                         func_of<const Window*, Window, const Size1D&>(&Window::height)))
+
+            .set("size", Lua::overload(func_of<const Size2D&>(&Window::size), func_of<const Window*>(&Window::size)))
+            .set("swap_interval",
+                 Lua::overload(func_of<int_t>(&Window::swap_interval), func_of<Window*>(&Window::swap_interval)))
+            .set("vsync", Lua::overload(func_of<bool>(&Window::vsync), func_of<Window*>(&Window::vsync)))
+            .set("title", Lua::overload(func_of<const String&>(&Window::title), func_of<Window*>(&Window::title)))
+            .set("position",
+                 Lua::overload(func_of<const Point2D&>(&Window::position), func_of<const Window*>(&Window::position)))
+            .set("dropped_paths", &Window::dropped_paths)
+            .set("clear_dropped_paths", &Window::clear_dropped_paths)
+            .set("rezisable",
+                 Lua::overload(func_of<bool>(&Window::rezisable), func_of<const Window*>(&Window::rezisable)))
+            .set("focus", &Window::focus)
+            .set("focused", &Window::focused)
+            .set("show", &Window::show)
+            .set("hide", &Window::hide)
+            .set("is_visible", &Window::is_visible)
+            .set("is_iconify", &Window::is_iconify)
+            .set("iconify", &Window::iconify)
+            .set("is_restored", &Window::is_restored)
+            .set("restore", &Window::restore)
+            .set("opacity", Lua::overload(func_of<float>(&Window::opacity), func_of<const Window*>(&Window::opacity)))
+            .set("attribute", Lua::overload(func_of<bool>(&Window::attribute), func_of<Window*>(&Window::attribute)))
+            .set("cursor_mode",
+                 Lua::overload(func_of<CursorMode>(&Window::cursor_mode), func_of<Window*>(&Window::cursor_mode)))
+            .set("update_view_port", &Window::update_view_port)
+            .set("update_scissor", &Window::update_scissor)
+            .set("X11_compositing", &Window::X11_compositing)
+            .set("SDL", &Window::SDL)
+            .set("SDL_OpenGL_context", &Window::SDL_OpenGL_context)
+            .set("set_orientation", &Window::set_orientation)
+            .set("start_text_input", &Window::start_text_input)
+            .set("stop_text_input", &Window::stop_text_input)
+            .set("update_viewport_on_resize", Lua::overload(func_of<bool>(&Window::update_viewport_on_resize),
+                                                            func_of<Window*>(&Window::update_viewport_on_resize)))
+            .set("update_scissor_on_resize", Lua::overload(func_of<bool>(&Window::update_scissor_on_resize),
+                                                           func_of<Window*>(&Window::update_scissor_on_resize)))
+            .set("frame_number", &Window::frame_number)
+            .set("window", Lua::property([]() -> Window* { return Window::window; }));
+}
 
 static void on_init()
 {
     {
         Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::");
+
+
         _namespace.new_enum<WindowAttrib>("WindowAttrib", {{"WinNone", WindowAttrib::WinKeyboardGrabbed},
                                                            {"WinResizable", WindowAttrib::WinMouseGrabbed},
                                                            {"WinFullScreen", WindowAttrib::WinAllowHighDPI},
@@ -892,60 +859,6 @@ static void on_init()
                  {"WinOrientationPortrait", WindowOrientation::WinOrientationPortrait},
                  {"WinOrientationPortraitFlipped", WindowOrientation::WinOrientationPortraitFlipped}});
     }
-
-
-    Lua::Class<Window> _class = Lua::Interpretter::lua_class_of<Window>("Engine::Window");
-    _class.set("init", Lua::overload(func_of<const Window&, float>(&Window::init),
-                                     func_of<const Window&, const Size2D&, const String&, uint16_t>(&Window::init)));
-
-    _class.set("close", &Window::close);
-    _class.set("is_open", &Window::is_open);
-    _class.set("swap_buffers", &Window::swap_buffers);
-    _class.set("width",
-               Lua::overload(func_of<Size1D>(&Window::width), func_of<const Window&, const Size1D&>(&Window::width)));
-    _class.set("height",
-               Lua::overload(func_of<Size1D>(&Window::height), func_of<const Window&, const Size1D&>(&Window::height)));
-
-    _class.set("size", Lua::overload(func_of<const Size2D&>(&Window::size), func_of<const Window&>(&Window::size)));
-    _class.set("swap_interval",
-               Lua::overload(func_of<int_t>(&Window::swap_interval), func_of<const Window&>(&Window::swap_interval)));
-    _class.set("vsync", Lua::overload(func_of<bool>(&Window::vsync), func_of<const Window&>(&Window::vsync)));
-    _class.set("title", Lua::overload(func_of<const String&>(&Window::title), func_of<const Window&>(&Window::title)));
-    _class.set("position",
-               Lua::overload(func_of<const Point2D&>(&Window::position), func_of<const Window&>(&Window::position)));
-    _class.set("dropped_paths", &Window::dropped_paths);
-    _class.set("clear_dropped_paths", &Window::clear_dropped_paths);
-    _class.set("rezisable",
-               Lua::overload(func_of<bool>(&Window::rezisable), func_of<const Window&>(&Window::rezisable)));
-    _class.set("focus", &Window::focus);
-    _class.set("focused", &Window::focused);
-    _class.set("show", &Window::show);
-    _class.set("hide", &Window::hide);
-    _class.set("is_visible", &Window::is_visible);
-    _class.set("is_iconify", &Window::is_iconify);
-    _class.set("iconify", &Window::iconify);
-    _class.set("is_restored", &Window::is_restored);
-    _class.set("restore", &Window::restore);
-    _class.set("opacity", Lua::overload(func_of<float>(&Window::opacity), func_of<const Window&>(&Window::opacity)));
-    _class.set("attribute",
-               Lua::overload(func_of<bool>(&Window::attribute), func_of<const Window&>(&Window::attribute)));
-    _class.set("cursor_mode",
-               Lua::overload(func_of<CursorMode>(&Window::cursor_mode), func_of<const Window&>(&Window::cursor_mode)));
-    _class.set("bind", &Window::bind);
-    _class.set("update_view_port", &Window::update_view_port);
-    _class.set("update_scissor", &Window::update_scissor);
-    _class.set("X11_compositing", &Window::X11_compositing);
-    _class.set("SDL", &Window::SDL);
-    _class.set("SDL_OpenGL_context", &Window::SDL_OpenGL_context);
-    _class.set("set_orientation", &Window::set_orientation);
-    _class.set("start_text_input", &Window::start_text_input);
-    _class.set("stop_text_input", &Window::stop_text_input);
-    _class.set("update_viewport_on_resize", Lua::overload(func_of<bool>(&Window::update_viewport_on_resize),
-                                                          func_of<const Window&>(&Window::update_viewport_on_resize)));
-    _class.set("update_scissor_on_resize", Lua::overload(func_of<bool>(&Window::update_scissor_on_resize),
-                                                         func_of<const Window&>(&Window::update_scissor_on_resize)));
-    _class.set("frame_number", &Window::frame_number);
-    _class.set("framebuffer", &Window::framebuffer);
 }
 
 static InitializeController init_window(on_init);

@@ -69,7 +69,6 @@ namespace Engine
 
         for (auto& buffer : _M_command_buffers) delete buffer;
         _M_command_buffers.clear();
-        delete _M_dummy_texture;
         destroy_framebuffers();
         delete _M_swap_chain;
 
@@ -177,19 +176,6 @@ namespace Engine
         catch (const std::exception& e)
         {
             return nullptr;
-        }
-
-        {
-            TextureCreateInfo params;
-            params.size                 = {1, 1};
-            params.mipmap_count         = 1;
-            params.pixel_component_type = PixelComponentType::UnsignedByte;
-            params.pixel_type           = PixelType::RGBA;
-
-            Identifier ID;
-            create_texture(ID, params, TextureType::Texture2D);
-
-            _M_dummy_texture = reinterpret_cast<VulkanTexture*>(ID);
         }
 
         return static_cast<VkSurfaceKHR>(_M_surface);

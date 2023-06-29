@@ -2,15 +2,17 @@
 #include <Core/buffer_types.hpp>
 #include <Core/callback.hpp>
 #include <Core/color.hpp>
+#include <Core/etl/singletone.hpp>
 #include <Core/export.hpp>
 #include <Core/keyboard.hpp>
 #include <Event/event.hpp>
 #include <Graphics/basic_framebuffer.hpp>
 #include <Window/cursor.hpp>
-#include <functional>
-#include <string>
 
 
+struct SDL_Window;
+struct SDL_WindowEvent;
+struct SDL_DropEvent;
 
 namespace Engine
 {
@@ -51,109 +53,127 @@ namespace Engine
     };
 
 
-    class ENGINE_EXPORT Window : public BasicFrameBuffer
+    class ENGINE_EXPORT Window : public BasicFrameBuffer, public Singletone<Window>
     {
+    private:
+        static Window* _M_instance;
+
+        SDL_Window* _M_window = nullptr;
+        void* _M_GL_context   = nullptr;
+        bool _M_is_inited     = false;
+        String _M_title;
+
+        SizeLimits2D _M_limits;
+        Size2D _M_size = {-1, -1};
+        Size2D _M_position;
+
+        int_t _M_swap_interval = 1;
+
+        Vector<String> _M_dropped_paths;
+
+        Cursor _M_cursor;
+
+        Image _M_icon;
+        bool _M_enable_ration = false;
+
+        CursorMode _M_cursor_mode           = CursorMode::Normal;
+        const char* _M_X11_compositing      = "0";
+        struct SDL_Surface* _M_icon_surface = nullptr;
+        bool _M_is_transparent_framebuffer  = false;
+        uint_t _M_flags;
+        bool _M_change_viewport_on_resize = true;
+        bool _M_update_scissor_on_resize  = true;
+
+
+        Window* free_icon_surface();
+        void process_window_event(SDL_WindowEvent& event);
+        void process_paths_event(SDL_DropEvent& event);
+
     public:
-        static Event event;
+        using Super = BasicFrameBuffer;
+
+        static Window* window;
+        Event event;
+        CallBacks<void> on_resize;
+
         // Window struct methods
-        static const Window& init(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
-        static const Window& init(const Size2D& size, const String& title = STR(""), uint16_t attrib = 0);
-        static const Window& close();
-        static bool is_open();
-        static const Window& swap_buffers();
+        Window* init(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
+        Window* init(const Size2D& size, const String& title = STR(""), uint16_t attrib = 0);
+        Window* close();
+        bool is_open() const;
+        const Window* swap_buffers() const;
 
-        static Size1D width();
-        static const Window& width(const Size1D& width);
-        static Size1D height();
-        static const Window& height(const Size1D& height);
-        static const Size2D& size();
-        static const Window& size(const Size2D& size);
+        Size1D width() const;
+        const Window* width(const Size1D& width) const;
+        Size1D height() const;
+        const Window* height(const Size1D& height) const;
+        const Size2D& size() const;
+        const Window* size(const Size2D& size) const;
 
 
-        static int_t swap_interval();
-        static const Window& swap_interval(int_t value);
+        int_t swap_interval() const;
+        Window* swap_interval(int_t value);
 
-        static bool vsync();
-        static const Window& vsync(const bool& value);
+        bool vsync() const;
+        Window* vsync(bool value);
 
-        static const String& title();
-        static const Window& title(const String& title);
+        const String& title() const;
+        Window* title(const String& title);
+        const Point2D& position() const;
+        const Window* position(const Point2D& position) const;
+        const Vector<String>& dropped_paths() const;
+        Window* clear_dropped_paths();
+        bool rezisable() const;
+        const Window* rezisable(bool value) const;
+        const Window* focus() const;
+        bool focused() const;
+        const Window* show() const;
+        const Window* hide() const;
+        bool is_visible() const;
+        bool is_iconify() const;
+        const Window* iconify() const;
+        bool is_restored() const;
+        const Window* restore() const;
+        const Window* opacity(float value) const;
+        float opacity() const;
+        Window* size_limits(const SizeLimits2D& limits);
+        const SizeLimits2D& size_limits() const;
+        Window* cursor(const Cursor& cursor);
+        const Cursor& cursor() const;
+        Window* icon(const Image& image);
+        Window* icon(const String& image);
+        const Image& icon() const;
+        Window* attribute(const WindowAttrib& attrib, bool value);
+        bool attribute(const WindowAttrib& attrib) const;
+        Window* cursor_mode(const CursorMode& mode);
+        CursorMode cursor_mode() const;
+        Window* update_view_port();
+        Window* update_scissor();
+        Window* X11_compositing(bool value);
+        void* SDL() const;
+        void* SDL_OpenGL_context() const;
+        Window* set_orientation(uint_t orientation);
+        const Window* start_text_input() const;
+        const Window* stop_text_input() const;
+        Window* update_viewport_on_resize(bool value);
+        bool update_viewport_on_resize() const;
+        Window* update_scissor_on_resize(bool value);
+        bool update_scissor_on_resize() const;
 
-        static const Point2D& position();
-        static const Window& position(const Point2D& position);
-
-        static const Vector<String>& dropped_paths();
-        static const Window& clear_dropped_paths();
-
-        static bool rezisable();
-        static const Window& rezisable(bool value);
-
-        static const Window& focus();
-        static bool focused();
-
-        static const Window& show();
-        static const Window& hide();
-        static bool is_visible();
-
-        static bool is_iconify();
-        static const Window& iconify();
-        static bool is_restored();
-        static const Window& restore();
-
-        static const Window& opacity(float value);
-        static float opacity();
-
-        static const Window& size_limits(const SizeLimits2D& limits);
-        static const SizeLimits2D& size_limits();
-
-        static const Window& cursor(const Cursor& cursor);
-        static const Cursor& cursor();
-
-        static const Window& icon(const Image& image);
-        static const Window& icon(const String& image);
-        static const Image& icon();
-
-        static const Window& attribute(const WindowAttrib& attrib, bool value);
-        static bool attribute(const WindowAttrib& attrib);
-
-        static const Window& cursor_mode(const CursorMode& mode);
-        static CursorMode cursor_mode();
-
-        static const Window& bind();
-        static const Window& update_view_port();
-        static const Window& update_scissor();
-
-        static const Window& X11_compositing(bool value);
-
-        static void* SDL();
-        static void* SDL_OpenGL_context();
-
-        static const Window& set_orientation(uint_t orientation);
-        static const Window& start_text_input();
-        static const Window& stop_text_input();
-        static const Window& update_viewport_on_resize(bool value);
-        static bool update_viewport_on_resize();
-        static const Window& update_scissor_on_resize(bool value);
-        static bool update_scissor_on_resize();
-        static CallBacks<void> on_resize;
-        static size_t frame_number();
-        static BasicFrameBuffer* framebuffer();
+        size_t frame_number();
 
         // Constructors
 
+    private:
         Window();
-        Window(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
-        Window(const Size2D& size, const String& title = STR(""), uint16_t attrib = 0);
-        Window(const Window& window);
-        Window& operator=(const Window& window);
         ~Window();
 
-
-        friend class Application;
         friend class EngineInstance;
+        friend struct UpdateEvents;
+        friend class Singletone;
+        friend class Object;
 
-    private:
-        static const Window& destroy_window();
+        Window* destroy_window();
     };
 
 

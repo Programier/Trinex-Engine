@@ -60,7 +60,7 @@ namespace Engine
         QueueFamilyIndices _M_graphics_and_present_index;
         vk::Queue _M_graphics_queue;
         vk::Queue _M_present_queue;
-        VulkanTexture* _M_dummy_texture = nullptr;
+
         vk::PhysicalDeviceProperties _M_properties;
         BlockAllocator<struct VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE> _M_uniform_allocator;
         vk::DescriptorPool _M_imgui_descriptor_pool;

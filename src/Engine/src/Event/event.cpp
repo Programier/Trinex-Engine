@@ -17,7 +17,7 @@ static std::size_t _M_frame_number = 0;
 
 namespace Engine
 {
-    Event event;
+    static Event event;
     ENGINE_EXPORT Set<void (*)(void*)> Event::sdl_callbacks;
     ENGINE_EXPORT Set<void (*)(unsigned int)> Event::on_sensor_update;
     ENGINE_EXPORT Set<void (*)()> Event::on_quit;
@@ -29,13 +29,10 @@ namespace Engine
     void process_keyboard_event(SDL_KeyboardEvent& event);
     void clear_keyboard_events();
 
-    void process_window_event(SDL_WindowEvent& event);
-
     void clear_mouse_event();
     void mouse_process_event(SDL_MouseMotionEvent& event);
     void mouse_process_event(SDL_MouseButtonEvent& event);
     void mouse_process_event(SDL_MouseWheelEvent& event);
-    void process_paths_event(SDL_DropEvent& event);
     void process_text_event(SDL_TextInputEvent& event);
     void process_text_event(SDL_TextEditingEvent& event);
     void process_text_event(SDL_TextEditingExtEvent& event);
@@ -45,13 +42,13 @@ namespace Engine
 
     ENGINE_EXPORT const Event& Event::poll_events()
     {
-        UpdateEvent::poll_events();
+        UpdateEvents::poll_events();
         return event;
     }
 
     ENGINE_EXPORT const Event& Event::wait_for_event()
     {
-        UpdateEvent::wait_for_event();
+        UpdateEvents::wait_for_event();
         return event;
     }
 
@@ -76,13 +73,9 @@ namespace Engine
     {
         return _M_frame_number;
     }
-}// namespace Engine
 
-// End of Internal event system functions
 
-namespace Engine::UpdateEvent
-{
-    static SDL_Event event;
+    static SDL_Event internal_event;
 
     static void clear_event_system()
     {
@@ -98,14 +91,14 @@ namespace Engine::UpdateEvent
 
 
     template<typename Container, typename... Args>
-    void run_callbacks(const Container& container, const Args... args)
+    static void run_callbacks(const Container& container, const Args... args)
     {
         for (auto func : container) func(args...);
     }
 
-    static void process_event()
+    void UpdateEvents::process_event()
     {
-        switch (event.type)
+        switch (internal_event.type)
         {
             case SDL_APP_LOWMEMORY:
                 run_callbacks(Event::on_low_memory);
@@ -126,53 +119,53 @@ namespace Engine::UpdateEvent
                 break;
 
             case SDL_QUIT:
-                Window::close();
+                Window::instance()->close();
                 run_callbacks(Event::on_quit);
                 break;
 
             case SDL_TEXTINPUT:
-                process_text_event(event.text);
+                process_text_event(internal_event.text);
                 break;
 
             case SDL_TEXTEDITING:
-                process_text_event(event.edit);
+                process_text_event(internal_event.edit);
                 break;
 
             case SDL_TEXTEDITING_EXT:
-                process_text_event(event.editExt);
+                process_text_event(internal_event.editExt);
                 break;
 
             case SDL_WINDOWEVENT:
             {
-                if (event.window.event == SDL_WINDOWEVENT_LEAVE)
+                if (internal_event.window.event == SDL_WINDOWEVENT_LEAVE)
                     on_leave();
                 else
-                    process_window_event(event.window);
+                    Window::instance()->process_window_event(internal_event.window);
                 break;
             }
 
             case SDL_MOUSEMOTION:
             {
-                mouse_process_event(event.motion);
+                mouse_process_event(internal_event.motion);
                 break;
             }
 
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
             {
-                mouse_process_event(event.button);
+                mouse_process_event(internal_event.button);
                 break;
             }
             case SDL_MOUSEWHEEL:
             {
-                mouse_process_event(event.wheel);
+                mouse_process_event(internal_event.wheel);
                 break;
             }
 
             case SDL_KEYDOWN:
             case SDL_KEYUP:
             {
-                process_keyboard_event(event.key);
+                process_keyboard_event(internal_event.key);
                 break;
             }
 
@@ -180,7 +173,7 @@ namespace Engine::UpdateEvent
             case SDL_DROPCOMPLETE:
             case SDL_DROPTEXT:
             case SDL_DROPBEGIN:
-                process_paths_event(event.drop);
+                Window::instance()->process_paths_event(internal_event.drop);
                 break;
 
             case SDL_DISPLAYEVENT_CONNECTED:
@@ -190,11 +183,11 @@ namespace Engine::UpdateEvent
             case SDL_FINGERDOWN:
             case SDL_FINGERUP:
             case SDL_FINGERMOTION:
-                process_touchscreen_event(event.tfinger);
+                process_touchscreen_event(internal_event.tfinger);
                 break;
 
             case SDL_SENSORUPDATE:
-                run_callbacks(Event::on_sensor_update, static_cast<unsigned int>(event.sensor.which));
+                run_callbacks(Event::on_sensor_update, static_cast<unsigned int>(internal_event.sensor.which));
                 break;
 
             default:
@@ -205,17 +198,24 @@ namespace Engine::UpdateEvent
     }
 
 
-    ENGINE_EXPORT void poll_events()
+    void UpdateEvents::poll_events()
     {
         clear_event_system();
-        while (SDL_PollEvent(&event)) process_event();
+        while (SDL_PollEvent(&internal_event)) process_event();
     }
 
-    ENGINE_EXPORT void wait_for_event()
+    void UpdateEvents::wait_for_event()
     {
         clear_event_system();
-        SDL_WaitEvent(&event);
+        SDL_WaitEvent(&internal_event);
         process_event();
         poll_events();
     }
-}// namespace Engine::UpdateEvent
+
+}// namespace Engine
+
+
+namespace Engine
+{
+
+}// namespace Engine

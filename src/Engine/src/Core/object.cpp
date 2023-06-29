@@ -41,10 +41,16 @@ namespace Engine
                      .set("as_string", &Object::as_string);
 
 
-    static ObjectSet& get_instance_list()
+    static Vector<Index>& get_free_indexes_array()
     {
-        static ObjectSet list;
-        return list;
+        static Vector<Index> array;
+        return array;
+    }
+
+    static Vector<Object*>& get_instances_array()
+    {
+        static Vector<Object*> array;
+        return array;
     }
 
     static Package* _M_root_package = nullptr;
@@ -105,7 +111,20 @@ namespace Engine
 
     Object::Object()
     {
-        get_instance_list().insert(this);
+        ObjectArray& objects_array = get_instances_array();
+        _M_instance_index          = objects_array.size();
+
+        if (!get_free_indexes_array().empty())
+        {
+            _M_instance_index = get_free_indexes_array().back();
+            get_free_indexes_array().pop_back();
+            objects_array[_M_instance_index] = this;
+        }
+        else
+        {
+            objects_array.push_back(this);
+        }
+
         _M_trinex_flags.reset();
         trinex_flag(TrinexObjectFlags::IsSerializable, true);
         trinex_flag(TrinexObjectFlags::IsOnHeap, !EngineInstance::is_on_stack(this));
@@ -170,11 +189,25 @@ namespace Engine
         return decode_name(typeid(*this));
     }
 
+    const Object& Object::remove_from_instances_array() const
+    {
+        if (_M_instance_index < get_instances_array().size())
+        {
+            get_instances_array()[_M_instance_index] = nullptr;
+            if (!engine_instance->is_shuting_down())
+            {
+                get_free_indexes_array().push_back(_M_instance_index);
+            }
+            _M_instance_index = Constants::max_size;
+        }
+        return *this;
+    }
+
     void Object::delete_instance()
     {
         if ((!trinex_flag(TrinexObjectFlags::IsOnHeap)))
         {
-            get_instance_list().erase(const_cast<Object*>(this));
+            remove_from_instances_array();
         }
 
         if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
@@ -186,14 +219,14 @@ namespace Engine
         }
     }
 
-    ENGINE_EXPORT const ObjectSet& Object::all_objects()
+    ENGINE_EXPORT const ObjectArray& Object::all_objects()
     {
-        return get_instance_list();
+        return get_instances_array();
     }
 
     Object::~Object()
     {
-        get_instance_list().erase(this);
+        remove_from_instances_array();
         if (_M_package)
         {
             _M_package->_M_objects.erase(name());
@@ -210,7 +243,7 @@ namespace Engine
             if (!object->trinex_flag(TrinexObjectFlags::IsNeedDelete) &&
                 object->trinex_flag(TrinexObjectFlags::IsAllocatedByController) && object->_M_references == 0)
             {
-                get_instance_list().erase(object);
+                object->remove_from_instances_array();
 
                 if (object->_M_package)
                 {
@@ -496,6 +529,11 @@ namespace Engine
         return Strings::format("{}: {}", class_instance()->_M_name, _M_name);
     }
 
+    Index Object::instance_index() const
+    {
+        return _M_instance_index;
+    }
+
     bool Object::archive_process(Archive* archive)
     {
         return SerializableObject::archive_process(archive);
@@ -513,11 +551,10 @@ namespace Engine
 
 
     /////////////////////////////// GARBAGE CONTROLLER  ///////////////////////////////
-    static bool shutdown = false;
 
     void Object::force_garbage_collection()
     {
-        if (!shutdown)
+        if (!engine_instance->is_shuting_down())
             return;
 
         info_log("Engine: Triggered garbage collector!\n");
@@ -529,24 +566,57 @@ namespace Engine
 
         Set<Object*> maybe_not_deleted_objects;
 
-        while (!get_instance_list().empty())
-        {
-            Object* object = (*get_instance_list().begin());
-            if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
-            {
-                debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n",
-                          object->name().c_str(), object->decode_name().c_str(), object);
-                object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
-                manager.free_object(object);
-                maybe_not_deleted_objects.erase(object);
-            }
-            else if (object->is_on_heap())
-            {
-                maybe_not_deleted_objects.insert(object);
-            }
-            get_instance_list().erase(object);
-        }
+        PriorityIndex current_priority = 0;
+        PriorityIndex next_priority    = 0;
 
+
+        ObjectArray& objects    = get_instances_array();
+        size_t count            = objects.size();
+        size_t next_start_index = 0;
+        size_t next_end_index   = 0;
+
+        while (count - next_start_index != 0)
+        {
+            current_priority = next_priority;
+            next_priority    = Constants::max_size;
+
+            for (size_t i = next_start_index; i < count; i++)
+            {
+                Object* object = objects[i];
+                if (object == nullptr)
+                    continue;
+
+                if (object->_M_force_destroy_priority == current_priority)
+                {
+                    if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
+                    {
+                        debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n",
+                                  object->name().c_str(), object->decode_name().c_str(), object);
+                        object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
+                        manager.free_object(object);
+                        maybe_not_deleted_objects.erase(object);
+                    }
+                    else if (object->is_on_heap())
+                    {
+                        maybe_not_deleted_objects.insert(object);
+                    }
+
+                    object->remove_from_instances_array();
+                    if (next_start_index == i)
+                    {
+                        next_start_index = i + 1;
+                    }
+                }
+                else
+                {
+                    if (object->_M_force_destroy_priority < next_priority)
+                        next_priority = object->_M_force_destroy_priority;
+                    next_end_index = i;
+                }
+            }
+
+            count = next_end_index + 1;
+        }
 
         for (auto& object : maybe_not_deleted_objects)
         {
@@ -555,18 +625,8 @@ namespace Engine
         }
     }
 
-    void call_force_garbage_collection()
-    {
-        shutdown = true;
-        Object::force_garbage_collection();
-    }
-
     Package* Object::root_package()
     {
         return _M_root_package;
     }
-
-    static DestroyController controller(call_force_garbage_collection);
-
-
 }// namespace Engine

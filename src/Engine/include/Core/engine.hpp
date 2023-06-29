@@ -27,6 +27,7 @@ namespace Engine
 
         EngineAPI _M_api;
         bool _M_is_inited = false;
+        bool _M_is_shuting_down = false;
 
         EngineInstance& trigger_terminate_functions();
         EngineInstance();
@@ -46,6 +47,7 @@ namespace Engine
         GraphicApiInterface::ApiInterface* api_interface() const;
         class Renderer* renderer() const;
         static bool is_on_stack(void* ptr);
+        bool is_shuting_down() const;
 
         bool check_format_support(PixelType type, PixelComponentType component);
         friend class Singletone;

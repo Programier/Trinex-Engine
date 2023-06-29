@@ -16,6 +16,7 @@ namespace Engine
         uint_t min_g_buffer_height;
         uint_t max_g_buffer_width;
         uint_t max_g_buffer_height;
+        uint_t back_buffer_count;
 
         bool delete_resources_after_load;
         bool load_shaders_to_gpu;

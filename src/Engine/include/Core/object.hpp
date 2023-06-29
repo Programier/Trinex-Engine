@@ -53,16 +53,21 @@ namespace Engine
         mutable BitSet<static_cast<size_t>(TrinexObjectFlags::__OF_COUNT__)> _M_trinex_flags;
         BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
 
-        Package* _M_package         = nullptr;
+        Package* _M_package                 = nullptr;
         mutable const class Class* _M_class = nullptr;
-        Counter _M_references       = 0;
+        Counter _M_references               = 0;
+        mutable Index _M_instance_index             = static_cast<Index>(~0U);
 
 
         void delete_instance();
         Object& create_default_package();
         static bool object_is_exist(Package* package, const String& name);
 
+        const Object& remove_from_instances_array() const;
+
     protected:
+        PriorityIndex _M_force_destroy_priority = 0;
+
         Object();
         Object& mark_as_allocate_by_constroller();
         Object& insert_to_default_package();
@@ -79,7 +84,7 @@ namespace Engine
         ENGINE_EXPORT static String package_name_of(const String& name);
         ENGINE_EXPORT static String object_name_of(const String& name);
         String decode_name() const;
-        ENGINE_EXPORT static const ObjectSet& all_objects();
+        ENGINE_EXPORT static const ObjectArray& all_objects();
         bool mark_for_delete(bool skip_check = false);
         bool is_on_heap() const;
         ENGINE_EXPORT static void collect_garbage();
@@ -101,6 +106,7 @@ namespace Engine
         static Package* find_package(const String& name, bool create = true);
         const class Class* class_instance() const;
         String as_string() const;
+        Index instance_index() const;
 
         bool archive_process(Archive* archive) override;
 
@@ -114,7 +120,7 @@ namespace Engine
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
                 instance->mark_as_allocate_by_constroller();
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
-                if(instance->_M_class == nullptr)
+                if (instance->_M_class == nullptr)
                 {
                     instance->trinex_flag(TrinexObjectFlags::IsUnregistered, true);
                 }
@@ -288,6 +294,7 @@ namespace Engine
         friend class PointerBase;
         friend class Archive;
         friend class MemoryManager;
+        friend class EngineInstance;
     };
 
     template<typename Return, typename... Args>
@@ -298,6 +305,12 @@ namespace Engine
 
     template<typename Return, typename Instance, typename... Args>
     Return (Instance::*func_of(Return (Instance::*function)(Args...)))(Args...)
+    {
+        return function;
+    }
+
+    template<typename Return, typename Instance, typename... Args>
+    Return (Instance::*func_of(Return (Instance::*function)(Args...) const))(Args...) const
     {
         return function;
     }

@@ -15,7 +15,7 @@ namespace Engine
 
     void mouse_process_event(SDL_MouseMotionEvent& event)
     {
-        _M_mouse_position = {event.x, Window::height() - event.y};
+        _M_mouse_position = {event.x, Window::window->height() - event.y};
         _M_mouse_offset   = {static_cast<float>(event.xrel), -static_cast<float>(event.yrel)};
     }
 

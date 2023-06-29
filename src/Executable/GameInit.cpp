@@ -28,9 +28,6 @@ namespace Engine
 {
     void GameInit::loop()
     {
-        Window window;
-
-
         Package* package = Object::load_package("TestResources");
         if (package == nullptr)
             return;
@@ -47,7 +44,7 @@ namespace Engine
         Texture2D& texture                 = *package->find_object_checked<Texture2D>("Trinex Texture");
         Camera* camera                     = package->find_object_checked<Camera>("Camera");
         camera->load();
-        camera->aspect(window.width() / window.height());
+        camera->aspect(Window::window->width() / Window::window->height());
 
 
         UniformBuffer camera_ubo;
@@ -77,7 +74,7 @@ namespace Engine
 
         Average<double> fps;
 
-        while (window.is_open())
+        while (Window::window->is_open())
         {
             if (MouseEvent::scroll_offset().y != 0)
             {
@@ -108,7 +105,7 @@ namespace Engine
             _M_renderer->draw_indexed(index_buffer.elements_count(), 0);
 
 
-            window.bind();
+            Window::window->bind();
             shader->use();
             output_vertex_buffer.bind();
             output_index_buffer.bind();
@@ -145,7 +142,7 @@ namespace Engine
 
 
             Event::poll_events();
-            window.swap_buffers();
+            Window::window->swap_buffers();
             camera->update();
 
             if (KeyboardEvent::just_pressed(Key::G))
@@ -160,14 +157,14 @@ namespace Engine
     int GameInit::execute(int argc, char** argv)
     {
         _M_renderer = Engine::EngineInstance::instance()->renderer();
-        Window window;
+        Window::create_instance();
 #if PLATFORM_ANDROID
         window.set_orientation(WindowOrientation::WinOrientationLandscape);
         window.init(Monitor::size().y, Monitor::size().x, "Trinex Engine", WindowAttrib::WinFullScreenDesktop);
 #else
-        window.init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
+        Window::window->init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
 #endif
-        window.vsync(true);
+        Window::window->vsync(true);
         ImGuiRenderer::init();
 
         loop();

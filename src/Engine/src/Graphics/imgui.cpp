@@ -28,7 +28,7 @@ namespace Engine::ImGuiRenderer
             return;
         }
 
-        if (Window::is_open() == false)
+        if (Window::instance() == nullptr)
         {
             logger->error("ImGuiRenderer: Cannot init ImGUI. Create window first!");
             return;
@@ -38,11 +38,11 @@ namespace Engine::ImGuiRenderer
         imgui_data.context = ImGui::CreateContext();
 
 
-        imgui_data.window = static_cast<SDL_Window*>(Window::SDL());
+        imgui_data.window = static_cast<SDL_Window*>(Window::instance()->SDL());
         switch (engine_instance->api())
         {
             case Engine::EngineAPI::OpenGL:
-                ImGui_ImplSDL2_InitForOpenGL(imgui_data.window, Window::SDL_OpenGL_context());
+                ImGui_ImplSDL2_InitForOpenGL(imgui_data.window, Window::instance()->SDL_OpenGL_context());
                 break;
 
             case Engine::EngineAPI::Vulkan:
