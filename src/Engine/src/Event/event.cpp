@@ -18,13 +18,13 @@ static std::size_t _M_frame_number = 0;
 namespace Engine
 {
     static Event event;
-    ENGINE_EXPORT Set<void (*)(void*)> Event::sdl_callbacks;
-    ENGINE_EXPORT Set<void (*)(unsigned int)> Event::on_sensor_update;
-    ENGINE_EXPORT Set<void (*)()> Event::on_quit;
-    ENGINE_EXPORT Set<void (*)()> Event::on_terminate;
-    ENGINE_EXPORT Set<void (*)()> Event::on_resume;
-    ENGINE_EXPORT Set<void (*)()> Event::on_pause;
-    ENGINE_EXPORT Set<void (*)()> Event::on_low_memory;
+    ENGINE_EXPORT CallBacks<void(void*)> Event::sdl_callbacks;
+    ENGINE_EXPORT CallBacks<void(unsigned int)> Event::on_sensor_update;
+    ENGINE_EXPORT CallBacks<void()> Event::on_quit;
+    ENGINE_EXPORT CallBacks<void()> Event::on_terminate;
+    ENGINE_EXPORT CallBacks<void()> Event::on_resume;
+    ENGINE_EXPORT CallBacks<void()> Event::on_pause;
+    ENGINE_EXPORT CallBacks<void()> Event::on_low_memory;
 
     void process_keyboard_event(SDL_KeyboardEvent& event);
     void clear_keyboard_events();
@@ -90,37 +90,31 @@ namespace Engine
     }
 
 
-    template<typename Container, typename... Args>
-    static void run_callbacks(const Container& container, const Args... args)
-    {
-        for (auto func : container) func(args...);
-    }
-
     void UpdateEvents::process_event()
     {
         switch (internal_event.type)
         {
             case SDL_APP_LOWMEMORY:
-                run_callbacks(Event::on_low_memory);
+                Event::on_low_memory.trigger();
                 break;
 
             case SDL_APP_WILLENTERBACKGROUND:
             case SDL_APP_DIDENTERBACKGROUND:
-                run_callbacks(Event::on_pause);
+                Event::on_pause.trigger();
                 break;
 
             case SDL_APP_TERMINATING:
-                run_callbacks(Event::on_terminate);
+                Event::on_terminate.trigger();
                 break;
 
             case SDL_APP_DIDENTERFOREGROUND:
             case SDL_APP_WILLENTERFOREGROUND:
-                run_callbacks(Event::on_resume);
+                Event::on_resume.trigger();
                 break;
 
             case SDL_QUIT:
                 Window::instance()->close();
-                run_callbacks(Event::on_quit);
+                Event::on_quit.trigger();
                 break;
 
             case SDL_TEXTINPUT:
@@ -187,14 +181,14 @@ namespace Engine
                 break;
 
             case SDL_SENSORUPDATE:
-                run_callbacks(Event::on_sensor_update, static_cast<unsigned int>(internal_event.sensor.which));
+                Event::on_sensor_update.trigger(static_cast<unsigned int>(internal_event.sensor.which));
                 break;
 
             default:
                 break;
         }
 
-        run_callbacks(Event::sdl_callbacks, &event);
+        Event::sdl_callbacks.trigger(&event);
     }
 
 

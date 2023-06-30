@@ -1,5 +1,6 @@
 #include <Core/actor.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/class.hpp>
 
 namespace Engine
 {

@@ -1,11 +1,11 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/logger.hpp>
 #include <Graphics/imgui.hpp>
 #include <ImGui/imgui.h>
 #include <Window/window.hpp>
 #include <api.hpp>
 #include <imgui_impl_sdl.h>
-
 
 namespace Engine::ImGuiRenderer
 {
@@ -54,14 +54,14 @@ namespace Engine::ImGuiRenderer
         }
 
         engine_instance->api_interface()->imgui_init();
-        Event::sdl_callbacks.insert(process_event);
+        Event::sdl_callbacks.push(Function<void(void*)>(process_event));
 
         DestroyController controller(ImGuiRenderer::terminate);
     }
 
     ENGINE_EXPORT void terminate()
     {
-        Event::sdl_callbacks.erase(process_event);
+        Event::sdl_callbacks.push(process_event);
         engine_instance->api_interface()->imgui_terminate();
         ImGui_ImplSDL2_Shutdown();
         ImGui::DestroyContext(imgui_data.context);

@@ -1,7 +1,8 @@
 #include <Core/buffer_manager.hpp>
+#include <Core/class.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
 
 namespace Engine
 {

@@ -24,7 +24,7 @@ namespace Engine
             return pressed(key) && pressed(second_key, args...);
         }
 
-        static ENGINE_EXPORT const List<Key>& just_evented_keys();
+        static ENGINE_EXPORT const Vector<Key>& just_evented_keys();
         static ENGINE_EXPORT void push_event(Key key, KeyStatus status);
     };
 }

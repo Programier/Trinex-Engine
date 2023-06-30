@@ -1,42 +1,55 @@
 #pragma once
-#include <Core/function.hpp>
+#include <Core/engine_types.hpp>
 
 
 namespace Engine
 {
 
-    template<typename ReturnType, typename... Args>
-    using CallBack = Function<ReturnType, Args...>;
+    template<typename Signature>
+    using CallBack = Function<Signature>;
 
-    template<typename Return, typename... Args>
+    template<typename Signature>
     class CallBacks final
     {
     public:
-        using CallbackFunctionPrototype = Return (*)(Args...);
+        using CallbacksArray = Vector<CallBack<Signature>>;
 
     private:
-        Set<CallbackFunctionPrototype> _M_callbacks;
+        CallbacksArray _M_callbacks;
 
     public:
-        CallBacks& push(const CallbackFunctionPrototype& callback)
+        CallBacks& push(const Function<Signature>& callback)
         {
-            _M_callbacks.insert(callback);
+            _M_callbacks.push_back(callback);
             return *this;
         }
 
-        CallBacks& remove(const CallbackFunctionPrototype& callback)
+        CallBacks& push(Function<Signature>&& callback)
         {
-            _M_callbacks.erase(callback);
+            _M_callbacks.push_back(std::move(callback));
             return *this;
         }
 
-        const CallBacks& trigger(Args... args) const
+        CallBacks& remove(const Function<Signature>& callback)
         {
-            for (auto& ell : _M_callbacks) ell(args...);
+            for (auto it = _M_callbacks.begin(); it != _M_callbacks.end(); ++it)
+            {
+                if(*it == callback)
+                {
+                    _M_callbacks.erase(it);
+                }
+            }
             return *this;
         }
 
-        const Set<CallbackFunctionPrototype>& callbacks() const
+        template<typename... Args>
+        const CallBacks& trigger(Args&&... args) const
+        {
+            for (auto& ell : _M_callbacks) ell(std::forward<Args>(args)...);
+            return *this;
+        }
+
+        const CallbacksArray& callbacks() const
         {
             return _M_callbacks;
         }

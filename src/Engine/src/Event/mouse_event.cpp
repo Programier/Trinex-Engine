@@ -113,7 +113,7 @@ namespace Engine
         return KeyboardEvent::pressed(key);
     }
 
-    ENGINE_EXPORT const List<Key>& MouseEvent::just_evented_keys()
+    ENGINE_EXPORT const Vector<Key>& MouseEvent::just_evented_keys()
     {
         return KeyboardEvent::just_evented_keys();
     }

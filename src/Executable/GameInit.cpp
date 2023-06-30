@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/config.hpp>
 #include <Core/dynamic_struct.hpp>
+#include <Core/engine.hpp>
 #include <Core/etl/average.hpp>
 #include <Core/etl/unique_per_frame_var.hpp>
 #include <Core/file_manager.hpp>
@@ -117,17 +118,17 @@ namespace Engine
 
             ImGuiRenderer::new_frame();
 
-            ImGui::Begin("TrinexEngine");
+            ImGui::Begin("TrinexEngine", nullptr);
 
             fps.push(1.0 / Event::diff_time());
-            ImGui::Text("API: %s", engine_config.api.c_str());
-            ImGui::Text("FPS: %lf", fps.average());
-            {
-                const Transform& transform = camera->transform;
-                ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
-                            transform.position().z);
-                ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
-            }
+            //            ImGui::Text("API: %s", engine_config.api.c_str());
+            //            ImGui::Text("FPS: %lf", fps.average());
+            //            {
+            //                const Transform& transform = camera->transform;
+            //                ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
+            //                            transform.position().z);
+            //                ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
+            //            }
 
             if (fps.count() == 60)
             {

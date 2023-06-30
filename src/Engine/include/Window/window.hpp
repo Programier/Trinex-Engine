@@ -94,9 +94,9 @@ namespace Engine
 
         static Window* window;
         Event event;
-        CallBacks<void> on_resize;
+        CallBacks<void()> on_resize;
 
-        // Window struct methods
+        // Window struct methodsb
         Window* init(float width, float height, const String& title = STR(""), uint16_t attrib = 0);
         Window* init(const Size2D& size, const String& title = STR(""), uint16_t attrib = 0);
         Window* close();

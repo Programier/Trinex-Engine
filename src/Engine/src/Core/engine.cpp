@@ -1,3 +1,4 @@
+#include <Core/class.hpp>
 #include <Core/commandlet.hpp>
 #include <Core/config.hpp>
 #include <Core/engine.hpp>

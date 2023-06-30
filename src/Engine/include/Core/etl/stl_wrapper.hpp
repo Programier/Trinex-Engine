@@ -12,6 +12,7 @@
 #include <tuple>
 #include <memory>
 #include <filesystem>
+#include <functional>
 
 
 namespace Engine
@@ -64,6 +65,9 @@ namespace Engine
 
     template<typename Type>
     using SmartPointer = std::shared_ptr<Type>;
+
+    template<typename Signature>
+    using Function = std::function<Signature>;
 
     template <typename Type>
     void fake_delete(Type *)

@@ -35,7 +35,7 @@ namespace Engine
         return just_released() == key;
     }
 
-    ENGINE_EXPORT const List<Key>& KeyboardEvent::just_evented_keys()
+    ENGINE_EXPORT const Vector<Key>& KeyboardEvent::just_evented_keys()
     {
         return keys._M_last_evented_keys;
     }

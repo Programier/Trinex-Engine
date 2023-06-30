@@ -14,7 +14,7 @@ namespace Engine
         Key _M_last_mouse_key      = Key::Unknown;
         Key _M_last_mouse_released = Key::Unknown;
 
-        List<Key> _M_last_evented_keys;
+        Vector<Key> _M_last_evented_keys;
 
         Keys()
         {

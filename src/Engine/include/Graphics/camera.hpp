@@ -2,8 +2,6 @@
 
 #include <Core/actor.hpp>
 #include <Core/export.hpp>
-#include <Graphics/basic_object.hpp>
-#include <Graphics/transform_component.hpp>
 
 
 namespace Engine

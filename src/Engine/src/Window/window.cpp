@@ -1,3 +1,4 @@
+#include <Core/class.hpp>
 #include <Core/config.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
