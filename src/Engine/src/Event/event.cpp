@@ -188,7 +188,7 @@ namespace Engine
                 break;
         }
 
-        Event::sdl_callbacks.trigger(&event);
+        Event::sdl_callbacks.trigger(&internal_event);
     }
 
 
