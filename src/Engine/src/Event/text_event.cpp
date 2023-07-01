@@ -52,12 +52,12 @@ namespace Engine
 
     void process_text_event(SDL_TextEditingEvent& event)
     {
-        info_log("%s\n", __PRETTY_FUNCTION__);
+        info_log("TextEvent", "%s\n", __PRETTY_FUNCTION__);
     }
 
     void process_text_event(SDL_TextEditingExtEvent& event)
     {
-        info_log("%s\n", __PRETTY_FUNCTION__);
+        info_log("TextEvent", "%s\n", __PRETTY_FUNCTION__);
     }
 
     ENGINE_EXPORT String TextEvent::clipboard_text()

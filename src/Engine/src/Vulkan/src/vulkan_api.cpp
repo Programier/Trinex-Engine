@@ -189,7 +189,7 @@ namespace Engine
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                         void* pUserData)
     {
-        vulkan_debug_log(pCallbackData->pMessage);
+        vulkan_debug_log("Vulkan API", pCallbackData->pMessage);
         return VK_FALSE;
     }
 #endif

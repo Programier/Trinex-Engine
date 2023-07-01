@@ -151,7 +151,7 @@ namespace Engine
 
         if (state->rasterizer.poligon_mode != PolygonMode::Fill)
         {
-            opengl_error("OpenGL: OpenGL support only PolygonMode::Fill");
+            opengl_error("OpenGL", "OpenGL support only PolygonMode::Fill");
         }
 
         new_shader_command(
@@ -174,7 +174,7 @@ namespace Engine
         // Blending
         if (state->color_blending.logic_op_enable)
         {
-            opengl_error("OpenGL: Logic op is not supported");
+            opengl_error("OpenGL", "Logic op is not supported");
         }
 
         new_shader_command(glBlendColor, state->color_blending.blend_constants.vector.r,
@@ -214,7 +214,7 @@ namespace Engine
                 new_shader_command(glDisablei, static_cast<GLenum>(GL_BLEND), static_cast<GLuint>(i));
         }
 
-        opengl_debug_log("OpenGL: Shader '%s' has command buffer with %zu commands", shader_name.data(),
+        opengl_debug_log("OpenGL", "Shader '%s' has command buffer with %zu commands", shader_name.data(),
                          shader->_M_command_buffer.length());
     }
 

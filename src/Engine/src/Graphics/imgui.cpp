@@ -30,7 +30,7 @@ namespace Engine::ImGuiRenderer
 
         if (Window::instance() == nullptr)
         {
-            logger->error("ImGuiRenderer: Cannot init ImGUI. Create window first!");
+            logger->error("ImGuiRenderer", "Cannot init ImGUI. Create window first!");
             return;
         }
 

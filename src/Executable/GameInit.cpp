@@ -80,7 +80,7 @@ namespace Engine
             if (MouseEvent::scroll_offset().y != 0)
             {
                 float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
-                info_log("Antialiazing: %f", current);
+                info_log("Game", "Antialiazing: %f", current);
                 texture.anisotropic_filtering(current);
             }
 
@@ -160,8 +160,8 @@ namespace Engine
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window::create_instance();
 #if PLATFORM_ANDROID
-        window.set_orientation(WindowOrientation::WinOrientationLandscape);
-        window.init(Monitor::size().y, Monitor::size().x, "Trinex Engine", WindowAttrib::WinFullScreenDesktop);
+        Window::window->set_orientation(WindowOrientation::WinOrientationLandscape);
+        Window::window->init(Monitor::size().y, Monitor::size().x, "Trinex Engine", WindowAttrib::WinFullScreenDesktop);
 #else
         Window::window->init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
 #endif

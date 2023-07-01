@@ -8,7 +8,7 @@ namespace Engine
     {
         if (archive == nullptr)
         {
-            error_log("SerializableObject: Archive can't be nullptr!");
+            error_log("SerializableObject", "Archive can't be nullptr!");
             return false;
         }
 

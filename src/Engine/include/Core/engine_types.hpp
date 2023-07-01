@@ -171,7 +171,7 @@ namespace Engine
     using FileBuffer = Buffer;
 
 
-    enum class SystemType
+    enum class SystemName
     {
         LinuxOS,
         WindowsOS,

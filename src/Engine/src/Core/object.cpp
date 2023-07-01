@@ -266,7 +266,7 @@ namespace Engine
             MessageList errors;
             if (!can_destroy(errors))
             {
-                logger->error(Strings::format("Cannot delete object '{}'", name()), errors);
+                logger->error("Object", Strings::format("Cannot delete object '{}'", name()), errors);
                 return false;
             }
         }
@@ -546,7 +546,7 @@ namespace Engine
 
     void Object::operator delete(void* data)
     {
-        logger->error("Object: Don't use operator delete! Use object->mark_for_delete() instead!");
+        logger->error("Object", "Don't use operator delete! Use object->mark_for_delete() instead!");
     }
 
 
@@ -557,7 +557,7 @@ namespace Engine
         if (!engine_instance->is_shuting_down())
             return;
 
-        info_log("Engine: Triggered garbage collector!\n");
+        info_log("Object", "Triggered garbage collector!\n");
 
         Object::collect_garbage();
         MemoryManager& manager             = MemoryManager::instance();
@@ -590,7 +590,7 @@ namespace Engine
                 {
                     if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
                     {
-                        debug_log("Garbage Collector[FORCE]: Deleting instance '%s' with type '%s' [%p]\n",
+                        debug_log("Garbage Collector[FORCE]", "Deleting instance '%s' with type '%s' [%p]\n",
                                   object->name().c_str(), object->decode_name().c_str(), object);
                         object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
                         manager.free_object(object);

@@ -86,7 +86,7 @@ Window* Window::free_icon_surface()
     SDL_SetWindowIcon(sdl_window, nullptr);
     if (_M_icon_surface)
     {
-        info_log("Window: Destroy icon surface\n");
+        info_log("Window", "Destroy icon surface\n");
         SDL_FreeSurface(_M_icon_surface);
     }
     _M_icon_surface = nullptr;
@@ -102,7 +102,7 @@ Window* Window::init(float width, float height, const String& title, uint16_t at
         return Window::_M_instance;
 
     if (!EngineInstance::instance()->is_inited())
-        throw std::runtime_error("Window: Init Engine first");
+        throw EngineException("Init Engine first");
 
     if (engine_instance->api() == EngineAPI::NoAPI)
         throw EngineException("Cannot create window without API!");
@@ -110,12 +110,12 @@ Window* Window::init(float width, float height, const String& title, uint16_t at
     _M_limits.max = Monitor::size();
 
     auto error = [](const String& msg = "") {
-        info_log("Window: Failed to create new window, error: '%s'\n", msg.c_str());
+        info_log("Window", "Failed to create new window, error: '%s'\n", msg.c_str());
         Window::_M_instance->close();
-        throw std::runtime_error("Window: Failed to create Window");
+        throw EngineException("Failed to create Window");
     };
 
-    info_log("Window: Creating new window '%s'\n", title.c_str());
+    info_log("Window", "Creating new window '%s'\n", title.c_str());
 
     uint32_t attrib = to_sdl_attrib(parse_win_attibutes(attributes));
     _M_title        = title;
@@ -182,7 +182,7 @@ Window* Window::close()
 {
     check_init(Window::_M_instance);
 
-    info_log("Closing window\n");
+    info_log("Window", "Closing window\n");
     _M_is_inited = false;
     SDL_HideWindow(_M_window);
     info_log("Engine::Window: Window '%s' closed\n", _M_title.c_str());
@@ -588,7 +588,7 @@ Window* Window::attribute(const WindowAttrib& attrib, bool value)
                 case WindowAttrib::WinTransparentFramebuffer:
                 {
                     if (_M_is_inited)
-                        info_log("Window: Cannot change flag WIN_TRANSPARENT_FRAMEBUFFER after creating window\n");
+                        info_log("Window", "Cannot change flag WIN_TRANSPARENT_FRAMEBUFFER after creating window\n");
                     else
                         _M_is_transparent_framebuffer = value;
                     break;
@@ -604,7 +604,7 @@ Window* Window::attribute(const WindowAttrib& attrib, bool value)
     }
     catch (const std::exception& e)
     {
-        info_log("Window: %s\n", e.what());
+        info_log("Window", "%s\n", e.what());
     }
 
     _M_flags = SDL_GetWindowFlags(sdl_window);
@@ -653,7 +653,7 @@ void* Window::SDL_OpenGL_context() const
 Window* Window::cursor_mode(const CursorMode& mode)
 {
     if (SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE)) < 0)
-        Engine::info_log(SDL_GetError());
+        Engine::info_log("Window", SDL_GetError());
     _M_cursor_mode = mode;
     return Window::_M_instance;
 }
@@ -695,7 +695,7 @@ Window* Window::set_orientation(uint_t orientation)
 
     if (_M_is_inited)
     {
-        info_log("Window: Can't change orientation after creating window\n");
+        info_log("Window", "Can't change orientation after creating window\n");
         return Window::_M_instance;
     }
 

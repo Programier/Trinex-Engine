@@ -6,11 +6,11 @@ namespace Engine
     class ENGINE_EXPORT Logger
     {
     public:
-        virtual Logger& log(const char* format, ...);
-        virtual Logger& debug(const char* format, ...);
-        virtual Logger& warning(const char* format, ...);
-        virtual Logger& error(const char* format, ...);
-        virtual Logger& error(const String& msg, const MessageList& messages);
+        virtual Logger& log(const char* tag, const char* format, ...);
+        virtual Logger& debug(const char* tag, const char* format, ...);
+        virtual Logger& warning(const char* tag, const char* format, ...);
+        virtual Logger& error(const char* tag, const char* format, ...);
+        virtual Logger& error(const char* tag, const String& msg, const MessageList& messages);
     };
 
     extern ENGINE_EXPORT Logger* logger;

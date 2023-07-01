@@ -32,7 +32,7 @@ namespace Engine
         {
             if (!loader.is<sol::function>())
             {
-                logger->error("EngineConfig: Cannot find loader in Lua!");
+                logger->error("EngineConfig", "Cannot find loader in Lua!");
                 return *this;
             }
 
@@ -40,7 +40,7 @@ namespace Engine
         }
         catch (const std::exception& e)
         {
-            error_log("Config: Failed to load config!");
+            error_log("EngineConfig", "Failed to load config!");
         }
 
         if (max_gc_collected_objects < 100)

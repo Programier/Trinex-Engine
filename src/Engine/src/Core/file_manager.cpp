@@ -280,7 +280,7 @@ namespace Engine
         }
         else
         {
-            error_log("FileManager: Directory '%s' not found!", directory.c_str());
+            error_log("FileManager", "Directory '%s' not found!", directory.c_str());
             return false;
         }
     }
@@ -370,13 +370,13 @@ namespace Engine
             }
             catch (const std::exception& e)
             {
-                error_log("FileSystem: Failed to remove '%s': %s", path.c_str(), e.what());
+                error_log("FileSystem", "Failed to remove '%s': %s", path.c_str(), e.what());
                 return false;
             }
         }
         else
         {
-            error_log("FileSystem: Error: '%s' does not exist", path.c_str());
+            error_log("FileSystem", "Error: '%s' does not exist", path.c_str());
             return false;
         }
 
@@ -394,13 +394,13 @@ namespace Engine
 
             if (!FS::create_directory(path))
             {
-                error_log("FileManager: Failed to create directory: '%s'", path.c_str());
+                error_log("FileManager", "Failed to create directory: '%s'", path.c_str());
                 return false;
             }
         }
         catch (const std::exception& e)
         {
-            error_log("FileSystem: Failed to create directory '%s': %s", e.what());
+            error_log("FileSystem", "Failed to create directory '%s': %s", e.what());
             return false;
         }
         return true;

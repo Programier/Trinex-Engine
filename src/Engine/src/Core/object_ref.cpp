@@ -8,7 +8,7 @@ namespace Engine
     {
         if (!writer->write(name))
         {
-            error_log("ObjectReferenceBase: Failed to serialize object reference name!");
+            error_log("ObjectReferenceBase", "Failed to serialize object reference name!");
             return false;
         }
 
@@ -19,7 +19,7 @@ namespace Engine
     {
         if (!reader->read(name))
         {
-            error_log("ObjectReferenceBase: Failed to deserialize object reference name!");
+            error_log("ObjectReferenceBase", "Failed to deserialize object reference name!");
             return false;
         }
 

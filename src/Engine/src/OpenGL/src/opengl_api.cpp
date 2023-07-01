@@ -82,20 +82,20 @@ namespace Engine
 
         if (!_M_context)
         {
-            opengl_debug_log("Failed to create OpenGL context: %s\n", SDL_GetError());
+            opengl_debug_log("OpenGL", "Failed to create OpenGL context: %s\n", SDL_GetError());
             return nullptr;
         }
 
         SDL_GL_MakeCurrent(window, _M_context);
-        opengl_debug_log("Context address: %p\n", _M_context);
+        opengl_debug_log("OpenGL", "Context address: %p\n", _M_context);
 
 #ifdef _WIN32
-        (*_M_logger)->log("Start init glew\n");
+        (*_M_logger)->log("GLEW", "Start init glew\n");
         auto status = glewInit();
         if (status != GLEW_OK)
         {
             destroy_window();
-            opengl_debug_log("Failed to init glew: %s\n", glewGetErrorString(status));
+            opengl_debug_log("OpenGL", "Failed to init glew: %s\n", glewGetErrorString(status));
         }
 #endif
 

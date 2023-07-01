@@ -49,7 +49,7 @@ namespace Engine
     {
 
         if (index >= _M_height || index < -_M_height)
-            std::runtime_error("Image: Index out of range");
+            EngineException("Index out of range");
         index = index < 0 ? _M_height - index : index;
         return Image::ImageRow(_M_data.data() + _M_channels * index, _M_width, _M_channels);
     }
@@ -111,7 +111,7 @@ namespace Engine
             return *this;
         if (_M_channels != 4)
         {
-            info_log("Image: Cannot remove alpha channel\n");
+            info_log("Image", "Cannot remove alpha channel\n");
             return *this;
         }
 
@@ -137,7 +137,7 @@ namespace Engine
             return *this;
         if (_M_channels != 3)
         {
-            info_log("Image: Cannot add alpha channel\n");
+            info_log("Image", "Cannot add alpha channel\n");
             return *this;
         }
 
@@ -200,7 +200,7 @@ namespace Engine
     Image::ImageRow::Pixel Image::ImageRow::operator[](int_t index)
     {
         if (index >= _M_length || index < -_M_length)
-            std::runtime_error("Image: Index out of range");
+            EngineException("Index out of range");
         index = index < 0 ? _M_length - index : index;
         return Pixel(_M_data + index * _M_channels, _M_channels);
     }
@@ -260,9 +260,9 @@ namespace Engine
         auto end = begin + size;
 
         if (size.x < 0 || size.y < 0)
-            throw std::runtime_error("Image: Imcorrect index");
+            throw EngineException("Imcorrect index");
         if (end.x > _M_width || begin.x > _M_width || end.y > _M_height || begin.y > _M_height)
-            throw std::runtime_error("Image: Index out of range");
+            throw EngineException("Index out of range");
 
         image._M_width    = static_cast<int>(size.x + 0.5);
         image._M_height   = static_cast<int>(size.y + 0.5);
@@ -397,7 +397,7 @@ namespace Engine
 
         if (archive.is_saving() && _M_data.empty())
         {
-            logger->error("Image: Failed to serialize image. Data is empty!");
+            logger->error("Image", "Failed to serialize image. Data is empty!");
             return false;
         }
 
@@ -407,7 +407,7 @@ namespace Engine
 
         if (!archive)
         {
-            logger->error("Image: Failed to serialize image header!");
+            logger->error("Image", "Failed to serialize image header!");
             return false;
         }
 
@@ -421,7 +421,7 @@ namespace Engine
 
             if (!archive.reader()->read(_M_data.data(), _M_data.size()))
             {
-                logger->error("Image: Failed to serialize image data!");
+                logger->error("Image", "Failed to serialize image data!");
                 return false;
             }
         }
@@ -429,7 +429,7 @@ namespace Engine
         {
             if (!archive.writer()->write(_M_data.data(), _M_data.size()))
             {
-                logger->error("Image: Failed to serialize image data!");
+                logger->error("Image", "Failed to serialize image data!");
                 return false;
             }
         }

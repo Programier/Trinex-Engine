@@ -326,7 +326,7 @@ namespace Engine
         }
         else
         {
-            vulkan_debug_log("Vulkan API: Incorrect layout index!");
+            vulkan_debug_log("Vulkan API", "Incorrect layout index!");
         }
         return *this;
     }

@@ -35,31 +35,31 @@ namespace Engine
 
             if (!((*archive) & name))
             {
-                error_log("PackageHeader: Failed to process name of object!");
+                error_log("PackageHeader", "Failed to process name of object!");
                 return false;
             }
 
             if (!((*archive) & offset))
             {
-                error_log("PackageHeader: Failed to process offset of object!");
+                error_log("PackageHeader", "Failed to process offset of object!");
                 return false;
             }
 
             if (!((*archive) & object_size))
             {
-                error_log("PackageHeader: Failed to process size of object!");
+                error_log("PackageHeader", "Failed to process size of object!");
                 return false;
             }
 
             if (!((*archive) & class_name))
             {
-                error_log("PackageHeader: Failed to process class name!");
+                error_log("PackageHeader", "Failed to process class name!");
                 return false;
             }
 
             if (!((*archive) & compressed_size))
             {
-                error_log("PackageHeader: Failed to process compressed size!");
+                error_log("PackageHeader", "Failed to process compressed size!");
                 return false;
             }
 
@@ -94,13 +94,13 @@ namespace Engine
 
         if (object->trinex_flag(TrinexObjectFlags::IsNeedDelete))
         {
-            logger->error("Package: Cannot add object to package, wich marked for delete");
+            logger->error("Package", "Cannot add object to package, wich marked for delete");
             return false;
         }
 
         if (!autorename && _M_objects.contains(object->name()))
         {
-            logger->error("Package: Cannot add object to package. Object with name '%s' already exist in package!",
+            logger->error("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
                           object->name().c_str());
             return false;
         }
@@ -185,7 +185,7 @@ namespace Engine
     {
         if (this == root_package())
         {
-            logger->error("Package: Cannot save root package! Please, use different package for saving!");
+            logger->error("Package", "Cannot save root package! Please, use different package for saving!");
             return false;
         }
 
@@ -210,7 +210,7 @@ namespace Engine
 
                 if (!entry.object->archive_process(&ar))
                 {
-                    error_log("Package: Failed to compress object '%s'", entry.object->name().c_str());
+                    error_log("Package", "Failed to compress object '%s'", entry.object->name().c_str());
                     continue;
                 }
 
@@ -249,7 +249,7 @@ namespace Engine
 
             if (!writer)
             {
-                logger->error("Package: Failed to create file '%s'", path.c_str());
+                logger->error("Package", "Failed to create file '%s'", path.c_str());
                 return false;
             }
             is_created_writer = true;
@@ -266,13 +266,13 @@ namespace Engine
 
         if (!(ar & flag))
         {
-            logger->error("Package: Failed to write flag to file!");
+            logger->error("Package", "Failed to write flag to file!");
             return status(false);
         }
 
         if (!(ar & header))
         {
-            logger->error("Package: Failed to write header to file!");
+            logger->error("Package", "Failed to write header to file!");
             return status(false);
         }
 
@@ -281,7 +281,7 @@ namespace Engine
             if (!writer->write(reinterpret_cast<const byte*>(entry.compressed_data.data()),
                                entry.compressed_data.size()))
             {
-                logger->error("Package: Failed to write object '%s' to file!", entry.object->_M_name.c_str());
+                logger->error("Package", "Failed to write object '%s' to file!", entry.object->_M_name.c_str());
                 return status(false);
             }
         }
@@ -296,13 +296,13 @@ namespace Engine
         uint_t flag;
         if (!reader->read(flag))
         {
-            logger->error("Package Failed to read flag to file!");
+            logger->error("Package", "Failed to read flag to file!");
             return false;
         }
 
         if (flag != TRINEX_ENGINE_FLAG)
         {
-            logger->error("Package: File is corrupted or is not supported!");
+            logger->error("Package", "File is corrupted or is not supported!");
             return false;
         }
 
@@ -313,7 +313,7 @@ namespace Engine
     {
         if (this == root_package())
         {
-            logger->error("Package: Cannot load root package!");
+            logger->error("Package", "Cannot load root package!");
             return false;
         }
 
@@ -331,7 +331,7 @@ namespace Engine
 
             if (!reader)
             {
-                logger->error("Package: Failed to create file '%s'", path.c_str());
+                logger->error("Package", "Failed to create file '%s'", path.c_str());
                 return false;
             }
             is_created_reader = true;
@@ -356,7 +356,7 @@ namespace Engine
 
         if (!reader->read(reinterpret_cast<byte*>(buffer.data()), buffer_size))
         {
-            logger->error("Package: Failed to read compressed data from file!");
+            logger->error("Package", "Failed to read compressed data from file!");
             return status(false);
         }
 
@@ -388,7 +388,7 @@ namespace Engine
         Class* object_class = Class::find_class(entry.class_name);
         if (object_class == nullptr)
         {
-            logger->error("Package: Cannot find class '%s', skip loading!", entry.class_name.c_str());
+            logger->error("Package", "Cannot find class '%s', skip loading!", entry.class_name.c_str());
             return false;
         }
 
@@ -396,7 +396,7 @@ namespace Engine
 
         if (entry.object == nullptr)
         {
-            logger->error("Package: Failed to create instance '%s'", entry.class_name.c_str());
+            logger->error("Package", "Failed to create instance '%s'", entry.class_name.c_str());
             return false;
         }
 
@@ -404,7 +404,7 @@ namespace Engine
 
         if (!entry.object->archive_process(&ar))
         {
-            error_log("Package: Failed to load object '%s'", entry.name.c_str());
+            error_log("Package", "Failed to load object '%s'", entry.name.c_str());
             entry.object->mark_for_delete(true);
             return false;
         }
@@ -440,7 +440,7 @@ namespace Engine
         Vector<HeaderEntry> header;
         if (!(ar & header))
         {
-            logger->error("Package: Failed to read header from file!");
+            logger->error("Package", "Failed to read header from file!");
             return false;
         }
 
@@ -503,7 +503,7 @@ namespace Engine
             Vector<HeaderEntry> header;
             if (!(ar & header))
             {
-                logger->error("Package: Failed to read header from file!");
+                logger->error("Package", "Failed to read header from file!");
                 return nullptr;
             }
 

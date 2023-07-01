@@ -26,7 +26,7 @@ namespace Engine
 
         if (img.empty())
         {
-            info_log("Skybox: Failed to load skybox\n");
+            info_log("Skybox", "Failed to load skybox\n");
             return *this;
         }
 

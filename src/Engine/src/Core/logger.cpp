@@ -60,27 +60,27 @@ static void set_output_color(ConsoleColor color, FILE* output)
 
 namespace Engine
 {
-    Logger& Logger::log(const char* format, ...)
+    Logger& Logger::log(const char* tag, const char* format, ...)
     {
         return *this;
     }
 
-    Logger& Logger::debug(const char* format, ...)
+    Logger& Logger::debug(const char* tag, const char* format, ...)
     {
         return *this;
     }
 
-    Logger& Logger::warning(const char* format, ...)
+    Logger& Logger::warning(const char* tag, const char* format, ...)
     {
         return *this;
     }
 
-    Logger& Logger::error(const char* format, ...)
+    Logger& Logger::error(const char* tag, const char* format, ...)
     {
         return *this;
     }
 
-    Logger& Logger::error(const String& msg, const MessageList& messages)
+    Logger& Logger::error(const char* tag, const String& msg, const MessageList& messages)
     {
         return *this;
     }
@@ -94,17 +94,18 @@ namespace Engine
             return ((first == args) || ...);
         }
 
-        void write_message(PrioType prio_type, const char* format, va_list& args, FILE* out, ConsoleColor color)
+        void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out,
+                           ConsoleColor color)
         {
 #if PLATFORM_ANDROID
-            __android_log_vprint(prio_type, EngineInstance::project_name().c_str(), format, args);
+            __android_log_vprint(prio_type, tag, format, args);
 #else
             char buffer[80];
             std::time_t now = std::time(nullptr);
             std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 
             set_output_color(color, out);
-            fprintf(out, "[%6s][%s]: ", prio_type, buffer);
+            fprintf(out, "[%6s][%s][%s]: ", prio_type, buffer, tag);
 
             vfprintf(out, format, args);
             set_output_color(RESET_COLOR, out);
@@ -121,49 +122,49 @@ namespace Engine
 
 
     public:
-        BasicLogger& log(const char* format, ...)
+        BasicLogger& log(const char* tag, const char* format, ...)
         {
             va_list args;
             va_start(args, format);
-            write_message(INFO_PRIO, format, args, stdout, GREEN);
+            write_message(INFO_PRIO, tag, format, args, stdout, GREEN);
             va_end(args);
 
             return *this;
         }
 
-        BasicLogger& debug(const char* format, ...)
+        BasicLogger& debug(const char* tag, const char* format, ...)
         {
 #ifdef TRINEX_ENGINE_DEBUG
             va_list args;
             va_start(args, format);
-            write_message(DEBUG_PRIO, format, args, stdout, GREEN);
+            write_message(DEBUG_PRIO, tag, format, args, stdout, GREEN);
             va_end(args);
 #endif
             return *this;
         }
 
-        BasicLogger& warning(const char* format, ...)
+        BasicLogger& warning(const char* tag, const char* format, ...)
         {
 #ifdef TRINEX_ENGINE_DEBUG
             va_list args;
             va_start(args, format);
-            write_message(WARNING_PRIO, format, args, stdout, BLUE);
+            write_message(WARNING_PRIO, tag, format, args, stdout, BLUE);
             va_end(args);
 #endif
             return *this;
         }
 
 
-        BasicLogger& error(const char* format, ...)
+        BasicLogger& error(const char* tag, const char* format, ...)
         {
             va_list args;
             va_start(args, format);
-            write_message(ERROR_PRIO, format, args, stderr, RED);
+            write_message(ERROR_PRIO, tag, format, args, stderr, RED);
             va_end(args);
             return *this;
         }
 
-        BasicLogger& error(const String& msg, const MessageList& messages)
+        BasicLogger& error(const char* tag, const String& msg, const MessageList& messages)
         {
             return *this;
         }

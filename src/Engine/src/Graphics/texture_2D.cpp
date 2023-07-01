@@ -58,7 +58,7 @@ namespace Engine
         }
         else
         {
-            info_log("Image data: %zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
+            info_log("Image data", "%zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
             params.mipmap_count =
                     static_cast<MipMapLevel>(std::floor(std::log2(std::max(
                             static_cast<MipMapLevel>(image.width()), static_cast<MipMapLevel>(image.height()))))) +
@@ -85,7 +85,7 @@ namespace Engine
     Texture2D& Texture2D::load(const String& path)
     {
         destroy();
-        info_log("Loading Texture '%s'\n", path.c_str());
+        info_log("Texture2D", "Loading Texture '%s'\n", path.c_str());
         Image image(path, true);
         return load(image);
     }
@@ -94,7 +94,7 @@ namespace Engine
     {
         if (!_M_resources || _M_resources->images.size() == 0)
         {
-            info_log("Texture2D: Cannot find resources for texture '%s'", full_name().c_str());
+            info_log("Texture2D", "Cannot find resources for texture '%s'", full_name().c_str());
             return false;
         }
 

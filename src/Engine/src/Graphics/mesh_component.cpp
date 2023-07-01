@@ -148,7 +148,7 @@ namespace Engine
 
         if (!((*archive) & lods))
         {
-            error_log("MeshComponent: Failed to process lods!");
+            error_log("MeshComponent", "Failed to process lods!");
             return false;
         }
 
@@ -174,7 +174,7 @@ namespace Engine
 
         if (!((*archive) & info.entries))
         {
-            error_log("StaticMeshComponent: Failed to process MeshComponent info");
+            error_log("StaticMeshComponent", "Failed to process MeshComponent info");
             return false;
         }
 
@@ -191,7 +191,7 @@ namespace Engine
 
         if (!((*archive) & info.entries))
         {
-            error_log("StaticMeshComponent: Failed to process MeshComponent info");
+            error_log("StaticMeshComponent", "Failed to process MeshComponent info");
             return false;
         }
 

@@ -6,6 +6,9 @@
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
+#include <Core/system.hpp>
+#include <Core/string_functions.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
 #include <Sensors/sensor.hpp>
@@ -18,6 +21,10 @@
 
 namespace Engine
 {
+    System::~System()
+    {}
+
+
     extern void trinex_init_sdl();
     extern void trinex_terminate_sdl();
 
@@ -60,14 +67,14 @@ namespace Engine
         return &window;
     }
 
-    SystemType EngineInstance::system_type() const
+    SystemName EngineInstance::system_type() const
     {
-#if defined(WIN32)
-        return SystemType::WindowsOS;
-#elif defined(__ANDROID__)
-        return SystemType::AndroidOS;
+#if PLATFORM_WINDOWS
+        return SystemName::WindowsOS;
+#elif PLATFORM_ANDROID
+        return SystemName::AndroidOS;
 #else
-        return SystemType::LinuxOS;
+        return SystemName::LinuxOS;
 #endif
     }
 
@@ -81,7 +88,7 @@ namespace Engine
 
     bool EngineInstance::is_inited() const
     {
-        return _M_is_inited;
+        return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)];
     }
 
     static EngineAPI get_api_by_name(const String& name)
@@ -186,7 +193,7 @@ namespace Engine
 
     int EngineInstance::start(int argc, char** argv)
     {
-        if (_M_is_inited)
+        if (is_inited())
         {
             return -1;
         }
@@ -219,7 +226,7 @@ namespace Engine
 
         initialize_list().clear();
 
-        logger->log("Engine: Work dir is '%s'", root_manager->work_dir().c_str());
+        logger->log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
         engine_config.init((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
 
         Lua::Interpretter::init_lua_dir();
@@ -240,7 +247,7 @@ namespace Engine
         _M_api_interface->logger(logger);
         Monitor::update();
         Sensor::update_sensors_info();
-        _M_is_inited = true;
+        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
         if (engine_config.max_g_buffer_height < 200)
         {
@@ -255,11 +262,11 @@ namespace Engine
         auto status = command_let->execute(argc - 1, argv + 1);
         if (status == 0)
         {
-            info_log("Engine: Commandlet execution success!");
+            info_log("EngineInstance", "Commandlet execution success!");
         }
         else
         {
-            info_log("Engine: Failed to execute commandlet. Error code: %d", status);
+            info_log("EngineInstance", "Failed to execute commandlet. Error code: %d", status);
         }
 
         return status;
@@ -318,7 +325,18 @@ stack_address:
 
     bool EngineInstance::is_shuting_down() const
     {
-        return _M_is_shuting_down;
+        return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)];
+    }
+
+    bool EngineInstance::is_requesting_exit() const
+    {
+        return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)];
+    }
+
+    EngineInstance& EngineInstance::requesting_exit()
+    {
+        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)] = true;
+        return *this;
     }
 
     EngineInstance& EngineInstance::trigger_terminate_functions()
@@ -331,10 +349,69 @@ stack_address:
         return *this;
     }
 
+
+    EngineInstance& EngineInstance::launch_systems()
+    {
+        if (_M_systems.empty())
+        {
+            return *this;
+        }
+
+        auto wait_all = [this]() {
+            for (SystemEntry& entry : _M_systems)
+            {
+                entry._M_thread->wait_all();
+            }
+        };
+
+        // Initialize threads for each system and call initialize method
+        for (SystemEntry& entry : _M_systems)
+        {
+            entry._M_thread = entry._M_name.empty() ? new Thread() : new Thread(entry._M_name);
+            entry._M_thread->push_unique_task(&System::init, entry._M_system);
+        }
+
+        // Wait initialization of all systems and push update method to task list in thread
+        for (SystemEntry& entry : _M_systems)
+        {
+            entry._M_thread->wait_all();
+            entry._M_thread->push_task(&System::update, entry._M_system);
+        }
+
+        // Update systems
+        while (!is_requesting_exit())
+        {
+            for (SystemEntry& entry : _M_systems)
+            {
+                entry._M_thread->restart_tasks();
+            }
+
+            wait_all();
+        }
+
+        // Terminate systems
+        for (SystemEntry& entry : _M_systems)
+        {
+            entry._M_thread->remove_all_tasks();
+            entry._M_thread->push_unique_task(&System::terminate, entry._M_system);
+        }
+
+        wait_all();
+
+        return *this;
+    }
+
     EngineInstance::~EngineInstance()
     {
-        _M_is_shuting_down = true;
-        info_log("Engine: Terminate Engine");
+        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)] = true;
+        info_log("EngineInstance", "Terminate Engine");
+
+        for (SystemEntry& system : _M_systems)
+        {
+            delete system._M_thread;
+            delete system._M_system;
+        }
+
         engine_instance->trigger_terminate_functions();
         Object::force_garbage_collection();
 
@@ -344,8 +421,8 @@ stack_address:
         delete _M_api_interface;
         trinex_terminate_sdl();
 
-        _M_api_interface = nullptr;
-        _M_is_inited     = false;
+        _M_api_interface                                                    = nullptr;
+        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
     }
 
     bool EngineInstance::check_format_support(PixelType type, PixelComponentType component)
@@ -376,7 +453,7 @@ stack_address:
     {
         engine_instance = EngineInstance::create_instance();
 
-        if (!engine_instance->_M_is_inited)
+        if (!engine_instance->is_inited())
         {
             int result = 0;
             try

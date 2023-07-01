@@ -71,6 +71,7 @@ namespace Engine
         Thread& auto_restart(bool flag);
         Thread& restart_tasks();
         Thread& wait_all();
+        Thread& remove_all_tasks();
 
         static Thread* this_thread();
 

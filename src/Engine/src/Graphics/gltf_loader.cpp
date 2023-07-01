@@ -92,7 +92,7 @@ namespace Engine::GLTF
     {
         if (primitive.indices < 0)
         {
-            error_log("GLTF: Cannot load object without indices array!");
+            error_log("GLTF", "Cannot load object without indices array!");
             return nullptr;
         }
 

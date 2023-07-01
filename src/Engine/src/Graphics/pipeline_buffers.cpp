@@ -25,7 +25,7 @@ namespace Engine
         {
             if (!((*archive) & *_M_resources))
             {
-                error_log("Pipeline Buffer: Failed to process resources!");
+                error_log("Pipeline Buffer", "Failed to process resources!");
                 return false;
             }
 
@@ -35,7 +35,7 @@ namespace Engine
 
         if (archive->is_saving())
         {
-            error_log("Pipeline Buffer: Cannot find resources!");
+            error_log("Pipeline Buffer", "Cannot find resources!");
             return false;
         }
 
@@ -47,7 +47,7 @@ namespace Engine
     {
         if (_M_resources == nullptr)
         {
-            error_log("IndexBuffer: Cannot create vertex buffer: No resources found!");
+            error_log("IndexBuffer", "Cannot create vertex buffer: No resources found!");
             return *this;
         }
 
@@ -117,7 +117,7 @@ namespace Engine
     {
         if (_M_resources == nullptr)
         {
-            error_log("IndexBuffer: Cannot create index buffer: No resources found!");
+            error_log("IndexBuffer", "Cannot create index buffer: No resources found!");
             return *this;
         }
 
@@ -173,7 +173,7 @@ namespace Engine
 
         if (!((*archive) & _M_component))
         {
-            error_log("Index Buffer: Failed to process component type!");
+            error_log("Index Buffer", "Failed to process component type!");
             return false;
         }
 

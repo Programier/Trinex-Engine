@@ -9,14 +9,14 @@ namespace Engine
 {
     static void delete_cursor(void* cursor)
     {
-        info_log("Cursor: Destroy cursor: %p\n", cursor);
+        info_log("Cursor", "Destroy cursor: %p\n", cursor);
         if (cursor)
             SDL_FreeCursor(static_cast<SDL_Cursor*>(cursor));
     }
 
     static void delete_surface(void* surface)
     {
-        info_log("Cursor: Destroy surface: %p\n", surface);
+        info_log("Cursor", "Destroy surface: %p\n", surface);
         if (surface)
             SDL_FreeSurface(static_cast<SDL_Surface*>(surface));
     }
@@ -32,7 +32,7 @@ namespace Engine
                 SDL_CreateColorCursor(static_cast<SDL_Surface*>(_M_SDL_surface.get()), _M_x_hotspot, _M_y_hotspot),
                 delete_cursor);
         if (!_M_SDL_cursor.get())
-            info_log("Cursor: Failed to load cursor\n");
+            info_log("Cursor", "Failed to load cursor\n");
     }
 
     Cursor::Cursor() : _M_SDL_cursor(nullptr)
@@ -61,10 +61,10 @@ namespace Engine
     {
         if (this == &cursor)
             return *this;
-        _M_image = cursor._M_image;
-        _M_x_hotspot = cursor._M_x_hotspot;
-        _M_y_hotspot = cursor._M_y_hotspot;
-        _M_SDL_cursor = cursor._M_SDL_cursor;
+        _M_image       = cursor._M_image;
+        _M_x_hotspot   = cursor._M_x_hotspot;
+        _M_y_hotspot   = cursor._M_y_hotspot;
+        _M_SDL_cursor  = cursor._M_SDL_cursor;
         _M_SDL_surface = cursor._M_SDL_surface;
         return *this;
     }
@@ -113,7 +113,7 @@ namespace Engine
 
     Cursor::~Cursor()
     {
-        _M_SDL_cursor = nullptr;
+        _M_SDL_cursor  = nullptr;
         _M_SDL_surface = nullptr;
     }
 

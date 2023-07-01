@@ -55,24 +55,25 @@ namespace Engine
 
         if (status == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT)
         {
-            opengl_debug_log("Incomplete framebuffer attachments\n");
+            opengl_debug_log("Framebuffer", "Incomplete framebuffer attachments\n");
         }
         else if (status == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT)
         {
-            opengl_debug_log("incomplete missing framebuffer attachments");
+            opengl_debug_log("Framebuffer", "incomplete missing framebuffer attachments");
         }
         else if (status == GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS)
         {
-            opengl_debug_log("Incomplete framebuffer attachments dimensions\n");
+            opengl_debug_log("Framebuffer", "Incomplete framebuffer attachments dimensions\n");
         }
         else if (status == GL_FRAMEBUFFER_UNSUPPORTED)
         {
-            opengl_debug_log("Combination of internal formats used by attachments in thef ramebuffer results in a "
+            opengl_debug_log("Framebuffer",
+                             "Combination of internal formats used by attachments in thef ramebuffer results in a "
                              "nonrednerable target");
         }
         else
         {
-            opengl_debug_log("Framebuffer: Attach success!\n");
+            opengl_debug_log("Framebuffer", "Attach success!\n");
         }
         return *this;
     }
@@ -92,7 +93,8 @@ namespace Engine
 
         for (auto& color_attachment : buffer.color_attachments)
         {
-            opengl_debug_log("Attaching texture[%d] to buffer %p", (int) color_attachment.texture_id, this);
+            opengl_debug_log("Framebuffer", "Attaching texture[%d] to buffer %p", (int) color_attachment.texture_id,
+                             this);
             attach_texture(color_attachment, GL_COLOR_ATTACHMENT0 + index);
             attachments[index] = GL_COLOR_ATTACHMENT0 + index;
 

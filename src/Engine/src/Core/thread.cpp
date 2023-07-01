@@ -209,6 +209,14 @@ namespace Engine
         return *this;
     }
 
+    Thread& Thread::remove_all_tasks()
+    {
+        std::unique_lock lock(_M_mutex);
+        _M_tasks.clear();
+        _M_current = _M_tasks.begin();
+        return *this;
+    }
+
     Thread* Thread::this_thread()
     {
         return _M_instance;

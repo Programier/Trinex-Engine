@@ -64,7 +64,7 @@ namespace Engine
                 lua_class.set(Lua::base_classes, base_classes);
             }
 
-            info_log("Class: Start initialize class '%s'", current->name().c_str());
+            info_log("Class", "Class: Start initialize class '%s'", current->name().c_str());
 
             for (auto invoker : current->_M_lua_invokers)
             {

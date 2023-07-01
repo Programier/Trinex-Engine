@@ -6,7 +6,8 @@ namespace Engine
 {
     int CommandLet::execute(int argc, char** argv)
     {
-        info_log("CommandLet: You must override method 'int execute(int argc, char** argv)' for usin your commandlet!");
+        info_log("CommandLet",
+                 "You must override method 'int execute(int argc, char** argv)' for using your commandlet!");
         return 0;
     }
 
