@@ -1,11 +1,7 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
-#include <Core/predef.hpp>
-
 #include <sstream>
-#include <string>
 
 namespace Engine::Strings
 {
@@ -31,6 +27,7 @@ namespace Engine::Strings
 
     ENGINE_EXPORT String c_style_format(const char* text, ...);
     ENGINE_EXPORT std::wstring to_wstring(const String& str);
+    ENGINE_EXPORT std::wstring to_wstring(const char* str);
     ENGINE_EXPORT String lstrip(String line, const String& chars = " ");
     ENGINE_EXPORT String rstrip(String line, const String& chars = " ");
     ENGINE_EXPORT String lstrip(String line, bool(*callback)(char ch));

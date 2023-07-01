@@ -1,7 +1,6 @@
 #include <Core/config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/exception.hpp>
-#include <Core/export.hpp>
 #include <lz4hc.h>
 #include <type_traits>
 

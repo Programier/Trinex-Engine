@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
 #include <stdexcept>
 
 namespace Engine
@@ -13,4 +12,8 @@ namespace Engine
     };
 
     using CriticalError = std::runtime_error;
+
+#define trinex_check(expression)                                                                                       \
+    if (!(expression))                                                                                                 \
+    throw Engine::EngineException("Assertion failed: " + String(#expression))
 }// namespace Engine

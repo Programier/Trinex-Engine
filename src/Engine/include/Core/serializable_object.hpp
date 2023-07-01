@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/exception.hpp>
-#include <Core/export.hpp>
 
 
 namespace Engine

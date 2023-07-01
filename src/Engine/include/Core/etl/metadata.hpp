@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/export.hpp>
 
 namespace Engine
 {

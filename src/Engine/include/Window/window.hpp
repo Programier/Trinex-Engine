@@ -3,7 +3,6 @@
 #include <Core/callback.hpp>
 #include <Core/color.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Core/export.hpp>
 #include <Core/keyboard.hpp>
 #include <Event/event.hpp>
 #include <Graphics/basic_framebuffer.hpp>

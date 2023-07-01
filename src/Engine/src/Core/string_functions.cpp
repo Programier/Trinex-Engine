@@ -20,6 +20,11 @@ namespace Engine::Strings
         return convertor().from_bytes(str);
     }
 
+    ENGINE_EXPORT std::wstring to_wstring(const char* str)
+    {
+        return convertor().from_bytes(str);
+    }
+
     ENGINE_EXPORT String c_style_format(const char* text, ...)
     {
         va_list args;

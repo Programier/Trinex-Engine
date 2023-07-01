@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
 #include <Core/implement.hpp>
 #include <Graphics/frustum.hpp>
 #include <Graphics/ray.hpp>

@@ -1,7 +1,5 @@
 #pragma once
-#include <Core/exception.hpp>
 #include <Core/export.hpp>
-#include <cassert>
 
 #if defined(_WIN32)
 #define PLATFORM_WINDOWS 1
@@ -42,14 +40,9 @@
 
 
 #define FILE_POS_INFO                                                                                                  \
-(std::string(__FILE__ ":") + std::to_string(__LINE__) + std::string(": ") + std::string(__PRETTY_FUNCTION__))
+(String(__FILE__ ":") + std::to_string(__LINE__) + String(": ") + String(__PRETTY_FUNCTION__))
 
-#define not_implemented FILE_POS_INFO + std::string("\n\tError: Method or function is not implemented!")
-
-
-#define trinex_check(expression)                                                                                       \
-    if (!(expression))                                                                                                 \
-    throw Engine::EngineException("Assertion failed: " + std::string(#expression))
+#define not_implemented FILE_POS_INFO + String("\n\tError: Method or function is not implemented!")
 
 
 #define DISABLE_ALIGN __attribute((packed))

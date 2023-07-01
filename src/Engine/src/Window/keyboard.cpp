@@ -1,5 +1,4 @@
 #include <Core/keyboard.hpp>
-#include <Core/predef.hpp>
 #include <SDL_keyboard.h>
 #include <SDL_mouse.h>
 
@@ -280,7 +279,7 @@ namespace Engine
         return reversed_keyboard.at(value);
     }
 
-    ENGINE_EXPORT const std::string& get_key_name(const Key& key)
+    ENGINE_EXPORT const String& get_key_name(const Key& key)
     {
         return key_names.at(key);
     }

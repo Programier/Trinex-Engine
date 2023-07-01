@@ -3,7 +3,6 @@
 #include <Core/constants.hpp>
 #include <Core/object_ref.hpp>
 #include <Core/pointer.hpp>
-#include <Core/predef.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Core/scene_component.hpp>
 

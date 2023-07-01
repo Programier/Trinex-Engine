@@ -1,4 +1,3 @@
-#include <Core/predef.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_async_command_buffer.hpp>
 #include <vulkan_framebuffer.hpp>

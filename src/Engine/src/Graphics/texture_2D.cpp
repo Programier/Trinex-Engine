@@ -4,7 +4,6 @@
 #include <Core/engine.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
-#include <Core/predef.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 #include <api.hpp>

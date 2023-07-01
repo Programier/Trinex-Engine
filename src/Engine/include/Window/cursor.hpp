@@ -1,6 +1,5 @@
 #pragma once
 #include <Image/image.hpp>
-#include <Core/export.hpp>
 
 
 namespace Engine

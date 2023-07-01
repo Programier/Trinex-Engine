@@ -6,6 +6,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <string>
 #include <typeindex>
+#include <Core/predef.hpp>
 
 namespace Engine
 {
@@ -200,7 +201,10 @@ namespace Engine
     using ObjectArray = Vector<class Object*>;
 
 #define TRINEX_ENGINE_FLAG 1414678092U
+
+
 }// namespace Engine
+
 
 
 // PRINTING GLM OBJECT

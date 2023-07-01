@@ -4,7 +4,6 @@
 #include <Core/engine.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
-#include <Core/predef.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <api.hpp>
 

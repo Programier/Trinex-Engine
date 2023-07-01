@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/predef.hpp>
 #include <Event/event.hpp>
 #include <functional>
 

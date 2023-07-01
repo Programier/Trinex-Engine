@@ -3,7 +3,6 @@
 #include <Core/buffer_types.hpp>
 #include <Core/color.hpp>
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
 #include <Core/mapped_memory.hpp>
 #include <Core/render_types.hpp>
 #include <Core/shader_types.hpp>

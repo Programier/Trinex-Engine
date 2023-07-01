@@ -4,7 +4,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/logger.hpp>
-#include <Core/predef.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <SDL.h>
@@ -110,7 +109,7 @@ Window* Window::init(float width, float height, const String& title, uint16_t at
 
     _M_limits.max = Monitor::size();
 
-    auto error = [](const std::string& msg = "") {
+    auto error = [](const String& msg = "") {
         info_log("Window: Failed to create new window, error: '%s'\n", msg.c_str());
         Window::_M_instance->close();
         throw std::runtime_error("Window: Failed to create Window");
@@ -700,7 +699,7 @@ Window* Window::set_orientation(uint_t orientation)
         return Window::_M_instance;
     }
 
-    std::string result;
+    String result;
     for (auto ell : orientations)
     {
         if (orientation & ell)

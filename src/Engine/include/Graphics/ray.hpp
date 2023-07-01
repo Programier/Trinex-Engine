@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Core/export.hpp>
 #include <Core/object.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/constants.hpp>

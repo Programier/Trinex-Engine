@@ -1,7 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
-#include <Core/predef.hpp>
 #include <Graphics/mesh_component.hpp>
 #include <Graphics/skybox.hpp>
 

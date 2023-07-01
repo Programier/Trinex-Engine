@@ -6,7 +6,6 @@
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
-#include <Core/predef.hpp>
 #include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
 #include <Sensors/sensor.hpp>

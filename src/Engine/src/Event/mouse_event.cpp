@@ -1,4 +1,3 @@
-#include <Core/predef.hpp>
 #include <Event/keyboard_event.hpp>
 #include <Event/mouse_event.hpp>
 #include <SDL_events.h>

@@ -2,7 +2,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/metadata.hpp>
 #include <Core/etl/type_traits.hpp>
-#include <Core/export.hpp>
 #include <Core/implement.hpp>
 #include <Core/memory_manager.hpp>
 #include <Core/serializable_object.hpp>

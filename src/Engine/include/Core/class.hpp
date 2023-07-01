@@ -3,7 +3,6 @@
 #include <Core/engine_lua.hpp>
 #include <Core/etl/deffered_method_invoker.hpp>
 #include <Core/object.hpp>
-#include <Core/predef.hpp>
 
 
 namespace Engine

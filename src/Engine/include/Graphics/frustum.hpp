@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/export.hpp>
 #include <Graphics/camera.hpp>
 
 

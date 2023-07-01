@@ -2,7 +2,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
-#include <Core/export.hpp>
 #include <Core/object.hpp>
 #include <istream>
 #include <ostream>

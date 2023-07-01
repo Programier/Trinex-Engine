@@ -4,8 +4,6 @@
 #include <Graphics/hitbox.hpp>
 #include <array>
 
-#include <Core/predef.hpp>
-
 
 namespace Engine
 {

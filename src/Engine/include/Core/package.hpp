@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Core/export.hpp>
 #include <Core/implement.hpp>
 #include <Core/object.hpp>
 
