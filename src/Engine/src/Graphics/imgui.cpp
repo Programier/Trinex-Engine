@@ -42,7 +42,7 @@ namespace Engine::ImGuiRenderer
         switch (engine_instance->api())
         {
             case Engine::EngineAPI::OpenGL:
-                ImGui_ImplSDL2_InitForOpenGL(imgui_data.window, Window::instance()->SDL_OpenGL_context());
+                ImGui_ImplSDL2_InitForOpenGL(imgui_data.window, Window::instance()->api_context());
                 break;
 
             case Engine::EngineAPI::Vulkan:

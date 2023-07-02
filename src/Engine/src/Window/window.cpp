@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/logger.hpp>
@@ -17,9 +17,8 @@
 using namespace Engine;
 
 
-#define win_init_error throw std::runtime_error("Init window first")
+#define win_init_error throw EngineException("Init window first")
 
-#define sdl_window _M_window
 #define check_init(value)                                                                                              \
     if (!_M_is_inited)                                                                                                 \
     return value
@@ -83,7 +82,7 @@ Window* Window::window      = nullptr;
 
 Window* Window::free_icon_surface()
 {
-    SDL_SetWindowIcon(sdl_window, nullptr);
+    SDL_SetWindowIcon(_M_window, nullptr);
     if (_M_icon_surface)
     {
         info_log("Window", "Destroy icon surface\n");
@@ -95,6 +94,13 @@ Window* Window::free_icon_surface()
 
 //          WINDOW INITIALIZATION
 
+
+static void window_initialize_error(const String& msg)
+{
+    info_log("Window", "Failed to initialize new window, error: '%s'\n", msg.c_str());
+    Window::instance()->close();
+    throw EngineException("Failed to create Window");
+}
 
 Window* Window::init(float width, float height, const String& title, uint16_t attributes)
 {
@@ -109,12 +115,6 @@ Window* Window::init(float width, float height, const String& title, uint16_t at
 
     _M_limits.max = Monitor::size();
 
-    auto error = [](const String& msg = "") {
-        info_log("Window", "Failed to create new window, error: '%s'\n", msg.c_str());
-        Window::_M_instance->close();
-        throw EngineException("Failed to create Window");
-    };
-
     info_log("Window", "Creating new window '%s'\n", title.c_str());
 
     uint32_t attrib = to_sdl_attrib(parse_win_attibutes(attributes));
@@ -126,34 +126,18 @@ Window* Window::init(float width, float height, const String& title, uint16_t at
     auto sdl_window_api =
             (EngineInstance::instance()->api() == EngineAPI::OpenGL ? SDL_WINDOW_OPENGL : SDL_WINDOW_VULKAN);
 
-    sdl_window = SDL_CreateWindow(_M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                  static_cast<int>(width), static_cast<int>(height),
-                                  sdl_window_api | SDL_WINDOW_SHOWN | attrib);
+    _M_window = SDL_CreateWindow(_M_title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                                 static_cast<int>(width), static_cast<int>(height),
+                                 sdl_window_api | SDL_WINDOW_SHOWN | attrib);
 
-    if (sdl_window == nullptr)
-        error(SDL_GetError());
-
-    _M_GL_context = EngineInstance::instance()->api_interface()->init_window(sdl_window);
-    if (_M_GL_context == nullptr)
-    {
-        error("External error");
-    }
-
+    if (_M_window == nullptr)
+        window_initialize_error(SDL_GetError());
 
     _M_size = {width, height};
     Window::size_limits(_M_limits);
 
-    // Init shaders
     _M_is_inited = true;
-    _M_flags     = SDL_GetWindowFlags(sdl_window);
-
-    update_view_port()->update_scissor();
-    swap_interval(1);
-
-    if (engine_config.enable_g_buffer && GBuffer::instance() == nullptr)
-    {
-        GBuffer::init_g_buffer();
-    }
+    _M_flags     = SDL_GetWindowFlags(_M_window);
 
     return Window::_M_instance;
 }
@@ -220,7 +204,7 @@ Size1D Window::width() const
 const Window* Window::width(const Size1D& width) const
 {
     check_init(Window::_M_instance);
-    SDL_SetWindowSize(sdl_window, static_cast<int>(width), static_cast<int>(_M_size.y));
+    SDL_SetWindowSize(_M_window, static_cast<int>(width), static_cast<int>(_M_size.y));
     return Window::_M_instance;
 }
 
@@ -232,7 +216,7 @@ Size1D Window::height() const
 const Window* Window::height(const Size1D& height) const
 {
     check_init(Window::_M_instance);
-    SDL_SetWindowSize(sdl_window, static_cast<int>(_M_size.x), static_cast<int>(height));
+    SDL_SetWindowSize(_M_window, static_cast<int>(_M_size.x), static_cast<int>(height));
     return Window::_M_instance;
 }
 
@@ -244,7 +228,7 @@ const Size2D& Window::size() const
 const Window* Window::size(const Size2D& size) const
 {
     check_init(Window::_M_instance);
-    SDL_SetWindowSize(sdl_window, static_cast<int>(size.x), static_cast<int>(size.y));
+    SDL_SetWindowSize(_M_window, static_cast<int>(size.x), static_cast<int>(size.y));
     return Window::_M_instance;
 }
 
@@ -331,7 +315,7 @@ Window* Window::title(const String& title)
 
     check_init(Window::_M_instance);
     _M_title = title;
-    SDL_SetWindowTitle(sdl_window, _M_title.c_str());
+    SDL_SetWindowTitle(_M_window, _M_title.c_str());
     return Window::_M_instance;
 }
 
@@ -345,7 +329,7 @@ const Point2D& Window::position() const
 const Window* Window::position(const Point2D& position) const
 {
     if (_M_is_inited)
-        SDL_SetWindowPosition(sdl_window, static_cast<int>(position.x), static_cast<int>(position.y));
+        SDL_SetWindowPosition(_M_window, static_cast<int>(position.x), static_cast<int>(position.y));
     return Window::_M_instance;
 }
 
@@ -370,7 +354,7 @@ bool Window::rezisable() const
 const Window* Window::rezisable(bool value) const
 {
     check_init(Window::_M_instance);
-    SDL_SetWindowResizable(sdl_window, static_cast<SDL_bool>(value));
+    SDL_SetWindowResizable(_M_window, static_cast<SDL_bool>(value));
     return Window::_M_instance;
 }
 
@@ -378,7 +362,7 @@ const Window* Window::rezisable(bool value) const
 const Window* Window::focus() const
 {
     check_init(Window::_M_instance);
-    SDL_SetWindowInputFocus(sdl_window);
+    SDL_SetWindowInputFocus(_M_window);
     return Window::_M_instance;
 }
 
@@ -391,14 +375,14 @@ bool Window::focused() const
 const Window* Window::show() const
 {
     check_init(Window::_M_instance);
-    SDL_ShowWindow(sdl_window);
+    SDL_ShowWindow(_M_window);
     return Window::_M_instance;
 }
 
 const Window* Window::hide() const
 {
     check_init(Window::_M_instance);
-    SDL_HideWindow(sdl_window);
+    SDL_HideWindow(_M_window);
     return Window::_M_instance;
 }
 
@@ -418,7 +402,7 @@ bool Window::is_iconify() const
 const Window* Window::iconify() const
 {
     check_init(Window::_M_instance);
-    SDL_MinimizeWindow(sdl_window);
+    SDL_MinimizeWindow(_M_window);
     return Window::_M_instance;
 }
 
@@ -431,7 +415,7 @@ bool Window::is_restored() const
 const Window* Window::restore() const
 {
     check_init(Window::_M_instance);
-    SDL_RestoreWindow(sdl_window);
+    SDL_RestoreWindow(_M_window);
     return Window::_M_instance;
 }
 
@@ -439,7 +423,7 @@ const Window* Window::restore() const
 const Window* Window::opacity(float value) const
 {
     check_init(Window::_M_instance);
-    SDL_SetWindowOpacity(sdl_window, value);
+    SDL_SetWindowOpacity(_M_window, value);
     return Window::_M_instance;
 }
 
@@ -447,7 +431,7 @@ float Window::opacity() const
 {
     check_init(0.f);
     float _M_opacity = 0.f;
-    SDL_GetWindowOpacity(sdl_window, &_M_opacity);
+    SDL_GetWindowOpacity(_M_window, &_M_opacity);
     return _M_opacity;
 }
 
@@ -456,8 +440,8 @@ Window* Window::size_limits(const SizeLimits2D& limits)
 {
     check_init(Window::_M_instance);
     _M_limits = limits;
-    SDL_SetWindowMaximumSize(sdl_window, static_cast<int>(_M_limits.max.x), static_cast<int>(_M_limits.max.y));
-    SDL_SetWindowMinimumSize(sdl_window, static_cast<int>(_M_limits.min.x), static_cast<int>(_M_limits.min.y));
+    SDL_SetWindowMaximumSize(_M_window, static_cast<int>(_M_limits.max.x), static_cast<int>(_M_limits.max.y));
+    SDL_SetWindowMinimumSize(_M_window, static_cast<int>(_M_limits.min.x), static_cast<int>(_M_limits.min.y));
     return Window::_M_instance;
 }
 
@@ -485,7 +469,7 @@ Window* Window::icon(const Image& image)
     _M_icon.add_alpha_channel();
     free_icon_surface();
     _M_icon_surface = create_sdl_surface(_M_icon);
-    SDL_SetWindowIcon(sdl_window, _M_icon_surface);
+    SDL_SetWindowIcon(_M_window, _M_icon_surface);
     return Window::_M_instance;
 }
 
@@ -495,7 +479,7 @@ Window* Window::icon(const String& image)
     _M_icon.load(image);
     free_icon_surface();
     _M_icon_surface = create_sdl_surface(_M_icon);
-    SDL_SetWindowIcon(sdl_window, _M_icon_surface);
+    SDL_SetWindowIcon(_M_window, _M_icon_surface);
     return Window::_M_instance;
 }
 
@@ -507,7 +491,7 @@ const Image& Window::icon() const
 Window* Window::attribute(const WindowAttrib& attrib, bool value)
 {
     check_init(Window::_M_instance);
-    _M_flags = SDL_GetWindowFlags(sdl_window);
+    _M_flags = SDL_GetWindowFlags(_M_window);
     try
     {
         auto list = parse_win_attibutes(attrib);
@@ -526,7 +510,7 @@ Window* Window::attribute(const WindowAttrib& attrib, bool value)
             switch (attrib)
             {
                 case WindowAttrib::WinResizable:
-                    SDL_SetWindowResizable(sdl_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowResizable(_M_window, static_cast<SDL_bool>(value));
                     break;
 
                 case WindowAttrib::WinFullScreen:
@@ -550,38 +534,38 @@ Window* Window::attribute(const WindowAttrib& attrib, bool value)
                     break;
                 }
                 case WindowAttrib::WinBorderLess:
-                    SDL_SetWindowBordered(sdl_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowBordered(_M_window, static_cast<SDL_bool>(value));
                     break;
 
                 case WindowAttrib::WinInputFocus:
                 {
                     if (value)
-                        SDL_SetWindowInputFocus(sdl_window);
+                        SDL_SetWindowInputFocus(_M_window);
                     break;
                 }
 
                 case WindowAttrib::WinMinimized:
                 {
                     if (value)
-                        SDL_MinimizeWindow(sdl_window);
+                        SDL_MinimizeWindow(_M_window);
                     break;
                 }
 
                 case WindowAttrib::WinMaximized:
                 {
                     if (value)
-                        SDL_MaximizeWindow(sdl_window);
+                        SDL_MaximizeWindow(_M_window);
                     break;
                 }
                 case WindowAttrib::WinMouseGrabbed:
                 {
-                    SDL_SetWindowMouseGrab(sdl_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowMouseGrab(_M_window, static_cast<SDL_bool>(value));
                     break;
                 }
 
                 case WindowAttrib::WinKeyboardGrabbed:
                 {
-                    SDL_SetWindowKeyboardGrab(sdl_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowKeyboardGrab(_M_window, static_cast<SDL_bool>(value));
                     break;
                 }
 
@@ -600,14 +584,14 @@ Window* Window::attribute(const WindowAttrib& attrib, bool value)
         }
 
         if (fullscreen_mode._M_fullscreen)
-            SDL_SetWindowFullscreen(sdl_window, fullscreen_mode._M_flag);
+            SDL_SetWindowFullscreen(_M_window, fullscreen_mode._M_flag);
     }
     catch (const std::exception& e)
     {
         info_log("Window", "%s\n", e.what());
     }
 
-    _M_flags = SDL_GetWindowFlags(sdl_window);
+    _M_flags = SDL_GetWindowFlags(_M_window);
     return Window::_M_instance;
 }
 
@@ -644,9 +628,9 @@ void* Window::SDL() const
     return static_cast<void*>(_M_window);
 }
 
-void* Window::SDL_OpenGL_context() const
+void* Window::api_context() const
 {
-    return _M_GL_context;
+    return _M_api_context;
 }
 
 
@@ -749,6 +733,34 @@ bool Window::update_scissor_on_resize() const
 }
 
 
+Window* Window::initialize_api()
+{
+    if (!is_api_initialized())
+    {
+        _M_api_context = EngineInstance::instance()->api_interface()->init_window(_M_window);
+        if (_M_api_context == nullptr)
+        {
+            window_initialize_error("Failed to initialize API!");
+        }
+
+        update_view_port()->update_scissor();
+        swap_interval(1);
+
+        if (engine_config.enable_g_buffer && GBuffer::instance() == nullptr)
+        {
+            GBuffer::init_g_buffer();
+        }
+        _M_api_inited = true;
+    }
+
+    return this;
+}
+
+bool Window::is_api_initialized() const
+{
+    return _M_api_inited;
+}
+
 size_t Window::frame_number()
 {
     return event.frame_number();
@@ -812,7 +824,7 @@ namespace Engine
             .set("update_scissor", &Window::update_scissor)
             .set("X11_compositing", &Window::X11_compositing)
             .set("SDL", &Window::SDL)
-            .set("SDL_OpenGL_context", &Window::SDL_OpenGL_context)
+            .set("api_context", &Window::api_context)
             .set("set_orientation", &Window::set_orientation)
             .set("start_text_input", &Window::start_text_input)
             .set("stop_text_input", &Window::stop_text_input)
@@ -821,6 +833,7 @@ namespace Engine
             .set("update_scissor_on_resize", Lua::overload(func_of<bool>(&Window::update_scissor_on_resize),
                                                            func_of<Window*>(&Window::update_scissor_on_resize)))
             .set("frame_number", &Window::frame_number)
+            .set("initialize_api", &Window::initialize_api)
             .set("window", Lua::property([]() -> Window* { return Window::window; }));
 }
 

@@ -57,32 +57,31 @@ namespace Engine
     private:
         static Window* _M_instance;
 
-        SDL_Window* _M_window = nullptr;
-        void* _M_GL_context   = nullptr;
-        bool _M_is_inited     = false;
+        Cursor _M_cursor;
+        Image _M_icon;
         String _M_title;
-
+        Vector<String> _M_dropped_paths;
         SizeLimits2D _M_limits;
+
         Size2D _M_size = {-1, -1};
         Size2D _M_position;
 
-        int_t _M_swap_interval = 1;
-
-        Vector<String> _M_dropped_paths;
-
-        Cursor _M_cursor;
-
-        Image _M_icon;
-        bool _M_enable_ration = false;
-
-        CursorMode _M_cursor_mode           = CursorMode::Normal;
+        SDL_Window* _M_window               = nullptr;
         const char* _M_X11_compositing      = "0";
+        void* _M_api_context                = nullptr;
         struct SDL_Surface* _M_icon_surface = nullptr;
-        bool _M_is_transparent_framebuffer  = false;
-        uint_t _M_flags;
-        bool _M_change_viewport_on_resize = true;
-        bool _M_update_scissor_on_resize  = true;
 
+        int_t _M_swap_interval = 1;
+        uint_t _M_flags;
+
+        CursorMode _M_cursor_mode = CursorMode::Normal;
+
+        bool _M_is_inited : 1                  = false;
+        bool _M_enable_ration : 1              = false;
+        bool _M_is_transparent_framebuffer : 1 = false;
+        bool _M_change_viewport_on_resize : 1  = true;
+        bool _M_update_scissor_on_resize : 1   = true;
+        bool _M_api_inited : 1                 = false;
 
         Window* free_icon_surface();
         void process_window_event(SDL_WindowEvent& event);
@@ -150,7 +149,7 @@ namespace Engine
         Window* update_scissor();
         Window* X11_compositing(bool value);
         void* SDL() const;
-        void* SDL_OpenGL_context() const;
+        void* api_context() const;
         Window* set_orientation(uint_t orientation);
         const Window* start_text_input() const;
         const Window* stop_text_input() const;
@@ -158,7 +157,8 @@ namespace Engine
         bool update_viewport_on_resize() const;
         Window* update_scissor_on_resize(bool value);
         bool update_scissor_on_resize() const;
-
+        Window* initialize_api();
+        bool is_api_initialized() const;
         size_t frame_number();
 
         // Constructors

@@ -165,6 +165,7 @@ namespace Engine
 #else
         Window::window->init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
 #endif
+        Window::window->initialize_api();
         Window::window->vsync(true);
         ImGuiRenderer::init();
 
