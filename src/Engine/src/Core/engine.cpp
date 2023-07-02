@@ -7,7 +7,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/system.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
@@ -21,10 +20,6 @@
 
 namespace Engine
 {
-    System::~System()
-    {}
-
-
     extern void trinex_init_sdl();
     extern void trinex_terminate_sdl();
 
@@ -333,7 +328,7 @@ stack_address:
         return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)];
     }
 
-    EngineInstance& EngineInstance::requesting_exit()
+    EngineInstance& EngineInstance::request_exit()
     {
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)] = true;
         return *this;
@@ -349,68 +344,10 @@ stack_address:
         return *this;
     }
 
-
-    EngineInstance& EngineInstance::launch_systems()
-    {
-        if (_M_systems.empty())
-        {
-            return *this;
-        }
-
-        auto wait_all = [this]() {
-            for (SystemEntry& entry : _M_systems)
-            {
-                entry._M_thread->wait_all();
-            }
-        };
-
-        // Initialize threads for each system and call initialize method
-        for (SystemEntry& entry : _M_systems)
-        {
-            entry._M_thread = entry._M_name.empty() ? new Thread() : new Thread(entry._M_name);
-            entry._M_thread->push_unique_task(&System::init, entry._M_system);
-        }
-
-        // Wait initialization of all systems and push update method to task list in thread
-        for (SystemEntry& entry : _M_systems)
-        {
-            entry._M_thread->wait_all();
-            entry._M_thread->push_task(&System::update, entry._M_system);
-        }
-
-        // Update systems
-        while (!is_requesting_exit())
-        {
-            for (SystemEntry& entry : _M_systems)
-            {
-                entry._M_thread->restart_tasks();
-            }
-
-            wait_all();
-        }
-
-        // Terminate systems
-        for (SystemEntry& entry : _M_systems)
-        {
-            entry._M_thread->remove_all_tasks();
-            entry._M_thread->push_unique_task(&System::terminate, entry._M_system);
-        }
-
-        wait_all();
-
-        return *this;
-    }
-
     EngineInstance::~EngineInstance()
     {
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)] = true;
         info_log("EngineInstance", "Terminate Engine");
-
-        for (SystemEntry& system : _M_systems)
-        {
-            delete system._M_thread;
-            delete system._M_system;
-        }
 
         engine_instance->trigger_terminate_functions();
         Object::force_garbage_collection();
