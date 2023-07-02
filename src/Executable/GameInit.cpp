@@ -6,6 +6,7 @@
 #include <Core/etl/unique_per_frame_var.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/package.hpp>
+#include <Core/thread.hpp>
 #include <GameInitCommandLet.hpp>
 #include <Graphics/camera.hpp>
 #include <Graphics/framebuffer.hpp>
@@ -19,7 +20,6 @@
 #include <Graphics/uniform_buffer.hpp>
 #include <ImGui/imgui.h>
 #include <Window/window.hpp>
-#include <thread>
 
 #if PLATFORM_ANDROID
 #include <Window/monitor.hpp>
@@ -27,8 +27,30 @@
 
 namespace Engine
 {
+
+    class Test : public ExecutableObject
+    {
+    public:
+        int_t execute()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                logger->log("Thread name", "%s", Thread::this_thread()->name().c_str());
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            }
+            return 0;
+        }
+
+        ~Test()
+        {}
+    };
+
     void GameInit::loop()
     {
+        Test test;
+
+        Thread thread;
+
         Package* package = Object::load_package("TestResources");
         if (package == nullptr)
             return;
@@ -77,6 +99,11 @@ namespace Engine
 
         while (Window::window->is_open())
         {
+            if (thread.is_thread_sleep())
+            {
+                thread.push_task(&test);
+            }
+
             if (MouseEvent::scroll_offset().y != 0)
             {
                 float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;

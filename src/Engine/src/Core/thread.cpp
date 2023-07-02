@@ -11,56 +11,38 @@ namespace Engine
     static thread_local Thread* _M_instance = nullptr;
 
 
-    Thread::Task::Task() = default;
-
-    Thread::Task::Task(const Function<void()>& func, bool is_unique_command)
-        : func(func), is_unique_command(is_unique_command)
-    {}
-
-    Thread::Task::Task(Function<void()>&& func, bool is_unique_command)
-        : func(std::move(func)), is_unique_command(is_unique_command)
-    {}
-
-
-    Thread::Task::Task(const Task&) = default;
-    Thread::Task::Task(Task&&)      = default;
-
-    Thread::Task& Thread::Task::operator=(const Task&) = default;
-    Thread::Task& Thread::Task::operator=(Task&&)      = default;
-
-    Thread::Thread()
+    void Thread::thread_loop(Thread* self)
     {
-        _M_current = _M_tasks.begin();
+        _M_instance = self;
 
-        _M_thread_loop = [this]() {
-            _M_instance = this;
+        while (!self->_M_is_shutting_down)
+        {
+            Task task;
 
-            while (!_M_is_shutting_down)
             {
-                Function<void()> task;
+                std::unique_lock lock(self->_M_mutex);
 
+                self->_M_is_thread_sleep = true;
+                self->_M_cv_for_wait.notify_all();
+
+                self->_M_cv.wait(lock, [self]() { return self->is_shutting_down() || self->has_unfinished_tasks(); });
+                self->_M_is_thread_sleep = false;
+
+                if (self->_M_is_shutting_down)
                 {
-                    std::unique_lock lock(_M_mutex);
-
-                    _M_is_thread_sleep = true;
-                    _M_cv_for_wait.notify_all();
-
-                    _M_cv.wait(lock, [this]() { return _M_is_shutting_down || has_unfinished_tasks(); });
-                    _M_is_thread_sleep = false;
-
-                    if (_M_is_shutting_down)
-                    {
-                        return;
-                    }
-
-                    task = next_task();
+                    return;
                 }
 
-                task();
+                task = self->next_task();
             }
-        };
 
-        _M_thread = new std::thread(_M_thread_loop);
+            task->execute();
+        }
+    }
+
+    Thread::Thread(size_t command_buffer_size) : _M_tasks(command_buffer_size)
+    {
+        _M_thread = new std::thread(thread_loop, this);
 
         char thread_name[256];
         if (pthread_getname_np(_M_thread->native_handle(), thread_name, sizeof(thread_name)) == 0)
@@ -70,12 +52,12 @@ namespace Engine
     }
 
 
-    Thread::Thread(const char* thread_name) : Thread()
+    Thread::Thread(const char* thread_name, size_t command_buffer_size) : Thread(command_buffer_size)
     {
         name(thread_name);
     }
 
-    Thread::Thread(const String& thread_name)
+    Thread::Thread(const String& thread_name, size_t command_buffer_size) : Thread(command_buffer_size)
     {
         name(thread_name);
     }
@@ -106,7 +88,8 @@ namespace Engine
         auto handle = _M_thread->native_handle();
         if (pthread_setname_np(handle, name) == 0)
         {
-            result  = true;
+            result = true;
+            std::unique_lock lock(_M_mutex2);
             _M_name = name;
         }
 
@@ -125,7 +108,6 @@ namespace Engine
 
     Thread& Thread::name(const char* thread_name)
     {
-        std::unique_lock lock(_M_mutex);
         if (!platform_thread_change_name(thread_name))
         {
             logger->error("Thread: Failed to change thread name!\n\tReason: %s\n", strerror(errno));
@@ -133,71 +115,62 @@ namespace Engine
         return *this;
     }
 
-    Function<void()> Thread::next_task()
+    Thread::Task Thread::next_task()
     {
-        Task& task            = *_M_current;
-        Function<void()> func = task.is_unique_command ? std::move(task.func) : task.func;
-
-        if (task.is_unique_command)
-        {
-            _M_tasks.erase(_M_current++);
-        }
-        else
-        {
-            ++_M_current;
-        }
-
-        if (_M_auto_restart && _M_current == _M_tasks.end())
-        {
-            _M_current = _M_tasks.begin();
-        }
-        return func;
+        Task task = _M_tasks.front();
+        return task;
     }
 
     bool Thread::has_unfinished_tasks() const
     {
-        return _M_current != _M_tasks.end();
+        if (_M_instance != this)
+        {
+            std::unique_lock lock(_M_mutex);
+            std::unique_lock lock2(_M_mutex2);
+            return !_M_tasks.empty();
+        }
+        else
+        {
+            std::unique_lock lock2(_M_mutex2);
+            return !_M_tasks.empty();
+        }
     }
 
     bool Thread::unfinished_tasks_count() const
     {
+        std::unique_lock lock(_M_mutex);
+        std::unique_lock lock2(_M_mutex2);
         return _M_tasks.size();
     }
 
-    const List<Thread::Task>& Thread::tasks() const
-    {
-        return _M_tasks;
-    }
 
     bool Thread::is_thread_sleep() const
     {
+        std::unique_lock lock(_M_mutex);
+        std::unique_lock lock2(_M_mutex2);
         return _M_is_thread_sleep;
     }
 
-    bool Thread::auto_restart() const
+    bool Thread::is_busy() const
     {
-        return _M_auto_restart;
+        return !is_thread_sleep();
     }
 
-    Thread& Thread::auto_restart(bool flag)
+    bool Thread::is_shutting_down() const
     {
-        std::unique_lock lock(_M_mutex);
-        _M_auto_restart = flag;
-        return *this;
-    }
-
-
-    Thread& Thread::restart_tasks()
-    {
-        std::unique_lock lock(_M_mutex);
-
-        if (!has_unfinished_tasks())
+        if (_M_instance == this)
         {
-            _M_current = _M_tasks.begin();
-            _M_cv.notify_all();
+            std::unique_lock lock2(_M_mutex2);
+            return _M_is_shutting_down;
         }
-        return *this;
+        else
+        {
+            std::unique_lock lock(_M_mutex);
+            std::unique_lock lock2(_M_mutex2);
+            return _M_is_shutting_down;
+        }
     }
+
 
     Thread& Thread::wait_all()
     {
@@ -212,8 +185,8 @@ namespace Engine
     Thread& Thread::remove_all_tasks()
     {
         std::unique_lock lock(_M_mutex);
+        std::unique_lock lock2(_M_mutex2);
         _M_tasks.clear();
-        _M_current = _M_tasks.begin();
         return *this;
     }
 
@@ -224,26 +197,24 @@ namespace Engine
 
     Thread& Thread::on_task_pushed()
     {
-        if (_M_tasks.size() == 1)
-        {
-            _M_current = _M_tasks.begin();
-        }
-
         _M_cv.notify_all();
         return *this;
     }
 
-    Thread& Thread::push_task(const Task& task)
+    Thread& Thread::push_task(Task task)
     {
         std::unique_lock lock(_M_mutex);
-        _M_tasks.push_back(task);
-        return on_task_pushed();
-    }
-
-    Thread& Thread::push_task(Task&& task)
-    {
-        std::unique_lock lock(_M_mutex);
-        _M_tasks.push_back(std::move(task));
+        std::unique_lock lock2(_M_mutex2);
+        if (_M_tasks.max_size() == _M_tasks.size() && _M_instance != this)
+        {
+            std::unique_lock lock(_M_mutex_for_wait);
+            _M_cv_for_wait.wait(lock);
+            _M_tasks.push(task);
+        }
+        else
+        {
+            _M_tasks.push(task);
+        }
         return on_task_pushed();
     }
 
@@ -251,6 +222,7 @@ namespace Engine
     {
         {
             std::unique_lock lock(_M_mutex);
+            std::unique_lock lock2(_M_mutex2);
             _M_is_shutting_down = true;
         }
 

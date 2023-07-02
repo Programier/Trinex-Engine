@@ -54,7 +54,7 @@ namespace Engine
         RingBuffer& pop()
         {
             if (empty())
-                return;
+                return *this;
 
             _M_read_ptr++;
 
@@ -67,6 +67,11 @@ namespace Engine
             return *_M_read_ptr;
         }
 
+        const Type& front() const
+        {
+            return *_M_read_ptr;
+        }
+
         bool empty() const
         {
             return _M_read_ptr == _M_write_ptr;
@@ -75,6 +80,17 @@ namespace Engine
         size_t size() const
         {
             return static_cast<size_t>(_M_write_ptr - _M_read_ptr + (_M_write_ptr < _M_read_ptr ? _M_data.size() : 0));
+        }
+
+        RingBuffer& clear()
+        {
+            _M_read_ptr = _M_write_ptr = _M_data.data();
+            return *this;
+        }
+
+        size_t max_size() const
+        {
+            return _M_data.size();
         }
     };
 }
