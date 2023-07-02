@@ -118,6 +118,7 @@ namespace Engine
     Thread::Task Thread::next_task()
     {
         Task task = _M_tasks.front();
+        _M_tasks.pop();
         return task;
     }
 

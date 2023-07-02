@@ -33,10 +33,8 @@ namespace Engine
     public:
         int_t execute()
         {
-            for (int i = 0; i < 10; i++)
             {
                 logger->log("Thread name", "%s", Thread::this_thread()->name().c_str());
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
             }
             return 0;
         }
@@ -101,6 +99,7 @@ namespace Engine
         {
             if (thread.is_thread_sleep())
             {
+                logger->log("GameThread", "Pushed new task!");
                 thread.push_task(&test);
             }
 

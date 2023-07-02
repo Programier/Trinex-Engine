@@ -60,6 +60,7 @@ namespace Engine
 
             if (_M_read_ptr == _M_data.data() + _M_data.size())
                 _M_read_ptr = _M_data.data();
+            return *this;
         }
 
         Type& front()
