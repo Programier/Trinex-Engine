@@ -1,4 +1,4 @@
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Window/monitor.hpp>

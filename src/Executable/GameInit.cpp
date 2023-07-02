@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
-#include <Core/config.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/etl/average.hpp>
 #include <Core/etl/unique_per_frame_var.hpp>
 #include <Core/file_manager.hpp>
@@ -148,7 +148,7 @@ namespace Engine
 
             if (KeyboardEvent::just_pressed(Key::G))
             {
-                package->save();
+                engine_config.save_config("test.conf");
             }
         }
 

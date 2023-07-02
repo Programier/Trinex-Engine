@@ -1,6 +1,6 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>

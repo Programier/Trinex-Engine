@@ -110,20 +110,37 @@ function Engine.dump_config(path, config)
 }
 
 
-function Engine.load_config(path)
+function Engine.remove_comments_from_code(code)
+{
+    return code->gsub("/%*.-%*/", "")->gsub("//[^\n]*", "");
+}
+
+
+function Engine.load_config(path, config)
 {
     print('Loading config:', path);
 
-    local prefix = 'Engine.config.';
-    for (line in io.lines(path))
+    local file = io.open(path, 'r');
+    local full_code = Engine.remove_comments_from_code(file->read('*all'));
+    file->close();
+
+    for (line in full_code->gmatch("(.-)\n"))
     {
-        local tmp_code = line->gsub("^%s+", "");
-        if (string.sub(tmp_code, 1, 14) == prefix)
+        if(string.len(line) > 3)
         {
-            local status, error = pcall(load(tmp_code));
-            if (status == false)
+            local code = 'return function(config) { ' .. 'config.' .. line .. ' }';
+            local chunk, error = load(code);
+            if (chunk)
             {
-                print("Config error:", error);
+                local status, result = pcall(chunk(), config)
+                if (!status)
+                {
+                    print("Config error:", result);
+                }
+            }
+            else
+            {
+                print("Compilation error:", error);
             }
         }
     }

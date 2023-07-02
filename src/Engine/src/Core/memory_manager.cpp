@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory_manager.hpp>
 #include <Core/object.hpp>

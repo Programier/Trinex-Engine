@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>

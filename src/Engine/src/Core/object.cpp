@@ -577,6 +577,7 @@ namespace Engine
 
         while (count - next_start_index != 0)
         {
+            logger->log("Test", "Count: %zu, index = %zu\n", count, next_start_index);
             current_priority = next_priority;
             next_priority    = Constants::max_size;
 
@@ -605,6 +606,7 @@ namespace Engine
                     if (next_start_index == i)
                     {
                         next_start_index = i + 1;
+                        next_end_index   = i;
                     }
                 }
                 else

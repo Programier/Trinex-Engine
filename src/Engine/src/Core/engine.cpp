@@ -1,13 +1,13 @@
 #include <Core/class.hpp>
 #include <Core/commandlet.hpp>
-#include <Core/config.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
-#include <Core/system.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/system.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/renderer.hpp>
 #include <LibLoader/lib_loader.hpp>
@@ -108,11 +108,11 @@ namespace Engine
             trinex_init_sdl();
 
             LibraryLoader::Library api_library = LibraryLoader::load(engine_config.api.c_str());
-            info_log("Engine: Using API: %s", engine_config.api.c_str());
+            info_log("Engine", "Using API: %s", engine_config.api.c_str());
 
             if (!api_library.has_lib())
             {
-                throw std::runtime_error("Engine: Failed to load API library!");
+                throw EngineException("Failed to load API library!");
             }
 
             // Try to load api loader
@@ -121,7 +121,7 @@ namespace Engine
 
             if (!loader)
             {
-                throw std::runtime_error("Engine: Failed to get API loader!");
+                throw EngineException("Failed to get API loader!");
             }
 
             // Initialize API
@@ -129,7 +129,7 @@ namespace Engine
 
             if (!_M_api_interface)
             {
-                throw std::runtime_error("Engine: Failed to init API");
+                throw EngineException("Failed to init API");
             }
         }
         else
@@ -157,13 +157,13 @@ namespace Engine
 
                 if (!command_let)
                 {
-                    logger->error("Engine: Class '%s' is not commandlet!", class_instance->name().c_str());
+                    logger->error("Engine", "Class '%s' is not commandlet!", class_instance->name().c_str());
                     return nullptr;
                 }
             }
             else
             {
-                logger->error("Engine: Failed to load commandlet '%s'", argv[1]);
+                logger->error("Engine", "Failed to load commandlet '%s'", argv[1]);
                 return nullptr;
             }
         }
@@ -174,7 +174,7 @@ namespace Engine
 
             if (!class_instance)
             {
-                logger->error("Engine: Failed to load commandlet '%s'", engine_config.base_commandlet.c_str());
+                logger->error("Engine", "Failed to load commandlet '%s'", engine_config.base_commandlet.c_str());
                 return nullptr;
             }
 
@@ -183,7 +183,7 @@ namespace Engine
 
             if (!command_let)
             {
-                logger->error("Engine: Class '%s' is not commandlet!", engine_config.base_commandlet.c_str());
+                logger->error("Engine", "Class '%s' is not commandlet!", engine_config.base_commandlet.c_str());
                 return nullptr;
             }
         }
@@ -227,7 +227,7 @@ namespace Engine
         initialize_list().clear();
 
         logger->log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
-        engine_config.init((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
+        engine_config.load_config((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
 
         Lua::Interpretter::init_lua_dir();
 

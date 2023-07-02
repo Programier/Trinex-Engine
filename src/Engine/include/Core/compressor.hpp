@@ -1,4 +1,4 @@
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/exception.hpp>
 #include <lz4hc.h>

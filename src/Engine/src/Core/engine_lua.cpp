@@ -1,4 +1,4 @@
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>

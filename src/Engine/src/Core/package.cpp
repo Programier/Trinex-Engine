@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/compressor.hpp>
-#include <Core/config.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/constants.hpp>
 #include <Core/etl/vector_stream.hpp>
 #include <Core/file_manager.hpp>
