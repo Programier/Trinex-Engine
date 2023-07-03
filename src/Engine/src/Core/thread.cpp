@@ -178,7 +178,7 @@ namespace Engine
         if (Thread::this_thread() != this)
         {
             std::unique_lock lock(_M_mutex_for_wait);
-            _M_cv_for_wait.wait(lock, [this]() { return !has_unfinished_tasks(); });
+            _M_cv_for_wait.wait(lock, [this]() { return !has_unfinished_tasks() || is_busy(); });
         }
         return *this;
     }

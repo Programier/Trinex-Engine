@@ -25,9 +25,18 @@ namespace Engine
         __COUNT__
     };
 
+    enum class ThreadType : EnumerateType
+    {
+        RenderThread = 0,
+
+        __COUNT__,
+    };
+
     class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance>
     {
     private:
+        Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
+
         class Renderer* _M_renderer                         = nullptr;
         GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
         static EngineInstance* _M_instance;
@@ -59,6 +68,9 @@ namespace Engine
         EngineInstance& request_exit();
         EngineInstance& launch_systems();
         bool check_format_support(PixelType type, PixelComponentType component);
+
+        Thread* create_thread(ThreadType type);
+        Thread* thread(ThreadType type) const;
         friend class Singletone;
     };
 

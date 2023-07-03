@@ -42,7 +42,9 @@ namespace Engine
     }
 
     EngineInstance::EngineInstance()
-    {}
+    {
+        for (Thread*& thread : _M_threads) thread = nullptr;
+    }
 
     ENGINE_EXPORT const String& EngineInstance::project_name()
     {
@@ -346,8 +348,15 @@ stack_address:
 
     EngineInstance::~EngineInstance()
     {
+        request_exit();
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)] = true;
         info_log("EngineInstance", "Terminate Engine");
+
+        for (Thread*& thread : _M_threads)
+        {
+            delete thread;
+            thread = nullptr;
+        }
 
         engine_instance->trigger_terminate_functions();
         Object::force_garbage_collection();
@@ -365,6 +374,36 @@ stack_address:
     bool EngineInstance::check_format_support(PixelType type, PixelComponentType component)
     {
         return _M_api_interface->check_format_support(type, component);
+    }
+
+
+    static const char* thread_name(ThreadType type)
+    {
+        switch (type)
+        {
+            case ThreadType::RenderThread:
+                return "Render Thread";
+            default:
+                return "Undefined Thread";
+        }
+    }
+
+    Thread* EngineInstance::create_thread(ThreadType type)
+    {
+        Index index = static_cast<Index>(type);
+
+        Thread*& thread = _M_threads[index];
+        if (thread == nullptr)
+        {
+            thread = new Thread(thread_name(type));
+        }
+        return thread;
+    }
+
+    Thread* EngineInstance::thread(ThreadType type) const
+    {
+        Index index = static_cast<Index>(type);
+        return _M_threads[index];
     }
 
 
