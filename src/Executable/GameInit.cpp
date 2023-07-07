@@ -69,15 +69,15 @@ namespace Engine
 
 
         UniformBuffer camera_ubo;
-        camera_ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Matrix4f>());
+        camera_ubo.uniform_struct.add_field(DynamicStructField::field_of<Matrix4f>());
         camera_ubo.create();
 
         UniquePerFrameVariable<DynamicStructInstance*> camera_ubo_buffer;
-        camera_ubo_buffer.push_by_func(3, &DynamicStruct::create_instance, camera_ubo.uniform_struct);
+        camera_ubo_buffer.push_by_func(3, &DynamicStruct<>::create_instance, camera_ubo.uniform_struct);
 
 
         UniformBuffer ubo;
-        ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Matrix4f>());
+        ubo.uniform_struct.add_field(DynamicStructField::field_of<Matrix4f>());
 
 
         DynamicStructInstance* ubo_struct_instance = ubo.uniform_struct.create_instance();
@@ -87,11 +87,11 @@ namespace Engine
 
 
         UniformBuffer fragment_ubo;
-        fragment_ubo.uniform_struct.add_field(DynamicStruct::Field::field_of<Vector3D>());
+        fragment_ubo.uniform_struct.add_field(DynamicStructField::field_of<Vector3D>());
         fragment_ubo.create();
 
         UniquePerFrameVariable<DynamicStructInstance*> fragment_ubo_inst;
-        fragment_ubo_inst.push_by_func(3, &DynamicStruct::create_instance, fragment_ubo.uniform_struct);
+        fragment_ubo_inst.push_by_func(3, &DynamicStruct<>::create_instance, fragment_ubo.uniform_struct);
 
         Average<double> fps;
 

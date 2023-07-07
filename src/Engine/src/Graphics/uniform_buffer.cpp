@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    static FORCE_INLINE const byte* buffer_data(const DynamicStructInstance* buffer, DynamicStruct* uniform_struct)
+    static FORCE_INLINE const byte* buffer_data(const DynamicStructInstance* buffer, DynamicStructBase* uniform_struct)
     {
         return (buffer && buffer->struct_instance() == uniform_struct) ? buffer->data() : nullptr;
     }

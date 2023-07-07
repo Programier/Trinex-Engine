@@ -1,12 +1,16 @@
 #pragma once
+#include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/object.hpp>
 
 namespace Engine
 {
     class ENGINE_EXPORT DynamicStructInstance;
+    class ENGINE_EXPORT DynamicStructBase;
+    class ENGINE_EXPORT DynamicStructInstanceProxy;
 
-    class ENGINE_EXPORT DynamicStruct final : public Object
+
+    class ENGINE_EXPORT DynamicStructBase : public Object
     {
     public:
         using Super = Object;
@@ -22,7 +26,7 @@ namespace Engine
                 Field field;
                 field.offset = offset;
                 field.size   = sizeof(T);
-                field.align  = DynamicStruct::normalize_align(align, alignof(T));
+                field.align  = DynamicStructBase::normalize_align(align, alignof(T));
                 return field;
             }
 
@@ -37,8 +41,8 @@ namespace Engine
             }
         };
 
-    private:
-        Vector<DynamicStructInstance*> _M_instances;
+    protected:
+        Vector<DynamicStructInstanceProxy*> _M_instances;
         Vector<Index> _M_free_indexes;
 
         Vector<Field> _M_fields;
@@ -48,39 +52,34 @@ namespace Engine
 
         bool _M_destruct_stage = false;
 
-        DynamicStruct& recalculate_offsets();
-        DynamicStruct& recalculate_struct_size(ushort_t max_align = 0);
+        DynamicStructBase& recalculate_offsets();
+        DynamicStructBase& recalculate_struct_size(ushort_t max_align = 0);
         static ushort_t normalize_align(ushort_t requested_align, ushort_t min_align);
-        DynamicStruct& unlink_instance(DynamicStructInstance* instance);
+        DynamicStructBase& unlink_instance(DynamicStructInstanceProxy* instance);
 
     public:
-        DynamicStruct& add_field(const Field& field, Index index = ~0);
-        DynamicStruct& remove_field(Index index = ~0);
+        DynamicStructBase& add_field(const Field& field, Index index = ~0);
+        DynamicStructBase& remove_field(Index index = ~0);
 
         size_t size() const;
         const Vector<Field>& fields() const;
         ushort_t align() const;
-        DynamicStruct& align(ushort_t value);
+        DynamicStructBase& align(ushort_t value);
+        const Vector<DynamicStructInstanceProxy*>& instances() const;
 
-        DynamicStructInstance* create_instance();
-        const Vector<DynamicStructInstance*>& instances() const;
 
-        ~DynamicStruct();
-
-        friend class DynamicStructInstance;
+        ~DynamicStructBase();
+        friend class DynamicStructInstanceProxy;
     };
 
+    using DynamicStructField = DynamicStructBase::Field;
 
-    class ENGINE_EXPORT DynamicStructInstance final
+
+    class ENGINE_EXPORT DynamicStructInstanceProxy
     {
     private:
-        Vector<byte> _M_data;
         Index _M_instance_index;
-        DynamicStruct* _M_struct = nullptr;
-
-
-        DynamicStructInstance(DynamicStruct* struct_instance, Index instance_index);
-        DynamicStructInstance& reallocate();
+        DynamicStructBase* _M_struct = nullptr;
 
         template<typename Type>
         Type return_nullptr(const char* msg)
@@ -108,46 +107,44 @@ namespace Engine
             }
         }
 
+
+    protected:
+        virtual DynamicStructInstanceProxy& reallocate();
+
     public:
-        DynamicStruct* struct_instance() const;
-        const Vector<byte>& vector() const;
-        byte* data();
-        const byte* data() const;
+        DynamicStructInstanceProxy(DynamicStructBase* struct_instance, Index index);
+
+        virtual DynamicStructInstanceProxy& begin_update();
+        virtual DynamicStructInstanceProxy& end_update();
+        DynamicStructBase* struct_instance() const;
+        virtual byte* data()             = 0;
+        virtual const byte* data() const = 0;
+
+        byte* field(Index index);
+        const byte* field(Index index) const;
 
         template<typename Type>
         Type get(Index index)
         {
-            if (index >= _M_struct->_M_fields.size())
+            byte* instance_field = field(index);
+
+            if (instance_field == nullptr)
             {
-                return return_nullptr<Type>("Invalid index of field");
+                return return_nullptr<Type>("Failed to get instance field");
             }
-
-            DynamicStruct::Field& field = _M_struct->_M_fields[index];
-
-            if (field.size != sizeof(Type))
-            {
-                return return_nullptr<Type>("Invalid type of field");
-            }
-
-            return *reinterpret_cast<std::remove_reference_t<Type>*>(_M_data.data() + field.offset);
+            return *reinterpret_cast<std::remove_reference_t<Type>*>(instance_field);
         }
 
         template<typename Type>
         const Type get(Index index) const
         {
-            if (index >= _M_struct->_M_fields.size())
+            const byte* instance_field = field(index);
+
+            if (instance_field == nullptr)
             {
-                return return_nullptr<Type>("Invalid index of field");
+                return return_nullptr<Type>("Failed to get instance field");
             }
-
-            DynamicStruct::Field& field = _M_struct->_M_fields[index];
-
-            if (field.size != sizeof(Type))
-            {
-                return return_nullptr<Type>("Invalid type of field");
-            }
-
-            return *reinterpret_cast<std::remove_reference_t<Type>*>(_M_data.data() + field.offset);
+            return *reinterpret_cast<const std::remove_reference_t<Type>*>(instance_field);
         }
 
         template<typename Type>
@@ -162,9 +159,51 @@ namespace Engine
             return get<Type&>(index);
         }
 
-        ~DynamicStructInstance();
+        virtual ~DynamicStructInstanceProxy();
 
-        friend class DynamicStruct;
+        friend class DynamicStructBase;
     };
+
+
+    class ENGINE_EXPORT DynamicStructInstance : public DynamicStructInstanceProxy
+    {
+    private:
+        Vector<byte> _M_data;
+
+    protected:
+        DynamicStructInstanceProxy& reallocate() override;
+
+    public:
+        DynamicStructInstance(DynamicStructBase* strunct_instance, Index index);
+        const Vector<byte>& vector() const;
+        byte* data() override;
+        const byte* data() const override;
+    };
+
+    template<typename InstanceProxy = DynamicStructInstance>
+    class DynamicStruct : public DynamicStructBase
+    {
+    public:
+        using Super = DynamicStructBase;
+
+        InstanceProxy* create_instance()
+        {
+            InstanceProxy* result = nullptr;
+            if (_M_free_indexes.empty())
+            {
+                result = new InstanceProxy(this, _M_instances.size());
+                _M_instances.push_back(result);
+            }
+            else
+            {
+                Index index = _M_free_indexes.back();
+                _M_free_indexes.pop_back();
+                result              = new InstanceProxy(this, index);
+                _M_instances[index] = result;
+            }
+            return result;
+        }
+    };
+
 
 }// namespace Engine

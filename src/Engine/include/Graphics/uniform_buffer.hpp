@@ -10,11 +10,11 @@ namespace Engine
     class ENGINE_EXPORT UniformBuffer : public ApiObject
     {
     public:
-        DynamicStruct uniform_struct;
+        DynamicStruct<> uniform_struct;
 
         UniformBuffer& create(const DynamicStructInstance* buffer = nullptr);
         UniformBuffer& update(const DynamicStructInstance* buffer, size_t offset = 0,
-                                     size_t size = Constants::max_size);
+                              size_t size = Constants::max_size);
         UniformBuffer& bind(BindingIndex index, size_t offset = 0, size_t size = Constants::max_size);
     };
 
