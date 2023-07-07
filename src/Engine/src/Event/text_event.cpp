@@ -41,14 +41,12 @@ namespace Engine
     void process_text_event(SDL_TextInputEvent& event)
     {
         std::wstring str = Strings::to_wstring(event.text);
-        _M_text += event.text;
 
         if ((_M_last_symbol = str[0]) && TextEvent::enable_text_writing)
         {
             _M_text.push_back(_M_last_symbol);
         }
     }
-
 
     void process_text_event(SDL_TextEditingEvent& event)
     {

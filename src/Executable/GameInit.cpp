@@ -97,12 +97,6 @@ namespace Engine
 
         while (Window::window->is_open())
         {
-            if (thread.is_thread_sleep())
-            {
-                logger->log("GameThread", "Pushed new task!");
-                thread.push_task(&test);
-            }
-
             if (MouseEvent::scroll_offset().y != 0)
             {
                 float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
@@ -154,6 +148,8 @@ namespace Engine
                 ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
                             transform.position().z);
                 ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
+                ImGui::Text("Memory usage: %zu bytes [%zu KB]", MemoryManager::allocated_size(),
+                            +MemoryManager::allocated_size() / 1024);
             }
 
             if (fps.count() == 60)

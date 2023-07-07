@@ -3,9 +3,17 @@
 #include <Core/logger.hpp>
 #include <Core/memory_manager.hpp>
 #include <Core/object.hpp>
+#include <malloc.h>
+#include <mutex>
+
+static std::mutex mutex;
 
 namespace Engine
 {
+    FORCE_INLINE size_t private_allocated_size()
+    {
+        return mallinfo2().uordblks;
+    }
 
     MemoryManager::MemoryManager() = default;
 
@@ -91,5 +99,11 @@ namespace Engine
     MemoryManager::~MemoryManager()
     {
         collect_garbage();
+    }
+
+    size_t MemoryManager::allocated_size()
+    {
+        std::unique_lock lock(mutex);
+        return private_allocated_size();
     }
 }// namespace Engine

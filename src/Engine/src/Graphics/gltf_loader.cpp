@@ -223,18 +223,18 @@ namespace Engine::GLTF
 
         if (!warn.empty())
         {
-            logger->warning("GLTF: Warning: %s", warn.c_str());
+            logger->warning("GLTF", "Warning: %s", warn.c_str());
         }
 
         if (!err.empty())
         {
-            logger->error("GLTF: Error: %s", err.c_str());
+            logger->error("GLTF", "Error: %s", err.c_str());
             return {};
         }
 
         if (!success)
         {
-            logger->error("GLTF: Failed to load '%s'", path.c_str());
+            logger->error("GLTF", "Failed to load '%s'", path.c_str());
             return {};
         }
 

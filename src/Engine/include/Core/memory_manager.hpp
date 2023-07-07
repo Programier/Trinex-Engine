@@ -31,6 +31,7 @@ namespace Engine
             return reinterpret_cast<Instance*>(find_memory(sizeof(Instance)));
         }
 
+        static size_t allocated_size();
         friend class Object;
     };
 }// namespace Engine
