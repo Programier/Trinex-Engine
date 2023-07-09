@@ -89,6 +89,7 @@ namespace Engine
 
         if (is_threaded)
         {
+            _M_mutex.lock();
             API->_M_active_threads.fetch_add(1);
         }
 
@@ -119,6 +120,7 @@ namespace Engine
             }
 
             API->_M_active_threads.fetch_sub(1);
+            _M_mutex.unlock();
         }
         else if (API->_M_need_recreate_swap_chain)
         {
@@ -131,13 +133,18 @@ namespace Engine
         _M_cv.notify_all();
     }
 
+    void VulkanCommandBufferThreadedEndCommand::wait()
+    {
+        std::unique_lock lock(_M_mutex);
+    }
+
     VulkanCommandBufferThreadedEndCommand::~VulkanCommandBufferThreadedEndCommand()
     {
         {
             std::unique_lock lock(_M_mutex);
             _M_destruct = true;
         }
-
+        wait();
         _M_cv.notify_all();
         _M_thread->join();
         delete _M_thread;
@@ -212,11 +219,19 @@ namespace Engine
         state().reset();
         API->_M_need_update_image_index = true;
 
+
+        for (VulkanCommandBufferThreadedEndCommand* command : _M_end_commands)
+        {
+            command->wait();
+        }
+
+#if USE_THREADED_END_COMMAND
         if (API->_M_enabled_threaded_end_command.load())
         {
             current_end_command->notify();
         }
         else
+#endif
         {
             current_end_command->execute();
         }

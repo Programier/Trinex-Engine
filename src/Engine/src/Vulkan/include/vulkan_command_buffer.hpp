@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <vulkan/vulkan.hpp>
-#include <thread>
 #include <condition_variable>
+#include <thread>
+#include <vulkan/vulkan.hpp>
 
 
 namespace std
@@ -41,7 +41,6 @@ namespace Engine
         std::condition_variable _M_cv;
         vk::CommandBuffer* _M_buffer     = nullptr;
         VulkanSyncObject* _M_sync_object = nullptr;
-
         std::uint32_t _M_swapchain_index;
 
         bool _M_destruct = false;
@@ -51,6 +50,7 @@ namespace Engine
         static void thread_loop(VulkanCommandBufferThreadedEndCommand*);
         void execute();
         void notify();
+        void wait();
 
         ~VulkanCommandBufferThreadedEndCommand();
     };

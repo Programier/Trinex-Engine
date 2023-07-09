@@ -317,13 +317,13 @@ namespace Engine
             auto& current_set = current_descriptor_set();
             //update_descriptor_layout();
 
+            if (ubo->is_mapped())
+            {
+                ubo->unmap_memory();
+            }
+
             if (current_set._M_current_ubo[binding] != ubo)
             {
-                if (ubo->is_mapped())
-                {
-                    ubo->unmap_memory();
-                }
-
                 vk::DescriptorBufferInfo buffer_info(ubo->_M_buffer, 0, ubo->_M_size);
                 vk::WriteDescriptorSet write_descriptor(current_set._M_descriptor_set, binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);

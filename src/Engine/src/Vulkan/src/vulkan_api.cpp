@@ -52,11 +52,15 @@ namespace Engine
         return ubo;
     }
 
+
+#define DEFAULT_PRESENT_MODE vk::PresentModeKHR::eImmediate
     VulkanAPI::VulkanAPI()
     {
         _M_uniform_allocator.allocator(uniform_buffer_allocator);
-        _M_swap_chain_mode = vk::PresentModeKHR::eMailbox;
+        _M_swap_chain_mode = DEFAULT_PRESENT_MODE;
+#if USE_THREADED_END_COMMAND
         _M_enabled_threaded_end_command.store(true);
+#endif
     }
 
     VulkanAPI::~VulkanAPI()
@@ -69,6 +73,7 @@ namespace Engine
         _M_uniform_allocator.destroy();
 
         delete _M_command_buffer;
+        _M_command_buffer = nullptr;
         destroy_framebuffers();
         delete _M_swap_chain;
 
@@ -310,8 +315,9 @@ namespace Engine
             destroy_framebuffers(false);
             create_swap_chain();
             create_framebuffers();
-
+#if USE_THREADED_END_COMMAND
             API->_M_enabled_threaded_end_command.store(true);
+#endif
         }
     }
 
@@ -599,7 +605,6 @@ namespace Engine
         VulkanFramebuffer* buffer = framebuffer(ID);
         if (buffer == _M_main_framebuffer)
         {
-
             auto index = swapchain_image_index().value;
             buffer->bind(index);
         }
@@ -619,7 +624,7 @@ namespace Engine
     VulkanAPI& VulkanAPI::swap_interval(int_t interval)
     {
         static const Map<int_t, vk::PresentModeKHR> modes = {{-1, vk::PresentModeKHR::eFifoRelaxed},
-                                                             {0, vk::PresentModeKHR::eMailbox},
+                                                             {0, DEFAULT_PRESENT_MODE},
                                                              {1, vk::PresentModeKHR::eFifo}};
         int_t index                                       = interval != 0 ? interval / glm::abs(interval) : interval;
         interval                                          = glm::abs(interval);
@@ -630,6 +635,13 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::wait_idle()
     {
+        if (_M_command_buffer)
+        {
+            for (auto* command : _M_command_buffer->_M_end_commands)
+            {
+                command->wait();
+            }
+        }
         _M_device.waitIdle();
         return *this;
     }
@@ -744,6 +756,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
+        _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
         _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
         ++current_shader()->_M_current_descriptor_index;
         ++count_draw_calls;

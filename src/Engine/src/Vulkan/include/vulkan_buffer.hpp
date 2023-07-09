@@ -9,9 +9,8 @@ namespace Engine
         vk::Buffer _M_buffer;
         vk::DeviceMemory _M_memory;
         vk::DeviceSize _M_size;
-        vk::DeviceSize _M_offset = 0;
-        byte* _M_mapped_data     = nullptr;
-        bool _M_is_ref           = false;
+        vk::DeviceSize _M_offset   = 0;
+        byte* _M_mapped_data       = nullptr;
 
 
         VulkanBufferBase& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);

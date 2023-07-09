@@ -1,6 +1,6 @@
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 
 
 namespace Engine
@@ -62,10 +62,7 @@ namespace Engine
 
     VulkanBufferBase::~VulkanBufferBase()
     {
-        if (!_M_is_ref)
-        {
-            DESTROY_CALL(destroyBuffer, _M_buffer);
-            DESTROY_CALL(freeMemory, _M_memory);
-        }
+        DESTROY_CALL(destroyBuffer, _M_buffer);
+        DESTROY_CALL(freeMemory, _M_memory);
     }
 }// namespace Engine

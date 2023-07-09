@@ -45,7 +45,7 @@ namespace Engine
     };
 
 
-#define OBJECTS_PER_AXIS 10
+#define OBJECTS_PER_AXIS 5
 
     void GameInit::loop()
     {
@@ -122,7 +122,7 @@ namespace Engine
                 _M_renderer->begin();
 
                 camera_ubo_buffer->get_ref<Matrix4f>(0) = camera->projview();
-                fragment_ubo_inst->get_ref<Vector3D>(0) = camera->transform.front_vector();
+                //fragment_ubo_inst->get_ref<Vector3D>(0) = camera->transform.front_vector();
 
                 GBuffer::instance()->bind();
                 framebuffer_shader->use();
@@ -132,6 +132,14 @@ namespace Engine
                 times[0] = bench.time();
             }
 
+            enum UpdateType
+            {
+                None,
+                Static,
+                Dynamic,
+            };
+
+            static UpdateType type = UpdateType::Static;
 
             {
                 static int updates = OBJECTS_PER_AXIS * OBJECTS_PER_AXIS * OBJECTS_PER_AXIS * 3;
@@ -147,11 +155,22 @@ namespace Engine
                             UniformStructInstance* instance =
                                     ubo_struct_instance[x * (OBJECTS_PER_AXIS * OBJECTS_PER_AXIS) +
                                                         y * OBJECTS_PER_AXIS + z];
-                            if (updates > 0)
+                            if (type != UpdateType::None)
                             {
-                                float _x = float(x) * 5 /*+ glm::sin(Event::time() + float(x + y + z))*/;
-                                float _y = float(y) * 5 /*+ glm::cos(Event::time() + float(x + y + z))*/;
-                                float _z = float(z) * 5 /*+ glm::sin(Event::time() + float(x + y + z))*/;
+                                float _x, _y, _z;
+
+                                if (type == UpdateType::Static)
+                                {
+                                    _x = float(x) * 5 /*+ glm::sin(Event::time() + float(x + y + z))*/;
+                                    _y = float(y) * 5 /*+ glm::cos(Event::time() + float(x + y + z))*/;
+                                    _z = float(z) * 5 /*+ glm::sin(Event::time() + float(x + y + z))*/;
+                                }
+                                else
+                                {
+                                    _x = float(x) * 5 + glm::sin(Event::time() + float(x + y + z));
+                                    _y = float(y) * 5 + glm::cos(Event::time() + float(x + y + z));
+                                    _z = float(z) * 5 + glm::sin(Event::time() + float(x + y + z));
+                                }
 
                                 instance->get_ref<Matrix4f>(0) = glm::translate(
                                         glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
@@ -195,30 +214,41 @@ namespace Engine
                 _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
             }
 
-
-            ImGuiRenderer::new_frame();
-
-            ImGui::Begin("TrinexEngine");
-
-            fps.push(1.0 / Event::diff_time());
-            ImGui::Text("API: %s", engine_config.api.c_str());
-            ImGui::Text("FPS: %lf", fps.average());
+            static bool with_imgui = true;
+            if (with_imgui)
             {
-                const Transform& transform = camera->transform;
-                ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
-                            transform.position().z);
-                ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
-                ImGui::Text("Memory usage: %zu bytes [%zu KB]", MemoryManager::allocated_size(),
-                            +MemoryManager::allocated_size() / 1024);
+                BenchMark<std::chrono::milliseconds> bench;
+                ImGuiRenderer::new_frame();
 
-                float sum = 0;
-                for (int i = 0; i < TIMES_COUNT; i++)
+                ImGui::Begin("TrinexEngine");
+
+                fps.push(1.0 / Event::diff_time());
+                ImGui::Text("API: %s", engine_config.api.c_str());
+                ImGui::Text("FPS: %lf", fps.average());
                 {
-                    sum += times[i];
-                    ImGui::Text("Time[%d] = %f", i, times[i]);
+                    const Transform& transform = camera->transform;
+                    ImGui::Text("Pos: X = %f, Y = %f, Z = %f", transform.position().x, transform.position().y,
+                                transform.position().z);
+                    ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
+                    ImGui::Text("Memory usage: %zu bytes [%zu KB]", MemoryManager::allocated_size(),
+                                +MemoryManager::allocated_size() / 1024);
+
+                    float sum = 0;
+                    for (int i = 0; i < TIMES_COUNT; i++)
+                    {
+                        sum += times[i];
+                        ImGui::Text("Time[%d] = %f", i, times[i]);
+                    }
+
+                    ImGui::Text("Time[sum] = %f", sum);
                 }
 
-                ImGui::Text("Time[sum] = %f", sum);
+                ImGui::End();
+
+                ImGuiRenderer::render();
+
+                bench.log_status(false);
+                times[3] = bench.time();
             }
 
             if (fps.count() == 60)
@@ -226,15 +256,9 @@ namespace Engine
                 fps.reset();
             }
 
-            ImGui::End();
-
-            ImGuiRenderer::render();
 
             {
-                BenchMark<std::chrono::milliseconds> bench;
                 _M_renderer->end();
-                bench.log_status(false);
-                times[3] = bench.time();
             }
 
 
@@ -245,6 +269,31 @@ namespace Engine
             if (KeyboardEvent::just_pressed(Key::G))
             {
                 engine_config.save_config("test.conf");
+            }
+
+            if (KeyboardEvent::just_pressed(Key::F))
+            {
+                Window::window->attribute(WinFullScreenDesktop, !Window::window->attribute(WinFullScreenDesktop));
+            }
+
+            if (KeyboardEvent::just_pressed(Key::Num0))
+            {
+                logger->log("KEY", "0");
+                type = UpdateType::None;
+            }
+            else if (KeyboardEvent::just_pressed(Key::Num1))
+            {
+                logger->log("KEY", "1");
+                type = UpdateType::Static;
+            }
+            else if (KeyboardEvent::just_pressed(Key::Num2))
+            {
+                logger->log("KEY", "2");
+                type = UpdateType::Dynamic;
+            }
+            else if (KeyboardEvent::just_pressed(Key::Num3))
+            {
+                with_imgui = !with_imgui;
             }
         }
 

@@ -10,8 +10,6 @@ namespace Engine
 
 
     struct VulkanUniformBuffer : public VulkanBufferBase {
-        //BlockAllocator<VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE>::Block _M_block;
-
         VulkanUniformBuffer();
         VulkanUniformBuffer& create(const byte* data, size_t size);
         VulkanUniformBuffer& update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
