@@ -1,5 +1,5 @@
 #include <vulkan_api.hpp>
-#include <vulkan_async_command_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_transition_image_layout.hpp>
@@ -196,16 +196,16 @@ namespace Engine
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::begin_pass(struct ThreadedCommandBuffer* command_buffer, size_t index)
+    VulkanFramebuffer& VulkanFramebuffer::begin_pass(size_t index)
     {
         _M_render_pass_info.setFramebuffer(_M_buffers[index]._M_framebuffer);
-        command_buffer->_M_buffer.beginRenderPass(_M_render_pass_info, vk::SubpassContents::eInline);
+        API->_M_command_buffer->get().beginRenderPass(_M_render_pass_info, vk::SubpassContents::eInline);
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::end_pass(ThreadedCommandBuffer* command_buffer)
+    VulkanFramebuffer& VulkanFramebuffer::end_pass()
     {
-        command_buffer->_M_buffer.endRenderPass();
+        API->_M_command_buffer->get().endRenderPass();
         return *this;
     }
 
@@ -253,8 +253,7 @@ namespace Engine
             _M_viewport.y      = _M_size.height - viewport.pos.y;
         }
 
-        if (API->_M_current_command_buffer &&
-            this == API->_M_current_command_buffer->get_threaded_command_buffer()->_M_current_framebuffer)
+        if (this == API->_M_command_buffer->state()._M_current_framebuffer)
             set_viewport();
 
         return *this;
@@ -262,7 +261,7 @@ namespace Engine
 
     VulkanFramebuffer& VulkanFramebuffer::set_viewport()
     {
-        API->_M_current_command_buffer->get()->setViewport(0, _M_viewport);
+        API->_M_command_buffer->get().setViewport(0, _M_viewport);
         return *this;
     }
 
@@ -281,8 +280,7 @@ namespace Engine
             _M_scissor.offset.y = _M_size.height - scissor.pos.y - scissor.size.y;
         }
 
-        if (API->_M_current_command_buffer &&
-            this == API->_M_current_command_buffer->get_threaded_command_buffer()->_M_current_framebuffer)
+        if (this == API->_M_command_buffer->state()._M_current_framebuffer)
             set_scissor();
 
         return *this;
@@ -290,28 +288,35 @@ namespace Engine
 
     VulkanFramebuffer& VulkanFramebuffer::set_scissor()
     {
-        API->_M_current_command_buffer->get()->setScissor(0, _M_scissor);
+        API->_M_command_buffer->get().setScissor(0, _M_scissor);
         return *this;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::bind(size_t index)
     {
-        auto cmd = API->_M_current_command_buffer->get_threaded_command_buffer();
+        VulkanCommandBufferState& state = API->_M_command_buffer->state();
 
-        if (cmd->_M_current_framebuffer)
+        if (state._M_current_framebuffer)
         {
-            cmd->_M_current_framebuffer->unbind(cmd);
+            state._M_current_framebuffer->unbind();
         }
 
-        cmd->_M_current_framebuffer = this;
+        state._M_current_framebuffer = this;
 
-        return begin_pass(cmd, index).set_viewport().set_scissor();
+        return begin_pass(index).set_viewport().set_scissor();
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::unbind(struct ThreadedCommandBuffer* command_buffer)
+    VulkanFramebuffer& VulkanFramebuffer::unbind()
     {
-        command_buffer->_M_current_framebuffer = nullptr;
-        return end_pass(command_buffer);
+        VulkanCommandBufferState& state = API->_M_command_buffer->state();
+
+        if (state._M_current_framebuffer == this)
+        {
+            state._M_current_framebuffer = nullptr;
+            return end_pass();
+        }
+
+        return *this;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::clear_color(const ColorClearValue& color, byte layout)

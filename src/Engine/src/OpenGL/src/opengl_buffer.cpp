@@ -5,57 +5,78 @@
 
 namespace Engine
 {
-    implement_opengl_instance_cpp(OpenGL_VertexBuffer);
 
-    OpenGL_VertexBuffer& OpenGL_VertexBuffer::create_vertex_buffer(const byte* data, size_t size)
+    implement_opengl_instance_cpp(OpenGL_Buffer);
+
+    MappedMemory OpenGL_Buffer::map_memory()
+    {
+        if (!_M_mapped_data)
+        {
+            glBindBuffer(_M_type, _M_instance_id);
+            glGetBufferParameteriv(_M_type, GL_BUFFER_SIZE, &_M_buffer_size);
+            _M_mapped_data = reinterpret_cast<byte*>(
+                    glMapBufferRange(_M_type, 0, _M_buffer_size, GL_MAP_WRITE_BIT | GL_MAP_READ_BIT));
+            glBindBuffer(_M_type, 0);
+        }
+
+        return MappedMemory(_M_mapped_data, _M_buffer_size);
+    }
+
+    OpenGL_Buffer& OpenGL_Buffer::unmap_memory()
+    {
+        glBindBuffer(_M_type, _M_instance_id);
+        glUnmapBuffer(_M_type);
+        _M_mapped_data = nullptr;
+        _M_buffer_size = 0;
+        glBindBuffer(_M_type, 0);
+        return *this;
+    }
+
+    bool OpenGL_Buffer::is_mapped() const
+    {
+        return _M_mapped_data != nullptr;
+    }
+
+    OpenGL_Buffer& OpenGL_Buffer::create(const byte* data, size_t size)
     {
         glGenBuffers(1, &_M_instance_id);
-        glBindBuffer(GL_ARRAY_BUFFER, _M_instance_id);
-        glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(_M_type, _M_instance_id);
+        glBufferData(_M_type, size, data, GL_STATIC_DRAW);
+        glBindBuffer(_M_type, 0);
         return *this;
     }
 
-    OpenGL_VertexBuffer& OpenGL_VertexBuffer::update_vertex_buffer(size_t offset, const byte* data, size_t size)
+    OpenGL_Buffer& OpenGL_Buffer::update(size_t offset, const byte* data, size_t size)
     {
-        glBindBuffer(GL_ARRAY_BUFFER, _M_instance_id);
-        glBufferSubData(GL_ARRAY_BUFFER, offset, size, reinterpret_cast<const void*>(data));
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(_M_type, _M_instance_id);
+        glBufferSubData(_M_type, offset, size, reinterpret_cast<const void*>(data));
+        glBindBuffer(_M_type, 0);
         return *this;
     }
 
-    OpenGL_VertexBuffer& OpenGL_VertexBuffer::bind_vertex_buffer(size_t offset)
+    implement_opengl_instance_cpp(OpenGL_VertexBuffer);
+
+    OpenGL_VertexBuffer::OpenGL_VertexBuffer()
     {
+        _M_type = GL_ARRAY_BUFFER;
+    }
+
+    OpenGL_VertexBuffer& OpenGL_VertexBuffer::bind(size_t offset)
+    {
+        unmap_memory();
         glBindBuffer(GL_ARRAY_BUFFER, _M_instance_id);
         API->_M_current_shader->apply_vertex_attributes(offset);
         return *this;
     }
 
-    static MappedMemory map_memory(GLuint internal_id, GLenum type)
-    {
-        GLint buffer_size = 0;
-        glBindBuffer(type, internal_id);
-        glGetBufferParameteriv(type, GL_BUFFER_SIZE, &buffer_size);
-        void* data = glMapBufferRange(type, 0, buffer_size, GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-        glBindBuffer(type, 0);
-        return MappedMemory(reinterpret_cast<byte*>(data), buffer_size);
-    }
-
-    static void unmap_memory(GLuint internal_id, GLenum type)
-    {
-        glBindBuffer(type, internal_id);
-        glUnmapBuffer(type);
-        glBindBuffer(type, 0);
-    }
-
     MappedMemory OpenGL::map_vertex_buffer(const Identifier& ID)
     {
-        return map_memory(GET_TYPE(OpenGL_VertexBuffer, ID)->_M_instance_id, GL_ARRAY_BUFFER);
+        return GET_TYPE(OpenGL_VertexBuffer, ID)->map_memory();
     }
 
     OpenGL& OpenGL::unmap_vertex_buffer(const Identifier& ID)
     {
-        unmap_memory(GET_TYPE(OpenGL_VertexBuffer, ID)->_M_instance_id, GL_ARRAY_BUFFER);
+        GET_TYPE(OpenGL_VertexBuffer, ID)->unmap_memory();
         return *this;
     }
 
@@ -66,27 +87,20 @@ namespace Engine
 
     implement_opengl_instance_cpp(OpenGL_IndexBuffer);
 
-    OpenGL_IndexBuffer& OpenGL_IndexBuffer::create_index_buffer(const byte* data, size_t size,
-                                                                IndexBufferComponent component)
+    OpenGL_IndexBuffer::OpenGL_IndexBuffer()
     {
-        glGenBuffers(1, &_M_instance_id);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _M_instance_id);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+        _M_type = GL_ELEMENT_ARRAY_BUFFER;
+    }
 
+    OpenGL_IndexBuffer& OpenGL_IndexBuffer::component_type(IndexBufferComponent component)
+    {
         _M_component_type = get_type(component);
         return *this;
     }
 
-    OpenGL_IndexBuffer& OpenGL_IndexBuffer::update_index_buffer(size_t offset, const byte* data, size_t size)
+    OpenGL_IndexBuffer& OpenGL_IndexBuffer::bind(size_t offset)
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _M_instance_id);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, reinterpret_cast<const void*>(data));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        return *this;
-    }
-
-    OpenGL_IndexBuffer& OpenGL_IndexBuffer::bind_index_buffer(size_t offset)
-    {
+        unmap_memory();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _M_instance_id);
         API->_M_index_buffer_offset = offset;
         API->_M_index_buffer        = this;
@@ -95,12 +109,12 @@ namespace Engine
 
     MappedMemory OpenGL::map_index_buffer(const Identifier& ID)
     {
-        return map_memory(GET_TYPE(OpenGL_IndexBuffer, ID)->_M_instance_id, GL_ELEMENT_ARRAY_BUFFER);
+        return GET_TYPE(OpenGL_IndexBuffer, ID)->map_memory();
     }
 
     OpenGL& OpenGL::unmap_index_buffer(const Identifier& ID)
     {
-        unmap_memory(GET_TYPE(OpenGL_IndexBuffer, ID)->_M_instance_id, GL_ELEMENT_ARRAY_BUFFER);
+        GET_TYPE(OpenGL_IndexBuffer, ID)->unmap_memory();
         return *this;
     }
 
@@ -112,24 +126,14 @@ namespace Engine
 
     implement_opengl_instance_cpp(OpenGL_UniformBuffer);
 
-    OpenGL_UniformBuffer& OpenGL_UniformBuffer::create_uniform_buffer(const byte* data, size_t size)
+    OpenGL_UniformBuffer::OpenGL_UniformBuffer()
     {
-        glGenBuffers(1, &_M_instance_id);
-        glBindBuffer(GL_UNIFORM_BUFFER, _M_instance_id);
-        glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
-        return *this;
+        _M_type = GL_UNIFORM_BUFFER;
     }
 
-    OpenGL_UniformBuffer& OpenGL_UniformBuffer::update_uniform_buffer(size_t offset, const byte* data, size_t size)
+    OpenGL_UniformBuffer& OpenGL_UniformBuffer::bind(BindingIndex binding)
     {
-        glBindBuffer(GL_UNIFORM_BUFFER, _M_instance_id);
-        glBufferSubData(GL_UNIFORM_BUFFER, offset, size, reinterpret_cast<const void*>(data));
-        glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        return *this;
-    }
-
-    OpenGL_UniformBuffer& OpenGL_UniformBuffer::bind_uniform_buffer(BindingIndex binding)
-    {
+        unmap_memory();
         glBindBuffer(GL_UNIFORM_BUFFER, _M_instance_id);
 
         auto it = API->_M_current_shader->_M_block_indices.find(binding);
@@ -144,6 +148,37 @@ namespace Engine
     OpenGL_UniformBuffer::~OpenGL_UniformBuffer()
     {
         glDeleteBuffers(1, &_M_instance_id);
+    }
+
+
+    implement_opengl_instance_cpp(OpenGL_UniformBufferMap);
+
+
+    OpenGL_UniformBufferMap::OpenGL_UniformBufferMap(const byte* data, size_t size)
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            _M_buffers[i] = new OpenGL_UniformBuffer();
+            _M_buffers[i]->create(data, size);
+        }
+    }
+
+    OpenGL_UniformBuffer* OpenGL_UniformBufferMap::current_buffer()
+    {
+        return _M_buffers[API->_M_current_buffer_index];
+    }
+
+    OpenGL_UniformBuffer* OpenGL_UniformBufferMap::next_buffer()
+    {
+        return _M_buffers[API->_M_next_buffer_index];
+    }
+
+    OpenGL_UniformBufferMap::~OpenGL_UniformBufferMap()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            delete _M_buffers[i];
+        }
     }
 
 }// namespace Engine

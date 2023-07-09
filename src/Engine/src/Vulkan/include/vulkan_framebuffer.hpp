@@ -41,7 +41,7 @@ namespace Engine
         VulkanFramebuffer& create_framebuffer();
         VulkanFramebuffer& destroy();
         VulkanFramebuffer& bind(size_t index = 0);
-        VulkanFramebuffer& unbind(struct ThreadedCommandBuffer* command_buffer);
+        VulkanFramebuffer& unbind();
         VulkanFramebuffer& update_viewport(const ViewPort& viewport);
         VulkanFramebuffer& update_scissor(const Scissor& scissor);
         VulkanFramebuffer& set_viewport();
@@ -51,8 +51,8 @@ namespace Engine
         VulkanFramebuffer& clear_depth_stencil(const DepthStencilClearValue& color);
         VulkanFramebuffer& size(uint32_t width, uint32_t height);
 
-        VulkanFramebuffer& begin_pass(struct ThreadedCommandBuffer* command_buffer, size_t index);
-        VulkanFramebuffer& end_pass(struct ThreadedCommandBuffer* command_buffer);
+        VulkanFramebuffer& begin_pass(size_t index);
+        VulkanFramebuffer& end_pass();
         ~VulkanFramebuffer();
     };
 }// namespace Engine

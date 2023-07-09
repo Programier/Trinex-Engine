@@ -4,18 +4,25 @@
 #include <Core/constants.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/mapped_memory.hpp>
 
 namespace Engine
 {
-    class ENGINE_EXPORT UniformBuffer : public ApiObject
+    class ENGINE_EXPORT UniformStructInstance : public DynamicStructInstanceProxy, public ApiObjectNoBase
     {
     public:
-        DynamicStruct<> uniform_struct;
+        UniformStructInstance(DynamicStructBase* struct_instance, Index index);
 
-        UniformBuffer& create(const DynamicStructInstance* buffer = nullptr);
-        UniformBuffer& update(const DynamicStructInstance* buffer, size_t offset = 0,
-                              size_t size = Constants::max_size);
-        UniformBuffer& bind(BindingIndex index, size_t offset = 0, size_t size = Constants::max_size);
+        byte* data() override;
+        const byte* data() const override;
+
+        UniformStructInstance& bind(BindingIndex index);
+    };
+
+    class ENGINE_EXPORT UniformStruct : public DynamicStruct<UniformStructInstance>
+    {
+    public:
+        using Super = DynamicStructBase;
     };
 
 }// namespace Engine

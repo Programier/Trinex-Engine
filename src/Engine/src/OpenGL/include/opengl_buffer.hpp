@@ -1,32 +1,67 @@
 #pragma once
 
 #include <Core/buffer_types.hpp>
+#include <opengl_api.hpp>
 #include <opengl_object.hpp>
 
 namespace Engine
 {
-    struct OpenGL_VertexBuffer : OpenGL_Object {
+
+    struct OpenGL_Buffer : OpenGL_Object {
         implement_opengl_instance_hpp();
-        OpenGL_VertexBuffer& create_vertex_buffer(const byte*, size_t);
-        OpenGL_VertexBuffer& update_vertex_buffer(size_t offset, const byte*, size_t);
-        OpenGL_VertexBuffer& bind_vertex_buffer(size_t offset);
+
+        byte* _M_mapped_data = nullptr;
+        GLint _M_buffer_size = 0;
+        GLuint _M_type;
+
+        MappedMemory map_memory();
+        OpenGL_Buffer& unmap_memory();
+
+        OpenGL_Buffer& create(const byte*, size_t);
+        OpenGL_Buffer& update(size_t offset, const byte*, size_t size);
+
+        bool is_mapped() const;
+    };
+
+    struct OpenGL_VertexBuffer : OpenGL_Buffer {
+        implement_opengl_instance_hpp();
+
+        OpenGL_VertexBuffer();
+
+        OpenGL_VertexBuffer& bind(size_t offset);
         ~OpenGL_VertexBuffer();
     };
 
-    struct OpenGL_IndexBuffer : OpenGL_Object {
+    struct OpenGL_IndexBuffer : OpenGL_Buffer {
         GLenum _M_component_type;
         implement_opengl_instance_hpp();
-        OpenGL_IndexBuffer& create_index_buffer(const byte*, size_t, IndexBufferComponent);
-        OpenGL_IndexBuffer& update_index_buffer(size_t offset, const byte*, size_t);
-        OpenGL_IndexBuffer& bind_index_buffer(size_t offset);
+
+        OpenGL_IndexBuffer();
+        OpenGL_IndexBuffer& component_type(IndexBufferComponent component);
+        OpenGL_IndexBuffer& bind(size_t offset);
         ~OpenGL_IndexBuffer();
     };
 
-    struct OpenGL_UniformBuffer : OpenGL_Object {
+    struct OpenGL_UniformBuffer : OpenGL_Buffer {
         implement_opengl_instance_hpp();
-        OpenGL_UniformBuffer& create_uniform_buffer(const byte*, size_t);
-        OpenGL_UniformBuffer& update_uniform_buffer(size_t offset, const byte*, size_t);
-        OpenGL_UniformBuffer& bind_uniform_buffer(BindingIndex binding);
+
+        OpenGL_UniformBuffer();
+        OpenGL_UniformBuffer& bind(BindingIndex binding);
         ~OpenGL_UniformBuffer();
+    };
+
+
+    struct OpenGL_UniformBufferMap : public OpenGL_Object {
+
+        OpenGL_UniformBuffer* _M_buffers[2];
+
+        implement_opengl_instance_hpp();
+
+        OpenGL_UniformBufferMap(const byte* data, size_t size);
+
+        OpenGL_UniformBuffer* current_buffer();
+        OpenGL_UniformBuffer* next_buffer();
+
+        ~OpenGL_UniformBufferMap();
     };
 }// namespace Engine

@@ -53,7 +53,8 @@ namespace Engine
 
         FORCE_INLINE Index index() const
         {
-            return Event::frame_number() % _M_vars.size();
+            return 0;
+            //return Event::frame_number() % _M_vars.size();
         }
 
         FORCE_INLINE Type& get()

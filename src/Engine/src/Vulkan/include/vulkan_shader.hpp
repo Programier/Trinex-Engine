@@ -26,7 +26,6 @@ namespace Engine
         Index _M_current_binded_descriptor_index = 0;
 
         uint32_t _M_last_frame           = 0;
-        uint32_t _M_max_descriptors_sets = 1;
 
         vk::PipelineLayout _M_pipeline_layout;
         bool _M_has_descriptors = false;

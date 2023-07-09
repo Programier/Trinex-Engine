@@ -7,7 +7,7 @@
 #include <string>
 #include <thread>
 #include <vulkan_api.hpp>
-#include <vulkan_async_command_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_export.hpp>
 #include <vulkan_mesh.hpp>
 #include <vulkan_object.hpp>
@@ -56,6 +56,7 @@ namespace Engine
     {
         _M_uniform_allocator.allocator(uniform_buffer_allocator);
         _M_swap_chain_mode = vk::PresentModeKHR::eMailbox;
+        _M_enabled_threaded_end_command.store(true);
     }
 
     VulkanAPI::~VulkanAPI()
@@ -67,8 +68,7 @@ namespace Engine
 
         _M_uniform_allocator.destroy();
 
-        for (auto& buffer : _M_command_buffers) delete buffer;
-        _M_command_buffers.clear();
+        delete _M_command_buffer;
         destroy_framebuffers();
         delete _M_swap_chain;
 
@@ -90,8 +90,6 @@ namespace Engine
         init_info.Device         = _M_device;
         init_info.QueueFamily    = _M_graphics_and_present_index.graphics_family.value();
         init_info.Queue          = _M_graphics_queue;
-
-        //        init_info.DescriptorPool;
 
         VkDescriptorPoolSize pool_sizes[] = {
                 {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
@@ -144,8 +142,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::imgui_render()
     {
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
-                                        _M_current_command_buffer->get_threaded_command_buffer()->_M_buffer);
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), _M_command_buffer->get());
         return *this;
     }
 
@@ -189,7 +186,7 @@ namespace Engine
                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                         void* pUserData)
     {
-        vulkan_debug_log("Vulkan API", pCallbackData->pMessage);
+        vulkan_debug_log("Vulkan API", "%s", pCallbackData->pMessage);
         return VK_FALSE;
     }
 #endif
@@ -306,13 +303,15 @@ namespace Engine
 
     void VulkanAPI::recreate_swap_chain()
     {
-        if (_M_need_recreate_swap_chain)
+        if (_M_need_recreate_swap_chain && API->_M_active_threads.load() == 0)
         {
             _M_need_recreate_swap_chain = false;
             wait_idle();
             destroy_framebuffers(false);
             create_swap_chain();
             create_framebuffers();
+
+            API->_M_enabled_threaded_end_command.store(true);
         }
     }
 
@@ -445,7 +444,7 @@ namespace Engine
         }
 
         _M_main_framebuffer->create_framebuffer();
-    }// namespace Engine
+    }
 
     void VulkanAPI::create_command_buffer()
     {
@@ -453,8 +452,7 @@ namespace Engine
                 vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           _M_graphics_and_present_index.graphics_family.value()));
 
-        _M_command_buffers.resize(MAIN_FRAMEBUFFERS_COUNT);
-        for (auto& command_buffer : _M_command_buffers) command_buffer = new VulkanAsyncCommandBuffer();
+        _M_command_buffer = new VulkanCommandBuffer();
     }
 
 
@@ -473,6 +471,7 @@ namespace Engine
     VulkanAPI& VulkanAPI::swap_buffer(SDL_Window*)
     {
         _M_current_frame = (_M_current_frame + 1) % MAIN_FRAMEBUFFERS_COUNT;
+        _M_next_frame    = (_M_next_frame + 1) % MAIN_FRAMEBUFFERS_COUNT;
         count_draw_calls = 0;
         return *this;
     }
@@ -484,8 +483,7 @@ namespace Engine
         {
 
             result = _M_device.acquireNextImageKHR(_M_swap_chain->_M_swap_chain, UINT32_MAX,
-                                                   _M_command_buffers[_M_current_frame]->_M_available_semaphore,
-                                                   nullptr);
+                                                   _M_command_buffer->sync_object()._M_available_semaphore, nullptr);
 
             _M_need_update_image_index = false;
         }
@@ -495,14 +493,13 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::begin_render()
     {
-        _M_current_command_buffer = _M_command_buffers[_M_current_frame];
-        _M_current_command_buffer->begin_render();
+        _M_command_buffer->begin();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        _M_command_buffers[_M_current_frame]->end_render();
+        _M_command_buffer->end();
         return *this;
     }
 
@@ -747,7 +744,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
-        _M_current_command_buffer->get()->drawIndexed(indices, 1, offset, 0, 0);
+        _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
         ++current_shader()->_M_current_descriptor_index;
         ++count_draw_calls;
 
@@ -1139,7 +1136,7 @@ namespace Engine
 
     VulkanShader* VulkanAPI::current_shader()
     {
-        return _M_current_command_buffer->get_threaded_command_buffer()->_M_current_shader;
+        return _M_command_buffer->state()._M_current_shader;
     }
 
     VulkanAPI& VulkanAPI::bind_ssbo(const Identifier& ID, BindingIndex index, size_t offset, size_t size)
@@ -1150,21 +1147,33 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::create_uniform_buffer(Identifier& ID, const byte* data, size_t size)
     {
-        ID = (new VulkanUniformBuffer())->create(data, size).ID();
+        ID = (new VulkanUniformBufferMap(data, size))->ID();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        GET_TYPE(VulkanUniformBuffer, ID)->update(offset, data, size);
+        GET_TYPE(VulkanUniformBufferMap, ID)->next_buffer()->update(offset, data, size);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::bind_uniform_buffer(const Identifier& ID, BindingIndex index)
     {
-        current_shader()->bind_ubo(GET_TYPE(VulkanUniformBuffer, ID), index);
+        current_shader()->bind_ubo(GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer(), index);
         return *this;
     }
+
+    MappedMemory VulkanAPI::map_uniform_buffer(const Identifier& ID)
+    {
+        return GET_TYPE(VulkanUniformBufferMap, ID)->next_buffer()->map_memory();
+    }
+
+    VulkanAPI& VulkanAPI::unmap_uniform_buffer(const Identifier& ID)
+    {
+        GET_TYPE(VulkanUniformBufferMap, ID)->next_buffer()->unmap_memory();
+        return *this;
+    }
+
 
     VulkanAPI& VulkanAPI::framebuffer_scissor(const Identifier& ID, const Scissor& scissor)
     {
@@ -1194,18 +1203,16 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::async_render(bool flag)
     {
-        _M_current_command_buffer->_M_async_enabled = flag;
         return *this;
     }
 
     bool VulkanAPI::async_render()
     {
-        return _M_current_command_buffer->_M_async_enabled;
+        return false;
     }
 
     VulkanAPI& VulkanAPI::next_render_thread()
     {
-        _M_current_command_buffer->next_render_thread();
         return *this;
     }
 }// namespace Engine

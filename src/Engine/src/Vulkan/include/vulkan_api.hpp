@@ -15,12 +15,14 @@
 #include <vulkan_block_allocator.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_swap_chain.hpp>
+#include <atomic>
 
 #define MAIN_FRAMEBUFFERS_COUNT 3
 #define API VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
 
 #define ENABLE_VALIDATION_LAYERS 1
+#define USE_THREADED_END_COMMAND 1
 
 namespace Engine
 {
@@ -60,6 +62,8 @@ namespace Engine
         QueueFamilyIndices _M_graphics_and_present_index;
         vk::Queue _M_graphics_queue;
         vk::Queue _M_present_queue;
+        std::atomic<int> _M_active_threads;
+        std::atomic<bool> _M_enabled_threaded_end_command;
 
         vk::PhysicalDeviceProperties _M_properties;
         BlockAllocator<struct VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE> _M_uniform_allocator;
@@ -71,11 +75,11 @@ namespace Engine
         VulkanFramebuffer* _M_main_framebuffer = nullptr;
 
         vk::CommandPool _M_command_pool;
-        Vector<struct VulkanAsyncCommandBuffer*> _M_command_buffers;
-        VulkanAsyncCommandBuffer* _M_current_command_buffer = nullptr;
+        struct VulkanCommandBuffer* _M_command_buffer = nullptr;
         vk::PresentModeKHR _M_swap_chain_mode;
 
-        uint32_t _M_current_frame = 1;        
+        uint32_t _M_current_frame = 0;
+        uint32_t _M_next_frame = 1;
 
         //////////////////////////////////////////////////////////////
 
@@ -208,6 +212,8 @@ namespace Engine
         VulkanAPI& create_uniform_buffer(Identifier&, const byte*, size_t) override;
         VulkanAPI& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
         VulkanAPI& bind_uniform_buffer(const Identifier&, BindingIndex binding) override;
+        MappedMemory map_uniform_buffer(const Identifier& ID) override;
+        VulkanAPI& unmap_uniform_buffer(const Identifier& ID) override;
 
         VulkanAPI& gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info) override;
         Identifier imgui_texture_id(const Identifier&) override;

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <vulkan_api.hpp>
-#include <vulkan_async_command_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_ssbo.hpp>
 #include <vulkan_texture.hpp>
@@ -11,6 +11,7 @@
 
 #define SHADER_DATA info.binaries
 #define CURRENT_UBO _M_descriptor_sets[API->_M_current_frame]
+#define MAX_BINDLESS_RESOURCES 16384
 
 namespace Engine
 {
@@ -29,7 +30,7 @@ namespace Engine
         vk::SampleMask sample_mask;
     };
 
-    // Use template, becouse PipelineState uses no-name structures
+    // Use template, because PipelineState uses no-name structures
     template<typename StructType>
     static inline vk::StencilOpState get_stencil_op_state(const StructType& in_state)
     {
@@ -197,8 +198,7 @@ namespace Engine
 
     bool VulkanShader::init(const PipelineCreateInfo& info)
     {
-        _M_has_descriptors      = false;
-        _M_max_descriptors_sets = info.max_textures_binding_per_frame;
+        _M_has_descriptors = false;
         create_descriptor_layout(info);
 
 
@@ -280,7 +280,7 @@ namespace Engine
         if (_M_descriptor_set_layout)
         {
             Vector<vk::DescriptorPoolSize> pool_size = create_pool_size(info);
-            vk::DescriptorPoolCreateInfo pool_info({}, MAIN_FRAMEBUFFERS_COUNT * _M_max_descriptors_sets, pool_size);
+            vk::DescriptorPoolCreateInfo pool_info({}, MAIN_FRAMEBUFFERS_COUNT * MAX_BINDLESS_RESOURCES, pool_size);
             _M_descriptor_pool = API->_M_device.createDescriptorPool(pool_info);
             create_descriptor_sets();
         }
@@ -295,17 +295,16 @@ namespace Engine
             _M_current_binded_descriptor_index = _M_current_descriptor_index;
             auto& current_set                  = current_descriptor_set();
 
-            API->_M_current_command_buffer->get()->bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                                                                      _M_pipeline_layout, 0, 1,
-                                                                      &current_set._M_descriptor_set, 0, nullptr);
+            API->_M_command_buffer->get().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _M_pipeline_layout, 0, 1,
+                                                             &current_set._M_descriptor_set, 0, nullptr);
         }
         return *this;
     }
 
     VulkanShader& VulkanShader::use()
     {
-        API->_M_current_command_buffer->get()->bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
-        API->_M_current_command_buffer->get_threaded_command_buffer()->_M_current_shader = this;
+        API->_M_command_buffer->get().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
+        API->_M_command_buffer->state()._M_current_shader = this;
         update_descriptor_layout(true);
         return *this;
     }
@@ -316,12 +315,16 @@ namespace Engine
         if (_M_has_descriptors)
         {
             auto& current_set = current_descriptor_set();
-            update_descriptor_layout();
+            //update_descriptor_layout();
 
             if (current_set._M_current_ubo[binding] != ubo)
             {
-                vk::DescriptorBufferInfo buffer_info(ubo->_M_block._M_block->_M_buffer, ubo->_M_block._M_offset,
-                                                     ubo->_M_block._M_size);
+                if (ubo->is_mapped())
+                {
+                    ubo->unmap_memory();
+                }
+
+                vk::DescriptorBufferInfo buffer_info(ubo->_M_buffer, 0, ubo->_M_size);
                 vk::WriteDescriptorSet write_descriptor(current_set._M_descriptor_set, binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
@@ -335,7 +338,7 @@ namespace Engine
     VulkanShader& VulkanShader::create_new_descriptor_set(uint32_t buffer_index)
     {
         auto& descriptor_array = _M_descriptor_sets[buffer_index];
-        if (descriptor_array.size() == static_cast<size_t>(_M_max_descriptors_sets))
+        if (descriptor_array.size() == static_cast<size_t>(MAX_BINDLESS_RESOURCES))
         {
             throw std::runtime_error("Vulkan API: Failed to create descriptor set. Count of sets is out of range!");
         }
@@ -417,6 +420,12 @@ namespace Engine
         {
             create_new_descriptor_set(API->_M_current_frame);
         }
+
+        if (_M_current_binded_descriptor_index != _M_current_descriptor_index)
+        {
+            update_descriptor_layout();
+        }
+
         return descriptor_array[_M_current_descriptor_index];
     }
 
@@ -425,7 +434,6 @@ namespace Engine
         if (_M_has_descriptors)
         {
             auto& current_set = current_descriptor_set();
-            update_descriptor_layout();
 
             if (current_set._M_sampler != texture->_M_texture_sampler ||
                 current_set._M_image_view != texture->_M_image_view)

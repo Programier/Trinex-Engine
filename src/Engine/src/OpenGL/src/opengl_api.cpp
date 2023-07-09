@@ -168,55 +168,66 @@ namespace Engine
 
     OpenGL& OpenGL::create_vertex_buffer(Identifier& ID, const byte* data, size_t size)
     {
-        ID = (new OpenGL_VertexBuffer())->create_vertex_buffer(data, size).ID();
+        ID = (new OpenGL_VertexBuffer())->create(data, size).ID();
         return *this;
     }
 
     OpenGL& OpenGL::update_vertex_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        GET_TYPE(OpenGL_VertexBuffer, ID)->update_vertex_buffer(offset, data, size);
+        GET_TYPE(OpenGL_VertexBuffer, ID)->update(offset, data, size);
         return *this;
     }
 
     OpenGL& OpenGL::bind_vertex_buffer(const Identifier& ID, size_t offset)
     {
-        GET_TYPE(OpenGL_VertexBuffer, ID)->bind_vertex_buffer(offset);
+        GET_TYPE(OpenGL_VertexBuffer, ID)->bind(offset);
         return *this;
     }
 
     OpenGL& OpenGL::create_index_buffer(Identifier& ID, const byte* data, size_t size, IndexBufferComponent component)
     {
-        ID = (new OpenGL_IndexBuffer())->create_index_buffer(data, size, component).ID();
+        ID = (new OpenGL_IndexBuffer())->component_type(component).create(data, size).ID();
         return *this;
     }
 
     OpenGL& OpenGL::update_index_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        GET_TYPE(OpenGL_IndexBuffer, ID)->update_index_buffer(offset, data, size);
+        GET_TYPE(OpenGL_IndexBuffer, ID)->update(offset, data, size);
         return *this;
     }
 
     OpenGL& OpenGL::bind_index_buffer(const Identifier& ID, size_t offset)
     {
-        GET_TYPE(OpenGL_IndexBuffer, ID)->bind_index_buffer(offset);
+        GET_TYPE(OpenGL_IndexBuffer, ID)->bind(offset);
         return *this;
     }
 
     OpenGL& OpenGL::create_uniform_buffer(Identifier& ID, const byte* data, size_t size)
     {
-        ID = (new OpenGL_UniformBuffer())->create_uniform_buffer(data, size).ID();
+        ID = (new OpenGL_UniformBufferMap(data, size))->ID();
         return *this;
     }
 
     OpenGL& OpenGL::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        GET_TYPE(OpenGL_UniformBuffer, ID)->update_uniform_buffer(offset, data, size);
+        GET_TYPE(OpenGL_UniformBufferMap, ID)->next_buffer()->update(offset, data, size);
         return *this;
     }
 
     OpenGL& OpenGL::bind_uniform_buffer(const Identifier& ID, BindingIndex binding)
     {
-        GET_TYPE(OpenGL_UniformBuffer, ID)->bind_uniform_buffer(binding);
+        GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->bind(binding);
+        return *this;
+    }
+
+    MappedMemory OpenGL::map_uniform_buffer(const Identifier& ID)
+    {
+        return GET_TYPE(OpenGL_UniformBufferMap, ID)->next_buffer()->map_memory();
+    }
+
+    OpenGL& OpenGL::unmap_uniform_buffer(const Identifier& ID)
+    {
+        GET_TYPE(OpenGL_UniformBufferMap, ID)->next_buffer()->unmap_memory();
         return *this;
     }
 
@@ -265,6 +276,8 @@ namespace Engine
     OpenGL& OpenGL::swap_buffer(SDL_Window* window)
     {
         SDL_GL_SwapWindow(window);
+        _M_current_buffer_index = (_M_current_buffer_index + 1) % 2;
+        _M_next_buffer_index    = (_M_next_buffer_index + 1) % 2;
         return *this;
     }
 

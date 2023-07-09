@@ -15,14 +15,15 @@ namespace Engine
     struct OpenGL : public GraphicApiInterface::ApiInterface {
         static OpenGL* _M_open_gl;
 
-        Logger** _M_logger                                = nullptr;
-        void* _M_context                                  = nullptr;
-        byte _M_support_anisotropy : 1                    = 0;
-        struct OpenGL_Shader* _M_current_shader           = nullptr;
-        ArrayOffset _M_index_buffer_offset                = 0;
-        struct OpenGL_IndexBuffer* _M_index_buffer        = nullptr;
+        Logger** _M_logger                                   = nullptr;
+        void* _M_context                                     = nullptr;
+        byte _M_support_anisotropy : 1                       = 0;
+        struct OpenGL_Shader* _M_current_shader              = nullptr;
+        ArrayOffset _M_index_buffer_offset                   = 0;
+        struct OpenGL_IndexBuffer* _M_index_buffer           = nullptr;
         struct OpenGL_FrameBufferSet* _M_current_framebuffer = nullptr;
-
+        size_t _M_current_buffer_index                       = 0;
+        size_t _M_next_buffer_index                          = 1;
 
         OpenGL();
         struct OpenGL_FrameBufferSet* framebuffer(Identifier ID);
@@ -99,6 +100,8 @@ namespace Engine
         OpenGL& create_uniform_buffer(Identifier&, const byte*, size_t) override;
         OpenGL& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
         OpenGL& bind_uniform_buffer(const Identifier&, BindingIndex binding) override;
+        MappedMemory map_uniform_buffer(const Identifier& ID) override;
+        OpenGL& unmap_uniform_buffer(const Identifier& ID) override;
 
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
 
