@@ -21,8 +21,8 @@ else()
 endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(Vulkan -DTRINEX_DEBUG_BUILD=1
-                                      -DTRINEX_RELEASE_BUILD=0)
+    target_compile_definitions(Vulkan PRIVATE -DTRINEX_DEBUG_BUILD=1)
+    target_compile_definitions(Vulkan PRIVATE -DVULKAN_RELEASE_BUILD=0)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(Vulkan PRIVATE -DVULKAN_DEBUG_BUILD=0)
     target_compile_definitions(Vulkan PRIVATE -DVULKAN_RELEASE_BUILD=1)

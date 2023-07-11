@@ -8,7 +8,7 @@
 #include <Core/shader_types.hpp>
 #include <Core/texture_types.hpp>
 
-class SDL_Window;
+struct SDL_Window;
 namespace Engine
 {
     class Logger;

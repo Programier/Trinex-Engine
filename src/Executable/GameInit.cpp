@@ -315,7 +315,6 @@ namespace Engine
         Window::window->initialize_api();
         Window::window->vsync(false);
         ImGuiRenderer::init();
-
         loop();
         return 0;
     }
