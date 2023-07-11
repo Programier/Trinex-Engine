@@ -109,7 +109,6 @@ add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 # Trinex Engine compile options
 target_compile_options(TrinexEngine PRIVATE "-Wall")
 target_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
-target_compile_options(TrinexEngine PRIVATE "-march=native")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(TrinexEngine PRIVATE "-O3")

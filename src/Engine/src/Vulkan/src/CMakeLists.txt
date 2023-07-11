@@ -8,7 +8,6 @@ install (TARGETS Vulkan DESTINATION "./TrinexEngine/libs/")
 
 target_compile_options(Vulkan PRIVATE "-Wall")
 target_compile_options(Vulkan PRIVATE "-Wno-unknown-pragmas")
-target_compile_options(Vulkan PRIVATE "-march=native")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(Vulkan PRIVATE "-O3")

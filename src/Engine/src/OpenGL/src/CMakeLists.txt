@@ -18,7 +18,6 @@ install (TARGETS OpenGL DESTINATION "./TrinexEngine/libs/")
 
 target_compile_options(OpenGL PRIVATE "-Wall")
 target_compile_options(OpenGL PRIVATE "-Wno-unknown-pragmas")
-target_compile_options(OpenGL PRIVATE "-march=native")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(OpenGL PRIVATE "-O3")
