@@ -9,9 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(VULKAN_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(VULKAN_SOURCES_ROOT ${VULKAN_PROJECT_ROOT}/src)
 
+set(TRINEX_ENGINE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../")
+
 include_directories("${VULKAN_PROJECT_ROOT}/include/")
 include_directories("${TRINEX_ENGINE_ROOT}/include-internal/")
 include_directories("${TRINEX_ENGINE_ROOT}/include/")
+include_directories("${TRINEX_ENGINE_ROOT}/include/ImGui/")
+include_directories("${TRINEX_ENGINE_ROOT}/libs/SDL/include/")
 
 add_subdirectory(libs/vk-bootstrap)
 add_subdirectory(src)
