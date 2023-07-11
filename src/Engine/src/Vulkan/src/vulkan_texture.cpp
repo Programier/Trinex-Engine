@@ -69,8 +69,7 @@ namespace Engine
 
     VulkanTexture::VulkanTexture()
     {
-        _M_image_aspect     = vk::ImageAspectFlags();
-        _M_instance_address = this;
+        _M_image_aspect = vk::ImageAspectFlags();
     }
 
 

@@ -210,7 +210,7 @@ namespace Engine
 
     OpenGL& OpenGL::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        GET_TYPE(OpenGL_UniformBufferMap, ID)->next_buffer()->update(offset, data, size);
+        GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->update(offset, data, size);
         return *this;
     }
 
@@ -222,12 +222,12 @@ namespace Engine
 
     MappedMemory OpenGL::map_uniform_buffer(const Identifier& ID)
     {
-        return GET_TYPE(OpenGL_UniformBufferMap, ID)->next_buffer()->map_memory();
+        return GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->map_memory();
     }
 
     OpenGL& OpenGL::unmap_uniform_buffer(const Identifier& ID)
     {
-        GET_TYPE(OpenGL_UniformBufferMap, ID)->next_buffer()->unmap_memory();
+        GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->unmap_memory();
         return *this;
     }
 

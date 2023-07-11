@@ -60,7 +60,6 @@ namespace Engine
         OpenGL_UniformBufferMap(const byte* data, size_t size);
 
         OpenGL_UniformBuffer* current_buffer();
-        OpenGL_UniformBuffer* next_buffer();
 
         ~OpenGL_UniformBufferMap();
     };

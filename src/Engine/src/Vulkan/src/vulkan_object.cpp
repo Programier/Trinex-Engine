@@ -7,4 +7,7 @@ namespace Engine
     {
         return reinterpret_cast<Identifier>(this);
     }
-}
+
+    VulkanObject::~VulkanObject()
+    {}
+}// namespace Engine

@@ -6,29 +6,15 @@ namespace Engine
 {
     VulkanUniformBufferBlock& VulkanUniformBufferBlock::create(const byte* data, size_t size)
     {
-        _M_instance_address = this;
         VulkanBufferBase::create(size, data, vk::BufferUsageFlagBits::eUniformBuffer);
         return *this;
     }
 
     VulkanUniformBuffer::VulkanUniformBuffer()
-    {
-        _M_instance_address = this;
-    }
+    {}
 
     VulkanUniformBuffer& VulkanUniformBuffer::create(const byte* data, size_t size)
     {
-        //        _M_block = API->_M_uniform_allocator.allocate(size);
-
-        //        void* vulkan_memory =
-        //                API->_M_device.mapMemory(_M_block._M_block->_M_memory, _M_block._M_offset, _M_block._M_size);
-
-        //        if (data)
-        //            std::memcpy(vulkan_memory, data, size);
-        //        else
-        //            std::memset(vulkan_memory, 0, size);
-        //        API->_M_device.unmapMemory(_M_block._M_block->_M_memory);
-
         VulkanBufferBase::create(size, data, vk::BufferUsageFlagBits::eUniformBuffer);
         return *this;
     }
@@ -57,12 +43,7 @@ namespace Engine
 
     VulkanUniformBuffer* VulkanUniformBufferMap::current_buffer()
     {
-        return _M_buffer[API->_M_current_frame];
-    }
-
-    VulkanUniformBuffer* VulkanUniformBufferMap::next_buffer()
-    {
-        return _M_buffer[API->_M_next_frame];
+        return _M_buffer[API->_M_current_buffer];
     }
 
     VulkanUniformBufferMap::~VulkanUniformBufferMap()
@@ -72,5 +53,4 @@ namespace Engine
             delete buffer;
         }
     }
-
 }// namespace Engine

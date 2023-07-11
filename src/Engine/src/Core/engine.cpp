@@ -438,7 +438,7 @@ stack_address:
             }
             catch (const std::exception& e)
             {
-                logger->error("%s", e.what());
+                logger->error("TrinexEngine", "%s", e.what());
                 result = -1;
             }
 

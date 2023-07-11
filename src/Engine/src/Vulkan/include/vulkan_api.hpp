@@ -13,16 +13,9 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_block_allocator.hpp>
+#include <vulkan_definitions.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_swap_chain.hpp>
-#include <atomic>
-
-#define MAIN_FRAMEBUFFERS_COUNT 3
-#define API VulkanAPI::_M_vulkan
-#define VIEW_PORT API->window_data.view_port
-
-#define ENABLE_VALIDATION_LAYERS 1
-#define USE_THREADED_END_COMMAND 1
 
 namespace Engine
 {
@@ -41,8 +34,6 @@ namespace Engine
 
     struct VulkanAPI : public GraphicApiInterface::ApiInterface {
         static Vector<const char*> device_extensions;
-
-#define vulkan_debug_log(...) (*(API->_M_engine_logger))->error(__VA_ARGS__)
         static VulkanAPI* _M_vulkan;
         Logger** _M_engine_logger        = nullptr;
         SDL_Window* _M_window            = nullptr;
@@ -62,24 +53,23 @@ namespace Engine
         QueueFamilyIndices _M_graphics_and_present_index;
         vk::Queue _M_graphics_queue;
         vk::Queue _M_present_queue;
-        std::atomic<int> _M_active_threads;
-        std::atomic<bool> _M_enabled_threaded_end_command;
 
         vk::PhysicalDeviceProperties _M_properties;
         BlockAllocator<struct VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE> _M_uniform_allocator;
         vk::DescriptorPool _M_imgui_descriptor_pool;
 
-        bool _M_need_update_image_index       = true;
-        SwapChain* _M_swap_chain              = nullptr;
+        bool _M_need_update_image_index = true;
+        SwapChain* _M_swap_chain        = nullptr;
 
         VulkanFramebuffer* _M_main_framebuffer = nullptr;
+        struct VulkanState* _M_state           = nullptr;
 
         vk::CommandPool _M_command_pool;
         struct VulkanCommandBuffer* _M_command_buffer = nullptr;
         vk::PresentModeKHR _M_swap_chain_mode;
 
-        uint32_t _M_current_frame = 0;
-        uint32_t _M_next_frame = 1;
+        uint32_t _M_current_buffer = 0;
+        uint32_t _M_current_frame  = 0;
 
         //////////////////////////////////////////////////////////////
 
@@ -119,7 +109,6 @@ namespace Engine
                                 vk::DeviceMemory& image_memory, uint32_t layers);
 
         VulkanFramebuffer* framebuffer(Identifier ID);
-        struct VulkanShader* current_shader();
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
@@ -187,7 +176,8 @@ namespace Engine
         WrapValue wrap_r_texture(const Identifier&) override;
         VulkanAPI& logger(Logger*&) override;
         VulkanAPI& generate_texture_mipmap(const Identifier&) override;
-        VulkanAPI& update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel, const void*) override;
+        VulkanAPI& update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel,
+                                     const void*) override;
         VulkanAPI& texture_size(const Identifier& ID, Size2D& size, MipMapLevel level) override;
 
         VulkanAPI& read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel) override;

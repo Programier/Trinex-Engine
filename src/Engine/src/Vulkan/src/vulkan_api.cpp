@@ -1,11 +1,8 @@
-﻿#include <Core/benchmark.hpp>
-#include <VkBootstrap.h>
+﻿#include <VkBootstrap.h>
 #include <fstream>
-#include <iostream>
 
 #include <imgui_impl_vulkan.h>
 #include <string>
-#include <thread>
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_export.hpp>
@@ -13,10 +10,10 @@
 #include <vulkan_object.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_ssbo.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
 #include <vulkan_uniform_buffer.hpp>
-
 
 namespace Engine
 {
@@ -42,9 +39,6 @@ namespace Engine
         return VulkanAPI::_M_vulkan;
     }
 
-    VulkanObject::~VulkanObject()
-    {}
-
     static VulkanUniformBufferBlock* uniform_buffer_allocator(std::size_t size)
     {
         VulkanUniformBufferBlock* ubo = new VulkanUniformBufferBlock();
@@ -52,19 +46,19 @@ namespace Engine
         return ubo;
     }
 
-
-#define DEFAULT_PRESENT_MODE vk::PresentModeKHR::eImmediate
     VulkanAPI::VulkanAPI()
     {
         _M_uniform_allocator.allocator(uniform_buffer_allocator);
         _M_swap_chain_mode = DEFAULT_PRESENT_MODE;
-#if USE_THREADED_END_COMMAND
-        _M_enabled_threaded_end_command.store(true);
-#endif
+        _M_state           = new VulkanState();
+        _M_state->reset();
     }
 
     VulkanAPI::~VulkanAPI()
-    {}
+    {
+        delete _M_state;
+        _M_state = nullptr;
+    }
 
     VulkanAPI& VulkanAPI::destroy_window()
     {
@@ -308,16 +302,13 @@ namespace Engine
 
     void VulkanAPI::recreate_swap_chain()
     {
-        if (_M_need_recreate_swap_chain && API->_M_active_threads.load() == 0)
+        if (_M_need_recreate_swap_chain)
         {
             _M_need_recreate_swap_chain = false;
             wait_idle();
             destroy_framebuffers(false);
             create_swap_chain();
             create_framebuffers();
-#if USE_THREADED_END_COMMAND
-            API->_M_enabled_threaded_end_command.store(true);
-#endif
         }
     }
 
@@ -476,8 +467,8 @@ namespace Engine
     std::size_t count_draw_calls = 0;
     VulkanAPI& VulkanAPI::swap_buffer(SDL_Window*)
     {
-        _M_current_frame = (_M_current_frame + 1) % MAIN_FRAMEBUFFERS_COUNT;
-        _M_next_frame    = (_M_next_frame + 1) % MAIN_FRAMEBUFFERS_COUNT;
+        _M_current_buffer = (_M_current_buffer + 1) % MAIN_FRAMEBUFFERS_COUNT;
+        ++_M_current_frame;
         count_draw_calls = 0;
         return *this;
     }
@@ -488,7 +479,7 @@ namespace Engine
         if (_M_need_update_image_index)
         {
 
-            result = _M_device.acquireNextImageKHR(_M_swap_chain->_M_swap_chain, UINT32_MAX,
+            result = _M_device.acquireNextImageKHR(_M_swap_chain->_M_swap_chain, UINT64_MAX,
                                                    _M_command_buffer->sync_object()._M_available_semaphore, nullptr);
 
             _M_need_update_image_index = false;
@@ -499,6 +490,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::begin_render()
     {
+        _M_state->reset();
         _M_command_buffer->begin();
         return *this;
     }
@@ -635,13 +627,6 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::wait_idle()
     {
-        if (_M_command_buffer)
-        {
-            for (auto* command : _M_command_buffer->_M_end_commands)
-            {
-                command->wait();
-            }
-        }
         _M_device.waitIdle();
         return *this;
     }
@@ -758,7 +743,7 @@ namespace Engine
     {
         _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
         _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
-        ++current_shader()->_M_current_descriptor_index;
+        ++_M_state->_M_shader->_M_current_descriptor_index;
         ++count_draw_calls;
 
         return *this;
@@ -772,7 +757,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::bind_texture(const Identifier& ID, TextureBindIndex binding)
     {
-        current_shader()->bind_texture(GET_TYPE(VulkanTexture, ID), binding);
+        _M_state->_M_shader->bind_texture(GET_TYPE(VulkanTexture, ID), binding);
         return *this;
     }
 
@@ -1147,14 +1132,9 @@ namespace Engine
         return *this;
     }
 
-    VulkanShader* VulkanAPI::current_shader()
-    {
-        return _M_command_buffer->state()._M_current_shader;
-    }
-
     VulkanAPI& VulkanAPI::bind_ssbo(const Identifier& ID, BindingIndex index, size_t offset, size_t size)
     {
-        current_shader()->bind_shared_buffer(GET_TYPE(VulkanSSBO, ID), offset, size, index);
+        _M_state->_M_shader->bind_shared_buffer(GET_TYPE(VulkanSSBO, ID), offset, size, index);
         return *this;
     }
 
@@ -1166,24 +1146,24 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
     {
-        GET_TYPE(VulkanUniformBufferMap, ID)->next_buffer()->update(offset, data, size);
+        GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer()->update(offset, data, size);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::bind_uniform_buffer(const Identifier& ID, BindingIndex index)
     {
-        current_shader()->bind_ubo(GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer(), index);
+        _M_state->_M_shader->bind_ubo(GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer(), index);
         return *this;
     }
 
     MappedMemory VulkanAPI::map_uniform_buffer(const Identifier& ID)
     {
-        return GET_TYPE(VulkanUniformBufferMap, ID)->next_buffer()->map_memory();
+        return GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer()->map_memory();
     }
 
     VulkanAPI& VulkanAPI::unmap_uniform_buffer(const Identifier& ID)
     {
-        GET_TYPE(VulkanUniformBufferMap, ID)->next_buffer()->unmap_memory();
+        GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer()->unmap_memory();
         return *this;
     }
 

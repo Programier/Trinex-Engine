@@ -4,9 +4,13 @@
 #include <Core/shader_types.hpp>
 
 #include <vulkan_object.hpp>
+#include <vulkan_unique_per_frame.hpp>
 
 namespace Engine
 {
+
+    struct VulkanDescriptorPool;
+    struct VulkanDescriptorSet;
 
     struct DescriptorSetInfo {
         vk::DescriptorSet _M_descriptor_set;
@@ -15,25 +19,22 @@ namespace Engine
         Map<BindingIndex, struct VulkanUniformBuffer*> _M_current_ubo;
 
 
-
         DescriptorSetInfo() = default;
         DescriptorSetInfo(const vk::DescriptorSet& set) : _M_descriptor_set(set)
         {}
     };
 
     struct VulkanShader : VulkanObject {
-        Index _M_current_descriptor_index        = 0;
-        Index _M_current_binded_descriptor_index = 0;
-
-        uint32_t _M_last_frame           = 0;
-
-        vk::PipelineLayout _M_pipeline_layout;
-        bool _M_has_descriptors = false;
+        VulkanUniquePerFrame<VulkanDescriptorPool> _M_descriptor_pool;
+        VulkanUniquePerFrame<Vector<VulkanDescriptorSet*>> _M_descriptor_sets;
 
         vk::DescriptorSetLayout* _M_descriptor_set_layout = nullptr;
-        Vector<Vector<DescriptorSetInfo>> _M_descriptor_sets;
+        VulkanDescriptorSet* _M_current_set               = nullptr;
+        vk::PipelineLayout _M_pipeline_layout;
+        Index _M_current_descriptor_index = 0;
+        uint32_t _M_last_frame            = 0;
 
-        vk::DescriptorPool _M_descriptor_pool;
+
         vk::Pipeline _M_pipeline;
 
 
@@ -41,15 +42,12 @@ namespace Engine
 
     private:
         VulkanShader& create_descriptor_layout(const PipelineCreateInfo& info);
-        VulkanShader& create_descriptor_sets();
         Vector<vk::VertexInputBindingDescription> get_binding_description(const PipelineCreateInfo& info);
         Vector<vk::VertexInputAttributeDescription> get_attribute_description(const PipelineCreateInfo& info);
         Vector<vk::DescriptorPoolSize> create_pool_size(const PipelineCreateInfo& info);
-        DescriptorSetInfo& current_descriptor_set();
-        VulkanShader& create_new_descriptor_set(uint32_t buffer_index);
+        VulkanDescriptorSet* current_descriptor_set();
 
     public:
-        VulkanShader& update_descriptor_layout(bool force = false);
         bool init(const PipelineCreateInfo& params);
         VulkanShader& use();
         VulkanShader& bind_ubo(struct VulkanUniformBuffer* ubo, BindingIndex binding);

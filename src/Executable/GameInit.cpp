@@ -45,7 +45,7 @@ namespace Engine
     };
 
 
-#define OBJECTS_PER_AXIS 5
+#define OBJECTS_PER_AXIS 15
 
     void GameInit::loop()
     {
@@ -98,13 +98,11 @@ namespace Engine
         UniformStruct fragment_ubo;
         fragment_ubo.add_field(DynamicStructField::field_of<Vector3D>());
 
-        UniformStructInstance* fragment_ubo_inst = fragment_ubo.create_instance();
-
-
         Average<double> fps;
+        Average<double> fps_by_time;
 
 
-#define TIMES_COUNT 4
+#define TIMES_COUNT 5
         float times[TIMES_COUNT];
 
         while (Window::window->is_open())
@@ -122,7 +120,6 @@ namespace Engine
                 _M_renderer->begin();
 
                 camera_ubo_buffer->get_ref<Matrix4f>(0) = camera->projview();
-                //fragment_ubo_inst->get_ref<Vector3D>(0) = camera->transform.front_vector();
 
                 GBuffer::instance()->bind();
                 framebuffer_shader->use();
@@ -142,8 +139,6 @@ namespace Engine
             static UpdateType type = UpdateType::Static;
 
             {
-                static int updates = OBJECTS_PER_AXIS * OBJECTS_PER_AXIS * OBJECTS_PER_AXIS * 3;
-
                 times[1] = 0;
                 for (int x = 0; x < OBJECTS_PER_AXIS; x++)
                 {
@@ -175,7 +170,6 @@ namespace Engine
                                 instance->get_ref<Matrix4f>(0) = glm::translate(
                                         glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
                                         Vector3D(_x, _y, _z));
-                                updates--;
                             }
 
                             {
@@ -205,6 +199,7 @@ namespace Engine
 
 
             {
+                BenchMark<std::chrono::milliseconds> bench;
                 Window::window->bind();
                 shader->use();
                 output_vertex_buffer.bind();
@@ -212,12 +207,15 @@ namespace Engine
                 GBuffer::instance()->buffer_data().albedo.ptr()->bind();
                 GBuffer::instance()->previous_buffer_data().albedo.ptr()->bind(1);
                 _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
+
+                bench.log_status(false);
+                times[3] = bench.time();
             }
 
             static bool with_imgui = true;
             if (with_imgui)
             {
-                BenchMark<std::chrono::milliseconds> bench;
+
                 ImGuiRenderer::new_frame();
 
                 ImGui::Begin("TrinexEngine");
@@ -241,24 +239,28 @@ namespace Engine
                     }
 
                     ImGui::Text("Time[sum] = %f", sum);
+                    fps_by_time.push(1000.0 / sum);
+                    ImGui::Text("FPS by time = %f", fps_by_time.average());
                 }
 
                 ImGui::End();
 
                 ImGuiRenderer::render();
-
-                bench.log_status(false);
-                times[3] = bench.time();
             }
 
             if (fps.count() == 60)
             {
                 fps.reset();
+                fps_by_time.reset();
             }
 
 
             {
+                BenchMark<std::chrono::milliseconds> bench;
                 _M_renderer->end();
+
+                bench.log_status(false);
+                times[4] = bench.time();
             }
 
 

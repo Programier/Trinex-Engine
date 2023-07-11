@@ -133,7 +133,6 @@ namespace Engine
 
     OpenGL_UniformBuffer& OpenGL_UniformBuffer::bind(BindingIndex binding)
     {
-        unmap_memory();
         glBindBuffer(GL_UNIFORM_BUFFER, _M_instance_id);
 
         auto it = API->_M_current_shader->_M_block_indices.find(binding);
@@ -166,11 +165,6 @@ namespace Engine
     OpenGL_UniformBuffer* OpenGL_UniformBufferMap::current_buffer()
     {
         return _M_buffers[API->_M_current_buffer_index];
-    }
-
-    OpenGL_UniformBuffer* OpenGL_UniformBufferMap::next_buffer()
-    {
-        return _M_buffers[API->_M_next_buffer_index];
     }
 
     OpenGL_UniformBufferMap::~OpenGL_UniformBufferMap()

@@ -17,11 +17,10 @@ namespace Engine
     };
 
     struct VulkanUniformBufferMap : public VulkanObject {
-        std::vector<VulkanUniformBuffer*> _M_buffer;
+        Vector<VulkanUniformBuffer*> _M_buffer;
 
         VulkanUniformBufferMap(const byte* data, size_t size);
         VulkanUniformBuffer* current_buffer();
-        VulkanUniformBuffer* next_buffer();
         ~VulkanUniformBufferMap();
     };
 }// namespace Engine

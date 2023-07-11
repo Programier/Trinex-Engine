@@ -1,6 +1,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_framebuffer.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_transition_image_layout.hpp>
 
@@ -11,9 +12,7 @@ namespace Engine
 #define DEPTH_STENCIL_BUFFER_BIT 2U
 
     VulkanFramebuffer::VulkanFramebuffer()
-    {
-        _M_instance_address = this;
-    }
+    {}
 
     VulkanFramebuffer& VulkanFramebuffer::init(const FrameBufferCreateInfo& info)
     {
@@ -253,7 +252,7 @@ namespace Engine
             _M_viewport.y      = _M_size.height - viewport.pos.y;
         }
 
-        if (this == API->_M_command_buffer->state()._M_current_framebuffer)
+        if (this == API->_M_state->_M_framebuffer)
             set_viewport();
 
         return *this;
@@ -280,7 +279,7 @@ namespace Engine
             _M_scissor.offset.y = _M_size.height - scissor.pos.y - scissor.size.y;
         }
 
-        if (this == API->_M_command_buffer->state()._M_current_framebuffer)
+        if (this == API->_M_state->_M_framebuffer)
             set_scissor();
 
         return *this;
@@ -294,25 +293,21 @@ namespace Engine
 
     VulkanFramebuffer& VulkanFramebuffer::bind(size_t index)
     {
-        VulkanCommandBufferState& state = API->_M_command_buffer->state();
-
-        if (state._M_current_framebuffer)
+        if (API->_M_state->_M_framebuffer)
         {
-            state._M_current_framebuffer->unbind();
+            API->_M_state->_M_framebuffer->unbind();
         }
 
-        state._M_current_framebuffer = this;
+        API->_M_state->_M_framebuffer = this;
 
         return begin_pass(index).set_viewport().set_scissor();
     }
 
     VulkanFramebuffer& VulkanFramebuffer::unbind()
     {
-        VulkanCommandBufferState& state = API->_M_command_buffer->state();
-
-        if (state._M_current_framebuffer == this)
+        if (API->_M_state->_M_framebuffer == this)
         {
-            state._M_current_framebuffer = nullptr;
+            API->_M_state->_M_framebuffer = nullptr;
             return end_pass();
         }
 

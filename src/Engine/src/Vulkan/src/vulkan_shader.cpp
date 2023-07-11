@@ -2,16 +2,16 @@
 #include <thread>
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_descriptor_pool.hpp>
+#include <vulkan_descriptor_set.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_ssbo.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
 #include <vulkan_uniform_buffer.hpp>
 
-
 #define SHADER_DATA info.binaries
-#define CURRENT_UBO _M_descriptor_sets[API->_M_current_frame]
-#define MAX_BINDLESS_RESOURCES 16384
 
 namespace Engine
 {
@@ -155,9 +155,7 @@ namespace Engine
     }
 
     VulkanShader::VulkanShader()
-    {
-        _M_instance_address = this;
-    }
+    {}
 
     VulkanShader& VulkanShader::create_descriptor_layout(const PipelineCreateInfo& info)
     {
@@ -198,7 +196,6 @@ namespace Engine
 
     bool VulkanShader::init(const PipelineCreateInfo& info)
     {
-        _M_has_descriptors = false;
         create_descriptor_layout(info);
 
 
@@ -279,83 +276,42 @@ namespace Engine
 
         if (_M_descriptor_set_layout)
         {
-            Vector<vk::DescriptorPoolSize> pool_size = create_pool_size(info);
-            vk::DescriptorPoolCreateInfo pool_info({}, MAIN_FRAMEBUFFERS_COUNT * MAX_BINDLESS_RESOURCES, pool_size);
-            _M_descriptor_pool = API->_M_device.createDescriptorPool(pool_info);
-            create_descriptor_sets();
+            auto sizes = create_pool_size(info);
+            for (VulkanDescriptorPool* instance : _M_descriptor_pool._M_instances)
+            {
+                instance->_M_pool_sizes = sizes;
+            }
         }
 
         return true;
     }
 
-    VulkanShader& VulkanShader::update_descriptor_layout(bool force)
+    VulkanShader& VulkanShader::use()
     {
-        if (_M_current_binded_descriptor_index != _M_current_descriptor_index || force)
+        if (API->_M_state->_M_shader != this)
         {
-            _M_current_binded_descriptor_index = _M_current_descriptor_index;
-            auto& current_set                  = current_descriptor_set();
-
-            API->_M_command_buffer->get().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, _M_pipeline_layout, 0, 1,
-                                                             &current_set._M_descriptor_set, 0, nullptr);
+            API->_M_command_buffer->get().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
+            API->_M_state->_M_shader = this;
         }
         return *this;
     }
-
-    VulkanShader& VulkanShader::use()
-    {
-        API->_M_command_buffer->get().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
-        API->_M_command_buffer->state()._M_current_shader = this;
-        update_descriptor_layout(true);
-        return *this;
-    }
-
 
     VulkanShader& VulkanShader::bind_ubo(VulkanUniformBuffer* ubo, BindingIndex binding)
     {
-        if (_M_has_descriptors)
+        if (_M_descriptor_set_layout)
         {
-            auto& current_set = current_descriptor_set();
-            //update_descriptor_layout();
+            VulkanDescriptorSet* current_set = current_descriptor_set();
 
-            if (ubo->is_mapped())
-            {
-                ubo->unmap_memory();
-            }
-
-            if (current_set._M_current_ubo[binding] != ubo)
+            if (current_set->_M_current_ubo[binding] != ubo)
             {
                 vk::DescriptorBufferInfo buffer_info(ubo->_M_buffer, 0, ubo->_M_size);
-                vk::WriteDescriptorSet write_descriptor(current_set._M_descriptor_set, binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
-                current_set._M_current_ubo[binding] = ubo;
+                current_set->_M_current_ubo[binding] = ubo;
             }
         }
 
-        return *this;
-    }
-
-    VulkanShader& VulkanShader::create_new_descriptor_set(uint32_t buffer_index)
-    {
-        auto& descriptor_array = _M_descriptor_sets[buffer_index];
-        if (descriptor_array.size() == static_cast<size_t>(MAX_BINDLESS_RESOURCES))
-        {
-            throw std::runtime_error("Vulkan API: Failed to create descriptor set. Count of sets is out of range!");
-        }
-
-        vk::DescriptorSetAllocateInfo alloc_info(_M_descriptor_pool, *_M_descriptor_set_layout);
-        auto sets = API->_M_device.allocateDescriptorSets(alloc_info);
-
-
-        descriptor_array.emplace_back(sets.front());
-        return *this;
-    }
-
-    VulkanShader& VulkanShader::create_descriptor_sets()
-    {
-        _M_descriptor_sets.resize(MAIN_FRAMEBUFFERS_COUNT);
-        for (Counter i = 0; i < MAIN_FRAMEBUFFERS_COUNT; i++) create_new_descriptor_set(i);
-        _M_has_descriptors = true;
         return *this;
     }
 
@@ -393,37 +349,46 @@ namespace Engine
         if (!info.uniform_buffers.empty())
         {
             pool_size.emplace_back(vk::DescriptorType::eUniformBuffer,
-                                   MAIN_FRAMEBUFFERS_COUNT * info.uniform_buffers.size());
+                                   MAX_BINDLESS_RESOURCES * info.uniform_buffers.size());
         }
 
         if (!info.texture_samplers.empty())
         {
             pool_size.emplace_back(vk::DescriptorType::eCombinedImageSampler,
-                                   MAIN_FRAMEBUFFERS_COUNT * info.texture_samplers.size());
+                                   MAX_BINDLESS_RESOURCES * info.texture_samplers.size());
+        }
+
+        if (!info.shared_buffers.empty())
+        {
+            pool_size.emplace_back(vk::DescriptorType::eStorageBuffer,
+                                   MAX_BINDLESS_RESOURCES * info.shared_buffers.size());
         }
 
         return pool_size;
     }
 
-    DescriptorSetInfo& VulkanShader::current_descriptor_set()
+    VulkanDescriptorSet* VulkanShader::current_descriptor_set()
     {
         if (_M_last_frame != API->_M_current_frame)
         {
             _M_last_frame               = API->_M_current_frame;
             _M_current_descriptor_index = 0;
+            _M_current_set              = nullptr;
         }
 
-        auto& descriptor_array = _M_descriptor_sets[API->_M_current_frame];
-
+        auto& descriptor_array = _M_descriptor_sets.current();
 
         if (descriptor_array.size() <= _M_current_descriptor_index)
         {
-            create_new_descriptor_set(API->_M_current_frame);
+            descriptor_array.push_back(_M_descriptor_pool.current().allocate_descriptor_set(_M_descriptor_set_layout));
         }
 
-        if (_M_current_binded_descriptor_index != _M_current_descriptor_index)
+        VulkanDescriptorSet* new_set = descriptor_array[_M_current_descriptor_index];
+
+
+        if (_M_current_set != new_set)
         {
-            update_descriptor_layout();
+            _M_current_set = &new_set->bind(_M_pipeline_layout);
         }
 
         return descriptor_array[_M_current_descriptor_index];
@@ -431,22 +396,22 @@ namespace Engine
 
     VulkanShader& VulkanShader::bind_texture(VulkanTexture* texture, uint_t binding)
     {
-        if (_M_has_descriptors)
+        if (_M_descriptor_set_layout)
         {
-            auto& current_set = current_descriptor_set();
+            VulkanDescriptorSet* current_set = current_descriptor_set();
 
-            if (current_set._M_sampler != texture->_M_texture_sampler ||
-                current_set._M_image_view != texture->_M_image_view)
+            if (current_set->_M_sampler[binding] != texture->_M_texture_sampler ||
+                current_set->_M_image_view[binding] != texture->_M_image_view)
             {
                 vk::DescriptorImageInfo image_info(texture->_M_texture_sampler, texture->_M_image_view,
                                                    vk::ImageLayout::eShaderReadOnlyOptimal);
 
-                vk::WriteDescriptorSet write_descriptor(current_set._M_descriptor_set, binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
                                                         vk::DescriptorType::eCombinedImageSampler, image_info);
 
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
-                current_set._M_sampler    = texture->_M_texture_sampler;
-                current_set._M_image_view = texture->_M_image_view;
+                current_set->_M_sampler[binding]    = texture->_M_texture_sampler;
+                current_set->_M_image_view[binding] = texture->_M_image_view;
             }
         }
         return *this;
@@ -454,16 +419,13 @@ namespace Engine
 
     VulkanShader& VulkanShader::bind_shared_buffer(VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding)
     {
-        if (_M_has_descriptors && offset < ssbo->_M_size)
+        if (_M_pipeline_layout && offset < ssbo->_M_size)
         {
-            size              = glm::min(size, ssbo->_M_size - offset);
-            auto& current_set = current_descriptor_set();
-            update_descriptor_layout();
-
+            size                             = glm::min(size, ssbo->_M_size - offset);
+            VulkanDescriptorSet* current_set = current_descriptor_set();
             vk::DescriptorBufferInfo buffer_info(ssbo->_M_buffer, offset, size);
-
-            vk::WriteDescriptorSet write_descriptor(current_set._M_descriptor_set, binding, 0,
-                                                    vk::DescriptorType::eStorageBuffer, {}, buffer_info);
+            vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0, vk::DescriptorType::eStorageBuffer,
+                                                    {}, buffer_info);
             API->_M_device.updateDescriptorSets(write_descriptor, {});
         }
         return *this;
@@ -473,10 +435,6 @@ namespace Engine
     VulkanShader::~VulkanShader()
     {
         API->wait_idle();
-        DESTROY_CALL(destroyDescriptorPool, _M_descriptor_pool);
-
-        _M_descriptor_sets.clear();
-
         DESTROY_CALL(destroyDescriptorSetLayout, *_M_descriptor_set_layout);
         delete _M_descriptor_set_layout;
         _M_descriptor_set_layout = nullptr;
