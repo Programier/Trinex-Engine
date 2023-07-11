@@ -1,5 +1,0 @@
-/home/programier/Projects/C++/GameEngine/src/Engine/src/OpenGL/build-Debug-Desktop/CMakeFiles/edit_cache.dir
-/home/programier/Projects/C++/GameEngine/src/Engine/src/OpenGL/build-Debug-Desktop/CMakeFiles/rebuild_cache.dir
-/home/programier/Projects/C++/GameEngine/src/Engine/src/OpenGL/build-Debug-Desktop/src/CMakeFiles/OpenGL.dir
-/home/programier/Projects/C++/GameEngine/src/Engine/src/OpenGL/build-Debug-Desktop/src/CMakeFiles/edit_cache.dir
-/home/programier/Projects/C++/GameEngine/src/Engine/src/OpenGL/build-Debug-Desktop/src/CMakeFiles/rebuild_cache.dir

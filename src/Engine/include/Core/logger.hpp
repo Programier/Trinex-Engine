@@ -16,7 +16,7 @@ namespace Engine
     extern ENGINE_EXPORT Logger* logger;
     ENGINE_EXPORT Logger& standart_logger();
 
-#ifdef TRINEX_ENGINE_DEBUG
+#if TRINEX_DEBUG_BUILD
 #define debug_log(...) logger->log(__VA_ARGS__)
 #else
 #define debug_log(...)

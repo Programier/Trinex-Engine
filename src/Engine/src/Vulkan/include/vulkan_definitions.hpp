@@ -7,4 +7,4 @@
 #define VIEW_PORT API->window_data.view_port
 #define DEFAULT_PRESENT_MODE vk::PresentModeKHR::eImmediate
 
-#define ENABLE_VALIDATION_LAYERS 0
+#define ENABLE_VALIDATION_LAYERS VULKAN_DEBUG_BUILD

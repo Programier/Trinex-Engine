@@ -134,7 +134,7 @@ namespace Engine
 
         BasicLogger& debug(const char* tag, const char* format, ...)
         {
-#ifdef TRINEX_ENGINE_DEBUG
+#if TRINEX_DEBUG_BUILD
             va_list args;
             va_start(args, format);
             write_message(DEBUG_PRIO, tag, format, args, stdout, GREEN);
@@ -145,7 +145,7 @@ namespace Engine
 
         BasicLogger& warning(const char* tag, const char* format, ...)
         {
-#ifdef TRINEX_ENGINE_DEBUG
+#if TRINEX_DEBUG_BUILD
             va_list args;
             va_start(args, format);
             write_message(WARNING_PRIO, tag, format, args, stdout, BLUE);

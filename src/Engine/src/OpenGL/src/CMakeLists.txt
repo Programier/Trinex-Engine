@@ -15,3 +15,18 @@ add_library(OpenGL SHARED ${OPENGL_SRC})
 target_link_libraries(OpenGL PUBLIC ${OPENGL_LIBS} SDL2 TrinexEngine)
 
 install (TARGETS OpenGL DESTINATION "./TrinexEngine/libs/")
+
+target_compile_options(OpenGL PRIVATE "-Wall")
+target_compile_options(OpenGL PRIVATE "-Wno-unknown-pragmas")
+target_compile_options(OpenGL PRIVATE "-march=native")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(OpenGL PRIVATE "-O3")
+    target_compile_options(OpenGL PRIVATE "-Os")
+    target_compile_options(OpenGL PRIVATE "-finline-functions")
+    target_compile_options(OpenGL PRIVATE "-floop-parallelize-all")
+    target_compile_options(OpenGL PRIVATE "-funroll-loops")
+    target_compile_options(OpenGL PRIVATE "-fomit-frame-pointer")
+else()
+    target_compile_options(OpenGL PRIVATE "-g")
+endif()

@@ -1,21 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES CXX)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-include(flags)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-add_definitions(-DENABLE_ENGINE_EXPORTS)
-add_definitions(-DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_definitions(-DTRINEX_ENGINE_DEBUG)
-endif()
-
-add_definitions(-DENGINE_API_IMPLEMENTATION)
 
 #Compile parameters
 set(TRINEX_ENGINE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
@@ -104,11 +93,6 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_S
 # Include private headers for imgui
 include_directories(${TRINEX_ENGINE_ROOT}/include-internal/ImGui-Private/)
 
-# Include additional lib directory and include dir if build system is Windows OS
-if (WIN32)
-    link_directories("${TRINEX_ENGINE_ROOT}/libs/")
-endif()
-
 # Compile OpenGL library
 add_subdirectory("${TRINEX_ENGINE_SRC}/OpenGL")
 
@@ -121,6 +105,40 @@ endif()
 # Compile Trinex Engine library
 add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 
+
+# Trinex Engine compile options
+target_compile_options(TrinexEngine PRIVATE "-Wall")
+target_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
+target_compile_options(TrinexEngine PRIVATE "-march=native")
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(TrinexEngine PRIVATE "-O3")
+    target_compile_options(TrinexEngine PRIVATE "-Os")
+    target_compile_options(TrinexEngine PRIVATE "-finline-functions")
+    target_compile_options(TrinexEngine PRIVATE "-floop-parallelize-all")
+    target_compile_options(TrinexEngine PRIVATE "-funroll-loops")
+    target_compile_options(TrinexEngine PRIVATE "-fomit-frame-pointer")
+else()
+    target_compile_options(TrinexEngine PRIVATE "-g")
+endif()
+
+# Trinex Engine compile definitions
+target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS)
+target_compile_definitions(TrinexEngine PRIVATE -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=1)
+    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=0)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=0)
+    target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=1)
+endif()
+
+
+# Include additional lib directory and include dir if build system is Windows OS
+if (WIN32)
+    target_link_directories(TrinexEngine "${TRINEX_ENGINE_ROOT}/libs/")
+endif()
 
 
 # Linking libraries and including directories

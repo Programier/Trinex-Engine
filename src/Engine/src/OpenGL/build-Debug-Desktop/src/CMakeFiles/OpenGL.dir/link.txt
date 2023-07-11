@@ -1,1 +1,0 @@
-/usr/bin/g++ -fPIC -DQT_QML_DEBUG -g -shared -Wl,-soname,libOpenGL.so -o libOpenGL.so CMakeFiles/OpenGL.dir/opengl_api.cpp.o CMakeFiles/OpenGL.dir/opengl_texture.cpp.o  -lGL -lSDL2 
