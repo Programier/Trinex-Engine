@@ -3,7 +3,7 @@ project(TrinexEngine LANGUAGES CXX)
 
 
 option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
-option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" OFF)
+option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
 
 
 set(CMAKE_CXX_STANDARD 20)
