@@ -180,12 +180,12 @@ namespace Engine
 
     ///////////////////////////////// INITIALIZATION /////////////////////////////////
 #if ENABLE_VALIDATION_LAYERS
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                        VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                        void* pUserData)
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                         VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                         void* pUserData)
     {
-        vulkan_debug_log("Vulkan API", "%s", pCallbackData->pMessage);
+        vulkan_error_log("Vulkan API", "%s", pCallbackData->pMessage);
         return VK_FALSE;
     }
 #endif
@@ -212,7 +212,7 @@ namespace Engine
         }
 
 #if ENABLE_VALIDATION_LAYERS
-        instance_builder.set_debug_callback(debugCallback).request_validation_layers();
+        instance_builder.set_debug_callback(debug_callback).request_validation_layers();
 #else
         instance_builder.add_validation_disable(VK_VALIDATION_CHECK_ALL_EXT);
         instance_builder.add_validation_feature_disable(VK_VALIDATION_FEATURE_DISABLE_ALL_EXT);

@@ -117,7 +117,9 @@ namespace Engine
                 break;
 
             case vk::Result::eErrorOutOfDateKHR:
+#if !SKIP_SUBOPTIMAL_KHR_ERROR
             case vk::Result::eSuboptimalKHR:
+#endif
                 API->_M_need_recreate_swap_chain = true;
                 break;
 

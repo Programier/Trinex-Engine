@@ -7,6 +7,7 @@ namespace Engine
 {
     SwapChain::SwapChain()
     {
+        vulkan_info_log("Vulkan API", "Creating new swapchain");
         vkb::SwapchainBuilder swapchain_builder(API->_M_bootstrap_device);
 
         swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->_M_swap_chain_mode));
@@ -64,6 +65,7 @@ namespace Engine
     }
     SwapChain::~SwapChain()
     {
+        vulkan_info_log("Vulkan API", "Destroy swapchain");
         for (auto& view : _M_image_views)
         {
             API->_M_device.destroyImageView(view);
