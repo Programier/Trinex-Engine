@@ -14,7 +14,7 @@ namespace Engine
     class Logger;
 }
 
-#define VIRTUAL_METHOD
+#define VIRTUAL_METHOD = 0
 
 namespace Engine::GraphicApiInterface
 {
@@ -76,22 +76,25 @@ namespace Engine::GraphicApiInterface
                                                           const Offset2D&, MipMapLevel, void*) VIRTUAL_METHOD;
 
         virtual ApiInterface& create_vertex_buffer(Identifier&, const byte*, size_t) VIRTUAL_METHOD;
-        virtual ApiInterface& update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
+        virtual ApiInterface& update_vertex_buffer(const Identifier&, size_t offset, const byte*,
+                                                   size_t) VIRTUAL_METHOD;
         virtual ApiInterface& bind_vertex_buffer(const Identifier&, size_t offset) VIRTUAL_METHOD;
-        virtual MappedMemory map_vertex_buffer(const Identifier& ID);
-        virtual ApiInterface& unmap_vertex_buffer(const Identifier& ID);
+        virtual MappedMemory map_vertex_buffer(const Identifier& ID) VIRTUAL_METHOD;
+        virtual ApiInterface& unmap_vertex_buffer(const Identifier& ID) VIRTUAL_METHOD;
 
-        virtual ApiInterface& create_index_buffer(Identifier&, const byte*, size_t, IndexBufferComponent) VIRTUAL_METHOD;
+        virtual ApiInterface& create_index_buffer(Identifier&, const byte*, size_t,
+                                                  IndexBufferComponent) VIRTUAL_METHOD;
         virtual ApiInterface& update_index_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
         virtual ApiInterface& bind_index_buffer(const Identifier&, size_t offset) VIRTUAL_METHOD;
-        virtual MappedMemory map_index_buffer(const Identifier& ID);
-        virtual ApiInterface& unmap_index_buffer(const Identifier& ID);
+        virtual MappedMemory map_index_buffer(const Identifier& ID) VIRTUAL_METHOD;
+        virtual ApiInterface& unmap_index_buffer(const Identifier& ID) VIRTUAL_METHOD;
 
         virtual ApiInterface& create_uniform_buffer(Identifier&, const byte*, size_t) VIRTUAL_METHOD;
-        virtual ApiInterface& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
+        virtual ApiInterface& update_uniform_buffer(const Identifier&, size_t offset, const byte*,
+                                                    size_t) VIRTUAL_METHOD;
         virtual ApiInterface& bind_uniform_buffer(const Identifier&, BindingIndex binding) VIRTUAL_METHOD;
-        virtual MappedMemory map_uniform_buffer(const Identifier& ID);
-        virtual ApiInterface& unmap_uniform_buffer(const Identifier& ID);
+        virtual MappedMemory map_uniform_buffer(const Identifier& ID) VIRTUAL_METHOD;
+        virtual ApiInterface& unmap_uniform_buffer(const Identifier& ID) VIRTUAL_METHOD;
 
         virtual ApiInterface& draw_indexed(size_t indices_count, size_t indices_offset) VIRTUAL_METHOD;
 
@@ -104,7 +107,8 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& use_shader(const Identifier&) VIRTUAL_METHOD;
 
         virtual ApiInterface& create_ssbo(Identifier&, const byte* data, size_t size) VIRTUAL_METHOD;
-        virtual ApiInterface& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) VIRTUAL_METHOD;
+        virtual ApiInterface& bind_ssbo(const Identifier&, BindingIndex index, size_t offset,
+                                        size_t size) VIRTUAL_METHOD;
         virtual ApiInterface& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) VIRTUAL_METHOD;
 
         virtual ApiInterface& swap_buffer(SDL_Window* window) VIRTUAL_METHOD;
@@ -123,7 +127,7 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& next_render_thread() VIRTUAL_METHOD;
         virtual String renderer() VIRTUAL_METHOD;
 
-        virtual ~ApiInterface();
+        virtual ~ApiInterface(){};
     };
 
 #undef VIRTUAL_METHOD

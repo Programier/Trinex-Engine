@@ -178,7 +178,7 @@ namespace Engine
             _M_viewport.minDepth = 0.0f;
             _M_viewport.maxDepth = 1.0f;
 
-            _M_scissor = {{0, 0}, vk::Extent2D(_M_size.width, _M_size.height)};
+            _M_scissor = vk::Rect2D({0, 0}, vk::Extent2D(_M_size.width, _M_size.height));
         }
         else
         {}

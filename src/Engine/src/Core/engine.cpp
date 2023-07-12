@@ -13,9 +13,9 @@
 #include <Sensors/sensor.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
-#include <api.hpp>
 #include <cstring>
 #include <glm/gtc/quaternion.hpp>
+#include <no_api.hpp>
 
 
 namespace Engine
@@ -131,7 +131,7 @@ namespace Engine
         }
         else
         {
-            _M_api_interface = new GraphicApiInterface::ApiInterface();
+            _M_api_interface = new NoApi();
         }
         return *this;
     }

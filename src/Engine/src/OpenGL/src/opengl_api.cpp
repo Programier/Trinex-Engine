@@ -161,6 +161,21 @@ namespace Engine
         return *this;
     }
 
+    OpenGL& OpenGL::async_render(bool flag)
+    {
+        return *this;
+    }
+
+    bool OpenGL::async_render()
+    {
+        return false;
+    }
+
+    OpenGL& OpenGL::next_render_thread()
+    {
+        return *this;
+    }
+
     String OpenGL::renderer()
     {
         return String(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
@@ -285,6 +300,21 @@ namespace Engine
     {
         SDL_GL_SetSwapInterval(interval);
         return *this;
+    }
+
+    OpenGL& OpenGL::clear_color(const Identifier&, const ColorClearValue&, byte layout)
+    {
+        throw std::runtime_error(not_implemented);
+    }
+
+    OpenGL& OpenGL::clear_depth_stencil(const Identifier&, const DepthStencilClearValue&)
+    {
+        throw std::runtime_error(not_implemented);
+    }
+
+    bool OpenGL::check_format_support(PixelType type, PixelComponentType component)
+    {
+        throw std::runtime_error(not_implemented);
     }
 }// namespace Engine
 

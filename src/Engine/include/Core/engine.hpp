@@ -13,7 +13,7 @@ namespace Engine
 
     namespace GraphicApiInterface
     {
-        class ApiInterface;
+        struct ApiInterface;
     }
 
 

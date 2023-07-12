@@ -52,7 +52,7 @@ namespace Engine
         VulkanShader& use();
         VulkanShader& bind_ubo(struct VulkanUniformBuffer* ubo, BindingIndex binding);
         VulkanShader& bind_texture(struct VulkanTexture* texture, uint_t binding);
-        VulkanShader& bind_shared_buffer(class VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding);
+        VulkanShader& bind_shared_buffer(struct VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding);
         ~VulkanShader();
     };
 }// namespace Engine

@@ -246,7 +246,7 @@ namespace Engine
         _M_physical_device = vk::PhysicalDevice(phys_device_ret.value().physical_device);
 
         _M_properties = _M_physical_device.getProperties();
-        _M_renderer   = _M_properties.deviceName._M_elems;
+        _M_renderer   = _M_properties.deviceName.data();
 
 
         vkb::DeviceBuilder device_builder(phys_device_ret.value());
@@ -285,7 +285,6 @@ namespace Engine
     {
         VkSurfaceKHR _surface;
         SDL_Vulkan_CreateSurface(_M_window, static_cast<VkInstance>(_M_instance), &_surface);
-
         _M_surface = vk::SurfaceKHR(_surface);
     }
 

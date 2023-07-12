@@ -1,3 +1,4 @@
+#include <Core/logger.hpp>
 #include <SDL.h>
 #include <stdexcept>
 
@@ -5,7 +6,7 @@ namespace Engine
 {
     void trinex_init_sdl()
     {
-        if (SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO))
+        if (SDL_Init(SDL_INIT_EVERYTHING))
             throw std::runtime_error(SDL_GetError());
     }
 

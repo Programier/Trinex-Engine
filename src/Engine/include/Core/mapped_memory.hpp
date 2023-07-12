@@ -13,7 +13,7 @@ namespace Engine
         size_t _M_size           = 0;
 
     public:
-        TypedMappedMemory(ComponentType* memory, size_t size) : _M_memory(memory), _M_size(size)
+        TypedMappedMemory(ComponentType* memory = nullptr, size_t size = 0) : _M_memory(memory), _M_size(size)
         {}
 
         template<typename OtherType>

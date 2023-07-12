@@ -7,7 +7,7 @@ namespace Engine
 
     namespace GraphicApiInterface
     {
-        class ApiInterface;
+        struct ApiInterface;
     }
 
     class ENGINE_EXPORT Renderer

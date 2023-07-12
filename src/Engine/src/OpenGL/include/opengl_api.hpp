@@ -3,7 +3,7 @@
 #include <api.hpp>
 
 
-class SDL_Window;
+struct SDL_Window;
 
 #define API (Engine::OpenGL::_M_open_gl)
 #define opengl_debug_log (*OpenGL::_M_open_gl->_M_logger)->log
@@ -114,21 +114,24 @@ namespace Engine
         OpenGL& use_shader(const Identifier&) override;
 
 
-        //        OpenGL& create_ssbo(Identifier&, const byte* data, size_t size) override;
-        //        OpenGL& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
-        //        OpenGL& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
+        OpenGL& create_ssbo(Identifier&, const byte* data, size_t size) override;
+        OpenGL& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
+        OpenGL& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
 
         OpenGL& swap_buffer(SDL_Window* window) override;
         OpenGL& swap_interval(int_t interval) override;
-        //        OpenGL& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
-        //        OpenGL& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
+        OpenGL& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
+        OpenGL& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
 
-        //        bool check_format_support(PixelType type, PixelComponentType component) override;
+        bool check_format_support(PixelType type, PixelComponentType component) override;
 
         OpenGL& on_window_size_changed() override;
         OpenGL& begin_render() override;
         OpenGL& end_render() override;
         OpenGL& wait_idle() override;
+        OpenGL& async_render(bool flag) override;
+        bool async_render() override;
+        OpenGL& next_render_thread() override;
         String renderer() override;
 
         ~OpenGL();

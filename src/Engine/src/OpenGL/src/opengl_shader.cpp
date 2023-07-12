@@ -287,6 +287,21 @@ namespace Engine
         return *this;
     }
 
+    OpenGL& OpenGL::create_ssbo(Identifier&, const byte* data, size_t size)
+    {
+        throw std::runtime_error(not_implemented);
+    }
+
+    OpenGL& OpenGL::bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size)
+    {
+        throw std::runtime_error(not_implemented);
+    }
+
+    OpenGL& OpenGL::update_ssbo(const Identifier&, const byte*, size_t offset, size_t size)
+    {
+        throw std::runtime_error(not_implemented);
+    }
+
 
     OpenGL_Shader& OpenGL_Shader::apply_vertex_attributes(ArrayOffset base_offset)
     {

@@ -1,8 +1,11 @@
 /build*/
-resources/Downtown_Damage_0.obj
-GameLinux
 CMakeLists.txt.user
 android/.gradle/
 android/.idea/
 android/app/.cxx/
 android/app/build/
+render_doc_settings.cap
+src/Engine/src/OpenGL/CMakeLists.txt.user
+src/Engine/src/OpenGL/build*/
+src/Engine/src/Vulkan/CMakeLists.txt.user
+src/Engine/src/Vulkan/build*/

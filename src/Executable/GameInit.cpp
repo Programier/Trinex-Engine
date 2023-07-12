@@ -20,11 +20,9 @@
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/uniform_buffer.hpp>
 #include <ImGui/imgui.h>
+#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 
-#if PLATFORM_ANDROID
-#include <Window/monitor.hpp>
-#endif
 
 namespace Engine
 {
@@ -297,6 +295,8 @@ namespace Engine
             {
                 with_imgui = !with_imgui;
             }
+            else if (KeyboardEvent::just_pressed(Key::Num4))
+            {}
         }
 
         _M_renderer->wait_idle();

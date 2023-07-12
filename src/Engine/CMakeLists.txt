@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES CXX)
 
+
+option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
+option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" OFF)
+
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -94,12 +99,15 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_S
 include_directories(${TRINEX_ENGINE_ROOT}/include-internal/ImGui-Private/)
 
 # Compile OpenGL library
-add_subdirectory("${TRINEX_ENGINE_SRC}/OpenGL")
+if(TRINEX_WITH_OPENGL)
+    add_subdirectory("${TRINEX_ENGINE_SRC}/OpenGL")
+endif()
 
 # Compile Vulkan library (Windows OS currently not supported)
-if ((NOT WIN32) AND (NOT ANDROID))
+if(TRINEX_WITH_VULKAN)
     add_subdirectory("${TRINEX_ENGINE_SRC}/Vulkan")
 endif()
+
 
 
 # Compile Trinex Engine library
@@ -109,12 +117,12 @@ add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 # Trinex Engine compile options
 target_compile_options(TrinexEngine PRIVATE "-Wall")
 target_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
+target_compile_options(TrinexEngine PRIVATE "-Wmismatched-tags")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(TrinexEngine PRIVATE "-O3")
     target_compile_options(TrinexEngine PRIVATE "-Os")
     target_compile_options(TrinexEngine PRIVATE "-finline-functions")
-    target_compile_options(TrinexEngine PRIVATE "-floop-parallelize-all")
     target_compile_options(TrinexEngine PRIVATE "-funroll-loops")
     target_compile_options(TrinexEngine PRIVATE "-fomit-frame-pointer")
 else()

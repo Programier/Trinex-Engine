@@ -17,5 +17,9 @@ include_directories("${TRINEX_ENGINE_ROOT}/include/")
 include_directories("${TRINEX_ENGINE_ROOT}/include/ImGui/")
 include_directories("${TRINEX_ENGINE_ROOT}/libs/SDL/include/")
 
+if (ANDROID)
+include_directories("${VULKAN_PROJECT_ROOT}/vulkan_headers/")
+endif()
+
 add_subdirectory(libs/vk-bootstrap)
 add_subdirectory(src)
