@@ -94,9 +94,6 @@ namespace Engine
                                  "Failed to serialize color blending (blend constants) state!");
         SHADER_CHECKED_SERIALIZE(_M_resources->state.color_blending.logic_op_enable,
                                  "Failed to serialize color blending (logic op enable) state!");
-
-        SHADER_CHECKED_SERIALIZE(_M_resources->max_textures_binding_per_frame,
-                                 "Failed to serialize max textures binding per frame!");
         return true;
     }
 }// namespace Engine

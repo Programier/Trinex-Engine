@@ -268,7 +268,7 @@ namespace Engine
 
             if (KeyboardEvent::just_pressed(Key::G))
             {
-                engine_config.save_config("test.conf");
+                package->save();
             }
 
             if (KeyboardEvent::just_pressed(Key::F))

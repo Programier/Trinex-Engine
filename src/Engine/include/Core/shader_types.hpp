@@ -295,6 +295,5 @@ namespace Engine
         String name;
         VertexBufferInfo vertex_info;
         Identifier framebuffer_usage          = 0;
-        uint_t max_textures_binding_per_frame = 100;
     };
 }// namespace Engine
