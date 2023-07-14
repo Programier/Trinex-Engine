@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <condition_variable>
-#include <thread>
 #include <vulkan/vulkan.hpp>
 
 

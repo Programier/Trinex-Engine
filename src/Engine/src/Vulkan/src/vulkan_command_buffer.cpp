@@ -1,7 +1,7 @@
-#include <thread>
 #include <vulkan_api.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_state.hpp>
+
 
 namespace Engine
 {

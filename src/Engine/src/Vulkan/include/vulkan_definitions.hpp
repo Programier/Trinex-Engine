@@ -7,7 +7,7 @@
 #define vulkan_debug_log(...) (*(API->_M_engine_logger))->debug(__VA_ARGS__)
 #define vulkan_info_log(...) (*(API->_M_engine_logger))->log(__VA_ARGS__)
 #define MAIN_FRAMEBUFFERS_COUNT 2
-#define API VulkanAPI::_M_vulkan
+#define API Engine::VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
 #define DEFAULT_PRESENT_MODE vk::PresentModeKHR::eImmediate
 
