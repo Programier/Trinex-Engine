@@ -98,14 +98,16 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_S
 # Include private headers for imgui
 include_directories(${TRINEX_ENGINE_ROOT}/include-internal/ImGui-Private/)
 
+set(TRINEX_GRAPHICS_API_DIR "${TRINEX_ENGINE_ROOT}/GraphicsAPI")
+
 # Compile OpenGL library
 if(TRINEX_WITH_OPENGL)
-    add_subdirectory("${TRINEX_ENGINE_SRC}/OpenGL")
+    add_subdirectory("${TRINEX_GRAPHICS_API_DIR}/OpenGL")
 endif()
 
 # Compile Vulkan library (Windows OS currently not supported)
 if(TRINEX_WITH_VULKAN)
-    add_subdirectory("${TRINEX_ENGINE_SRC}/Vulkan")
+    add_subdirectory("${TRINEX_GRAPHICS_API_DIR}/Vulkan")
 endif()
 
 

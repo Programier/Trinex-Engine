@@ -5,7 +5,7 @@ android/.idea/
 android/app/.cxx/
 android/app/build/
 render_doc_settings.cap
-src/Engine/src/OpenGL/CMakeLists.txt.user
-src/Engine/src/OpenGL/build*/
-src/Engine/src/Vulkan/CMakeLists.txt.user
-src/Engine/src/Vulkan/build*/
+src/Engine/GraphicsAPI/OpenGL/CMakeLists.txt.user
+src/Engine/GraphicsAPI/OpenGL/build*/
+src/Engine/GraphicsAPI/Vulkan/CMakeLists.txt.user
+src/Engine/GraphicsAPI/Vulkan/build*/

@@ -9,7 +9,7 @@ set(OPENGL_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(OPENGL_SOURCES_ROOT "${OPENGL_PROJECT_ROOT}/src/")
 include_directories("include/")
 
-set(TRINEX_ENGINE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../")
+set(TRINEX_ENGINE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../")
 
 include_directories("${TRINEX_ENGINE_ROOT}/include-internal/")
 include_directories("${TRINEX_ENGINE_ROOT}/include/")
