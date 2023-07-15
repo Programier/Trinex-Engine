@@ -13,7 +13,7 @@ namespace Engine
     public:
         using Super = CommandLet;
 
-        virtual int execute(int argc, char** argv) override
+        virtual int_t execute(int_t argc, char** argv) override
         {
             String command;
             auto get_command = [&command]() {

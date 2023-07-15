@@ -10,7 +10,7 @@ namespace Engine
     public:
         using Super = Object;
 
-        virtual int execute(int argc, char** argv);
+        virtual int_t execute(int_t argc, char** argv);
         virtual void on_config_load();
     };
 }

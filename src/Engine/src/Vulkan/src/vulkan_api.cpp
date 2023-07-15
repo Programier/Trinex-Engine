@@ -741,7 +741,6 @@ namespace Engine
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
-        _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
         ++_M_state->_M_shader->_M_current_descriptor_index;
         ++count_draw_calls;
 

@@ -7,7 +7,7 @@ android {
     ndkVersion "25.1.8937393"
 
     defaultConfig {
-        applicationId "com.example.androidengine"
+        applicationId "com.programier.trinexengine"
         minSdk 27
         targetSdk 33
         versionCode 1

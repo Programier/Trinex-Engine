@@ -43,7 +43,7 @@ namespace Engine
     };
 
 
-#define OBJECTS_PER_AXIS 15
+#define OBJECTS_PER_AXIS 20
 
     void GameInit::loop()
     {
@@ -57,7 +57,8 @@ namespace Engine
         StaticMeshComponent* mesh1 = package->find_object_checked<StaticMeshComponent>("Cube");
         StaticMeshComponent* mesh2 = package->find_object_checked<StaticMeshComponent>("Mesh 2");
 
-        Shader* shader             = mesh2->material_applier(0)->shader();
+        Shader* shader = mesh2->material_applier(0)->shader();
+        logger->log("GameInit", "Material name: %s", mesh2->lods[0].material_reference.instance()->name().c_str());
         Shader* framebuffer_shader = mesh1->material_applier(0)->shader();
 
         VertexBuffer& vertex_buffer        = mesh1->lods[0].vertex_buffer;
@@ -210,8 +211,7 @@ namespace Engine
                 times[3] = bench.time();
             }
 
-            static bool with_imgui = true;
-            if (with_imgui)
+
             {
 
                 ImGuiRenderer::new_frame();
@@ -291,10 +291,6 @@ namespace Engine
                 logger->log("KEY", "2");
                 type = UpdateType::Dynamic;
             }
-            else if (KeyboardEvent::just_pressed(Key::Num3))
-            {
-                with_imgui = !with_imgui;
-            }
             else if (KeyboardEvent::just_pressed(Key::Num4))
             {}
         }
@@ -302,7 +298,7 @@ namespace Engine
         _M_renderer->wait_idle();
     }
 
-    int GameInit::execute(int argc, char** argv)
+    int_t GameInit::execute(int_t argc, char** argv)
     {
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window::create_instance();

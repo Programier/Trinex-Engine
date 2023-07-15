@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vulkan_api.hpp>
 #include <vulkan_swap_chain.hpp>
+#include <Core/predef.hpp>
 
 namespace Engine
 {
@@ -13,8 +14,9 @@ namespace Engine
         swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->_M_swap_chain_mode));
         swapchain_builder.add_image_usage_flags(static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc |
                                                                                vk::ImageUsageFlagBits::eTransferDst));
-
+#if PLATFORM_ANDROID
         swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR);
+#endif
         VkSurfaceFormatKHR f;
         f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
         f.format     = VK_FORMAT_B8G8R8A8_UNORM;
