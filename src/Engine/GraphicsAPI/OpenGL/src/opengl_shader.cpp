@@ -203,10 +203,14 @@ namespace Engine
 
                 new_shader_command(glBlendEquationSeparatei, i, color_op, alpha_op);
 
-                GLboolean r_mask = (attachment.color_mask & ColorComponent::R) == ColorComponent::R;
-                GLboolean g_mask = (attachment.color_mask & ColorComponent::G) == ColorComponent::G;
-                GLboolean b_mask = (attachment.color_mask & ColorComponent::B) == ColorComponent::B;
-                GLboolean a_mask = (attachment.color_mask & ColorComponent::A) == ColorComponent::A;
+                GLboolean r_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::R)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::R);
+                GLboolean g_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::G)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::G);
+                GLboolean b_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::B)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::B);
+                GLboolean a_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::A)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::A);
 
                 new_shader_command(glColorMaski, i, r_mask, g_mask, b_mask, a_mask);
             }

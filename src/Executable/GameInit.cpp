@@ -7,6 +7,7 @@
 #include <Core/etl/unique_per_frame_var.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/package.hpp>
+#include <Core/shader_compiler.hpp>
 #include <Core/thread.hpp>
 #include <GameInitCommandLet.hpp>
 #include <Graphics/camera.hpp>
@@ -43,7 +44,7 @@ namespace Engine
     };
 
 
-#define OBJECTS_PER_AXIS 20
+#define OBJECTS_PER_AXIS 2
 
     void GameInit::loop()
     {
@@ -300,6 +301,7 @@ namespace Engine
 
     int_t GameInit::execute(int_t argc, char** argv)
     {
+        ShaderCompiler::load_compiler();
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window::create_instance();
 #if PLATFORM_ANDROID

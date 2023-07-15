@@ -134,14 +134,25 @@ namespace Engine
         }
 
     public:
+        class ENGINE_EXPORT LuaRegistrarBase
+        {
+        protected:
+            Class* _M_class;
+            LuaRegistrarBase(Class* _class);
+
+        public:
+            ~LuaRegistrarBase();
+        };
+
         template<typename Instance>
-        class LuaRegistrar
+        class LuaRegistrar : public LuaRegistrarBase
         {
         private:
             using UserType = sol::usertype<Instance>;
-            Class* _M_class;
-            LuaRegistrar(Class* _class) : _M_class(_class)
+
+            LuaRegistrar(Class* _class) : LuaRegistrarBase(_class)
             {
+
                 if constexpr (std::is_base_of_v<Engine::Object, Instance>)
                 {
                     set(Lua::meta_function::construct, lua_allocate<Instance>);
@@ -213,7 +224,7 @@ namespace Engine
                 class_instance->create_allocator<InstanceClass>(args...);
                 class_instance->_M_instance_size = sizeof(InstanceClass);
 
-                class_instance->_M_post_init = Class::post_init<InstanceClass>;
+                class_instance->_M_post_init     = Class::post_init<InstanceClass>;
                 class_instance->_M_to_lua_object = to_lua_object_private<InstanceClass>;
                 InitializeController i(class_instance->_M_post_init);
             }
@@ -227,3 +238,9 @@ namespace Engine
         friend class Package;
     };
 }// namespace Engine
+
+
+#define register_class(class_name, ...)                                                                                \
+    template<>                                                                                                         \
+    Engine::ClassMetaData<class_name> trinex_local_metaclass_database<class_name> =                                    \
+            &Engine::Class::register_new_class<class_name>(#class_name)

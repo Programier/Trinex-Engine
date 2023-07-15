@@ -101,24 +101,31 @@ namespace Engine
 
             vk::ColorComponentFlags color_mask;
 
-            if ((in_state.color_blending.blend_attachment[index].color_mask & ColorComponent::R) == ColorComponent::R)
             {
-                color_mask |= vk::ColorComponentFlagBits::eR;
-            }
-            if ((in_state.color_blending.blend_attachment[index].color_mask & ColorComponent::G) == ColorComponent::G)
-            {
-                color_mask |= vk::ColorComponentFlagBits::eG;
-            }
-            if ((in_state.color_blending.blend_attachment[index].color_mask & ColorComponent::B) == ColorComponent::B)
-            {
-                color_mask |= vk::ColorComponentFlagBits::eB;
-            }
-            if ((in_state.color_blending.blend_attachment[index].color_mask & ColorComponent::A) == ColorComponent::A)
-            {
-                color_mask |= vk::ColorComponentFlagBits::eA;
-            }
+                ColorComponentMask R = mask_of<ColorComponentMask>(ColorComponent::R);
+                ColorComponentMask G = mask_of<ColorComponentMask>(ColorComponent::G);
+                ColorComponentMask B = mask_of<ColorComponentMask>(ColorComponent::B);
+                ColorComponentMask A = mask_of<ColorComponentMask>(ColorComponent::A);
 
-            attachment.setColorWriteMask(color_mask);
+                if ((in_state.color_blending.blend_attachment[index].color_mask & R) == R)
+                {
+                    color_mask |= vk::ColorComponentFlagBits::eR;
+                }
+                if ((in_state.color_blending.blend_attachment[index].color_mask & G) == G)
+                {
+                    color_mask |= vk::ColorComponentFlagBits::eG;
+                }
+                if ((in_state.color_blending.blend_attachment[index].color_mask & B) == B)
+                {
+                    color_mask |= vk::ColorComponentFlagBits::eB;
+                }
+                if ((in_state.color_blending.blend_attachment[index].color_mask & A) == A)
+                {
+                    color_mask |= vk::ColorComponentFlagBits::eA;
+                }
+
+                attachment.setColorWriteMask(color_mask);
+            }
             ++index;
         }
 

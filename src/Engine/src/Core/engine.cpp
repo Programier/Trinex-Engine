@@ -5,18 +5,18 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/library.hpp>
 #include <Core/logger.hpp>
+#include <Core/shader_compiler.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/renderer.hpp>
-#include <LibLoader/lib_loader.hpp>
 #include <Sensors/sensor.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <cstring>
 #include <glm/gtc/quaternion.hpp>
 #include <no_api.hpp>
-
 
 namespace Engine
 {
@@ -104,7 +104,7 @@ namespace Engine
         {
             trinex_init_sdl();
 
-            LibraryLoader::Library api_library = LibraryLoader::load(engine_config.api.c_str());
+            Library api_library(engine_config.api.c_str());
             info_log("Engine", "Using API: %s", engine_config.api.c_str());
 
             if (!api_library.has_lib())
@@ -140,52 +140,49 @@ namespace Engine
     ENGINE_EXPORT EngineInstance* engine_instance = nullptr;
 
 
-    static CommandLet* find_command_let(int argc, char** argv)
+    static CommandLet* try_load_commandlet(const String& name, Class* base_class)
     {
+        Class* class_instance = Class::find_class(name);
+        if (!class_instance)
+        {
+            logger->error("Engine", "Failed to load commandlet '%s'", name.c_str());
+            return nullptr;
+        }
+
+        if (!class_instance->contains_class(base_class))
+        {
+            error_log("Engine", "Class '%s' does not inherit from class Engine::CommandLet!",
+                      class_instance->name().c_str());
+            return nullptr;
+        }
+
+        Object* object         = class_instance->create();
+        CommandLet* commandlet = object->instance_cast<CommandLet>();
+
+        if (!commandlet)
+        {
+            logger->error("Engine", "Class '%s' is not commandlet!", class_instance->name().c_str());
+        }
+
+        return commandlet;
+    }
+
+    static CommandLet* find_commandlet(int argc, char** argv)
+    {
+        Class* commandlet_base_class = Class::find_class("Engine::CommandLet");
+        CommandLet* commandlet       = nullptr;
         // Load commandlet
-        CommandLet* command_let = nullptr;
         if (argc > 1)
         {
-            Class* class_instance = Class::find_class(argv[1]);
-            if (class_instance)
-            {
-                Object* object = class_instance->create();
-                command_let    = object->instance_cast<CommandLet>();
-
-                if (!command_let)
-                {
-                    logger->error("Engine", "Class '%s' is not commandlet!", class_instance->name().c_str());
-                    return nullptr;
-                }
-            }
-            else
-            {
-                logger->error("Engine", "Failed to load commandlet '%s'", argv[1]);
-                return nullptr;
-            }
+            commandlet = try_load_commandlet(argv[1], commandlet_base_class);
         }
 
-        if (!command_let)
+        if (!commandlet)
         {
-            Class* class_instance = Class::find_class(engine_config.base_commandlet);
-
-            if (!class_instance)
-            {
-                logger->error("Engine", "Failed to load commandlet '%s'", engine_config.base_commandlet.c_str());
-                return nullptr;
-            }
-
-            Object* object = class_instance->create();
-            command_let    = object->instance_cast<CommandLet>();
-
-            if (!command_let)
-            {
-                logger->error("Engine", "Class '%s' is not commandlet!", engine_config.base_commandlet.c_str());
-                return nullptr;
-            }
+            commandlet = try_load_commandlet(engine_config.base_commandlet, commandlet_base_class);
         }
 
-        return command_let;
+        return commandlet;
     }
 
     int EngineInstance::start(int argc, char** argv)
@@ -228,13 +225,13 @@ namespace Engine
 
         Lua::Interpretter::init_lua_dir();
 
-        CommandLet* command_let = find_command_let(argc, argv);
-        if (!command_let)
+        CommandLet* commandlet = find_commandlet(argc, argv);
+        if (!commandlet)
         {
             return -1;
         }
 
-        command_let->on_config_load();
+        commandlet->on_config_load();
 
         _M_api = get_api_by_name(engine_config.api);
 
@@ -256,7 +253,7 @@ namespace Engine
             engine_config.max_g_buffer_width = static_cast<uint_t>(Monitor::width());
         }
 
-        auto status = command_let->execute(argc - 1, argv + 1);
+        auto status = commandlet->execute(argc - 1, argv + 1);
         if (status == 0)
         {
             info_log("EngineInstance", "Commandlet execution success!");
@@ -369,6 +366,7 @@ stack_address:
 
         _M_api_interface                                                    = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
+        Library::close_all();
     }
 
     bool EngineInstance::check_format_support(PixelType type, PixelComponentType component)

@@ -9,6 +9,9 @@ namespace Engine
         String api;
         String base_commandlet;
         String lua_scripts_dir;
+        String libraries_dir;
+        String shader_compilers_lib;
+        String shader_compiler;
 
         uint_t lz4_compression_level;
         uint_t max_gc_collected_objects;

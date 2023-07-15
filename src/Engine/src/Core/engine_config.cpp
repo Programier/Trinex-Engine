@@ -50,6 +50,9 @@ namespace Engine
         DECLARE_CONFIG_PROP(api);
         DECLARE_CONFIG_PROP(base_commandlet);
         DECLARE_CONFIG_PROP(lua_scripts_dir);
+        DECLARE_CONFIG_PROP(libraries_dir);
+        DECLARE_CONFIG_PROP(shader_compilers_lib);
+        DECLARE_CONFIG_PROP(shader_compiler);
 
         DECLARE_CONFIG_PROP(lz4_compression_level);
         DECLARE_CONFIG_PROP(max_gc_collected_objects);

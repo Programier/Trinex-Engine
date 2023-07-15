@@ -1,13 +1,24 @@
 #include <Core/class.hpp>
+#include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <string_view>
 
-
 namespace Engine
 {
+    Class::LuaRegistrarBase::LuaRegistrarBase(Class* _class) : _M_class(_class)
+    {}
+
+    Class::LuaRegistrarBase::~LuaRegistrarBase()
+    {
+        if (engine_instance && engine_instance->is_inited() && _M_class->_M_post_init)
+        {
+            _M_class->_M_post_init();
+        }
+    }
+
     static Map<std::type_index, const class Class*>& indexed_classes_map()
     {
         static Map<std::type_index, const class Class*> map = {};

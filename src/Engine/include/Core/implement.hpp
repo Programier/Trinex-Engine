@@ -1,11 +1,5 @@
 #pragma once
 
-#define register_class(class_name, ...)                                                                                \
-    template<>                                                                                                         \
-    Engine::ClassMetaData<class_name> trinex_metaclass_database<class_name> =                                          \
-            &Engine::Class::register_new_class<class_name>(#class_name)
-
-
 #define constructor_template(name, ...) name(__VA_ARGS__)
 #define constructor_hpp(name, ...) name(__VA_ARGS__)
 #define constructor_cpp(name, ...) name::constructor_template(name, __VA_ARGS__)

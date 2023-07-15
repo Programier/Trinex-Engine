@@ -1,12 +1,12 @@
 #pragma once
 
 #include <Core/etl/stl_wrapper.hpp>
+#include <Core/predef.hpp>
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
 #include <typeindex>
-#include <Core/predef.hpp>
 
 namespace Engine
 {
@@ -178,7 +178,7 @@ namespace Engine
         AndroidOS
     };
 
-    enum ColorComponent : EnumerateType
+    enum class ColorComponent : EnumerateType
     {
         R = 1,
         G = 2,
@@ -203,8 +203,12 @@ namespace Engine
 #define TRINEX_ENGINE_FLAG 1414678092U
 
 
+    template<typename OutType, typename... Args>
+    OutType mask_of(Args&&... args)
+    {
+        return (static_cast<OutType>(args) | ...);
+    }
 }// namespace Engine
-
 
 
 // PRINTING GLM OBJECT

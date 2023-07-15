@@ -208,14 +208,15 @@ namespace Engine
     using ColorComponentMask = size_t;
 
     struct ColorBlendAttachmentState {
-        byte enable : 1               = 0;
-        BlendFunc src_color_func      = BlendFunc::SrcColor;
-        BlendFunc dst_color_func      = BlendFunc::OneMinusSrcColor;
-        BlendOp color_op              = BlendOp::Add;
-        BlendFunc src_alpha_func      = BlendFunc::SrcAlpha;
-        BlendFunc dst_alpha_func      = BlendFunc::OneMinusSrcAlpha;
-        BlendOp alpha_op              = BlendOp::Add;
-        ColorComponentMask color_mask = ColorComponent::R | ColorComponent::G | ColorComponent::B | ColorComponent::A;
+        byte enable : 1          = 0;
+        BlendFunc src_color_func = BlendFunc::SrcColor;
+        BlendFunc dst_color_func = BlendFunc::OneMinusSrcColor;
+        BlendOp color_op         = BlendOp::Add;
+        BlendFunc src_alpha_func = BlendFunc::SrcAlpha;
+        BlendFunc dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
+        BlendOp alpha_op         = BlendOp::Add;
+        ColorComponentMask color_mask =
+            mask_of<ColorComponentMask>(ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A);
     };
 
     struct PipelineState {
@@ -294,6 +295,6 @@ namespace Engine
 
         String name;
         VertexBufferInfo vertex_info;
-        Identifier framebuffer_usage          = 0;
+        Identifier framebuffer_usage = 0;
     };
 }// namespace Engine

@@ -17,10 +17,10 @@ namespace Engine
     ENGINE_EXPORT Logger& standart_logger();
 
 #if TRINEX_DEBUG_BUILD
-#define debug_log(...) logger->log(__VA_ARGS__)
+#define debug_log(tag, format, ...) logger->log(tag, format __VA_OPT__(, ## __VA_ARGS__))
 #else
-#define debug_log(...)
+#define debug_log(tag, format, ...)
 #endif
-#define info_log(...) logger->log(__VA_ARGS__)
-#define error_log(...) logger->error(__VA_ARGS__)
+#define info_log(tag, format, ...) logger->log(tag, format __VA_OPT__(, ## __VA_ARGS__))
+#define error_log(tag, format, ...) logger->error(tag, format __VA_OPT__(, ## __VA_ARGS__))
 }// namespace Engine
