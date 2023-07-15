@@ -9,6 +9,8 @@ namespace Engine
     {
         Vertex,
         Fragment,
+        Geometry,
+        Compute,
     };
 
     class ENGINE_EXPORT ShaderCompiler : public Object

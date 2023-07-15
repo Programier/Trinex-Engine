@@ -25,33 +25,13 @@
 #include <Window/window.hpp>
 
 
+#define OBJECTS_PER_AXIS 2
+
 namespace Engine
 {
 
-    class Test : public ExecutableObject
-    {
-    public:
-        int_t execute()
-        {
-            {
-                logger->log("Thread name", "%s", Thread::this_thread()->name().c_str());
-            }
-            return 0;
-        }
-
-        ~Test()
-        {}
-    };
-
-
-#define OBJECTS_PER_AXIS 2
-
     void GameInit::loop()
     {
-        Test test;
-
-        Thread thread;
-
         Package* package = Object::load_package("TestResources");
         if (package == nullptr)
             return;
@@ -101,117 +81,83 @@ namespace Engine
         Average<double> fps;
         Average<double> fps_by_time;
 
+        enum UpdateType
+        {
+            None,
+            Static,
+            Dynamic,
+        };
 
-#define TIMES_COUNT 5
-        float times[TIMES_COUNT];
+        static UpdateType type = UpdateType::Static;
 
         while (Window::window->is_open())
         {
+            if (MouseEvent::scroll_offset().y != 0)
             {
-                BenchMark<std::chrono::milliseconds> bench;
-                if (MouseEvent::scroll_offset().y != 0)
-                {
-                    float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
-                    info_log("Game", "Antialiazing: %f", current);
-                    texture.anisotropic_filtering(current);
-                }
-
-
-                _M_renderer->begin();
-
-                camera_ubo_buffer->get_ref<Matrix4f>(0) = camera->projview();
-
-                GBuffer::instance()->bind();
-                framebuffer_shader->use();
-                index_buffer.bind();
-
-                bench.log_status(false);
-                times[0] = bench.time();
+                float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
+                info_log("Game", "Antialiazing: %f", current);
+                texture.anisotropic_filtering(current);
             }
 
-            enum UpdateType
-            {
-                None,
-                Static,
-                Dynamic,
-            };
 
-            static UpdateType type = UpdateType::Static;
+            _M_renderer->begin();
 
+            camera_ubo_buffer->get_ref<Matrix4f>(0) = camera->projview();
+
+            GBuffer::instance()->bind();
+            framebuffer_shader->use();
+            index_buffer.bind();
+
+
+            for (int x = 0; x < OBJECTS_PER_AXIS; x++)
             {
-                times[1] = 0;
-                for (int x = 0; x < OBJECTS_PER_AXIS; x++)
+                for (int y = 0; y < OBJECTS_PER_AXIS; y++)
                 {
-                    for (int y = 0; y < OBJECTS_PER_AXIS; y++)
+                    for (int z = 0; z < OBJECTS_PER_AXIS; z++)
                     {
-                        for (int z = 0; z < OBJECTS_PER_AXIS; z++)
+
+                        UniformStructInstance* instance =
+                                ubo_struct_instance[x * (OBJECTS_PER_AXIS * OBJECTS_PER_AXIS) + y * OBJECTS_PER_AXIS +
+                                                    z];
+                        if (type != UpdateType::None)
                         {
+                            float _x, _y, _z;
 
-                            UniformStructInstance* instance =
-                                    ubo_struct_instance[x * (OBJECTS_PER_AXIS * OBJECTS_PER_AXIS) +
-                                                        y * OBJECTS_PER_AXIS + z];
-                            if (type != UpdateType::None)
+                            if (type == UpdateType::Static)
                             {
-                                float _x, _y, _z;
-
-                                if (type == UpdateType::Static)
-                                {
-                                    _x = float(x) * 5 /*+ glm::sin(Event::time() + float(x + y + z))*/;
-                                    _y = float(y) * 5 /*+ glm::cos(Event::time() + float(x + y + z))*/;
-                                    _z = float(z) * 5 /*+ glm::sin(Event::time() + float(x + y + z))*/;
-                                }
-                                else
-                                {
-                                    _x = float(x) * 5 + glm::sin(Event::time() + float(x + y + z));
-                                    _y = float(y) * 5 + glm::cos(Event::time() + float(x + y + z));
-                                    _z = float(z) * 5 + glm::sin(Event::time() + float(x + y + z));
-                                }
-
-                                instance->get_ref<Matrix4f>(0) = glm::translate(
-                                        glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
-                                        Vector3D(_x, _y, _z));
+                                _x = float(x) * 5;
+                                _y = float(y) * 5;
+                                _z = float(z) * 5;
+                            }
+                            else
+                            {
+                                _x = float(x) * 5 + glm::sin(Event::time() + float(x + y + z));
+                                _y = float(y) * 5 + glm::cos(Event::time() + float(x + y + z));
+                                _z = float(z) * 5 + glm::sin(Event::time() + float(x + y + z));
                             }
 
-                            {
-                                BenchMark<std::chrono::microseconds> bench;
-                                vertex_buffer.bind();
-                                camera_ubo_buffer->bind(0);
-                                instance->bind(1);
-                                texture.bind(2);
-                                bench.log_status(false);
-                                times[1] += bench.time();
-                            }
-
-
-                            {
-                                BenchMark<std::chrono::microseconds> bench;
-                                _M_renderer->draw_indexed(index_buffer.elements_count(), 0);
-                                bench.log_status(false);
-                                times[2] += bench.time();
-                            }
+                            instance->get_ref<Matrix4f>(0) = glm::translate(
+                                    glm::rotate(Constants::identity_matrix, glm::radians(90.f), Constants::OX),
+                                    Vector3D(_x, _y, _z));
                         }
+
+                        vertex_buffer.bind();
+                        camera_ubo_buffer->bind(0);
+                        instance->bind(1);
+                        texture.bind(2);
+                        _M_renderer->draw_indexed(index_buffer.elements_count(), 0);
                     }
                 }
             }
 
-            times[1] /= 1000;
-            times[2] /= 1000;
 
-
-            {
-                BenchMark<std::chrono::milliseconds> bench;
-                Window::window->bind();
-                shader->use();
-                output_vertex_buffer.bind();
-                output_index_buffer.bind();
-                GBuffer::instance()->buffer_data().albedo.ptr()->bind();
-                GBuffer::instance()->previous_buffer_data().albedo.ptr()->bind(1);
-                _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
-
-                bench.log_status(false);
-                times[3] = bench.time();
-            }
-
+            Window::window->bind();
+            shader->use();
+            output_vertex_buffer.bind();
+            output_index_buffer.bind();
+            GBuffer::instance()->buffer_data().albedo.ptr()->bind();
+            GBuffer::instance()->previous_buffer_data().albedo.ptr()->bind(1);
+            _M_renderer->draw_indexed(output_index_buffer.elements_count(), 0);
 
             {
 
@@ -228,18 +174,7 @@ namespace Engine
                                 transform.position().z);
                     ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
                     ImGui::Text("Memory usage: %zu bytes [%zu KB]", MemoryManager::allocated_size(),
-                                +MemoryManager::allocated_size() / 1024);
-
-                    float sum = 0;
-                    for (int i = 0; i < TIMES_COUNT; i++)
-                    {
-                        sum += times[i];
-                        ImGui::Text("Time[%d] = %f", i, times[i]);
-                    }
-
-                    ImGui::Text("Time[sum] = %f", sum);
-                    fps_by_time.push(1000.0 / sum);
-                    ImGui::Text("FPS by time = %f", fps_by_time.average());
+                                MemoryManager::allocated_size() / 1024);
                 }
 
                 ImGui::End();
@@ -253,15 +188,7 @@ namespace Engine
                 fps_by_time.reset();
             }
 
-
-            {
-                BenchMark<std::chrono::milliseconds> bench;
-                _M_renderer->end();
-
-                bench.log_status(false);
-                times[4] = bench.time();
-            }
-
+            _M_renderer->end();
 
             Event::poll_events();
             Window::window->swap_buffers();
@@ -311,7 +238,7 @@ namespace Engine
         Window::window->init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
 #endif
         Window::window->initialize_api();
-        Window::window->vsync(false);
+        Window::window->vsync(true);
         ImGuiRenderer::init();
         loop();
         return 0;
