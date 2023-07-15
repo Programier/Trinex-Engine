@@ -161,9 +161,16 @@ install(TARGETS TrinexEngine SDL2 DESTINATION "./TrinexEngine/libs/")
 install(DIRECTORY configs DESTINATION "./TrinexEngine/")
 
 if (TRINEX_WITH_SHADER_COMPILERS)
+    # Compile glslang
+    set(SPIRV_CROSS_STATIC ON)
+    set(SPIRV_CROSS_SHARED OFF)
+    set(SPIRV_CROSS_CLI OFF)
+
+    add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/glslang/)
+
     set(TRINEX_SHADER_COMPILERS_DIR "${TRINEX_ENGINE_SRC}/ShaderCompilers/")
     file(GLOB TRINEX_SHADER_COMPILERS_SRC "${TRINEX_SHADER_COMPILERS_DIR}*.cpp")
     add_library(ShaderCompilers SHARED ${TRINEX_SHADER_COMPILERS_SRC})
-    target_link_libraries(ShaderCompilers PRIVATE TrinexEngine)
+    target_link_libraries(ShaderCompilers PRIVATE TrinexEngine glslang SPIRV glslang-default-resource-limits)
     install(TARGETS ShaderCompilers DESTINATION "./TrinexEngine/libs/")
 endif()

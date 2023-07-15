@@ -21,8 +21,8 @@ namespace Engine
     public:
         using Super = Object;
 
-        virtual bool compile(const String& code, ShaderStage stage, Buffer& out_binary) = 0;
-        virtual bool process_reflection(PipelineCreateInfo* info)                       = 0;
+        virtual bool compile(const String& code, ShaderStage stage, Buffer& out_binary);
+        virtual bool compile(PipelineCreateInfo* info);
         static ShaderCompiler* load_compiler();
     };
 }// namespace Engine

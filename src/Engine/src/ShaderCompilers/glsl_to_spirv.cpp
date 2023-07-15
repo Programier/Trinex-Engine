@@ -13,7 +13,7 @@ namespace Engine
             return false;
         }
 
-        bool process_reflection(PipelineCreateInfo* info) override
+        bool compile(PipelineCreateInfo* info) override
         {
             return false;
         }

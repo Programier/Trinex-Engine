@@ -228,7 +228,6 @@ namespace Engine
 
     int_t GameInit::execute(int_t argc, char** argv)
     {
-        ShaderCompiler::load_compiler();
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window::create_instance();
 #if PLATFORM_ANDROID

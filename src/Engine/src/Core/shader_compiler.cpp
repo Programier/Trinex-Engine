@@ -8,6 +8,18 @@ namespace Engine
 {
     ShaderCompiler* ShaderCompiler::_M_compiler;
 
+    bool ShaderCompiler::compile(const String& code, ShaderStage stage, Buffer& out_binary)
+    {
+        error_log("ShaderCompiler", "Method '%s' is not implemented!", __PRETTY_FUNCTION__);
+        return false;
+    }
+
+    bool ShaderCompiler::compile(PipelineCreateInfo* info)
+    {
+        error_log("ShaderCompiler", "Method '%s' is not implemented!", __PRETTY_FUNCTION__);
+        return false;
+    }
+
     ShaderCompiler* ShaderCompiler::load_compiler()
     {
         if (_M_compiler == nullptr)
