@@ -25,9 +25,6 @@ namespace Engine
     bool operator&(Archive& ar, VertexAtribute& data)
     {
         ar& data.name;
-        //ar& data.offset;
-        //ar& data.type;
-
         return static_cast<bool>(ar);
     }
 
