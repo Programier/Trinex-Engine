@@ -26,13 +26,13 @@ namespace Engine
             {
                 for (auto& field : _M_fields)
                 {
-                    max_align = std::max(max_align, field.align);
+                    max_align = std::max(max_align, field->align);
                 }
             }
 
 
             _M_align = normalize_align(_M_requsted_align, max_align);
-            _M_size  = normalize_align(_M_fields.back().offset + _M_fields.back().size, _M_align);
+            _M_size  = normalize_align(_M_fields.back()->offset + _M_fields.back()->size, _M_align);
         }
 
         for (DynamicStructInstanceProxy* instance : _M_instances)
@@ -62,19 +62,19 @@ namespace Engine
 
         ushort_t max_align = 0;
 
-        for (auto& field : _M_fields)
+        for (Field* field : _M_fields)
         {
             if (prev_field == nullptr)
             {
-                field.offset = 0;
+                field->offset = 0;
             }
             else
             {
-                field.offset = normalize_align(prev_field->offset + prev_field->size, field.align);
+                field->offset = normalize_align(prev_field->offset + prev_field->size, field->align);
             }
 
-            max_align  = std::max(max_align, field.align);
-            prev_field = &field;
+            max_align  = std::max(max_align, field->align);
+            prev_field = field;
         }
 
 
@@ -83,13 +83,16 @@ namespace Engine
 
     DynamicStructBase& DynamicStructBase::add_field(const DynamicStructBase::Field& field, Index index)
     {
+        Field* field_copy               = new Field(field);
+        _M_fields_map[field_copy->name] = field_copy;
+
         if (index >= _M_fields.size())
         {
-            _M_fields.push_back(field);
+            _M_fields.push_back(field_copy);
         }
         else
         {
-            _M_fields.insert(_M_fields.begin() + index, field);
+            _M_fields.insert(_M_fields.begin() + index, field_copy);
         }
 
         return recalculate_offsets();
@@ -101,10 +104,14 @@ namespace Engine
         {
             if (index == _M_fields.size() - 1)
             {
+                _M_fields_map.erase(_M_fields.back()->name);
+                delete _M_fields.back();
                 _M_fields.pop_back();
             }
             else
             {
+                _M_fields_map.erase(_M_fields[index]->name);
+                delete _M_fields[index];
                 _M_fields.erase(_M_fields.begin() + index);
             }
         }
@@ -117,9 +124,33 @@ namespace Engine
         return _M_size;
     }
 
-    const Vector<DynamicStructBase::Field>& DynamicStructBase::fields() const
+    const DynamicStructBase::FieldsArray& DynamicStructBase::fields() const
     {
         return _M_fields;
+    }
+
+    const DynamicStructBase::FieldsMap& DynamicStructBase::fields_map() const
+    {
+        return _M_fields_map;
+    }
+
+    DynamicStructBase::Field* DynamicStructBase::find_field(const String& name) const
+    {
+        auto it = _M_fields_map.find(name);
+        if (it == _M_fields_map.end())
+        {
+            return nullptr;
+        }
+        return it->second;
+    }
+
+    DynamicStructBase::Field* DynamicStructBase::find_field(Index index) const
+    {
+        if (index < _M_fields.size())
+        {
+            return _M_fields[index];
+        }
+        return nullptr;
     }
 
     ushort_t DynamicStructBase::align() const
@@ -144,6 +175,11 @@ namespace Engine
         for (DynamicStructInstanceProxy* instance : _M_instances)
         {
             delete instance;
+        }
+
+        for (Field* field : _M_fields)
+        {
+            delete field;
         }
     }
 
@@ -201,34 +237,41 @@ namespace Engine
         throw EngineException("Cannot reallocate instance");
     }
 
-    byte* DynamicStructInstanceProxy::field(Index index)
+
+    template<typename Result, typename Key>
+    static Result find_field_data(const DynamicStructInstanceProxy* proxy, Key&& key)
     {
-        if (index < _M_struct->_M_fields.size())
+        DynamicStructField* field = proxy->struct_instance()->find_field(std::forward<Key>(key));
+        if (field)
         {
-            auto instance_data = data();
+            auto instance_data = const_cast<Result>(proxy->data());
             if (instance_data)
             {
-                return instance_data + _M_struct->_M_fields[index].offset;
+                return reinterpret_cast<Result>(instance_data + field->offset);
             }
             return nullptr;
         }
-
         return nullptr;
     }
 
-    const byte* DynamicStructInstanceProxy::field(Index index) const
+    byte* DynamicStructInstanceProxy::field_data(Index index)
     {
-        if (index < _M_struct->_M_fields.size())
-        {
-            auto instance_data = data();
-            if (instance_data)
-            {
-                return instance_data + _M_struct->_M_fields[index].offset;
-            }
-            return nullptr;
-        }
+        return find_field_data<byte*>(this, index);
+    }
 
-        return nullptr;
+    const byte* DynamicStructInstanceProxy::field_data(Index index) const
+    {
+        return find_field_data<const byte*>(this, index);
+    }
+
+    byte* DynamicStructInstanceProxy::field_data(const String& name)
+    {
+        return find_field_data<byte*>(this, name);
+    }
+
+    const byte* DynamicStructInstanceProxy::field_data(const String& name) const
+    {
+        return find_field_data<const byte*>(this, name);
     }
 
     DynamicStructInstanceProxy::~DynamicStructInstanceProxy()

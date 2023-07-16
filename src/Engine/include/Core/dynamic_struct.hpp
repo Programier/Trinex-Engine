@@ -16,14 +16,16 @@ namespace Engine
         using Super = Object;
 
         struct Field {
+            String name;
             ushort_t size;
             ushort_t offset;
             ushort_t align;
 
             template<typename T>
-            static Field field_of(ushort_t align = alignof(T), ushort_t offset = 0)
+            static Field field_of(const String& name, ushort_t align = alignof(T), ushort_t offset = 0)
             {
                 Field field;
+                field.name = name;
                 field.offset = offset;
                 field.size   = sizeof(T);
                 field.align  = DynamicStructBase::normalize_align(align, alignof(T));
@@ -31,9 +33,10 @@ namespace Engine
             }
 
             template<typename T>
-            static Field packed_field_of(ushort_t offset = 0)
+            static Field packed_field_of(const String& name, ushort_t offset = 0)
             {
                 Field field;
+                field.name = name;
                 field.offset = offset;
                 field.size   = sizeof(T);
                 field.align  = 0;
@@ -41,11 +44,14 @@ namespace Engine
             }
         };
 
+        using FieldsArray = Vector<Field*>;
+        using FieldsMap = TreeMap<String, Field*>;
+
     protected:
+        FieldsMap _M_fields_map;
         Vector<DynamicStructInstanceProxy*> _M_instances;
         Vector<Index> _M_free_indexes;
-
-        Vector<Field> _M_fields;
+        FieldsArray _M_fields;
         std::size_t _M_size;
         std::size_t _M_requsted_align = 0;
         std::size_t _M_align          = 0;
@@ -62,7 +68,10 @@ namespace Engine
         DynamicStructBase& remove_field(Index index = ~0);
 
         size_t size() const;
-        const Vector<Field>& fields() const;
+        const FieldsArray& fields() const;
+        const FieldsMap& fields_map() const;
+        Field* find_field(const String& name) const;
+        Field* find_field(Index index) const;
         ushort_t align() const;
         DynamicStructBase& align(ushort_t value);
         const Vector<DynamicStructInstanceProxy*>& instances() const;
@@ -120,13 +129,15 @@ namespace Engine
         virtual byte* data()             = 0;
         virtual const byte* data() const = 0;
 
-        byte* field(Index index);
-        const byte* field(Index index) const;
+        byte* field_data(Index index);
+        const byte* field_data(Index index) const;
+        byte* field_data(const String& name);
+        const byte* field_data(const String& name) const;
 
         template<typename Type>
         Type get(Index index)
         {
-            byte* instance_field = field(index);
+            byte* instance_field = field_data(index);
 
             if (instance_field == nullptr)
             {
@@ -138,7 +149,31 @@ namespace Engine
         template<typename Type>
         const Type get(Index index) const
         {
-            const byte* instance_field = field(index);
+            const byte* instance_field = field_data(index);
+
+            if (instance_field == nullptr)
+            {
+                return return_nullptr<Type>("Failed to get instance field");
+            }
+            return *reinterpret_cast<const std::remove_reference_t<Type>*>(instance_field);
+        }
+
+        template<typename Type>
+        Type get(const String& name)
+        {
+            byte* instance_field = field_data(name);
+
+            if (instance_field == nullptr)
+            {
+                return return_nullptr<Type>("Failed to get instance field");
+            }
+            return *reinterpret_cast<std::remove_reference_t<Type>*>(instance_field);
+        }
+
+        template<typename Type>
+        const Type get(const String& name) const
+        {
+            const byte* instance_field = field_data(name);
 
             if (instance_field == nullptr)
             {
@@ -157,6 +192,19 @@ namespace Engine
         Type& get_ref(Index index) const
         {
             return get<Type&>(index);
+        }
+
+
+        template<typename Type>
+        Type& get_ref(const String& name)
+        {
+            return get<Type&>(name);
+        }
+
+        template<typename Type>
+        Type& get_ref(const String& name) const
+        {
+            return get<Type&>(name);
         }
 
         virtual ~DynamicStructInstanceProxy();

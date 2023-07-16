@@ -53,12 +53,12 @@ namespace Engine
 
 
         UniformStruct camera_ubo;
-        camera_ubo.add_field(DynamicStructField::field_of<Matrix4f>());
+        camera_ubo.add_field(DynamicStructField::field_of<Matrix4f>("field1"));
 
         UniformStructInstance* camera_ubo_buffer = camera_ubo.create_instance();
 
         UniformStruct ubo;
-        ubo.add_field(DynamicStructField::field_of<Matrix4f>());
+        ubo.add_field(DynamicStructField::field_of<Matrix4f>("field1"));
 
 
         Vector<UniformStructInstance*> ubo_struct_instance;
@@ -76,7 +76,7 @@ namespace Engine
 
 
         UniformStruct fragment_ubo;
-        fragment_ubo.add_field(DynamicStructField::field_of<Vector3D>());
+        fragment_ubo.add_field(DynamicStructField::field_of<Vector3D>("field"));
 
         Average<double> fps;
         Average<double> fps_by_time;
