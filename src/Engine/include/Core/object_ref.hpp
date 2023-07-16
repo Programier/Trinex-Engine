@@ -49,10 +49,16 @@ namespace Engine
             return _M_instance;
         }
 
-        ObjectReference& operator()(Type* instance)
+        ObjectReference& operator()(Type* obj)
         {
-            _M_instance = instance;
+            instance(obj);
             return *this;
         }
+
+        ObjectReference& instance(Type* instance)
+        {
+            _M_instance = instance;
+            _M_name = _M_instance ? _M_instance->name() : "";
+         }
     };
 }

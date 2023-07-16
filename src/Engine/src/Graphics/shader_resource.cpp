@@ -13,7 +13,7 @@ namespace Engine
         return false;                                                                                                  \
     }
 
-    bool operator&(Archive& ar, ShaderUniformBuffer& data)
+    ENGINE_EXPORT bool operator&(Archive& ar, ShaderUniformBuffer& data)
     {
         ar& data.name;
         ar& data.binding;
@@ -22,7 +22,7 @@ namespace Engine
         return static_cast<bool>(ar);
     }
 
-    bool operator&(Archive& ar, VertexAttribute& data)
+    ENGINE_EXPORT bool operator&(Archive& ar, VertexAttribute& data)
     {
         ar& data.name;
         return static_cast<bool>(ar);

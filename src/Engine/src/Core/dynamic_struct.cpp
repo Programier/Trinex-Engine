@@ -1,3 +1,4 @@
+#include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/exception.hpp>
@@ -167,6 +168,58 @@ namespace Engine
     const Vector<DynamicStructInstanceProxy*>& DynamicStructBase::instances() const
     {
         return _M_instances;
+    }
+
+
+    ENGINE_EXPORT bool operator&(Archive& ar, DynamicStructField*& field)
+    {
+        if (ar.is_reading() && field == nullptr)
+        {
+            field = new DynamicStructField();
+        }
+
+        if (field)
+        {
+            ar & field->size;
+            ar & field->align;
+            ar & field->name;
+            ar & field->offset;
+        }
+        else
+        {
+            return false;
+        }
+
+        return static_cast<bool>(ar);
+    }
+
+    bool DynamicStructBase::archive_process(Archive* archive)
+    {
+        if (Super::archive_process(archive) == false)
+            return false;
+
+
+        Archive& ar = *archive;
+        ar& _M_align;
+        ar& _M_size;
+        ar& _M_requsted_align;
+        ar& _M_align;
+        ar& _M_fields;
+
+        if (ar.is_reading())
+        {
+            for (Field* field : _M_fields)
+            {
+                _M_fields_map[field->name] = field;
+            }
+        }
+
+        bool status = static_cast<bool>(ar);
+        if (status == false)
+        {
+            logger->error("DynamicStructBase", "Failed to process DynamicStructBase!");
+        }
+        return status;
     }
 
     DynamicStructBase::~DynamicStructBase()

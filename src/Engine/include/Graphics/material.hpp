@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/object.hpp>
-#include <Graphics/shader_resource.hpp>
 #include <Core/pointer.hpp>
+#include <Graphics/shader_resource.hpp>
 #include <Graphics/texture.hpp>
 
 namespace Engine
@@ -17,12 +17,12 @@ namespace Engine
     };
 
 
-    class MaterialApplier;
+    class ENGINE_EXPORT MaterialApplier;
 
     class ENGINE_EXPORT Material : public ShaderResource
     {
     public:
-        using Super = Object;
+        using Super       = Object;
         using TexturesMap = TreeMap<BindingIndex, Pointer<Texture>>;
 
     private:

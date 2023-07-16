@@ -47,6 +47,27 @@ namespace Engine
                           "You need to use Archive for serialize this object!");
 
             static_assert(!std::is_polymorphic_v<NoPointerType>, "Cannot write polimorphic instance!");
+
+            if constexpr (!std::is_pointer_v<Type>)
+            {
+                return writer.write(reinterpret_cast<const byte*>(&value), sizeof(Type));
+            }
+            else if constexpr (std::is_pointer_v<Type> && !std::is_pointer_v<NoPointerType>)
+            {
+                if (value)
+                {
+                    return writer.write(reinterpret_cast<const byte*>(value), sizeof(NoPointerType));
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                static_assert(!std::is_pointer_v<NoPointerType>, "Cannot read pointer!");
+            }
+
             return writer.write(reinterpret_cast<const byte*>(&value), sizeof(value));
         }
 
@@ -108,7 +129,26 @@ namespace Engine
                           "You need to use Archive for deserialize this object!");
 
             static_assert(!std::is_polymorphic_v<NoPointerType>, "Cannot read polimorphic instance!");
-            return reader.read(reinterpret_cast<byte*>(&value), sizeof(value));
+
+            if constexpr (!std::is_pointer_v<Type>)
+            {
+                return reader.read(reinterpret_cast<byte*>(&value), sizeof(Type));
+            }
+            else if constexpr (std::is_pointer_v<Type> && !std::is_pointer_v<NoPointerType>)
+            {
+                if (value != nullptr)
+                {
+                    return reader.read(reinterpret_cast<byte*>(value), sizeof(NoPointerType));
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                static_assert(!std::is_pointer_v<NoPointerType>, "Cannot read pointer!");
+            }
         }
 
         template<typename Type>
@@ -336,6 +376,13 @@ namespace Engine
 
                 for (auto& element : (*data))
                 {
+                    if constexpr (std::is_pointer_v<decltype(element)>)
+                    {
+                        if(element == nullptr && is_reading())
+                        {
+                            element = Object::new_instance<decltype(element)>();
+                        }
+                    }
                     if (!((*this) & element))
                         return false;
                 }

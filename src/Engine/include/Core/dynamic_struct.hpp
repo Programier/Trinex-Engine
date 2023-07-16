@@ -52,9 +52,9 @@ namespace Engine
         Vector<DynamicStructInstanceProxy*> _M_instances;
         Vector<Index> _M_free_indexes;
         FieldsArray _M_fields;
-        std::size_t _M_size;
-        std::size_t _M_requsted_align = 0;
-        std::size_t _M_align          = 0;
+        size_t _M_size;
+        size_t _M_requsted_align = 0;
+        size_t _M_align          = 0;
 
         bool _M_destruct_stage = false;
 
@@ -75,6 +75,7 @@ namespace Engine
         ushort_t align() const;
         DynamicStructBase& align(ushort_t value);
         const Vector<DynamicStructInstanceProxy*>& instances() const;
+        bool archive_process(Archive* archive) override;
 
 
         ~DynamicStructBase();
