@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/compressor.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/constants.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/etl/vector_stream.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
@@ -80,10 +80,13 @@ namespace Engine
             .set("remove_object", &Package::remove_object);
 
     Package::Package()
-    {}
+    {
+        trinex_flag(TrinexObjectFlags::IsPackage, true);
+    }
 
     Package::Package(const String& _name)
     {
+        trinex_flag(TrinexObjectFlags::IsPackage, true);
         name(_name);
     }
 

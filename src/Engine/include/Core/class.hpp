@@ -43,7 +43,7 @@ namespace Engine
                 return;
             }
 
-            Lua::Class<InstanceClass> lua_class = Lua::Interpretter::lua_class_of<InstanceClass>(current->name());
+            Lua::Class<InstanceClass> lua_class = Lua::Interpretter::lua_class_of<InstanceClass>(current->full_name());
 
             if constexpr (has_super_type_v<InstanceClass>)
             {
@@ -64,7 +64,7 @@ namespace Engine
                 lua_class.set(Lua::base_classes, base_classes);
             }
 
-            info_log("Class", "Class: Start initialize class '%s'", current->name().c_str());
+            info_log("Class", "Class: Start initialize class '%s'", current->full_name().c_str());
 
             for (auto invoker : current->_M_lua_invokers)
             {

@@ -25,6 +25,7 @@ namespace Engine
         IsSerializable,
         IsAllocatedByController,
         IsUnregistered,
+        IsPackage,
         __OF_COUNT__
     };
 
@@ -59,7 +60,7 @@ namespace Engine
 
 
         void delete_instance();
-        Object& create_default_package();
+        static void create_default_package();
         static bool object_is_exist(Package* package, const String& name);
 
         const Object& remove_from_instances_array() const;
@@ -88,7 +89,7 @@ namespace Engine
         bool is_on_heap() const;
         ENGINE_EXPORT static void collect_garbage();
         const String& name() const;
-        ObjectRenameStatus name(const String& name, bool autorename = false);
+        ObjectRenameStatus name(String name, bool autorename = false);
         virtual Object* copy();
         bool add_to_package(Package* package, bool autorename = false);
         Object& remove_from_package();
@@ -119,10 +120,6 @@ namespace Engine
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
                 instance->mark_as_allocate_by_constroller();
                 instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
-                if (instance->_M_class == nullptr)
-                {
-                    instance->trinex_flag(TrinexObjectFlags::IsUnregistered, true);
-                }
                 return instance;
             }
             else

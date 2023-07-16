@@ -34,9 +34,9 @@ namespace Engine
                      .set("mark_for_delete", &Object::mark_for_delete)
                      .set("is_on_heap", &Object::is_on_heap)
                      .set("collect_garbage", Object::collect_garbage)
-                     .set("name", sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
-                                                static_cast<ObjectRenameStatus (Object::*)(const String&, bool)>(
-                                                        &Object::name)))
+                     .set("name",
+                          sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
+                                        static_cast<ObjectRenameStatus (Object::*)(String, bool)>(&Object::name)))
                      .set("add_to_package", &Object::add_to_package)
                      .set("as_string", &Object::as_string);
 
@@ -63,14 +63,13 @@ namespace Engine
         return *this;
     }
 
-    Object& Object::create_default_package()
+    void Object::create_default_package()
     {
         if (_M_root_package == nullptr)
         {
             _M_root_package = new (MemoryManager::instance().find_memory<Package>()) Package("Root Package");
             _M_root_package->mark_as_allocate_by_constroller();
         }
-        return *this;
     }
 
     bool Object::object_is_exist(Package* package, const String& name)
@@ -167,8 +166,10 @@ namespace Engine
     ENGINE_EXPORT String Object::package_name_of(const String& name)
     {
         auto index = name.find_last_of(Constants::name_separator);
-        if (index != String::npos)
-            index -= 1;
+        if (index == String::npos)
+            return "";
+
+        index -= 1;
         return name.substr(0, index);
     }
 
@@ -305,23 +306,30 @@ namespace Engine
         return _M_name;
     }
 
-    ObjectRenameStatus Object::name(const String& new_name, bool autorename)
+    ObjectRenameStatus Object::name(String new_name, bool autorename)
     {
         if (_M_name == new_name)
             return ObjectRenameStatus::Skipped;
 
-        Package* package = _M_package;
+        Package* package    = _M_package;
+        String package_name = package_name_of(new_name);
+
+        if (!package_name.empty())
+        {
+            package  = Package::find_package(package_name, true);
+            new_name = Object::object_name_of(new_name);
+        }
 
         if (!autorename && package && package->objects().contains(new_name))
         {
-            logger->error("Object: Failed to rename object. Object with name '%s' already exist in package '%s'",
+            logger->error("Object", "Failed to rename object. Object with name '%s' already exist in package '%s'",
                           new_name.c_str(), _M_package->name().c_str());
             return ObjectRenameStatus::Failed;
         }
 
-        if (package)
+        if (_M_package)
         {
-            package->_M_objects.erase(_M_name);
+            _M_package->_M_objects.erase(_M_name);
             _M_package = nullptr;
         }
 
@@ -477,7 +485,8 @@ namespace Engine
                 Package* new_package = object->instance_cast<Package>();
                 if (new_package == nullptr)
                 {
-                    logger->error("Object: Failed to create new package with name '%s'. Object already exist in "
+                    logger->error("Object",
+                                  "Failed to create new package with name '%s'. Object already exist in "
                                   "package '%s'!",
                                   package_name.c_str(), package->full_name().c_str());
                     return nullptr;
@@ -499,10 +508,13 @@ namespace Engine
             return create ? Object::new_instance_named<Package>(new_name, package) : nullptr;
         }
 
-        Package* new_package = it->second->instance_cast<Package>();
+        Package* new_package = it->second->trinex_flag(TrinexObjectFlags::IsPackage)
+                                       ? reinterpret_cast<Package*>(it->second)
+                                       : nullptr;
         if (new_package == nullptr)
         {
-            logger->error("Object: Failed to create new package with name '%s'. Object already exist in "
+            logger->error("Object",
+                          "Failed to create new package with name '%s'. Object already exist in "
                           "package '%s'!",
                           new_name.c_str(), package->full_name().c_str());
         }
@@ -512,12 +524,15 @@ namespace Engine
 
     const class Class* Object::class_instance() const
     {
-        if (_M_class == nullptr && !trinex_flag(TrinexObjectFlags::IsUnregistered))
+        if (_M_class == nullptr && (!trinex_flag(TrinexObjectFlags::IsUnregistered) || !engine_instance->is_inited()))
         {
             _M_class = ClassMetaDataHelper::find_class(typeid(*this));
             if (_M_class == nullptr)
             {
-                trinex_flag(TrinexObjectFlags::IsUnregistered, true);
+                if (engine_instance->is_inited())
+                {
+                    trinex_flag(TrinexObjectFlags::IsUnregistered, true);
+                }
             }
         }
 
@@ -628,6 +643,7 @@ namespace Engine
 
     Package* Object::root_package()
     {
+        Object::create_default_package();
         return _M_root_package;
     }
 }// namespace Engine

@@ -30,6 +30,32 @@
 namespace Engine
 {
 
+
+    static void render_package_tree(Package* package)
+    {
+        if (ImGui::TreeNode(package->name().c_str()))
+        {
+            for (auto& pair : package->objects())
+            {
+                Object* object = pair.second;
+
+                Package* p = object->instance_cast<Package>();
+                if (p)
+                {
+                    render_package_tree(p);
+                }
+                else
+                {
+                    const char* name = object->class_instance() ? object->class_instance()->name().c_str() : "Class";
+                    ImGui::Text("%s [%s]", object->name().c_str(), name);
+                }
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+
     void GameInit::loop()
     {
         Package* package = Object::load_package("TestResources");
@@ -92,14 +118,6 @@ namespace Engine
 
         while (Window::window->is_open())
         {
-            if (MouseEvent::scroll_offset().y != 0)
-            {
-                float current = texture.anisotropic_filtering() + MouseEvent::scroll_offset().y;
-                info_log("Game", "Antialiazing: %f", current);
-                texture.anisotropic_filtering(current);
-            }
-
-
             _M_renderer->begin();
 
             camera_ubo_buffer->get_ref<Matrix4f>(0) = camera->projview();
@@ -175,6 +193,11 @@ namespace Engine
                     ImGui::Text("Script time: %f", camera->script.on_update.last_result().get<float>());
                     ImGui::Text("Memory usage: %zu bytes [%zu KB]", MemoryManager::allocated_size(),
                                 MemoryManager::allocated_size() / 1024);
+
+
+                    ImGui::NewLine();
+
+                    render_package_tree(Object::root_package());
                 }
 
                 ImGui::End();
