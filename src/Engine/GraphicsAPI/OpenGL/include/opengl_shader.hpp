@@ -13,7 +13,7 @@ namespace Engine
         GLenum _M_topology = 0;
         OpenGL_CommandBuffer _M_command_buffer;
 
-        Vector<VertexAtribute> _M_attributes;
+        Vector<VertexAttribute> _M_attributes;
         uint_t _M_vertex_size = 0;
 
         Map<BindingIndex, GLuint> _M_block_indices;

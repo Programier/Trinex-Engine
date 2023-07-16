@@ -263,7 +263,7 @@ namespace Engine
 
             shader->_M_attributes = info.vertex_info.attributes;
             std::sort(shader->_M_attributes.begin(), shader->_M_attributes.end(),
-                      [](VertexAtribute a, VertexAtribute b) -> bool { return a.offset < b.offset; });
+                      [](VertexAttribute a, VertexAttribute b) -> bool { return a.offset < b.offset; });
             shader->_M_vertex_size = static_cast<uint_t>(info.vertex_info.size);
 
             for (auto& ubo : info.uniform_buffers)

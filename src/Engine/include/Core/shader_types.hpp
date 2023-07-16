@@ -112,17 +112,17 @@ namespace Engine
     };
 
 
-    struct VertexAtribute {
+    struct VertexAttribute {
         String name;
         ShaderDataType type;
         ArrayIndex offset = 0;
 
-        inline VertexAtribute(const String& _name = "") : name(_name)
+        inline VertexAttribute(const String& _name = "") : name(_name)
         {}
     };
 
     struct VertexBufferInfo {
-        Vector<VertexAtribute> attributes;
+        Vector<VertexAttribute> attributes;
         size_t size;
     };
 

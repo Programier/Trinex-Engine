@@ -22,7 +22,7 @@ namespace Engine
         return static_cast<bool>(ar);
     }
 
-    bool operator&(Archive& ar, VertexAtribute& data)
+    bool operator&(Archive& ar, VertexAttribute& data)
     {
         ar& data.name;
         return static_cast<bool>(ar);
