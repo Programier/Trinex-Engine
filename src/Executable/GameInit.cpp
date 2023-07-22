@@ -31,6 +31,72 @@ namespace Engine
 {
 
 
+    class UILogger : public Logger
+    {
+
+    private:
+        List<String> _M_messages;
+
+    public:
+        UILogger& write_log(const char* level, const char* tag, const char* format, va_list list)
+        {
+            char buffer[1024];
+            vsprintf(buffer + sprintf(buffer, "[%s][%s] ", level, tag), format, list);
+            _M_messages.push_back(buffer);
+            return *this;
+        }
+
+        Logger& log(const char* tag, const char* format, ...) override
+        {
+            va_list args;
+            va_start(args, format);
+            write_log(__FUNCTION__, tag, format, args);
+            va_end(args);
+            return *this;
+        }
+
+        Logger& debug(const char* tag, const char* format, ...) override
+        {
+            va_list args;
+            va_start(args, format);
+            write_log(__FUNCTION__, tag, format, args);
+            va_end(args);
+            return *this;
+        }
+
+        Logger& warning(const char* tag, const char* format, ...) override
+        {
+            va_list args;
+            va_start(args, format);
+            write_log(__FUNCTION__, tag, format, args);
+            va_end(args);
+            return *this;
+        }
+
+        Logger& error(const char* tag, const char* format, ...) override
+        {
+            va_list args;
+            va_start(args, format);
+            write_log(__FUNCTION__, tag, format, args);
+            va_end(args);
+            return *this;
+        }
+
+        Logger& error(const char* tag, const String& msg, const MessageList& messages) override
+        {
+            return *this;
+        }
+
+        void render()
+        {
+            for (auto& msg : _M_messages)
+            {
+                ImGui::Text("%s", msg.c_str());
+            }
+        }
+    };
+
+
     static void render_package_tree(Package* package)
     {
         if (ImGui::TreeNode(package->name().c_str()))
@@ -210,6 +276,11 @@ namespace Engine
 
                 ImGui::End();
 
+
+                ImGui::Begin("Logs");
+                reinterpret_cast<UILogger*>(logger)->render();
+                ImGui::End();
+
                 ImGuiRenderer::render();
             }
 
@@ -295,11 +366,16 @@ namespace Engine
         Window::window->init({1280, 720}, "Trinex Engine", WindowAttrib::WinResizable);
 #endif
         Window::window->initialize_api();
-        Window::window->vsync(true);
+        //Window::window->vsync(true);
         ImGuiRenderer::init();
 
 
         ImGui::GetIO().FontGlobalScale = glm::round(100.f * (Monitor::dpi().ddpi / 141.f)) / 100.f;
+
+        if (engine_instance->system_type() == SystemName::AndroidOS)
+        {
+            ImGui::GetStyle().ScrollbarSize = 25.f;
+        }
         loop();
         return 0;
     }
@@ -311,6 +387,9 @@ namespace Engine
 
 static void preinit()
 {
+    static Engine::UILogger new_logger;
+    Engine::logger = &new_logger;
+
     Engine::EngineInstance::project_name("TrinexEngineLauncher");
 }
 
