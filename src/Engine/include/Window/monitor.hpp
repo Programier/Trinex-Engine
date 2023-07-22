@@ -19,5 +19,6 @@ namespace Engine
         ENGINE_EXPORT Size2D size();
         ENGINE_EXPORT void update();
         ENGINE_EXPORT const DPI& dpi();
+        ENGINE_EXPORT Size2D physical_size(PhysicalSizeMetric metric = PhysicalSizeMetric::Inch);
     }// namespace
 }

@@ -97,10 +97,11 @@ namespace Engine
         void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out,
                            ConsoleColor color)
         {
+            static char buffer[512];
 #if PLATFORM_ANDROID
-            __android_log_vprint(prio_type, tag, format, args);
+            sprintf(buffer, "%s[%s]", engine_instance->project_name().c_str(), tag);
+            __android_log_vprint(prio_type, buffer, format, args);
 #else
-            char buffer[80];
             std::time_t now = std::time(nullptr);
             std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
 

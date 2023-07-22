@@ -198,6 +198,12 @@ namespace Engine
         Never    = 7,
     };
 
+    enum class PhysicalSizeMetric
+    {
+        Inch,
+        Сentimeters,
+    };
+
     using ObjectArray = Vector<class Object*>;
 
 #define TRINEX_ENGINE_FLAG 1414678092U

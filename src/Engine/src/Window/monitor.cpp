@@ -40,5 +40,19 @@ namespace Engine
         {
             return display_dpi;
         }
+
+        ENGINE_EXPORT Size2D physical_size(PhysicalSizeMetric metric)
+        {
+            Size2D inches = size();
+            inches.x /= display_dpi.hdpi;
+            inches.y /= display_dpi.vdpi;
+
+            if (metric == PhysicalSizeMetric::Сentimeters)
+            {
+                inches *= 2.54f;
+            }
+
+            return inches;
+        }
     }// namespace Monitor
 }// namespace Engine

@@ -195,6 +195,14 @@ namespace Engine
                                 MemoryManager::allocated_size() / 1024);
 
 
+                    Size2D size = Monitor::size();
+
+                    ImGui::Text("Monitor size: %f x %f", size.x, size.y);
+                    size = Monitor::physical_size(PhysicalSizeMetric::Сentimeters);
+                    ImGui::Text("Physical monitor size: %f x %f", size.x, size.y);
+                    ImGui::Text("TEST: %p", Object::find_object("Engine::Camera"));
+
+
                     ImGui::NewLine();
 
                     render_package_tree(Object::root_package());
@@ -249,8 +257,35 @@ namespace Engine
         _M_renderer->wait_idle();
     }
 
+
+    static void on_close()
+    {
+        logger->log("APP", __PRETTY_FUNCTION__);
+    }
+
+    static void on_terminate()
+    {
+        logger->log("APP", __PRETTY_FUNCTION__);
+    }
+
+    static void on_pause()
+    {
+        logger->log("APP", __PRETTY_FUNCTION__);
+    }
+
+    static void on_resume()
+    {
+        logger->log("APP", __PRETTY_FUNCTION__);
+    }
+
+
     int_t GameInit::execute(int_t argc, char** argv)
     {
+        Event::on_quit.push(on_close);
+        Event::on_terminate.push(on_terminate);
+        Event::on_pause.push(on_pause);
+        Event::on_resume.push(on_resume);
+
         _M_renderer = Engine::EngineInstance::instance()->renderer();
         Window::create_instance();
 #if PLATFORM_ANDROID
@@ -262,6 +297,9 @@ namespace Engine
         Window::window->initialize_api();
         Window::window->vsync(true);
         ImGuiRenderer::init();
+
+
+        ImGui::GetIO().FontGlobalScale = glm::round(100.f * (Monitor::dpi().ddpi / 141.f)) / 100.f;
         loop();
         return 0;
     }
