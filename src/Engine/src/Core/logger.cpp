@@ -1,4 +1,6 @@
 #include <Core/engine.hpp>
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/engine_lua.hpp>
 #include <Core/logger.hpp>
 #include <cstdarg>
 #include <cstdio>
@@ -178,4 +180,41 @@ namespace Engine
     {
         return logger_object;
     }
+
+
+    static void lua_log_info(Logger* logger, const char* tag, const char* message)
+    {
+        logger->log(tag, message);
+    }
+
+    static void lua_log_debug(Logger* logger, const char* tag, const char* message)
+    {
+        logger->debug(tag, message);
+    }
+
+    static void lua_log_warning(Logger* logger, const char* tag, const char* message)
+    {
+        logger->warning(tag, message);
+    }
+
+    static void lua_log_error(Logger* logger, const char* tag, const char* message)
+    {
+        logger->error(tag, message);
+    }
+
+
+    static void on_init()
+    {
+        auto _class = Lua::Interpretter::lua_class_of<Logger>("Engine::Logger");
+
+        _class.set("log", lua_log_info);
+        _class.set("debug", lua_log_debug);
+        _class.set("warning", lua_log_warning);
+        _class.set("error", lua_log_error);
+
+        Lua::Interpretter::namespace_of("Engine::").set("logger", Engine::logger);
+    }
+
+
+    static InitializeController init(on_init);
 }// namespace Engine

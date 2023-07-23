@@ -187,6 +187,7 @@ namespace Engine
 
     int EngineInstance::start(int argc, char** argv)
     {
+        logger->log("TrinexEngine", "Start engine!");
         if (is_inited())
         {
             return -1;

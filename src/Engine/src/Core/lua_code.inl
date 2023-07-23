@@ -118,7 +118,7 @@ function Engine.remove_comments_from_code(code)
 
 function Engine.load_config(path, config)
 {
-    print('Loading config:', path);
+    Engine.logger->log('Config', 'Loading config:'..path);
 
     local file = io.open(path, 'r');
     local full_code = Engine.remove_comments_from_code(file->read('*all'));
@@ -135,12 +135,12 @@ function Engine.load_config(path, config)
                 local status, result = pcall(chunk(), config)
                 if (!status)
                 {
-                    print("Config error:", result);
+                    Engine.logger->log('Config', result);
                 }
             }
             else
             {
-                print("Compilation error:", error);
+                Engine.logger->log("Config", error);
             }
         }
     }
