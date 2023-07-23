@@ -123,8 +123,6 @@ namespace Engine
                     auto base_classes = Class::class_parents<typename ClassInstance::Super>();
                     lua_class.set(Lua::base_classes, base_classes);
                 }
-                    auto invoker = new DefferedMethodInvoker(invoked_method, std::forward<Key>(key),
-                                                             std::forward<Value>(value));
 
                 if constexpr (std::is_base_of_v<Engine::Object, ClassInstance>)
                 {
