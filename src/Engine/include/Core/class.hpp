@@ -1,8 +1,8 @@
 #pragma once
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_lua.hpp>
-#include <Core/etl/deffered_method_invoker.hpp>
 #include <Core/object.hpp>
+#include <Core/string_functions.hpp>
 
 
 namespace Engine
@@ -15,13 +15,11 @@ namespace Engine
     private:
         const Class* _M_parent = nullptr;
         Set<const Class*> _M_parents;
-        Vector<DefferedMethodInvokerBase*> _M_lua_invokers;
         std::function<Object*()> _M_allocate_object;
         std::function<Object*()> _M_allocate_without_package;
         std::function<Lua::object(Object*)> _M_to_lua_object;
-
-        size_t _M_instance_size = 0;
-        void (*_M_post_init)()  = nullptr;
+        void (*_M_resolve_inherit)() = nullptr;
+        size_t _M_instance_size      = 0;
 
         template<typename Instance>
         static Instance* lua_allocate()
@@ -33,48 +31,6 @@ namespace Engine
     private:
         Class(const String& name = "");
         void update_parent_classes(const Class* parent);
-
-        template<typename InstanceClass>
-        static void post_init()
-        {
-            Class* current = const_cast<Class*>(ClassMetaData<InstanceClass>::find_class());
-            if (current == nullptr || current->_M_post_init == nullptr)
-            {
-                return;
-            }
-
-            Lua::Class<InstanceClass> lua_class = Lua::Interpretter::lua_class_of<InstanceClass>(current->full_name());
-
-            if constexpr (has_super_type_v<InstanceClass>)
-            {
-                const Class* parent =
-                        const_cast<const Class*>(ClassMetaData<typename InstanceClass::Super>::find_class());
-
-                if (parent != nullptr)
-                {
-                    if (parent->_M_post_init != nullptr)
-                    {
-                        parent->_M_post_init();
-                    }
-
-                    current->update_parent_classes(parent);
-                }
-
-                auto base_classes = Class::class_parents<typename InstanceClass::Super>();
-                lua_class.set(Lua::base_classes, base_classes);
-            }
-
-            info_log("Class", "Start initialize class '%s'", current->full_name().c_str());
-
-            for (auto invoker : current->_M_lua_invokers)
-            {
-                invoker->invoke(&lua_class);
-                delete invoker;
-            }
-
-            current->_M_lua_invokers.clear();
-            current->_M_post_init = nullptr;
-        }
 
         template<typename Instance, typename... Args>
         Class& create_allocator(Args... args)
@@ -133,73 +89,50 @@ namespace Engine
             return Lua::make_object(Lua::Interpretter::state()->lua_state(), reinterpret_cast<Instance*>(object));
         }
 
-    public:
-        class ENGINE_EXPORT LuaRegistrarBase
-        {
-        protected:
-            Class* _M_class;
-            LuaRegistrarBase(Class* _class);
-
-        public:
-            ~LuaRegistrarBase();
-        };
-
         template<typename Instance>
-        class LuaRegistrar : public LuaRegistrarBase
+        static void private_resolve_inherit()
+        {
+            Class* current = const_cast<Class*>(ClassMetaData<Instance>::find_class());
+            if constexpr (has_super_type_v<Instance>)
+            {
+                Class* parent  = const_cast<Class*>(ClassMetaData<typename Instance::Super>::find_class());
+                current->update_parent_classes(parent);
+            }
+
+            current->_M_resolve_inherit = nullptr;
+        }
+
+    public:
+        template<typename ClassInstance>
+        class ClassRegistrar
         {
         private:
-            using UserType = sol::usertype<Instance>;
+            Class* _M_class = nullptr;
+            String _M_name;
 
-            LuaRegistrar(Class* _class) : LuaRegistrarBase(_class)
-            {
-
-                if constexpr (std::is_base_of_v<Engine::Object, Instance>)
-                {
-                    set(Lua::meta_function::construct, lua_allocate<Instance>);
-                    set(Lua::meta_function::to_string, &Instance::as_string);
-                }
-            }
-
+            ClassRegistrar(Class* _class, const String& name) : _M_class(_class), _M_name(name)
+            {}
 
         public:
-            LuaRegistrar(const LuaRegistrar&) = default;
-
-            FORCE_INLINE Class* operator&()
+            Lua::Class<ClassInstance> get() const
             {
-                return _M_class;
-            }
+                Lua::Class<ClassInstance> lua_class = Lua::Interpretter::lua_class_of<ClassInstance>(_M_name);
 
-            template<typename Key, typename Value>
-            LuaRegistrar& set(Key&& key, Value&& value)
-            {
-                if constexpr (is_string_literal_v<Key>)
+                if constexpr (has_super_type_v<ClassInstance>)
                 {
-                    return set(static_cast<const char*>(key), std::forward<Value>(value));
+                    auto base_classes = Class::class_parents<typename ClassInstance::Super>();
+                    lua_class.set(Lua::base_classes, base_classes);
                 }
-                else if constexpr (is_function_reference_v<Value>)
-                {
-                    return set(std::forward<Key>(key), &value);
-                }
-                else
-                {
-                    UserType& (UserType::*invoked_method)(Key&&, Value &&) = &UserType::template set<Key, Value>;
                     auto invoker = new DefferedMethodInvoker(invoked_method, std::forward<Key>(key),
                                                              std::forward<Value>(value));
 
-                    _M_class->_M_lua_invokers.push_back(invoker);
-                    return *this;
-                }
-            }
-
-            template<typename Key, typename Value, typename... Args>
-            LuaRegistrar& operator()(Key&& key, Value&& value, Args&&... args)
-            {
-                set(std::forward<Key>(key), std::forward<Value>(value));
-                if constexpr (sizeof...(args) > 1)
+                if constexpr (std::is_base_of_v<Engine::Object, ClassInstance>)
                 {
-                    (*this)(std::forward<Args>(args)...);
+                    lua_class.set(Lua::meta_function::construct, lua_allocate<ClassInstance>);
+                    lua_class.set(Lua::meta_function::to_string, &ClassInstance::as_string);
                 }
-                return *this;
+
+                return lua_class;
             }
 
             friend class Class;
@@ -215,22 +148,24 @@ namespace Engine
         Lua::object to_lua_object(Object* object) const;
 
         template<typename InstanceClass = void, typename... Args>
-        static LuaRegistrar<InstanceClass> register_new_class(const String& class_name, Args... args)
+        static ClassRegistrar<InstanceClass> register_new_class(const String& class_name, Args... args)
         {
             Class* class_instance = find_class(class_name);
             if (class_instance == nullptr)
             {
+                logger->log("Class", "Start initialize class '%s'", class_name.c_str());
                 class_instance = Object::new_instance_without_package<Class>(class_name);
                 class_instance->create_allocator<InstanceClass>(args...);
-                class_instance->_M_instance_size = sizeof(InstanceClass);
+                class_instance->_M_instance_size   = sizeof(InstanceClass);
+                class_instance->_M_to_lua_object   = to_lua_object_private<InstanceClass>;
+                class_instance->_M_resolve_inherit = private_resolve_inherit<InstanceClass>;
 
-                class_instance->_M_post_init     = Class::post_init<InstanceClass>;
-                class_instance->_M_to_lua_object = to_lua_object_private<InstanceClass>;
-                InitializeController i(class_instance->_M_post_init);
+                ClassMetaData<InstanceClass> meta_data(class_instance);
+                InitializeController initializer(class_instance->_M_resolve_inherit);
+                return ClassRegistrar<InstanceClass>(class_instance, class_name);
             }
 
-            LuaRegistrar<InstanceClass> registrar(class_instance);
-            return registrar;
+            throw EngineException(Strings::format("Class {} already registered!", class_name));
         }
 
         friend class Object;
@@ -241,6 +176,4 @@ namespace Engine
 
 
 #define register_class(class_name, ...)                                                                                \
-    template<>                                                                                                         \
-    Engine::ClassMetaData<class_name> trinex_local_metaclass_database<class_name> =                                    \
-            &Engine::Class::register_new_class<class_name>(#class_name)
+    Engine::Class::register_new_class<class_name>(#class_name __VA_OPT__(, ##__VA_ARGS__))

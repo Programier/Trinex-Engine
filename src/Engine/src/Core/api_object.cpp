@@ -5,7 +5,13 @@
 namespace Engine
 {
 
-    register_class(Engine::ApiObject);
+
+    static void on_init()
+    {
+        register_class(Engine::ApiObject);
+    }
+
+    static InitializeController initializer(on_init);
 
     // Zero is default or invalid value of ApiObjectNoBase in external API
     constructor_cpp(ApiObjectNoBase)

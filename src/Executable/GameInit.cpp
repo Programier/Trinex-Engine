@@ -29,6 +29,31 @@
 
 namespace Engine
 {
+
+    static bool skip_logic_update = false;
+
+    static void render_command_line()
+    {
+        skip_logic_update = ImGui::Begin("Command Line", nullptr, 0);
+
+        if (skip_logic_update)
+        {
+            static char buffer[1024];
+
+            ImVec2 new_size = ImGui::GetWindowSize();
+            new_size.x -= 100;
+            new_size.y -= 100;
+            ImGui::InputTextMultiline("Command", buffer, 1024, new_size);
+
+            if (KeyboardEvent::just_pressed() == Key::Enter)
+            {
+                buffer[0] = 0;
+            }
+        }
+
+        ImGui::End();
+    }
+
     static void render_package_tree(Package* package)
     {
         if (ImGui::TreeNode(package->name().c_str()))
@@ -208,6 +233,9 @@ namespace Engine
 
                 ImGui::End();
 
+
+                render_command_line();
+
                 ImGuiRenderer::render();
             }
 
@@ -221,35 +249,39 @@ namespace Engine
 
             Event::poll_events();
             Window::window->swap_buffers();
-            camera->update();
 
-            if (KeyboardEvent::just_pressed(Key::G))
+            if (!skip_logic_update)
             {
-                package->save();
-            }
+                camera->update();
 
-            if (KeyboardEvent::just_pressed(Key::F))
-            {
-                Window::window->attribute(WinFullScreenDesktop, !Window::window->attribute(WinFullScreenDesktop));
-            }
+                if (KeyboardEvent::just_pressed(Key::G))
+                {
+                    package->save();
+                }
 
-            if (KeyboardEvent::just_pressed(Key::Num0))
-            {
-                logger->log("KEY", "0");
-                type = UpdateType::None;
+                if (KeyboardEvent::just_pressed(Key::F))
+                {
+                    Window::window->attribute(WinFullScreenDesktop, !Window::window->attribute(WinFullScreenDesktop));
+                }
+
+                if (KeyboardEvent::just_pressed(Key::Num0))
+                {
+                    logger->log("KEY", "0");
+                    type = UpdateType::None;
+                }
+                else if (KeyboardEvent::just_pressed(Key::Num1))
+                {
+                    logger->log("KEY", "1");
+                    type = UpdateType::Static;
+                }
+                else if (KeyboardEvent::just_pressed(Key::Num2))
+                {
+                    logger->log("KEY", "2");
+                    type = UpdateType::Dynamic;
+                }
+                else if (KeyboardEvent::just_pressed(Key::Num4))
+                {}
             }
-            else if (KeyboardEvent::just_pressed(Key::Num1))
-            {
-                logger->log("KEY", "1");
-                type = UpdateType::Static;
-            }
-            else if (KeyboardEvent::just_pressed(Key::Num2))
-            {
-                logger->log("KEY", "2");
-                type = UpdateType::Dynamic;
-            }
-            else if (KeyboardEvent::just_pressed(Key::Num4))
-            {}
         }
 
         _M_renderer->wait_idle();
@@ -307,7 +339,12 @@ namespace Engine
         return 0;
     }
 
-    register_class(GameInit);
+    static void on_init()
+    {
+        register_class(GameInit);
+    }
+
+    static InitializeController initializer(on_init);
 
 }// namespace Engine
 

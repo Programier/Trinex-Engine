@@ -75,9 +75,6 @@ namespace Engine
         }
     };
 
-    register_class(Engine::Package)
-            .set("add_object", &Package::add_object)
-            .set("remove_object", &Package::remove_object);
 
     Package::Package()
     {
@@ -532,4 +529,15 @@ namespace Engine
             pair.second->_M_package = next_package;
         }
     }
+
+    static void on_init()
+    {
+        register_class(Engine::Package)
+                .get()
+                .set("add_object", &Package::add_object)
+                .set("remove_object", &Package::remove_object);
+    }
+
+    static InitializeController initializer(on_init);
+
 }// namespace Engine

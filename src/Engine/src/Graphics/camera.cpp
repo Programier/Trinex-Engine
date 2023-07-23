@@ -8,8 +8,12 @@
 
 namespace Engine
 {
+    static void on_init()
+    {
+        register_class(Engine::Camera).get();
+    }
 
-    register_class(Engine::Camera);
+    static InitializeController initializer(on_init);
 
     Camera::Camera(glm::vec3 position, float viewing_angle)
     {

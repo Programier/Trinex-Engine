@@ -14,5 +14,10 @@ namespace Engine
     void CommandLet::on_config_load()
     {}
 
-    register_class(Engine::CommandLet);
+    static void on_init()
+    {
+        register_class(Engine::CommandLet);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

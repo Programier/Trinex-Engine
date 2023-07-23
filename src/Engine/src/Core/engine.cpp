@@ -23,21 +23,22 @@ namespace Engine
     extern void trinex_init_sdl();
     extern void trinex_terminate_sdl();
 
-    Vector<void (*)()>& terminate_list()
+
+    static List<void (*)()>& terminate_list()
     {
-        static Vector<void (*)()> _M_terminate_list;
+        static List<void (*)()> _M_terminate_list;
         return _M_terminate_list;
     }
 
-    Vector<void (*)()>& initialize_list()
+    static List<void (*)()>& initialize_list()
     {
-        static Vector<void (*)()> _M_init_list;
+        static List<void (*)()> _M_init_list;
         return _M_init_list;
     }
 
-    static Vector<void (*)()>& preinitialize_list()
+    static List<void (*)()>& preinitialize_list()
     {
-        static Vector<void (*)()> _M_init_list;
+        static List<void (*)()> _M_init_list;
         return _M_init_list;
     }
 
@@ -185,6 +186,20 @@ namespace Engine
         return commandlet;
     }
 
+
+    static void execute_list(List<void (*)()>& list)
+    {
+        while (!list.empty())
+        {
+            void (*func)() = list.front();
+            list.pop_front();
+            if (func)
+            {
+                func();
+            }
+        }
+    }
+
     int EngineInstance::start(int argc, char** argv)
     {
         logger->log("TrinexEngine", "Start engine!");
@@ -193,13 +208,7 @@ namespace Engine
             return -1;
         }
 
-        for (auto preinit_callback : preinitialize_list())
-        {
-            preinit_callback();
-        }
-
-        preinitialize_list().clear();
-
+        execute_list(preinitialize_list());
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
@@ -214,12 +223,7 @@ namespace Engine
 
         Lua::Interpretter::init();
 
-        for (auto func : initialize_list())
-        {
-            func();
-        }
-
-        initialize_list().clear();
+        execute_list(initialize_list());
 
         logger->log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
         engine_config.load_config((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
@@ -336,11 +340,7 @@ stack_address:
 
     EngineInstance& EngineInstance::trigger_terminate_functions()
     {
-        for (auto& func : terminate_list())
-        {
-            func();
-        }
-
+        execute_list(terminate_list());
         return *this;
     }
 
@@ -408,19 +408,61 @@ stack_address:
 
     /////////////////// DESTROY CONTROLLER ///////////////////
 
+    DestroyController::DestroyController()
+    {}
+
     DestroyController::DestroyController(void (*callback)())
     {
-        terminate_list().push_back(callback);
+        push(callback);
     }
+
+    DestroyController& DestroyController::push(void (*callback)())
+    {
+        terminate_list().push_back(callback);
+        return *this;
+    }
+
+    InitializeController::InitializeController()
+    {}
 
     InitializeController::InitializeController(void (*callback)())
     {
-        initialize_list().push_back(callback);
+        push(callback);
     }
+
+    InitializeController& InitializeController::push(void (*callback)())
+    {
+        if (engine_instance && engine_instance->is_inited())
+        {
+            callback();
+        }
+        else
+        {
+            initialize_list().push_back(callback);
+        }
+
+        return *this;
+    }
+
+    PreInitializeController::PreInitializeController()
+    {}
 
     PreInitializeController::PreInitializeController(void (*callback)())
     {
-        preinitialize_list().push_back(callback);
+        push(callback);
+    }
+
+    PreInitializeController& PreInitializeController::push(void (*callback)())
+    {
+        if (engine_instance && engine_instance->is_inited())
+        {
+            callback();
+        }
+        else
+        {
+            preinitialize_list().push_back(callback);
+        }
+        return *this;
     }
 
 

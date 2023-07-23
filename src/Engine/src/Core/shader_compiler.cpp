@@ -60,5 +60,10 @@ namespace Engine
         return _M_compiler;
     }
 
-    register_class(Engine::ShaderCompiler);
+    static void on_init()
+    {
+        register_class(Engine::ShaderCompiler);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

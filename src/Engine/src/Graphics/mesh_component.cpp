@@ -1,8 +1,8 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh_component.hpp>
@@ -200,7 +200,12 @@ namespace Engine
     }
 
 
-    register_class(Engine::MeshComponent);
-    register_class(Engine::StaticMeshComponent);
-    register_class(Engine::DynamicMeshComponent);
+    static void on_init()
+    {
+        register_class(Engine::MeshComponent);
+        register_class(Engine::StaticMeshComponent);
+        register_class(Engine::DynamicMeshComponent);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

@@ -27,8 +27,4 @@ namespace Engine
         ClassMetaData(const class Class* instance) : ClassMetaDataHelper(std::type_index(typeid(Type)), instance)
         {}
     };
-
-    template<typename Type>
-    ClassMetaData<Type> trinex_local_metaclass_database;
-
 }// namespace Engine

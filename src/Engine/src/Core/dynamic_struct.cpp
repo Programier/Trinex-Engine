@@ -333,5 +333,10 @@ namespace Engine
     }
 
 
-    register_class(Engine::DynamicStructBase);
+    static void on_init()
+    {
+        register_class(Engine::DynamicStructBase);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

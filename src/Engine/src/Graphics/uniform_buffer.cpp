@@ -27,5 +27,10 @@ namespace Engine
         return *this;
     }
 
-    register_class(Engine::UniformStruct);
+    static void on_init()
+    {
+        register_class(Engine::UniformStruct);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

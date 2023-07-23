@@ -6,7 +6,13 @@
 namespace Engine
 {
 
-    register_class(Engine::FrameBuffer);
+    static void on_init()
+    {
+        register_class(Engine::FrameBuffer);
+    }
+
+    static InitializeController initializer(on_init);
+
 
     FrameBuffer::FrameBuffer()
     {}

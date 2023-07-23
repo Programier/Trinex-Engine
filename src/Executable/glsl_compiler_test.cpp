@@ -54,6 +54,10 @@ namespace Engine
         }
     };
 
+    static void on_init()
+    {
+        register_class(TestCompiler);
+    }
 
-    register_class(TestCompiler);
+    static InitializeController initializer(on_init);
 }// namespace Engine

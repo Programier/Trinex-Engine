@@ -1,7 +1,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
 #include <Core/shader_types.hpp>
@@ -50,8 +50,6 @@ namespace Engine
         result.type = shader_types().find(index)->second;
     }
 
-    register_class(Engine::Shader);
-
     Shader::Shader()
     {}
 
@@ -88,4 +86,11 @@ namespace Engine
         EngineInstance::instance()->api_interface()->use_shader(0);
     }
 
+
+    static void on_init()
+    {
+        register_class(Engine::Shader);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

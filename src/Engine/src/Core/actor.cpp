@@ -96,15 +96,22 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
-    register_class(Engine::Actor)("update", &Actor::update,//
-                                  "load", &Actor::load,    //
-                                  "unload", &Actor::unload,//
-                                  "render", &Actor::render,//
-                                  "parent",
-                                  Lua::overload(static_cast<Actor& (Actor::*) (Actor*)>(&Actor::parent),
-                                                static_cast<Actor* (Actor::*) () const>(&Actor::parent)),
-                                  "childs", &Actor::childs,            //
-                                  "child", &Actor::child,              //
-                                  "remove_child", &Actor::remove_child,//
-                                  "transform", &Actor::transform);
+    static void on_init()
+    {
+        register_class(Engine::Actor)
+                .get()
+                .set("update", &Actor::update)
+                .set("load", &Actor::load)
+                .set("unload", &Actor::unload)
+                .set("render", &Actor::render)
+                .set("parent", Lua::overload(static_cast<Actor& (Actor::*) (Actor*)>(&Actor::parent),
+                                             static_cast<Actor* (Actor::*) () const>(&Actor::parent)))
+                .set("childs", &Actor::childs)
+                .set("child", &Actor::child)
+                .set("remove_child", &Actor::remove_child)
+                .set("transform", &Actor::transform);
+    }
+
+    static InitializeController initializer(on_init);
+
 }// namespace Engine

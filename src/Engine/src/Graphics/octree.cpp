@@ -4,7 +4,14 @@
 
 namespace Engine
 {
-    register_class(Engine::OctreeBase);
+    static void on_init()
+    {
+        register_class(Engine::OctreeBase);
+        register_class(Engine::OctreeBaseNode);
+    }
+
+    static InitializeController initializer(on_init);
+
     OctreeBase::OctreeBase(float min_size)
     {
         this->_M_min_size = glm::abs(min_size);
@@ -80,7 +87,6 @@ namespace Engine
     }
 
 
-    register_class(Engine::OctreeBaseNode, _M_box(Constants::zero_vector, Constants::zero_vector));
     OctreeBaseNode::OctreeBaseNode()
     {}
 

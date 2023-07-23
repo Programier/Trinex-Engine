@@ -10,7 +10,14 @@ static void init_mesh()
 
 namespace Engine
 {
-    register_class(Engine::Skybox);
+    static void on_init()
+    {
+        register_class(Engine::Skybox);
+    }
+
+    static InitializeController initializer(on_init);
+
+
     Skybox::Skybox()
     {}
 

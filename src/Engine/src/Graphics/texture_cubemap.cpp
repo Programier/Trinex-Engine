@@ -5,7 +5,13 @@
 
 namespace Engine
 {
-    register_class(Engine::TextureCubeMap);
+    static void on_init()
+    {
+        register_class(Engine::TextureCubeMap);
+    }
+
+    static InitializeController initializer(on_init);
+
     TextureCubeMap::TextureCubeMap()
     {
         _M_type = TextureType::TextureCubeMap;

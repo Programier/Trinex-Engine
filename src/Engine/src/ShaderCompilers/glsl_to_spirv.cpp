@@ -262,5 +262,10 @@ namespace Engine
         }
     };
 
-    register_class(Engine::GLSLToSPIRV);
+    static void on_init()
+    {
+        register_class(Engine::GLSLToSPIRV);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine

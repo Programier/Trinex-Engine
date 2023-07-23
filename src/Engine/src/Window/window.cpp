@@ -782,9 +782,44 @@ Window::~Window()
 }
 
 
-namespace Engine
+static void on_init()
 {
-    register_class(Engine::Window)
+    {
+        Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::");
+
+
+        _namespace.new_enum<WindowAttrib>("WindowAttrib", {{"WinNone", WindowAttrib::WinKeyboardGrabbed},
+                                                           {"WinResizable", WindowAttrib::WinMouseGrabbed},
+                                                           {"WinFullScreen", WindowAttrib::WinAllowHighDPI},
+                                                           {"WinFullScreenDesktop", WindowAttrib::WinMouseCapture},
+                                                           {"WinShown", WindowAttrib::WinTransparentFramebuffer},
+                                                           {"WinHidden", WindowAttrib::WinMaximized},
+                                                           {"WinBorderLess", WindowAttrib::WinMinimized},
+                                                           {"WinMouseFocus", WindowAttrib::WinInputGrabbed},
+                                                           {"WinInputFocus", WindowAttrib::WinInputFocus},
+                                                           {"WinInputGrabbed", WindowAttrib::WinMouseFocus},
+                                                           {"WinMinimized", WindowAttrib::WinBorderLess},
+                                                           {"WinMaximized", WindowAttrib::WinHidden},
+                                                           {"WinTransparentFramebuffer", WindowAttrib::WinShown},
+                                                           {"WinMouseCapture", WindowAttrib::WinFullScreenDesktop},
+                                                           {"WinAllowHighDPI", WindowAttrib::WinFullScreen},
+                                                           {"WinMouseGrabbed", WindowAttrib::WinResizable},
+                                                           {"WinKeyboardGrabbed", WindowAttrib::WinNone}});
+
+
+        _namespace.new_enum<CursorMode>("CursorMode", {{"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden}});
+
+
+        _namespace.new_enum<WindowOrientation>(
+                "WindowOrientation",
+                {{"WinOrientationLandscape", WindowOrientation::WinOrientationLandscape},
+                 {"WinOrientationLandscapeFlipped", WindowOrientation::WinOrientationLandscapeFlipped},
+                 {"WinOrientationPortrait", WindowOrientation::WinOrientationPortrait},
+                 {"WinOrientationPortraitFlipped", WindowOrientation::WinOrientationPortraitFlipped}});
+    }
+
+    Engine::Class::register_new_class<Engine::Window>("Engine::Window")
+            .get()
             .set("init", Lua::overload(func_of<Window*, Window, float>(&Window::init),
                                        func_of<Window*, Window, const Size2D&, const String&, uint16_t>(&Window::init)))
             .set("close", &Window::close)
@@ -835,43 +870,6 @@ namespace Engine
             .set("frame_number", &Window::frame_number)
             .set("initialize_api", &Window::initialize_api)
             .set("window", Lua::property([]() -> Window* { return Window::window; }));
-}
-
-static void on_init()
-{
-    {
-        Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::");
-
-
-        _namespace.new_enum<WindowAttrib>("WindowAttrib", {{"WinNone", WindowAttrib::WinKeyboardGrabbed},
-                                                           {"WinResizable", WindowAttrib::WinMouseGrabbed},
-                                                           {"WinFullScreen", WindowAttrib::WinAllowHighDPI},
-                                                           {"WinFullScreenDesktop", WindowAttrib::WinMouseCapture},
-                                                           {"WinShown", WindowAttrib::WinTransparentFramebuffer},
-                                                           {"WinHidden", WindowAttrib::WinMaximized},
-                                                           {"WinBorderLess", WindowAttrib::WinMinimized},
-                                                           {"WinMouseFocus", WindowAttrib::WinInputGrabbed},
-                                                           {"WinInputFocus", WindowAttrib::WinInputFocus},
-                                                           {"WinInputGrabbed", WindowAttrib::WinMouseFocus},
-                                                           {"WinMinimized", WindowAttrib::WinBorderLess},
-                                                           {"WinMaximized", WindowAttrib::WinHidden},
-                                                           {"WinTransparentFramebuffer", WindowAttrib::WinShown},
-                                                           {"WinMouseCapture", WindowAttrib::WinFullScreenDesktop},
-                                                           {"WinAllowHighDPI", WindowAttrib::WinFullScreen},
-                                                           {"WinMouseGrabbed", WindowAttrib::WinResizable},
-                                                           {"WinKeyboardGrabbed", WindowAttrib::WinNone}});
-
-
-        _namespace.new_enum<CursorMode>("CursorMode", {{"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden}});
-
-
-        _namespace.new_enum<WindowOrientation>(
-                "WindowOrientation",
-                {{"WinOrientationLandscape", WindowOrientation::WinOrientationLandscape},
-                 {"WinOrientationLandscapeFlipped", WindowOrientation::WinOrientationLandscapeFlipped},
-                 {"WinOrientationPortrait", WindowOrientation::WinOrientationPortrait},
-                 {"WinOrientationPortraitFlipped", WindowOrientation::WinOrientationPortraitFlipped}});
-    }
 }
 
 static InitializeController init_window(on_init);

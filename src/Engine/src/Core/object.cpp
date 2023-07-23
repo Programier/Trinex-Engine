@@ -15,30 +15,32 @@
 
 namespace Engine
 {
-    static ClassMetaData<void> void_instance = nullptr;
+    static void on_init()
+    {
+        Class::register_new_class<Engine::Object>("Engine::Object")
+                .get()
+                .set("root_package", &Object::root_package)
+                .set("class_instance", &Object::class_instance)
+                .set("find_package", &Object::find_package)
+                .set("find_object", &Object::find_object)
+                .set("flag", sol::overload(static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag),
+                                           static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag)))
+                .set("references", &Object::references)
+                .set("full_name", &Object::full_name)
+                .set("package", &Object::package)
+                .set("remove_from_package", &Object::remove_from_package)
+                .set("decode_name", static_cast<String (Object::*)() const>(&Object::decode_name))
+                .set("load_package", Object::load_package)
+                .set("mark_for_delete", &Object::mark_for_delete)
+                .set("is_on_heap", &Object::is_on_heap)
+                .set("collect_garbage", Object::collect_garbage)
+                .set("name", sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
+                                           static_cast<ObjectRenameStatus (Object::*)(String, bool)>(&Object::name)))
+                .set("add_to_package", &Object::add_to_package)
+                .set("as_string", &Object::as_string);
+    }
 
-    static ClassMetaData<Object> object_instance =
-            &Class::register_new_class<Engine::Object>("Engine::Object")
-                     .set("root_package", &Object::root_package)
-                     .set("class_instance", &Object::class_instance)
-                     .set("find_package", &Object::find_package)
-                     .set("find_object", &Object::find_object)
-                     .set("flag", sol::overload(static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag),
-                                                static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag)))
-                     .set("references", &Object::references)
-                     .set("full_name", &Object::full_name)
-                     .set("package", &Object::package)
-                     .set("remove_from_package", &Object::remove_from_package)
-                     .set("decode_name", static_cast<String (Object::*)() const>(&Object::decode_name))
-                     .set("load_package", Object::load_package)
-                     .set("mark_for_delete", &Object::mark_for_delete)
-                     .set("is_on_heap", &Object::is_on_heap)
-                     .set("collect_garbage", Object::collect_garbage)
-                     .set("name",
-                          sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
-                                        static_cast<ObjectRenameStatus (Object::*)(String, bool)>(&Object::name)))
-                     .set("add_to_package", &Object::add_to_package)
-                     .set("as_string", &Object::as_string);
+    static InitializeController initializer(on_init);
 
 
     static Vector<Index>& get_free_indexes_array()

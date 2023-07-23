@@ -8,17 +8,6 @@
 
 namespace Engine
 {
-    Class::LuaRegistrarBase::LuaRegistrarBase(Class* _class) : _M_class(_class)
-    {}
-
-    Class::LuaRegistrarBase::~LuaRegistrarBase()
-    {
-        if (engine_instance && engine_instance->is_inited() && _M_class->_M_post_init)
-        {
-            _M_class->_M_post_init();
-        }
-    }
-
     static Map<std::type_index, const class Class*>& indexed_classes_map()
     {
         static Map<std::type_index, const class Class*> map = {};
@@ -40,9 +29,6 @@ namespace Engine
     {
         indexed_classes_map()[index] = instance;
     }
-
-
-    static ClassMetaData<Engine::Class> class_instance = nullptr;
 
     static Class::ClassesMap& classes_map()
     {
@@ -83,8 +69,18 @@ namespace Engine
 
     void Class::update_parent_classes(const Class* parent)
     {
-        _M_parent = parent;
-        _M_parents.insert(parent->_M_parents.begin(), parent->_M_parents.end());
+        if (parent)
+        {
+            if (parent->_M_resolve_inherit)
+            {
+                const_cast<Class*>(parent)->_M_resolve_inherit();
+            }
+
+            logger->log("Class", "Setting class '%s' as the parent of class '%s'", parent->full_name().c_str(),
+                        full_name().c_str());
+            _M_parent = parent;
+            _M_parents.insert(parent->_M_parents.begin(), parent->_M_parents.end());
+        }
     }
 
     Object* Class::create() const

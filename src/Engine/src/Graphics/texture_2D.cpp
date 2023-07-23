@@ -1,7 +1,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -10,7 +10,12 @@
 
 namespace Engine
 {
-    register_class(Engine::Texture2D);
+    static void on_init()
+    {
+        register_class(Engine::Texture2D);
+    }
+
+    static InitializeController initializer(on_init);
 
     Texture2D::Texture2D()
     {

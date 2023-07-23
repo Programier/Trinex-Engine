@@ -35,5 +35,10 @@ namespace Engine
     };
 
 
-    register_class(LuaConsole);
+    static void on_init()
+    {
+        register_class(LuaConsole);
+    }
+
+    static InitializeController initializer(on_init);
 }// namespace Engine
