@@ -234,7 +234,7 @@ namespace Engine
 
         if (!(archive & info))
         {
-            logger->error("TextureResources", "Failed to process texture resources!");
+            error_log("TextureResources", "Failed to process texture resources!");
             return false;
         }
 
@@ -243,7 +243,7 @@ namespace Engine
 
         if (!(archive & count))
         {
-            logger->error("TextureResources", "Failed to process images count");
+            error_log("TextureResources", "Failed to process images count");
             return false;
         }
 
@@ -256,7 +256,7 @@ namespace Engine
         {
             if (!image.archive_process(archive_ptr))
             {
-                logger->error("TextureResources", "Failed to serialize image[%d]", index);
+                error_log("TextureResources", "Failed to serialize image[%d]", index);
                 return false;
             }
             ++index;

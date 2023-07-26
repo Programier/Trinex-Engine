@@ -3,29 +3,32 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT DestroyController
+
+    using ControllerCallback = void (*)();
+    class ENGINE_EXPORT ControllerBase
     {
+    private:
+        void* _M_func_address = nullptr;
+
+    protected:
+        ControllerBase(void* function_address);
+
     public:
-        DestroyController();
-        DestroyController(void(*)());
-        DestroyController& push(void(*)());
+        ControllerBase& push(void (*)());
+        ControllerBase& execute();
     };
 
+#define IMPLEMENT_CONTROLLER(ControllerName)                                                                           \
+    class ENGINE_EXPORT ControllerName : public ControllerBase                                                         \
+    {                                                                                                                  \
+    public:                                                                                                            \
+        ControllerName();                                                                                              \
+        ControllerName(void (*)());                                                                                    \
+    }
 
-    class ENGINE_EXPORT InitializeController
-    {
-    public:
-        InitializeController();
-        InitializeController(void(*)());
-        InitializeController& push(void(*)());
-    };
+    IMPLEMENT_CONTROLLER(DestroyController);
+    IMPLEMENT_CONTROLLER(InitializeController);
+    IMPLEMENT_CONTROLLER(PreInitializeController);
 
-    class ENGINE_EXPORT PreInitializeController
-    {
-    public:
-        PreInitializeController();
-        PreInitializeController(void(*)());
-        PreInitializeController& push(void(*)());
-    };
-
+#undef IMPLEMENT_CONTROLLER
 }// namespace Engine

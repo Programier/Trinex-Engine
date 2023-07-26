@@ -55,7 +55,7 @@ namespace Engine
 
     BufferWriter& BufferWriter::clear()
     {
-        logger->error("BufferWriter", "Unable to clean buffer: Method '%s' in not overrided!");
+        error_log("BufferWriter", "Unable to clean buffer: Method '%s' in not overrided!");
         return *this;
     }
 

@@ -24,24 +24,6 @@ namespace Engine
     extern void trinex_terminate_sdl();
 
 
-    static List<void (*)()>& terminate_list()
-    {
-        static List<void (*)()> _M_terminate_list;
-        return _M_terminate_list;
-    }
-
-    static List<void (*)()>& initialize_list()
-    {
-        static List<void (*)()> _M_init_list;
-        return _M_init_list;
-    }
-
-    static List<void (*)()>& preinitialize_list()
-    {
-        static List<void (*)()> _M_init_list;
-        return _M_init_list;
-    }
-
     EngineInstance::EngineInstance()
     {
         for (Thread*& thread : _M_threads) thread = nullptr;
@@ -146,7 +128,7 @@ namespace Engine
         Class* class_instance = Class::find_class(name);
         if (!class_instance)
         {
-            logger->error("Engine", "Failed to load commandlet '%s'", name.c_str());
+            error_log("Engine", "Failed to load commandlet '%s'", name.c_str());
             return nullptr;
         }
 
@@ -162,7 +144,7 @@ namespace Engine
 
         if (!commandlet)
         {
-            logger->error("Engine", "Class '%s' is not commandlet!", class_instance->name().c_str());
+            error_log("Engine", "Class '%s' is not commandlet!", class_instance->name().c_str());
         }
 
         return commandlet;
@@ -186,29 +168,15 @@ namespace Engine
         return commandlet;
     }
 
-
-    static void execute_list(List<void (*)()>& list)
-    {
-        while (!list.empty())
-        {
-            void (*func)() = list.front();
-            list.pop_front();
-            if (func)
-            {
-                func();
-            }
-        }
-    }
-
     int EngineInstance::start(int argc, char** argv)
     {
-        logger->log("TrinexEngine", "Start engine!");
+        info_log("TrinexEngine", "Start engine!");
         if (is_inited())
         {
             return -1;
         }
 
-        execute_list(preinitialize_list());
+        PreInitializeController().execute();
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
@@ -223,9 +191,9 @@ namespace Engine
 
         Lua::Interpretter::init();
 
-        execute_list(initialize_list());
+        InitializeController().execute();
 
-        logger->log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
+        info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
         engine_config.load_config((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
 
         Lua::Interpretter::init_lua_dir();
@@ -340,7 +308,7 @@ stack_address:
 
     EngineInstance& EngineInstance::trigger_terminate_functions()
     {
-        execute_list(terminate_list());
+        DestroyController().execute();
         return *this;
     }
 
@@ -405,67 +373,6 @@ stack_address:
         return _M_threads[index];
     }
 
-
-    /////////////////// DESTROY CONTROLLER ///////////////////
-
-    DestroyController::DestroyController()
-    {}
-
-    DestroyController::DestroyController(void (*callback)())
-    {
-        push(callback);
-    }
-
-    DestroyController& DestroyController::push(void (*callback)())
-    {
-        terminate_list().push_back(callback);
-        return *this;
-    }
-
-    InitializeController::InitializeController()
-    {}
-
-    InitializeController::InitializeController(void (*callback)())
-    {
-        push(callback);
-    }
-
-    InitializeController& InitializeController::push(void (*callback)())
-    {
-        if (engine_instance && engine_instance->is_inited())
-        {
-            callback();
-        }
-        else
-        {
-            initialize_list().push_back(callback);
-        }
-
-        return *this;
-    }
-
-    PreInitializeController::PreInitializeController()
-    {}
-
-    PreInitializeController::PreInitializeController(void (*callback)())
-    {
-        push(callback);
-    }
-
-    PreInitializeController& PreInitializeController::push(void (*callback)())
-    {
-        if (engine_instance && engine_instance->is_inited())
-        {
-            callback();
-        }
-        else
-        {
-            preinitialize_list().push_back(callback);
-        }
-        return *this;
-    }
-
-
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)
     {
         engine_instance = EngineInstance::create_instance();
@@ -479,7 +386,7 @@ stack_address:
             }
             catch (const std::exception& e)
             {
-                logger->error("TrinexEngine", "%s", e.what());
+                error_log("TrinexEngine", "%s", e.what());
                 result = -1;
             }
 

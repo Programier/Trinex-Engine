@@ -81,8 +81,8 @@ namespace Engine
             bool status = package->objects().contains(name);
             if (status)
             {
-                logger->error("Object: Cannot create new object. Object '%s' is exist in package '%s'!", name.c_str(),
-                              package->full_name().c_str());
+                error_log("Object: Cannot create new object. Object '%s' is exist in package '%s'!", name.c_str(),
+                          package->full_name().c_str());
             }
             return status;
         }
@@ -269,7 +269,7 @@ namespace Engine
             MessageList errors;
             if (!can_destroy(errors))
             {
-                logger->error("Object", Strings::format("Cannot delete object '{}'", name()), errors);
+                error_log("Object", Strings::format("Cannot delete object '{}'", name()), errors);
                 return false;
             }
         }
@@ -324,8 +324,8 @@ namespace Engine
 
         if (!autorename && package && package->objects().contains(new_name))
         {
-            logger->error("Object", "Failed to rename object. Object with name '%s' already exist in package '%s'",
-                          new_name.c_str(), _M_package->name().c_str());
+            error_log("Object", "Failed to rename object. Object with name '%s' already exist in package '%s'",
+                      new_name.c_str(), _M_package->name().c_str());
             return ObjectRenameStatus::Failed;
         }
 
@@ -487,10 +487,10 @@ namespace Engine
                 Package* new_package = object->instance_cast<Package>();
                 if (new_package == nullptr)
                 {
-                    logger->error("Object",
-                                  "Failed to create new package with name '%s'. Object already exist in "
-                                  "package '%s'!",
-                                  package_name.c_str(), package->full_name().c_str());
+                    error_log("Object",
+                              "Failed to create new package with name '%s'. Object already exist in "
+                              "package '%s'!",
+                              package_name.c_str(), package->full_name().c_str());
                     return nullptr;
                 }
                 package = new_package;
@@ -515,10 +515,10 @@ namespace Engine
                                        : nullptr;
         if (new_package == nullptr)
         {
-            logger->error("Object",
-                          "Failed to create new package with name '%s'. Object already exist in "
-                          "package '%s'!",
-                          new_name.c_str(), package->full_name().c_str());
+            error_log("Object",
+                      "Failed to create new package with name '%s'. Object already exist in "
+                      "package '%s'!",
+                      new_name.c_str(), package->full_name().c_str());
         }
 
         return new_package;
@@ -526,15 +526,12 @@ namespace Engine
 
     const class Class* Object::class_instance() const
     {
-        if (_M_class == nullptr && (!trinex_flag(TrinexObjectFlags::IsUnregistered) || !engine_instance->is_inited()))
+        if (_M_class == nullptr && !trinex_flag(TrinexObjectFlags::IsUnregistered))
         {
             _M_class = ClassMetaDataHelper::find_class(typeid(*this));
             if (_M_class == nullptr)
             {
-                if (engine_instance->is_inited())
-                {
-                    trinex_flag(TrinexObjectFlags::IsUnregistered, true);
-                }
+                trinex_flag(TrinexObjectFlags::IsUnregistered, true);
             }
         }
 
@@ -563,7 +560,7 @@ namespace Engine
 
     void Object::operator delete(void* data)
     {
-        logger->error("Object", "Don't use operator delete! Use object->mark_for_delete() instead!");
+        error_log("Object", "Don't use operator delete! Use object->mark_for_delete() instead!");
     }
 
 

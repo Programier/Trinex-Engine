@@ -14,7 +14,7 @@ namespace Engine
         {
             if (!loader.is<sol::function>())
             {
-                logger->error("Config", "Cannot find loader in Lua!");
+                error_log("Config", "Cannot find loader in Lua!");
                 return *this;
             }
 

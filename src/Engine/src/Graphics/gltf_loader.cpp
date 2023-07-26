@@ -228,13 +228,13 @@ namespace Engine::GLTF
 
         if (!err.empty())
         {
-            logger->error("GLTF", "Error: %s", err.c_str());
+            error_log("GLTF", "Error: %s", err.c_str());
             return {};
         }
 
         if (!success)
         {
-            logger->error("GLTF", "Failed to load '%s'", path.c_str());
+            error_log("GLTF", "Failed to load '%s'", path.c_str());
             return {};
         }
 

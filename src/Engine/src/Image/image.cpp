@@ -397,7 +397,7 @@ namespace Engine
 
         if (archive.is_saving() && _M_data.empty())
         {
-            logger->error("Image", "Failed to serialize image. Data is empty!");
+            error_log("Image", "Failed to serialize image. Data is empty!");
             return false;
         }
 
@@ -407,7 +407,7 @@ namespace Engine
 
         if (!archive)
         {
-            logger->error("Image", "Failed to serialize image header!");
+            error_log("Image", "Failed to serialize image header!");
             return false;
         }
 
@@ -421,7 +421,7 @@ namespace Engine
 
             if (!archive.reader()->read(_M_data.data(), _M_data.size()))
             {
-                logger->error("Image", "Failed to serialize image data!");
+                error_log("Image", "Failed to serialize image data!");
                 return false;
             }
         }
@@ -429,7 +429,7 @@ namespace Engine
         {
             if (!archive.writer()->write(_M_data.data(), _M_data.size()))
             {
-                logger->error("Image", "Failed to serialize image data!");
+                error_log("Image", "Failed to serialize image data!");
                 return false;
             }
         }

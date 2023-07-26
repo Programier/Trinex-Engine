@@ -110,7 +110,7 @@ namespace Engine
     {
         if (!platform_thread_change_name(thread_name))
         {
-            logger->error("Thread: Failed to change thread name!\n\tReason: %s\n", strerror(errno));
+            error_log("Thread: Failed to change thread name!\n\tReason: %s\n", strerror(errno));
         }
         return *this;
     }

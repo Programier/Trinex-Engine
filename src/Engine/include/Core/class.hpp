@@ -151,7 +151,7 @@ namespace Engine
             Class* class_instance = find_class(class_name);
             if (class_instance == nullptr)
             {
-                logger->log("Class", "Start initialize class '%s'", class_name.c_str());
+                info_log("Class", "Start initialize class '%s'", class_name.c_str());
                 class_instance = Object::new_instance_without_package<Class>(class_name);
                 class_instance->create_allocator<InstanceClass>(args...);
                 class_instance->_M_instance_size   = sizeof(InstanceClass);

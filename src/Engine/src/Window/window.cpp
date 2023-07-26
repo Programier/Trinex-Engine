@@ -637,7 +637,7 @@ void* Window::api_context() const
 Window* Window::cursor_mode(const CursorMode& mode)
 {
     if (SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE)) < 0)
-        Engine::info_log("Window", SDL_GetError());
+        info_log("Window", SDL_GetError());
     _M_cursor_mode = mode;
     return Window::_M_instance;
 }

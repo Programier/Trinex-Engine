@@ -217,7 +217,7 @@ namespace Engine
         bool status = static_cast<bool>(ar);
         if (status == false)
         {
-            logger->error("DynamicStructBase", "Failed to process DynamicStructBase!");
+            error_log("DynamicStructBase", "Failed to process DynamicStructBase!");
         }
         return status;
     }

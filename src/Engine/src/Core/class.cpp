@@ -76,8 +76,8 @@ namespace Engine
                 const_cast<Class*>(parent)->_M_resolve_inherit();
             }
 
-            logger->log("Class", "Setting class '%s' as the parent of class '%s'", parent->full_name().c_str(),
-                        full_name().c_str());
+            info_log("Class", "Setting class '%s' as the parent of class '%s'", parent->full_name().c_str(),
+                     full_name().c_str());
             _M_parent = parent;
             _M_parents.insert(parent->_M_parents.begin(), parent->_M_parents.end());
         }

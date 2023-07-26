@@ -86,7 +86,7 @@ namespace Engine::Lua
     }
     catch (const std::exception& e)
     {
-        logger->error("LuaException: %s", e.what());
+        error_log("LuaException: %s", e.what());
         return {};
     }
 

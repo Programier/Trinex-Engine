@@ -46,7 +46,7 @@ namespace Engine
 
             if (compiler->compile(fragment_code, ShaderStage::Vertex, info.binaries.vertex))
             {
-                logger->log("TestCompiler", "OK!");
+                info_log("TestCompiler", "OK!");
             }
 
             compiler->update_reflection(&info);

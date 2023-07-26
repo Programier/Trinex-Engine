@@ -88,7 +88,7 @@ namespace Engine
         StaticMeshComponent* mesh2 = package->find_object_checked<StaticMeshComponent>("Mesh 2");
 
         Shader* shader = mesh2->material_applier(0)->shader();
-        logger->log("GameInit", "Material name: %s", mesh2->lods[0].material_reference.instance()->name().c_str());
+        info_log("GameInit", "Material name: %s", mesh2->lods[0].material_reference.instance()->name().c_str());
         Shader* framebuffer_shader = mesh1->material_applier(0)->shader();
 
         VertexBuffer& vertex_buffer        = mesh1->lods[0].vertex_buffer;
@@ -266,17 +266,17 @@ namespace Engine
 
                 if (KeyboardEvent::just_pressed(Key::Num0))
                 {
-                    logger->log("KEY", "0");
+                    info_log("KEY", "0");
                     type = UpdateType::None;
                 }
                 else if (KeyboardEvent::just_pressed(Key::Num1))
                 {
-                    logger->log("KEY", "1");
+                    info_log("KEY", "1");
                     type = UpdateType::Static;
                 }
                 else if (KeyboardEvent::just_pressed(Key::Num2))
                 {
-                    logger->log("KEY", "2");
+                    info_log("KEY", "2");
                     type = UpdateType::Dynamic;
                 }
                 else if (KeyboardEvent::just_pressed(Key::Num4))
@@ -290,22 +290,22 @@ namespace Engine
 
     static void on_close()
     {
-        logger->log("APP", __PRETTY_FUNCTION__);
+        info_log("APP", __PRETTY_FUNCTION__);
     }
 
     static void on_terminate()
     {
-        logger->log("APP", __PRETTY_FUNCTION__);
+        info_log("APP", __PRETTY_FUNCTION__);
     }
 
     static void on_pause()
     {
-        logger->log("APP", __PRETTY_FUNCTION__);
+        info_log("APP", __PRETTY_FUNCTION__);
     }
 
     static void on_resume()
     {
-        logger->log("APP", __PRETTY_FUNCTION__);
+        info_log("APP", __PRETTY_FUNCTION__);
     }
 
 
