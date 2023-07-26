@@ -29,7 +29,7 @@ namespace Engine
                     return false;
 
                 name            = object->name();
-                class_name      = object->class_instance()->name();
+                class_name      = object->class_instance()->full_name();
                 compressed_size = compressed_data.size();
             }
 
@@ -71,7 +71,7 @@ namespace Engine
             if (object == nullptr)
                 return 0;
             return (sizeof(size_t) * 3) + object->name().length() + sizeof(offset) + sizeof(object_size) +
-                   object->class_instance()->name().length();
+                   object->class_instance()->full_name().length();
         }
     };
 
