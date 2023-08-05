@@ -39,6 +39,8 @@ namespace Engine
         const TexturesMap& textures() const;
 
         ~Material();
+
+        static void on_class_register(void*);
     };
 
 

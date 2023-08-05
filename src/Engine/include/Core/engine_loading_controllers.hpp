@@ -1,10 +1,11 @@
 #pragma once
+#include <Core/engine_types.hpp>
 #include <Core/export.hpp>
 
 namespace Engine
 {
 
-    using ControllerCallback = void (*)();
+    using ControllerCallback = Function<void()>;
     class ENGINE_EXPORT ControllerBase
     {
     private:
@@ -15,6 +16,7 @@ namespace Engine
 
     public:
         ControllerBase& push(void (*)());
+        ControllerBase& push(const ControllerCallback& callback);
         ControllerBase& execute();
     };
 
@@ -24,6 +26,7 @@ namespace Engine
     public:                                                                                                            \
         ControllerName();                                                                                              \
         ControllerName(void (*)());                                                                                    \
+        ControllerName(const ControllerCallback& callback);                                                            \
     }
 
     IMPLEMENT_CONTROLLER(DestroyController);

@@ -199,6 +199,14 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
+    void MeshComponent::on_class_register(void*)
+    {}
+
+    void StaticMeshComponent::on_class_register(void*)
+    {}
+
+    void DynamicMeshComponent::on_class_register(void*)
+    {}
 
     static void on_init()
     {

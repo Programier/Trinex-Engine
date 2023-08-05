@@ -161,6 +161,8 @@ namespace Engine
         bool is_api_initialized() const;
         size_t frame_number();
 
+        static void on_class_register(void*);
+
         // Constructors
 
     private:

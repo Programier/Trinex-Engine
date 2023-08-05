@@ -10,7 +10,6 @@
 
 namespace Engine
 {
-
     class Package;
     class Object;
     using MessageList = List<String>;
@@ -56,7 +55,7 @@ namespace Engine
         Package* _M_package                 = nullptr;
         mutable const class Class* _M_class = nullptr;
         Counter _M_references               = 0;
-        mutable Index _M_instance_index             = static_cast<Index>(~0U);
+        mutable Index _M_instance_index     = static_cast<Index>(~0U);
 
 
         void delete_instance();
@@ -109,6 +108,7 @@ namespace Engine
         Index instance_index() const;
 
         bool archive_process(Archive* archive) override;
+        static void on_class_register(void* registrar);
 
 
         // NOTE! You will manually push object to package, if you use this method!
@@ -119,7 +119,7 @@ namespace Engine
             {
                 Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
                 instance->mark_as_allocate_by_constroller();
-                instance->_M_class = const_cast<const Class*>(ClassMetaData<Type>::find_class());
+                instance->_M_class = const_cast<Class*>(ClassMetaData<Type>::find_class());
                 return instance;
             }
             else

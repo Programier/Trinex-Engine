@@ -1,8 +1,8 @@
 #pragma once
+#include <Core/lua_object_script.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>
-#include <Core/lua_object_script.hpp>
 
 namespace Engine
 {
@@ -17,7 +17,6 @@ namespace Engine
 
     class ENGINE_EXPORT Actor : public Object
     {
-
     public:
         using ActorChilds = Set<Pointer<Actor>, Pointer<Actor>::HashStruct>;
         using Super       = Object;
@@ -48,5 +47,6 @@ namespace Engine
         Actor& remove_child(Actor* actor);
 
         bool archive_process(Archive* archive) override;
+        static void on_class_register(void*);
     };
 }// namespace Engine

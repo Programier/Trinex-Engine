@@ -1,5 +1,6 @@
 #include <Core/benchmark.hpp>
 #include <Core/class.hpp>
+#include <Core/class_members.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
@@ -29,34 +30,14 @@
 
 namespace Engine
 {
-
-    static bool skip_logic_update = false;
-
-    static void render_command_line()
+    static inline String object_name(Object* object)
     {
-        skip_logic_update = ImGui::Begin("Command Line", nullptr, 0);
-
-        if (skip_logic_update)
-        {
-            static char buffer[1024];
-
-            ImVec2 new_size = ImGui::GetWindowSize();
-            new_size.x -= 100;
-            new_size.y -= 100;
-            ImGui::InputTextMultiline("Command", buffer, 1024, new_size);
-
-            if (KeyboardEvent::just_pressed() == Key::Enter)
-            {
-                buffer[0] = 0;
-            }
-        }
-
-        ImGui::End();
+        return Strings::format("{} [{}]", object->name(), object->class_instance()->full_name());
     }
 
     static void render_package_tree(Package* package)
     {
-        if (ImGui::TreeNode(package->name().c_str()))
+        if (ImGui::TreeNode(object_name(package).c_str()))
         {
             for (auto& pair : package->objects())
             {
@@ -69,8 +50,8 @@ namespace Engine
                 }
                 else
                 {
-                    const char* name = object->class_instance() ? object->class_instance()->name().c_str() : "Class";
-                    ImGui::Text("%s [%s]", object->name().c_str(), name);
+                    String name = object->class_instance() ? object->class_instance()->full_name().c_str() : "nill";
+                    ImGui::Text("%s [%s]", object->name().c_str(), name.c_str());
                 }
             }
 
@@ -84,6 +65,7 @@ namespace Engine
         Package* package = Object::load_package("TestResources");
         if (package == nullptr)
             return;
+
         StaticMeshComponent* mesh1 = package->find_object_checked<StaticMeshComponent>("Cube");
         StaticMeshComponent* mesh2 = package->find_object_checked<StaticMeshComponent>("Mesh 2");
 
@@ -233,9 +215,6 @@ namespace Engine
 
                 ImGui::End();
 
-
-                render_command_line();
-
                 ImGuiRenderer::render();
             }
 
@@ -250,38 +229,35 @@ namespace Engine
             Event::poll_events();
             Window::window->swap_buffers();
 
-            if (!skip_logic_update)
+            camera->update();
+
+            if (KeyboardEvent::just_pressed(Key::G))
             {
-                camera->update();
-
-                if (KeyboardEvent::just_pressed(Key::G))
-                {
-                    package->save();
-                }
-
-                if (KeyboardEvent::just_pressed(Key::F))
-                {
-                    Window::window->attribute(WinFullScreenDesktop, !Window::window->attribute(WinFullScreenDesktop));
-                }
-
-                if (KeyboardEvent::just_pressed(Key::Num0))
-                {
-                    info_log("KEY", "0");
-                    type = UpdateType::None;
-                }
-                else if (KeyboardEvent::just_pressed(Key::Num1))
-                {
-                    info_log("KEY", "1");
-                    type = UpdateType::Static;
-                }
-                else if (KeyboardEvent::just_pressed(Key::Num2))
-                {
-                    info_log("KEY", "2");
-                    type = UpdateType::Dynamic;
-                }
-                else if (KeyboardEvent::just_pressed(Key::Num4))
-                {}
+                package->save();
             }
+
+            if (KeyboardEvent::just_pressed(Key::F))
+            {
+                Window::window->attribute(WinFullScreenDesktop, !Window::window->attribute(WinFullScreenDesktop));
+            }
+
+            if (KeyboardEvent::just_pressed(Key::Num0))
+            {
+                info_log("KEY", "0");
+                type = UpdateType::None;
+            }
+            else if (KeyboardEvent::just_pressed(Key::Num1))
+            {
+                info_log("KEY", "1");
+                type = UpdateType::Static;
+            }
+            else if (KeyboardEvent::just_pressed(Key::Num2))
+            {
+                info_log("KEY", "2");
+                type = UpdateType::Dynamic;
+            }
+            else if (KeyboardEvent::just_pressed(Key::Num4))
+            {}
         }
 
         _M_renderer->wait_idle();

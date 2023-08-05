@@ -43,6 +43,12 @@ namespace Engine
         return *this;
     }
 
+    ControllerBase& ControllerBase::push(const ControllerCallback& callback)
+    {
+        convert_function_address(_M_func_address)().push_back(callback);
+        return *this;
+    }
+
     ControllerBase& ControllerBase::execute()
     {
         auto name = Demangle::decode_name(typeid(*this));
@@ -67,6 +73,11 @@ namespace Engine
     {}                                                                                                                 \
                                                                                                                        \
     ControllerName::ControllerName(void (*callback)()) : ControllerName()                                              \
+    {                                                                                                                  \
+        push(callback);                                                                                                \
+    }                                                                                                                  \
+                                                                                                                       \
+    ControllerName::ControllerName(const ControllerCallback& callback) : ControllerName()                              \
     {                                                                                                                  \
         push(callback);                                                                                                \
     }

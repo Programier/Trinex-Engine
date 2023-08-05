@@ -204,6 +204,19 @@ namespace Engine
         Сentimeters,
     };
 
+    enum class AccessType
+    {
+        Private,
+        Protected,
+        Public
+    };
+
+    struct ClassFieldInfo {
+        const char* name;
+        AccessType access;
+        bool is_serializable;
+    };
+
     using ObjectArray = Vector<class Object*>;
 
 #define TRINEX_ENGINE_FLAG 1414678092U

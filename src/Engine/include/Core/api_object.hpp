@@ -34,6 +34,8 @@ namespace Engine
     {
     public:
         using Super = Object;
+
+        static void on_class_register(void*);
     };
 
 

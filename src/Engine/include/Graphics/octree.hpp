@@ -35,6 +35,8 @@ namespace Engine
         using Super = Object;
         delete_copy_constructors(OctreeBase);
 
+        static void on_class_register(void*);
+
     protected:
         OctreeBase(float min_size = 0.1f);
 
@@ -68,6 +70,7 @@ namespace Engine
         virtual OctreeBaseNode* get(const OctreeIndex& index) const;
         virtual ~OctreeBaseNode();
         friend class Object;
+        static void on_class_register(void*);
     };
 
 

@@ -530,14 +530,14 @@ namespace Engine
         }
     }
 
-    static void on_init()
+    void Package::on_class_register(void* registrar)
     {
-        register_class(Engine::Package)
-                .get()
+        registrar_of(Package, registrar)
+                ->register_to_lua()
                 .set("add_object", &Package::add_object)
                 .set("remove_object", &Package::remove_object);
     }
 
-    static InitializeController initializer(on_init);
+    static InitializeController initializer = register_class(Engine::Package);
 
 }// namespace Engine

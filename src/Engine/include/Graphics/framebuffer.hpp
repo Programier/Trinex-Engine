@@ -16,5 +16,7 @@ namespace Engine
         FrameBuffer();
         FrameBuffer& create(const FrameBufferCreateInfo&);
         static ENGINE_EXPORT FrameBuffer* g_buffer();
+
+        static void on_class_register(void*);
     };
 }// namespace Engine

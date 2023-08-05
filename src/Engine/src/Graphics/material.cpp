@@ -203,11 +203,9 @@ namespace Engine
     }
 
 
-    static void on_init()
-    {
-        register_class(Engine::Material);
-    }
+    void Material::on_class_register(void*)
+    {}
 
-    static InitializeController initializer(on_init);
+    static InitializeController initializer = register_class(Engine::Material);
 
 }// namespace Engine

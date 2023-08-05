@@ -96,10 +96,10 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
-    static void on_init()
+    void Actor::on_class_register(void* registrar)
     {
-        register_class(Engine::Actor)
-                .get()
+        registrar_of(Actor, registrar)
+                ->register_to_lua()
                 .set("update", &Actor::update)
                 .set("load", &Actor::load)
                 .set("unload", &Actor::unload)
@@ -112,6 +112,6 @@ namespace Engine
                 .set("transform", &Actor::transform);
     }
 
-    static InitializeController initializer(on_init);
+    static InitializeController initializer = register_class(Engine::Actor);
 
 }// namespace Engine

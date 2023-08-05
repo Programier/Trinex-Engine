@@ -43,6 +43,7 @@ namespace Engine
         }
 
         ~Package();
+        static void on_class_register(void*);
         friend class Object;
     };
 }// namespace Engine

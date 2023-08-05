@@ -118,21 +118,23 @@ namespace Engine
         return {};
     }
 
-
-    static void on_init()
+    const Vector<ClassField*>& Class::fields() const
     {
-        Lua::Interpretter::namespace_of("Engine")                             //
-                .new_usertype<Class>("Class",                                 //
-                                     "parent", &Class::parent,                //
-                                     "contains_class", &Class::contains_class,//
-                                     "classes", Class::classes,               //
-                                     "create", &Class::create,                //
-                                     "instance_size", &Class::instance_size,  //
-                                     "find_class", Class::find_class);
+        return _M_fields;
     }
 
-    namespace
+
+    void Class::on_class_register(void* registrar)
     {
-        static InitializeController a(on_init);
+        registrar_of(Class, registrar)
+                ->register_to_lua()
+                .set("parent", &Class::parent)
+                .set("contains_class", &Class::contains_class)
+                .set("classes", Class::classes)
+                .set("create", &Class::create)
+                .set("instance_size", &Class::instance_size)
+                .set("find_class", Class::find_class);
     }
+
+    static InitializeController initializer = register_class(Engine::Class);
 }// namespace Engine

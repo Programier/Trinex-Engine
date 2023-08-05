@@ -15,10 +15,10 @@
 
 namespace Engine
 {
-    static void on_init()
+    void Object::on_class_register(void* registrar)
     {
-        Class::register_new_class<Engine::Object>("Engine::Object")
-                .get()
+        reinterpret_cast<Class::ClassRegistrar<Object>*>(registrar)
+                ->register_to_lua()
                 .set("root_package", &Object::root_package)
                 .set("class_instance", &Object::class_instance)
                 .set("find_package", &Object::find_package)
@@ -40,7 +40,8 @@ namespace Engine
                 .set("as_string", &Object::as_string);
     }
 
-    static InitializeController initializer(on_init);
+
+    static InitializeController initializer = register_class(Engine::Object);
 
 
     static Vector<Index>& get_free_indexes_array()

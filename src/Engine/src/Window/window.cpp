@@ -782,7 +782,7 @@ Window::~Window()
 }
 
 
-static void on_init()
+void Window::on_class_register(void* registrar)
 {
     {
         Lua::Namespace _namespace = Lua::Interpretter::namespace_of("Engine::");
@@ -818,8 +818,8 @@ static void on_init()
                  {"WinOrientationPortraitFlipped", WindowOrientation::WinOrientationPortraitFlipped}});
     }
 
-    Engine::Class::register_new_class<Engine::Window>("Engine::Window")
-            .get()
+    registrar_of(Window, registrar)
+            ->register_to_lua()
             .set("init", Lua::overload(func_of<Window*, Window, float>(&Window::init),
                                        func_of<Window*, Window, const Size2D&, const String&, uint16_t>(&Window::init)))
             .set("close", &Window::close)
@@ -872,4 +872,4 @@ static void on_init()
             .set("window", Lua::property([]() -> Window* { return Window::window; }));
 }
 
-static InitializeController init_window(on_init);
+static InitializeController init_window = register_class(Engine::Window);

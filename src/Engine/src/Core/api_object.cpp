@@ -79,4 +79,7 @@ namespace Engine
     {
         destroy();
     }
+
+    void ApiObject::on_class_register(void* registrar)
+    {}
 }// namespace Engine

@@ -4,6 +4,12 @@
 
 namespace Engine
 {
+    void OctreeBase::on_class_register(void*)
+    {}
+
+    void OctreeBaseNode::on_class_register(void*)
+    {}
+
     static void on_init()
     {
         register_class(Engine::OctreeBase);

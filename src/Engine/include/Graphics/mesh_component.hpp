@@ -129,6 +129,7 @@ namespace Engine
         virtual const MeshComponentSemanticInfo& semantic_info() const = 0;
         bool archive_process(Archive* archive) override;
         MaterialApplier* material_applier(Index lod) const;
+        static void on_class_register(void*);
 
         ~MeshComponent();
     };
@@ -143,6 +144,7 @@ namespace Engine
 
         const StaticMeshComponentSemanticInfo& semantic_info() const override;
         bool archive_process(Archive* archive) override;
+        static void on_class_register(void*);
     };
 
     class ENGINE_EXPORT DynamicMeshComponent : public MeshComponent
@@ -154,5 +156,6 @@ namespace Engine
 
         const MeshComponentSemanticInfo& semantic_info() const override;
         bool archive_process(Archive* archive) override;
+        static void on_class_register(void*);
     };
 }// namespace Engine

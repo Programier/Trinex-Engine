@@ -23,6 +23,7 @@ namespace Engine
 
         const Shader& use() const;
         static void unbind();
+        static void on_class_register(void*);
     };
 
 }// namespace Engine

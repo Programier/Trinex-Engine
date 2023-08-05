@@ -38,6 +38,7 @@ namespace Engine
         Camera& update() override;
 
         bool archive_process(Archive* archive) override;
+        static void on_class_register(void*);
 
         ~Camera();
     };

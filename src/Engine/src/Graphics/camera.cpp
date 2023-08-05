@@ -8,12 +8,7 @@
 
 namespace Engine
 {
-    static void on_init()
-    {
-        register_class(Engine::Camera).get();
-    }
-
-    static InitializeController initializer(on_init);
+    static InitializeController initializer = register_class(Engine::Camera);
 
     Camera::Camera(glm::vec3 position, float viewing_angle)
     {
@@ -131,6 +126,11 @@ namespace Engine
         (*archive) & _M_min_render_distance;
 
         return static_cast<bool>(*archive);
+    }
+
+    void Camera::on_class_register(void* registrar)
+    {
+        registrar_of(Camera, registrar)->register_to_lua();
     }
 
 

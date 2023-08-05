@@ -5,18 +5,13 @@
 
 namespace Engine
 {
+    void FrameBuffer::on_class_register(void* registrar)
+    {}
 
-    static void on_init()
-    {
-        register_class(Engine::FrameBuffer);
-    }
-
-    static InitializeController initializer(on_init);
-
+    static InitializeController initializer = register_class(Engine::FrameBuffer);
 
     FrameBuffer::FrameBuffer()
     {}
-
 
     FrameBuffer& FrameBuffer::create(const FrameBufferCreateInfo& info)
     {

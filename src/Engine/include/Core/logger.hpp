@@ -21,6 +21,7 @@ namespace Engine
 #else
 #define debug_log(tag, format, ...)
 #endif
+#define warn_log(tag, format, ...) Engine::logger->warning(tag, format __VA_OPT__(, ## __VA_ARGS__))
 #define info_log(tag, format, ...) Engine::logger->log(tag, format __VA_OPT__(, ## __VA_ARGS__))
 #define error_log(tag, format, ...) Engine::logger->error(tag, format __VA_OPT__(, ## __VA_ARGS__))
 }// namespace Engine
