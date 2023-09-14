@@ -7,15 +7,11 @@ namespace Engine
 {
     Actor& Actor::update(float dt)
     {
-        if (script.on_update.is_valid())
-        {}
-
         return *this;
     }
 
     Actor& Actor::load()
     {
-        script.load();
         return *this;
     }
 
@@ -31,9 +27,6 @@ namespace Engine
 
     Actor& Actor::ready()
     {
-        if (script.on_ready.is_valid())
-        {}
-
         return *this;
     }
 
@@ -88,8 +81,6 @@ namespace Engine
             return false;
 
         (*archive) & transform;
-        (*archive) & script;
-
         return static_cast<bool>(*archive);
     }
 

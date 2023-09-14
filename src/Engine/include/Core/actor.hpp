@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/lua_object_script.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>
@@ -26,7 +25,6 @@ namespace Engine
         ActorChilds _M_childs;
 
     public:
-        LuaObjectScript script;
 
     private:
         Pointer<Actor> _M_parent;
