@@ -9,12 +9,8 @@
 
 namespace Engine
 {
-    static void on_init()
-    {
-        register_class(Engine::Texture);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(Texture, "Engine");
+    implement_default_initialize_class(Texture);
 
     Texture::Texture()
     {}

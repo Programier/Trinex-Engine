@@ -2,14 +2,13 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 
+
 namespace Engine
 {
-    Actor& Actor::update()
+    Actor& Actor::update(float dt)
     {
         if (script.on_update.is_valid())
-        {
-            script.on_update(class_instance()->to_lua_object(this));
-        }
+        {}
 
         return *this;
     }
@@ -33,9 +32,7 @@ namespace Engine
     Actor& Actor::ready()
     {
         if (script.on_ready.is_valid())
-        {
-            script.on_ready(class_instance()->to_lua_object(this));
-        }
+        {}
 
         return *this;
     }
@@ -96,22 +93,7 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
-    void Actor::on_class_register(void* registrar)
-    {
-        registrar_of(Actor, registrar)
-                ->register_to_lua()
-                .set("update", &Actor::update)
-                .set("load", &Actor::load)
-                .set("unload", &Actor::unload)
-                .set("render", &Actor::render)
-                .set("parent", Lua::overload(static_cast<Actor& (Actor::*) (Actor*)>(&Actor::parent),
-                                             static_cast<Actor* (Actor::*) () const>(&Actor::parent)))
-                .set("childs", &Actor::childs)
-                .set("child", &Actor::child)
-                .set("remove_child", &Actor::remove_child)
-                .set("transform", &Actor::transform);
-    }
-
-    static InitializeController initializer = register_class(Engine::Actor);
-
+    implement_class(Actor, "Engine");
+    implement_initialize_class(Actor)
+    {}
 }// namespace Engine

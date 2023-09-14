@@ -7,14 +7,9 @@ namespace Engine
 {
     class GameInit : public Engine::CommandLet
     {
-    private:
-        Engine::Renderer* _M_renderer;
+        declare_class(GameInit, CommandLet);
 
     public:
-        using Super = CommandLet;
-
         virtual int execute(int argc, char** argv) override;
-
-        void loop();
     };
 }// namespace Engine

@@ -9,6 +9,10 @@ namespace Engine
         : _M_offset(offset), _M_access_type(access_type), _M_is_serializable(is_seriazable)
     {}
 
+    ClassField::ClassField()
+    {}
+
+
     ClassFieldOffset ClassField::offset() const
     {
         return _M_offset;
@@ -49,10 +53,6 @@ namespace Engine
         return ((*this).*_M_archive_process)(ar, object);
     }
 
-    static void on_init()
-    {
-        register_class(Engine::ClassField);
-    }
-
-    static InitializeController controller(on_init);
+    implement_class(ClassField, "Engine");
+    implement_default_initialize_class(ClassField);
 }// namespace Engine

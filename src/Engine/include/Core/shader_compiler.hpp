@@ -16,6 +16,8 @@ namespace Engine
     // Shader compiler require
     class ENGINE_EXPORT ShaderCompiler : public Object
     {
+        declare_class(ShaderCompiler, Object);
+
     public:
         using ErrorList = List<String>;
 
@@ -23,8 +25,6 @@ namespace Engine
         static ShaderCompiler* _M_compiler;
 
     public:
-        using Super = Object;
-
         virtual bool compile(const String& code, ShaderStage stage, Buffer& out_binary, bool debug = true,
                              ErrorList* errors = nullptr);
         virtual bool compile(PipelineCreateInfo* info, bool debug = true, ErrorList* errors = nullptr);

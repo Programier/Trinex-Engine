@@ -2,6 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/exception.hpp>
+#include <Core/logger.hpp>
 
 namespace Engine
 {
@@ -332,11 +333,7 @@ namespace Engine
         _M_struct->unlink_instance(this);
     }
 
+    implement_class(DynamicStructBase, "Engine");
+    implement_default_initialize_class(DynamicStructBase);
 
-    static void on_init()
-    {
-        register_class(Engine::DynamicStructBase);
-    }
-
-    static InitializeController initializer(on_init);
 }// namespace Engine

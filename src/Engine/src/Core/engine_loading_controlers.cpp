@@ -6,7 +6,12 @@
 namespace Engine
 {
 
-    using CallbacksList      = List<ControllerCallback>;
+    struct CallbackEntry {
+        ControllerCallback function;
+        Vector<String> require_initializers;
+    };
+
+    using CallbacksList      = Map<String, List<CallbackEntry>>;
     using CallbackListGetter = CallbacksList& (*) ();
 
     static CallbacksList& terminate_list()
@@ -14,6 +19,13 @@ namespace Engine
         static CallbacksList _M_terminate_list;
         return _M_terminate_list;
     }
+
+    static CallbacksList& post_terminate_list()
+    {
+        static CallbacksList _M_terminate_list;
+        return _M_terminate_list;
+    }
+
 
     static CallbacksList& initialize_list()
     {
@@ -37,17 +49,52 @@ namespace Engine
     ControllerBase::ControllerBase(void* function_address) : _M_func_address(function_address)
     {}
 
-    ControllerBase& ControllerBase::push(void (*callback)())
+
+    ControllerBase& ControllerBase::push(const ControllerCallback& callback, const String& name,
+                                         const std::initializer_list<String>& require_initializers)
     {
-        convert_function_address(_M_func_address)().push_back(callback);
+        CallbackEntry entry;
+        entry.function             = callback;
+        entry.require_initializers = require_initializers;
+        convert_function_address(_M_func_address)()[name].push_back(entry);
         return *this;
     }
 
-    ControllerBase& ControllerBase::push(const ControllerCallback& callback)
+    ControllerBase& ControllerBase::require(const String& name)
     {
-        convert_function_address(_M_func_address)().push_back(callback);
+        try
+        {
+            auto& list = convert_function_address(_M_func_address)().at(name);
+
+            String class_name;
+            if (!name.empty() && !list.empty())
+            {
+                class_name = Demangle::decode_name(typeid(*this));
+            }
+
+            while (!list.empty())
+            {
+                CallbackEntry entry = list.front();
+                list.pop_front();
+
+                for (auto& initializer : entry.require_initializers)
+                {
+                    require(initializer);
+                }
+
+                if (!name.empty())
+                {
+                    debug_log(class_name.c_str(), "Executing initializer '%s'", name.c_str());
+                }
+                entry.function();
+            }
+        }
+        catch (...)
+        {}
+
         return *this;
     }
+
 
     ControllerBase& ControllerBase::execute()
     {
@@ -58,31 +105,31 @@ namespace Engine
 
         while (!list.empty())
         {
-            ControllerCallback func = list.front();
-            list.pop_front();
-
-            func();
+            auto id = list.begin();
+            require(id->first);
+            list.erase(id);
         }
 
         return *this;
     }
+
+    ControllerBase::~ControllerBase()
+    {}
 
 
 #define IMPLEMENT_CONTROLLER(ControllerName, func)                                                                     \
     ControllerName::ControllerName() : ControllerBase(reinterpret_cast<void*>(func))                                   \
     {}                                                                                                                 \
                                                                                                                        \
-    ControllerName::ControllerName(void (*callback)()) : ControllerName()                                              \
-    {                                                                                                                  \
-        push(callback);                                                                                                \
-    }                                                                                                                  \
                                                                                                                        \
-    ControllerName::ControllerName(const ControllerCallback& callback) : ControllerName()                              \
+    ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                             \
+                                   const std::initializer_list<String>& require_initializers)                          \
+        : ControllerName()                                                                                             \
     {                                                                                                                  \
-        push(callback);                                                                                                \
+        push(callback, name, require_initializers);                                                                    \
     }
 
-
+    IMPLEMENT_CONTROLLER(PostDestroyController, post_terminate_list);
     IMPLEMENT_CONTROLLER(DestroyController, terminate_list);
     IMPLEMENT_CONTROLLER(InitializeController, initialize_list);
     IMPLEMENT_CONTROLLER(PreInitializeController, preinitialize_list);

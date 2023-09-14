@@ -33,9 +33,7 @@ namespace Engine
     class ENGINE_EXPORT ApiObject : public Object, public ApiObjectNoBase
     {
     public:
-        using Super = Object;
-
-        static void on_class_register(void*);
+        declare_class(ApiObject, Object);
     };
 
 

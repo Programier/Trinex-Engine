@@ -199,21 +199,14 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
-    void MeshComponent::on_class_register(void*)
-    {}
 
-    void StaticMeshComponent::on_class_register(void*)
-    {}
+    implement_class(MeshComponent, "Engine");
+    implement_default_initialize_class(MeshComponent);
+    implement_class(StaticMeshComponent, "Engine");
+    implement_default_initialize_class(StaticMeshComponent);
+    implement_class(DynamicMeshComponent, "Engine");
+    implement_default_initialize_class(DynamicMeshComponent);
 
-    void DynamicMeshComponent::on_class_register(void*)
-    {}
 
-    static void on_init()
-    {
-        register_class(Engine::MeshComponent);
-        register_class(Engine::StaticMeshComponent);
-        register_class(Engine::DynamicMeshComponent);
-    }
 
-    static InitializeController initializer(on_init);
 }// namespace Engine

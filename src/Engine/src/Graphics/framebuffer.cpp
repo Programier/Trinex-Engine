@@ -5,10 +5,8 @@
 
 namespace Engine
 {
-    void FrameBuffer::on_class_register(void* registrar)
-    {}
-
-    static InitializeController initializer = register_class(Engine::FrameBuffer);
+    implement_class(FrameBuffer, "Engine");
+    implement_default_initialize_class(FrameBuffer);
 
     FrameBuffer::FrameBuffer()
     {}

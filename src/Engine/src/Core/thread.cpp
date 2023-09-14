@@ -1,7 +1,6 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
-#include <SDL_thread.h>
 #include <cerrno>
 #include <cstring>
 #include <pthread.h>

@@ -1,0 +1,16 @@
+{
+    "Window": {
+        "title": "Hello World",
+        "size": {
+            "x": 1280,
+            "y": 720
+        }
+    },
+    "Window2": {
+        "title": "Hello World",
+        "size": {
+            "x": 1280,
+            "y": 720
+        }
+    }
+}

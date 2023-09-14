@@ -7,9 +7,8 @@ namespace Engine
 {
     class ENGINE_EXPORT Skybox : public TextureCubeMap
     {
+        declare_class(Skybox, TextureCubeMap);
     public:
-        using Super = TextureCubeMap;
-
         delete_copy_constructors(Skybox);
         Skybox();
         Skybox(const String& filename, const bool& invert = false);

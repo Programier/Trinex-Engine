@@ -1,17 +1,14 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Graphics/basic_framebuffer.hpp>
 #include <api.hpp>
 
 namespace Engine
 {
 
-    static void on_init()
-    {
-        Class::register_new_class<BasicFrameBuffer>("Engine::BasicFrameBuffer");
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(BasicFrameBuffer, "Engine");
+    implement_default_initialize_class(BasicFrameBuffer);
 
 
     BasicFrameBuffer::BasicFrameBuffer()
@@ -24,9 +21,10 @@ namespace Engine
         return *this;
     }
 
-    const BasicFrameBuffer& BasicFrameBuffer::view_port(const ViewPort& viewport)
+    const BasicFrameBuffer& BasicFrameBuffer::viewport(const ViewPort& viewport)
     {
-        _M_viewport = viewport;
+        if (&_M_viewport != &viewport)
+            _M_viewport = viewport;
         EngineInstance::instance()->api_interface()->framebuffer_viewport(_M_ID, viewport);
         return *this;
     }
@@ -40,7 +38,9 @@ namespace Engine
     const BasicFrameBuffer& BasicFrameBuffer::scissor(const Scissor& scissor)
     {
         EngineInstance::instance()->api_interface()->framebuffer_scissor(_M_ID, scissor);
-        _M_scissor = scissor;
+
+        if (&scissor != &_M_scissor)
+            _M_scissor = scissor;
         return *this;
     }
 

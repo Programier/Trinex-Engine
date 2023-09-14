@@ -9,7 +9,7 @@ namespace Engine
         return *this;
     }
 
-    void* NoApi::init_window(SDL_Window*)
+    void* NoApi::init_window(WindowInterface*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
@@ -434,7 +434,7 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::swap_buffer(SDL_Window* window)
+    NoApi& NoApi::swap_buffer()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;

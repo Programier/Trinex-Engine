@@ -24,23 +24,23 @@ namespace Engine
         const Matrix4f& matrix() const;
         bool is_modified() const;
 
-        Transform& move(const Point1D& x, const Point1D& y, const Point1D& z, bool add_values);
+        Transform& move(Point1D x, Point1D y, Point1D z, bool add_values = true);
         Transform& move(const Vector3D& move_vector, bool add_values = true);
-        Transform& move(const Point1D& x, const Point1D& y, const Point1D& z, const Vector3D& x_axis,
-                        const Vector3D& y_axis, const Vector3D& z_axis, bool add_values = true);
+        Transform& move(Point1D x, Point1D y, Point1D z, const Vector3D& x_axis, const Vector3D& y_axis,
+                        const Vector3D& z_axis, bool add_values = true);
         Transform& move(const Vector3D& move_vector, const Vector3D& x_axis, const Vector3D& y_axis,
                         const Vector3D& z_axis, bool add_values = true);
-        Transform& move(const Distance& distance, const Vector3D& axis, bool add_value = true);
+        Transform& move(Distance distance, const Vector3D& axis, bool add_value = true);
         const Point3D& position() const;
 
         const Scale3D& scale() const;
         Transform& scale(const Scale3D& sc, bool mult_values = true);
-        Transform& scale(const Scale1D& x, const Scale1D& y, const Scale1D& z, bool mult_values = true);
+        Transform& scale(float x, float y, float z, bool mult_values = true);
 
         EulerAngle3D euler_angles() const;
-        Transform& rotate(const EulerAngle1D& x, const EulerAngle1D& y, const EulerAngle1D& z, bool add_values = true);
+        Transform& rotate(float x, float y, float z, bool add_values = true);
         Transform& rotate(const EulerAngle3D& r, bool add_values = true);
-        Transform& rotate(const EulerAngle1D& angle, const Vector3D& axis, bool add_values = true);
+        Transform& rotate(float angle, const Vector3D& axis, bool add_values = true);
         Transform& rotate(const Quaternion& q, bool add_values = true);
         const Quaternion& quaternion() const;
         Vector3D front_vector() const;
@@ -49,11 +49,11 @@ namespace Engine
 
         String as_string() const;
 
-        friend bool operator & (Archive& ar, Transform& t);
+        friend bool operator&(Archive& ar, Transform& t);
 
         friend class Camera;
     };
 
-    bool operator & (Archive& ar, Transform& t);
+    bool operator&(Archive& ar, Transform& t);
 
 }// namespace Engine

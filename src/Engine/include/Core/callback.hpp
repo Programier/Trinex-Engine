@@ -12,33 +12,29 @@ namespace Engine
     class CallBacks final
     {
     public:
-        using CallbacksArray = Vector<CallBack<Signature>>;
+        using CallbacksMap = TreeMap<Identifier, CallBack<Signature>>;
 
     private:
-        CallbacksArray _M_callbacks;
+        CallbacksMap _M_callbacks;
 
     public:
-        CallBacks& push(const Function<Signature>& callback)
+        Identifier push(const Function<Signature>& callback)
         {
-            _M_callbacks.push_back(callback);
-            return *this;
+            Identifier id = _M_callbacks.empty() ? 0 : _M_callbacks.begin()->first + 1;
+            _M_callbacks[id] = callback;
+            return id;
         }
 
-        CallBacks& push(Function<Signature>&& callback)
+        Identifier push(Function<Signature>&& callback)
         {
-            _M_callbacks.push_back(std::move(callback));
-            return *this;
+            Identifier id = _M_callbacks.empty() ? 0 : _M_callbacks.begin()->first + 1;
+            _M_callbacks[id] = std::move(callback);
+            return id;
         }
 
-        CallBacks& remove(const Function<Signature>& callback)
+        CallBacks& remove(Identifier ID)
         {
-            for (auto it = _M_callbacks.begin(); it != _M_callbacks.end(); ++it)
-            {
-                if(*it == callback)
-                {
-                    _M_callbacks.erase(it);
-                }
-            }
+            _M_callbacks.erase(ID);
             return *this;
         }
 
@@ -49,7 +45,7 @@ namespace Engine
             return *this;
         }
 
-        const CallbacksArray& callbacks() const
+        const CallbacksMap& callbacks() const
         {
             return _M_callbacks;
         }

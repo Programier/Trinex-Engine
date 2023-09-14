@@ -202,10 +202,7 @@ namespace Engine
         return _M_material;
     }
 
-
-    void Material::on_class_register(void*)
-    {}
-
-    static InitializeController initializer = register_class(Engine::Material);
+    implement_class(Material, "Engine");
+    implement_default_initialize_class(Material);
 
 }// namespace Engine

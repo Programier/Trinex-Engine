@@ -10,12 +10,8 @@
 
 namespace Engine
 {
-    static void on_init()
-    {
-        register_class(Engine::Texture2D);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(Texture2D, "Engine");
+    implement_default_initialize_class(Texture2D);
 
     Texture2D::Texture2D()
     {

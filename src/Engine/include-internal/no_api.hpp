@@ -6,7 +6,7 @@ namespace Engine
     class NoApi : public GraphicApiInterface::ApiInterface
     {
         NoApi& logger(Logger*&) override;
-        void* init_window(SDL_Window*) override;
+        void* init_window(WindowInterface*) override;
         NoApi& destroy_window() override;
         NoApi& destroy_object(Identifier&) override;
         NoApi& imgui_init() override;
@@ -92,7 +92,7 @@ namespace Engine
         NoApi& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
         NoApi& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
 
-        NoApi& swap_buffer(SDL_Window* window) override;
+        NoApi& swap_buffer() override;
         NoApi& swap_interval(int_t interval) override;
         NoApi& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
         NoApi& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;

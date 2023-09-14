@@ -28,14 +28,13 @@ namespace Engine
 
     class OctreeBase : public Object
     {
+        declare_class(OctreeBase, Object);
+
     protected:
         float _M_min_size = 1.f;
 
     public:
-        using Super = Object;
         delete_copy_constructors(OctreeBase);
-
-        static void on_class_register(void*);
 
     protected:
         OctreeBase(float min_size = 0.1f);
@@ -51,6 +50,8 @@ namespace Engine
 
     CLASS OctreeBaseNode : public Object
     {
+        declare_class(OctreeBaseNode, Object);
+
     protected:
         BoxHB _M_box;
         OctreeIndex _M_index = 0;
@@ -60,8 +61,6 @@ namespace Engine
         OctreeBaseNode();
 
     public:
-        using Super = Object;
-
         delete_copy_constructors(OctreeBaseNode);
 
         OctreeIndex index_at_parent() const;
@@ -70,7 +69,6 @@ namespace Engine
         virtual OctreeBaseNode* get(const OctreeIndex& index) const;
         virtual ~OctreeBaseNode();
         friend class Object;
-        static void on_class_register(void*);
     };
 
 

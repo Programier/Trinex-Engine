@@ -12,9 +12,9 @@ namespace Engine
 
     class ENGINE_EXPORT DynamicStructBase : public Object
     {
-    public:
-        using Super = Object;
+        declare_class(DynamicStructBase, Object);
 
+    public:
         struct Field {
             String name;
             ushort_t size;
@@ -25,7 +25,7 @@ namespace Engine
             static Field field_of(const String& name, ushort_t align = alignof(T), ushort_t offset = 0)
             {
                 Field field;
-                field.name = name;
+                field.name   = name;
                 field.offset = offset;
                 field.size   = sizeof(T);
                 field.align  = DynamicStructBase::normalize_align(align, alignof(T));
@@ -36,7 +36,7 @@ namespace Engine
             static Field packed_field_of(const String& name, ushort_t offset = 0)
             {
                 Field field;
-                field.name = name;
+                field.name   = name;
                 field.offset = offset;
                 field.size   = sizeof(T);
                 field.align  = 0;
@@ -45,7 +45,7 @@ namespace Engine
         };
 
         using FieldsArray = Vector<Field*>;
-        using FieldsMap = TreeMap<String, Field*>;
+        using FieldsMap   = TreeMap<String, Field*>;
 
     protected:
         FieldsMap _M_fields_map;

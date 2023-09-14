@@ -1,4 +1,3 @@
-#include "sol/overload.hpp"
 #include <Core/api_object.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
@@ -15,34 +14,41 @@
 
 namespace Engine
 {
-    void Object::on_class_register(void* registrar)
+    void Object::private_bind_class(class Class* c)
     {
-        reinterpret_cast<Class::ClassRegistrar<Object>*>(registrar)
-                ->register_to_lua()
-                .set("root_package", &Object::root_package)
-                .set("class_instance", &Object::class_instance)
-                .set("find_package", &Object::find_package)
-                .set("find_object", &Object::find_object)
-                .set("flag", sol::overload(static_cast<bool (Object::*)(ObjectFlags) const>(&Object::flag),
-                                           static_cast<Object& (Object::*) (ObjectFlags, bool)>(&Object::flag)))
-                .set("references", &Object::references)
-                .set("full_name", &Object::full_name)
-                .set("package", &Object::package)
-                .set("remove_from_package", &Object::remove_from_package)
-                .set("decode_name", static_cast<String (Object::*)() const>(&Object::decode_name))
-                .set("load_package", Object::load_package)
-                .set("mark_for_delete", &Object::mark_for_delete)
-                .set("is_on_heap", &Object::is_on_heap)
-                .set("collect_garbage", Object::collect_garbage)
-                .set("name", sol::overload(static_cast<const String& (Object::*) () const>(&Object::name),
-                                           static_cast<ObjectRenameStatus (Object::*)(String, bool)>(&Object::name)))
-                .set("add_to_package", &Object::add_to_package)
-                .set("as_string", &Object::as_string);
+        ScriptClassRegistrar registrar(c);
+
+        String factory = Strings::format("{}@ f()", c->name());
+
+        if (!c->has_all_flags(Class::IsSingletone))
+        {
+            registrar.behave(ScriptClassBehave::Factory, factory.c_str(), c->static_constructor());
+        }
+
+        registrar.require_type("Engine::Package")
+                .behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
+                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
+                .method("Package@ root_package()", &Object::root_package)
+                .method("const string& name() const", func_of<const String&>(&Object::name))
+                .method("ObjectRenameStatus name(string, bool) const", func_of<ObjectRenameStatus>(&Object::name))
+                .method("string as_string() const", &Object::as_string)
+                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
+                .method("Package@ find_package(const string& in, bool)", &Object::find_package)
+                .method("Object@ find_object(const string& in)", &Object::find_object)
+                .method("Object& remove_from_package()", &Object::remove_from_package);
     }
 
+    implement_class(Object, "Engine");
 
-    static InitializeController initializer = register_class(Engine::Object);
+    implement_initialize_class(Object)
+    {
+        ScriptEnumRegistrar("Engine::ObjectRenameStatus")
+                .set("Skipped", static_cast<int_t>(ObjectRenameStatus::Skipped))
+                .set("Success", static_cast<int_t>(ObjectRenameStatus::Success))
+                .set("Failed", static_cast<int_t>(ObjectRenameStatus::Failed));
 
+        private_bind_class(This::static_class_instance());
+    }
 
     static Vector<Index>& get_free_indexes_array()
     {
@@ -56,8 +62,8 @@ namespace Engine
         return array;
     }
 
-    static Package* _M_root_package = nullptr;
 
+    static Package* _M_root_package = nullptr;
 
     Object& Object::mark_as_allocate_by_constroller()
     {
@@ -79,10 +85,10 @@ namespace Engine
     {
         if (package)
         {
-            bool status = package->objects().contains(name);
+            bool status = package->contains_object(name);
             if (status)
             {
-                error_log("Object: Cannot create new object. Object '%s' is exist in package '%s'!", name.c_str(),
+                error_log("Object", "Cannot create new object. Object '%s' is exist in package '%s'!", name.c_str(),
                           package->full_name().c_str());
             }
             return status;
@@ -91,16 +97,16 @@ namespace Engine
         return false;
     }
 
+    Object& Object::update_hash()
+    {
+        _M_hash = Object::hash_of_name(_M_name);
+        return *this;
+    }
+
     Object& Object::insert_to_default_package()
     {
         create_default_package();
-
-        auto& objects = _M_root_package->objects();
-
-        _M_name = Strings::format("Instance {}", objects.size());
-        while (objects.contains(_M_name)) _M_name += "_new";
-        _M_root_package->add_object(this);
-
+        _M_root_package->add_object(this, true);
         return *this;
     }
 
@@ -112,9 +118,14 @@ namespace Engine
     }
 
     Object::Object()
+        : _M_package(nullptr), _M_references(0), _M_hash(Constants::invalid_hash),
+          _M_index_in_package(Constants::index_none), _M_instance_index(Constants::index_none)
     {
         ObjectArray& objects_array = get_instances_array();
         _M_instance_index          = objects_array.size();
+
+        _M_name = Strings::format("Instance {}", _M_instance_index);
+        update_hash();
 
         if (!get_free_indexes_array().empty())
         {
@@ -130,6 +141,17 @@ namespace Engine
         _M_trinex_flags.reset();
         trinex_flag(TrinexObjectFlags::IsSerializable, true);
         trinex_flag(TrinexObjectFlags::IsOnHeap, !EngineInstance::is_on_stack(this));
+    }
+
+    ENGINE_EXPORT HashIndex Object::hash_of_name(const String& name)
+    {
+        static Hash<String> hash_function;
+        return hash_function(name);
+    }
+
+    HashIndex Object::hash_index() const
+    {
+        return _M_hash;
     }
 
     ENGINE_EXPORT String Object::decode_name(const std::type_info& info)
@@ -209,14 +231,10 @@ namespace Engine
 
     void Object::delete_instance()
     {
-        if ((!trinex_flag(TrinexObjectFlags::IsOnHeap)))
-        {
-            remove_from_instances_array();
-        }
-
         if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
         {
-            debug_log("Garbage Collector: Delete object instance '%s' with type '%s' [%p]\n", name().c_str(),
+            remove_from_instances_array();
+            debug_log("Garbage Collector", "Delete object instance '%s' with type '%s' [%p]\n", name().c_str(),
                       decode_name().c_str(), this);
 
             MemoryManager::instance().force_destroy_object(this);
@@ -233,8 +251,7 @@ namespace Engine
         remove_from_instances_array();
         if (_M_package)
         {
-            _M_package->_M_objects.erase(name());
-            _M_package = nullptr;
+            _M_package->remove_object(this);
         }
 
         trinex_flag(TrinexObjectFlags::IsDestructed, true);
@@ -251,8 +268,7 @@ namespace Engine
 
                 if (object->_M_package)
                 {
-                    object->_M_package->_M_objects.erase(object->name());
-                    object->_M_package = nullptr;
+                    object->_M_package->remove_object(object);
                 }
 
                 object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
@@ -280,14 +296,14 @@ namespace Engine
 
         if (package)
         {
-            Package::ObjectMap& objects = const_cast<Package::ObjectMap&>(package->objects());
+            Vector<Object*>& objects = const_cast<Vector<Object*>&>(package->objects());
             while (!objects.empty())
             {
-                const auto& ell = objects.begin();
-                if (!ell->second->mark_for_delete(true))
+                Object* current_object = objects.front();
+                if (!current_object->mark_for_delete(true))
                     status = false;
-
-                objects.erase(ell->first);
+                else
+                    package->remove_object(current_object);
             }
         }
 
@@ -323,7 +339,7 @@ namespace Engine
             new_name = Object::object_name_of(new_name);
         }
 
-        if (!autorename && package && package->objects().contains(new_name))
+        if (!autorename && package && package->contains_object(new_name))
         {
             error_log("Object", "Failed to rename object. Object with name '%s' already exist in package '%s'",
                       new_name.c_str(), _M_package->name().c_str());
@@ -332,11 +348,11 @@ namespace Engine
 
         if (_M_package)
         {
-            _M_package->_M_objects.erase(_M_name);
-            _M_package = nullptr;
+            _M_package->remove_object(this);
         }
 
         _M_name = new_name;
+        update_hash();
 
         if (package)
             return Object::add_to_package(package, autorename) ? ObjectRenameStatus::Success
@@ -352,14 +368,13 @@ namespace Engine
 
     Object* Object::copy()
     {
-        if (_M_class == nullptr || trinex_flag(TrinexObjectFlags::IsNeedDelete) ||
-            trinex_flag(TrinexObjectFlags::IsDestructed))
+        if (trinex_flag(TrinexObjectFlags::IsNeedDelete) || trinex_flag(TrinexObjectFlags::IsDestructed))
             return nullptr;
 
         Object* object = nullptr;
 
         {
-            object           = _M_class->create_without_package();
+            object           = class_instance()->create_object();
             object->_M_flags = _M_flags;
         }
 
@@ -390,6 +405,12 @@ namespace Engine
         return *this;
     }
 
+    Object* Object::noname_object()
+    {
+        static thread_local byte data[sizeof(Object)];
+        return reinterpret_cast<Object*>(data);
+    }
+
     Package* Object::package() const
     {
         return _M_package;
@@ -418,6 +439,16 @@ namespace Engine
     Counter Object::references() const
     {
         return _M_references;
+    }
+
+    void Object::add_reference()
+    {
+        ++_M_references;
+    }
+
+    void Object::remove_reference()
+    {
+        --_M_references;
     }
 
     const decltype(Object::_M_flags)& Object::flags() const
@@ -502,17 +533,15 @@ namespace Engine
             }
         }
 
-        auto& package_objects = package->objects();
-
-        String new_name = name.substr(index, name.length() - index);
-        auto it         = package_objects.find(new_name);
-        if (it == package_objects.end())
+        String new_name        = name.substr(index, name.length() - index);
+        Object* founded_object = package->find_object(new_name, false);
+        if (founded_object == nullptr)
         {
             return create ? Object::new_instance_named<Package>(new_name, package) : nullptr;
         }
 
-        Package* new_package = it->second->trinex_flag(TrinexObjectFlags::IsPackage)
-                                       ? reinterpret_cast<Package*>(it->second)
+        Package* new_package = founded_object->trinex_flag(TrinexObjectFlags::IsPackage)
+                                       ? reinterpret_cast<Package*>(founded_object)
                                        : nullptr;
         if (new_package == nullptr)
         {
@@ -525,23 +554,10 @@ namespace Engine
         return new_package;
     }
 
-    const class Class* Object::class_instance() const
-    {
-        if (_M_class == nullptr && !trinex_flag(TrinexObjectFlags::IsUnregistered))
-        {
-            _M_class = ClassMetaDataHelper::find_class(typeid(*this));
-            if (_M_class == nullptr)
-            {
-                trinex_flag(TrinexObjectFlags::IsUnregistered, true);
-            }
-        }
-
-        return _M_class;
-    }
 
     String Object::as_string() const
     {
-        return Strings::format("{}: {}", class_instance()->_M_name, _M_name);
+        return Strings::format("{}: {}", class_instance()->name(), _M_name);
     }
 
     Index Object::instance_index() const
@@ -551,17 +567,12 @@ namespace Engine
 
     bool Object::archive_process(Archive* archive)
     {
-        return SerializableObject::archive_process(archive);
-    }
+        if (!SerializableObject::archive_process(archive))
+        {
+            return false;
+        }
 
-    void* Object::operator new(std::size_t size, void* data)
-    {
-        return data;
-    }
-
-    void Object::operator delete(void* data)
-    {
-        error_log("Object", "Don't use operator delete! Use object->mark_for_delete() instead!");
+        return trinex_flag(TrinexObjectFlags::IsSerializable);
     }
 
 
@@ -599,7 +610,14 @@ namespace Engine
             {
                 Object* object = objects[i];
                 if (object == nullptr)
+                {
+                    if (next_start_index == i)
+                    {
+                        next_start_index = i + 1;
+                        next_end_index   = i;
+                    }
                     continue;
+                }
 
                 if (object->_M_force_destroy_priority == current_priority)
                 {

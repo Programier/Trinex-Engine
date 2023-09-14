@@ -12,6 +12,7 @@ namespace Engine
         String libraries_dir;
         String shader_compilers_lib;
         String shader_compiler;
+        String window_system;
 
         uint_t lz4_compression_level;
         uint_t max_gc_collected_objects;
@@ -28,15 +29,8 @@ namespace Engine
         bool enable_g_buffer;
 
 
-        void on_config_load();
-
-        static EngineConfig& instance();
-    private:
-        EngineConfig();
-
-    protected:
-        void write_lua_object(void* object) override;
+        virtual EngineConfig& update() override;
     };
 
-    extern ENGINE_EXPORT EngineConfig& engine_config;
+    extern ENGINE_EXPORT EngineConfig engine_config;
 }// namespace Engine

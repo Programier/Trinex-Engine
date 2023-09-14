@@ -3,15 +3,17 @@
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/engine_lua.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
-#include <Core/shader_compiler.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/system.hpp>
 #include <Core/thread.hpp>
+#include <Graphics/g_buffer.hpp>
 #include <Graphics/renderer.hpp>
-#include <Sensors/sensor.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <Systems/engine_system.hpp>
+#include <Window/config.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <cstring>
@@ -22,6 +24,13 @@ namespace Engine
 {
     extern void trinex_init_sdl();
     extern void trinex_terminate_sdl();
+
+    FORCE_INLINE std::chrono::system_clock::time_point current_time_point()
+    {
+        return std::chrono::high_resolution_clock::now();
+    }
+
+    std::chrono::system_clock::time_point start_time;
 
 
     EngineInstance::EngineInstance()
@@ -41,10 +50,9 @@ namespace Engine
         return project_name();
     }
 
-    const Window* EngineInstance::window() const
+    Window* EngineInstance::window() const
     {
-        static Window window;
-        return &window;
+        return _M_window;
     }
 
     SystemName EngineInstance::system_type() const
@@ -85,8 +93,6 @@ namespace Engine
     {
         if (_M_api != EngineAPI::NoAPI)
         {
-            trinex_init_sdl();
-
             Library api_library(engine_config.api.c_str());
             info_log("Engine", "Using API: %s", engine_config.api.c_str());
 
@@ -125,7 +131,7 @@ namespace Engine
 
     static CommandLet* try_load_commandlet(const String& name, Class* base_class)
     {
-        Class* class_instance = Class::find_class(name);
+        Class* class_instance = Class::static_find_class(name);
         if (!class_instance)
         {
             error_log("Engine", "Failed to load commandlet '%s'", name.c_str());
@@ -139,7 +145,7 @@ namespace Engine
             return nullptr;
         }
 
-        Object* object         = class_instance->create();
+        Object* object         = class_instance->create_object();
         CommandLet* commandlet = object->instance_cast<CommandLet>();
 
         if (!commandlet)
@@ -152,7 +158,7 @@ namespace Engine
 
     static CommandLet* find_commandlet(int argc, char** argv)
     {
-        Class* commandlet_base_class = Class::find_class("Engine::CommandLet");
+        Class* commandlet_base_class = Class::static_find_class("Engine::CommandLet");
         CommandLet* commandlet       = nullptr;
         // Load commandlet
         if (argc > 1)
@@ -170,12 +176,13 @@ namespace Engine
 
     int EngineInstance::start(int argc, char** argv)
     {
-        info_log("TrinexEngine", "Start engine!");
         if (is_inited())
         {
             return -1;
         }
 
+        info_log("TrinexEngine", "Start engine!");
+        start_time = current_time_point();
         PreInitializeController().execute();
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
@@ -189,14 +196,9 @@ namespace Engine
         }
 #endif
 
-        Lua::Interpretter::init();
+        ScriptEngine::instance();
 
         InitializeController().execute();
-
-        info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
-        engine_config.load_config((root_manager->work_dir() / Path("TrinexEngine/configs/init_config.cfg")).string());
-
-        Lua::Interpretter::init_lua_dir();
 
         CommandLet* commandlet = find_commandlet(argc, argv);
         if (!commandlet)
@@ -204,7 +206,12 @@ namespace Engine
             return -1;
         }
 
-        commandlet->on_config_load();
+        commandlet->load_configs();
+        engine_config.update();
+
+        _M_engine_system = System::new_system<EngineSystem>();
+
+        info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
 
         _M_api = get_api_by_name(engine_config.api);
 
@@ -212,8 +219,7 @@ namespace Engine
 
         _M_renderer = new Renderer(_M_api_interface);
         _M_api_interface->logger(logger);
-        Monitor::update();
-        Sensor::update_sensors_info();
+
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
         if (engine_config.max_g_buffer_height < 200)
@@ -268,7 +274,7 @@ stack_address:
 is_on_stack_asm:
     movq %rsp, %rax
     cmpq %rdi, %rax
-    ja stack_address
+    jbe stack_address
     movl $1, %eax
     ret
 
@@ -287,7 +293,8 @@ stack_address:
 
     bool EngineInstance::is_on_stack(void* ptr)
     {
-        return is_on_stack_asm(ptr);
+        bool result = is_on_stack_asm(ptr);
+        return result;
     }
 
     bool EngineInstance::is_shuting_down() const
@@ -327,15 +334,14 @@ stack_address:
         engine_instance->trigger_terminate_functions();
         Object::force_garbage_collection();
 
-        Lua::Interpretter::terminate();
-
         delete _M_renderer;
         delete _M_api_interface;
-        trinex_terminate_sdl();
 
         _M_api_interface                                                    = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
         Library::close_all();
+
+        PostDestroyController().execute();
     }
 
     bool EngineInstance::check_format_support(PixelType type, PixelComponentType component)
@@ -343,6 +349,58 @@ stack_address:
         return _M_api_interface->check_format_support(type, component);
     }
 
+    EngineSystem* EngineInstance::engine_system() const
+    {
+        return _M_engine_system;
+    }
+
+    Window* EngineInstance::create_window()
+    {
+        if (_M_api_interface == nullptr)
+        {
+            throw EngineException("Cannot create window without API!");
+        }
+
+        String libname = Strings::format("WindowSystem{}", engine_config.window_system);
+        Library library(libname);
+
+
+        WindowInterface* interface = nullptr;
+
+        if (library.has_lib())
+        {
+            WindowInterface* (*loader)() = library.get<WindowInterface*>("load_window_system");
+            if (loader)
+            {
+                interface = loader();
+            }
+        }
+
+
+        if (!interface)
+        {
+            return nullptr;
+        }
+
+        global_window_config.update();
+        global_window_config.api_name = engine_config.api;
+        interface->init(global_window_config);
+
+        interface->update_monitor_info(const_cast<MonitorInfo&>(Monitor::info()));
+
+        _M_api_interface->init_window(interface);
+
+        if (engine_config.enable_g_buffer)
+        {
+            GBuffer::init_g_buffer();
+        }
+
+        _M_window =
+                Object::new_instance_named<Window>("Trinex Engine Window", Package::find_package("Engine"), interface);
+
+
+        return window();
+    }
 
     static const char* thread_name(ThreadType type)
     {
@@ -373,6 +431,49 @@ stack_address:
         return _M_threads[index];
     }
 
+    float EngineInstance::time_seconds() const
+    {
+        return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
+    }
+
+    int_t EngineInstance::launch_systems() const
+    {
+        if (_M_engine_system->objects().empty())
+        {
+            error_log("Engine", "No systems found! Please, add systems before call '%s' method!", __FUNCTION__);
+            return -1;
+        }
+
+        try
+        {
+            static constexpr float smoothing_factor = 0.05;
+
+            float prev_time    = 0.0167;
+            float current_time = 0.0f;
+            float dt           = 0.0f;
+
+            while (!is_requesting_exit())
+            {
+                current_time = time_seconds();
+                dt           = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * dt;
+                prev_time    = current_time;
+
+
+                _M_engine_system->update(dt);
+                _M_engine_system->wait();
+            }
+
+            _M_engine_system->shutdown();
+
+            return 0;
+        }
+        catch (const std::exception& e)
+        {
+            error_log("Engine", "%s", e.what());
+            return -1;
+        }
+    }
+
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)
     {
         engine_instance = EngineInstance::create_instance();
@@ -390,7 +491,8 @@ stack_address:
                 result = -1;
             }
 
-            engine_instance->destroy();
+            logger->log("Engine", "Begin destroy!");
+            engine_instance->begin_destroy();
             engine_instance = nullptr;
             return result;
         }

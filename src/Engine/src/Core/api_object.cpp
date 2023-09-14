@@ -2,16 +2,11 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <api.hpp>
+
 namespace Engine
 {
-
-
-    static void on_init()
-    {
-        register_class(Engine::ApiObject);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(ApiObject, "Engine");
+    implement_default_initialize_class(ApiObject);
 
     // Zero is default or invalid value of ApiObjectNoBase in external API
     constructor_cpp(ApiObjectNoBase)
@@ -79,7 +74,4 @@ namespace Engine
     {
         destroy();
     }
-
-    void ApiObject::on_class_register(void* registrar)
-    {}
 }// namespace Engine

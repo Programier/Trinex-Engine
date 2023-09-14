@@ -98,13 +98,49 @@ function Engine.dump_config(path, config)
     config_file->write('// Auto generated config by Trinex Engine\n\n');
 
     local config_class = getmetatable(config);
-    for (k, v in pairs(config_class))
+
+    for(k = 1, config.properties->size())
     {
-        if(string.sub(k, 1, 2) != '__' && type(v) != 'userdata')
+        local prop_name = config.properties[k];
+        local code = 'return function(config) { ' .. 'return config.' .. prop_name .. '; }';
+        local chunk, error = load(code);
+        if(chunk)
         {
-            config_file->write('Engine.config.'..k, ' = ', convert_value(config[k]), ';\n');
+            local status, prop = pcall(chunk(), config);
+            if (!status)
+            {
+                Engine.logger->log('Config Dump', 'Cannot get property with name ' .. prop_name);
+            }
+            else
+            {
+                if(type(prop) == 'userdata') // Must be array (Vector of base types)
+                {
+                    for(i = 1, prop->size())
+                    {
+                        config_file->write(prop_name, '[', i, ']', ' = ', convert_value(prop[i]), ';\n');
+                    }
+                }
+                else
+                {
+                    config_file->write(prop_name, ' = ', convert_value(prop), ';\n');
+                }
+            }
+        }
+        else
+        {
+            Engine.logger->log("Config Dump", error);
         }
     }
+
+
+//    for (k, v in pairs(config_class))
+//    {
+//        print(k, v);
+//        if(string.sub(k, 1, 2) != '__' && type(v) != 'userdata')
+//        {
+//            config_file->write(k, ' = ', convert_value(config[k]), ';\n');
+//        }
+//    }
 
     config_file->close();
 }

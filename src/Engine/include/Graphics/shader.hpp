@@ -12,9 +12,9 @@ namespace Engine
 
     class ENGINE_EXPORT Shader : public ApiObject
     {
-    public:
-        using Super = ApiObject;
+        declare_class(Shader, ApiObject);
 
+    public:
         delete_copy_constructors(Shader);
         constructor_hpp(Shader);
         Shader(const PipelineCreateInfo& params);
@@ -23,7 +23,6 @@ namespace Engine
 
         const Shader& use() const;
         static void unbind();
-        static void on_class_register(void*);
     };
 
 }// namespace Engine

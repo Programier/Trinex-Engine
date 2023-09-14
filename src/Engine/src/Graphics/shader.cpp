@@ -86,8 +86,6 @@ namespace Engine
         EngineInstance::instance()->api_interface()->use_shader(0);
     }
 
-    void Shader::on_class_register(void*)
-    {}
-
-    static InitializeController initializer = register_class(Engine::Shader);
+    implement_class(Shader, "Engine");
+    implement_default_initialize_class(Shader);
 }// namespace Engine

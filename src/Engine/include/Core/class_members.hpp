@@ -10,6 +10,8 @@ namespace Engine
 
     class ENGINE_EXPORT ClassField : public Object
     {
+        declare_class(ClassField, Object);
+
     private:
         ClassFieldOffset _M_offset;
         AccessType _M_access_type;
@@ -32,8 +34,7 @@ namespace Engine
         }
 
     public:
-        using Super = Object;
-
+        ClassField();
         template<typename PropType, typename InstanceType>
         ClassField(PropType InstanceType::*prop, AccessType access_type = AccessType::Public,
                    bool is_serializable = true)

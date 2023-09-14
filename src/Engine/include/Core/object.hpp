@@ -1,11 +1,13 @@
 #pragma once
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/metadata.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/implement.hpp>
 #include <Core/memory_manager.hpp>
 #include <Core/serializable_object.hpp>
-#include <string>
+#include <ScriptEngine/registrar.hpp>
+
 #include <typeinfo>
 
 namespace Engine
@@ -41,6 +43,7 @@ namespace Engine
         Failed,
     };
 
+
     // Head of all classes in the Engine
     class ENGINE_EXPORT Object : public SerializableObject
     {
@@ -50,19 +53,38 @@ namespace Engine
     private:
         mutable String _M_name;
         mutable BitSet<static_cast<size_t>(TrinexObjectFlags::__OF_COUNT__)> _M_trinex_flags;
+
+
         BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
+        Package* _M_package;
+        Counter _M_references;
+        HashIndex _M_hash;
+        Index _M_index_in_package;
+        mutable Index _M_instance_index;
 
-        Package* _M_package                 = nullptr;
-        mutable const class Class* _M_class = nullptr;
-        Counter _M_references               = 0;
-        mutable Index _M_instance_index     = static_cast<Index>(~0U);
-
-
+    private:
         void delete_instance();
         static void create_default_package();
         static bool object_is_exist(Package* package, const String& name);
+        Object& update_hash();
 
         const Object& remove_from_instances_array() const;
+
+        template<typename Type, typename... Args>
+        static Type* allocate_new_instance(Args&&... args)
+        {
+            if constexpr (std::is_base_of_v<Object, Type>)
+            {
+                return new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
+            }
+            else
+            {
+                return new Type(std::forward<Args>(args)...);
+            }
+        }
+
+        static void private_bind_class(class Class* c);
+
 
     protected:
         PriorityIndex _M_force_destroy_priority = 0;
@@ -74,7 +96,28 @@ namespace Engine
         bool trinex_flag(TrinexObjectFlags flag) const;
         const Object& trinex_flag(TrinexObjectFlags flag, bool status) const;
 
+        static Object* noname_object();
+
+
+    protected:
+        static class Class* _M_static_class;
+
+
     public:
+        using This  = Object;
+        using Super = Object;
+        static Object* static_constructor();
+        static void static_initialize_class();
+        static class Class* static_class_instance();
+        static HashIndex hash_of_name(const String& name);
+        virtual class Class* class_instance() const;
+
+        template<typename CurrentClass>
+        static void initialize_script_bindings(class Class* registrable_class)
+        {
+            private_bind_class(registrable_class);
+        }
+
         delete_copy_constructors(Object);
         ENGINE_EXPORT static String decode_name(const std::type_info& info);
         ENGINE_EXPORT static String decode_name(const String& name);
@@ -88,6 +131,7 @@ namespace Engine
         bool is_on_heap() const;
         ENGINE_EXPORT static void collect_garbage();
         const String& name() const;
+        HashIndex hash_index() const;
         ObjectRenameStatus name(String name, bool autorename = false);
         virtual Object* copy();
         bool add_to_package(Package* package, bool autorename = false);
@@ -95,6 +139,8 @@ namespace Engine
         Package* package() const;
         String full_name() const;
         Counter references() const;
+        void add_reference();
+        void remove_reference();
         const decltype(Object::_M_flags)& flags() const;
         Object& flag(ObjectFlags flag, bool status);
         bool flag(ObjectFlags flag) const;
@@ -103,13 +149,11 @@ namespace Engine
         virtual bool can_destroy(MessageList& messages);
         virtual void post_init_components();
         static Package* find_package(const String& name, bool create = true);
-        const class Class* class_instance() const;
+
         String as_string() const;
         Index instance_index() const;
 
         bool archive_process(Archive* archive) override;
-        static void on_class_register(void* registrar);
-
 
         // NOTE! You will manually push object to package, if you use this method!
         template<typename Type, typename... Args>
@@ -117,14 +161,21 @@ namespace Engine
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
-                Type* instance = new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
+                if constexpr (is_singletone_v<Type>)
+                {
+                    if (Type::instance() != nullptr)
+                    {
+                        return Type::instance();
+                    }
+                }
+
+                Type* instance = allocate_new_instance<Type>(std::forward<Args>(args)...);
                 instance->mark_as_allocate_by_constroller();
-                instance->_M_class = const_cast<Class*>(ClassMetaData<Type>::find_class());
                 return instance;
             }
             else
             {
-                return new Type(args...);
+                return allocate_new_instance<Type>(std::forward<Args>(args)...);
             }
         }
 
@@ -133,6 +184,14 @@ namespace Engine
         {
             if constexpr (std::is_base_of_v<Object, Type>)
             {
+                if constexpr (is_singletone_v<Type>)
+                {
+                    if (Type::instance() != nullptr)
+                    {
+                        return Type::instance();
+                    }
+                }
+
                 Type* instance = new_instance_without_package<Type>(std::forward<Args>(args)...);
                 instance->insert_to_default_package();
                 return instance;
@@ -152,6 +211,13 @@ namespace Engine
             }
             else
             {
+                if constexpr (is_singletone_v<Type>)
+                {
+                    if (Type::instance() != nullptr)
+                    {
+                        return Type::instance();
+                    }
+                }
 
                 if (package == nullptr)
                 {
@@ -268,48 +334,88 @@ namespace Engine
             instance = nullptr;
         }
 
-    private:
-        static void* operator new(std::size_t size) = delete;
-        static void* operator new(std::size_t size, void* data);
-        static void* operator new[](std::size_t count)            = delete;
-        static void* operator new[](std::size_t size, void* data) = delete;
 
+    private:
         static ENGINE_EXPORT void force_garbage_collection();
         friend void call_force_garbage_collection();
 
-    protected:
-        static void operator delete(void* data);
-        static void operator delete[](void* data) = delete;
 
     public:
         ENGINE_EXPORT static Package* root_package();
 
 
         virtual ~Object();
-        friend class Package;
         friend class PointerBase;
+        friend class Package;
         friend class Archive;
         friend class MemoryManager;
         friend class EngineInstance;
     };
 
-    template<typename Return, typename... Args>
-    Return (*func_of(Return (*function)(Args...)))(Args...)
-    {
-        return function;
-    }
 
-    template<typename Return, typename Instance, typename... Args>
-    Return (Instance::*func_of(Return (Instance::*function)(Args...)))(Args...)
-    {
-        return function;
-    }
+#define declare_class(class_name, base_name)                                                                           \
+protected:                                                                                                             \
+    static class Class* _M_static_class;                                                                               \
+                                                                                                                       \
+public:                                                                                                                \
+    using This  = class_name;                                                                                          \
+    using Super = base_name;                                                                                           \
+    static Object* static_constructor();                                                                               \
+    static void static_initialize_class();                                                                             \
+    static class Class* static_class_instance();                                                                       \
+    virtual class Class* class_instance() const override;                                                              \
+                                                                                                                       \
+private:
 
-    template<typename Return, typename Instance, typename... Args>
-    Return (Instance::*func_of(Return (Instance::*function)(Args...) const))(Args...) const
-    {
-        return function;
-    }
+#define implement_initialize_class(name) void name::static_initialize_class()
 
-#define TRINEX_OBJECT_HEADER_INCLUDED 1
+#define implement_default_initialize_class(name)                                                                       \
+    implement_initialize_class(name)                                                                                   \
+    {}
+
+#define implement_class(class_name, namespace_name)                                                                    \
+    class Class* class_name::_M_static_class = nullptr;                                                                \
+    Object* class_name::static_constructor()                                                                           \
+    {                                                                                                                  \
+        if constexpr (std::is_abstract_v<class_name>)                                                                  \
+        {                                                                                                              \
+            return nullptr;                                                                                            \
+        }                                                                                                              \
+        else                                                                                                           \
+        {                                                                                                              \
+            return Engine::Object::new_instance<class_name>();                                                         \
+        }                                                                                                              \
+    }                                                                                                                  \
+                                                                                                                       \
+    class Class* class_name::class_instance() const                                                                    \
+    {                                                                                                                  \
+        return class_name::static_class_instance();                                                                    \
+    }                                                                                                                  \
+                                                                                                                       \
+    class Class* class_name::static_class_instance()                                                                   \
+    {                                                                                                                  \
+        if (!_M_static_class)                                                                                          \
+        {                                                                                                              \
+            bool has_base_class        = &This::_M_static_class != &Super::_M_static_class;                            \
+            String class_instance_name = namespace_name;                                                               \
+            if (!class_instance_name.empty())                                                                          \
+            {                                                                                                          \
+                class_instance_name += "::";                                                                           \
+            }                                                                                                          \
+            class_instance_name += #class_name;                                                                        \
+            _M_static_class = new Class(class_instance_name, &This::static_constructor,                                \
+                                        has_base_class ? Super::static_class_instance() : nullptr);                    \
+            _M_static_class->process_type<class_name>();                                                               \
+            class_name::static_initialize_class();                                                                     \
+            if constexpr (This::initialize_script_bindings<This> != Super::initialize_script_bindings<This>)           \
+            {                                                                                                          \
+                This::initialize_script_bindings<This>(_M_static_class);                                               \
+            }                                                                                                          \
+        }                                                                                                              \
+        return _M_static_class;                                                                                        \
+    }                                                                                                                  \
+    static InitializeController pre_initialize_##class_name([]() { class_name::static_class_instance(); },             \
+                                                            "Initialize " namespace_name #class_name);
+
+
 }// namespace Engine

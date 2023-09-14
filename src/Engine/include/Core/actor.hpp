@@ -17,9 +17,10 @@ namespace Engine
 
     class ENGINE_EXPORT Actor : public Object
     {
+        declare_class(Actor, Object);
+
     public:
         using ActorChilds = Set<Pointer<Actor>, Pointer<Actor>::HashStruct>;
-        using Super       = Object;
 
     private:
         ActorChilds _M_childs;
@@ -34,7 +35,7 @@ namespace Engine
     public:
         Transform transform;
 
-        virtual Actor& update();
+        virtual Actor& update(float dt);
         virtual Actor& load();
         virtual Actor& unload();
         virtual Actor& render();
@@ -47,6 +48,11 @@ namespace Engine
         Actor& remove_child(Actor* actor);
 
         bool archive_process(Archive* archive) override;
-        static void on_class_register(void*);
+
+//        template<typename CurrentClass>
+//        static void initialize_script_bindings(class Class* registrable_class)
+//        {
+//            Super::initialize_script_bindings<CurrentClass>(registrable_class);
+//        }
     };
 }// namespace Engine

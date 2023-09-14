@@ -10,7 +10,11 @@ namespace Engine::Demangle
     {
         std::size_t len;
         int_t s;
-        char* ptr           = abi::__cxa_demangle(name.c_str(), 0, &len, &s);
+        char* ptr = abi::__cxa_demangle(name.c_str(), 0, &len, &s);
+        if (ptr == nullptr)
+        {
+            return name;
+        }
         std::string _M_name = ptr;
         delete ptr;
         return _M_name;

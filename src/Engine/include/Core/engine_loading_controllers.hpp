@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/export.hpp>
+#include <initializer_list>
 
 namespace Engine
 {
@@ -15,9 +16,11 @@ namespace Engine
         ControllerBase(void* function_address);
 
     public:
-        ControllerBase& push(void (*)());
-        ControllerBase& push(const ControllerCallback& callback);
+        ControllerBase& push(const ControllerCallback& callback, const String& name = "",
+                             const std::initializer_list<String>& require_initializers = {});
+        ControllerBase& require(const String& name);
         ControllerBase& execute();
+        virtual ~ControllerBase();
     };
 
 #define IMPLEMENT_CONTROLLER(ControllerName)                                                                           \
@@ -25,13 +28,15 @@ namespace Engine
     {                                                                                                                  \
     public:                                                                                                            \
         ControllerName();                                                                                              \
-        ControllerName(void (*)());                                                                                    \
-        ControllerName(const ControllerCallback& callback);                                                            \
+        ControllerName(const ControllerCallback& callback, const String& name = "",                                    \
+                       const std::initializer_list<String>& require_initializers = {});                                \
     }
 
+    IMPLEMENT_CONTROLLER(PostDestroyController);
     IMPLEMENT_CONTROLLER(DestroyController);
     IMPLEMENT_CONTROLLER(InitializeController);
     IMPLEMENT_CONTROLLER(PreInitializeController);
+
 
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

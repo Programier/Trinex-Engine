@@ -2,10 +2,11 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Image/image.hpp>
-#include <stb_image/stb_image.h>
-#include <stb_image/stb_image_resize.h>
-#include <stb_image/stb_image_write.h>
+#include <stb_image.h>
+#include <stb_image_resize.h>
+#include <stb_image_write.h>
 #include <stdexcept>
+
 namespace Engine
 {
 

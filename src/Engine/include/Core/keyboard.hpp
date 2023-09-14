@@ -2,9 +2,9 @@
 #include <Core/engine_types.hpp>
 #include <ostream>
 
-namespace Engine
+namespace Engine::Keyboard
 {
-    enum class KeyStatus : EnumerateType
+    enum Status : EnumerateType
     {
         Released = 0,
         JustReleased,
@@ -13,7 +13,7 @@ namespace Engine
         Repeat
     };
 
-    enum class Key : EnumerateType
+    enum Key : EnumerateType
     {
         Unknown = 0,
         Space,
@@ -134,16 +134,6 @@ namespace Engine
         RightAlt,
         RightSuper,
         Menu,
-        MouseLeft,
-        MouseRight,
-        MouseMiddle
+        __COUNT__
     };
-
-
-    ENGINE_EXPORT int to_SDL_scancode(const Key& key);
-    ENGINE_EXPORT wchar_t to_character(const Key& key);
-    ENGINE_EXPORT Key to_key(int);
-    ENGINE_EXPORT const String& get_key_name(const Key& key);
-    ENGINE_EXPORT std::ostream& operator<<(std::ostream& stream, const KeyStatus& status);
-    ENGINE_EXPORT uint_t key_count();
-}// namespace Engine
+}// namespace Engine::Keyboard

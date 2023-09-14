@@ -3,8 +3,8 @@
 #include <Core/constants.hpp>
 #include <Core/object_ref.hpp>
 #include <Core/pointer.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Core/scene_component.hpp>
+#include <Graphics/pipeline_buffers.hpp>
 
 
 namespace Engine
@@ -53,7 +53,7 @@ namespace Engine
     public:
         virtual size_t semantic_offset(VertexBufferSemantic semantic, byte index = 0) const = 0;
         virtual size_t vertex_size() const                                                  = 0;
-        virtual MeshComponentSemanticEntry& entry_of(VertexBufferSemantic)                           = 0;
+        virtual MeshComponentSemanticEntry& entry_of(VertexBufferSemantic)                  = 0;
         ~MeshComponentSemanticInfo()
         {}
     };
@@ -105,9 +105,9 @@ namespace Engine
 
     class ENGINE_EXPORT MeshComponent : public SceneComponent
     {
-    public:
-        using Super = SceneComponent;
+        declare_class(MeshComponent, SceneComponent);
 
+    public:
         struct ENGINE_EXPORT MeshComponentLOD : public SerializableObject {
             ObjectReference<Material> material_reference;
             VertexBuffer vertex_buffer;
@@ -129,7 +129,6 @@ namespace Engine
         virtual const MeshComponentSemanticInfo& semantic_info() const = 0;
         bool archive_process(Archive* archive) override;
         MaterialApplier* material_applier(Index lod) const;
-        static void on_class_register(void*);
 
         ~MeshComponent();
     };
@@ -137,25 +136,23 @@ namespace Engine
 
     class ENGINE_EXPORT StaticMeshComponent : public MeshComponent
     {
-    public:
-        using Super = MeshComponent;
+        declare_class(StaticMeshComponent, MeshComponent);
 
+    public:
         StaticMeshComponentSemanticInfo info;
 
         const StaticMeshComponentSemanticInfo& semantic_info() const override;
         bool archive_process(Archive* archive) override;
-        static void on_class_register(void*);
     };
 
     class ENGINE_EXPORT DynamicMeshComponent : public MeshComponent
     {
-    public:
-        using Super = MeshComponent;
+        declare_class(DynamicMeshComponent, MeshComponent);
 
+    public:
         DynamicMeshComponentSemanticInfo info;
 
         const MeshComponentSemanticInfo& semantic_info() const override;
         bool archive_process(Archive* archive) override;
-        static void on_class_register(void*);
     };
 }// namespace Engine

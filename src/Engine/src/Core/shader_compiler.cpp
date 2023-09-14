@@ -39,7 +39,7 @@ namespace Engine
                 return nullptr;
             }
 
-            Class* compiler_class = Class::find_class(engine_config.shader_compiler);
+            Class* compiler_class = Class::static_find_class(engine_config.shader_compiler);
             if (compiler_class == nullptr)
             {
                 error_log("ShaderCompiler", "Failed to find shader compiler class '%'",
@@ -47,23 +47,19 @@ namespace Engine
                 return nullptr;
             }
 
-            if (!compiler_class->contains_class(Class::find_class("Engine::ShaderCompiler")))
+            if (!compiler_class->contains_class(Class::static_find_class("Engine::ShaderCompiler")))
             {
                 error_log("ShaderCompiler", "Class '%s' does not inherit from class Engine::ShaderCompiler!",
                           compiler_class->name().c_str());
                 return nullptr;
             }
 
-            _M_compiler = compiler_class->create()->instance_cast<ShaderCompiler>();
+            _M_compiler = compiler_class->create_object()->instance_cast<ShaderCompiler>();
         }
 
         return _M_compiler;
     }
 
-    static void on_init()
-    {
-        register_class(Engine::ShaderCompiler);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(ShaderCompiler, "Engine");
+    implement_default_initialize_class(ShaderCompiler);
 }// namespace Engine

@@ -21,8 +21,7 @@ namespace Engine
 
     class ENGINE_EXPORT UniformStruct : public DynamicStruct<UniformStructInstance>
     {
-    public:
-        using Super = DynamicStructBase;
+        declare_class(UniformStruct, DynamicStructBase);
     };
 
 }// namespace Engine

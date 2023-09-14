@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/commandlet.hpp>
+#include <Core/logger.hpp>
 #include <Core/shader_compiler.hpp>
 #include <Core/shader_types.hpp>
 
@@ -36,8 +37,9 @@ namespace Engine
 {
     class TestCompiler : public CommandLet
     {
+        declare_class(TestCompiler, CommandLet);
+
     public:
-        using Super = CommandLet;
         int_t execute(int_t argc, char** argv) override
         {
             ShaderCompiler* compiler = ShaderCompiler::load_compiler();
@@ -54,10 +56,6 @@ namespace Engine
         }
     };
 
-    static void on_init()
-    {
-        register_class(TestCompiler);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(TestCompiler, "Engine");
+    implement_default_initialize_class(TestCompiler);
 }// namespace Engine

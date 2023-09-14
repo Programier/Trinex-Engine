@@ -8,11 +8,12 @@
 #include <Core/shader_types.hpp>
 #include <Core/texture_types.hpp>
 
-struct SDL_Window;
+
 namespace Engine
 {
     class Logger;
-}
+    struct WindowInterface;
+}// namespace Engine
 
 #define VIRTUAL_METHOD = 0
 
@@ -20,7 +21,7 @@ namespace Engine::GraphicApiInterface
 {
     struct ENGINE_EXPORT ApiInterface {
         virtual ApiInterface& logger(Logger*&) VIRTUAL_METHOD;
-        virtual void* init_window(SDL_Window*) VIRTUAL_METHOD;
+        virtual void* init_window(struct WindowInterface*) VIRTUAL_METHOD;
         virtual ApiInterface& destroy_window() VIRTUAL_METHOD;
         virtual ApiInterface& destroy_object(Identifier&) VIRTUAL_METHOD;
         virtual ApiInterface& imgui_init() VIRTUAL_METHOD;
@@ -111,7 +112,7 @@ namespace Engine::GraphicApiInterface
                                         size_t size) VIRTUAL_METHOD;
         virtual ApiInterface& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) VIRTUAL_METHOD;
 
-        virtual ApiInterface& swap_buffer(SDL_Window* window) VIRTUAL_METHOD;
+        virtual ApiInterface& swap_buffer() VIRTUAL_METHOD;
         virtual ApiInterface& swap_interval(int_t interval) VIRTUAL_METHOD;
         virtual ApiInterface& clear_color(const Identifier&, const ColorClearValue&, byte layout) VIRTUAL_METHOD;
         virtual ApiInterface& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) VIRTUAL_METHOD;

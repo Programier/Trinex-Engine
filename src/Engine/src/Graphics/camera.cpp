@@ -2,19 +2,25 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/camera.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <Window/window.hpp>
 #include <functional>
 #include <glm/ext.hpp>
 
 namespace Engine
 {
-    static InitializeController initializer = register_class(Engine::Camera);
+    implement_class(Camera, "Engine");
+    implement_initialize_class(Camera)
+    {}
 
     Camera::Camera(glm::vec3 position, float viewing_angle)
     {
         _M_viewing_angle = viewing_angle;
-        if (Window::window)
-            _M_aspect = Window::instance()->width() / Window::instance()->height();
+        Window* window   = engine_instance->window();
+        if (window)
+        {
+            _M_aspect = window->width() / window->height();
+        }
         transform.move(position, false)._M_revert_front_vector = 1;
         update_projection_matrix();
     }
@@ -105,9 +111,9 @@ namespace Engine
         return update_projection_matrix();
     }
 
-    Camera& Camera::update()
+    Camera& Camera::update(float dt)
     {
-        Super::update();
+        Super::update(dt);
         auto front_vector   = transform.front_vector();
         const Vector3D& pos = transform.position();
 
@@ -127,12 +133,6 @@ namespace Engine
 
         return static_cast<bool>(*archive);
     }
-
-    void Camera::on_class_register(void* registrar)
-    {
-        registrar_of(Camera, registrar)->register_to_lua();
-    }
-
 
     Camera::~Camera()
     {}

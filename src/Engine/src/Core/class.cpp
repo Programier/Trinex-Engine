@@ -1,140 +1,131 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/engine_lua.hpp>
 #include <Core/logger.hpp>
-#include <Core/string_functions.hpp>
-#include <string_view>
+#include <Core/object.hpp>
+
 
 namespace Engine
 {
-    static Map<std::type_index, const class Class*>& indexed_classes_map()
+    static FORCE_INLINE Map<String, Class*>& class_table()
     {
-        static Map<std::type_index, const class Class*> map = {};
-        return map;
+        static Map<String, Class*> table;
+        return table;
     }
 
-    ENGINE_EXPORT const class Class* ClassMetaDataHelper::find_class(const std::type_index& index)
-    {
-        static auto& map = indexed_classes_map();
+    static PostDestroyController destroy([]() {
+        for (auto& pair : class_table())
+        {
+            delete pair.second;
+            pair.second = nullptr;
+        }
 
-        auto it = map.find(index);
-        if (it == map.end())
+        class_table().clear();
+    });
+
+
+    Object* Class::internal_cast(Class* required_class, Object* object)
+    {
+        if (object == nullptr)
+        {
             return nullptr;
+        }
+        if (object->class_instance()->contains_class(required_class))
+        {
+            return object;
+        }
 
-        return it->second;
+        return nullptr;
     }
 
-    ClassMetaDataHelper::ClassMetaDataHelper(const std::type_index& index, const class Class* instance)
+    Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent)
+        : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent)
     {
-        indexed_classes_map()[index] = instance;
+        class_table()[class_name] = this;
+        _M_size                   = 0;
+        _M_flags                  = 0;
+        info_log("Class", "Created class instance '%s'", class_name.c_str());
+
+        _M_base_name            = Object::object_name_of(class_name);
+        _M_namespace            = Object::package_name_of(class_name);
+        _M_is_script_registered = false;
+        _M_cast_to_this         = nullptr;
     }
 
-    static Class::ClassesMap& classes_map()
-    {
-        static Class::ClassesMap classes;
-        return classes;
-    }
-
-    const Class* Class::parent() const
+    Class* Class::parent() const
     {
         return _M_parent;
     }
 
-    Class::Class(const String& _name)
+    const String& Class::name() const
     {
-        name(_name);
-        classes_map().insert({_name, this});
-        _M_parents = {this};
+        return _M_name;
     }
 
-    bool Class::contains_class(const Class* const instance) const
+    const String& Class::namespace_name() const
     {
-        return _M_parents.contains(instance);
+        return _M_namespace;
     }
 
-    Class* Class::find_class(const String& name)
+    const String& Class::base_name() const
     {
-        ClassesMap& map = classes_map();
-        auto it         = map.find(name);
-        if (it == map.end())
+        return _M_base_name;
+    }
+
+    Object* Class::create_object() const
+    {
+        return _M_static_constructor();
+    }
+
+    bool Class::contains_class(const Class* c) const
+    {
+        const Class* current = this;
+        while (current && current != c)
+        {
+            current = current->_M_parent;
+        }
+        return current != nullptr;
+    }
+
+    size_t Class::sizeof_class() const
+    {
+        return _M_size;
+    }
+
+    bool Class::has_any_flags(BitMask flags) const
+    {
+        return (_M_flags.to_ulong() & flags) != 0;
+    }
+
+    bool Class::has_all_flags(BitMask flags) const
+    {
+        return (_M_flags.to_ulong() & flags) == flags;
+    }
+
+
+    Class* Class::static_find_class(const String& name)
+    {
+        try
+        {
+            return class_table().at(name);
+        }
+        catch (...)
+        {
             return nullptr;
-        return it->second;
-    }
-
-    const Class::ClassesMap& Class::classes()
-    {
-        return classes_map();
-    }
-
-    void Class::update_parent_classes(const Class* parent)
-    {
-        if (parent)
-        {
-            if (parent->_M_resolve_inherit)
-            {
-                const_cast<Class*>(parent)->_M_resolve_inherit();
-            }
-
-            info_log("Class", "Setting class '%s' as the parent of class '%s'", parent->full_name().c_str(),
-                     full_name().c_str());
-            _M_parent = parent;
-            _M_parents.insert(parent->_M_parents.begin(), parent->_M_parents.end());
         }
     }
 
-    Object* Class::create() const
+    bool Class::is_binded_to_script() const
     {
-        if (_M_allocate_object)
-            return _M_allocate_object();
-        return nullptr;
+        return _M_is_script_registered;
     }
 
-    Object* Class::create_without_package() const
+    Object* (*Class::cast_to_this() const)(Object*)
     {
-        if (_M_allocate_without_package)
-            return _M_allocate_without_package();
-        return nullptr;
+        return _M_cast_to_this;
     }
 
-    size_t Class::instance_size() const
+    Object* (*Class::static_constructor() const)()
     {
-        return _M_instance_size;
+        return _M_static_constructor;
     }
-
-    Lua::object Class::to_lua_object(Object* object) const
-    {
-        if (object->class_instance() == this)
-        {
-            return _M_to_lua_object(object);
-        }
-        auto _class = object->class_instance();
-
-        if (_class)
-        {
-            return _class->to_lua_object(object);
-        }
-
-        return {};
-    }
-
-    const Vector<ClassField*>& Class::fields() const
-    {
-        return _M_fields;
-    }
-
-
-    void Class::on_class_register(void* registrar)
-    {
-        registrar_of(Class, registrar)
-                ->register_to_lua()
-                .set("parent", &Class::parent)
-                .set("contains_class", &Class::contains_class)
-                .set("classes", Class::classes)
-                .set("create", &Class::create)
-                .set("instance_size", &Class::instance_size)
-                .set("find_class", Class::find_class);
-    }
-
-    static InitializeController initializer = register_class(Engine::Class);
 }// namespace Engine

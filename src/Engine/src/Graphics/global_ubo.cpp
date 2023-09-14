@@ -1,5 +1,4 @@
 #include <Graphics/global_ubo.hpp>
-#include <Window/window.hpp>
 
 
 namespace Engine

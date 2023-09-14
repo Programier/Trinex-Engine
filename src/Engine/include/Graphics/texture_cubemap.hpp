@@ -8,12 +8,13 @@ namespace Engine
 {
     class ENGINE_EXPORT TextureCubeMap : public Texture
     {
-    public:
-        using Super = Texture;
+        declare_class(TextureCubeMap, Texture);
 
+    public:
         TextureCubeMap();
         delete_copy_constructors(TextureCubeMap);
 
-        TextureCubeMap& update_data(TextureCubeMapFace index, const Size2D& size, const Offset2D& offset, void* data, MipMapLevel level = 0);
+        TextureCubeMap& update_data(TextureCubeMapFace index, const Size2D& size, const Offset2D& offset, void* data,
+                                    MipMapLevel level = 0);
     };
 }// namespace Engine

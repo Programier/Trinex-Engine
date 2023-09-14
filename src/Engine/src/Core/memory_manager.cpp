@@ -33,7 +33,7 @@ namespace Engine
             if (_M_disable_collect_garbage)
                 _M_objects[0].push_back(object);
             else
-                _M_objects[object->class_instance()->instance_size()].push_back(object);
+                _M_objects[0].push_back(object);
             ++_M_count;
 
             force_call_destructor(object);

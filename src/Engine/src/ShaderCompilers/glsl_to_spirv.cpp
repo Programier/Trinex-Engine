@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Core/logger.hpp>
 #include <Core/shader_compiler.hpp>
 #include <Core/shader_types.hpp>
 #include <Core/string_functions.hpp>
@@ -14,9 +15,9 @@ namespace Engine
 
     class GLSLToSPIRV : public ShaderCompiler
     {
-    public:
-        using Super = ShaderCompiler;
+        declare_class(GLSLToSPIRV, ShaderCompiler);
 
+    public:
         GLSLToSPIRV()
         {
             glslang::InitializeProcess();
@@ -262,10 +263,6 @@ namespace Engine
         }
     };
 
-    static void on_init()
-    {
-        register_class(Engine::GLSLToSPIRV);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(GLSLToSPIRV, "Engine");
+    implement_default_initialize_class(GLSLToSPIRV);
 }// namespace Engine

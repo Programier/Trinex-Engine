@@ -1,5 +1,8 @@
 #include <Core/class.hpp>
 #include <Core/commandlet.hpp>
+#include <Core/engine_config.hpp>
+#include <Core/file_manager.hpp>
+#include <Core/global_config.hpp>
 #include <Core/logger.hpp>
 
 namespace Engine
@@ -11,13 +14,12 @@ namespace Engine
         return 0;
     }
 
-    void CommandLet::on_config_load()
-    {}
-
-    static void on_init()
+    CommandLet& CommandLet::load_configs()
     {
-        register_class(Engine::CommandLet);
+        global_config.load(FileManager::root_file_manager()->work_dir() / Path("configs/config.json"));
+        return *this;
     }
 
-    static InitializeController initializer(on_init);
+    implement_class(CommandLet, "Engine");
+    implement_default_initialize_class(CommandLet);
 }// namespace Engine

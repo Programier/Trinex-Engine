@@ -7,9 +7,15 @@
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/registrar.hpp>
 
 namespace Engine
 {
+
+    static bool object_comparator(const Object* o1, const Object* o2)
+    {
+        return o1->hash_index() < o2->hash_index();
+    }
 
     struct HeaderEntry : SerializableObject {
         String name       = "";
@@ -29,7 +35,7 @@ namespace Engine
                     return false;
 
                 name            = object->name();
-                class_name      = object->class_instance()->full_name();
+                class_name      = object->class_instance()->name();
                 compressed_size = compressed_data.size();
             }
 
@@ -71,7 +77,7 @@ namespace Engine
             if (object == nullptr)
                 return 0;
             return (sizeof(size_t) * 3) + object->name().length() + sizeof(offset) + sizeof(object_size) +
-                   object->class_instance()->full_name().length();
+                   object->class_instance()->name().length();
         }
     };
 
@@ -92,13 +98,22 @@ namespace Engine
         if (!object)
             return false;
 
+        for (const auto& pair : _M_filters.callbacks())
+        {
+            if (!pair.second(object))
+            {
+                error_log("Package", "The object '%s' does not match the filters", object->full_name().c_str());
+                return false;
+            }
+        }
+
         if (object->trinex_flag(TrinexObjectFlags::IsNeedDelete))
         {
             error_log("Package", "Cannot add object to package, wich marked for delete");
             return false;
         }
 
-        if (!autorename && _M_objects.contains(object->name()))
+        if (!autorename && contains_object(object->name()))
         {
             error_log("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
                       object->name().c_str());
@@ -107,16 +122,29 @@ namespace Engine
 
         if (object->_M_package)
         {
-            object->_M_package->_M_objects.erase(object->_M_name);
+            object->_M_package->remove_object(object);
         }
 
-        while (_M_objects.contains(object->_M_name))
+        while (contains_object(object->name()))
         {
-            object->_M_name += "_new";
+            object->name(object->name() + "_new");
         }
 
-        object->_M_package = this;
-        _M_objects.insert_or_assign(object->_M_name, object);
+        object->_M_package          = this;
+        object->_M_index_in_package = validate_index(lower_bound_of(object), object->hash_index());
+        if (object->_M_index_in_package == _M_objects.size())
+        {
+            _M_objects.push_back(object);
+        }
+        else
+        {
+            for (Index i = object->_M_index_in_package, j = _M_objects.size(); i < j; i++)
+            {
+                _M_objects[i]->_M_index_in_package += 1;
+            }
+
+            _M_objects.insert(_M_objects.begin() + object->_M_index_in_package, object);
+        }
         return true;
     }
 
@@ -125,19 +153,34 @@ namespace Engine
         if (!object || object->_M_package != this)
             return *this;
 
-        object->_M_package = nullptr;
-        _M_objects.erase(object->name());
+        if (object->_M_index_in_package < _M_objects.size() && _M_objects[object->_M_index_in_package] == object)
+        {
+            object->_M_package = nullptr;
 
-        Object::root_package()->add_object(object, true);
+            for (Index i = object->_M_index_in_package + 1, j = _M_objects.size(); i < j; i++)
+            {
+                _M_objects[i]->_M_index_in_package -= 1;
+            }
+
+            _M_objects.erase(_M_objects.begin() + object->_M_index_in_package);
+            object->_M_index_in_package = Constants::index_none;
+        }
+
         return *this;
     }
 
     Object* Package::get_object_by_name(const String& name) const
     {
-        auto it = _M_objects.find(name);
-        if (it == _M_objects.end())
+        if (_M_objects.empty())
             return nullptr;
-        return (*it).second;
+
+        Index index = lower_bound_of(name);
+        if (index >= _M_objects.size())
+        {
+            return nullptr;
+        }
+
+        return _M_objects[index]->name() == name ? _M_objects[index] : nullptr;
     }
 
 
@@ -163,7 +206,7 @@ namespace Engine
                                : nullptr;
     }
 
-    const Package::ObjectMap& Package::objects() const
+    const Vector<Object*>& Package::objects() const
     {
         return _M_objects;
     }
@@ -173,9 +216,9 @@ namespace Engine
         bool status = true;
         status      = status && Object::can_destroy(messages);
 
-        for (auto& pair : _M_objects)
+        for (Object* object : _M_objects)
         {
-            status = status && pair.second->can_destroy(messages);
+            status = status && object->can_destroy(messages);
         }
 
         return status;
@@ -183,6 +226,12 @@ namespace Engine
 
     bool Package::save(BufferWriter* writer) const
     {
+        if (!trinex_flag(TrinexObjectFlags::IsSerializable))
+        {
+            error_log("Package", "Package '%s' is not serializable!", full_name().c_str());
+            return false;
+        }
+
         if (this == root_package())
         {
             error_log("Package", "Cannot save root package! Please, use different package for saving!");
@@ -196,13 +245,13 @@ namespace Engine
         // Write objects into buffers
 
         size_t offset = sizeof(size_t);
-        for (auto& pair : _M_objects)
+        for (Object* object : _M_objects)
         {
-            if (pair.second->trinex_flag(TrinexObjectFlags::IsSerializable))
+            if (object->trinex_flag(TrinexObjectFlags::IsSerializable))
             {
                 HeaderEntry entry;
 
-                entry.object = pair.second;
+                entry.object = object;
                 VectorOutputStream temporary_stream;
                 BufferWriterWrapper<BufferWriter> temporary_buffer(temporary_stream);
 
@@ -281,7 +330,7 @@ namespace Engine
             if (!writer->write(reinterpret_cast<const byte*>(entry.compressed_data.data()),
                                entry.compressed_data.size()))
             {
-                error_log("Package", "Failed to write object '%s' to file!", entry.object->_M_name.c_str());
+                error_log("Package", "Failed to write object '%s' to file!", entry.object->name().c_str());
                 return status(false);
             }
         }
@@ -385,14 +434,14 @@ namespace Engine
 
         Archive ar(&reader_wrapper);
 
-        Class* object_class = Class::find_class(entry.class_name);
+        Class* object_class = Class::static_find_class(entry.class_name);
         if (object_class == nullptr)
         {
             error_log("Package", "Cannot find class '%s', skip loading!", entry.class_name.c_str());
             return false;
         }
 
-        entry.object = object_class->create_without_package();
+        entry.object = object_class->create_object();
 
         if (entry.object == nullptr)
         {
@@ -400,7 +449,7 @@ namespace Engine
             return false;
         }
 
-        entry.object->_M_name = std::move(entry.name);
+        entry.object->name(entry.name);
 
         if (!entry.object->archive_process(&ar))
         {
@@ -416,12 +465,18 @@ namespace Engine
 
     bool Package::load(BufferReader* reader, bool clean)
     {
+        if (!trinex_flag(TrinexObjectFlags::IsSerializable))
+        {
+            error_log("Package", "Cannot load package '%s', because package is not serializable!", full_name().c_str());
+            return false;
+        }
+
         if (clean)
         {
             while (!_M_objects.empty())
             {
-                _M_objects.begin()->second->mark_for_delete();
-                _M_objects.begin()->second->remove_from_package();
+                (*_M_objects.begin())->mark_for_delete();
+                (*_M_objects.begin())->remove_from_package();
             }
         }
 
@@ -452,7 +507,7 @@ namespace Engine
 
         for (HeaderEntry& entry : header)
         {
-            if (!_M_objects.contains(entry.name))
+            if (!contains_object(entry.name))
             {
                 bool loading_status = load_entry(&entry, &ar);
                 result_status       = (result_status ? loading_status : result_status);
@@ -465,11 +520,42 @@ namespace Engine
         return result_status;
     }
 
+    Identifier Package::add_filter(const Filter& filter)
+    {
+        return _M_filters.push(filter);
+    }
+
+    Package& Package::remove_filter(Identifier id)
+    {
+        _M_filters.remove(id);
+        return *this;
+    }
+
+    const CallBacks<bool(Object*)>& Package::filters() const
+    {
+        return _M_filters;
+    }
+
+    bool Package::contains_object(const Object* object) const
+    {
+        return (object ? find_object(object->name(), false) : nullptr) != nullptr;
+    }
+
+    bool Package::contains_object(const String& name) const
+    {
+        return find_object(name, false) != nullptr;
+    }
+
+
     Object* Package::load_object(const String& name, BufferReader* reader)
     {
-        auto it = _M_objects.find(name);
-        if (it != _M_objects.end())
-            return it->second;
+        {
+            Object* object = find_object(name, false);
+            if (object)
+            {
+                return object;
+            }
+        }
 
 
         auto load_object_from_entry_list = [&]() -> Object* {
@@ -520,24 +606,52 @@ namespace Engine
 
     Package::~Package()
     {
-        Package* next_package = const_cast<Package*>(root_package());
-        if (this == next_package)
-            next_package = nullptr;
+        //        Package* next_package = const_cast<Package*>(root_package());
+        //        if (this == next_package)
+        //            next_package = nullptr;
 
-        for (auto& pair : _M_objects)
-        {
-            pair.second->_M_package = next_package;
-        }
+        //        for (Object* object : _M_objects)
+        //        {
+        //            object->_M_package = next_package;
+        //        }
     }
 
-    void Package::on_class_register(void* registrar)
+    Index Package::lower_bound_of(HashIndex hash) const
     {
-        registrar_of(Package, registrar)
-                ->register_to_lua()
-                .set("add_object", &Package::add_object)
-                .set("remove_object", &Package::remove_object);
+        Object* noname  = Object::noname_object();
+        noname->_M_hash = hash;
+        return lower_bound_of(noname);
     }
 
-    static InitializeController initializer = register_class(Engine::Package);
+    Index Package::lower_bound_of(const Object* object) const
+    {
+        auto it = std::lower_bound(_M_objects.begin(), _M_objects.end(), object, object_comparator);
+        if (it == _M_objects.end())
+        {
+            return Constants::index_none;
+        }
+
+        return it - _M_objects.begin();
+    }
+
+    Index Package::lower_bound_of(const String& name) const
+    {
+        return lower_bound_of(Object::hash_of_name(name));
+    }
+
+    Index Package::validate_index(Index index, HashIndex hash) const
+    {
+        if (index < _M_objects.size())
+            return index;
+        if (_M_objects.empty())
+            return 0;
+
+        return hash > _M_objects[0]->hash_index() ? _M_objects.size() : 0;
+    }
+
+
+    implement_class(Package, "Engine");
+    implement_initialize_class(Package)
+    {}
 
 }// namespace Engine

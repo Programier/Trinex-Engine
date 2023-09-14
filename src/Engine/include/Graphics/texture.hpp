@@ -2,13 +2,12 @@
 #include <Core/api_object.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/render_types.hpp>
-#include <Core/texture_types.hpp>
 #include <Core/resource.hpp>
+#include <Core/texture_types.hpp>
 
 namespace Engine
 {
-    struct ENGINE_EXPORT TextureResources : public SerializableObject
-    {
+    struct ENGINE_EXPORT TextureResources : public SerializableObject {
         TextureCreateInfo info;
         Vector<class Image> images;
 
@@ -21,14 +20,14 @@ namespace Engine
 
     class ENGINE_EXPORT Texture : public Resource<TextureResources, ApiObject>
     {
+        declare_class(Texture, ApiObject);
+
     protected:
         TextureType _M_type = TextureType::Texture2D;
         PixelType _M_pixel_type;
 
 
     public:
-        using Super = ApiObject;
-
         Texture();
         delete_copy_constructors(Texture);
 

@@ -75,4 +75,14 @@ namespace Engine
 
     template<typename T>
     inline constexpr bool has_super_type_v = has_super_type<T>::value;
+
+    template <typename, typename = std::void_t<>>
+    struct is_singletone : std::false_type {};
+
+    template <typename T>
+    struct is_singletone<T, std::void_t<decltype(T::singletone)>> : std::true_type {};
+
+    template<typename T>
+    inline constexpr bool is_singletone_v = is_singletone<T>::value;
 }// namespace Engine
+

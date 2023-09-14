@@ -7,6 +7,7 @@ namespace Engine
 
     class ENGINE_EXPORT Camera : public Actor
     {
+        declare_class(Camera, Actor);
     private:
         EulerAngle1D _M_viewing_angle;
         Distance _M_max_render_distance = 100.0f, _M_min_render_distance = 0.5f;
@@ -16,8 +17,6 @@ namespace Engine
 
         Camera& update_projection_matrix();
     public:
-        using Super = Actor;
-
         delete_copy_constructors(Camera);
         Camera(Point3D position = {0.f, 0.f, 0.f}, float fov = glm::radians(90.f));
         Distance& max_render_distance();
@@ -35,12 +34,9 @@ namespace Engine
         const Matrix4f& projview();
         float aspect() const;
         Camera& aspect(float value);
-        Camera& update() override;
+        Camera& update(float dt) override;
 
         bool archive_process(Archive* archive) override;
-        static void on_class_register(void*);
-
         ~Camera();
     };
-
 }// namespace Engine

@@ -1,18 +1,19 @@
 #pragma once
+#include <any>
 #include <array>
+#include <bitset>
+#include <filesystem>
 #include <forward_list>
+#include <functional>
 #include <list>
 #include <map>
+#include <memory>
 #include <set>
 #include <span>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <bitset>
 #include <vector>
-#include <tuple>
-#include <memory>
-#include <filesystem>
-#include <functional>
 
 
 namespace Engine
@@ -69,25 +70,28 @@ namespace Engine
     template<typename Signature>
     using Function = std::function<Signature>;
 
-    template <typename Type>
-    void fake_delete(Type *)
+    template<typename Type>
+    void fake_delete(Type*)
     {}
 
-    template <typename Type>
+    template<typename Type>
     void delete_value(Type* value)
     {
         delete value;
     }
 
-    template <typename Type>
-    void delete_array(Type *array)
+    template<typename Type>
+    void delete_array(Type* array)
     {
         delete[] array;
     }
 
     namespace FS = std::filesystem;
 
-    using Path = FS::path;
-    using DirectoryIterator = FS::directory_iterator;
+    using Path                       = FS::path;
+    using DirectoryIterator          = FS::directory_iterator;
     using RecursiveDirectoryIterator = FS::recursive_directory_iterator;
+
+    using Any = std::any;
+
 }// namespace Engine

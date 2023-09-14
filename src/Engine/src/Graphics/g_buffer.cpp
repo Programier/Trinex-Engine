@@ -1,4 +1,5 @@
 #include <Core/engine_config.hpp>
+#include <Core/string_functions.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Window/monitor.hpp>
@@ -9,9 +10,10 @@ namespace Engine
 
 
     static void create_texture(Pointer<Texture2D>& texture, const Size2D& size, PixelType pixel_type,
-                               PixelComponentType component_type)
+                               PixelComponentType component_type, const String& name)
     {
-        texture                 = Object::new_instance<Texture2D>();
+        texture = Object::new_instance<Texture2D>();
+        texture->name(name);
         TextureCreateInfo& info = texture->resources(true)->info;
 
         info.size                 = size;
@@ -22,13 +24,17 @@ namespace Engine
         texture->delete_resources();
     }
 
-    static void init_buffer_data(GBufferData& data, const Size2D& size)
+    static void init_buffer_data(GBufferData& data, const Size2D& size, int index)
     {
-        create_texture(data.albedo, size, PixelType::RGBA, PixelComponentType::UnsignedByte);
-        create_texture(data.position, size, PixelType::RGBA, PixelComponentType::Float16);
-        create_texture(data.normal, size, PixelType::RGBA, PixelComponentType::Float16);
-        create_texture(data.specular, size, PixelType::RGBA, PixelComponentType::UnsignedByte);
-        create_texture(data.depth, size, PixelType::DepthStencil, PixelComponentType::Depth32F_Stencil8);
+#define new_name(n) Strings::format(n " Texture {}", index)
+
+        create_texture(data.albedo, size, PixelType::RGBA, PixelComponentType::UnsignedByte, new_name("Albedo"));
+        create_texture(data.position, size, PixelType::RGBA, PixelComponentType::Float16, new_name("Position"));
+        create_texture(data.normal, size, PixelType::RGBA, PixelComponentType::Float16, new_name("Normal"));
+        create_texture(data.specular, size, PixelType::RGBA, PixelComponentType::UnsignedByte, new_name("Specular"));
+        create_texture(data.depth, size, PixelType::DepthStencil, PixelComponentType::Depth32F_Stencil8,
+                       new_name("Depth"));
+#undef new_name
     }
 
     ENGINE_EXPORT void GBuffer::init_g_buffer()
@@ -55,7 +61,7 @@ namespace Engine
         for (int i = 0; i < 3; i++)
         {
             GBufferData& data = _M_g_buffer->_M_buffer_data[i];
-            init_buffer_data(data, info.size);
+            init_buffer_data(data, info.size, i);
 
 
             info.buffers[i].color_attachments.resize(4);

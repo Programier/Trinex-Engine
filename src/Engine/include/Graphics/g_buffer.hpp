@@ -32,7 +32,7 @@ namespace Engine
         const GBufferData& previous_buffer_data();
         GBuffer& bind();
 
-        friend class Window;
+        friend class EngineInstance;
         friend class Object;
     };
 }// namespace Engine

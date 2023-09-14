@@ -1,51 +1,58 @@
 #include <Core/engine.hpp>
-#include <SDL.h>
 #include <Window/monitor.hpp>
+#include <Window/window.hpp>
 
 namespace Engine
 {
     // Monitor init
     namespace Monitor
     {
-        SDL_DisplayMode mode;
-        DPI display_dpi;
+        static MonitorInfo monitor_info;
 
         ENGINE_EXPORT void update()
         {
-            SDL_GetCurrentDisplayMode(0, &mode);
-            SDL_GetDisplayDPI(0, &display_dpi.ddpi, &display_dpi.hdpi, &display_dpi.vdpi);
+            Window* window = engine_instance->window();
+            if (window)
+            {
+                window->update_monitor_info(monitor_info);
+            }
         }
 
         ENGINE_EXPORT uint_t height()
         {
-            return static_cast<uint_t>(mode.h);
+            return monitor_info.height;
         }
 
         ENGINE_EXPORT uint_t width()
         {
-            return static_cast<uint_t>(mode.w);
+            return monitor_info.width;
         }
 
         ENGINE_EXPORT int_t refresh_rate()
         {
-            return mode.refresh_rate;
+            return monitor_info.refresh_rate;
         }
 
         ENGINE_EXPORT Size2D size()
         {
-            return {width(), height()};
+            return {static_cast<float>(monitor_info.width), static_cast<float>(monitor_info.height)};
         }
 
         ENGINE_EXPORT const DPI& dpi()
         {
-            return display_dpi;
+            return monitor_info.dpi;
+        }
+
+        ENGINE_EXPORT const MonitorInfo& info()
+        {
+            return monitor_info;
         }
 
         ENGINE_EXPORT Size2D physical_size(PhysicalSizeMetric metric)
         {
             Size2D inches = size();
-            inches.x /= display_dpi.hdpi;
-            inches.y /= display_dpi.vdpi;
+            inches.x /= monitor_info.dpi.hdpi;
+            inches.y /= monitor_info.dpi.vdpi;
 
             if (metric == PhysicalSizeMetric::Сentimeters)
             {

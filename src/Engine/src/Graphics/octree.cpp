@@ -4,19 +4,11 @@
 
 namespace Engine
 {
-    void OctreeBase::on_class_register(void*)
-    {}
+    implement_class(OctreeBase, "Engine");
+    implement_class(OctreeBaseNode, "Engine");
+    implement_default_initialize_class(OctreeBase);
+    implement_default_initialize_class(OctreeBaseNode);
 
-    void OctreeBaseNode::on_class_register(void*)
-    {}
-
-    static void on_init()
-    {
-        register_class(Engine::OctreeBase);
-        register_class(Engine::OctreeBaseNode);
-    }
-
-    static InitializeController initializer(on_init);
 
     OctreeBase::OctreeBase(float min_size)
     {

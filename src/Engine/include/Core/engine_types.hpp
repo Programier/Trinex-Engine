@@ -1,7 +1,8 @@
 #pragma once
 
+#include <Core/etl/helpers.hpp>
 #include <Core/etl/stl_wrapper.hpp>
-#include <Core/predef.hpp>
+#include <Core/definitions.hpp>
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -63,6 +64,7 @@ namespace Engine
     using Counter             = size_t;
     using Index               = size_t;
     using MaterialLayoutIndex = size_t;
+    using HashIndex           = size_t;
 
 
     using Quaternion = glm::quat;
@@ -142,8 +144,16 @@ namespace Engine
     using ushort_t = std::uint16_t;
     using int_t    = std::int32_t;
     using uint_t   = std::uint32_t;
+    using int8_t   = std::int8_t;
+    using uint8_t  = std::uint8_t;
+    using int16_t  = std::int16_t;
+    using uint16_t = std::uint16_t;
+    using int32_t  = std::int32_t;
+    using uint32_t = std::uint32_t;
     using int64_t  = std::int64_t;
     using uint64_t = std::uint64_t;
+
+    using ScriptObjectAddress = void*;
 
 
     enum class Coord
@@ -215,6 +225,13 @@ namespace Engine
         const char* name;
         AccessType access;
         bool is_serializable;
+    };
+
+    struct EmptyStruct {
+    };
+
+    class EmptyClass
+    {
     };
 
     using ObjectArray = Vector<class Object*>;

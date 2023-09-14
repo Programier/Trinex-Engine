@@ -5,12 +5,8 @@
 
 namespace Engine
 {
-    static void on_init()
-    {
-        register_class(Engine::TextureCubeMap);
-    }
-
-    static InitializeController initializer(on_init);
+    implement_class(TextureCubeMap, "Engine");
+    implement_default_initialize_class(TextureCubeMap);
 
     TextureCubeMap::TextureCubeMap()
     {

@@ -2,6 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/transform.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
 namespace Engine
@@ -41,7 +42,7 @@ namespace Engine
     }
 
 
-    Transform& Transform::move(const Point1D& x, const Point1D& y, const Point1D& z, bool add_values)
+    Transform& Transform::move(Point1D x, Point1D y, Point1D z, bool add_values)
     {
         return move({x, y, z}, Constants::OX, Constants::OY, Constants::OZ, add_values);
     }
@@ -51,8 +52,8 @@ namespace Engine
         return move(move_vector, Constants::OX, Constants::OY, Constants::OZ, add_values);
     }
 
-    Transform& Transform::move(const Point1D& x, const Point1D& y, const Point1D& z, const Vector3D& right,
-                               const Vector3D& up, const Vector3D& front, bool add_values)
+    Transform& Transform::move(Point1D x, Point1D y, Point1D z, const Vector3D& right, const Vector3D& up,
+                               const Vector3D& front, bool add_values)
     {
         return move({x, y, z}, right, up, front, add_values);
     }
@@ -65,7 +66,7 @@ namespace Engine
         return *this;
     }
 
-    Transform& Transform::move(const Distance& distance, const Vector3D& axis, bool add_value)
+    Transform& Transform::move(Distance distance, const Vector3D& axis, bool add_value)
     {
         return move(axis * distance, Constants::OX, Constants::OY, Constants::OZ, add_value);
     }
@@ -86,7 +87,7 @@ namespace Engine
         return *this;
     }
 
-    Transform& Transform::scale(const Scale1D& x, const Scale1D& y, const Scale1D& z, bool add_values)
+    Transform& Transform::scale(float x, float y, float z, bool add_values)
     {
         return scale({x, y, z}, add_values);
     }
@@ -96,7 +97,7 @@ namespace Engine
         return glm::eulerAngles(_M_quaternion);
     }
 
-    Transform& Transform::rotate(const EulerAngle1D& x, const EulerAngle1D& y, const EulerAngle1D& z, bool add_values)
+    Transform& Transform::rotate(float x, float y, float z, bool add_values)
     {
         return rotate({x, y, z}, add_values);
     }
@@ -106,7 +107,7 @@ namespace Engine
         return rotate(Quaternion(r), add_values);
     }
 
-    Transform& Transform::rotate(const EulerAngle1D& angle, const Vector3D& axis, bool add_values)
+    Transform& Transform::rotate(float angle, const Vector3D& axis, bool add_values)
     {
         glm::quat q = glm::rotate(glm::quat(Constants::zero_vector), angle, axis);
         return rotate(q, add_values);
@@ -172,53 +173,73 @@ namespace Engine
         return static_cast<bool>(ar);
     }
 
-    static void on_init()
+
+    static Transform& op_assign(Transform* _this, const Transform& obj)
     {
-        Lua::Class<Transform> transform_class = Lua::Interpretter::lua_class_of<Transform>("Engine::Transform");
-
-        transform_class.set("matrix", &Transform::matrix);
-        transform_class.set("is_modified", &Transform::is_modified);
-
-        // Move methods
-        Transform& (Transform::*move1)(const Point1D&, const Point1D&, const Point1D&, bool) = &Transform::move;
-        Transform& (Transform::*move2)(const Vector3D&, bool)                                = &Transform::move;
-        Transform& (Transform::*move3)(const Point1D&, const Point1D&, const Point1D&, const Vector3D&, const Vector3D&,
-                                       const Vector3D&, bool)                                = &Transform::move;
-
-        Transform& (Transform::*move4)(const Vector3D&, const Vector3D&, const Vector3D&, const Vector3D&, bool) =
-                &Transform::move;
-        Transform& (Transform::*move5)(const Distance&, const Vector3D&, bool) = &Transform::move;
-
-        transform_class.set("move", Lua::overload(move1, move2, move3, move4, move5));
-        transform_class.set("position", &Transform::position);
-
-        // Scale methods
-
-        const Scale3D& (Transform::*scale1)() const                                           = &Transform::scale;
-        Transform& (Transform::*scale2)(const Scale3D&, bool)                                 = &Transform::scale;
-        Transform& (Transform::*scale3)(const Scale1D&, const Scale1D&, const Scale1D&, bool) = &Transform::scale;
-
-        transform_class.set("scale", Lua::overload(scale1, scale2, scale3));
-
-        // Rotation methods
-
-        transform_class.set("euler_angles", &Transform::euler_angles);
-        transform_class.set("quaternion", &Transform::quaternion);
-        transform_class.set("front_vector", &Transform::front_vector);
-        transform_class.set("right_vector", &Transform::right_vector);
-        transform_class.set("up_vector", &Transform::up_vector);
-
-        Transform& (Transform::*rotate1)(const EulerAngle1D&, const EulerAngle1D&, const EulerAngle1D&, bool) =
-                &Transform::rotate;
-        Transform& (Transform::*rotate2)(const EulerAngle3D&, bool)                  = &Transform::rotate;
-        Transform& (Transform::*rotate3)(const EulerAngle1D&, const Vector3D&, bool) = &Transform::rotate;
-        Transform& (Transform::*rotate4)(const Quaternion&, bool)                    = &Transform::rotate;
-
-        transform_class.set("rotate", Lua::overload(rotate1, rotate2, rotate3, rotate4));
-
-        transform_class.set("as_string", &Transform::as_string);
-        transform_class.set(Lua::meta_function::to_string, &Transform::as_string);
+        (*_this) = obj;
+        return *_this;
     }
 
-    static InitializeController init(on_init);
+    static void on_init()
+    {
+        Transform& (Transform::*move1)(Point1D, Point1D, Point1D, bool) = &Transform::move;
+        Transform& (Transform::*move2)(const Vector3D&, bool)           = &Transform::move;
+        Transform& (Transform::*move3)(Point1D, Point1D, Point1D, const Vector3D&, const Vector3D&, const Vector3D&,
+                                       bool)                            = &Transform::move;
+        Transform& (Transform::*move4)(const Vector3D&, const Vector3D&, const Vector3D&, const Vector3D&, bool) =
+                &Transform::move;
+        Transform& (Transform::*move5)(Distance, const Vector3D&, bool) = &Transform::move;
+        const Scale3D& (Transform::*scale1)() const                     = &Transform::scale;
+        Transform& (Transform::*scale2)(const Scale3D&, bool)           = &Transform::scale;
+        Transform& (Transform::*scale3)(float, float, float, bool)      = &Transform::scale;
+        Transform& (Transform::*rotate1)(float, float, float, bool)     = &Transform::rotate;
+        Transform& (Transform::*rotate2)(const EulerAngle3D&, bool)     = &Transform::rotate;
+        Transform& (Transform::*rotate3)(float, const Vector3D&, bool)  = &Transform::rotate;
+        Transform& (Transform::*rotate4)(const Quaternion&, bool)       = &Transform::rotate;
+
+
+        ScriptClassRegistrar registrar("Engine::Transform",
+                                       ScriptClassRegistrar::create_type_info<Transform>(ScriptClassRegistrar::Value));
+
+        registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform& in)",
+                         ScriptClassRegistrar::constructor<Transform, const Transform&>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+
+        registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign,
+                         ScriptCallConv::CDECL_OBJFIRST);
+
+        registrar.method("const Engine::Matrix4f& matrix() const", &Transform::matrix, ScriptCallConv::THISCALL);
+        registrar.method("bool is_modified() const", &Transform::is_modified, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(float, float, float, bool = true) const", move1, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(const Vector3D&, bool = true) const", move2, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(float, float, float,  const Vector3D&, const Vector3D&, const Vector3D&, "
+                         "bool = true) const",
+                         move3, ScriptCallConv::THISCALL);
+        registrar.method(
+                "Transform& move(const Vector3D&, const Vector3D&, const Vector3D&, const Vector3D&, bool = true)",
+                move4, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(float, const Vector3D&, bool = true)", move5, ScriptCallConv::THISCALL);
+        registrar.method("const Vector3D& position() const", &Transform::position, ScriptCallConv::THISCALL);
+        registrar.method("const Vector3D& scale() const", scale1, ScriptCallConv::THISCALL);
+        registrar.method("Vector3D up_vector() const", &Transform::front_vector, ScriptCallConv::THISCALL);
+        registrar.method("Vector3D right_vector() const", &Transform::right_vector, ScriptCallConv::THISCALL);
+        registrar.method("Vector3D front_vector() const", &Transform::up_vector, ScriptCallConv::THISCALL);
+        registrar.method("Vector3D euler_angles() const", &Transform::euler_angles, ScriptCallConv::THISCALL);
+        registrar.method("string as_string() const", &Transform::as_string, ScriptCallConv::THISCALL);
+        registrar.method("const Quaternion& quaternion() const", &Transform::quaternion, ScriptCallConv::THISCALL);
+
+
+        registrar.method("Transform& scale(const Vector3D& , bool = true)", scale2, ScriptCallConv::THISCALL);
+        registrar.method("Transform& scale(float, float, float, bool = true)", scale3, ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(float, float, float, bool = true)", rotate1, ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(const Vector3D&, bool = true)", rotate2, ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(float, const Vector3D&, bool = true)", rotate3, ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(const Quaternion&, bool = true)", rotate4, ScriptCallConv::THISCALL);
+    }
+
+    static InitializeController init(on_init, "Bind Engine::Transform", {"Bind Engine::Matrix", "Bind Engine::Vector"});
 }// namespace Engine

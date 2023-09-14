@@ -21,8 +21,9 @@ namespace Engine
 
     class ENGINE_EXPORT Material : public ShaderResource
     {
+        declare_class(Material, Object);
+
     public:
-        using Super       = Object;
         using TexturesMap = TreeMap<BindingIndex, Pointer<Texture>>;
 
     private:
@@ -32,15 +33,13 @@ namespace Engine
     public:
         MaterialApplier* create_material_applier(MeshComponent* mesh);
         const Material& apply_resources() const;
-        bool archive_process(Archive* archive);
+        bool archive_process(Archive* archive) override;
 
         Material& add_texture(BindingIndex index, Texture* texture);
         Material& remove_texture(BindingIndex index);
         const TexturesMap& textures() const;
 
         ~Material();
-
-        static void on_class_register(void*);
     };
 
 

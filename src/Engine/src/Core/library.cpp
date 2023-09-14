@@ -91,7 +91,12 @@ namespace Engine
     Library& Library::load(const String& libname)
     {
         close();
-        String libnames[2] = {get_libname(libname, true), get_libname(libname, false)};
+        String libnames[2] =
+#if TRINEX_DEBUG_BUILD
+                {get_libname(libname, false), get_libname(libname, true)};
+#else
+                {get_libname(libname, true), get_libname(libname, false)};
+#endif
 
         bool is_new_load = false;
         for (auto& name : libnames)
