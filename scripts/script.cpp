@@ -1,20 +1,8 @@
-Engine::Transform transform;
-
-double factorial(double value)
+float script_function()
 {
-    return value < 1.0 ? 1.0 : value * factorial(value - 1.0);
-}
+    Engine::Vector3D vector(1.0);
+    float l = glm::length(vector);
+    print(l);
 
-
-
-void script_function()
-{
-    Engine::Object@ object = Engine::Object::find_object("TestResources::Camera");
-    string name = "NULL VALUE";
-    if(@object != null)
-    {
-        name = object.as_string();
-    }
-
-    printf("Hello World %0", name);
+    return l;
 }

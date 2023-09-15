@@ -1129,12 +1129,7 @@ namespace Engine
 }// namespace Engine
 
 
-#ifndef ENABLE_ENGINE_EXPORTS
-#define ENABLE_ENGINE_EXPORTS
-#endif
-
-
-extern "C" ENGINE_EXPORT Engine::WindowInterface* load_window_system()
+extern "C" FORCE_ENGINE_EXPORT Engine::WindowInterface* load_window_system()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
     return new Engine::WindowSDL();

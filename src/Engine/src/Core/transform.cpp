@@ -215,14 +215,16 @@ namespace Engine
         registrar.method("const Engine::Matrix4f& matrix() const", &Transform::matrix, ScriptCallConv::THISCALL);
         registrar.method("bool is_modified() const", &Transform::is_modified, ScriptCallConv::THISCALL);
         registrar.method("Transform& move(float, float, float, bool = true) const", move1, ScriptCallConv::THISCALL);
-        registrar.method("Transform& move(const Vector3D&, bool = true) const", move2, ScriptCallConv::THISCALL);
-        registrar.method("Transform& move(float, float, float,  const Vector3D&, const Vector3D&, const Vector3D&, "
+        registrar.method("Transform& move(const Vector3D& in, bool = true) const", move2, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(float, float, float, "
+                         "const Vector3D& in, const Vector3D& in, const Vector3D& in, "
                          "bool = true) const",
                          move3, ScriptCallConv::THISCALL);
-        registrar.method(
-                "Transform& move(const Vector3D&, const Vector3D&, const Vector3D&, const Vector3D&, bool = true)",
-                move4, ScriptCallConv::THISCALL);
-        registrar.method("Transform& move(float, const Vector3D&, bool = true)", move5, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(const Vector3D& in,"
+                         "const Vector3D& in, const Vector3D& in, const Vector3D& in, "
+                         "bool = true)",
+                         move4, ScriptCallConv::THISCALL);
+        registrar.method("Transform& move(float, const Vector3D& in, bool = true)", move5, ScriptCallConv::THISCALL);
         registrar.method("const Vector3D& position() const", &Transform::position, ScriptCallConv::THISCALL);
         registrar.method("const Vector3D& scale() const", scale1, ScriptCallConv::THISCALL);
         registrar.method("Vector3D up_vector() const", &Transform::front_vector, ScriptCallConv::THISCALL);
@@ -233,13 +235,15 @@ namespace Engine
         registrar.method("const Quaternion& quaternion() const", &Transform::quaternion, ScriptCallConv::THISCALL);
 
 
-        registrar.method("Transform& scale(const Vector3D& , bool = true)", scale2, ScriptCallConv::THISCALL);
+        registrar.method("Transform& scale(const Vector3D& in, bool = true)", scale2, ScriptCallConv::THISCALL);
         registrar.method("Transform& scale(float, float, float, bool = true)", scale3, ScriptCallConv::THISCALL);
         registrar.method("Transform& rotate(float, float, float, bool = true)", rotate1, ScriptCallConv::THISCALL);
-        registrar.method("Transform& rotate(const Vector3D&, bool = true)", rotate2, ScriptCallConv::THISCALL);
-        registrar.method("Transform& rotate(float, const Vector3D&, bool = true)", rotate3, ScriptCallConv::THISCALL);
-        registrar.method("Transform& rotate(const Quaternion&, bool = true)", rotate4, ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(const Vector3D& in, bool = true)", rotate2, ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(float, const Vector3D& in, bool = true)", rotate3,
+                         ScriptCallConv::THISCALL);
+        registrar.method("Transform& rotate(const Quaternion& in, bool = true)", rotate4, ScriptCallConv::THISCALL);
     }
 
-    static InitializeController init(on_init, "Bind Engine::Transform", {"Bind Engine::Matrix", "Bind Engine::Vector"});
+    static InitializeController init(on_init, "Bind Engine::Transform",
+                                     {"Bind Engine::Matrix", "Bind Engine::Vector", "Bind Engine::Quaternion"});
 }// namespace Engine

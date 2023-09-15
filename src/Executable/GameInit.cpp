@@ -196,7 +196,9 @@ namespace Engine
 
             if (i % 20 == 0)
             {
-                script_function.prepare().call().unbind_context();
+                script_function.prepare().call();
+                logger->log("Script", "Script result: %f", script_function.result_float());
+                script_function.unbind_context();
             }
 
             Super::update(dt);
@@ -358,18 +360,6 @@ namespace Engine
 
     int_t GameInit::execute(int_t argc, char** argv)
     {
-
-
-        JSON::Object object;
-        object.load("/home/programier/Projects/C++/TrinexEngine/config.json");
-        info_log("WindowSizeX", "%d",
-                 object.at("Window")
-                         .get<const JSON::Object&>()
-                         .at("size")
-                         .get<const JSON::Object&>()
-                         .at("x")
-                         .get<JSON::JsonInt>());
-
         //        Events::on_quit.push(on_close);
         //        Events::on_terminate.push(on_terminate);
         //        Events::on_pause.push(on_pause);

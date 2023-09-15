@@ -104,6 +104,8 @@ namespace Engine
         const String& class_base_name() const;
         const String& class_name() const;
 
+        static ENGINE_EXPORT void global_namespace_name(const String& name);
+
 
         // Method registration
         template<typename ReturnType, typename ClassType, typename... Args>

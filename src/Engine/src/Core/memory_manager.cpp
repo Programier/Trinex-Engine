@@ -6,13 +6,30 @@
 #include <malloc.h>
 #include <mutex>
 
+#if PLATFORM_WINDOWS
+#include <windows.h>
+
+#include <psapi.h>
+#endif
+
 static std::mutex mutex;
 
 namespace Engine
 {
     FORCE_INLINE size_t private_allocated_size()
     {
+#if PLATFORM_WINDOWS
+        PROCESS_MEMORY_COUNTERS_EX memoryInfo;
+        if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*) &memoryInfo, sizeof(memoryInfo)))
+        {
+            return static_cast<size_t>(memoryInfo.PrivateUsage);
+        }
+
+        // Handle error
+        return 0;
+#else
         return mallinfo2().uordblks;
+#endif
     }
 
     MemoryManager::MemoryManager() = default;

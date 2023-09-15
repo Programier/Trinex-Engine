@@ -145,12 +145,12 @@ namespace Engine
             return s.str();                                                                                            \
         }                                                                                                              \
                                                                                                                        \
-        const name::col_type& value_at(uint index) const                                                               \
+        const name::col_type& value_at(uint_t index) const                                                             \
         {                                                                                                              \
             return obj()[index];                                                                                       \
         }                                                                                                              \
                                                                                                                        \
-        name::col_type& value_at(uint index)                                                                           \
+        name::col_type& value_at(uint_t index)                                                                         \
         {                                                                                                              \
             return obj()[index];                                                                                       \
         }                                                                                                              \

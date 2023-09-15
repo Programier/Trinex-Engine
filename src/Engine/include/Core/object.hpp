@@ -410,6 +410,7 @@ private:
             if constexpr (This::initialize_script_bindings<This> != Super::initialize_script_bindings<This>)           \
             {                                                                                                          \
                 This::initialize_script_bindings<This>(_M_static_class);                                               \
+                Engine::ScriptClassRegistrar::global_namespace_name("");                                               \
             }                                                                                                          \
         }                                                                                                              \
         return _M_static_class;                                                                                        \

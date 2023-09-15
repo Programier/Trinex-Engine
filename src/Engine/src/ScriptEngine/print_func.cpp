@@ -395,8 +395,6 @@ static std::string PrettyPrintingF(std::string* This, IN_ARGS_16)
 void Print::asRegister(asIScriptEngine* engine)
 {
     int r;
-
-
     r = engine->RegisterObjectBehaviour("string", asBEHAVE_CONSTRUCT, "void f(const ?&in, " INS_15 ")",
                                         asFUNCTION(PrettyPrinting), asCALL_CDECL_OBJLAST);
     assert(r >= 0);

@@ -3,8 +3,8 @@
 #include <string.h>// strstr()
 
 #if defined(_WIN32)
-#include <Windows.h>// FindFirstFile, GetFileAttributes
 #include <direct.h> // _getcwd
+#include <windows.h>// FindFirstFile, GetFileAttributes
 
 #undef DeleteFile
 #undef CopyFile

@@ -2,7 +2,6 @@
 #include "bind_glm_functions.hpp"
 #include <Core/engine_loading_controllers.hpp>
 
-
 namespace Engine
 {
 

@@ -77,8 +77,6 @@ namespace Engine
     template<typename T, typename GLM, size_t flags = All>
     void bind_wrapped_functions(const String& name, const String& vtype)
     {
-
-
         ScriptEngine::NamespaceSaverScoped saver;
         ScriptEngine* engine = ScriptEngine::instance();
         engine->default_namespace("glm");

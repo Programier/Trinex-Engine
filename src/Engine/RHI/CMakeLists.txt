@@ -6,5 +6,5 @@ endif()
 
 # Compile Vulkan library (Windows OS currently not supported)
 if(TRINEX_WITH_VULKAN)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Vulkan")
+    #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Vulkan")
 endif()

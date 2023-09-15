@@ -22,4 +22,6 @@ else()
     target_compile_options(WindowSystemSDL2 PRIVATE "-g")
 endif()
 
-target_link_options(WindowSystemSDL2 PUBLIC -rdynamic)
+if(UNIX)
+    target_link_options(WindowSystemSDL2 PUBLIC -rdynamic)
+endif()

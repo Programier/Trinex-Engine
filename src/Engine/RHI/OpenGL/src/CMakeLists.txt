@@ -29,4 +29,6 @@ else()
     target_compile_options(OpenGL PRIVATE "-g")
 endif()
 
-target_link_options(OpenGL PUBLIC -rdynamic)
+if(UNIX)
+    target_link_options(OpenGL PUBLIC -rdynamic)
+endif()

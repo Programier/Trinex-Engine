@@ -136,23 +136,20 @@ namespace Engine
 
         BasicLogger& debug(const char* tag, const char* format, ...)
         {
-#if TRINEX_DEBUG_BUILD
             va_list args;
             va_start(args, format);
             write_message(DEBUG_PRIO, tag, format, args, stdout, GREEN);
             va_end(args);
-#endif
+
             return *this;
         }
 
         BasicLogger& warning(const char* tag, const char* format, ...)
         {
-#if TRINEX_DEBUG_BUILD
             va_list args;
             va_start(args, format);
             write_message(WARNING_PRIO, tag, format, args, stdout, BLUE);
             va_end(args);
-#endif
             return *this;
         }
 

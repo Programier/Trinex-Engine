@@ -118,7 +118,9 @@ else()
     target_compile_options(TrinexEngine PRIVATE "-g")
 endif()
 
-target_link_options(TrinexEngine PUBLIC -rdynamic)
+if(UNIX)
+    target_link_options(TrinexEngine PUBLIC -rdynamic)
+endif()
 
 # Trinex Engine compile definitions
 target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS)
@@ -134,10 +136,10 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 
-# Include additional lib directory and include dir if build system is Windows OS
-if (WIN32)
-    target_link_directories(TrinexEngine "${TRINEX_ENGINE_ROOT}/libs/")
-endif()
+## Include additional lib directory and include dir if build system is Windows OS
+#if (WIN32)
+#    target_link_directories(TrinexEngine "${TRINEX_ENGINE_ROOT}/libs/")
+#endif()
 
 
 # Linking libraries and including directories

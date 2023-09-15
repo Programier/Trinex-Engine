@@ -153,6 +153,10 @@ namespace Engine
         return _M_class_name;
     }
 
+    ENGINE_EXPORT void ScriptClassRegistrar::global_namespace_name(const String& name)
+    {
+        ScriptEngine::instance()->default_namespace(name);
+    }
 
     static void static_declare_new_class(const String& class_namespace, const String& base_name,
                                          const ScriptClassRegistrar::ClassInfo& info)

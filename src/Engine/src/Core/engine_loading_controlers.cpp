@@ -62,35 +62,35 @@ namespace Engine
 
     ControllerBase& ControllerBase::require(const String& name)
     {
-        try
+        auto& initializers_list = convert_function_address(_M_func_address)();
+        auto it                 = initializers_list.find(name);
+        if (it == initializers_list.end())
+            return *this;
+
+        auto& list = it->second;
+
+        String class_name;
+        if (!name.empty() && !list.empty())
         {
-            auto& list = convert_function_address(_M_func_address)().at(name);
-
-            String class_name;
-            if (!name.empty() && !list.empty())
-            {
-                class_name = Demangle::decode_name(typeid(*this));
-            }
-
-            while (!list.empty())
-            {
-                CallbackEntry entry = list.front();
-                list.pop_front();
-
-                for (auto& initializer : entry.require_initializers)
-                {
-                    require(initializer);
-                }
-
-                if (!name.empty())
-                {
-                    debug_log(class_name.c_str(), "Executing initializer '%s'", name.c_str());
-                }
-                entry.function();
-            }
+            class_name = Demangle::decode_name(typeid(*this));
         }
-        catch (...)
-        {}
+
+        while (!list.empty())
+        {
+            CallbackEntry entry = list.front();
+            list.pop_front();
+
+            for (auto& initializer : entry.require_initializers)
+            {
+                require(initializer);
+            }
+
+            if (!name.empty())
+            {
+                debug_log(class_name.c_str(), "Executing initializer '%s'", name.c_str());
+            }
+            entry.function();
+        }
 
         return *this;
     }

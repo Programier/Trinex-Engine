@@ -9,7 +9,6 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
-
 namespace Engine
 {
     static void angel_script_callback(const asSMessageInfo* msg, void* param)
@@ -96,9 +95,11 @@ namespace Engine
 
     ScriptEngine::ScriptEngine()
     {
-        _M_engine = asCreateScriptEngine();
+        logger->log("ScriptEngine", "Created script engine [%p]", this);
+        _M_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
 
         _M_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
+        _M_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
 
         _M_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
         asInitializeAddons(_M_engine);

@@ -1,12 +1,19 @@
 #include <Core/demangle.hpp>
 #include <Core/stacktrace.hpp>
-#include <dlfcn.h>
-#include <execinfo.h>
 #include <sstream>
 
+#if PLATFORM_WINDOWS
+#else
+#include <dlfcn.h>
+#include <execinfo.h>
+#endif
 namespace Engine
 {
 
+#if PLATFORM_WINDOWS
+    StackTrace::StackTrace(uint_t skip)
+    {}
+#else
     StackTrace::StackTrace(uint_t skip)
     {
         void* callstack[2048];
@@ -33,6 +40,7 @@ namespace Engine
 
         free(symbols);
     }
+#endif
 
     const Vector<StackTrace::FunctionInfo>& StackTrace::callstack() const
     {

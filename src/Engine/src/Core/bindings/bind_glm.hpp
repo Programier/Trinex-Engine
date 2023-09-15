@@ -157,12 +157,12 @@ namespace Engine
             return s.str();                                                                                            \
         }                                                                                                              \
                                                                                                                        \
-        name::value_type value_at(uint index) const                                                                    \
+        name::value_type value_at(uint_t index) const                                                                    \
         {                                                                                                              \
             return obj()[index];                                                                                       \
         }                                                                                                              \
                                                                                                                        \
-        name::value_type& value_at(uint index)                                                                         \
+        name::value_type& value_at(uint_t index)                                                                         \
         {                                                                                                              \
             return obj()[index];                                                                                       \
         }                                                                                                              \
