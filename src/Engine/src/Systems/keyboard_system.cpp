@@ -12,7 +12,6 @@ namespace Engine
 
     void KeyboardSystem::on_key_pressed(const Event& event)
     {
-        info_log("", "PRESSED!");
         const KeyEvent& key_event = event.get<const KeyEvent&>();
         if (key_event.repeat)
         {

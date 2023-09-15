@@ -172,8 +172,7 @@ namespace Engine
             camera->ready();
 
 
-            FileReader* reader =
-                    new FileReader(FS::path("/home/programier/Projects/C++/TrinexEngine/scripts/script.cpp"));
+            FileReader* reader = new FileReader(FS::path("./scripts/script.cpp"));
             String code;
             code.resize(reader->size());
             reader->read((byte*) code.data(), code.size());
