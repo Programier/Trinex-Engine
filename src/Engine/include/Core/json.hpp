@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/any.hpp>
 
 
 namespace Engine::JSON
@@ -29,7 +30,7 @@ namespace Engine::JSON
     {
     private:
         ValueType _M_type;
-        std::any _M_value;
+        Any _M_value;
 
     public:
         Value();
@@ -63,13 +64,13 @@ namespace Engine::JSON
         template<typename T>
         T get()
         {
-            return std::any_cast<T>(_M_value);
+            return _M_value.checked_get<T>();
         }
 
         template<typename T>
         T get() const
         {
-            return std::any_cast<T>(_M_value);
+            return _M_value.checked_get<T>();
         }
 
         template<typename T>
@@ -77,7 +78,7 @@ namespace Engine::JSON
         {
             try
             {
-                return std::any_cast<T>(_M_value);
+                return _M_value.checked_get<T>();
             }
             catch (...)
             {

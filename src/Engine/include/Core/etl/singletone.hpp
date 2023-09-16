@@ -29,7 +29,7 @@ namespace Engine
 
                 if constexpr (std::is_base_of_v<Object, Type>)
                 {
-                    register_singletone_object(Type::_M_instance, ClassMetaData<Type>::find_class());
+                    register_singletone_object(Type::_M_instance, Type::static_class_instance());
                 }
             }
 

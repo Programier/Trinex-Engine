@@ -1,5 +1,4 @@
 #pragma once
-#include <any>
 #include <array>
 #include <bitset>
 #include <filesystem>
@@ -91,7 +90,4 @@ namespace Engine
     using Path                       = FS::path;
     using DirectoryIterator          = FS::directory_iterator;
     using RecursiveDirectoryIterator = FS::recursive_directory_iterator;
-
-    using Any = std::any;
-
 }// namespace Engine

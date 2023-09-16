@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
-#include <Core/etl/metadata.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/implement.hpp>
 #include <Core/memory_manager.hpp>
@@ -252,7 +251,7 @@ namespace Engine
         template<typename Type>
         typename std::enable_if<is_object_based<Type>::value, bool>::type is_instance_of() const
         {
-            return private_check_instance(ClassMetaData<Type>::find_class());
+            return private_check_instance(Type::static_class_instance());
         }
 
         template<typename Type>

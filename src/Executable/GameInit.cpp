@@ -172,7 +172,8 @@ namespace Engine
             camera->ready();
 
 
-            FileReader* reader = new FileReader(FS::path("./scripts/script.cpp"));
+            FileReader* reader =
+                    new FileReader(FileManager::root_file_manager()->work_dir() / FS::path("./scripts/script.cpp"));
             String code;
             code.resize(reader->size());
             reader->read((byte*) code.data(), code.size());
@@ -196,7 +197,6 @@ namespace Engine
             if (i % 20 == 0)
             {
                 script_function.prepare().call();
-                logger->log("Script", "Script result: %f", script_function.result_float());
                 script_function.unbind_context();
             }
 

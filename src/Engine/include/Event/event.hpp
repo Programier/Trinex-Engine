@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/etl/any.hpp>
 
 namespace Engine
 {
@@ -115,16 +116,18 @@ namespace Engine
         }
 
         EventType type() const;
+        const String& name() const;
         bool operator==(const Event& e);
         bool operator!=(const Event& e);
         ID id() const;
         ID base_id() const;
         ID child_id() const;
+        const Any& any() const;
 
         template<typename Type>
         Type get() const
         {
-            return std::any_cast<Type>(_M_any);
+            return _M_any.get<Type>();
         }
     };
 }// namespace Engine

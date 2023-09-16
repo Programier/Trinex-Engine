@@ -60,7 +60,14 @@ namespace Engine
         {
             for (const auto& listener : it->second.callbacks())
             {
-                listener.second(event);
+                try
+                {
+                    listener.second(event);
+                }
+                catch (...)
+                {
+                    error_log("EventSystem", "Failed to process event with type '%s'", event.name().c_str());
+                }
             }
         }
 

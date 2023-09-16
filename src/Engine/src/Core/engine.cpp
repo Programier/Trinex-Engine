@@ -25,12 +25,12 @@ namespace Engine
     extern void trinex_init_sdl();
     extern void trinex_terminate_sdl();
 
-    FORCE_INLINE std::chrono::system_clock::time_point current_time_point()
+    FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
     {
         return std::chrono::high_resolution_clock::now();
     }
 
-    std::chrono::system_clock::time_point start_time;
+    std::chrono::high_resolution_clock::time_point start_time;
 
 
     EngineInstance::EngineInstance()
@@ -168,7 +168,7 @@ namespace Engine
 
         if (!commandlet)
         {
-            commandlet = try_load_commandlet(engine_config.base_commandlet, commandlet_base_class);
+            commandlet = try_load_commandlet("GameInit", commandlet_base_class);
         }
 
         return commandlet;

@@ -16,6 +16,7 @@ namespace Engine
 #else
     StackTrace::StackTrace(uint_t skip)
     {
+#if !PLATFORM_ANDROID || ANDROID_API >= 33
         void* callstack[2048];
         uint_t frames = backtrace(callstack, 2048);
         if (frames < skip)
@@ -39,6 +40,7 @@ namespace Engine
         }
 
         free(symbols);
+#endif
     }
 #endif
 

@@ -48,5 +48,10 @@
 #define ALIGNED(value) __attribute((aligned(value)))
 #define FORCE_INLINE __attribute__((always_inline)) inline
 
-// USER SPECIFIC DEFINITIONS!
+#if PLATFORM_ANDROID
+#define ANDROID_API __ANDROID_API__
+#else
+#define ANDROID_API 0
+#endif
 
+// USER SPECIFIC DEFINITIONS!
