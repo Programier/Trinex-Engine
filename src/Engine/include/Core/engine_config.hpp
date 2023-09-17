@@ -7,7 +7,6 @@ namespace Engine
     struct ENGINE_EXPORT EngineConfig : public Config {
         String resources_dir;
         String api;
-        String base_commandlet;
         String lua_scripts_dir;
         String libraries_dir;
         String shader_compilers_lib;

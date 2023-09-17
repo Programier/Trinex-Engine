@@ -110,7 +110,7 @@ namespace Engine
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
-        void* init_window(WindowInterface* window) override;
+        void* init_window(WindowInterface* window, const WindowConfig& config) override;
         VulkanAPI& destroy_window() override;
         VulkanAPI& on_window_size_changed() override;
         VulkanAPI& swap_buffer() override;
@@ -119,7 +119,8 @@ namespace Engine
         VulkanAPI& framebuffer_viewport(const Identifier&, const ViewPort& viewport) override;
         VulkanAPI& bind_framebuffer(const Identifier& ID, size_t buffer_index) override;
         VulkanAPI& clear_color(const Identifier& ID, const ColorClearValue& color, byte layout) override;
-        VulkanAPI& swap_interval(int_t interval) override;
+        VulkanAPI& vsync(bool) override;
+        bool vsync() override;
         VulkanAPI& wait_idle() override;
 
         VulkanAPI& imgui_init() override;

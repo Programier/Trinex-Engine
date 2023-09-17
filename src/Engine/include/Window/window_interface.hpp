@@ -12,23 +12,23 @@ namespace Engine
 
     enum class WindowAttribute : EnumerateType
     {
-        WinNone                   = 0,
-        WinResizable              = 1,
-        WinFullScreen             = 2,
-        WinFullScreenDesktop      = 4,
-        WinShown                  = 8,
-        WinHidden                 = 16,
-        WinBorderLess             = 32,
-        WinMouseFocus             = 64,
-        WinInputFocus             = 128,
-        WinInputGrabbed           = 256,
-        WinMinimized              = 512,
-        WinMaximized              = 1024,
-        WinTransparentFramebuffer = 2048,
-        WinMouseCapture           = 4096,
-        WinAllowHighDPI           = 8192,
-        WinMouseGrabbed           = 16384,
-        WinKeyboardGrabbed        = 32768,
+        None                   = 0,
+        Resizable              = 1,
+        FullScreen             = 2,
+        FullScreenDesktop      = 3,
+        Shown                  = 4,
+        Hidden                 = 5,
+        BorderLess             = 6,
+        MouseFocus             = 7,
+        InputFocus             = 8,
+        InputGrabbed           = 9,
+        Minimized              = 10,
+        Maximized              = 11,
+        TransparentFramebuffer = 12,
+        MouseCapture           = 13,
+        AllowHighDPI           = 14,
+        MouseGrabbed           = 15,
+        KeyboardGrabbed        = 16,
     };
 
     enum class CursorMode : EnumerateType
@@ -39,10 +39,10 @@ namespace Engine
 
     enum class WindowOrientation : EnumerateType
     {
-        WinOrientationLandscape        = 1,
-        WinOrientationLandscapeFlipped = 2,
-        WinOrientationPortrait         = 4,
-        WinOrientationPortraitFlipped  = 8
+        Landscape        = 1,
+        LandscapeFlipped = 2,
+        Portrait         = 3,
+        PortraitFlipped  = 4
     };
 
     struct WindowConfig;
@@ -60,8 +60,8 @@ namespace Engine
         virtual WindowInterface& title(const String& title)                                              = 0;
         virtual Point2D position()                                                                       = 0;
         virtual WindowInterface& position(const Point2D& position)                                       = 0;
-        virtual bool rezisable()                                                                         = 0;
-        virtual WindowInterface& rezisable(bool value)                                                   = 0;
+        virtual bool resizable()                                                                         = 0;
+        virtual WindowInterface& resizable(bool value)                                                   = 0;
         virtual WindowInterface& focus()                                                                 = 0;
         virtual bool focused()                                                                           = 0;
         virtual WindowInterface& show()                                                                  = 0;
@@ -81,7 +81,7 @@ namespace Engine
         virtual bool attribute(const WindowAttribute& attrib)                                            = 0;
         virtual WindowInterface& cursor_mode(const CursorMode& mode)                                     = 0;
         virtual CursorMode cursor_mode()                                                                 = 0;
-        virtual WindowInterface& support_orientation(const Vector<WindowOrientation>& orientation)       = 0;
+        virtual bool support_orientation(WindowOrientation orientation)                                  = 0;
         virtual WindowInterface& start_text_input()                                                      = 0;
         virtual WindowInterface& stop_text_input()                                                       = 0;
         virtual WindowInterface& pool_events()                                                           = 0;
@@ -97,6 +97,8 @@ namespace Engine
         virtual bool mouse_relative_mode() const                                                         = 0;
         virtual WindowInterface& mouse_relative_mode(bool flag)                                          = 0;
         virtual WindowInterface& update_monitor_info(MonitorInfo& info)                                  = 0;
+        virtual WindowInterface& vsync(bool)                                                             = 0;
+        virtual bool vsync()                                                                             = 0;
 
         virtual ~WindowInterface() = default;
     };

@@ -27,6 +27,7 @@ namespace Engine
     const String Constants::package_extention         = ".tpk";
     const String Constants::name_separator            = "::";
     const PriorityIndex Constants::max_priority       = ~static_cast<PriorityIndex>(0);
+    const String Constants::default_commandlet        = "GameInit";
 
     static void on_init()
     {

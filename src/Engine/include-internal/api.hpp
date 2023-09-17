@@ -13,6 +13,7 @@ namespace Engine
 {
     class Logger;
     struct WindowInterface;
+    struct WindowConfig;
 }// namespace Engine
 
 #define VIRTUAL_METHOD = 0
@@ -21,7 +22,7 @@ namespace Engine::GraphicApiInterface
 {
     struct ENGINE_EXPORT ApiInterface {
         virtual ApiInterface& logger(Logger*&) VIRTUAL_METHOD;
-        virtual void* init_window(struct WindowInterface*) VIRTUAL_METHOD;
+        virtual void* init_window(struct WindowInterface*, const WindowConfig& config) VIRTUAL_METHOD;
         virtual ApiInterface& destroy_window() VIRTUAL_METHOD;
         virtual ApiInterface& destroy_object(Identifier&) VIRTUAL_METHOD;
         virtual ApiInterface& imgui_init() VIRTUAL_METHOD;
@@ -113,7 +114,8 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) VIRTUAL_METHOD;
 
         virtual ApiInterface& swap_buffer() VIRTUAL_METHOD;
-        virtual ApiInterface& swap_interval(int_t interval) VIRTUAL_METHOD;
+        virtual ApiInterface& vsync(bool) VIRTUAL_METHOD;
+        virtual bool vsync() VIRTUAL_METHOD;
         virtual ApiInterface& clear_color(const Identifier&, const ColorClearValue&, byte layout) VIRTUAL_METHOD;
         virtual ApiInterface& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) VIRTUAL_METHOD;
 

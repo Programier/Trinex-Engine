@@ -1,4 +1,5 @@
 
+#include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <cstring>
 #include <imgui_impl_opengl3.h>
@@ -64,10 +65,12 @@ namespace Engine
         return _M_extentions.contains(extension_name);
     }
 
-    void* OpenGL::init_window(WindowInterface* window)
+    void* OpenGL::init_window(WindowInterface* window, const WindowConfig& config)
     {
         if (_M_context)
             return _M_context;
+
+        window->vsync(config.vsync);
 
         _M_context = window->create_surface("");
         opengl_debug_log("OpenGL", "Context address: %p\n", _M_context);
@@ -278,10 +281,14 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::swap_interval(int_t interval)
+    OpenGL& OpenGL::vsync(bool)
     {
-        //SDL_GL_SetSwapInterval(interval);
         return *this;
+    }
+
+    bool OpenGL::vsync()
+    {
+        return false;
     }
 
     OpenGL& OpenGL::clear_color(const Identifier&, const ColorClearValue&, byte layout)

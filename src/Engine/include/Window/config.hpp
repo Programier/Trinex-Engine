@@ -5,10 +5,13 @@
 namespace Engine
 {
     struct WindowConfig {
+        Vector<WindowAttribute> attributes;
+
         String title;
         String api_name;
         Size2D size;
-        Vector<WindowAttribute> attributes;
+        Vector<WindowOrientation> orientations;
+        bool vsync;
 
         WindowConfig& update();
     };

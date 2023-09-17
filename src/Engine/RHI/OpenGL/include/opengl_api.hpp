@@ -31,7 +31,7 @@ namespace Engine
         bool extension_supported(const String& extension_name);
 
         OpenGL& logger(Logger*&) override;
-        void* init_window(WindowInterface*) override;
+        void* init_window(WindowInterface*, const WindowConfig&) override;
         OpenGL& destroy_window() override;
         OpenGL& destroy_object(Identifier&) override;
         OpenGL& imgui_init() override;
@@ -118,7 +118,8 @@ namespace Engine
         OpenGL& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
 
         OpenGL& swap_buffer() override;
-        OpenGL& swap_interval(int_t interval) override;
+        OpenGL& vsync(bool) override;
+        bool vsync() override;
         OpenGL& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
         OpenGL& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
 

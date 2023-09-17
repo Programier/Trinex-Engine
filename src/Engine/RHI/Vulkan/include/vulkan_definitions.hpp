@@ -9,7 +9,6 @@
 #define MAIN_FRAMEBUFFERS_COUNT 2
 #define API Engine::VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
-#define DEFAULT_PRESENT_MODE vk::PresentModeKHR::eImmediate
 
 #define ENABLE_VALIDATION_LAYERS (VULKAN_DEBUG_BUILD && !PLATFORM_ANDROID)
 

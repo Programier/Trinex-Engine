@@ -1,30 +1,30 @@
 #pragma once
 
-#include <imgui.h>
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <Window/window_interface.hpp>
+#include <imgui.h>
 
 namespace Engine
 {
     struct WindowSDL : public WindowInterface {
-        Set<void (*)(SDL_Event*)> on_event;
-        Map<Identifier, Vector<EventCallback>> event_callbacks;
+        Set<void (*)(SDL_Event*)> _M_on_event;
+        Map<Identifier, Vector<EventCallback>> _M_event_callbacks;
 
         Buffer _M_icon_buffer;
         Buffer _M_cursor_icon_buffer;
 
-        SDL_Window* window          = nullptr;
+        SDL_Window* _M_window          = nullptr;
         SDL_Surface* _M_icon        = nullptr;
         SDL_Surface* _M_cursor_icon = nullptr;
         SDL_Cursor* _M_cursor       = nullptr;
 
-        SDL_GLContext gl_context;
-        ImGuiContext* imgui_context = nullptr;
-        SDL_WindowFlags api;
-        CursorMode c_mode;
-        VkSurfaceKHR vulkan_surface;
-        SDL_Event event;
+        SDL_GLContext _M_gl_context;
+        ImGuiContext* _M_imgui_context = nullptr;
+        SDL_WindowFlags _M_api;
+        CursorMode _M_c_mode;
+        VkSurfaceKHR _M_vulkan_surface;
+        SDL_Event _M_event;
 
 
         void process_mouse_button();
@@ -42,8 +42,8 @@ namespace Engine
         WindowInterface& title(const String& title) override;
         Point2D position() override;
         WindowInterface& position(const Point2D& position) override;
-        bool rezisable() override;
-        WindowInterface& rezisable(bool value) override;
+        bool resizable() override;
+        WindowInterface& resizable(bool value) override;
         WindowInterface& focus() override;
         bool focused() override;
         WindowInterface& show() override;
@@ -63,7 +63,7 @@ namespace Engine
         bool attribute(const WindowAttribute& attrib) override;
         WindowInterface& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
-        WindowInterface& support_orientation(const Vector<WindowOrientation>& orientation) override;
+        bool support_orientation(WindowOrientation orientation) override;
         WindowInterface& start_text_input() override;
         WindowInterface& stop_text_input() override;
         WindowInterface& pool_events() override;
@@ -81,6 +81,8 @@ namespace Engine
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);
         void destroy_icon();
         void destroy_cursor();
+        WindowSDL& vsync(bool) override;
+        bool vsync() override;
 
         // IMGUI
         WindowInterface& initialize_imgui() override;

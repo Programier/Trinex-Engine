@@ -1,8 +1,8 @@
+#include <Core/definitions.hpp>
 #include <VkBootstrap.h>
 #include <algorithm>
 #include <vulkan_api.hpp>
 #include <vulkan_swap_chain.hpp>
-#include <Core/definitions.hpp>
 
 namespace Engine
 {
@@ -19,7 +19,7 @@ namespace Engine
 #endif
         VkSurfaceFormatKHR f;
         f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-        f.format     = VK_FORMAT_B8G8R8A8_UNORM;
+        f.format     = VK_FORMAT_B8G8R8A8_SNORM;
         swapchain_builder.set_desired_format(f);
 
         auto swap_ret = swapchain_builder.build();

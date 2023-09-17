@@ -9,7 +9,7 @@ namespace Engine
         return *this;
     }
 
-    void* NoApi::init_window(WindowInterface*)
+    void* NoApi::init_window(WindowInterface*, const WindowConfig&)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
@@ -440,10 +440,16 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::swap_interval(int_t interval)
+    NoApi& NoApi::vsync(bool)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
+    }
+
+    bool NoApi::vsync()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return false;
     }
 
     NoApi& NoApi::clear_color(const Identifier&, const ColorClearValue&, byte layout)

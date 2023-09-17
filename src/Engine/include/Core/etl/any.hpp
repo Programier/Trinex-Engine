@@ -80,7 +80,7 @@ namespace Engine
         template<typename T>
         FORCE_INLINE const Any& check_type() const
         {
-            if (std::strcmp(typeid(std::decay_t<T>).name(), _M_info->name()) != 0)
+            if (_M_info == nullptr || std::strcmp(typeid(std::decay_t<T>).name(), _M_info->name()) != 0)
             {
                 throw EngineException("Bad any cast");
             }

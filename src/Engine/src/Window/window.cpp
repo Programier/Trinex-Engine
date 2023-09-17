@@ -90,14 +90,14 @@ namespace Engine
         return *this;
     }
 
-    bool Window::rezisable()
+    bool Window::resizable()
     {
-        return _M_interface->rezisable();
+        return _M_interface->resizable();
     }
 
-    Window& Window::rezisable(bool value)
+    Window& Window::resizable(bool value)
     {
-        _M_interface->rezisable(value);
+        _M_interface->resizable(value);
         return *this;
     }
 
@@ -195,10 +195,9 @@ namespace Engine
         return _M_interface->cursor_mode();
     }
 
-    Window& Window::support_orientation(const Vector<WindowOrientation>& orientation)
+    bool Window::support_orientation(WindowOrientation orientation)
     {
-        _M_interface->support_orientation(orientation);
-        return *this;
+        return _M_interface->support_orientation(orientation);
     }
 
     Window& Window::start_text_input()

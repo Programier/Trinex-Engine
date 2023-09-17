@@ -1,6 +1,7 @@
 ﻿#include <VkBootstrap.h>
 #include <fstream>
 
+#include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <imgui_impl_vulkan.h>
 #include <string>
@@ -47,10 +48,15 @@ namespace Engine
         return ubo;
     }
 
+    static vk::PresentModeKHR present_mode_of(bool vsync)
+    {
+        return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
+    }
+
     VulkanAPI::VulkanAPI()
     {
         _M_uniform_allocator.allocator(uniform_buffer_allocator);
-        _M_swap_chain_mode = DEFAULT_PRESENT_MODE;
+        _M_swap_chain_mode = present_mode_of(false);
         _M_state           = new VulkanState();
         _M_state->reset();
     }
@@ -156,9 +162,11 @@ namespace Engine
         return &API->_M_command_pool;
     }
 
-    void* VulkanAPI::init_window(WindowInterface* window)
+    void* VulkanAPI::init_window(WindowInterface* window, const WindowConfig& config)
     {
-        _M_window  = window;
+        _M_window          = window;
+        _M_swap_chain_mode = present_mode_of(config.vsync);
+
         auto funcs = {
                 &VulkanAPI::init,
                 &VulkanAPI::create_command_buffer,
@@ -605,16 +613,16 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::swap_interval(int_t interval)
+    VulkanAPI& VulkanAPI::vsync(bool flag)
     {
-        static const Map<int_t, vk::PresentModeKHR> modes = {{-1, vk::PresentModeKHR::eFifoRelaxed},
-                                                             {0, DEFAULT_PRESENT_MODE},
-                                                             {1, vk::PresentModeKHR::eFifo}};
-        int_t index                                       = interval != 0 ? interval / glm::abs(interval) : interval;
-        interval                                          = glm::abs(interval);
-        _M_swap_chain_mode                                = modes.at(index);
-        _M_need_recreate_swap_chain                       = true;
+        _M_swap_chain_mode          = present_mode_of(flag);
+        _M_need_recreate_swap_chain = true;
         return *this;
+    }
+
+    bool VulkanAPI::vsync()
+    {
+        return _M_swap_chain_mode == vk::PresentModeKHR::eFifo;
     }
 
     VulkanAPI& VulkanAPI::wait_idle()

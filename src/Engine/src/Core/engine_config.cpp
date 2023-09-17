@@ -12,7 +12,6 @@ namespace Engine
 
         resources_dir        = engine_json.checked_get_value<JSON::JsonString>("resources_dir");
         api                  = engine_json.checked_get_value<JSON::JsonString>("api");
-        base_commandlet      = engine_json.checked_get_value<JSON::JsonString>("base_commandlet");
         lua_scripts_dir      = engine_json.checked_get_value<JSON::JsonString>("lua_scripts_dir");
         libraries_dir        = engine_json.checked_get_value<JSON::JsonString>("libraries_dir");
         shader_compilers_lib = engine_json.checked_get_value<JSON::JsonString>("shader_compilers_lib");

@@ -25,8 +25,8 @@ namespace Engine
         Window& title(const String& title);
         Point2D position();
         Window& position(const Point2D& position);
-        bool rezisable();
-        Window& rezisable(bool value);
+        bool resizable();
+        Window& resizable(bool value);
         Window& focus();
         bool focused();
         Window& show();
@@ -44,7 +44,7 @@ namespace Engine
         bool attribute(const WindowAttribute& attrib);
         Window& cursor_mode(const CursorMode& mode);
         CursorMode cursor_mode();
-        Window& support_orientation(const Vector<WindowOrientation>& orientation);
+        bool support_orientation(WindowOrientation orientation);
         Window& start_text_input();
         Window& stop_text_input();
         Window& pool_events();

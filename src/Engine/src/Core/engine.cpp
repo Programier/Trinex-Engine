@@ -168,7 +168,7 @@ namespace Engine
 
         if (!commandlet)
         {
-            commandlet = try_load_commandlet("GameInit", commandlet_base_class);
+            commandlet = try_load_commandlet(Constants::default_commandlet, commandlet_base_class);
         }
 
         return commandlet;
@@ -387,8 +387,7 @@ stack_address:
         interface->init(global_window_config);
 
         interface->update_monitor_info(const_cast<MonitorInfo&>(Monitor::info()));
-
-        _M_api_interface->init_window(interface);
+        _M_api_interface->init_window(interface, global_window_config);
 
         if (engine_config.enable_g_buffer)
         {

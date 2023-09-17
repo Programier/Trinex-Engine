@@ -36,6 +36,21 @@ namespace Engine
                 }
             }
         }
+
+        {
+            const auto& orientations_array = window_json.checked_get("orientations").checked_get<JSON::JsonArray>();
+            for (auto& ell : orientations_array)
+            {
+                if (ell.type() == JSON::ValueType::Integer)
+                {
+                    orientations.push_back(static_cast<WindowOrientation>(ell.get<JSON::JsonInt>()));
+                }
+            }
+        }
+
+        {
+            vsync = window_json.checked_get_value("vsync", true);
+        }
         return *this;
     }
 
