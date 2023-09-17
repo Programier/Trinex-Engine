@@ -11,6 +11,7 @@ namespace Engine
         vk::Extent2D size;
         MipMapLevel mipmap_count;
         vk::Format format;
+        ColorFormat engine_format;
         vk::Filter min_filter;
         vk::Filter mag_filter;
         vk::SampleCountFlagBits sample_count = vk::SampleCountFlagBits::e1;
@@ -83,10 +84,10 @@ namespace Engine
 
         VulkanTexture& update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel level, uint_t layer,
                                          const void* data);
-        PixelType pixel_type();
+
         VulkanTexture& anisotropic_value(float value);
         bool can_use_color_as_color_attachment();
-        static vk::Format parse_format(PixelType type, PixelComponentType component);
+        static vk::Format parse_format(ColorFormat);
         ~VulkanTexture();
 
     private:

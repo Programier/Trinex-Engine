@@ -123,7 +123,7 @@ namespace Engine
         OpenGL& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
         OpenGL& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
 
-        bool check_format_support(PixelType type, PixelComponentType component) override;
+        bool check_format_support(ColorFormat) override;
 
         OpenGL& on_window_size_changed() override;
         OpenGL& begin_render() override;

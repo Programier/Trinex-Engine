@@ -122,8 +122,9 @@ namespace Engine
         if (buffer.depth_stencil_attachment.has_value())
         {
             auto& depth_attachment = buffer.depth_stencil_attachment.value();
-            attach_texture(depth_attachment,
-                           get_attachment_type(GET_TYPE(OpenGL_Texture, depth_attachment.texture_id)->_M_pixel_type));
+            attach_texture(
+                    depth_attachment,
+                    get_attachment_type(GET_TYPE(OpenGL_Texture, depth_attachment.texture_id)->_M_format.format));
 
             if (IS_FIRST_FRAMEBUFFER && info.depth_stencil_clear_data.clear_on_bind)
             {

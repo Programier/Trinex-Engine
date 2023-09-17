@@ -17,7 +17,6 @@ namespace Engine
     extern const Array<vk::Filter, 2> _M_texture_filters;
     extern const Array<vk::SamplerMipmapMode, 2> _M_sampler_mipmap_modes;
     extern const Array<vk::CompareOp, 8> _M_compare_funcs;
-    extern const Array<vk::ImageAspectFlags, 8> _M_image_aspects;
     extern const Array<vk::StencilOp, 8> _M_stencil_ops;
     extern const Array<vk::BlendFactor, 14> _M_blend_factors;
     extern const Array<vk::BlendOp, 5> _M_blend_ops;
@@ -26,6 +25,7 @@ namespace Engine
     extern const Array<vk::CullModeFlagBits, 4> _M_cull_modes;
     extern const Array<vk::FrontFace, 2> _M_front_faces;
     extern const Array<vk::LogicOp, 17> _M_logic_ops;
+    extern const Array<vk::ImageAspectFlags, 5> _M_image_aspects;
 
 
     template<typename ResultType, typename ElementType, std::size_t size>
@@ -54,7 +54,6 @@ namespace Engine
     DECLARE_GETTER(vk::SamplerAddressMode, WrapValue, _M_wrap_values);
     DECLARE_GETTER(vk::Filter, TextureFilter, _M_texture_filters);
     DECLARE_GETTER(vk::CompareOp, CompareFunc, _M_compare_funcs);
-    DECLARE_GETTER(vk::ImageAspectFlags, PixelComponentType, _M_image_aspects);
     DECLARE_GETTER(vk::StencilOp, StencilOp, _M_stencil_ops);
     DECLARE_GETTER(vk::BlendFactor, BlendFunc, _M_blend_factors);
     DECLARE_GETTER(vk::BlendOp, BlendOp, _M_blend_ops);
@@ -62,6 +61,7 @@ namespace Engine
     DECLARE_GETTER(vk::PolygonMode, PolygonMode, _M_poligon_modes);
     DECLARE_GETTER(vk::CullModeFlagBits, CullMode, _M_cull_modes);
     DECLARE_GETTER(vk::SamplerMipmapMode, SamplerMipmapMode, _M_sampler_mipmap_modes);
+    DECLARE_GETTER(vk::ImageAspectFlags, ColorFormatAspect, _M_image_aspects);
 
 #undef DECLARE_GETTER
 }// namespace Engine

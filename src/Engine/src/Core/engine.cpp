@@ -344,9 +344,9 @@ stack_address:
         PostDestroyController().execute();
     }
 
-    bool EngineInstance::check_format_support(PixelType type, PixelComponentType component)
+    bool EngineInstance::check_format_support(ColorFormat format)
     {
-        return _M_api_interface->check_format_support(type, component);
+        return _M_api_interface->check_format_support(format);
     }
 
     EngineSystem* EngineInstance::engine_system() const

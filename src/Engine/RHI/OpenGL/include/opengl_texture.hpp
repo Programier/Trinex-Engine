@@ -3,6 +3,7 @@
 #include <functional>
 #include <opengl_object.hpp>
 #include <opengl_api.hpp>
+#include <opengl_color_format.hpp>
 
 namespace Engine
 {
@@ -14,9 +15,9 @@ namespace Engine
     struct OpenGL_Texture : public OpenGL_Object {
         GLsizei _M_width, _M_height;
         GLenum _M_texture_type;
-        GLuint _M_pixel_type;
-        GLuint _M_pixel_component_type;
-        GLuint _M_internal_format;
+
+        OpenGL_ColorFormat _M_format;
+
         byte _M_use_sampler_mode_linear : 1 = 0;
 
         implement_opengl_instance_hpp();

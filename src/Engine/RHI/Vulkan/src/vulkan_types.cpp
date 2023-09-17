@@ -87,19 +87,6 @@ namespace Engine
             {CompareFunc::Never, vk::CompareOp::eNever},
     });
 
-    const Array<vk::ImageAspectFlags, 8> _M_image_aspects =
-            generate_array<vk::ImageAspectFlags, 8, PixelComponentType>({
-                    {PixelComponentType::UnsignedByte, vk::ImageAspectFlagBits::eColor},
-                    {PixelComponentType::Float, vk::ImageAspectFlagBits::eColor},
-                    {PixelComponentType::Float16, vk::ImageAspectFlagBits::eColor},
-                    {PixelComponentType::Depth16, vk::ImageAspectFlagBits::eDepth},
-                    {PixelComponentType::Stencil8, vk::ImageAspectFlagBits::eStencil},
-                    {PixelComponentType::Depth32F_Stencil8,
-                     vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil},
-                    {PixelComponentType::Depth32F, vk::ImageAspectFlagBits::eDepth},
-                    {PixelComponentType::Depth24_Stencil8,
-                     vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil},
-            });
 
     const Array<vk::StencilOp, 8> _M_stencil_ops = generate_array<vk::StencilOp, 8, StencilOp>({
             {StencilOp::Keep, vk::StencilOp::eKeep},
@@ -190,4 +177,10 @@ namespace Engine
             {LogicOp::Set, vk::LogicOp::eSet},
     });
 
+    const Array<vk::ImageAspectFlags, 5> _M_image_aspects = generate_array<vk::ImageAspectFlags, 5, ColorFormatAspect>({
+            {ColorFormatAspect::Color, vk::ImageAspectFlagBits::eColor},
+            {ColorFormatAspect::Depth, vk::ImageAspectFlagBits::eDepth},
+            {ColorFormatAspect::Stencil, vk::ImageAspectFlagBits::eStencil},
+            {ColorFormatAspect::DepthStencil, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil},
+    });
 }// namespace Engine

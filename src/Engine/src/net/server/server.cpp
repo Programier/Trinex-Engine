@@ -67,8 +67,8 @@ Array<char, BUFFER_SIZE>& Server::buffer()
 
 Server& Server::start()
 {
-    _M_info.sin_family = AF_INET;
-    _M_info.sin_port = htons(_M_port);
+    _M_info.sin_family      = AF_INET;
+    _M_info.sin_port        = htons(_M_port);
     _M_info.sin_addr.s_addr = inet_addr(_M_ip.c_str());
 
 
@@ -109,7 +109,8 @@ Server& Server::stop()
 
 Server& Server::receive()
 {
-    _M_buffer_length = recvfrom(_M_socket, _M_buffer.data(), BUFFER_SIZE, 0, (struct sockaddr*) &_M_info, &_M_info_length);
+    _M_buffer_length =
+            recvfrom(_M_socket, _M_buffer.data(), BUFFER_SIZE, 0, (struct sockaddr*) &_M_info, &_M_info_length);
     if (!socket_check(_M_buffer_length))
         stop();
 
@@ -118,7 +119,8 @@ Server& Server::receive()
 
 Server& Server::send()
 {
-    auto send_result = sendto(_M_socket, _M_buffer.data(), _M_buffer_length, 0, (struct sockaddr*) &_M_info, _M_info_length);
+    auto send_result =
+            sendto(_M_socket, _M_buffer.data(), _M_buffer_length, 0, (struct sockaddr*) &_M_info, _M_info_length);
     if (!socket_check(send_result))
         std::cout << __PRETTY_FUNCTION__ << ": Failed to send data" << std::endl;
 
@@ -135,3 +137,4 @@ Server::~Server()
     close(_M_socket);
 #endif
 }
+

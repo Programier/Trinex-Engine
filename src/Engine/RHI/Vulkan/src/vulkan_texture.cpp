@@ -5,48 +5,199 @@
 
 namespace Engine
 {
-    using ComponentsArray = vk::Format[8];
-    using ColorFormat     = ComponentsArray[6];
-
-    static ColorFormat color_formats = {
-            {vk::Format::eR8G8B8Srgb, vk::Format::eR32G32B32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined,
-             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eR16G16B16Sfloat},
-
-            {vk::Format::eR8G8B8A8Srgb, vk::Format::eR32G32B32A32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined,
-             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eR16G16B16A16Sfloat},
-
-            {vk::Format::eR8Uint, vk::Format::eR32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined,
-             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eR16Sfloat},
-
-            {vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eD16Unorm, vk::Format::eUndefined,
-             vk::Format::eUndefined, vk::Format::eD32Sfloat, vk::Format::eUndefined, vk::Format::eUndefined},
-
-            {vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eS8Uint,
-             vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined},
-
-            {vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined, vk::Format::eUndefined,
-             vk::Format::eD32SfloatS8Uint, vk::Format::eUndefined, vk::Format::eD24UnormS8Uint, vk::Format::eUndefined},
-    };
-
-    vk::Format VulkanTexture::parse_format(PixelType type, PixelComponentType component)
+    vk::Format VulkanTexture::parse_format(ColorFormat format)
     {
-        EnumerateType pt  = static_cast<EnumerateType>(type);
-        EnumerateType pct = static_cast<EnumerateType>(component);
+        switch (format)
+        {
+            case ColorFormat::Undefined:
+                return vk::Format::eUndefined;
+            case ColorFormat::R8Unorm:
+                return vk::Format::eR8Unorm;
+            case ColorFormat::R8Snorm:
+                return vk::Format::eR8Snorm;
+            case ColorFormat::R8Uscaled:
+                return vk::Format::eR8Uscaled;
+            case ColorFormat::R8Sscaled:
+                return vk::Format::eR8Sscaled;
+            case ColorFormat::R8Uint:
+                return vk::Format::eR8Uint;
+            case ColorFormat::R8Sint:
+                return vk::Format::eR8Sint;
+            case ColorFormat::R8Srgb:
+                return vk::Format::eR8Srgb;
+            case ColorFormat::R8G8Unorm:
+                return vk::Format::eR8G8Unorm;
+            case ColorFormat::R8G8Snorm:
+                return vk::Format::eR8G8Snorm;
+            case ColorFormat::R8G8Uscaled:
+                return vk::Format::eR8G8Uscaled;
+            case ColorFormat::R8G8Sscaled:
+                return vk::Format::eR8G8Sscaled;
+            case ColorFormat::R8G8Uint:
+                return vk::Format::eR8G8Uint;
+            case ColorFormat::R8G8Sint:
+                return vk::Format::eR8G8Sint;
+            case ColorFormat::R8G8Srgb:
+                return vk::Format::eR8G8Srgb;
+            case ColorFormat::R8G8B8Unorm:
+                return vk::Format::eR8G8B8Unorm;
+            case ColorFormat::R8G8B8Snorm:
+                return vk::Format::eR8G8B8Snorm;
+            case ColorFormat::R8G8B8Uscaled:
+                return vk::Format::eR8G8B8Uscaled;
+            case ColorFormat::R8G8B8Sscaled:
+                return vk::Format::eR8G8B8Sscaled;
+            case ColorFormat::R8G8B8Uint:
+                return vk::Format::eR8G8B8Uint;
+            case ColorFormat::R8G8B8Sint:
+                return vk::Format::eR8G8B8Sint;
+            case ColorFormat::R8G8B8Srgb:
+                return vk::Format::eR8G8B8Srgb;
+            case ColorFormat::B8G8R8Unorm:
+                return vk::Format::eB8G8R8Unorm;
+            case ColorFormat::B8G8R8Snorm:
+                return vk::Format::eB8G8R8Snorm;
+            case ColorFormat::B8G8R8Uscaled:
+                return vk::Format::eB8G8R8Uscaled;
+            case ColorFormat::B8G8R8Sscaled:
+                return vk::Format::eB8G8R8Sscaled;
+            case ColorFormat::B8G8R8Uint:
+                return vk::Format::eB8G8R8Uint;
+            case ColorFormat::B8G8R8Sint:
+                return vk::Format::eB8G8R8Sint;
+            case ColorFormat::B8G8R8Srgb:
+                return vk::Format::eB8G8R8Srgb;
+            case ColorFormat::R8G8B8A8Unorm:
+                return vk::Format::eR8G8B8A8Unorm;
+            case ColorFormat::R8G8B8A8Snorm:
+                return vk::Format::eR8G8B8A8Snorm;
+            case ColorFormat::R8G8B8A8Uscaled:
+                return vk::Format::eR8G8B8A8Uscaled;
+            case ColorFormat::R8G8B8A8Sscaled:
+                return vk::Format::eR8G8B8A8Sscaled;
+            case ColorFormat::R8G8B8A8Uint:
+                return vk::Format::eR8G8B8A8Uint;
+            case ColorFormat::R8G8B8A8Sint:
+                return vk::Format::eR8G8B8A8Sint;
+            case ColorFormat::R8G8B8A8Srgb:
+                return vk::Format::eR8G8B8A8Srgb;
+            case ColorFormat::B8G8R8A8Unorm:
+                return vk::Format::eB8G8R8A8Unorm;
+            case ColorFormat::B8G8R8A8Snorm:
+                return vk::Format::eB8G8R8A8Snorm;
+            case ColorFormat::B8G8R8A8Uscaled:
+                return vk::Format::eB8G8R8A8Uscaled;
+            case ColorFormat::B8G8R8A8Sscaled:
+                return vk::Format::eB8G8R8A8Sscaled;
+            case ColorFormat::B8G8R8A8Uint:
+                return vk::Format::eB8G8R8A8Uint;
+            case ColorFormat::B8G8R8A8Sint:
+                return vk::Format::eB8G8R8A8Sint;
+            case ColorFormat::B8G8R8A8Srgb:
+                return vk::Format::eB8G8R8A8Srgb;
+            case ColorFormat::R16Unorm:
+                return vk::Format::eR16Unorm;
+            case ColorFormat::R16Snorm:
+                return vk::Format::eR16Snorm;
+            case ColorFormat::R16Uscaled:
+                return vk::Format::eR16Uscaled;
+            case ColorFormat::R16Sscaled:
+                return vk::Format::eR16Sscaled;
+            case ColorFormat::R16Uint:
+                return vk::Format::eR16Uint;
+            case ColorFormat::R16Sint:
+                return vk::Format::eR16Sint;
+            case ColorFormat::R16Sfloat:
+                return vk::Format::eR16Sfloat;
+            case ColorFormat::R16G16Unorm:
+                return vk::Format::eR16G16Unorm;
+            case ColorFormat::R16G16Snorm:
+                return vk::Format::eR16G16Snorm;
+            case ColorFormat::R16G16Uscaled:
+                return vk::Format::eR16G16Uscaled;
+            case ColorFormat::R16G16Sscaled:
+                return vk::Format::eR16G16Sscaled;
+            case ColorFormat::R16G16Uint:
+                return vk::Format::eR16G16Uint;
+            case ColorFormat::R16G16Sint:
+                return vk::Format::eR16G16Sint;
+            case ColorFormat::R16G16Sfloat:
+                return vk::Format::eR16G16Sfloat;
+            case ColorFormat::R16G16B16Unorm:
+                return vk::Format::eR16G16B16Unorm;
+            case ColorFormat::R16G16B16Snorm:
+                return vk::Format::eR16G16B16Snorm;
+            case ColorFormat::R16G16B16Uscaled:
+                return vk::Format::eR16G16B16Uscaled;
+            case ColorFormat::R16G16B16Sscaled:
+                return vk::Format::eR16G16B16Sscaled;
+            case ColorFormat::R16G16B16Uint:
+                return vk::Format::eR16G16B16Uint;
+            case ColorFormat::R16G16B16Sint:
+                return vk::Format::eR16G16B16Sint;
+            case ColorFormat::R16G16B16Sfloat:
+                return vk::Format::eR16G16B16Sfloat;
+            case ColorFormat::R16G16B16A16Unorm:
+                return vk::Format::eR16G16B16A16Unorm;
+            case ColorFormat::R16G16B16A16Snorm:
+                return vk::Format::eR16G16B16A16Snorm;
+            case ColorFormat::R16G16B16A16Uscaled:
+                return vk::Format::eR16G16B16A16Uscaled;
+            case ColorFormat::R16G16B16A16Sscaled:
+                return vk::Format::eR16G16B16A16Sscaled;
+            case ColorFormat::R16G16B16A16Uint:
+                return vk::Format::eR16G16B16A16Uint;
+            case ColorFormat::R16G16B16A16Sint:
+                return vk::Format::eR16G16B16A16Sint;
+            case ColorFormat::R16G16B16A16Sfloat:
+                return vk::Format::eR16G16B16A16Sfloat;
+            case ColorFormat::R32Uint:
+                return vk::Format::eR32Uint;
+            case ColorFormat::R32Sint:
+                return vk::Format::eR32Sint;
+            case ColorFormat::R32Sfloat:
+                return vk::Format::eR32Sfloat;
+            case ColorFormat::R32G32Uint:
+                return vk::Format::eR32G32Uint;
+            case ColorFormat::R32G32Sint:
+                return vk::Format::eR32G32Sint;
+            case ColorFormat::R32G32Sfloat:
+                return vk::Format::eR32G32Sfloat;
+            case ColorFormat::R32G32B32Uint:
+                return vk::Format::eR32G32B32Uint;
+            case ColorFormat::R32G32B32Sint:
+                return vk::Format::eR32G32B32Sint;
+            case ColorFormat::R32G32B32Sfloat:
+                return vk::Format::eR32G32B32Sfloat;
+            case ColorFormat::R32G32B32A32Uint:
+                return vk::Format::eR32G32B32A32Uint;
+            case ColorFormat::R32G32B32A32Sint:
+                return vk::Format::eR32G32B32A32Sint;
+            case ColorFormat::R32G32B32A32Sfloat:
+                return vk::Format::eR32G32B32A32Sfloat;
+            case ColorFormat::D16Unorm:
+                return vk::Format::eD16Unorm;
+            case ColorFormat::D32Sfloat:
+                return vk::Format::eD32Sfloat;
+            case ColorFormat::S8Uint:
+                return vk::Format::eD16UnormS8Uint;
+            case ColorFormat::D16UnormS8Uint:
+                return vk::Format::eD16UnormS8Uint;
+            case ColorFormat::D24UnormS8Uint:
+                return vk::Format::eD24UnormS8Uint;
+            case ColorFormat::D32SfloatS8Uint:
+                return vk::Format::eD32SfloatS8Uint;
 
-        if (pt > 5 || pct > 7)
-            throw EngineException("Incorect format!");
-
-        vk::Format result = color_formats[pt][pct];
-        if (result == vk::Format::eUndefined)
-            throw EngineException("Incorect format!");
-        return result;
+            default:
+                return vk::Format::eUndefined;
+        }
     }
 
     VulkanTextureState& VulkanTextureState::init(const TextureCreateInfo& info)
     {
         size.setWidth(static_cast<uint32_t>(info.size.x)).setHeight(static_cast<uint32_t>(info.size.y));
         mipmap_count             = glm::max(static_cast<MipMapLevel>(1), info.mipmap_count);
-        format                   = VulkanTexture::parse_format(info.pixel_type, info.pixel_component_type);
+        format                   = VulkanTexture::parse_format(info.format);
         min_filter               = get_type(info.min_filter);
         mag_filter               = get_type(info.mag_filter);
         sampler_mipmap_mode      = get_type(info.mipmap_mode);
@@ -64,6 +215,7 @@ namespace Engine
         base_mip_level           = info.base_mip_level;
         swizzle = vk::ComponentMapping(get_type(info.swizzle.R), get_type(info.swizzle.G), get_type(info.swizzle.B),
                                        get_type(info.swizzle.A));
+        engine_format = info.format;
         return *this;
     }
 
@@ -75,7 +227,9 @@ namespace Engine
 
     VulkanTexture& VulkanTexture::init(const TextureCreateInfo& info, TextureType type)
     {
-        _M_image_aspect = _M_image_aspects[static_cast<EnumerateType>(info.pixel_component_type)];
+        ColorFormatAspect aspect = ColorFormatInfo::info_of(info.format).aspect();
+        _M_image_aspect          = get_type(aspect);
+
         state.init(info);
 
         if (type == TextureType::Texture2D)
@@ -157,38 +311,8 @@ namespace Engine
 
     uint_t VulkanTexture::pixel_type_size()
     {
-        switch (state.format)
-        {
-            case vk::Format::eR32G32B32Sfloat:
-                return 12;
-
-            case vk::Format::eR32G32B32A32Sfloat:
-                return 16;
-
-            case vk::Format::eR32Sfloat:
-            case vk::Format::eD32Sfloat:
-            case vk::Format::eR8G8B8A8Srgb:
-            case vk::Format::eD24UnormS8Uint:
-                return 4;
-
-            case vk::Format::eR8G8B8Srgb:
-            case vk::Format::eD16UnormS8Uint:
-                return 3;
-
-            case vk::Format::eR8Srgb:
-                return 1;
-
-            case vk::Format::eD16Unorm:
-                return 2;
-
-            case vk::Format::eS8Uint:
-                return 1;
-
-            case vk::Format::eD32SfloatS8Uint:
-                return 5;
-            default:
-                return 0;
-        }
+        ColorFormatInfo color_info = ColorFormatInfo::info_of(state.engine_format);
+        return static_cast<uint_t>(color_info.component_size()) * static_cast<uint_t>(color_info.components());
     }
 
     vk::ImageView VulkanTexture::get_image_view(const vk::ImageSubresourceRange& range)
@@ -513,36 +637,6 @@ namespace Engine
         return *this;
     }
 
-    PixelType VulkanTexture::pixel_type()
-    {
-        switch (state.format)
-        {
-            case vk::Format::eR32G32B32Sfloat:
-            case vk::Format::eR8G8B8Srgb:
-                return PixelType::RGB;
-
-            case vk::Format::eR32G32B32A32Sfloat:
-            case vk::Format::eR8G8B8A8Srgb:
-                return PixelType::RGBA;
-
-            case vk::Format::eR8Srgb:
-            case vk::Format::eR32Sfloat:
-                return PixelType::Red;
-
-            case vk::Format::eD16Unorm:
-            case vk::Format::eD32Sfloat:
-                return PixelType::Depth;
-
-            case vk::Format::eS8Uint:
-                return PixelType::Stencil;
-            case vk::Format::eD32SfloatS8Uint:
-            case vk::Format::eD16UnormS8Uint:
-            case vk::Format::eD24UnormS8Uint:
-                return PixelType::DepthStencil;
-            default:
-                throw std::runtime_error("Vulkan API: Undefiled format!");
-        }
-    }
 
     VulkanTexture& VulkanTexture::swizzle(const SwizzleRGBA& swizzle)
     {
@@ -684,13 +778,8 @@ namespace Engine
 
     bool VulkanTexture::can_use_color_as_color_attachment()
     {
-        for (auto& format : color_formats[static_cast<size_t>(PixelType::RGBA)])
-        {
-            if (state.format == format)
-                return true;
-        }
-
-        return false;
+        byte count = ColorFormatInfo::info_of(state.engine_format).components();
+        return count == 4;
     }
 
     VulkanTexture::~VulkanTexture()

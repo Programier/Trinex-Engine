@@ -72,7 +72,7 @@ namespace Engine
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
-        bool check_format_support(PixelType type, PixelComponentType component);
+        bool check_format_support(ColorFormat format);
         Window* create_window();
         EngineSystem* engine_system() const;
 

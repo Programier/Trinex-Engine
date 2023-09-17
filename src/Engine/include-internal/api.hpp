@@ -119,7 +119,7 @@ namespace Engine::GraphicApiInterface
         virtual ApiInterface& clear_color(const Identifier&, const ColorClearValue&, byte layout) VIRTUAL_METHOD;
         virtual ApiInterface& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) VIRTUAL_METHOD;
 
-        virtual bool check_format_support(PixelType type, PixelComponentType component) VIRTUAL_METHOD;
+        virtual bool check_format_support(ColorFormat) VIRTUAL_METHOD;
 
         virtual ApiInterface& on_window_size_changed() VIRTUAL_METHOD;
         virtual ApiInterface& begin_render() VIRTUAL_METHOD;

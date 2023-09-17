@@ -1179,13 +1179,12 @@ namespace Engine
         return *this;
     }
 
-    bool VulkanAPI::check_format_support(PixelType type, PixelComponentType component)
+    bool VulkanAPI::check_format_support(ColorFormat format)
     {
         try
         {
             return static_cast<bool>(
-                    _M_physical_device.getFormatProperties(VulkanTexture::parse_format(type, component))
-                            .optimalTilingFeatures);
+                    _M_physical_device.getFormatProperties(VulkanTexture::parse_format(format)).optimalTilingFeatures);
         }
         catch (...)
         {

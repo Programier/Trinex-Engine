@@ -98,7 +98,7 @@ namespace Engine
         NoApi& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
         NoApi& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
 
-        bool check_format_support(PixelType type, PixelComponentType component) override;
+        bool check_format_support(ColorFormat) override;
 
         NoApi& on_window_size_changed() override;
         NoApi& begin_render() override;

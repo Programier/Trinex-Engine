@@ -9,16 +9,14 @@ namespace Engine
     static GBuffer* _M_g_buffer = nullptr;
 
 
-    static void create_texture(Pointer<Texture2D>& texture, const Size2D& size, PixelType pixel_type,
-                               PixelComponentType component_type, const String& name)
+    static void create_texture(Pointer<Texture2D>& texture, const Size2D& size, ColorFormat format, const String& name)
     {
         texture = Object::new_instance<Texture2D>();
         texture->name(name);
         TextureCreateInfo& info = texture->resources(true)->info;
 
-        info.size                 = size;
-        info.pixel_type           = pixel_type;
-        info.pixel_component_type = component_type;
+        info.size   = size;
+        info.format = format;
         texture->create();
 
         texture->delete_resources();
@@ -28,12 +26,11 @@ namespace Engine
     {
 #define new_name(n) Strings::format(n " Texture {}", index)
 
-        create_texture(data.albedo, size, PixelType::RGBA, PixelComponentType::UnsignedByte, new_name("Albedo"));
-        create_texture(data.position, size, PixelType::RGBA, PixelComponentType::Float16, new_name("Position"));
-        create_texture(data.normal, size, PixelType::RGBA, PixelComponentType::Float16, new_name("Normal"));
-        create_texture(data.specular, size, PixelType::RGBA, PixelComponentType::UnsignedByte, new_name("Specular"));
-        create_texture(data.depth, size, PixelType::DepthStencil, PixelComponentType::Depth32F_Stencil8,
-                       new_name("Depth"));
+        create_texture(data.albedo, size, ColorFormat::R8G8B8A8Unorm, new_name("Albedo"));
+        create_texture(data.position, size, ColorFormat::R16G16B16A16Sfloat, new_name("Position"));
+        create_texture(data.normal, size, ColorFormat::R16G16B16A16Sfloat, new_name("Normal"));
+        create_texture(data.specular, size, ColorFormat::R8G8B8A8Unorm, new_name("Specular"));
+        create_texture(data.depth, size, ColorFormat::D32SfloatS8Uint, new_name("Depth"));
 #undef new_name
     }
 

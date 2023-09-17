@@ -23,7 +23,6 @@ namespace Engine
             ApiObject::destroy();
 
             EngineInstance::instance()->api_interface()->create_texture(_M_ID, _M_resources->info, _M_type);
-            _M_pixel_type = _M_resources->info.pixel_type;
         }
         return *this;
     }
@@ -176,11 +175,6 @@ namespace Engine
     Identifier Texture::internal_id() const
     {
         return EngineInstance::instance()->api_interface()->imgui_texture_id(_M_ID);
-    }
-
-    PixelType Texture::pixel_type()
-    {
-        return _M_pixel_type;
     }
 
     Texture& Texture::anisotropic_filtering(float value)

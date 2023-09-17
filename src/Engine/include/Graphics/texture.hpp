@@ -24,8 +24,6 @@ namespace Engine
 
     protected:
         TextureType _M_type = TextureType::Texture2D;
-        PixelType _M_pixel_type;
-
 
     public:
         Texture();
@@ -61,7 +59,6 @@ namespace Engine
         WrapValue wrap_r() const;
         Texture& generate_mipmap();
         Size2D size(MipMapLevel level) const;
-        PixelType pixel_type();
         Texture& anisotropic_filtering(float value);
         float anisotropic_filtering();
         static float max_anisotropic_filtering();

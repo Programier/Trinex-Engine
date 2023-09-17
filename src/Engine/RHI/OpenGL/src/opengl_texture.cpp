@@ -1,10 +1,11 @@
 #include "Core/engine_types.hpp"
 #include "Core/texture_types.hpp"
 #include <opengl_api.hpp>
+#include <opengl_color_format.hpp>
 #include <opengl_texture.hpp>
 #include <opengl_types.hpp>
 
-// I hope, that it's not UB :D
+
 #ifndef GL_TEXTURE_LOD_BIAS
 #define GL_TEXTURE_LOD_BIAS 0x8501
 #endif
@@ -13,32 +14,6 @@
 namespace Engine
 {
     implement_opengl_instance_cpp(OpenGL_Texture);
-
-    static GLuint get_internal_format(OpenGL_Texture* texture, const TextureCreateInfo& info)
-    {
-        using ComponentsArray = GLenum[8];
-        using TypeArray       = ComponentsArray[6];
-
-        static TypeArray data = {
-                {GL_RGB8, GL_RGB32F, 0, 0, 0, 0, 0, GL_RGB16F},
-                {GL_RGBA8, GL_RGBA32F, 0, 0, 0, 0, 0, GL_RGBA16F},
-                {GL_R8, GL_R32F, 0, 0, 0, 0, 0, GL_R16F},
-                {0, 0, GL_DEPTH_COMPONENT16, 0, 0, GL_DEPTH_COMPONENT32F, 0, 0},
-                {0, 0, 0, GL_STENCIL_INDEX8, 0, 0, 0, 0},
-                {0, 0, 0, 0, GL_DEPTH32F_STENCIL8, 0, GL_DEPTH24_STENCIL8, 0},
-        };
-
-        EnumerateType pt  = static_cast<EnumerateType>(info.pixel_type);
-        EnumerateType pct = static_cast<EnumerateType>(info.pixel_component_type);
-
-        if (pt > 5 || pct > 7)
-            throw EngineException("Incorect format!");
-
-        GLenum result = data[pt][pct];
-        if (result == 0)
-            throw EngineException("Incorect format!");
-        return result;
-    }
 
     OpenGL_Texture::~OpenGL_Texture()
     {
@@ -50,22 +25,19 @@ namespace Engine
 
     OpenGL& OpenGL::create_texture(Identifier& ID, const TextureCreateInfo& info, TextureType type)
     {
-        OpenGL_Texture* texture          = new OpenGL_Texture();
-        texture->_M_texture_type         = get_type(type);
-        ID                               = texture->ID();
-        texture->_M_width                = static_cast<GLsizei>(info.size.x);
-        texture->_M_height               = static_cast<GLsizei>(info.size.y);
-        texture->_M_pixel_type           = get_type(info.pixel_type);
-        texture->_M_pixel_component_type = get_type(info.pixel_component_type);
-        texture->_M_internal_format      = get_internal_format(texture, info);
+        OpenGL_Texture* texture  = new OpenGL_Texture();
+        texture->_M_texture_type = get_type(type);
+        ID                       = texture->ID();
+        texture->_M_width        = static_cast<GLsizei>(info.size.x);
+        texture->_M_height       = static_cast<GLsizei>(info.size.y);
+        texture->_M_format       = OpenGL_ColorFormat::from(info.format);
         glGenTextures(1, &texture->_M_instance_id);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glBindTexture(texture->_M_texture_type, texture->_M_instance_id);
 
-        glTexImage2D(texture->_M_texture_type, 0, texture->_M_internal_format, texture->size().width,
-                     texture->size().height, GL_FALSE, texture->_M_pixel_type, texture->_M_pixel_component_type,
-                     nullptr);
+        glTexImage2D(texture->_M_texture_type, 0, texture->_M_format.internal_format, texture->size().width,
+                     texture->size().height, GL_FALSE, texture->_M_format.format, texture->_M_format.type, nullptr);
 
         texture->_M_use_sampler_mode_linear = info.mipmap_mode == SamplerMipmapMode::Linear;
 
@@ -462,7 +434,7 @@ namespace Engine
 
         glTexSubImage2D(texture->_M_texture_type, static_cast<GLint>(level), static_cast<GLsizei>(offset.x),
                         static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
-                        texture->_M_pixel_type, texture->_M_pixel_component_type, data);
+                        texture->_M_format.format, texture->_M_format.type, data);
         return internal_bind_texture(nullptr);
     }
 
@@ -473,7 +445,7 @@ namespace Engine
         internal_bind_texture(texture);
         glTexSubImage2D(get_type(face), static_cast<GLint>(level), static_cast<GLsizei>(offset.x),
                         static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
-                        texture->_M_pixel_type, texture->_M_pixel_component_type, data);
+                        texture->_M_format.format, texture->_M_format.type, data);
         return internal_bind_texture(nullptr);
     }
 }// namespace Engine

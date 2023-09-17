@@ -34,7 +34,7 @@ namespace Engine
         static Vector<const char*> device_extensions;
         static VulkanAPI* _M_vulkan;
         Logger** _M_engine_logger        = nullptr;
-        WindowInterface* _M_window            = nullptr;
+        WindowInterface* _M_window       = nullptr;
         bool _M_need_recreate_swap_chain = false;
         String _M_renderer               = "";
 
@@ -208,7 +208,7 @@ namespace Engine
         Identifier imgui_texture_id(const Identifier&) override;
         VulkanAPI& framebuffer_scissor(const Identifier&, const Scissor&) override;
         VulkanAPI& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
-        bool check_format_support(PixelType type, PixelComponentType component) override;
+        bool check_format_support(ColorFormat format) override;
 
         VulkanAPI& async_render(bool flag) override;
         bool async_render() override;

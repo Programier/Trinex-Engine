@@ -37,12 +37,11 @@ namespace Engine
         resources(true);
         TextureCreateInfo& params = _M_resources->info;
 
-        static PixelType _M_types[5] = {PixelType::RGBA, PixelType::Red, PixelType::Red, PixelType::RGB,
-                                        PixelType::RGBA};
+        static ColorFormat _M_formats[5] = {ColorFormat::R8G8B8A8Sint, ColorFormat::R8Sint, ColorFormat::R8Sint,
+                                            ColorFormat::R8G8B8Sint, ColorFormat::R8G8B8A8Sint};
 
-        params.pixel_type           = _M_types[static_cast<int>(image.channels())];
-        params.pixel_component_type = PixelComponentType::UnsignedByte;
-        params.mipmap_count         = 1;
+        params.format       = _M_formats[static_cast<int>(image.channels())];
+        params.mipmap_count = 1;
 
         _M_resources->images.clear();
         _M_resources->images.resize(1);

@@ -41,10 +41,9 @@ namespace Engine
         {
             TextureCreateInfo& params = resources(true)->info;
 
-            params.pixel_type           = img.channels() == 4 ? PixelType::RGBA : PixelType::RGB;
-            params.pixel_component_type = PixelComponentType::UnsignedByte;
-            params.mipmap_count         = 8;
-            params.size                 = Size2D(block_width, block_height);
+            params.format       = img.channels() == 4 ? ColorFormat::R8G8B8A8Uint : ColorFormat::R8G8B8Uint;
+            params.mipmap_count = 8;
+            params.size         = Size2D(block_width, block_height);
             TextureCubeMap::create();
         }
 

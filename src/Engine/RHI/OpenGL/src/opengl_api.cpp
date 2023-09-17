@@ -301,7 +301,7 @@ namespace Engine
         throw std::runtime_error(not_implemented);
     }
 
-    bool OpenGL::check_format_support(PixelType type, PixelComponentType component)
+    bool OpenGL::check_format_support(ColorFormat)
     {
         throw std::runtime_error(not_implemented);
     }
