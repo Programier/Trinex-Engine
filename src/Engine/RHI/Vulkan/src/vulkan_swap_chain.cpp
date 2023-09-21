@@ -19,7 +19,7 @@ namespace Engine
 #endif
         VkSurfaceFormatKHR f;
         f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-        f.format     = VK_FORMAT_B8G8R8A8_SNORM;
+        f.format     = VK_FORMAT_B8G8R8A8_UNORM;
         swapchain_builder.set_desired_format(f);
 
         auto swap_ret = swapchain_builder.build();

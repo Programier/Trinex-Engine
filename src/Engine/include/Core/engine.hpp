@@ -2,9 +2,8 @@
 #include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Core/render_types.hpp>
 #include <Core/system.hpp>
-#include <Core/texture_types.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {
@@ -13,7 +12,7 @@ namespace Engine
     class Window;
     class System;
 
-    namespace GraphicApiInterface
+    namespace RHI
     {
         struct ApiInterface;
     }
@@ -45,7 +44,7 @@ namespace Engine
         class Renderer* _M_renderer = nullptr;
         Window* _M_window           = nullptr;
 
-        GraphicApiInterface::ApiInterface* _M_api_interface = nullptr;
+        RHI::ApiInterface* _M_api_interface = nullptr;
         static EngineInstance* _M_instance;
         BitSet<static_cast<EnumerateType>(EngineInstanceFlags::__COUNT__)> _M_flags;
         EngineAPI _M_api;
@@ -66,7 +65,7 @@ namespace Engine
         SystemName system_type() const;
         EngineAPI api() const;
         bool is_inited() const;
-        GraphicApiInterface::ApiInterface* api_interface() const;
+        RHI::ApiInterface* api_interface() const;
         class Renderer* renderer() const;
         static bool is_on_stack(void* ptr);
         bool is_shuting_down() const;

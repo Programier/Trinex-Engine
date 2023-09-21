@@ -1,6 +1,4 @@
 #pragma once
-
-#include <Core/buffer_types.hpp>
 #include <opengl_api.hpp>
 #include <opengl_object.hpp>
 

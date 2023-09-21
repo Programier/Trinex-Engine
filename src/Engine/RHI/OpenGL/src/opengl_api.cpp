@@ -44,12 +44,6 @@ namespace Engine
         _M_open_gl = nullptr;
     }
 
-    OpenGL& OpenGL::logger(Logger*& logger)
-    {
-        _M_logger = &logger;
-        return *this;
-    }
-
     bool OpenGL::extension_supported(const String& extension_name)
     {
         static Set<std::string> _M_extentions;
@@ -76,7 +70,7 @@ namespace Engine
         opengl_debug_log("OpenGL", "Context address: %p\n", _M_context);
 
 #ifdef _WIN32
-        (*_M_logger)->log("GLEW", "Start init glew\n");
+        info_log("GLEW", "Start init glew");
         auto status = glewInit();
         if (status != GLEW_OK)
         {
@@ -235,13 +229,13 @@ namespace Engine
     {
         glDrawElements(_M_current_shader->_M_topology, indices_count, _M_index_buffer->_M_component_type,
                        reinterpret_cast<void*>(indices_offset));
-        return *this;
-    }
 
+        for (auto& unit : _M_samplers)
+        {
+            glBindSampler(unit, 0);
+        }
 
-    OpenGL& OpenGL::gen_framebuffer(Identifier& ID, const FrameBufferCreateInfo& info)
-    {
-        ID = (new OpenGL_FrameBufferSet())->gen_framebuffer(info).ID();
+        _M_samplers.clear();
         return *this;
     }
 
@@ -253,24 +247,6 @@ namespace Engine
             return GET_TYPE(OpenGL_FrameBufferSet, ID);
         }
         return &base_framebuffer;
-    }
-
-    OpenGL& OpenGL::bind_framebuffer(const Identifier& ID, size_t buffer_index)
-    {
-        framebuffer(ID)->bind_framebuffer((ID == 0 ? 0 : buffer_index));
-        return *this;
-    }
-
-    OpenGL& OpenGL::framebuffer_viewport(const Identifier& ID, const ViewPort& viewport)
-    {
-        framebuffer(ID)->framebuffer_viewport(viewport);
-        return *this;
-    }
-
-    OpenGL& OpenGL::framebuffer_scissor(const Identifier& ID, const Scissor& scissor)
-    {
-        framebuffer(ID)->framebuffer_scissor(scissor);
-        return *this;
     }
 
     OpenGL& OpenGL::swap_buffer()
@@ -291,16 +267,6 @@ namespace Engine
         return false;
     }
 
-    OpenGL& OpenGL::clear_color(const Identifier&, const ColorClearValue&, byte layout)
-    {
-        throw std::runtime_error(not_implemented);
-    }
-
-    OpenGL& OpenGL::clear_depth_stencil(const Identifier&, const DepthStencilClearValue&)
-    {
-        throw std::runtime_error(not_implemented);
-    }
-
     bool OpenGL::check_format_support(ColorFormat)
     {
         throw std::runtime_error(not_implemented);
@@ -308,7 +274,7 @@ namespace Engine
 }// namespace Engine
 
 
-API_EXPORT Engine::GraphicApiInterface::ApiInterface* load_api()
+API_EXPORT Engine::RHI::ApiInterface* load_api()
 {
     return Engine::get_instance();
 }

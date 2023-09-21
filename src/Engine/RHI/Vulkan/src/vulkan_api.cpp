@@ -34,7 +34,7 @@ namespace Engine
 
     VulkanAPI* VulkanAPI::_M_vulkan = nullptr;
 
-    API_EXPORT GraphicApiInterface::ApiInterface* load_api()
+    API_EXPORT RHI::ApiInterface* load_api()
     {
         if (VulkanAPI::_M_vulkan == nullptr)
             VulkanAPI::_M_vulkan = new VulkanAPI();
@@ -402,11 +402,11 @@ namespace Engine
                                        vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
                                        vk::DeviceMemory& image_memory, uint32_t layers)
     {
-        VulkanTextureState* state = &texture->state;
 
-        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, state->format,
-                                       vk::Extent3D(state->size.width, state->size.height, 1), state->mipmap_count,
-                                       layers, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
+        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->_M_vulkan_format,
+                                       vk::Extent3D(texture->size.width, texture->size.height, 1),
+                                       texture->_M_mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling, usage,
+                                       vk::SharingMode::eExclusive);
 
         image                                      = API->_M_device.createImage(image_info);
         vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
@@ -422,7 +422,7 @@ namespace Engine
     void VulkanAPI::create_framebuffers()
     {
         if (!_M_main_framebuffer)
-            _M_main_framebuffer = new VulkanFramebuffer();
+            _M_main_framebuffer = new VulkanMainFrameBuffer();
 
         _M_main_framebuffer->_M_buffers.clear();
         _M_main_framebuffer->_M_buffers.resize(_M_swap_chain->_M_images.size());
@@ -565,54 +565,6 @@ namespace Engine
         return end_single_time_command_buffer(command_buffer);
     }
 
-    VulkanAPI& VulkanAPI::framebuffer_viewport(const Identifier& ID, const ViewPort& viewport)
-    {
-        framebuffer(ID)->update_viewport(viewport);
-        return *this;
-    }
-
-    static Logger** get_default_logger()
-    {
-        static Logger default_vulkan_logger;
-        static Logger* default_vulkan_logger_ptr = &default_vulkan_logger;
-        return &default_vulkan_logger_ptr;
-    }
-
-
-    VulkanAPI& VulkanAPI::logger(Logger*& logger)
-    {
-        if (logger)
-        {
-            _M_engine_logger = &logger;
-        }
-        else
-        {
-            _M_engine_logger = get_default_logger();
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_framebuffer(const Identifier& ID, size_t buffer_index)
-    {
-        VulkanFramebuffer* buffer = framebuffer(ID);
-        if (buffer == _M_main_framebuffer)
-        {
-            auto index = swapchain_image_index().value;
-            buffer->bind(index);
-        }
-        else
-        {
-            buffer->bind(buffer_index);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::clear_color(const Identifier& ID, const ColorClearValue& color, byte layout)
-    {
-        framebuffer(ID)->clear_color(color, layout);
-        return *this;
-    }
-
     VulkanAPI& VulkanAPI::vsync(bool flag)
     {
         _M_swap_chain_mode          = present_mode_of(flag);
@@ -748,362 +700,9 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::create_texture(Identifier& ID, const TextureCreateInfo& params, TextureType type)
-    {
-        ID = (new VulkanTexture())->init(params, type).ID();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_texture(const Identifier& ID, TextureBindIndex binding)
-    {
-        _M_state->_M_shader->bind_texture(GET_TYPE(VulkanTexture, ID), binding);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::swizzle_texture(const Identifier& ID, const SwizzleRGBA& swizzle)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->swizzle(swizzle);
-        }
-        return *this;
-    }
-
-    SwizzleRGBA VulkanAPI::swizzle_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->swizzle();
-        }
-        return SwizzleRGBA();
-    }
-
-    VulkanAPI& VulkanAPI::wrap_s_texture(const Identifier& ID, const WrapValue& value)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->wrap_s(value);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::wrap_t_texture(const Identifier& ID, const WrapValue& value)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->wrap_t(value);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::wrap_r_texture(const Identifier& ID, const WrapValue& value)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->wrap_r(value);
-        }
-        return *this;
-    }
-
-    WrapValue VulkanAPI::wrap_s_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->wrap_s();
-        }
-
-        return WrapValue();
-    }
-
-    WrapValue VulkanAPI::wrap_t_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->wrap_t();
-        }
-
-        return WrapValue();
-    }
-
-    WrapValue VulkanAPI::wrap_r_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->wrap_r();
-        }
-
-        return WrapValue();
-    }
-
-    VulkanAPI& VulkanAPI::min_filter_texture(const Identifier& ID, TextureFilter filter)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->min_filter(filter);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::mag_filter_texture(const Identifier& ID, TextureFilter filter)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->mag_filter(filter);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::compare_func_texture(const Identifier& ID, CompareFunc func)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->compare_func(func);
-        }
-        return *this;
-    }
-
-    CompareFunc VulkanAPI::compare_func_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->compare_func();
-        }
-
-        return CompareFunc();
-    }
-
-    VulkanAPI& VulkanAPI::compare_mode_texture(const Identifier& ID, CompareMode mode)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->compare_mode(mode);
-        }
-        return *this;
-    }
-
-    TextureFilter VulkanAPI::min_filter_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->mag_filter();
-        }
-
-        return TextureFilter();
-    }
-
-    TextureFilter VulkanAPI::mag_filter_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->mag_filter();
-        }
-        return TextureFilter();
-    }
-
-    CompareMode VulkanAPI::compare_mode_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->compare_mode();
-        }
-
-        return CompareMode::None;
-    }
-
-    MipMapLevel VulkanAPI::base_level_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->state.base_mip_level;
-        }
-        return 0;
-    }
-
-    VulkanAPI& VulkanAPI::base_level_texture(const Identifier& ID, MipMapLevel level)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->base_level(level);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::min_lod_level_texture(const Identifier& ID, LodLevel level)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->min_lod_level(level);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::max_lod_level_texture(const Identifier& ID, LodLevel level)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->max_lod_level(level);
-        }
-        return *this;
-    }
-
-    LodLevel VulkanAPI::min_lod_level_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->state.min_lod;
-        }
-        return LodLevel();
-    }
-
-    LodLevel VulkanAPI::max_lod_level_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->state.max_lod;
-        }
-        return LodLevel();
-    }
-
-    MipMapLevel VulkanAPI::max_mipmap_level_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->state.mipmap_count;
-        }
-        return LodLevel();
-    }
-
-
-    VulkanAPI& VulkanAPI::texture_size(const Identifier& ID, Size2D& size, MipMapLevel level)
-    {
-        // if (ID)
-        {
-            size = GET_TYPE(VulkanTexture, ID)->size(level);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::generate_texture_mipmap(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->generate_mipmap();
-        }
-
-        return *this;
-    }
-
     String VulkanAPI::renderer()
     {
         return _M_renderer;
-    }
-
-    VulkanAPI& VulkanAPI::read_texture_2D_data(const Identifier& ID, Vector<byte>& data, MipMapLevel level)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->read_texture_2D_data(data, level);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_texture_2D(const Identifier& ID, const Size2D& size, const Offset2D& offset,
-                                            MipMapLevel level, const void* data)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->update_texture_2D(size, offset, level, 0, data);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::anisotropic_filtering_texture(const Identifier& ID, float value)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->anisotropic_value(value);
-        }
-        return *this;
-    }
-
-    float VulkanAPI::anisotropic_filtering_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->state.anisotropy;
-        }
-
-        return 1.0;
-    }
-
-    float VulkanAPI::max_anisotropic_filtering()
-    {
-        static float value = 0.0f;
-        if (value < 1.f)
-        {
-            value = _M_properties.limits.maxSamplerAnisotropy;
-            if (value < 1.0f)
-                value = 1.0f;
-        }
-        return value;
-    }
-
-    VulkanAPI& VulkanAPI::cubemap_texture_update_data(const Identifier& ID, TextureCubeMapFace face, const Size2D& size,
-                                                      const Offset2D& offset, MipMapLevel mipmap, void* data)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)
-                    ->update_texture_2D(size, offset, mipmap, static_cast<EnumerateType>(face), data);
-        }
-        return *this;
-    }
-
-    SamplerMipmapMode VulkanAPI::sample_mipmap_mode_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->sample_mipmap_mode_texture();
-        }
-        return SamplerMipmapMode();
-    }
-
-    VulkanAPI& VulkanAPI::sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->sample_mipmap_mode_texture(mode);
-        }
-        return *this;
-    }
-
-    LodBias VulkanAPI::lod_bias_texture(const Identifier& ID)
-    {
-        // if (ID)
-        {
-            return GET_TYPE(VulkanTexture, ID)->state.mip_lod_bias;
-        }
-        return 0.0;
-    }
-
-    VulkanAPI& VulkanAPI::lod_bias_texture(const Identifier& ID, LodBias bias)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanTexture, ID)->lod_bias_texture(glm::min(bias, max_lod_bias_texture()));
-        }
-        return *this;
-    }
-
-    LodBias VulkanAPI::max_lod_bias_texture()
-    {
-        return _M_properties.limits.maxSamplerLodBias;
-    }
-
-    VulkanAPI& VulkanAPI::gen_framebuffer(Identifier& ID, const FrameBufferCreateInfo& info)
-    {
-        ID = (new VulkanFramebuffer())->init(info).ID();
-        return *this;
     }
 
     Identifier VulkanAPI::imgui_texture_id(const Identifier&)
@@ -1167,24 +766,12 @@ namespace Engine
     }
 
 
-    VulkanAPI& VulkanAPI::framebuffer_scissor(const Identifier& ID, const Scissor& scissor)
-    {
-        framebuffer(ID)->update_scissor(scissor);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::clear_depth_stencil(const Identifier& ID, const DepthStencilClearValue& value)
-    {
-        framebuffer(ID)->clear_depth_stencil(value);
-        return *this;
-    }
-
     bool VulkanAPI::check_format_support(ColorFormat format)
     {
         try
         {
             return static_cast<bool>(
-                    _M_physical_device.getFormatProperties(VulkanTexture::parse_format(format)).optimalTilingFeatures);
+                    _M_physical_device.getFormatProperties(parse_engine_format(format)).optimalTilingFeatures);
         }
         catch (...)
         {

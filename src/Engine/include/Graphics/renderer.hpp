@@ -5,7 +5,7 @@
 namespace Engine
 {
 
-    namespace GraphicApiInterface
+    namespace RHI
     {
         struct ApiInterface;
     }
@@ -13,10 +13,10 @@ namespace Engine
     class ENGINE_EXPORT Renderer
     {
     private:
-        GraphicApiInterface::ApiInterface* _M_api = nullptr;
+        RHI::ApiInterface* _M_api = nullptr;
 
     protected:
-        Renderer(GraphicApiInterface::ApiInterface* interface);
+        Renderer(RHI::ApiInterface* interface);
         virtual ~Renderer();
 
     public:

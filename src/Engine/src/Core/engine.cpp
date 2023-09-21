@@ -102,8 +102,7 @@ namespace Engine
             }
 
             // Try to load api loader
-            GraphicApiInterface::ApiInterface* (*loader)() =
-                    api_library.get<GraphicApiInterface::ApiInterface*>("load_api");
+            RHI::ApiInterface* (*loader)() = api_library.get<RHI::ApiInterface*>("load_api");
 
             if (!loader)
             {
@@ -218,7 +217,6 @@ namespace Engine
         init_api();
 
         _M_renderer = new Renderer(_M_api_interface);
-        _M_api_interface->logger(logger);
 
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
@@ -245,7 +243,7 @@ namespace Engine
         return status;
     }
 
-    GraphicApiInterface::ApiInterface* EngineInstance::api_interface() const
+    RHI::ApiInterface* EngineInstance::api_interface() const
     {
         return _M_api_interface;
     }
@@ -394,8 +392,7 @@ stack_address:
             GBuffer::init_g_buffer();
         }
 
-        _M_window =
-                Object::new_instance_named<Window>("Trinex Engine Window", Package::find_package("Engine"), interface);
+        _M_window = Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), interface);
 
 
         return window();

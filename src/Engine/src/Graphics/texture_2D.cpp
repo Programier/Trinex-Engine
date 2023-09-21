@@ -20,14 +20,16 @@ namespace Engine
 
     Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
-        EngineInstance::instance()->api_interface()->update_texture_2D(_M_ID, size, offset, mipmap,
-                                                                       reinterpret_cast<const void*>(data));
+        if (_M_rhi_texture)
+        {
+            _M_rhi_texture->update_texture_2D(size, offset, mipmap, data);
+        }
         return *this;
     }
 
     Texture2D& Texture2D::read_data(Buffer& data, MipMapLevel level)
     {
-        EngineInstance::instance()->api_interface()->read_texture_2D_data(_M_ID, data, level);
+        throw EngineException("Unimplemented method");
         return *this;
     }
 
@@ -35,7 +37,7 @@ namespace Engine
     {
         destroy();
         resources(true);
-        TextureCreateInfo& params = _M_resources->info;
+        TextureCreateInfo& params = info;
 
         static ColorFormat _M_formats[5] = {ColorFormat::R8G8B8A8Sint, ColorFormat::R8Sint, ColorFormat::R8Sint,
                                             ColorFormat::R8G8B8Sint, ColorFormat::R8G8B8A8Sint};
@@ -66,11 +68,6 @@ namespace Engine
 
             params.mipmap_count = 8;
             params.size         = image.size();
-            params.min_filter   = TextureFilter::Linear;
-            params.mag_filter   = TextureFilter::Linear;
-            params.mipmap_mode  = SamplerMipmapMode::Linear;
-            params.min_lod      = 0.0f;
-            params.max_lod      = 1000.0f;
             create();
             update(image.size(), {0, 0}, 0, image.vector().data());
             generate_mipmap();

@@ -4,7 +4,6 @@
 #include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
-#include <Core/shader_types.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/mesh_component.hpp>
 #include <Graphics/shader.hpp>

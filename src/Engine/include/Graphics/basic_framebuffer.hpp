@@ -1,8 +1,6 @@
 #pragma once
 #include <Core/api_object.hpp>
-#include <Core/buffer_types.hpp>
-#include <Core/engine_types.hpp>
-#include <Core/render_types.hpp>
+#include <Core/structures.hpp>
 
 
 namespace Engine
@@ -10,6 +8,7 @@ namespace Engine
     class ENGINE_EXPORT BasicFrameBuffer : public ApiObject
     {
         declare_class(BasicFrameBuffer, ApiObject);
+
     protected:
         ViewPort _M_viewport;
         Scissor _M_scissor;

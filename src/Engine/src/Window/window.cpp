@@ -8,6 +8,8 @@ namespace Engine
 {
     Window::Window(WindowInterface* interface) : _M_interface(interface)
     {
+        _M_rhi_framebuffer = EngineInstance::instance()->api_interface()->window_framebuffer();
+
         update_cached_size();
 
         _M_force_destroy_priority = Constants::max_priority;
@@ -241,6 +243,7 @@ namespace Engine
 
     Window::~Window()
     {
+        _M_rhi_framebuffer = nullptr;// Window framebuffer must be destroyed by API
         delete _M_interface;
     }
 

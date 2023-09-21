@@ -1,7 +1,9 @@
 #include <Core/buffer_manager.hpp>
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/shader_resource.hpp>
+#include <Window/window.hpp>
 
 namespace Engine
 {
@@ -61,18 +63,20 @@ namespace Engine
         SHADER_CHECKED_SERIALIZE(_M_resources->vertex_info.size, "Failed to process vertex info size!");
         SHADER_CHECKED_SERIALIZE(_M_resources->vertex_info.attributes, "Failed to process vertex info size!");
 
-        byte usage = static_cast<byte>(_M_resources->framebuffer_usage == 0 ? 0 : 1);
+        byte usage = static_cast<byte>(
+                _M_resources->framebuffer == engine_instance->window()->get_rhi_object<RHI::RHI_FrameBuffer>() ? 0 : 1);
         SHADER_CHECKED_SERIALIZE(usage, "Failed to serialize framebuffer usage!");
 
         if (archive->is_reading())
         {
             if (usage != 0 && GBuffer::instance())
             {
-                _M_resources->framebuffer_usage = GBuffer::instance()->id();
+                _M_resources->framebuffer = GBuffer::instance()->get_rhi_object<RHI::RHI_FrameBuffer>();
             }
             else
             {
-                _M_resources->framebuffer_usage = 0;
+                _M_resources->framebuffer =
+                        EngineInstance::instance()->window()->get_rhi_object<RHI::RHI_FrameBuffer>();
             }
         }
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Core/definitions.hpp>
 #include <Core/etl/helpers.hpp>
 #include <Core/etl/stl_wrapper.hpp>
-#include <Core/definitions.hpp>
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -79,8 +79,6 @@ namespace Engine
     using MessageList  = List<String>;
     using PixelRGB     = glm::vec<3, byte, glm::defaultp>;
     using PixelRGBA    = glm::vec<4, byte, glm::defaultp>;
-#define STR(text) text
-
 
     using Vector1D = glm::vec1;
     using Vector2D = glm::vec2;
@@ -103,36 +101,10 @@ namespace Engine
     using UIntVector3D = glm::uvec3;
     using UIntVector4D = glm::uvec4;
 
-    template<typename Type>
-    class SizeLimits
-    {
-    public:
-        Type min;
-        Type max;
+    using BufferType                = size_t;
+    using FrameBufferOutputLocation = byte;
+    using ColorClearValue           = Vector4D;
 
-        SizeLimits() = default;
-        SizeLimits(const Type& _min, const Type& _max) : min(_min), max(_max)
-        {}
-
-        SizeLimits(Type&& _min, Type&& _max) : min(std::move(_min)), max(std::move(_max))
-        {}
-
-        SizeLimits(SizeLimits&&)      = default;
-        SizeLimits(const SizeLimits&) = default;
-
-
-        SizeLimits& operator=(const SizeLimits&) = default;
-        SizeLimits& operator=(SizeLimits&&)      = default;
-    };
-
-    using SizeLimits1D = SizeLimits<Size1D>;
-    using SizeLimits2D = SizeLimits<Size2D>;
-    using SizeLimits3D = SizeLimits<Size3D>;
-
-
-    using AABB_1D = SizeLimits1D;
-    using AABB_2D = SizeLimits2D;
-    using AABB_3D = SizeLimits3D;
 
     using Identifier    = std::uint64_t;
     using MipMapLevel   = byte;
@@ -153,97 +125,15 @@ namespace Engine
     using int64_t  = std::int64_t;
     using uint64_t = std::uint64_t;
 
+    using SampleMask         = size_t;
+    using ColorComponentMask = size_t;
+
     using ScriptObjectAddress = void*;
+    using Buffer              = Vector<byte>;
+    using FileBuffer          = Buffer;
+    using ObjectArray         = Vector<class Object*>;
 
-
-    enum class Coord
-    {
-        X,
-        Y,
-        Z
-    };
-
-    enum class EngineAPI : EnumerateType
-    {
-        NoAPI  = 0,
-        OpenGL = 1,
-        Vulkan = 2
-    };
-
-
-    enum class DataType : EnumerateType
-    {
-        Text = 0,
-        Binary
-    };
-
-    using Buffer     = Vector<byte>;
-    using FileBuffer = Buffer;
-
-
-    enum class SystemName
-    {
-        LinuxOS,
-        WindowsOS,
-        AndroidOS
-    };
-
-    enum class ColorComponent : EnumerateType
-    {
-        R = 1,
-        G = 2,
-        B = 4,
-        A = 8,
-    };
-
-    enum class CompareFunc : EnumerateType
-    {
-        Always   = 0,
-        Lequal   = 1,
-        Gequal   = 2,
-        Less     = 3,
-        Greater  = 4,
-        Equal    = 5,
-        NotEqual = 6,
-        Never    = 7,
-    };
-
-    enum class PhysicalSizeMetric
-    {
-        Inch,
-        Сentimeters,
-    };
-
-    enum class AccessType
-    {
-        Private,
-        Protected,
-        Public
-    };
-
-    struct ClassFieldInfo {
-        const char* name;
-        AccessType access;
-        bool is_serializable;
-    };
-
-    struct EmptyStruct {
-    };
-
-    class EmptyClass
-    {
-    };
-
-    using ObjectArray = Vector<class Object*>;
-
-#define TRINEX_ENGINE_FLAG 1414678092U
-
-
-    template<typename OutType, typename... Args>
-    OutType mask_of(Args&&... args)
-    {
-        return (static_cast<OutType>(args) | ...);
-    }
+    inline constexpr size_t TRINEX_ENGINE_FLAG = 1414678092U;
 }// namespace Engine
 
 

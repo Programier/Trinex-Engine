@@ -23,3 +23,5 @@
 #endif
 
 #endif
+
+#include <Core/rhi_initializers.hpp>

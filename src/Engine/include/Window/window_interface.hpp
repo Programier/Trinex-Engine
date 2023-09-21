@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Core/engine_types.hpp>
+
+#include <Core/structures.hpp>
 #include <Event/event.hpp>
 
 

@@ -13,7 +13,7 @@ namespace Engine
     {
         texture = Object::new_instance<Texture2D>();
         texture->name(name);
-        TextureCreateInfo& info = texture->resources(true)->info;
+        TextureCreateInfo& info = texture->info;
 
         info.size   = size;
         info.format = format;
@@ -37,6 +37,7 @@ namespace Engine
     ENGINE_EXPORT void GBuffer::init_g_buffer()
     {
         _M_g_buffer = Object::new_instance<GBuffer>();
+        _M_g_buffer->name("Engine::GBuffer");
 
         FrameBufferCreateInfo info;
 
@@ -63,13 +64,13 @@ namespace Engine
 
             info.buffers[i].color_attachments.resize(4);
 
-            info.buffers[i].color_attachments[0].texture_id = data.albedo->id();
-            info.buffers[i].color_attachments[1].texture_id = data.position->id();
-            info.buffers[i].color_attachments[2].texture_id = data.normal->id();
-            info.buffers[i].color_attachments[3].texture_id = data.specular->id();
+            info.buffers[i].color_attachments[0].texture = data.albedo->get_rhi_object<RHI::RHI_Texture>();
+            info.buffers[i].color_attachments[1].texture = data.position->get_rhi_object<RHI::RHI_Texture>();
+            info.buffers[i].color_attachments[2].texture = data.normal->get_rhi_object<RHI::RHI_Texture>();
+            info.buffers[i].color_attachments[3].texture = data.specular->get_rhi_object<RHI::RHI_Texture>();
 
             FrameBufferAttachment depth_attachment;
-            depth_attachment.texture_id              = data.depth->id();
+            depth_attachment.texture                 = data.depth->get_rhi_object<RHI::RHI_Texture>();
             info.buffers[i].depth_stencil_attachment = depth_attachment;
         }
 

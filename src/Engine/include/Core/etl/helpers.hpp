@@ -33,4 +33,9 @@ namespace Engine
         return function;
     }
 
+    template<typename OutType, typename... Args>
+    OutType mask_of(Args&&... args)
+    {
+        return (static_cast<OutType>(args) | ...);
+    }
 }// namespace Engine

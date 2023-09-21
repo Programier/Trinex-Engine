@@ -30,10 +30,9 @@ namespace Engine
 
     struct VulkanTexture;
 
-    struct VulkanAPI : public GraphicApiInterface::ApiInterface {
+    struct VulkanAPI : public RHI::ApiInterface {
         static Vector<const char*> device_extensions;
         static VulkanAPI* _M_vulkan;
-        Logger** _M_engine_logger        = nullptr;
         WindowInterface* _M_window       = nullptr;
         bool _M_need_recreate_swap_chain = false;
         String _M_renderer               = "";
@@ -116,9 +115,6 @@ namespace Engine
         VulkanAPI& swap_buffer() override;
         VulkanAPI& begin_render() override;
         VulkanAPI& end_render() override;
-        VulkanAPI& framebuffer_viewport(const Identifier&, const ViewPort& viewport) override;
-        VulkanAPI& bind_framebuffer(const Identifier& ID, size_t buffer_index) override;
-        VulkanAPI& clear_color(const Identifier& ID, const ColorClearValue& color, byte layout) override;
         VulkanAPI& vsync(bool) override;
         bool vsync() override;
         VulkanAPI& wait_idle() override;
@@ -147,53 +143,6 @@ namespace Engine
         VulkanAPI& unmap_index_buffer(const Identifier& ID) override;
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
 
-        VulkanAPI& create_texture(Identifier& ID, const TextureCreateInfo& info, TextureType type) override;
-        VulkanAPI& bind_texture(const Identifier&, TextureBindIndex binding) override;
-
-        MipMapLevel base_level_texture(const Identifier& ID) override;
-        VulkanAPI& base_level_texture(const Identifier& ID, MipMapLevel level) override;
-        CompareFunc compare_func_texture(const Identifier& ID) override;
-        VulkanAPI& compare_func_texture(const Identifier& ID, CompareFunc func) override;
-        CompareMode compare_mode_texture(const Identifier& ID) override;
-        VulkanAPI& compare_mode_texture(const Identifier&, CompareMode mode) override;
-        TextureFilter min_filter_texture(const Identifier& ID) override;
-        TextureFilter mag_filter_texture(const Identifier& ID) override;
-        VulkanAPI& min_filter_texture(const Identifier& ID, TextureFilter filter) override;
-        VulkanAPI& mag_filter_texture(const Identifier& ID, TextureFilter filter) override;
-        VulkanAPI& min_lod_level_texture(const Identifier&, LodLevel) override;
-        VulkanAPI& max_lod_level_texture(const Identifier&, LodLevel) override;
-        LodLevel min_lod_level_texture(const Identifier& ID) override;
-        LodLevel max_lod_level_texture(const Identifier& ID) override;
-        MipMapLevel max_mipmap_level_texture(const Identifier& ID) override;
-        VulkanAPI& swizzle_texture(const Identifier& ID, const SwizzleRGBA& swizzle) override;
-        SwizzleRGBA swizzle_texture(const Identifier& ID) override;
-        VulkanAPI& wrap_s_texture(const Identifier& ID, const WrapValue& value) override;
-        VulkanAPI& wrap_t_texture(const Identifier& ID, const WrapValue& value) override;
-        VulkanAPI& wrap_r_texture(const Identifier& ID, const WrapValue& value) override;
-        WrapValue wrap_s_texture(const Identifier&) override;
-        WrapValue wrap_t_texture(const Identifier&) override;
-        WrapValue wrap_r_texture(const Identifier&) override;
-        VulkanAPI& logger(Logger*&) override;
-        VulkanAPI& generate_texture_mipmap(const Identifier&) override;
-        VulkanAPI& update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel,
-                                     const void*) override;
-        VulkanAPI& texture_size(const Identifier& ID, Size2D& size, MipMapLevel level) override;
-
-        VulkanAPI& read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel) override;
-        VulkanAPI& anisotropic_filtering_texture(const Identifier& ID, float value) override;
-        float anisotropic_filtering_texture(const Identifier& ID) override;
-        float max_anisotropic_filtering() override;
-
-
-        VulkanAPI& cubemap_texture_update_data(const Identifier&, TextureCubeMapFace, const Size2D&, const Offset2D&,
-                                               MipMapLevel, void*) override;
-
-        SamplerMipmapMode sample_mipmap_mode_texture(const Identifier& ID) override;
-        VulkanAPI& sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode) override;
-        LodBias lod_bias_texture(const Identifier& ID) override;
-        VulkanAPI& lod_bias_texture(const Identifier& ID, LodBias bias) override;
-        LodBias max_lod_bias_texture() override;
-
         VulkanAPI& create_ssbo(Identifier&, const byte* data, size_t size) override;
         VulkanAPI& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
         VulkanAPI& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
@@ -204,15 +153,18 @@ namespace Engine
         MappedMemory map_uniform_buffer(const Identifier& ID) override;
         VulkanAPI& unmap_uniform_buffer(const Identifier& ID) override;
 
-        VulkanAPI& gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info) override;
         Identifier imgui_texture_id(const Identifier&) override;
-        VulkanAPI& framebuffer_scissor(const Identifier&, const Scissor&) override;
-        VulkanAPI& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
         bool check_format_support(ColorFormat format) override;
 
         VulkanAPI& async_render(bool flag) override;
         bool async_render() override;
         VulkanAPI& next_render_thread() override;
+
+
+        RHI::RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI::RHI_Texture* create_texture(const TextureCreateInfo&, TextureType, const byte* data) override;
+        RHI::RHI_FrameBuffer* window_framebuffer() override;
+        RHI::RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
         ~VulkanAPI();
     };
 }// namespace Engine

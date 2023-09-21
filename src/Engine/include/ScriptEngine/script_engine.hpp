@@ -10,6 +10,7 @@ namespace Engine
     class ScriptModule;
     class ScriptTypeInfo;
     class ScriptObject;
+    class ScriptFunction;
 
     enum class ModuleCreateFlags
     {
@@ -67,6 +68,46 @@ namespace Engine
         ScriptEngine& register_typedef(const String& type, const String& declaration);
         ScriptObject create_script_object(const ScriptTypeInfo& info) const;
         ScriptObject create_script_object_uninited(const ScriptTypeInfo& info) const;
+
+        uint_t global_function_count() const;
+        ScriptFunction global_function_by_index(uint_t index) const;
+        ScriptFunction global_function_by_decl(const char* declaration) const;
+        ScriptFunction global_function_by_decl(const String& declaration) const;
+
+        uint_t object_type_count() const;
+        ScriptTypeInfo object_type_by_index(uint_t index) const;
+
+        // Enums
+        uint_t enum_count() const;
+        ScriptTypeInfo enum_by_index(uint_t index) const;
+
+        // Funcdefs
+        uint_t funcdef_count() const;
+        ScriptTypeInfo funcdef_by_index(uint_t index) const;
+
+        // Typedefs
+        uint_t typedef_count() const;
+        ScriptTypeInfo typedef_by_index(uint_t index) const;
+
+        // Script modules
+        ScriptEngine& discard_module(const char* module);
+        ScriptEngine& discard_module(const String& module);
+        ScriptModule module_by_index(uint_t index) const;
+
+        // Script functions
+        int_t last_function_id() const;
+        ScriptFunction function_by_id(int func_id) const;
+
+        // Type identification
+        int_t typeid_by_decl(const char* decl) const;
+        const char* type_declaration(int_t type_id, bool include_namespace = false) const;
+        int_t sizeof_primitive_type(int_t type_id) const;
+        ScriptTypeInfo type_info_by_id(int_t type_id) const;
+        ScriptTypeInfo type_info_by_name(const char* name) const;
+        ScriptTypeInfo type_info_by_decl(const char* decl) const;
+        ScriptTypeInfo type_info_by_name(const String& name) const;
+        ScriptTypeInfo type_info_by_decl(const String& decl) const;
+
 
         template<typename T>
         ScriptEngine& register_function(const char* declaration, T func, ScriptCallConv conv = ScriptCallConv::CDECL)

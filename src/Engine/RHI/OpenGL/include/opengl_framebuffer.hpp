@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/buffer_types.hpp>
+#include <api.hpp>
 #include <opengl_command_buffer.hpp>
 #include <opengl_object.hpp>
 
@@ -17,7 +17,7 @@ namespace Engine
         ~OpenGL_FrameBuffer();
     };
 
-    struct OpenGL_FrameBufferSet : OpenGL_Object {
+    struct OpenGL_FrameBufferSet : RHI::RHI_FrameBuffer {
         ViewPort _M_viewport;
         Scissor _M_scissor;
         OpenGL_CommandBuffer _M_command_buffer;
@@ -25,13 +25,22 @@ namespace Engine
         Vector<OpenGL_FrameBuffer> _M_framebuffers;
 
         OpenGL_FrameBufferSet(bool is_base = false);
-        OpenGL_FrameBufferSet& bind_framebuffer(size_t buffer_index);
-        OpenGL_FrameBufferSet& framebuffer_viewport(const ViewPort&);
         OpenGL_FrameBufferSet& framebuffer_scissor(const Scissor&);
         OpenGL_FrameBufferSet& gen_framebuffer(const FrameBufferCreateInfo& info);
 
         OpenGL_FrameBufferSet& update_viewport();
         OpenGL_FrameBufferSet& update_scissor();
-        implement_opengl_instance_hpp();
+
+
+        void bind(uint_t buffer_index) override;
+        void viewport(const ViewPort& viewport) override;
+        void scissor(const Scissor& scissor) override;
+        void clear_depth_stencil(const DepthStencilClearValue& value) override;
+        void clear_color(const ColorClearValue& color, byte layout) override;
+    };
+
+    struct OpenGL_MainFrameBuffer : OpenGL_FrameBufferSet {
+        OpenGL_MainFrameBuffer();
+        void bind(uint_t buffer_index) override;
     };
 }// namespace Engine

@@ -301,4 +301,138 @@ namespace Engine
         ScriptEngine::instance()->default_namespace(_M_ns);
     }
 
+
+    uint_t ScriptEngine::global_function_count() const
+    {
+        return _M_engine->GetGlobalFunctionCount();
+    }
+
+    ScriptFunction ScriptEngine::global_function_by_index(uint_t index) const
+    {
+        return ScriptFunction(_M_engine->GetGlobalFunctionByIndex(index)).bind();
+    }
+
+    ScriptFunction ScriptEngine::global_function_by_decl(const char* declaration) const
+    {
+        return ScriptFunction(_M_engine->GetGlobalFunctionByDecl(declaration)).bind();
+    }
+
+    ScriptFunction ScriptEngine::global_function_by_decl(const String& declaration) const
+    {
+        return global_function_by_decl(declaration.c_str());
+    }
+
+    uint_t ScriptEngine::object_type_count() const
+    {
+        return _M_engine->GetObjectTypeCount();
+    }
+
+    ScriptTypeInfo ScriptEngine::object_type_by_index(uint_t index) const
+    {
+        return ScriptTypeInfo(_M_engine->GetObjectTypeByIndex(index)).bind();
+    }
+
+    // Enums
+    uint_t ScriptEngine::enum_count() const
+    {
+        return _M_engine->GetEnumCount();
+    }
+
+    ScriptTypeInfo ScriptEngine::enum_by_index(uint_t index) const
+    {
+        return ScriptTypeInfo(_M_engine->GetEnumByIndex(index)).bind();
+    }
+
+    // Funcdefs
+    uint_t ScriptEngine::funcdef_count() const
+    {
+        return _M_engine->GetFuncdefCount();
+    }
+
+    ScriptTypeInfo ScriptEngine::funcdef_by_index(uint_t index) const
+    {
+        return ScriptTypeInfo(_M_engine->GetFuncdefByIndex(index)).bind();
+    }
+
+    // Typedefs
+    uint_t ScriptEngine::typedef_count() const
+    {
+        return _M_engine->GetTypedefCount();
+    }
+
+    ScriptTypeInfo ScriptEngine::typedef_by_index(uint_t index) const
+    {
+        return ScriptTypeInfo(_M_engine->GetTypedefByIndex(index)).bind();
+    }
+
+    // Script modules
+    ScriptEngine& ScriptEngine::discard_module(const char* module_name)
+    {
+        _M_engine->DiscardModule(module_name);
+        return *this;
+    }
+
+    ScriptEngine& ScriptEngine::discard_module(const String& module_name)
+    {
+        return discard_module(module_name.c_str());
+    }
+
+    ScriptModule ScriptEngine::module_by_index(uint_t index) const
+    {
+        return ScriptModule(_M_engine->GetModuleByIndex(index));
+    }
+
+    // Script functions
+    int_t ScriptEngine::last_function_id() const
+    {
+        return _M_engine->GetLastFunctionId();
+    }
+
+    ScriptFunction ScriptEngine::function_by_id(int func_id) const
+    {
+        return ScriptFunction(_M_engine->GetFunctionById(func_id)).bind();
+    }
+
+    // Type identification
+    int_t ScriptEngine::typeid_by_decl(const char* decl) const
+    {
+        return _M_engine->GetTypeIdByDecl(decl);
+    }
+
+    const char* ScriptEngine::type_declaration(int type_id, bool include_namespace) const
+    {
+        return _M_engine->GetTypeDeclaration(type_id, include_namespace);
+    }
+
+    int_t ScriptEngine::sizeof_primitive_type(int type_id) const
+    {
+        return _M_engine->GetSizeOfPrimitiveType(type_id);
+    }
+
+    ScriptTypeInfo ScriptEngine::type_info_by_id(int type_id) const
+    {
+        return ScriptTypeInfo(_M_engine->GetTypeInfoById(type_id)).bind();
+    }
+
+    ScriptTypeInfo ScriptEngine::type_info_by_name(const char* name) const
+    {
+        return ScriptTypeInfo(_M_engine->GetTypeInfoByName(name)).bind();
+    }
+
+    ScriptTypeInfo ScriptEngine::type_info_by_decl(const char* decl) const
+    {
+        return ScriptTypeInfo(_M_engine->GetTypeInfoByDecl(decl)).bind();
+    }
+
+    ScriptTypeInfo ScriptEngine::type_info_by_name(const String& name) const
+    {
+        return type_info_by_name(name.c_str());
+    }
+
+    ScriptTypeInfo ScriptEngine::type_info_by_decl(const String& decl) const
+    {
+        return type_info_by_decl(decl.c_str());
+    }
+
+
 }// namespace Engine

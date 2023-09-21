@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/buffer_types.hpp>
 #include <Core/implement.hpp>
 #include <Graphics/basic_framebuffer.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -7,6 +6,8 @@
 
 namespace Engine
 {
+    struct FrameBufferCreateInfo;
+
     class ENGINE_EXPORT FrameBuffer : public BasicFrameBuffer
     {
         declare_class(FrameBuffer, BasicFrameBuffer);

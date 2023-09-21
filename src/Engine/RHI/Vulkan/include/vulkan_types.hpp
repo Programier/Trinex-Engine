@@ -1,9 +1,5 @@
 #pragma once
-#include <Core/buffer_types.hpp>
-#include <Core/engine_types.hpp>
-#include <Core/render_types.hpp>
-#include <Core/shader_types.hpp>
-#include <Core/texture_types.hpp>
+#include <Core/rhi_initializers.hpp>
 #include <stdexcept>
 #include <vulkan/vulkan.hpp>
 

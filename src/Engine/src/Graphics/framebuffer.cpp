@@ -14,7 +14,7 @@ namespace Engine
     FrameBuffer& FrameBuffer::create(const FrameBufferCreateInfo& info)
     {
         ApiObject::destroy();
-        EngineInstance::instance()->api_interface()->gen_framebuffer(_M_ID, info);
+        _M_rhi_framebuffer = EngineInstance::instance()->api_interface()->create_framebuffer(info);
         return *this;
     }
 }// namespace Engine

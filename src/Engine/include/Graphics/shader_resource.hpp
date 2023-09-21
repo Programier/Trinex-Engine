@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/object.hpp>
 #include <Core/resource.hpp>
-#include <Core/shader_types.hpp>
+#include <Core/rhi_initializers.hpp>
 
 namespace Engine
 {

@@ -1,7 +1,5 @@
 #pragma once
 #include <vulkan_object.hpp>
-
-#include <Core/buffer_types.hpp>
 #include <vulkan_buffer.hpp>
 
 namespace Engine

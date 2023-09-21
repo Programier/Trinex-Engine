@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/shader_types.hpp>
 
 #include <opengl_command_buffer.hpp>
 #include <opengl_object.hpp>

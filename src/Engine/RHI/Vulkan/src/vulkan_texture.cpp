@@ -1,11 +1,13 @@
 #include <vulkan_api.hpp>
+#include <vulkan_shader.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_transition_image_layout.hpp>
 #include <vulkan_types.hpp>
 
 namespace Engine
 {
-    vk::Format VulkanTexture::parse_format(ColorFormat format)
+    vk::Format parse_engine_format(ColorFormat format)
     {
         switch (format)
         {
@@ -193,87 +195,29 @@ namespace Engine
         }
     }
 
-    VulkanTextureState& VulkanTextureState::init(const TextureCreateInfo& info)
+
+    VulkanTexture& VulkanTexture::create(const TextureCreateInfo& info, TextureType type, const byte* data)
     {
-        size.setWidth(static_cast<uint32_t>(info.size.x)).setHeight(static_cast<uint32_t>(info.size.y));
-        mipmap_count             = glm::max(static_cast<MipMapLevel>(1), info.mipmap_count);
-        format                   = VulkanTexture::parse_format(info.format);
-        min_filter               = get_type(info.min_filter);
-        mag_filter               = get_type(info.mag_filter);
-        sampler_mipmap_mode      = get_type(info.mipmap_mode);
-        wrap_s                   = get_type(info.wrap_s);
-        wrap_r                   = get_type(info.wrap_r);
-        wrap_t                   = get_type(info.wrap_t);
-        mip_lod_bias             = info.mip_lod_bias;
-        anisotropy_enable        = info.anisotropy > 1.0f;
-        anisotropy               = glm::max(glm::min(API->max_anisotropic_filtering(), info.anisotropy), 1.0f);
-        compare_enable           = info.compare_mode == CompareMode::RefToTexture;
-        compare_func             = get_type(info.compare_func);
-        min_lod                  = info.min_lod;
-        max_lod                  = info.max_lod;
-        unnormalized_coordinates = 0;
-        base_mip_level           = info.base_mip_level;
-        swizzle = vk::ComponentMapping(get_type(info.swizzle.R), get_type(info.swizzle.G), get_type(info.swizzle.B),
-                                       get_type(info.swizzle.A));
-        engine_format = info.format;
-        return *this;
-    }
+        destroy();
 
-    VulkanTexture::VulkanTexture()
-    {
-        _M_image_aspect = vk::ImageAspectFlags();
-    }
+        _M_type = type;
+        size.setWidth(info.size.x).setHeight(info.size.y);
+        _M_engine_format  = info.format;
+        _M_mipmap_count   = info.mipmap_count;
+        _M_vulkan_format  = parse_engine_format(_M_engine_format);
+        _M_base_mip_level = info.base_mip_level;
 
 
-    VulkanTexture& VulkanTexture::init(const TextureCreateInfo& info, TextureType type)
-    {
-        ColorFormatAspect aspect = ColorFormatInfo::info_of(info.format).aspect();
-        _M_image_aspect          = get_type(aspect);
-
-        state.init(info);
-
-        if (type == TextureType::Texture2D)
-        {
-            _M_image_type = vk::ImageViewType::e2D;
-        }
-        else
-        {
-            _M_image_type  = vk::ImageViewType::eCube;
-            _M_layer_count = 6;
-        }
-
-        create_image().create_image_view().create_texture_sampler();
-
-        TransitionImageLayout transition;
-        transition.image        = &_M_image;
-        transition.base_mip     = 0;
-        transition.mip_count    = state.mipmap_count;
-        transition.base_layer   = 0;
-        transition.layer_count  = _M_layer_count;
-        transition.aspect_flags = _M_image_aspect;
-
-        transition.old_layout = vk::ImageLayout::eUndefined;
-        transition.new_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-
-        transition.execute(vk::PipelineStageFlagBits::eTopOfPipe, vk::AccessFlagBits::eNone,
-                           vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
-        return *this;
-    }
-
-
-#define SIZE(component) static_cast<uint_t>(state.base_size.component)
-#define HAS_ASPECT_FLAG(f)                                                                                             \
-    ((_M_image_aspect & vk::ImageAspectFlagBits::f) == static_cast<vk::ImageAspectFlags>(vk::ImageAspectFlagBits::f))
-
-    VulkanTexture& VulkanTexture::create_image()
-    {
         static vk::ImageCreateFlagBits default_flags = {};
 
         vk::ImageUsageFlags _M_usage_flags;
         vk::MemoryPropertyFlags _M_memory_flags;
 
-        if (HAS_ASPECT_FLAG(eDepth) || HAS_ASPECT_FLAG(eStencil))
+        ColorFormatInfo format_info     = ColorFormatInfo::info_of(info.format);
+        ColorFormatAspect format_aspect = format_info.aspect();
+
+        if (format_aspect == ColorFormatAspect::Depth || format_aspect == ColorFormatAspect::Stencil ||
+            format_aspect == ColorFormatAspect::DepthStencil)
         {
             _M_usage_flags = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc |
                              vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
@@ -293,64 +237,157 @@ namespace Engine
         }
 
         API->create_image(this, vk::ImageTiling::eOptimal,
-                          _M_layer_count == 1 ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
-                          _M_usage_flags, _M_memory_flags, _M_image, _M_image_memory, _M_layer_count);
+                          _M_type == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
+                          _M_usage_flags, _M_memory_flags, _M_image, _M_image_memory, layer_count());
+
+
+        // Creating image view
+        _M_swizzle = vk::ComponentMapping(get_type(info.swizzle.R), get_type(info.swizzle.G), get_type(info.swizzle.B),
+                                          get_type(info.swizzle.A));
+        vk::ImageViewCreateInfo view_info({}, _M_image, view_type(), _M_vulkan_format, _M_swizzle,
+                                          subresource_range(info.base_mip_level));
+        _M_image_view = API->_M_device.createImageView(view_info);
+
+
+        {
+            TransitionImageLayout transition;
+            transition.image        = &_M_image;
+            transition.base_mip     = 0;
+            transition.mip_count    = _M_mipmap_count;
+            transition.base_layer   = 0;
+            transition.layer_count  = layer_count();
+            transition.aspect_flags = aspect();
+
+            transition.old_layout = vk::ImageLayout::eUndefined;
+            transition.new_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+
+            transition.execute(vk::PipelineStageFlagBits::eTopOfPipe, vk::AccessFlagBits::eNone,
+                               vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
+        }
         return *this;
     }
 
-
-    vk::Format VulkanTexture::format()
+    void VulkanTexture::update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel level, uint_t layer,
+                                       const byte* data)
     {
-        return state.format;
+        vk::Buffer staging_buffer;
+        vk::DeviceMemory staging_buffer_memory;
+
+        vk::DeviceSize buffer_size =
+                static_cast<vk::DeviceSize>(size.x) * static_cast<vk::DeviceSize>(size.y) * pixel_type_size();
+
+
+        API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
+                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                           staging_buffer, staging_buffer_memory);
+
+        void* vulkan_data = API->_M_device.mapMemory(staging_buffer_memory, 0, buffer_size);
+        std::memcpy(vulkan_data, data, buffer_size);
+        API->_M_device.unmapMemory(staging_buffer_memory);
+
+
+        TransitionImageLayout transition;
+        transition.image       = &_M_image;
+        transition.old_layout  = vk::ImageLayout::eShaderReadOnlyOptimal;
+        transition.new_layout  = vk::ImageLayout::eTransferDstOptimal;
+        transition.base_mip    = level;
+        transition.mip_count   = 1;
+        transition.base_layer  = layer;
+        transition.layer_count = 1;
+
+        transition.execute(vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead,
+                           vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferWrite);
+
+        auto command_buffer = API->begin_single_time_command_buffer();
+
+        vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1),
+                                   vk::Offset3D(static_cast<uint_t>(offset.x), static_cast<uint_t>(offset.y), 0),
+                                   vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
+
+        command_buffer.copyBufferToImage(staging_buffer, _M_image, vk::ImageLayout::eTransferDstOptimal, region);
+
+        API->end_single_time_command_buffer(command_buffer);
+
+        API->_M_device.freeMemory(staging_buffer_memory, nullptr);
+        API->_M_device.destroyBuffer(staging_buffer);
+
+        std::swap(transition.old_layout, transition.new_layout);
+        transition.execute(vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferWrite,
+                           vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
+    }
+
+    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
+                                          const byte* data)
+    {
+        update_texture(size, offset, mipmap, 0, data);
+    }
+
+
+    void VulkanTexture::bind(BindingIndex binding, BindingIndex set)
+    {}
+
+    void VulkanTexture::bind_combined(RHI::RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
+    {
+        if (API->_M_state->_M_shader)
+        {
+            API->_M_state->_M_shader->bind_texture_combined(reinterpret_cast<VulkanSampler*>(sampler), this, binding);
+        }
+    }
+
+    VulkanTexture& VulkanTexture::destroy()
+    {
+        API->wait_idle();
+        DESTROY_CALL(destroyImage, _M_image);
+        DESTROY_CALL(freeMemory, _M_image_memory);
+        DESTROY_CALL(destroyImageView, _M_image_view);
+        return *this;
     }
 
     vk::ImageSubresourceRange VulkanTexture::subresource_range(MipMapLevel base)
     {
-        return vk::ImageSubresourceRange(_M_image_aspect, base, state.mipmap_count - base, 0, _M_layer_count);
+        return vk::ImageSubresourceRange(aspect(), base, _M_mipmap_count - base, 0, layer_count());
     }
 
-    uint_t VulkanTexture::pixel_type_size()
+    uint_t VulkanTexture::layer_count() const
     {
-        ColorFormatInfo color_info = ColorFormatInfo::info_of(state.engine_format);
+        return _M_type == TextureType::Texture2D ? 1 : 6;
+    }
+
+    vk::ImageViewType VulkanTexture::view_type() const
+    {
+        return _M_type == TextureType::Texture2D ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
+    }
+
+    vk::ImageAspectFlags VulkanTexture::aspect() const
+    {
+        return get_type(ColorFormatInfo::info_of(_M_engine_format).aspect());
+    }
+
+    bool VulkanTexture::can_use_color_as_color_attachment() const
+    {
+        return ColorFormatInfo::info_of(_M_engine_format).components() == 4;
+    }
+
+    uint_t VulkanTexture::pixel_type_size() const
+    {
+        ColorFormatInfo color_info = ColorFormatInfo::info_of(_M_engine_format);
         return static_cast<uint_t>(color_info.component_size()) * static_cast<uint_t>(color_info.components());
     }
 
-    vk::ImageView VulkanTexture::get_image_view(const vk::ImageSubresourceRange& range)
+    bool VulkanTexture::is_depth_stencil_image() const
     {
-        vk::ImageViewCreateInfo view_info({}, _M_image, _M_image_type, format(), state.swizzle, range);
-        return API->_M_device.createImageView(view_info);
+        ColorFormatAspect texture_aspect = ColorFormatInfo::info_of(_M_engine_format).aspect();
+        return texture_aspect == ColorFormatAspect::Depth || texture_aspect == ColorFormatAspect::Stencil ||
+               texture_aspect == ColorFormatAspect::DepthStencil;
     }
 
-    VulkanTexture& VulkanTexture::create_image_view()
-    {
-        API->wait_idle();
-        DESTROY_CALL(destroyImageView, _M_image_view);
-
-        _M_image_view = get_image_view(subresource_range(state.base_mip_level));
-        return *this;
-    }
-
-    VulkanTexture& VulkanTexture::create_texture_sampler()
-    {
-        API->wait_idle();
-        DESTROY_CALL(destroySampler, _M_texture_sampler);
-
-        vk::SamplerCreateInfo sampler_info({}, state.mag_filter, state.min_filter, state.sampler_mipmap_mode,
-                                           state.wrap_s, state.wrap_t, state.wrap_r, state.mip_lod_bias,
-                                           static_cast<vk::Bool32>(state.anisotropy > 1.0) && state.anisotropy_enable,
-                                           state.anisotropy, state.compare_enable, state.compare_func, state.min_lod,
-                                           state.max_lod, vk::BorderColor::eIntOpaqueBlack,
-                                           state.unnormalized_coordinates);
-        _M_texture_sampler = API->_M_device.createSampler(sampler_info);
-        return *this;
-    }
-
-    VulkanTexture& VulkanTexture::generate_mipmap()
+    void VulkanTexture::generate_mipmap()
     {
         if (!_M_image)
-            return *this;
+            return;
 
-        vk::FormatProperties format_properties = API->_M_physical_device.getFormatProperties(format());
+        vk::FormatProperties format_properties = API->_M_physical_device.getFormatProperties(_M_vulkan_format);
 
         if (!(format_properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear))
         {
@@ -364,11 +401,11 @@ namespace Engine
 
         vk::CommandBuffer command_buffer = API->begin_single_time_command_buffer();
 
-        auto subresource       = subresource_range(state.base_mip_level);
+        auto subresource       = subresource_range(_M_base_mip_level);
         subresource.levelCount = 1;
         subresource.layerCount = 1;
 
-        for (uint_t layer = 0; layer < _M_layer_count; layer++)
+        for (uint_t layer = 0, count = layer_count(); layer < count; layer++)
         {
             subresource.baseArrayLayer = layer;
 
@@ -376,11 +413,11 @@ namespace Engine
                                            subresource);
             vk::ImageMemoryBarrier barrier2 = barrier;
 
-            for (MipMapLevel i = 1; i < state.mipmap_count; i++)
+            for (MipMapLevel i = 1; i < _M_mipmap_count; i++)
             {
-                if (i >= state.base_mip_level)
+                if (i >= _M_base_mip_level)
                 {
-                    barrier.subresourceRange.baseMipLevel = i == state.base_mip_level ? 0 : i - 1;
+                    barrier.subresourceRange.baseMipLevel = i == _M_base_mip_level ? 0 : i - 1;
                     barrier.oldLayout                     = vk::ImageLayout::eShaderReadOnlyOptimal;
                     barrier.newLayout                     = vk::ImageLayout::eTransferSrcOptimal;
                     barrier.srcAccessMask                 = vk::AccessFlagBits::eShaderRead;
@@ -399,9 +436,9 @@ namespace Engine
                                                    vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier2);
 
                     vk::ImageSubresourceLayers src_image_subresource_layers(
-                            _M_image_aspect, (i == state.base_mip_level ? 0 : i - 1), layer, 1);
+                            aspect(), (i == _M_base_mip_level ? 0 : i - 1), layer, 1);
 
-                    vk::ImageSubresourceLayers dst_image_subresource_layers(_M_image_aspect, i, layer, 1);
+                    vk::ImageSubresourceLayers dst_image_subresource_layers(aspect(), i, layer, 1);
 
                     auto base_mip_size    = get_mip_size(barrier.subresourceRange.baseMipLevel);
                     auto current_mip_size = get_mip_size(i);
@@ -437,354 +474,30 @@ namespace Engine
             }
         }
         API->end_single_time_command_buffer(command_buffer);
-        return create_image_view().create_texture_sampler();
     }
 
-    Size2D VulkanTexture::size(MipMapLevel level)
+    vk::Offset2D VulkanTexture::get_mip_size(MipMapLevel level) const
     {
-        auto out_mip_size = get_mip_size(level);
-        return Size2D(static_cast<float>(out_mip_size.x), static_cast<float>(out_mip_size.y));
-    }
-
-    bool VulkanTexture::is_depth_stencil_image()
-    {
-        return (state.format == vk::Format::eD16Unorm || state.format == vk::Format::eD32Sfloat ||
-                state.format == vk::Format::eS8Uint || state.format == vk::Format::eD32SfloatS8Uint ||
-                state.format == vk::Format::eD16UnormS8Uint || state.format == vk::Format::eD24UnormS8Uint);
-    }
-
-
-    SamplerMipmapMode VulkanTexture::sample_mipmap_mode_texture()
-    {
-        return vulkan_type_to_engine_type<SamplerMipmapMode>(_M_sampler_mipmap_modes, state.sampler_mipmap_mode);
-    }
-
-
-    VulkanTexture& VulkanTexture::sample_mipmap_mode_texture(SamplerMipmapMode mode)
-    {
-        state.sampler_mipmap_mode = get_type(mode);
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::lod_bias_texture(LodBias bias)
-    {
-        state.mip_lod_bias = bias;
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::unnormalized_coordinates_texture(bool flag)
-    {
-        state.unnormalized_coordinates = flag;
-        return create_texture_sampler();
-    }
-
-
-    template<typename Type, size_t offset = 0>
-    void copy_image(const byte* vulkan_data, size_t size, Vector<byte>& out)
-    {
-        size_t out_size = size / (sizeof(Type) + offset);
-
-        out.resize(out_size);
-
-        for (size_t i = 0; i < out_size; i++)
-        {
-            Type value = *reinterpret_cast<const Type*>(vulkan_data);
-            if (std::is_floating_point<Type>::value)
-            {
-                out[i] = static_cast<byte>(value * static_cast<Type>(255.0f));
-            }
-            else
-            {
-                out[i] = static_cast<byte>(value);
-            }
-
-            vulkan_data += sizeof(Type) + offset;
-        }
-    }
-
-
-    VulkanTexture& VulkanTexture::read_texture_2D_data(Vector<byte>& data, MipMapLevel level)
-    {
-        if (level >= state.mipmap_count)
-            return *this;
-
-        API->wait_idle();
-        auto mip_size    = get_mip_size(level);
-        auto buffer_size = mip_size.x * mip_size.y * pixel_type_size();
-
-        TransitionImageLayout transition;
-        transition.image        = &_M_image;
-        transition.old_layout   = vk::ImageLayout::eShaderReadOnlyOptimal;
-        transition.new_layout   = vk::ImageLayout::eTransferSrcOptimal;
-        transition.base_mip     = level;
-        transition.mip_count    = 1;
-        transition.aspect_flags = _M_image_aspect;
-
-        transition.execute(vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead,
-                           vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferRead);
-
-
-        vk::BufferImageCopy copy(0, 0, 0, vk::ImageSubresourceLayers(_M_image_aspect, level, 0, 1),
-                                 vk::Offset3D(0, 0, 0), vk::Extent3D(mip_size.x, mip_size.y, 1));
-
-        vk::Buffer staging_buffer;
-        vk::DeviceMemory staging_buffer_memory;
-
-        API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferDst,
-                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                           staging_buffer, staging_buffer_memory);
-
-        auto command_buffer = API->begin_single_time_command_buffer();
-
-
-        command_buffer.copyImageToBuffer(_M_image, vk::ImageLayout::eTransferSrcOptimal, staging_buffer, copy);
-
-        API->end_single_time_command_buffer(command_buffer);
-
-        auto mip_data =
-                reinterpret_cast<const byte*>(API->_M_device.mapMemory(staging_buffer_memory, 0, VK_WHOLE_SIZE));
-
-
-        switch (state.format)
-        {
-            case vk::Format::eR32G32B32Sfloat:
-            case vk::Format::eR32G32B32A32Sfloat:
-            case vk::Format::eR32Sfloat:
-            case vk::Format::eD32Sfloat:
-                copy_image<float, 0>(mip_data, buffer_size, data);
-                break;
-
-            case vk::Format::eR8G8B8A8Srgb:
-            case vk::Format::eS8Uint:
-            case vk::Format::eR8Srgb:
-            case vk::Format::eR8G8B8Srgb:
-            case vk::Format::eD24UnormS8Uint:
-            case vk::Format::eD16UnormS8Uint:
-                copy_image<byte, 0>(mip_data, buffer_size, data);
-                break;
-
-            case vk::Format::eD16Unorm:
-                copy_image<std::uint16_t, 0>(mip_data, buffer_size, data);
-                break;
-
-            case vk::Format::eD32SfloatS8Uint:
-                copy_image<float, 1>(mip_data, buffer_size, data);
-                break;
-            default:
-                throw std::runtime_error("Vulkan API:");
-        }
-
-
-        API->_M_device.unmapMemory(staging_buffer_memory);
-        API->_M_device.destroyBuffer(staging_buffer);
-        API->_M_device.freeMemory(staging_buffer_memory, nullptr);
-
-        std::swap(transition.old_layout, transition.new_layout);
-        transition.execute(vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferRead,
-                           vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
-
-        return *this;
-    }
-
-    VulkanTexture& VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel level,
-                                                    uint_t layer, const void* data)
-    {
-        vk::Buffer staging_buffer;
-        vk::DeviceMemory staging_buffer_memory;
-
-        vk::DeviceSize buffer_size =
-                static_cast<vk::DeviceSize>(size.x) * static_cast<vk::DeviceSize>(size.y) * pixel_type_size();
-
-
-        API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
-                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                           staging_buffer, staging_buffer_memory);
-
-        void* vulkan_data = API->_M_device.mapMemory(staging_buffer_memory, 0, buffer_size);
-        std::memcpy(vulkan_data, data, buffer_size);
-        API->_M_device.unmapMemory(staging_buffer_memory);
-
-
-        TransitionImageLayout transition;
-        transition.image       = &_M_image;
-        transition.old_layout  = vk::ImageLayout::eShaderReadOnlyOptimal;
-        transition.new_layout  = vk::ImageLayout::eTransferDstOptimal;
-        transition.base_mip    = level;
-        transition.mip_count   = 1;
-        transition.base_layer  = layer;
-        transition.layer_count = 1;
-
-        transition.execute(vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead,
-                           vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferWrite);
-
-        auto command_buffer = API->begin_single_time_command_buffer();
-
-        vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(_M_image_aspect, level, layer, 1),
-                                   vk::Offset3D(static_cast<uint_t>(offset.x), static_cast<uint_t>(offset.y), 0),
-                                   vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
-
-        command_buffer.copyBufferToImage(staging_buffer, _M_image, vk::ImageLayout::eTransferDstOptimal, region);
-
-        API->end_single_time_command_buffer(command_buffer);
-
-        API->_M_device.freeMemory(staging_buffer_memory, nullptr);
-        API->_M_device.destroyBuffer(staging_buffer);
-
-        std::swap(transition.old_layout, transition.new_layout);
-        transition.execute(vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferWrite,
-                           vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
-
-        return *this;
-    }
-
-
-    VulkanTexture& VulkanTexture::swizzle(const SwizzleRGBA& swizzle)
-    {
-        state.swizzle = vk::ComponentMapping(get_type(swizzle.R), get_type(swizzle.G), get_type(swizzle.B),
-                                             get_type(swizzle.A));
-        return create_image_view();
-    }
-
-    SwizzleRGBA VulkanTexture::swizzle()
-    {
-        SwizzleRGBA result;
-        result.R = vulkan_type_to_engine_type<SwizzleValue>(_M_swizzle_components, state.swizzle.r);
-        result.G = vulkan_type_to_engine_type<SwizzleValue>(_M_swizzle_components, state.swizzle.g);
-        result.B = vulkan_type_to_engine_type<SwizzleValue>(_M_swizzle_components, state.swizzle.b);
-        result.A = vulkan_type_to_engine_type<SwizzleValue>(_M_swizzle_components, state.swizzle.a);
-        return result;
-    }
-
-    VulkanTexture& VulkanTexture::min_filter(TextureFilter filter)
-    {
-        state.min_filter = get_type(filter);
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::mag_filter(TextureFilter filter)
-    {
-        state.mag_filter = get_type(filter);
-        return create_texture_sampler();
-    }
-
-    TextureFilter VulkanTexture::min_filter()
-    {
-        return vulkan_type_to_engine_type<TextureFilter>(_M_texture_filters, state.min_filter);
-    }
-
-    TextureFilter VulkanTexture::mag_filter()
-    {
-        return vulkan_type_to_engine_type<TextureFilter>(_M_texture_filters, state.mag_filter);
-    }
-
-
-    VulkanTexture& VulkanTexture::wrap_s(WrapValue value)
-    {
-        state.wrap_s = get_type(value);
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::wrap_t(WrapValue value)
-    {
-        state.wrap_t = get_type(value);
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::wrap_r(WrapValue value)
-    {
-        state.wrap_r = get_type(value);
-        return create_texture_sampler();
-    }
-
-    WrapValue VulkanTexture::wrap_s()
-    {
-        return vulkan_type_to_engine_type<WrapValue>(_M_wrap_values, state.wrap_s);
-    }
-
-    WrapValue VulkanTexture::wrap_t()
-    {
-        return vulkan_type_to_engine_type<WrapValue>(_M_wrap_values, state.wrap_t);
-    }
-
-    WrapValue VulkanTexture::wrap_r()
-    {
-        return vulkan_type_to_engine_type<WrapValue>(_M_wrap_values, state.wrap_r);
-    }
-
-    VulkanTexture& VulkanTexture::compare_func(CompareFunc func)
-    {
-        state.compare_func = get_type(func);
-        return create_texture_sampler();
-    }
-
-    CompareFunc VulkanTexture::compare_func()
-    {
-        return vulkan_type_to_engine_type<CompareFunc>(_M_compare_funcs, state.compare_func);
-    }
-
-    VulkanTexture& VulkanTexture::compare_mode(CompareMode mode)
-    {
-        state.compare_enable = mode == CompareMode::RefToTexture;
-        return create_texture_sampler();
-    }
-
-    CompareMode VulkanTexture::compare_mode()
-    {
-        return state.compare_enable ? CompareMode::RefToTexture : CompareMode::None;
-    }
-
-
-    VulkanTexture& VulkanTexture::base_level(MipMapLevel level)
-    {
-        state.base_mip_level = glm::min(level, state.mipmap_count);
-        return create_image_view();
-    }
-
-    VulkanTexture& VulkanTexture::min_lod_level(LodLevel level)
-    {
-        state.min_lod = level;
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::max_lod_level(LodLevel level)
-    {
-        state.max_lod = level;
-        return create_texture_sampler();
-    }
-
-    VulkanTexture& VulkanTexture::clear()
-    {
-        API->wait_idle();
-        DESTROY_CALL(destroyImage, _M_image);
-        DESTROY_CALL(freeMemory, _M_image_memory);
-        DESTROY_CALL(destroyImageView, _M_image_view);
-        DESTROY_CALL(destroySampler, _M_texture_sampler);
-        return *this;
-    }
-
-    vk::Offset2D VulkanTexture::get_mip_size(MipMapLevel level)
-    {
-        uint_t width  = glm::max(static_cast<uint_t>(state.size.width) >> level, 1U);
-        uint_t height = glm::max(static_cast<uint_t>(state.size.height) >> level, 1U);
+        uint_t width  = glm::max(static_cast<uint_t>(size.width) >> level, 1U);
+        uint_t height = glm::max(static_cast<uint_t>(size.height) >> level, 1U);
         return vk::Offset2D(width, height);
     }
 
-    VulkanTexture& VulkanTexture::anisotropic_value(float value)
+    vk::ImageView VulkanTexture::get_image_view(const vk::ImageSubresourceRange& range)
     {
-        state.anisotropy        = glm::min(glm::max(value, 1.0f), API->max_anisotropic_filtering());
-        state.anisotropy_enable = state.anisotropy > 1.0;
-        return create_texture_sampler();
+        vk::ImageViewCreateInfo view_info({}, _M_image, view_type(), _M_vulkan_format, _M_swizzle, range);
+        return API->_M_device.createImageView(view_info);
     }
 
-    bool VulkanTexture::can_use_color_as_color_attachment()
-    {
-        byte count = ColorFormatInfo::info_of(state.engine_format).components();
-        return count == 4;
-    }
 
     VulkanTexture::~VulkanTexture()
     {
-        clear();
+        destroy();
+    }
+
+    RHI::RHI_Texture* VulkanAPI::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
+    {
+        return &(new VulkanTexture())->create(info, type, data);
     }
 
 }// namespace Engine

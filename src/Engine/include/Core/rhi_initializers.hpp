@@ -1,71 +1,34 @@
 #pragma once
-#include <Core/buffer_types.hpp>
-#include <Core/render_types.hpp>
-#include <array>
+#include <Core/structures.hpp>
 #include <optional>
-
 
 namespace Engine
 {
 
-    enum class StencilOp : EnumerateType
+    namespace RHI
     {
-        Keep     = 0,
-        Zero     = 1,
-        Replace  = 2,
-        Incr     = 3,
-        IncrWrap = 4,
-        Decr     = 5,
-        DecrWrap = 6,
-        Invert   = 7,
+        struct RHI_FrameBuffer;
+        struct RHI_Texture;
+    }// namespace RHI
+
+    struct FrameBufferAttachment {
+        RHI::RHI_Texture* texture = nullptr;
+        MipMapLevel mip_level     = 0;
     };
 
-    enum class BlendFunc : EnumerateType
+    union FrameBufferClearValue
     {
-        Zero                  = 0,
-        One                   = 1,
-        SrcColor              = 2,
-        OneMinusSrcColor      = 3,
-        DstColor              = 4,
-        OneMinusDstColor      = 5,
-        SrcAlpha              = 6,
-        OneMinusSrcAlpha      = 7,
-        DstAlpha              = 8,
-        OneMinusDstAlpha      = 9,
-        ConstantColor         = 10,
-        OneMinusConstantColor = 11,
-        ConstantAlpha         = 12,
-        OneMinusConstantAlpha = 13,
+        ColorClearValue color;
+        DepthStencilClearValue depth_stencil;
+
+        FrameBufferClearValue() : color(0.0f, 0.0f, 0.0f, 1.0f)
+        {}
     };
 
-    enum class BlendOp : EnumerateType
-    {
-        Add             = 0,
-        Subtract        = 1,
-        ReverseSubtract = 2,
-        Min             = 3,
-        Max             = 4,
+    struct FrameBufferAttachmentClearData {
+        byte clear_on_bind : 1 = 1;
+        FrameBufferClearValue clear_value;
     };
-
-
-    enum class Primitive : EnumerateType
-    {
-        Triangle = 0,
-        Line     = 1,
-        Point    = 2,
-    };
-
-    enum class EnableCap : EnumerateType
-    {
-        Blend       = 0,
-        DepthTest   = 1,
-        CullFace    = 2,
-        StencilTest = 3,
-    };
-
-
-    using DepthFunc = CompareFunc;
-
 
     struct ShaderDataType {
         enum : EnumerateType
@@ -111,7 +74,6 @@ namespace Engine
         static ENGINE_EXPORT void private_type_of(ShaderDataType& result, const std::type_index& index);
     };
 
-
     struct VertexAttribute {
         String name;
         ShaderDataType type;
@@ -141,72 +103,6 @@ namespace Engine
     };
 
 
-    union BlendConstants
-    {
-        Array<float, 4> array = {0.0f, 0.0f, 0.0f, 0.0f};
-        Vector4D vector;
-    };
-
-    enum class PrimitiveTopology : EnumerateType
-    {
-        TriangleList               = 0,
-        PointList                  = 1,
-        LineList                   = 2,
-        LineStrip                  = 3,
-        TriangleStrip              = 4,
-        TriangleFan                = 5,
-        LineListWithAdjacency      = 6,
-        LineStripWithAdjacency     = 4,
-        TriangleListWithAdjacency  = 8,
-        TriangleStripWithAdjacency = 9,
-        PatchList                  = 10,
-    };
-
-    enum class PolygonMode : EnumerateType
-    {
-        Fill  = 0,
-        Line  = 1,
-        Point = 2,
-    };
-
-    enum class CullMode : EnumerateType
-    {
-        None         = 0,
-        Front        = 1,
-        Back         = 2,
-        FrontAndBack = 3,
-    };
-
-    enum class FrontFace : EnumerateType
-    {
-        ClockWise        = 0,
-        CounterClockWise = 1,
-    };
-
-    enum class LogicOp : EnumerateType
-    {
-        Clear        = 0,
-        And          = 1,
-        AndReverse   = 2,
-        Copy         = 3,
-        AndInverted  = 4,
-        NoOp         = 5,
-        Xor          = 6,
-        Or           = 7,
-        Nor          = 8,
-        Equivalent   = 10,
-        Invert       = 11,
-        OrReverse    = 12,
-        CopyInverted = 13,
-        OrInverted   = 14,
-        Nand         = 15,
-        Set          = 16,
-    };
-
-
-    using SampleMask         = size_t;
-    using ColorComponentMask = size_t;
-
     struct ColorBlendAttachmentState {
         byte enable : 1          = 0;
         BlendFunc src_color_func = BlendFunc::SrcColor;
@@ -216,7 +112,7 @@ namespace Engine
         BlendFunc dst_alpha_func = BlendFunc::OneMinusSrcAlpha;
         BlendOp alpha_op         = BlendOp::Add;
         ColorComponentMask color_mask =
-            mask_of<ColorComponentMask>(ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A);
+                mask_of<ColorComponentMask>(ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A);
     };
 
     struct PipelineState {
@@ -272,6 +168,20 @@ namespace Engine
     };
 
 
+    ////////////////////////////////////////////////////////////////////////////////
+
+    struct FrameBufferCreateInfo {
+        struct Buffer {
+            Vector<FrameBufferAttachment> color_attachments;
+            std::optional<FrameBufferAttachment> depth_stencil_attachment;
+        };
+
+        Vector<Buffer> buffers;
+        Vector<FrameBufferAttachmentClearData> color_clear_data;
+        FrameBufferAttachmentClearData depth_stencil_clear_data;
+        Size2D size;
+    };
+
     struct PipelineCreateInfo {
         PipelineState state;
 
@@ -295,6 +205,30 @@ namespace Engine
 
         String name;
         VertexBufferInfo vertex_info;
-        Identifier framebuffer_usage = 0;
+        RHI::RHI_FrameBuffer* framebuffer;
+    };
+
+    struct SamplerCreateInfo {
+        TextureFilter min_filter      = TextureFilter::Linear;
+        TextureFilter mag_filter      = TextureFilter::Linear;
+        SamplerMipmapMode mipmap_mode = SamplerMipmapMode::Linear;
+        WrapValue wrap_s              = WrapValue::Repeat;
+        WrapValue wrap_t              = WrapValue::Repeat;
+        WrapValue wrap_r              = WrapValue::Repeat;
+        float mip_lod_bias            = 0.0;
+        float anisotropy              = 1.0;
+        CompareMode compare_mode      = CompareMode::None;
+        float min_lod                 = -1000.0;
+        float max_lod                 = 1000.0;
+        CompareFunc compare_func      = CompareFunc::Always;
+        bool unnormalized_coordinates;
+    };
+
+    struct TextureCreateInfo {
+        Size2D size                   = {1, 1};
+        MipMapLevel base_mip_level    = 0;
+        MipMapLevel mipmap_count      = 1;
+        ColorFormat format            = ColorFormat::R8G8B8A8Unorm;
+        SwizzleRGBA swizzle;
     };
 }// namespace Engine

@@ -1,13 +1,16 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/object.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {
 
-    template<typename ResourceType, typename BaseType = EmptyClass>
+    template<typename RT, typename BaseType = EmptyClass>
     class Resource : public BaseType
     {
+    public:
+        using ResourceType = RT;
+
     protected:
         ResourceType* _M_resources = nullptr;
 

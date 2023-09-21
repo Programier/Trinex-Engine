@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/api_object.hpp>
-#include <Core/buffer_types.hpp>
 
 namespace Engine
 {

@@ -4,6 +4,7 @@
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
+#include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_ssbo.hpp>
 #include <vulkan_state.hpp>
@@ -259,7 +260,7 @@ namespace Engine
                 {}, pipeline_shader_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr,
                 &viewport_state, &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil,
                 &out_state.color_blending, &dynamic_state_info, _M_pipeline_layout,
-                API->framebuffer(info.framebuffer_usage)->_M_render_pass, 0, {});
+                static_cast<VulkanFramebuffer*>(info.framebuffer)->_M_render_pass, 0, {});
 
         auto pipeline_result = API->_M_device.createGraphicsPipeline({}, pipeline_info);
 
@@ -401,24 +402,44 @@ namespace Engine
         return descriptor_array[_M_current_descriptor_index];
     }
 
-    VulkanShader& VulkanShader::bind_texture(VulkanTexture* texture, uint_t binding)
+    VulkanShader& VulkanShader::bind_texture_combined(struct VulkanSampler* sampler, VulkanTexture* texture,
+                                                      uint_t binding)
     {
         if (_M_descriptor_set_layout)
         {
             VulkanDescriptorSet* current_set = current_descriptor_set();
 
-            if (current_set->_M_sampler[binding] != texture->_M_texture_sampler ||
+            if (current_set->_M_sampler[binding] != sampler->_M_sampler ||
                 current_set->_M_image_view[binding] != texture->_M_image_view)
             {
-                vk::DescriptorImageInfo image_info(texture->_M_texture_sampler, texture->_M_image_view,
+                vk::DescriptorImageInfo image_info(sampler->_M_sampler, texture->_M_image_view,
                                                    vk::ImageLayout::eShaderReadOnlyOptimal);
 
                 vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
                                                         vk::DescriptorType::eCombinedImageSampler, image_info);
 
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
-                current_set->_M_sampler[binding]    = texture->_M_texture_sampler;
+                current_set->_M_sampler[binding]    = sampler->_M_sampler;
                 current_set->_M_image_view[binding] = texture->_M_image_view;
+            }
+        }
+        return *this;
+    }
+
+    VulkanShader& VulkanShader::bind_sampler(struct VulkanSampler* sampler, BindingIndex location, BindingIndex binding)
+    {
+        if (_M_descriptor_set_layout)
+        {
+            VulkanDescriptorSet* current_set = current_descriptor_set();
+
+            if (current_set->_M_sampler[binding] != sampler->_M_sampler)
+            {
+                vk::DescriptorImageInfo image_info(sampler->_M_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0, vk::DescriptorType::eSampler,
+                                                        image_info);
+
+                API->_M_device.updateDescriptorSets(write_descriptor, {});
+                current_set->_M_sampler[binding] = sampler->_M_sampler;
             }
         }
         return *this;

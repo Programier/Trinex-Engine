@@ -1,8 +1,8 @@
 #include <Core/class.hpp>
 #include <Core/commandlet.hpp>
 #include <Core/logger.hpp>
+#include <Core/rhi_initializers.hpp>
 #include <Core/shader_compiler.hpp>
-#include <Core/shader_types.hpp>
 
 
 Engine::String fragment_code = R"(#version 310 es

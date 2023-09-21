@@ -5,10 +5,11 @@
 #include <Core/implement.hpp>
 #include <Core/object_ref.hpp>
 #include <Core/resource.hpp>
-#include <Core/shader_types.hpp>
+
 
 namespace Engine
 {
+    struct PipelineCreateInfo;
 
     class ENGINE_EXPORT Shader : public ApiObject
     {

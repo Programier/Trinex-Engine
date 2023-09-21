@@ -49,11 +49,11 @@ namespace Engine
             Index index = 0;
             for (const FrameBufferAttachment& color_binding : buffer.color_attachments)
             {
-                VulkanTexture* texture = GET_TYPE(VulkanTexture, color_binding.texture_id);
+                VulkanTexture* texture = reinterpret_cast<VulkanTexture*>(color_binding.texture);
+
                 trinex_check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
                 bool usage_check = texture->can_use_color_as_color_attachment();
                 trinex_check(usage_check && "Vulkan API: Pixel type for color attachment must be RGBA");
-                auto& t_state = texture->state;
 
                 if (buffer_index == 1)
                 {
@@ -62,8 +62,8 @@ namespace Engine
                                                             : vk::AttachmentLoadOp::eLoad;
 
                     _M_attachment_descriptions[index] = vk::AttachmentDescription(
-                            vk::AttachmentDescriptionFlags(), t_state.format, vk::SampleCountFlagBits::e1, clear_op,
-                            vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
+                            vk::AttachmentDescriptionFlags(), texture->_M_vulkan_format, vk::SampleCountFlagBits::e1,
+                            clear_op, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
                             vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
                             vk::ImageLayout::eShaderReadOnlyOptimal);
 
@@ -72,8 +72,7 @@ namespace Engine
                 }
 
                 vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, color_binding.mip_level, 1, 0, 1);
-                vulkan_buffer._M_attachments[index] =
-                        GET_TYPE(VulkanTexture, color_binding.texture_id)->get_image_view(range);
+                vulkan_buffer._M_attachments[index] = texture->get_image_view(range);
 
                 _M_clear_values[index].color =
                         vk::ClearColorValue(Array<float, 4>({info.color_clear_data[index].clear_value.color.x,
@@ -85,13 +84,12 @@ namespace Engine
 
             if (_M_depth_attachment_renference)
             {
-                auto& binding          = buffer.depth_stencil_attachment.value();
-                VulkanTexture* texture = GET_TYPE(VulkanTexture, binding.texture_id);
+                auto& binding           = buffer.depth_stencil_attachment.value();
+                VulkanTexture* texture = reinterpret_cast<VulkanTexture*>(binding.texture);
                 trinex_check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
 
                 bool check_status = texture->is_depth_stencil_image();
                 trinex_check(check_status && "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
-                auto& t_state = texture->state;
 
                 if (buffer_index == 1)
                 {
@@ -100,16 +98,17 @@ namespace Engine
                                                             : vk::AttachmentLoadOp::eLoad;
 
                     _M_attachment_descriptions[index] = vk::AttachmentDescription(
-                            {}, t_state.format, vk::SampleCountFlagBits::e1, clear_op, vk::AttachmentStoreOp::eStore,
-                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                            vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
+                            {}, texture->_M_vulkan_format, vk::SampleCountFlagBits::e1, clear_op,
+                            vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
+                            vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
+                            vk::ImageLayout::eShaderReadOnlyOptimal);
 
 
                     (*_M_depth_attachment_renference) =
                             vk::AttachmentReference(index, vk::ImageLayout::eDepthStencilAttachmentOptimal);
                 }
 
-                vk::ImageSubresourceRange range(texture->_M_image_aspect, binding.mip_level, 1, 0, 1);
+                vk::ImageSubresourceRange range(texture->aspect(), binding.mip_level, 1, 0, 1);
                 vulkan_buffer._M_attachments[index] = texture->get_image_view(range);
                 _M_clear_values.back().depthStencil =
                         vk::ClearDepthStencilValue(info.depth_stencil_clear_data.clear_value.depth_stencil.depth,
@@ -233,7 +232,7 @@ namespace Engine
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::update_viewport(const ViewPort& viewport)
+    void VulkanFramebuffer::viewport(const ViewPort& viewport)
     {
         _M_viewport.x        = viewport.pos.x;
         _M_viewport.width    = viewport.size.x;
@@ -254,8 +253,6 @@ namespace Engine
 
         if (this == API->_M_state->_M_framebuffer)
             set_viewport();
-
-        return *this;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::set_viewport()
@@ -264,7 +261,7 @@ namespace Engine
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::update_scissor(const Scissor& scissor)
+    void VulkanFramebuffer::scissor(const Scissor& scissor)
     {
         _M_scissor.offset.x      = scissor.pos.x;
         _M_scissor.extent.width  = scissor.size.x;
@@ -281,8 +278,6 @@ namespace Engine
 
         if (this == API->_M_state->_M_framebuffer)
             set_scissor();
-
-        return *this;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::set_scissor()
@@ -291,7 +286,7 @@ namespace Engine
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::bind(size_t index)
+    void VulkanFramebuffer::bind(uint_t index)
     {
         if (API->_M_state->_M_framebuffer)
         {
@@ -300,7 +295,7 @@ namespace Engine
 
         API->_M_state->_M_framebuffer = this;
 
-        return begin_pass(index).set_viewport().set_scissor();
+        begin_pass(index).set_viewport().set_scissor();
     }
 
     VulkanFramebuffer& VulkanFramebuffer::unbind()
@@ -314,7 +309,7 @@ namespace Engine
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::clear_color(const ColorClearValue& color, byte layout)
+    void VulkanFramebuffer::clear_color(const ColorClearValue& color, byte layout)
     {
         byte layouts_count = static_cast<byte>(_M_clear_values.size()) -
                              static_cast<byte>(_M_depth_attachment_renference != nullptr);
@@ -328,16 +323,14 @@ namespace Engine
         {
             vulkan_debug_log("Vulkan API", "Incorrect layout index!");
         }
-        return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::clear_depth_stencil(const DepthStencilClearValue& value)
+    void VulkanFramebuffer::clear_depth_stencil(const DepthStencilClearValue& value)
     {
         if (_M_depth_attachment_renference)
         {
             _M_clear_values.back().setDepthStencil(vk::ClearDepthStencilValue(value.depth, value.stencil));
         }
-        return *this;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::size(uint32_t width, uint32_t height)
@@ -351,5 +344,20 @@ namespace Engine
     {
         destroy();
         DESTROY_CALL(destroyRenderPass, _M_render_pass);
+    }
+
+    void VulkanMainFrameBuffer::bind(uint_t)
+    {
+        VulkanFramebuffer::bind(API->swapchain_image_index().value);
+    }
+
+    RHI::RHI_FrameBuffer* VulkanAPI::window_framebuffer()
+    {
+        return API->_M_main_framebuffer;
+    }
+
+    RHI::RHI_FrameBuffer* VulkanAPI::create_framebuffer(const FrameBufferCreateInfo& info)
+    {
+        return &(new VulkanFramebuffer())->init(info);
     }
 }// namespace Engine

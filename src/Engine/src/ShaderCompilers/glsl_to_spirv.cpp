@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/logger.hpp>
+#include <Core/rhi_initializers.hpp>
 #include <Core/shader_compiler.hpp>
-#include <Core/shader_types.hpp>
 #include <Core/string_functions.hpp>
 #include <SPIRV/GlslangToSpv.h>
 #include <glslang/Public/ResourceLimits.h>

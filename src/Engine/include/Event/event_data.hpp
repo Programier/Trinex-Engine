@@ -3,6 +3,7 @@
 #include <Core/game_controller.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/mouse.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {

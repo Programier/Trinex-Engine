@@ -1,9 +1,9 @@
 #pragma once
-#include <Core/texture_types.hpp>
+#include <api.hpp>
 #include <functional>
-#include <opengl_object.hpp>
 #include <opengl_api.hpp>
 #include <opengl_color_format.hpp>
+#include <opengl_object.hpp>
 
 namespace Engine
 {
@@ -12,39 +12,21 @@ namespace Engine
         GLsizei height;
     };
 
-    struct OpenGL_Texture : public OpenGL_Object {
-        GLsizei _M_width, _M_height;
-        GLenum _M_texture_type;
-
+    struct OpenGL_Texture : public RHI::RHI_Texture {
+        TextureSize size;
         OpenGL_ColorFormat _M_format;
+        GLenum _M_texture_type;
+        GLuint _M_texture;
 
-        byte _M_use_sampler_mode_linear : 1 = 0;
 
-        implement_opengl_instance_hpp();
-        inline TextureSize size() const
-        {
-            return {_M_width, _M_height};
-        }
+        OpenGL_Texture& create_info(const TextureCreateInfo& info, TextureType type, const byte* data);
 
-        template<typename ReturnType, typename... Args>
-        typename std::enable_if<std::is_same_v<ReturnType, void>, OpenGL_Texture&>::type
-        apply_function(ReturnType (*function)(Args...), Args... args)
-        {
-            API->internal_bind_texture(this);
-            function(args...);
-            API->internal_bind_texture(nullptr);
-            return *this;
-        }
+        void bind(BindingIndex binding, BindingIndex set);
+        void generate_mipmap();
+        void bind_combined(RHI::RHI_Sampler* sampler, BindingIndex binding, BindingIndex set);
+        void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data);
 
-        template<typename ReturnType, typename... Args>
-        typename std::enable_if<!std::is_same_v<ReturnType, void>, ReturnType>::type
-        apply_function(ReturnType (*function)(Args...), Args... args)
-        {
-            API->internal_bind_texture(this);
-            auto result = function(args...);
-            API->internal_bind_texture(nullptr);
-            return result;
-        }
+        OpenGL_Texture& destroy();
 
         ~OpenGL_Texture();
     };

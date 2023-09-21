@@ -11,7 +11,8 @@ namespace Engine
     // Zero is default or invalid value of ApiObjectNoBase in external API
     constructor_cpp(ApiObjectNoBase)
     {
-        _M_ID = 0;
+        _M_ID         = 0;
+        _M_rhi_object = nullptr;
     }
 
 
@@ -67,11 +68,26 @@ namespace Engine
             EngineInstance::instance()->api_interface()->destroy_object(_M_ID);
             _M_ID = 0;
         }
+
+        if (_M_rhi_object)
+        {
+            delete _M_rhi_object;
+            _M_rhi_object = nullptr;
+        }
         return *this;
     }
 
     ApiObjectNoBase::~ApiObjectNoBase()
     {
         destroy();
+    }
+
+    const ApiBindingObject& ApiBindingObject::bind(BindingIndex binding, BindingIndex set) const
+    {
+        if (_M_rhi_binding_object)
+        {
+            _M_rhi_binding_object->bind(binding, set);
+        }
+        return *this;
     }
 }// namespace Engine

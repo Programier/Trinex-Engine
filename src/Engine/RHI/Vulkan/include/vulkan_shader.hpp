@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <Core/shader_types.hpp>
-
 #include <vulkan_object.hpp>
 #include <vulkan_unique_per_frame.hpp>
 
@@ -51,7 +49,8 @@ namespace Engine
         bool init(const PipelineCreateInfo& params);
         VulkanShader& use();
         VulkanShader& bind_ubo(struct VulkanUniformBuffer* ubo, BindingIndex binding);
-        VulkanShader& bind_texture(struct VulkanTexture* texture, uint_t binding);
+        VulkanShader& bind_texture_combined(struct VulkanSampler* sampler, struct VulkanTexture* texture, uint_t binding);
+        VulkanShader& bind_sampler(struct VulkanSampler* sampler, BindingIndex location, BindingIndex binding);
         VulkanShader& bind_shared_buffer(struct VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding);
         ~VulkanShader();
     };

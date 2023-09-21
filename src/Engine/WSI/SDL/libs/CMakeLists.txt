@@ -1,9 +1,4 @@
 
 # Compile SDL2 library
 set(SDL_SHARED on)
-set(SDL_STATIC off)
-
-set(SDL2_DISABLE_INSTALL    ON)
-set(SDL2_DISABLE_UNINSTALL  ON)
-
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/SDL/" EXCLUDE_FROM_ALL)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/SDL/")

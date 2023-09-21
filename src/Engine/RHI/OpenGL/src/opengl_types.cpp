@@ -1,4 +1,3 @@
-#include "Core/texture_types.hpp"
 #include <opengl_types.hpp>
 
 

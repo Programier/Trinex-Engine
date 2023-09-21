@@ -39,7 +39,7 @@ namespace Engine
 
         if (!TextureCubeMap::has_object())
         {
-            TextureCreateInfo& params = resources(true)->info;
+            TextureCreateInfo& params = info;
 
             params.format       = img.channels() == 4 ? ColorFormat::R8G8B8A8Uint : ColorFormat::R8G8B8Uint;
             params.mipmap_count = 8;

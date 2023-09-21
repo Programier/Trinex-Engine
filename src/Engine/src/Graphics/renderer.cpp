@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    Renderer::Renderer(GraphicApiInterface::ApiInterface* interface) : _M_api(interface)
+    Renderer::Renderer(RHI::ApiInterface* interface) : _M_api(interface)
     {}
 
     Renderer& Renderer::begin()

@@ -4,13 +4,13 @@
 
 
 #define API (Engine::OpenGL::_M_open_gl)
-#define opengl_debug_log (*OpenGL::_M_open_gl->_M_logger)->log
-#define opengl_error (*OpenGL::_M_open_gl->_M_logger)->error
+#define opengl_debug_log debug_log
+#define opengl_error error_log
 
 
 namespace Engine
 {
-    struct OpenGL : public GraphicApiInterface::ApiInterface {
+    struct OpenGL : public RHI::ApiInterface {
         static OpenGL* _M_open_gl;
         struct WindowInterface* _M_window_interface = nullptr;
 
@@ -23,6 +23,7 @@ namespace Engine
         struct OpenGL_FrameBufferSet* _M_current_framebuffer = nullptr;
         size_t _M_current_buffer_index                       = 0;
         size_t _M_next_buffer_index                          = 1;
+        Vector<BindingIndex> _M_samplers;
 
         OpenGL();
         struct OpenGL_FrameBufferSet* framebuffer(Identifier ID);
@@ -30,7 +31,6 @@ namespace Engine
 
         bool extension_supported(const String& extension_name);
 
-        OpenGL& logger(Logger*&) override;
         void* init_window(WindowInterface*, const WindowConfig&) override;
         OpenGL& destroy_window() override;
         OpenGL& destroy_object(Identifier&) override;
@@ -40,49 +40,8 @@ namespace Engine
         OpenGL& imgui_render() override;
 
         //        ///////////////// TEXTURE PART /////////////////
-        OpenGL& create_texture(Identifier&, const TextureCreateInfo&, TextureType type) override;
         OpenGL& internal_bind_texture(struct OpenGL_Texture* texture);
-        OpenGL& bind_texture(const Identifier&, TextureBindIndex) override;
-
-        MipMapLevel base_level_texture(const Identifier&) override;
-        OpenGL& base_level_texture(const Identifier&, MipMapLevel) override;
-        CompareFunc compare_func_texture(const Identifier&) override;
-        OpenGL& compare_func_texture(const Identifier&, CompareFunc) override;
-        CompareMode compare_mode_texture(const Identifier&) override;
-        OpenGL& compare_mode_texture(const Identifier&, CompareMode) override;
-        TextureFilter min_filter_texture(const Identifier&) override;
-        TextureFilter mag_filter_texture(const Identifier&) override;
-        OpenGL& min_filter_texture(const Identifier&, TextureFilter) override;
-        OpenGL& mag_filter_texture(const Identifier&, TextureFilter) override;
-        OpenGL& min_lod_level_texture(const Identifier&, LodLevel) override;
-        OpenGL& max_lod_level_texture(const Identifier&, LodLevel) override;
-        LodLevel min_lod_level_texture(const Identifier&) override;
-        LodLevel max_lod_level_texture(const Identifier&) override;
-        MipMapLevel max_mipmap_level_texture(const Identifier&) override;
-        OpenGL& swizzle_texture(const Identifier&, const SwizzleRGBA&) override;
-        SwizzleRGBA swizzle_texture(const Identifier&) override;
-        OpenGL& wrap_s_texture(const Identifier&, const WrapValue&) override;
-        OpenGL& wrap_t_texture(const Identifier&, const WrapValue&) override;
-        OpenGL& wrap_r_texture(const Identifier&, const WrapValue&) override;
-        WrapValue wrap_s_texture(const Identifier&) override;
-        WrapValue wrap_t_texture(const Identifier&) override;
-        WrapValue wrap_r_texture(const Identifier&) override;
-        OpenGL& anisotropic_filtering_texture(const Identifier& ID, float value) override;
-        float anisotropic_filtering_texture(const Identifier& ID) override;
-        float max_anisotropic_filtering() override;
-        OpenGL& texture_size(const Identifier&, Size2D&, MipMapLevel) override;
-        OpenGL& generate_texture_mipmap(const Identifier&) override;
-        OpenGL& read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel) override;
         Identifier imgui_texture_id(const Identifier&) override;
-        SamplerMipmapMode sample_mipmap_mode_texture(const Identifier& ID) override;
-        OpenGL& sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode) override;
-        LodBias lod_bias_texture(const Identifier& ID) override;
-        OpenGL& lod_bias_texture(const Identifier& ID, LodBias bias) override;
-        LodBias max_lod_bias_texture() override;
-        OpenGL& update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel, const void*) override;
-
-        OpenGL& cubemap_texture_update_data(const Identifier&, TextureCubeMapFace, const Size2D&, const Offset2D&,
-                                            MipMapLevel, void*) override;
 
         OpenGL& create_vertex_buffer(Identifier&, const byte*, size_t) override;
         OpenGL& update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
@@ -104,11 +63,6 @@ namespace Engine
 
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
 
-        OpenGL& gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info) override;
-        OpenGL& bind_framebuffer(const Identifier&, size_t buffer_index) override;
-        OpenGL& framebuffer_viewport(const Identifier&, const ViewPort&) override;
-        OpenGL& framebuffer_scissor(const Identifier&, const Scissor&) override;
-
         OpenGL& create_shader(Identifier&, const PipelineCreateInfo&) override;
         OpenGL& use_shader(const Identifier&) override;
 
@@ -120,8 +74,6 @@ namespace Engine
         OpenGL& swap_buffer() override;
         OpenGL& vsync(bool) override;
         bool vsync() override;
-        OpenGL& clear_color(const Identifier&, const ColorClearValue&, byte layout) override;
-        OpenGL& clear_depth_stencil(const Identifier&, const DepthStencilClearValue&) override;
 
         bool check_format_support(ColorFormat) override;
 
@@ -133,6 +85,11 @@ namespace Engine
         bool async_render() override;
         OpenGL& next_render_thread() override;
         String renderer() override;
+
+        RHI::RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI::RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
+        RHI::RHI_FrameBuffer* window_framebuffer() override;
+        RHI::RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
 
         ~OpenGL();
     };

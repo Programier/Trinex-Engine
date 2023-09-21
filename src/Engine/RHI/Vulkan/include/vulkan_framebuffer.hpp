@@ -1,14 +1,13 @@
 #pragma once
-#include <Core/buffer_types.hpp>
-#include <Core/engine_types.hpp>
 #include <bitset>
 
+#include <api.hpp>
 #include <vulkan_object.hpp>
 
 namespace Engine
 {
 
-    struct VulkanFramebuffer : VulkanObject {
+    struct VulkanFramebuffer : RHI::RHI_FrameBuffer {
         struct Buffer {
             vk::Framebuffer _M_framebuffer;
             Vector<vk::ImageView> _M_attachments;
@@ -40,19 +39,26 @@ namespace Engine
         VulkanFramebuffer& create_render_pass();
         VulkanFramebuffer& create_framebuffer();
         VulkanFramebuffer& destroy();
-        VulkanFramebuffer& bind(size_t index = 0);
         VulkanFramebuffer& unbind();
-        VulkanFramebuffer& update_viewport(const ViewPort& viewport);
-        VulkanFramebuffer& update_scissor(const Scissor& scissor);
         VulkanFramebuffer& set_viewport();
         VulkanFramebuffer& set_scissor();
         VulkanFramebuffer& init_render_pass_info();
-        VulkanFramebuffer& clear_color(const ColorClearValue& color, byte layout);
-        VulkanFramebuffer& clear_depth_stencil(const DepthStencilClearValue& color);
+        void clear_color(const ColorClearValue& color, byte layout) override;
+        void clear_depth_stencil(const DepthStencilClearValue& value) override;
         VulkanFramebuffer& size(uint32_t width, uint32_t height);
 
         VulkanFramebuffer& begin_pass(size_t index);
         VulkanFramebuffer& end_pass();
+
+        void bind(uint_t buffer_index) override;
+        void viewport(const ViewPort& viewport) override;
+        void scissor(const Scissor& scissor) override;
+
         ~VulkanFramebuffer();
+    };
+
+
+    struct VulkanMainFrameBuffer : VulkanFramebuffer {
+        void bind(uint_t) override;
     };
 }// namespace Engine

@@ -3,12 +3,6 @@
 
 namespace Engine
 {
-    NoApi& NoApi::logger(Logger*&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     void* NoApi::init_window(WindowInterface*, const WindowConfig&)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -51,237 +45,7 @@ namespace Engine
         return *this;
     }
 
-    ///////////////// TEXTURE PART /////////////////
-    NoApi& NoApi::create_texture(Identifier&, const TextureCreateInfo&, TextureType type)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::bind_texture(const Identifier&, TextureBindIndex)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    MipMapLevel NoApi::base_level_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::base_level_texture(const Identifier&, MipMapLevel)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    CompareFunc NoApi::compare_func_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::compare_func_texture(const Identifier&, CompareFunc)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    CompareMode NoApi::compare_mode_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::compare_mode_texture(const Identifier&, CompareMode)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    TextureFilter NoApi::min_filter_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    TextureFilter NoApi::mag_filter_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::min_filter_texture(const Identifier&, TextureFilter)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::mag_filter_texture(const Identifier&, TextureFilter)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::min_lod_level_texture(const Identifier&, LodLevel)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::max_lod_level_texture(const Identifier&, LodLevel)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    LodLevel NoApi::min_lod_level_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    LodLevel NoApi::max_lod_level_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    MipMapLevel NoApi::max_mipmap_level_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::swizzle_texture(const Identifier&, const SwizzleRGBA&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    SwizzleRGBA NoApi::swizzle_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::wrap_s_texture(const Identifier&, const WrapValue&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::wrap_t_texture(const Identifier&, const WrapValue&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::wrap_r_texture(const Identifier&, const WrapValue&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    WrapValue NoApi::wrap_s_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    WrapValue NoApi::wrap_t_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    WrapValue NoApi::wrap_r_texture(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::anisotropic_filtering_texture(const Identifier& ID, float value)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    float NoApi::anisotropic_filtering_texture(const Identifier& ID)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    float NoApi::max_anisotropic_filtering()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::texture_size(const Identifier&, Size2D&, MipMapLevel)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::generate_texture_mipmap(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::read_texture_2D_data(const Identifier&, Vector<byte>& data, MipMapLevel)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     Identifier NoApi::imgui_texture_id(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    SamplerMipmapMode NoApi::sample_mipmap_mode_texture(const Identifier& ID)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::sample_mipmap_mode_texture(const Identifier& ID, SamplerMipmapMode mode)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    LodBias NoApi::lod_bias_texture(const Identifier& ID)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::lod_bias_texture(const Identifier& ID, LodBias bias)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    LodBias NoApi::max_lod_bias_texture()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::update_texture_2D(const Identifier&, const Size2D&, const Offset2D&, MipMapLevel, const void*)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::cubemap_texture_update_data(const Identifier&, TextureCubeMapFace, const Size2D&, const Offset2D&,
-                                              MipMapLevel, void*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
@@ -380,30 +144,6 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::gen_framebuffer(Identifier&, const FrameBufferCreateInfo& info)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::bind_framebuffer(const Identifier&, size_t buffer_index)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::framebuffer_viewport(const Identifier&, const ViewPort&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::framebuffer_scissor(const Identifier&, const Scissor&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     NoApi& NoApi::create_shader(Identifier&, const PipelineCreateInfo&)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -450,18 +190,6 @@ namespace Engine
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return false;
-    }
-
-    NoApi& NoApi::clear_color(const Identifier&, const ColorClearValue&, byte layout)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::clear_depth_stencil(const Identifier&, const DepthStencilClearValue&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
     }
 
     bool NoApi::check_format_support(ColorFormat)
@@ -517,4 +245,29 @@ namespace Engine
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return "Undefined";
     }
+
+    RHI::RHI_Sampler* NoApi::create_sampler(const SamplerCreateInfo&)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI::RHI_Texture* NoApi::create_texture(const TextureCreateInfo&, TextureType, const byte*)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI::RHI_FrameBuffer* NoApi::window_framebuffer()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI::RHI_FrameBuffer* NoApi::create_framebuffer(const FrameBufferCreateInfo& info)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
 }// namespace Engine

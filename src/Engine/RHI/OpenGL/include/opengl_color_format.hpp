@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/texture_types.hpp>
 #include <opengl_headers.hpp>
 
 namespace Engine

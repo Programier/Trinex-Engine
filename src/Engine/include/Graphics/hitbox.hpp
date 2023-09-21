@@ -4,6 +4,7 @@
 #include <Graphics/frustum.hpp>
 #include <Graphics/ray.hpp>
 #include <Core/color.hpp>
+#include <Core/structures.hpp>
 
 
 namespace Engine

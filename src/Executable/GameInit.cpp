@@ -20,6 +20,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/mesh_component.hpp>
 #include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/uniform_buffer.hpp>
@@ -43,6 +44,8 @@
 namespace Engine
 {
     void update_camera(Camera* camera, float dt);
+    void save_package(Package* package);
+
     enum class UpdateType
     {
         None,
@@ -110,6 +113,8 @@ namespace Engine
         Vector<UniformStructInstance*> ubo_struct_instance;
         UniformStruct fragment_ubo;
         UniformStructInstance* camera_ubo_buffer;
+        Sampler* sampler;
+
         ScriptFunction script_function;
 
 
@@ -170,7 +175,12 @@ namespace Engine
             fragment_ubo.add_field(DynamicStructField::field_of<Vector3D>("field"));
 
             camera->ready();
-
+            sampler = package->find_object_checked<Sampler>("DefaultSampler");
+            if (sampler == nullptr)
+            {
+                sampler = Object::new_instance_named<Sampler>("DefaultSampler", package);
+                sampler->resources(true);
+            }
 
             FileReader* reader =
                     new FileReader(FileManager::root_file_manager()->work_dir() / FS::path("./scripts/script.cpp"));
@@ -196,7 +206,7 @@ namespace Engine
 
             if (i % 20 == 0)
             {
-                script_function.prepare().call();
+                script_function.prepare().arg_object(0, camera).call();
                 script_function.unbind_context();
             }
 
@@ -251,7 +261,7 @@ namespace Engine
                         vertex_buffer.bind();
                         camera_ubo_buffer->bind(0);
                         instance->bind(1);
-                        texture->bind(2);
+                        texture->bind_combined(sampler, 2);
                         engine_instance->renderer()->draw_indexed(index_buffer.elements_count(), 0);
                     }
                 }
@@ -262,8 +272,8 @@ namespace Engine
             shader->use();
             output_vertex_buffer.bind();
             output_index_buffer.bind();
-            GBuffer::instance()->buffer_data().albedo.ptr()->bind();
-            GBuffer::instance()->previous_buffer_data().albedo.ptr()->bind(1);
+            GBuffer::instance()->buffer_data().albedo.ptr()->bind_combined(sampler, 0);
+            GBuffer::instance()->previous_buffer_data().albedo.ptr()->bind_combined(sampler, 1);
             engine_instance->renderer()->draw_indexed(output_index_buffer.elements_count(), 0);
 
             {
@@ -315,7 +325,7 @@ namespace Engine
 
             if (KeyboardSystem::instance()->is_just_pressed(Keyboard::G))
             {
-                package->save();
+                save_package(package);
             }
 
             //            if (KeyboardEvent::just_pressed(Key::F))

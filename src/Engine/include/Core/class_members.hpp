@@ -3,6 +3,7 @@
 #include <Core/exception.hpp>
 #include <Core/object.hpp>
 #include <cstring>
+#include <Core/enums.hpp>
 
 namespace Engine
 {

@@ -1,6 +1,4 @@
 #pragma once
-#include <Core/texture_types.hpp>
-#include <Core/shader_types.hpp>
 #include <array>
 #include <opengl_object.hpp>
 #include <stdexcept>
