@@ -5,8 +5,8 @@
 
 #pragma once
 #include <Core/logger.hpp>
-#include <VkBootstrap.h>
 #include <Graphics/rhi.hpp>
+#include <VkBootstrap.h>
 #include <optional>
 #include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
@@ -165,6 +165,10 @@ namespace Engine
         RHI_Texture* create_texture(const TextureCreateInfo&, TextureType, const byte* data) override;
         RHI_FrameBuffer* window_framebuffer() override;
         RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
+        RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
+        RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
+        RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
+
         ~VulkanAPI();
     };
 }// namespace Engine

@@ -270,4 +270,22 @@ namespace Engine
         return nullptr;
     }
 
+    RHI_Shader* NoApi::create_vertex_shader(const VertexShader* shader)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_Shader* NoApi::create_fragment_shader(const FragmentShader* shader)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_Pipeline* NoApi::create_pipeline(const Pipeline* pipeline)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
 }// namespace Engine

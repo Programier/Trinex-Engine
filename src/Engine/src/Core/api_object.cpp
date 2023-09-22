@@ -82,6 +82,12 @@ namespace Engine
         destroy();
     }
 
+    ApiObject& ApiObject::rhi_create()
+    {
+        destroy();
+        return *this;
+    }
+
     const ApiBindingObject& ApiBindingObject::bind(BindingIndex binding, BindingIndex set) const
     {
         if (_M_rhi_binding_object)

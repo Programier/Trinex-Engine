@@ -7,7 +7,7 @@ namespace Engine
 {
     extern const Array<vk::IndexType, 3> _M_index_types;
     extern const Array<vk::PrimitiveTopology, 11> _M_primitive_topologies;
-    extern const vk::Format _M_shader_data_types[19];
+    extern const Array<vk::Format, 19> _M_shader_data_types;
     extern const Array<vk::ComponentSwizzle, 7> _M_swizzle_components;
     extern const Array<vk::SamplerAddressMode, 5> _M_wrap_values;
     extern const Array<vk::CompareOp, 8> _M_compare_funcs;
@@ -43,6 +43,7 @@ namespace Engine
 
     DECLARE_GETTER(vk::IndexType, IndexBufferComponent, _M_index_types);
     DECLARE_GETTER(vk::LogicOp, LogicOp, _M_logic_ops);
+    DECLARE_GETTER(vk::Format, ShaderDataType::DataType, _M_shader_data_types);
     DECLARE_GETTER(vk::FrontFace, FrontFace, _M_front_faces);
     DECLARE_GETTER(vk::ComponentSwizzle, SwizzleValue, _M_swizzle_components);
     DECLARE_GETTER(vk::SamplerAddressMode, WrapValue, _M_wrap_values);

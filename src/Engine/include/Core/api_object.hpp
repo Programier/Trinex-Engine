@@ -9,6 +9,8 @@ namespace Engine
     struct RHI_Sampler;
     struct RHI_FrameBuffer;
     struct RHI_Texture;
+    struct RHI_Shader;
+    struct RHI_Pipeline;
 
     class ENGINE_EXPORT ApiObjectNoBase
     {
@@ -22,6 +24,8 @@ namespace Engine
             RHI_Sampler* _M_rhi_sampler;
             RHI_FrameBuffer* _M_rhi_framebuffer;
             RHI_Texture* _M_rhi_texture;
+            RHI_Shader* _M_rhi_shader;
+            RHI_Pipeline* _M_rhi_pipeline;
         };
 
 
@@ -56,6 +60,9 @@ namespace Engine
     {
     public:
         declare_class(ApiObject, Object);
+
+    public:
+        virtual ApiObject& rhi_create();
     };
 
 

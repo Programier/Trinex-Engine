@@ -5,19 +5,19 @@
 #include <Core/mapped_memory.hpp>
 #include <Core/rhi_initializers.hpp>
 
-
-namespace Engine
-{
-    class Logger;
-    struct WindowInterface;
-    struct WindowConfig;
-    struct SamplerCreateInfo;
-}// namespace Engine
-
 #define VIRTUAL_METHOD = 0
 
 namespace Engine
 {
+    struct WindowInterface;
+    struct WindowConfig;
+    struct SamplerCreateInfo;
+
+    class VertexShader;
+    class FragmentShader;
+    class ShaderBase;
+    class Pipeline;
+
     struct RHI_Object {
         FORCE_INLINE Identifier id() const
         {
@@ -47,6 +47,12 @@ namespace Engine
         virtual void scissor(const Scissor& scissor)                          = 0;
         virtual void clear_depth_stencil(const DepthStencilClearValue& value) = 0;
         virtual void clear_color(const ColorClearValue& color, byte layout)   = 0;
+    };
+
+    struct RHI_Shader : RHI_Object {
+    };
+
+    struct RHI_Pipeline : RHI_Object {
     };
 
 
@@ -108,6 +114,9 @@ namespace Engine
         virtual RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) = 0;
         virtual RHI_FrameBuffer* window_framebuffer()                                                     = 0;
         virtual RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info)                    = 0;
+        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                              = 0;
+        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                          = 0;
+        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                   = 0;
 
         virtual ~RHI(){};
     };

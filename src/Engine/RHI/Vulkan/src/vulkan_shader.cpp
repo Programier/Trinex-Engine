@@ -1,3 +1,4 @@
+#include <Graphics/shader.hpp>
 #include <iostream>
 #include <thread>
 #include <vulkan_api.hpp>
@@ -471,4 +472,93 @@ namespace Engine
         DESTROY_CALL(destroyPipelineLayout, _M_pipeline_layout);
     }
 
+
+    VulkanShaderBase& VulkanShaderBase::create(const ShaderBase* shader)
+    {
+        vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->binary_code.size(),
+                                        reinterpret_cast<const uint32_t*>(shader->binary_code.data()));
+        _M_shader = API->_M_device.createShaderModule(info);
+
+        return *this;
+    }
+
+    VulkanShaderBase& VulkanShaderBase::destroy()
+    {
+        DESTROY_CALL(destroyShaderModule, _M_shader)
+        return *this;
+    }
+
+
+    VulkanVertexShader& VulkanVertexShader::create(const VertexShader* shader)
+    {
+        destroy();
+        VulkanShaderBase::create(shader);
+
+        _M_binding_description.reserve(shader->attributes.size());
+        _M_attribute_description.reserve(shader->attributes.size());
+
+
+        Index index = 0;
+        for (auto& attribute : shader->attributes)
+        {
+            {
+                _M_binding_description.emplace_back();
+                vk::VertexInputBindingDescription& description = _M_binding_description.back();
+
+                description.binding = static_cast<decltype(description.binding)>(index);
+                description.stride  = attribute.type.size * attribute.type.count;
+
+                switch (attribute.rate)
+                {
+                    case VertexAttributeInputRate::Instance:
+                        description.inputRate = vk::VertexInputRate::eInstance;
+                        break;
+
+                    case VertexAttributeInputRate::Vertex:
+                        description.inputRate = vk::VertexInputRate::eVertex;
+                        break;
+
+                    default:
+                        throw EngineException("Undefined vertex attribute input rate!");
+                }
+            }
+
+            {
+                _M_binding_description.emplace_back();
+                vk::VertexInputAttributeDescription& description = _M_attribute_description.back();
+                description.binding                              = static_cast<decltype(description.binding)>(index);
+                description.location                             = static_cast<decltype(description.location)>(index);
+                description.offset                               = 0;// Each attribute has its own buffer
+                description.format                               = get_type(attribute.type.type);
+            }
+
+            ++index;
+        }
+
+        return *this;
+    }
+
+    VulkanVertexShader& VulkanVertexShader::destroy()
+    {
+        VulkanShaderBase::destroy();
+        _M_attribute_description.clear();
+        _M_binding_description.clear();
+
+        return *this;
+    }
+
+    VulkanVertexShader::~VulkanVertexShader()
+    {
+        destroy();
+    }
+
+    RHI_Shader* VulkanAPI::create_vertex_shader(const VertexShader* shader)
+    {
+        return &(new VulkanVertexShader())->create(shader);
+    }
+
+    RHI_Shader* VulkanAPI::create_fragment_shader(const FragmentShader* shader)
+    {
+        return nullptr;
+    }
 }// namespace Engine

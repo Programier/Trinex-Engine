@@ -6,8 +6,8 @@
 #include <Core/logger.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/mesh_component.hpp>
-#include <Graphics/shader.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/shader.hpp>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
@@ -87,4 +87,27 @@ namespace Engine
 
     implement_class(Shader, "Engine");
     implement_default_initialize_class(Shader);
+
+    implement_class(ShaderBase, "Engine");
+    implement_default_initialize_class(ShaderBase);
+
+    implement_class(VertexShader, "Engine");
+    implement_default_initialize_class(VertexShader);
+
+    implement_class(FragmentShader, "Engine");
+    implement_default_initialize_class(FragmentShader);
+
+
+    ShaderBase& ShaderBase::rhi_create()
+    {
+        Super::rhi_create();
+        return *this;
+    }
+
+    VertexShader& VertexShader::rhi_create()
+    {
+        Super::rhi_create();
+        _M_rhi_shader = engine_instance->api_interface()->create_vertex_shader(this);
+        return *this;
+    }
 }// namespace Engine

@@ -27,7 +27,7 @@ namespace Engine
     };
 
     struct ShaderDataType {
-        enum : EnumerateType
+        enum DataType : EnumerateType
         {
             Bool  = 0,
             Int   = 1,
@@ -78,6 +78,7 @@ namespace Engine
         inline VertexAttribute(const String& _name = "") : name(_name)
         {}
     };
+
 
     struct VertexBufferInfo {
         Vector<VertexAttribute> attributes;

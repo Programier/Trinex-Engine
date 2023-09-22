@@ -23,27 +23,28 @@ namespace Engine
             {IndexBufferComponent::UnsignedByte, vk::IndexType::eUint8EXT},
     });
 
-    const vk::Format _M_shader_data_types[19] = {
-            vk::Format::eUndefined,         //  BOOL
-            vk::Format::eR32Sint,           //  INT
-            vk::Format::eR32Uint,           //  UINT
-            vk::Format::eR32Sfloat,         //  FLOAT
-            vk::Format::eR32G32Sfloat,      //  VEC2
-            vk::Format::eR32G32B32Sfloat,   //  VEC3
-            vk::Format::eR32G32B32A32Sfloat,//  VEC4
-            vk::Format::eR32G32Sint,        //  IVEC2
-            vk::Format::eR32G32B32Sint,     //  IVEC3
-            vk::Format::eR32G32B32A32Sint,  //  IVEC4
-            vk::Format::eR32G32Uint,        //  UVEC2
-            vk::Format::eR32G32B32Uint,     //  UVEC3
-            vk::Format::eR32G32B32A32Uint,  //  UVEC4
-            vk::Format::eUndefined,         //  BVEC2
-            vk::Format::eUndefined,         //  BVEC3
-            vk::Format::eUndefined,         //  BVEC4
-            vk::Format::eUndefined,         //  MAT2
-            vk::Format::eUndefined,         //  MAT3
-            vk::Format::eUndefined,         //  MAT4
-    };
+    const Array<vk::Format, 19> _M_shader_data_types = generate_array<vk::Format, 19, ShaderDataType::DataType>({
+            {ShaderDataType::Bool, vk::Format::eUndefined},
+            {ShaderDataType::Int, vk::Format::eR32Sint},
+            {ShaderDataType::UInt, vk::Format::eR32Uint},
+            {ShaderDataType::Float, vk::Format::eR32Sfloat},
+            {ShaderDataType::Vec2, vk::Format::eR32G32Sfloat},
+            {ShaderDataType::Vec3, vk::Format::eR32G32B32Sfloat},
+            {ShaderDataType::Vec4, vk::Format::eR32G32B32A32Sfloat},
+            {ShaderDataType::IVec2, vk::Format::eR32G32Sint},
+            {ShaderDataType::IVec3, vk::Format::eR32G32B32Sint},
+            {ShaderDataType::IVec4, vk::Format::eR32G32B32A32Sint},
+            {ShaderDataType::UVec2, vk::Format::eR32G32Uint},
+            {ShaderDataType::UVec3, vk::Format::eR32G32B32Uint},
+            {ShaderDataType::UVec4, vk::Format::eR32G32B32A32Uint},
+            {ShaderDataType::BVec2, vk::Format::eUndefined},
+            {ShaderDataType::BVec3, vk::Format::eUndefined},
+            {ShaderDataType::BVec4, vk::Format::eUndefined},
+            {ShaderDataType::Mat2, vk::Format::eUndefined},
+            {ShaderDataType::Mat3, vk::Format::eUndefined},
+            {ShaderDataType::Mat4, vk::Format::eUndefined},
+
+    });
 
     const Array<vk::ComponentSwizzle, 7> _M_swizzle_components = {
             vk::ComponentSwizzle::eIdentity,// Identity = 0

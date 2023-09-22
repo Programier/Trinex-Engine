@@ -428,4 +428,10 @@ namespace Engine
         Warning,
         Info,
     };
+
+    enum class VertexAttributeInputRate : byte
+    {
+        Vertex   = 0,
+        Instance = 1
+    };
 }// namespace Engine

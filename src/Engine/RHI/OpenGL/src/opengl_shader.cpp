@@ -323,4 +323,13 @@ namespace Engine
     }
 
 
+    RHI_Shader* OpenGL::create_vertex_shader(const VertexShader* shader)
+    {
+        return nullptr;
+    }
+
+    RHI_Shader* OpenGL::create_fragment_shader(const FragmentShader* shader)
+    {
+        return nullptr;
+    }
 }// namespace Engine

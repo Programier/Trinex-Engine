@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
+#include <Graphics/rhi.hpp>
 #include <vulkan_object.hpp>
 #include <vulkan_unique_per_frame.hpp>
 
@@ -49,9 +50,29 @@ namespace Engine
         bool init(const PipelineCreateInfo& params);
         VulkanShader& use();
         VulkanShader& bind_ubo(struct VulkanUniformBuffer* ubo, BindingIndex binding);
-        VulkanShader& bind_texture_combined(struct VulkanSampler* sampler, struct VulkanTexture* texture, uint_t binding);
+        VulkanShader& bind_texture_combined(struct VulkanSampler* sampler, struct VulkanTexture* texture,
+                                            uint_t binding);
         VulkanShader& bind_sampler(struct VulkanSampler* sampler, BindingIndex location, BindingIndex binding);
         VulkanShader& bind_shared_buffer(struct VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding);
         ~VulkanShader();
+    };
+
+
+    struct VulkanShaderBase : public RHI_Shader {
+        vk::ShaderModule _M_shader;
+
+        VulkanShaderBase& create(const ShaderBase* shader);
+        VulkanShaderBase& destroy();
+    };
+
+
+    struct VulkanVertexShader : public VulkanShaderBase {
+        Vector<vk::VertexInputBindingDescription> _M_binding_description;
+        Vector<vk::VertexInputAttributeDescription> _M_attribute_description;
+
+        VulkanVertexShader& create(const VertexShader* shader);
+        VulkanVertexShader& destroy();
+
+        ~VulkanVertexShader();
     };
 }// namespace Engine
