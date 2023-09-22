@@ -43,6 +43,7 @@
 
 namespace Engine
 {
+    void init_camera();
     void update_camera(Camera* camera, float dt);
     void save_package(Package* package);
 
@@ -136,6 +137,7 @@ namespace Engine
 
         GameSystem& create() override
         {
+            init_camera();
             EngineSystem::instance()->add_object(this, true);
             package = Object::load_package("TestResources");
             if (package == nullptr)
