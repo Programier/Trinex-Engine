@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/logger.hpp>
 #include <api.hpp>
+#include <opengl_state.hpp>
 
 
 #define API (Engine::OpenGL::_M_open_gl)
@@ -14,20 +15,16 @@ namespace Engine
         static OpenGL* _M_open_gl;
         struct WindowInterface* _M_window_interface = nullptr;
 
-        Logger** _M_logger                                   = nullptr;
-        void* _M_context                                     = nullptr;
-        byte _M_support_anisotropy : 1                       = 0;
-        struct OpenGL_Shader* _M_current_shader              = nullptr;
-        ArrayOffset _M_index_buffer_offset                   = 0;
-        struct OpenGL_IndexBuffer* _M_index_buffer           = nullptr;
-        struct OpenGL_FrameBufferSet* _M_current_framebuffer = nullptr;
-        size_t _M_current_buffer_index                       = 0;
-        size_t _M_next_buffer_index                          = 1;
+        void* _M_context                   = nullptr;
+        byte _M_support_anisotropy : 1     = 0;
+        ArrayOffset _M_index_buffer_offset = 0;
+        size_t _M_current_buffer_index     = 0;
+        size_t _M_next_buffer_index        = 1;
         Vector<BindingIndex> _M_samplers;
 
-        OpenGL();
-        struct OpenGL_FrameBufferSet* framebuffer(Identifier ID);
+        OpenGL_State state;
 
+        OpenGL();
 
         bool extension_supported(const String& extension_name);
 

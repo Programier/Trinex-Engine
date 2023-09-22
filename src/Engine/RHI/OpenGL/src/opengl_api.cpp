@@ -227,7 +227,7 @@ namespace Engine
 
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
     {
-        glDrawElements(_M_current_shader->_M_topology, indices_count, _M_index_buffer->_M_component_type,
+        glDrawElements(state.shader->_M_topology, indices_count, state.index_buffer->_M_component_type,
                        reinterpret_cast<void*>(indices_offset));
 
         for (auto& unit : _M_samplers)
@@ -237,16 +237,6 @@ namespace Engine
 
         _M_samplers.clear();
         return *this;
-    }
-
-    OpenGL_FrameBufferSet* OpenGL::framebuffer(Identifier ID)
-    {
-        static OpenGL_FrameBufferSet base_framebuffer(true);
-        if (ID)
-        {
-            return GET_TYPE(OpenGL_FrameBufferSet, ID);
-        }
-        return &base_framebuffer;
     }
 
     OpenGL& OpenGL::swap_buffer()

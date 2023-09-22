@@ -152,23 +152,32 @@ namespace Engine
 
     void OpenGL_FrameBufferSet::bind(uint_t buffer_index)
     {
-        API->_M_current_framebuffer = this;
-        glBindFramebuffer(GL_FRAMEBUFFER, _M_framebuffers[buffer_index]._M_instance_id);
-        _M_command_buffer.apply();
-        update_viewport().update_scissor();
+        if (API->state.framebuffer != this)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, _M_framebuffers[buffer_index]._M_instance_id);
+            _M_command_buffer.apply();
+
+            if (!API->state.framebuffer || API->state.framebuffer->_M_viewport != _M_viewport)
+                update_viewport();
+
+            if (!API->state.framebuffer || API->state.framebuffer->_M_scissor != _M_scissor)
+                update_scissor();
+        }
+
+        API->state.framebuffer = this;
     }
 
     void OpenGL_FrameBufferSet::viewport(const ViewPort& viewport)
     {
         _M_viewport = viewport;
-        if (API->_M_current_framebuffer == this)
+        if (API->state.framebuffer == this)
             update_viewport();
     }
 
     void OpenGL_FrameBufferSet::scissor(const Scissor& scissor)
     {
         _M_scissor = scissor;
-        if (API->_M_current_framebuffer == this)
+        if (API->state.framebuffer == this)
             update_scissor();
     }
 
@@ -220,9 +229,9 @@ namespace Engine
 
         _M_command_buffer.next(new OpenGL_Command(glClearBufferfv, static_cast<GLenum>(GL_COLOR), static_cast<GLint>(0),
                                                   reinterpret_cast<const GLfloat*>(_M_clear_color_values[0].data())));
-
         _M_command_buffer.next(new OpenGL_Command(glDisable, static_cast<GLenum>(GL_DEPTH_TEST)));
         _M_command_buffer.next(new OpenGL_Command(glDisable, static_cast<GLenum>(GL_STENCIL_TEST)));
+
         _M_framebuffers.resize(1);
         _M_framebuffers[0]._M_set         = this;
         _M_framebuffers[0]._M_instance_id = 0;

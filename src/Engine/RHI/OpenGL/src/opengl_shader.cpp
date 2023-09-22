@@ -14,20 +14,6 @@ namespace Engine
 
     implement_opengl_instance_cpp(OpenGL_Shader);
 
-    static std::string shader_type_name(GLenum type)
-    {
-        switch (type)
-        {
-            case GL_VERTEX_SHADER:
-                return "vertex";
-
-            case GL_FRAGMENT_SHADER:
-                return "fragment";
-        }
-
-        return "undefined type";
-    }
-
     static GLint compile_shader_module(const FileBuffer& shader_code, GLenum type, const String& name)
     {
         GLint ID = 0;
@@ -281,9 +267,9 @@ namespace Engine
     {
         if (ID)
         {
-            _M_current_shader = GET_TYPE(OpenGL_Shader, ID);
-            glUseProgram(_M_current_shader->_M_instance_id);
-            _M_current_shader->_M_command_buffer.apply();
+            state.shader = GET_TYPE(OpenGL_Shader, ID);
+            glUseProgram(state.shader->_M_instance_id);
+            state.shader->_M_command_buffer.apply();
         }
         else
             glUseProgram(0);
@@ -305,7 +291,6 @@ namespace Engine
     {
         throw std::runtime_error(not_implemented);
     }
-
 
     OpenGL_Shader& OpenGL_Shader::apply_vertex_attributes(ArrayOffset base_offset)
     {

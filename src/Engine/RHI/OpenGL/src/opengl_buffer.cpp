@@ -65,7 +65,7 @@ namespace Engine
     {
         unmap_memory();
         glBindBuffer(GL_ARRAY_BUFFER, _M_instance_id);
-        API->_M_current_shader->apply_vertex_attributes(offset);
+        API->state.shader->apply_vertex_attributes(offset);
         return *this;
     }
 
@@ -103,7 +103,7 @@ namespace Engine
         unmap_memory();
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _M_instance_id);
         API->_M_index_buffer_offset = offset;
-        API->_M_index_buffer        = this;
+        API->state.index_buffer     = this;
         return *this;
     }
 
@@ -136,11 +136,11 @@ namespace Engine
         unmap_memory();
         glBindBuffer(GL_UNIFORM_BUFFER, _M_instance_id);
 
-        auto it = API->_M_current_shader->_M_block_indices.find(binding);
-        if (it != API->_M_current_shader->_M_block_indices.end())
+        auto it = API->state.shader->_M_block_indices.find(binding);
+        if (it != API->state.shader->_M_block_indices.end())
         {
             glBindBufferBase(GL_UNIFORM_BUFFER, binding, _M_instance_id);
-            glUniformBlockBinding(API->_M_current_shader->_M_instance_id, it->second, binding);
+            glUniformBlockBinding(API->state.shader->_M_instance_id, it->second, binding);
         }
         return *this;
     }

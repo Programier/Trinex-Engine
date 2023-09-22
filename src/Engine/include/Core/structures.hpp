@@ -15,11 +15,31 @@ namespace Engine
         Size2D size;
         float min_depth = 0.0f;
         float max_depth = 1.0f;
+
+        FORCE_INLINE bool operator==(const ViewPort& v) const
+        {
+            return pos == v.pos && size == v.size && min_depth == v.min_depth && max_depth == v.max_depth;
+        }
+
+        FORCE_INLINE bool operator!=(const ViewPort& v) const
+        {
+            return !((*this) == v);
+        }
     };
 
     struct Scissor {
         Point2D pos = {0.0f, 0.0f};
         Size2D size;
+
+        FORCE_INLINE bool operator==(const Scissor& s) const
+        {
+            return pos == s.pos && size == s.size;
+        }
+
+        FORCE_INLINE bool operator!=(const Scissor& s) const
+        {
+            return !((*this) == s);
+        }
     };
 
     struct DepthStencilClearValue {
