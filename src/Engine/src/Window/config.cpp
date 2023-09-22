@@ -19,7 +19,7 @@ namespace Engine
     WindowConfig& WindowConfig::update()
     {
         const auto& window_json = global_config.checked_get("Window").checked_get<JSON::JsonObject>();
-        String title            = window_json.checked_get("title").checked_get<String>();
+        title                   = window_json.checked_get("title").checked_get<String>();
 
         {
             const auto& window_size = window_json.checked_get("size").checked_get<JSON::JsonObject>();

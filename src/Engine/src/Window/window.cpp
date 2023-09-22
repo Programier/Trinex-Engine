@@ -286,4 +286,15 @@ namespace Engine
         _M_interface->update_monitor_info(info);
         return *this;
     }
+
+    int_t Window::create_message_box(const MessageBoxCreateInfo& info)
+    {
+        return _M_interface->create_message_box(info);
+    }
+
+    Window& Window::create_notify(const NotifyCreateInfo& info)
+    {
+        _M_interface->create_notify(info);
+        return *this;
+    }
 }// namespace Engine

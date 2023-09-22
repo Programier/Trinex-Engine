@@ -126,4 +126,32 @@ namespace Engine
         }
     };
 
+    struct MessageBoxButton {
+        String name;
+        int_t id;
+    };
+
+    struct MessageBoxSheme {
+        UIntVector3D background        = {27, 35, 54};
+        UIntVector3D text              = UIntVector3D(255);
+        UIntVector3D button_border     = {255, 215, 0};
+        UIntVector3D button_background = {255, 215, 0};
+        UIntVector3D button_selected   = {255, 239, 184};
+    };
+
+    struct MessageBoxCreateInfo {
+        MessageBoxSheme sheme;
+        Vector<MessageBoxButton> buttons;
+        String title;
+        String message;
+        MessageBoxType type;
+    };
+
+    struct NotifyCreateInfo
+    {
+        String title;
+        String message;
+        String app_name;
+        Path icon_path;
+    };
 }// namespace Engine

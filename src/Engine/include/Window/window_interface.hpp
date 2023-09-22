@@ -10,43 +10,8 @@ namespace Engine
     class Image;
     using EventCallback = Function<void(const Event&)>;
     struct MonitorInfo;
-
-    enum class WindowAttribute : EnumerateType
-    {
-        None                   = 0,
-        Resizable              = 1,
-        FullScreen             = 2,
-        FullScreenDesktop      = 3,
-        Shown                  = 4,
-        Hidden                 = 5,
-        BorderLess             = 6,
-        MouseFocus             = 7,
-        InputFocus             = 8,
-        InputGrabbed           = 9,
-        Minimized              = 10,
-        Maximized              = 11,
-        TransparentFramebuffer = 12,
-        MouseCapture           = 13,
-        AllowHighDPI           = 14,
-        MouseGrabbed           = 15,
-        KeyboardGrabbed        = 16,
-    };
-
-    enum class CursorMode : EnumerateType
-    {
-        Normal,
-        Hidden
-    };
-
-    enum class WindowOrientation : EnumerateType
-    {
-        Landscape        = 1,
-        LandscapeFlipped = 2,
-        Portrait         = 3,
-        PortraitFlipped  = 4
-    };
-
     struct WindowConfig;
+
     struct WindowInterface {
         virtual void init(const WindowConfig& info)                                                      = 0;
         virtual void close()                                                                             = 0;
@@ -100,6 +65,8 @@ namespace Engine
         virtual WindowInterface& update_monitor_info(MonitorInfo& info)                                  = 0;
         virtual WindowInterface& vsync(bool)                                                             = 0;
         virtual bool vsync()                                                                             = 0;
+        virtual int_t create_message_box(const MessageBoxCreateInfo& info)                               = 0;
+        virtual WindowInterface& create_notify(const NotifyCreateInfo& info)                             = 0;
 
         virtual ~WindowInterface() = default;
     };

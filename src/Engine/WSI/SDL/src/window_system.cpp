@@ -69,8 +69,6 @@ namespace Engine
     {
         if (_M_window)
             return;
-
-
         uint32_t attrib = to_sdl_attrib(info.attributes);
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 
@@ -86,15 +84,23 @@ namespace Engine
         {
             if (_M_api == SDL_WINDOW_OPENGL)
             {
+
+#if PLATFORM_ANDROID || PLATFORM_LINUX
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#ifdef _WIN32
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#else
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
+
+                SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+                SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+                SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
                 SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
                 SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             }
             else if (_M_api == SDL_WINDOW_VULKAN)
             {}
@@ -304,6 +310,90 @@ namespace Engine
         }
 
         throw EngineException("Cannot use vsync method from window interface, when API is not OpenGL");
+    }
+
+    int_t WindowSDL::create_message_box(const MessageBoxCreateInfo& info)
+    {
+        SDL_MessageBoxData data;
+        data.window  = _M_window;
+        data.title   = info.title.c_str();
+        data.message = info.message.c_str();
+
+        switch (info.type)
+        {
+            case MessageBoxType::Info:
+                data.flags = SDL_MESSAGEBOX_INFORMATION;
+                break;
+
+            case MessageBoxType::Warning:
+                data.flags = SDL_MESSAGEBOX_WARNING;
+                break;
+
+            case MessageBoxType::Error:
+                data.flags = SDL_MESSAGEBOX_ERROR;
+                break;
+
+            default:
+                data.flags = SDL_MESSAGEBOX_INFORMATION;
+                break;
+        }
+
+        Vector<SDL_MessageBoxButtonData> buttons;
+        buttons.reserve(info.buttons.size());
+
+        for (auto& button : info.buttons)
+        {
+            buttons.emplace_back();
+            SDL_MessageBoxButtonData& sdl_button = buttons.back();
+
+            sdl_button.buttonid = button.id;
+            sdl_button.flags    = 0;
+            sdl_button.text     = button.name.c_str();
+        }
+
+        data.numbuttons = static_cast<decltype(data.numbuttons)>(buttons.size());
+        data.buttons    = buttons.data();
+
+        SDL_MessageBoxColorScheme sheme;
+
+        sheme.colors[SDL_MESSAGEBOX_COLOR_BACKGROUND] = {static_cast<Uint8>(info.sheme.background.r),
+                                                         static_cast<Uint8>(info.sheme.background.r),
+                                                         static_cast<Uint8>(info.sheme.background.r)};
+
+        sheme.colors[SDL_MESSAGEBOX_COLOR_TEXT] = {static_cast<Uint8>(info.sheme.text.r),
+                                                   static_cast<Uint8>(info.sheme.text.r),
+                                                   static_cast<Uint8>(info.sheme.text.r)};
+
+        sheme.colors[SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] = {static_cast<Uint8>(info.sheme.button_border.r),
+                                                            static_cast<Uint8>(info.sheme.button_border.r),
+                                                            static_cast<Uint8>(info.sheme.button_border.r)};
+
+        sheme.colors[SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND] = {static_cast<Uint8>(info.sheme.button_background.r),
+                                                                static_cast<Uint8>(info.sheme.button_background.r),
+                                                                static_cast<Uint8>(info.sheme.button_background.r)};
+
+        sheme.colors[SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED] = {static_cast<Uint8>(info.sheme.button_selected.r),
+                                                              static_cast<Uint8>(info.sheme.button_selected.r),
+                                                              static_cast<Uint8>(info.sheme.button_selected.r)};
+
+        data.colorScheme = &sheme;
+
+        int button_id = 0;
+        if (SDL_ShowMessageBox(&data, &button_id) < 0)
+        {
+            SDL_Log("SDL_ShowMessageBox Error: %s", SDL_GetError());
+            return ~0;
+        }
+
+        return button_id;
+    }
+
+    void create_system_notify(const NotifyCreateInfo& info);
+
+    WindowSDL& WindowSDL::create_notify(const NotifyCreateInfo& info)
+    {
+        create_system_notify(info);
+        return *this;
     }
 
     void WindowSDL::destroy_icon()
@@ -1007,11 +1097,16 @@ namespace Engine
         else if (_M_api == SDL_WINDOW_OPENGL)
         {
             _M_gl_context = SDL_GL_CreateContext(_M_window);
-            SDL_GL_MakeCurrent(_M_window, _M_gl_context);
             if (!_M_gl_context)
             {
                 throw std::runtime_error(SDL_GetError());
             }
+
+            if (SDL_GL_MakeCurrent(_M_window, _M_gl_context) != 0)
+            {
+                error_log("SDL", "Cannot set context as current: %s", SDL_GetError());
+            }
+
             return _M_gl_context;
         }
 

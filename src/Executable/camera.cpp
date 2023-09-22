@@ -28,7 +28,7 @@ namespace Engine
 
     void init_camera()
     {
-        // Button press event
+
         MouseButtonEvent b_event;
         b_event.type = Mouse::Button::X2;
 

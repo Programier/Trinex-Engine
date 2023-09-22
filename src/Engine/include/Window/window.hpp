@@ -56,7 +56,8 @@ namespace Engine
         Window& icon(const Image& image);
         Window& cursor(const Image& image, IntVector2D hotspot = {0, 0});
         Window& update_monitor_info(MonitorInfo& info);
-
+        int_t create_message_box(const MessageBoxCreateInfo& info);
+        Window& create_notify(const NotifyCreateInfo& info);
 
         void initialize_imgui();
         void terminate_imgui();

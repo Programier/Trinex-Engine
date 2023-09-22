@@ -14,7 +14,7 @@ namespace Engine
         Buffer _M_icon_buffer;
         Buffer _M_cursor_icon_buffer;
 
-        SDL_Window* _M_window          = nullptr;
+        SDL_Window* _M_window       = nullptr;
         SDL_Surface* _M_icon        = nullptr;
         SDL_Surface* _M_cursor_icon = nullptr;
         SDL_Cursor* _M_cursor       = nullptr;
@@ -83,6 +83,8 @@ namespace Engine
         void destroy_cursor();
         WindowSDL& vsync(bool) override;
         bool vsync() override;
+        int_t create_message_box(const MessageBoxCreateInfo& info) override;
+        WindowSDL& create_notify(const NotifyCreateInfo&) override;
 
         // IMGUI
         WindowInterface& initialize_imgui() override;

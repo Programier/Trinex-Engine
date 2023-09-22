@@ -386,4 +386,46 @@ namespace Engine
         Nand         = 15,
         Set          = 16,
     };
+
+    enum class WindowAttribute : EnumerateType
+    {
+        None                   = 0,
+        Resizable              = 1,
+        FullScreen             = 2,
+        FullScreenDesktop      = 3,
+        Shown                  = 4,
+        Hidden                 = 5,
+        BorderLess             = 6,
+        MouseFocus             = 7,
+        InputFocus             = 8,
+        InputGrabbed           = 9,
+        Minimized              = 10,
+        Maximized              = 11,
+        TransparentFramebuffer = 12,
+        MouseCapture           = 13,
+        AllowHighDPI           = 14,
+        MouseGrabbed           = 15,
+        KeyboardGrabbed        = 16,
+    };
+
+    enum class CursorMode : EnumerateType
+    {
+        Normal,
+        Hidden
+    };
+
+    enum class WindowOrientation : EnumerateType
+    {
+        Landscape        = 1,
+        LandscapeFlipped = 2,
+        Portrait         = 3,
+        PortraitFlipped  = 4
+    };
+
+    enum class MessageBoxType
+    {
+        Error,
+        Warning,
+        Info,
+    };
 }// namespace Engine
