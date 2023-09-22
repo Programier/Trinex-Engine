@@ -1,6 +1,6 @@
 #pragma once
 
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <vulkan/vulkan.hpp>
 
 namespace Engine
@@ -29,7 +29,7 @@ namespace Engine
     };
 
 
-    struct VulkanSampler : RHI::RHI_Sampler {
+    struct VulkanSampler : RHI_Sampler {
         vk::Sampler _M_sampler;
 
         VulkanSampler& create(const VulkanSamplerCreateInfo&);

@@ -1,13 +1,13 @@
 #pragma once
 #include <bitset>
 
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <vulkan_object.hpp>
 
 namespace Engine
 {
 
-    struct VulkanFramebuffer : RHI::RHI_FrameBuffer {
+    struct VulkanFramebuffer : RHI_FrameBuffer {
         struct Buffer {
             vk::Framebuffer _M_framebuffer;
             Vector<vk::ImageView> _M_attachments;

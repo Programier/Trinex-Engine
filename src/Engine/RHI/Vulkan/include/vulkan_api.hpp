@@ -6,7 +6,7 @@
 #pragma once
 #include <Core/logger.hpp>
 #include <VkBootstrap.h>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <optional>
 #include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
@@ -30,7 +30,7 @@ namespace Engine
 
     struct VulkanTexture;
 
-    struct VulkanAPI : public RHI::ApiInterface {
+    struct VulkanAPI : public RHI {
         static Vector<const char*> device_extensions;
         static VulkanAPI* _M_vulkan;
         WindowInterface* _M_window       = nullptr;
@@ -161,10 +161,10 @@ namespace Engine
         VulkanAPI& next_render_thread() override;
 
 
-        RHI::RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
-        RHI::RHI_Texture* create_texture(const TextureCreateInfo&, TextureType, const byte* data) override;
-        RHI::RHI_FrameBuffer* window_framebuffer() override;
-        RHI::RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
+        RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI_Texture* create_texture(const TextureCreateInfo&, TextureType, const byte* data) override;
+        RHI_FrameBuffer* window_framebuffer() override;
+        RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
         ~VulkanAPI();
     };
 }// namespace Engine

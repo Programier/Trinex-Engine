@@ -4,15 +4,11 @@
 
 namespace Engine
 {
-
-    namespace RHI
-    {
-        struct RHI_Object;
-        struct RHI_BindingObject;
-        struct RHI_Sampler;
-        struct RHI_FrameBuffer;
-        struct RHI_Texture;
-    }// namespace RHI
+    struct RHI_Object;
+    struct RHI_BindingObject;
+    struct RHI_Sampler;
+    struct RHI_FrameBuffer;
+    struct RHI_Texture;
 
     class ENGINE_EXPORT ApiObjectNoBase
     {
@@ -21,11 +17,11 @@ namespace Engine
 
         union
         {
-            RHI::RHI_Object* _M_rhi_object;
-            RHI::RHI_BindingObject* _M_rhi_binding_object;
-            RHI::RHI_Sampler* _M_rhi_sampler;
-            RHI::RHI_FrameBuffer* _M_rhi_framebuffer;
-            RHI::RHI_Texture* _M_rhi_texture;
+            RHI_Object* _M_rhi_object;
+            RHI_BindingObject* _M_rhi_binding_object;
+            RHI_Sampler* _M_rhi_sampler;
+            RHI_FrameBuffer* _M_rhi_framebuffer;
+            RHI_Texture* _M_rhi_texture;
         };
 
 

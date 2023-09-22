@@ -351,12 +351,12 @@ namespace Engine
         VulkanFramebuffer::bind(API->swapchain_image_index().value);
     }
 
-    RHI::RHI_FrameBuffer* VulkanAPI::window_framebuffer()
+    RHI_FrameBuffer* VulkanAPI::window_framebuffer()
     {
         return API->_M_main_framebuffer;
     }
 
-    RHI::RHI_FrameBuffer* VulkanAPI::create_framebuffer(const FrameBufferCreateInfo& info)
+    RHI_FrameBuffer* VulkanAPI::create_framebuffer(const FrameBufferCreateInfo& info)
     {
         return &(new VulkanFramebuffer())->init(info);
     }

@@ -1,5 +1,5 @@
 #pragma once
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <opengl_headers.hpp>
 
 
@@ -27,7 +27,7 @@ namespace Engine
         OpenGL_SamplerCreateInfo(const SamplerCreateInfo&);
     };
 
-    struct OpenGL_Sampler : RHI::RHI_Sampler
+    struct OpenGL_Sampler : RHI_Sampler
     {
         GLuint _M_sampler;
 

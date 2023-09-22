@@ -211,13 +211,13 @@ namespace Engine
         }
     }
 
-    RHI::RHI_FrameBuffer* OpenGL::window_framebuffer()
+    RHI_FrameBuffer* OpenGL::window_framebuffer()
     {
         static OpenGL_MainFrameBuffer main_framebuffer;
         return &main_framebuffer;
     }
 
-    RHI::RHI_FrameBuffer* OpenGL::create_framebuffer(const FrameBufferCreateInfo& info)
+    RHI_FrameBuffer* OpenGL::create_framebuffer(const FrameBufferCreateInfo& info)
     {
         return &(new OpenGL_FrameBufferSet())->gen_framebuffer(info);
     }

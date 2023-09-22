@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/logger.hpp>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <opengl_state.hpp>
 
 
@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    struct OpenGL : public RHI::ApiInterface {
+    struct OpenGL : public RHI {
         static OpenGL* _M_open_gl;
         struct WindowInterface* _M_window_interface = nullptr;
 
@@ -83,10 +83,10 @@ namespace Engine
         OpenGL& next_render_thread() override;
         String renderer() override;
 
-        RHI::RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
-        RHI::RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
-        RHI::RHI_FrameBuffer* window_framebuffer() override;
-        RHI::RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
+        RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
+        RHI_FrameBuffer* window_framebuffer() override;
+        RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
 
         ~OpenGL();
     };

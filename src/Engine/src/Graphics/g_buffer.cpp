@@ -64,13 +64,13 @@ namespace Engine
 
             info.buffers[i].color_attachments.resize(4);
 
-            info.buffers[i].color_attachments[0].texture = data.albedo->get_rhi_object<RHI::RHI_Texture>();
-            info.buffers[i].color_attachments[1].texture = data.position->get_rhi_object<RHI::RHI_Texture>();
-            info.buffers[i].color_attachments[2].texture = data.normal->get_rhi_object<RHI::RHI_Texture>();
-            info.buffers[i].color_attachments[3].texture = data.specular->get_rhi_object<RHI::RHI_Texture>();
+            info.buffers[i].color_attachments[0].texture = data.albedo->get_rhi_object<RHI_Texture>();
+            info.buffers[i].color_attachments[1].texture = data.position->get_rhi_object<RHI_Texture>();
+            info.buffers[i].color_attachments[2].texture = data.normal->get_rhi_object<RHI_Texture>();
+            info.buffers[i].color_attachments[3].texture = data.specular->get_rhi_object<RHI_Texture>();
 
             FrameBufferAttachment depth_attachment;
-            depth_attachment.texture                 = data.depth->get_rhi_object<RHI::RHI_Texture>();
+            depth_attachment.texture                 = data.depth->get_rhi_object<RHI_Texture>();
             info.buffers[i].depth_stencil_attachment = depth_attachment;
         }
 

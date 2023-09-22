@@ -327,7 +327,7 @@ namespace Engine
     void VulkanTexture::bind(BindingIndex binding, BindingIndex set)
     {}
 
-    void VulkanTexture::bind_combined(RHI::RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
+    void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
     {
         if (API->_M_state->_M_shader)
         {
@@ -495,7 +495,7 @@ namespace Engine
         destroy();
     }
 
-    RHI::RHI_Texture* VulkanAPI::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
+    RHI_Texture* VulkanAPI::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
     {
         return &(new VulkanTexture())->create(info, type, data);
     }

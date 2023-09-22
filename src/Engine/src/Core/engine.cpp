@@ -102,7 +102,7 @@ namespace Engine
             }
 
             // Try to load api loader
-            RHI::ApiInterface* (*loader)() = api_library.get<RHI::ApiInterface*>("load_api");
+            RHI* (*loader)() = api_library.get<RHI*>("load_api");
 
             if (!loader)
             {
@@ -243,7 +243,7 @@ namespace Engine
         return status;
     }
 
-    RHI::ApiInterface* EngineInstance::api_interface() const
+    RHI* EngineInstance::api_interface() const
     {
         return _M_api_interface;
     }

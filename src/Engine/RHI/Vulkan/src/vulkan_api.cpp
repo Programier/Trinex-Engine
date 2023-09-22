@@ -34,7 +34,7 @@ namespace Engine
 
     VulkanAPI* VulkanAPI::_M_vulkan = nullptr;
 
-    API_EXPORT RHI::ApiInterface* load_api()
+    API_EXPORT RHI* load_api()
     {
         if (VulkanAPI::_M_vulkan == nullptr)
             VulkanAPI::_M_vulkan = new VulkanAPI();

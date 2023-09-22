@@ -12,11 +12,7 @@ namespace Engine
     class Window;
     class System;
 
-    namespace RHI
-    {
-        struct ApiInterface;
-    }
-
+    struct RHI;
 
     enum class EngineInstanceFlags : EnumerateType
     {
@@ -44,7 +40,7 @@ namespace Engine
         class Renderer* _M_renderer = nullptr;
         Window* _M_window           = nullptr;
 
-        RHI::ApiInterface* _M_api_interface = nullptr;
+        RHI* _M_api_interface = nullptr;
         static EngineInstance* _M_instance;
         BitSet<static_cast<EnumerateType>(EngineInstanceFlags::__COUNT__)> _M_flags;
         EngineAPI _M_api;
@@ -65,7 +61,7 @@ namespace Engine
         SystemName system_type() const;
         EngineAPI api() const;
         bool is_inited() const;
-        RHI::ApiInterface* api_interface() const;
+        RHI* api_interface() const;
         class Renderer* renderer() const;
         static bool is_on_stack(void* ptr);
         bool is_shuting_down() const;

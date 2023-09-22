@@ -51,7 +51,7 @@ namespace Engine
         glBindTexture(_M_texture_type, 0);
     }
 
-    void OpenGL_Texture::bind_combined(RHI::RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
+    void OpenGL_Texture::bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
     {
         bind(binding, set);
         sampler->bind(binding, set);
@@ -88,7 +88,7 @@ namespace Engine
         return 0;
     }
 
-    RHI::RHI_Texture* OpenGL::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
+    RHI_Texture* OpenGL::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
     {
         return &(new OpenGL_Texture())->create_info(info, type, data);
     }

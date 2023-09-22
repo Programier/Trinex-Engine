@@ -1,5 +1,5 @@
 #pragma once
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <functional>
 #include <opengl_api.hpp>
 #include <opengl_color_format.hpp>
@@ -12,7 +12,7 @@ namespace Engine
         GLsizei height;
     };
 
-    struct OpenGL_Texture : public RHI::RHI_Texture {
+    struct OpenGL_Texture : public RHI_Texture {
         TextureSize size;
         OpenGL_ColorFormat _M_format;
         GLenum _M_texture_type;
@@ -23,7 +23,7 @@ namespace Engine
 
         void bind(BindingIndex binding, BindingIndex set);
         void generate_mipmap();
-        void bind_combined(RHI::RHI_Sampler* sampler, BindingIndex binding, BindingIndex set);
+        void bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set);
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data);
 
         OpenGL_Texture& destroy();

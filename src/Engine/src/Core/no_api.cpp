@@ -246,25 +246,25 @@ namespace Engine
         return "Undefined";
     }
 
-    RHI::RHI_Sampler* NoApi::create_sampler(const SamplerCreateInfo&)
+    RHI_Sampler* NoApi::create_sampler(const SamplerCreateInfo&)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
     }
 
-    RHI::RHI_Texture* NoApi::create_texture(const TextureCreateInfo&, TextureType, const byte*)
+    RHI_Texture* NoApi::create_texture(const TextureCreateInfo&, TextureType, const byte*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
     }
 
-    RHI::RHI_FrameBuffer* NoApi::window_framebuffer()
+    RHI_FrameBuffer* NoApi::window_framebuffer()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
     }
 
-    RHI::RHI_FrameBuffer* NoApi::create_framebuffer(const FrameBufferCreateInfo& info)
+    RHI_FrameBuffer* NoApi::create_framebuffer(const FrameBufferCreateInfo& info)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

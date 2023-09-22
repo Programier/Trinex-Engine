@@ -88,7 +88,7 @@ namespace Engine
     }
 
 
-    RHI::RHI_Sampler* OpenGL::create_sampler(const SamplerCreateInfo& info)
+    RHI_Sampler* OpenGL::create_sampler(const SamplerCreateInfo& info)
     {
         return &(new OpenGL_Sampler())->create(info);
     }

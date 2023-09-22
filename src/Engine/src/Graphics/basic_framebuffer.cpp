@@ -2,7 +2,7 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Graphics/basic_framebuffer.hpp>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 
 namespace Engine
 {

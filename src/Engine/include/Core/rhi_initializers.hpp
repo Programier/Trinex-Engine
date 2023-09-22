@@ -4,16 +4,12 @@
 
 namespace Engine
 {
-
-    namespace RHI
-    {
-        struct RHI_FrameBuffer;
-        struct RHI_Texture;
-    }// namespace RHI
+    struct RHI_FrameBuffer;
+    struct RHI_Texture;
 
     struct FrameBufferAttachment {
-        RHI::RHI_Texture* texture = nullptr;
-        MipMapLevel mip_level     = 0;
+        RHI_Texture* texture  = nullptr;
+        MipMapLevel mip_level = 0;
     };
 
     union FrameBufferClearValue
@@ -205,7 +201,7 @@ namespace Engine
 
         String name;
         VertexBufferInfo vertex_info;
-        RHI::RHI_FrameBuffer* framebuffer;
+        RHI_FrameBuffer* framebuffer;
     };
 
     struct SamplerCreateInfo {

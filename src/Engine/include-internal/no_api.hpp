@@ -1,9 +1,9 @@
 #pragma once
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
-    class NoApi : public RHI::ApiInterface
+    class NoApi : public RHI
     {
         void* init_window(WindowInterface*, const WindowConfig&) override;
         NoApi& destroy_window() override;
@@ -57,10 +57,10 @@ namespace Engine
         String renderer() override;
 
 
-        RHI::RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
-        RHI::RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
-        RHI::RHI_FrameBuffer* window_framebuffer() override;
-        RHI::RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
+        RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
+        RHI_FrameBuffer* window_framebuffer() override;
+        RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
 
 
         template<typename Type>

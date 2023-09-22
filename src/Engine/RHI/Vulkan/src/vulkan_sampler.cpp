@@ -72,7 +72,7 @@ namespace Engine
     }
 
 
-    RHI::RHI_Sampler* VulkanAPI::create_sampler(const SamplerCreateInfo& info)
+    RHI_Sampler* VulkanAPI::create_sampler(const SamplerCreateInfo& info)
     {
         return &(new VulkanSampler())->create(info);
     }

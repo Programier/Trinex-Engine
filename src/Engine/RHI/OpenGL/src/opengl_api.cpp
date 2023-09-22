@@ -264,7 +264,7 @@ namespace Engine
 }// namespace Engine
 
 
-API_EXPORT Engine::RHI::ApiInterface* load_api()
+API_EXPORT Engine::RHI* load_api()
 {
     return Engine::get_instance();
 }

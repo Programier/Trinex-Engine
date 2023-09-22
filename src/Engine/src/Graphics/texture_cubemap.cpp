@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/texture_cubemap.hpp>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 
 namespace Engine
 {

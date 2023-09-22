@@ -5,7 +5,7 @@
 #include <Core/logger.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
@@ -29,7 +29,7 @@ namespace Engine
     {
         if (_M_rhi_texture)
         {
-            RHI::RHI_Sampler* rhi_sampler = reinterpret_cast<ApiObject*>(sampler)->get_rhi_object<RHI::RHI_Sampler>();
+            RHI_Sampler* rhi_sampler = reinterpret_cast<ApiObject*>(sampler)->get_rhi_object<RHI_Sampler>();
             _M_rhi_texture->bind_combined(rhi_sampler, binding, set);
         }
         return *this;

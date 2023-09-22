@@ -1,5 +1,5 @@
 #pragma once
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <opengl_command_buffer.hpp>
 #include <opengl_object.hpp>
 
@@ -17,7 +17,7 @@ namespace Engine
         ~OpenGL_FrameBuffer();
     };
 
-    struct OpenGL_FrameBufferSet : RHI::RHI_FrameBuffer {
+    struct OpenGL_FrameBufferSet : RHI_FrameBuffer {
         ViewPort _M_viewport;
         Scissor _M_scissor;
         OpenGL_CommandBuffer _M_command_buffer;

@@ -5,18 +5,15 @@
 namespace Engine
 {
 
-    namespace RHI
-    {
-        struct ApiInterface;
-    }
+    struct RHI;
 
     class ENGINE_EXPORT Renderer
     {
     private:
-        RHI::ApiInterface* _M_api = nullptr;
+        RHI* _M_api = nullptr;
 
     protected:
-        Renderer(RHI::ApiInterface* interface);
+        Renderer(RHI* interface);
         virtual ~Renderer();
 
     public:

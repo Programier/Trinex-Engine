@@ -1,5 +1,5 @@
 #pragma once
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 #include <vulkan_object.hpp>
 
 
@@ -7,7 +7,7 @@ namespace Engine
 {
     vk::Format parse_engine_format(ColorFormat format);
 
-    struct VulkanTexture : RHI::RHI_Texture {
+    struct VulkanTexture : RHI_Texture {
         vk::Extent2D size;
 
         vk::Image _M_image;
@@ -32,7 +32,7 @@ namespace Engine
 
         void generate_mipmap() override;
         void bind(BindingIndex binding, BindingIndex set) override;
-        void bind_combined(RHI::RHI_Sampler* sampler, BindingIndex binding, BindingIndex set) override;
+        void bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set) override;
         void update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, uint_t layer,
                             const byte* data);
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,

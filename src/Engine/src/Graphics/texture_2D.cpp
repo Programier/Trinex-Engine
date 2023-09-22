@@ -6,7 +6,7 @@
 #include <Core/logger.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 
 namespace Engine
 {

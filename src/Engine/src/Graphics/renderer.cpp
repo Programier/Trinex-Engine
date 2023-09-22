@@ -1,10 +1,10 @@
 #include <Graphics/renderer.hpp>
-#include <api.hpp>
+#include <Graphics/rhi.hpp>
 
 
 namespace Engine
 {
-    Renderer::Renderer(RHI::ApiInterface* interface) : _M_api(interface)
+    Renderer::Renderer(RHI* interface) : _M_api(interface)
     {}
 
     Renderer& Renderer::begin()
