@@ -10,14 +10,36 @@ namespace Engine
     VulkanSamplerCreateInfo::VulkanSamplerCreateInfo() = default;
 
     VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const SamplerCreateInfo& info)
-        : mag_filter(get_type(info.mag_filter)), min_filter(get_type(info.min_filter)),
-          mipmap_mode(get_type(info.mipmap_mode)), wrap_s(get_type(info.wrap_s)), wrap_t(get_type(info.wrap_t)),
-          wrap_r(get_type(info.wrap_r)), compare_func(get_type(info.compare_func)), anisotropy(info.anisotropy),
-          mip_lod_bias(info.mip_lod_bias), min_lod(info.min_lod), max_lod(info.max_lod),
-          unnormalized_coordinates(info.unnormalized_coordinates),
+        : wrap_s(get_type(info.wrap_s)), wrap_t(get_type(info.wrap_t)), wrap_r(get_type(info.wrap_r)),
+          compare_func(get_type(info.compare_func)), anisotropy(info.anisotropy), mip_lod_bias(info.mip_lod_bias),
+          min_lod(info.min_lod), max_lod(info.max_lod), unnormalized_coordinates(info.unnormalized_coordinates),
           compare_enable(info.compare_mode == CompareMode::RefToTexture)
     {
-        unnormalized_coordinates = info.unnormalized_coordinates;
+        switch (info.filter)
+        {
+            case SamplerFilter::Trilinear:
+                mag_filter  = vk::Filter::eLinear;
+                min_filter  = vk::Filter::eLinear;
+                mipmap_mode = vk::SamplerMipmapMode::eLinear;
+                break;
+
+            case SamplerFilter::Bilinear:
+                mag_filter  = vk::Filter::eLinear;
+                min_filter  = vk::Filter::eLinear;
+                mipmap_mode = vk::SamplerMipmapMode::eNearest;
+                break;
+
+            case SamplerFilter::Point:
+                mag_filter  = vk::Filter::eNearest;
+                min_filter  = vk::Filter::eNearest;
+                mipmap_mode = vk::SamplerMipmapMode::eNearest;
+                break;
+
+            default:
+                mag_filter  = vk::Filter::eNearest;
+                min_filter  = vk::Filter::eNearest;
+                mipmap_mode = vk::SamplerMipmapMode::eNearest;
+        }
     }
 
     VulkanSampler& VulkanSampler::create(const VulkanSamplerCreateInfo& info)

@@ -7,11 +7,13 @@ namespace Engine
 {
 
 
-    class ENGINE_EXPORT Sampler : public Resource<SamplerCreateInfo, ApiBindingObject>
+    class ENGINE_EXPORT Sampler : public ApiBindingObject
     {
         declare_class(Sampler, ApiObject);
 
     public:
+        SamplerCreateInfo info;
+
         Sampler& create();
         bool archive_process(Archive* archive) override;
     };

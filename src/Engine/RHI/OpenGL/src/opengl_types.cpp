@@ -30,15 +30,8 @@ namespace Engine
                  {CompareFunc::Gequal, GL_GEQUAL}, {CompareFunc::Less, GL_LEQUAL}, {CompareFunc::Greater, GL_GREATER},
                  {CompareFunc::Equal, GL_EQUAL}, {CompareFunc::NotEqual, GL_NOTEQUAL}, {CompareFunc::Never, GL_NEVER});
 
-
     DECLARE_TYPE(CompareMode, compare_modes, 2, {CompareMode::None, GL_NONE},
                  {CompareMode::RefToTexture, GL_COMPARE_REF_TO_TEXTURE});
-
-    DECLARE_TYPE(TextureFilter, texture_filters, 2, {TextureFilter::Nearest, GL_NEAREST},
-                 {TextureFilter::Linear, GL_LINEAR});
-
-    DECLARE_TYPE(SamplerMipmapMode, sampler_modes, 2, {SamplerMipmapMode::Nearest, GL_NEAREST},
-                 {SamplerMipmapMode::Linear, GL_LINEAR});
 
     DECLARE_TYPE(SwizzleValue, swizzle_values, 7, {SwizzleValue::One, GL_ONE}, {SwizzleValue::Zero, GL_ZERO},
                  {SwizzleValue::Identity, 0}, {SwizzleValue::R, GL_RED}, {SwizzleValue::G, GL_GREEN},

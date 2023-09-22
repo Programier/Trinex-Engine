@@ -13,13 +13,8 @@ namespace Engine
 
     Sampler& Sampler::create()
     {
-        ResourceType* rs = resources();
-        if (rs == nullptr)
-        {
-            error_log("Sampler", "Cannot create sampler, because resources is not found!");
-        }
         destroy();
-        _M_rhi_sampler = engine_instance->api_interface()->create_sampler(*rs);
+        _M_rhi_sampler = engine_instance->api_interface()->create_sampler(info);
         return *this;
     }
 
@@ -30,11 +25,7 @@ namespace Engine
             return false;
         }
 
-        ResourceType* rs = resources(archive->is_reading());
-        if (rs == nullptr)
-            return false;
-
-        (*archive) & (*rs);
+        (*archive) & (info);
 
         if (archive->is_reading())
         {

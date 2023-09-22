@@ -179,7 +179,6 @@ namespace Engine
             if (sampler == nullptr)
             {
                 sampler = Object::new_instance_named<Sampler>("DefaultSampler", package);
-                sampler->resources(true);
             }
 
             FileReader* reader =

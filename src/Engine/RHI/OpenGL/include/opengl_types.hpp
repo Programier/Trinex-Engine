@@ -31,8 +31,6 @@ namespace Engine
     DECLARE_TYPE(TextureType, texture_types, 2);
     DECLARE_TYPE(CompareFunc, compare_funcs, 8);
     DECLARE_TYPE(CompareMode, compare_modes, 2);
-    DECLARE_TYPE(TextureFilter, texture_filters, 2);
-    DECLARE_TYPE(SamplerMipmapMode, sampler_modes, 2);
     DECLARE_TYPE(SwizzleValue, swizzle_values, 7);
     DECLARE_TYPE(WrapValue, wrap_values, 5);
     DECLARE_TYPE(TextureCubeMapFace, cube_faces, 6);

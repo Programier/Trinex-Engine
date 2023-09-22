@@ -151,20 +151,14 @@ namespace Engine
         RefToTexture
     };
 
-    enum class TextureFilter : uint_t
+    enum class SamplerFilter : EnumerateType
     {
-        Nearest = 0,
-        Linear  = 1,
+        Point     = 0,
+        Bilinear  = 1,
+        Trilinear = 2,
     };
 
-    enum class SamplerMipmapMode : uint_t
-    {
-        Nearest = 0,
-        Linear  = 1,
-    };
-
-
-    enum class SwizzleValue : uint_t
+    enum class SwizzleValue : EnumerateType
     {
         Identity = 0,
         Zero     = 1,
@@ -175,7 +169,7 @@ namespace Engine
         A        = 6
     };
 
-    enum class WrapValue : uint_t
+    enum class WrapValue : EnumerateType
     {
         Repeat            = 0,
         ClampToEdge       = 1,
@@ -183,7 +177,6 @@ namespace Engine
         MirroredRepeat    = 3,
         MirrorClampToEdge = 4,
     };
-
 
     enum class TextureCubeMapFace : byte
     {
@@ -194,7 +187,6 @@ namespace Engine
         Left  = 4,
         Right = 5
     };
-
 
     enum class IndexBufferComponent : EnumerateType
     {
@@ -315,7 +307,6 @@ namespace Engine
         Min             = 3,
         Max             = 4,
     };
-
 
     enum class Primitive : EnumerateType
     {

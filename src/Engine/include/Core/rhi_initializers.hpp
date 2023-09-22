@@ -209,26 +209,24 @@ namespace Engine
     };
 
     struct SamplerCreateInfo {
-        TextureFilter min_filter      = TextureFilter::Linear;
-        TextureFilter mag_filter      = TextureFilter::Linear;
-        SamplerMipmapMode mipmap_mode = SamplerMipmapMode::Linear;
-        WrapValue wrap_s              = WrapValue::Repeat;
-        WrapValue wrap_t              = WrapValue::Repeat;
-        WrapValue wrap_r              = WrapValue::Repeat;
-        float mip_lod_bias            = 0.0;
-        float anisotropy              = 1.0;
-        CompareMode compare_mode      = CompareMode::None;
-        float min_lod                 = -1000.0;
-        float max_lod                 = 1000.0;
-        CompareFunc compare_func      = CompareFunc::Always;
+        SamplerFilter filter;
+        WrapValue wrap_s         = WrapValue::Repeat;
+        WrapValue wrap_t         = WrapValue::Repeat;
+        WrapValue wrap_r         = WrapValue::Repeat;
+        float mip_lod_bias       = 0.0;
+        float anisotropy         = 1.0;
+        CompareMode compare_mode = CompareMode::None;
+        float min_lod            = -1000.0;
+        float max_lod            = 1000.0;
+        CompareFunc compare_func = CompareFunc::Always;
         bool unnormalized_coordinates;
     };
 
     struct TextureCreateInfo {
-        Size2D size                   = {1, 1};
-        MipMapLevel base_mip_level    = 0;
-        MipMapLevel mipmap_count      = 1;
-        ColorFormat format            = ColorFormat::R8G8B8A8Unorm;
+        Size2D size                = {1, 1};
+        MipMapLevel base_mip_level = 0;
+        MipMapLevel mipmap_count   = 1;
+        ColorFormat format         = ColorFormat::R8G8B8A8Unorm;
         SwizzleRGBA swizzle;
     };
 }// namespace Engine

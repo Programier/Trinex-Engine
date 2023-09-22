@@ -63,17 +63,6 @@ namespace Engine
             vk::SamplerAddressMode::eMirrorClampToEdge,// MirrorClampToEdge = 4
     };
 
-    const Array<vk::Filter, 2> _M_texture_filters = generate_array<vk::Filter, 2, TextureFilter>({
-            {TextureFilter::Nearest, vk::Filter::eNearest},
-            {TextureFilter::Linear, vk::Filter::eLinear},
-    });
-
-    const Array<vk::SamplerMipmapMode, 2> _M_sampler_mipmap_modes =
-            generate_array<vk::SamplerMipmapMode, 2, SamplerMipmapMode>({
-                    {SamplerMipmapMode::Nearest, vk::SamplerMipmapMode::eNearest},
-                    {SamplerMipmapMode::Linear, vk::SamplerMipmapMode::eLinear},
-            });
-
 
     const Array<vk::CompareOp, 8> _M_compare_funcs = generate_array<vk::CompareOp, 8, CompareFunc>({
             {CompareFunc::Always, vk::CompareOp::eAlways},

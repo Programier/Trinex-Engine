@@ -10,8 +10,6 @@ namespace Engine
     extern const vk::Format _M_shader_data_types[19];
     extern const Array<vk::ComponentSwizzle, 7> _M_swizzle_components;
     extern const Array<vk::SamplerAddressMode, 5> _M_wrap_values;
-    extern const Array<vk::Filter, 2> _M_texture_filters;
-    extern const Array<vk::SamplerMipmapMode, 2> _M_sampler_mipmap_modes;
     extern const Array<vk::CompareOp, 8> _M_compare_funcs;
     extern const Array<vk::StencilOp, 8> _M_stencil_ops;
     extern const Array<vk::BlendFactor, 14> _M_blend_factors;
@@ -48,7 +46,6 @@ namespace Engine
     DECLARE_GETTER(vk::FrontFace, FrontFace, _M_front_faces);
     DECLARE_GETTER(vk::ComponentSwizzle, SwizzleValue, _M_swizzle_components);
     DECLARE_GETTER(vk::SamplerAddressMode, WrapValue, _M_wrap_values);
-    DECLARE_GETTER(vk::Filter, TextureFilter, _M_texture_filters);
     DECLARE_GETTER(vk::CompareOp, CompareFunc, _M_compare_funcs);
     DECLARE_GETTER(vk::StencilOp, StencilOp, _M_stencil_ops);
     DECLARE_GETTER(vk::BlendFactor, BlendFunc, _M_blend_factors);
@@ -56,7 +53,6 @@ namespace Engine
     DECLARE_GETTER(vk::PrimitiveTopology, PrimitiveTopology, _M_primitive_topologies);
     DECLARE_GETTER(vk::PolygonMode, PolygonMode, _M_poligon_modes);
     DECLARE_GETTER(vk::CullModeFlagBits, CullMode, _M_cull_modes);
-    DECLARE_GETTER(vk::SamplerMipmapMode, SamplerMipmapMode, _M_sampler_mipmap_modes);
     DECLARE_GETTER(vk::ImageAspectFlags, ColorFormatAspect, _M_image_aspects);
 
 #undef DECLARE_GETTER
