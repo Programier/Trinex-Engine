@@ -239,6 +239,11 @@ namespace Engine
         return *this;
     }
 
+    OpenGL& OpenGL::draw(size_t vertex_count)
+    {
+        return *this;
+    }
+
     OpenGL& OpenGL::swap_buffer()
     {
         _M_window_interface->swap_buffers();

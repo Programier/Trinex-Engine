@@ -10,7 +10,6 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
-#include <vulkan_block_allocator.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_swap_chain.hpp>
@@ -52,7 +51,6 @@ namespace Engine
         vk::Queue _M_present_queue;
 
         vk::PhysicalDeviceProperties _M_properties;
-        BlockAllocator<struct VulkanUniformBufferBlock*, UNIFORM_BLOCK_SIZE> _M_uniform_allocator;
         vk::DescriptorPool _M_imgui_descriptor_pool;
 
         bool _M_need_update_image_index = true;
@@ -130,28 +128,8 @@ namespace Engine
         VulkanAPI& create_shader(Identifier&, const PipelineCreateInfo&) override;
         VulkanAPI& use_shader(const Identifier&) override;
 
-        VulkanAPI& create_vertex_buffer(Identifier&, const byte*, size_t) override;
-        VulkanAPI& update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        VulkanAPI& bind_vertex_buffer(const Identifier&, size_t offset) override;
-        MappedMemory map_vertex_buffer(const Identifier& ID) override;
-        VulkanAPI& unmap_vertex_buffer(const Identifier& ID) override;
-
-        VulkanAPI& create_index_buffer(Identifier&, const byte*, size_t, IndexBufferComponent) override;
-        VulkanAPI& update_index_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        VulkanAPI& bind_index_buffer(const Identifier&, size_t offset) override;
-        MappedMemory map_index_buffer(const Identifier& ID) override;
-        VulkanAPI& unmap_index_buffer(const Identifier& ID) override;
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
-
-        VulkanAPI& create_ssbo(Identifier&, const byte* data, size_t size) override;
-        VulkanAPI& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
-        VulkanAPI& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
-
-        VulkanAPI& create_uniform_buffer(Identifier&, const byte*, size_t) override;
-        VulkanAPI& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        VulkanAPI& bind_uniform_buffer(const Identifier&, BindingIndex binding) override;
-        MappedMemory map_uniform_buffer(const Identifier& ID) override;
-        VulkanAPI& unmap_uniform_buffer(const Identifier& ID) override;
+        VulkanAPI& draw(size_t vertex_count) override;
 
         Identifier imgui_texture_id(const Identifier&) override;
         bool check_format_support(ColorFormat format) override;
@@ -168,6 +146,10 @@ namespace Engine
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
+        RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
+        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
+        RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
+        RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
 
         ~VulkanAPI();
     };

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/engine_types.hpp>
-#include <Graphics/uniform_buffer.hpp>
 
 namespace Engine
 {

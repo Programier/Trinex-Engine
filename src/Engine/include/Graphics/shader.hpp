@@ -51,7 +51,7 @@ namespace Engine
         using Sampler         = Texture;
         using SamplerCombined = Texture;
 
-        Vector<ShaderUniformBuffer> uniform_buffers;
+        Vector<UniformBuffer> uniform_buffers;
         Vector<Sampler> samplers;
         Vector<Texture> textures;
         Vector<Texture> combined_samplers;
@@ -84,6 +84,7 @@ namespace Engine
         declare_class(FragmentShader, ShaderBase);
 
     public:
+        FragmentShader& rhi_create() override;
     };
 
 }// namespace Engine

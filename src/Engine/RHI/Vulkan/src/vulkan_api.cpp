@@ -6,16 +6,14 @@
 #include <imgui_impl_vulkan.h>
 #include <string>
 #include <vulkan_api.hpp>
+#include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_export.hpp>
-#include <vulkan_mesh.hpp>
 #include <vulkan_object.hpp>
 #include <vulkan_shader.hpp>
-#include <vulkan_ssbo.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
-#include <vulkan_uniform_buffer.hpp>
 
 namespace Engine
 {
@@ -41,13 +39,6 @@ namespace Engine
         return VulkanAPI::_M_vulkan;
     }
 
-    static VulkanUniformBufferBlock* uniform_buffer_allocator(std::size_t size)
-    {
-        VulkanUniformBufferBlock* ubo = new VulkanUniformBufferBlock();
-        ubo->create(nullptr, size);
-        return ubo;
-    }
-
     static vk::PresentModeKHR present_mode_of(bool vsync)
     {
         return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
@@ -55,7 +46,7 @@ namespace Engine
 
     VulkanAPI::VulkanAPI()
     {
-        _M_uniform_allocator.allocator(uniform_buffer_allocator);
+
         _M_swap_chain_mode = present_mode_of(false);
         _M_state           = new VulkanState();
         _M_state->reset();
@@ -71,7 +62,6 @@ namespace Engine
     {
         _M_device.waitIdle();
 
-        _M_uniform_allocator.destroy();
 
         delete _M_command_buffer;
         _M_command_buffer = nullptr;
@@ -618,85 +608,18 @@ namespace Engine
         return *this;
     }
 
-
-    VulkanAPI& VulkanAPI::create_vertex_buffer(Identifier& ID, const byte* data, size_t size)
-    {
-        ID = (new VulkanVertexBuffer())->create(data, size).ID();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_vertex_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanVertexBuffer, ID)->update(offset, data, size);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_vertex_buffer(const Identifier& ID, size_t offset)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanVertexBuffer, ID)->bind(offset);
-        }
-        return *this;
-    }
-
-    MappedMemory VulkanAPI::map_vertex_buffer(const Identifier& ID)
-    {
-        return GET_TYPE(VulkanVertexBuffer, ID)->map_memory();
-    }
-
-    VulkanAPI& VulkanAPI::unmap_vertex_buffer(const Identifier& ID)
-    {
-        GET_TYPE(VulkanVertexBuffer, ID)->unmap_memory();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::create_index_buffer(Identifier& ID, const byte* data, size_t size,
-                                              IndexBufferComponent component)
-    {
-        ID = (new VulkanIndexBuffer())->create(data, size, component).ID();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_index_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanIndexBuffer, ID)->update(offset, data, size);
-        }
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_index_buffer(const Identifier& ID, size_t offset)
-    {
-        // if (ID)
-        {
-            GET_TYPE(VulkanIndexBuffer, ID)->bind(offset);
-        }
-        return *this;
-    }
-
-    MappedMemory VulkanAPI::map_index_buffer(const Identifier& ID)
-    {
-        return GET_TYPE(VulkanIndexBuffer, ID)->map_memory();
-    }
-
-    VulkanAPI& VulkanAPI::unmap_index_buffer(const Identifier& ID)
-    {
-        GET_TYPE(VulkanIndexBuffer, ID)->unmap_memory();
-        return *this;
-    }
-
-
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
-        ++_M_state->_M_shader->_M_current_descriptor_index;
-        ++count_draw_calls;
+        //++_M_state->_M_shader->_M_current_descriptor_index;
+        //++count_draw_calls;
 
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::draw(size_t vertex_count)
+    {
+        _M_command_buffer->get().draw(vertex_count, 1, 0, 0);
         return *this;
     }
 
@@ -717,54 +640,6 @@ namespace Engine
 
         return _M_main_framebuffer;
     }
-
-    VulkanAPI& VulkanAPI::create_ssbo(Identifier& ID, const byte* data, size_t size)
-    {
-        ID = (new VulkanSSBO())->create(data, size).ID();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_ssbo(const Identifier& ID, const byte* data, size_t offset, size_t size)
-    {
-        GET_TYPE(VulkanSSBO, ID)->update(offset, data, size);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_ssbo(const Identifier& ID, BindingIndex index, size_t offset, size_t size)
-    {
-        _M_state->_M_shader->bind_shared_buffer(GET_TYPE(VulkanSSBO, ID), offset, size, index);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::create_uniform_buffer(Identifier& ID, const byte* data, size_t size)
-    {
-        ID = (new VulkanUniformBufferMap(data, size))->ID();
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
-    {
-        GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer()->update(offset, data, size);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::bind_uniform_buffer(const Identifier& ID, BindingIndex index)
-    {
-        _M_state->_M_shader->bind_ubo(GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer(), index);
-        return *this;
-    }
-
-    MappedMemory VulkanAPI::map_uniform_buffer(const Identifier& ID)
-    {
-        return GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer()->map_memory();
-    }
-
-    VulkanAPI& VulkanAPI::unmap_uniform_buffer(const Identifier& ID)
-    {
-        GET_TYPE(VulkanUniformBufferMap, ID)->current_buffer()->unmap_memory();
-        return *this;
-    }
-
 
     bool VulkanAPI::check_format_support(ColorFormat format)
     {

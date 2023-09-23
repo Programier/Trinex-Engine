@@ -53,6 +53,29 @@ namespace Engine
     };
 
     struct RHI_Pipeline : RHI_Object {
+        virtual void bind() = 0;
+    };
+
+    struct RHI_Buffer : RHI_Object {
+        virtual MappedMemory map_buffer()                                 = 0;
+        virtual void unmap_buffer()                                       = 0;
+        virtual void update(size_t offset, size_t size, const byte* data) = 0;
+    };
+
+    struct RHI_VertexBuffer : RHI_Buffer {
+        virtual void bind(byte stream_index, size_t offset) = 0;
+    };
+
+    struct RHI_IndexBuffer : RHI_Buffer {
+        virtual void bind(size_t offset) = 0;
+    };
+
+    struct RHI_UniformBuffer : RHI_Buffer {
+        virtual void bind(BindingIndex binding, BindingIndex set) = 0;
+    };
+
+    struct RHI_SSBO : RHI_Buffer {
+        virtual void bind(BindingIndex binding, BindingIndex set) = 0;
     };
 
 
@@ -68,32 +91,11 @@ namespace Engine
         ///////////////// TEXTURE PART /////////////////
         virtual Identifier imgui_texture_id(const Identifier&) VIRTUAL_METHOD;
 
-        virtual RHI& create_vertex_buffer(Identifier&, const byte*, size_t) VIRTUAL_METHOD;
-        virtual RHI& update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
-        virtual RHI& bind_vertex_buffer(const Identifier&, size_t offset) VIRTUAL_METHOD;
-        virtual MappedMemory map_vertex_buffer(const Identifier& ID) VIRTUAL_METHOD;
-        virtual RHI& unmap_vertex_buffer(const Identifier& ID) VIRTUAL_METHOD;
-
-        virtual RHI& create_index_buffer(Identifier&, const byte*, size_t, IndexBufferComponent) VIRTUAL_METHOD;
-        virtual RHI& update_index_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
-        virtual RHI& bind_index_buffer(const Identifier&, size_t offset) VIRTUAL_METHOD;
-        virtual MappedMemory map_index_buffer(const Identifier& ID) VIRTUAL_METHOD;
-        virtual RHI& unmap_index_buffer(const Identifier& ID) VIRTUAL_METHOD;
-
-        virtual RHI& create_uniform_buffer(Identifier&, const byte*, size_t) VIRTUAL_METHOD;
-        virtual RHI& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) VIRTUAL_METHOD;
-        virtual RHI& bind_uniform_buffer(const Identifier&, BindingIndex binding) VIRTUAL_METHOD;
-        virtual MappedMemory map_uniform_buffer(const Identifier& ID) VIRTUAL_METHOD;
-        virtual RHI& unmap_uniform_buffer(const Identifier& ID) VIRTUAL_METHOD;
-
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) VIRTUAL_METHOD;
+        virtual RHI& draw(size_t vertex_count) VIRTUAL_METHOD;
 
         virtual RHI& create_shader(Identifier&, const PipelineCreateInfo&) VIRTUAL_METHOD;
         virtual RHI& use_shader(const Identifier&) VIRTUAL_METHOD;
-
-        virtual RHI& create_ssbo(Identifier&, const byte* data, size_t size) VIRTUAL_METHOD;
-        virtual RHI& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) VIRTUAL_METHOD;
-        virtual RHI& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) VIRTUAL_METHOD;
 
         virtual RHI& swap_buffer() VIRTUAL_METHOD;
         virtual RHI& vsync(bool) VIRTUAL_METHOD;
@@ -112,11 +114,19 @@ namespace Engine
 
         virtual RHI_Sampler* create_sampler(const SamplerCreateInfo&)                                     = 0;
         virtual RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) = 0;
-        virtual RHI_FrameBuffer* window_framebuffer()                                                     = 0;
-        virtual RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info)                    = 0;
-        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                              = 0;
-        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                          = 0;
-        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                   = 0;
+
+        virtual RHI_FrameBuffer* window_framebuffer()                                  = 0;
+        virtual RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) = 0;
+
+        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)     = 0;
+        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader) = 0;
+        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)          = 0;
+
+        virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data)                = 0;
+        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) = 0;
+        virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data)              = 0;
+        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                 = 0;
+
 
         virtual ~RHI(){};
     };

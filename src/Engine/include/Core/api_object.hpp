@@ -11,6 +11,11 @@ namespace Engine
     struct RHI_Texture;
     struct RHI_Shader;
     struct RHI_Pipeline;
+    struct RHI_Buffer;
+    struct RHI_VertexBuffer;
+    struct RHI_IndexBuffer;
+    struct RHI_UniformBuffer;
+    struct RHI_SSBO;
 
     class ENGINE_EXPORT ApiObjectNoBase
     {
@@ -26,6 +31,11 @@ namespace Engine
             RHI_Texture* _M_rhi_texture;
             RHI_Shader* _M_rhi_shader;
             RHI_Pipeline* _M_rhi_pipeline;
+            RHI_Buffer* _M_rhi_buffer;
+            RHI_VertexBuffer* _M_rhi_vertex_buffer;
+            RHI_IndexBuffer* _M_rhi_index_buffer;
+            RHI_UniformBuffer* _M_rhi_uniform_buffer;
+            RHI_SSBO* _M_rhi_ssbo;
         };
 
 
@@ -44,7 +54,7 @@ namespace Engine
 
 
         template<typename T>
-        T* get_rhi_object()
+        T* get_rhi_object() const
         {
             return reinterpret_cast<T*>(_M_rhi_object);
         }

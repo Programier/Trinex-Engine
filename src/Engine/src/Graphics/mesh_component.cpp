@@ -134,7 +134,7 @@ namespace Engine
         {
             for (auto& lod : lods)
             {
-                lod._M_material_applier = lod.material_reference.instance()->create_material_applier(this);
+                //lod._M_material_applier = lod.material_reference.instance()->create_material_applier(this);
             }
         }
     }
@@ -206,7 +206,6 @@ namespace Engine
     implement_default_initialize_class(StaticMeshComponent);
     implement_class(DynamicMeshComponent, "Engine");
     implement_default_initialize_class(DynamicMeshComponent);
-
 
 
 }// namespace Engine

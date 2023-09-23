@@ -1,7 +1,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -10,6 +10,46 @@
 
 namespace Engine
 {
+
+    implement_class(PipelineBufferNoResource, "Engine");
+    implement_class(PipelineBuffer, "Engine");
+    implement_class(IndexBuffer, "Engine");
+    implement_class(VertexBuffer, "Engine");
+    implement_class(UniformStruct, "Engine");
+    implement_default_initialize_class(PipelineBufferNoResource);
+    implement_default_initialize_class(PipelineBuffer);
+    implement_default_initialize_class(IndexBuffer);
+    implement_default_initialize_class(VertexBuffer);
+    implement_default_initialize_class(UniformStruct);
+
+
+    MappedMemory PipelineBufferNoResource::map_buffer()
+    {
+        if (_M_rhi_buffer)
+        {
+            return _M_rhi_buffer->map_buffer();
+        }
+
+        return {};
+    }
+
+    PipelineBufferNoResource& PipelineBufferNoResource::unmap_buffer()
+    {
+        if (_M_rhi_buffer)
+        {
+            _M_rhi_buffer->unmap_buffer();
+        }
+        return *this;
+    }
+
+    PipelineBufferNoResource& PipelineBufferNoResource::update(size_t offset, size_t size, const byte* data)
+    {
+        if (_M_rhi_buffer)
+        {
+            _M_rhi_buffer->update(offset, size, data);
+        }
+        return *this;
+    }
 
     bool PipelineBuffer::archive_process(Archive* archive)
     {
@@ -43,7 +83,7 @@ namespace Engine
     }
 
 
-    VertexBuffer& VertexBuffer::create()
+    VertexBuffer& VertexBuffer::rhi_create()
     {
         if (_M_resources == nullptr)
         {
@@ -51,42 +91,24 @@ namespace Engine
             return *this;
         }
 
+        Super::rhi_create();
+
+        Buffer* buffer = resources();
+
         destroy();
-        EngineInstance::instance()->api_interface()->create_vertex_buffer(_M_ID, _M_resources->data(),
-                                                                          _M_resources->size());
+        _M_rhi_vertex_buffer = engine_instance->api_interface()->create_vertex_buffer(buffer->size(), buffer->data());
         return *this;
     }
 
-    VertexBuffer& VertexBuffer::update(size_t offset, const byte* data, size_t size)
+    VertexBuffer& VertexBuffer::bind(byte stream_index, size_t offset)
     {
-        EngineInstance::instance()->api_interface()->update_vertex_buffer(_M_ID, offset, data, size);
-        return *this;
-    }
-
-    VertexBuffer& VertexBuffer::bind(size_t offset)
-    {
-        EngineInstance::instance()->api_interface()->bind_vertex_buffer(_M_ID, offset);
-        return *this;
-    }
-
-    MappedMemory VertexBuffer::map_memory()
-    {
-        if (_M_ID)
+        if (_M_rhi_vertex_buffer)
         {
-            return EngineInstance::instance()->api_interface()->map_vertex_buffer(_M_ID);
-        }
-
-        return MappedMemory(nullptr, 0);
-    }
-
-    VertexBuffer& VertexBuffer::unmap_memory()
-    {
-        if (_M_ID)
-        {
-            EngineInstance::instance()->api_interface()->unmap_vertex_buffer(_M_ID);
+            _M_rhi_vertex_buffer->bind(stream_index, offset);
         }
         return *this;
     }
+
 
     bool VertexBuffer::archive_process(Archive* archive)
     {
@@ -97,9 +119,8 @@ namespace Engine
 
         if (archive->is_reading())
         {
-            destroy();
             if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
-                create();
+                rhi_create();
 
             if (engine_config.delete_resources_after_load)
             {
@@ -113,7 +134,7 @@ namespace Engine
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
 
-    IndexBuffer& IndexBuffer::create()
+    IndexBuffer& IndexBuffer::rhi_create()
     {
         if (_M_resources == nullptr)
         {
@@ -121,21 +142,18 @@ namespace Engine
             return *this;
         }
 
-        destroy();
-        EngineInstance::instance()->api_interface()->create_index_buffer(_M_ID, _M_resources->data(),
-                                                                         _M_resources->size(), _M_component);
-        return *this;
-    }
-
-    IndexBuffer& IndexBuffer::update(size_t offset, const byte* data, size_t size)
-    {
-        EngineInstance::instance()->api_interface()->update_index_buffer(_M_ID, offset, data, size);
+        Super::rhi_create();
+        _M_rhi_index_buffer = EngineInstance::instance()->api_interface()->create_index_buffer(
+                _M_resources->size(), _M_resources->data(), _M_component);
         return *this;
     }
 
     IndexBuffer& IndexBuffer::bind(size_t offset)
     {
-        EngineInstance::instance()->api_interface()->bind_index_buffer(_M_ID, offset);
+        if (_M_rhi_index_buffer)
+        {
+            _M_rhi_index_buffer->bind(offset);
+        }
         return *this;
     }
 
@@ -147,20 +165,6 @@ namespace Engine
     IndexBuffer& IndexBuffer::component(IndexBufferComponent component)
     {
         _M_component = component;
-        return *this;
-    }
-
-    MappedMemory IndexBuffer::map_memory()
-    {
-        if (_M_ID == 0)
-            return MappedMemory(nullptr, 0);
-        return EngineInstance::instance()->api_interface()->map_index_buffer(_M_ID);
-    }
-
-    IndexBuffer& IndexBuffer::unmap_memory()
-    {
-        if (_M_ID != 0)
-            EngineInstance::instance()->api_interface()->unmap_index_buffer(_M_ID);
         return *this;
     }
 
@@ -181,7 +185,7 @@ namespace Engine
         {
             destroy();
             if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
-                create();
+                rhi_create();
 
             if (engine_config.delete_resources_after_load)
             {
@@ -216,5 +220,82 @@ namespace Engine
     size_t IndexBuffer::elements_count() const
     {
         return PipelineBuffer::size() / component_size();
+    }
+
+
+    UniformStructInstance::UniformStructInstance(DynamicStructBase* struct_instance, Index index)
+        : DynamicStructInstanceProxy(struct_instance, index)
+    {
+        rhi_create();
+    }
+
+    UniformStructInstance& UniformStructInstance::rhi_create()
+    {
+        Super::rhi_create();
+        _M_rhi_uniform_buffer =
+                EngineInstance::instance()->api_interface()->create_uniform_buffer(this->size(), nullptr);
+        return *this;
+    }
+
+    byte* UniformStructInstance::data()
+    {
+        if (_M_rhi_uniform_buffer)
+        {
+            return _M_rhi_uniform_buffer->map_buffer().data();
+        }
+        return nullptr;
+    }
+
+    const byte* UniformStructInstance::data() const
+    {
+        if (_M_rhi_uniform_buffer)
+        {
+            return _M_rhi_uniform_buffer->map_buffer().data();
+        }
+        return nullptr;
+    }
+
+    UniformStructInstance& UniformStructInstance::bind(BindingIndex index, BindingIndex set)
+    {
+        if (_M_rhi_uniform_buffer)
+        {
+            _M_rhi_uniform_buffer->bind(index, set);
+        }
+        return *this;
+    }
+
+
+    SSBO& SSBO::rhi_create()
+    {
+        Super::rhi_create();
+
+        _M_rhi_ssbo = engine_instance->api_interface()->create_ssbo(init_size, init_data);
+        return *this;
+    }
+
+    SSBO& SSBO::bind(BindingIndex binding, BindingIndex set)
+    {
+        if (_M_rhi_ssbo)
+        {
+            _M_rhi_ssbo->bind(binding, set);
+        }
+
+        return *this;
+    }
+
+    bool SSBO::archive_process(Archive* archive)
+    {
+        if (!Super::archive_process(archive))
+        {
+            return false;
+        }
+
+        if (archive->is_reading())
+        {
+            if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
+                rhi_create();
+        }
+
+        return static_cast<bool>(archive);
     }
 }// namespace Engine

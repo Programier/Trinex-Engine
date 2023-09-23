@@ -5,10 +5,9 @@ namespace Engine
 {
 
     struct VulkanState {
-        struct VulkanFramebuffer* _M_framebuffer    = nullptr;
-        struct VulkanShader* _M_shader              = nullptr;
-        struct VulkanVertexBuffer* _M_vertex_buffer = nullptr;
-        struct VulkanIndexBuffer* _M_index_buffer   = nullptr;
+        struct VulkanFramebuffer* _M_framebuffer = nullptr;
+        struct VulkanShader* _M_shader           = nullptr;
+        struct VulkanPipeline* _M_pipeline       = nullptr;
 
         inline void reset()
         {

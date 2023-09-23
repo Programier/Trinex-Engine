@@ -7,11 +7,9 @@
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
-#include <vulkan_ssbo.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
-#include <vulkan_uniform_buffer.hpp>
 
 #define SHADER_DATA info.binaries
 
@@ -307,19 +305,19 @@ namespace Engine
 
     VulkanShader& VulkanShader::bind_ubo(VulkanUniformBuffer* ubo, BindingIndex binding)
     {
-        if (_M_descriptor_set_layout)
-        {
-            VulkanDescriptorSet* current_set = current_descriptor_set();
+        //        if (_M_descriptor_set_layout)
+        //        {
+        //            VulkanDescriptorSet* current_set = current_descriptor_set();
 
-            if (current_set->_M_current_ubo[binding] != ubo)
-            {
-                vk::DescriptorBufferInfo buffer_info(ubo->_M_buffer, 0, ubo->_M_size);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
-                                                        vk::DescriptorType::eUniformBuffer, {}, buffer_info);
-                API->_M_device.updateDescriptorSets(write_descriptor, {});
-                current_set->_M_current_ubo[binding] = ubo;
-            }
-        }
+        //            if (current_set->_M_current_ubo[binding] != ubo)
+        //            {
+        //                vk::DescriptorBufferInfo buffer_info(ubo->_M_buffer, 0, ubo->_M_size);
+        //                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
+        //                                                        vk::DescriptorType::eUniformBuffer, {}, buffer_info);
+        //                API->_M_device.updateDescriptorSets(write_descriptor, {});
+        //                current_set->_M_current_ubo[binding] = ubo;
+        //            }
+        //        }
 
         return *this;
     }
@@ -448,15 +446,15 @@ namespace Engine
 
     VulkanShader& VulkanShader::bind_shared_buffer(VulkanSSBO* ssbo, size_t offset, size_t size, uint_t binding)
     {
-        if (_M_pipeline_layout && offset < ssbo->_M_size)
-        {
-            size                             = glm::min(size, ssbo->_M_size - offset);
-            VulkanDescriptorSet* current_set = current_descriptor_set();
-            vk::DescriptorBufferInfo buffer_info(ssbo->_M_buffer, offset, size);
-            vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0, vk::DescriptorType::eStorageBuffer,
-                                                    {}, buffer_info);
-            API->_M_device.updateDescriptorSets(write_descriptor, {});
-        }
+        //        if (_M_pipeline_layout && offset < ssbo->_M_size)
+        //        {
+        //            size                             = glm::min(size, ssbo->_M_size - offset);
+        //            VulkanDescriptorSet* current_set = current_descriptor_set();
+        //            vk::DescriptorBufferInfo buffer_info(ssbo->_M_buffer, offset, size);
+        //            vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0, vk::DescriptorType::eStorageBuffer,
+        //                                                    {}, buffer_info);
+        //            API->_M_device.updateDescriptorSets(write_descriptor, {});
+        //        }
         return *this;
     }
 
@@ -524,7 +522,7 @@ namespace Engine
             }
 
             {
-                _M_binding_description.emplace_back();
+                _M_attribute_description.emplace_back();
                 vk::VertexInputAttributeDescription& description = _M_attribute_description.back();
                 description.binding                              = static_cast<decltype(description.binding)>(index);
                 description.location                             = static_cast<decltype(description.location)>(index);
@@ -552,6 +550,24 @@ namespace Engine
         destroy();
     }
 
+    VulkanFragmentShader& VulkanFragmentShader::create(const FragmentShader* shader)
+    {
+        destroy();
+        VulkanShaderBase::create(shader);
+        return *this;
+    }
+
+    VulkanFragmentShader& VulkanFragmentShader::destroy()
+    {
+        VulkanShaderBase::destroy();
+        return *this;
+    }
+
+    VulkanFragmentShader::~VulkanFragmentShader()
+    {
+        destroy();
+    }
+
     RHI_Shader* VulkanAPI::create_vertex_shader(const VertexShader* shader)
     {
         return &(new VulkanVertexShader())->create(shader);
@@ -559,6 +575,6 @@ namespace Engine
 
     RHI_Shader* VulkanAPI::create_fragment_shader(const FragmentShader* shader)
     {
-        return nullptr;
+        return &(new VulkanFragmentShader())->create(shader);
     }
 }// namespace Engine

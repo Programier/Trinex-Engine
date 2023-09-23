@@ -59,6 +59,7 @@ namespace Engine
         OpenGL& unmap_uniform_buffer(const Identifier& ID) override;
 
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
+        OpenGL& draw(size_t vertex_count) override;
 
         OpenGL& create_shader(Identifier&, const PipelineCreateInfo&) override;
         OpenGL& use_shader(const Identifier&) override;

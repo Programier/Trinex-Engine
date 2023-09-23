@@ -1,7 +1,7 @@
 
 # Compile OpenGL library
 if(TRINEX_WITH_OPENGL)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/OpenGL")
+    #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/OpenGL")
 endif()
 
 # Compile Vulkan library (Windows OS currently not supported)

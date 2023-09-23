@@ -75,4 +75,11 @@ namespace Engine
 
         ~VulkanVertexShader();
     };
+
+    struct VulkanFragmentShader : public VulkanShaderBase {
+        VulkanFragmentShader& create(const FragmentShader* shader);
+        VulkanFragmentShader& destroy();
+
+        ~VulkanFragmentShader();
+    };
 }// namespace Engine

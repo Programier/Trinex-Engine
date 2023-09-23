@@ -15,32 +15,12 @@ namespace Engine
 
         ///////////////// TEXTURE PART /////////////////
         Identifier imgui_texture_id(const Identifier&) override;
-        NoApi& create_vertex_buffer(Identifier&, const byte*, size_t) override;
-        NoApi& update_vertex_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        NoApi& bind_vertex_buffer(const Identifier&, size_t offset) override;
-        MappedMemory map_vertex_buffer(const Identifier& ID) override;
-        NoApi& unmap_vertex_buffer(const Identifier& ID) override;
-
-        NoApi& create_index_buffer(Identifier&, const byte*, size_t, IndexBufferComponent) override;
-        NoApi& update_index_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        NoApi& bind_index_buffer(const Identifier&, size_t offset) override;
-        MappedMemory map_index_buffer(const Identifier& ID) override;
-        NoApi& unmap_index_buffer(const Identifier& ID) override;
-
-        NoApi& create_uniform_buffer(Identifier&, const byte*, size_t) override;
-        NoApi& update_uniform_buffer(const Identifier&, size_t offset, const byte*, size_t) override;
-        NoApi& bind_uniform_buffer(const Identifier&, BindingIndex binding) override;
-        MappedMemory map_uniform_buffer(const Identifier& ID) override;
-        NoApi& unmap_uniform_buffer(const Identifier& ID) override;
 
         NoApi& draw_indexed(size_t indices_count, size_t indices_offset) override;
+        NoApi& draw(size_t vertex_count) override;
 
         NoApi& create_shader(Identifier&, const PipelineCreateInfo&) override;
         NoApi& use_shader(const Identifier&) override;
-
-        NoApi& create_ssbo(Identifier&, const byte* data, size_t size) override;
-        NoApi& bind_ssbo(const Identifier&, BindingIndex index, size_t offset, size_t size) override;
-        NoApi& update_ssbo(const Identifier&, const byte*, size_t offset, size_t size) override;
 
         NoApi& swap_buffer() override;
         NoApi& vsync(bool) override;
@@ -64,7 +44,10 @@ namespace Engine
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
-
+        RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
+        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
+        RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
+        RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
 
         template<typename Type>
         operator Type()
