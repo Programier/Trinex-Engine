@@ -173,9 +173,6 @@ namespace Engine
             info_log("HelloTriangle", "Start");
             engine_instance->create_window();
 
-            Name name    = "Hello World";
-            String name2 = name;
-
             EventSystem::init_all();
             System::new_system<HelloTriangleSystem>();
 
