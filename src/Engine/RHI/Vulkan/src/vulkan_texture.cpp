@@ -1,4 +1,5 @@
 #include <vulkan_api.hpp>
+#include <vulkan_pipeline.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
@@ -265,6 +266,14 @@ namespace Engine
             transition.execute(vk::PipelineStageFlagBits::eTopOfPipe, vk::AccessFlagBits::eNone,
                                vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
         }
+
+        if (data)
+        {
+            if (type == TextureType::Texture2D)
+            {
+                update_texture_2D(info.size, {0, 0}, 0, data);
+            }
+        }
         return *this;
     }
 
@@ -325,13 +334,19 @@ namespace Engine
 
 
     void VulkanTexture::bind(BindingIndex binding, BindingIndex set)
-    {}
+    {
+        if (API->_M_state->_M_pipeline)
+        {
+            API->_M_state->_M_pipeline->bind_texture(this, binding, set);
+        }
+    }
 
     void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
     {
-        if (API->_M_state->_M_shader)
+        if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_shader->bind_texture_combined(reinterpret_cast<VulkanSampler*>(sampler), this, binding);
+            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this, binding,
+                                                              set);
         }
     }
 

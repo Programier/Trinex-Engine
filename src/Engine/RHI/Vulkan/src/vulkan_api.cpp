@@ -9,7 +9,8 @@
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
 #include <vulkan_export.hpp>
-#include <vulkan_object.hpp>
+#include <vulkan_pipeline.hpp>
+#include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
@@ -66,6 +67,7 @@ namespace Engine
         delete _M_command_buffer;
         _M_command_buffer = nullptr;
         destroy_framebuffers();
+        delete _M_main_render_pass;
         delete _M_swap_chain;
 
         _M_device.destroyCommandPool(_M_command_pool);
@@ -113,7 +115,7 @@ namespace Engine
         init_info.MinImageCount = _M_swap_chain->_M_bootstrap_swapchain.requested_min_image_count;
         init_info.ImageCount    = _M_swap_chain->_M_bootstrap_swapchain.image_count;
 
-        ImGui_ImplVulkan_Init(&init_info, _M_main_framebuffer->_M_render_pass);
+        ImGui_ImplVulkan_Init(&init_info, _M_main_render_pass->_M_render_pass);
 
         auto command_buffer = begin_single_time_command_buffer();
         ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
@@ -161,6 +163,7 @@ namespace Engine
                 &VulkanAPI::init,
                 &VulkanAPI::create_command_buffer,
                 &VulkanAPI::create_swap_chain,
+                &VulkanAPI::create_render_pass,
                 &VulkanAPI::create_framebuffers,
         };
 
@@ -313,24 +316,6 @@ namespace Engine
         _M_swap_chain = new SwapChain();
     }
 
-    VulkanFramebuffer* VulkanAPI::init_base_framebuffer_renderpass(VulkanFramebuffer* framebuffer)
-    {
-        framebuffer->_M_attachment_descriptions.resize(1);
-        vk::Format color_format = _M_swap_chain->_M_format;
-
-        framebuffer->_M_attachment_descriptions[0] = vk::AttachmentDescription(
-                vk::AttachmentDescriptionFlags(), color_format, vk::SampleCountFlagBits::e1,
-                vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
-                vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR);
-
-
-        framebuffer->_M_color_attachment_references = {
-                vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),
-        };
-
-        return framebuffer;
-    }
-
     vk::Format VulkanAPI::find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
                                                 vk::FormatFeatureFlags features)
     {
@@ -408,30 +393,13 @@ namespace Engine
         return *this;
     }
 
-
     void VulkanAPI::create_framebuffers()
     {
         if (!_M_main_framebuffer)
             _M_main_framebuffer = new VulkanMainFrameBuffer();
 
-        _M_main_framebuffer->_M_buffers.clear();
-        _M_main_framebuffer->_M_buffers.resize(_M_swap_chain->_M_images.size());
-
-
-        init_base_framebuffer_renderpass(_M_main_framebuffer);
-        _M_main_framebuffer->_M_is_custom   = false;
-        _M_main_framebuffer->_M_size.height = _M_swap_chain->_M_extent.height;
-        _M_main_framebuffer->_M_size.width  = _M_swap_chain->_M_extent.width;
-
-        size_t index = 0;
-        for (auto const& image_view : _M_swap_chain->_M_image_views)
-        {
-            _M_main_framebuffer->_M_buffers[index]._M_attachments.resize(1);
-            _M_main_framebuffer->_M_buffers[index]._M_attachments[0] = image_view;
-            index++;
-        }
-
-        _M_main_framebuffer->create_framebuffer();
+        _M_main_framebuffer->resize_count(_M_swap_chain->_M_images.size());
+        _M_main_framebuffer->init();
     }
 
     void VulkanAPI::create_command_buffer()
@@ -449,8 +417,7 @@ namespace Engine
         _M_need_recreate_swap_chain = true;
 
         auto size = _M_window->size();
-        framebuffer(0)->size(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y));
-
+        API->_M_main_framebuffer->size(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y));
         return *this;
     }
 
@@ -573,53 +540,17 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::destroy_object(Identifier& ID)
-    {
-        // if (ID)
-        {
-            delete OBJECT_OF(ID);
-        }
-
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::create_shader(Identifier& ID, const PipelineCreateInfo& params)
-    {
-        destroy_object(ID);
-
-        VulkanShader* shader = new VulkanShader();
-
-        if (shader->init(params))
-        {
-            ID = shader->ID();
-        }
-        else
-        {
-            delete shader;
-            ID = 0;
-        }
-
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::use_shader(const Identifier& ID)
-    {
-        GET_TYPE(VulkanShader, ID)->use();
-        return *this;
-    }
-
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
-        //++_M_state->_M_shader->_M_current_descriptor_index;
-        //++count_draw_calls;
-
+        _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
         _M_command_buffer->get().draw(vertex_count, 1, 0, 0);
+        _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
 
@@ -631,14 +562,6 @@ namespace Engine
     Identifier VulkanAPI::imgui_texture_id(const Identifier&)
     {
         throw std::runtime_error(not_implemented);
-    }
-
-    VulkanFramebuffer* VulkanAPI::framebuffer(Identifier ID)
-    {
-        if (ID)
-            return GET_TYPE(VulkanFramebuffer, ID);
-
-        return _M_main_framebuffer;
     }
 
     bool VulkanAPI::check_format_support(ColorFormat format)

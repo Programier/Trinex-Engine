@@ -34,7 +34,7 @@ namespace Engine
                 if (object == nullptr)
                     return false;
 
-                name            = object->name();
+                name            = object->string_name();
                 class_name      = object->class_instance()->name();
                 compressed_size = compressed_data.size();
             }
@@ -76,7 +76,7 @@ namespace Engine
         {
             if (object == nullptr)
                 return 0;
-            return (sizeof(size_t) * 3) + object->name().length() + sizeof(offset) + sizeof(object_size) +
+            return (sizeof(size_t) * 3) + object->string_name().length() + sizeof(offset) + sizeof(object_size) +
                    object->class_instance()->name().length();
         }
     };
@@ -98,6 +98,12 @@ namespace Engine
         if (!object)
             return false;
 
+        if (!object->_M_name.is_valid())
+        {
+            error_log("Package", "Cannot add no name object to package!");
+            return false;
+        }
+
         for (const auto& pair : _M_filters.callbacks())
         {
             if (!pair.second(object))
@@ -113,10 +119,10 @@ namespace Engine
             return false;
         }
 
-        if (!autorename && contains_object(object->name()))
+        if (!autorename && contains_object(object->_M_name))
         {
             error_log("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
-                      object->name().c_str());
+                      object->string_name().c_str());
             return false;
         }
 
@@ -125,9 +131,9 @@ namespace Engine
             object->_M_package->remove_object(object);
         }
 
-        while (contains_object(object->name()))
+        while (contains_object(object->_M_name))
         {
-            object->name(object->name() + "_new");
+            object->name(object->string_name() + "_new");
         }
 
         object->_M_package          = this;
@@ -180,7 +186,7 @@ namespace Engine
             return nullptr;
         }
 
-        return _M_objects[index]->name() == name ? _M_objects[index] : nullptr;
+        return _M_objects[index]->_M_name == name ? _M_objects[index] : nullptr;
     }
 
 
@@ -259,7 +265,7 @@ namespace Engine
 
                 if (!entry.object->archive_process(&ar))
                 {
-                    error_log("Package", "Failed to compress object '%s'", entry.object->name().c_str());
+                    error_log("Package", "Failed to compress object '%s'", entry.object->string_name().c_str());
                     continue;
                 }
 
@@ -330,7 +336,7 @@ namespace Engine
             if (!writer->write(reinterpret_cast<const byte*>(entry.compressed_data.data()),
                                entry.compressed_data.size()))
             {
-                error_log("Package", "Failed to write object '%s' to file!", entry.object->name().c_str());
+                error_log("Package", "Failed to write object '%s' to file!", entry.object->string_name().c_str());
                 return status(false);
             }
         }
@@ -538,7 +544,7 @@ namespace Engine
 
     bool Package::contains_object(const Object* object) const
     {
-        return (object ? find_object(object->name(), false) : nullptr) != nullptr;
+        return object ? object->package() == this : false;
     }
 
     bool Package::contains_object(const String& name) const
@@ -616,10 +622,10 @@ namespace Engine
         //        }
     }
 
-    Index Package::lower_bound_of(HashIndex hash) const
+    Index Package::lower_bound_of(Name object_name) const
     {
         Object* noname  = Object::noname_object();
-        noname->_M_hash = hash;
+        noname->_M_name = object_name;
         return lower_bound_of(noname);
     }
 
@@ -636,7 +642,7 @@ namespace Engine
 
     Index Package::lower_bound_of(const String& name) const
     {
-        return lower_bound_of(Object::hash_of_name(name));
+        return lower_bound_of(Name::find_name(name));
     }
 
     Index Package::validate_index(Index index, HashIndex hash) const

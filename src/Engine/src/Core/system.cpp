@@ -34,7 +34,7 @@ namespace Engine
         name(_class->name() + " [System]");
         add_filter(system_filter);
 
-        debug_log("System", "Created system '%s'", name().c_str());
+        debug_log("System", "Created system '%s'", string_name().c_str());
         return *this;
     }
 

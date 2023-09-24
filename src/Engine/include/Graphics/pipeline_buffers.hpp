@@ -65,21 +65,17 @@ namespace Engine
         size_t elements_count() const;
     };
 
-    class ENGINE_EXPORT UniformStructInstance : public DynamicStructInstanceProxy, public PipelineBuffer
+
+    class ENGINE_EXPORT UniformBuffer : public PipelineBufferNoResource
     {
+        declare_class(UniformBuffer, PipelineBufferNoResource);
+
     public:
-        UniformStructInstance(DynamicStructBase* struct_instance, Index index);
+        size_t init_size      = 0;
+        const byte* init_data = nullptr;
 
-        byte* data() override;
-        const byte* data() const override;
-        UniformStructInstance& rhi_create() override;
-
-        UniformStructInstance& bind(BindingIndex binding, BindingIndex set = 0);
-    };
-
-    class ENGINE_EXPORT UniformStruct : public DynamicStruct<UniformStructInstance>
-    {
-        declare_class(UniformStruct, DynamicStructBase);
+        UniformBuffer& rhi_create() override;
+        UniformBuffer& bind(BindingIndex binding, BindingIndex set = 0);
     };
 
 
@@ -88,7 +84,7 @@ namespace Engine
         declare_class(SSBO, PipelineBufferNoResource);
 
     public:
-        size_t init_size;
+        size_t init_size      = 0;
         const byte* init_data = nullptr;
 
         SSBO& rhi_create() override;

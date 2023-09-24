@@ -49,47 +49,9 @@ namespace Engine
         result.type = shader_types().find(index)->second;
     }
 
-    Shader::Shader()
-    {}
-
-
-    Shader::Shader(const PipelineCreateInfo& params)
-    {
-        load(params);
-    }
-
-
-    Shader& Shader::load(const PipelineCreateInfo& params)
-    {
-        destroy();
-        EngineInstance::instance()->api_interface()->create_shader(_M_ID, params);
-        return *this;
-    }
-
-    static const Shader* _M_current_shader = nullptr;
-
-    const Shader& Shader::use() const
-    {
-        if (_M_current_shader != this)
-        {
-            EngineInstance::instance()->api_interface()->use_shader(_M_ID);
-            _M_current_shader = this;
-        }
-
-        return *this;
-    }
-
-    void Shader::unbind()
-    {
-        _M_current_shader = nullptr;
-        EngineInstance::instance()->api_interface()->use_shader(0);
-    }
 
     implement_class(Shader, "Engine");
     implement_default_initialize_class(Shader);
-
-    implement_class(ShaderBase, "Engine");
-    implement_default_initialize_class(ShaderBase);
 
     implement_class(VertexShader, "Engine");
     implement_default_initialize_class(VertexShader);
@@ -98,7 +60,7 @@ namespace Engine
     implement_default_initialize_class(FragmentShader);
 
 
-    ShaderBase& ShaderBase::rhi_create()
+    Shader& Shader::rhi_create()
     {
         Super::rhi_create();
         return *this;

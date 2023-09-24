@@ -1,7 +1,9 @@
 #include <Graphics/sampler.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
+#include <vulkan_pipeline.hpp>
 #include <vulkan_sampler.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_types.hpp>
 
 namespace Engine
@@ -9,13 +11,14 @@ namespace Engine
 
     VulkanSamplerCreateInfo::VulkanSamplerCreateInfo() = default;
 
-    VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const SamplerCreateInfo& info)
-        : wrap_s(get_type(info.wrap_s)), wrap_t(get_type(info.wrap_t)), wrap_r(get_type(info.wrap_r)),
-          compare_func(get_type(info.compare_func)), anisotropy(info.anisotropy), mip_lod_bias(info.mip_lod_bias),
-          min_lod(info.min_lod), max_lod(info.max_lod), unnormalized_coordinates(info.unnormalized_coordinates),
-          compare_enable(info.compare_mode == CompareMode::RefToTexture)
+    VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const Sampler* sampler)
+        : wrap_s(get_type(sampler->wrap_s)), wrap_t(get_type(sampler->wrap_t)), wrap_r(get_type(sampler->wrap_r)),
+          compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy),
+          mip_lod_bias(sampler->mip_lod_bias), min_lod(sampler->min_lod), max_lod(sampler->max_lod),
+          unnormalized_coordinates(sampler->unnormalized_coordinates),
+          compare_enable(sampler->compare_mode == CompareMode::RefToTexture)
     {
-        switch (info.filter)
+        switch (sampler->filter)
         {
             case SamplerFilter::Trilinear:
                 mag_filter  = vk::Filter::eLinear;
@@ -63,7 +66,12 @@ namespace Engine
     }
 
     void VulkanSampler::bind(BindingIndex binding, BindingIndex set)
-    {}
+    {
+        if (API->_M_state->_M_pipeline)
+        {
+            API->_M_state->_M_pipeline->bind_sampler(this, binding, set);
+        }
+    }
 
 
     VulkanSampler::~VulkanSampler()
@@ -72,8 +80,8 @@ namespace Engine
     }
 
 
-    RHI_Sampler* VulkanAPI::create_sampler(const SamplerCreateInfo& info)
+    RHI_Sampler* VulkanAPI::create_sampler(const Sampler* sampler)
     {
-        return &(new VulkanSampler())->create(info);
+        return &(new VulkanSampler())->create(sampler);
     }
 }// namespace Engine

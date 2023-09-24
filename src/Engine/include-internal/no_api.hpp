@@ -7,7 +7,6 @@ namespace Engine
     {
         void* init_window(WindowInterface*, const WindowConfig&) override;
         NoApi& destroy_window() override;
-        NoApi& destroy_object(Identifier&) override;
         NoApi& imgui_init() override;
         NoApi& imgui_terminate() override;
         NoApi& imgui_new_frame() override;
@@ -18,9 +17,6 @@ namespace Engine
 
         NoApi& draw_indexed(size_t indices_count, size_t indices_offset) override;
         NoApi& draw(size_t vertex_count) override;
-
-        NoApi& create_shader(Identifier&, const PipelineCreateInfo&) override;
-        NoApi& use_shader(const Identifier&) override;
 
         NoApi& swap_buffer() override;
         NoApi& vsync(bool) override;
@@ -37,10 +33,10 @@ namespace Engine
         String renderer() override;
 
 
-        RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI_Sampler* create_sampler(const Sampler* sampler) override;
         RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
-        RHI_FrameBuffer* window_framebuffer() override;
-        RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
+        RHI_RenderTarget* window_render_target() override;
+        RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
@@ -48,6 +44,8 @@ namespace Engine
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
         RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
+        RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
+        RHI_RenderPass* window_render_pass() override;
 
         template<typename Type>
         operator Type()

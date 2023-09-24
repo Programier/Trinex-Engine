@@ -15,24 +15,12 @@ namespace Engine
         Pointer<Texture2D> depth;
     };
 
-    class ENGINE_EXPORT GBuffer : public FrameBuffer
+    class ENGINE_EXPORT GBuffer : public Object
     {
-    private:
-        static ENGINE_EXPORT void init_g_buffer();
-        GBufferData _M_buffer_data[3];
-        byte index = 0;
-
-        void swap_buffer();
-
-        GBuffer();
+        declare_class(GBuffer, Object);
 
     public:
-        static ENGINE_EXPORT GBuffer* instance();
-        const GBufferData& buffer_data();
-        const GBufferData& previous_buffer_data();
-        GBuffer& bind();
 
-        friend class EngineInstance;
-        friend class Object;
+        static void static_init();
     };
 }// namespace Engine

@@ -12,9 +12,19 @@ namespace Engine
         declare_class(Sampler, ApiObject);
 
     public:
-        SamplerCreateInfo info;
+        SamplerFilter filter     = SamplerFilter::Point;
+        WrapValue wrap_s         = WrapValue::Repeat;
+        WrapValue wrap_t         = WrapValue::Repeat;
+        WrapValue wrap_r         = WrapValue::Repeat;
+        float mip_lod_bias       = 0.0;
+        float anisotropy         = 1.0;
+        CompareMode compare_mode = CompareMode::None;
+        float min_lod            = -1000.0;
+        float max_lod            = 1000.0;
+        CompareFunc compare_func = CompareFunc::Always;
+        bool unnormalized_coordinates;
 
-        Sampler& create();
+        Sampler& rhi_create() override;
         bool archive_process(Archive* archive) override;
     };
 }// namespace Engine

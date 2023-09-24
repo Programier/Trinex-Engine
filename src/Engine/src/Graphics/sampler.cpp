@@ -2,8 +2,8 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
-#include <Graphics/sampler.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/sampler.hpp>
 
 
 namespace Engine
@@ -11,10 +11,10 @@ namespace Engine
     implement_class(Sampler, "Engine");
     implement_default_initialize_class(Sampler);
 
-    Sampler& Sampler::create()
+    Sampler& Sampler::rhi_create()
     {
-        destroy();
-        _M_rhi_sampler = engine_instance->api_interface()->create_sampler(info);
+        Super::rhi_create();
+        _M_rhi_sampler = engine_instance->api_interface()->create_sampler(this);
         return *this;
     }
 
@@ -25,11 +25,21 @@ namespace Engine
             return false;
         }
 
-        (*archive) & (info);
+        (*archive) & filter;
+        (*archive) & wrap_s;
+        (*archive) & wrap_t;
+        (*archive) & wrap_r;
+        (*archive) & mip_lod_bias;
+        (*archive) & anisotropy;
+        (*archive) & compare_mode;
+        (*archive) & min_lod;
+        (*archive) & max_lod;
+        (*archive) & compare_func;
+        (*archive) & unnormalized_coordinates;
 
         if (archive->is_reading())
         {
-            create();
+            rhi_create();
         }
         return *archive;
     }

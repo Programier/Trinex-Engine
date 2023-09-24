@@ -1,6 +1,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_command_buffer.hpp>
+#include <vulkan_pipeline.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_types.hpp>
 
@@ -129,7 +130,10 @@ namespace Engine
 
     void VulkanSSBO::bind(BindingIndex binding, BindingIndex set)
     {
-        throw EngineException("NOT IMPLEMENTED!");
+        if (API->_M_state->_M_pipeline)
+        {
+            API->_M_state->_M_pipeline->bind_ssbo(this, binding, set);
+        }
     }
 
     MappedMemory VulkanSSBO::map_buffer()
@@ -165,7 +169,12 @@ namespace Engine
     }
 
     void VulkanUniformBuffer::bind(BindingIndex binding, BindingIndex set)
-    {}
+    {
+        if (API->_M_state->_M_pipeline)
+        {
+            API->_M_state->_M_pipeline->bind_uniform_buffer(this, binding, set);
+        }
+    }
 
     MappedMemory VulkanUniformBuffer::map_buffer()
     {

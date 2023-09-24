@@ -56,8 +56,9 @@ namespace Engine
         bool _M_need_update_image_index = true;
         SwapChain* _M_swap_chain        = nullptr;
 
-        VulkanFramebuffer* _M_main_framebuffer = nullptr;
-        struct VulkanState* _M_state           = nullptr;
+        VulkanMainFrameBuffer* _M_main_framebuffer   = nullptr;
+        struct VulkanRenderPass* _M_main_render_pass = nullptr;
+        struct VulkanState* _M_state                 = nullptr;
 
         vk::CommandPool _M_command_pool;
         struct VulkanCommandBuffer* _M_command_buffer = nullptr;
@@ -76,9 +77,9 @@ namespace Engine
         void destroy_framebuffers(bool full_destroy = true);
         void recreate_swap_chain();
         void create_swap_chain();
-        VulkanFramebuffer* init_base_framebuffer_renderpass(VulkanFramebuffer* framebuffer);
         void create_framebuffers();
         void create_command_buffer();
+        void create_render_pass();
 
         VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
                                  vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
@@ -103,7 +104,6 @@ namespace Engine
                                 vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
                                 vk::DeviceMemory& image_memory, uint32_t layers);
 
-        VulkanFramebuffer* framebuffer(Identifier ID);
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
@@ -123,10 +123,6 @@ namespace Engine
         VulkanAPI& imgui_render() override;
 
         String renderer() override;
-        VulkanAPI& destroy_object(Identifier& ID) override;
-
-        VulkanAPI& create_shader(Identifier&, const PipelineCreateInfo&) override;
-        VulkanAPI& use_shader(const Identifier&) override;
 
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
         VulkanAPI& draw(size_t vertex_count) override;
@@ -139,10 +135,10 @@ namespace Engine
         VulkanAPI& next_render_thread() override;
 
 
-        RHI_Sampler* create_sampler(const SamplerCreateInfo&) override;
+        RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const TextureCreateInfo&, TextureType, const byte* data) override;
-        RHI_FrameBuffer* window_framebuffer() override;
-        RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) override;
+        RHI_RenderTarget* window_render_target() override;
+        RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
@@ -150,6 +146,9 @@ namespace Engine
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
         RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
+        RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
+        RHI_RenderPass* window_render_pass() override;
+
 
         ~VulkanAPI();
     };

@@ -33,7 +33,6 @@ namespace Engine
         delete_copy_constructors(Texture);
 
         Texture& create(const byte* data = nullptr);
-        Identifier internal_id() const;
         const Texture& bind_combined(Sampler* sampler, BindingIndex binding, BindingIndex set = 0) const;
         Texture& generate_mipmap();
 

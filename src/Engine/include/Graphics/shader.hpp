@@ -10,34 +10,22 @@
 
 namespace Engine
 {
-    struct PipelineCreateInfo;
-
     class ENGINE_EXPORT Shader : public ApiObject
     {
+    public:
         declare_class(Shader, ApiObject);
-
-    public:
-        delete_copy_constructors(Shader);
-        constructor_hpp(Shader);
-        Shader(const PipelineCreateInfo& params);
-
-        Shader& load(const PipelineCreateInfo& params);
-
-        const Shader& use() const;
-        static void unbind();
-    };
-
-
-    class ENGINE_EXPORT ShaderBase : public ApiObject
-    {
-    public:
-        declare_class(ShaderBase, ApiObject);
 
 
     public:
         struct UniformBuffer {
             String name;
             size_t size;
+            BindingIndex binding;
+            BindingIndex set;
+        };
+
+        struct SSBO {
+            String name;
             BindingIndex binding;
             BindingIndex set;
         };
@@ -55,16 +43,17 @@ namespace Engine
         Vector<Sampler> samplers;
         Vector<Texture> textures;
         Vector<Texture> combined_samplers;
+        Vector<SSBO> ssbo;
 
         Buffer text_code;
         Buffer binary_code;
 
-        ShaderBase& rhi_create() override;
+        Shader& rhi_create() override;
     };
 
-    class ENGINE_EXPORT VertexShader : public ShaderBase
+    class ENGINE_EXPORT VertexShader : public Shader
     {
-        declare_class(VertexShader, ShaderBase);
+        declare_class(VertexShader, Shader);
 
     public:
         struct Attribute {
@@ -79,9 +68,9 @@ namespace Engine
         VertexShader& rhi_create() override;
     };
 
-    class ENGINE_EXPORT FragmentShader : public ShaderBase
+    class ENGINE_EXPORT FragmentShader : public Shader
     {
-        declare_class(FragmentShader, ShaderBase);
+        declare_class(FragmentShader, Shader);
 
     public:
         FragmentShader& rhi_create() override;

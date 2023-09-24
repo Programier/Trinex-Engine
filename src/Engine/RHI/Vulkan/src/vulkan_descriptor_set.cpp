@@ -11,9 +11,9 @@ namespace Engine
         _M_set = API->_M_device.allocateDescriptorSets(info).front();
     }
 
-    VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout)
+    VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, BindingIndex set)
     {
-        API->_M_command_buffer->get().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, 1, &_M_set, 0,
+        API->_M_command_buffer->get().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, set, 1, &_M_set, 0,
                                                          nullptr);
         return *this;
     }

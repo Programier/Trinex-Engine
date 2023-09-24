@@ -5,23 +5,27 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT BasicFrameBuffer : public ApiObject
+    class RenderPass;
+
+    class ENGINE_EXPORT BasicRenderTarget : public ApiObject
     {
-        declare_class(BasicFrameBuffer, ApiObject);
+        declare_class(BasicRenderTarget, ApiObject);
 
     protected:
         ViewPort _M_viewport;
         Scissor _M_scissor;
 
     public:
-        delete_copy_constructors(BasicFrameBuffer);
-        BasicFrameBuffer();
-        const BasicFrameBuffer& bind(size_t buffer_index = 0) const;
-        const BasicFrameBuffer& viewport(const ViewPort& viewport);
-        const BasicFrameBuffer& scissor(const Scissor& scissor);
+        RenderPass* render_pass = nullptr;
+
+        delete_copy_constructors(BasicRenderTarget);
+        BasicRenderTarget();
+        const BasicRenderTarget& bind(size_t buffer_index = 0) const;
+        const BasicRenderTarget& viewport(const ViewPort& viewport);
+        const BasicRenderTarget& scissor(const Scissor& scissor);
         const ViewPort& viewport();
         const Scissor& scissor();
-        const BasicFrameBuffer& clear_color(const ColorClearValue& color, byte layout = 0) const;
-        const BasicFrameBuffer& clear_depth_stencil(const DepthStencilClearValue& value) const;
+        const BasicRenderTarget& clear_color(const ColorClearValue& color, byte layout = 0) const;
+        const BasicRenderTarget& clear_depth_stencil(const DepthStencilClearValue& value) const;
     };
 }// namespace Engine

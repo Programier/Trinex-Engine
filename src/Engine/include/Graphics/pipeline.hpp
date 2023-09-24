@@ -7,7 +7,7 @@ namespace Engine
 
     class VertexShader;
     class FragmentShader;
-    class BasicFrameBuffer;
+    class BasicRenderTarget;
 
     class ENGINE_EXPORT Pipeline : public ApiObject
     {
@@ -76,7 +76,7 @@ namespace Engine
             byte logic_op_enable = 0;
         } color_blending;
 
-        BasicFrameBuffer* framebuffer         = nullptr;
+        BasicRenderTarget* render_target      = nullptr;
         class VertexShader* vertex_shader     = nullptr;
         class FragmentShader* fragment_shader = nullptr;
 

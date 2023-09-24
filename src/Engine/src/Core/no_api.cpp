@@ -15,12 +15,6 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::destroy_object(Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     NoApi& NoApi::imgui_init()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -58,18 +52,6 @@ namespace Engine
     }
 
     NoApi& NoApi::draw(size_t vertex_count)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::create_shader(Identifier&, const PipelineCreateInfo&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::use_shader(const Identifier&)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
@@ -147,7 +129,7 @@ namespace Engine
         return "Undefined";
     }
 
-    RHI_Sampler* NoApi::create_sampler(const SamplerCreateInfo&)
+    RHI_Sampler* NoApi::create_sampler(const Sampler*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
@@ -159,13 +141,13 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_FrameBuffer* NoApi::window_framebuffer()
+    RHI_RenderTarget* NoApi::window_render_target()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
     }
 
-    RHI_FrameBuffer* NoApi::create_framebuffer(const FrameBufferCreateInfo& info)
+    RHI_RenderTarget* NoApi::create_render_target(const RenderTarget*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
@@ -208,6 +190,18 @@ namespace Engine
     }
 
     RHI_SSBO* NoApi::create_ssbo(size_t size, const byte* data)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_RenderPass* NoApi::create_render_pass(const RenderPass* render_pass)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_RenderPass* NoApi::window_render_pass()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

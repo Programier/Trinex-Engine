@@ -7,16 +7,30 @@ namespace Engine
     template<typename Type>
     using BindingVariable = Map<BindingIndex, Type>;
 
+    struct VulkanSampler;
+    struct VulkanTexture;
+    struct VulkanSSBO;
+
+
     struct VulkanDescriptorSet {
+
+        struct CombinedImageSampler
+        {
+            struct VulkanSampler* _M_sampler = nullptr;
+            struct VulkanTexture* _M_texture = nullptr;
+        };
+
         vk::DescriptorSet _M_set;
 
 
-        BindingVariable<vk::Sampler> _M_sampler;
-        BindingVariable<vk::ImageView> _M_image_view;
+        BindingVariable<VulkanSSBO*> _M_ssbo;
+        BindingVariable<VulkanSampler*> _M_sampler;
+        BindingVariable<VulkanTexture*> _M_texture;
+        BindingVariable<CombinedImageSampler> _M_combined_image_sampler;
         BindingVariable<struct VulkanUniformBuffer*> _M_current_ubo;
 
 
         VulkanDescriptorSet(vk::DescriptorPool& pool, vk::DescriptorSetLayout* layout);
-        VulkanDescriptorSet& bind(vk::PipelineLayout& layout);
+        VulkanDescriptorSet& bind(vk::PipelineLayout& layout, BindingIndex set);
     };
 }// namespace Engine

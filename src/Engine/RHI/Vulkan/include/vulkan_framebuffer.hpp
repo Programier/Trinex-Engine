@@ -2,39 +2,28 @@
 #include <bitset>
 
 #include <Graphics/rhi.hpp>
-#include <vulkan_object.hpp>
+#include <vulkan/vulkan.hpp>
 
 namespace Engine
 {
 
-    struct VulkanFramebuffer : RHI_FrameBuffer {
-        struct Buffer {
-            vk::Framebuffer _M_framebuffer;
-            Vector<vk::ImageView> _M_attachments;
-        };
-
-        Vector<vk::AttachmentDescription> _M_attachment_descriptions;
-        Vector<vk::AttachmentReference> _M_color_attachment_references;
-        vk::AttachmentReference* _M_depth_attachment_renference = nullptr;
-
-        Vector<Buffer> _M_buffers;
-
-        vk::RenderPass _M_render_pass;
+    struct VulkanFramebuffer : RHI_RenderTarget {
+        vk::Framebuffer _M_framebuffer;
+        Vector<vk::ImageView> _M_attachments;
         vk::RenderPassBeginInfo _M_render_pass_info;
 
-        bool _M_is_custom = true;
-        bool _M_is_inited = false;
-        vk::SubpassDescription _M_subpass;
-        vk::SubpassDependency _M_dependency;
         vk::Extent2D _M_size;
         vk::Rect2D _M_scissor;
         vk::Viewport _M_viewport;
+
         Vector<vk::ClearValue> _M_clear_values = {
                 vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
 
+        struct VulkanRenderPass* _M_render_pass = nullptr;
+        bool _M_is_inited                       = false;
 
         VulkanFramebuffer();
-        VulkanFramebuffer& init(const FrameBufferCreateInfo& info);
+        VulkanFramebuffer& init(const RenderTarget* info, VulkanRenderPass* render_pass);
 
         VulkanFramebuffer& create_render_pass();
         VulkanFramebuffer& create_framebuffer();
@@ -50,6 +39,8 @@ namespace Engine
         VulkanFramebuffer& begin_pass(size_t index);
         VulkanFramebuffer& end_pass();
 
+        bool is_custom() const;
+
         void bind(uint_t buffer_index) override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
@@ -58,7 +49,22 @@ namespace Engine
     };
 
 
-    struct VulkanMainFrameBuffer : VulkanFramebuffer {
-        void bind(uint_t) override;
+    struct VulkanMainFrameBuffer : RHI_RenderTarget {
+        Vector<VulkanFramebuffer*> _M_framebuffers;
+
+        VulkanMainFrameBuffer();
+        VulkanMainFrameBuffer& init();
+
+        VulkanMainFrameBuffer& destroy();
+        void resize_count(size_t new_count);
+        VulkanMainFrameBuffer& size(uint32_t width, uint32_t height);
+
+        void bind(uint_t buffer_index) override;
+        void viewport(const ViewPort& viewport) override;
+        void scissor(const Scissor& scissor) override;
+        void clear_depth_stencil(const DepthStencilClearValue& value) override;
+        void clear_color(const ColorClearValue& color, byte layout) override;
+
+        ~VulkanMainFrameBuffer();
     };
 }// namespace Engine

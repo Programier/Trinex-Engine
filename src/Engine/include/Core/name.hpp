@@ -28,11 +28,15 @@ namespace Engine
         Name(const String& name);
         Name(const char* name);
 
-        Name& operator =(const String& name);
-        Name& operator =(const char* name);
+        Name& operator=(const String& name);
+        Name& operator=(const char* name);
+
+        static Name find_name(const String& name);
+        static Name find_name(const char* name, size_t size = 0);
 
 
         bool is_valid() const;
+        HashIndex hash() const;
         bool operator==(const String& name) const;
         bool operator==(const char* name) const;
         bool operator!=(const String& name) const;

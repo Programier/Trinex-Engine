@@ -4,6 +4,7 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/implement.hpp>
 #include <Core/memory_manager.hpp>
+#include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
 #include <ScriptEngine/registrar.hpp>
 
@@ -50,22 +51,20 @@ namespace Engine
         using ObjectClass = Object;
 
     private:
-        mutable String _M_name;
         mutable BitSet<static_cast<size_t>(TrinexObjectFlags::__OF_COUNT__)> _M_trinex_flags;
 
 
         BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
         Package* _M_package;
         Counter _M_references;
-        HashIndex _M_hash;
         Index _M_index_in_package;
+        Name _M_name;
         mutable Index _M_instance_index;
 
     private:
         void delete_instance();
         static void create_default_package();
         static bool object_is_exist(Package* package, const String& name);
-        Object& update_hash();
 
         const Object& remove_from_instances_array() const;
 
@@ -129,7 +128,7 @@ namespace Engine
         bool mark_for_delete(bool skip_check = false);
         bool is_on_heap() const;
         ENGINE_EXPORT static void collect_garbage();
-        const String& name() const;
+        const String& string_name() const;
         HashIndex hash_index() const;
         ObjectRenameStatus name(String name, bool autorename = false);
         virtual Object* copy();
@@ -146,7 +145,11 @@ namespace Engine
 
         ENGINE_EXPORT static Object* find_object(const String& object_name);
         virtual bool can_destroy(MessageList& messages);
-        virtual void post_init_components();
+
+        virtual Object& preload();
+        virtual Object& postload();
+
+
         static Package* find_package(const String& name, bool create = true);
 
         String as_string() const;

@@ -25,7 +25,7 @@ namespace Engine
         bool compare_enable;
 
         VulkanSamplerCreateInfo();
-        VulkanSamplerCreateInfo(const SamplerCreateInfo&);
+        VulkanSamplerCreateInfo(const Sampler* sampler);
     };
 
 

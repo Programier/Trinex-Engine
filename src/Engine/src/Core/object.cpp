@@ -6,6 +6,7 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
+#include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
@@ -29,7 +30,7 @@ namespace Engine
                 .behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
                 .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
                 .method("Package@ root_package()", &Object::root_package)
-                .method("const string& name() const", func_of<const String&>(&Object::name))
+                .method("const string& string_name() const", func_of<const String&>(&Object::string_name))
                 .method("ObjectRenameStatus name(string, bool) const", func_of<ObjectRenameStatus>(&Object::name))
                 .method("string as_string() const", &Object::as_string)
                 .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
@@ -97,11 +98,6 @@ namespace Engine
         return false;
     }
 
-    Object& Object::update_hash()
-    {
-        _M_hash = Object::hash_of_name(_M_name);
-        return *this;
-    }
 
     Object& Object::insert_to_default_package()
     {
@@ -118,14 +114,13 @@ namespace Engine
     }
 
     Object::Object()
-        : _M_package(nullptr), _M_references(0), _M_hash(Constants::invalid_hash),
-          _M_index_in_package(Constants::index_none), _M_instance_index(Constants::index_none)
+        : _M_package(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
+          _M_instance_index(Constants::index_none)
     {
         ObjectArray& objects_array = get_instances_array();
         _M_instance_index          = objects_array.size();
 
         _M_name = Strings::format("Instance {}", _M_instance_index);
-        update_hash();
 
         if (!get_free_indexes_array().empty())
         {
@@ -145,13 +140,12 @@ namespace Engine
 
     ENGINE_EXPORT HashIndex Object::hash_of_name(const String& name)
     {
-        static Hash<String> hash_function;
-        return hash_function(name);
+        return memory_hash_fast(name.c_str(), name.length(), 0);
     }
 
     HashIndex Object::hash_index() const
     {
-        return _M_hash;
+        return _M_name.hash();
     }
 
     ENGINE_EXPORT String Object::decode_name(const std::type_info& info)
@@ -234,7 +228,7 @@ namespace Engine
         if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
         {
             remove_from_instances_array();
-            debug_log("Garbage Collector", "Delete object instance '%s' with type '%s' [%p]\n", name().c_str(),
+            debug_log("Garbage Collector", "Delete object instance '%s' with type '%s' [%p]\n", string_name().c_str(),
                       decode_name().c_str(), this);
 
             MemoryManager::instance().force_destroy_object(this);
@@ -286,7 +280,7 @@ namespace Engine
             MessageList errors;
             if (!can_destroy(errors))
             {
-                error_log("Object", Strings::format("Cannot delete object '{}'", name()), errors);
+                error_log("Object", Strings::format("Cannot delete object '{}'", string_name().c_str()), errors);
                 return false;
             }
         }
@@ -320,9 +314,9 @@ namespace Engine
         return trinex_flag(TrinexObjectFlags::IsOnHeap);
     }
 
-    const String& Object::name() const
+    const String& Object::string_name() const
     {
-        return _M_name;
+        return _M_name.to_string();
     }
 
     ObjectRenameStatus Object::name(String new_name, bool autorename)
@@ -342,7 +336,7 @@ namespace Engine
         if (!autorename && package && package->contains_object(new_name))
         {
             error_log("Object", "Failed to rename object. Object with name '%s' already exist in package '%s'",
-                      new_name.c_str(), _M_package->name().c_str());
+                      new_name.c_str(), _M_package->string_name().c_str());
             return ObjectRenameStatus::Failed;
         }
 
@@ -352,7 +346,6 @@ namespace Engine
         }
 
         _M_name = new_name;
-        update_hash();
 
         if (package)
             return Object::add_to_package(package, autorename) ? ObjectRenameStatus::Success
@@ -423,13 +416,13 @@ namespace Engine
 
         if (parent && parent != _M_root_package && !is_instance_of<Package>())
         {
-            result = (parent->_M_name + Constants::name_separator) + result;
+            result = (parent->_M_name.to_string() + Constants::name_separator) + result;
             parent = parent->_M_package;
         }
 
         while (parent && parent != _M_root_package)
         {
-            result = (parent->_M_name + Constants::name_separator) + result;
+            result = (parent->_M_name.to_string() + Constants::name_separator) + result;
             parent = parent->_M_package;
         }
 
@@ -482,7 +475,7 @@ namespace Engine
     {
         if (_M_references > 0)
         {
-            messages.push_back(Strings::format("Object {} is referenced", name()));
+            messages.push_back(Strings::format("Object {} is referenced", string_name()));
             return false;
         }
 
@@ -495,8 +488,15 @@ namespace Engine
         return true;
     }
 
-    void Object::post_init_components()
-    {}
+    Object& Object::preload()
+    {
+        return *this;
+    }
+
+    Object& Object::postload()
+    {
+        return *this;
+    }
 
     Package* Object::find_package(const String& name, bool create)
     {
@@ -557,7 +557,7 @@ namespace Engine
 
     String Object::as_string() const
     {
-        return Strings::format("{}: {}", class_instance()->name(), _M_name);
+        return Strings::format("{}: {}", class_instance()->name(), _M_name.to_string());
     }
 
     Index Object::instance_index() const
@@ -624,7 +624,7 @@ namespace Engine
                     if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
                     {
                         debug_log("Garbage Collector[FORCE]", "Deleting instance '%s' with type '%s' [%p]\n",
-                                  object->name().c_str(), object->decode_name().c_str(), object);
+                                  object->string_name().c_str(), object->decode_name().c_str(), object);
                         object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
                         manager.free_object(object);
                         maybe_not_deleted_objects.erase(object);
@@ -655,7 +655,7 @@ namespace Engine
         for (auto& object : maybe_not_deleted_objects)
         {
             error_log("Garbage Collector: Object '%s' with type '%s' is dynamicly allocated and must be deleted!",
-                      object->_M_name.c_str(), object->decode_name().c_str());
+                      object->_M_name.to_string().c_str(), object->decode_name().c_str());
         }
     }
 

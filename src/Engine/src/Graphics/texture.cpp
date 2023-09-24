@@ -3,9 +3,9 @@
 #include <Core/engine.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
+#include <Graphics/rhi.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
-#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
@@ -29,7 +29,7 @@ namespace Engine
     {
         if (_M_rhi_texture)
         {
-            RHI_Sampler* rhi_sampler = reinterpret_cast<ApiObject*>(sampler)->get_rhi_object<RHI_Sampler>();
+            RHI_Sampler* rhi_sampler = reinterpret_cast<ApiObject*>(sampler)->rhi_object<RHI_Sampler>();
             _M_rhi_texture->bind_combined(rhi_sampler, binding, set);
         }
         return *this;
@@ -52,11 +52,6 @@ namespace Engine
             current_size /= 2;
         }
         return current_size;
-    }
-
-    Identifier Texture::internal_id() const
-    {
-        return EngineInstance::instance()->api_interface()->imgui_texture_id(_M_ID);
     }
 
     bool TextureResources::archive_process(Archive* archive_ptr)

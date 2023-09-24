@@ -15,8 +15,11 @@ namespace Engine
 
     class VertexShader;
     class FragmentShader;
-    class ShaderBase;
+    class Shader;
     class Pipeline;
+    class Sampler;
+    class RenderTarget;
+    class RenderPass;
 
     struct RHI_Object {
         FORCE_INLINE Identifier id() const
@@ -41,7 +44,7 @@ namespace Engine
                                        const byte* data)                                         = 0;
     };
 
-    struct RHI_FrameBuffer : RHI_Object {
+    struct RHI_RenderTarget : RHI_Object {
         virtual void bind(uint_t buffer_index)                                = 0;
         virtual void viewport(const ViewPort& viewport)                       = 0;
         virtual void scissor(const Scissor& scissor)                          = 0;
@@ -78,11 +81,13 @@ namespace Engine
         virtual void bind(BindingIndex binding, BindingIndex set) = 0;
     };
 
+    struct RHI_RenderPass : RHI_Object {
+    };
+
 
     struct ENGINE_EXPORT RHI {
         virtual void* init_window(struct WindowInterface*, const WindowConfig& config) VIRTUAL_METHOD;
         virtual RHI& destroy_window() VIRTUAL_METHOD;
-        virtual RHI& destroy_object(Identifier&) VIRTUAL_METHOD;
         virtual RHI& imgui_init() VIRTUAL_METHOD;
         virtual RHI& imgui_terminate() VIRTUAL_METHOD;
         virtual RHI& imgui_new_frame() VIRTUAL_METHOD;
@@ -93,10 +98,6 @@ namespace Engine
 
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) VIRTUAL_METHOD;
         virtual RHI& draw(size_t vertex_count) VIRTUAL_METHOD;
-
-        virtual RHI& create_shader(Identifier&, const PipelineCreateInfo&) VIRTUAL_METHOD;
-        virtual RHI& use_shader(const Identifier&) VIRTUAL_METHOD;
-
         virtual RHI& swap_buffer() VIRTUAL_METHOD;
         virtual RHI& vsync(bool) VIRTUAL_METHOD;
         virtual bool vsync() VIRTUAL_METHOD;
@@ -112,11 +113,11 @@ namespace Engine
         virtual String renderer() VIRTUAL_METHOD;
 
 
-        virtual RHI_Sampler* create_sampler(const SamplerCreateInfo&)                                     = 0;
+        virtual RHI_Sampler* create_sampler(const Sampler*)                                               = 0;
         virtual RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) = 0;
 
-        virtual RHI_FrameBuffer* window_framebuffer()                                  = 0;
-        virtual RHI_FrameBuffer* create_framebuffer(const FrameBufferCreateInfo& info) = 0;
+        virtual RHI_RenderTarget* window_render_target()                                  = 0;
+        virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target) = 0;
 
         virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)     = 0;
         virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader) = 0;
@@ -126,7 +127,8 @@ namespace Engine
         virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) = 0;
         virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data)              = 0;
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                 = 0;
-
+        virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                    = 0;
+        virtual RHI_RenderPass* window_render_pass()                                                 = 0;
 
         virtual ~RHI(){};
     };

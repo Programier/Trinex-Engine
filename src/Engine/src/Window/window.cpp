@@ -1,14 +1,24 @@
+#include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Graphics/render_pass.hpp>
+#include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <Window/window_interface.hpp>
-#include <Graphics/rhi.hpp>
 
 
 namespace Engine
 {
+    implement_class(Window, "Engine");
+    implement_default_initialize_class(Window);
+
     Window::Window(WindowInterface* interface) : _M_interface(interface)
     {
-        _M_rhi_framebuffer = EngineInstance::instance()->api_interface()->window_framebuffer();
+        _M_rhi_render_target = EngineInstance::instance()->api_interface()->window_render_target();
+        render_pass          = Object::new_instance<RenderPass>();
+        {
+            ApiObjectNoBase* api_render_pass    = render_pass;
+            api_render_pass->_M_rhi_render_pass = engine_instance->api_interface()->window_render_pass();
+        }
 
         update_cached_size();
 
@@ -243,7 +253,12 @@ namespace Engine
 
     Window::~Window()
     {
-        _M_rhi_framebuffer = nullptr;// Window framebuffer must be destroyed by API
+        _M_rhi_render_target = nullptr;// Window render target must be destroyed by API
+
+        {
+            ApiObjectNoBase* api_render_pass    = render_pass;
+            api_render_pass->_M_rhi_render_pass = nullptr;
+        }
         delete _M_interface;
     }
 

@@ -64,20 +64,20 @@ namespace Engine
         SHADER_CHECKED_SERIALIZE(_M_resources->vertex_info.attributes, "Failed to process vertex info size!");
 
         byte usage = static_cast<byte>(
-                _M_resources->framebuffer == engine_instance->window()->get_rhi_object<RHI_FrameBuffer>() ? 0 : 1);
+                _M_resources->framebuffer == engine_instance->window()->rhi_object<RHI_FrameBuffer>() ? 0 : 1);
         SHADER_CHECKED_SERIALIZE(usage, "Failed to serialize framebuffer usage!");
 
-        if (archive->is_reading())
-        {
-            if (usage != 0 && GBuffer::instance())
-            {
-                _M_resources->framebuffer = GBuffer::instance()->get_rhi_object<RHI_FrameBuffer>();
-            }
-            else
-            {
-                _M_resources->framebuffer = EngineInstance::instance()->window()->get_rhi_object<RHI_FrameBuffer>();
-            }
-        }
+        //        if (archive->is_reading())
+        //        {
+        //            if (usage != 0 && GBuffer::instance())
+        //            {
+        //                _M_resources->framebuffer = GBuffer::instance()->rhi_object<RHI_FrameBuffer>();
+        //            }
+        //            else
+        //            {
+        //                _M_resources->framebuffer = EngineInstance::instance()->window()->rhi_object<RHI_FrameBuffer>();
+        //            }
+        //        }
 
         SHADER_CHECKED_SERIALIZE(_M_resources->state.depth_test, "Failed to serialize depth test state!");
         SHADER_CHECKED_SERIALIZE(_M_resources->state.stencil_test, "Failed to serialize stencil test state!");

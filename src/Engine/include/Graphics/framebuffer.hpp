@@ -6,15 +6,38 @@
 
 namespace Engine
 {
-    struct FrameBufferCreateInfo;
+    class Texture2D;
 
-    class ENGINE_EXPORT FrameBuffer : public BasicFrameBuffer
+    class ENGINE_EXPORT RenderTarget : public BasicRenderTarget
     {
-        declare_class(FrameBuffer, BasicFrameBuffer);
+        declare_class(RenderTarget, RenderTarget);
     public:
-        delete_copy_constructors(FrameBuffer);
-        FrameBuffer();
-        FrameBuffer& create(const FrameBufferCreateInfo&);
-        static ENGINE_EXPORT FrameBuffer* g_buffer();
+        struct Attachment
+        {
+            Texture2D* texture  = nullptr;
+            MipMapLevel mip_level = 0;
+        };
+
+        union ClearValue
+        {
+            ColorClearValue color;
+            DepthStencilClearValue depth_stencil;
+
+            ClearValue() : color(0.0f, 0.0f, 0.0f, 1.0f)
+            {}
+        };
+
+        struct AttachmentClearData {
+            byte clear_on_bind : 1 = 1;
+            ClearValue clear_value;
+        };
+
+        Vector<Attachment> color_attachments;
+        Attachment depth_stencil_attachment;
+        Vector<AttachmentClearData> color_clear_data;
+        AttachmentClearData depth_stencil_clear_data;
+        Size2D size;
+
+        RenderTarget& rhi_create() override;
     };
 }// namespace Engine

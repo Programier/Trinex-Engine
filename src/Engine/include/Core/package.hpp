@@ -22,7 +22,7 @@ namespace Engine
         bool load_buffer(BufferReader* reader, Vector<char>& original_buffer);
         CallBacks<bool(Object*)> _M_filters;
 
-        Index lower_bound_of(HashIndex hash) const;
+        Index lower_bound_of(Name name) const;
         Index lower_bound_of(const Object* object) const;
         Index lower_bound_of(const String& name) const;
         Index validate_index(Index index, HashIndex hash) const;

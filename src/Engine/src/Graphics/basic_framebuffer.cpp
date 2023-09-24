@@ -7,60 +7,60 @@
 namespace Engine
 {
 
-    implement_class(BasicFrameBuffer, "Engine");
-    implement_default_initialize_class(BasicFrameBuffer);
+    implement_class(BasicRenderTarget, "Engine");
+    implement_default_initialize_class(BasicRenderTarget);
 
 
-    BasicFrameBuffer::BasicFrameBuffer()
+    BasicRenderTarget::BasicRenderTarget()
     {}
 
 
-    const BasicFrameBuffer& BasicFrameBuffer::bind(size_t buffer_index) const
+    const BasicRenderTarget& BasicRenderTarget::bind(size_t buffer_index) const
     {
-        if (_M_rhi_framebuffer)
-            _M_rhi_framebuffer->bind(buffer_index);
+        if (_M_rhi_render_target)
+            _M_rhi_render_target->bind(buffer_index);
         return *this;
     }
 
-    const BasicFrameBuffer& BasicFrameBuffer::viewport(const ViewPort& viewport)
+    const BasicRenderTarget& BasicRenderTarget::viewport(const ViewPort& viewport)
     {
         if (&_M_viewport != &viewport)
             _M_viewport = viewport;
-        if (_M_rhi_framebuffer)
-            _M_rhi_framebuffer->viewport(viewport);
+        if (_M_rhi_render_target)
+            _M_rhi_render_target->viewport(viewport);
         return *this;
     }
 
-    const BasicFrameBuffer& BasicFrameBuffer::clear_color(const ColorClearValue& color, byte layout) const
+    const BasicRenderTarget& BasicRenderTarget::clear_color(const ColorClearValue& color, byte layout) const
     {
-        if (_M_rhi_framebuffer)
-            _M_rhi_framebuffer->clear_color(color, layout);
+        if (_M_rhi_render_target)
+            _M_rhi_render_target->clear_color(color, layout);
         return *this;
     }
 
-    const BasicFrameBuffer& BasicFrameBuffer::scissor(const Scissor& scissor)
+    const BasicRenderTarget& BasicRenderTarget::scissor(const Scissor& scissor)
     {
-        if (_M_rhi_framebuffer)
-            _M_rhi_framebuffer->scissor(scissor);
+        if (_M_rhi_render_target)
+            _M_rhi_render_target->scissor(scissor);
 
         if (&scissor != &_M_scissor)
             _M_scissor = scissor;
         return *this;
     }
 
-    const BasicFrameBuffer& BasicFrameBuffer::clear_depth_stencil(const DepthStencilClearValue& value) const
+    const BasicRenderTarget& BasicRenderTarget::clear_depth_stencil(const DepthStencilClearValue& value) const
     {
-        if (_M_rhi_framebuffer)
-            _M_rhi_framebuffer->clear_depth_stencil(value);
+        if (_M_rhi_render_target)
+            _M_rhi_render_target->clear_depth_stencil(value);
         return *this;
     }
 
-    const ViewPort& BasicFrameBuffer::viewport()
+    const ViewPort& BasicRenderTarget::viewport()
     {
         return _M_viewport;
     }
 
-    const Scissor& BasicFrameBuffer::scissor()
+    const Scissor& BasicRenderTarget::scissor()
     {
         return _M_scissor;
     }

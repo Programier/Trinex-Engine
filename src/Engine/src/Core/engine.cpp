@@ -389,7 +389,7 @@ stack_address:
 
         if (engine_config.enable_g_buffer)
         {
-            GBuffer::init_g_buffer();
+            GBuffer::static_init();
         }
 
         _M_window = Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), interface);

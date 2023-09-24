@@ -15,12 +15,14 @@ namespace Engine
     implement_class(PipelineBuffer, "Engine");
     implement_class(IndexBuffer, "Engine");
     implement_class(VertexBuffer, "Engine");
-    implement_class(UniformStruct, "Engine");
+    implement_class(UniformBuffer, "Engine");
+    implement_class(SSBO, "Engine");
     implement_default_initialize_class(PipelineBufferNoResource);
     implement_default_initialize_class(PipelineBuffer);
     implement_default_initialize_class(IndexBuffer);
     implement_default_initialize_class(VertexBuffer);
-    implement_default_initialize_class(UniformStruct);
+    implement_default_initialize_class(UniformBuffer);
+    implement_default_initialize_class(SSBO);
 
 
     MappedMemory PipelineBufferNoResource::map_buffer()
@@ -223,43 +225,18 @@ namespace Engine
     }
 
 
-    UniformStructInstance::UniformStructInstance(DynamicStructBase* struct_instance, Index index)
-        : DynamicStructInstanceProxy(struct_instance, index)
-    {
-        rhi_create();
-    }
-
-    UniformStructInstance& UniformStructInstance::rhi_create()
+    UniformBuffer& UniformBuffer::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_uniform_buffer =
-                EngineInstance::instance()->api_interface()->create_uniform_buffer(this->size(), nullptr);
+        _M_rhi_uniform_buffer = engine_instance->api_interface()->create_uniform_buffer(init_size, init_data);
         return *this;
     }
 
-    byte* UniformStructInstance::data()
+    UniformBuffer& UniformBuffer::bind(BindingIndex binding, BindingIndex set)
     {
         if (_M_rhi_uniform_buffer)
         {
-            return _M_rhi_uniform_buffer->map_buffer().data();
-        }
-        return nullptr;
-    }
-
-    const byte* UniformStructInstance::data() const
-    {
-        if (_M_rhi_uniform_buffer)
-        {
-            return _M_rhi_uniform_buffer->map_buffer().data();
-        }
-        return nullptr;
-    }
-
-    UniformStructInstance& UniformStructInstance::bind(BindingIndex index, BindingIndex set)
-    {
-        if (_M_rhi_uniform_buffer)
-        {
-            _M_rhi_uniform_buffer->bind(index, set);
+            _M_rhi_uniform_buffer->bind(binding, set);
         }
         return *this;
     }

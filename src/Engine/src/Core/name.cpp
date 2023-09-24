@@ -22,6 +22,36 @@ namespace Engine
         name_entries().push_back(Name::Entry{name, hash});
     }
 
+
+    Name Name::find_name(const String& name)
+    {
+        return find_name(name.c_str(), name.length());
+    }
+
+    Name Name::find_name(const char* name, size_t size)
+    {
+        Name out_name;
+        HashIndex hash = memory_hash_fast(name, size == 0 ? std::strlen(name) : size, 0);
+
+        Vector<Name::Entry>& name_table = name_entries();
+
+        out_name._M_index = name_table.size();
+
+        for (Index index = 0; index < out_name._M_index; ++index)
+        {
+            const Name::Entry& entry = name_table[index];
+
+            if (entry.hash == hash)
+            {
+                out_name._M_index = index;
+                return out_name;
+            }
+        }
+
+        out_name._M_index = Constants::index_none;
+        return out_name;
+    }
+
     Name& Name::init(const String& name)
     {
         HashIndex hash = memory_hash_fast(name.data(), name.length(), 0);
@@ -77,6 +107,11 @@ namespace Engine
     bool Name::is_valid() const
     {
         return _M_index != Constants::index_none;
+    }
+
+    HashIndex Name::hash() const
+    {
+        return is_valid() ? name_entries()[_M_index].hash : Constants::invalid_hash;
     }
 
     bool Name::operator==(const String& name) const

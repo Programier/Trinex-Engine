@@ -4,15 +4,15 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT Window : public BasicFrameBuffer
+    class ENGINE_EXPORT Window : public BasicRenderTarget
     {
+        declare_class(Window, BasicRenderTarget);
+
     private:
         WindowInterface* _M_interface = nullptr;
         Size2D _M_cached_size;
 
     public:
-        using Super = BasicFrameBuffer;
-
         void close();
         bool is_open();
         Size1D width();
@@ -65,7 +65,7 @@ namespace Engine
         ~Window();
 
     private:
-        Window(WindowInterface* interface);
+        Window(WindowInterface* interface = nullptr);
 
         friend class Object;
     };
