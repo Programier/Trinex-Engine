@@ -12,12 +12,13 @@ namespace Engine
     constructor_cpp(ApiObjectNoBase)
     {
         _M_rhi_object = nullptr;
+        _M_can_delete = true;
     }
 
 
     ApiObjectNoBase& ApiObjectNoBase::destroy()
     {
-        if (_M_rhi_object)
+        if (_M_rhi_object && _M_can_delete)
         {
             delete _M_rhi_object;
             _M_rhi_object = nullptr;

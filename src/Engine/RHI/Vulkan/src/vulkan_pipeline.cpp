@@ -327,6 +327,7 @@ namespace Engine
 
     VulkanPipeline& VulkanPipeline::destroy()
     {
+        API->wait_idle();
         DESTROY_CALL(destroyPipeline, _M_pipeline);
         return *this;
     }

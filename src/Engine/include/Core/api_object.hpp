@@ -38,6 +38,9 @@ namespace Engine
             RHI_RenderPass* _M_rhi_render_pass;
         };
 
+    protected:
+        bool _M_can_delete;
+
 
     public:
         ApiObjectNoBase();
@@ -51,8 +54,6 @@ namespace Engine
         }
 
         ApiObjectNoBase& destroy();
-
-        friend class Window;
 
     protected:
         virtual ~ApiObjectNoBase();

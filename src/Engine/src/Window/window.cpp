@@ -11,14 +11,27 @@ namespace Engine
     implement_class(Window, "Engine");
     implement_default_initialize_class(Window);
 
+    class WindowRenderPass : public RenderPass
+    {
+    public:
+        WindowRenderPass()
+        {
+            _M_default_render_passes[RenderPass::Type::Window] = this;
+        }
+
+        WindowRenderPass& rhi_create() override
+        {
+            _M_can_delete      = false;
+            _M_rhi_render_pass = engine_instance->api_interface()->window_render_pass();
+            return *this;
+        }
+    };
+
     Window::Window(WindowInterface* interface) : _M_interface(interface)
     {
         _M_rhi_render_target = EngineInstance::instance()->api_interface()->window_render_target();
-        render_pass          = Object::new_instance<RenderPass>();
-        {
-            ApiObjectNoBase* api_render_pass    = render_pass;
-            api_render_pass->_M_rhi_render_pass = engine_instance->api_interface()->window_render_pass();
-        }
+        render_pass          = &Object::new_instance<WindowRenderPass>()->rhi_create();
+
 
         update_cached_size();
 
@@ -254,11 +267,6 @@ namespace Engine
     Window::~Window()
     {
         _M_rhi_render_target = nullptr;// Window render target must be destroyed by API
-
-        {
-            ApiObjectNoBase* api_render_pass    = render_pass;
-            api_render_pass->_M_rhi_render_pass = nullptr;
-        }
         delete _M_interface;
     }
 
