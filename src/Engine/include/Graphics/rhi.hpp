@@ -2,6 +2,7 @@
 
 
 #include <Core/color.hpp>
+#include <Core/color_format.hpp>
 #include <Core/mapped_memory.hpp>
 #include <Core/rhi_initializers.hpp>
 
@@ -20,6 +21,7 @@ namespace Engine
     class Sampler;
     class RenderTarget;
     class RenderPass;
+    class Texture;
 
     struct RHI_Object {
         FORCE_INLINE Identifier id() const
@@ -113,8 +115,8 @@ namespace Engine
         virtual String renderer() VIRTUAL_METHOD;
 
 
-        virtual RHI_Sampler* create_sampler(const Sampler*)                                               = 0;
-        virtual RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) = 0;
+        virtual RHI_Sampler* create_sampler(const Sampler*)                                     = 0;
+        virtual RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data) = 0;
 
         virtual RHI_RenderTarget* window_render_target()                                  = 0;
         virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target) = 0;
@@ -129,6 +131,7 @@ namespace Engine
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                 = 0;
         virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                    = 0;
         virtual RHI_RenderPass* window_render_pass()                                                 = 0;
+        virtual ColorFormatFeatures color_format_features(ColorFormat format)                        = 0;
 
         virtual ~RHI(){};
     };

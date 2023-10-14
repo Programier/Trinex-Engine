@@ -8,6 +8,7 @@
 #define vulkan_debug_log debug_log
 #define vulkan_info_log info_log
 #define MAIN_FRAMEBUFFERS_COUNT 2
+#define USE_INTEGRATED_GPU 0
 #define API Engine::VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
 

@@ -1,3 +1,4 @@
+#include <Graphics/texture.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_shader.hpp>
@@ -197,16 +198,16 @@ namespace Engine
     }
 
 
-    VulkanTexture& VulkanTexture::create(const TextureCreateInfo& info, TextureType type, const byte* data)
+    VulkanTexture& VulkanTexture::create(const Texture* texture, TextureType type, const byte* data)
     {
         destroy();
 
         _M_type = type;
-        size.setWidth(info.size.x).setHeight(info.size.y);
-        _M_engine_format  = info.format;
-        _M_mipmap_count   = info.mipmap_count;
+        size.setWidth(texture->size.x).setHeight(texture->size.y);
+        _M_engine_format  = texture->format;
+        _M_mipmap_count   = texture->mipmap_count;
         _M_vulkan_format  = parse_engine_format(_M_engine_format);
-        _M_base_mip_level = info.base_mip_level;
+        _M_base_mip_level = texture->base_mip_level;
 
 
         static vk::ImageCreateFlagBits default_flags = {};
@@ -214,7 +215,7 @@ namespace Engine
         vk::ImageUsageFlags _M_usage_flags;
         vk::MemoryPropertyFlags _M_memory_flags;
 
-        ColorFormatInfo format_info     = ColorFormatInfo::info_of(info.format);
+        ColorFormatInfo format_info     = ColorFormatInfo::info_of(texture->format);
         ColorFormatAspect format_aspect = format_info.aspect();
 
         if (format_aspect == ColorFormatAspect::Depth || format_aspect == ColorFormatAspect::Stencil ||
@@ -229,7 +230,7 @@ namespace Engine
             _M_usage_flags = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
                              vk::ImageUsageFlagBits::eSampled;
 
-            if (can_use_color_as_color_attachment())
+            if (texture->is_render_target_texture() && can_use_color_as_color_attachment())
             {
                 _M_usage_flags |= vk::ImageUsageFlagBits::eColorAttachment;
             }
@@ -237,16 +238,16 @@ namespace Engine
             _M_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
         }
 
-        API->create_image(this, vk::ImageTiling::eOptimal,
+        API->create_image(this, vk::ImageTiling::eLinear,
                           _M_type == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
                           _M_usage_flags, _M_memory_flags, _M_image, _M_image_memory, layer_count());
 
 
         // Creating image view
-        _M_swizzle = vk::ComponentMapping(get_type(info.swizzle.R), get_type(info.swizzle.G), get_type(info.swizzle.B),
-                                          get_type(info.swizzle.A));
+        _M_swizzle = vk::ComponentMapping(get_type(texture->swizzle.R), get_type(texture->swizzle.G),
+                                          get_type(texture->swizzle.B), get_type(texture->swizzle.A));
         vk::ImageViewCreateInfo view_info({}, _M_image, view_type(), _M_vulkan_format, _M_swizzle,
-                                          subresource_range(info.base_mip_level));
+                                          subresource_range(texture->base_mip_level));
         _M_image_view = API->_M_device.createImageView(view_info);
 
 
@@ -271,7 +272,7 @@ namespace Engine
         {
             if (type == TextureType::Texture2D)
             {
-                update_texture_2D(info.size, {0, 0}, 0, data);
+                update_texture_2D(texture->size, {0, 0}, 0, data);
             }
         }
         return *this;
@@ -510,9 +511,39 @@ namespace Engine
         destroy();
     }
 
-    RHI_Texture* VulkanAPI::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
+    RHI_Texture* VulkanAPI::create_texture(const Texture* texture, TextureType type, const byte* data)
     {
-        return &(new VulkanTexture())->create(info, type, data);
+        return &(new VulkanTexture())->create(texture, type, data);
+    }
+
+#define write_feature_flag(name)                                                                                       \
+    if ((flags & vk::FormatFeatureFlagBits::e##name) == vk::FormatFeatureFlagBits::e##name)                            \
+    {                                                                                                                  \
+        out |= static_cast<EnumerateType>(ColorFormatFeatures::name);                                                  \
+    }
+
+    static void write_features(vk::FormatFeatureFlags flags, Flags& out)
+    {
+        write_feature_flag(StorageImage);
+        write_feature_flag(StorageImageAtomic);
+        write_feature_flag(UniformTexelBuffer);
+        write_feature_flag(StorageTexelBuffer);
+        write_feature_flag(StorageTexelBufferAtomic);
+        write_feature_flag(VertexBuffer);
+        write_feature_flag(ColorAttachment);
+        write_feature_flag(ColorAttachmentBlend);
+        write_feature_flag(DepthStencilAttachment);
+        write_feature_flag(SampledImageFilterLinear);
+    }
+
+    ColorFormatFeatures VulkanAPI::color_format_features(ColorFormat format)
+    {
+        vk::Format vulkan_format        = parse_engine_format(format);
+        vk::FormatProperties properties = _M_physical_device.getFormatProperties(vulkan_format);
+        ColorFormatFeatures out_features;
+        write_features(properties.bufferFeatures, out_features.buffer);
+        write_features(properties.linearTilingFeatures, out_features.image);
+        return out_features;
     }
 
 }// namespace Engine

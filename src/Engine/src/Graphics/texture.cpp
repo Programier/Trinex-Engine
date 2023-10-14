@@ -20,7 +20,7 @@ namespace Engine
     {
 
         ApiObject::destroy();
-        _M_rhi_binding_object = EngineInstance::instance()->api_interface()->create_texture(info, _M_type, ptr);
+        _M_rhi_binding_object = EngineInstance::instance()->rhi()->create_texture(this, _M_type, ptr);
 
         return *this;
     }
@@ -44,9 +44,20 @@ namespace Engine
         return *this;
     }
 
-    Size2D Texture::size(MipMapLevel level) const
+    Texture& Texture::setup_render_target_texture()
     {
-        Size2D current_size = info.size;
+        _M_use_for_render_target = true;
+        return *this;
+    }
+
+    bool Texture::is_render_target_texture() const
+    {
+        return _M_use_for_render_target;
+    }
+
+    Size2D Texture::mip_size(MipMapLevel level) const
+    {
+        Size2D current_size = size;
         for (MipMapLevel i = 0; i < level; i++)
         {
             current_size /= 2;
@@ -104,7 +115,11 @@ namespace Engine
             return false;
         }
 
-        (*archive) & info;
+        (*archive) & size;
+        (*archive) & base_mip_level;
+        (*archive) & mipmap_count;
+        (*archive) & format;
+        (*archive) & swizzle;
         return static_cast<bool>(*archive) && _M_resources->archive_process(archive);
     }
 

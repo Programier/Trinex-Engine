@@ -27,7 +27,7 @@ namespace Engine
 
     static void on_resize(const Event& event)
     {
-        engine_instance->api_interface()->on_window_size_changed();
+        engine_instance->rhi()->on_window_size_changed();
         Window* window                  = engine_instance->window();
         const WindowEvent& window_event = event.get<const WindowEvent&>();
         Size2D k                        = Size2D(window_event.width, window_event.height) / window->cached_size();

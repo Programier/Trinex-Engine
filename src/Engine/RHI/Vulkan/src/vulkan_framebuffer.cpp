@@ -78,18 +78,18 @@ namespace Engine
 
 
         _M_viewport.x     = 0;
-        _M_viewport.width = _M_size.width;
+        _M_viewport.width = static_cast<float>(_M_size.width);
 
         if (is_custom())
         {
             _M_viewport.y      = 0;
-            _M_viewport.height = _M_size.height;
+            _M_viewport.height = static_cast<float>(_M_size.height);
         }
         else
         {
 
-            _M_viewport.y      = _M_size.height;
-            _M_viewport.height = -_M_size.height;
+            _M_viewport.y      = static_cast<float>(_M_size.height);
+            _M_viewport.height = -static_cast<float>(_M_size.height);
         }
 
         _M_viewport.minDepth = 0.0f;

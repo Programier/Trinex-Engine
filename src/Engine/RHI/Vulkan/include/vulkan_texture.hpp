@@ -1,6 +1,6 @@
 #pragma once
 #include <Graphics/rhi.hpp>
-#include <vulkan/vulkan.hpp>
+#include <vulkan_headers.hpp>
 
 
 namespace Engine
@@ -21,7 +21,7 @@ namespace Engine
         uint_t _M_mipmap_count;
         uint_t _M_base_mip_level;
 
-        VulkanTexture& create(const TextureCreateInfo& info, TextureType type, const byte* data);
+        VulkanTexture& create(const Texture* texture, TextureType type, const byte* data);
         VulkanTexture& destroy();
 
         vk::ImageSubresourceRange subresource_range(MipMapLevel base);

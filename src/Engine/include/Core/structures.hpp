@@ -87,44 +87,9 @@ namespace Engine
     using SizeLimits2D = SizeLimits<Size2D>;
     using SizeLimits3D = SizeLimits<Size3D>;
 
-
     using AABB_1D = SizeLimits1D;
     using AABB_2D = SizeLimits2D;
     using AABB_3D = SizeLimits3D;
-
-    class ColorFormatInfo
-    {
-    private:
-        EnumerateType _M_value;
-
-    public:
-        FORCE_INLINE byte components() const
-        {
-            return static_cast<byte>(_M_value & byte(7));
-        }
-
-        FORCE_INLINE byte component_size() const
-        {
-            return static_cast<byte>((_M_value >> 3) & byte(7));
-        }
-
-        FORCE_INLINE ColorFormatMetaData metadata() const
-        {
-            return static_cast<ColorFormatMetaData>((_M_value >> 6) & byte(15));
-        }
-
-        FORCE_INLINE ColorFormatAspect aspect() const
-        {
-            return static_cast<ColorFormatAspect>((_M_value >> 10) & byte(7));
-        }
-
-        static FORCE_INLINE ColorFormatInfo info_of(ColorFormat format)
-        {
-            ColorFormatInfo info;
-            info._M_value = static_cast<EnumerateType>(format);
-            return info;
-        }
-    };
 
     struct MessageBoxButton {
         String name;

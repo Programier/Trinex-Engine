@@ -18,16 +18,13 @@
 
 namespace Engine
 {
-    Vector<const char*> VulkanAPI::device_extensions = {
-            VK_KHR_MAINTENANCE1_EXTENSION_NAME,
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-            VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME,
-    };
+    Vector<const char*> VulkanAPI::device_extensions = {VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+                                                        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                                                        VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME};
 
 #if ENABLE_VALIDATION_LAYERS
     const Vector<const char*> validation_layers = {
             "VK_LAYER_KHRONOS_validation",
-
     };
 #endif
 
@@ -228,21 +225,26 @@ namespace Engine
 
         phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
         phys_device_selector.add_required_extensions(device_extensions);
+        phys_device_selector.allow_any_gpu_device_type(false);
+#if USE_INTEGRATED_GPU
+        phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
+#else
+        phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
+#endif
+        phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(_M_surface));
 
-        auto phys_device_ret = phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(_M_surface)).select();
-        if (!phys_device_ret)
+        auto selected_device = phys_device_selector.select();
+        if (!selected_device.has_value())
         {
-            throw std::runtime_error(phys_device_ret.error().message());
+            throw std::runtime_error(selected_device.error().message());
         }
 
-
-        _M_physical_device = vk::PhysicalDevice(phys_device_ret.value().physical_device);
+        _M_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
 
         _M_properties = _M_physical_device.getProperties();
         _M_renderer   = _M_properties.deviceName.data();
 
-
-        vkb::DeviceBuilder device_builder(phys_device_ret.value());
+        vkb::DeviceBuilder device_builder(selected_device.value());
         vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
         device_builder.add_pNext(&idx_byte_feature);
 
@@ -303,17 +305,26 @@ namespace Engine
         }
     }
 
+    vk::Extent2D VulkanAPI::surface_size() const
+    {
+        return _M_physical_device.getSurfaceCapabilitiesKHR(_M_surface).currentExtent;
+    }
+
 
     void VulkanAPI::create_swap_chain()
     {
-        auto size          = _M_window->size();
-        window_data.width  = size.x;
-        window_data.height = size.y;
+        auto size          = surface_size();
+        window_data.width  = size.width;
+        window_data.height = size.height;
+
+        vulkan_info_log("Vulkan", "New swapchaing size: {%d, %d}", size.width, size.height);
+
+        SwapChain* new_swapchain = new SwapChain();
 
         if (_M_swap_chain)
             delete _M_swap_chain;
 
-        _M_swap_chain = new SwapChain();
+        _M_swap_chain = new_swapchain;
     }
 
     vk::Format VulkanAPI::find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
@@ -323,11 +334,7 @@ namespace Engine
         {
             vk::FormatProperties properties = _M_physical_device.getFormatProperties(format);
 
-            if (tiling == vk::ImageTiling::eLinear && (properties.linearTilingFeatures & features) == features)
-            {
-                return format;
-            }
-            else if (tiling == vk::ImageTiling::eOptimal && (properties.optimalTilingFeatures & features) == features)
+            if (tiling != vk::ImageTiling::eDrmFormatModifierEXT && (properties.linearTilingFeatures & features) == features)
             {
                 return format;
             }
@@ -385,9 +392,9 @@ namespace Engine
 
         image                                      = API->_M_device.createImage(image_info);
         vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
-        vk::MemoryAllocateInfo alloc_info(
-                memory_requirements.size,
-                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostCoherent));
+        auto memory_type =
+                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostCoherent);
+        vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
         image_memory = API->_M_device.allocateMemory(alloc_info);
         API->_M_device.bindImageMemory(image, image_memory, 0);
         return *this;
@@ -414,10 +421,13 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::on_window_size_changed()
     {
-        _M_need_recreate_swap_chain = true;
-
-        auto size = _M_window->size();
-        API->_M_main_framebuffer->size(static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y));
+        auto size = surface_size();
+        if (size.width != static_cast<std::uint32_t>(window_data.width) ||
+            size.height != static_cast<uint32_t>(window_data.height))
+        {
+            _M_need_recreate_swap_chain = true;
+            API->_M_main_framebuffer->size(size.width, size.height);
+        }
         return *this;
     }
 

@@ -110,16 +110,16 @@ namespace Engine
             }
 
             // Initialize API
-            _M_api_interface = loader();
+            _M_rhi = loader();
 
-            if (!_M_api_interface)
+            if (!_M_rhi)
             {
                 throw EngineException("Failed to init API");
             }
         }
         else
         {
-            _M_api_interface = new NoApi();
+            _M_rhi = new NoApi();
         }
         return *this;
     }
@@ -215,8 +215,7 @@ namespace Engine
         _M_api = get_api_by_name(engine_config.api);
 
         init_api();
-
-        _M_renderer = new Renderer(_M_api_interface);
+        _M_renderer = new Renderer(_M_rhi);
 
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
@@ -228,6 +227,12 @@ namespace Engine
         if (engine_config.max_g_buffer_width < 200)
         {
             engine_config.max_g_buffer_width = static_cast<uint_t>(Monitor::width());
+        }
+
+        // If API is not NoApi, than we need to init Window
+        if(_M_api != EngineAPI::NoAPI)
+        {
+            create_window();
         }
 
         auto status = commandlet->execute(argc - 1, argv + 1);
@@ -243,9 +248,9 @@ namespace Engine
         return status;
     }
 
-    RHI* EngineInstance::api_interface() const
+    RHI* EngineInstance::rhi() const
     {
-        return _M_api_interface;
+        return _M_rhi;
     }
 
     class Renderer* EngineInstance::renderer() const
@@ -333,9 +338,9 @@ stack_address:
         Object::force_garbage_collection();
 
         delete _M_renderer;
-        delete _M_api_interface;
+        delete _M_rhi;
 
-        _M_api_interface                                                    = nullptr;
+        _M_rhi                                                    = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
         Library::close_all();
 
@@ -344,7 +349,7 @@ stack_address:
 
     bool EngineInstance::check_format_support(ColorFormat format)
     {
-        return _M_api_interface->check_format_support(format);
+        return _M_rhi->check_format_support(format);
     }
 
     EngineSystem* EngineInstance::engine_system() const
@@ -352,16 +357,15 @@ stack_address:
         return _M_engine_system;
     }
 
-    Window* EngineInstance::create_window()
+    void EngineInstance::create_window()
     {
-        if (_M_api_interface == nullptr)
+        if (_M_rhi == nullptr)
         {
             throw EngineException("Cannot create window without API!");
         }
 
         String libname = Strings::format("WindowSystem{}", engine_config.window_system);
         Library library(libname);
-
 
         WindowInterface* interface = nullptr;
 
@@ -374,10 +378,14 @@ stack_address:
             }
         }
 
-
-        if (!interface)
+        if(!interface)
         {
-            return nullptr;
+            throw EngineException("Cannot create window interface!");
+        }
+
+        if (interface->has_error())
+        {
+            throw EngineException(interface->error());
         }
 
         global_window_config.update();
@@ -385,7 +393,8 @@ stack_address:
         interface->init(global_window_config);
 
         interface->update_monitor_info(const_cast<MonitorInfo&>(Monitor::info()));
-        _M_api_interface->init_window(interface, global_window_config);
+        _M_rhi->init_window(interface, global_window_config);
+        info_log("TrinexEngine", "Selected GPI: %s", _M_rhi->renderer().c_str());
 
         if (engine_config.enable_g_buffer)
         {
@@ -394,8 +403,7 @@ stack_address:
 
         _M_window = Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), interface);
 
-
-        return window();
+        AfterRHIInitializeController().execute();
     }
 
     static const char* thread_name(ThreadType type)

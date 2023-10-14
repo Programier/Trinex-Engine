@@ -218,12 +218,4 @@ namespace Engine
         CompareFunc compare_func = CompareFunc::Always;
         bool unnormalized_coordinates;
     };
-
-    struct TextureCreateInfo {
-        Size2D size                = {1, 1};
-        MipMapLevel base_mip_level = 0;
-        MipMapLevel mipmap_count   = 1;
-        ColorFormat format         = ColorFormat::R8G8B8A8Unorm;
-        SwizzleRGBA swizzle;
-    };
 }// namespace Engine

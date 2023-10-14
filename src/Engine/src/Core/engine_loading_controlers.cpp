@@ -33,6 +33,12 @@ namespace Engine
         return _M_init_list;
     }
 
+    static CallbacksList& after_rhi_initialize_list()
+    {
+        static CallbacksList _M_init_list;
+        return _M_init_list;
+    }
+
     static CallbacksList& preinitialize_list()
     {
         static CallbacksList _M_init_list;
@@ -132,6 +138,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(PostDestroyController, post_terminate_list);
     IMPLEMENT_CONTROLLER(DestroyController, terminate_list);
     IMPLEMENT_CONTROLLER(InitializeController, initialize_list);
+    IMPLEMENT_CONTROLLER(AfterRHIInitializeController, after_rhi_initialize_list);
     IMPLEMENT_CONTROLLER(PreInitializeController, preinitialize_list);
 
 }// namespace Engine

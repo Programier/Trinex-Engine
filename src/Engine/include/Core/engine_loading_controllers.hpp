@@ -35,6 +35,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(PostDestroyController);
     IMPLEMENT_CONTROLLER(DestroyController);
     IMPLEMENT_CONTROLLER(InitializeController);
+    IMPLEMENT_CONTROLLER(AfterRHIInitializeController);
     IMPLEMENT_CONTROLLER(PreInitializeController);
 
 

@@ -22,14 +22,14 @@ namespace Engine
         WindowRenderPass& rhi_create() override
         {
             _M_can_delete      = false;
-            _M_rhi_render_pass = engine_instance->api_interface()->window_render_pass();
+            _M_rhi_render_pass = engine_instance->rhi()->window_render_pass();
             return *this;
         }
     };
 
     Window::Window(WindowInterface* interface) : _M_interface(interface)
     {
-        _M_rhi_render_target = EngineInstance::instance()->api_interface()->window_render_target();
+        _M_rhi_render_target = EngineInstance::instance()->rhi()->window_render_target();
         render_pass          = &Object::new_instance<WindowRenderPass>()->rhi_create();
 
 
@@ -272,7 +272,7 @@ namespace Engine
 
     Window& Window::swap_buffers()
     {
-        engine_instance->api_interface()->swap_buffer();
+        engine_instance->rhi()->swap_buffer();
         return *this;
     }
 

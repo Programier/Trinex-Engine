@@ -1,7 +1,8 @@
 #pragma once
+#include <Core/color_format.hpp>
 #include <Core/rhi_initializers.hpp>
 #include <stdexcept>
-#include <vulkan/vulkan.hpp>
+#include <vulkan_headers.hpp>
 
 namespace Engine
 {

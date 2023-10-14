@@ -8,10 +8,10 @@
 #include <Graphics/rhi.hpp>
 #include <VkBootstrap.h>
 #include <optional>
-#include <vulkan/vulkan.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_framebuffer.hpp>
+#include <vulkan_headers.hpp>
 #include <vulkan_swap_chain.hpp>
 
 namespace Engine
@@ -81,6 +81,8 @@ namespace Engine
         void create_command_buffer();
         void create_render_pass();
 
+        vk::Extent2D surface_size() const;
+
         VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
                                  vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
         uint32_t find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties);
@@ -136,7 +138,7 @@ namespace Engine
 
 
         RHI_Sampler* create_sampler(const Sampler*) override;
-        RHI_Texture* create_texture(const TextureCreateInfo&, TextureType, const byte* data) override;
+        RHI_Texture* create_texture(const Texture*, TextureType, const byte* data) override;
         RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
@@ -148,6 +150,7 @@ namespace Engine
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
+        ColorFormatFeatures color_format_features(ColorFormat format) override;
 
 
         ~VulkanAPI();

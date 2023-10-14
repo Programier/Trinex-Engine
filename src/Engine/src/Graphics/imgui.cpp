@@ -19,24 +19,24 @@ namespace Engine::ImGuiRenderer
         }
 
         window->initialize_imgui();
-        engine_instance->api_interface()->imgui_init();
+        engine_instance->rhi()->imgui_init();
     }
 
     ENGINE_EXPORT void terminate()
     {
-        engine_instance->api_interface()->imgui_terminate();
+        engine_instance->rhi()->imgui_terminate();
         engine_instance->window()->terminate_imgui();
     }
 
     ENGINE_EXPORT void render()
     {
         ImGui::Render();
-        engine_instance->api_interface()->imgui_render();
+        engine_instance->rhi()->imgui_render();
     }
 
     ENGINE_EXPORT void new_frame()
     {
-        engine_instance->api_interface()->imgui_new_frame();
+        engine_instance->rhi()->imgui_new_frame();
         engine_instance->window()->new_imgui_frame();
         ImGui::NewFrame();
     }

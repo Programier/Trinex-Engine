@@ -67,6 +67,8 @@ namespace Engine
         virtual bool vsync()                                                                             = 0;
         virtual int_t create_message_box(const MessageBoxCreateInfo& info)                               = 0;
         virtual WindowInterface& create_notify(const NotifyCreateInfo& info)                             = 0;
+        virtual String error() const                                                                     = 0;
+        virtual bool has_error() const                                                                   = 0;
 
         virtual ~WindowInterface() = default;
     };

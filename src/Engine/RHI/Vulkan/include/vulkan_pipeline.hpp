@@ -1,6 +1,6 @@
 #pragma once
 #include <Graphics/rhi.hpp>
-#include <vulkan/vulkan.hpp>
+#include <vulkan_headers.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_unique_per_frame.hpp>

@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/api_object.hpp>
 #include <Core/enums.hpp>
+#include <Core/color_format.hpp>
 
 namespace Engine
 {

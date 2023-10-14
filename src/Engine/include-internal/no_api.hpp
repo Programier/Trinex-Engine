@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/color_format.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -34,7 +35,7 @@ namespace Engine
 
 
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
-        RHI_Texture* create_texture(const TextureCreateInfo&, TextureType type, const byte* data) override;
+        RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data) override;
         RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
@@ -46,6 +47,7 @@ namespace Engine
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
+        ColorFormatFeatures color_format_features(ColorFormat) override;
 
         template<typename Type>
         operator Type()

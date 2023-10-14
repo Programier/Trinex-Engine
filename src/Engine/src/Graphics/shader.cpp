@@ -69,14 +69,14 @@ namespace Engine
     VertexShader& VertexShader::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_shader = engine_instance->api_interface()->create_vertex_shader(this);
+        _M_rhi_shader = engine_instance->rhi()->create_vertex_shader(this);
         return *this;
     }
 
     FragmentShader& FragmentShader::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_shader = engine_instance->api_interface()->create_fragment_shader(this);
+        _M_rhi_shader = engine_instance->rhi()->create_fragment_shader(this);
         return *this;
     }
 }// namespace Engine

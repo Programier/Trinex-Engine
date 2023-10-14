@@ -135,7 +135,7 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_Texture* NoApi::create_texture(const TextureCreateInfo&, TextureType, const byte*)
+    RHI_Texture* NoApi::create_texture(const Texture*, TextureType, const byte*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
@@ -205,6 +205,12 @@ namespace Engine
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
+    }
+
+    ColorFormatFeatures NoApi::color_format_features(ColorFormat)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return {};
     }
 
 }// namespace Engine

@@ -98,7 +98,7 @@ namespace Engine
         Buffer* buffer = resources();
 
         destroy();
-        _M_rhi_vertex_buffer = engine_instance->api_interface()->create_vertex_buffer(buffer->size(), buffer->data());
+        _M_rhi_vertex_buffer = engine_instance->rhi()->create_vertex_buffer(buffer->size(), buffer->data());
         return *this;
     }
 
@@ -145,7 +145,7 @@ namespace Engine
         }
 
         Super::rhi_create();
-        _M_rhi_index_buffer = EngineInstance::instance()->api_interface()->create_index_buffer(
+        _M_rhi_index_buffer = EngineInstance::instance()->rhi()->create_index_buffer(
                 _M_resources->size(), _M_resources->data(), _M_component);
         return *this;
     }
@@ -228,7 +228,7 @@ namespace Engine
     UniformBuffer& UniformBuffer::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_uniform_buffer = engine_instance->api_interface()->create_uniform_buffer(init_size, init_data);
+        _M_rhi_uniform_buffer = engine_instance->rhi()->create_uniform_buffer(init_size, init_data);
         return *this;
     }
 
@@ -246,7 +246,7 @@ namespace Engine
     {
         Super::rhi_create();
 
-        _M_rhi_ssbo = engine_instance->api_interface()->create_ssbo(init_size, init_data);
+        _M_rhi_ssbo = engine_instance->rhi()->create_ssbo(init_size, init_data);
         return *this;
     }
 

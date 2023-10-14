@@ -1,6 +1,5 @@
 #include <vulkan_types.hpp>
 
-
 namespace Engine
 {
 

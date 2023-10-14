@@ -37,7 +37,7 @@
             2,
             3
         ],
-        "vsync": true,
+        "vsync": false,
         "resizable": true
     }
 }

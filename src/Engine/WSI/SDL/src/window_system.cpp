@@ -103,7 +103,8 @@ namespace Engine
                 SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             }
             else if (_M_api == SDL_WINDOW_VULKAN)
-            {}
+            {
+            }
         }
     }
 
@@ -434,7 +435,7 @@ namespace Engine
         int_t b_mask = 0x00FF0000;
         int_t a_mask = (channels == 4) ? 0xFF000000 : 0;
 #else
-        int_t s = (channels == 4) ? 0 : 8;
+        int_t s      = (channels == 4) ? 0 : 8;
         int_t r_mask = 0xFF000000 >> s;
         int_t g_mask = 0x00FF0000 >> s;
         int_t b_mask = 0x0000FF00 >> s;
@@ -1241,11 +1242,22 @@ namespace Engine
         return *this;
     }
 
+    String WindowSDL::error() const
+    {
+        return SDL_GetError();
+    }
+
+    bool WindowSDL::has_error() const
+    {
+        const char* msg = SDL_GetError();
+        return std::strcmp(msg, "") != 0;
+    }
+
 }// namespace Engine
 
 
 extern "C" FORCE_ENGINE_EXPORT Engine::WindowInterface* load_window_system()
 {
-    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO);
     return new Engine::WindowSDL();
 }

@@ -123,9 +123,9 @@ namespace Engine
             };
 
             texture                      = Object::new_instance<Texture2D>();
-            texture->info.base_mip_level = 0;
-            texture->info.format         = ColorFormat::R8G8B8A8Unorm;
-            texture->info.size           = {2, 2};
+            texture->base_mip_level = 0;
+            texture->format         = ColorFormat::R8G8B8A8Unorm;
+            texture->size           = {2, 2};
             texture->create(image.data());
         }
 
@@ -163,7 +163,7 @@ namespace Engine
         System& update(float dt) override
         {
             Super::update(dt);
-            engine_instance->api_interface()->begin_render();
+            engine_instance->rhi()->begin_render();
             engine_instance->window()->bind();
             pipeline->bind();
             vertices->bind(0, 0);
@@ -173,10 +173,10 @@ namespace Engine
             texture->bind(1);
             ssbo->bind(2);
 
-            engine_instance->api_interface()->draw_indexed(6, 0);
-            engine_instance->api_interface()->end_render();
+            engine_instance->rhi()->draw_indexed(6, 0);
+            engine_instance->rhi()->end_render();
 
-            engine_instance->api_interface()->swap_buffer();
+            engine_instance->rhi()->swap_buffer();
 
             return *this;
         }
@@ -203,8 +203,6 @@ namespace Engine
         int_t execute(int_t argc, char** argv) override
         {
             info_log("HelloTriangle", "Start");
-            engine_instance->create_window();
-
             EventSystem::init_all();
             System::new_system<HelloTriangleSystem>();
 

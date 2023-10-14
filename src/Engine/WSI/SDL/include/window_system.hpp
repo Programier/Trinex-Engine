@@ -85,6 +85,8 @@ namespace Engine
         bool vsync() override;
         int_t create_message_box(const MessageBoxCreateInfo& info) override;
         WindowSDL& create_notify(const NotifyCreateInfo&) override;
+        String error() const override;
+        bool has_error() const override;
 
         // IMGUI
         WindowInterface& initialize_imgui() override;

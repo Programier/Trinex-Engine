@@ -25,7 +25,8 @@ namespace Engine
     VulkanSyncObject& VulkanSyncObject::wait()
     {
         while (vk::Result::eTimeout == API->_M_device.waitForFences(_M_fence, VK_TRUE, UINT64_MAX))
-        {}
+        {
+        }
         return *this;
     }
 
@@ -66,6 +67,12 @@ namespace Engine
     VulkanCommandBuffer& VulkanCommandBuffer::begin()
     {
         sync_object().wait();
+        if (API->_M_need_recreate_swap_chain)
+        {
+            API->wait_idle();
+            API->recreate_swap_chain();
+        }
+
         API->_M_need_update_image_index = true;
         auto current_buffer_index       = API->swapchain_image_index();
 
@@ -109,7 +116,16 @@ namespace Engine
 
         vk::PresentInfoKHR present_info(current_sync_object._M_finished_semaphore, API->_M_swap_chain->_M_swap_chain,
                                         swapchain_index);
-        vk::Result result = API->_M_present_queue.presentKHR(present_info);
+        vk::Result result;
+        try
+        {
+            result = API->_M_present_queue.presentKHR(present_info);
+        }
+        catch (const std::exception& e)
+        {
+            vulkan_error_log("Vulkan", "PresentKHR throw %s!", e.what());
+            result = vk::Result::eErrorOutOfDateKHR;
+        }
 
         switch (result)
         {

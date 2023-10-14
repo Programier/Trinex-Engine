@@ -4,9 +4,9 @@
 #include <Core/engine_config.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
+#include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
-#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
@@ -37,37 +37,36 @@ namespace Engine
     {
         destroy();
         resources(true);
-        TextureCreateInfo& params = info;
 
         static ColorFormat _M_formats[5] = {ColorFormat::R8G8B8A8Sint, ColorFormat::R8Sint, ColorFormat::R8Sint,
                                             ColorFormat::R8G8B8Sint, ColorFormat::R8G8B8A8Sint};
 
-        params.format       = _M_formats[static_cast<int>(image.channels())];
-        params.mipmap_count = 1;
+        format       = _M_formats[static_cast<int>(image.channels())];
+        mipmap_count = 1;
 
         _M_resources->images.clear();
         _M_resources->images.resize(1);
 
         if (image.empty())
         {
-            Buffer tmp          = {100, 100, 100, 255};
-            params.mipmap_count = 1;
-            params.size         = {1, 1};
-            _M_resources->images[0].create(params.size, 4, tmp);
+            Buffer tmp   = {100, 100, 100, 255};
+            mipmap_count = 1;
+            size         = {1, 1};
+            _M_resources->images[0].create(size, 4, tmp);
 
             create();
-            update(params.size, {0, 0}, 0, tmp.data());
+            update(size, {0, 0}, 0, tmp.data());
         }
         else
         {
             info_log("Image data", "%zu, {%f, %f}\n", image.vector().size(), image.size().x, image.size().y);
-            params.mipmap_count =
+            mipmap_count =
                     static_cast<MipMapLevel>(std::floor(std::log2(std::max(
                             static_cast<MipMapLevel>(image.width()), static_cast<MipMapLevel>(image.height()))))) +
                     1;
 
-            params.mipmap_count = 8;
-            params.size         = image.size();
+            mipmap_count = 8;
+            size         = image.size();
             create();
             update(image.size(), {0, 0}, 0, image.vector().data());
             generate_mipmap();
@@ -124,9 +123,9 @@ namespace Engine
 
     Texture2D& Texture2D::read_image(Image& image, MipMapLevel level)
     {
-        auto mip_size   = size(level);
-        image._M_width  = static_cast<int_t>(mip_size.x);
-        image._M_height = static_cast<int_t>(mip_size.y);
+        auto texture_mip_size = mip_size(level);
+        image._M_width        = static_cast<int_t>(texture_mip_size.x);
+        image._M_height       = static_cast<int_t>(texture_mip_size.y);
         read_data(image._M_data, level);
         image._M_channels = image._M_data.size() / static_cast<std::size_t>(image._M_width * image._M_height);
         return *this;

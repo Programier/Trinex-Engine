@@ -1,9 +1,10 @@
 #pragma once
+#include <Core/color_format.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Core/system.hpp>
 #include <Core/structures.hpp>
+#include <Core/system.hpp>
 
 namespace Engine
 {
@@ -40,7 +41,7 @@ namespace Engine
         class Renderer* _M_renderer = nullptr;
         Window* _M_window           = nullptr;
 
-        RHI* _M_api_interface = nullptr;
+        RHI* _M_rhi = nullptr;
         static EngineInstance* _M_instance;
         BitSet<static_cast<EnumerateType>(EngineInstanceFlags::__COUNT__)> _M_flags;
         EngineAPI _M_api;
@@ -53,6 +54,9 @@ namespace Engine
         ~EngineInstance();
         int start(int argc, char** argv);
 
+    private:
+        void create_window();
+
     public:
         ENGINE_EXPORT static const String& project_name();
         ENGINE_EXPORT static const String& project_name(const String& name);
@@ -61,14 +65,13 @@ namespace Engine
         SystemName system_type() const;
         EngineAPI api() const;
         bool is_inited() const;
-        RHI* api_interface() const;
+        RHI* rhi() const;
         class Renderer* renderer() const;
         static bool is_on_stack(void* ptr);
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
         bool check_format_support(ColorFormat format);
-        Window* create_window();
         EngineSystem* engine_system() const;
 
         Thread* create_thread(ThreadType type);

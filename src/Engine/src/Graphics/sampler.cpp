@@ -14,7 +14,7 @@ namespace Engine
     Sampler& Sampler::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_sampler = engine_instance->api_interface()->create_sampler(this);
+        _M_rhi_sampler = engine_instance->rhi()->create_sampler(this);
         return *this;
     }
 
