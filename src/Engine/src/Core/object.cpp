@@ -553,7 +553,8 @@ namespace Engine
             }
         }
 
-        prev_index += Constants::name_separator.length();
+        if (name[prev_index] == Constants::name_separator[0])
+            prev_index += Constants::name_separator.length();
         String new_name        = name.substr(prev_index, name.length() - prev_index);
         Object* founded_object = package->find_object(new_name, false);
         if (founded_object == nullptr)

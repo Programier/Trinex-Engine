@@ -14,7 +14,9 @@ SET(CMAKE_INSTALL_RPATH "")
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
-add_executable(TrinexEngineLauncher ${SOURCES})
+add_executable(TrinexEngineLauncher ${SOURCES}
+    test_object.cpp
+    test_camera.cpp)
 target_link_libraries(TrinexEngineLauncher PRIVATE TrinexEngine)
 set_target_properties(TrinexEngineLauncher PROPERTIES LINK_FLAGS "-Wl,-rpath,./libs/")
 

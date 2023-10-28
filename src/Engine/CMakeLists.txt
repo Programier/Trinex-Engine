@@ -5,7 +5,7 @@ project(TrinexEngine LANGUAGES CXX)
 option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
 option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
 option(TRINEX_WITH_SDL "Build SDL2 WindowSystem shared library" ON)
-option(TRINEX_WITH_SHADER_COMPILERS "Build engine with shader compilers" ON)
+option(TRINEX_WITH_SHADER_COMPILERS "Build engine with shader compilers" OFF)
 
 
 set(CMAKE_CXX_STANDARD 20)
@@ -158,7 +158,7 @@ install(TARGETS TrinexEngine DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 install(DIRECTORY configs DESTINATION ${TRINEX_CONFIGS_INSTALL_DIR})
 install(DIRECTORY shaders DESTINATION ${TRINEX_SHADERS_INSTALL_DIR})
 
-if (TRINEX_WITH_SHADER_COMPILERS)
+if (FALSE)
     # Compile glslang
     set(SPIRV_CROSS_STATIC ON)
     set(SPIRV_CROSS_SHARED OFF)

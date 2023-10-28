@@ -43,6 +43,7 @@ namespace Engine
     const Vector<ColorFormat>& ColorFormatInfo::all_formats()
     {
         static const Vector<ColorFormat> formats = {
+                ColorFormat::Undefined,
                 ColorFormat::R8Unorm,
                 ColorFormat::R8Snorm,
                 ColorFormat::R8Uscaled,

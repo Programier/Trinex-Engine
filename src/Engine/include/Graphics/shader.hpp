@@ -15,7 +15,6 @@ namespace Engine
     public:
         declare_class(Shader, ApiObject);
 
-
     public:
         struct UniformBuffer {
             String name;
@@ -47,6 +46,9 @@ namespace Engine
 
         Buffer text_code;
         Buffer binary_code;
+
+        static size_t stride_of(ShaderDataType type);
+        static EnumerateType color_format_of(ShaderDataType type);
     };
 
     class ENGINE_EXPORT VertexShader : public Shader

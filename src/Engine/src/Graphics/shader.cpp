@@ -15,41 +15,6 @@
 
 namespace Engine
 {
-    using LocalShaderTypes = Map<std::type_index, typeof(ShaderDataType::Bool)>;
-
-    static const LocalShaderTypes& shader_types()
-    {
-        static const LocalShaderTypes types = {
-                {std::type_index(typeid(bool)), ShaderDataType::Bool},
-                {std::type_index(typeid(int_t)), ShaderDataType::Int},
-                {std::type_index(typeid(uint_t)), ShaderDataType::UInt},
-                {std::type_index(typeid(float)), ShaderDataType::Float},
-                {std::type_index(typeid(Vector2D)), ShaderDataType::Vec2},
-                {std::type_index(typeid(Vector3D)), ShaderDataType::Vec3},
-                {std::type_index(typeid(Vector4D)), ShaderDataType::Vec4},
-                {std::type_index(typeid(IntVector2D)), ShaderDataType::IVec2},
-                {std::type_index(typeid(IntVector3D)), ShaderDataType::IVec3},
-                {std::type_index(typeid(IntVector4D)), ShaderDataType::IVec4},
-                {std::type_index(typeid(UIntVector2D)), ShaderDataType::UVec2},
-                {std::type_index(typeid(UIntVector3D)), ShaderDataType::UVec3},
-                {std::type_index(typeid(UIntVector4D)), ShaderDataType::UVec4},
-                {std::type_index(typeid(BoolVector2D)), ShaderDataType::BVec2},
-                {std::type_index(typeid(BoolVector3D)), ShaderDataType::BVec3},
-                {std::type_index(typeid(BoolVector4D)), ShaderDataType::BVec4},
-                {std::type_index(typeid(Matrix2f)), ShaderDataType::Mat2},
-                {std::type_index(typeid(Matrix3f)), ShaderDataType::Mat3},
-                {std::type_index(typeid(Matrix4f)), ShaderDataType::Mat4},
-        };
-
-        return types;
-    }
-
-    ENGINE_EXPORT void ShaderDataType::private_type_of(ShaderDataType& result, const std::type_index& index)
-    {
-        result.type = shader_types().find(index)->second;
-    }
-
-
     implement_class(Shader, "Engine");
     implement_default_initialize_class(Shader);
 
@@ -72,5 +37,17 @@ namespace Engine
         rhi_destroy();
         _M_rhi_shader = engine_instance->rhi()->create_fragment_shader(this);
         return *this;
+    }
+
+    size_t Shader::stride_of(ShaderDataType type)
+    {
+        size_t stride = static_cast<size_t>(type);
+        return stride >> 25;
+    }
+
+    EnumerateType Shader::color_format_of(ShaderDataType type)
+    {
+        EnumerateType color_index = (static_cast<EnumerateType>(type) >> 18) & 127;
+        return static_cast<EnumerateType>(ColorFormatInfo::all_formats()[color_index]);
     }
 }// namespace Engine

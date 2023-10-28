@@ -44,7 +44,6 @@ namespace Engine
 
     DECLARE_GETTER(vk::IndexType, IndexBufferComponent, _M_index_types);
     DECLARE_GETTER(vk::LogicOp, LogicOp, _M_logic_ops);
-    DECLARE_GETTER(vk::Format, ShaderDataType::DataType, _M_shader_data_types);
     DECLARE_GETTER(vk::FrontFace, FrontFace, _M_front_faces);
     DECLARE_GETTER(vk::ComponentSwizzle, SwizzleValue, _M_swizzle_components);
     DECLARE_GETTER(vk::SamplerAddressMode, WrapValue, _M_wrap_values);

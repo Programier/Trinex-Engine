@@ -16,6 +16,7 @@
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window.hpp>
+#include <Graphics/camera.hpp>
 
 
 namespace Engine
@@ -27,17 +28,13 @@ namespace Engine
 
     private:
         static HelloTriangleSystem* _M_instance;
-
-        VertexShader* vertex_shader;
-        FragmentShader* fragment_shader;
         VertexShader* out_vertex_shader;
         FragmentShader* out_fragment_shader;
-        Pipeline* pipeline;
         Pipeline* out_pipeline;
         TexCoordVertexBuffer* vertices;
         IndexBuffer* index_buffer;
         Sampler* sampler;
-        Texture2D* texture;
+        class Camera* camera;
 
         StaticMesh* mesh;
 
@@ -50,76 +47,21 @@ namespace Engine
             reader.read(reinterpret_cast<byte*>(shader->binary_code.data()), shader->binary_code.size());
         }
 
-
-        Material* create_object_material()
-        {
-            Material* material = Object::new_instance<Material>();
-            material->pipeline(pipeline);
-
-            MaterialCombinedSamplerParameter* parameter =
-                    material->create_parameter<MaterialCombinedSamplerParameter>("texture");
-
-            parameter->texture = texture;
-            parameter->sampler = sampler;
-
-            parameter->location.binding = 0;
-            parameter->location.set     = 0;
-
-
-            VertexBufferStream stream;
-            stream.stream   = 0;
-            stream.semantic = VertexBufferSemantic::TexCoord;
-            material->push_stream(stream);
-
-            return material;
-        }
-
-        void load_mesh()
-        {
-            mesh = Object::new_instance<StaticMesh>();
-            mesh->lods.resize(1);
-            StaticMesh::LOD& lod = mesh->lods[0];
-
-            lod.indices = index_buffer;
-            lod.tex_coords.push_back(vertices);
-
-            lod.material = create_object_material();
-            lod.material->instance_cast<Material>()->pipeline(pipeline);
-        }
-
-
         void create_vertex_shader()
         {
-            vertex_shader = Object::new_instance<VertexShader>();
-            load_code(vertex_shader, "./shaders/hello_triangle/vertex.vm");
-
-            vertex_shader->attributes.emplace_back();
-            vertex_shader->attributes.back().name = "position";
-            vertex_shader->attributes.back().rate = VertexAttributeInputRate::Vertex;
-            vertex_shader->attributes.back().type = ShaderDataType::type_of<Vector2D>();
-
-            vertex_shader->rhi_create();
-
 
             out_vertex_shader = Object::new_instance<VertexShader>();
             load_code(out_vertex_shader, "./shaders/resolve_gbuffer/vertex.vm");
             out_vertex_shader->attributes.emplace_back();
             out_vertex_shader->attributes.back().name = "position";
             out_vertex_shader->attributes.back().rate = VertexAttributeInputRate::Vertex;
-            out_vertex_shader->attributes.back().type = ShaderDataType::type_of<Vector2D>();
+            out_vertex_shader->attributes.back().type = ShaderDataType::Vec2;
 
             out_vertex_shader->rhi_create();
         }
 
         void create_fragment_shader()
-        {
-            fragment_shader = Object::new_instance<FragmentShader>();
-            load_code(fragment_shader, "./shaders/hello_triangle/fragment.fm");
-            fragment_shader->combined_samplers.emplace_back();
-            fragment_shader->combined_samplers.back().binding = 0;
-
-            fragment_shader->rhi_create();
-
+        { 
             out_fragment_shader = Object::new_instance<FragmentShader>();
             load_code(out_fragment_shader, "./shaders/resolve_gbuffer/fragment.fm");
             out_fragment_shader->combined_samplers.emplace_back();
@@ -130,15 +72,6 @@ namespace Engine
 
         void create_pipeline()
         {
-            pipeline                  = Object::new_instance<Pipeline>();
-            pipeline->vertex_shader   = vertex_shader;
-            pipeline->fragment_shader = fragment_shader;
-            pipeline->render_pass     = GBuffer::instance()->render_pass;
-            pipeline->color_blending.blend_attachment.emplace_back();
-            pipeline->rasterizer.cull_mode = CullMode::None;
-
-            pipeline->rhi_create();
-
             out_pipeline                  = Object::new_instance<Pipeline>();
             out_pipeline->vertex_shader   = out_vertex_shader;
             out_pipeline->fragment_shader = out_fragment_shader;
@@ -167,24 +100,10 @@ namespace Engine
             }
         }
 
-        void create_texture()
+        void create_sampler()
         {
             sampler = Object::new_instance<Sampler>();
             sampler->rhi_create();
-
-
-            Image image;
-            if (image.load(FileManager::root_file_manager()->work_dir() / "resources/logo.png", true).format() ==
-                ColorFormat::Undefined)
-            {
-                throw EngineException("Cannot load image!");
-            }
-
-            texture                 = Object::new_instance<Texture2D>();
-            texture->base_mip_level = 0;
-            texture->format         = image.format();
-            texture->size           = image.size();
-            texture->rhi_create(image.data());
         }
 
         System& create() override
@@ -196,8 +115,13 @@ namespace Engine
             create_fragment_shader();
             create_pipeline();
             create_vertex_buffers();
-            create_texture();
-            load_mesh();
+            create_sampler();
+
+            extern StaticMesh* load_test_object();
+            mesh = load_test_object();
+
+            extern Camera* create_test_camera();
+            camera = create_test_camera();
 
 
             return *this;
@@ -240,7 +164,7 @@ namespace Engine
         System& update(float dt) override
         {
             Super::update(dt);
-
+            camera->update(dt);
 
             engine_instance->rhi()->begin_render();
             render_gbuffer().render_output();

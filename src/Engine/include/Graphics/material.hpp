@@ -2,7 +2,6 @@
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
-#include <Graphics/shader_resource.hpp>
 #include <Graphics/texture.hpp>
 
 namespace Engine

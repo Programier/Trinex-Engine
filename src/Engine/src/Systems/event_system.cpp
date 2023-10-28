@@ -14,6 +14,7 @@
 #include <Window/window.hpp>
 #include <Window/window_interface.hpp>
 #include <Graphics/rhi.hpp>
+#include <Event/event.hpp>
 
 
 namespace Engine
