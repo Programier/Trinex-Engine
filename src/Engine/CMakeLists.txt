@@ -173,8 +173,7 @@ if (TRINEX_WITH_SHADER_COMPILERS)
 
     set(TRINEX_SHADER_COMPILERS_DIR "${TRINEX_ENGINE_SRC}/ShaderCompilers/")
     file(GLOB TRINEX_SHADER_COMPILERS_SRC "${TRINEX_SHADER_COMPILERS_DIR}*.cpp")
-    add_library(ShaderCompilers SHARED ${TRINEX_SHADER_COMPILERS_SRC}
-        src/Graphics/mesh.cpp)
+    add_library(ShaderCompilers SHARED ${TRINEX_SHADER_COMPILERS_SRC})
     target_link_libraries(ShaderCompilers PRIVATE TrinexEngine glslang SPIRV glslang-default-resource-limits spirv-cross-core spirv-cross-glsl)
     install(TARGETS ShaderCompilers DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 endif()
