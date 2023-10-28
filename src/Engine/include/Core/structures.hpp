@@ -112,11 +112,52 @@ namespace Engine
         MessageBoxType type;
     };
 
-    struct NotifyCreateInfo
-    {
+    struct NotifyCreateInfo {
         String title;
         String message;
         String app_name;
         Path icon_path;
+    };
+
+    struct BindLocation {
+        union
+        {
+            struct {
+                BindingIndex binding;
+                BindingIndex set;
+            };
+
+            uint16_t id = 0;
+        };
+
+        FORCE_INLINE bool operator==(const BindLocation& location) const
+        {
+            return location.id == id;
+        }
+
+        FORCE_INLINE bool operator!=(const BindLocation& location) const
+        {
+            return location.id != id;
+        }
+
+        FORCE_INLINE bool operator<(const BindLocation& location) const
+        {
+            return id < location.id;
+        }
+
+        FORCE_INLINE bool operator<=(const BindLocation& location) const
+        {
+            return id <= location.id;
+        }
+
+        FORCE_INLINE bool operator>(const BindLocation& location) const
+        {
+            return id > location.id;
+        }
+
+        FORCE_INLINE bool operator>=(const BindLocation& location) const
+        {
+            return id >= location.id;
+        }
     };
 }// namespace Engine

@@ -13,9 +13,20 @@ namespace Engine
     implement_class(Texture2D, "Engine");
     implement_default_initialize_class(Texture2D);
 
-    Texture2D::Texture2D()
+    Texture2D::Texture2D() = default;
+
+    Texture2D& Texture2D::rhi_create()
     {
-        _M_type = TextureType::Texture2D;
+        const byte* data =
+                _M_resources ? _M_resources->images.empty() ? nullptr : _M_resources->images[0].data() : nullptr;
+        return rhi_create(data);
+    }
+
+    Texture2D& Texture2D::rhi_create(const byte* data)
+    {
+        rhi_destroy();
+        _M_rhi_texture = engine_instance->rhi()->create_texture(this, TextureType::Texture2D, data);
+        return *this;
     }
 
     Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
@@ -35,7 +46,7 @@ namespace Engine
 
     Texture2D& Texture2D::load(const Image& image)
     {
-        destroy();
+        rhi_destroy();
         resources(true);
 
         static ColorFormat _M_formats[5] = {ColorFormat::R8G8B8A8Sint, ColorFormat::R8Sint, ColorFormat::R8Sint,
@@ -54,7 +65,7 @@ namespace Engine
             size         = {1, 1};
             _M_resources->images[0].create(size, 4, tmp);
 
-            create();
+            rhi_create();
             update(size, {0, 0}, 0, tmp.data());
         }
         else
@@ -67,7 +78,7 @@ namespace Engine
 
             mipmap_count = 8;
             size         = image.size();
-            create();
+            rhi_create();
             update(image.size(), {0, 0}, 0, image.vector().data());
             generate_mipmap();
         }
@@ -80,7 +91,7 @@ namespace Engine
 
     Texture2D& Texture2D::load(const String& path)
     {
-        destroy();
+        rhi_destroy();
         info_log("Texture2D", "Loading Texture '%s'\n", path.c_str());
         Image image(path, true);
         return load(image);
@@ -94,7 +105,7 @@ namespace Engine
             return false;
         }
 
-        create();
+        rhi_create();
         update(resource_image().size(), {0, 0}, 0, resource_image().vector().data());
         generate_mipmap();
 
@@ -146,6 +157,11 @@ namespace Engine
         }
 
         return static_cast<bool>(*archive);
+    }
+
+    TextureType Texture2D::type() const
+    {
+        return TextureType::Texture2D;
     }
 
 }// namespace Engine

@@ -8,6 +8,11 @@
 namespace Engine
 {
 
+    void System::on_create_fail()
+    {
+        throw EngineException("Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
+    }
+
     static bool system_filter(Object* object)
     {
         return object && object->is_instance_of<System>();
@@ -26,15 +31,11 @@ namespace Engine
             throw EngineException("Each class based from Engine::System must be registered!");
         }
 
-        //        if (!_class->has_flag(Class::IsSingletone))
-        //        {
-        //            throw EngineException("Each class based from Engine::System must be singletone!");
-        //        }
-
-        name(_class->name() + " [System]");
+        name(Strings::format("Engine::Systems::{}", _class->base_name()));
         add_filter(system_filter);
 
         debug_log("System", "Created system '%s'", string_name().c_str());
+        is_fully_created = true;
         return *this;
     }
 

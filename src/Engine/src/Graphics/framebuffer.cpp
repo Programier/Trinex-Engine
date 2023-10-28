@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
-#include <Graphics/framebuffer.hpp>
+#include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -10,7 +10,7 @@ namespace Engine
 
     RenderTarget& RenderTarget::rhi_create()
     {
-        ApiObject::destroy();
+        rhi_destroy();
         _M_rhi_render_target = EngineInstance::instance()->rhi()->create_render_target(this);
         return *this;
     }

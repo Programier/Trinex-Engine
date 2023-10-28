@@ -387,6 +387,31 @@ namespace Engine
         return *this;
     }
 
+    ColorFormat Image::format() const
+    {
+        if(_M_channels == 1)
+        {
+            return ColorFormat::R8Unorm;
+        }
+
+        if(_M_channels == 2)
+        {
+            return ColorFormat::R8G8Unorm;
+        }
+
+        if(_M_channels == 3)
+        {
+            return ColorFormat::R8G8B8Unorm;
+        }
+
+        if(_M_channels == 4)
+        {
+            return ColorFormat::R8G8B8A8Unorm;
+        }
+
+        return ColorFormat::Undefined;
+    }
+
     bool Image::archive_process(Archive* archive_ptr)
     {
         if (!SerializableObject::archive_process(archive_ptr))

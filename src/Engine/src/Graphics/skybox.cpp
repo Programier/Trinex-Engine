@@ -42,7 +42,7 @@ namespace Engine
             format       = img.channels() == 4 ? ColorFormat::R8G8B8A8Uint : ColorFormat::R8G8B8Uint;
             mipmap_count = 8;
             size         = Size2D(block_width, block_height);
-            TextureCubeMap::create();
+            rhi_create();
         }
 
         Image _M_images[6];

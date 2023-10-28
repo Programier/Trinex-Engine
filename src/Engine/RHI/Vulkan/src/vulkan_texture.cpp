@@ -202,13 +202,8 @@ namespace Engine
     {
         destroy();
 
-        _M_type = type;
-        size.setWidth(texture->size.x).setHeight(texture->size.y);
-        _M_engine_format  = texture->format;
-        _M_mipmap_count   = texture->mipmap_count;
-        _M_vulkan_format  = parse_engine_format(_M_engine_format);
-        _M_base_mip_level = texture->base_mip_level;
-
+        _M_engine_texture = texture;
+        _M_vulkan_format  = parse_engine_format(_M_engine_texture->format);
 
         static vk::ImageCreateFlagBits default_flags = {};
 
@@ -238,8 +233,13 @@ namespace Engine
             _M_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
         }
 
-        API->create_image(this, vk::ImageTiling::eLinear,
-                          _M_type == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
+        vk::ImageTiling tiling =
+                texture->is_render_target_texture() ? vk::ImageTiling::eOptimal : vk::ImageTiling::eLinear;
+
+        API->create_image(this, tiling,
+                          _M_engine_texture->type() == TextureType::Texture2D
+                                  ? default_flags
+                                  : vk::ImageCreateFlagBits::eCubeCompatible,
                           _M_usage_flags, _M_memory_flags, _M_image, _M_image_memory, layer_count());
 
 
@@ -255,7 +255,7 @@ namespace Engine
             TransitionImageLayout transition;
             transition.image        = &_M_image;
             transition.base_mip     = 0;
-            transition.mip_count    = _M_mipmap_count;
+            transition.mip_count    = _M_engine_texture->mipmap_count;
             transition.base_layer   = 0;
             transition.layer_count  = layer_count();
             transition.aspect_flags = aspect();
@@ -362,38 +362,38 @@ namespace Engine
 
     vk::ImageSubresourceRange VulkanTexture::subresource_range(MipMapLevel base)
     {
-        return vk::ImageSubresourceRange(aspect(), base, _M_mipmap_count - base, 0, layer_count());
+        return vk::ImageSubresourceRange(aspect(), base, _M_engine_texture->mipmap_count - base, 0, layer_count());
     }
 
     uint_t VulkanTexture::layer_count() const
     {
-        return _M_type == TextureType::Texture2D ? 1 : 6;
+        return _M_engine_texture->type() == TextureType::Texture2D ? 1 : 6;
     }
 
     vk::ImageViewType VulkanTexture::view_type() const
     {
-        return _M_type == TextureType::Texture2D ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
+        return _M_engine_texture->type() == TextureType::Texture2D ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
     }
 
     vk::ImageAspectFlags VulkanTexture::aspect() const
     {
-        return get_type(ColorFormatInfo::info_of(_M_engine_format).aspect());
+        return get_type(ColorFormatInfo::info_of(_M_engine_texture->format).aspect());
     }
 
     bool VulkanTexture::can_use_color_as_color_attachment() const
     {
-        return ColorFormatInfo::info_of(_M_engine_format).components() == 4;
+        return ColorFormatInfo::info_of(_M_engine_texture->format).components() == 4;
     }
 
     uint_t VulkanTexture::pixel_type_size() const
     {
-        ColorFormatInfo color_info = ColorFormatInfo::info_of(_M_engine_format);
+        ColorFormatInfo color_info = ColorFormatInfo::info_of(_M_engine_texture->format);
         return static_cast<uint_t>(color_info.component_size()) * static_cast<uint_t>(color_info.components());
     }
 
     bool VulkanTexture::is_depth_stencil_image() const
     {
-        ColorFormatAspect texture_aspect = ColorFormatInfo::info_of(_M_engine_format).aspect();
+        ColorFormatAspect texture_aspect = ColorFormatInfo::info_of(_M_engine_texture->format).aspect();
         return texture_aspect == ColorFormatAspect::Depth || texture_aspect == ColorFormatAspect::Stencil ||
                texture_aspect == ColorFormatAspect::DepthStencil;
     }
@@ -417,7 +417,7 @@ namespace Engine
 
         vk::CommandBuffer command_buffer = API->begin_single_time_command_buffer();
 
-        auto subresource       = subresource_range(_M_base_mip_level);
+        auto subresource       = subresource_range(_M_engine_texture->base_mip_level);
         subresource.levelCount = 1;
         subresource.layerCount = 1;
 
@@ -429,11 +429,11 @@ namespace Engine
                                            subresource);
             vk::ImageMemoryBarrier barrier2 = barrier;
 
-            for (MipMapLevel i = 1; i < _M_mipmap_count; i++)
+            for (MipMapLevel i = 1; i < _M_engine_texture->base_mip_level; i++)
             {
-                if (i >= _M_base_mip_level)
+                if (i >= _M_engine_texture->base_mip_level)
                 {
-                    barrier.subresourceRange.baseMipLevel = i == _M_base_mip_level ? 0 : i - 1;
+                    barrier.subresourceRange.baseMipLevel = i == _M_engine_texture->base_mip_level ? 0 : i - 1;
                     barrier.oldLayout                     = vk::ImageLayout::eShaderReadOnlyOptimal;
                     barrier.newLayout                     = vk::ImageLayout::eTransferSrcOptimal;
                     barrier.srcAccessMask                 = vk::AccessFlagBits::eShaderRead;
@@ -452,7 +452,7 @@ namespace Engine
                                                    vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier2);
 
                     vk::ImageSubresourceLayers src_image_subresource_layers(
-                            aspect(), (i == _M_base_mip_level ? 0 : i - 1), layer, 1);
+                            aspect(), (i == _M_engine_texture->base_mip_level ? 0 : i - 1), layer, 1);
 
                     vk::ImageSubresourceLayers dst_image_subresource_layers(aspect(), i, layer, 1);
 
@@ -494,8 +494,8 @@ namespace Engine
 
     vk::Offset2D VulkanTexture::get_mip_size(MipMapLevel level) const
     {
-        uint_t width  = glm::max(static_cast<uint_t>(size.width) >> level, 1U);
-        uint_t height = glm::max(static_cast<uint_t>(size.height) >> level, 1U);
+        uint_t width  = glm::max(static_cast<uint_t>(_M_engine_texture->size.x) >> level, 1U);
+        uint_t height = glm::max(static_cast<uint_t>(_M_engine_texture->size.y) >> level, 1U);
         return vk::Offset2D(width, height);
     }
 
@@ -516,34 +516,36 @@ namespace Engine
         return &(new VulkanTexture())->create(texture, type, data);
     }
 
-#define write_feature_flag(name)                                                                                       \
-    if ((flags & vk::FormatFeatureFlagBits::e##name) == vk::FormatFeatureFlagBits::e##name)                            \
-    {                                                                                                                  \
-        out |= static_cast<EnumerateType>(ColorFormatFeatures::name);                                                  \
-    }
-
-    static void write_features(vk::FormatFeatureFlags flags, Flags& out)
-    {
-        write_feature_flag(StorageImage);
-        write_feature_flag(StorageImageAtomic);
-        write_feature_flag(UniformTexelBuffer);
-        write_feature_flag(StorageTexelBuffer);
-        write_feature_flag(StorageTexelBufferAtomic);
-        write_feature_flag(VertexBuffer);
-        write_feature_flag(ColorAttachment);
-        write_feature_flag(ColorAttachmentBlend);
-        write_feature_flag(DepthStencilAttachment);
-        write_feature_flag(SampledImageFilterLinear);
-    }
-
     ColorFormatFeatures VulkanAPI::color_format_features(ColorFormat format)
     {
         vk::Format vulkan_format        = parse_engine_format(format);
         vk::FormatProperties properties = _M_physical_device.getFormatProperties(vulkan_format);
         ColorFormatFeatures out_features;
-        write_features(properties.bufferFeatures, out_features.buffer);
-        write_features(properties.linearTilingFeatures, out_features.image);
+
+        if (!properties.linearTilingFeatures && !properties.optimalTilingFeatures)
+        {
+            out_features.is_supported = false;
+            return out_features;
+        }
+
+        out_features.is_supported = true;
+
+        out_features.support_color_attachment =
+                (properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eColorAttachment) ==
+                vk::FormatFeatureFlagBits::eColorAttachment;
+
+        out_features.support_depth_stencil =
+                (properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) ==
+                vk::FormatFeatureFlagBits::eDepthStencilAttachment;
+
         return out_features;
     }
 
+    VulkanAPI& VulkanAPI::push_barrier(Texture* texture, BarrierStage src, BarrierStage dst)
+    {
+
+
+
+        return *this;
+    }
 }// namespace Engine

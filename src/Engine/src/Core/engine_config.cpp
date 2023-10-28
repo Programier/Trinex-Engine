@@ -30,7 +30,7 @@ namespace Engine
         load_shaders_to_gpu         = engine_json.checked_get_value<JSON::JsonBool>("load_shaders_to_gpu");
         load_meshes_to_gpu          = engine_json.checked_get_value<JSON::JsonBool>("load_meshes_to_gpu");
         load_textures_to_gpu        = engine_json.checked_get_value<JSON::JsonBool>("load_textures_to_gpu");
-        enable_g_buffer             = engine_json.checked_get_value<JSON::JsonBool>("enable_g_buffer");
+        use_deffered_rendering      = engine_json.checked_get_value<JSON::JsonBool>("use_deffered_rendering");
         return *this;
     }
 

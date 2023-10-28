@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/api_object.hpp>
-#include <Core/resource.hpp>
 #include <Core/color_format.hpp>
+#include <Core/resource.hpp>
 
 
 namespace Engine
@@ -30,14 +30,11 @@ namespace Engine
         SwizzleRGBA swizzle;
 
     protected:
-        TextureType _M_type           = TextureType::Texture2D;
         bool _M_use_for_render_target = false;
 
     public:
         Texture();
         delete_copy_constructors(Texture);
-
-        Texture& create(const byte* data = nullptr);
         const Texture& bind_combined(Sampler* sampler, BindingIndex binding, BindingIndex set = 0) const;
         Texture& generate_mipmap();
         Texture& setup_render_target_texture();
@@ -46,6 +43,7 @@ namespace Engine
 
         Size2D mip_size(MipMapLevel level = 0) const;
         bool archive_process(Archive* archive) override;
+        virtual TextureType type() const = 0;
         ~Texture();
     };
 

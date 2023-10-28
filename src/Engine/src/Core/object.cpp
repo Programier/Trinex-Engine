@@ -102,7 +102,8 @@ namespace Engine
     Object& Object::insert_to_default_package()
     {
         create_default_package();
-        _M_root_package->add_object(this, true);
+        if (_M_name.is_valid())
+            _M_root_package->add_object(this, true);
         return *this;
     }
 
@@ -120,7 +121,7 @@ namespace Engine
         ObjectArray& objects_array = get_instances_array();
         _M_instance_index          = objects_array.size();
 
-        _M_name = Strings::format("Instance {}", _M_instance_index);
+        // _M_name = Strings::format("Instance {}", _M_instance_index);
 
         if (!get_free_indexes_array().empty())
         {
@@ -228,8 +229,16 @@ namespace Engine
         if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
         {
             remove_from_instances_array();
-            debug_log("Garbage Collector", "Delete object instance '%s' with type '%s' [%p]\n", string_name().c_str(),
-                      decode_name().c_str(), this);
+            if (is_noname())
+            {
+                debug_log("Garbage Collector", "Delete noname object with type '%s' [%p]\n", decode_name().c_str(),
+                          this);
+            }
+            else
+            {
+                debug_log("Garbage Collector", "Delete object instance '%s' with type '%s' [%p]\n",
+                          string_name().c_str(), decode_name().c_str(), this);
+            }
 
             MemoryManager::instance().force_destroy_object(this);
         }
@@ -460,6 +469,11 @@ namespace Engine
         return _M_flags[static_cast<size_t>(flag)];
     }
 
+    bool Object::is_noname() const
+    {
+        return !_M_name.is_valid();
+    }
+
 
     ENGINE_EXPORT const Package* root_package()
     {
@@ -506,8 +520,14 @@ namespace Engine
         Index index      = 0;
 
         while ((index = name.find_first_of(Constants::name_separator,
-                                           prev_index + Constants::name_separator.length()) != String::npos))
+                                           prev_index + (prev_index ? Constants::name_separator.length() : 0))) !=
+               String::npos)
         {
+            if (index == String::npos)
+            {
+                break;
+            }
+
             String package_name = name.substr(prev_index, index - prev_index);
             if (package_name.empty())
                 return nullptr;
@@ -533,7 +553,8 @@ namespace Engine
             }
         }
 
-        String new_name        = name.substr(index, name.length() - index);
+        prev_index += Constants::name_separator.length();
+        String new_name        = name.substr(prev_index, name.length() - prev_index);
         Object* founded_object = package->find_object(new_name, false);
         if (founded_object == nullptr)
         {
@@ -623,8 +644,16 @@ namespace Engine
                 {
                     if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
                     {
-                        debug_log("Garbage Collector[FORCE]", "Deleting instance '%s' with type '%s' [%p]\n",
-                                  object->string_name().c_str(), object->decode_name().c_str(), object);
+                        if (object->is_noname())
+                        {
+                            debug_log("Garbage Collector[FORCE]", "Deleting noname instance with type '%s' [%p]\n",
+                                      object->decode_name().c_str(), object);
+                        }
+                        else
+                        {
+                            debug_log("Garbage Collector[FORCE]", "Deleting instance '%s' with type '%s' [%p]\n",
+                                      object->string_name().c_str(), object->decode_name().c_str(), object);
+                        }
                         object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
                         manager.free_object(object);
                         maybe_not_deleted_objects.erase(object);

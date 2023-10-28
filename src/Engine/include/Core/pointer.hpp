@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Core/export.hpp>
 #include <Core/etl/stl_wrapper.hpp>
+#include <Core/export.hpp>
 
 namespace Engine
 {
@@ -20,12 +20,15 @@ namespace Engine
     class Pointer : private PointerBase
     {
     private:
-        InstanceClass* _M_instance = nullptr;
+        union
+        {
+            InstanceClass* _M_instance = nullptr;
+            Object* _M_object;
+        };
 
 
     public:
-        struct HashStruct : public Hash<InstanceClass*>
-        {
+        struct HashStruct : public Hash<InstanceClass*> {
             size_t operator()(const Pointer<InstanceClass>& instance) const
             {
                 return static_cast<Hash<InstanceClass*>>(*this)(instance._M_instance);
@@ -34,7 +37,7 @@ namespace Engine
 
         Pointer(InstanceClass* instance = nullptr) : _M_instance(instance)
         {
-            add_reference(_M_instance);
+            add_reference(_M_object);
         }
 
         Pointer(const Pointer& pointer)
@@ -53,9 +56,9 @@ namespace Engine
             if (this == &pointer)
                 return *this;
 
-            remove_reference(_M_instance);
+            remove_reference(_M_object);
             _M_instance = pointer._M_instance;
-            add_reference(_M_instance);
+            add_reference(_M_object);
             return *this;
         }
 
@@ -72,13 +75,14 @@ namespace Engine
 
         Pointer& operator=(InstanceClass* instance)
         {
-            remove_reference(_M_instance);
+            remove_reference(_M_object);
             _M_instance = instance;
-            add_reference(_M_instance);
+            add_reference(_M_object);
             return *this;
         }
 
-        InstanceClass* operator->()
+
+        InstanceClass* operator->() const
         {
             return _M_instance;
         }
@@ -88,29 +92,40 @@ namespace Engine
             return _M_instance;
         }
 
-        InstanceClass* ptr()
+        operator const InstanceClass*() const
         {
             return _M_instance;
         }
 
-        const InstanceClass* ptr() const
+
+        InstanceClass* ptr() const
         {
             return _M_instance;
         }
 
-        bool operator == (const Pointer<InstanceClass>& instance) const
+        bool operator==(const Pointer<InstanceClass>& instance) const
         {
             return _M_instance == instance._M_instance;
         }
 
-        bool operator != (const Pointer<InstanceClass>& instance) const
+        bool operator!=(const Pointer<InstanceClass>& instance) const
         {
             return _M_instance != instance._M_instance;
-        }      
+        }
+
+        bool operator==(const InstanceClass* instance) const
+        {
+            return _M_instance == instance;
+        }
+
+        bool operator!=(const InstanceClass* instance) const
+        {
+            return _M_instance != instance;
+        }
 
         ~Pointer()
         {
-            remove_reference(_M_instance);
+            remove_reference(_M_object);
         }
     };
 }// namespace Engine

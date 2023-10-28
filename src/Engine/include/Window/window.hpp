@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/basic_framebuffer.hpp>
+#include <Graphics/basic_render_target.hpp>
 #include <Window/window_interface.hpp>
 
 namespace Engine
@@ -63,6 +63,8 @@ namespace Engine
         void terminate_imgui();
         void new_imgui_frame();
         ~Window();
+
+        static Window* instance();
 
     private:
         Window(WindowInterface* interface = nullptr);

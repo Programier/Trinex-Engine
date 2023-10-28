@@ -129,6 +129,12 @@ namespace Engine
         return "Undefined";
     }
 
+    RHI& NoApi::push_barrier(Texture* texture, BarrierStage src, BarrierStage dst)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
     RHI_Sampler* NoApi::create_sampler(const Sampler*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -211,6 +217,16 @@ namespace Engine
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return {};
+    }
+
+    void NoApi::push_debug_stage(const char* stage, const Color& color)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+    }
+
+    void NoApi::pop_debug_stage()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
     }
 
 }// namespace Engine

@@ -12,18 +12,7 @@ namespace Engine
     implement_class(Texture, "Engine");
     implement_default_initialize_class(Texture);
 
-    Texture::Texture()
-    {}
-
-
-    Texture& Texture::create(const byte* ptr)
-    {
-
-        ApiObject::destroy();
-        _M_rhi_binding_object = EngineInstance::instance()->rhi()->create_texture(this, _M_type, ptr);
-
-        return *this;
-    }
+    Texture::Texture() = default;
 
     const Texture& Texture::bind_combined(Sampler* sampler, BindingIndex binding, BindingIndex set) const
     {

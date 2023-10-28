@@ -41,6 +41,9 @@ namespace Engine
     using Force        = glm::vec3;
     using LightColor   = glm::vec3;
 
+    using Color     = glm::vec4;
+    using ByteColor = glm::vec<4, byte, glm::defaultp>;
+
     using Matrix4f = glm::mat4;
     using Matrix3f = glm::mat3;
     using Matrix2f = glm::mat2;

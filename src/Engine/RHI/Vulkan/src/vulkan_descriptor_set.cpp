@@ -1,5 +1,4 @@
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_descriptor_set.hpp>
 
 
@@ -13,7 +12,7 @@ namespace Engine
 
     VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, BindingIndex set)
     {
-        API->_M_command_buffer->get().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, set, 1, &_M_set, 0,
+        API->current_command_buffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, set, 1, &_M_set, 0,
                                                          nullptr);
         return *this;
     }

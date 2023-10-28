@@ -230,7 +230,7 @@ namespace Engine
         }
 
         // If API is not NoApi, than we need to init Window
-        if(_M_api != EngineAPI::NoAPI)
+        if (_M_api != EngineAPI::NoAPI)
         {
             create_window();
         }
@@ -340,7 +340,7 @@ stack_address:
         delete _M_renderer;
         delete _M_rhi;
 
-        _M_rhi                                                    = nullptr;
+        _M_rhi                                                              = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
         Library::close_all();
 
@@ -378,7 +378,7 @@ stack_address:
             }
         }
 
-        if(!interface)
+        if (!interface)
         {
             throw EngineException("Cannot create window interface!");
         }
@@ -396,14 +396,13 @@ stack_address:
         _M_rhi->init_window(interface, global_window_config);
         info_log("TrinexEngine", "Selected GPI: %s", _M_rhi->renderer().c_str());
 
-        if (engine_config.enable_g_buffer)
-        {
-            GBuffer::static_init();
-        }
-
+        AfterRHIInitializeController().execute();
         _M_window = Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), interface);
 
-        AfterRHIInitializeController().execute();
+        if (engine_config.use_deffered_rendering)
+        {
+            GBuffer::create_instance();
+        }
     }
 
     static const char* thread_name(ThreadType type)
@@ -440,7 +439,12 @@ stack_address:
         return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
     }
 
-    int_t EngineInstance::launch_systems() const
+    Index EngineInstance::frame_index() const
+    {
+        return _M_frame_index;
+    }
+
+    int_t EngineInstance::launch_systems()
     {
         if (_M_engine_system->objects().empty())
         {
@@ -465,6 +469,7 @@ stack_address:
 
                 _M_engine_system->update(dt);
                 _M_engine_system->wait();
+                ++_M_frame_index;
             }
 
             _M_engine_system->shutdown();

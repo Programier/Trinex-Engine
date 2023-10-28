@@ -1,7 +1,6 @@
-#include <Graphics/framebuffer.hpp>
 #include <Graphics/render_pass.hpp>
+#include <Graphics/render_target.hpp>
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_framebuffer.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_state.hpp>
@@ -31,28 +30,26 @@ namespace Engine
         Index index = 0;
         for (const RenderTarget::Attachment& color_binding : render_target->color_attachments)
         {
-            VulkanTexture* texture = reinterpret_cast<VulkanTexture*>(color_binding.texture);
+            VulkanTexture* texture = color_binding.texture->rhi_object<VulkanTexture>();
 
-            trinex_check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
+            trinex_check(texture && "Vulkan API: Cannot attach color texture: Texture is NULL");
             bool usage_check = texture->can_use_color_as_color_attachment();
             trinex_check(usage_check && "Vulkan API: Pixel type for color attachment must be RGBA");
 
             vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, color_binding.mip_level, 1, 0, 1);
             _M_attachments[index] = texture->get_image_view(range);
 
-            _M_clear_values[index].color =
-                    vk::ClearColorValue(Array<float, 4>({render_target->color_clear_data[index].clear_value.color.x,
-                                                         render_target->color_clear_data[index].clear_value.color.y,
-                                                         render_target->color_clear_data[index].clear_value.color.z,
-                                                         render_target->color_clear_data[index].clear_value.color.a}));
+            _M_clear_values[index].color = vk::ClearColorValue(
+                    Array<float, 4>({render_target->color_clear[index].x, render_target->color_clear[index].y,
+                                     render_target->color_clear[index].z, render_target->color_clear[index].a}));
             ++index;
         }
 
         if (render_pass->_M_has_depth_attachment)
         {
             auto& binding          = render_target->depth_stencil_attachment;
-            VulkanTexture* texture = reinterpret_cast<VulkanTexture*>(binding.texture);
-            trinex_check(texture && "Vulkan API: Cannot attach texture: Texture is NULL");
+            VulkanTexture* texture = binding.texture->rhi_object<VulkanTexture>();
+            trinex_check(texture && "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
             bool check_status = texture->is_depth_stencil_image();
             trinex_check(check_status && "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
@@ -60,8 +57,7 @@ namespace Engine
             vk::ImageSubresourceRange range(texture->aspect(), binding.mip_level, 1, 0, 1);
             _M_attachments[index]               = texture->get_image_view(range);
             _M_clear_values.back().depthStencil = vk::ClearDepthStencilValue(
-                    render_target->depth_stencil_clear_data.clear_value.depth_stencil.depth,
-                    render_target->depth_stencil_clear_data.clear_value.depth_stencil.stencil);
+                    render_target->depth_stencil_clear.depth, render_target->depth_stencil_clear.stencil);
         }
 
         return create_framebuffer();
@@ -97,6 +93,11 @@ namespace Engine
 
         _M_scissor = vk::Rect2D({0, 0}, vk::Extent2D(_M_size.width, _M_size.height));
 
+        _M_command_buffer = API->_M_device.allocateCommandBuffers(
+                vk::CommandBufferAllocateInfo(API->_M_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+
+        _M_render_finished = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
+        _M_fence           = API->_M_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
         return init_render_pass_info();
     }
 
@@ -109,16 +110,16 @@ namespace Engine
         return *this;
     }
 
-    VulkanFramebuffer& VulkanFramebuffer::begin_pass(size_t index)
+    VulkanFramebuffer& VulkanFramebuffer::begin_pass()
     {
         _M_render_pass_info.setFramebuffer(_M_framebuffer);
-        API->_M_command_buffer->get().beginRenderPass(_M_render_pass_info, vk::SubpassContents::eInline);
+        _M_command_buffer.beginRenderPass(_M_render_pass_info, vk::SubpassContents::eInline);
         return *this;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::end_pass()
     {
-        API->_M_command_buffer->get().endRenderPass();
+        _M_command_buffer.endRenderPass();
         return *this;
     }
 
@@ -141,6 +142,9 @@ namespace Engine
             }
         }
 
+        API->_M_device.freeCommandBuffers(API->_M_command_pool, _M_command_buffer);
+        DESTROY_CALL(destroySemaphore, _M_render_finished);
+        DESTROY_CALL(destroyFence, _M_fence);
         return *this;
     }
 
@@ -169,7 +173,7 @@ namespace Engine
 
     VulkanFramebuffer& VulkanFramebuffer::set_viewport()
     {
-        API->_M_command_buffer->get().setViewport(0, _M_viewport);
+        _M_command_buffer.setViewport(0, _M_viewport);
         return *this;
     }
 
@@ -194,20 +198,34 @@ namespace Engine
 
     VulkanFramebuffer& VulkanFramebuffer::set_scissor()
     {
-        API->_M_command_buffer->get().setScissor(0, _M_scissor);
+        _M_command_buffer.setScissor(0, _M_scissor);
         return *this;
     }
 
-    void VulkanFramebuffer::bind(uint_t index)
+    void VulkanFramebuffer::bind()
     {
+        if (API->_M_state->_M_framebuffer == this)
+            return;
+
         if (API->_M_state->_M_framebuffer)
         {
             API->_M_state->_M_framebuffer->unbind();
         }
 
+
         API->_M_state->_M_framebuffer = this;
 
-        begin_pass(index).set_viewport().set_scissor();
+        while (vk::Result::eTimeout == API->_M_device.waitForFences(_M_fence, VK_TRUE, UINT64_MAX))
+        {
+        }
+
+        API->_M_device.resetFences(_M_fence);
+
+        _M_command_buffer.reset();
+        _M_command_buffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+        begin_pass().set_viewport().set_scissor();
+        API->_M_framebuffer_list.push_back(this);
     }
 
     VulkanFramebuffer& VulkanFramebuffer::unbind()
@@ -215,7 +233,9 @@ namespace Engine
         if (API->_M_state->_M_framebuffer == this)
         {
             API->_M_state->_M_framebuffer = nullptr;
-            return end_pass();
+            end_pass();
+            _M_command_buffer.end();
+            return *this;
         }
 
         return *this;
@@ -306,9 +326,9 @@ namespace Engine
 
     VulkanMainFrameBuffer& init();
 
-    void VulkanMainFrameBuffer::bind(uint_t)
+    void VulkanMainFrameBuffer::bind()
     {
-        _M_framebuffers[API->swapchain_image_index().value]->bind(0);
+        _M_framebuffers[API->swapchain_image_index().value]->bind();
     }
 
     void VulkanMainFrameBuffer::viewport(const ViewPort& viewport)
@@ -372,5 +392,10 @@ namespace Engine
     {
         return &(new VulkanFramebuffer())
                         ->init(render_target, render_target->render_pass->rhi_object<VulkanRenderPass>());
+    }
+
+    vk::CommandBuffer& VulkanAPI::current_command_buffer()
+    {
+        return API->_M_state->_M_framebuffer->_M_command_buffer;
     }
 }// namespace Engine

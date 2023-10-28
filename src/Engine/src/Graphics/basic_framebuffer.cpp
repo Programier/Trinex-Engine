@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Graphics/basic_framebuffer.hpp>
+#include <Graphics/basic_render_target.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -18,7 +18,7 @@ namespace Engine
     const BasicRenderTarget& BasicRenderTarget::bind(size_t buffer_index) const
     {
         if (_M_rhi_render_target)
-            _M_rhi_render_target->bind(buffer_index);
+            _M_rhi_render_target->bind();
         return *this;
     }
 

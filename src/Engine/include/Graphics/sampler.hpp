@@ -24,7 +24,7 @@ namespace Engine
         CompareFunc compare_func = CompareFunc::Always;
         bool unnormalized_coordinates;
 
-        Sampler& rhi_create() override;
+        Sampler& rhi_create();
         bool archive_process(Archive* archive) override;
     };
 }// namespace Engine

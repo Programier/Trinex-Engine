@@ -142,6 +142,7 @@ namespace Engine
         const decltype(Object::_M_flags)& flags() const;
         Object& flag(ObjectFlags flag, bool status);
         bool flag(ObjectFlags flag) const;
+        bool is_noname() const;
 
         ENGINE_EXPORT static Object* find_object(const String& object_name);
         virtual bool can_destroy(MessageList& messages);
@@ -421,4 +422,10 @@ private:
                                                             "Initialize " namespace_name #class_name);
 
 
+#define implement_class_default_init(class_name, namespace_name)                                                       \
+    implement_class(class_name, namespace_name);                                                                       \
+    implement_default_initialize_class(class_name)
+
+#define implement_engine_class(class_name) implement_class(class_name, "Engine")
+#define implement_engine_class_default_init(class_name) implement_class_default_init(class_name, "Engine")
 }// namespace Engine

@@ -93,6 +93,8 @@ namespace Engine
 
     EventSystem& EventSystem::create()
     {
+        Super::create();
+
         EngineSystem::instance()->add_object(this);
         Event event = EventType::Quit;
         add_listener(event, on_quit);

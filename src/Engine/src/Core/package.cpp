@@ -98,7 +98,7 @@ namespace Engine
         if (!object)
             return false;
 
-        if (!object->_M_name.is_valid())
+        if (object->is_noname())
         {
             error_log("Package", "Cannot add no name object to package!");
             return false;

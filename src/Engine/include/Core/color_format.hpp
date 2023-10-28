@@ -141,23 +141,20 @@ namespace Engine
 #undef color_shift
 
     struct ColorFormatFeatures {
-        enum Features : EnumerateType
+        union
         {
-            SampledImage,
-            StorageImage,
-            StorageImageAtomic,
-            UniformTexelBuffer,
-            StorageTexelBuffer,
-            StorageTexelBufferAtomic,
-            VertexBuffer,
-            ColorAttachment,
-            ColorAttachmentBlend,
-            DepthStencilAttachment,
-            SampledImageFilterLinear,
+            struct {
+                bool is_supported : 1;
+                bool support_color_attachment : 1;
+                bool support_depth_stencil : 1;
+            };
+
+            byte data[1];
         };
 
-        Flags buffer = 0;
-        Flags image  = 0;
+
+        ColorFormatFeatures();
+        bool contains(const ColorFormatFeatures& other) const;
     };
 
     class ColorFormatInfo

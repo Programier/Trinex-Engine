@@ -5,8 +5,7 @@
 
 namespace Engine
 {
-    struct VulkanRenderPass : public RHI_RenderPass
-    {
+    struct VulkanRenderPass : public RHI_RenderPass {
         vk::RenderPass _M_render_pass;
         vk::SubpassDescription _M_subpass;
         vk::SubpassDependency _M_dependency;

@@ -11,21 +11,32 @@
 namespace Engine
 {
 
-    implement_class(PipelineBufferNoResource, "Engine");
-    implement_class(PipelineBuffer, "Engine");
-    implement_class(IndexBuffer, "Engine");
-    implement_class(VertexBuffer, "Engine");
-    implement_class(UniformBuffer, "Engine");
-    implement_class(SSBO, "Engine");
-    implement_default_initialize_class(PipelineBufferNoResource);
-    implement_default_initialize_class(PipelineBuffer);
-    implement_default_initialize_class(IndexBuffer);
-    implement_default_initialize_class(VertexBuffer);
-    implement_default_initialize_class(UniformBuffer);
-    implement_default_initialize_class(SSBO);
+    implement_engine_class_default_init(PipelineBuffer);
+    implement_engine_class_default_init(IndexBuffer);
+    implement_engine_class_default_init(VertexBuffer);
+    implement_engine_class_default_init(UniformBuffer);
+    implement_engine_class_default_init(SSBO);
+
+#define implement_vertex_buffer_class(name)                                                                            \
+    implement_engine_class_default_init(name);                                                                         \
+    const byte* name::data() const                                                                                     \
+    {                                                                                                                  \
+        return reinterpret_cast<const byte*>(buffer.data());                                                           \
+    }                                                                                                                  \
+    size_t name::size() const                                                                                          \
+    {                                                                                                                  \
+        return buffer.size() * sizeof(BufferType::value_type);                                                         \
+    }
+
+    implement_vertex_buffer_class(PositionVertexBuffer);
+    implement_vertex_buffer_class(TexCoordVertexBuffer);
+    implement_vertex_buffer_class(ColorVertexBuffer);
+    implement_vertex_buffer_class(NormalVertexBuffer);
+    implement_vertex_buffer_class(TangentVertexBuffer);
+    implement_vertex_buffer_class(BinormalVertexBuffer);
 
 
-    MappedMemory PipelineBufferNoResource::map_buffer()
+    MappedMemory PipelineBuffer::rhi_map_buffer()
     {
         if (_M_rhi_buffer)
         {
@@ -35,7 +46,7 @@ namespace Engine
         return {};
     }
 
-    PipelineBufferNoResource& PipelineBufferNoResource::unmap_buffer()
+    PipelineBuffer& PipelineBuffer::rhi_unmap_buffer()
     {
         if (_M_rhi_buffer)
         {
@@ -44,7 +55,7 @@ namespace Engine
         return *this;
     }
 
-    PipelineBufferNoResource& PipelineBufferNoResource::update(size_t offset, size_t size, const byte* data)
+    PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
     {
         if (_M_rhi_buffer)
         {
@@ -53,84 +64,21 @@ namespace Engine
         return *this;
     }
 
-    bool PipelineBuffer::archive_process(Archive* archive)
-    {
-        if (!SerializableObject::archive_process(archive))
-            return false;
-
-        if (archive->is_reading())
-        {
-            resources(true);
-        }
-
-        if (_M_resources)
-        {
-            if (!((*archive) & *_M_resources))
-            {
-                error_log("Pipeline Buffer", "Failed to process resources!");
-                return false;
-            }
-
-            _M_size = _M_resources->size();
-            return true;
-        }
-
-        if (archive->is_saving())
-        {
-            error_log("Pipeline Buffer", "Cannot find resources!");
-            return false;
-        }
-
-        return static_cast<bool>(*archive);
-    }
-
-
     VertexBuffer& VertexBuffer::rhi_create()
     {
-        if (_M_resources == nullptr)
-        {
-            error_log("IndexBuffer", "Cannot create vertex buffer: No resources found!");
-            return *this;
-        }
-
-        Super::rhi_create();
-
-        Buffer* buffer = resources();
-
-        destroy();
-        _M_rhi_vertex_buffer = engine_instance->rhi()->create_vertex_buffer(buffer->size(), buffer->data());
+        rhi_destroy();
+        _M_rhi_vertex_buffer = engine_instance->rhi()->create_vertex_buffer(size(), data());
         return *this;
     }
 
-    VertexBuffer& VertexBuffer::bind(byte stream_index, size_t offset)
+    VertexBuffer& VertexBuffer::rhi_bind(byte stream_index, size_t offset)
     {
         if (_M_rhi_vertex_buffer)
         {
             _M_rhi_vertex_buffer->bind(stream_index, offset);
         }
+
         return *this;
-    }
-
-
-    bool VertexBuffer::archive_process(Archive* archive)
-    {
-        if (!PipelineBuffer::archive_process(archive))
-        {
-            return false;
-        }
-
-        if (archive->is_reading())
-        {
-            if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
-                rhi_create();
-
-            if (engine_config.delete_resources_after_load)
-            {
-                delete_resources();
-            }
-        }
-
-        return static_cast<bool>(archive);
     }
 
 
@@ -138,19 +86,88 @@ namespace Engine
 
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        if (_M_resources == nullptr)
-        {
-            error_log("IndexBuffer", "Cannot create index buffer: No resources found!");
-            return *this;
-        }
-
-        Super::rhi_create();
-        _M_rhi_index_buffer = EngineInstance::instance()->rhi()->create_index_buffer(
-                _M_resources->size(), _M_resources->data(), _M_component);
+        rhi_destroy();
+        _M_rhi_index_buffer = engine_instance->rhi()->create_index_buffer(size(), data(), component());
         return *this;
     }
 
-    IndexBuffer& IndexBuffer::bind(size_t offset)
+    IndexBuffer& IndexBuffer::setup(IndexBufferComponent component)
+    {
+        cleanup();
+
+        _M_component = component;
+
+        if (_M_component == IndexBufferComponent::UnsignedByte)
+            _M_byte_buffer = new ByteBuffer();
+        else if (_M_component == IndexBufferComponent::UnsignedShort)
+            _M_short_buffer = new ShortBuffer();
+        else if (_M_component == IndexBufferComponent::UnsignedInt)
+            _M_int_buffer = new IntBuffer();
+        return *this;
+    }
+
+    const byte* IndexBuffer::data() const
+    {
+        if (_M_byte_buffer == nullptr)
+            return nullptr;
+
+        if (_M_component == IndexBufferComponent::UnsignedByte)
+            return _M_byte_buffer->data();
+        else if (_M_component == IndexBufferComponent::UnsignedShort)
+            return reinterpret_cast<const byte*>(_M_short_buffer->data());
+        else if (_M_component == IndexBufferComponent::UnsignedInt)
+            return reinterpret_cast<const byte*>(_M_int_buffer->data());
+
+        return nullptr;
+    }
+
+    size_t IndexBuffer::size() const
+    {
+        if (_M_byte_buffer == nullptr)
+            return 0;
+
+        if (_M_component == IndexBufferComponent::UnsignedByte)
+            return _M_byte_buffer->size();
+        else if (_M_component == IndexBufferComponent::UnsignedShort)
+            return _M_short_buffer->size() * sizeof(ushort_t);
+        else if (_M_component == IndexBufferComponent::UnsignedInt)
+            return _M_int_buffer->size() * sizeof(uint_t);
+
+        return 0;
+    }
+
+    IndexBuffer::ByteBuffer* IndexBuffer::byte_buffer() const
+    {
+        return _M_component == IndexBufferComponent::UnsignedByte ? _M_byte_buffer : nullptr;
+    }
+
+    IndexBuffer::ShortBuffer* IndexBuffer::short_buffer() const
+    {
+        return _M_component == IndexBufferComponent::UnsignedShort ? _M_short_buffer : nullptr;
+    }
+
+    IndexBuffer::IntBuffer* IndexBuffer::int_buffer() const
+    {
+        return _M_component == IndexBufferComponent::UnsignedInt ? _M_int_buffer : nullptr;
+    }
+
+    IndexBuffer& IndexBuffer::cleanup()
+    {
+        if (_M_byte_buffer == nullptr)
+            return *this;
+
+        if (_M_component == IndexBufferComponent::UnsignedByte)
+            delete _M_byte_buffer;
+        else if (_M_component == IndexBufferComponent::UnsignedShort)
+            delete _M_short_buffer;
+        else if (_M_component == IndexBufferComponent::UnsignedInt)
+            delete _M_int_buffer;
+
+        _M_byte_buffer = nullptr;
+        return *this;
+    }
+
+    IndexBuffer& IndexBuffer::rhi_bind(size_t offset)
     {
         if (_M_rhi_index_buffer)
         {
@@ -162,40 +179,6 @@ namespace Engine
     IndexBufferComponent IndexBuffer::component() const
     {
         return _M_component;
-    }
-
-    IndexBuffer& IndexBuffer::component(IndexBufferComponent component)
-    {
-        _M_component = component;
-        return *this;
-    }
-
-    bool IndexBuffer::archive_process(Archive* archive)
-    {
-        if (!PipelineBuffer::archive_process(archive))
-        {
-            return false;
-        }
-
-        if (!((*archive) & _M_component))
-        {
-            error_log("Index Buffer", "Failed to process component type!");
-            return false;
-        }
-
-        if (archive->is_reading())
-        {
-            destroy();
-            if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
-                rhi_create();
-
-            if (engine_config.delete_resources_after_load)
-            {
-                delete_resources();
-            }
-        }
-
-        return static_cast<bool>(archive);
     }
 
     size_t IndexBuffer::component_size(IndexBufferComponent component)
@@ -221,13 +204,13 @@ namespace Engine
 
     size_t IndexBuffer::elements_count() const
     {
-        return PipelineBuffer::size() / component_size();
+        return size() / component_size();
     }
 
 
     UniformBuffer& UniformBuffer::rhi_create()
     {
-        Super::rhi_create();
+        rhi_destroy();
         _M_rhi_uniform_buffer = engine_instance->rhi()->create_uniform_buffer(init_size, init_data);
         return *this;
     }
@@ -244,8 +227,7 @@ namespace Engine
 
     SSBO& SSBO::rhi_create()
     {
-        Super::rhi_create();
-
+        rhi_destroy();
         _M_rhi_ssbo = engine_instance->rhi()->create_ssbo(init_size, init_data);
         return *this;
     }
@@ -258,21 +240,5 @@ namespace Engine
         }
 
         return *this;
-    }
-
-    bool SSBO::archive_process(Archive* archive)
-    {
-        if (!Super::archive_process(archive))
-        {
-            return false;
-        }
-
-        if (archive->is_reading())
-        {
-            if (engine_instance->api() != EngineAPI::NoAPI && engine_config.load_meshes_to_gpu)
-                rhi_create();
-        }
-
-        return static_cast<bool>(archive);
     }
 }// namespace Engine

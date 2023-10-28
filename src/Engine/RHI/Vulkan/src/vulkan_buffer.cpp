@@ -1,6 +1,5 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_types.hpp>
@@ -11,7 +10,7 @@ namespace Engine
     VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type)
     {
         _M_size = size;
-        API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible,
+        API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible,
                            _M_buffer, _M_memory);
         update(0, data, size);
 
@@ -75,7 +74,7 @@ namespace Engine
 
     void VulkanVertexBuffer::bind(byte stream_index, size_t offset)
     {
-        API->_M_command_buffer->get().bindVertexBuffers(stream_index, _M_buffer._M_buffer, {offset});
+        API->current_command_buffer().bindVertexBuffers(stream_index, _M_buffer._M_buffer, {offset});
     }
 
     MappedMemory VulkanVertexBuffer::map_buffer()
@@ -103,7 +102,7 @@ namespace Engine
 
     void VulkanIndexBuffer::bind(size_t offset)
     {
-        API->_M_command_buffer->get().bindIndexBuffer(_M_buffer._M_buffer, offset, _M_index_type);
+        API->current_command_buffer().bindIndexBuffer(_M_buffer._M_buffer, offset, _M_index_type);
     }
 
     MappedMemory VulkanIndexBuffer::map_buffer()

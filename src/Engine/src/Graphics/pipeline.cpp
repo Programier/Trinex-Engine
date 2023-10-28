@@ -8,12 +8,12 @@ namespace Engine
 {
     Pipeline& Pipeline::rhi_create()
     {
-        Super::rhi_create();
+        rhi_destroy();
         _M_rhi_pipeline = engine_instance->rhi()->create_pipeline(this);
         return *this;
     }
 
-    Pipeline& Pipeline::bind()
+    const Pipeline& Pipeline::rhi_bind() const
     {
         if (_M_rhi_pipeline)
         {

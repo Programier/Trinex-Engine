@@ -2,6 +2,7 @@
 
 #include <Core/engine_types.hpp>
 #include <Core/serializable_object.hpp>
+#include <Core/color_format.hpp>
 
 
 namespace Engine
@@ -83,6 +84,7 @@ namespace Engine
         bool save(String path, ImageType type = ImageType::PNG);
         Image& create(const Size2D& size, uint_t channels, const Buffer& buffer = {});
         Image& create(const Size2D& size, uint_t channels, const byte* buffer = nullptr);
+        ColorFormat format() const;
 
         bool archive_process(Archive* archive) override;
 

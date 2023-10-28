@@ -1,10 +1,10 @@
 #pragma once
+#include <Core/colors.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
+#include <Core/structures.hpp>
 #include <Graphics/frustum.hpp>
 #include <Graphics/ray.hpp>
-#include <Core/color.hpp>
-#include <Core/structures.hpp>
 
 
 namespace Engine
@@ -13,11 +13,11 @@ namespace Engine
     class ENGINE_EXPORT HitBox
     {
     public:
-        virtual void render(const glm::mat4& model = Constants::identity_matrix, const Color& color = Color::Red)
-                const = 0;
+        virtual void render(const glm::mat4& model = Constants::identity_matrix,
+                            const Color& color     = Colors::Red) const                      = 0;
         virtual bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const = 0;
-        virtual bool is_in_frustum(const Frustum& frustum) const = 0;
-        virtual Vector2D intersect(const Ray& ray) const = 0;
+        virtual bool is_in_frustum(const Frustum& frustum) const                         = 0;
+        virtual Vector2D intersect(const Ray& ray) const                                 = 0;
         virtual ~HitBox();
     };
 
@@ -41,8 +41,8 @@ namespace Engine
         bool is_on_or_forward_plan(const Plane& plan) const;
         bool is_in_frustum(const Frustum& frustum, const glm::mat4& model) const override;
         bool is_in_frustum(const Frustum& frustum) const override;
-        void render(const glm::mat4& model = Constants::identity_matrix, const Color& color = Color::Red)
-                const override;
+        void render(const glm::mat4& model = Constants::identity_matrix,
+                    const Color& color     = Colors::Red) const override;
         BoxHB apply_model(const glm::mat4& model) const;
         Vector2D intersect(const Ray& ray) const override;
 

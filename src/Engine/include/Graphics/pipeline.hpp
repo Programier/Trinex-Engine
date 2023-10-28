@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/api_object.hpp>
+#include <Core/pointer.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
@@ -7,7 +8,7 @@ namespace Engine
 
     class VertexShader;
     class FragmentShader;
-    class BasicRenderTarget;
+    class RenderPass;
 
     class ENGINE_EXPORT Pipeline : public ApiObject
     {
@@ -76,11 +77,12 @@ namespace Engine
             byte logic_op_enable = 0;
         } color_blending;
 
-        BasicRenderTarget* render_target      = nullptr;
-        class VertexShader* vertex_shader     = nullptr;
-        class FragmentShader* fragment_shader = nullptr;
+    public:
+        Pointer<RenderPass> render_pass;
+        Pointer<VertexShader> vertex_shader;
+        Pointer<FragmentShader> fragment_shader;
 
-        Pipeline& rhi_create() override;
-        Pipeline& bind();
+        Pipeline& rhi_create();
+        const Pipeline& rhi_bind() const;
     };
 }// namespace Engine

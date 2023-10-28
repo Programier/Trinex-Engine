@@ -11,6 +11,9 @@ namespace Engine
         vk::Framebuffer _M_framebuffer;
         Vector<vk::ImageView> _M_attachments;
         vk::RenderPassBeginInfo _M_render_pass_info;
+        vk::CommandBuffer _M_command_buffer;
+        vk::Semaphore _M_render_finished;
+        vk::Fence _M_fence;
 
         vk::Extent2D _M_size;
         vk::Rect2D _M_scissor;
@@ -36,12 +39,12 @@ namespace Engine
         void clear_depth_stencil(const DepthStencilClearValue& value) override;
         VulkanFramebuffer& size(uint32_t width, uint32_t height);
 
-        VulkanFramebuffer& begin_pass(size_t index);
+        VulkanFramebuffer& begin_pass();
         VulkanFramebuffer& end_pass();
 
         bool is_custom() const;
 
-        void bind(uint_t buffer_index) override;
+        void bind() override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
 
@@ -59,7 +62,7 @@ namespace Engine
         void resize_count(size_t new_count);
         VulkanMainFrameBuffer& size(uint32_t width, uint32_t height);
 
-        void bind(uint_t buffer_index) override;
+        void bind() override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;

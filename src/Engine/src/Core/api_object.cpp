@@ -7,16 +7,17 @@ namespace Engine
 {
     implement_class(ApiObject, "Engine");
     implement_default_initialize_class(ApiObject);
+    implement_class(ApiBindingObject, "Engine");
+    implement_default_initialize_class(ApiBindingObject);
 
     // Zero is default or invalid value of ApiObjectNoBase in external API
-    constructor_cpp(ApiObjectNoBase)
+    ApiObject::ApiObject()
     {
         _M_rhi_object = nullptr;
         _M_can_delete = true;
     }
 
-
-    ApiObjectNoBase& ApiObjectNoBase::destroy()
+    ApiObject& ApiObject::rhi_destroy()
     {
         if (_M_rhi_object && _M_can_delete)
         {
@@ -26,23 +27,17 @@ namespace Engine
         return *this;
     }
 
-    bool ApiObjectNoBase::has_object() const
+    bool ApiObject::has_object() const
     {
         return _M_rhi_object != nullptr;
     }
 
-    ApiObjectNoBase::~ApiObjectNoBase()
+    ApiObject::~ApiObject()
     {
-        destroy();
+        rhi_destroy();
     }
 
-    ApiObject& ApiObject::rhi_create()
-    {
-        destroy();
-        return *this;
-    }
-
-    const ApiBindingObject& ApiBindingObject::bind(BindingIndex binding, BindingIndex set) const
+    const ApiBindingObject& ApiBindingObject::rhi_bind(BindingIndex binding, BindingIndex set) const
     {
         if (_M_rhi_binding_object)
         {

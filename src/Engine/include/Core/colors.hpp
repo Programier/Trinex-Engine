@@ -1,22 +1,10 @@
 #pragma once
-#include <Core/implement.hpp>
-#include <glm/glm.hpp>
-#include <Core/export.hpp>
+#include <Core/engine_types.hpp>
 
 
 namespace Engine
 {
-    struct ENGINE_EXPORT Color : public glm::vec4 {
-        Color();
-        Color(const Color&);
-        Color(const glm::vec4&);
-        Color(Color&&);
-        Color& operator = (const glm::vec4&);
-        Color& operator = (Color&&);
-        Color& operator = (const Color& color);
-        Color(float r, float g = 0.f, float b = 0.f, float a = 1.f);
-
-        // Static variables
+    struct Colors {
         static const ENGINE_EXPORT Color IndianRed;
         static const ENGINE_EXPORT Color LightCoral;
         static const ENGINE_EXPORT Color Salmon;

@@ -118,19 +118,20 @@ namespace Engine
 
         _M_render_pass = API->_M_device.createRenderPass(vk::RenderPassCreateInfo(
                 vk::RenderPassCreateFlags(), _M_attachment_descriptions, _M_subpass, _M_dependency));
+
         return *this;
     }
 
     uint_t VulkanRenderPass::attachments_count() const
     {
-        return _M_attachment_descriptions.size() + (_M_has_depth_attachment ? 1 : 0);
+        return _M_attachment_descriptions.size();
     }
-
 
     VulkanRenderPass& VulkanRenderPass::destroy()
     {
         API->wait_idle();
         DESTROY_CALL(destroyRenderPass, _M_render_pass);
+
         _M_attachment_descriptions.clear();
         _M_color_attachment_references.clear();
         _M_has_depth_attachment = false;

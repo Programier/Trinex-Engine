@@ -47,8 +47,6 @@ namespace Engine
 
         Buffer text_code;
         Buffer binary_code;
-
-        Shader& rhi_create() override;
     };
 
     class ENGINE_EXPORT VertexShader : public Shader
@@ -65,7 +63,7 @@ namespace Engine
         Vector<Attribute> attributes;
 
     public:
-        VertexShader& rhi_create() override;
+        VertexShader& rhi_create();
     };
 
     class ENGINE_EXPORT FragmentShader : public Shader
@@ -73,7 +71,7 @@ namespace Engine
         declare_class(FragmentShader, Shader);
 
     public:
-        FragmentShader& rhi_create() override;
+        FragmentShader& rhi_create();
     };
 
 }// namespace Engine

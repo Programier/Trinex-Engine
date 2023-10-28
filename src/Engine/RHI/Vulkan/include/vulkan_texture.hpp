@@ -8,7 +8,8 @@ namespace Engine
     vk::Format parse_engine_format(ColorFormat format);
 
     struct VulkanTexture : RHI_Texture {
-        vk::Extent2D size;
+
+        const Texture* _M_engine_texture = nullptr;
 
         vk::Image _M_image;
         vk::DeviceMemory _M_image_memory;
@@ -16,10 +17,6 @@ namespace Engine
         vk::Format _M_vulkan_format;
         vk::ComponentMapping _M_swizzle;
 
-        TextureType _M_type;
-        ColorFormat _M_engine_format;
-        uint_t _M_mipmap_count;
-        uint_t _M_base_mip_level;
 
         VulkanTexture& create(const Texture* texture, TextureType type, const byte* data);
         VulkanTexture& destroy();

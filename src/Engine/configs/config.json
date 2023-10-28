@@ -1,6 +1,6 @@
 {
     "Engine": {
-        "enable_g_buffer": true,
+        "use_deffered_rendering": true,
         "load_meshes_to_gpu": true,
         "api": "Vulkan",
         "delete_resources_after_load": false,
@@ -29,7 +29,9 @@
             "y": 720
         },
 
-        "attributes": [1],
+        "attributes": [
+            1
+        ],
 
         "orientations": [
             0,
@@ -37,7 +39,7 @@
             2,
             3
         ],
-        "vsync": false,
+        "vsync": true,
         "resizable": true
     }
 }

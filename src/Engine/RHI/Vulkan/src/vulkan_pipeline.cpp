@@ -1,10 +1,9 @@
-#include <Graphics/basic_framebuffer.hpp>
+#include <Graphics/basic_render_target.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_renderpass.hpp>
@@ -31,7 +30,7 @@ namespace Engine
         out[set].push_back(vk::DescriptorSetLayoutBinding(binding, type, 1, stage, nullptr));
     }
 
-    static void create_base_descriptor_layout(Shader* shader, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
+    static void create_base_descriptor_layout(const Shader* shader, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
                                               vk::ShaderStageFlags stage)
     {
 
@@ -294,7 +293,7 @@ namespace Engine
                 {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr,
                 &viewport_state, &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil,
                 &out_state.color_blending, &dynamic_state_info, _M_pipeline_layout,
-                pipeline->render_target->render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0, {});
+                pipeline->render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0, {});
 
         auto pipeline_result = API->_M_device.createGraphicsPipeline({}, pipeline_info);
 
@@ -333,17 +332,39 @@ namespace Engine
     }
 
     struct PoolSizeInfo {
-        uint_t samplers;
-        uint_t combined_samplers;
-        uint_t textures;
-        uint_t ubos;
-        uint_t ssbos;
+        uint_t samplers          = 0;
+        uint_t combined_samplers = 0;
+        uint_t textures          = 0;
+        uint_t ubos              = 0;
+        uint_t ssbos             = 0;
     };
 
-    static void process_pool_sizes(Shader* shader, Vector<PoolSizeInfo>& out)
+    static void process_pool_sizes(const Shader* shader, Vector<PoolSizeInfo>& out)
     {
-        if (!shader)
-            return;
+        for (auto& texture : shader->textures)
+        {
+            ++(out[texture.set].textures);
+        }
+
+        for (auto& sampler : shader->samplers)
+        {
+            ++(out[sampler.set].samplers);
+        }
+
+        for (auto& combined_sampler : shader->combined_samplers)
+        {
+            ++(out[combined_sampler.set].combined_samplers);
+        }
+
+        for (auto& ubo : shader->uniform_buffers)
+        {
+            ++(out[ubo.set].ubos);
+        }
+
+        for (auto& ssbo : shader->ssbo)
+        {
+            ++(out[ssbo.set].ssbos);
+        }
     }
 
     Vector<Vector<vk::DescriptorPoolSize>> VulkanPipeline::create_pool_sizes(const Pipeline* pipeline)
@@ -393,7 +414,7 @@ namespace Engine
     {
         if (API->_M_state->_M_pipeline != this)
         {
-            API->_M_command_buffer->get().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
+            API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
             API->_M_state->_M_pipeline = this;
         }
     }

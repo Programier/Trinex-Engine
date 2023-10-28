@@ -60,22 +60,16 @@ namespace Engine
     implement_default_initialize_class(FragmentShader);
 
 
-    Shader& Shader::rhi_create()
-    {
-        Super::rhi_create();
-        return *this;
-    }
-
     VertexShader& VertexShader::rhi_create()
     {
-        Super::rhi_create();
+        rhi_destroy();
         _M_rhi_shader = engine_instance->rhi()->create_vertex_shader(this);
         return *this;
     }
 
     FragmentShader& FragmentShader::rhi_create()
     {
-        Super::rhi_create();
+        rhi_destroy();
         _M_rhi_shader = engine_instance->rhi()->create_fragment_shader(this);
         return *this;
     }

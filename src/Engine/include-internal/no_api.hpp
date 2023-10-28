@@ -33,6 +33,8 @@ namespace Engine
         NoApi& next_render_thread() override;
         String renderer() override;
 
+        RHI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
+
 
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
         RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data) override;
@@ -48,6 +50,8 @@ namespace Engine
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat) override;
+        void push_debug_stage(const char* stage, const Color& color) override;
+        void pop_debug_stage() override;
 
         template<typename Type>
         operator Type()

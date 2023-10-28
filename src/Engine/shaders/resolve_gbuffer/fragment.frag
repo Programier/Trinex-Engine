@@ -1,12 +1,13 @@
 #version 310 es
 precision highp float;
-precision highp sampler;
-layout(location = 0) out vec4 out_color;
+
 layout(location = 0) in vec2 in_position;
-layout(binding = 0) uniform sampler2D test_texture;
+layout(location = 0) out vec4 out_color;
+
+layout(binding = 0, set = 0) uniform sampler2D scene_texture;
 
 void main()
 {
     vec2 coord = (in_position + vec2(1.0, 1.0)) / vec2(2.0, 2.0);
-    out_color = texture(test_texture, coord);
+    out_color = vec4(texture(scene_texture, coord));
 }

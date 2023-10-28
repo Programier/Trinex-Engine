@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/api_object.hpp>
+#include <Core/pointer.hpp>
 #include <Core/structures.hpp>
 
 
@@ -16,7 +17,7 @@ namespace Engine
         Scissor _M_scissor;
 
     public:
-        RenderPass* render_pass = nullptr;
+        Pointer<RenderPass> render_pass;
 
         delete_copy_constructors(BasicRenderTarget);
         BasicRenderTarget();

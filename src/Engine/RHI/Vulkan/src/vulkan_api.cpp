@@ -1,13 +1,13 @@
 ﻿#include <VkBootstrap.h>
 #include <fstream>
 
+#include <Graphics/texture.hpp>
 #include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <imgui_impl_vulkan.h>
 #include <string>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_export.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_renderpass.hpp>
@@ -18,6 +18,19 @@
 
 namespace Engine
 {
+
+    VulkanSyncObject::VulkanSyncObject()
+    {
+        image_present   = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
+
+    }
+
+    VulkanSyncObject::~VulkanSyncObject()
+    {
+        DESTROY_CALL(destroySemaphore, image_present);
+    }
+
+
     Vector<const char*> VulkanAPI::device_extensions = {VK_KHR_MAINTENANCE1_EXTENSION_NAME,
                                                         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                                                         VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME};
@@ -59,10 +72,6 @@ namespace Engine
     VulkanAPI& VulkanAPI::destroy_window()
     {
         _M_device.waitIdle();
-
-
-        delete _M_command_buffer;
-        _M_command_buffer = nullptr;
         destroy_framebuffers();
         delete _M_main_render_pass;
         delete _M_swap_chain;
@@ -137,7 +146,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::imgui_render()
     {
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), _M_command_buffer->get());
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), current_command_buffer());
         return *this;
     }
 
@@ -273,6 +282,15 @@ namespace Engine
 
         _M_graphics_queue = vk::Queue(graphics_queue.value());
         _M_present_queue  = vk::Queue(present_queue.value());
+
+
+        // Initialize pfn
+        pfn.vkCmdBeginDebugUtilsLabelEXT =
+                (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdBeginDebugUtilsLabelEXT");
+        pfn.vkCmdEndDebugUtilsLabelEXT =
+                (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdEndDebugUtilsLabelEXT");
+
+        _M_sync_objects.resize(MAIN_FRAMEBUFFERS_COUNT);
     }
 
 
@@ -334,7 +352,8 @@ namespace Engine
         {
             vk::FormatProperties properties = _M_physical_device.getFormatProperties(format);
 
-            if (tiling != vk::ImageTiling::eDrmFormatModifierEXT && (properties.linearTilingFeatures & features) == features)
+            if (tiling != vk::ImageTiling::eDrmFormatModifierEXT &&
+                (properties.linearTilingFeatures & features) == features)
             {
                 return format;
             }
@@ -349,51 +368,21 @@ namespace Engine
         return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
     }
 
-    vk::Format VulkanAPI::find_depth_format()
-    {
-        static const Vector<vk::Format> candidates = {
-                vk::Format::eD32Sfloat,
-                vk::Format::eD32SfloatS8Uint,
-                vk::Format::eD24UnormS8Uint,
-        };
-
-        return find_supported_format(candidates, vk::ImageTiling::eOptimal,
-                                     vk::FormatFeatureFlagBits::eDepthStencilAttachment);
-    }
-
-    VulkanAPI& VulkanAPI::create_resolve_image(uint32_t width, uint32_t height, vk::Format format,
-                                               vk::ImageTiling tiling, vk::ImageCreateFlags flags,
-                                               vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties,
-                                               vk::Image& image, vk::DeviceMemory& image_memory, uint32_t mip_count,
-                                               uint32_t layers)
-    {
-        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, format, vk::Extent3D(width, height, 1), mip_count,
-                                       layers, vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
-
-        image                                      = API->_M_device.createImage(image_info);
-        vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
-        vk::MemoryAllocateInfo alloc_info(
-                memory_requirements.size,
-                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostCoherent));
-        image_memory = API->_M_device.allocateMemory(alloc_info);
-        API->_M_device.bindImageMemory(image, image_memory, 0);
-        return *this;
-    }
-
     VulkanAPI& VulkanAPI::create_image(VulkanTexture* texture, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
                                        vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
                                        vk::DeviceMemory& image_memory, uint32_t layers)
     {
 
-        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->_M_vulkan_format,
-                                       vk::Extent3D(texture->size.width, texture->size.height, 1),
-                                       texture->_M_mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling, usage,
-                                       vk::SharingMode::eExclusive);
+        vk::ImageCreateInfo image_info(
+                flags, vk::ImageType::e2D, texture->_M_vulkan_format,
+                vk::Extent3D(texture->_M_engine_texture->size.x, texture->_M_engine_texture->size.y, 1),
+                texture->_M_engine_texture->mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling, usage,
+                vk::SharingMode::eExclusive);
 
         image                                      = API->_M_device.createImage(image_info);
         vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
         auto memory_type =
-                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostCoherent);
+                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
         image_memory = API->_M_device.allocateMemory(alloc_info);
         API->_M_device.bindImageMemory(image, image_memory, 0);
@@ -414,10 +403,7 @@ namespace Engine
         _M_command_pool = _M_device.createCommandPool(
                 vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           _M_graphics_and_present_index.graphics_family.value()));
-
-        _M_command_buffer = new VulkanCommandBuffer();
     }
-
 
     VulkanAPI& VulkanAPI::on_window_size_changed()
     {
@@ -447,7 +433,7 @@ namespace Engine
         {
 
             result = _M_device.acquireNextImageKHR(_M_swap_chain->_M_swap_chain, UINT64_MAX,
-                                                   _M_command_buffer->sync_object()._M_available_semaphore, nullptr);
+                                                   _M_sync_objects[API->_M_current_buffer].image_present, nullptr);
 
             _M_need_update_image_index = false;
         }
@@ -458,24 +444,110 @@ namespace Engine
     VulkanAPI& VulkanAPI::begin_render()
     {
         _M_state->reset();
-        _M_command_buffer->begin();
+
+        if (_M_need_recreate_swap_chain)
+        {
+            wait_idle();
+            recreate_swap_chain();
+        }
+
+        _M_need_update_image_index = true;
+        auto current_buffer_index  = API->swapchain_image_index();
+
+
+        if (current_buffer_index.result == vk::Result::eErrorOutOfDateKHR)
+        {
+            API->_M_need_recreate_swap_chain = true;
+            API->_M_need_update_image_index  = true;
+            API->recreate_swap_chain();
+            return begin_render();
+        }
+
+        if (current_buffer_index.result != vk::Result::eSuccess &&
+            current_buffer_index.result != vk::Result::eSuboptimalKHR)
+        {
+            throw std::runtime_error("failed to acquire swap chain image!");
+        }
+
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        _M_command_buffer->end();
+        if (_M_framebuffer_list.empty())
+            return *this;
+
+        if (API->_M_state->_M_framebuffer)
+        {
+            API->_M_state->_M_framebuffer->unbind();
+        }
+
+        VulkanSyncObject& current_sync_object = _M_sync_objects[API->_M_current_buffer];
+
+        static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+        vk::SubmitInfo submit_info(current_sync_object.image_present, wait_flags, {}, {});
+
+
+        size_t count = _M_framebuffer_list.size();
+
+        for (size_t i = 0; i < count; i++)
+        {
+            VulkanFramebuffer* framebuffer = _M_framebuffer_list[i];
+            submit_info.setCommandBuffers(framebuffer->_M_command_buffer)
+                    .setSignalSemaphores(framebuffer->_M_render_finished);
+
+            API->_M_graphics_queue.submit(submit_info, framebuffer->_M_fence);
+
+            submit_info.setWaitSemaphores(framebuffer->_M_render_finished);
+        }
+
+        auto swapchain_index = API->swapchain_image_index().value;
+
+        vk::PresentInfoKHR present_info(_M_framebuffer_list.back()->_M_render_finished, API->_M_swap_chain->_M_swap_chain,
+                                        swapchain_index);
+        vk::Result result;
+        try
+        {
+            result = API->_M_present_queue.presentKHR(present_info);
+        }
+        catch (const std::exception& e)
+        {
+            vulkan_error_log("Vulkan", "PresentKHR throw %s!", e.what());
+            result = vk::Result::eErrorOutOfDateKHR;
+        }
+
+        switch (result)
+        {
+            case vk::Result::eSuccess:
+                break;
+
+            case vk::Result::eErrorOutOfDateKHR:
+#if !SKIP_SUBOPTIMAL_KHR_ERROR
+            case vk::Result::eSuboptimalKHR:
+#endif
+                API->_M_need_recreate_swap_chain = true;
+                break;
+
+            default:
+                assert(false);
+        }
+
+
+        if (API->_M_need_recreate_swap_chain)
+        {
+            API->recreate_swap_chain();
+        }
+        _M_framebuffer_list.clear();
         return *this;
     }
-
 
     uint32_t VulkanAPI::find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties)
     {
         vk::PhysicalDeviceMemoryProperties mem_properties = _M_physical_device.getMemoryProperties();
 
-        for (uint32_t i = 0; i < mem_properties.memoryTypeCount; i++)
+        for (uint32_t i = 0; (1u << i) <= type_filter && i < mem_properties.memoryTypeCount; i++)
         {
-            if ((type_filter & (1 << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties) == properties)
+            if ((type_filter & (1u << i)) && (mem_properties.memoryTypes[i].propertyFlags & properties))
             {
                 return i;
             }
@@ -552,14 +624,14 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
-        _M_command_buffer->get().drawIndexed(indices, 1, offset, 0, 0);
+        current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
         _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
-        _M_command_buffer->get().draw(vertex_count, 1, 0, 0);
+        current_command_buffer().draw(vertex_count, 1, 0, 0);
         _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
@@ -600,5 +672,29 @@ namespace Engine
     VulkanAPI& VulkanAPI::next_render_thread()
     {
         return *this;
+    }
+
+    void VulkanAPI::push_debug_stage(const char* stage, const Color& color)
+    {
+        if (pfn.vkCmdBeginDebugUtilsLabelEXT)
+        {
+            VkDebugUtilsLabelEXT label_info = {};
+            label_info.sType                = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+            label_info.pLabelName           = stage;
+            label_info.color[0]             = color.r;
+            label_info.color[1]             = color.g;
+            label_info.color[2]             = color.b;
+            label_info.color[3]             = color.a;
+
+            pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer(), &label_info);
+        }
+    }
+
+    void VulkanAPI::pop_debug_stage()
+    {
+        if (pfn.vkCmdEndDebugUtilsLabelEXT)
+        {
+            pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer());
+        }
     }
 }// namespace Engine

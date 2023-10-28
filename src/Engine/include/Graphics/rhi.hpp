@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <Core/color.hpp>
 #include <Core/color_format.hpp>
+#include <Core/colors.hpp>
 #include <Core/mapped_memory.hpp>
 #include <Core/rhi_initializers.hpp>
 
@@ -47,7 +47,7 @@ namespace Engine
     };
 
     struct RHI_RenderTarget : RHI_Object {
-        virtual void bind(uint_t buffer_index)                                = 0;
+        virtual void bind()                                                   = 0;
         virtual void viewport(const ViewPort& viewport)                       = 0;
         virtual void scissor(const Scissor& scissor)                          = 0;
         virtual void clear_depth_stencil(const DepthStencilClearValue& value) = 0;
@@ -86,8 +86,13 @@ namespace Engine
     struct RHI_RenderPass : RHI_Object {
     };
 
-
     struct ENGINE_EXPORT RHI {
+        enum BarrierStage
+        {
+            Undefined,
+            AccessColorAttachmentWrite,
+        };
+
         virtual void* init_window(struct WindowInterface*, const WindowConfig& config) VIRTUAL_METHOD;
         virtual RHI& destroy_window() VIRTUAL_METHOD;
         virtual RHI& imgui_init() VIRTUAL_METHOD;
@@ -114,17 +119,17 @@ namespace Engine
         virtual RHI& next_render_thread() VIRTUAL_METHOD;
         virtual String renderer() VIRTUAL_METHOD;
 
+        // Bariers
+        virtual RHI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) = 0;
 
-        virtual RHI_Sampler* create_sampler(const Sampler*)                                     = 0;
-        virtual RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data) = 0;
 
-        virtual RHI_RenderTarget* window_render_target()                                  = 0;
-        virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target) = 0;
-
-        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)     = 0;
-        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader) = 0;
-        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)          = 0;
-
+        virtual RHI_Sampler* create_sampler(const Sampler*)                                          = 0;
+        virtual RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data)      = 0;
+        virtual RHI_RenderTarget* window_render_target()                                             = 0;
+        virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)            = 0;
+        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                         = 0;
+        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                     = 0;
+        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                              = 0;
         virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data)                = 0;
         virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) = 0;
         virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data)              = 0;
@@ -132,6 +137,9 @@ namespace Engine
         virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                    = 0;
         virtual RHI_RenderPass* window_render_pass()                                                 = 0;
         virtual ColorFormatFeatures color_format_features(ColorFormat format)                        = 0;
+
+        virtual void push_debug_stage(const char* stage, const Color& color = {}) = 0;
+        virtual void pop_debug_stage()                                            = 0;
 
         virtual ~RHI(){};
     };

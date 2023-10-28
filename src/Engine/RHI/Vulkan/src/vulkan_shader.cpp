@@ -2,7 +2,6 @@
 #include <iostream>
 #include <thread>
 #include <vulkan_api.hpp>
-#include <vulkan_command_buffer.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_sampler.hpp>

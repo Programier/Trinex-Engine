@@ -33,6 +33,8 @@ namespace Engine
         Attachment depth_stencil_attachment;
         bool has_depth_stancil = false;
 
+        RenderPass& rhi_create();
+
         static RenderPass* default_pass(Type type);
     };
 }// namespace Engine

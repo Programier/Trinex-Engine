@@ -1,10 +1,26 @@
 #include <Core/color_format.hpp>
-#include <Core/engine_loading_controllers.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
 {
+
+    ColorFormatFeatures::ColorFormatFeatures() : data(0)
+    {}
+
+    bool ColorFormatFeatures::contains(const ColorFormatFeatures& other) const
+    {
+        static constexpr size_t array_size = sizeof(data);
+        for (size_t i = 0; i < array_size; i++)
+        {
+            if ((data[i] & other.data[i]) != other.data[i])
+                return false;
+        }
+
+        return true;
+    }
+
     static Map<ColorFormat, ColorFormatFeatures>& static_color_format_features()
     {
         static Map<ColorFormat, ColorFormatFeatures> features;
@@ -124,8 +140,8 @@ namespace Engine
     {
         auto& set                                = static_color_format_features();
         const Vector<ColorFormat>& color_formats = ColorFormatInfo::all_formats();
-        RHI* rhi = engine_instance->rhi();
-        for(auto& format : color_formats)
+        RHI* rhi                                 = engine_instance->rhi();
+        for (auto& format : color_formats)
         {
             set[format] = rhi->color_format_features(format);
         }

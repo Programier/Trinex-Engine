@@ -1,26 +1,37 @@
 #pragma once
+#include <Core/etl/singletone.hpp>
 #include <Core/pointer.hpp>
-#include <Graphics/framebuffer.hpp>
+#include <Graphics/render_target.hpp>
 
 namespace Engine
 {
 
     class Texture2D;
 
-    struct ENGINE_EXPORT GBufferData {
+    class ENGINE_EXPORT GBuffer : public Singletone<GBuffer, RenderTarget>
+    {
+        declare_class(GBuffer, Object);
+
+    public:
         Pointer<Texture2D> albedo;
         Pointer<Texture2D> position;
         Pointer<Texture2D> normal;
         Pointer<Texture2D> specular;
         Pointer<Texture2D> depth;
-    };
 
-    class ENGINE_EXPORT GBuffer : public Object
-    {
-        declare_class(GBuffer, Object);
+
+    private:
+        static GBuffer* _M_instance;
+        Vector<ColorFormat> _M_color_formats;
+
+        GBuffer();
+        ~GBuffer();
+
+        void init();
 
     public:
-
-        static void static_init();
+        GBuffer& resize();
+        friend class Singletone<GBuffer, RenderTarget>;
+        friend class Object;
     };
 }// namespace Engine

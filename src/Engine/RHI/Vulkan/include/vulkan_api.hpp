@@ -27,6 +27,13 @@ namespace Engine
     };
 
 
+    struct VulkanSyncObject {
+        vk::Semaphore image_present;
+        VulkanSyncObject();
+        ~VulkanSyncObject();
+    };
+
+
     struct VulkanTexture;
 
     struct VulkanAPI : public RHI {
@@ -39,6 +46,11 @@ namespace Engine
         struct {
             int width, height;
         } window_data;
+
+        struct {
+            PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
+            PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT     = nullptr;
+        } pfn;
 
         // API DATA
         vkb::Instance _M_instance;
@@ -61,8 +73,11 @@ namespace Engine
         struct VulkanState* _M_state                 = nullptr;
 
         vk::CommandPool _M_command_pool;
-        struct VulkanCommandBuffer* _M_command_buffer = nullptr;
         vk::PresentModeKHR _M_swap_chain_mode;
+
+        Vector<VulkanFramebuffer*> _M_framebuffer_list;
+
+        Vector<VulkanSyncObject> _M_sync_objects;
 
         uint32_t _M_current_buffer = 0;
         uint32_t _M_current_frame  = 0;
@@ -96,15 +111,11 @@ namespace Engine
         vk::Format find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
                                          vk::FormatFeatureFlags features);
         bool has_stencil_component(vk::Format format);
-        vk::Format find_depth_format();
-        VulkanAPI& create_resolve_image(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
-                                        vk::ImageCreateFlags flags, vk::ImageUsageFlags usage,
-                                        vk::MemoryPropertyFlags properties, vk::Image& image,
-                                        vk::DeviceMemory& image_memory, uint32_t mip_count = 1, uint32_t layers = 1);
-
         VulkanAPI& create_image(struct VulkanTexture* state, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
                                 vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
                                 vk::DeviceMemory& image_memory, uint32_t layers);
+
+        vk::CommandBuffer& current_command_buffer();
 
         //////////////////////////////////////////////////////////////
 
@@ -136,6 +147,8 @@ namespace Engine
         bool async_render() override;
         VulkanAPI& next_render_thread() override;
 
+        VulkanAPI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
+
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, TextureType, const byte* data) override;
@@ -151,7 +164,8 @@ namespace Engine
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat format) override;
-
+        void push_debug_stage(const char* stage, const Color& color) override;
+        void pop_debug_stage() override;
 
         ~VulkanAPI();
     };

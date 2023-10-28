@@ -18,8 +18,11 @@ namespace Engine
     struct RHI_SSBO;
     struct RHI_RenderPass;
 
-    class ENGINE_EXPORT ApiObjectNoBase
+
+    class ENGINE_EXPORT ApiObject : public Object
     {
+        declare_class(ApiObject, Object);
+
     protected:
         union
         {
@@ -38,13 +41,10 @@ namespace Engine
             RHI_RenderPass* _M_rhi_render_pass;
         };
 
-    protected:
         bool _M_can_delete;
 
-
     public:
-        ApiObjectNoBase();
-        delete_copy_constructors(ApiObjectNoBase);
+        ApiObject();
 
         bool has_object() const;
         template<typename T>
@@ -53,26 +53,18 @@ namespace Engine
             return reinterpret_cast<T*>(_M_rhi_object);
         }
 
-        ApiObjectNoBase& destroy();
+        ApiObject& rhi_destroy();
 
-    protected:
-        virtual ~ApiObjectNoBase();
-    };
-
-    class ENGINE_EXPORT ApiObject : public Object, public ApiObjectNoBase
-    {
-    public:
-        declare_class(ApiObject, Object);
-
-    public:
-        virtual ApiObject& rhi_create();
+        ~ApiObject();
     };
 
 
     class ApiBindingObject : public ApiObject
     {
+        declare_class(ApiBindingObject, ApiObject);
+
     public:
-        const ApiBindingObject& bind(BindingIndex binding, BindingIndex set = 0) const;
+        const ApiBindingObject& rhi_bind(BindingIndex binding, BindingIndex set = 0) const;
     };
 
 

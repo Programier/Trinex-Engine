@@ -19,7 +19,7 @@ namespace Engine
             _M_default_render_passes[RenderPass::Type::Window] = this;
         }
 
-        WindowRenderPass& rhi_create() override
+        WindowRenderPass& rhi_create()
         {
             _M_can_delete      = false;
             _M_rhi_render_pass = engine_instance->rhi()->window_render_pass();
@@ -268,6 +268,11 @@ namespace Engine
     {
         _M_rhi_render_target = nullptr;// Window render target must be destroyed by API
         delete _M_interface;
+    }
+
+    Window* Window::instance()
+    {
+        return engine_instance->window();
     }
 
     Window& Window::swap_buffers()

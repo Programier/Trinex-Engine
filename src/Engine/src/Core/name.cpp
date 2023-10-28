@@ -54,6 +54,12 @@ namespace Engine
 
     Name& Name::init(const String& name)
     {
+        if(name.empty())
+        {
+            _M_index = Constants::index_none;
+            return *this;
+        }
+
         HashIndex hash = memory_hash_fast(name.data(), name.length(), 0);
 
         Vector<Name::Entry>& name_table = name_entries();
