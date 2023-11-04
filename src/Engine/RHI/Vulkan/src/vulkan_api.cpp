@@ -12,6 +12,7 @@
 #include <vulkan_pipeline.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
+#include <Platform/thread.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
@@ -19,6 +20,8 @@
 namespace Engine
 {
 
+
+    Thread* init_thread = nullptr;
     VulkanSyncObject::VulkanSyncObject()
     {
         image_present   = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
@@ -162,6 +165,7 @@ namespace Engine
 
     void* VulkanAPI::init_window(WindowInterface* window, const WindowConfig& config)
     {
+        init_thread = Thread::this_thread();
         _M_window          = window;
         _M_swap_chain_mode = present_mode_of(config.vsync);
 
@@ -194,6 +198,8 @@ namespace Engine
                                                          void* pUserData)
     {
         vulkan_error_log("Vulkan API", "%s", pCallbackData->pMessage);
+        Thread* thread = Thread::this_thread();
+        vulkan_error_log("Vulkan API", "Thread: %s, ID: %zu", thread->name().c_str(), thread->id());
         return VK_FALSE;
     }
 #endif
@@ -487,12 +493,8 @@ namespace Engine
         static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
         vk::SubmitInfo submit_info(current_sync_object.image_present, wait_flags, {}, {});
 
-
-        size_t count = _M_framebuffer_list.size();
-
-        for (size_t i = 0; i < count; i++)
+        for (VulkanFramebuffer* framebuffer : _M_framebuffer_list)
         {
-            VulkanFramebuffer* framebuffer = _M_framebuffer_list[i];
             submit_info.setCommandBuffers(framebuffer->_M_command_buffer)
                     .setSignalSemaphores(framebuffer->_M_render_finished);
 
@@ -618,6 +620,11 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::wait_idle()
     {
+        if(Thread::this_thread() != init_thread)
+        {
+            int i = 0;
+            i++;
+        }
         _M_device.waitIdle();
         return *this;
     }

@@ -13,7 +13,7 @@ namespace Engine
     implement_initialize_class(Camera)
     {}
 
-    Camera::Camera(glm::vec3 position, float viewing_angle)
+    Camera::Camera(Vector3D position, float viewing_angle)
     {
         _M_viewing_angle = viewing_angle;
         Window* window   = engine_instance->window();
@@ -21,7 +21,7 @@ namespace Engine
         {
             _M_aspect = window->width() / window->height();
         }
-        transform.move(position, false)._M_revert_front_vector = 1;
+        transform.position = position;
         update_projection_matrix();
     }
 
@@ -114,8 +114,8 @@ namespace Engine
     Camera& Camera::update(float dt)
     {
         Super::update(dt);
-        auto front_vector   = transform.front_vector();
-        const Vector3D& pos = transform.position();
+        auto front_vector   = transform.forward_vector();
+        const Vector3D& pos = transform.position;
 
         _M_view     = glm::lookAt(pos, pos + front_vector, transform.up_vector());
         _M_projview = _M_projection * _M_view;

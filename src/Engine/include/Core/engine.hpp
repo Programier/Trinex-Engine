@@ -25,23 +25,22 @@ namespace Engine
 
     enum class ThreadType : EnumerateType
     {
-        RenderThread = 0,
+        MainThread   = 0,
+        RenderThread = 1,
 
         __COUNT__,
     };
 
-    class EngineSystem;
 
-    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass>
+    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass, false>
     {
     private:
         static EngineInstance* _M_instance;
 
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
-        EngineSystem* _M_engine_system = nullptr;
-        class Renderer* _M_renderer    = nullptr;
-        Window* _M_window              = nullptr;
-        RHI* _M_rhi                    = nullptr;
+        class Renderer* _M_renderer = nullptr;
+        Window* _M_window           = nullptr;
+        RHI* _M_rhi                 = nullptr;
         BitSet<static_cast<EnumerateType>(EngineInstanceFlags::__COUNT__)> _M_flags;
         EngineAPI _M_api;
         Index _M_frame_index = 0;
@@ -55,6 +54,7 @@ namespace Engine
         int start(int argc, char** argv);
 
     private:
+        void init_engine_for_rendering();
         void create_window();
 
     public:
@@ -72,7 +72,6 @@ namespace Engine
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
         bool check_format_support(ColorFormat format);
-        EngineSystem* engine_system() const;
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;
@@ -83,6 +82,7 @@ namespace Engine
 
         friend class Singletone;
         friend class Object;
+        friend class EngineSystem;
     };
 
     ENGINE_EXPORT extern EngineInstance* engine_instance;

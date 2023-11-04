@@ -33,7 +33,7 @@ namespace Engine
     };
 
     struct RHI_BindingObject : RHI_Object {
-        virtual void bind(BindingIndex binding, BindingIndex set) = 0;
+        virtual void bind(BindLocation location) = 0;
     };
 
     struct RHI_Sampler : RHI_BindingObject {
@@ -41,7 +41,7 @@ namespace Engine
 
     struct RHI_Texture : RHI_BindingObject {
         virtual void generate_mipmap()                                                           = 0;
-        virtual void bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set) = 0;
+        virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
         virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
                                        const byte* data)                                         = 0;
     };
@@ -76,11 +76,11 @@ namespace Engine
     };
 
     struct RHI_UniformBuffer : RHI_Buffer {
-        virtual void bind(BindingIndex binding, BindingIndex set) = 0;
+        virtual void bind(BindLocation location) = 0;
     };
 
     struct RHI_SSBO : RHI_Buffer {
-        virtual void bind(BindingIndex binding, BindingIndex set) = 0;
+        virtual void bind(BindLocation location) = 0;
     };
 
     struct RHI_RenderPass : RHI_Object {

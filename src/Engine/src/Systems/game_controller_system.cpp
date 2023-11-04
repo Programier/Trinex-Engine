@@ -12,9 +12,6 @@ namespace Engine
 
 #define new_id(x) _M_callbacks_id.push_back(x)
 
-    GameControllerSystem* GameControllerSystem::_M_instance = nullptr;
-
-
     void GameControllerSystem::on_controller_added(const Event& event)
     {
         const ControllerDeviceAddedEvent& e = event.get<const ControllerDeviceAddedEvent&>();
@@ -64,9 +61,10 @@ namespace Engine
         return *this;
     }
 
-    void GameControllerSystem::wait()
+    GameControllerSystem& GameControllerSystem::wait()
     {
         Super::wait();
+        return *this;
     }
 
     GameControllerSystem& GameControllerSystem::update(float dt)

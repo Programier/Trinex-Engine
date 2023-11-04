@@ -1,8 +1,8 @@
 #pragma once
 #include <Graphics/rhi.hpp>
-#include <vulkan_headers.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
+#include <vulkan_headers.hpp>
 #include <vulkan_unique_per_frame.hpp>
 
 namespace Engine
@@ -46,12 +46,12 @@ namespace Engine
         VulkanDescriptorSet* current_descriptor_set(BindingIndex set);
 
         void bind() override;
-        VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindingIndex binding, BindingIndex set);
-        VulkanPipeline& bind_uniform_buffer(VulkanUniformBuffer* buffer, BindingIndex binding, BindingIndex set);
+        VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
+        VulkanPipeline& bind_uniform_buffer(VulkanUniformBuffer* buffer, BindLocation location);
         VulkanPipeline& bind_combined_sampler(struct VulkanSampler* sampler, struct VulkanTexture* texture,
-                                              BindingIndex binding, BindingIndex set);
-        VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindingIndex binding, BindingIndex set);
-        VulkanPipeline& bind_texture(VulkanTexture* texture, BindingIndex binding, BindingIndex set);
+                                              BindLocation location);
+        VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);
+        VulkanPipeline& bind_texture(VulkanTexture* texture, BindLocation location);
         VulkanPipeline& increment_set_index();
 
         ~VulkanPipeline();

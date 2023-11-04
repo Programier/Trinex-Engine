@@ -74,7 +74,7 @@ namespace Engine::JSON
         }
 
         template<typename T>
-        T checked_get(const T& default_value = {}) const
+        T checked_get(const std::decay_t<T>& default_value = {}) const
         {
             try
             {
@@ -84,6 +84,24 @@ namespace Engine::JSON
             {
                 return default_value;
             }
+        }
+
+        template<typename T>
+        const Value& copy_to_array(Vector<T>& out, ValueType filter) const
+        {
+            if(type() == ValueType::Array)
+            {
+                const JsonArray& array = checked_get<const JsonArray&>();
+                for (auto& ell : array)
+                {
+                    if (ell.type() == filter)
+                    {
+                        out.push_back(ell.get<const T&>());
+                    }
+                }
+            }
+
+            return *this;
         }
     };
 

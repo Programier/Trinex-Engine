@@ -215,11 +215,11 @@ namespace Engine
         return *this;
     }
 
-    UniformBuffer& UniformBuffer::bind(BindingIndex binding, BindingIndex set)
+    UniformBuffer& UniformBuffer::rhi_bind(BindLocation location)
     {
         if (_M_rhi_uniform_buffer)
         {
-            _M_rhi_uniform_buffer->bind(binding, set);
+            _M_rhi_uniform_buffer->bind(location);
         }
         return *this;
     }
@@ -232,11 +232,11 @@ namespace Engine
         return *this;
     }
 
-    SSBO& SSBO::bind(BindingIndex binding, BindingIndex set)
+    SSBO& SSBO::rhi_bind(BindLocation location)
     {
         if (_M_rhi_ssbo)
         {
-            _M_rhi_ssbo->bind(binding, set);
+            _M_rhi_ssbo->bind(location);
         }
 
         return *this;

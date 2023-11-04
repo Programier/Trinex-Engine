@@ -50,8 +50,6 @@ namespace Engine
         window->update_cached_size();
     }
 
-    EventSystem* EventSystem::_M_instance = nullptr;
-
     EventSystem::EventSystem()
     {}
 
@@ -96,7 +94,7 @@ namespace Engine
     {
         Super::create();
 
-        EngineSystem::instance()->add_object(this);
+        System::new_system<EngineSystem>()->register_subsystem(this);
         Event event = EventType::Quit;
         add_listener(event, on_quit);
         WindowInterface* interface = reinterpret_cast<WindowInterface*>(engine_instance->window()->interface());
@@ -108,6 +106,11 @@ namespace Engine
             resize_event.type = WindowEvent::Resized;
             add_listener(Event(EventType::Window, resize_event), on_resize);
         }
+
+        // Register subsystems
+        new_system<KeyboardSystem>();
+        new_system<MouseSystem>();
+        new_system<GameControllerSystem>();
 
         return *this;
     }
@@ -124,15 +127,6 @@ namespace Engine
         return call_listeners(_M_listeners.find(event.base_id()), event)
                 .call_listeners(_M_listeners.find(event.id()), event);
     }
-
-    void EventSystem::init_all()
-    {
-        new_system<EventSystem>();
-        new_system<KeyboardSystem>();
-        new_system<MouseSystem>();
-        new_system<GameControllerSystem>();
-    }
-
 
     static Identifier script_add_listener(EventSystem* system, class asIScriptFunction* function)
     {

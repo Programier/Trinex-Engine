@@ -65,11 +65,11 @@ namespace Engine
         return *this;
     }
 
-    void VulkanSampler::bind(BindingIndex binding, BindingIndex set)
+    void VulkanSampler::bind(BindLocation location)
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_sampler(this, binding, set);
+            API->_M_state->_M_pipeline->bind_sampler(this, location);
         }
     }
 

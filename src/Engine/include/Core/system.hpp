@@ -3,13 +3,17 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT System : public Package
+    class ENGINE_EXPORT System : public Object
     {
-        declare_class(System, Package);
+        declare_class(System, Object);
 
     private:
         bool is_fully_created = false;
         static void on_create_fail();
+        static void on_new_system(System* system);
+
+    protected:
+        Vector<System*> _M_subsystems;
 
     public:
         bool save(BufferWriter* writer = nullptr) const                         = delete;
@@ -18,9 +22,18 @@ namespace Engine
 
         System();
         virtual System& create();
-        virtual void wait();
+        virtual System& wait();
         virtual System& update(float dt);
         virtual System& shutdown();
+        static System* new_system_by_name(const String& name);
+
+        System& on_child_remove(Object* object) override;
+        System& on_child_set(Object* object) override;
+
+        const Vector<System*>& subsystems() const;
+        System& register_subsystem(System* system, Index index = ~static_cast<Index>(0));
+        System& remove_subsystem(System* system);
+
 
         template<typename SystemType, typename... Args>
         static SystemType* new_system(Args&&... args)
@@ -28,11 +41,7 @@ namespace Engine
             if (SystemType::instance() == nullptr)
             {
                 SystemType* system = SystemType::create_instance(std::forward<Args>(args)...);
-                system->create();
-                if(!static_cast<System*>(system)->is_fully_created)
-                {
-                    on_create_fail();
-                }
+                on_new_system(system);
                 return system;
             }
 

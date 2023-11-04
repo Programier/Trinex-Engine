@@ -2,6 +2,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/pointer.hpp>
 #include <Graphics/render_target.hpp>
+#include <Core/executable_object.hpp>
 
 namespace Engine
 {

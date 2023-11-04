@@ -18,7 +18,6 @@ namespace Engine
 
     private:
         ListenerMap _M_listeners;
-        static EventSystem* _M_instance;
 
         const EventSystem& call_listeners(ListenerMap::const_iterator&& it, const Event& event) const;
         EventSystem();
@@ -30,9 +29,7 @@ namespace Engine
         EventSystem& create() override;
         EventSystem& update(float dt) override;
         const EventSystem& push_event(const Event& event) const;
-        static void init_all();
 
         friend class Object;
-        friend class Singletone<EventSystem, System>;
     };
 }// namespace Engine

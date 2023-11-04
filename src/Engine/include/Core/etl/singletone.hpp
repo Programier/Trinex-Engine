@@ -1,8 +1,9 @@
 #pragma once
 
+#include <Core/definitions.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/object.hpp>
-#include <Core/definitions.hpp>
 
 
 namespace Engine
@@ -11,25 +12,35 @@ namespace Engine
     class ENGINE_EXPORT SingletoneBase
     {
     protected:
-        static void register_singletone_object(Object* object, const Class* _class);
+        static void allocate_instance(const Class* class_instance);
+        static void begin_destroy_instance(const Class* class_instance);
+        static Object* extract_object_from_class(const Class* class_instance);
     };
 
-    template<typename Type, typename Parent = Object>
-    class Singletone : public Parent, public SingletoneBase
+    template<typename Type, typename Parent = Object, bool with_destroy_controller = true>
+    class Singletone : public Parent, private SingletoneBase
     {
     public:
-        static constexpr bool singletone = true;
+        static constexpr inline bool singletone_based_on_object = std::is_base_of_v<Object, Type>;
+        static constexpr bool singletone                        = true;
 
         template<typename... Args>
         static Type* create_instance(Args&&... args)
         {
             if (!instance())
             {
-                Type::_M_instance = Object::new_instance<Type>(std::forward<Args>(args)...);
-
-                if constexpr (std::is_base_of_v<Object, Type>)
+                if constexpr (singletone_based_on_object)
                 {
-                    register_singletone_object(Type::_M_instance, Type::static_class_instance());
+                    allocate_instance(Type::static_class_instance());
+                }
+                else
+                {
+                    Type::_M_instance = Object::new_instance<Type>(std::forward<Args>(args)...);
+                }
+
+                if constexpr (with_destroy_controller)
+                {
+                    DestroyController controller(Singletone<Type, Parent>::begin_destroy);
                 }
             }
 
@@ -38,13 +49,32 @@ namespace Engine
 
         FORCE_INLINE static Type* instance()
         {
-            return Type::_M_instance;
+            if constexpr (singletone_based_on_object)
+            {
+                Object* object = extract_object_from_class(Type::static_class_instance());
+                if (object)
+                {
+                    return object->instance_cast<Type>();
+                }
+
+                return nullptr;
+            }
+            else
+            {
+                return Type::_M_instance;
+            }
         }
 
-        Singletone& begin_destroy()
+        static void begin_destroy()
         {
-            Object::begin_destroy(Type::_M_instance);
-            return *this;
+            if constexpr (singletone_based_on_object)
+            {
+                begin_destroy_instance(Type::static_class_instance());
+            }
+            else if (Type::_M_instance)
+            {
+                Object::begin_destroy(Type::_M_instance);
+            }
         }
     };
 }// namespace Engine

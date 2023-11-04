@@ -13,7 +13,6 @@ namespace Engine
         API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible,
                            _M_buffer, _M_memory);
         update(0, data, size);
-
         return *this;
     }
 
@@ -127,11 +126,11 @@ namespace Engine
         return *this;
     }
 
-    void VulkanSSBO::bind(BindingIndex binding, BindingIndex set)
+    void VulkanSSBO::bind(BindLocation location)
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_ssbo(this, binding, set);
+            API->_M_state->_M_pipeline->bind_ssbo(this, location);
         }
     }
 
@@ -167,11 +166,11 @@ namespace Engine
         return _M_buffer[API->_M_current_buffer];
     }
 
-    void VulkanUniformBuffer::bind(BindingIndex binding, BindingIndex set)
+    void VulkanUniformBuffer::bind(BindLocation location)
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_uniform_buffer(this, binding, set);
+            API->_M_state->_M_pipeline->bind_uniform_buffer(this, location);
         }
     }
 

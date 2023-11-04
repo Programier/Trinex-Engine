@@ -6,6 +6,7 @@ option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
 option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
 option(TRINEX_WITH_SDL "Build SDL2 WindowSystem shared library" ON)
 option(TRINEX_WITH_SHADER_COMPILERS "Build engine with shader compilers" OFF)
+option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
 
 
 set(CMAKE_CXX_STANDARD 20)
@@ -42,7 +43,7 @@ set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     stb_image
                                     tinygltf)
 
-set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json)
+set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor)
 
 if(ANDROID)
     set(PLATFORM_DEPENDED_LIBRARIES android log)
@@ -64,6 +65,12 @@ set(TRINEX_COMMANDLETS_DIR "${TRINEX_ENGINE_SRC}/CommandLets/")
 set(TRINEX_SCRIPT_ENGINE_DIR "${TRINEX_ENGINE_SRC}/ScriptEngine/")
 set(TRINEX_SYSTEMS_DIR "${TRINEX_ENGINE_SRC}/Systems/")
 
+if (LINUX OR ANDROID)
+    set(TRINEX_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platform/Linux/")
+elseif(WIN32)
+    set(TRINEX_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platform/Windows/")
+endif()
+
 
 # Find sources
 
@@ -80,6 +87,7 @@ file(GLOB TRINEX_SENSORS_SRC "${TRINEX_SENSORS_DIR}*.cpp")
 file(GLOB TRINEX_COMMANDLETS_SRC "${TRINEX_COMMANDLETS_DIR}*.cpp")
 file(GLOB TRINEX_SCRIPT_ENGINE_SRC "${TRINEX_SCRIPT_ENGINE_DIR}*.cpp")
 file(GLOB TRINEX_SYSTEMS_SRC "${TRINEX_SYSTEMS_DIR}*.cpp")
+file(GLOB TRINEX_PLATFORM_SRC "${TRINEX_PLATFORM_DIR}*.cpp")
 
 # Write all source files to one variable
 set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_WINDOW_SRC}
@@ -93,7 +101,8 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_WINDOW_SRC}
                         ${TRINEX_BINDINGS_SRC}
                         ${TRINEX_ETL_SRC}
                         ${TRINEX_SCRIPT_ENGINE_SRC}
-                        ${TRINEX_SYSTEMS_SRC})
+                        ${TRINEX_SYSTEMS_SRC}
+                        ${TRINEX_PLATFORM_SRC})
 
 
 
@@ -176,4 +185,8 @@ if (FALSE)
     add_library(ShaderCompilers SHARED ${TRINEX_SHADER_COMPILERS_SRC})
     target_link_libraries(ShaderCompilers PRIVATE TrinexEngine glslang SPIRV glslang-default-resource-limits spirv-cross-core spirv-cross-glsl)
     install(TARGETS ShaderCompilers DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
+endif()
+
+if (TRINEX_WITH_EDITOR)
+    add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
 endif()

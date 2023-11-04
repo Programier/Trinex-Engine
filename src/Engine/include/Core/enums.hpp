@@ -299,33 +299,4 @@ namespace Engine
         Vertex   = 0,
         Instance = 1
     };
-
-#define make_shader_data_type(stride, color, id)                                                                       \
-    ((static_cast<EnumerateType>(stride) << 25) | (static_cast<EnumerateType>(color) << 18) |                          \
-     static_cast<EnumerateType>(id))
-
-    enum class ShaderDataType : EnumerateType
-    {
-        Bool  = make_shader_data_type(1, 0, 0),
-        Int   = make_shader_data_type(4, 20, 1),
-        UInt  = make_shader_data_type(4, 19, 2),
-        Float = make_shader_data_type(4, 18, 3),
-        Vec2  = make_shader_data_type(8, 39, 4),
-        Vec3  = make_shader_data_type(12, 64, 5),
-        Vec4  = make_shader_data_type(16, 88, 6),
-        IVec2 = make_shader_data_type(8, 38, 7),
-        IVec3 = make_shader_data_type(12, 63, 8),
-        IVec4 = make_shader_data_type(16, 87, 9),
-        UVec2 = make_shader_data_type(8, 37, 10),
-        UVec3 = make_shader_data_type(12, 62, 11),
-        UVec4 = make_shader_data_type(16, 86, 12),
-        BVec2 = make_shader_data_type(8, 0, 13),
-        BVec3 = make_shader_data_type(12, 0, 14),
-        BVec4 = make_shader_data_type(16, 0, 15),
-        Mat2  = make_shader_data_type(32, 0, 16),
-        Mat3  = make_shader_data_type(48, 0, 17),
-        Mat4  = make_shader_data_type(64, 0, 18)
-
-    };
-#undef make_shader_data_type
 }// namespace Engine

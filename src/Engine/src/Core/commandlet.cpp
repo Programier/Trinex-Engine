@@ -16,7 +16,6 @@ namespace Engine
 
     CommandLet& CommandLet::load_configs()
     {
-        global_config.load(FileManager::root_file_manager()->work_dir() / Path("configs/config.json"));
         return *this;
     }
 

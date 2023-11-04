@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/singletone.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 
@@ -38,7 +39,8 @@ namespace Engine
     }
 
     Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent)
-        : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent)
+        : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent),
+          _M_singletone_object(nullptr)
     {
         class_table()[class_name] = this;
         _M_size                   = 0;
@@ -73,6 +75,16 @@ namespace Engine
 
     Object* Class::create_object() const
     {
+        if(has_all_flags(Class::IsSingletone))
+        {
+            if(_M_singletone_object == nullptr)
+            {
+                _M_singletone_object = _M_static_constructor();
+            }
+
+            return _M_singletone_object;
+        }
+
         return _M_static_constructor();
     }
 
@@ -101,7 +113,6 @@ namespace Engine
         return (_M_flags.to_ulong() & flags) == flags;
     }
 
-
     Class* Class::static_find_class(const String& name)
     {
         try
@@ -127,5 +138,10 @@ namespace Engine
     Object* (*Class::static_constructor() const)()
     {
         return _M_static_constructor;
+    }
+
+    Object* Class::singletone_instance() const
+    {
+        return _M_singletone_object;
     }
 }// namespace Engine

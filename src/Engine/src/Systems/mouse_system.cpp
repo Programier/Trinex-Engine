@@ -23,7 +23,7 @@ namespace Engine
         Super::create();
         std::memset(&_M_button_status, 0, sizeof(_M_button_status));
         EventSystem* event_system = System::new_system<EventSystem>();
-        event_system->add_object(this, true);
+        event_system->register_subsystem(this);
 
         on_motion_index = event_system->add_listener(
                 EventType::MouseMotion, std::bind(&MouseSystem::on_motion_event, this, std::placeholders::_1));
@@ -91,9 +91,10 @@ namespace Engine
         return *this;
     }
 
-    void MouseSystem::wait()
+    MouseSystem& MouseSystem::wait()
     {
         Super::wait();
+        return *this;
     }
 
     MouseSystem& MouseSystem::update(float dt)

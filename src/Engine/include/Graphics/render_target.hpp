@@ -24,6 +24,6 @@ namespace Engine
         DepthStencilClearValue depth_stencil_clear;
         Size2D size;
 
-        RenderTarget& rhi_create();
+        RenderTarget& rhi_create() override;
     };
 }// namespace Engine

@@ -4,6 +4,7 @@
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
+#include <Platform/thread.hpp>
 #include <Window/window.hpp>
 
 namespace Engine
@@ -71,6 +72,11 @@ namespace Engine
 
     GBuffer* GBuffer::_M_instance = nullptr;
 
+    static FORCE_INLINE void push_render_tast(ExecutableObject* task)
+    {
+        engine_instance->thread(ThreadType::RenderThread)->push_task(task);
+    }
+
     GBuffer::GBuffer()
     {
         info_log("GBuffer", "Creating GBuffer");
@@ -100,8 +106,9 @@ namespace Engine
             render_pass->color_attachments.push_back(attachment);
         }
 
-        render_pass->rhi_create();
-
+        SingleTimeInitRenderResourceTask* task = new SingleTimeInitRenderResourceTask();
+        task->object                           = render_pass;
+        push_render_tast(task);
         init();
     }
 
@@ -128,7 +135,8 @@ namespace Engine
             current_texture->size   = size;
             current_texture->format = _M_color_formats[i];
             current_texture->setup_render_target_texture();
-            current_texture->rhi_create();
+
+            current_texture->init_resource();
         }
 
         RenderTarget::Attachment attachment;
@@ -143,7 +151,7 @@ namespace Engine
 
         depth_stencil_attachment.mip_level = 0;
         depth_stencil_attachment.texture   = depth.ptr();
-        rhi_create();
+        init_resource();
     }
 
     GBuffer& GBuffer::resize()

@@ -28,8 +28,8 @@ namespace Engine
         uint_t pixel_type_size() const;
 
         void generate_mipmap() override;
-        void bind(BindingIndex binding, BindingIndex set) override;
-        void bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set) override;
+        void bind(BindLocation location) override;
+        void bind_combined(RHI_Sampler* sampler, BindLocation location) override;
         void update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, uint_t layer,
                             const byte* data);
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,

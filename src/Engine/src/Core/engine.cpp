@@ -3,14 +3,15 @@
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/executable_object.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/system.hpp>
-#include <Core/thread.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/renderer.hpp>
+#include <Platform/thread.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <Systems/engine_system.hpp>
 #include <Window/config.hpp>
@@ -173,6 +174,21 @@ namespace Engine
         return commandlet;
     }
 
+
+    static void load_external_system_libraries()
+    {
+        for (const String& library : engine_config.external_system_libraries)
+        {
+            Library().load(library);
+        }
+    }
+
+    void EngineInstance::init_engine_for_rendering()
+    {
+        create_thread(ThreadType::RenderThread);
+        create_window();
+    }
+
     int EngineInstance::start(int argc, char** argv)
     {
         if (is_inited())
@@ -180,8 +196,11 @@ namespace Engine
             return -1;
         }
 
+
         info_log("TrinexEngine", "Start engine!");
-        start_time = current_time_point();
+        start_time                                             = current_time_point();
+        _M_threads[static_cast<Index>(ThreadType::MainThread)] = Thread::this_thread();
+
         PreInitializeController().execute();
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
@@ -196,22 +215,20 @@ namespace Engine
 #endif
 
         ScriptEngine::instance();
-
         InitializeController().execute();
-
-        CommandLet* commandlet = find_commandlet(argc, argv);
-        if (!commandlet)
-        {
-            return -1;
-        }
-
-        commandlet->load_configs();
         engine_config.update();
 
-        _M_engine_system = System::new_system<EngineSystem>();
+        CommandLet* commandlet = find_commandlet(argc, argv);
 
+        if (commandlet)
+        {
+            commandlet->load_configs();
+            engine_config.update();
+        }
+
+
+        load_external_system_libraries();
         info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
-
         _M_api = get_api_by_name(engine_config.api);
 
         init_api();
@@ -232,10 +249,11 @@ namespace Engine
         // If API is not NoApi, than we need to init Window
         if (_M_api != EngineAPI::NoAPI)
         {
-            create_window();
+            init_engine_for_rendering();
         }
 
-        auto status = commandlet->execute(argc - 1, argv + 1);
+        int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch_systems();
+
         if (status == 0)
         {
             info_log("EngineInstance", "Commandlet execution success!");
@@ -328,14 +346,13 @@ stack_address:
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)] = true;
         info_log("EngineInstance", "Terminate Engine");
 
-        for (Thread*& thread : _M_threads)
-        {
-            delete thread;
-            thread = nullptr;
-        }
-
         engine_instance->trigger_terminate_functions();
         Object::force_garbage_collection();
+
+        for (Thread*& thread : _M_threads)
+        {
+            thread->wait_all();
+        }
 
         delete _M_renderer;
         delete _M_rhi;
@@ -345,16 +362,21 @@ stack_address:
         Library::close_all();
 
         PostDestroyController().execute();
+
+        for (Thread*& thread : _M_threads)
+        {
+            if (thread->is_destroyable())
+            {
+                debug_log("Engine", "Destroy thread %s", thread->name().c_str());
+                delete thread;
+            }
+            thread = nullptr;
+        }
     }
 
     bool EngineInstance::check_format_support(ColorFormat format)
     {
         return _M_rhi->check_format_support(format);
-    }
-
-    EngineSystem* EngineInstance::engine_system() const
-    {
-        return _M_engine_system;
     }
 
     void EngineInstance::create_window()
@@ -367,42 +389,62 @@ stack_address:
         String libname = Strings::format("WindowSystem{}", engine_config.window_system);
         Library library(libname);
 
-        WindowInterface* interface = nullptr;
-
-        if (library.has_lib())
+        if (!library.has_lib())
         {
-            WindowInterface* (*loader)() = library.get<WindowInterface*>("load_window_system");
-            if (loader)
+            throw EngineException("Cannot load window system library!");
+        }
+
+        struct CreateWindowTask : public ExecutableObject {
+        public:
+            WindowInterface* (*_M_loader)();
+            WindowInterface* _M_interface = nullptr;
+
+            CreateWindowTask(WindowInterface* (*loader)()) : _M_loader(loader)
+            {}
+
+            int_t execute() override
             {
-                interface = loader();
+                _M_interface = _M_loader();
+
+                if (!_M_interface)
+                {
+                    throw EngineException("Cannot create window interface!");
+                }
+
+                _M_interface->init(global_window_config);
+                _M_interface->update_monitor_info(const_cast<MonitorInfo&>(Monitor::info()));
+                engine_instance->rhi()->init_window(_M_interface, global_window_config);
+                info_log("TrinexEngine", "Selected GPI: %s", engine_instance->rhi()->renderer().c_str());
+
+                engine_instance->_M_window =
+                        Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), _M_interface);
+
+                AfterRHIInitializeController().execute();
+                return 0;
             }
-        }
+        };
 
-        if (!interface)
-        {
-            throw EngineException("Cannot create window interface!");
-        }
 
-        if (interface->has_error())
+        WindowInterface* (*loader)() = library.get<WindowInterface*>("load_window_system");
+        if (!loader)
         {
-            throw EngineException(interface->error());
+            throw EngineException("Cannot load window system loader");
         }
 
         global_window_config.update();
         global_window_config.api_name = engine_config.api;
-        interface->init(global_window_config);
 
-        interface->update_monitor_info(const_cast<MonitorInfo&>(Monitor::info()));
-        _M_rhi->init_window(interface, global_window_config);
-        info_log("TrinexEngine", "Selected GPI: %s", _M_rhi->renderer().c_str());
-
-        AfterRHIInitializeController().execute();
-        _M_window = Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), interface);
+        CreateWindowTask task(loader);
+        Thread* render_thread = thread(ThreadType::RenderThread);
+        render_thread->push_task(&task);
+        render_thread->wait_all();
 
         if (engine_config.use_deffered_rendering)
         {
             GBuffer::create_instance();
         }
+
+        render_thread->wait_all();
     }
 
     static const char* thread_name(ThreadType type)
@@ -410,7 +452,7 @@ stack_address:
         switch (type)
         {
             case ThreadType::RenderThread:
-                return "Render Thread";
+                return "Render";
             default:
                 return "Undefined Thread";
         }
@@ -423,7 +465,7 @@ stack_address:
         Thread*& thread = _M_threads[index];
         if (thread == nullptr)
         {
-            thread = new Thread(thread_name(type));
+            thread = Thread::new_thread(thread_name(type));
         }
         return thread;
     }
@@ -446,7 +488,10 @@ stack_address:
 
     int_t EngineInstance::launch_systems()
     {
-        if (_M_engine_system->objects().empty())
+
+        EngineSystem* engine_system = System::new_system<EngineSystem>();
+
+        if (engine_system->subsystems().empty())
         {
             error_log("Engine", "No systems found! Please, add systems before call '%s' method!", __FUNCTION__);
             return -1;
@@ -466,13 +511,12 @@ stack_address:
                 dt           = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * dt;
                 prev_time    = current_time;
 
-
-                _M_engine_system->update(dt);
-                _M_engine_system->wait();
+                engine_system->update(dt);
+                engine_system->wait();
                 ++_M_frame_index;
             }
 
-            _M_engine_system->shutdown();
+            engine_system->shutdown();
 
             return 0;
         }

@@ -48,7 +48,7 @@ namespace Engine
         VulkanBuffer _M_buffer;
 
         VulkanSSBO& create(const byte* data, size_t size);
-        void bind(BindingIndex binding, BindingIndex set) override;
+        void bind(BindLocation location) override;
         MappedMemory map_buffer() override;
         void unmap_buffer() override;
         void update(size_t offset, size_t size, const byte* data) override;
@@ -61,7 +61,7 @@ namespace Engine
         VulkanUniformBuffer(const byte* data, size_t size);
         VulkanBuffer* current_buffer();
 
-        void bind(BindingIndex binding, BindingIndex set) override;
+        void bind(BindLocation location) override;
         MappedMemory map_buffer() override;
         void unmap_buffer() override;
         void update(size_t offset, size_t size, const byte* data) override;

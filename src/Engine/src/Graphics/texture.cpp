@@ -14,12 +14,12 @@ namespace Engine
 
     Texture::Texture() = default;
 
-    const Texture& Texture::bind_combined(Sampler* sampler, BindingIndex binding, BindingIndex set) const
+    const Texture& Texture::bind_combined(Sampler* sampler, BindLocation location) const
     {
         if (_M_rhi_texture)
         {
             RHI_Sampler* rhi_sampler = reinterpret_cast<ApiObject*>(sampler)->rhi_object<RHI_Sampler>();
-            _M_rhi_texture->bind_combined(rhi_sampler, binding, set);
+            _M_rhi_texture->bind_combined(rhi_sampler, location);
         }
         return *this;
     }

@@ -28,9 +28,9 @@ namespace Engine
         Class* _M_parent;
         size_t _M_size;
         bool _M_is_script_registered;
+        mutable Object* _M_singletone_object;
 
         static Object* internal_cast(Class* required_class, Object* object);
-
 
         template<typename T>
         static Object* private_cast_func(Object* o)
@@ -53,6 +53,8 @@ namespace Engine
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)();
 
+        Object* singletone_instance() const;
+
         template<typename Type>
         bool is_a() const
         {
@@ -65,12 +67,12 @@ namespace Engine
         {
             if (_M_size == 0)
             {
-                _M_size                 = sizeof(ObjectClass);
-                _M_flags[IsFinal]       = std::is_final_v<ObjectClass>;
-                _M_flags[IsAbstract]    = std::is_abstract_v<ObjectClass>;
-                _M_flags[IsSingletone]  = is_singletone_v<ObjectClass>;
+                _M_size                = sizeof(ObjectClass);
+                _M_flags[IsFinal]      = std::is_final_v<ObjectClass>;
+                _M_flags[IsAbstract]   = std::is_abstract_v<ObjectClass>;
+                _M_flags[IsSingletone] = is_singletone_v<ObjectClass>;
 
-                _M_cast_to_this         = private_cast_func<ObjectClass>;
+                _M_cast_to_this = private_cast_func<ObjectClass>;
             }
         }
 

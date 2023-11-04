@@ -3,6 +3,9 @@
 #include <Event/event_data.hpp>
 #include <Graphics/camera.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/keyboard_system.hpp>
+#include <Systems/mouse_system.hpp>
+#include <Window/window.hpp>
 
 namespace Engine
 {
@@ -11,82 +14,72 @@ namespace Engine
         declare_class(TestCamera, Camera);
 
     public:
-        TestCamera()
+        TestCamera() : Camera({0.0f, 0.0f, 0.0f})
         {
+            min_render_distance(0.1);
+            max_render_distance(100.f);
+
             EventSystem* system = EventSystem::instance();
 
-            KeyEvent key_event;
-            key_event.key    = Keyboard::W;
-
-            system->add_listener(Event(EventType::KeyDown, key_event),
-                                 std::bind(&TestCamera::on_w_press, this, std::placeholders::_1));
-            system->add_listener(Event(EventType::KeyUp, key_event),
-                                 std::bind(&TestCamera::on_w_release, this, std::placeholders::_1));
-
-            key_event.key = Keyboard::S;
-
-            system->add_listener(Event(EventType::KeyDown, key_event),
-                                 std::bind(&TestCamera::on_s_press, this, std::placeholders::_1));
-            system->add_listener(Event(EventType::KeyUp, key_event),
-                                 std::bind(&TestCamera::on_s_release, this, std::placeholders::_1));
-
-            key_event.key = Keyboard::A;
-
-            system->add_listener(Event(EventType::KeyDown, key_event),
-                                 std::bind(&TestCamera::on_a_press, this, std::placeholders::_1));
-            system->add_listener(Event(EventType::KeyUp, key_event),
-                                 std::bind(&TestCamera::on_a_release, this, std::placeholders::_1));
-
-            key_event.key = Keyboard::D;
-
-            system->add_listener(Event(EventType::KeyDown, key_event),
-                                 std::bind(&TestCamera::on_d_press, this, std::placeholders::_1));
-            system->add_listener(Event(EventType::KeyUp, key_event),
-                                 std::bind(&TestCamera::on_d_release, this, std::placeholders::_1));
+            system->add_listener(Event(EventType::MouseMotion),
+                                 std::bind(&TestCamera::on_mouse_move, this, std::placeholders::_1));
         }
 
-        void on_w_press(const Event& event)
+        void on_mouse_move(const Event& event)
         {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
+            if (!MouseSystem::instance()->is_pressed(Mouse::Button::Left))
+                return;
 
-        void on_w_release(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
+            constexpr float sensitivity  = 1.0f;
+            const MouseMotionEvent& data = event.get<MouseMotionEvent>();
 
-        void on_s_press(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
+            Offset2D offset =
+                    Offset2D(static_cast<float>(data.yrel) * sensitivity, static_cast<float>(data.xrel) * sensitivity) /
+                    Window::instance()->cached_size();
 
-        void on_s_release(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
-
-        void on_a_press(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
-
-        void on_a_release(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
-
-        void on_d_press(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
-        }
-
-        void on_d_release(const Event& event)
-        {
-            info_log("TestCamera", "%s", __PRETTY_FUNCTION__);
+            glm::quat y_rotation = Transform::calc_rotation(transform.right_vector(), offset.x);
+            glm::quat x_rotation = Transform::calc_rotation(Constants::OY, -offset.y);
+            transform.rotation   = x_rotation * y_rotation * transform.rotation;
         }
 
         TestCamera& update(float dt) override
         {
+
+            KeyboardSystem* key_system = KeyboardSystem::instance();
+
+            Vector3D velocity     = Vector3D(0.0f);
+            constexpr float speed = 0.02;
+
+            if (key_system->is_pressed(Keyboard::W))
+            {
+                velocity += transform.forward_vector();
+            }
+
+            if (key_system->is_pressed(Keyboard::S))
+            {
+                velocity -= transform.forward_vector();
+            }
+
+            if (key_system->is_pressed(Keyboard::D))
+            {
+                velocity += transform.right_vector();
+            }
+
+            if (key_system->is_pressed(Keyboard::A))
+            {
+                velocity -= transform.right_vector();
+            }
+
+            if (key_system->is_pressed(Keyboard::Space))
+            {
+                if (key_system->is_pressed(Keyboard::LeftShift))
+                    velocity -= Constants::OY;
+                else
+                    velocity += Constants::OY;
+            }
+
+            transform.position += velocity * speed;
+
             Super::update(dt);
             return *this;
         }

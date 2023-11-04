@@ -7,11 +7,6 @@
 
 namespace Engine
 {
-
-    using PositionBuffer = Vector<Vector3D>;
-    using TexCoordBuffer = Vector<Vector2D>;
-    using ColorBuffer    = Vector<ByteColor>;
-
     class ENGINE_EXPORT PipelineBuffer : public ApiObject
     {
         declare_class(PipelineBuffer, ApiObject);
@@ -160,7 +155,7 @@ namespace Engine
         const byte* init_data = nullptr;
 
         UniformBuffer& rhi_create();
-        UniformBuffer& bind(BindingIndex binding, BindingIndex set = 0);
+        UniformBuffer& rhi_bind(BindLocation location);
     };
 
 
@@ -173,6 +168,6 @@ namespace Engine
         const byte* init_data = nullptr;
 
         SSBO& rhi_create();
-        SSBO& bind(BindingIndex binding, BindingIndex set = 0);
+        SSBO& rhi_bind(BindLocation location);
     };
 }// namespace Engine

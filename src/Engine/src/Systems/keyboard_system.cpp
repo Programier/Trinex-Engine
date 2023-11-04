@@ -8,8 +8,6 @@
 
 namespace Engine
 {
-    KeyboardSystem* KeyboardSystem::_M_instance = nullptr;
-
     void KeyboardSystem::on_key_pressed(const Event& event)
     {
         const KeyEvent& key_event = event.get<const KeyEvent&>();
@@ -44,7 +42,7 @@ namespace Engine
 
         std::fill(_M_key_status, _M_key_status + Keyboard::__COUNT__, Keyboard::Released);
         EventSystem* event_system = System::new_system<EventSystem>();
-        event_system->add_object(this, true);
+        event_system->register_subsystem(this);
 
         _M_key_press_id = event_system->add_listener(
                 EventType::KeyDown, std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
@@ -54,9 +52,10 @@ namespace Engine
         return *this;
     }
 
-    void KeyboardSystem::wait()
+    KeyboardSystem& KeyboardSystem::wait()
     {
         Super::wait();
+        return *this;
     }
 
 

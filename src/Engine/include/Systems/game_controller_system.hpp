@@ -13,8 +13,6 @@ namespace Engine
 
 
     private:
-        static GameControllerSystem* _M_instance;
-
         Map<Identifier, GameController*> _M_controllers;
         Vector<Identifier> _M_callbacks_id;
 
@@ -27,12 +25,11 @@ namespace Engine
 
     public:
         virtual GameControllerSystem& create() override;
-        virtual void wait() override;
+        virtual GameControllerSystem& wait() override;
         virtual GameControllerSystem& update(float dt) override;
         virtual GameControllerSystem& shutdown() override;
         GameController* controller(Identifier id) const;
 
-        friend class Singletone<GameControllerSystem, System>;
         friend class Object;
     };
 }// namespace Engine

@@ -1,5 +1,7 @@
+#include <Core/colors.hpp>
 #include <Core/file_manager.hpp>
 #include <Graphics/g_buffer.hpp>
+#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
@@ -22,11 +24,18 @@ namespace Engine
         load_code(vertex_shader, "./shaders/hello_triangle/vertex.vm");
 
         vertex_shader->attributes.emplace_back();
-        vertex_shader->attributes.back().name = "position";
-        vertex_shader->attributes.back().rate = VertexAttributeInputRate::Vertex;
-        vertex_shader->attributes.back().type = ShaderDataType::Vec3;
+        vertex_shader->attributes.back().name   = "position";
+        vertex_shader->attributes.back().rate   = VertexAttributeInputRate::Vertex;
+        vertex_shader->attributes.back().format = ColorFormat::R32G32B32Sfloat;
 
-        vertex_shader->rhi_create();
+        vertex_shader->attributes.emplace_back();
+        vertex_shader->attributes.back().name   = "color";
+        vertex_shader->attributes.back().rate   = VertexAttributeInputRate::Vertex;
+        vertex_shader->attributes.back().format = ColorFormat::R8G8B8A8Unorm;
+
+        vertex_shader->init_global_ubo({0, 0});
+
+        vertex_shader->init_resource();
         return vertex_shader;
     }
 
@@ -34,10 +43,10 @@ namespace Engine
     {
         FragmentShader* fragment_shader = Object::new_instance<FragmentShader>();
         load_code(fragment_shader, "./shaders/hello_triangle/fragment.fm");
-        fragment_shader->combined_samplers.emplace_back();
-        fragment_shader->combined_samplers.back().binding = 0;
 
-        fragment_shader->rhi_create();
+
+        fragment_shader->init_global_ubo({1, 0});
+        fragment_shader->init_resource();
         return fragment_shader;
     }
 
@@ -47,10 +56,11 @@ namespace Engine
         pipeline->vertex_shader   = create_vertex_shader();
         pipeline->fragment_shader = create_fragment_shader();
         pipeline->render_pass     = GBuffer::instance()->render_pass;
-        pipeline->color_blending.blend_attachment.emplace_back();
+
+        for (int i = 0; i < 4; i++) pipeline->color_blending.blend_attachment.emplace_back();
         pipeline->rasterizer.cull_mode = CullMode::None;
 
-        pipeline->rhi_create();
+        pipeline->init_resource();
         return pipeline;
     }
 
@@ -66,23 +76,39 @@ namespace Engine
         stream.semantic = VertexBufferSemantic::Position;
         material->push_stream(stream);
 
+        stream.stream   = 1;
+        stream.semantic = VertexBufferSemantic::Color;
+        material->push_stream(stream);
+
         return material;
     }
 
-    static void load_positions(PositionBuffer& buffer)
+    static void load_positions(PositionVertexBuffer::BufferType& buffer)
     {
-        buffer = {Vector3D(-1.0, -1.0, 0.0), Vector3D(-1.0, 1.0, 0.0), Vector3D(1.0, 1.0, 0.0),
-                  Vector3D(1.0, -1.0, 0.0)};
+        buffer = {Vector3D(-1.0, -1.0, 1.0),  Vector3D(-1.0, 1.0, 1.0),
+                  Vector3D(1.0, 1.0, 1.0),    Vector3D(1.0, -1.0, 1.0),
 
-        for(auto& ell : buffer)
-        {
-            ell /= 2.0f;
-        }
+                  Vector3D(-1.0, -1.0, -1.0), Vector3D(-1.0, 1.0, -1.0),
+                  Vector3D(1.0, 1.0, -1.0),   Vector3D(1.0, -1.0, -1.0)};
     }
+
+    ByteColor convert(const Color& color)
+    {
+        return {color.x * 255.f, color.y * 255.f, color.z * 255.f, color.w * 255.f};
+    }
+
+    static void load_color(ColorVertexBuffer::BufferType& buffer)
+    {
+        buffer = {convert(Colors::Red),       convert(Colors::Green),        convert(Colors::Blue),
+                  convert(Colors::White),     convert(Colors::DarkSeaGreen), convert(Colors::Yellow),
+                  convert(Colors::LawnGreen), convert(Colors::Chocolate)};
+    }
+
 
     static void load_index_buffer(IndexBuffer::ShortBuffer& buffer)
     {
-        buffer = {0, 1, 2, 0, 2, 3};
+        buffer = {0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 0, 4, 1, 4, 5, 1,
+                  1, 5, 2, 5, 6, 2, 0, 4, 3, 4, 7, 3, 2, 6, 7, 2, 7, 3};
     }
 
     static void load_lod_data(StaticMesh::LOD& lod)
@@ -90,15 +116,21 @@ namespace Engine
         {
             PositionVertexBuffer* positions = Object::new_instance<PositionVertexBuffer>();
             load_positions(positions->buffer);
-            positions->rhi_create();
+            positions->init_resource();
+
+            ColorVertexBuffer* colors = Object::new_instance<ColorVertexBuffer>();
+            load_color(colors->buffer);
+            colors->init_resource();
+
 
             lod.positions.push_back(positions);
+            lod.color.push_back(colors);
 
             lod.indices = Object::new_instance<IndexBuffer>();
             lod.indices->setup(IndexBufferComponent::UnsignedShort);
             load_index_buffer(*lod.indices->short_buffer());
 
-            lod.indices->rhi_create();
+            lod.indices->init_resource();
         }
     }
 

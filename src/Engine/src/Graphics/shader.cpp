@@ -5,6 +5,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/g_buffer.hpp>
+#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/mesh_component.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
@@ -25,6 +26,20 @@ namespace Engine
     implement_default_initialize_class(FragmentShader);
 
 
+    Shader& Shader::init_global_ubo(BindLocation location)
+    {
+        global_ubo_location = location;
+        uniform_buffers.emplace_back();
+        UniformBuffer& ubo = uniform_buffers.back();
+
+        ubo.location = location;
+        ubo.name     = "Global";
+        ubo.size     = sizeof(GlobalUniformBuffer::Data);
+
+        return *this;
+    }
+
+
     VertexShader& VertexShader::rhi_create()
     {
         rhi_destroy();
@@ -37,17 +52,5 @@ namespace Engine
         rhi_destroy();
         _M_rhi_shader = engine_instance->rhi()->create_fragment_shader(this);
         return *this;
-    }
-
-    size_t Shader::stride_of(ShaderDataType type)
-    {
-        size_t stride = static_cast<size_t>(type);
-        return stride >> 25;
-    }
-
-    EnumerateType Shader::color_format_of(ShaderDataType type)
-    {
-        EnumerateType color_index = (static_cast<EnumerateType>(type) >> 18) & 127;
-        return static_cast<EnumerateType>(ColorFormatInfo::all_formats()[color_index]);
     }
 }// namespace Engine

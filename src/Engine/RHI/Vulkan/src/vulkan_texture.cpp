@@ -334,20 +334,20 @@ namespace Engine
     }
 
 
-    void VulkanTexture::bind(BindingIndex binding, BindingIndex set)
+    void VulkanTexture::bind(BindLocation location)
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_texture(this, binding, set);
+            API->_M_state->_M_pipeline->bind_texture(this, location);
         }
     }
 
-    void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
+    void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindLocation location)
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this, binding,
-                                                              set);
+            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this,
+                                                              location);
         }
     }
 
@@ -543,7 +543,6 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::push_barrier(Texture* texture, BarrierStage src, BarrierStage dst)
     {
-
 
 
         return *this;

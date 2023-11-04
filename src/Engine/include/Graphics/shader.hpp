@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/api_object.hpp>
+#include <Core/color_format.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
 #include <Core/object_ref.hpp>
@@ -17,22 +18,19 @@ namespace Engine
 
     public:
         struct UniformBuffer {
-            String name;
+            Name name;
             size_t size;
-            BindingIndex binding;
-            BindingIndex set;
+            BindLocation location;
         };
 
         struct SSBO {
-            String name;
-            BindingIndex binding;
-            BindingIndex set;
+            Name name;
+            BindLocation location;
         };
 
         struct Texture {
-            String name;
-            BindingIndex binding;
-            BindingIndex set;
+            Name name;
+            BindLocation location;
         };
 
         using Sampler         = Texture;
@@ -46,9 +44,10 @@ namespace Engine
 
         Buffer text_code;
         Buffer binary_code;
+        BindLocation global_ubo_location;
 
-        static size_t stride_of(ShaderDataType type);
-        static EnumerateType color_format_of(ShaderDataType type);
+
+        Shader& init_global_ubo(BindLocation location);
     };
 
     class ENGINE_EXPORT VertexShader : public Shader
@@ -58,8 +57,9 @@ namespace Engine
     public:
         struct Attribute {
             String name;
-            ShaderDataType type;
+            ColorFormat format;
             VertexAttributeInputRate rate;
+            byte count = 1;
         };
 
         Vector<Attribute> attributes;

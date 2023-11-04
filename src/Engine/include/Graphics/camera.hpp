@@ -18,7 +18,7 @@ namespace Engine
         Camera& update_projection_matrix();
     public:
         delete_copy_constructors(Camera);
-        Camera(Point3D position = {0.f, 0.f, 0.f}, float fov = glm::radians(90.f));
+        Camera(Point3D position = {0.f, 0.f, 1.f}, float fov = glm::radians(90.f));
         Distance& max_render_distance();
         Distance& min_render_distance();
         const Distance& max_render_distance() const;

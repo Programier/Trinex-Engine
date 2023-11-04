@@ -178,7 +178,7 @@ namespace Engine
 
     const MaterialTextureParameter& MaterialTextureParameter::set() const
     {
-        texture->rhi_bind(location.binding, location.set);
+        texture->rhi_bind(location);
         return *this;
     }
 
@@ -207,7 +207,7 @@ namespace Engine
 
     const MaterialSamplerParameter& MaterialSamplerParameter::set() const
     {
-        sampler->rhi_bind(location.binding, location.set);
+        sampler->rhi_bind(location);
         return *this;
     }
 
@@ -236,7 +236,7 @@ namespace Engine
 
     const MaterialCombinedSamplerParameter& MaterialCombinedSamplerParameter::set() const
     {
-        texture->bind_combined(sampler.ptr(), location.binding, location.set);
+        texture->bind_combined(sampler.ptr(), location);
         return *this;
     }
 
@@ -254,7 +254,7 @@ namespace Engine
 
 
     static FORCE_INLINE void static_apply_parameter(MaterialParameter* parameter, const MaterialInterface* owner,
-                                             const Material* material)
+                                                    const Material* material)
     {
         if (parameter->is_valid())
         {
@@ -263,7 +263,7 @@ namespace Engine
         else if (owner != material)
         {
             parameter = material->find_parameter(parameter->name(), parameter->type());
-            if(parameter->is_valid())
+            if (parameter->is_valid())
             {
                 parameter->set();
             }
@@ -395,7 +395,8 @@ namespace Engine
         return *this;
     }
 
-    bool Material::apply() const
+
+    bool Material::apply_internal(bool is_material) const
     {
         if (_M_pipeline == nullptr)
         {
@@ -403,9 +404,17 @@ namespace Engine
         }
 
         _M_pipeline->rhi_bind();
-        _M_parameters.apply(this, this);
 
+        if (is_material)
+        {
+            _M_parameters.apply(this, this);
+        }
         return true;
+    }
+
+    bool Material::apply() const
+    {
+        return apply_internal(true);
     }
 
     Material* Material::material()
@@ -458,7 +467,7 @@ namespace Engine
 
     bool MaterialInstance::apply() const
     {
-        if (!_M_material->_M_pipeline)
+        if(!_M_material->apply_internal(false))
         {
             return false;
         }

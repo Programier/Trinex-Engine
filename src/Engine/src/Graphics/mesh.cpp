@@ -64,7 +64,6 @@ namespace Engine
 
     const StaticMesh::LOD& StaticMesh::LOD::render() const
     {
-
         if (!material->apply())
         {
             return *this;
@@ -75,7 +74,7 @@ namespace Engine
             VertexBuffer* buffer = find_vertex_buffer(stream.semantic, stream.index);
             if (buffer)
             {
-                buffer->rhi_bind(stream.index);
+                buffer->rhi_bind(stream.stream);
             }
         }
 

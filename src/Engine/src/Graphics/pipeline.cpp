@@ -1,7 +1,9 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/shader.hpp>
 
 
 namespace Engine
@@ -19,6 +21,19 @@ namespace Engine
         {
             _M_rhi_pipeline->bind();
         }
+
+        GlobalUniformBuffer* ubo = GlobalUniformBuffer::instance();
+
+        if (vertex_shader.ptr()->global_ubo_location.is_valid())
+        {
+            ubo->rhi_bind(vertex_shader.ptr()->global_ubo_location);
+        }
+
+        if (fragment_shader.ptr()->global_ubo_location.is_valid())
+        {
+            ubo->rhi_bind(fragment_shader.ptr()->global_ubo_location);
+        }
+
         return *this;
     }
 

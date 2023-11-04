@@ -1,6 +1,8 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/executable_object.hpp>
 #include <Core/object.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {
@@ -53,18 +55,32 @@ namespace Engine
             return reinterpret_cast<T*>(_M_rhi_object);
         }
 
+        virtual ApiObject& rhi_create();
+        ApiObject& init_resource();
         ApiObject& rhi_destroy();
 
         ~ApiObject();
     };
 
 
-    class ApiBindingObject : public ApiObject
+    class ENGINE_EXPORT ApiBindingObject : public ApiObject
     {
         declare_class(ApiBindingObject, ApiObject);
 
     public:
-        const ApiBindingObject& rhi_bind(BindingIndex binding, BindingIndex set = 0) const;
+        const ApiBindingObject& rhi_bind(BindLocation location) const;
+    };
+
+    struct ENGINE_EXPORT InitRenderResourceTask : public ExecutableObject {
+    public:
+        ApiObject* object = nullptr;
+        int_t execute() override;
+    };
+
+    struct ENGINE_EXPORT SingleTimeInitRenderResourceTask : public SingleTimeExecutableObject {
+    public:
+        ApiObject* object = nullptr;
+        int_t execute() override;
     };
 
 

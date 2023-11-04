@@ -11,7 +11,7 @@ namespace Engine
     public:
         Texture2D();
         delete_copy_constructors(Texture2D);
-        Texture2D& rhi_create();
+        Texture2D& rhi_create() override;
         Texture2D& rhi_create(const byte* data);
         Texture2D& update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap = 0,
                           const byte* data = nullptr);

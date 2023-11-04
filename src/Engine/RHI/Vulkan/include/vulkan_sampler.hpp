@@ -33,7 +33,7 @@ namespace Engine
         vk::Sampler _M_sampler;
 
         VulkanSampler& create(const VulkanSamplerCreateInfo&);
-        void bind(BindingIndex binding, BindingIndex set) override;
+        void bind(BindLocation location) override;
         VulkanSampler& destroy();
         ~VulkanSampler();
     };

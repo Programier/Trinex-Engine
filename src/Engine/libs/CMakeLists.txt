@@ -14,6 +14,9 @@ set_target_properties(freetype PROPERTIES COMPILE_OPTIONS "-fPIC")
 # Compile ImGUI
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui/")
 
+# Compile ImGUI Node Editor
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-node-editor/")
+
 # Compile JSON library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/json/")
 

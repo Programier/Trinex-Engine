@@ -9,6 +9,6 @@ if(WIN32)
     set(TRINEX_WITH_VULKAN off)
 endif()
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Vulkan")
 if(TRINEX_WITH_VULKAN)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Vulkan")
 endif()

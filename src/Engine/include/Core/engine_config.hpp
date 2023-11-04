@@ -5,6 +5,9 @@
 namespace Engine
 {
     struct ENGINE_EXPORT EngineConfig : public Config {
+        Vector<String> external_system_libraries;
+        Vector<String> systems;
+
         String resources_dir;
         String api;
         String lua_scripts_dir;

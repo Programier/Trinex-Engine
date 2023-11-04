@@ -60,9 +60,10 @@ namespace Engine
             {
                 _M_binding_description.emplace_back();
                 vk::VertexInputBindingDescription& description = _M_binding_description.back();
+                ColorFormatInfo format_info                    = ColorFormatInfo::info_of(attribute.format);
 
                 description.binding = static_cast<decltype(description.binding)>(index);
-                description.stride  = Shader::stride_of(attribute.type);
+                description.stride  = format_info.size() * static_cast<uint_t>(attribute.count);
 
                 switch (attribute.rate)
                 {
@@ -85,8 +86,7 @@ namespace Engine
                 description.binding                              = static_cast<decltype(description.binding)>(index);
                 description.location                             = static_cast<decltype(description.location)>(index);
                 description.offset                               = 0;// Each attribute has its own buffer
-                description.format =
-                        parse_engine_format(static_cast<ColorFormat>(Shader::color_format_of(attribute.type)));
+                description.format                               = parse_engine_format(attribute.format);
             }
 
             ++index;

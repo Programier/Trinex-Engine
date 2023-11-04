@@ -18,7 +18,16 @@
         "libraries_dir": "libs/",
         "shader_compilers_lib": "ShaderCompilers",
         "shader_compiler": "Engine::GLSLToSPIRV",
-        "window_system": "SDL2"
+        "window_system": "SDL2",
+        "systems": [
+            "Engine::EventSystem",
+            "Engine::HelloTriangleSystem",
+            "Engine::SystemGraphRendererSystem",
+            "Engine::TrinexEditorSystem"
+        ],
+        "external_system_libraries": [
+            "TrinexEngineEditor"
+        ]
     },
 
     "Window": {

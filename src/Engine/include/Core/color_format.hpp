@@ -140,7 +140,7 @@ namespace Engine
 #undef make_color_format
 #undef color_shift
 
-    struct ColorFormatFeatures {
+    struct ENGINE_EXPORT ColorFormatFeatures {
         union
         {
             struct {
@@ -163,14 +163,14 @@ namespace Engine
         EnumerateType _M_value;
 
     public:
-        FORCE_INLINE byte components() const
+        FORCE_INLINE uint_t components() const
         {
-            return static_cast<byte>(_M_value & byte(7));
+            return static_cast<uint_t>(_M_value & byte(7));
         }
 
-        FORCE_INLINE byte component_size() const
+        FORCE_INLINE uint_t component_size() const
         {
-            return static_cast<byte>((_M_value >> 3) & byte(7));
+            return static_cast<uint_t>((_M_value >> 3) & byte(7));
         }
 
         FORCE_INLINE ColorFormatMetaData metadata() const
@@ -181,6 +181,11 @@ namespace Engine
         FORCE_INLINE ColorFormatAspect aspect() const
         {
             return static_cast<ColorFormatAspect>((_M_value >> 10) & byte(7));
+        }
+
+        FORCE_INLINE uint_t size() const
+        {
+            return components() * component_size();
         }
 
         static FORCE_INLINE ColorFormatInfo info_of(ColorFormat format)

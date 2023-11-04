@@ -2,10 +2,15 @@ set(VULKAN_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB VULKAN_SRC "${VULKAN_SOURCES_DIR}/*.cpp")
 
 
-find_package(Vulkan REQUIRED)
+if(UNIX)
+    find_package(Vulkan REQUIRED)
+    set(VULKAN_LIBS Vulkan::Vulkan)
+elseif(WIN32)
+    set(VULKAN_LIBS vulkan-1)
+endif()
 
 add_library(Vulkan SHARED ${VULKAN_SRC})
-target_link_libraries(Vulkan PUBLIC Vulkan::Vulkan vk-bootstrap TrinexEngine)
+target_link_libraries(Vulkan PUBLIC ${VULKAN_LIBS} vk-bootstrap TrinexEngine)
 install (TARGETS Vulkan DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 
 target_compile_options(Vulkan PRIVATE "-Wall")
@@ -30,4 +35,6 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(Vulkan PRIVATE -DVULKAN_RELEASE_BUILD=1)
 endif()
 
-target_link_options(Vulkan PUBLIC -rdynamic)
+if(UNIX)
+    target_link_options(Vulkan PUBLIC -rdynamic)
+endif()

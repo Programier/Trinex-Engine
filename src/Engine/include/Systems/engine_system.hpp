@@ -9,10 +9,11 @@ namespace Engine
         declare_class(EngineSystem, System);
 
     private:
-        static EngineSystem* _M_instance;
 
     public:
-        friend class Singletone<EngineSystem, System>;
+        EngineSystem& create() override;
+        EngineSystem& update(float dt) override;
+
         friend class Object;
     };
 }// namespace Engine

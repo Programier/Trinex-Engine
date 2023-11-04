@@ -119,7 +119,7 @@ namespace Engine
         Path icon_path;
     };
 
-    struct BindLocation {
+    struct ENGINE_EXPORT BindLocation {
         union
         {
             struct {
@@ -130,34 +130,16 @@ namespace Engine
             uint16_t id = 0;
         };
 
-        FORCE_INLINE bool operator==(const BindLocation& location) const
-        {
-            return location.id == id;
-        }
+        static const BindLocation undefined;
 
-        FORCE_INLINE bool operator!=(const BindLocation& location) const
-        {
-            return location.id != id;
-        }
-
-        FORCE_INLINE bool operator<(const BindLocation& location) const
-        {
-            return id < location.id;
-        }
-
-        FORCE_INLINE bool operator<=(const BindLocation& location) const
-        {
-            return id <= location.id;
-        }
-
-        FORCE_INLINE bool operator>(const BindLocation& location) const
-        {
-            return id > location.id;
-        }
-
-        FORCE_INLINE bool operator>=(const BindLocation& location) const
-        {
-            return id >= location.id;
-        }
+        BindLocation();
+        BindLocation(BindingIndex in_binding, BindingIndex in_set = 0);
+        bool operator==(const BindLocation& location) const;
+        bool operator!=(const BindLocation& location) const;
+        bool operator<(const BindLocation& location) const;
+        bool operator<=(const BindLocation& location) const;
+        bool operator>(const BindLocation& location) const;
+        bool operator>=(const BindLocation& location) const;
+        bool is_valid() const;
     };
 }// namespace Engine

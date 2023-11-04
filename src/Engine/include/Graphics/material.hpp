@@ -149,7 +149,6 @@ namespace Engine
         virtual const MaterialParameters& parameters() const = 0;
 
         MaterialParameter* find_parameter(Name name, MaterialParameter::Type type) const;
-
         virtual Material* material()             = 0;
         virtual const Material* material() const = 0;
     };
@@ -166,6 +165,9 @@ namespace Engine
 
         MaterialParameter* allocate_new_parameter(Name parameter_name, MaterialParameter::Type type,
                                                   MaterialParameter* (*allocator)());
+
+
+        bool apply_internal(bool is_material) const;
 
     public:
         const Vector<VertexBufferStream>& streams() const override;
@@ -187,7 +189,6 @@ namespace Engine
 
         Material* material() override;
         const Material* material() const override;
-
 
         template<typename MaterialParameterType>
         FORCE_INLINE std::enable_if<std::is_base_of_v<MaterialParameter, MaterialParameterType>,

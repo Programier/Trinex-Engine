@@ -11,7 +11,6 @@ namespace Engine
         declare_class(KeyboardSystem, System);
 
     private:
-        static KeyboardSystem* _M_instance;
         Keyboard::Status _M_key_status[Keyboard::__COUNT__];
         Vector<Keyboard::Key> _M_last_pressed_keys;
         Vector<Keyboard::Key> _M_last_released_keys;
@@ -26,7 +25,7 @@ namespace Engine
 
     public:
         KeyboardSystem& create() override;
-        void wait() override;
+        KeyboardSystem& wait() override;
         KeyboardSystem& update(float dt) override;
         KeyboardSystem& shutdown() override;
         Keyboard::Status status_of(Keyboard::Key key) const;
@@ -61,8 +60,6 @@ namespace Engine
 
 #undef implement_variadic_template
 
-
-        friend class Singletone<KeyboardSystem, System>;
         friend class Object;
     };
 }// namespace Engine

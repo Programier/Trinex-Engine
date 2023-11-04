@@ -49,7 +49,7 @@ namespace Engine
 
     public:
         MouseSystem& create() override;
-        void wait() override;
+        MouseSystem& wait() override;
         MouseSystem& update(float dt) override;
         MouseSystem& shutdown() override;
         const PosInfo& pos_info() const;
@@ -64,7 +64,6 @@ namespace Engine
         const WheelInfo& wheel_info() const;
 
         friend class Object;
-        friend class Singletone<MouseSystem, System>;
     };
 
 }// namespace Engine

@@ -36,28 +36,28 @@ namespace Engine
 
         for (auto& buffer : shader->uniform_buffers)
         {
-            push_layout_binding(out, stage, buffer.set, buffer.binding, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stage, buffer.location.set, buffer.location.binding, vk::DescriptorType::eUniformBuffer);
         }
 
         for (auto& texture : shader->textures)
         {
-            push_layout_binding(out, stage, texture.set, texture.binding, vk::DescriptorType::eSampledImage);
+            push_layout_binding(out, stage, texture.location.set, texture.location.binding, vk::DescriptorType::eSampledImage);
         }
 
         for (auto& sampler : shader->samplers)
         {
-            push_layout_binding(out, stage, sampler.set, sampler.binding, vk::DescriptorType::eSampler);
+            push_layout_binding(out, stage, sampler.location.set, sampler.location.binding, vk::DescriptorType::eSampler);
         }
 
         for (auto& combined_sampler : shader->combined_samplers)
         {
-            push_layout_binding(out, stage, combined_sampler.set, combined_sampler.binding,
+            push_layout_binding(out, stage, combined_sampler.location.set, combined_sampler.location.binding,
                                 vk::DescriptorType::eCombinedImageSampler);
         }
 
         for (auto& shared_buffer : shader->ssbo)
         {
-            push_layout_binding(out, stage, shared_buffer.set, shared_buffer.binding,
+            push_layout_binding(out, stage, shared_buffer.location.set, shared_buffer.location.binding,
                                 vk::DescriptorType::eStorageBuffer);
         }
     }
@@ -343,27 +343,27 @@ namespace Engine
     {
         for (auto& texture : shader->textures)
         {
-            ++(out[texture.set].textures);
+            ++(out[texture.location.set].textures);
         }
 
         for (auto& sampler : shader->samplers)
         {
-            ++(out[sampler.set].samplers);
+            ++(out[sampler.location.set].samplers);
         }
 
         for (auto& combined_sampler : shader->combined_samplers)
         {
-            ++(out[combined_sampler.set].combined_samplers);
+            ++(out[combined_sampler.location.set].combined_samplers);
         }
 
         for (auto& ubo : shader->uniform_buffers)
         {
-            ++(out[ubo.set].ubos);
+            ++(out[ubo.location.set].ubos);
         }
 
         for (auto& ssbo : shader->ssbo)
         {
-            ++(out[ssbo.set].ssbos);
+            ++(out[ssbo.location.set].ssbos);
         }
     }
 
@@ -419,17 +419,17 @@ namespace Engine
         }
     }
 
-    VulkanPipeline& VulkanPipeline::bind_ssbo(struct VulkanSSBO* ssbo, BindingIndex binding, BindingIndex set)
+    VulkanPipeline& VulkanPipeline::bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location)
     {
         if (!_M_descriptor_set_layout.empty())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(set);
+            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanSSBO*& current_ssbo = current_set->_M_ssbo[binding];
+            VulkanSSBO*& current_ssbo = current_set->_M_ssbo[location.binding];
             if (current_ssbo != ssbo)
             {
                 vk::DescriptorBufferInfo buffer_info(ssbo->_M_buffer._M_buffer, 0, ssbo->_M_buffer._M_size);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
                                                         vk::DescriptorType::eStorageBuffer, {}, buffer_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
                 current_ssbo = ssbo;
@@ -438,41 +438,40 @@ namespace Engine
         return *this;
     }
 
-    VulkanPipeline& VulkanPipeline::bind_uniform_buffer(VulkanUniformBuffer* buffer, BindingIndex binding,
-                                                        BindingIndex set)
+    VulkanPipeline& VulkanPipeline::bind_uniform_buffer(VulkanUniformBuffer* buffer, BindLocation location)
     {
         if (!_M_descriptor_set_layout.empty())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(set);
+            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            if (current_set->_M_current_ubo[binding] != buffer)
+            if (current_set->_M_current_ubo[location.binding] != buffer)
             {
                 vk::DescriptorBufferInfo buffer_info(buffer->current_buffer()->_M_buffer, 0,
                                                      buffer->current_buffer()->_M_size);
 
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
-                current_set->_M_current_ubo[binding] = buffer;
+                current_set->_M_current_ubo[location.binding] = buffer;
             }
         }
         return *this;
     }
 
     VulkanPipeline& VulkanPipeline::bind_combined_sampler(struct VulkanSampler* sampler, struct VulkanTexture* texture,
-                                                          BindingIndex binding, BindingIndex set)
+                                                          BindLocation location)
     {
         if (!_M_descriptor_set_layout.empty())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(set);
+            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanDescriptorSet::CombinedImageSampler& info = current_set->_M_combined_image_sampler[binding];
+            VulkanDescriptorSet::CombinedImageSampler& info = current_set->_M_combined_image_sampler[location.binding];
             if (info._M_sampler != sampler || info._M_texture != texture)
             {
                 vk::DescriptorImageInfo image_info(sampler->_M_sampler, texture->_M_image_view,
                                                    vk::ImageLayout::eShaderReadOnlyOptimal);
 
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
                                                         vk::DescriptorType::eCombinedImageSampler, image_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
                 info._M_sampler = sampler;
@@ -483,18 +482,18 @@ namespace Engine
         return *this;
     }
 
-    VulkanPipeline& VulkanPipeline::bind_sampler(VulkanSampler* sampler, BindingIndex binding, BindingIndex set)
+    VulkanPipeline& VulkanPipeline::bind_sampler(VulkanSampler* sampler, BindLocation location)
     {
         if (!_M_descriptor_set_layout.empty())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(set);
+            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanSampler*& current_sampler = current_set->_M_sampler[binding];
+            VulkanSampler*& current_sampler = current_set->_M_sampler[location.binding];
             if (current_sampler != sampler)
             {
                 vk::DescriptorImageInfo image_info(sampler->_M_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0, vk::DescriptorType::eSampler,
-                                                        image_info);
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
+                                                        vk::DescriptorType::eSampler, image_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
                 current_sampler = sampler;
             }
@@ -502,17 +501,17 @@ namespace Engine
         return *this;
     }
 
-    VulkanPipeline& VulkanPipeline::bind_texture(VulkanTexture* texture, BindingIndex binding, BindingIndex set)
+    VulkanPipeline& VulkanPipeline::bind_texture(VulkanTexture* texture, BindLocation location)
     {
         if (!_M_descriptor_set_layout.empty())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(set);
+            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanTexture*& current_texture = current_set->_M_texture[binding];
+            VulkanTexture*& current_texture = current_set->_M_texture[location.binding];
             if (current_texture != texture)
             {
                 vk::DescriptorImageInfo image_info({}, texture->_M_image_view, vk::ImageLayout::eShaderReadOnlyOptimal);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
                                                         vk::DescriptorType::eSampledImage, image_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
                 current_texture = texture;

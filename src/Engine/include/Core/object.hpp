@@ -56,6 +56,7 @@ namespace Engine
 
         BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
         Package* _M_package;
+        Object* _M_owner;
         Counter _M_references;
         Index _M_index_in_package;
         Name _M_name;
@@ -145,13 +146,16 @@ namespace Engine
         bool is_noname() const;
 
         ENGINE_EXPORT static Object* find_object(const String& object_name);
-        virtual bool can_destroy(MessageList& messages);
+        static Package* find_package(const String& name, bool create = true);
 
+        virtual bool can_destroy(MessageList& messages);
         virtual Object& preload();
         virtual Object& postload();
 
-
-        static Package* find_package(const String& name, bool create = true);
+        Object* owner() const;
+        Object& owner(Object* owner);
+        virtual Object& on_child_remove(Object* object);
+        virtual Object& on_child_set(Object* object);
 
         String as_string() const;
         Index instance_index() const;
