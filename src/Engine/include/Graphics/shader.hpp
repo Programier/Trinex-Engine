@@ -1,20 +1,20 @@
 #pragma once
 
-#include <Core/api_object.hpp>
 #include <Core/color_format.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
 #include <Core/object_ref.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/resource.hpp>
 #include <Core/rhi_initializers.hpp>
 
 
 namespace Engine
 {
-    class ENGINE_EXPORT Shader : public ApiObject
+    class ENGINE_EXPORT Shader : public RenderResource
     {
     public:
-        declare_class(Shader, ApiObject);
+        declare_class(Shader, RenderResource);
 
     public:
         struct UniformBuffer {
@@ -65,7 +65,7 @@ namespace Engine
         Vector<Attribute> attributes;
 
     public:
-        VertexShader& rhi_create();
+        VertexShader& rhi_create() override;
     };
 
     class ENGINE_EXPORT FragmentShader : public Shader
@@ -73,7 +73,7 @@ namespace Engine
         declare_class(FragmentShader, Shader);
 
     public:
-        FragmentShader& rhi_create();
+        FragmentShader& rhi_create() override;
     };
 
 }// namespace Engine

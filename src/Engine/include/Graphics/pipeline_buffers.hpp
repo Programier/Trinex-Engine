@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/api_object.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/mapped_memory.hpp>
@@ -7,9 +7,9 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT PipelineBuffer : public ApiObject
+    class ENGINE_EXPORT PipelineBuffer : public RenderResource
     {
-        declare_class(PipelineBuffer, ApiObject);
+        declare_class(PipelineBuffer, RenderResource);
 
     public:
         MappedMemory rhi_map_buffer();

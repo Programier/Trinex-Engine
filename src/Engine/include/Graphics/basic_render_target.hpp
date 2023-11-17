@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/api_object.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
 
@@ -8,9 +8,9 @@ namespace Engine
 {
     class RenderPass;
 
-    class ENGINE_EXPORT BasicRenderTarget : public ApiObject
+    class ENGINE_EXPORT BasicRenderTarget : public RenderResource
     {
-        declare_class(BasicRenderTarget, ApiObject);
+        declare_class(BasicRenderTarget, RenderResource);
 
     protected:
         ViewPort _M_viewport;

@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/api_object.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/color_format.hpp>
 #include <Core/resource.hpp>
 
@@ -18,9 +18,9 @@ namespace Engine
     };
 
 
-    class ENGINE_EXPORT Texture : public Resource<TextureResources, ApiBindingObject>
+    class ENGINE_EXPORT Texture : public Resource<TextureResources, BindedRenderResource>
     {
-        declare_class(Texture, ApiObject);
+        declare_class(Texture, BindedRenderResource);
 
     public:
         Size2D size                = {1, 1};

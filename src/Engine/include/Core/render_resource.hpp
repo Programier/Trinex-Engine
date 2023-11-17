@@ -21,9 +21,9 @@ namespace Engine
     struct RHI_RenderPass;
 
 
-    class ENGINE_EXPORT ApiObject : public Object
+    class ENGINE_EXPORT RenderResource : public Object
     {
-        declare_class(ApiObject, Object);
+        declare_class(RenderResource, Object);
 
     protected:
         union
@@ -46,7 +46,7 @@ namespace Engine
         bool _M_can_delete;
 
     public:
-        ApiObject();
+        RenderResource();
 
         bool has_object() const;
         template<typename T>
@@ -55,27 +55,27 @@ namespace Engine
             return reinterpret_cast<T*>(_M_rhi_object);
         }
 
-        virtual ApiObject& rhi_create();
-        ApiObject& init_resource();
-        ApiObject& rhi_destroy();
+        virtual RenderResource& rhi_create();
+        RenderResource& init_resource();
+        RenderResource& rhi_destroy();
 
-        ~ApiObject();
+        ~RenderResource();
     };
 
 
-    class ENGINE_EXPORT ApiBindingObject : public ApiObject
+    class ENGINE_EXPORT BindedRenderResource : public RenderResource
     {
-        declare_class(ApiBindingObject, ApiObject);
+        declare_class(BindedRenderResource, RenderResource);
 
     public:
-        const ApiBindingObject& rhi_bind(BindLocation location) const;
+        const BindedRenderResource& rhi_bind(BindLocation location) const;
     };
 
     struct ENGINE_EXPORT InitRenderResourceTask : public ExecutableObject {
     public:
-        ApiObject* resource = nullptr;
+        RenderResource* resource = nullptr;
 
-        InitRenderResourceTask(ApiObject* object = nullptr);
+        InitRenderResourceTask(RenderResource* object = nullptr);
         int_t execute() override;
     };
 }// namespace Engine

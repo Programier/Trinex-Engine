@@ -1,29 +1,29 @@
-#include <Core/api_object.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
 {
-    implement_class(ApiObject, "Engine");
-    implement_default_initialize_class(ApiObject);
-    implement_class(ApiBindingObject, "Engine");
-    implement_default_initialize_class(ApiBindingObject);
+    implement_class(RenderResource, "Engine");
+    implement_default_initialize_class(RenderResource);
+    implement_class(BindedRenderResource, "Engine");
+    implement_default_initialize_class(BindedRenderResource);
 
-    // Zero is default or invalid value of ApiObjectNoBase in external API
-    ApiObject::ApiObject()
+    // Zero is default or invalid value of RenderResourceNoBase in external API
+    RenderResource::RenderResource()
     {
         _M_rhi_object = nullptr;
         _M_can_delete = true;
     }
 
-    ApiObject& ApiObject::rhi_create()
+    RenderResource& RenderResource::rhi_create()
     {
         return *this;
     }
 
-    ApiObject& ApiObject::init_resource()
+    RenderResource& RenderResource::init_resource()
     {
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         if (Thread::this_thread() == render_thread)
@@ -43,8 +43,7 @@ namespace Engine
         RHI_Object* object;
 
         DestroyRenderResource(RHI_Object* obj) : object(obj)
-        {
-        }
+        {}
 
         int_t execute()
         {
@@ -53,7 +52,7 @@ namespace Engine
         }
     };
 
-    ApiObject& ApiObject::rhi_destroy()
+    RenderResource& RenderResource::rhi_destroy()
     {
         if (_M_rhi_object && _M_can_delete)
         {
@@ -63,7 +62,8 @@ namespace Engine
             }
             else
             {
-                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<DestroyRenderResource>(_M_rhi_object);
+                engine_instance->thread(ThreadType::RenderThread)
+                        ->insert_new_task<DestroyRenderResource>(_M_rhi_object);
             }
 
             _M_rhi_object = nullptr;
@@ -71,17 +71,17 @@ namespace Engine
         return *this;
     }
 
-    bool ApiObject::has_object() const
+    bool RenderResource::has_object() const
     {
         return _M_rhi_object != nullptr;
     }
 
-    ApiObject::~ApiObject()
+    RenderResource::~RenderResource()
     {
         rhi_destroy();
     }
 
-    const ApiBindingObject& ApiBindingObject::rhi_bind(BindLocation location) const
+    const BindedRenderResource& BindedRenderResource::rhi_bind(BindLocation location) const
     {
         if (_M_rhi_binding_object)
         {
@@ -90,7 +90,7 @@ namespace Engine
         return *this;
     }
 
-    InitRenderResourceTask::InitRenderResourceTask(ApiObject* object) : resource(object)
+    InitRenderResourceTask::InitRenderResourceTask(RenderResource* object) : resource(object)
     {}
 
     int_t InitRenderResourceTask::execute()

@@ -28,11 +28,13 @@ namespace Engine
         Identifier _M_id;
         String _M_name;
         std::recursive_mutex _M_edit_mutex;
+        std::thread::native_handle_type _M_native_handle;
 
         ThreadBase();
 
         void update_id();
         void update_name();
+
 
     public:
         static void sleep_for(float seconds);
@@ -72,7 +74,8 @@ namespace Engine
         bool is_thread_sleep() const;
         bool is_busy() const;
         Thread& wait_all();
-        bool is_destroyable();
+        bool is_destroyable() override;
+
 
         template<typename CommandType, typename Function, typename... Args>
         FORCE_INLINE Thread& insert_new_task_with_initializer(Function&& initializer, Args&&... args)

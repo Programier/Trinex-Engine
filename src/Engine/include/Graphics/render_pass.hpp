@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/api_object.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/enums.hpp>
 #include <Core/color_format.hpp>
 
@@ -7,9 +7,9 @@ namespace Engine
 {
     class Texture2D;
 
-    class ENGINE_EXPORT RenderPass : public ApiObject
+    class ENGINE_EXPORT RenderPass : public RenderResource
     {
-        declare_class(RenderPass, ApiObject);
+        declare_class(RenderPass, RenderResource);
 
     public:
         enum Type : byte

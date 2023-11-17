@@ -18,7 +18,7 @@ namespace Engine
     {
         if (_M_rhi_texture)
         {
-            RHI_Sampler* rhi_sampler = reinterpret_cast<ApiObject*>(sampler)->rhi_object<RHI_Sampler>();
+            RHI_Sampler* rhi_sampler = reinterpret_cast<RenderResource*>(sampler)->rhi_object<RHI_Sampler>();
             _M_rhi_texture->bind_combined(rhi_sampler, location);
         }
         return *this;
@@ -90,7 +90,7 @@ namespace Engine
 
     bool Texture::archive_process(Archive* archive)
     {
-        if (!ApiObject::archive_process(archive))
+        if (!RenderResource::archive_process(archive))
             return false;
 
         if (archive->is_reading())

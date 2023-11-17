@@ -1,4 +1,4 @@
-#include <Core/api_object.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>

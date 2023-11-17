@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/api_object.hpp>
 #include <Core/pointer.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
@@ -10,9 +10,9 @@ namespace Engine
     class FragmentShader;
     class RenderPass;
 
-    class ENGINE_EXPORT Pipeline : public ApiObject
+    class ENGINE_EXPORT Pipeline : public RenderResource
     {
-        declare_class(Pipeline, ApiObject);
+        declare_class(Pipeline, RenderResource);
 
     public:
         struct DepthTestInfo {
@@ -82,7 +82,7 @@ namespace Engine
         Pointer<VertexShader> vertex_shader;
         Pointer<FragmentShader> fragment_shader;
 
-        Pipeline& rhi_create();
+        Pipeline& rhi_create() override;
         const Pipeline& rhi_bind() const;
     };
 }// namespace Engine
