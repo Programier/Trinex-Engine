@@ -167,7 +167,7 @@ namespace Engine
             _M_viewport.y      = _M_size.height - viewport.pos.y;
         }
 
-        if (this == API->_M_state->_M_framebuffer)
+        if (this == API->_M_state->_M_framebuffer && !is_main_framebuffer())
             set_viewport();
     }
 
@@ -192,8 +192,13 @@ namespace Engine
             _M_scissor.offset.y = _M_size.height - scissor.pos.y - scissor.size.y;
         }
 
-        if (this == API->_M_state->_M_framebuffer)
+        if (this == API->_M_state->_M_framebuffer && !is_main_framebuffer())
             set_scissor();
+    }
+
+    bool VulkanFramebuffer::is_main_framebuffer() const
+    {
+        return false;
     }
 
     VulkanFramebuffer& VulkanFramebuffer::set_scissor()
@@ -293,10 +298,10 @@ namespace Engine
     void VulkanMainFrameBuffer::resize_count(size_t new_count)
     {
         _M_framebuffers.resize(new_count);
-        for (VulkanFramebuffer*& framebuffer : _M_framebuffers)
+        for (VulkanMainFrameBufferFrame*& framebuffer : _M_framebuffers)
         {
             if (framebuffer == nullptr)
-                framebuffer = new VulkanFramebuffer();
+                framebuffer = new VulkanMainFrameBufferFrame();
         }
     }
 
@@ -361,6 +366,11 @@ namespace Engine
         {
             framebuffer->clear_color(color, layout);
         }
+    }
+
+    bool VulkanMainFrameBufferFrame::is_main_framebuffer() const
+    {
+        return true;
     }
 
     VulkanMainFrameBuffer::~VulkanMainFrameBuffer()

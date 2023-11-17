@@ -10,16 +10,19 @@ namespace Engine
 
     LogicSystem& LogicSystem::create()
     {
+        Super::create();
         return *this;
     }
 
     LogicSystem& LogicSystem::update(float dt)
     {
+        Super::update(dt);
         return *this;
     }
 
     LogicSystem& LogicSystem::shutdown()
     {
+        Super::shutdown();
         return *this;
     }
 

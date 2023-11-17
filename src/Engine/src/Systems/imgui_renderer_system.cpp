@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/imgui.hpp>
-#include <Platform/thread.hpp>
+#include <Core/thread.hpp>
 #include <Systems/imgui_system.hpp>
 #include <Systems/render_system.hpp>
 #include <Window/window.hpp>
@@ -9,31 +9,31 @@
 namespace Engine
 {
 
-    class InitImGuiTask : public SingleTimeExecutableObject
+    class InitImGuiTask : public ExecutableObject
     {
     public:
         int_t execute() override
         {
             ImGuiRenderer::init();
-            return 0;
+            return sizeof(InitImGuiTask);
         }
     };
 
 
-    class TerminateImGuiTask : public SingleTimeExecutableObject
+    class TerminateImGuiTask : public ExecutableObject
     {
     public:
         int_t execute() override
         {
             ImGuiRenderer::terminate();
-            return 0;
+            return sizeof(TerminateImGuiTask);
         }
     };
 
     ImGuiRendererSystem& ImGuiRendererSystem::create()
     {
         Super::create();
-        engine_instance->thread(ThreadType::RenderThread)->push_task(new InitImGuiTask());
+        engine_instance->thread(ThreadType::RenderThread)->insert_new_task<InitImGuiTask>();
         System::new_system<RenderSystem>()->register_subsystem(this);
 
         return *this;
@@ -58,7 +58,7 @@ namespace Engine
     {
         Super::shutdown();
 
-        engine_instance->thread(ThreadType::RenderThread)->push_task(new TerminateImGuiTask());
+        engine_instance->thread(ThreadType::RenderThread)->insert_new_task<TerminateImGuiTask>();
         return *this;
     }
 

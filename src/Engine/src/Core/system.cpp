@@ -9,6 +9,15 @@
 namespace Engine
 {
 
+    System::UpdateTask::UpdateTask(System* system, float dt) : _M_system(system), _M_dt(dt)
+    {}
+
+    int_t System::UpdateTask::execute()
+    {
+        _M_system->update(_M_dt);
+        return sizeof(System::UpdateTask);
+    }
+
     void System::on_create_fail()
     {
         throw EngineException(
@@ -54,7 +63,7 @@ namespace Engine
 
     System& System::wait()
     {
-        for(System* subsystem : _M_subsystems)
+        for (System* subsystem : _M_subsystems)
         {
             subsystem->wait();
         }
@@ -101,12 +110,12 @@ namespace Engine
 
     System& System::remove_subsystem(System* system)
     {
-        auto it = _M_subsystems.begin();
+        auto it  = _M_subsystems.begin();
         auto end = _M_subsystems.end();
 
-        while(it != end)
+        while (it != end)
         {
-            if(*it == system)
+            if (*it == system)
             {
                 _M_subsystems.erase(it);
                 return *this;

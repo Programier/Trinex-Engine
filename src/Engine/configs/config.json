@@ -21,6 +21,7 @@
         "window_system": "SDL2",
         "systems": [
             "Engine::EventSystem",
+            "Engine::LogicSystem",
             "Engine::HelloTriangleSystem",
             "Engine::SystemGraphRendererSystem",
             "Engine::TrinexEditorSystem"

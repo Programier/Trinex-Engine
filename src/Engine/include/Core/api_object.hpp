@@ -73,15 +73,9 @@ namespace Engine
 
     struct ENGINE_EXPORT InitRenderResourceTask : public ExecutableObject {
     public:
-        ApiObject* object = nullptr;
+        ApiObject* resource = nullptr;
+
+        InitRenderResourceTask(ApiObject* object = nullptr);
         int_t execute() override;
     };
-
-    struct ENGINE_EXPORT SingleTimeInitRenderResourceTask : public SingleTimeExecutableObject {
-    public:
-        ApiObject* object = nullptr;
-        int_t execute() override;
-    };
-
-
 }// namespace Engine

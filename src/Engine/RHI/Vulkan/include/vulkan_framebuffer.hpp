@@ -48,12 +48,19 @@ namespace Engine
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
 
+        virtual bool is_main_framebuffer() const;
+
         ~VulkanFramebuffer();
+    };
+
+    struct VulkanMainFrameBufferFrame : public VulkanFramebuffer
+    {
+        bool is_main_framebuffer() const override;
     };
 
 
     struct VulkanMainFrameBuffer : RHI_RenderTarget {
-        Vector<VulkanFramebuffer*> _M_framebuffers;
+        Vector<VulkanMainFrameBufferFrame*> _M_framebuffers;
 
         VulkanMainFrameBuffer();
         VulkanMainFrameBuffer& init();

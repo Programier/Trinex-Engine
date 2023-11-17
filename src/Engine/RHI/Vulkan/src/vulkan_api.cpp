@@ -12,16 +12,12 @@
 #include <vulkan_pipeline.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
-#include <Platform/thread.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
 
 namespace Engine
 {
-
-
-    Thread* init_thread = nullptr;
     VulkanSyncObject::VulkanSyncObject()
     {
         image_present   = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
@@ -46,7 +42,7 @@ namespace Engine
 
     VulkanAPI* VulkanAPI::_M_vulkan = nullptr;
 
-    API_EXPORT RHI* load_api()
+    API_EXPORT RHI* create_library_interface()
     {
         if (VulkanAPI::_M_vulkan == nullptr)
             VulkanAPI::_M_vulkan = new VulkanAPI();
@@ -165,7 +161,6 @@ namespace Engine
 
     void* VulkanAPI::init_window(WindowInterface* window, const WindowConfig& config)
     {
-        init_thread = Thread::this_thread();
         _M_window          = window;
         _M_swap_chain_mode = present_mode_of(config.vsync);
 
@@ -198,8 +193,6 @@ namespace Engine
                                                          void* pUserData)
     {
         vulkan_error_log("Vulkan API", "%s", pCallbackData->pMessage);
-        Thread* thread = Thread::this_thread();
-        vulkan_error_log("Vulkan API", "Thread: %s, ID: %zu", thread->name().c_str(), thread->id());
         return VK_FALSE;
     }
 #endif
@@ -620,11 +613,6 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::wait_idle()
     {
-        if(Thread::this_thread() != init_thread)
-        {
-            int i = 0;
-            i++;
-        }
         _M_device.waitIdle();
         return *this;
     }

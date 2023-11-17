@@ -9,9 +9,9 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/system.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/renderer.hpp>
-#include <Platform/thread.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <Systems/engine_system.hpp>
 #include <Window/config.hpp>
@@ -103,7 +103,7 @@ namespace Engine
             }
 
             // Try to load api loader
-            RHI* (*loader)() = api_library.get<RHI*>("load_api");
+            RHI* (*loader)() = api_library.get<RHI*>(Constants::library_load_function_name);
 
             if (!loader)
             {
@@ -198,8 +198,7 @@ namespace Engine
 
 
         info_log("TrinexEngine", "Start engine!");
-        start_time                                             = current_time_point();
-        _M_threads[static_cast<Index>(ThreadType::MainThread)] = Thread::this_thread();
+        start_time = current_time_point();
 
         PreInitializeController().execute();
 
@@ -217,6 +216,8 @@ namespace Engine
         ScriptEngine::instance();
         InitializeController().execute();
         engine_config.update();
+
+        // Load pla
 
         CommandLet* commandlet = find_commandlet(argc, argv);
 
@@ -351,7 +352,8 @@ stack_address:
 
         for (Thread*& thread : _M_threads)
         {
-            thread->wait_all();
+            if (thread)
+                thread->wait_all();
         }
 
         delete _M_renderer;
@@ -365,7 +367,7 @@ stack_address:
 
         for (Thread*& thread : _M_threads)
         {
-            if (thread->is_destroyable())
+            if (thread && thread->is_destroyable())
             {
                 debug_log("Engine", "Destroy thread %s", thread->name().c_str());
                 delete thread;
@@ -420,12 +422,12 @@ stack_address:
                         Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), _M_interface);
 
                 AfterRHIInitializeController().execute();
-                return 0;
+                return sizeof(CreateWindowTask);
             }
         };
 
 
-        WindowInterface* (*loader)() = library.get<WindowInterface*>("load_window_system");
+        WindowInterface* (*loader)() = library.get<WindowInterface*>(Constants::library_load_function_name);
         if (!loader)
         {
             throw EngineException("Cannot load window system loader");
@@ -435,16 +437,15 @@ stack_address:
         global_window_config.api_name = engine_config.api;
 
         CreateWindowTask task(loader);
-        Thread* render_thread = thread(ThreadType::RenderThread);
-        render_thread->push_task(&task);
-        render_thread->wait_all();
+        thread(ThreadType::RenderThread)->insert_new_task<CreateWindowTask>(loader);
+        thread(ThreadType::RenderThread)->wait_all();
 
         if (engine_config.use_deffered_rendering)
         {
             GBuffer::create_instance();
         }
 
-        render_thread->wait_all();
+        thread(ThreadType::RenderThread)->wait_all();
     }
 
     static const char* thread_name(ThreadType type)
@@ -465,7 +466,7 @@ stack_address:
         Thread*& thread = _M_threads[index];
         if (thread == nullptr)
         {
-            thread = Thread::new_thread(thread_name(type));
+            thread = new Thread(thread_name(type));
         }
         return thread;
     }

@@ -8,17 +8,8 @@ namespace Engine
     class ENGINE_EXPORT RenderSystem : public Singletone<RenderSystem, System>
     {
         declare_class(RenderSystem, System);
-
-    private:
-        class RenderSystemUpdate* _M_update = nullptr;
-        class RenderSystemSync* _M_sync     = nullptr;
-
-        class Thread* _M_render_thread = nullptr;
-        struct RHI* _M_rhi             = nullptr;
-        float _M_delta_time;
-
-
-        int_t private_update();
+        class Thread* _M_render_thread;
+        struct RHI* _M_rhi;
 
     public:
         RenderSystem& create() override;

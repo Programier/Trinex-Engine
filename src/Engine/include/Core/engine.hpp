@@ -25,8 +25,7 @@ namespace Engine
 
     enum class ThreadType : EnumerateType
     {
-        MainThread   = 0,
-        RenderThread = 1,
+        RenderThread = 0,
 
         __COUNT__,
     };

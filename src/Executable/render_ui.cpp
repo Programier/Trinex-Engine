@@ -41,6 +41,8 @@ namespace Engine
             }
 
             ImGui::Begin("System Graph");
+
+            ImGui::Text("FPS: %f\n", 1.0f / dt);
             show_system_tree(base_system);
 
             ImGui::End();

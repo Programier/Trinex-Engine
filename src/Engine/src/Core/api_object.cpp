@@ -1,8 +1,8 @@
 #include <Core/api_object.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
-#include <Platform/thread.hpp>
 
 namespace Engine
 {
@@ -32,21 +32,24 @@ namespace Engine
         }
         else
         {
-            SingleTimeInitRenderResourceTask* task = new SingleTimeInitRenderResourceTask();
-            task->object = this;
-            render_thread->push_task(task);
+            render_thread->insert_new_task<InitRenderResourceTask>(this);
         }
 
         return *this;
     }
 
 
-    struct DestroyRenderResource : public SingleTimeExecutableObject {
+    struct DestroyRenderResource : public ExecutableObject {
         RHI_Object* object;
+
+        DestroyRenderResource(RHI_Object* obj) : object(obj)
+        {
+        }
+
         int_t execute()
         {
             delete object;
-            return 0;
+            return sizeof(DestroyRenderResource);
         }
     };
 
@@ -60,9 +63,7 @@ namespace Engine
             }
             else
             {
-                DestroyRenderResource* task = new DestroyRenderResource();
-                task->object                = _M_rhi_object;
-                engine_instance->thread(ThreadType::RenderThread)->push_task(task);
+                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<DestroyRenderResource>(_M_rhi_object);
             }
 
             _M_rhi_object = nullptr;
@@ -89,23 +90,16 @@ namespace Engine
         return *this;
     }
 
+    InitRenderResourceTask::InitRenderResourceTask(ApiObject* object) : resource(object)
+    {}
+
     int_t InitRenderResourceTask::execute()
     {
-        if (object)
+        if (resource)
         {
-            object->rhi_create();
+            resource->rhi_create();
         }
 
-        return ExecutableObject::execute();
-    }
-
-    int_t SingleTimeInitRenderResourceTask::execute()
-    {
-        if (object)
-        {
-            object->rhi_create();
-        }
-
-        return SingleTimeExecutableObject::execute();
+        return sizeof(InitRenderResourceTask);
     }
 }// namespace Engine

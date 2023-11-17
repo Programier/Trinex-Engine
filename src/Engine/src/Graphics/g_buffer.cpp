@@ -1,10 +1,10 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
-#include <Platform/thread.hpp>
 #include <Window/window.hpp>
 
 namespace Engine
@@ -72,10 +72,6 @@ namespace Engine
 
     GBuffer* GBuffer::_M_instance = nullptr;
 
-    static FORCE_INLINE void push_render_tast(ExecutableObject* task)
-    {
-        engine_instance->thread(ThreadType::RenderThread)->push_task(task);
-    }
 
     GBuffer::GBuffer()
     {
@@ -106,9 +102,7 @@ namespace Engine
             render_pass->color_attachments.push_back(attachment);
         }
 
-        SingleTimeInitRenderResourceTask* task = new SingleTimeInitRenderResourceTask();
-        task->object                           = render_pass;
-        push_render_tast(task);
+        render_pass->init_resource();
         init();
     }
 

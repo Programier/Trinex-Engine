@@ -1256,7 +1256,7 @@ namespace Engine
 }// namespace Engine
 
 
-extern "C" FORCE_ENGINE_EXPORT Engine::WindowInterface* load_window_system()
+extern "C" FORCE_ENGINE_EXPORT Engine::WindowInterface* create_library_interface()
 {
     SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO);
     return new Engine::WindowSDL();

@@ -27,5 +27,6 @@ namespace Engine
         static const String name_separator;
         static const PriorityIndex max_priority;
         static const String default_commandlet;
+        static const String library_load_function_name;
     };
 }// namespace Engine

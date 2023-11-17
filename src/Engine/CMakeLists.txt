@@ -65,12 +65,6 @@ set(TRINEX_COMMANDLETS_DIR "${TRINEX_ENGINE_SRC}/CommandLets/")
 set(TRINEX_SCRIPT_ENGINE_DIR "${TRINEX_ENGINE_SRC}/ScriptEngine/")
 set(TRINEX_SYSTEMS_DIR "${TRINEX_ENGINE_SRC}/Systems/")
 
-if (LINUX OR ANDROID)
-    set(TRINEX_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platform/Linux/")
-elseif(WIN32)
-    set(TRINEX_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platform/Windows/")
-endif()
-
 
 # Find sources
 
@@ -87,7 +81,6 @@ file(GLOB TRINEX_SENSORS_SRC "${TRINEX_SENSORS_DIR}*.cpp")
 file(GLOB TRINEX_COMMANDLETS_SRC "${TRINEX_COMMANDLETS_DIR}*.cpp")
 file(GLOB TRINEX_SCRIPT_ENGINE_SRC "${TRINEX_SCRIPT_ENGINE_DIR}*.cpp")
 file(GLOB TRINEX_SYSTEMS_SRC "${TRINEX_SYSTEMS_DIR}*.cpp")
-file(GLOB TRINEX_PLATFORM_SRC "${TRINEX_PLATFORM_DIR}*.cpp")
 
 # Write all source files to one variable
 set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_WINDOW_SRC}
@@ -101,8 +94,7 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_WINDOW_SRC}
                         ${TRINEX_BINDINGS_SRC}
                         ${TRINEX_ETL_SRC}
                         ${TRINEX_SCRIPT_ENGINE_SRC}
-                        ${TRINEX_SYSTEMS_SRC}
-                        ${TRINEX_PLATFORM_SRC})
+                        ${TRINEX_SYSTEMS_SRC})
 
 
 
