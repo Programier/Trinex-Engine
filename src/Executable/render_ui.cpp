@@ -35,9 +35,9 @@ namespace Engine
             Super::update(dt);
             System* base_system = this;
 
-            while(base_system->owner() && base_system->owner()->is_instance_of<System>())
+            while(base_system->parent_system())
             {
-                base_system = base_system->owner()->instance_cast<System>();
+                base_system = base_system->parent_system();
             }
 
             ImGui::Begin("System Graph");

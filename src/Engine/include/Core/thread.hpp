@@ -75,7 +75,7 @@ namespace Engine
         bool is_busy() const;
         Thread& wait_all();
         bool is_destroyable() override;
-
+        const RingBuffer& command_buffer() const;
 
         template<typename CommandType, typename Function, typename... Args>
         FORCE_INLINE Thread& insert_new_task_with_initializer(Function&& initializer, Args&&... args)
@@ -97,7 +97,8 @@ namespace Engine
             }
             else
             {
-                new (context.data()) CommandType(std::forward<Args>(args)...);
+                CommandType* command = new (context.data()) CommandType(std::forward<Args>(args)...);
+                initializer(command);
             }
             context.submit();
             _M_exec_cv.notify_all();

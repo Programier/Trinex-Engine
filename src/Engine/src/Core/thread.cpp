@@ -70,7 +70,8 @@ namespace Engine
     ThreadBase& ThreadBase::name(const String& thread_name)
     {
         std::unique_lock lock(_M_edit_mutex);
-        _M_name = thread_name.substr(0, std::min<size_t>(max_thread_name_length, static_cast<int>(thread_name.length())));
+        _M_name =
+                thread_name.substr(0, std::min<size_t>(max_thread_name_length, static_cast<int>(thread_name.length())));
         pthread_setname_np(_M_native_handle, _M_name.c_str());
         return *this;
     }
@@ -88,7 +89,6 @@ namespace Engine
     ThreadBase::~ThreadBase()
     {}
 
-
     void Thread::thread_loop(Thread* self)
     {
         this_thread_instance = self;
@@ -97,6 +97,7 @@ namespace Engine
         {
             {
                 std::unique_lock lock(self->_M_exec_mutex);
+
                 self->_M_is_thread_busy.store(false);
                 self->_M_wait_cv.notify_all();
 
@@ -119,6 +120,8 @@ namespace Engine
                 self->_M_command_buffer.finish_read(size);
             }
         }
+
+        self->_M_wait_cv.notify_all();
     }
 
 
@@ -149,15 +152,26 @@ namespace Engine
 
     Thread& Thread::wait_all()
     {
-        std::unique_lock lock(_M_wait_mutex);
-        _M_wait_cv.wait(
-                lock, [this]() -> bool { return is_thread_sleep() && _M_command_buffer.unreaded_buffer_size() == 0; });
+        if (Thread::this_thread() != this)
+        {
+            std::unique_lock lock(_M_wait_mutex);
+            _M_exec_cv.notify_all();
+
+            _M_wait_cv.wait(lock, [this]() -> bool {
+                return _M_is_shuting_down || (is_thread_sleep() && _M_command_buffer.unreaded_buffer_size() == 0);
+            });
+        }
         return *this;
     }
 
     bool Thread::is_destroyable()
     {
         return true;
+    }
+
+    const RingBuffer& Thread::command_buffer() const
+    {
+        return _M_command_buffer;
     }
 
     Thread::~Thread()

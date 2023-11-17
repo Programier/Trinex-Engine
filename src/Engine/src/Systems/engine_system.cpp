@@ -46,7 +46,7 @@ namespace Engine
         for (const String& system_name : engine_config.systems)
         {
             System* system = System::new_system_by_name(system_name);
-            if (system && system->owner() == nullptr)
+            if (system && system->parent_system() == nullptr)
             {
                 register_subsystem(system);
             }

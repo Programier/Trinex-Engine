@@ -83,7 +83,6 @@ namespace Engine
             return _M_write_pointer - _M_read_pointer;
         }
 
-
         return (_M_end_pointer - _M_read_pointer) + (_M_write_pointer - _M_start_pointer);
     }
 

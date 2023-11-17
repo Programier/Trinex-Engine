@@ -28,6 +28,7 @@ namespace Engine
 
     protected:
         Vector<System*> _M_subsystems;
+        System* _M_parent_system;
 
     public:
         bool save(BufferWriter* writer = nullptr) const                         = delete;
@@ -41,12 +42,10 @@ namespace Engine
         virtual System& shutdown();
         static System* new_system_by_name(const String& name);
 
-        System& on_child_remove(Object* object) override;
-        System& on_child_set(Object* object) override;
-
         const Vector<System*>& subsystems() const;
         System& register_subsystem(System* system, Index index = ~static_cast<Index>(0));
         System& remove_subsystem(System* system);
+        System* parent_system() const;
 
 
         template<typename SystemType, typename... Args>

@@ -213,11 +213,11 @@ namespace Engine
         }
 #endif
 
+        Thread::this_thread()->name("Logic");
+
         ScriptEngine::instance();
         InitializeController().execute();
         engine_config.update();
-
-        // Load pla
 
         CommandLet* commandlet = find_commandlet(argc, argv);
 

@@ -33,7 +33,7 @@ namespace Engine
         }
     }
 
-    System::System()
+    System::System() : _M_parent_system(nullptr)
     {}
 
     System& System::create()
@@ -71,30 +71,15 @@ namespace Engine
         return *this;
     }
 
-
-    System& System::on_child_remove(Object* object)
-    {
-        System* system = object->instance_cast<System>();
-        if (system)
-        {
-            return remove_subsystem(system);
-        }
-
-        return *this;
-    }
-
-    System& System::on_child_set(Object* object)
-    {
-        return *this;
-    }
-
-
     System& System::register_subsystem(System* system, Index index)
     {
-        if (system->owner() == this)
+        if (system->parent_system() == this)
             return *this;
 
-        system->owner(this);
+        if (system->_M_parent_system)
+        {
+            system->_M_parent_system->remove_subsystem(system);
+        }
 
         if (index >= _M_subsystems.size())
         {
@@ -105,31 +90,44 @@ namespace Engine
             _M_subsystems.insert(_M_subsystems.begin() + index, system);
         }
 
+        system->_M_parent_system = this;
+
         return *this;
     }
 
     System& System::remove_subsystem(System* system)
     {
-        auto it  = _M_subsystems.begin();
-        auto end = _M_subsystems.end();
-
-        while (it != end)
+        if (system->_M_parent_system == this)
         {
-            if (*it == system)
-            {
-                _M_subsystems.erase(it);
-                return *this;
-            }
-            ++it;
-        }
+            auto it  = _M_subsystems.begin();
+            auto end = _M_subsystems.end();
 
+            while (it != end)
+            {
+                if (*it == system)
+                {
+                    _M_subsystems.erase(it);
+                    system->_M_parent_system = nullptr;
+                    return *this;
+                }
+                ++it;
+            }
+        }
         return *this;
+    }
+
+    System* System::parent_system() const
+    {
+        return _M_parent_system;
     }
 
 
     System& System::shutdown()
     {
-        owner(nullptr);
+        if (_M_parent_system)
+        {
+            _M_parent_system->remove_subsystem(this);
+        }
 
         // Shutdown child systems
 

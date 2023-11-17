@@ -1,4 +1,3 @@
-#include <Core/render_resource.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
@@ -9,6 +8,7 @@
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
+#include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
 #include <typeinfo>
 
@@ -115,13 +115,11 @@ namespace Engine
     }
 
     Object::Object()
-        : _M_package(nullptr), _M_owner(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
+        : _M_package(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
           _M_instance_index(Constants::index_none)
     {
         ObjectArray& objects_array = get_instances_array();
         _M_instance_index          = objects_array.size();
-
-        // _M_name = Strings::format("Instance {}", _M_instance_index);
 
         if (!get_free_indexes_array().empty())
         {
@@ -508,38 +506,6 @@ namespace Engine
     }
 
     Object& Object::postload()
-    {
-        return *this;
-    }
-
-    Object* Object::owner() const
-    {
-        return _M_owner;
-    }
-
-    Object& Object::owner(Object* owner)
-    {
-        if (_M_owner)
-        {
-            _M_owner->on_child_remove(this);
-        }
-
-        _M_owner = owner;
-
-        if (_M_owner)
-        {
-            _M_owner->on_child_set(this);
-        }
-
-        return *this;
-    }
-
-    Object& Object::on_child_remove(Object* object)
-    {
-        return *this;
-    }
-
-    Object& Object::on_child_set(Object* object)
     {
         return *this;
     }
