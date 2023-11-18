@@ -1,13 +1,10 @@
 #include <Systems/logic_system.hpp>
 #include <Core/class.hpp>
+#include <Core/thread.hpp>
+
 
 namespace Engine
 {
-    int_t LogicSystem::private_update()
-    {
-        return 0;
-    }
-
     LogicSystem& LogicSystem::create()
     {
         Super::create();
@@ -16,6 +13,7 @@ namespace Engine
 
     LogicSystem& LogicSystem::update(float dt)
     {
+        Thread::sleep_for(1.0f / 33.f);
         Super::update(dt);
         return *this;
     }

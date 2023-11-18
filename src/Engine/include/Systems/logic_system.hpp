@@ -9,9 +9,6 @@ namespace Engine
     {
         declare_class(LogicSystem, System);
 
-    private:
-        int_t private_update();
-
     public:
         LogicSystem& create() override;
         LogicSystem& update(float dt) override;

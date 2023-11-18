@@ -95,29 +95,37 @@ namespace Engine
         self->update_id();
         while (!self->_M_is_shuting_down.load())
         {
+            bool contains_tasks = false;
+
             {
                 std::unique_lock lock(self->_M_exec_mutex);
 
                 self->_M_is_thread_busy.store(false);
                 self->_M_wait_cv.notify_all();
+                using namespace std::chrono_literals;
 
-                self->_M_exec_cv.wait(lock, [self]() -> bool {
-                    return self->_M_command_buffer.unreaded_buffer_size() != 0 || self->_M_is_shuting_down;
-                });
+                if (self->_M_exec_cv.wait_until(lock, std::chrono::system_clock::now() + 1ms, [self]() -> bool {
+                        return self->_M_command_buffer.unreaded_buffer_size() != 0 || self->_M_is_shuting_down;
+                    }))
+                {
+                    self->_M_is_thread_busy.store(true);
+                    contains_tasks = true;
+                }
 
                 if (self->_M_is_shuting_down.load())
                     return;
-
-                self->_M_is_thread_busy.store(true);
             }
 
-            ExecutableObject* object = nullptr;
-
-            while ((object = reinterpret_cast<ExecutableObject*>(self->_M_command_buffer.reading_pointer())))
+            if (contains_tasks)
             {
-                int_t size = object->execute();
-                std::destroy_at(object);
-                self->_M_command_buffer.finish_read(size);
+                ExecutableObject* object = nullptr;
+
+                while ((object = reinterpret_cast<ExecutableObject*>(self->_M_command_buffer.reading_pointer())))
+                {
+                    int_t size = object->execute();
+                    std::destroy_at(object);
+                    self->_M_command_buffer.finish_read(size);
+                }
             }
         }
 
@@ -125,10 +133,18 @@ namespace Engine
     }
 
 
+    int_t Thread::NewTaskEvent::execute()
+    {
+        return 0;
+    }
+
+
     Thread::Thread(size_t size)
     {
         _M_is_shuting_down.store(false);
-        _M_command_buffer.init(size);
+        _M_event._M_thread = this;
+
+        _M_command_buffer.init(size, 16, &_M_event);
         _M_thread        = new std::thread(&Thread::thread_loop, this);
         _M_native_handle = _M_thread->native_handle();
 
@@ -155,7 +171,6 @@ namespace Engine
         if (Thread::this_thread() != this)
         {
             std::unique_lock lock(_M_wait_mutex);
-            _M_exec_cv.notify_all();
 
             _M_wait_cv.wait(lock, [this]() -> bool {
                 return _M_is_shuting_down || (is_thread_sleep() && _M_command_buffer.unreaded_buffer_size() == 0);

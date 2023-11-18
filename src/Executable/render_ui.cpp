@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Systems/imgui_system.hpp>
 #include <imgui.h>
+#include <Core/thread.hpp>
 
 
 namespace Engine
@@ -46,6 +47,9 @@ namespace Engine
             show_system_tree(base_system);
 
             ImGui::End();
+
+
+            Thread::sleep_for(1.0f / 33.0f);
 
             return *this;
         }

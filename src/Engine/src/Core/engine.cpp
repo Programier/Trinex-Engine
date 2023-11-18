@@ -406,6 +406,7 @@ stack_address:
 
             int_t execute() override
             {
+                info_log("Window", "Starting creating window");
                 _M_interface = _M_loader();
 
                 if (!_M_interface)
@@ -422,6 +423,8 @@ stack_address:
                         Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), _M_interface);
 
                 AfterRHIInitializeController().execute();
+
+                info_log("Window", "End creating window");
                 return sizeof(CreateWindowTask);
             }
         };
@@ -436,7 +439,6 @@ stack_address:
         global_window_config.update();
         global_window_config.api_name = engine_config.api;
 
-        CreateWindowTask task(loader);
         thread(ThreadType::RenderThread)->insert_new_task<CreateWindowTask>(loader);
         thread(ThreadType::RenderThread)->wait_all();
 

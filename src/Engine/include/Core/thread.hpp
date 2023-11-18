@@ -63,6 +63,15 @@ namespace Engine
         std::atomic<bool> _M_is_shuting_down;
         std::atomic<bool> _M_is_thread_busy;
 
+        struct ENGINE_EXPORT NewTaskEvent : public ExecutableObject
+        {
+        public:
+            Thread* _M_thread;
+            int_t execute() override;
+        };
+
+        NewTaskEvent _M_event;
+
 
         static void thread_loop(Thread* self);
 
@@ -93,15 +102,12 @@ namespace Engine
 
                 CommandType* command = new (new_context.data()) CommandType(std::forward<Args>(args)...);
                 initializer(command);
-                new_context.submit();
             }
             else
             {
                 CommandType* command = new (context.data()) CommandType(std::forward<Args>(args)...);
                 initializer(command);
             }
-            context.submit();
-            _M_exec_cv.notify_all();
             return *this;
         }
 
@@ -120,15 +126,11 @@ namespace Engine
                 }
 
                 new (new_context.data()) CommandType(std::forward<Args>(args)...);
-                new_context.submit();
             }
             else
             {
                 new (context.data()) CommandType(std::forward<Args>(args)...);
             }
-
-            context.submit();
-            _M_exec_cv.notify_all();
             return *this;
         }
 
