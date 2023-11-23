@@ -33,9 +33,8 @@ namespace Engine
         render_pass          = &Object::new_instance<WindowRenderPass>()->rhi_create();
 
 
+        flag(Object::IsAvailableForGC, false);
         update_cached_size();
-
-        _M_force_destroy_priority = Constants::max_priority;
 
         _M_viewport.pos       = {0, 0};
         _M_viewport.size      = size();

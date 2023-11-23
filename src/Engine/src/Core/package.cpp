@@ -84,12 +84,12 @@ namespace Engine
 
     Package::Package()
     {
-        trinex_flag(TrinexObjectFlags::IsPackage, true);
+        flag(Object::IsPackage, true);
     }
 
     Package::Package(const String& _name)
     {
-        trinex_flag(TrinexObjectFlags::IsPackage, true);
+        flag(Object::IsPackage, true);
         name(_name);
     }
 
@@ -113,9 +113,9 @@ namespace Engine
             }
         }
 
-        if (object->trinex_flag(TrinexObjectFlags::IsNeedDelete))
+        if (!object->is_valid())
         {
-            error_log("Package", "Cannot add object to package, wich marked for delete");
+            error_log("Package", "Cannot add invalid object to package");
             return false;
         }
 
@@ -232,7 +232,7 @@ namespace Engine
 
     bool Package::save(BufferWriter* writer) const
     {
-        if (!trinex_flag(TrinexObjectFlags::IsSerializable))
+        if (!flag(Object::IsSerializable))
         {
             error_log("Package", "Package '%s' is not serializable!", full_name().c_str());
             return false;
@@ -253,7 +253,7 @@ namespace Engine
         size_t offset = sizeof(size_t);
         for (Object* object : _M_objects)
         {
-            if (object->trinex_flag(TrinexObjectFlags::IsSerializable))
+            if (object->flag(Object::IsSerializable))
             {
                 HeaderEntry entry;
 
@@ -460,7 +460,7 @@ namespace Engine
         if (!entry.object->archive_process(&ar))
         {
             error_log("Package", "Failed to load object '%s'", entry.name.c_str());
-            entry.object->mark_for_delete(true);
+            delete entry.object;
             return false;
         }
 
@@ -471,7 +471,7 @@ namespace Engine
 
     bool Package::load(BufferReader* reader, bool clean)
     {
-        if (!trinex_flag(TrinexObjectFlags::IsSerializable))
+        if (!flag(Object::IsSerializable))
         {
             error_log("Package", "Cannot load package '%s', because package is not serializable!", full_name().c_str());
             return false;
@@ -481,8 +481,7 @@ namespace Engine
         {
             while (!_M_objects.empty())
             {
-                (*_M_objects.begin())->mark_for_delete();
-                (*_M_objects.begin())->remove_from_package();
+                delete (*_M_objects.begin());
             }
         }
 

@@ -10,7 +10,7 @@ namespace Engine
 
     class ENGINE_EXPORT RenderTarget : public BasicRenderTarget
     {
-        declare_class(RenderTarget, RenderTarget);
+        declare_class(RenderTarget, BasicRenderTarget);
 
     public:
         struct Attachment {

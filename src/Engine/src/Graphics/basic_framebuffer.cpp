@@ -2,6 +2,7 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Graphics/basic_render_target.hpp>
+#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -54,6 +55,15 @@ namespace Engine
             _M_rhi_render_target->clear_depth_stencil(value);
         return *this;
     }
+
+    BasicRenderTarget& BasicRenderTarget::rhi_create()
+    {
+        rhi_destroy();
+        return *this;
+    }
+
+    BasicRenderTarget::~BasicRenderTarget()
+    {}
 
     const ViewPort& BasicRenderTarget::viewport()
     {

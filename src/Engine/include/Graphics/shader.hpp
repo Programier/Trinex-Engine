@@ -5,7 +5,6 @@
 #include <Core/implement.hpp>
 #include <Core/object_ref.hpp>
 #include <Core/render_resource.hpp>
-#include <Core/resource.hpp>
 #include <Core/rhi_initializers.hpp>
 
 

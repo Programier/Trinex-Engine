@@ -114,9 +114,9 @@ namespace Engine
                 {
                     Object* node = get(i);
                     if (node)
-                        node->mark_for_delete();
+                        delete node;
                 }
-                mark_for_delete();
+                delete this;
             }
 
 

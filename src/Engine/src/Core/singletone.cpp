@@ -15,7 +15,7 @@ namespace Engine
         Object* object = class_instance->singletone_instance();
         if(object)
         {
-            Object::begin_destroy(object);
+            delete object;
         }
     }
 

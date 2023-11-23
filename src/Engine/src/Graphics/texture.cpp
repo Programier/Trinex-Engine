@@ -54,66 +54,21 @@ namespace Engine
         return current_size;
     }
 
-    bool TextureResources::archive_process(Archive* archive_ptr)
-    {
-        if (!SerializableObject::archive_process(archive_ptr))
-            return false;
-
-        Archive& archive = *archive_ptr;
-
-        int_t index = 0;
-        int_t count = static_cast<int_t>(images.size());
-
-        if (!(archive & count))
-        {
-            error_log("TextureResources", "Failed to process images count");
-            return false;
-        }
-
-        if (archive.is_reading())
-        {
-            images.resize(count);
-        }
-
-        for (auto& image : images)
-        {
-            if (!image.archive_process(archive_ptr))
-            {
-                error_log("TextureResources", "Failed to serialize image[%d]", index);
-                return false;
-            }
-            ++index;
-        }
-
-        return static_cast<bool>(archive);
-    }
 
     bool Texture::archive_process(Archive* archive)
     {
         if (!RenderResource::archive_process(archive))
             return false;
 
-        if (archive->is_reading())
-        {
-            resources(true);
-        }
-
-        if (_M_resources == nullptr)
-        {
-            info_log("Texture: Cannot process texture '%s'. Texture resources is nullptr", full_name().c_str());
-            return false;
-        }
 
         (*archive) & size;
         (*archive) & base_mip_level;
         (*archive) & mipmap_count;
         (*archive) & format;
         (*archive) & swizzle;
-        return static_cast<bool>(*archive) && _M_resources->archive_process(archive);
+        return static_cast<bool>(*archive);
     }
 
     Texture::~Texture()
-    {
-        delete_resources();
-    }
+    {}
 }// namespace Engine

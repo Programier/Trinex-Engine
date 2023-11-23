@@ -1,24 +1,13 @@
 #pragma once
-#include <Core/render_resource.hpp>
 #include <Core/color_format.hpp>
-#include <Core/resource.hpp>
+#include <Core/render_resource.hpp>
 
 
 namespace Engine
 {
     class Sampler;
 
-    struct ENGINE_EXPORT TextureResources : public SerializableObject {
-        Vector<class Image> images;
-
-    public:
-        bool archive_process(Archive* archive) override;
-        friend class Texture;
-        friend class Object;
-    };
-
-
-    class ENGINE_EXPORT Texture : public Resource<TextureResources, BindedRenderResource>
+    class ENGINE_EXPORT Texture : public BindedRenderResource
     {
         declare_class(Texture, BindedRenderResource);
 

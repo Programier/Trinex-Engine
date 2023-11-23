@@ -10,7 +10,7 @@ namespace Engine
 
     RenderTarget& RenderTarget::rhi_create()
     {
-        rhi_destroy();
+        Super::rhi_create();
         _M_rhi_render_target = EngineInstance::instance()->rhi()->create_render_target(this);
         return *this;
     }

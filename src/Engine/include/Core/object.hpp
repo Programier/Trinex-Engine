@@ -3,7 +3,6 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/implement.hpp>
-#include <Core/memory_manager.hpp>
 #include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -16,31 +15,19 @@ namespace Engine
     class Object;
     using MessageList = List<String>;
 
-    enum TrinexObjectFlags : size_t
-    {
-        None = 0,
-        IsOnHeap,
-        IsDestructed,
-        IsNeedDelete,
-        IsCollectedByGC,
-        IsSerializable,
-        IsAllocatedByController,
-        IsUnregistered,
-        IsPackage,
-        __OF_COUNT__
-    };
-
-    enum class ObjectFlags : size_t
-    {
-        OF_LoadWithDependencies = 0,
-        __OF_COUNT__
-    };
 
     enum class ObjectRenameStatus
     {
         Success,
         Skipped,
         Failed,
+    };
+
+    enum class GCFlag
+    {
+        OnlyMarked      = 0,
+        FindUnreacheble = 1,
+        DestroyAll      = 2,
     };
 
 
@@ -50,11 +37,20 @@ namespace Engine
     public:
         using ObjectClass = Object;
 
+        enum Flag : BitMask
+        {
+            None             = 0,
+            IsDestructed     = (1 << 0),
+            IsSerializable   = (1 << 1),
+            IsAvailableForGC = (1 << 2),
+            IsPackage        = (1 << 3),
+
+            IsUnreachable = (1 << 4)
+        };
+
     private:
-        mutable BitSet<static_cast<size_t>(TrinexObjectFlags::__OF_COUNT__)> _M_trinex_flags;
+        mutable Flags _M_flags;
 
-
-        BitSet<static_cast<size_t>(ObjectFlags::__OF_COUNT__)> _M_flags;
         Package* _M_package;
         Counter _M_references;
         Index _M_index_in_package;
@@ -62,38 +58,17 @@ namespace Engine
         mutable Index _M_instance_index;
 
     private:
-        void delete_instance();
         static void create_default_package();
         static bool object_is_exist(Package* package, const String& name);
 
         const Object& remove_from_instances_array() const;
-
-        template<typename Type, typename... Args>
-        static Type* allocate_new_instance(Args&&... args)
-        {
-            if constexpr (std::is_base_of_v<Object, Type>)
-            {
-                return new (MemoryManager::instance().find_memory<Type>()) Type(std::forward<Args>(args)...);
-            }
-            else
-            {
-                return new Type(std::forward<Args>(args)...);
-            }
-        }
-
         static void private_bind_class(class Class* c);
 
+        static void prepare_next_object_for_gc();
 
     protected:
-        PriorityIndex _M_force_destroy_priority = 0;
-
         Object();
-        Object& mark_as_allocate_by_constroller();
-        Object& insert_to_default_package();
         bool private_check_instance(const class Class* const check_class) const;
-        bool trinex_flag(TrinexObjectFlags flag) const;
-        const Object& trinex_flag(TrinexObjectFlags flag, bool status) const;
-
         static Object* noname_object();
 
 
@@ -123,11 +98,13 @@ namespace Engine
         ENGINE_EXPORT static Object* load_object(const String& name);
         ENGINE_EXPORT static String package_name_of(const String& name);
         ENGINE_EXPORT static String object_name_of(const String& name);
-        String decode_name() const;
         ENGINE_EXPORT static const ObjectArray& all_objects();
-        bool mark_for_delete(bool skip_check = false);
-        bool is_on_heap() const;
-        ENGINE_EXPORT static void collect_garbage();
+        ENGINE_EXPORT static Object* find_object(const String& object_name);
+        ENGINE_EXPORT static Package* root_package();
+
+        ENGINE_EXPORT static void collect_garbage(GCFlag flag = GCFlag::OnlyMarked);
+
+        String decode_name() const;
         const String& string_name() const;
         HashIndex hash_index() const;
         ObjectRenameStatus name(String name, bool autorename = false);
@@ -140,67 +117,44 @@ namespace Engine
         void add_reference();
         void remove_reference();
         const decltype(Object::_M_flags)& flags() const;
-        Object& flag(ObjectFlags flag, bool status);
-        bool flag(ObjectFlags flag) const;
+        Object& flag(Flag flag, bool status);
+        bool flag(Flag flag) const;
+        bool has_all(Flags mask) const;
+        bool has_any(Flags mask) const;
         bool is_noname() const;
+        String as_string() const;
+        Index instance_index() const;
+        bool archive_process(Archive* archive) override;
+        bool is_valid() const;
 
-        ENGINE_EXPORT static Object* find_object(const String& object_name);
         static Package* find_package(const String& name, bool create = true);
 
         virtual bool can_destroy(MessageList& messages);
         virtual Object& preload();
         virtual Object& postload();
 
-        String as_string() const;
-        Index instance_index() const;
 
-        bool archive_process(Archive* archive) override;
+        // Override new and delete operators
+        static ENGINE_EXPORT void* operator new(size_t size) noexcept;
+        static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
+
+        // Deletion controls
+        static ENGINE_EXPORT void delete_object(Object* object);
+        Object& deferred_destroy();
 
         // NOTE! You will manually push object to package, if you use this method!
         template<typename Type, typename... Args>
-        static Type* new_instance_without_package(Args&&... args)
-        {
-            if constexpr (std::is_base_of_v<Object, Type>)
-            {
-                if constexpr (is_singletone_v<Type>)
-                {
-                    if (Type::instance() != nullptr)
-                    {
-                        return Type::instance();
-                    }
-                }
-
-                Type* instance = allocate_new_instance<Type>(std::forward<Args>(args)...);
-                instance->mark_as_allocate_by_constroller();
-                return instance;
-            }
-            else
-            {
-                return allocate_new_instance<Type>(std::forward<Args>(args)...);
-            }
-        }
-
-        template<typename Type, typename... Args>
         static Type* new_instance(Args&&... args)
         {
-            if constexpr (std::is_base_of_v<Object, Type>)
+            if constexpr (is_singletone_v<Type>)
             {
-                if constexpr (is_singletone_v<Type>)
+                if (Type::instance() != nullptr)
                 {
-                    if (Type::instance() != nullptr)
-                    {
-                        return Type::instance();
-                    }
+                    return Type::instance();
                 }
+            }
 
-                Type* instance = new_instance_without_package<Type>(std::forward<Args>(args)...);
-                instance->insert_to_default_package();
-                return instance;
-            }
-            else
-            {
-                return new Type(args...);
-            }
+            return new Type(std::forward<Args>(args)...);
         }
 
         template<typename Type, typename... Args>
@@ -230,7 +184,7 @@ namespace Engine
                     return nullptr;
                 }
 
-                Type* instance = new_instance_without_package<Type>(std::forward<Args>(args)...);
+                Type* instance = new Type(std::forward<Args>(args)...);
 
                 instance->name(name);
 
@@ -300,50 +254,6 @@ namespace Engine
             }
             return nullptr;
         }
-
-        template<typename Type>
-        static void begin_destroy(const Type*& instance)
-        {
-            if constexpr (std::is_base_of_v<Object, Type>)
-            {
-                if (instance->trinex_flag(TrinexObjectFlags::IsOnHeap))
-                {
-                    instance->mark_for_delete();
-                }
-            }
-            else
-            {
-                delete instance;
-            }
-        }
-
-        template<typename Type>
-        static void begin_destroy(Type*& instance)
-        {
-            if constexpr (std::is_base_of_v<Object, Type>)
-            {
-                if (instance->trinex_flag(TrinexObjectFlags::IsOnHeap))
-                {
-                    instance->mark_for_delete();
-                }
-            }
-            else
-            {
-                delete instance;
-            }
-
-            instance = nullptr;
-        }
-
-
-    private:
-        static ENGINE_EXPORT void force_garbage_collection();
-        friend void call_force_garbage_collection();
-
-
-    public:
-        ENGINE_EXPORT static Package* root_package();
-
 
         virtual ~Object();
         friend class PointerBase;

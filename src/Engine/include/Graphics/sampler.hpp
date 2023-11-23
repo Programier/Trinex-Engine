@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/render_resource.hpp>
-#include <Core/resource.hpp>
 #include <Core/rhi_initializers.hpp>
 
 namespace Engine

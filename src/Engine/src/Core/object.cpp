@@ -15,6 +15,9 @@
 
 namespace Engine
 {
+
+    static thread_local bool _M_next_available_for_gc = false;
+
     void Object::private_bind_class(class Class* c)
     {
         ScriptClassRegistrar registrar(c);
@@ -51,6 +54,11 @@ namespace Engine
         private_bind_class(This::static_class_instance());
     }
 
+    void Object::prepare_next_object_for_gc()
+    {
+        _M_next_available_for_gc = true;
+    }
+
     static Vector<Index>& get_free_indexes_array()
     {
         static Vector<Index> array;
@@ -66,19 +74,11 @@ namespace Engine
 
     static Package* _M_root_package = nullptr;
 
-    Object& Object::mark_as_allocate_by_constroller()
-    {
-        trinex_flag(TrinexObjectFlags::IsOnHeap, true);
-        trinex_flag(TrinexObjectFlags::IsAllocatedByController, true);
-        return *this;
-    }
-
     void Object::create_default_package()
     {
         if (_M_root_package == nullptr)
         {
-            _M_root_package = new (MemoryManager::instance().find_memory<Package>()) Package("Root Package");
-            _M_root_package->mark_as_allocate_by_constroller();
+            _M_root_package = new Package("Root Package");
         }
     }
 
@@ -99,20 +99,12 @@ namespace Engine
     }
 
 
-    Object& Object::insert_to_default_package()
-    {
-        create_default_package();
-        if (_M_name.is_valid())
-            _M_root_package->add_object(this, true);
-        return *this;
-    }
-
-
     bool Object::private_check_instance(const Class* const check_class) const
     {
         auto _class = class_instance();
         return _class != nullptr && _class->contains_class(check_class);
     }
+
 
     Object::Object()
         : _M_package(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
@@ -132,9 +124,10 @@ namespace Engine
             objects_array.push_back(this);
         }
 
-        _M_trinex_flags.reset();
-        trinex_flag(TrinexObjectFlags::IsSerializable, true);
-        trinex_flag(TrinexObjectFlags::IsOnHeap, !EngineInstance::is_on_stack(this));
+        _M_flags = 0;
+        flag(Flag::IsSerializable, true);
+        flag(Flag::IsAvailableForGC, _M_next_available_for_gc);
+        _M_next_available_for_gc = false;
     }
 
     ENGINE_EXPORT HashIndex Object::hash_of_name(const String& name)
@@ -169,7 +162,7 @@ namespace Engine
 
         if (package != nullptr && !package->load())
         {
-            package->mark_for_delete(true);
+            delete package;
             return nullptr;
         }
 
@@ -222,25 +215,6 @@ namespace Engine
         return *this;
     }
 
-    void Object::delete_instance()
-    {
-        if (trinex_flag(TrinexObjectFlags::IsNeedDelete) && trinex_flag(TrinexObjectFlags::IsAllocatedByController))
-        {
-            remove_from_instances_array();
-            if (is_noname())
-            {
-                debug_log("Garbage Collector", "Delete noname object with type '%s' [%p]\n", decode_name().c_str(),
-                          this);
-            }
-            else
-            {
-                debug_log("Garbage Collector", "Delete object instance '%s' with type '%s' [%p]\n",
-                          string_name().c_str(), decode_name().c_str(), this);
-            }
-
-            MemoryManager::instance().force_destroy_object(this);
-        }
-    }
 
     ENGINE_EXPORT const ObjectArray& Object::all_objects()
     {
@@ -249,76 +223,11 @@ namespace Engine
 
     Object::~Object()
     {
-        remove_from_instances_array();
-        if (_M_package)
+        if (flag(Flag::IsDestructed) == false)
         {
-            _M_package->remove_object(this);
+            remove_from_instances_array();
+            flag(Flag::IsDestructed, true);
         }
-
-        trinex_flag(TrinexObjectFlags::IsDestructed, true);
-    }
-
-
-    bool Object::mark_for_delete(bool skip_check)
-    {
-        static auto mark = [](Object* object) -> bool {
-            if (!object->trinex_flag(TrinexObjectFlags::IsNeedDelete) &&
-                object->trinex_flag(TrinexObjectFlags::IsAllocatedByController) && object->_M_references == 0)
-            {
-                object->remove_from_instances_array();
-
-                if (object->_M_package)
-                {
-                    object->_M_package->remove_object(object);
-                }
-
-                object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
-                MemoryManager::instance().free_object(object);
-                return true;
-            }
-            return false;
-        };
-
-        if (trinex_flag(TrinexObjectFlags::IsDestructed) || trinex_flag(TrinexObjectFlags::IsNeedDelete))
-            return false;
-
-        if (!skip_check)
-        {
-            MessageList errors;
-            if (!can_destroy(errors))
-            {
-                error_log("Object", Strings::format("Cannot delete object '{}'", string_name().c_str()), errors);
-                return false;
-            }
-        }
-
-        Package* package = instance_cast<Package>();
-        bool status      = true;
-
-        if (package)
-        {
-            Vector<Object*>& objects = const_cast<Vector<Object*>&>(package->objects());
-            while (!objects.empty())
-            {
-                Object* current_object = objects.front();
-                if (!current_object->mark_for_delete(true))
-                    status = false;
-                else
-                    package->remove_object(current_object);
-            }
-        }
-
-        if (status)
-        {
-            status = mark(this);
-        }
-
-        return status;
-    }
-
-    bool Object::is_on_heap() const
-    {
-        return trinex_flag(TrinexObjectFlags::IsOnHeap);
     }
 
     const String& Object::string_name() const
@@ -361,14 +270,9 @@ namespace Engine
         return ObjectRenameStatus::Success;
     }
 
-    ENGINE_EXPORT void Object::collect_garbage()
-    {
-        MemoryManager::instance().collect_garbage();
-    }
-
     Object* Object::copy()
     {
-        if (trinex_flag(TrinexObjectFlags::IsNeedDelete) || trinex_flag(TrinexObjectFlags::IsDestructed))
+        if (flag(Flag::IsDestructed))
             return nullptr;
 
         Object* object = nullptr;
@@ -390,18 +294,6 @@ namespace Engine
     {
         if (_M_package && _M_package != _M_root_package)
             _M_package->remove_object(this);
-        return *this;
-    }
-
-    bool Object::trinex_flag(TrinexObjectFlags flag) const
-    {
-        return _M_trinex_flags[flag];
-    }
-
-    const Object& Object::trinex_flag(TrinexObjectFlags flag, bool status) const
-    {
-        _M_trinex_flags[static_cast<size_t>(flag)] = status;
-
         return *this;
     }
 
@@ -456,15 +348,32 @@ namespace Engine
         return _M_flags;
     }
 
-    Object& Object::flag(ObjectFlags flag, bool status)
+    Object& Object::flag(Flag flag, bool status)
     {
-        _M_flags[static_cast<size_t>(flag)] = status;
+        if (status)
+        {
+            _M_flags |= flag;
+        }
+        else
+        {
+            _M_flags &= ~flag;
+        }
         return *this;
     }
 
-    bool Object::flag(ObjectFlags flag) const
+    bool Object::flag(Flag flag) const
     {
-        return _M_flags[static_cast<size_t>(flag)];
+        return (_M_flags & flag) == flag;
+    }
+
+    bool Object::has_all(Flags flags) const
+    {
+        return (_M_flags & flags) == flags;
+    }
+
+    bool Object::has_any(Flags flags) const
+    {
+        return (_M_flags & flags) != 0;
     }
 
     bool Object::is_noname() const
@@ -560,9 +469,8 @@ namespace Engine
             return create ? Object::new_instance_named<Package>(new_name, package) : nullptr;
         }
 
-        Package* new_package = founded_object->trinex_flag(TrinexObjectFlags::IsPackage)
-                                       ? reinterpret_cast<Package*>(founded_object)
-                                       : nullptr;
+        Package* new_package =
+                founded_object->flag(Flag::IsPackage) ? reinterpret_cast<Package*>(founded_object) : nullptr;
         if (new_package == nullptr)
         {
             error_log("Object",
@@ -592,99 +500,14 @@ namespace Engine
             return false;
         }
 
-        return trinex_flag(TrinexObjectFlags::IsSerializable);
+        return flag(Flag::IsSerializable);
     }
 
-
-    /////////////////////////////// GARBAGE CONTROLLER  ///////////////////////////////
-
-    void Object::force_garbage_collection()
+    bool Object::is_valid() const
     {
-        if (!engine_instance->is_shuting_down())
-            return;
-
-        info_log("Object", "Triggered garbage collector!\n");
-
-        Object::collect_garbage();
-        MemoryManager& manager             = MemoryManager::instance();
-        manager._M_disable_collect_garbage = true;
-
-
-        Set<Object*> maybe_not_deleted_objects;
-
-        PriorityIndex current_priority = 0;
-        PriorityIndex next_priority    = 0;
-
-
-        ObjectArray& objects    = get_instances_array();
-        size_t count            = objects.size();
-        size_t next_start_index = 0;
-        size_t next_end_index   = 0;
-
-        while (count - next_start_index != 0)
-        {
-            current_priority = next_priority;
-            next_priority    = Constants::max_size;
-
-            for (size_t i = next_start_index; i < count; i++)
-            {
-                Object* object = objects[i];
-                if (object == nullptr)
-                {
-                    if (next_start_index == i)
-                    {
-                        next_start_index = i + 1;
-                        next_end_index   = i;
-                    }
-                    continue;
-                }
-
-                if (object->_M_force_destroy_priority == current_priority)
-                {
-                    if (object->trinex_flag(TrinexObjectFlags::IsAllocatedByController))
-                    {
-                        if (object->is_noname())
-                        {
-                            debug_log("Garbage Collector[FORCE]", "Deleting noname instance with type '%s' [%p]\n",
-                                      object->decode_name().c_str(), object);
-                        }
-                        else
-                        {
-                            debug_log("Garbage Collector[FORCE]", "Deleting instance '%s' with type '%s' [%p]\n",
-                                      object->string_name().c_str(), object->decode_name().c_str(), object);
-                        }
-                        object->trinex_flag(TrinexObjectFlags::IsNeedDelete, true);
-                        manager.free_object(object);
-                        maybe_not_deleted_objects.erase(object);
-                    }
-                    else if (object->is_on_heap())
-                    {
-                        maybe_not_deleted_objects.insert(object);
-                    }
-
-                    object->remove_from_instances_array();
-                    if (next_start_index == i)
-                    {
-                        next_start_index = i + 1;
-                        next_end_index   = i;
-                    }
-                }
-                else
-                {
-                    if (object->_M_force_destroy_priority < next_priority)
-                        next_priority = object->_M_force_destroy_priority;
-                    next_end_index = i;
-                }
-            }
-
-            count = next_end_index + 1;
-        }
-
-        for (auto& object : maybe_not_deleted_objects)
-        {
-            error_log("Garbage Collector: Object '%s' with type '%s' is dynamicly allocated and must be deleted!",
-                      object->_M_name.to_string().c_str(), object->decode_name().c_str());
-        }
+        if (has_any(IsUnreachable))
+            return false;
+        return true;
     }
 
     Package* Object::root_package()

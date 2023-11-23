@@ -186,6 +186,7 @@ namespace Engine
 
         System& shutdown() override
         {
+            out_fragment_shader->deferred_destroy();
             Super::shutdown();
             return *this;
         }

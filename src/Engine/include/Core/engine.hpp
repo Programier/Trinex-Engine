@@ -31,7 +31,7 @@ namespace Engine
     };
 
 
-    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass, false>
+    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass>
     {
     private:
         static EngineInstance* _M_instance;

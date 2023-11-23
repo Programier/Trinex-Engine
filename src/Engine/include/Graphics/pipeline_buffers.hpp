@@ -3,7 +3,6 @@
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/mapped_memory.hpp>
-#include <Core/resource.hpp>
 
 namespace Engine
 {
@@ -25,7 +24,7 @@ namespace Engine
         declare_class(VertexBuffer, PipelineBuffer);
 
     public:
-        VertexBuffer& rhi_create();
+        VertexBuffer& rhi_create() override;
         VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
 
         virtual const byte* data() const = 0;
@@ -128,7 +127,7 @@ namespace Engine
         };
 
     public:
-        IndexBuffer& rhi_create();
+        IndexBuffer& rhi_create() override;
         IndexBuffer& rhi_bind(size_t offset = 0);
 
         IndexBuffer& setup(IndexBufferComponent component);
@@ -154,7 +153,7 @@ namespace Engine
         size_t init_size      = 0;
         const byte* init_data = nullptr;
 
-        UniformBuffer& rhi_create();
+        UniformBuffer& rhi_create() override;
         UniformBuffer& rhi_bind(BindLocation location);
     };
 

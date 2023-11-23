@@ -348,7 +348,7 @@ stack_address:
         info_log("EngineInstance", "Terminate Engine");
 
         engine_instance->trigger_terminate_functions();
-        Object::force_garbage_collection();
+        Object::collect_garbage(GCFlag::DestroyAll);
 
         for (Thread*& thread : _M_threads)
         {
@@ -356,8 +356,12 @@ stack_address:
                 thread->wait_all();
         }
 
-        delete _M_renderer;
-        delete _M_rhi;
+        if (_M_renderer)
+            delete _M_renderer;
+        if (_M_rhi)
+            delete _M_rhi;
+        if (_M_window)
+            Object::delete_object(_M_window);
 
         _M_rhi                                                              = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
@@ -548,7 +552,7 @@ stack_address:
             }
 
             logger->log("Engine", "Begin destroy!");
-            engine_instance->begin_destroy();
+            delete engine_instance;
             engine_instance = nullptr;
             return result;
         }

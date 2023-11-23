@@ -17,12 +17,12 @@ namespace Engine
         static Object* extract_object_from_class(const Class* class_instance);
     };
 
-    template<typename Type, typename Parent = Object, bool with_destroy_controller = true>
+    template<typename Type, typename Parent = Object>
     class Singletone : public Parent, private SingletoneBase
     {
     public:
         static constexpr inline bool singletone_based_on_object = std::is_base_of_v<Object, Type>;
-        static constexpr bool singletone                        = true;
+        static constexpr inline bool singletone                 = true;
 
         template<typename... Args>
         static Type* create_instance(Args&&... args)
@@ -36,11 +36,6 @@ namespace Engine
                 else
                 {
                     Type::_M_instance = Object::new_instance<Type>(std::forward<Args>(args)...);
-                }
-
-                if constexpr (with_destroy_controller)
-                {
-                    DestroyController controller(Singletone<Type, Parent>::begin_destroy);
                 }
             }
 
@@ -65,15 +60,12 @@ namespace Engine
             }
         }
 
-        static void begin_destroy()
+
+        ~Singletone()
         {
-            if constexpr (singletone_based_on_object)
+            if constexpr (!singletone_based_on_object)
             {
-                begin_destroy_instance(Type::static_class_instance());
-            }
-            else if (Type::_M_instance)
-            {
-                Object::begin_destroy(Type::_M_instance);
+                Type::_M_instance = nullptr;
             }
         }
     };
