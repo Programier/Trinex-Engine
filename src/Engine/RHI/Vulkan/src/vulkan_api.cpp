@@ -20,8 +20,7 @@ namespace Engine
 {
     VulkanSyncObject::VulkanSyncObject()
     {
-        image_present   = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
-
+        image_present = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
     }
 
     VulkanSyncObject::~VulkanSyncObject()
@@ -42,7 +41,7 @@ namespace Engine
 
     VulkanAPI* VulkanAPI::_M_vulkan = nullptr;
 
-    API_EXPORT RHI* create_library_interface()
+    TRINEX_EXTERNAL_LIB_INIT_FUNC(RHI*)
     {
         if (VulkanAPI::_M_vulkan == nullptr)
             VulkanAPI::_M_vulkan = new VulkanAPI();
@@ -498,8 +497,8 @@ namespace Engine
 
         auto swapchain_index = API->swapchain_image_index().value;
 
-        vk::PresentInfoKHR present_info(_M_framebuffer_list.back()->_M_render_finished, API->_M_swap_chain->_M_swap_chain,
-                                        swapchain_index);
+        vk::PresentInfoKHR present_info(_M_framebuffer_list.back()->_M_render_finished,
+                                        API->_M_swap_chain->_M_swap_chain, swapchain_index);
         vk::Result result;
         try
         {
@@ -652,21 +651,6 @@ namespace Engine
         {
             return false;
         }
-    }
-
-    VulkanAPI& VulkanAPI::async_render(bool flag)
-    {
-        return *this;
-    }
-
-    bool VulkanAPI::async_render()
-    {
-        return false;
-    }
-
-    VulkanAPI& VulkanAPI::next_render_thread()
-    {
-        return *this;
     }
 
     void VulkanAPI::push_debug_stage(const char* stage, const Color& color)

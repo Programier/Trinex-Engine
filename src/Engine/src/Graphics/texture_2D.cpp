@@ -24,7 +24,7 @@ namespace Engine
     Texture2D& Texture2D::rhi_create(const byte* data)
     {
         rhi_destroy();
-        _M_rhi_texture = engine_instance->rhi()->create_texture(this, TextureType::Texture2D, data);
+        _M_rhi_texture = engine_instance->rhi()->create_texture(this, data);
         return *this;
     }
 

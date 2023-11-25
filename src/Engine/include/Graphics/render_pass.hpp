@@ -11,13 +11,6 @@ namespace Engine
     {
         declare_class(RenderPass, RenderResource);
 
-    public:
-        enum Type : byte
-        {
-            Window,
-            GBuffer,
-            __COUNT__
-        };
 
     protected:
         static Vector<RenderPass*> _M_default_render_passes;
@@ -33,8 +26,6 @@ namespace Engine
         Attachment depth_stencil_attachment;
         bool has_depth_stancil = false;
 
-        RenderPass& rhi_create();
-
-        static RenderPass* default_pass(Type type);
+        RenderPass& rhi_create() override;
     };
 }// namespace Engine

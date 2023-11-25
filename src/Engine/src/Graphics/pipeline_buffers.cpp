@@ -35,26 +35,6 @@ namespace Engine
     implement_vertex_buffer_class(TangentVertexBuffer);
     implement_vertex_buffer_class(BinormalVertexBuffer);
 
-
-    MappedMemory PipelineBuffer::rhi_map_buffer()
-    {
-        if (_M_rhi_buffer)
-        {
-            return _M_rhi_buffer->map_buffer();
-        }
-
-        return {};
-    }
-
-    PipelineBuffer& PipelineBuffer::rhi_unmap_buffer()
-    {
-        if (_M_rhi_buffer)
-        {
-            _M_rhi_buffer->unmap_buffer();
-        }
-        return *this;
-    }
-
     PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
     {
         if (_M_rhi_buffer)

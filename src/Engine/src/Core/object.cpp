@@ -310,7 +310,8 @@ namespace Engine
 
     String Object::full_name() const
     {
-        String result   = _M_name;
+        String result   = _M_name.is_valid() ? static_cast<String>(_M_name)
+                                             : Strings::format("Noname object {}", _M_instance_index);
         Package* parent = this->_M_package;
 
         if (parent && parent != _M_root_package && !is_instance_of<Package>())

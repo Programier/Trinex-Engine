@@ -1,4 +1,4 @@
-#version 310 es
+#version 320 es
 precision highp float;
 
 layout(location = 0) out vec4 out_color;
@@ -11,7 +11,7 @@ layout(location = 1) in vec4 in_color;
 
 #define VALUE 0.99
 
-layout(binding = 1, set = 0) uniform Global
+layout(binding = 1) uniform Global
 {
     mat4 projview;
     vec2 viewport;

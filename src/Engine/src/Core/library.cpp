@@ -2,6 +2,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/exception.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 
@@ -75,7 +76,8 @@ namespace Engine
             return libname;
 
         if (full)
-            return engine_config.libraries_dir + String("/lib") + libname + format;
+            return FileManager::root_file_manager()->work_dir() / Path(engine_config.libraries_dir) /
+                   Path(String("lib") + libname + format);
         return String("lib") + libname + format;
     }
 

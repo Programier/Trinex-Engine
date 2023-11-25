@@ -15,9 +15,7 @@ namespace Engine
     {
     public:
         WindowRenderPass()
-        {
-            _M_default_render_passes[RenderPass::Type::Window] = this;
-        }
+        {}
 
         WindowRenderPass& rhi_create()
         {

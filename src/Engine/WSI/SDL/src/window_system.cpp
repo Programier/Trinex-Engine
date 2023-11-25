@@ -48,7 +48,7 @@ namespace Engine
 
     SDL_WindowFlags sdl_api(const String& api_name)
     {
-        if (api_name == "OpenGL")
+        if (api_name == "OpenGL" || api_name == "OpenGLES")
         {
             return SDL_WINDOW_OPENGL;
         }
@@ -85,15 +85,21 @@ namespace Engine
             if (_M_api == SDL_WINDOW_OPENGL)
             {
 
-#if PLATFORM_ANDROID || PLATFORM_LINUX
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-#else
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#if !PLATFORM_ANDROID
+                if (!info.api_name.ends_with("GLES"))
+                {
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+                }
+                else
 #endif
+                {
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+                }
+
 
                 SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
                 SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -1256,7 +1262,7 @@ namespace Engine
 }// namespace Engine
 
 
-extern "C" FORCE_ENGINE_EXPORT Engine::WindowInterface* create_library_interface()
+TRINEX_EXTERNAL_LIB_INIT_FUNC(Engine::WindowInterface*)
 {
     SDL_Init(SDL_INIT_EVERYTHING ^ SDL_INIT_AUDIO);
     return new Engine::WindowSDL();

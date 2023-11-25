@@ -13,7 +13,7 @@ namespace Engine
     public:
         TextureCubeMap();
         delete_copy_constructors(TextureCubeMap);
-        TextureCubeMap& rhi_create();
+        TextureCubeMap& rhi_create() override;
         TextureCubeMap& update_data(TextureCubeMapFace index, const Size2D& size, const Offset2D& offset, void* data,
                                     MipMapLevel level = 0);
 

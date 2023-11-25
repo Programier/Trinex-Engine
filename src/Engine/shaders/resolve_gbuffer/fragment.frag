@@ -1,10 +1,10 @@
-#version 310 es
+#version 320 es
 precision highp float;
 
 layout(location = 0) in vec2 in_position;
 layout(location = 0) out vec4 out_color;
 
-layout(binding = 0, set = 0) uniform sampler2D scene_texture;
+layout(binding = 0) uniform sampler2D scene_texture;
 
 void main()
 {

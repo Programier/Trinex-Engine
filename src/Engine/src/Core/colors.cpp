@@ -80,7 +80,7 @@ namespace Engine
     const ENGINE_EXPORT Color Colors::MediumSeaGreen(0.2353f, 0.702f, 0.4431f, 1.0f);
     const ENGINE_EXPORT Color Colors::SeaGreen(0.1804f, 0.5451f, 0.3412f, 1.0f);
     const ENGINE_EXPORT Color Colors::ForestGreen(0.1333f, 0.5451f, 0.1333f, 1.0f);
-    const ENGINE_EXPORT Color Colors::Green(0.0f, 0.502f, 0.0f, 1.0f);
+    const ENGINE_EXPORT Color Colors::Green(0.0f, 1.0f, 0.0f, 1.0f);
     const ENGINE_EXPORT Color Colors::DarkGreen(0.0f, 0.3922f, 0.0f, 1.0f);
     const ENGINE_EXPORT Color Colors::YellowGreen(0.6039f, 0.8039f, 0.1961f, 1.0f);
     const ENGINE_EXPORT Color Colors::OliveDrab(0.4196f, 0.5569f, 0.1373f, 1.0f);

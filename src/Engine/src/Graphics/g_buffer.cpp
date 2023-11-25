@@ -39,7 +39,7 @@ namespace Engine
         return {ColorFormat::D32SfloatS8Uint, ColorFormat::D24UnormS8Uint, ColorFormat::D16UnormS8Uint};
     }
 
-    static ColorFormatFeatures color_format_кequirements()
+    static ColorFormatFeatures color_format_requirements()
     {
         ColorFormatFeatures features;
         features.is_supported             = true;
@@ -77,12 +77,12 @@ namespace Engine
     {
         info_log("GBuffer", "Creating GBuffer");
 
-        _M_color_formats.push_back(find_color_format(required_albedo_formats(), color_format_кequirements(), "albedo"));
+        _M_color_formats.push_back(find_color_format(required_albedo_formats(), color_format_requirements(), "albedo"));
         _M_color_formats.push_back(
-                find_color_format(required_position_formats(), color_format_кequirements(), "position"));
-        _M_color_formats.push_back(find_color_format(required_normal_formats(), color_format_кequirements(), "normal"));
+                find_color_format(required_position_formats(), color_format_requirements(), "position"));
+        _M_color_formats.push_back(find_color_format(required_normal_formats(), color_format_requirements(), "normal"));
         _M_color_formats.push_back(
-                find_color_format(required_specular_formats(), color_format_кequirements(), "specular"));
+                find_color_format(required_specular_formats(), color_format_requirements(), "specular"));
         _M_color_formats.push_back(find_color_format(required_depth_formats(), depth_format_кequirements(), "depth"));
 
 
@@ -110,7 +110,6 @@ namespace Engine
     {
         info_log("GBuffer", "Destroy GBuffer");
     }
-
 
     void GBuffer::init()
     {

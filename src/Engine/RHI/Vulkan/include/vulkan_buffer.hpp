@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/mapped_memory.hpp>
 #include <Graphics/rhi.hpp>
 #include <vulkan_headers.hpp>
 
@@ -15,7 +14,7 @@ namespace Engine
 
         VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);
         VulkanBuffer& update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
-        MappedMemory map_memory();
+        void* map_memory();
         VulkanBuffer& unmap_memory();
         bool is_mapped() const;
         ~VulkanBuffer();
@@ -27,8 +26,6 @@ namespace Engine
         VulkanVertexBuffer& create(const byte* data, size_t size);
 
         void bind(byte stream_index, size_t offset) override;
-        MappedMemory map_buffer() override;
-        void unmap_buffer() override;
         void update(size_t offset, size_t size, const byte* data) override;
     };
 
@@ -39,8 +36,6 @@ namespace Engine
         VulkanIndexBuffer& create(const byte* data, size_t size, IndexBufferComponent component);
 
         void bind(size_t offset) override;
-        MappedMemory map_buffer() override;
-        void unmap_buffer() override;
         void update(size_t offset, size_t size, const byte* data) override;
     };
 
@@ -49,8 +44,6 @@ namespace Engine
 
         VulkanSSBO& create(const byte* data, size_t size);
         void bind(BindLocation location) override;
-        MappedMemory map_buffer() override;
-        void unmap_buffer() override;
         void update(size_t offset, size_t size, const byte* data) override;
     };
 
@@ -62,8 +55,6 @@ namespace Engine
         VulkanBuffer* current_buffer();
 
         void bind(BindLocation location) override;
-        MappedMemory map_buffer() override;
-        void unmap_buffer() override;
         void update(size_t offset, size_t size, const byte* data) override;
 
         ~VulkanUniformBuffer();

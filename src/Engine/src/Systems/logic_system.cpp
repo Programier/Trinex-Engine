@@ -13,7 +13,6 @@ namespace Engine
 
     LogicSystem& LogicSystem::update(float dt)
     {
-        Thread::sleep_for(1.0f / 33.f);
         Super::update(dt);
         return *this;
     }

@@ -24,6 +24,7 @@ namespace Engine
         ViewPort _M_viewport;
         Scissor _M_scissor;
 
+
         Pointer<class UniformBuffer> _M_uniform_buffer;
 
     public:
@@ -32,7 +33,7 @@ namespace Engine
         delete_copy_constructors(BasicRenderTarget);
         BasicRenderTarget();
 
-        const BasicRenderTarget& bind(size_t buffer_index = 0) const;
+        const BasicRenderTarget& rhi_bind() const;
         const BasicRenderTarget& viewport(const ViewPort& viewport);
         const BasicRenderTarget& scissor(const Scissor& scissor);
         const ViewPort& viewport();

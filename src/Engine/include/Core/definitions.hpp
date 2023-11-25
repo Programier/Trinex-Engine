@@ -54,4 +54,6 @@
 #define ANDROID_API 0
 #endif
 
+#define TRINEX_EXTERNAL_LIB_INIT_FUNC(ReturnType) extern "C" FORCE_ENGINE_EXPORT ReturnType create_library_interface()
+
 // USER SPECIFIC DEFINITIONS!

@@ -105,24 +105,6 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::async_render(bool flag)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    bool NoApi::async_render()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::next_render_thread()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     String NoApi::renderer()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -141,7 +123,7 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_Texture* NoApi::create_texture(const Texture*, TextureType, const byte*)
+    RHI_Texture* NoApi::create_texture(const Texture*, const byte*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

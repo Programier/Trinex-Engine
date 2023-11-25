@@ -19,6 +19,7 @@
 
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
+#include <opengl_definitions.hpp>
 
 // Backend API
 /* IMGUI_IMPL_API */ bool     ImGui_ImplOpenGL3_Init(const char* glsl_version = nullptr);
@@ -44,7 +45,7 @@
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
-#if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV)) || (defined(__ANDROID__))
+#if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV)) || (defined(__ANDROID__)) || USING_OPENGL_ES
 #define IMGUI_IMPL_OPENGL_ES3               // iOS, Android  -> GL ES 3, "#version 300 es"
 #elif defined(__EMSCRIPTEN__) || defined(__amigaos4__)
 #define IMGUI_IMPL_OPENGL_ES2               // Emscripten    -> GL ES 2, "#version 100"

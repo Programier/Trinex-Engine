@@ -6,6 +6,7 @@ namespace Engine
 {
     class NoApi : public RHI
     {
+    public:
         void* init_window(WindowInterface*, const WindowConfig&) override;
         NoApi& destroy_window() override;
         NoApi& imgui_init() override;
@@ -28,16 +29,13 @@ namespace Engine
         NoApi& begin_render() override;
         NoApi& end_render() override;
         NoApi& wait_idle() override;
-        NoApi& async_render(bool flag) override;
-        bool async_render() override;
-        NoApi& next_render_thread() override;
         String renderer() override;
 
         RHI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
 
 
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
-        RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data) override;
+        RHI_Texture* create_texture(const Texture*, const byte* data) override;
         RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;

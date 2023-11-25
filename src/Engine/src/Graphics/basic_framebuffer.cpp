@@ -16,7 +16,7 @@ namespace Engine
     {}
 
 
-    const BasicRenderTarget& BasicRenderTarget::bind(size_t buffer_index) const
+    const BasicRenderTarget& BasicRenderTarget::rhi_bind() const
     {
         if (_M_rhi_render_target)
             _M_rhi_render_target->bind();

@@ -1,26 +1,43 @@
 #pragma once
+#include <Graphics/rhi.hpp>
+#include <opengl_headers.hpp>
 
-#include <opengl_command_buffer.hpp>
-#include <opengl_object.hpp>
-#include <Core/engine_types.hpp>
 
 namespace Engine
 {
-    struct OpenGL_Shader : OpenGL_Object {
-        GLuint _M_vertex   = 0;
-        GLuint _M_fragment = 0;
-        GLenum _M_topology = 0;
-        OpenGL_CommandBuffer _M_command_buffer;
-
-        Vector<VertexAttribute> _M_attributes;
-        uint_t _M_vertex_size = 0;
-
-        Map<BindingIndex, GLuint> _M_block_indices;
-
-        implement_opengl_instance_hpp();
-
-        OpenGL_Shader& apply_vertex_attributes(ArrayOffset offset);
+    struct OpenGL_Shader : public RHI_Shader {
+        GLuint _M_id = 0;
 
         ~OpenGL_Shader();
+        virtual GLuint type() = 0;
+    };
+
+    struct OpenGL_VertexShader : public OpenGL_Shader {
+        virtual GLuint type() override;
+    };
+
+    struct OpenGL_FragmentShader : public OpenGL_Shader {
+        virtual GLuint type() override;
+    };
+
+
+    struct OpenGL_Pipeline : public RHI_Pipeline {
+
+        struct VertexInput {
+            size_t count;
+            size_t size;
+            GLuint type;
+            GLboolean normalize;
+        };
+
+        Vector<VertexInput> _M_vertex_input;
+
+        GLuint _M_pipeline = 0;
+        GLuint _M_topology = 0;
+        GLuint _M_vao      = 0;
+
+        void init(const Pipeline* pipeline);
+        void bind() override;
+        ~OpenGL_Pipeline();
     };
 }// namespace Engine

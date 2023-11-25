@@ -1,5 +1,12 @@
 #pragma once
 #include <Core/definitions.hpp>
 
-#define USING_OPENGL_CORE !PLATFORM_ANDROID
-#define USING_OPENGL_ES !USING_OPENGL_CORE
+#define OPENGL_EXTENDS_FROM_NOAPI 1
+
+#if PLATFORM_ANDROID || FORCE_USE_OPENGL_ES
+#define USING_OPENGL_ES 1
+#define USING_OPENGL_CORE 0
+#else
+#define USING_OPENGL_ES 0
+#define USING_OPENGL_CORE 1
+#endif

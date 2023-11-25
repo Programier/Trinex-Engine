@@ -81,9 +81,10 @@ namespace Engine
 
     enum class EngineAPI : EnumerateType
     {
-        NoAPI  = 0,
-        OpenGL = 1,
-        Vulkan = 2
+        NoAPI    = 0,
+        OpenGLES = 1,
+        OpenGL   = 2,
+        Vulkan   = 3
     };
 
 
@@ -205,7 +206,7 @@ namespace Engine
         TriangleStrip              = 4,
         TriangleFan                = 5,
         LineListWithAdjacency      = 6,
-        LineStripWithAdjacency     = 4,
+        LineStripWithAdjacency     = 7,
         TriangleListWithAdjacency  = 8,
         TriangleStripWithAdjacency = 9,
         PatchList                  = 10,

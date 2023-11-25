@@ -1,96 +1,118 @@
+#include <Graphics/texture.hpp>
 #include <opengl_api.hpp>
-#include <opengl_color_format.hpp>
 #include <opengl_texture.hpp>
-#include <opengl_types.hpp>
-
 
 namespace Engine
 {
-    static GLint get_swizzle_value(SwizzleValue value, GLint component = 0)
+    void OpenGL_Texture::bind(BindLocation location)
     {
-        GLint result = get_type(value);
-        if (result != 0)
-            return result;
-        return component;
-    }
+        if (location.set > 0)
+        {
+            throw EngineException("Cannot bind texture to set > 0");
+        }
 
-    OpenGL_Texture& OpenGL_Texture::create_info(const TextureCreateInfo& info, TextureType type, const byte* data)
-    {
-        _M_format       = OpenGL_ColorFormat::from(info.format);
-        _M_texture_type = get_type(type);
-        size.width      = static_cast<GLsizei>(info.size.x);
-        size.height     = static_cast<GLsizei>(info.size.y);
-
-        glGenTextures(1, &_M_texture);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glBindTexture(_M_texture_type, _M_texture);
-        glTexParameteri(_M_texture_type, GL_TEXTURE_BASE_LEVEL, info.base_mip_level);
-        glTexParameteri(_M_texture_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(info.mipmap_count - 1));
-        glTexParameteri(_M_texture_type, GL_TEXTURE_SWIZZLE_R, get_swizzle_value(info.swizzle.R, GL_RED));
-        glTexParameteri(_M_texture_type, GL_TEXTURE_SWIZZLE_G, get_swizzle_value(info.swizzle.G, GL_GREEN));
-        glTexParameteri(_M_texture_type, GL_TEXTURE_SWIZZLE_B, get_swizzle_value(info.swizzle.B, GL_BLUE));
-        glTexParameteri(_M_texture_type, GL_TEXTURE_SWIZZLE_A, get_swizzle_value(info.swizzle.A, GL_ALPHA));
-
-        glTexImage2D(_M_texture_type, 0, _M_format.internal_format, size.width, size.height, GL_FALSE, _M_format.format,
-                     _M_format.type, data);
-
-        glBindTexture(_M_texture_type, 0);
-        return *this;
-    }
-
-    void OpenGL_Texture::bind(BindingIndex binding, BindingIndex set)
-    {
-        glActiveTexture(GL_TEXTURE0 + binding);
-        glBindTexture(_M_texture_type, _M_texture);
+        glActiveTexture(GL_TEXTURE0 + location.binding);
+        glBindTexture(_M_type, _M_id);
     }
 
     void OpenGL_Texture::generate_mipmap()
     {
-        glBindTexture(_M_texture_type, _M_texture);
-        glGenerateMipmap(_M_texture_type);
-        glBindTexture(_M_texture_type, 0);
+        glBindTexture(_M_type, _M_id);
+        glGenerateMipmap(_M_type);
+        glBindTexture(_M_type, 0);
     }
 
-    void OpenGL_Texture::bind_combined(RHI_Sampler* sampler, BindingIndex binding, BindingIndex set)
+    void OpenGL_Texture::bind_combined(RHI_Sampler* sampler, BindLocation location)
     {
-        bind(binding, set);
-        sampler->bind(binding, set);
+        bind(location);
+        sampler->bind(location);
     }
 
     void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
                                            const byte* data)
     {
-        glBindTexture(_M_texture_type, _M_texture);
-        glTexSubImage2D(_M_texture_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x),
+        glBindTexture(_M_type, _M_id);
+        glTexSubImage2D(_M_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x),
                         static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
-                        _M_format.format, _M_format.type, data);
-        glBindTexture(_M_texture_type, 0);
+                        _M_format._M_format, _M_format._M_type, data);
+        glBindTexture(_M_type, 0);
     }
 
 
-    OpenGL_Texture& OpenGL_Texture::destroy()
+    static GLuint texture_type(const Texture* texture)
     {
-        if (_M_texture)
+        switch (texture->type())
         {
-            glDeleteTextures(1, &_M_texture);
-            _M_texture = 0;
+            case TextureType::Texture2D:
+                return GL_TEXTURE_2D;
+            case TextureType::TextureCubeMap:
+                return GL_TEXTURE_CUBE_MAP;
+            default:
+                return 0;
         }
-        return *this;
+    }
+
+    static GLuint swizzle_value(SwizzleValue value, GLuint _default)
+    {
+        switch (value)
+        {
+            case SwizzleValue::R:
+                return GL_BLUE;
+            case SwizzleValue::G:
+                return GL_GREEN;
+            case SwizzleValue::B:
+                return GL_BLUE;
+            case SwizzleValue::A:
+                return GL_ALPHA;
+            case SwizzleValue::One:
+                return GL_ONE;
+            case SwizzleValue::Zero:
+                return GL_ZERO;
+
+            case SwizzleValue::Identity:
+                return _default;
+            default:
+                break;
+        }
+
+        return _default;
+    }
+
+    void OpenGL_Texture::init(const Texture* texture, const byte* data)
+    {
+        _M_format = color_format_from_engine_format(texture->format);
+        _M_type   = texture_type(texture);
+        _M_size   = texture->size;
+
+        glGenTextures(1, &_M_id);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glBindTexture(_M_type, _M_id);
+        glTexParameteri(_M_type, GL_TEXTURE_BASE_LEVEL, texture->base_mip_level);
+        glTexParameteri(_M_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(texture->mipmap_count - 1));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_R, swizzle_value(texture->swizzle.R, GL_RED));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_G, swizzle_value(texture->swizzle.G, GL_GREEN));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle.B, GL_BLUE));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_A, swizzle_value(texture->swizzle.A, GL_ALPHA));
+
+        glTexImage2D(_M_type, 0, _M_format._M_internal_format, _M_size.x, _M_size.y, GL_FALSE, _M_format._M_format,
+                     _M_format._M_type, data);
+
+        glBindTexture(_M_type, 0);
     }
 
     OpenGL_Texture::~OpenGL_Texture()
     {
-        destroy();
+        if (_M_id)
+        {
+            glDeleteTextures(1, &_M_id);
+        }
     }
 
-    Identifier OpenGL::imgui_texture_id(const Identifier& ID)
+    RHI_Texture* OpenGL::create_texture(const Texture* texture, const byte* data)
     {
-        return 0;
-    }
-
-    RHI_Texture* OpenGL::create_texture(const TextureCreateInfo& info, TextureType type, const byte* data)
-    {
-        return &(new OpenGL_Texture())->create_info(info, type, data);
+        OpenGL_Texture* opengl_texture = new OpenGL_Texture();
+        opengl_texture->init(texture, data);
+        return opengl_texture;
     }
 
 }// namespace Engine

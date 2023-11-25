@@ -2,7 +2,6 @@
 #include <Core/render_resource.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine_types.hpp>
-#include <Core/mapped_memory.hpp>
 
 namespace Engine
 {
@@ -11,8 +10,6 @@ namespace Engine
         declare_class(PipelineBuffer, RenderResource);
 
     public:
-        MappedMemory rhi_map_buffer();
-        PipelineBuffer& rhi_unmap_buffer();
         PipelineBuffer& rhi_update(size_t offset, size_t size, const byte* data);
     };
 

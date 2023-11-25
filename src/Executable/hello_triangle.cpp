@@ -24,6 +24,7 @@
 
 namespace Engine
 {
+    extern void load_code(Shader* shader, const Path& path);
 
     Camera* camera    = nullptr;
     int output_buffer = 0;
@@ -44,18 +45,12 @@ namespace Engine
 
 
     public:
-        static void load_code(Shader* shader, const Path& path)
-        {
-            FileReader reader(FileManager::root_file_manager()->work_dir() / path);
-            shader->binary_code.resize(reader.size());
-            reader.read(reinterpret_cast<byte*>(shader->binary_code.data()), shader->binary_code.size());
-        }
 
         void create_vertex_shader()
         {
 
             out_vertex_shader = Object::new_instance<VertexShader>();
-            load_code(out_vertex_shader, "./shaders/resolve_gbuffer/vertex.vm");
+            load_code(out_vertex_shader, "./shaders/resolve_gbuffer/vertex.v");
             out_vertex_shader->attributes.emplace_back();
             out_vertex_shader->attributes.back().name   = "position";
             out_vertex_shader->attributes.back().rate   = VertexAttributeInputRate::Vertex;
@@ -67,7 +62,7 @@ namespace Engine
         void create_fragment_shader()
         {
             out_fragment_shader = Object::new_instance<FragmentShader>();
-            load_code(out_fragment_shader, "./shaders/resolve_gbuffer/fragment.fm");
+            load_code(out_fragment_shader, "./shaders/resolve_gbuffer/fragment.f");
             out_fragment_shader->combined_samplers.emplace_back();
             out_fragment_shader->combined_samplers.back().location = {0, 0};
 
@@ -139,7 +134,7 @@ namespace Engine
 
         HelloTriangleSystem& render_gbuffer()
         {
-            GBuffer::instance()->bind();
+            GBuffer::instance()->rhi_bind();
             engine_instance->rhi()->push_debug_stage(__FUNCTION__, Colors::Red);
             mesh->lods[0].render();
             engine_instance->rhi()->pop_debug_stage();
@@ -148,7 +143,7 @@ namespace Engine
 
         HelloTriangleSystem& render_output()
         {
-            engine_instance->window()->bind();
+            engine_instance->window()->rhi_bind();
             engine_instance->rhi()->push_debug_stage(__FUNCTION__, Colors::Green);
 
             out_pipeline->rhi_bind();

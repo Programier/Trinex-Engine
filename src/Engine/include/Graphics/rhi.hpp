@@ -3,7 +3,6 @@
 
 #include <Core/color_format.hpp>
 #include <Core/colors.hpp>
-#include <Core/mapped_memory.hpp>
 #include <Core/rhi_initializers.hpp>
 
 #define VIRTUAL_METHOD = 0
@@ -40,10 +39,10 @@ namespace Engine
     };
 
     struct RHI_Texture : RHI_BindingObject {
-        virtual void generate_mipmap()                                                           = 0;
+        virtual void generate_mipmap()                                          = 0;
         virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
         virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
-                                       const byte* data)                                         = 0;
+                                       const byte* data)                        = 0;
     };
 
     struct RHI_RenderTarget : RHI_Object {
@@ -62,8 +61,6 @@ namespace Engine
     };
 
     struct RHI_Buffer : RHI_Object {
-        virtual MappedMemory map_buffer()                                 = 0;
-        virtual void unmap_buffer()                                       = 0;
         virtual void update(size_t offset, size_t size, const byte* data) = 0;
     };
 
@@ -114,9 +111,6 @@ namespace Engine
         virtual RHI& begin_render() VIRTUAL_METHOD;
         virtual RHI& end_render() VIRTUAL_METHOD;
         virtual RHI& wait_idle() VIRTUAL_METHOD;
-        virtual RHI& async_render(bool flag) VIRTUAL_METHOD;
-        virtual bool async_render() VIRTUAL_METHOD;
-        virtual RHI& next_render_thread() VIRTUAL_METHOD;
         virtual String renderer() VIRTUAL_METHOD;
 
         // Bariers
@@ -124,7 +118,7 @@ namespace Engine
 
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                          = 0;
-        virtual RHI_Texture* create_texture(const Texture*, TextureType type, const byte* data)      = 0;
+        virtual RHI_Texture* create_texture(const Texture*, const byte* data)                        = 0;
         virtual RHI_RenderTarget* window_render_target()                                             = 0;
         virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)            = 0;
         virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                         = 0;

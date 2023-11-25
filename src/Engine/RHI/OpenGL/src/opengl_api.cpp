@@ -1,98 +1,64 @@
-
+#include <Core/definitions.hpp>
 #include <Window/config.hpp>
 #include <Window/window_interface.hpp>
-#include <cstring>
 #include <imgui_impl_opengl3.h>
 #include <opengl_api.hpp>
-#include <opengl_buffer.hpp>
-#include <opengl_framebuffer.hpp>
+#include <opengl_buffers.hpp>
+#include <opengl_render_target.hpp>
 #include <opengl_shader.hpp>
-#include <sstream>
-
-
-#ifdef _WIN32
-#define OPENGL_EXPORT __declspec(dllexport) __cdecl
-#else
-#define OPENGL_EXPORT
-#endif
-
-#define API_EXPORT extern "C" OPENGL_EXPORT
-
 
 namespace Engine
 {
-    OpenGL* OpenGL::_M_open_gl = nullptr;
 
-    static OpenGL*& get_instance()
-    {
-        static OpenGL* opengl = nullptr;
-        if (opengl == nullptr)
-        {
-            opengl = new OpenGL();
-        }
-
-        return opengl;
-    }
+    OpenGL* OpenGL::_M_instance = nullptr;
 
     OpenGL::OpenGL()
     {
-        _M_open_gl = this;
+        _M_instance = this;
     }
 
-    OpenGL::~OpenGL()
+    static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                               const GLchar* message, const void* userParam)
     {
-        _M_open_gl = nullptr;
-    }
-
-    bool OpenGL::extension_supported(const String& extension_name)
-    {
-        static Set<std::string> _M_extentions;
-
-        if (_M_extentions.empty())
+        if (type == GL_DEBUG_TYPE_ERROR)
         {
-            std::istringstream stream(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
-            String extension;
-
-            while (stream >> extension) _M_extentions.insert(extension);
+            error_log("OpenGL", "%s", message);
         }
-
-        return _M_extentions.contains(extension_name);
     }
 
-    void* OpenGL::init_window(WindowInterface* window, const WindowConfig& config)
+    void* OpenGL::init_window(struct WindowInterface* window, const WindowConfig& config)
     {
-        if (_M_context)
-            return _M_context;
+        _M_window  = window;
+        _M_surface = window->create_surface("");
 
-        window->vsync(config.vsync);
+#if USING_OPENGL_CORE
+        glewExperimental = GL_TRUE;
 
-        _M_context = window->create_surface("");
-        opengl_debug_log("OpenGL", "Context address: %p\n", _M_context);
-
-#ifdef _WIN32
-        info_log("GLEW", "Start init glew");
-        auto status = glewInit();
-        if (status != GLEW_OK)
+        if (glewInit() != GLEW_OK)
         {
-            destroy_window();
-            opengl_debug_log("OpenGL", "Failed to init glew: %s\n", glewGetErrorString(status));
+            error_log("OpenGL", "Cannot init glew!");
         }
 #endif
 
-        _M_support_anisotropy = !!extension_supported("GL_EXT_texture_filter_anisotropic");
-        _M_window_interface   = window;
-        return _M_context;
-    }
+        _M_main_render_target = new OpenGL_MainRenderTarget();
 
-    OpenGL& OpenGL::destroy_object(Identifier& ID)
-    {
-        delete object_of(ID);
-        return *this;
+        _M_main_render_target->_M_viewport.size      = config.size;
+        _M_main_render_target->_M_viewport.pos       = {0.f, 0.f};
+        _M_main_render_target->_M_viewport.min_depth = 0.0f;
+        _M_main_render_target->_M_viewport.max_depth = 1.0f;
+        _M_main_render_target->_M_scissor.pos        = {0.0f, 0.f};
+        _M_main_render_target->_M_scissor.size       = config.size;
+
+
+        // Або встановлення власного обробника повідомлень
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback(debug_callback, nullptr);
+        return _M_surface;
     }
 
     OpenGL& OpenGL::destroy_window()
     {
-        _M_context = nullptr;
+        delete _M_main_render_target;
         return *this;
     }
 
@@ -120,13 +86,32 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::on_window_size_changed()
+    OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
     {
+        glDrawElements(_M_current_pipeline->_M_topology, indices_count, _M_current_index_buffer->_M_element_type,
+                       reinterpret_cast<void*>(indices_offset));
+        reset_samplers();
+        return *this;
+    }
+
+    OpenGL& OpenGL::draw(size_t vertex_count)
+    {
+        glDrawArrays(_M_current_pipeline->_M_topology, 0, vertex_count);
+        reset_samplers();
+        return *this;
+    }
+
+    OpenGL& OpenGL::swap_buffer()
+    {
+        _M_window->swap_buffers();
         return *this;
     }
 
     OpenGL& OpenGL::begin_render()
     {
+        _M_current_render_target = nullptr;
+        _M_current_pipeline      = nullptr;
+        _M_current_index_buffer  = nullptr;
         return *this;
     }
 
@@ -140,136 +125,44 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::async_render(bool flag)
-    {
-        return *this;
-    }
-
-    bool OpenGL::async_render()
-    {
-        return false;
-    }
-
-    OpenGL& OpenGL::next_render_thread()
-    {
-        return *this;
-    }
-
     String OpenGL::renderer()
     {
-        return String(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+        return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     }
 
-    OpenGL& OpenGL::create_vertex_buffer(Identifier& ID, const byte* data, size_t size)
+    RHI_RenderTarget* OpenGL::window_render_target()
     {
-        ID = (new OpenGL_VertexBuffer())->create(data, size).ID();
-        return *this;
+        return _M_main_render_target;
     }
 
-    OpenGL& OpenGL::update_vertex_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
+    RHI_RenderPass* OpenGL::window_render_pass()
     {
-        GET_TYPE(OpenGL_VertexBuffer, ID)->update(offset, data, size);
-        return *this;
+        return reinterpret_cast<RHI_RenderPass*>(_M_main_render_target->_M_render_pass);
     }
 
-    OpenGL& OpenGL::bind_vertex_buffer(const Identifier& ID, size_t offset)
+    void OpenGL::push_debug_stage(const char* stage, const Color& color)
     {
-        GET_TYPE(OpenGL_VertexBuffer, ID)->bind(offset);
-        return *this;
+        glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, stage);
     }
 
-    OpenGL& OpenGL::create_index_buffer(Identifier& ID, const byte* data, size_t size, IndexBufferComponent component)
+    void OpenGL::pop_debug_stage()
     {
-        ID = (new OpenGL_IndexBuffer())->component_type(component).create(data, size).ID();
-        return *this;
+        glPopDebugGroup();
     }
 
-    OpenGL& OpenGL::update_index_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
+    void OpenGL::reset_samplers()
     {
-        GET_TYPE(OpenGL_IndexBuffer, ID)->update(offset, data, size);
-        return *this;
-    }
-
-    OpenGL& OpenGL::bind_index_buffer(const Identifier& ID, size_t offset)
-    {
-        GET_TYPE(OpenGL_IndexBuffer, ID)->bind(offset);
-        return *this;
-    }
-
-    OpenGL& OpenGL::create_uniform_buffer(Identifier& ID, const byte* data, size_t size)
-    {
-        ID = (new OpenGL_UniformBufferMap(data, size))->ID();
-        return *this;
-    }
-
-    OpenGL& OpenGL::update_uniform_buffer(const Identifier& ID, size_t offset, const byte* data, size_t size)
-    {
-        GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->update(offset, data, size);
-        return *this;
-    }
-
-    OpenGL& OpenGL::bind_uniform_buffer(const Identifier& ID, BindingIndex binding)
-    {
-        GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->bind(binding);
-        return *this;
-    }
-
-    MappedMemory OpenGL::map_uniform_buffer(const Identifier& ID)
-    {
-        return GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->map_memory();
-    }
-
-    OpenGL& OpenGL::unmap_uniform_buffer(const Identifier& ID)
-    {
-        GET_TYPE(OpenGL_UniformBufferMap, ID)->current_buffer()->unmap_memory();
-        return *this;
-    }
-
-    OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
-    {
-        glDrawElements(state.shader->_M_topology, indices_count, state.index_buffer->_M_component_type,
-                       reinterpret_cast<void*>(indices_offset));
-
-        for (auto& unit : _M_samplers)
+        for(BindingIndex unit : _M_sampler_units)
         {
             glBindSampler(unit, 0);
         }
 
-        _M_samplers.clear();
-        return *this;
-    }
-
-    OpenGL& OpenGL::draw(size_t vertex_count)
-    {
-        return *this;
-    }
-
-    OpenGL& OpenGL::swap_buffer()
-    {
-        _M_window_interface->swap_buffers();
-        _M_current_buffer_index = (_M_current_buffer_index + 1) % 2;
-        _M_next_buffer_index    = (_M_next_buffer_index + 1) % 2;
-        return *this;
-    }
-
-    OpenGL& OpenGL::vsync(bool)
-    {
-        return *this;
-    }
-
-    bool OpenGL::vsync()
-    {
-        return false;
-    }
-
-    bool OpenGL::check_format_support(ColorFormat)
-    {
-        throw std::runtime_error(not_implemented);
+        _M_sampler_units.clear();
     }
 }// namespace Engine
 
 
-API_EXPORT Engine::RHI* load_api()
+TRINEX_EXTERNAL_LIB_INIT_FUNC(Engine::RHI*)
 {
-    return Engine::get_instance();
+    return new Engine::OpenGL();
 }

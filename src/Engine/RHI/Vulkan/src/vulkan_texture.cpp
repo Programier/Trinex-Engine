@@ -198,7 +198,7 @@ namespace Engine
     }
 
 
-    VulkanTexture& VulkanTexture::create(const Texture* texture, TextureType type, const byte* data)
+    VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data)
     {
         destroy();
 
@@ -270,7 +270,7 @@ namespace Engine
 
         if (data)
         {
-            if (type == TextureType::Texture2D)
+            if (texture->type() == TextureType::Texture2D)
             {
                 update_texture_2D(texture->size, {0, 0}, 0, data);
             }
@@ -511,9 +511,9 @@ namespace Engine
         destroy();
     }
 
-    RHI_Texture* VulkanAPI::create_texture(const Texture* texture, TextureType type, const byte* data)
+    RHI_Texture* VulkanAPI::create_texture(const Texture* texture, const byte* data)
     {
-        return &(new VulkanTexture())->create(texture, type, data);
+        return &(new VulkanTexture())->create(texture, data);
     }
 
     ColorFormatFeatures VulkanAPI::color_format_features(ColorFormat format)

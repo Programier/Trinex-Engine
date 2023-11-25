@@ -11,9 +11,8 @@ set(OPENGL_SOURCES_ROOT "${OPENGL_PROJECT_ROOT}/src/")
 include_directories("include/")
 include_directories("${TRINEX_ENGINE_ROOT}/include-internal/")
 
-if(WIN32)
-    include_directories("${OPENGL_PROJECT_ROOT}/libs/glew-2.2.0/include/")
-    add_subdirectory("libs/glew-2.2.0/build/cmake/" EXCLUDE_FROM_ALL)
-endif()
+include_directories("${OPENGL_PROJECT_ROOT}/libs/glew-2.2.0/include/")
+add_subdirectory("libs/glew-2.2.0/build/cmake/" EXCLUDE_FROM_ALL)
+set_target_properties(glew_s PROPERTIES COMPILE_OPTIONS "-fPIC")
 
 add_subdirectory(src)

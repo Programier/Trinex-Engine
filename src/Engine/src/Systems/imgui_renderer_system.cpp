@@ -41,7 +41,7 @@ namespace Engine
 
     ImGuiRendererSystem& ImGuiRendererSystem::update(float dt)
     {
-        Window::instance()->bind();
+        Window::instance()->rhi_bind();
         ImGuiRenderer::new_frame();
         Super::update(dt);
         ImGuiRenderer::render();

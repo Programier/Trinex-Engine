@@ -11,17 +11,26 @@
 namespace Engine
 {
 
-    static void load_code(Shader* shader, const Path& path)
+    void load_code(Shader* shader, const Path& path)
     {
-        FileReader reader(FileManager::root_file_manager()->work_dir() / path);
-        shader->binary_code.resize(reader.size());
-        reader.read(reinterpret_cast<byte*>(shader->binary_code.data()), shader->binary_code.size());
+        {
+            FileReader reader(FileManager::root_file_manager()->work_dir() / (path.string() + "m"));
+            shader->binary_code.resize(reader.size());
+            reader.read(reinterpret_cast<byte*>(shader->binary_code.data()), shader->binary_code.size());
+        }
+
+        {
+            String extentions = path.string().back() == 'f' ? "rag" : "ert";
+            FileReader reader(FileManager::root_file_manager()->work_dir() / (path.string() + extentions));
+            shader->text_code.resize(reader.size() + 1, 0);
+            reader.read(reinterpret_cast<byte*>(shader->text_code.data()), shader->text_code.size() - 1);
+        }
     }
 
     static VertexShader* create_vertex_shader()
     {
         class VertexShader* vertex_shader = Object::new_instance<VertexShader>();
-        load_code(vertex_shader, "./shaders/hello_triangle/vertex.vm");
+        load_code(vertex_shader, "./shaders/hello_triangle/vertex.v");
 
         vertex_shader->attributes.emplace_back();
         vertex_shader->attributes.back().name   = "position";
@@ -42,7 +51,7 @@ namespace Engine
     static FragmentShader* create_fragment_shader()
     {
         FragmentShader* fragment_shader = Object::new_instance<FragmentShader>();
-        load_code(fragment_shader, "./shaders/hello_triangle/fragment.fm");
+        load_code(fragment_shader, "./shaders/hello_triangle/fragment.f");
 
 
         fragment_shader->init_global_ubo({1, 0});

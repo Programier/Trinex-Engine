@@ -27,19 +27,19 @@ namespace Engine
         }
 
         size                = std::min(size, _M_size - offset);
-        MappedMemory memory = map_memory();
-        std::memcpy(memory.data(), data, size);
+        void* memory = map_memory();
+        std::memcpy(memory, data, size);
         return *this;
     }
 
-    MappedMemory VulkanBuffer::map_memory()
+    void* VulkanBuffer::map_memory()
     {
         if (!_M_mapped_data)
         {
             _M_mapped_data = reinterpret_cast<byte*>(API->_M_device.mapMemory(_M_memory, 0, VK_WHOLE_SIZE));
         }
 
-        return MappedMemory(_M_mapped_data, _M_size);
+        return _M_mapped_data;
     }
 
     VulkanBuffer& VulkanBuffer::unmap_memory()
@@ -76,15 +76,6 @@ namespace Engine
         API->current_command_buffer().bindVertexBuffers(stream_index, _M_buffer._M_buffer, {offset});
     }
 
-    MappedMemory VulkanVertexBuffer::map_buffer()
-    {
-        return _M_buffer.map_memory();
-    }
-
-    void VulkanVertexBuffer::unmap_buffer()
-    {
-        _M_buffer.unmap_memory();
-    }
 
     void VulkanVertexBuffer::update(size_t offset, size_t size, const byte* data)
     {
@@ -104,21 +95,10 @@ namespace Engine
         API->current_command_buffer().bindIndexBuffer(_M_buffer._M_buffer, offset, _M_index_type);
     }
 
-    MappedMemory VulkanIndexBuffer::map_buffer()
-    {
-        return _M_buffer.map_memory();
-    }
-
-    void VulkanIndexBuffer::unmap_buffer()
-    {
-        _M_buffer.unmap_memory();
-    }
-
     void VulkanIndexBuffer::update(size_t offset, size_t size, const byte* data)
     {
         _M_buffer.update(offset, data, size);
     }
-
 
     VulkanSSBO& VulkanSSBO::create(const byte* data, size_t size)
     {
@@ -132,16 +112,6 @@ namespace Engine
         {
             API->_M_state->_M_pipeline->bind_ssbo(this, location);
         }
-    }
-
-    MappedMemory VulkanSSBO::map_buffer()
-    {
-        return _M_buffer.map_memory();
-    }
-
-    void VulkanSSBO::unmap_buffer()
-    {
-        _M_buffer.unmap_memory();
     }
 
     void VulkanSSBO::update(size_t offset, size_t size, const byte* data)
@@ -172,16 +142,6 @@ namespace Engine
         {
             API->_M_state->_M_pipeline->bind_uniform_buffer(this, location);
         }
-    }
-
-    MappedMemory VulkanUniformBuffer::map_buffer()
-    {
-        return current_buffer()->map_memory();
-    }
-
-    void VulkanUniformBuffer::unmap_buffer()
-    {
-        current_buffer()->unmap_memory();
     }
 
     void VulkanUniformBuffer::update(size_t offset, size_t size, const byte* data)

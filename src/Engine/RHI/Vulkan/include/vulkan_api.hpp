@@ -143,15 +143,11 @@ namespace Engine
         Identifier imgui_texture_id(const Identifier&) override;
         bool check_format_support(ColorFormat format) override;
 
-        VulkanAPI& async_render(bool flag) override;
-        bool async_render() override;
-        VulkanAPI& next_render_thread() override;
-
         VulkanAPI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
 
 
         RHI_Sampler* create_sampler(const Sampler*) override;
-        RHI_Texture* create_texture(const Texture*, TextureType, const byte* data) override;
+        RHI_Texture* create_texture(const Texture*, const byte* data) override;
         RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;

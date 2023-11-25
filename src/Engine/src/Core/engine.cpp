@@ -84,6 +84,8 @@ namespace Engine
     {
         if (name == "Vulkan")
             return EngineAPI::Vulkan;
+        else if (name == "OpenGLES")
+            return EngineAPI::OpenGLES;
         else if (name == "OpenGL")
             return EngineAPI::OpenGL;
 
@@ -346,6 +348,11 @@ stack_address:
         request_exit();
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)] = true;
         info_log("EngineInstance", "Terminate Engine");
+
+        if (_M_rhi)
+        {
+            _M_rhi->wait_idle();
+        }
 
         engine_instance->trigger_terminate_functions();
         Object::collect_garbage(GCFlag::DestroyAll);
