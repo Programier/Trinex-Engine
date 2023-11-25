@@ -141,10 +141,6 @@ namespace Engine
         VulkanAPI& draw(size_t vertex_count) override;
 
         Identifier imgui_texture_id(const Identifier&) override;
-        bool check_format_support(ColorFormat format) override;
-
-        VulkanAPI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
-
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;

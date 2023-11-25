@@ -84,12 +84,6 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT RHI {
-        enum BarrierStage
-        {
-            Undefined,
-            AccessColorAttachmentWrite,
-        };
-
         virtual void* init_window(struct WindowInterface*, const WindowConfig& config) VIRTUAL_METHOD;
         virtual RHI& destroy_window() VIRTUAL_METHOD;
         virtual RHI& imgui_init() VIRTUAL_METHOD;
@@ -105,17 +99,12 @@ namespace Engine
         virtual RHI& swap_buffer() VIRTUAL_METHOD;
         virtual RHI& vsync(bool) VIRTUAL_METHOD;
         virtual bool vsync() VIRTUAL_METHOD;
-        virtual bool check_format_support(ColorFormat) VIRTUAL_METHOD;
 
         virtual RHI& on_window_size_changed() VIRTUAL_METHOD;
         virtual RHI& begin_render() VIRTUAL_METHOD;
         virtual RHI& end_render() VIRTUAL_METHOD;
         virtual RHI& wait_idle() VIRTUAL_METHOD;
         virtual String renderer() VIRTUAL_METHOD;
-
-        // Bariers
-        virtual RHI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) = 0;
-
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                          = 0;
         virtual RHI_Texture* create_texture(const Texture*, const byte* data)                        = 0;

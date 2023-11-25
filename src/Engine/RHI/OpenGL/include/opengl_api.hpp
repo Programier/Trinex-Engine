@@ -51,19 +51,14 @@ namespace Engine
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
         OpenGL& draw(size_t vertex_count) override;
         OpenGL& swap_buffer() override;
-        //        RHI& vsync(bool) override;
-        //        bool vsync() override;
-        //        bool check_format_support(ColorFormat) override;
+        OpenGL& vsync(bool) override;
+        bool vsync() override;
 
-        //        RHI& on_window_size_changed() override;
+        OpenGL& on_window_size_changed() override;
         OpenGL& begin_render() override;
         OpenGL& end_render() override;
         OpenGL& wait_idle() override;
         String renderer() override;
-
-        //        // Bariers
-        //        RHI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
-
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;
@@ -75,7 +70,7 @@ namespace Engine
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
         RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
-        //        RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
+        RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat format) override;

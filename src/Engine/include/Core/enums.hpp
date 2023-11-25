@@ -181,14 +181,6 @@ namespace Engine
         Point    = 2,
     };
 
-    enum class EnableCap : EnumerateType
-    {
-        Blend       = 0,
-        DepthTest   = 1,
-        CullFace    = 2,
-        StencilTest = 3,
-    };
-
     using DepthFunc = CompareFunc;
 
     union BlendConstants

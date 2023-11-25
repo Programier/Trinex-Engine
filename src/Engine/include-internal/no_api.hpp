@@ -23,16 +23,12 @@ namespace Engine
         NoApi& swap_buffer() override;
         NoApi& vsync(bool) override;
         bool vsync() override;
-        bool check_format_support(ColorFormat) override;
 
         NoApi& on_window_size_changed() override;
         NoApi& begin_render() override;
         NoApi& end_render() override;
         NoApi& wait_idle() override;
         String renderer() override;
-
-        RHI& push_barrier(Texture* texture, BarrierStage src, BarrierStage dst) override;
-
 
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;

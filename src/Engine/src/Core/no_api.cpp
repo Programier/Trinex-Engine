@@ -75,12 +75,6 @@ namespace Engine
         return false;
     }
 
-    bool NoApi::check_format_support(ColorFormat)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     NoApi& NoApi::on_window_size_changed()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -109,12 +103,6 @@ namespace Engine
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return "Undefined";
-    }
-
-    RHI& NoApi::push_barrier(Texture* texture, BarrierStage src, BarrierStage dst)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
     }
 
     RHI_Sampler* NoApi::create_sampler(const Sampler*)

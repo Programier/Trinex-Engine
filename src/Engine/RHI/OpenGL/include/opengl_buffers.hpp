@@ -36,4 +36,15 @@ namespace Engine
 
         ~OpenGL_UniformBuffer();
     };
+
+    struct OpenGL_SSBO : public RHI_SSBO {
+        GLuint _M_id;
+
+        OpenGL_SSBO(size_t size, const byte* data);
+
+        void bind(BindLocation location) override;
+        void update(size_t offset, size_t size, const byte* data) override;
+
+        ~OpenGL_SSBO();
+    };
 }// namespace Engine

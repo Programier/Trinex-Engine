@@ -387,10 +387,6 @@ stack_address:
         }
     }
 
-    bool EngineInstance::check_format_support(ColorFormat format)
-    {
-        return _M_rhi->check_format_support(format);
-    }
 
     void EngineInstance::create_window()
     {

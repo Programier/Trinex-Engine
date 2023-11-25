@@ -101,6 +101,22 @@ namespace Engine
         return *this;
     }
 
+    OpenGL& OpenGL::vsync(bool flag)
+    {
+        _M_window->vsync(flag);
+        return *this;
+    }
+
+    bool OpenGL::vsync()
+    {
+        return _M_window->vsync();
+    }
+
+    OpenGL& OpenGL::on_window_size_changed()
+    {
+        return *this;
+    }
+
     OpenGL& OpenGL::swap_buffer()
     {
         _M_window->swap_buffers();

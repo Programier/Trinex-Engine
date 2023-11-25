@@ -70,7 +70,6 @@ namespace Engine
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
-        bool check_format_support(ColorFormat format);
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;

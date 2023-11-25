@@ -137,4 +137,33 @@ namespace Engine
     {
         return new OpenGL_UniformBuffer(size, data);
     }
+
+
+    OpenGL_SSBO::OpenGL_SSBO(size_t size, const byte* data)
+    {
+        glGenBuffers(1, &_M_id);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, _M_id);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, GL_DYNAMIC_DRAW);
+    }
+
+    void OpenGL_SSBO::bind(BindLocation location)
+    {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, location.binding, _M_id);
+    }
+
+    void OpenGL_SSBO::update(size_t offset, size_t size, const byte* data)
+    {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, _M_id);
+        glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
+    }
+
+    OpenGL_SSBO::~OpenGL_SSBO()
+    {
+        glDeleteBuffers(1, &_M_id);
+    }
+
+    RHI_SSBO* OpenGL::create_ssbo(size_t size, const byte* data)
+    {
+        return new OpenGL_SSBO(size, data);
+    }
 }// namespace Engine

@@ -16,8 +16,8 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <Systems/render_system.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/render_system.hpp>
 #include <Window/window.hpp>
 #include <imgui.h>
 
@@ -45,7 +45,6 @@ namespace Engine
 
 
     public:
-
         void create_vertex_shader()
         {
 
@@ -77,6 +76,7 @@ namespace Engine
             out_pipeline->render_pass     = engine_instance->window()->render_pass;
             out_pipeline->color_blending.blend_attachment.emplace_back();
             out_pipeline->rasterizer.cull_mode = CullMode::None;
+            out_pipeline->depth_test.enable    = false;
 
             out_pipeline->init_resource();
         }

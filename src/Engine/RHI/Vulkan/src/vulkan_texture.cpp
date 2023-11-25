@@ -540,11 +540,4 @@ namespace Engine
 
         return out_features;
     }
-
-    VulkanAPI& VulkanAPI::push_barrier(Texture* texture, BarrierStage src, BarrierStage dst)
-    {
-
-
-        return *this;
-    }
 }// namespace Engine

@@ -2,6 +2,7 @@
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>
 #include <opengl_color_format.hpp>
+#include <opengl_enums_convertor.hpp>
 #include <opengl_shader.hpp>
 
 
@@ -20,50 +21,6 @@ namespace Engine
             default:
                 return "undefined";
         }
-    }
-
-    static GLuint convert_topology(PrimitiveTopology topology)
-    {
-        switch (topology)
-        {
-            case PrimitiveTopology::TriangleList:
-                return GL_TRIANGLES;
-
-            case PrimitiveTopology::PointList:
-                return GL_POINTS;
-
-            case PrimitiveTopology::LineList:
-                return GL_LINES;
-
-            case PrimitiveTopology::LineStrip:
-                return GL_LINE_STRIP;
-
-            case PrimitiveTopology::TriangleStrip:
-                return GL_TRIANGLE_STRIP;
-
-            case PrimitiveTopology::TriangleFan:
-                return GL_TRIANGLE_FAN;
-
-            case PrimitiveTopology::LineListWithAdjacency:
-                return GL_LINES_ADJACENCY;
-
-            case PrimitiveTopology::LineStripWithAdjacency:
-                return GL_LINE_STRIP_ADJACENCY;
-
-            case PrimitiveTopology::TriangleListWithAdjacency:
-                return GL_TRIANGLES_ADJACENCY;
-
-            case PrimitiveTopology::TriangleStripWithAdjacency:
-                return GL_TRIANGLE_STRIP_ADJACENCY;
-
-            case PrimitiveTopology::PatchList:
-                return GL_PATCHES;
-
-            default:
-                break;
-        }
-
-        throw EngineException("Unsupported topology");
     }
 
     static GLuint compile_shader_module(const FileBuffer& shader_code, GLenum type, const String& name)
@@ -177,6 +134,33 @@ namespace Engine
         return nullptr;
     }
 
+
+    static ExecutableObject* apply_stencil_face(GLuint face, const Pipeline::StencilTestInfo::FaceInfo& face_info)
+    {
+        GLuint fail         = stencil_op(face_info.fail);
+        GLuint depth_pass   = stencil_op(face_info.depth_pass);
+        GLuint depth_fail   = stencil_op(face_info.depth_fail);
+        GLuint compare      = compare_func(face_info.compare);
+        GLint ref           = face_info.reference;
+        GLuint compare_mask = face_info.compare_mask;
+        GLuint write_mask   = face_info.write_mask;
+
+        return new OpenGL_StateCommand([=]() {
+            glStencilMaskSeparate(face, write_mask);
+            glStencilFuncSeparate(face, compare, ref, compare_mask);
+            glStencilOpSeparate(face, fail, depth_fail, depth_pass);
+        });
+    }
+
+    template<typename Func, typename... Args>
+    static ExecutableObject* wrap_command(Func func, Args... args)
+    {
+        return new OpenGL_StateCommand([=]() { func(args...); });
+    }
+
+#define new_command(...) _M_apply_state.push_back(wrap_command(__VA_ARGS__))
+#define new_command_nowrap(...) _M_apply_state.push_back(__VA_ARGS__)
+
     void OpenGL_Pipeline::init(const Pipeline* pipeline)
     {
         _M_topology = convert_topology(pipeline->input_assembly.primitive_topology);
@@ -212,6 +196,124 @@ namespace Engine
             glUseProgramStages(_M_pipeline, GL_FRAGMENT_SHADER_BIT,
                                pipeline->fragment_shader->rhi_object<OpenGL_Shader>()->_M_id);
         }
+
+
+        /// Initialize pipeline state
+        // Depth test
+
+        new_command((pipeline->depth_test.enable ? glEnable : glDisable), GL_DEPTH_TEST);
+        new_command(glDepthMask, static_cast<GLboolean>(pipeline->depth_test.write_enable));
+        new_command(glDepthFunc, depth_func(pipeline->depth_test.func));
+
+#if USING_OPENGL_CORE
+        new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable), GL_PRIMITIVE_RESTART);
+#else
+        new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable),
+                    GL_PRIMITIVE_RESTART_FIXED_INDEX);
+#endif
+
+
+        // Stencil test
+        new_command((pipeline->stencil_test.enable ? glEnable : glDisable), GL_STENCIL_TEST);
+        new_command_nowrap(apply_stencil_face(GL_FRONT, pipeline->stencil_test.front));
+        new_command_nowrap(apply_stencil_face(GL_BACK, pipeline->stencil_test.back));
+
+
+        // Rasterization
+#if USING_OPENGL_CORE
+        if (pipeline->rasterizer.depth_clamp_enable)
+        {
+            new_command(glEnable, static_cast<GLenum>(GL_DEPTH_CLAMP));
+        }
+        else
+
+        {
+            new_command(glDisable, static_cast<GLenum>(GL_DEPTH_CLAMP));
+        }
+#endif
+
+
+        if (pipeline->rasterizer.depth_bias_enable)
+        {
+            new_command(glEnable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
+            new_command(glPolygonOffset, pipeline->rasterizer.depth_bias_const_factor,
+                        pipeline->rasterizer.depth_bias_slope_factor);
+        }
+        else
+        {
+            new_command(glDisable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
+        }
+
+        new_command(glLineWidth, pipeline->rasterizer.line_width);
+
+#if USING_OPENGL_CORE
+        new_command(glPolygonMode, GL_FRONT_AND_BACK, polygon_mode(pipeline->rasterizer.poligon_mode));
+#endif
+
+
+        if (pipeline->rasterizer.cull_mode != CullMode::None)
+        {
+            new_command(glEnable, static_cast<GLenum>(GL_CULL_FACE));
+            new_command(glCullFace, cull_mode(pipeline->rasterizer.cull_mode));
+        }
+        else
+        {
+            new_command(glDisable, static_cast<GLenum>(GL_CULL_FACE));
+        }
+
+        new_command(glFrontFace, front_face(pipeline->rasterizer.front_face));
+
+        // Blending
+
+#if USING_OPENGL_CORE
+        if (pipeline->color_blending.logic_op_enable)
+        {
+            new_command(glEnable, GL_COLOR_LOGIC_OP);
+            new_command(glLogicOp, logic_op(pipeline->color_blending.logic_op));
+        }
+        else
+        {
+            new_command(glDisable, GL_COLOR_LOGIC_OP);
+        }
+#endif
+
+        new_command(glBlendColor, pipeline->color_blending.blend_constants.vector.r,
+                    pipeline->color_blending.blend_constants.vector.g,
+                    pipeline->color_blending.blend_constants.vector.b,
+                    pipeline->color_blending.blend_constants.vector.a);
+
+        for (GLuint i = 0, size = static_cast<GLuint>(pipeline->color_blending.blend_attachment.size()); i < size; i++)
+        {
+            auto& attachment = pipeline->color_blending.blend_attachment[i];
+            if (attachment.enable)
+            {
+                new_command(glEnablei, GL_BLEND, i);
+                GLenum src_color_func = blend_func(attachment.src_color_func);
+                GLenum dst_color_func = blend_func(attachment.dst_color_func);
+                GLenum src_alpha_func = blend_func(attachment.src_alpha_func);
+                GLenum dst_alpha_func = blend_func(attachment.dst_alpha_func);
+                GLenum color_op       = blend_op(attachment.color_op);
+                GLenum alpha_op       = blend_op(attachment.alpha_op);
+
+                new_command(glBlendFuncSeparatei, i, src_color_func, dst_color_func, src_alpha_func, dst_alpha_func);
+                new_command(glBlendEquationSeparatei, i, color_op, alpha_op);
+
+                GLboolean r_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::R)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::R);
+                GLboolean g_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::G)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::G);
+                GLboolean b_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::B)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::B);
+                GLboolean a_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::A)) ==
+                                   mask_of<ColorComponentMask>(ColorComponent::A);
+
+                new_command(glColorMaski, i, r_mask, g_mask, b_mask, a_mask);
+            }
+            else
+                new_command(glDisablei, static_cast<GLenum>(GL_BLEND), static_cast<GLuint>(i));
+        }
+
+        info_log("OpenGL", "Writed %zu commands for pipeline '%s'", _M_apply_state.size(), pipeline->full_name().c_str());
     }
 
     void OpenGL_Pipeline::bind()
@@ -221,6 +323,11 @@ namespace Engine
             OPENGL_API->_M_current_pipeline = this;
             glBindProgramPipeline(_M_pipeline);
             glBindVertexArray(_M_vao);
+
+            for (ExecutableObject* object : _M_apply_state)
+            {
+                object->execute();
+            }
         }
     }
 
@@ -234,6 +341,11 @@ namespace Engine
         if (_M_vao)
         {
             glDeleteVertexArrays(1, &_M_vao);
+        }
+
+        for (ExecutableObject* object : _M_apply_state)
+        {
+            delete object;
         }
     }
 

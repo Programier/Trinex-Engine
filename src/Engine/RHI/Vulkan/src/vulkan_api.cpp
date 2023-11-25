@@ -640,19 +640,6 @@ namespace Engine
         throw std::runtime_error(not_implemented);
     }
 
-    bool VulkanAPI::check_format_support(ColorFormat format)
-    {
-        try
-        {
-            return static_cast<bool>(
-                    _M_physical_device.getFormatProperties(parse_engine_format(format)).optimalTilingFeatures);
-        }
-        catch (...)
-        {
-            return false;
-        }
-    }
-
     void VulkanAPI::push_debug_stage(const char* stage, const Color& color)
     {
         if (pfn.vkCmdBeginDebugUtilsLabelEXT)

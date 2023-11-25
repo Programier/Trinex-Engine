@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/executable_object.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_headers.hpp>
 
@@ -21,6 +22,20 @@ namespace Engine
     };
 
 
+    template<typename Func>
+    struct OpenGL_StateCommand : public ExecutableObject {
+        Func _M_func;
+
+        OpenGL_StateCommand(Func func) : _M_func(func)
+        {}
+
+        int_t execute() override
+        {
+            _M_func();
+            return 0;
+        }
+    };
+
     struct OpenGL_Pipeline : public RHI_Pipeline {
 
         struct VertexInput {
@@ -31,6 +46,7 @@ namespace Engine
         };
 
         Vector<VertexInput> _M_vertex_input;
+        Vector<ExecutableObject*> _M_apply_state;
 
         GLuint _M_pipeline = 0;
         GLuint _M_topology = 0;
