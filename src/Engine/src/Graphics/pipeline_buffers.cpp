@@ -37,25 +37,24 @@ namespace Engine
 
     PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
     {
-        if (_M_rhi_buffer)
+        if (_M_rhi_object)
         {
-            _M_rhi_buffer->update(offset, size, data);
+            rhi_object<RHI_Buffer>()->update(offset, size, data);
         }
         return *this;
     }
 
     VertexBuffer& VertexBuffer::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_vertex_buffer = engine_instance->rhi()->create_vertex_buffer(size(), data());
+        _M_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data()));
         return *this;
     }
 
     VertexBuffer& VertexBuffer::rhi_bind(byte stream_index, size_t offset)
     {
-        if (_M_rhi_vertex_buffer)
+        if (_M_rhi_object)
         {
-            _M_rhi_vertex_buffer->bind(stream_index, offset);
+            rhi_object<RHI_VertexBuffer>()->bind(stream_index, offset);
         }
 
         return *this;
@@ -66,8 +65,7 @@ namespace Engine
 
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_index_buffer = engine_instance->rhi()->create_index_buffer(size(), data(), component());
+        _M_rhi_object.reset(engine_instance->rhi()->create_index_buffer(size(), data(), component()));
         return *this;
     }
 
@@ -149,9 +147,9 @@ namespace Engine
 
     IndexBuffer& IndexBuffer::rhi_bind(size_t offset)
     {
-        if (_M_rhi_index_buffer)
+        if (_M_rhi_object)
         {
-            _M_rhi_index_buffer->bind(offset);
+            rhi_object<RHI_IndexBuffer>()->bind(offset);
         }
         return *this;
     }
@@ -190,16 +188,15 @@ namespace Engine
 
     UniformBuffer& UniformBuffer::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_uniform_buffer = engine_instance->rhi()->create_uniform_buffer(init_size, init_data);
+        _M_rhi_object.reset(engine_instance->rhi()->create_uniform_buffer(init_size, init_data));
         return *this;
     }
 
     UniformBuffer& UniformBuffer::rhi_bind(BindLocation location)
     {
-        if (_M_rhi_uniform_buffer)
+        if (_M_rhi_object)
         {
-            _M_rhi_uniform_buffer->bind(location);
+            rhi_object<RHI_UniformBuffer>()->bind(location);
         }
         return *this;
     }
@@ -207,16 +204,15 @@ namespace Engine
 
     SSBO& SSBO::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_ssbo = engine_instance->rhi()->create_ssbo(init_size, init_data);
+        _M_rhi_object.reset(engine_instance->rhi()->create_ssbo(init_size, init_data));
         return *this;
     }
 
     SSBO& SSBO::rhi_bind(BindLocation location)
     {
-        if (_M_rhi_ssbo)
+        if (_M_rhi_object)
         {
-            _M_rhi_ssbo->bind(location);
+            rhi_object<RHI_SSBO>()->bind(location);
         }
 
         return *this;

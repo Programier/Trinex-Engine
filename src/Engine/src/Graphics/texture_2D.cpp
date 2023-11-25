@@ -23,16 +23,15 @@ namespace Engine
 
     Texture2D& Texture2D::rhi_create(const byte* data)
     {
-        rhi_destroy();
-        _M_rhi_texture = engine_instance->rhi()->create_texture(this, data);
+        _M_rhi_object.reset(engine_instance->rhi()->create_texture(this, data));
         return *this;
     }
 
     Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
-        if (_M_rhi_texture)
+        if (_M_rhi_object)
         {
-            _M_rhi_texture->update_texture_2D(size, offset, mipmap, data);
+            rhi_object<RHI_Texture>()->update_texture_2D(size, offset, mipmap, data);
         }
         return *this;
     }

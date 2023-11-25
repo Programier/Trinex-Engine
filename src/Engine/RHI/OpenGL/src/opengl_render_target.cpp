@@ -90,6 +90,11 @@ namespace Engine
         _M_clear_color.push_back(Colors::Black);
     }
 
+    bool OpenGL_MainRenderTarget::is_destroyable() const
+    {
+        return false;
+    }
+
     OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
     {
         delete _M_render_pass;

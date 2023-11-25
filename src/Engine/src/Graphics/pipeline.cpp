@@ -1,28 +1,27 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
-#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
-
+#include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/render_target_base.hpp>
 
 namespace Engine
 {
     Pipeline& Pipeline::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_pipeline = engine_instance->rhi()->create_pipeline(this);
+        _M_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
         return *this;
     }
 
     const Pipeline& Pipeline::rhi_bind() const
     {
-        if (_M_rhi_pipeline)
+        if (_M_rhi_object)
         {
-            _M_rhi_pipeline->bind();
+            rhi_object<RHI_Pipeline>()->bind();
         }
 
-        GlobalUniformBuffer* ubo = GlobalUniformBuffer::instance();
+        UniformBuffer* ubo = RenderTargetBase::current_target()->uniform_buffer();
 
         if (vertex_shader.ptr()->global_ubo_location.is_valid())
         {

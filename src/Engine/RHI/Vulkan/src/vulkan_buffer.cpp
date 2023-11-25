@@ -60,6 +60,7 @@ namespace Engine
 
     VulkanBuffer::~VulkanBuffer()
     {
+        unmap_memory();
         DESTROY_CALL(destroyBuffer, _M_buffer);
         DESTROY_CALL(freeMemory, _M_memory);
     }

@@ -1,7 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/thread.hpp>
-#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/logic_system.hpp>
@@ -29,7 +28,6 @@ namespace Engine
         else
         {
             _M_rhi->begin_render();
-            GlobalUniformBuffer::instance()->update(dt);
             Super::update(dt);
             _M_rhi->end_render();
             _M_rhi->swap_buffer();

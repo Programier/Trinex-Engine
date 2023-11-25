@@ -368,6 +368,11 @@ namespace Engine
         }
     }
 
+    bool VulkanMainFrameBuffer::is_destroyable() const
+    {
+        return false;
+    }
+
     bool VulkanMainFrameBufferFrame::is_main_framebuffer() const
     {
         return true;

@@ -14,6 +14,8 @@ namespace Engine
 
     struct OpenGL_MainRenderPass : OpenGL_RenderPass {
         OpenGL_MainRenderPass();
+
+        bool is_destroyable() const override;
     };
 
 

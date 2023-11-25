@@ -37,4 +37,9 @@ namespace Engine
         pass->_M_clear_depth_stencil = render_pass->depth_stencil_attachment.clear_on_bind;
         return pass;
     }
+
+    bool OpenGL_MainRenderPass::is_destroyable() const
+    {
+        return false;
+    }
 }// namespace Engine

@@ -19,20 +19,21 @@ namespace Engine
 
         WindowRenderPass& rhi_create()
         {
-            _M_can_delete      = false;
-            _M_rhi_render_pass = engine_instance->rhi()->window_render_pass();
+            _M_rhi_object.reset(engine_instance->rhi()->window_render_pass());
             return *this;
         }
     };
 
     Window::Window(WindowInterface* interface) : _M_interface(interface)
     {
-        _M_rhi_render_target = EngineInstance::instance()->rhi()->window_render_target();
-        render_pass          = &Object::new_instance<WindowRenderPass>()->rhi_create();
+        _M_rhi_object.reset(EngineInstance::instance()->rhi()->window_render_target());
+        render_pass = &Object::new_instance<WindowRenderPass>()->rhi_create();
 
+        rhi_create();
 
         flag(Object::IsAvailableForGC, false);
         update_cached_size();
+
 
         _M_viewport.pos       = {0, 0};
         _M_viewport.size      = size();
@@ -263,7 +264,6 @@ namespace Engine
 
     Window::~Window()
     {
-        _M_rhi_render_target = nullptr;// Window render target must be destroyed by API
         delete _M_interface;
     }
 

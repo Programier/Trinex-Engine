@@ -1,4 +1,4 @@
-#include <Graphics/basic_render_target.hpp>
+#include <Graphics/render_target_base.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/shader.hpp>

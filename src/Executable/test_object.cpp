@@ -1,7 +1,6 @@
 #include <Core/colors.hpp>
 #include <Core/file_manager.hpp>
 #include <Graphics/g_buffer.hpp>
-#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
@@ -69,7 +68,6 @@ namespace Engine
         for (int i = 0; i < 4; i++) pipeline->color_blending.blend_attachment.emplace_back();
         pipeline->rasterizer.cull_mode = CullMode::None;
         pipeline->rasterizer.poligon_mode = PolygonMode::Fill;
-        pipeline->input_assembly.primitive_topology = PrimitiveTopology::LineList;
         pipeline->rasterizer.line_width = 3.0;
 
         pipeline->init_resource();

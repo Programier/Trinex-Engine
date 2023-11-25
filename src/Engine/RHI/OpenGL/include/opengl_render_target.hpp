@@ -35,6 +35,7 @@ namespace Engine
     struct OpenGL_MainRenderTarget : public OpenGL_RenderTarget
     {
         OpenGL_MainRenderTarget();
+        bool is_destroyable() const override;
         ~OpenGL_MainRenderTarget();
     };
 }// namespace Engine

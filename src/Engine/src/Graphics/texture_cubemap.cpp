@@ -17,8 +17,7 @@ namespace Engine
 
     TextureCubeMap& TextureCubeMap::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_texture = engine_instance->rhi()->create_texture(this, nullptr);
+        _M_rhi_object.reset(engine_instance->rhi()->create_texture(this, nullptr));
         return *this;
     }
 

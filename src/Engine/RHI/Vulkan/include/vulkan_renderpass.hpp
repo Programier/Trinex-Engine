@@ -25,4 +25,8 @@ namespace Engine
         VulkanRenderPass& destroy();
         ~VulkanRenderPass();
     };
+
+    struct VulkanMainRenderPass : public VulkanRenderPass {
+        bool is_destroyable() const override;
+    };
 }// namespace Engine

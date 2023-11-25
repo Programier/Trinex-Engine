@@ -13,8 +13,7 @@ namespace Engine
 
     Sampler& Sampler::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_sampler = engine_instance->rhi()->create_sampler(this);
+        _M_rhi_object.reset(engine_instance->rhi()->create_sampler(this));
         return *this;
     }
 

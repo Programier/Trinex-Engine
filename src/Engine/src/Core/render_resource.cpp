@@ -11,11 +11,38 @@ namespace Engine
     implement_class(BindedRenderResource, "Engine");
     implement_default_initialize_class(BindedRenderResource);
 
-    // Zero is default or invalid value of RenderResourceNoBase in external API
+    struct DestroyRenderResourceTask : public ExecutableObject {
+        RHI_Object* object;
+
+        DestroyRenderResourceTask(RHI_Object* obj) : object(obj)
+        {}
+
+        int_t execute()
+        {
+            delete object;
+            return sizeof(DestroyRenderResourceTask);
+        }
+    };
+
+
+    void RenderResource::DestroyRenderResource::operator()(RHI_Object* object) const
+    {
+        if (object->is_destroyable())
+        {
+            if (Thread::this_thread() == engine_instance->thread(ThreadType::RenderThread))
+            {
+                delete object;
+            }
+            else
+            {
+                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<DestroyRenderResourceTask>(object);
+            }
+        }
+    }
+
     RenderResource::RenderResource()
     {
         _M_rhi_object = nullptr;
-        _M_can_delete = true;
     }
 
     RenderResource& RenderResource::rhi_create()
@@ -39,35 +66,9 @@ namespace Engine
     }
 
 
-    struct DestroyRenderResource : public ExecutableObject {
-        RHI_Object* object;
-
-        DestroyRenderResource(RHI_Object* obj) : object(obj)
-        {}
-
-        int_t execute()
-        {
-            delete object;
-            return sizeof(DestroyRenderResource);
-        }
-    };
-
     RenderResource& RenderResource::rhi_destroy()
     {
-        if (_M_rhi_object && _M_can_delete)
-        {
-            if (Thread::this_thread() == engine_instance->thread(ThreadType::RenderThread))
-            {
-                delete _M_rhi_object;
-            }
-            else
-            {
-                engine_instance->thread(ThreadType::RenderThread)
-                        ->insert_new_task<DestroyRenderResource>(_M_rhi_object);
-            }
-
-            _M_rhi_object = nullptr;
-        }
+        _M_rhi_object = nullptr;
         return *this;
     }
 
@@ -83,9 +84,9 @@ namespace Engine
 
     const BindedRenderResource& BindedRenderResource::rhi_bind(BindLocation location) const
     {
-        if (_M_rhi_binding_object)
+        if (_M_rhi_object)
         {
-            _M_rhi_binding_object->bind(location);
+            rhi_object<RHI_BindingObject>()->bind(location);
         }
         return *this;
     }

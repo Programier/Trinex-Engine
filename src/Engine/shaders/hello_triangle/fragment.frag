@@ -14,9 +14,11 @@ layout(location = 1) in vec4 in_color;
 layout(binding = 1) uniform Global
 {
     mat4 projview;
-    vec2 viewport;
+    vec2 size;
     float time;
     float dt;
+    float min_depth;
+    float max_depth;
 } global;
 
 vec3 get_normal()

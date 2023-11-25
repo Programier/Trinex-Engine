@@ -11,7 +11,7 @@ namespace Engine
     RenderTarget& RenderTarget::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_render_target = EngineInstance::instance()->rhi()->create_render_target(this);
+        _M_rhi_object.reset(EngineInstance::instance()->rhi()->create_render_target(this));
         return *this;
     }
 }// namespace Engine

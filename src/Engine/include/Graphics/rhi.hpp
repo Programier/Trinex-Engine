@@ -28,6 +28,11 @@ namespace Engine
             return reinterpret_cast<Identifier>(this);
         }
 
+        FORCE_INLINE virtual bool is_destroyable() const
+        {
+            return true;
+        }
+
         virtual ~RHI_Object() = default;
     };
 

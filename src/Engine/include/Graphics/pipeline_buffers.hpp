@@ -10,7 +10,7 @@ namespace Engine
         declare_class(PipelineBuffer, RenderResource);
 
     public:
-        PipelineBuffer& rhi_update(size_t offset, size_t size, const byte* data);
+        virtual PipelineBuffer& rhi_update(size_t offset, size_t size, const byte* data);
     };
 
 
@@ -163,7 +163,7 @@ namespace Engine
         size_t init_size      = 0;
         const byte* init_data = nullptr;
 
-        SSBO& rhi_create();
+        SSBO& rhi_create() override;
         SSBO& rhi_bind(BindLocation location);
     };
 }// namespace Engine

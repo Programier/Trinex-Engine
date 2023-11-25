@@ -19,7 +19,7 @@ namespace Engine
             min_render_distance(0.1);
             max_render_distance(100.f);
 
-            EventSystem* system = EventSystem::instance();
+            EventSystem* system = System::new_system<EventSystem>();
 
             system->add_listener(Event(EventType::MouseMotion),
                                  std::bind(&TestCamera::on_mouse_move, this, std::placeholders::_1));

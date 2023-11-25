@@ -75,6 +75,8 @@ namespace Engine
         void clear_depth_stencil(const DepthStencilClearValue& value) override;
         void clear_color(const ColorClearValue& color, byte layout) override;
 
+        bool is_destroyable() const override;
+
         ~VulkanMainFrameBuffer();
     };
 }// namespace Engine

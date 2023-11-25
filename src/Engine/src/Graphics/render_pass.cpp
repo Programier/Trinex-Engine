@@ -10,8 +10,7 @@ namespace Engine
 
     RenderPass& RenderPass::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_object = engine_instance->rhi()->create_render_pass(this);
+        _M_rhi_object.reset(engine_instance->rhi()->create_render_pass(this));
         return *this;
     }
 }// namespace Engine

@@ -1,12 +1,12 @@
 #pragma once
-#include <Graphics/basic_render_target.hpp>
+#include <Graphics/render_target_base.hpp>
 #include <Window/window_interface.hpp>
 
 namespace Engine
 {
-    class ENGINE_EXPORT Window : public BasicRenderTarget
+    class ENGINE_EXPORT Window : public RenderTargetBase
     {
-        declare_class(Window, BasicRenderTarget);
+        declare_class(Window, RenderTargetBase);
 
     private:
         WindowInterface* _M_interface = nullptr;

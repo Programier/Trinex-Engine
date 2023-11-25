@@ -6,7 +6,6 @@
 #include <Core/system.hpp>
 #include <Graphics/camera.hpp>
 #include <Graphics/g_buffer.hpp>
-#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
@@ -132,9 +131,13 @@ namespace Engine
         }
 
 
-        HelloTriangleSystem& render_gbuffer()
+        HelloTriangleSystem& render_gbuffer(float dt)
         {
-            GBuffer::instance()->rhi_bind();
+            GBuffer* rt = GBuffer::instance();
+            rt->global_ubo.projview = camera->projview();
+            rt->global_ubo.dt = dt;
+
+            rt->rhi_bind();
             engine_instance->rhi()->push_debug_stage(__FUNCTION__, Colors::Red);
             mesh->lods[0].render();
             engine_instance->rhi()->pop_debug_stage();
@@ -170,10 +173,7 @@ namespace Engine
             Super::update(dt);
             camera->update(dt);
 
-            GlobalUniformBuffer::Data* data = GlobalUniformBuffer::instance()->current_data();
-            data->projview                  = camera->projview();
-            GlobalUniformBuffer::instance()->rhi_update();
-            render_gbuffer().render_output().render_ui(dt);
+            render_gbuffer(dt).render_output().render_ui(dt);
 
             return *this;
         }

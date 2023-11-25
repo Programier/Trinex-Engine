@@ -10,9 +10,11 @@ layout(location = 1) out vec4 out_color;
 layout(binding = 0) uniform Global
 {
     mat4 projview;
-    vec2 viewport;
+    vec2 size;
     float time;
     float dt;
+    float min_depth;
+    float max_depth;
 } global;
 
 

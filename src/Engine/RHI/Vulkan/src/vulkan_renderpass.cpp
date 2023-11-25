@@ -149,11 +149,16 @@ namespace Engine
     }
 
 
+    bool VulkanMainRenderPass::is_destroyable() const
+    {
+        return false;
+    }
+
     void VulkanAPI::create_render_pass()
     {
         if (_M_main_render_pass == nullptr)
         {
-            _M_main_render_pass                          = new VulkanRenderPass();
+            _M_main_render_pass                          = new VulkanMainRenderPass();
             _M_main_render_pass->_M_has_depth_attachment = false;
 
             _M_main_render_pass->_M_attachment_descriptions.push_back(vk::AttachmentDescription(

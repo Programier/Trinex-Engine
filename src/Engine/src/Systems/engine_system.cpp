@@ -3,7 +3,6 @@
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/rhi.hpp>
 #include <Core/thread.hpp>
 #include <Systems/engine_system.hpp>

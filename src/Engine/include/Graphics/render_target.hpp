@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/implement.hpp>
-#include <Graphics/basic_render_target.hpp>
+#include <Graphics/render_target_base.hpp>
 #include <Graphics/texture_2D.hpp>
 
 
@@ -8,9 +8,9 @@ namespace Engine
 {
     class Texture2D;
 
-    class ENGINE_EXPORT RenderTarget : public BasicRenderTarget
+    class ENGINE_EXPORT RenderTarget : public RenderTargetBase
     {
-        declare_class(RenderTarget, BasicRenderTarget);
+        declare_class(RenderTarget, RenderTargetBase);
 
     public:
         struct Attachment {

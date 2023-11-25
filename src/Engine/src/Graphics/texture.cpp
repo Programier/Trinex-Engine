@@ -16,19 +16,22 @@ namespace Engine
 
     const Texture& Texture::bind_combined(Sampler* sampler, BindLocation location) const
     {
-        if (_M_rhi_texture)
+        if (_M_rhi_object)
         {
             RHI_Sampler* rhi_sampler = reinterpret_cast<RenderResource*>(sampler)->rhi_object<RHI_Sampler>();
-            _M_rhi_texture->bind_combined(rhi_sampler, location);
+            if (rhi_sampler)
+            {
+                rhi_object<RHI_Texture>()->bind_combined(rhi_sampler, location);
+            }
         }
         return *this;
     }
 
     Texture& Texture::generate_mipmap()
     {
-        if (_M_rhi_texture)
+        if (_M_rhi_object)
         {
-            _M_rhi_texture->generate_mipmap();
+            rhi_object<RHI_Texture>()->generate_mipmap();
         }
         return *this;
     }

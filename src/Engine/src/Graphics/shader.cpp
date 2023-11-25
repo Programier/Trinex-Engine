@@ -5,8 +5,8 @@
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/g_buffer.hpp>
-#include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/mesh_component.hpp>
+#include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <fstream>
@@ -34,7 +34,7 @@ namespace Engine
 
         ubo.location = location;
         ubo.name     = "Global";
-        ubo.size     = sizeof(GlobalUniformBuffer::Data);
+        ubo.size     = sizeof(RenderTargetBase::GlobalUniforms);
 
         return *this;
     }
@@ -42,15 +42,13 @@ namespace Engine
 
     VertexShader& VertexShader::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_shader = engine_instance->rhi()->create_vertex_shader(this);
+        _M_rhi_object.reset(engine_instance->rhi()->create_vertex_shader(this));
         return *this;
     }
 
     FragmentShader& FragmentShader::rhi_create()
     {
-        rhi_destroy();
-        _M_rhi_shader = engine_instance->rhi()->create_fragment_shader(this);
+        _M_rhi_object.reset(engine_instance->rhi()->create_fragment_shader(this));
         return *this;
     }
 }// namespace Engine
