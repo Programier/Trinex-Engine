@@ -4,8 +4,8 @@
 #include <Graphics/global_uniform_buffer.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
+#include <Systems/logic_system.hpp>
 #include <Systems/render_system.hpp>
-
 
 namespace Engine
 {
@@ -15,7 +15,7 @@ namespace Engine
         Super::create();
         EngineSystem::new_system<EngineSystem>()->register_subsystem(this);
         _M_render_thread = engine_instance->thread(ThreadType::RenderThread);
-        _M_rhi = engine_instance->rhi();
+        _M_rhi           = engine_instance->rhi();
         return *this;
     }
 
@@ -49,6 +49,11 @@ namespace Engine
     {
         Super::wait();
         return *this;
+    }
+
+    class Class* RenderSystem::depends_on() const
+    {
+        return LogicSystem::static_class_instance();
     }
 
     implement_engine_class_default_init(RenderSystem);

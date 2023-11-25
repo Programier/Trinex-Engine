@@ -68,6 +68,9 @@ namespace Engine
 
         for (int i = 0; i < 4; i++) pipeline->color_blending.blend_attachment.emplace_back();
         pipeline->rasterizer.cull_mode = CullMode::None;
+        pipeline->rasterizer.poligon_mode = PolygonMode::Fill;
+        pipeline->input_assembly.primitive_topology = PrimitiveTopology::LineList;
+        pipeline->rasterizer.line_width = 3.0;
 
         pipeline->init_resource();
         return pipeline;

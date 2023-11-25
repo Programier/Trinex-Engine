@@ -48,9 +48,6 @@ namespace Engine
 
             ImGui::End();
 
-
-            Thread::sleep_for(1.0f / 33.0f);
-
             return *this;
         }
     };

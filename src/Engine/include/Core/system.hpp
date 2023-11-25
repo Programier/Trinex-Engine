@@ -43,9 +43,12 @@ namespace Engine
         static System* new_system_by_name(const String& name);
 
         const Vector<System*>& subsystems() const;
-        System& register_subsystem(System* system, Index index = ~static_cast<Index>(0));
+        System& register_subsystem(System* system);
         System& remove_subsystem(System* system);
         System* parent_system() const;
+        System& sort_subsystems();
+
+        virtual class Class* depends_on() const;
 
 
         template<typename SystemType, typename... Args>

@@ -229,6 +229,8 @@ namespace Engine
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
         vk::PhysicalDeviceFeatures features;
         features.samplerAnisotropy = VK_TRUE;
+        features.fillModeNonSolid  = VK_TRUE;
+        features.wideLines         = VK_TRUE;
 
         phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
         phys_device_selector.add_required_extensions(device_extensions);

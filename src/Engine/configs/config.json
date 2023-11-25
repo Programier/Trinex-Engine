@@ -20,10 +20,10 @@
         "shader_compiler": "Engine::GLSLToSPIRV",
         "window_system": "SDL2",
         "systems": [
-            "Engine::EventSystem",
             "Engine::LogicSystem",
-            "Engine::HelloTriangleSystem",
-            "Engine::TrinexEditorSystem"
+            "Engine::TrinexEditorSystem",
+            "Engine::EventSystem",
+            "Engine::SystemGraphRendererSystem"
         ],
         "external_system_libraries": [
             "TrinexEngineEditor"

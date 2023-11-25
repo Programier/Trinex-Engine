@@ -278,48 +278,6 @@ namespace Engine
     {
         return _M_renderer;
     }
-#if defined(__arm__) || defined(__aarch64__)
-    asm(R"(
-is_on_stack_asm:
-    mov x0, sp
-    cmp x0, x1
-    cset w0, gt
-    ret
-
-stack_address:
-    mov w0, #0
-    ret
-)");
-
-    extern "C" bool is_on_stack_asm(void* ptr);
-
-#elif defined(__x86_64__)
-    asm(R"(
-is_on_stack_asm:
-    movq %rsp, %rax
-    cmpq %rdi, %rax
-    jbe stack_address
-    movl $1, %eax
-    ret
-
-stack_address:
-    movl $0, %eax
-    ret
-)");
-
-    extern "C" bool is_on_stack_asm(void* ptr);
-
-#else
-
-#error "Function is_on_stack_asm in not implemented for current arch!"
-
-#endif
-
-    bool EngineInstance::is_on_stack(void* ptr)
-    {
-        bool result = is_on_stack_asm(ptr);
-        return result;
-    }
 
     bool EngineInstance::is_shuting_down() const
     {
@@ -506,6 +464,9 @@ stack_address:
             error_log("Engine", "No systems found! Please, add systems before call '%s' method!", __FUNCTION__);
             return -1;
         }
+
+        // Sort all systems
+        engine_system->sort_subsystems();
 
         try
         {

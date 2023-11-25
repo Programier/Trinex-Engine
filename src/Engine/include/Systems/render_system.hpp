@@ -16,6 +16,7 @@ namespace Engine
         RenderSystem& update(float dt) override;
         RenderSystem& shutdown() override;
         RenderSystem& wait() override;
+        class Class* depends_on() const override;
         friend class Object;
         friend class RenderSystemUpdate;
         friend class RenderSystemSync;

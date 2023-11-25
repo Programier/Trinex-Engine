@@ -66,7 +66,6 @@ namespace Engine
         bool is_inited() const;
         RHI* rhi() const;
         class Renderer* renderer() const;
-        static bool is_on_stack(void* ptr);
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
         EngineInstance& request_exit();

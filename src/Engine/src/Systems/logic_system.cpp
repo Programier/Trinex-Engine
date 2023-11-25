@@ -1,6 +1,7 @@
 #include <Systems/logic_system.hpp>
 #include <Core/class.hpp>
 #include <Core/thread.hpp>
+#include <Systems/event_system.hpp>
 
 
 namespace Engine
@@ -26,6 +27,11 @@ namespace Engine
     LogicSystem& LogicSystem::wait()
     {
         return *this;
+    }
+
+    class Class* LogicSystem::depends_on() const
+    {
+        return EventSystem::static_class_instance();
     }
 
     implement_engine_class_default_init(LogicSystem);

@@ -76,7 +76,7 @@ namespace Engine
 
         _M_window = SDL_CreateWindow(info.title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                                      static_cast<int>(info.size.x), static_cast<int>(info.size.y),
-                                     _M_api | SDL_WINDOW_SHOWN | attrib);
+                                     _M_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
         if (_M_window == nullptr)
             window_initialize_error(SDL_GetError());

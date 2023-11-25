@@ -71,7 +71,7 @@ namespace Engine
         return *this;
     }
 
-    System& System::register_subsystem(System* system, Index index)
+    System& System::register_subsystem(System* system)
     {
         if (system->parent_system() == this)
             return *this;
@@ -81,15 +81,7 @@ namespace Engine
             system->_M_parent_system->remove_subsystem(system);
         }
 
-        if (index >= _M_subsystems.size())
-        {
-            _M_subsystems.push_back(system);
-        }
-        else
-        {
-            _M_subsystems.insert(_M_subsystems.begin() + index, system);
-        }
-
+        _M_subsystems.push_back(system);
         system->_M_parent_system = this;
 
         return *this;
@@ -119,6 +111,45 @@ namespace Engine
     System* System::parent_system() const
     {
         return _M_parent_system;
+    }
+
+
+    static bool sort_systems_predicate(System* first, System* second)
+    {
+        Class* _first  = first->class_instance();
+        Class* _second = second->depends_on();
+
+
+        while (_first && _second)
+        {
+            if (_first == _second)
+                return true;
+
+            System* system = _second->singletone_instance()->instance_cast<System>();
+
+            if (system)
+            {
+                _second = system->depends_on();
+            }
+            else
+            {
+                _second = nullptr;
+            }
+        }
+
+        return false;
+    }
+
+    System& System::sort_subsystems()
+    {
+        std::sort(_M_subsystems.begin(), _M_subsystems.end(), sort_systems_predicate);
+        std::for_each(_M_subsystems.begin(), _M_subsystems.end(), [](System* system) { system->sort_subsystems(); });
+        return *this;
+    }
+
+    class Class* System::depends_on() const
+    {
+        return nullptr;
     }
 
 
