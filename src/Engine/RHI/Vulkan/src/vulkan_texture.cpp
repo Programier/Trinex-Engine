@@ -354,6 +354,7 @@ namespace Engine
     VulkanTexture& VulkanTexture::destroy()
     {
         API->wait_idle();
+
         DESTROY_CALL(destroyImage, _M_image);
         DESTROY_CALL(freeMemory, _M_image_memory);
         DESTROY_CALL(destroyImageView, _M_image_view);

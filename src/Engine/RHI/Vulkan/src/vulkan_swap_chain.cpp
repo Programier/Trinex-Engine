@@ -10,7 +10,7 @@ namespace Engine
     {
         vulkan_info_log("Vulkan API", "Creating new swapchain");
         vkb::SwapchainBuilder swapchain_builder(API->_M_bootstrap_device);
-        if(API->_M_swap_chain)
+        if (API->_M_swap_chain)
         {
             swapchain_builder.set_old_swapchain(API->_M_swap_chain->_M_swap_chain);
         }

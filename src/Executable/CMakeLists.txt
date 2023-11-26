@@ -13,8 +13,9 @@ SET(CMAKE_INSTALL_RPATH "")
 # don't add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
 add_executable(TrinexEngineLauncher ${SOURCES})
+
+link_libraries("/home/programier/Projects/Trinex-Engine/builds/build-Release-Linux/Game/libs/")
 target_link_libraries(TrinexEngineLauncher PRIVATE TrinexEngine)
 set_target_properties(TrinexEngineLauncher PROPERTIES LINK_FLAGS "-Wl,-rpath,./libs/")
 

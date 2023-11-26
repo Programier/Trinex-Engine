@@ -54,6 +54,7 @@ namespace Engine
         OpenGL& vsync(bool) override;
         bool vsync() override;
 
+        OpenGL& destroy_object(RHI_Object* object) override;
         OpenGL& on_window_size_changed() override;
         OpenGL& begin_render() override;
         OpenGL& end_render() override;

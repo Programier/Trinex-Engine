@@ -26,6 +26,8 @@ namespace Engine
         VkSurfaceKHR _M_vulkan_surface;
         SDL_Event _M_event;
 
+        bool _M_vsync_status;
+
 
         void process_mouse_button();
 

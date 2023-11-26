@@ -17,7 +17,6 @@ namespace Engine
         vk::Format _M_vulkan_format;
         vk::ComponentMapping _M_swizzle;
 
-
         VulkanTexture& create(const Texture* texture, const byte* data);
         VulkanTexture& destroy();
 

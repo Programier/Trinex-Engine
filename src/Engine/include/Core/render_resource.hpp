@@ -26,9 +26,7 @@ namespace Engine
         declare_class(RenderResource, Object);
 
     protected:
-
-        struct ENGINE_EXPORT DestroyRenderResource
-        {
+        struct ENGINE_EXPORT DestroyRenderResource {
             void operator()(RHI_Object* object) const;
         };
 
@@ -49,6 +47,7 @@ namespace Engine
         RenderResource& init_resource();
         RenderResource& rhi_destroy();
 
+        static void release_render_resouce(RHI_Object* object);
         ~RenderResource();
     };
 
@@ -64,8 +63,9 @@ namespace Engine
     struct ENGINE_EXPORT InitRenderResourceTask : public ExecutableObject {
     public:
         RenderResource* resource = nullptr;
+        bool wait                = false;
 
-        InitRenderResourceTask(RenderResource* object = nullptr);
+        InitRenderResourceTask(RenderResource* object = nullptr, bool wait = false);
         int_t execute() override;
     };
 }// namespace Engine

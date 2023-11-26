@@ -53,8 +53,7 @@ namespace Engine
         ~VulkanFramebuffer();
     };
 
-    struct VulkanMainFrameBufferFrame : public VulkanFramebuffer
-    {
+    struct VulkanMainFrameBufferFrame : public VulkanFramebuffer {
         bool is_main_framebuffer() const override;
     };
 

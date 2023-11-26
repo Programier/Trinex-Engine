@@ -81,7 +81,6 @@ namespace Engine
         if (indices)
         {
             indices->rhi_bind();
-            engine_instance->rhi()->draw_indexed(indices->elements_count(), 0);
         }
         else
         {

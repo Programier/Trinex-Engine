@@ -1,8 +1,10 @@
-#include <Systems/logic_system.hpp>
 #include <Core/class.hpp>
 #include <Core/thread.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/logic_system.hpp>
 
+#include <Core/render_resource.hpp>
+#include <Graphics/rhi.hpp>
 
 namespace Engine
 {
@@ -15,6 +17,20 @@ namespace Engine
     LogicSystem& LogicSystem::update(float dt)
     {
         Super::update(dt);
+
+        extern RHI_Object* delete_me;
+        static int index = 0;
+        if (delete_me)
+        {
+            if (index > 4)
+            {
+                RenderResource::release_render_resouce(delete_me);
+                index     = 0;
+                delete_me = nullptr;
+            }
+            else
+                index++;
+        }
         return *this;
     }
 

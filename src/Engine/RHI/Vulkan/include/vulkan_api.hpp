@@ -36,9 +36,20 @@ namespace Engine
 
     struct VulkanTexture;
 
+    struct Garbage {
+        RHI_Object* object;
+        size_t frame;
+
+        Garbage(RHI_Object* object, size_t frame) : object(object), frame(frame)
+        {}
+    };
+
     struct VulkanAPI : public RHI {
         static Vector<const char*> device_extensions;
         static VulkanAPI* _M_vulkan;
+
+        List<Garbage> _M_garbage;
+
         WindowInterface* _M_window       = nullptr;
         bool _M_need_recreate_swap_chain = false;
         String _M_renderer               = "";
@@ -80,7 +91,7 @@ namespace Engine
         Vector<VulkanSyncObject> _M_sync_objects;
 
         uint32_t _M_current_buffer = 0;
-        uint32_t _M_current_frame  = 0;
+        size_t _M_current_frame    = 0;
 
         //////////////////////////////////////////////////////////////
 
@@ -130,6 +141,9 @@ namespace Engine
         bool vsync() override;
         VulkanAPI& wait_idle() override;
 
+
+        VulkanAPI& delete_garbage(bool force);
+        VulkanAPI& destroy_object(RHI_Object* object) override;
         VulkanAPI& imgui_init() override;
         VulkanAPI& imgui_terminate() override;
         VulkanAPI& imgui_new_frame() override;

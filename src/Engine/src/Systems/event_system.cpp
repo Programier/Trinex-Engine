@@ -15,6 +15,7 @@
 #include <Window/window_interface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Event/event.hpp>
+#include <Graphics/g_buffer.hpp>
 
 
 namespace Engine
@@ -48,6 +49,8 @@ namespace Engine
         }
 
         window->update_cached_size();
+
+        GBuffer::instance()->resize();
     }
 
     EventSystem::EventSystem()

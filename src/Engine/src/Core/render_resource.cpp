@@ -13,13 +13,14 @@ namespace Engine
 
     struct DestroyRenderResourceTask : public ExecutableObject {
         RHI_Object* object;
+        RHI* rhi;
 
-        DestroyRenderResourceTask(RHI_Object* obj) : object(obj)
+        DestroyRenderResourceTask(RHI_Object* obj) : object(obj), rhi(engine_instance->rhi())
         {}
 
         int_t execute()
         {
-            delete object;
+            rhi->destroy_object(object);
             return sizeof(DestroyRenderResourceTask);
         }
     };
@@ -31,13 +32,18 @@ namespace Engine
         {
             if (Thread::this_thread() == engine_instance->thread(ThreadType::RenderThread))
             {
-                delete object;
+                engine_instance->rhi()->destroy_object(object);
             }
             else
             {
                 engine_instance->thread(ThreadType::RenderThread)->insert_new_task<DestroyRenderResourceTask>(object);
             }
         }
+    }
+
+    void RenderResource::release_render_resouce(RHI_Object* object)
+    {
+        DestroyRenderResource()(object);
     }
 
     RenderResource::RenderResource()
@@ -59,12 +65,11 @@ namespace Engine
         }
         else
         {
-            render_thread->insert_new_task<InitRenderResourceTask>(this);
+            render_thread->insert_new_task<InitRenderResourceTask>(this, _M_rhi_object.get() != nullptr);
         }
 
         return *this;
     }
-
 
     RenderResource& RenderResource::rhi_destroy()
     {
@@ -91,13 +96,17 @@ namespace Engine
         return *this;
     }
 
-    InitRenderResourceTask::InitRenderResourceTask(RenderResource* object) : resource(object)
+    InitRenderResourceTask::InitRenderResourceTask(RenderResource* object, bool wait) : resource(object), wait(wait)
     {}
 
     int_t InitRenderResourceTask::execute()
     {
         if (resource)
         {
+            if (wait)
+            {
+                engine_instance->rhi()->wait_idle();
+            }
             resource->rhi_create();
         }
 

@@ -70,6 +70,8 @@ namespace Engine
     VulkanAPI& VulkanAPI::destroy_window()
     {
         _M_device.waitIdle();
+        delete_garbage(true);
+
         destroy_framebuffers();
         delete _M_main_render_pass;
         delete _M_swap_chain;
@@ -81,6 +83,40 @@ namespace Engine
 
         vk::Instance(_M_instance.instance).destroySurfaceKHR(_M_surface);
         vkb::destroy_instance(_M_instance);
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::delete_garbage(bool force)
+    {
+
+        if (force)
+        {
+            for (auto& ell : _M_garbage)
+            {
+                delete ell.object;
+            }
+
+            _M_garbage.clear();
+        }
+        else
+        {
+            while (!_M_garbage.empty())
+            {
+                Garbage* garbage = &_M_garbage.front();
+                if (garbage->frame != _M_current_frame)
+                    break;
+
+                delete garbage->object;
+                _M_garbage.pop_front();
+            }
+        }
+
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::destroy_object(RHI_Object* object)
+    {
+        _M_garbage.emplace_back(object, _M_current_frame + MAIN_FRAMEBUFFERS_COUNT);
         return *this;
     }
 
@@ -443,7 +479,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::begin_render()
     {
-        _M_state->reset();
+        delete_garbage(false);
 
         if (_M_need_recreate_swap_chain)
         {
@@ -498,7 +534,6 @@ namespace Engine
         }
 
         auto swapchain_index = API->swapchain_image_index().value;
-
         vk::PresentInfoKHR present_info(_M_framebuffer_list.back()->_M_render_finished,
                                         API->_M_swap_chain->_M_swap_chain, swapchain_index);
         vk::Result result;
@@ -508,7 +543,6 @@ namespace Engine
         }
         catch (const std::exception& e)
         {
-            vulkan_error_log("Vulkan", "PresentKHR throw %s!", e.what());
             result = vk::Result::eErrorOutOfDateKHR;
         }
 
@@ -534,6 +568,7 @@ namespace Engine
             API->recreate_swap_chain();
         }
         _M_framebuffer_list.clear();
+        _M_state->reset();
         return *this;
     }
 

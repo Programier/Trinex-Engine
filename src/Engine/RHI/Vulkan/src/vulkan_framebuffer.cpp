@@ -9,10 +9,6 @@
 
 namespace Engine
 {
-
-#define COLOR_BUFFER_BIT 1U
-#define DEPTH_STENCIL_BUFFER_BIT 2U
-
     VulkanFramebuffer::VulkanFramebuffer()
     {}
 
@@ -216,7 +212,6 @@ namespace Engine
         {
             API->_M_state->_M_framebuffer->unbind();
         }
-
 
         API->_M_state->_M_framebuffer = this;
 

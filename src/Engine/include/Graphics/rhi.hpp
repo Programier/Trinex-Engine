@@ -5,7 +5,6 @@
 #include <Core/colors.hpp>
 #include <Core/rhi_initializers.hpp>
 
-#define VIRTUAL_METHOD = 0
 
 namespace Engine
 {
@@ -89,27 +88,28 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT RHI {
-        virtual void* init_window(struct WindowInterface*, const WindowConfig& config) VIRTUAL_METHOD;
-        virtual RHI& destroy_window() VIRTUAL_METHOD;
-        virtual RHI& imgui_init() VIRTUAL_METHOD;
-        virtual RHI& imgui_terminate() VIRTUAL_METHOD;
-        virtual RHI& imgui_new_frame() VIRTUAL_METHOD;
-        virtual RHI& imgui_render() VIRTUAL_METHOD;
+        virtual void* init_window(struct WindowInterface*, const WindowConfig& config) = 0;
+        virtual RHI& destroy_window()                                                  = 0;
+        virtual RHI& imgui_init()                                                      = 0;
+        virtual RHI& imgui_terminate()                                                 = 0;
+        virtual RHI& imgui_new_frame()                                                 = 0;
+        virtual RHI& imgui_render()                                                    = 0;
 
-        ///////////////// TEXTURE PART /////////////////
-        virtual Identifier imgui_texture_id(const Identifier&) VIRTUAL_METHOD;
 
-        virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) VIRTUAL_METHOD;
-        virtual RHI& draw(size_t vertex_count) VIRTUAL_METHOD;
-        virtual RHI& swap_buffer() VIRTUAL_METHOD;
-        virtual RHI& vsync(bool) VIRTUAL_METHOD;
-        virtual bool vsync() VIRTUAL_METHOD;
+        virtual RHI& destroy_object(RHI_Object* object)        = 0;
+        virtual Identifier imgui_texture_id(const Identifier&) = 0;
 
-        virtual RHI& on_window_size_changed() VIRTUAL_METHOD;
-        virtual RHI& begin_render() VIRTUAL_METHOD;
-        virtual RHI& end_render() VIRTUAL_METHOD;
-        virtual RHI& wait_idle() VIRTUAL_METHOD;
-        virtual String renderer() VIRTUAL_METHOD;
+        virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) = 0;
+        virtual RHI& draw(size_t vertex_count)                                 = 0;
+        virtual RHI& swap_buffer()                                             = 0;
+        virtual RHI& vsync(bool)                                               = 0;
+        virtual bool vsync()                                                   = 0;
+
+        virtual RHI& on_window_size_changed() = 0;
+        virtual RHI& begin_render()           = 0;
+        virtual RHI& end_render()             = 0;
+        virtual RHI& wait_idle()              = 0;
+        virtual String renderer()             = 0;
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                          = 0;
         virtual RHI_Texture* create_texture(const Texture*, const byte* data)                        = 0;
@@ -131,6 +131,4 @@ namespace Engine
 
         virtual ~RHI(){};
     };
-
-#undef VIRTUAL_METHOD
 }// namespace Engine

@@ -69,6 +69,7 @@ namespace Engine
     {
         if (_M_window)
             return;
+        _M_vsync_status = info.vsync;
         uint32_t attrib = to_sdl_attrib(info.attributes);
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 
@@ -101,12 +102,12 @@ namespace Engine
                 }
 
 
-                SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-                SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-                SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-                SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-                SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+//                SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+//                SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+//                SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+//                SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+//                SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+//                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             }
             else if (_M_api == SDL_WINDOW_VULKAN)
             {
@@ -1106,7 +1107,7 @@ namespace Engine
             _M_gl_context = SDL_GL_CreateContext(_M_window);
             if (!_M_gl_context)
             {
-                throw std::runtime_error(SDL_GetError());
+                throw EngineException(SDL_GetError());
             }
 
             if (SDL_GL_MakeCurrent(_M_window, _M_gl_context) != 0)
@@ -1114,6 +1115,7 @@ namespace Engine
                 error_log("SDL", "Cannot set context as current: %s", SDL_GetError());
             }
 
+            vsync(_M_vsync_status);
             return _M_gl_context;
         }
 

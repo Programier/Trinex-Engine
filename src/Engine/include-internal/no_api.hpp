@@ -14,7 +14,7 @@ namespace Engine
         NoApi& imgui_new_frame() override;
         NoApi& imgui_render() override;
 
-        ///////////////// TEXTURE PART /////////////////
+        NoApi& destroy_object(RHI_Object*) override;
         Identifier imgui_texture_id(const Identifier&) override;
 
         NoApi& draw_indexed(size_t indices_count, size_t indices_offset) override;

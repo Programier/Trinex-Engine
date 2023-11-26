@@ -15,12 +15,19 @@ layout(binding = 0) uniform Global
     float dt;
     float min_depth;
     float max_depth;
-} global;
+}
+global;
 
+
+layout(binding = 2) uniform Model
+{
+    mat4 model;
+}
+model;
 
 void main()
 {
-    gl_Position = global.projview * vec4(in_position.xyz, 1.0);
+    gl_Position  = global.projview * model.model * vec4(in_position.xyz, 1.0);
     out_position = in_position;
     out_color    = in_color;
 }

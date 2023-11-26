@@ -42,6 +42,9 @@ namespace Engine
         Sampler* sampler;
         StaticMesh* mesh;
 
+        Vector<UniformBuffer*> models;
+        Vector<Matrix4f> matrices;
+
 
     public:
         void create_vertex_shader()
@@ -104,6 +107,32 @@ namespace Engine
             sampler->init_resource();
         }
 
+        void create_models()
+        {
+            int_t size = 10;
+
+            models.reserve(size * size * size);
+            matrices.reserve(size * size * size);
+
+
+            for (int_t x = -size / 2; x < size / 2; x++)
+            {
+                for (int_t y = -size / 2; y < size / 2; y++)
+                {
+                    for (int_t z = -size / 2; z < size / 2; z++)
+                    {
+                        glm::mat4 model    = glm::translate(glm::mat4(1.0f), glm::vec3(x * 3, y * 3, z * 3));
+                        matrices.push_back(model);
+                        UniformBuffer* ubo = Object::new_instance<UniformBuffer>();
+                        ubo->init_size     = sizeof(model);
+                        ubo->init_data     = reinterpret_cast<const byte*>(&matrices.back());
+                        ubo->init_resource();
+                        models.push_back(ubo);
+                    }
+                }
+            }
+        }
+
         System& create() override
         {
             Super::create();
@@ -120,6 +149,7 @@ namespace Engine
 
             extern Camera* create_test_camera();
             camera = create_test_camera();
+            create_models();
 
             return *this;
         }
@@ -133,13 +163,18 @@ namespace Engine
 
         HelloTriangleSystem& render_gbuffer(float dt)
         {
-            GBuffer* rt = GBuffer::instance();
+            GBuffer* rt             = GBuffer::instance();
             rt->global_ubo.projview = camera->projview();
-            rt->global_ubo.dt = dt;
+            rt->global_ubo.dt       = dt;
 
             rt->rhi_bind();
             engine_instance->rhi()->push_debug_stage(__FUNCTION__, Colors::Red);
-            mesh->lods[0].render();
+            for (UniformBuffer* ubo : models)
+            {
+                mesh->lods[0].render();
+                ubo->rhi_bind({2, 0});
+                engine_instance->rhi()->draw_indexed(mesh->lods[0].indices->elements_count(), 0);
+            }
             engine_instance->rhi()->pop_debug_stage();
             return *this;
         }

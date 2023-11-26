@@ -5,6 +5,7 @@
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
+#include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 
 namespace Engine
@@ -70,39 +71,65 @@ namespace Engine
         throw EngineException(Strings::format("Cannot find format for {} gbuffer texture", type));
     }
 
-    GBuffer* GBuffer::_M_instance = nullptr;
-
 
     GBuffer::GBuffer()
     {
         info_log("GBuffer", "Creating GBuffer");
 
-        _M_color_formats.push_back(find_color_format(required_albedo_formats(), color_format_requirements(), "albedo"));
-        _M_color_formats.push_back(
-                find_color_format(required_position_formats(), color_format_requirements(), "position"));
-        _M_color_formats.push_back(find_color_format(required_normal_formats(), color_format_requirements(), "normal"));
-        _M_color_formats.push_back(
-                find_color_format(required_specular_formats(), color_format_requirements(), "specular"));
-        _M_color_formats.push_back(find_color_format(required_depth_formats(), depth_format_кequirements(), "depth"));
+        albedo         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Albedo");
+        albedo->format = find_color_format(required_albedo_formats(), color_format_requirements(), "albedo");
+        albedo->setup_render_target_texture();
+
+        position         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Position");
+        position->format = find_color_format(required_position_formats(), color_format_requirements(), "position");
+        position->setup_render_target_texture();
+
+        normal         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Normal");
+        normal->format = find_color_format(required_normal_formats(), color_format_requirements(), "normal");
+        normal->setup_render_target_texture();
+
+        specular         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Specular");
+        specular->format = find_color_format(required_specular_formats(), color_format_requirements(), "specular");
+        specular->setup_render_target_texture();
+
+        depth         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Depth");
+        depth->format = find_color_format(required_depth_formats(), depth_format_кequirements(), "depth");
+        depth->setup_render_target_texture();
 
 
         render_pass = Object::new_instance_named<RenderPass>("Engine::GBuffer::RenderPass");
 
         render_pass->has_depth_stancil                      = true;
         render_pass->depth_stencil_attachment.clear_on_bind = true;
-        render_pass->depth_stencil_attachment.format        = _M_color_formats.back();
+        render_pass->depth_stencil_attachment.format        = depth->format;
         render_pass->depth_stencil_attachment.mip_level     = 0;
 
+
+        Texture2D* textures[] = {albedo, position, normal, specular};
         for (int i = 0; i < 4; i++)
         {
             RenderPass::Attachment attachment;
             attachment.clear_on_bind = true;
             attachment.mip_level     = 0;
-            attachment.format        = _M_color_formats[i];
+            attachment.format        = textures[i]->format;
             render_pass->color_attachments.push_back(attachment);
         }
 
         render_pass->init_resource();
+
+        RenderTarget::Attachment attachment;
+
+        for (int i = 0; i < 4; i++)
+        {
+            attachment.texture   = textures[i];
+            attachment.mip_level = 0;
+            color_attachments.push_back(attachment);
+            color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
+        }
+
+        depth_stencil_attachment.mip_level = 0;
+        depth_stencil_attachment.texture   = depth.ptr();
+
         init();
     }
 
@@ -111,44 +138,36 @@ namespace Engine
         info_log("GBuffer", "Destroy GBuffer");
     }
 
+    RHI_Object* delete_me;
+
     void GBuffer::init()
     {
-        size = Window::instance()->size();
-
-
-        const char* names[]            = {"Albedo", "Position", "Normal", "Specular", "Depth"};
         Pointer<Texture2D>* textures[] = {&albedo, &position, &normal, &specular, &depth};
+        size                           = Window::instance()->size();
 
         for (int i = 0; i < 5; i++)
         {
-            Texture2D* current_texture =
-                    Object::new_instance_named<Texture2D>(Strings::format("Engine::GBuffer::{}", names[i]));
-            (*(textures[i])) = current_texture;
-
-            current_texture->size   = size;
-            current_texture->format = _M_color_formats[i];
-            current_texture->setup_render_target_texture();
-
-            current_texture->init_resource();
+            Texture2D* texture = textures[i]->ptr();
+            texture->size = size;
+            texture->init_resource();
         }
 
-        RenderTarget::Attachment attachment;
-
-        for (int i = 0; i < 4; i++)
-        {
-            attachment.texture   = textures[i]->ptr();
-            attachment.mip_level = 0;
-            color_attachments.push_back(attachment);
-            color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
-        }
-
-        depth_stencil_attachment.mip_level = 0;
-        depth_stencil_attachment.texture   = depth.ptr();
         init_resource();
     }
 
+
+    struct InitGBuffer : public ExecutableObject {
+
+        int_t execute() override
+        {
+            GBuffer::instance()->resize();
+            return sizeof(InitGBuffer);
+        }
+    };
+
     GBuffer& GBuffer::resize()
     {
+        init();
         return *this;
     }
 }// namespace Engine

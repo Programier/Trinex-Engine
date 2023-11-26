@@ -39,6 +39,12 @@ namespace Engine
         return *this;
     }
 
+    NoApi& NoApi::destroy_object(RHI_Object*)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
     Identifier NoApi::imgui_texture_id(const Identifier&)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);

@@ -112,6 +112,12 @@ namespace Engine
         return _M_window->vsync();
     }
 
+    OpenGL& OpenGL::destroy_object(RHI_Object* object)
+    {
+        delete object;
+        return *this;
+    }
+
     OpenGL& OpenGL::on_window_size_changed()
     {
         return *this;

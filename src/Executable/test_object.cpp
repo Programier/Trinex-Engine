@@ -42,6 +42,10 @@ namespace Engine
         vertex_shader->attributes.back().format = ColorFormat::R8G8B8A8Unorm;
 
         vertex_shader->init_global_ubo({0, 0});
+        vertex_shader->uniform_buffers.emplace_back();
+        auto& ubo = vertex_shader->uniform_buffers.back();
+        ubo.location = {2, 0};
+        ubo.size = sizeof(Matrix4f);
 
         vertex_shader->init_resource();
         return vertex_shader;

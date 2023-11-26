@@ -22,9 +22,6 @@ namespace Engine
 
 
     private:
-        static GBuffer* _M_instance;
-        Vector<ColorFormat> _M_color_formats;
-
         GBuffer();
         ~GBuffer();
 
