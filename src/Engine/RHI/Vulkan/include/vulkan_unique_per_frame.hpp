@@ -10,8 +10,8 @@ namespace Engine
         template<typename... Args>
         VulkanUniquePerFrame(Args&&... args)
         {
-            _M_instances.resize(MAIN_FRAMEBUFFERS_COUNT);
-            for (int i = 0; i < MAIN_FRAMEBUFFERS_COUNT; ++i)
+            _M_instances.resize(API->_M_framebuffers_count);
+            for (uint32_t i = 0; i < API->_M_framebuffers_count; ++i)
             {
                 _M_instances[i] = new Type(std::forward<Args>(args)...);
             }

@@ -27,13 +27,6 @@ namespace Engine
     };
 
 
-    struct VulkanSyncObject {
-        vk::Semaphore image_present;
-        VulkanSyncObject();
-        ~VulkanSyncObject();
-    };
-
-
     struct VulkanTexture;
 
     struct Garbage {
@@ -74,10 +67,10 @@ namespace Engine
         vk::Queue _M_present_queue;
 
         vk::PhysicalDeviceProperties _M_properties;
-        vk::DescriptorPool _M_imgui_descriptor_pool;
+        vk::SurfaceCapabilitiesKHR _M_surface_capabilities;
 
-        bool _M_need_update_image_index = true;
-        SwapChain* _M_swap_chain        = nullptr;
+        vk::DescriptorPool _M_imgui_descriptor_pool;
+        SwapChain* _M_swap_chain = nullptr;
 
         VulkanMainFrameBuffer* _M_main_framebuffer   = nullptr;
         struct VulkanRenderPass* _M_main_render_pass = nullptr;
@@ -88,10 +81,11 @@ namespace Engine
 
         Vector<VulkanFramebuffer*> _M_framebuffer_list;
 
-        Vector<VulkanSyncObject> _M_sync_objects;
-
-        uint32_t _M_current_buffer = 0;
-        size_t _M_current_frame    = 0;
+        uint32_t _M_framebuffers_count = 0;
+        uint32_t _M_image_index        = 0;
+        uint32_t _M_current_buffer     = 0;
+        uint32_t _M_prev_buffer        = 0;
+        size_t _M_current_frame        = 0;
 
         //////////////////////////////////////////////////////////////
 

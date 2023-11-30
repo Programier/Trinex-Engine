@@ -18,17 +18,6 @@
 
 namespace Engine
 {
-    VulkanSyncObject::VulkanSyncObject()
-    {
-        image_present = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
-    }
-
-    VulkanSyncObject::~VulkanSyncObject()
-    {
-        DESTROY_CALL(destroySemaphore, image_present);
-    }
-
-
     Vector<const char*> VulkanAPI::device_extensions = {VK_KHR_MAINTENANCE1_EXTENSION_NAME,
                                                         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                                                         VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME};
@@ -116,7 +105,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::destroy_object(RHI_Object* object)
     {
-        _M_garbage.emplace_back(object, _M_current_frame + MAIN_FRAMEBUFFERS_COUNT);
+        _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
         return *this;
     }
 
@@ -286,8 +275,9 @@ namespace Engine
 
         _M_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
 
-        _M_properties = _M_physical_device.getProperties();
-        _M_renderer   = _M_properties.deviceName.data();
+        _M_properties           = _M_physical_device.getProperties();
+        _M_surface_capabilities = _M_physical_device.getSurfaceCapabilitiesKHR(_M_surface);
+        _M_renderer             = _M_properties.deviceName.data();
 
         vkb::DeviceBuilder device_builder(selected_device.value());
         vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
@@ -325,8 +315,6 @@ namespace Engine
                 (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdBeginDebugUtilsLabelEXT");
         pfn.vkCmdEndDebugUtilsLabelEXT =
                 (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdEndDebugUtilsLabelEXT");
-
-        _M_sync_objects.resize(MAIN_FRAMEBUFFERS_COUNT);
     }
 
 
@@ -456,7 +444,7 @@ namespace Engine
     std::size_t count_draw_calls = 0;
     VulkanAPI& VulkanAPI::swap_buffer()
     {
-        _M_current_buffer = (_M_current_buffer + 1) % MAIN_FRAMEBUFFERS_COUNT;
+        _M_current_buffer = (_M_current_buffer + 1) % _M_framebuffers_count;
         ++_M_current_frame;
         count_draw_calls = 0;
         return *this;
@@ -464,16 +452,9 @@ namespace Engine
 
     vk::ResultValue<uint32_t> VulkanAPI::swapchain_image_index()
     {
-        static vk::ResultValue<uint32_t> result(vk::Result::eSuccess, 0);
-        if (_M_need_update_image_index)
-        {
-
-            result = _M_device.acquireNextImageKHR(_M_swap_chain->_M_swap_chain, UINT64_MAX,
-                                                   _M_sync_objects[API->_M_current_buffer].image_present, nullptr);
-
-            _M_need_update_image_index = false;
-        }
-        return result;
+        return _M_device.acquireNextImageKHR(
+                _M_swap_chain->_M_swap_chain, UINT64_MAX,
+                _M_main_framebuffer->_M_framebuffers[API->_M_current_buffer]->_M_image_present, nullptr);
     }
 
 
@@ -487,14 +468,12 @@ namespace Engine
             recreate_swap_chain();
         }
 
-        _M_need_update_image_index = true;
-        auto current_buffer_index  = API->swapchain_image_index();
+        auto current_buffer_index = API->swapchain_image_index();
 
 
         if (current_buffer_index.result == vk::Result::eErrorOutOfDateKHR)
         {
             API->_M_need_recreate_swap_chain = true;
-            API->_M_need_update_image_index  = true;
             API->recreate_swap_chain();
             return begin_render();
         }
@@ -504,6 +483,9 @@ namespace Engine
         {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
+
+        _M_prev_buffer = _M_current_buffer;
+        _M_image_index = current_buffer_index.value;
 
         return *this;
     }
@@ -518,10 +500,12 @@ namespace Engine
             API->_M_state->_M_framebuffer->unbind();
         }
 
-        VulkanSyncObject& current_sync_object = _M_sync_objects[API->_M_current_buffer];
+        vk::Semaphore& current_image_present_semaphore =
+                _M_main_framebuffer->_M_framebuffers[API->_M_current_buffer]->_M_image_present;
+
 
         static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        vk::SubmitInfo submit_info(current_sync_object.image_present, wait_flags, {}, {});
+        vk::SubmitInfo submit_info(current_image_present_semaphore, wait_flags, {}, {});
 
         for (VulkanFramebuffer* framebuffer : _M_framebuffer_list)
         {
@@ -529,13 +513,11 @@ namespace Engine
                     .setSignalSemaphores(framebuffer->_M_render_finished);
 
             API->_M_graphics_queue.submit(submit_info, framebuffer->_M_fence);
-
             submit_info.setWaitSemaphores(framebuffer->_M_render_finished);
         }
 
-        auto swapchain_index = API->swapchain_image_index().value;
         vk::PresentInfoKHR present_info(_M_framebuffer_list.back()->_M_render_finished,
-                                        API->_M_swap_chain->_M_swap_chain, swapchain_index);
+                                        API->_M_swap_chain->_M_swap_chain, _M_image_index);
         vk::Result result;
         try
         {

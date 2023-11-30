@@ -4,6 +4,8 @@
 #include <vulkan_api.hpp>
 #include <vulkan_swap_chain.hpp>
 
+#define INIT_FRAMEBUFFERS_COUNT 3
+
 namespace Engine
 {
     SwapChain::SwapChain()
@@ -16,6 +18,10 @@ namespace Engine
         }
 
         swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->_M_swap_chain_mode));
+
+        size_t images_count = glm::min(API->_M_surface_capabilities.minImageCount, API->_M_surface_capabilities.maxImageCount);
+        swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
+
         swapchain_builder.add_image_usage_flags(static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc |
                                                                                vk::ImageUsageFlagBits::eTransferDst));
 #if PLATFORM_ANDROID
@@ -50,6 +56,8 @@ namespace Engine
         }
 
         _M_images.reserve(_M_bootstrap_swapchain.image_count);
+        API->_M_framebuffers_count = _M_bootstrap_swapchain.image_count;
+
         for (auto& image : images_ret.value())
         {
             _M_images.push_back(vk::Image(image));

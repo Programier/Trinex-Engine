@@ -54,7 +54,11 @@ namespace Engine
     };
 
     struct VulkanMainFrameBufferFrame : public VulkanFramebuffer {
+        vk::Semaphore _M_image_present;
+
+        VulkanMainFrameBufferFrame();
         bool is_main_framebuffer() const override;
+        ~VulkanMainFrameBufferFrame();
     };
 
 

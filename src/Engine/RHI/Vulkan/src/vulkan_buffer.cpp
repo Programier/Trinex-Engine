@@ -26,7 +26,7 @@ namespace Engine
             return *this;
         }
 
-        size                = std::min(size, _M_size - offset);
+        size         = std::min(size, _M_size - offset);
         void* memory = map_memory();
         std::memcpy(memory, data, size);
         return *this;
@@ -74,7 +74,12 @@ namespace Engine
 
     void VulkanVertexBuffer::bind(byte stream_index, size_t offset)
     {
-        API->current_command_buffer().bindVertexBuffers(stream_index, _M_buffer._M_buffer, {offset});
+        VulkanVertexBuffer*& current = API->_M_state->_M_current_vertex_buffer[stream_index];
+        if (current != this)
+        {
+            API->current_command_buffer().bindVertexBuffers(stream_index, _M_buffer._M_buffer, {offset});
+            current = this;
+        }
     }
 
 
@@ -93,7 +98,12 @@ namespace Engine
 
     void VulkanIndexBuffer::bind(size_t offset)
     {
-        API->current_command_buffer().bindIndexBuffer(_M_buffer._M_buffer, offset, _M_index_type);
+        VulkanIndexBuffer*& current = API->_M_state->_M_current_index_buffer;
+        if (current != this)
+        {
+            API->current_command_buffer().bindIndexBuffer(_M_buffer._M_buffer, offset, _M_index_type);
+            current = this;
+        }
     }
 
     void VulkanIndexBuffer::update(size_t offset, size_t size, const byte* data)
@@ -123,8 +133,8 @@ namespace Engine
 
     VulkanUniformBuffer::VulkanUniformBuffer(const byte* data, size_t size)
     {
-        _M_buffer.reserve(MAIN_FRAMEBUFFERS_COUNT);
-        for (int i = 0; i < MAIN_FRAMEBUFFERS_COUNT; i++)
+        _M_buffer.reserve(API->_M_framebuffers_count);
+        for (uint32_t i = 0; i < API->_M_framebuffers_count; i++)
         {
             VulkanBuffer* buffer = new VulkanBuffer();
             buffer->create(size, data, vk::BufferUsageFlagBits::eUniformBuffer);

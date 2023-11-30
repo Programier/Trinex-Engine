@@ -215,9 +215,12 @@ namespace Engine
 
         API->_M_state->_M_framebuffer = this;
 
+
+        //if(is_main_framebuffer())
         while (vk::Result::eTimeout == API->_M_device.waitForFences(_M_fence, VK_TRUE, UINT64_MAX))
         {
         }
+
 
         API->_M_device.resetFences(_M_fence);
 
@@ -328,7 +331,7 @@ namespace Engine
 
     void VulkanMainFrameBuffer::bind()
     {
-        _M_framebuffers[API->swapchain_image_index().value]->bind();
+        _M_framebuffers[API->_M_image_index]->bind();
     }
 
     void VulkanMainFrameBuffer::viewport(const ViewPort& viewport)
@@ -368,9 +371,19 @@ namespace Engine
         return false;
     }
 
+    VulkanMainFrameBufferFrame::VulkanMainFrameBufferFrame()
+    {
+        _M_image_present = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
+    }
+
     bool VulkanMainFrameBufferFrame::is_main_framebuffer() const
     {
         return true;
+    }
+
+    VulkanMainFrameBufferFrame::~VulkanMainFrameBufferFrame()
+    {
+        DESTROY_CALL(destroySemaphore, _M_image_present);
     }
 
     VulkanMainFrameBuffer::~VulkanMainFrameBuffer()
