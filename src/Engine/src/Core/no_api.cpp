@@ -201,6 +201,11 @@ namespace Engine
         return 0;
     }
 
+    void NoApi::line_width(float width)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+    }
+
     void NoApi::push_debug_stage(const char* stage, const Color& color)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);

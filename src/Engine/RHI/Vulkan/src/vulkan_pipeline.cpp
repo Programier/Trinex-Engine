@@ -1,6 +1,6 @@
-#include <Graphics/render_target_base.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pass.hpp>
+#include <Graphics/render_target_base.hpp>
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
@@ -15,10 +15,6 @@
 
 namespace Engine
 {
-    static Vector<vk::DynamicState> dynamic_states = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-    static vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, dynamic_states);
-
-
     static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage,
                                     uint_t set, uint_t binding, vk::DescriptorType type)
     {
@@ -36,17 +32,20 @@ namespace Engine
 
         for (auto& buffer : shader->uniform_buffers)
         {
-            push_layout_binding(out, stage, buffer.location.set, buffer.location.binding, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stage, buffer.location.set, buffer.location.binding,
+                                vk::DescriptorType::eUniformBuffer);
         }
 
         for (auto& texture : shader->textures)
         {
-            push_layout_binding(out, stage, texture.location.set, texture.location.binding, vk::DescriptorType::eSampledImage);
+            push_layout_binding(out, stage, texture.location.set, texture.location.binding,
+                                vk::DescriptorType::eSampledImage);
         }
 
         for (auto& sampler : shader->samplers)
         {
-            push_layout_binding(out, stage, sampler.location.set, sampler.location.binding, vk::DescriptorType::eSampler);
+            push_layout_binding(out, stage, sampler.location.set, sampler.location.binding,
+                                vk::DescriptorType::eSampler);
         }
 
         for (auto& combined_sampler : shader->combined_samplers)
@@ -288,6 +287,8 @@ namespace Engine
 
         State out_state;
         init_pipeline_state(out_state, *pipeline);
+
+        vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->_M_dynamic_states);
 
         vk::GraphicsPipelineCreateInfo pipeline_info(
                 {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr,

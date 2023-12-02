@@ -18,10 +18,6 @@
 
 namespace Engine
 {
-    Vector<const char*> VulkanAPI::device_extensions = {VK_KHR_MAINTENANCE1_EXTENSION_NAME,
-                                                        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                                        VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME};
-
 #if ENABLE_VALIDATION_LAYERS
     const Vector<const char*> validation_layers = {
             "VK_LAYER_KHRONOS_validation",
@@ -42,12 +38,26 @@ namespace Engine
         return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
     }
 
+
+    static constexpr inline size_t ext_maintenance1_index     = 0;
+    static constexpr inline size_t ext_swapchain_index        = 1;
+    static constexpr inline size_t ext_index_type_uint8_index = 2;
+
+
+    static constexpr inline size_t ext_count = 3;
+
     VulkanAPI::VulkanAPI()
     {
 
         _M_swap_chain_mode = present_mode_of(false);
         _M_state           = new VulkanState();
         _M_state->reset();
+
+        _M_device_extensions.resize(ext_count);
+
+        _M_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
+        _M_device_extensions[ext_swapchain_index]        = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false};
+        _M_device_extensions[ext_index_type_uint8_index] = {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false};
     }
 
     VulkanAPI::~VulkanAPI()
@@ -258,7 +268,17 @@ namespace Engine
         features.wideLines         = VK_TRUE;
 
         phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
-        phys_device_selector.add_required_extensions(device_extensions);
+
+
+        for (VulkanExtention& extension : _M_device_extensions)
+        {
+            if (extension.required)
+                phys_device_selector.add_required_extension(extension.name);
+            else
+                phys_device_selector.add_desired_extension(extension.name);
+        }
+
+
         phys_device_selector.allow_any_gpu_device_type(false);
 #if USE_INTEGRATED_GPU
         phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
@@ -274,15 +294,18 @@ namespace Engine
         }
 
         _M_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
+        check_extentions();
 
         _M_properties           = _M_physical_device.getProperties();
+        _M_features             = _M_physical_device.getFeatures();
         _M_surface_capabilities = _M_physical_device.getSurfaceCapabilitiesKHR(_M_surface);
         _M_renderer             = _M_properties.deviceName.data();
 
         vkb::DeviceBuilder device_builder(selected_device.value());
+
+        /// FEATURES
         vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
         device_builder.add_pNext(&idx_byte_feature);
-
 
         auto device_ret = device_builder.build();
         if (!device_ret)
@@ -310,7 +333,38 @@ namespace Engine
         _M_present_queue  = vk::Queue(present_queue.value());
 
 
-        // Initialize pfn
+        initialize_pfn();
+        enable_dynamic_states();
+    }
+
+
+    void VulkanAPI::check_extentions()
+    {
+        auto properties = _M_physical_device.enumerateDeviceExtensionProperties();
+        for (VulkanExtention& extension : _M_device_extensions)
+        {
+            for (auto& prop : properties)
+            {
+                if (std::strcmp(extension.name, prop.extensionName) == 0)
+                {
+                    extension.enabled = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    void VulkanAPI::enable_dynamic_states()
+    {
+        _M_dynamic_states = {
+                vk::DynamicState::eViewport,
+                vk::DynamicState::eScissor,
+                vk::DynamicState::eLineWidth,
+        };
+    }
+
+    void VulkanAPI::initialize_pfn()
+    {
         pfn.vkCmdBeginDebugUtilsLabelEXT =
                 (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdBeginDebugUtilsLabelEXT");
         pfn.vkCmdEndDebugUtilsLabelEXT =

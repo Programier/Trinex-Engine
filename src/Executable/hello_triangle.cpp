@@ -28,6 +28,8 @@ namespace Engine
     Camera* camera    = nullptr;
     int output_buffer = 0;
 
+    float line_width = 1.0f;
+
     class HelloTriangleSystem : public Singletone<HelloTriangleSystem, System>
     {
         declare_class(HelloTriangleSystem, System);
@@ -174,6 +176,7 @@ namespace Engine
             {
                 mesh->lods[0].render();
                 ubo->rhi_bind({2, 0});
+                engine_instance->rhi()->line_width(line_width);
                 engine_instance->rhi()->draw_indexed(mesh->lods[0].indices->elements_count(), 0);
             }
             engine_instance->rhi()->pop_debug_stage();

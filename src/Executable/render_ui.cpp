@@ -8,6 +8,7 @@
 
 namespace Engine
 {
+    extern float line_width;
     class SystemGraphRendererSystem : public Singletone<SystemGraphRendererSystem, System>
     {
         declare_class(SystemGraphRendererSystem, System);
@@ -49,6 +50,8 @@ namespace Engine
             static String renderer = engine_instance->rhi()->renderer();
             ImGui::Text("API: %s", engine_instance->api_name().c_str());
             ImGui::Text("Renderer: %s", renderer.c_str());
+
+            ImGui::DragFloat("Line Width", &line_width, 0.01, 1.0f, 5.f);
             show_system_tree(base_system);
 
             ImGui::End();

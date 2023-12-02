@@ -127,6 +127,9 @@ namespace Engine
         virtual ColorFormatFeatures color_format_features(ColorFormat format)                        = 0;
         virtual size_t render_target_buffer_count()                                                  = 0;
 
+        // Dynamic state
+        virtual void line_width(float width) = 0;
+
         virtual void push_debug_stage(const char* stage, const Color& color = {}) = 0;
         virtual void pop_debug_stage()                                            = 0;
 

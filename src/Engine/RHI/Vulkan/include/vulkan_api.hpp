@@ -37,8 +37,17 @@ namespace Engine
         {}
     };
 
+
+    struct VulkanExtention {
+        const char* name;
+        bool required = false;
+        bool enabled  = false;
+    };
+
     struct VulkanAPI : public RHI {
-        static Vector<const char*> device_extensions;
+        Vector<VulkanExtention> _M_device_extensions;
+        Vector<vk::DynamicState> _M_dynamic_states;
+
         static VulkanAPI* _M_vulkan;
 
         List<Garbage> _M_garbage;
@@ -56,6 +65,7 @@ namespace Engine
             PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT     = nullptr;
         } pfn;
 
+
         // API DATA
         vkb::Instance _M_instance;
         vk::SurfaceKHR _M_surface;
@@ -67,6 +77,8 @@ namespace Engine
         vk::Queue _M_present_queue;
 
         vk::PhysicalDeviceProperties _M_properties;
+        vk::PhysicalDeviceFeatures _M_features;
+
         vk::SurfaceCapabilitiesKHR _M_surface_capabilities;
 
         vk::DescriptorPool _M_imgui_descriptor_pool;
@@ -98,6 +110,10 @@ namespace Engine
         void create_framebuffers();
         void create_command_buffer();
         void create_render_pass();
+
+        void check_extentions();
+        void enable_dynamic_states();
+        void initialize_pfn();
 
 
         vk::Extent2D surface_size() const;
@@ -165,6 +181,9 @@ namespace Engine
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat format) override;
         size_t render_target_buffer_count() override;
+
+        void line_width(float width) override;
+
         void push_debug_stage(const char* stage, const Color& color) override;
         void pop_debug_stage() override;
 
