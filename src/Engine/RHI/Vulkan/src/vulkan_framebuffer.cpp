@@ -53,14 +53,34 @@ namespace Engine
                                                           _M_owner->_M_render_pass->_M_render_pass, _M_attachments,
                                                           _M_owner->_M_size.width, _M_owner->_M_size.height, 1);
         _M_framebuffer = API->_M_device.createFramebuffer(framebuffer_create_info);
+    }
 
 
-        // Initialize command buffers
-        _M_command_buffer = API->_M_device.allocateCommandBuffers(
-                vk::CommandBufferAllocateInfo(API->_M_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+    void VulkanRenderTargetFrame::push_barriers(size_t count)
+    {
+        auto src_stage_mask =
+                vk::PipelineStageFlagBits::eLateFragmentTests | vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        auto dest_stage_mask = vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader |
+                               vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader |
+                               vk::PipelineStageFlagBits::eTransfer;
 
-        _M_render_finished = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
-        _M_fence           = API->_M_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+
+        std::vector<vk::MemoryBarrier> barriers(count);
+
+        auto src_access_mask =
+                vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+        auto dst_access_mask = vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eVertexAttributeRead |
+                               vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
+                               vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
+
+        for (auto& barrier : barriers)
+        {
+            barrier.setSrcAccessMask(src_access_mask);
+            barrier.setDstAccessMask(dst_access_mask);
+        }
+
+
+        API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barriers, {}, {});
     }
 
     void VulkanRenderTargetFrame::bind()
@@ -68,26 +88,20 @@ namespace Engine
         if (API->_M_state->_M_framebuffer == this)
             return;
 
+
         if (API->_M_state->_M_framebuffer)
-            API->_M_state->_M_framebuffer->unbind();
-
-        API->_M_state->_M_framebuffer = this;
-
-
-        while (vk::Result::eTimeout == API->_M_device.waitForFences(_M_fence, VK_TRUE, UINT64_MAX))
         {
+            size_t count = API->_M_state->_M_framebuffer->_M_attachments.size();
+            API->_M_state->_M_framebuffer->unbind();
+            push_barriers(count);
         }
 
-        API->_M_device.resetFences(_M_fence);
 
-        _M_command_buffer.reset();
-        _M_command_buffer.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-
+        API->_M_state->_M_framebuffer = this;
         _M_owner->_M_render_pass_info.setFramebuffer(_M_framebuffer);
         API->current_command_buffer().beginRenderPass(_M_owner->_M_render_pass_info, vk::SubpassContents::eInline);
 
         update_viewport().update_scissors();
-        API->_M_framebuffer_list.push_back(this);
     }
 
     void VulkanRenderTargetFrame::unbind()
@@ -95,7 +109,6 @@ namespace Engine
         if (API->_M_state->_M_framebuffer == this)
         {
             API->current_command_buffer().endRenderPass();
-            API->current_command_buffer().end();
             API->_M_state->_M_framebuffer = nullptr;
         }
     }
@@ -137,12 +150,28 @@ namespace Engine
 
     VulkanMainRenderTargetFrame::VulkanMainRenderTargetFrame()
     {
-        _M_image_present = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
+        _M_image_present  = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
+        _M_command_buffer = API->_M_device.allocateCommandBuffers(
+                vk::CommandBufferAllocateInfo(API->_M_command_pool, vk::CommandBufferLevel::ePrimary, 1))[0];
+
+        _M_render_finished = API->_M_device.createSemaphore(vk::SemaphoreCreateInfo());
+        _M_fence           = API->_M_device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     }
 
     VulkanMainRenderTargetFrame::~VulkanMainRenderTargetFrame()
     {
         DESTROY_CALL(destroySemaphore, _M_image_present);
+        DESTROY_CALL(destroyFence, _M_fence);
+        DESTROY_CALL(destroySemaphore, _M_render_finished);
+    }
+
+    void VulkanMainRenderTargetFrame::wait()
+    {
+        while (vk::Result::eTimeout == API->_M_device.waitForFences(_M_fence, VK_TRUE, UINT64_MAX))
+        {
+        }
+
+        API->_M_device.resetFences(_M_fence);
     }
 
     bool VulkanMainRenderTargetFrame::is_main_frame()
@@ -385,7 +414,7 @@ namespace Engine
 
     RHI_RenderTarget* VulkanAPI::create_render_target(const RenderTarget* render_target)
     {
-        if(render_target->frames_count() != render_target_buffer_count())
+        if (render_target->frames_count() != render_target_buffer_count())
             throw EngineException("Frames count is mismatch with API requirements");
         return &(new VulkanRenderTarget())
                         ->init(render_target, render_target->render_pass->rhi_object<VulkanRenderPass>());
@@ -393,6 +422,12 @@ namespace Engine
 
     vk::CommandBuffer& VulkanAPI::current_command_buffer()
     {
-        return API->_M_state->_M_framebuffer->_M_command_buffer;
+        return reinterpret_cast<VulkanMainRenderTargetFrame*>(API->_M_main_framebuffer->_M_frames[_M_image_index])
+                ->_M_command_buffer;
+    }
+
+    struct VulkanMainRenderTargetFrame* VulkanAPI::current_main_frame()
+    {
+        return reinterpret_cast<VulkanMainRenderTargetFrame*>(API->_M_main_framebuffer->_M_frames[_M_image_index]);
     }
 }// namespace Engine

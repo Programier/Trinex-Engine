@@ -79,8 +79,6 @@ namespace Engine
         vk::CommandPool _M_command_pool;
         vk::PresentModeKHR _M_swap_chain_mode;
 
-        Vector<VulkanRenderTargetFrame*> _M_framebuffer_list;
-
         uint32_t _M_framebuffers_count = 0;
         uint32_t _M_image_index        = 0;
         uint32_t _M_current_buffer     = 0;
@@ -100,6 +98,7 @@ namespace Engine
         void create_framebuffers();
         void create_command_buffer();
         void create_render_pass();
+
 
         vk::Extent2D surface_size() const;
 
@@ -121,6 +120,7 @@ namespace Engine
                                 vk::DeviceMemory& image_memory, uint32_t layers);
 
         vk::CommandBuffer& current_command_buffer();
+        struct VulkanMainRenderTargetFrame* current_main_frame();
 
         //////////////////////////////////////////////////////////////
 

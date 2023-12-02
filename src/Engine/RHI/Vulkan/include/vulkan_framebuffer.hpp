@@ -10,10 +10,6 @@ namespace Engine
     struct VulkanRenderTargetFrame {
         vk::Framebuffer _M_framebuffer;
         Vector<vk::ImageView> _M_attachments;
-        vk::CommandBuffer _M_command_buffer;
-        vk::Semaphore _M_render_finished;
-        vk::Fence _M_fence;
-
         struct VulkanRenderTarget* _M_owner = nullptr;
 
 
@@ -22,6 +18,7 @@ namespace Engine
         void post_init();
         void destroy();
 
+        static void push_barriers(size_t count);
         void bind();
         void unbind();
         VulkanRenderTargetFrame& update_viewport();
@@ -35,10 +32,14 @@ namespace Engine
 
     struct VulkanMainRenderTargetFrame : public VulkanRenderTargetFrame {
         vk::Semaphore _M_image_present;
+        vk::CommandBuffer _M_command_buffer;
+        vk::Semaphore _M_render_finished;
+        vk::Fence _M_fence;
 
         VulkanMainRenderTargetFrame();
         ~VulkanMainRenderTargetFrame();
 
+        void wait();
         bool is_main_frame() override;
         vk::Semaphore* image_present_semaphore() override;
     };

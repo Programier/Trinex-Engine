@@ -487,37 +487,32 @@ namespace Engine
         _M_prev_buffer = _M_current_buffer;
         _M_image_index = current_buffer_index.value;
 
+
+        current_main_frame()->wait();
+        current_command_buffer().reset();
+        current_command_buffer().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        if (_M_framebuffer_list.empty())
-            return *this;
-
         if (API->_M_state->_M_framebuffer)
         {
             API->_M_state->_M_framebuffer->unbind();
         }
 
-        vk::Semaphore& current_image_present_semaphore =
-                *_M_main_framebuffer->_M_frames[API->_M_current_buffer]->image_present_semaphore();
+        current_command_buffer().end();
 
+        VulkanMainRenderTargetFrame* frame = current_main_frame();
 
         static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        vk::SubmitInfo submit_info(current_image_present_semaphore, wait_flags, {}, {});
+        vk::SubmitInfo submit_info(*frame->image_present_semaphore(), wait_flags, current_command_buffer(),
+                                   frame->_M_render_finished);
 
-        for (VulkanRenderTargetFrame* framebuffer : _M_framebuffer_list)
-        {
-            submit_info.setCommandBuffers(framebuffer->_M_command_buffer)
-                    .setSignalSemaphores(framebuffer->_M_render_finished);
+        API->_M_graphics_queue.submit(submit_info, frame->_M_fence);
 
-            API->_M_graphics_queue.submit(submit_info, framebuffer->_M_fence);
-            submit_info.setWaitSemaphores(framebuffer->_M_render_finished);
-        }
-
-        vk::PresentInfoKHR present_info(_M_framebuffer_list.back()->_M_render_finished,
-                                        API->_M_swap_chain->_M_swap_chain, _M_image_index);
+        vk::PresentInfoKHR present_info(frame->_M_render_finished, API->_M_swap_chain->_M_swap_chain, _M_image_index);
         vk::Result result;
         try
         {
@@ -549,7 +544,6 @@ namespace Engine
         {
             API->recreate_swap_chain();
         }
-        _M_framebuffer_list.clear();
         _M_state->reset();
         return *this;
     }

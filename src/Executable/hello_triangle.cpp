@@ -109,19 +109,20 @@ namespace Engine
 
         void create_models()
         {
-            int_t size = 10;
+            int_t size = 2;
 
             models.reserve(size * size * size);
             matrices.reserve(size * size * size);
 
 
-            for (int_t x = -size / 2; x < size / 2; x++)
+            for (int_t x = 0; x < size; x++)
             {
-                for (int_t y = -size / 2; y < size / 2; y++)
+                for (int_t y = 0; y < size; y++)
                 {
-                    for (int_t z = -size / 2; z < size / 2; z++)
+                    for (int_t z = 0; z < size; z++)
                     {
-                        glm::mat4 model    = glm::translate(glm::mat4(1.0f), glm::vec3(x * 3, y * 3, z * 3));
+                        glm::mat4 model =
+                                glm::mat4(1.0);//= glm::translate(glm::mat4(1.0f), glm::vec3(x * 3, y * 3, z * 3));
                         matrices.push_back(model);
                         UniformBuffer* ubo = Object::new_instance<UniformBuffer>();
                         ubo->init_size     = sizeof(model);
@@ -209,21 +210,24 @@ namespace Engine
             camera->update(dt);
 
 
-            int_t size = 10;
+            int_t size = 1;
 
             size_t index = 0;
 
-            for (int_t x = -size / 2; x < size / 2; x++)
+            for (int_t x = 0; x < size; x++)
             {
-                for (int_t y = -size / 2; y < size / 2; y++)
+                for (int_t y = 0; y < size; y++)
                 {
-                    for (int_t z = -size / 2; z < size / 2; z++)
+                    for (int_t z = 0; z < size; z++)
                     {
-                        auto& ubo = models[index];
-                        auto& data = matrices[index];
+                        if (x + y + z != 0)
+                        {
+                            auto& ubo  = models[index];
+                            auto& data = matrices[index];
 
-                        data = glm::rotate(data, dt, {x, y, z});
-                        ubo->rhi_update(0, sizeof(data), reinterpret_cast<const byte*>(&data));
+                            data = glm::rotate(data, dt, {x, y, z});
+                            ubo->rhi_update(0, sizeof(data), reinterpret_cast<const byte*>(&data));
+                        }
 
                         index++;
                     }
