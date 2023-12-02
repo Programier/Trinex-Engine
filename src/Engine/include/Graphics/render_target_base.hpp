@@ -30,6 +30,7 @@ namespace Engine
         ViewPort _M_viewport;
         Scissor _M_scissor;
         Pointer<class UniformBuffer> _M_uniform_buffer;
+        byte _M_frame_index = -1;
 
     public:
         Pointer<RenderPass> render_pass;

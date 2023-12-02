@@ -44,6 +44,7 @@ namespace Engine
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat) override;
+        size_t render_target_buffer_count() override;
         void push_debug_stage(const char* stage, const Color& color) override;
         void pop_debug_stage() override;
 

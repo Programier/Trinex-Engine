@@ -16,7 +16,7 @@ namespace Engine
 
         bool _M_has_depth_stencil_buffer = false;
 
-        void bind() override;
+        Index bind() override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;
@@ -29,7 +29,7 @@ namespace Engine
         void update_scissors();
 
         OpenGL_RenderTarget& init(const class RenderTarget* render_target);
-        OpenGL_RenderTarget& attach_texture(const void* texture_attachmend, GLuint attachment);
+        OpenGL_RenderTarget& attach_texture(const class Texture2D* texture_attachmend, GLuint attachment);
     };
 
     struct OpenGL_MainRenderTarget : public OpenGL_RenderTarget

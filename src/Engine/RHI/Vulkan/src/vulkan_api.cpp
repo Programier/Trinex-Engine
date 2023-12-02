@@ -454,7 +454,7 @@ namespace Engine
     {
         return _M_device.acquireNextImageKHR(
                 _M_swap_chain->_M_swap_chain, UINT64_MAX,
-                _M_main_framebuffer->_M_framebuffers[API->_M_current_buffer]->_M_image_present, nullptr);
+                *_M_main_framebuffer->_M_frames[API->_M_current_buffer]->image_present_semaphore(), nullptr);
     }
 
 
@@ -501,13 +501,13 @@ namespace Engine
         }
 
         vk::Semaphore& current_image_present_semaphore =
-                _M_main_framebuffer->_M_framebuffers[API->_M_current_buffer]->_M_image_present;
+                *_M_main_framebuffer->_M_frames[API->_M_current_buffer]->image_present_semaphore();
 
 
         static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
         vk::SubmitInfo submit_info(current_image_present_semaphore, wait_flags, {}, {});
 
-        for (VulkanFramebuffer* framebuffer : _M_framebuffer_list)
+        for (VulkanRenderTargetFrame* framebuffer : _M_framebuffer_list)
         {
             submit_info.setCommandBuffers(framebuffer->_M_command_buffer)
                     .setSignalSemaphores(framebuffer->_M_render_finished);
@@ -681,5 +681,10 @@ namespace Engine
         {
             pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer());
         }
+    }
+
+    size_t VulkanAPI::render_target_buffer_count()
+    {
+        return _M_framebuffers_count;
     }
 }// namespace Engine

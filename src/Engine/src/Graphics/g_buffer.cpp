@@ -10,6 +10,15 @@
 
 namespace Engine
 {
+
+    static constexpr inline size_t albedo_index   = 0;
+    static constexpr inline size_t position_index = 1;
+    static constexpr inline size_t normal_index   = 2;
+    static constexpr inline size_t specular_index = 3;
+
+    static constexpr inline size_t gbuffer_color_attachments = 4;
+
+
     implement_class(GBuffer, "Engine");
     implement_default_initialize_class(GBuffer);
 
@@ -58,7 +67,7 @@ namespace Engine
 
 
     static ColorFormat find_color_format(const Vector<ColorFormat>& formats, ColorFormatFeatures features,
-                                         const String& type)
+                                         const char* type)
     {
         for (const ColorFormat& format : formats)
         {
@@ -72,63 +81,83 @@ namespace Engine
     }
 
 
+    struct AttachmentTextureInfo {
+        Vector<ColorFormat> (*required_formats)() = nullptr;
+        const char* name                          = nullptr;
+    };
+
+    static AttachmentTextureInfo attachment_texture_info[gbuffer_color_attachments] = {
+            {required_albedo_formats, "Albedo"},
+            {required_position_formats, "Position"},
+            {required_normal_formats, "Normal"},
+            {required_specular_formats, "Specular"},
+    };
+
+
     GBuffer::GBuffer()
     {
         info_log("GBuffer", "Creating GBuffer");
 
-        albedo         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Albedo");
-        albedo->format = find_color_format(required_albedo_formats(), color_format_requirements(), "albedo");
-        albedo->setup_render_target_texture();
-
-        position         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Position");
-        position->format = find_color_format(required_position_formats(), color_format_requirements(), "position");
-        position->setup_render_target_texture();
-
-        normal         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Normal");
-        normal->format = find_color_format(required_normal_formats(), color_format_requirements(), "normal");
-        normal->setup_render_target_texture();
-
-        specular         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Specular");
-        specular->format = find_color_format(required_specular_formats(), color_format_requirements(), "specular");
-        specular->setup_render_target_texture();
-
-        depth         = Object::new_instance_named<Texture2D>("Engine::GBuffer::Depth");
-        depth->format = find_color_format(required_depth_formats(), depth_format_кequirements(), "depth");
-        depth->setup_render_target_texture();
-
-
+        // Creating render pass
         render_pass = Object::new_instance_named<RenderPass>("Engine::GBuffer::RenderPass");
 
         render_pass->has_depth_stancil                      = true;
         render_pass->depth_stencil_attachment.clear_on_bind = true;
-        render_pass->depth_stencil_attachment.format        = depth->format;
-        render_pass->depth_stencil_attachment.mip_level     = 0;
+        render_pass->depth_stencil_attachment.format =
+                find_color_format(required_depth_formats(), depth_format_кequirements(), "depth");
 
+        // Initialize color attachments
+        render_pass->color_attachments.resize(gbuffer_color_attachments);
 
-        Texture2D* textures[] = {albedo, position, normal, specular};
-        for (int i = 0; i < 4; i++)
+        for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
-            RenderPass::Attachment attachment;
-            attachment.clear_on_bind = true;
-            attachment.mip_level     = 0;
-            attachment.format        = textures[i]->format;
-            render_pass->color_attachments.push_back(attachment);
-        }
+            render_pass->color_attachments[i].clear_on_bind = true;
+            render_pass->color_attachments[i].format =
+                    find_color_format(attachment_texture_info[i].required_formats(), color_format_requirements(),
+                                      attachment_texture_info[i].name);
 
-        render_pass->init_resource();
-
-        RenderTarget::Attachment attachment;
-
-        for (int i = 0; i < 4; i++)
-        {
-            attachment.texture   = textures[i];
-            attachment.mip_level = 0;
-            color_attachments.push_back(attachment);
             color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
         }
 
-        depth_stencil_attachment.mip_level = 0;
-        depth_stencil_attachment.texture   = depth.ptr();
+        depth_stencil_clear.depth   = 1.f;
+        depth_stencil_clear.stencil = 0.0f;
+
+        render_pass->init_resource();
+
+        // Initialize render target frames
+        size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
+        Index frame_index = 0;
+
+        while(frame_index < frames_count)
+        {
+            push_frame(new GBuffer::Frame());
+            frame_index++;
+        }
+
+        frame_index = 0;
+
+        for (RenderTarget::Frame* frame : _M_frames)
+        {
+            frame->depth_stencil_attachment =
+                    Object::new_instance_named<Texture2D>(Strings::format("Engine::GBuffer::Depth {}", frame_index));
+            frame->depth_stencil_attachment->format = render_pass->depth_stencil_attachment.format;
+            frame->depth_stencil_attachment->setup_render_target_texture();
+
+
+            frame->color_attachments.resize(gbuffer_color_attachments);
+            for (size_t i = 0; i < gbuffer_color_attachments; i++)
+            {
+                auto& info         = attachment_texture_info[i];
+                Texture2D* texture = Object::new_instance_named<Texture2D>(
+                        Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
+
+                texture->format = render_pass->color_attachments[i].format;
+                texture->setup_render_target_texture();
+                frame->color_attachments[i] = texture;
+            }
+
+            frame_index++;
+        }
 
         init();
     }
@@ -140,16 +169,44 @@ namespace Engine
 
     RHI_Object* delete_me;
 
-    void GBuffer::init()
+    void GBuffer::init(bool is_reinit)
     {
-        Pointer<Texture2D>* textures[] = {&albedo, &position, &normal, &specular, &depth};
-        size                           = Window::instance()->size();
-
-        for (int i = 0; i < 5; i++)
+        // Initilize/reinitialzie textures
+        Size2D new_size = Window::instance()->cached_size();
+        if (is_reinit)
         {
-            Texture2D* texture = textures[i]->ptr();
-            texture->size = size;
-            texture->init_resource();
+            Size2D scale_factor = new_size / size;
+            _M_viewport.size *= scale_factor;
+            _M_viewport.pos *= scale_factor;
+
+            _M_scissor.size *= scale_factor;
+            _M_scissor.pos *= scale_factor;
+
+            size = new_size;
+        }
+        else
+        {
+            size                  = new_size;
+            _M_viewport.size      = size;
+            _M_viewport.pos       = {0, 0};
+            _M_viewport.min_depth = 0.0f;
+            _M_viewport.max_depth = 1.0f;
+
+            _M_scissor.pos  = {0, 0};
+            _M_scissor.size = size;
+        }
+
+
+        for (RenderTarget::Frame* frame : _M_frames)
+        {
+            for(Texture2D* texture : frame->color_attachments)
+            {
+                texture->size = size;
+                texture->init_resource();
+            }
+
+            frame->depth_stencil_attachment->size = size;
+            frame->depth_stencil_attachment->init_resource();
         }
 
         init_resource();
@@ -167,7 +224,7 @@ namespace Engine
 
     GBuffer& GBuffer::resize()
     {
-        init();
+        init(true);
         return *this;
     }
 }// namespace Engine

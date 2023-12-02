@@ -63,6 +63,7 @@ namespace Engine
         Window* window() const;
         SystemName system_type() const;
         EngineAPI api() const;
+        const String& api_name() const;
         bool is_inited() const;
         RHI* rhi() const;
         class Renderer* renderer() const;

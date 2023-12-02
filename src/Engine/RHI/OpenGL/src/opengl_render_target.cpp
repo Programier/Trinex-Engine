@@ -24,7 +24,7 @@ namespace Engine
     }
 
 
-    void OpenGL_RenderTarget::bind()
+    Index OpenGL_RenderTarget::bind()
     {
         if (OPENGL_API->_M_current_render_target != this)
         {
@@ -36,6 +36,8 @@ namespace Engine
 
             _M_render_pass->apply(this);
         }
+
+        return 0;
     }
 
     void OpenGL_RenderTarget::viewport(const ViewPort& viewport)
@@ -120,20 +122,18 @@ namespace Engine
         _M_scissor.size = render_target->size;
         _M_scissor.pos  = {0.0f, 0.0f};
 
-        for (auto& color_attachment : render_target->color_attachments)
+        for (const Texture2D* color_attachment : render_target->frame(0)->color_attachments)
         {
-            const void* attachment_address = &color_attachment;
-            info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_attachment.texture, this);
-            attach_texture(attachment_address, GL_COLOR_ATTACHMENT0 + index);
+            info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_attachment, this);
+            attach_texture(color_attachment, GL_COLOR_ATTACHMENT0 + index);
             index++;
         }
 
         if (_M_render_pass->_M_has_depth_stencil_attachment)
         {
-            auto& depth_attachment = render_target->depth_stencil_attachment;
-            attach_texture(
-                    &depth_attachment,
-                    get_attachment_type(depth_attachment.texture->rhi_object<OpenGL_Texture>()->_M_format._M_format));
+            const Texture2D* depth_attachment = render_target->frame(0)->depth_stencil_attachment;
+            attach_texture(depth_attachment,
+                           get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->_M_format._M_format));
         }
 
         if (OPENGL_API->_M_current_render_target != nullptr)
@@ -144,15 +144,11 @@ namespace Engine
         return *this;
     }
 
-    OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const void* _texture_attachmend, GLuint attachment)
+    OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const Texture2D* texture_attachment, GLuint attachment)
     {
-        const RenderTarget::Attachment& texture_attachment =
-                *reinterpret_cast<const RenderTarget::Attachment*>(_texture_attachmend);
+        OpenGL_Texture* texture = texture_attachment->rhi_object<OpenGL_Texture>();
 
-        OpenGL_Texture* texture = texture_attachment.texture->rhi_object<OpenGL_Texture>();
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->_M_type, texture->_M_id,
-                               texture_attachment.mip_level);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->_M_type, texture->_M_id, 0);
 
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -185,6 +181,8 @@ namespace Engine
 
     RHI_RenderTarget* OpenGL::create_render_target(const RenderTarget* target)
     {
+        if(target->frames_count() != render_target_buffer_count())
+            throw EngineException("Frames count is mismatch with API requirements");
         return &((new OpenGL_RenderTarget())->init(target));
     }
 }// namespace Engine

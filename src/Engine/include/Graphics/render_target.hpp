@@ -13,17 +13,29 @@ namespace Engine
         declare_class(RenderTarget, RenderTargetBase);
 
     public:
-        struct Attachment {
-            Texture2D* texture    = nullptr;
-            MipMapLevel mip_level = 0;
+        struct Frame {
+            Vector<Pointer<Texture2D>> color_attachments;
+            Pointer<Texture2D> depth_stencil_attachment;
+
+            virtual ~Frame();
         };
 
-        Vector<Attachment> color_attachments;
-        Attachment depth_stencil_attachment;
+    protected:
+        Vector<Frame*> _M_frames;
+
+        RenderTarget& push_frame(Frame* frame);
+        RenderTarget& clear_frames(bool with_delete = true);
+
+    public:
         Vector<ColorClearValue> color_clear;
         DepthStencilClearValue depth_stencil_clear;
         Size2D size;
 
         RenderTarget& rhi_create() override;
+        Frame* current_frame() const;
+        Frame* frame(byte index) const;
+        size_t frames_count() const;
+
+        ~RenderTarget() override;
     };
 }// namespace Engine

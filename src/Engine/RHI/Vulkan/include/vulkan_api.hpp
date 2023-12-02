@@ -79,7 +79,7 @@ namespace Engine
         vk::CommandPool _M_command_pool;
         vk::PresentModeKHR _M_swap_chain_mode;
 
-        Vector<VulkanFramebuffer*> _M_framebuffer_list;
+        Vector<VulkanRenderTargetFrame*> _M_framebuffer_list;
 
         uint32_t _M_framebuffers_count = 0;
         uint32_t _M_image_index        = 0;
@@ -164,6 +164,7 @@ namespace Engine
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat format) override;
+        size_t render_target_buffer_count() override;
         void push_debug_stage(const char* stage, const Color& color) override;
         void pop_debug_stage() override;
 

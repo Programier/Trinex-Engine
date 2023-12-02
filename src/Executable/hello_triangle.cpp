@@ -188,7 +188,7 @@ namespace Engine
             vertices->rhi_bind(0);
             index_buffer->rhi_bind();
 
-            (&GBuffer::instance()->albedo)[output_buffer].ptr()->bind_combined(sampler, 0);
+            (GBuffer::instance()->current_frame()->color_attachments)[output_buffer].ptr()->bind_combined(sampler, 0);
 
             engine_instance->rhi()->draw_indexed(6, 0);
             engine_instance->rhi()->pop_debug_stage();
@@ -207,6 +207,28 @@ namespace Engine
         {
             Super::update(dt);
             camera->update(dt);
+
+
+            int_t size = 10;
+
+            size_t index = 0;
+
+            for (int_t x = -size / 2; x < size / 2; x++)
+            {
+                for (int_t y = -size / 2; y < size / 2; y++)
+                {
+                    for (int_t z = -size / 2; z < size / 2; z++)
+                    {
+                        auto& ubo = models[index];
+                        auto& data = matrices[index];
+
+                        data = glm::rotate(data, dt, {x, y, z});
+                        ubo->rhi_update(0, sizeof(data), reinterpret_cast<const byte*>(&data));
+
+                        index++;
+                    }
+                }
+            }
 
             render_gbuffer(dt).render_output().render_ui(dt);
 

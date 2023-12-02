@@ -2,6 +2,8 @@
 #include <Systems/imgui_system.hpp>
 #include <imgui.h>
 #include <Core/thread.hpp>
+#include <Graphics/rhi.hpp>
+#include <Core/engine.hpp>
 
 
 namespace Engine
@@ -44,6 +46,9 @@ namespace Engine
             ImGui::Begin("System Graph");
 
             ImGui::Text("FPS: %f\n", 1.0f / dt);
+            static String renderer = engine_instance->rhi()->renderer();
+            ImGui::Text("API: %s", engine_instance->api_name().c_str());
+            ImGui::Text("Renderer: %s", renderer.c_str());
             show_system_tree(base_system);
 
             ImGui::End();

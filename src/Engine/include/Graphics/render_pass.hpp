@@ -18,7 +18,6 @@ namespace Engine
     public:
         struct Attachment {
             ColorFormat format;
-            MipMapLevel mip_level = 0;
             bool clear_on_bind    = true;
         };
 

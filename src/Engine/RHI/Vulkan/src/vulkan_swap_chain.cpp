@@ -19,7 +19,7 @@ namespace Engine
 
         swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->_M_swap_chain_mode));
 
-        size_t images_count = glm::min(API->_M_surface_capabilities.minImageCount, API->_M_surface_capabilities.maxImageCount);
+        size_t images_count = glm::min(API->_M_surface_capabilities.minImageCount + 1, API->_M_surface_capabilities.maxImageCount);
         swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
 
         swapchain_builder.add_image_usage_flags(static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc |

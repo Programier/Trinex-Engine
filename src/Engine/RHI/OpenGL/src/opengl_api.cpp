@@ -181,6 +181,11 @@ namespace Engine
 
         _M_sampler_units.clear();
     }
+
+    size_t OpenGL::render_target_buffer_count()
+    {
+        return 1;
+    }
 }// namespace Engine
 
 

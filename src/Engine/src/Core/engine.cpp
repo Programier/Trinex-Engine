@@ -72,6 +72,10 @@ namespace Engine
         return _M_api;
     }
 
+    const String& EngineInstance::api_name() const
+    {
+        return engine_config.api;
+    }
 
     /////////////////// INITIALIZE ENGINE ///////////////////
 
