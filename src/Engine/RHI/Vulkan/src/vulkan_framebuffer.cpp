@@ -23,9 +23,9 @@ namespace Engine
         {
             VulkanTexture* texture = color_binding->rhi_object<VulkanTexture>();
 
-            trinex_check(texture && "Vulkan API: Cannot attach color texture: Texture is NULL");
+            trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
             bool usage_check = texture->can_use_color_as_color_attachment();
-            trinex_check(usage_check && "Vulkan API: Pixel type for color attachment must be RGBA");
+            trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
 
             vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
             _M_attachments[index] = texture->get_image_view(range);
@@ -36,10 +36,10 @@ namespace Engine
         {
             const Texture2D* binding = render_target->frame(frame)->depth_stencil_attachment;
             VulkanTexture* texture   = binding->rhi_object<VulkanTexture>();
-            trinex_check(texture && "Vulkan API: Cannot depth attach texture: Texture is NULL");
+            trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
             bool check_status = texture->is_depth_stencil_image();
-            trinex_check(check_status && "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
+            trinex_check(check_status, "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
 
             vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
             _M_attachments[index] = texture->get_image_view(range);

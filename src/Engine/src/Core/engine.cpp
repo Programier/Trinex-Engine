@@ -230,7 +230,6 @@ namespace Engine
         if (commandlet)
         {
             commandlet->load_configs();
-            engine_config.update();
         }
 
 

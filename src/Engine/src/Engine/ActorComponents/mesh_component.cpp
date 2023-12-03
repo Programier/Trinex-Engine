@@ -5,7 +5,7 @@
 #include <Core/engine_config.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/mesh_component.hpp>
+#include <Engine/ActorComponents/mesh_component.hpp>
 #include <numeric>
 #include <strings.h>
 

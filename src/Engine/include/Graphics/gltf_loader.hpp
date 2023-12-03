@@ -1,5 +1,5 @@
 #pragma once
-#include <Graphics/mesh_component.hpp>
+#include <Engine/ActorComponents/mesh_component.hpp>
 
 namespace Engine::GLTF
 {

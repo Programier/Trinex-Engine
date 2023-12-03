@@ -346,7 +346,7 @@ namespace Engine
 
     static bool check_file(BufferReader* reader)
     {
-        trinex_check(reader);
+        trinex_check(reader, "Reader can't be nullptr");
 
         uint_t flag;
         if (!reader->read(flag))

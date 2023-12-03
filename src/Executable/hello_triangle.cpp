@@ -4,7 +4,6 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/system.hpp>
-#include <Graphics/camera.hpp>
 #include <Graphics/g_buffer.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
@@ -25,7 +24,6 @@ namespace Engine
 {
     extern void load_code(Shader* shader, const Path& path);
 
-    Camera* camera    = nullptr;
     int output_buffer = 0;
 
     float line_width = 1.0f;
@@ -150,8 +148,6 @@ namespace Engine
             extern StaticMesh* load_test_object();
             mesh = load_test_object();
 
-            extern Camera* create_test_camera();
-            camera = create_test_camera();
             create_models();
 
             return *this;
@@ -167,8 +163,9 @@ namespace Engine
         HelloTriangleSystem& render_gbuffer(float dt)
         {
             GBuffer* rt             = GBuffer::instance();
-            rt->global_ubo.projview = camera->projview();
-            rt->global_ubo.dt       = dt;
+            rt->global_ubo.projview = glm::perspective(glm::radians(60.f), 1280.f / 720.f, 0.01f, 100.f) *
+                                      glm::lookAt(Vector3D{0.f, 0.f, -5.f}, {0.f, 0.f, 0.f}, {0.f, 1.f, 0.f});
+            rt->global_ubo.dt = dt;
 
             rt->rhi_bind();
             engine_instance->rhi()->push_debug_stage(__FUNCTION__, Colors::Red);
@@ -210,7 +207,6 @@ namespace Engine
         System& update(float dt) override
         {
             Super::update(dt);
-            camera->update(dt);
 
 
             int_t size = 1;

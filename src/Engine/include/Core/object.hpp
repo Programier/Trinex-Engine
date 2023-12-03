@@ -52,6 +52,7 @@ namespace Engine
         mutable Flags _M_flags;
 
         Package* _M_package;
+        Object* _M_owner;
         Counter _M_references;
         Index _M_index_in_package;
         Name _M_name;
@@ -132,6 +133,9 @@ namespace Engine
         virtual bool can_destroy(MessageList& messages);
         virtual Object& preload();
         virtual Object& postload();
+
+        Object* owner() const;
+        Object& owner(Object* new_owner);
 
 
         // Override new and delete operators

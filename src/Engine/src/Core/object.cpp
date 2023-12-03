@@ -110,6 +110,7 @@ namespace Engine
         : _M_package(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
           _M_instance_index(Constants::index_none)
     {
+        _M_owner = nullptr;
         ObjectArray& objects_array = get_instances_array();
         _M_instance_index          = objects_array.size();
 
@@ -417,6 +418,17 @@ namespace Engine
 
     Object& Object::postload()
     {
+        return *this;
+    }
+
+    Object* Object::owner() const
+    {
+        return _M_owner;
+    }
+
+    Object& Object::owner(Object* new_owner)
+    {
+        _M_owner = new_owner;
         return *this;
     }
 

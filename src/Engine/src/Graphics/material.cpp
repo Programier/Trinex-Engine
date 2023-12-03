@@ -2,7 +2,7 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/material.hpp>
-#include <Graphics/mesh_component.hpp>
+#include <Engine/ActorComponents/mesh_component.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>

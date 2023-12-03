@@ -87,10 +87,6 @@ namespace Engine
     using SizeLimits2D = SizeLimits<Size2D>;
     using SizeLimits3D = SizeLimits<Size3D>;
 
-    using AABB_1D = SizeLimits1D;
-    using AABB_2D = SizeLimits2D;
-    using AABB_3D = SizeLimits3D;
-
     struct MessageBoxButton {
         String name;
         int_t id;
