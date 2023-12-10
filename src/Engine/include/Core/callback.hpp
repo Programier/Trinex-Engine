@@ -20,14 +20,14 @@ namespace Engine
     public:
         Identifier push(const Function<Signature>& callback)
         {
-            Identifier id = _M_callbacks.empty() ? 0 : _M_callbacks.begin()->first + 1;
+            Identifier id    = _M_callbacks.empty() ? 0 : _M_callbacks.begin()->first + 1;
             _M_callbacks[id] = callback;
             return id;
         }
 
         Identifier push(Function<Signature>&& callback)
         {
-            Identifier id = _M_callbacks.empty() ? 0 : _M_callbacks.begin()->first + 1;
+            Identifier id    = _M_callbacks.empty() ? 0 : _M_callbacks.begin()->first + 1;
             _M_callbacks[id] = std::move(callback);
             return id;
         }
@@ -41,7 +41,7 @@ namespace Engine
         template<typename... Args>
         const CallBacks& trigger(Args&&... args) const
         {
-            for (auto& ell : _M_callbacks) ell(std::forward<Args>(args)...);
+            for (auto& ell : _M_callbacks) ell.second(std::forward<Args>(args)...);
             return *this;
         }
 

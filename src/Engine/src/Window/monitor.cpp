@@ -1,6 +1,6 @@
 #include <Core/engine.hpp>
 #include <Window/monitor.hpp>
-#include <Window/window.hpp>
+#include <Window/window_manager.hpp>
 
 namespace Engine
 {
@@ -11,10 +11,10 @@ namespace Engine
 
         ENGINE_EXPORT void update()
         {
-            Window* window = engine_instance->window();
-            if (window)
+            WindowManager* instance = WindowManager::instance();
+            if (instance)
             {
-                window->update_monitor_info(monitor_info);
+                instance->update_monitor_info(monitor_info);
             }
         }
 

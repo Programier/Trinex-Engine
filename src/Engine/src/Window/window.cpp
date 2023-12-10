@@ -1,10 +1,11 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/render_pass.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <Window/window_interface.hpp>
-
 
 namespace Engine
 {
@@ -17,6 +18,7 @@ namespace Engine
         WindowRenderPass()
         {}
 
+
         WindowRenderPass& rhi_create()
         {
             _M_rhi_object.reset(engine_instance->rhi()->window_render_pass());
@@ -24,9 +26,14 @@ namespace Engine
         }
     };
 
-    Window::Window(WindowInterface* interface) : _M_interface(interface)
+    Window::Window(WindowInterface* interface, bool vsync) : _M_interface(interface)
     {
-        _M_rhi_object.reset(EngineInstance::instance()->rhi()->window_render_target());
+        _M_render_viewport = Object::new_instance<RenderViewport>();
+        _M_render_viewport->window(this, vsync);
+        _M_render_viewport->init_resource();
+        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+
+        _M_rhi_object.reset(_M_render_viewport->render_target());
         render_pass = &Object::new_instance<WindowRenderPass>()->rhi_create();
 
         rhi_create();
@@ -48,15 +55,6 @@ namespace Engine
         scissor(_M_scissor);
     }
 
-    void Window::close()
-    {
-        _M_interface->close();
-    }
-
-    bool Window::is_open()
-    {
-        return _M_interface->is_open();
-    }
 
     Size1D Window::width()
     {
@@ -223,33 +221,9 @@ namespace Engine
         return _M_interface->support_orientation(orientation);
     }
 
-    Window& Window::start_text_input()
+    void Window::initialize_imgui(ImGuiContext* ctx)
     {
-        _M_interface->start_text_input();
-        return *this;
-    }
-
-    Window& Window::stop_text_input()
-    {
-        _M_interface->stop_text_input();
-        return *this;
-    }
-
-    Window& Window::pool_events()
-    {
-        _M_interface->pool_events();
-        return *this;
-    }
-
-    Window& Window::wait_for_events()
-    {
-        _M_interface->wait_for_events();
-        return *this;
-    }
-
-    void Window::initialize_imgui()
-    {
-        _M_interface->initialize_imgui();
+        _M_interface->initialize_imgui(ctx);
     }
 
     void Window::terminate_imgui()
@@ -265,17 +239,7 @@ namespace Engine
     Window::~Window()
     {
         delete _M_interface;
-    }
-
-    Window* Window::instance()
-    {
-        return engine_instance->window();
-    }
-
-    Window& Window::swap_buffers()
-    {
-        engine_instance->rhi()->swap_buffer();
-        return *this;
+        delete _M_render_viewport;
     }
 
     Window& Window::update_cached_size()
@@ -289,7 +253,7 @@ namespace Engine
         return _M_cached_size;
     }
 
-    void* Window::interface() const
+    WindowInterface* Window::interface() const
     {
         return _M_interface;
     }
@@ -306,20 +270,28 @@ namespace Engine
         return *this;
     }
 
-    Window& Window::update_monitor_info(MonitorInfo& info)
-    {
-        _M_interface->update_monitor_info(info);
-        return *this;
-    }
-
     int_t Window::create_message_box(const MessageBoxCreateInfo& info)
     {
         return _M_interface->create_message_box(info);
     }
 
-    Window& Window::create_notify(const NotifyCreateInfo& info)
+    RenderViewport* Window::render_viewport() const
     {
-        _M_interface->create_notify(info);
-        return *this;
+        return _M_render_viewport;
+    }
+
+    Window* Window::parent_window() const
+    {
+        return _M_parent_window;
+    }
+
+    const Vector<Window*>& Window::child_windows() const
+    {
+        return _M_childs;
+    }
+
+    Identifier Window::window_id() const
+    {
+        return _M_interface->id();
     }
 }// namespace Engine

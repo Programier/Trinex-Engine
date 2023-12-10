@@ -15,6 +15,7 @@
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
+#include <vulkan_viewport.hpp>
 
 namespace Engine
 {
@@ -33,11 +34,6 @@ namespace Engine
         return VulkanAPI::_M_vulkan;
     }
 
-    static vk::PresentModeKHR present_mode_of(bool vsync)
-    {
-        return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
-    }
-
 
     static constexpr inline size_t ext_maintenance1_index     = 0;
     static constexpr inline size_t ext_swapchain_index        = 1;
@@ -48,11 +44,6 @@ namespace Engine
 
     VulkanAPI::VulkanAPI()
     {
-
-        _M_swap_chain_mode = present_mode_of(false);
-        _M_state           = new VulkanState();
-        _M_state->reset();
-
         _M_device_extensions.resize(ext_count);
 
         _M_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
@@ -62,27 +53,18 @@ namespace Engine
 
     VulkanAPI::~VulkanAPI()
     {
-        delete _M_state;
-        _M_state = nullptr;
-    }
-
-    VulkanAPI& VulkanAPI::destroy_window()
-    {
         _M_device.waitIdle();
         delete_garbage(true);
-
-        destroy_framebuffers();
         delete _M_main_render_pass;
-        delete _M_swap_chain;
 
         _M_device.destroyCommandPool(_M_command_pool);
-
         _M_device.destroy();
-
-
-        vk::Instance(_M_instance.instance).destroySurfaceKHR(_M_surface);
         vkb::destroy_instance(_M_instance);
-        return *this;
+    }
+
+    vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync)
+    {
+        return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
     }
 
     VulkanAPI& VulkanAPI::delete_garbage(bool force)
@@ -151,8 +133,8 @@ namespace Engine
         _M_imgui_descriptor_pool = _M_device.createDescriptorPool(descriptor_pool_create_info);
         init_info.DescriptorPool = _M_imgui_descriptor_pool;
 
-        init_info.MinImageCount = _M_swap_chain->_M_bootstrap_swapchain.requested_min_image_count;
-        init_info.ImageCount    = _M_swap_chain->_M_bootstrap_swapchain.image_count;
+        init_info.MinImageCount = _M_framebuffers_count;
+        init_info.ImageCount    = _M_framebuffers_count;
 
         ImGui_ImplVulkan_Init(&init_info, _M_main_render_pass->_M_render_pass);
 
@@ -193,32 +175,6 @@ namespace Engine
         return &API->_M_command_pool;
     }
 
-    void* VulkanAPI::init_window(WindowInterface* window, const WindowConfig& config)
-    {
-        _M_window          = window;
-        _M_swap_chain_mode = present_mode_of(config.vsync);
-
-        auto funcs = {
-                &VulkanAPI::init,
-                &VulkanAPI::create_command_buffer,
-                &VulkanAPI::create_swap_chain,
-                &VulkanAPI::create_render_pass,
-                &VulkanAPI::create_framebuffers,
-        };
-
-        try
-        {
-            for (auto func : funcs) (this->*func)();
-        }
-        catch (const std::exception& e)
-        {
-            return nullptr;
-        }
-
-        return static_cast<VkSurfaceKHR>(_M_surface);
-    }
-
-
     ///////////////////////////////// INITIALIZATION /////////////////////////////////
 #if ENABLE_VALIDATION_LAYERS
     static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -231,11 +187,12 @@ namespace Engine
     }
 #endif
 
-    void VulkanAPI::init()
+    void VulkanAPI::initialize(WindowInterface* window)
     {
+        _M_window = window;
+
         vkb::InstanceBuilder instance_builder;
 
-        vulkan_info_log("VulkanAPI", "Enable extention %s", "Test");
         auto extentions = _M_window->required_extensions();
         for (auto& extension : extentions)
         {
@@ -259,7 +216,7 @@ namespace Engine
 
         _M_instance = instance_ret.value();
 
-        create_surface();
+        _M_surface = create_surface(window);
 
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
         vk::PhysicalDeviceFeatures features;
@@ -335,8 +292,11 @@ namespace Engine
 
         initialize_pfn();
         enable_dynamic_states();
-    }
+        create_command_pool();
 
+        _M_framebuffers_count =
+                glm::min(_M_surface_capabilities.minImageCount + 1, _M_surface_capabilities.maxImageCount);
+    }
 
     void VulkanAPI::check_extentions()
     {
@@ -372,55 +332,20 @@ namespace Engine
     }
 
 
-    void VulkanAPI::create_surface()
+    vk::SurfaceKHR VulkanAPI::create_surface(WindowInterface* interface)
     {
-        void* _surface = _M_window->create_surface("", static_cast<VkInstance>(_M_instance));
-        _M_surface     = vk::SurfaceKHR(*reinterpret_cast<VkSurfaceKHR*>(_surface));
-    }
-
-    void VulkanAPI::destroy_framebuffers(bool full_destroy)
-    {
-        if (full_destroy)
-        {
-            delete _M_main_framebuffer;
-            return;
-        }
-
-        _M_main_framebuffer->destroy();
-    }
-
-    void VulkanAPI::recreate_swap_chain()
-    {
-        if (_M_need_recreate_swap_chain)
-        {
-            _M_need_recreate_swap_chain = false;
-            wait_idle();
-            destroy_framebuffers(false);
-            create_swap_chain();
-            create_framebuffers();
-        }
+        void* _surface = interface->create_surface("", static_cast<VkInstance>(_M_instance));
+        return vk::SurfaceKHR(*reinterpret_cast<VkSurfaceKHR*>(_surface));
     }
 
     vk::Extent2D VulkanAPI::surface_size() const
     {
-        return _M_physical_device.getSurfaceCapabilitiesKHR(_M_surface).currentExtent;
+        return surface_size(_M_surface);
     }
 
-
-    void VulkanAPI::create_swap_chain()
+    vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const
     {
-        auto size          = surface_size();
-        window_data.width  = size.width;
-        window_data.height = size.height;
-
-        vulkan_info_log("Vulkan", "New swapchaing size: {%d, %d}", size.width, size.height);
-
-        SwapChain* new_swapchain = new SwapChain();
-
-        if (_M_swap_chain)
-            delete _M_swap_chain;
-
-        _M_swap_chain = new_swapchain;
+        return _M_physical_device.getSurfaceCapabilitiesKHR(surface).currentExtent;
     }
 
     vk::Format VulkanAPI::find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
@@ -467,138 +392,28 @@ namespace Engine
         return *this;
     }
 
-    void VulkanAPI::create_framebuffers()
-    {
-        if (!_M_main_framebuffer)
-            _M_main_framebuffer = new VulkanMainFrameBuffer();
-
-        _M_main_framebuffer->resize_count(_M_swap_chain->_M_images.size());
-        _M_main_framebuffer->init();
-    }
-
-    void VulkanAPI::create_command_buffer()
+    void VulkanAPI::create_command_pool()
     {
         _M_command_pool = _M_device.createCommandPool(
                 vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           _M_graphics_and_present_index.graphics_family.value()));
     }
 
-    VulkanAPI& VulkanAPI::on_window_size_changed()
-    {
-        auto size = surface_size();
-        if (size.width != static_cast<std::uint32_t>(window_data.width) ||
-            size.height != static_cast<uint32_t>(window_data.height))
-        {
-            _M_need_recreate_swap_chain = true;
-            API->_M_main_framebuffer->size(size.width, size.height);
-        }
-        return *this;
-    }
-
-    std::size_t count_draw_calls = 0;
-    VulkanAPI& VulkanAPI::swap_buffer()
-    {
-        _M_current_buffer = (_M_current_buffer + 1) % _M_framebuffers_count;
-        ++_M_current_frame;
-        count_draw_calls = 0;
-        return *this;
-    }
-
-    vk::ResultValue<uint32_t> VulkanAPI::swapchain_image_index()
-    {
-        return _M_device.acquireNextImageKHR(
-                _M_swap_chain->_M_swap_chain, UINT64_MAX,
-                *_M_main_framebuffer->_M_frames[API->_M_current_buffer]->image_present_semaphore(), nullptr);
-    }
-
 
     VulkanAPI& VulkanAPI::begin_render()
     {
         delete_garbage(false);
-
-        if (_M_need_recreate_swap_chain)
-        {
-            wait_idle();
-            recreate_swap_chain();
-        }
-
-        auto current_buffer_index = API->swapchain_image_index();
-
-
-        if (current_buffer_index.result == vk::Result::eErrorOutOfDateKHR)
-        {
-            API->_M_need_recreate_swap_chain = true;
-            API->recreate_swap_chain();
-            return begin_render();
-        }
-
-        if (current_buffer_index.result != vk::Result::eSuccess &&
-            current_buffer_index.result != vk::Result::eSuboptimalKHR)
-        {
-            throw std::runtime_error("failed to acquire swap chain image!");
-        }
-
-        _M_prev_buffer = _M_current_buffer;
-        _M_image_index = current_buffer_index.value;
-
-
-        current_main_frame()->wait();
-        current_command_buffer().reset();
-        current_command_buffer().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
-
         return *this;
     }
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        if (API->_M_state->_M_framebuffer)
+        if (_M_current_viewport)
         {
-            API->_M_state->_M_framebuffer->unbind();
+            _M_current_viewport->end_render();
         }
-
-        current_command_buffer().end();
-
-        VulkanMainRenderTargetFrame* frame = current_main_frame();
-
-        static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        vk::SubmitInfo submit_info(*frame->image_present_semaphore(), wait_flags, current_command_buffer(),
-                                   frame->_M_render_finished);
-
-        API->_M_graphics_queue.submit(submit_info, frame->_M_fence);
-
-        vk::PresentInfoKHR present_info(frame->_M_render_finished, API->_M_swap_chain->_M_swap_chain, _M_image_index);
-        vk::Result result;
-        try
-        {
-            result = API->_M_present_queue.presentKHR(present_info);
-        }
-        catch (const std::exception& e)
-        {
-            result = vk::Result::eErrorOutOfDateKHR;
-        }
-
-        switch (result)
-        {
-            case vk::Result::eSuccess:
-                break;
-
-            case vk::Result::eErrorOutOfDateKHR:
-#if !SKIP_SUBOPTIMAL_KHR_ERROR
-            case vk::Result::eSuboptimalKHR:
-#endif
-                API->_M_need_recreate_swap_chain = true;
-                break;
-
-            default:
-                assert(false);
-        }
-
-
-        if (API->_M_need_recreate_swap_chain)
-        {
-            API->recreate_swap_chain();
-        }
-        _M_state->reset();
+        ++_M_current_frame;
+        _M_current_buffer = _M_current_frame % _M_framebuffers_count;
         return *this;
     }
 
@@ -665,18 +480,6 @@ namespace Engine
         return end_single_time_command_buffer(command_buffer);
     }
 
-    VulkanAPI& VulkanAPI::vsync(bool flag)
-    {
-        _M_swap_chain_mode          = present_mode_of(flag);
-        _M_need_recreate_swap_chain = true;
-        return *this;
-    }
-
-    bool VulkanAPI::vsync()
-    {
-        return _M_swap_chain_mode == vk::PresentModeKHR::eFifo;
-    }
-
     VulkanAPI& VulkanAPI::wait_idle()
     {
         _M_device.waitIdle();
@@ -686,14 +489,14 @@ namespace Engine
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
-        _M_state->_M_pipeline->increment_set_index();
+        state()->_M_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
         current_command_buffer().draw(vertex_count, 1, 0, 0);
-        _M_state->_M_pipeline->increment_set_index();
+        state()->_M_pipeline->increment_set_index();
         return *this;
     }
 

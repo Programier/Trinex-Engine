@@ -7,6 +7,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
+#include <Core/render_thread_call.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/system.hpp>
 #include <Core/thread.hpp>
@@ -16,10 +17,11 @@
 #include <Systems/engine_system.hpp>
 #include <Window/config.hpp>
 #include <Window/monitor.hpp>
-#include <Window/window.hpp>
+#include <Window/window_manager.hpp>
 #include <cstring>
 #include <glm/gtc/quaternion.hpp>
 #include <no_api.hpp>
+
 
 namespace Engine
 {
@@ -51,10 +53,6 @@ namespace Engine
         return project_name();
     }
 
-    Window* EngineInstance::window() const
-    {
-        return _M_window;
-    }
 
     SystemName EngineInstance::system_type() const
     {
@@ -193,6 +191,7 @@ namespace Engine
     {
         create_thread(ThreadType::RenderThread);
         create_window();
+        create_render_targets();
     }
 
     int EngineInstance::start(int argc, char** argv)
@@ -258,7 +257,7 @@ namespace Engine
             init_engine_for_rendering();
         }
 
-        int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch_systems();
+        int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch();
 
         if (status == 0)
         {
@@ -312,7 +311,9 @@ namespace Engine
 
         if (_M_rhi)
         {
-            _M_rhi->wait_idle();
+            call_in_render_thread([this]() { _M_rhi->wait_idle(); });
+
+            thread(ThreadType::RenderThread)->wait_all();
         }
 
         engine_instance->trigger_terminate_functions();
@@ -328,8 +329,8 @@ namespace Engine
             delete _M_renderer;
         if (_M_rhi)
             delete _M_rhi;
-        if (_M_window)
-            Object::delete_object(_M_window);
+        if (WindowManager::instance())
+            delete WindowManager::instance();
 
         _M_rhi                                                              = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
@@ -356,65 +357,19 @@ namespace Engine
             throw EngineException("Cannot create window without API!");
         }
 
-        String libname = Strings::format("WindowSystem{}", engine_config.window_system);
-        Library library(libname);
-
-        if (!library.has_lib())
-        {
-            throw EngineException("Cannot load window system library!");
-        }
-
-        struct CreateWindowTask : public ExecutableObject {
-        public:
-            WindowInterface* (*_M_loader)();
-            WindowInterface* _M_interface = nullptr;
-
-            CreateWindowTask(WindowInterface* (*loader)()) : _M_loader(loader)
-            {}
-
-            int_t execute() override
-            {
-                info_log("Window", "Starting creating window");
-                _M_interface = _M_loader();
-
-                if (!_M_interface)
-                {
-                    throw EngineException("Cannot create window interface!");
-                }
-
-                _M_interface->init(global_window_config);
-                _M_interface->update_monitor_info(const_cast<MonitorInfo&>(Monitor::info()));
-                engine_instance->rhi()->init_window(_M_interface, global_window_config);
-                info_log("TrinexEngine", "Selected GPI: %s", engine_instance->rhi()->renderer().c_str());
-
-                engine_instance->_M_window =
-                        Object::new_instance_named<Window>("MainWindow", Package::find_package("Engine"), _M_interface);
-
-                AfterRHIInitializeController().execute();
-
-                info_log("Window", "End creating window");
-                return sizeof(CreateWindowTask);
-            }
-        };
-
-
-        WindowInterface* (*loader)() = library.get<WindowInterface*>(Constants::library_load_function_name);
-        if (!loader)
-        {
-            throw EngineException("Cannot load window system loader");
-        }
-
         global_window_config.update();
         global_window_config.api_name = engine_config.api;
 
-        thread(ThreadType::RenderThread)->insert_new_task<CreateWindowTask>(loader);
-        thread(ThreadType::RenderThread)->wait_all();
+        WindowManager::create_instance();
 
-        if (engine_config.use_deffered_rendering)
-        {
-            GBuffer::create_instance();
-        }
+        WindowManager::instance()->create_window(global_window_config, nullptr);
 
+        AfterRHIInitializeController().execute();
+    }
+
+    void EngineInstance::create_render_targets()
+    {
+        GBuffer::create_instance();
         thread(ThreadType::RenderThread)->wait_all();
     }
 
@@ -455,50 +410,6 @@ namespace Engine
     Index EngineInstance::frame_index() const
     {
         return _M_frame_index;
-    }
-
-    int_t EngineInstance::launch_systems()
-    {
-
-        EngineSystem* engine_system = System::new_system<EngineSystem>();
-
-        if (engine_system->subsystems().empty())
-        {
-            error_log("Engine", "No systems found! Please, add systems before call '%s' method!", __FUNCTION__);
-            return -1;
-        }
-
-        // Sort all systems
-        engine_system->sort_subsystems();
-
-        try
-        {
-            static constexpr float smoothing_factor = 0.05;
-
-            float prev_time    = 0.0167;
-            float current_time = 0.0f;
-            float dt           = 0.0f;
-
-            while (!is_requesting_exit())
-            {
-                current_time = time_seconds();
-                dt           = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * dt;
-                prev_time    = current_time;
-
-                engine_system->update(dt);
-                engine_system->wait();
-                ++_M_frame_index;
-            }
-
-            engine_system->shutdown();
-
-            return 0;
-        }
-        catch (const std::exception& e)
-        {
-            error_log("Engine", "%s", e.what());
-            return -1;
-        }
     }
 
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)

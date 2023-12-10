@@ -20,7 +20,25 @@ namespace Engine
         Display,
 
         // Window events
-        Window,
+        WindowNone,
+        WindowShown,
+        WindowHidden,
+        WindowExposed,
+        WindowMoved,
+        WindowResized,
+        WindowSizeChanged,
+        WindowMinimized,
+        WindowMaximized,
+        WindowRestored,
+        WindowEnter,
+        WindowLeave,
+        WindowFocusGained,
+        WindowFocusLost,
+        WindowClose,
+        WindowTakeFocus,
+        WindowHitTest,
+        WindowIccProfChanged,
+        WindowDisplayChanged,
 
         // Keyboard events
         KeyDown,
@@ -76,52 +94,26 @@ namespace Engine
     };
 
 
-    template<typename T, typename = void>
-    struct has_type_field : std::false_type {
-    };
-
-    template<typename T>
-    struct has_type_field<T, std::void_t<decltype(std::declval<T>().type)>> : std::true_type {
-    };
-
     class ENGINE_EXPORT Event
     {
-    public:
-        using ID = size_t;
-
     private:
         Any _M_any;
-        ID _M_ID;
-
+        Identifier _M_window_id;
         EventType _M_type;
 
-        void add_to_id(int_t value, int_t offset = 0);
 
     public:
-        Event(EventType type);
+        Event(Identifier window_id, EventType type);
 
         template<typename Type>
-        Event(EventType type, Type&& any) : Event(type)
+        Event(Identifier window_id, EventType type, Type&& any) : Event(window_id, type)
         {
             _M_any = std::forward<Type>(any);
-
-            if constexpr (std::is_enum_v<Type>)
-            {
-                add_to_id(static_cast<int_t>(any));
-            }
-            else if constexpr (has_type_field<Type>::value)
-            {
-                add_to_id(static_cast<int_t>(any.type));
-            }
         }
 
         EventType type() const;
+        Identifier window_id() const;
         const String& name() const;
-        bool operator==(const Event& e);
-        bool operator!=(const Event& e);
-        ID id() const;
-        ID base_id() const;
-        ID child_id() const;
         const Any& any() const;
 
         template<typename Type>

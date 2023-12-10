@@ -3,7 +3,12 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
+#include <Core/render_thread_call.hpp>
+#include <Event/event.hpp>
 #include <Event/event_data.hpp>
+#include <Graphics/g_buffer.hpp>
+#include <Graphics/render_viewport.hpp>
+#include <Graphics/rhi.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <Systems/engine_system.hpp>
@@ -12,27 +17,52 @@
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Window/window.hpp>
-#include <Window/window_interface.hpp>
-#include <Graphics/rhi.hpp>
-#include <Event/event.hpp>
-#include <Graphics/g_buffer.hpp>
+#include <Window/window_manager.hpp>
+
+#include <Window/config.hpp>
 
 
 namespace Engine
 {
     // Basic callbacks
 
+    static void on_window_close(const Event& event)
+    {
+        WindowManager* manager = WindowManager::instance();
+        Window* window         = manager->find(event.window_id());
+
+        if (window)
+            manager->destroy_window(window);
+
+        if (manager->windows().empty())
+            engine_instance->request_exit();
+    }
+
     static void on_quit(const Event& event)
     {
+        WindowManager* manager = WindowManager::instance();
+        manager->destroy_window(manager->main_window());
         engine_instance->request_exit();
     }
 
     static void on_resize(const Event& event)
     {
-        engine_instance->rhi()->on_window_size_changed();
-        Window* window                  = engine_instance->window();
+        WindowManager* manager          = WindowManager::instance();
         const WindowEvent& window_event = event.get<const WindowEvent&>();
-        Size2D k                        = Size2D(window_event.width, window_event.height) / window->cached_size();
+        Window* window                  = manager->find(event.window_id());
+
+
+        {
+            auto x                        = window_event.x;
+            auto y                        = window_event.y;
+            RenderViewport* render_viewport = window->render_viewport();
+            if (render_viewport)
+            {
+                render_viewport->on_resize({x, y});
+            }
+        }
+
+        Size2D k = Size2D(window_event.width, window_event.height) / window->cached_size();
 
         {
             ViewPort viewport = window->viewport();
@@ -56,39 +86,20 @@ namespace Engine
     EventSystem::EventSystem()
     {}
 
-    const EventSystem& EventSystem::call_listeners(ListenerMap::const_iterator&& it, const Event& event) const
-    {
-        if (it != _M_listeners.end())
-        {
-            for (const auto& listener : it->second.callbacks())
-            {
-                try
-                {
-                    listener.second(event);
-                }
-                catch (...)
-                {
-                    error_log("EventSystem", "Failed to process event with type '%s'", event.name().c_str());
-                }
-            }
-        }
-
-        return *this;
-    }
 
     const EventSystem::ListenerMap& EventSystem::listeners() const
     {
         return _M_listeners;
     }
 
-    Identifier EventSystem::add_listener(const Event& event, const Listener& listener)
+    Identifier EventSystem::add_listener(EventType type, const Listener& listener)
     {
-        return _M_listeners[event.id()].push(listener);
+        return _M_listeners[static_cast<byte>(type)].push(listener);
     }
 
-    EventSystem& EventSystem::remove_listener(const Event& event, Identifier id)
+    EventSystem& EventSystem::remove_listener(EventType type, Identifier id)
     {
-        _M_listeners[event.id()].remove(id);
+        _M_listeners[static_cast<byte>(type)].remove(id);
         return *this;
     }
 
@@ -98,17 +109,13 @@ namespace Engine
         Super::create();
 
         System::new_system<EngineSystem>()->register_subsystem(this);
-        Event event = EventType::Quit;
-        add_listener(event, on_quit);
-        WindowInterface* interface = reinterpret_cast<WindowInterface*>(engine_instance->window()->interface());
-        interface->add_event_callback(id(), [this](const Event& e) { push_event(e); });
+        add_listener(EventType::Quit, on_quit);
+        add_listener(EventType::WindowClose, on_window_close);
 
-        // On resize
-        {
-            WindowEvent resize_event;
-            resize_event.type = WindowEvent::Resized;
-            add_listener(Event(EventType::Window, resize_event), on_resize);
-        }
+        WindowManager::instance()->add_event_callback(id(), [this](const Event& e) { push_event(e); });
+
+        add_listener(EventType::WindowResized, on_resize);
+        add_listener(EventType::WindowSizeChanged, on_resize);
 
         // Register subsystems
         new_system<KeyboardSystem>();
@@ -121,14 +128,25 @@ namespace Engine
     EventSystem& EventSystem::update(float dt)
     {
         Super::update(dt);
-        engine_instance->window()->pool_events();
+        WindowManager::instance()->pool_events();
+
+
+        if (KeyboardSystem::instance()->is_just_pressed(Keyboard::Key::G))
+        {
+            WindowManager::instance()->create_window(global_window_config, nullptr);
+        }
         return *this;
     }
 
     const EventSystem& EventSystem::push_event(const Event& event) const
     {
-        return call_listeners(_M_listeners.find(event.base_id()), event)
-                .call_listeners(_M_listeners.find(event.id()), event);
+        auto it = _M_listeners.find(static_cast<byte>(event.type()));
+        if (it != _M_listeners.end())
+        {
+            it->second.trigger(event);
+        }
+
+        return *this;
     }
 
     static Identifier script_add_listener(EventSystem* system, class asIScriptFunction* function)

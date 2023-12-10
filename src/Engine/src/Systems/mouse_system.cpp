@@ -5,8 +5,7 @@
 #include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/mouse_system.hpp>
-#include <Window/window.hpp>
-#include <Window/window_interface.hpp>
+#include <Window/window_manager.hpp>
 #include <cstring>
 
 #define on_motion_index _M_callbacks_identifier[0]
@@ -125,19 +124,14 @@ namespace Engine
         return _M_pos_info;
     }
 
-    WindowInterface* window_interface()
-    {
-        return reinterpret_cast<WindowInterface*>(engine_instance->window()->interface());
-    }
-
     bool MouseSystem::relative_mode() const
     {
-        return window_interface()->mouse_relative_mode();
+        return WindowManager::instance()->mouse_relative_mode();
     }
 
     MouseSystem& MouseSystem::relative_mode(bool flag)
     {
-        window_interface()->mouse_relative_mode(flag);
+        WindowManager::instance()->mouse_relative_mode(flag);
         return *this;
     }
 

@@ -26,22 +26,14 @@ namespace Engine
 
 
         virtual bool is_main_frame();
-        virtual vk::Semaphore* image_present_semaphore();
         virtual ~VulkanRenderTargetFrame();
     };
 
     struct VulkanMainRenderTargetFrame : public VulkanRenderTargetFrame {
-        vk::Semaphore _M_image_present;
-        vk::CommandBuffer _M_command_buffer;
-        vk::Semaphore _M_render_finished;
-        vk::Fence _M_fence;
-
         VulkanMainRenderTargetFrame();
         ~VulkanMainRenderTargetFrame();
 
-        void wait();
         bool is_main_frame() override;
-        vk::Semaphore* image_present_semaphore() override;
     };
 
 
@@ -69,6 +61,8 @@ namespace Engine
         void clear_color(const ColorClearValue& color, byte layout) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;
 
+        virtual size_t buffer_index() const;
+
 
         virtual bool is_main_render_target();
 
@@ -78,8 +72,13 @@ namespace Engine
 
     struct VulkanMainFrameBuffer : VulkanRenderTarget {
 
-        VulkanMainFrameBuffer& init();
+        struct VulkanViewport* _M_viewport;
+
+
+        VulkanMainFrameBuffer& init(struct VulkanViewport* viewport);
         VulkanMainFrameBuffer& destroy();
+
+        size_t buffer_index() const override;
 
         void resize_count(size_t new_count);
         bool is_destroyable() const override;

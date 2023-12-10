@@ -23,31 +23,6 @@ namespace Engine
 
 
     struct WindowEvent {
-        enum Type
-        {
-            None,
-            Shown,
-            Hidden,
-            Exposed,
-            Moved,
-            Resized,
-            SizeChanged,
-            Minimized,
-            Maximized,
-            Restored,
-            Enter,
-            Leave,
-            FocusGained,
-            FocusLost,
-            Close,
-            TakeFocus,
-            HitTest,
-            IccProfChanged,
-            DisplayChanged
-        };
-
-        Type type;
-
         union
         {
             int_t x;
@@ -62,12 +37,8 @@ namespace Engine
     };
 
     struct KeyEvent {
-        union
-        {
-            Keyboard::Key key;
-            Keyboard::Key type;
-        };
-
+        Keyboard::Key key;
+        Keyboard::Key type;
         bool repeat = false;
     };
 
@@ -80,12 +51,7 @@ namespace Engine
     };
 
     struct MouseButtonEvent {
-        union
-        {
-            Mouse::Button button;
-            Mouse::Button type;
-        };
-
+        Mouse::Button button;
         uint_t clicks;
         int_t x;
         int_t y;
@@ -99,11 +65,7 @@ namespace Engine
 
 
     struct EventWithControllerId {
-        union
-        {
-            Identifier id;
-            Identifier type;
-        };
+        Identifier id;
     };
 
     using ControllerDeviceAddedEvent   = EventWithControllerId;

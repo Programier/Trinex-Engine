@@ -6,7 +6,7 @@
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
-#include <Window/window.hpp>
+#include <Window/window_manager.hpp>
 
 namespace Engine
 {
@@ -126,9 +126,9 @@ namespace Engine
 
         // Initialize render target frames
         size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
-        Index frame_index = 0;
+        Index frame_index   = 0;
 
-        while(frame_index < frames_count)
+        while (frame_index < frames_count)
         {
             push_frame(new GBuffer::Frame());
             frame_index++;
@@ -167,12 +167,10 @@ namespace Engine
         info_log("GBuffer", "Destroy GBuffer");
     }
 
-    RHI_Object* delete_me;
-
     void GBuffer::init(bool is_reinit)
     {
         // Initilize/reinitialzie textures
-        Size2D new_size = Window::instance()->cached_size();
+        Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
         if (is_reinit)
         {
             Size2D scale_factor = new_size / size;
@@ -199,7 +197,7 @@ namespace Engine
 
         for (RenderTarget::Frame* frame : _M_frames)
         {
-            for(Texture2D* texture : frame->color_attachments)
+            for (Texture2D* texture : frame->color_attachments)
             {
                 texture->size = size;
                 texture->init_resource();

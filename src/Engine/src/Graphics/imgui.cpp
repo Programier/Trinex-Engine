@@ -10,22 +10,22 @@ namespace Engine::ImGuiRenderer
 {
     ENGINE_EXPORT void init()
     {
-        Window* window = engine_instance->window();
+       // Window* window = engine_instance->window();
 
-        if (window == nullptr)
-        {
-            error_log("ImGuiRenderer", "Cannot init ImGUI. Create window first!");
-            return;
-        }
+//        if (window == nullptr)
+//        {
+//            error_log("ImGuiRenderer", "Cannot init ImGUI. Create window first!");
+//            return;
+//        }
 
-        window->initialize_imgui();
+       // window->initialize_imgui();
         engine_instance->rhi()->imgui_init();
     }
 
     ENGINE_EXPORT void terminate()
     {
         engine_instance->rhi()->imgui_terminate();
-        engine_instance->window()->terminate_imgui();
+     //   engine_instance->window()->terminate_imgui();
     }
 
     ENGINE_EXPORT void render()
@@ -37,7 +37,7 @@ namespace Engine::ImGuiRenderer
     ENGINE_EXPORT void new_frame()
     {
         engine_instance->rhi()->imgui_new_frame();
-        engine_instance->window()->new_imgui_frame();
+        //engine_instance->window()->new_imgui_frame();
         ImGui::NewFrame();
     }
 }// namespace Engine::ImGuiRenderer

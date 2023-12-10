@@ -154,7 +154,7 @@ namespace Engine
         return false;
     }
 
-    void VulkanAPI::create_render_pass()
+    void VulkanAPI::create_render_pass(vk::Format format)
     {
         if (_M_main_render_pass == nullptr)
         {
@@ -162,9 +162,9 @@ namespace Engine
             _M_main_render_pass->_M_has_depth_attachment = false;
 
             _M_main_render_pass->_M_attachment_descriptions.push_back(vk::AttachmentDescription(
-                    vk::AttachmentDescriptionFlags(), _M_swap_chain->_M_format, vk::SampleCountFlagBits::e1,
-                    vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
-                    vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR));
+                    vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear,
+                    vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
+                    vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR));
 
             _M_main_render_pass->_M_color_attachment_references = {
                     vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),

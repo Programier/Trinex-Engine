@@ -7,8 +7,6 @@ namespace Engine
     class NoApi : public RHI
     {
     public:
-        void* init_window(WindowInterface*, const WindowConfig&) override;
-        NoApi& destroy_window() override;
         NoApi& imgui_init() override;
         NoApi& imgui_terminate() override;
         NoApi& imgui_new_frame() override;
@@ -20,11 +18,6 @@ namespace Engine
         NoApi& draw_indexed(size_t indices_count, size_t indices_offset) override;
         NoApi& draw(size_t vertex_count) override;
 
-        NoApi& swap_buffer() override;
-        NoApi& vsync(bool) override;
-        bool vsync() override;
-
-        NoApi& on_window_size_changed() override;
         NoApi& begin_render() override;
         NoApi& end_render() override;
         NoApi& wait_idle() override;
@@ -32,7 +25,6 @@ namespace Engine
 
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;
-        RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
@@ -45,6 +37,8 @@ namespace Engine
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat) override;
         size_t render_target_buffer_count() override;
+        RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
+        RHI_Viewport* create_viewport(RenderTarget* render_target) override;
 
         void line_width(float width) override;
 

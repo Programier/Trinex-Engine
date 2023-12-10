@@ -18,19 +18,7 @@ namespace Engine
     {
         Super::update(dt);
 
-        extern RHI_Object* delete_me;
-        static int index = 0;
-        if (delete_me)
-        {
-            if (index > 4)
-            {
-                RenderResource::release_render_resouce(delete_me);
-                index     = 0;
-                delete_me = nullptr;
-            }
-            else
-                index++;
-        }
+
         return *this;
     }
 

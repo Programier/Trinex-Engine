@@ -3,18 +3,6 @@
 
 namespace Engine
 {
-    void* NoApi::init_window(WindowInterface*, const WindowConfig&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::destroy_window()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     NoApi& NoApi::imgui_init()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -63,30 +51,6 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::swap_buffer()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::vsync(bool)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    bool NoApi::vsync()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return false;
-    }
-
-    NoApi& NoApi::on_window_size_changed()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     NoApi& NoApi::begin_render()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -118,12 +82,6 @@ namespace Engine
     }
 
     RHI_Texture* NoApi::create_texture(const Texture*, const byte*)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return nullptr;
-    }
-
-    RHI_RenderTarget* NoApi::window_render_target()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
@@ -214,5 +172,17 @@ namespace Engine
     void NoApi::pop_debug_stage()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+    }
+
+    RHI_Viewport* NoApi::create_viewport(WindowInterface* interface, bool vsync)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_Viewport* NoApi::create_viewport(RenderTarget* render_target)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
     }
 }// namespace Engine

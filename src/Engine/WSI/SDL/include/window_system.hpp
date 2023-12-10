@@ -3,13 +3,13 @@
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <Window/window_interface.hpp>
+#include <Window/window_manager_interface.hpp>
 #include <imgui.h>
 
 namespace Engine
 {
     struct WindowSDL : public WindowInterface {
         Set<void (*)(SDL_Event*)> _M_on_event;
-        Map<Identifier, Vector<EventCallback>> _M_event_callbacks;
 
         Buffer _M_icon_buffer;
         Buffer _M_cursor_icon_buffer;
@@ -26,14 +26,11 @@ namespace Engine
         VkSurfaceKHR _M_vulkan_surface;
         SDL_Event _M_event;
 
+        Identifier _M_id;
+
         bool _M_vsync_status;
 
-
-        void process_mouse_button();
-
-        void init(const WindowConfig& info) override;
-        void close() override;
-        bool is_open() override;
+        WindowInterface* initialize(const WindowConfig* config);
         Size1D width() override;
         WindowInterface& width(const Size1D& width) override;
         Size1D height() override;
@@ -66,39 +63,25 @@ namespace Engine
         WindowInterface& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
         bool support_orientation(WindowOrientation orientation) override;
-        WindowInterface& start_text_input() override;
-        WindowInterface& stop_text_input() override;
-        WindowInterface& pool_events() override;
-        WindowInterface& wait_for_events() override;
         void* create_surface(const char* any_text, ...) override;
-        WindowInterface& swap_buffers() override;
+        WindowInterface& present() override;
         Vector<const char*> required_extensions() override;
-        WindowInterface& add_event_callback(Identifier system_id, const EventCallback& callback) override;
-        WindowInterface& remove_all_callbacks(Identifier system_id) override;
-        bool mouse_relative_mode() const override;
-        WindowInterface& mouse_relative_mode(bool flag) override;
-        void send_event(const Event& event);
-        void process_event();
+        Identifier id() override;
+        WindowInterface& make_current(void* context) override;
 
+        int_t create_message_box(const MessageBoxCreateInfo& info) override;
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);
         void destroy_icon();
         void destroy_cursor();
         WindowSDL& vsync(bool) override;
         bool vsync() override;
-        int_t create_message_box(const MessageBoxCreateInfo& info) override;
-        WindowSDL& create_notify(const NotifyCreateInfo&) override;
-        String error() const override;
-        bool has_error() const override;
 
         // IMGUI
-        WindowInterface& initialize_imgui() override;
+        WindowInterface& initialize_imgui(ImGuiContext* ctx) override;
         WindowInterface& terminate_imgui() override;
         WindowInterface& new_imgui_frame() override;
         void initialize_imgui_opengl();
         void initialize_imgui_vulkan();
-
-        WindowInterface& update_monitor_info(MonitorInfo& info) override;
-
 
         ~WindowSDL();
     };

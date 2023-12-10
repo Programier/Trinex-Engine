@@ -87,8 +87,7 @@ namespace Engine
 
     OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
     {
-        _M_render_pass = new OpenGL_RenderPass();
-        _M_render_pass->_M_clear_color_attachmend_on_bind.push_back(true);
+        _M_render_pass = OPENGL_API->_M_main_render_pass;
         _M_clear_color.push_back(Colors::Black);
     }
 
@@ -99,7 +98,6 @@ namespace Engine
 
     OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
     {
-        delete _M_render_pass;
         _M_render_pass = nullptr;
     }
 

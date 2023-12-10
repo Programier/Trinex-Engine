@@ -87,13 +87,22 @@ namespace Engine
     struct RHI_RenderPass : RHI_Object {
     };
 
+    struct RHI_Viewport : RHI_Object {
+
+        virtual void begin_render() = 0;
+        virtual void end_render()   = 0;
+
+        virtual bool vsync()                           = 0;
+        virtual void vsync(bool flag)                  = 0;
+        virtual void on_resize(const Size2D& new_size) = 0;
+        virtual RHI_RenderTarget* render_target()      = 0;
+    };
+
     struct ENGINE_EXPORT RHI {
-        virtual void* init_window(struct WindowInterface*, const WindowConfig& config) = 0;
-        virtual RHI& destroy_window()                                                  = 0;
-        virtual RHI& imgui_init()                                                      = 0;
-        virtual RHI& imgui_terminate()                                                 = 0;
-        virtual RHI& imgui_new_frame()                                                 = 0;
-        virtual RHI& imgui_render()                                                    = 0;
+        virtual RHI& imgui_init()      = 0;
+        virtual RHI& imgui_terminate() = 0;
+        virtual RHI& imgui_new_frame() = 0;
+        virtual RHI& imgui_render()    = 0;
 
 
         virtual RHI& destroy_object(RHI_Object* object)        = 0;
@@ -101,19 +110,14 @@ namespace Engine
 
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) = 0;
         virtual RHI& draw(size_t vertex_count)                                 = 0;
-        virtual RHI& swap_buffer()                                             = 0;
-        virtual RHI& vsync(bool)                                               = 0;
-        virtual bool vsync()                                                   = 0;
 
-        virtual RHI& on_window_size_changed() = 0;
-        virtual RHI& begin_render()           = 0;
-        virtual RHI& end_render()             = 0;
-        virtual RHI& wait_idle()              = 0;
-        virtual String renderer()             = 0;
+        virtual RHI& begin_render() = 0;
+        virtual RHI& end_render()   = 0;
+        virtual RHI& wait_idle()    = 0;
+        virtual String renderer()   = 0;
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                          = 0;
         virtual RHI_Texture* create_texture(const Texture*, const byte* data)                        = 0;
-        virtual RHI_RenderTarget* window_render_target()                                             = 0;
         virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)            = 0;
         virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                         = 0;
         virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                     = 0;
@@ -126,6 +130,9 @@ namespace Engine
         virtual RHI_RenderPass* window_render_pass()                                                 = 0;
         virtual ColorFormatFeatures color_format_features(ColorFormat format)                        = 0;
         virtual size_t render_target_buffer_count()                                                  = 0;
+
+        virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
+        virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;
 
         // Dynamic state
         virtual void line_width(float width) = 0;

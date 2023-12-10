@@ -38,7 +38,6 @@ namespace Engine
 
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
         class Renderer* _M_renderer = nullptr;
-        Window* _M_window           = nullptr;
         RHI* _M_rhi                 = nullptr;
         BitSet<static_cast<EnumerateType>(EngineInstanceFlags::__COUNT__)> _M_flags;
         EngineAPI _M_api;
@@ -55,12 +54,12 @@ namespace Engine
     private:
         void init_engine_for_rendering();
         void create_window();
+        void create_render_targets();
 
     public:
         ENGINE_EXPORT static const String& project_name();
         ENGINE_EXPORT static const String& project_name(const String& name);
         ENGINE_EXPORT static int initialize(int argc, char** argv);
-        Window* window() const;
         SystemName system_type() const;
         EngineAPI api() const;
         const String& api_name() const;
@@ -73,7 +72,7 @@ namespace Engine
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;
-        int_t launch_systems();
+        int_t launch();
 
         float time_seconds() const;
         Index frame_index() const;

@@ -9,6 +9,7 @@ namespace Engine
 
         String title;
         String api_name;
+        String client;
         Size2D size;
         Vector<WindowOrientation> orientations;
         bool vsync;

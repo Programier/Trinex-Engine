@@ -21,25 +21,18 @@ namespace Engine
     {
 
         static OpenGL* _M_instance;
-
-
-        WindowInterface* _M_window = nullptr;
-        void* _M_surface           = nullptr;
-
-        struct OpenGL_RenderTarget* _M_main_render_target = nullptr;
+        void* _M_context                              = nullptr;
+        struct OpenGL_RenderPass* _M_main_render_pass = nullptr;
 
         // STATE
         struct OpenGL_RenderTarget* _M_current_render_target = nullptr;
         struct OpenGL_Pipeline* _M_current_pipeline          = nullptr;
         struct OpenGL_IndexBuffer* _M_current_index_buffer   = nullptr;
-
         Vector<BindingIndex> _M_sampler_units;
 
 
         OpenGL();
-
-        void* init_window(struct WindowInterface*, const WindowConfig& config) override;
-        OpenGL& destroy_window() override;
+        ~OpenGL();
         OpenGL& imgui_init() override;
         OpenGL& imgui_terminate() override;
         OpenGL& imgui_new_frame() override;
@@ -50,20 +43,16 @@ namespace Engine
 
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
         OpenGL& draw(size_t vertex_count) override;
-        OpenGL& swap_buffer() override;
-        OpenGL& vsync(bool) override;
-        bool vsync() override;
 
         OpenGL& destroy_object(RHI_Object* object) override;
-        OpenGL& on_window_size_changed() override;
         OpenGL& begin_render() override;
         OpenGL& end_render() override;
         OpenGL& wait_idle() override;
+        OpenGL& reset_state();
         String renderer() override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;
-        RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
@@ -77,6 +66,9 @@ namespace Engine
         ColorFormatFeatures color_format_features(ColorFormat format) override;
         size_t render_target_buffer_count() override;
         void line_width(float width) override;
+
+        RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
+        RHI_Viewport* create_viewport(RenderTarget* render_target) override;
 
         void push_debug_stage(const char* stage, const Color& color = {}) override;
         void pop_debug_stage() override;

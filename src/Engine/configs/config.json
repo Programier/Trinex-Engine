@@ -1,8 +1,7 @@
 {
     "Engine": {
-        "use_deffered_rendering": true,
         "load_meshes_to_gpu": true,
-        "api": "Vulkan",
+        "api": "OpenGLES",
         "delete_resources_after_load": false,
         "load_textures_to_gpu": true,
         "max_gc_collected_objects": 20000,
@@ -22,8 +21,7 @@
         "systems": [
             "Engine::LogicSystem",
             "Engine::HelloTriangleSystem",
-            "Engine::EventSystem",
-            "Engine::SystemGraphRendererSystem"
+            "Engine::EventSystem"
         ],
         "external_system_libraries": [
             "TrinexEngineEditor"
@@ -48,7 +46,8 @@
             2,
             3
         ],
-        "vsync": false,
-        "resizable": true
+        "vsync": true,
+        "resizable": true,
+        "client": "Engine::TestRenderingClient"
     }
 }

@@ -38,6 +38,9 @@ namespace Engine
         return pass;
     }
 
+    OpenGL_RenderPass::~OpenGL_RenderPass()
+    {}
+
     bool OpenGL_MainRenderPass::is_destroyable() const
     {
         return false;

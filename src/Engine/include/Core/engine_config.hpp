@@ -28,7 +28,6 @@ namespace Engine
         bool load_shaders_to_gpu;
         bool load_meshes_to_gpu;
         bool load_textures_to_gpu;
-        bool use_deffered_rendering;
 
 
         virtual EngineConfig& update() override;

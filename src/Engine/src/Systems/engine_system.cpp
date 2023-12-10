@@ -3,41 +3,12 @@
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Graphics/rhi.hpp>
 #include <Core/thread.hpp>
+#include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
 
 namespace Engine
 {
-
-    struct BeginRenderTask : public ExecutableObject {
-        RHI* rhi;
-
-        BeginRenderTask(RHI* rhi) : rhi(rhi)
-        {}
-
-        int_t execute() override
-        {
-            rhi->begin_render();
-            return 0;
-        }
-    };
-
-    struct EndRenderTask : public ExecutableObject {
-        RHI* rhi;
-
-        EndRenderTask(RHI* rhi) : rhi(rhi)
-        {}
-
-        int_t execute() override
-        {
-            rhi->end_render();
-            rhi->swap_buffer();
-            return 0;
-        }
-    };
-
-
     EngineSystem& EngineSystem::create()
     {
         Super::create();

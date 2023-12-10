@@ -20,6 +20,7 @@ namespace Engine
     {
         const auto& window_json = global_config.checked_get("Window").checked_get<JSON::JsonObject>();
         title                   = window_json.checked_get("title").checked_get<String>();
+        client                  = window_json.checked_get("client").checked_get<String>();
 
         {
             const auto& window_size = window_json.checked_get("size").checked_get<JSON::JsonObject>();

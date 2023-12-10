@@ -16,6 +16,9 @@
 
 namespace Engine
 {
+    struct VulkanTexture;
+    struct VulkanViewport;
+
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphics_family;
         std::optional<uint32_t> present_family;
@@ -26,8 +29,6 @@ namespace Engine
         }
     };
 
-
-    struct VulkanTexture;
 
     struct Garbage {
         RHI_Object* object;
@@ -45,20 +46,15 @@ namespace Engine
     };
 
     struct VulkanAPI : public RHI {
-        Vector<VulkanExtention> _M_device_extensions;
-        Vector<vk::DynamicState> _M_dynamic_states;
-
         static VulkanAPI* _M_vulkan;
 
+        Vector<VulkanExtention> _M_device_extensions;
+        Vector<vk::DynamicState> _M_dynamic_states;
         List<Garbage> _M_garbage;
 
-        WindowInterface* _M_window       = nullptr;
-        bool _M_need_recreate_swap_chain = false;
-        String _M_renderer               = "";
 
-        struct {
-            int width, height;
-        } window_data;
+        WindowInterface* _M_window = nullptr;
+        String _M_renderer         = "";
 
         struct {
             PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -78,45 +74,37 @@ namespace Engine
 
         vk::PhysicalDeviceProperties _M_properties;
         vk::PhysicalDeviceFeatures _M_features;
-
         vk::SurfaceCapabilitiesKHR _M_surface_capabilities;
 
-        vk::DescriptorPool _M_imgui_descriptor_pool;
-        SwapChain* _M_swap_chain = nullptr;
 
-        VulkanMainFrameBuffer* _M_main_framebuffer   = nullptr;
+        vk::DescriptorPool _M_imgui_descriptor_pool;
         struct VulkanRenderPass* _M_main_render_pass = nullptr;
-        struct VulkanState* _M_state                 = nullptr;
 
         vk::CommandPool _M_command_pool;
-        vk::PresentModeKHR _M_swap_chain_mode;
-
         uint32_t _M_framebuffers_count = 0;
-        uint32_t _M_image_index        = 0;
-        uint32_t _M_current_buffer     = 0;
-        uint32_t _M_prev_buffer        = 0;
-        size_t _M_current_frame        = 0;
+
+        VulkanViewport* _M_current_viewport = nullptr;
+
+        size_t _M_current_frame  = 0;
+        size_t _M_current_buffer = 0;
 
         //////////////////////////////////////////////////////////////
 
         // API METHODS
 
 
-        void init();
-        void create_surface();
-        void destroy_framebuffers(bool full_destroy = true);
-        void recreate_swap_chain();
-        void create_swap_chain();
-        void create_framebuffers();
-        void create_command_buffer();
-        void create_render_pass();
+        vk::SurfaceKHR create_surface(WindowInterface* interface);
+        void create_command_pool();
+        void create_render_pass(vk::Format);
 
         void check_extentions();
         void enable_dynamic_states();
         void initialize_pfn();
 
+        struct VulkanState* state();
 
         vk::Extent2D surface_size() const;
+        vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 
         VulkanAPI& create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
                                  vk::Buffer& buffer, vk::DeviceMemory& buffer_memory);
@@ -127,7 +115,6 @@ namespace Engine
 
         VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
                                vk::DeviceSize src_offset = 0, vk::DeviceSize dst_offset = 0);
-        vk::ResultValue<uint32_t> swapchain_image_index();
         vk::Format find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
                                          vk::FormatFeatureFlags features);
         bool has_stencil_component(vk::Format format);
@@ -136,19 +123,14 @@ namespace Engine
                                 vk::DeviceMemory& image_memory, uint32_t layers);
 
         vk::CommandBuffer& current_command_buffer();
-        struct VulkanMainRenderTargetFrame* current_main_frame();
 
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
-        void* init_window(WindowInterface* window, const WindowConfig& config) override;
-        VulkanAPI& destroy_window() override;
-        VulkanAPI& on_window_size_changed() override;
-        VulkanAPI& swap_buffer() override;
+        void initialize(WindowInterface* window);
+
         VulkanAPI& begin_render() override;
         VulkanAPI& end_render() override;
-        VulkanAPI& vsync(bool) override;
-        bool vsync() override;
         VulkanAPI& wait_idle() override;
 
 
@@ -159,6 +141,8 @@ namespace Engine
         VulkanAPI& imgui_new_frame() override;
         VulkanAPI& imgui_render() override;
 
+        vk::PresentModeKHR present_mode_of(bool vsync);
+
         String renderer() override;
 
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
@@ -168,7 +152,6 @@ namespace Engine
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;
-        RHI_RenderTarget* window_render_target() override;
         RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
@@ -181,6 +164,9 @@ namespace Engine
         RHI_RenderPass* window_render_pass() override;
         ColorFormatFeatures color_format_features(ColorFormat format) override;
         size_t render_target_buffer_count() override;
+
+        RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
+        RHI_Viewport* create_viewport(RenderTarget* render_target) override;
 
         void line_width(float width) override;
 

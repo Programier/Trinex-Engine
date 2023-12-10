@@ -74,7 +74,7 @@ namespace Engine
 
     void VulkanVertexBuffer::bind(byte stream_index, size_t offset)
     {
-        VulkanVertexBuffer*& current = API->_M_state->_M_current_vertex_buffer[stream_index];
+        VulkanVertexBuffer*& current = API->state()->_M_current_vertex_buffer[stream_index];
         if (current != this)
         {
             API->current_command_buffer().bindVertexBuffers(stream_index, _M_buffer._M_buffer, {offset});
@@ -98,7 +98,7 @@ namespace Engine
 
     void VulkanIndexBuffer::bind(size_t offset)
     {
-        VulkanIndexBuffer*& current = API->_M_state->_M_current_index_buffer;
+        VulkanIndexBuffer*& current = API->state()->_M_current_index_buffer;
         if (current != this)
         {
             API->current_command_buffer().bindIndexBuffer(_M_buffer._M_buffer, offset, _M_index_type);
@@ -119,9 +119,10 @@ namespace Engine
 
     void VulkanSSBO::bind(BindLocation location)
     {
-        if (API->_M_state->_M_pipeline)
+        VulkanState* state = API->state();
+        if (state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_ssbo(this, location);
+            state->_M_pipeline->bind_ssbo(this, location);
         }
     }
 
@@ -149,9 +150,10 @@ namespace Engine
 
     void VulkanUniformBuffer::bind(BindLocation location)
     {
-        if (API->_M_state->_M_pipeline)
+        VulkanState* state = API->state();
+        if (state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_uniform_buffer(this, location);
+            state->_M_pipeline->bind_uniform_buffer(this, location);
         }
     }
 

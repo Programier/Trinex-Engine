@@ -274,10 +274,8 @@ namespace Engine
                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->_M_attribute_description);
         }
 
-        vk::Viewport viewport(0.f, 0.f, static_cast<float>(API->_M_swap_chain->_M_extent.width),
-                              static_cast<float>(API->_M_swap_chain->_M_extent.height), 0.0f, 1.f);
-
-        vk::Rect2D scissor({0, 0}, API->_M_swap_chain->_M_extent);
+        vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
+        vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
 
         vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
@@ -329,6 +327,7 @@ namespace Engine
     {
         API->wait_idle();
         DESTROY_CALL(destroyPipeline, _M_pipeline);
+        DESTROY_CALL(destroyPipelineLayout, _M_pipeline_layout);
         return *this;
     }
 
@@ -413,10 +412,11 @@ namespace Engine
 
     void VulkanPipeline::bind()
     {
-        if (API->_M_state->_M_pipeline != this)
+        VulkanState* state = API->state();
+        if (state->_M_pipeline != this)
         {
             API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
-            API->_M_state->_M_pipeline = this;
+            state->_M_pipeline = this;
         }
     }
 

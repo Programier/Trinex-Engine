@@ -4,7 +4,6 @@
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
 #include <Systems/event_system.hpp>
-#include <Systems/imgui_system.hpp>
 #include <imgui.h>
 
 namespace Engine
@@ -22,12 +21,12 @@ namespace Engine
         TrinexEditorSystem& create() override
         {
             Super::create();
-            System::new_system<ImGuiRendererSystem>()->register_subsystem(this);
+            //System::new_system<ImGuiRendererSystem>()->register_subsystem(this);
 
-            event.key   = Keyboard::F;
-            listener_id = System::new_system<EventSystem>()->add_listener(
-                    Event(EventType::KeyDown, event),
-                    std::bind(&TrinexEditorSystem::on_f_press, this, std::placeholders::_1));
+//            event.key   = Keyboard::F;
+//            listener_id = System::new_system<EventSystem>()->add_listener(
+//                    Event(EventType::KeyDown, event),
+//                    std::bind(&TrinexEditorSystem::on_f_press, this, std::placeholders::_1));
             return *this;
         }
 
@@ -71,7 +70,7 @@ namespace Engine
         TrinexEditorSystem& shutdown() override
         {
             Super::shutdown();
-            EventSystem::instance()->remove_listener(Event(EventType::KeyDown, event), listener_id);
+            //EventSystem::instance()->remove_listener(Event(EventType::KeyDown, event), listener_id);
             return *this;
         }
 

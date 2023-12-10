@@ -336,18 +336,19 @@ namespace Engine
 
     void VulkanTexture::bind(BindLocation location)
     {
-        if (API->_M_state->_M_pipeline)
+        VulkanState* state = API->state();
+        if (state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_texture(this, location);
+            state->_M_pipeline->bind_texture(this, location);
         }
     }
 
     void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindLocation location)
     {
-        if (API->_M_state->_M_pipeline)
+        VulkanState* state = API->state();
+        if (state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this,
-                                                              location);
+            state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this, location);
         }
     }
 

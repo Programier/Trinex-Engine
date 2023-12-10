@@ -9,12 +9,14 @@ namespace Engine
         declare_class(Window, RenderTargetBase);
 
     private:
-        WindowInterface* _M_interface = nullptr;
+        WindowInterface* _M_interface            = nullptr;
+        class RenderViewport* _M_render_viewport = nullptr;
         Size2D _M_cached_size;
 
+        Window* _M_parent_window = nullptr;
+        Vector<Window*> _M_childs;
+
     public:
-        void close();
-        bool is_open();
         Size1D width();
         Window& width(const Size1D& width);
         Size1D height();
@@ -45,30 +47,27 @@ namespace Engine
         Window& cursor_mode(const CursorMode& mode);
         CursorMode cursor_mode();
         bool support_orientation(WindowOrientation orientation);
-        Window& start_text_input();
-        Window& stop_text_input();
-        Window& pool_events();
-        Window& wait_for_events();
-        Window& swap_buffers();
         Window& update_cached_size();
         const Size2D& cached_size() const;
-        void* interface() const;
+        WindowInterface* interface() const;
         Window& icon(const Image& image);
         Window& cursor(const Image& image, IntVector2D hotspot = {0, 0});
-        Window& update_monitor_info(MonitorInfo& info);
         int_t create_message_box(const MessageBoxCreateInfo& info);
-        Window& create_notify(const NotifyCreateInfo& info);
+        RenderViewport* render_viewport() const;
+        Window* parent_window() const;
+        const Vector<Window*>& child_windows() const;
 
-        void initialize_imgui();
+        Identifier window_id() const;
+
+        void initialize_imgui(ImGuiContext* ctx);
         void terminate_imgui();
         void new_imgui_frame();
-        ~Window();
-
-        static Window* instance();
 
     private:
-        Window(WindowInterface* interface = nullptr);
+        Window(WindowInterface* interface = nullptr, bool vsync = true);
+        ~Window();
 
         friend class Object;
+        friend class WindowManager;
     };
 }// namespace Engine

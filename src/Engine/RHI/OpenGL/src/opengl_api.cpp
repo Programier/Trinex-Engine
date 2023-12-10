@@ -4,6 +4,7 @@
 #include <imgui_impl_opengl3.h>
 #include <opengl_api.hpp>
 #include <opengl_buffers.hpp>
+#include <opengl_render_pass.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_shader.hpp>
 
@@ -11,11 +12,6 @@ namespace Engine
 {
 
     OpenGL* OpenGL::_M_instance = nullptr;
-
-    OpenGL::OpenGL()
-    {
-        _M_instance = this;
-    }
 
     static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                const GLchar* message, const void* userParam)
@@ -26,10 +22,10 @@ namespace Engine
         }
     }
 
-    void* OpenGL::init_window(struct WindowInterface* window, const WindowConfig& config)
+
+    OpenGL::OpenGL()
     {
-        _M_window  = window;
-        _M_surface = window->create_surface("");
+        _M_instance = this;
 
 #if USING_OPENGL_CORE
         glewExperimental = GL_TRUE;
@@ -40,27 +36,18 @@ namespace Engine
         }
 #endif
 
-        _M_main_render_target = new OpenGL_MainRenderTarget();
-
-        _M_main_render_target->_M_viewport.size      = config.size;
-        _M_main_render_target->_M_viewport.pos       = {0.f, 0.f};
-        _M_main_render_target->_M_viewport.min_depth = 0.0f;
-        _M_main_render_target->_M_viewport.max_depth = 1.0f;
-        _M_main_render_target->_M_scissor.pos        = {0.0f, 0.f};
-        _M_main_render_target->_M_scissor.size       = config.size;
-
-
-        // Або встановлення власного обробника повідомлень
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(debug_callback, nullptr);
-        return _M_surface;
+
+        _M_main_render_pass = new OpenGL_MainRenderPass();
+        _M_main_render_pass->_M_clear_color_attachmend_on_bind.push_back(true);
     }
 
-    OpenGL& OpenGL::destroy_window()
+    OpenGL::~OpenGL()
     {
-        delete _M_main_render_target;
-        return *this;
+        delete _M_main_render_pass;
     }
+
 
     OpenGL& OpenGL::imgui_init()
     {
@@ -101,39 +88,23 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::vsync(bool flag)
-    {
-        _M_window->vsync(flag);
-        return *this;
-    }
-
-    bool OpenGL::vsync()
-    {
-        return _M_window->vsync();
-    }
-
     OpenGL& OpenGL::destroy_object(RHI_Object* object)
     {
         delete object;
         return *this;
     }
 
-    OpenGL& OpenGL::on_window_size_changed()
-    {
-        return *this;
-    }
 
-    OpenGL& OpenGL::swap_buffer()
+    OpenGL& OpenGL::reset_state()
     {
-        _M_window->swap_buffers();
+        _M_current_render_target = nullptr;
+        _M_current_pipeline      = nullptr;
+        _M_current_index_buffer  = nullptr;
         return *this;
     }
 
     OpenGL& OpenGL::begin_render()
     {
-        _M_current_render_target = nullptr;
-        _M_current_pipeline      = nullptr;
-        _M_current_index_buffer  = nullptr;
         return *this;
     }
 
@@ -152,14 +123,10 @@ namespace Engine
         return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     }
 
-    RHI_RenderTarget* OpenGL::window_render_target()
-    {
-        return _M_main_render_target;
-    }
 
     RHI_RenderPass* OpenGL::window_render_pass()
     {
-        return reinterpret_cast<RHI_RenderPass*>(_M_main_render_target->_M_render_pass);
+        return _M_main_render_pass;
     }
 
     void OpenGL::push_debug_stage(const char* stage, const Color& color)
@@ -174,7 +141,7 @@ namespace Engine
 
     void OpenGL::reset_samplers()
     {
-        for(BindingIndex unit : _M_sampler_units)
+        for (BindingIndex unit : _M_sampler_units)
         {
             glBindSampler(unit, 0);
         }
