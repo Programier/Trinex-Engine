@@ -63,6 +63,7 @@ namespace Engine
 
 
         // API DATA
+        struct VulkanState* _M_state = nullptr;
         vkb::Instance _M_instance;
         vk::SurfaceKHR _M_surface;
         vk::PhysicalDevice _M_physical_device;
@@ -83,8 +84,6 @@ namespace Engine
         vk::CommandPool _M_command_pool;
         uint32_t _M_framebuffers_count = 0;
 
-        VulkanViewport* _M_current_viewport = nullptr;
-
         size_t _M_current_frame  = 0;
         size_t _M_current_buffer = 0;
 
@@ -100,8 +99,6 @@ namespace Engine
         void check_extentions();
         void enable_dynamic_states();
         void initialize_pfn();
-
-        struct VulkanState* state();
 
         vk::Extent2D surface_size() const;
         vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;

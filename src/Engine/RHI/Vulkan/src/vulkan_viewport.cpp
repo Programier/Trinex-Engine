@@ -185,8 +185,8 @@ namespace Engine
 
     void VulkanViewport::begin_render()
     {
-        API->_M_current_viewport = this;
-        _M_state.reset();
+        API->_M_state->reset();
+        API->_M_state->_M_current_viewport = this;
 
         if (_M_swapchain)
         {
@@ -211,13 +211,12 @@ namespace Engine
 
     void VulkanViewport::end_render()
     {
-        if (_M_state._M_framebuffer)
+        if (API->_M_state->_M_framebuffer)
         {
-            _M_state._M_framebuffer->unbind();
+            API->_M_state->_M_framebuffer->unbind();
         }
 
         API->current_command_buffer().end();
-
 
         SyncObject& sync = _M_sync_objects[API->_M_current_buffer];
 
@@ -260,7 +259,7 @@ namespace Engine
 
         recreate_swapchain();
 
-        API->_M_current_viewport = nullptr;
+        API->_M_state->_M_current_viewport = nullptr;
     }
 
     void VulkanViewport::on_resize(const Size2D& new_size)
@@ -345,14 +344,7 @@ namespace Engine
 
     vk::CommandBuffer& VulkanAPI::current_command_buffer()
     {
-        return _M_current_viewport->_M_command_buffers[API->_M_current_buffer];
-    }
-
-    struct VulkanState* VulkanAPI::state()
-    {
-        if (_M_current_viewport)
-            return &_M_current_viewport->_M_state;
-        return nullptr;
+        return _M_state->_M_current_viewport->_M_command_buffers[API->_M_current_buffer];
     }
 
     RHI_Viewport* VulkanAPI::create_viewport(WindowInterface* interface, bool vsync)

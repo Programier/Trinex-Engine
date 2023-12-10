@@ -49,6 +49,8 @@ namespace Engine
         _M_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
         _M_device_extensions[ext_swapchain_index]        = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false};
         _M_device_extensions[ext_index_type_uint8_index] = {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false};
+
+        _M_state = new VulkanState();
     }
 
     VulkanAPI::~VulkanAPI()
@@ -60,6 +62,7 @@ namespace Engine
         _M_device.destroyCommandPool(_M_command_pool);
         _M_device.destroy();
         vkb::destroy_instance(_M_instance);
+        delete _M_state;
     }
 
     vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync)
@@ -408,9 +411,9 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        if (_M_current_viewport)
+        if (_M_state->_M_current_viewport)
         {
-            _M_current_viewport->end_render();
+            _M_state->_M_current_viewport->end_render();
         }
         ++_M_current_frame;
         _M_current_buffer = _M_current_frame % _M_framebuffers_count;
@@ -489,14 +492,14 @@ namespace Engine
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
-        state()->_M_pipeline->increment_set_index();
+        _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
         current_command_buffer().draw(vertex_count, 1, 0, 0);
-        state()->_M_pipeline->increment_set_index();
+        _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
 

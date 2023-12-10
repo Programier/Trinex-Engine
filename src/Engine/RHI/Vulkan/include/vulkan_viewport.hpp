@@ -6,7 +6,6 @@
 
 namespace Engine
 {
-
     struct VulkanViewport : public RHI_Viewport {
 
         struct SyncObject {
@@ -17,8 +16,6 @@ namespace Engine
             SyncObject();
             ~SyncObject();
         };
-
-        VulkanState _M_state;
 
         Vector<vk::CommandBuffer> _M_command_buffers;
         Vector<SyncObject> _M_sync_objects;
@@ -46,7 +43,6 @@ namespace Engine
         VulkanViewport* init(RenderTarget* render_target);
 
 
-
         void begin_render_window();
         void begin_render_render_target();
         void begin_render() override;
@@ -57,5 +53,12 @@ namespace Engine
         RHI_RenderTarget* render_target() override;
 
         ~VulkanViewport() override;
+    };
+
+
+    struct VulkanRenderTargetViewport : VulkanViewport {
+    };
+
+    struct VulkanWindowViewport : VulkanViewport {
     };
 }// namespace Engine

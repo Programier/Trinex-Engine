@@ -412,11 +412,10 @@ namespace Engine
 
     void VulkanPipeline::bind()
     {
-        VulkanState* state = API->state();
-        if (state->_M_pipeline != this)
+        if (API->_M_state->_M_pipeline != this)
         {
             API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
-            state->_M_pipeline = this;
+            API->_M_state->_M_pipeline = this;
         }
     }
 

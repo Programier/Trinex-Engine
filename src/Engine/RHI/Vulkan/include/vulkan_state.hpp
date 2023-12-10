@@ -6,9 +6,10 @@ namespace Engine
 
     struct VulkanState {
         struct VulkanRenderTargetFrame* _M_framebuffer = nullptr;
-        struct VulkanPipeline* _M_pipeline       = nullptr;
+        struct VulkanPipeline* _M_pipeline             = nullptr;
         struct VulkanVertexBuffer* _M_current_vertex_buffer[15];
         struct VulkanIndexBuffer* _M_current_index_buffer;
+        struct VulkanViewport* _M_current_viewport = nullptr;
 
         inline void reset()
         {

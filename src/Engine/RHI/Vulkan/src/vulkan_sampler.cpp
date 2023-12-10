@@ -67,10 +67,9 @@ namespace Engine
 
     void VulkanSampler::bind(BindLocation location)
     {
-        VulkanState* state = API->state();
-        if (state->_M_pipeline)
+        if (API->_M_state->_M_pipeline)
         {
-            state->_M_pipeline->bind_sampler(this, location);
+            API->_M_state->_M_pipeline->bind_sampler(this, location);
         }
     }
 

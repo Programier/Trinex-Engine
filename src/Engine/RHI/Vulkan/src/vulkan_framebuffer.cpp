@@ -86,20 +86,19 @@ namespace Engine
 
     void VulkanRenderTargetFrame::bind()
     {
-        VulkanState* state = API->state();
-        if (state->_M_framebuffer == this)
+        if (API->_M_state->_M_framebuffer == this)
             return;
 
 
-        if (state->_M_framebuffer)
+        if (API->_M_state->_M_framebuffer)
         {
-            size_t count = state->_M_framebuffer->_M_attachments.size();
-            state->_M_framebuffer->unbind();
+            size_t count = API->_M_state->_M_framebuffer->_M_attachments.size();
+            API->_M_state->_M_framebuffer->unbind();
             push_barriers(count);
         }
 
 
-        state->_M_framebuffer = this;
+        API->_M_state->_M_framebuffer = this;
         _M_owner->_M_render_pass_info.setFramebuffer(_M_framebuffer);
         API->current_command_buffer().beginRenderPass(_M_owner->_M_render_pass_info, vk::SubpassContents::eInline);
 
@@ -108,11 +107,10 @@ namespace Engine
 
     void VulkanRenderTargetFrame::unbind()
     {
-        VulkanState* state = API->state();
-        if (state->_M_framebuffer == this)
+        if (API->_M_state->_M_framebuffer == this)
         {
             API->current_command_buffer().endRenderPass();
-            state->_M_framebuffer = nullptr;
+            API->_M_state->_M_framebuffer = nullptr;
         }
     }
 
@@ -263,9 +261,8 @@ namespace Engine
             _M_viewport.height = viewport.size.y;
         }
 
-        VulkanState* state = API->state();
-        if (state && state->_M_framebuffer == _M_frames[buffer_index()])
-            state->_M_framebuffer->update_viewport();
+        if (API->_M_state->_M_framebuffer == _M_frames[buffer_index()])
+            API->_M_state->_M_framebuffer->update_viewport();
     }
 
     void VulkanRenderTarget::scissor(const Scissor& scissor)
@@ -276,9 +273,8 @@ namespace Engine
 
         _M_scissor.offset.y = scissor.pos.y;
 
-        VulkanState* state = API->state();
-        if (state && state->_M_framebuffer == _M_frames[buffer_index()])
-            state->_M_framebuffer->update_scissors();
+        if (API->_M_state->_M_framebuffer == _M_frames[buffer_index()])
+            API->_M_state->_M_framebuffer->update_scissors();
     }
 
 
