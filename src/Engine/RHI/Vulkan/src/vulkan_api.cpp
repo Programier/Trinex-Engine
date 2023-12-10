@@ -70,6 +70,11 @@ namespace Engine
         return vsync ? vk::PresentModeKHR::eFifo : vk::PresentModeKHR::eImmediate;
     }
 
+    bool VulkanAPI::vsync_from_present_mode(vk::PresentModeKHR present_mode)
+    {
+        return present_mode == vk::PresentModeKHR::eFifo ? true : false;
+    }
+
     VulkanAPI& VulkanAPI::delete_garbage(bool force)
     {
 

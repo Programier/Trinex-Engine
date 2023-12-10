@@ -139,6 +139,7 @@ namespace Engine
         VulkanAPI& imgui_render() override;
 
         vk::PresentModeKHR present_mode_of(bool vsync);
+        bool vsync_from_present_mode(vk::PresentModeKHR);
 
         String renderer() override;
 

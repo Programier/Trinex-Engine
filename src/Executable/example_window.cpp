@@ -47,6 +47,7 @@ namespace Engine
                 const KeyEvent& event_data = event.get<const KeyEvent&>();
                 if (event_data.key == Keyboard::Key::N)
                 {
+                    global_window_config.vsync = false;
                     WindowManager::instance()->create_window(global_window_config, nullptr);
                 }
             });

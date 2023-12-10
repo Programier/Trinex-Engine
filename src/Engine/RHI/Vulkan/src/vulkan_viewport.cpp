@@ -1,8 +1,8 @@
+#include <Graphics/render_target.hpp>
 #include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_render_target.hpp>
-#include <Graphics/render_target.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -168,16 +168,24 @@ namespace Engine
 
     void VulkanWindowViewport::on_resize(const Size2D& new_size)
     {
-        if (_M_swapchain)
+        auto size = API->surface_size(_M_surface);
+        if (size.width != static_cast<std::uint32_t>(_M_swapchain->extent.width) ||
+            size.height != static_cast<uint32_t>(_M_swapchain->extent.height))
         {
-            auto size = API->surface_size(_M_surface);
-            if (size.width != static_cast<std::uint32_t>(_M_swapchain->extent.width) ||
-                size.height != static_cast<uint32_t>(_M_swapchain->extent.height))
-            {
-                _M_need_recreate_swap_chain = true;
-                _M_render_target->size(size.width, size.height);
-            }
+            _M_need_recreate_swap_chain = true;
+            _M_render_target->size(size.width, size.height);
         }
+    }
+
+    bool VulkanWindowViewport::vsync()
+    {
+        return API->vsync_from_present_mode(_M_present_mode);
+    }
+
+    void VulkanWindowViewport::vsync(bool flag)
+    {
+        _M_present_mode = API->present_mode_of(flag);
+        _M_need_recreate_swap_chain = true;
     }
 
     void VulkanWindowViewport::create_swapchain()

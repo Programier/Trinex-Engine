@@ -67,6 +67,8 @@ namespace Engine
         void begin_render() override;
         void end_render() override;
         void on_resize(const Size2D& new_size) override;
+        bool vsync() override;
+        void vsync(bool flag) override;
 
         ~VulkanWindowViewport();
     };
