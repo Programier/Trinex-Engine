@@ -19,7 +19,7 @@ namespace Engine
         SDL_Surface* _M_cursor_icon = nullptr;
         SDL_Cursor* _M_cursor       = nullptr;
 
-        SDL_GLContext _M_gl_context;
+        void* _M_gl_context            = nullptr;
         ImGuiContext* _M_imgui_context = nullptr;
         SDL_WindowFlags _M_api;
         CursorMode _M_c_mode;
@@ -63,11 +63,14 @@ namespace Engine
         WindowInterface& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
         bool support_orientation(WindowOrientation orientation) override;
-        void* create_surface(const char* any_text, ...) override;
         WindowInterface& present() override;
         Vector<const char*> required_extensions() override;
         Identifier id() override;
-        WindowInterface& make_current(void* context) override;
+
+        void* create_surface(const char* any_text, ...) override;
+        WindowInterface& make_current(void* surface) override;
+        WindowInterface& destroy_surface(void* surface) override;
+        WindowInterface& link_surface(void* surface) override;
 
         int_t create_message_box(const MessageBoxCreateInfo& info) override;
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);

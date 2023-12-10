@@ -14,7 +14,8 @@ namespace Engine
         declare_class(ViewportClient, Object);
 
     public:
-        virtual ViewportClient& render(class RenderViewport* InViewport);
+        virtual ViewportClient& render(class RenderViewport* viewport);
+        virtual ViewportClient& update(class RenderViewport* viewport, float dt);
     };
 
     class ENGINE_EXPORT RenderViewport : public RenderResource
@@ -63,6 +64,7 @@ namespace Engine
 
         ViewportClient* client() const;
         RenderViewport& client(ViewportClient* client);
+        RenderViewport& update(float dt);
 
         static const Vector<RenderViewport*>& viewports();
     };

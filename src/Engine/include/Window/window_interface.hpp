@@ -47,13 +47,16 @@ namespace Engine
         virtual WindowInterface& cursor_mode(const CursorMode& mode)                      = 0;
         virtual CursorMode cursor_mode()                                                  = 0;
         virtual bool support_orientation(WindowOrientation orientation)                   = 0;
-        virtual void* create_surface(const char* any_text, ...)                           = 0;
         virtual WindowInterface& present()                                                = 0;
         virtual Vector<const char*> required_extensions()                                 = 0;
         virtual WindowInterface& vsync(bool)                                              = 0;
         virtual bool vsync()                                                              = 0;
         virtual Identifier id()                                                           = 0;
-        virtual WindowInterface& make_current(void* context)                              = 0;
+
+        virtual void* create_surface(const char* any_text, ...) = 0;
+        virtual WindowInterface& make_current(void* surface)    = 0;
+        virtual WindowInterface& destroy_surface(void* surface) = 0;
+        virtual WindowInterface& link_surface(void* surface)    = 0;
 
         virtual int_t create_message_box(const MessageBoxCreateInfo& info) = 0;
 

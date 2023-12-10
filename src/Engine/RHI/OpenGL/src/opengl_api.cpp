@@ -25,8 +25,13 @@ namespace Engine
 
     OpenGL::OpenGL()
     {
-        _M_instance = this;
+        _M_instance         = this;
+        _M_main_render_pass = new OpenGL_MainRenderPass();
+        _M_main_render_pass->_M_clear_color_attachmend_on_bind.push_back(true);
+    }
 
+    OpenGL& OpenGL::initialize()
+    {
 #if USING_OPENGL_CORE
         glewExperimental = GL_TRUE;
 
@@ -38,9 +43,7 @@ namespace Engine
 
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(debug_callback, nullptr);
-
-        _M_main_render_pass = new OpenGL_MainRenderPass();
-        _M_main_render_pass->_M_clear_color_attachmend_on_bind.push_back(true);
+        return *this;
     }
 
     OpenGL::~OpenGL()

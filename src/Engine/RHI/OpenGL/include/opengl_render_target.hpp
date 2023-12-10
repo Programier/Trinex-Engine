@@ -11,7 +11,7 @@ namespace Engine
 
         ViewPort _M_viewport;
         Scissor _M_scissor;
-        GLuint _M_framebuffer = 0;
+        GLuint _M_framebuffer                    = 0;
         struct OpenGL_RenderPass* _M_render_pass = nullptr;
 
         bool _M_has_depth_stencil_buffer = false;
@@ -32,10 +32,9 @@ namespace Engine
         OpenGL_RenderTarget& attach_texture(const class Texture2D* texture_attachmend, GLuint attachment);
     };
 
-    struct OpenGL_MainRenderTarget : public OpenGL_RenderTarget
+    struct OpenGL_MainRenderTarget : OpenGL_RenderTarget
     {
         OpenGL_MainRenderTarget();
-        bool is_destroyable() const override;
         ~OpenGL_MainRenderTarget();
     };
 }// namespace Engine

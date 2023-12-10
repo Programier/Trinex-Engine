@@ -17,6 +17,11 @@ namespace Engine
         return *this;
     }
 
+    ViewportClient& ViewportClient::update(class RenderViewport* viewport, float dt)
+    {
+        return *this;
+    }
+
     Vector<RenderViewport*> RenderViewport::_M_viewports;
 
     RenderViewport::RenderViewport()
@@ -165,6 +170,15 @@ namespace Engine
     RenderViewport& RenderViewport::client(ViewportClient* new_client)
     {
         _M_client = new_client;
+        return *this;
+    }
+
+    RenderViewport& RenderViewport::update(float dt)
+    {
+        if(_M_client)
+        {
+            _M_client->update(this, dt);
+        }
         return *this;
     }
 

@@ -1,8 +1,8 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/thread.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
-#include <Core/thread.hpp>
 #include <Systems/engine_system.hpp>
 
 namespace Engine
@@ -66,6 +66,14 @@ namespace Engine
                 engine_system->update(dt);
                 engine_system->wait();
 
+                // Update Viewports
+
+                auto& viewports = RenderViewport::viewports();
+
+                for (size_t i = 0, count = viewports.size(); i < count; ++i)
+                {
+                    viewports[i]->update(dt);
+                }
 
                 render_thread->wait_all();
                 render_thread->insert_new_task<BeginRenderCommand>(_M_rhi);

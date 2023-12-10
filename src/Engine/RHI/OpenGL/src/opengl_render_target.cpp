@@ -84,23 +84,6 @@ namespace Engine
         glScissor(_M_scissor.pos.x, _M_scissor.pos.y, _M_scissor.size.x, _M_scissor.size.y);
     }
 
-
-    OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
-    {
-        _M_render_pass = OPENGL_API->_M_main_render_pass;
-        _M_clear_color.push_back(Colors::Black);
-    }
-
-    bool OpenGL_MainRenderTarget::is_destroyable() const
-    {
-        return false;
-    }
-
-    OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
-    {
-        _M_render_pass = nullptr;
-    }
-
     OpenGL_RenderTarget& OpenGL_RenderTarget::init(const RenderTarget* render_target)
     {
         glGenFramebuffers(1, &_M_framebuffer);
@@ -177,9 +160,20 @@ namespace Engine
         return *this;
     }
 
+    OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
+    {
+        _M_render_pass = OPENGL_API->_M_main_render_pass;
+        _M_clear_color.push_back(Colors::Black);
+    }
+
+    OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
+    {
+        _M_render_pass = nullptr;
+    }
+
     RHI_RenderTarget* OpenGL::create_render_target(const RenderTarget* target)
     {
-        if(target->frames_count() != render_target_buffer_count())
+        if (target->frames_count() != render_target_buffer_count())
             throw EngineException("Frames count is mismatch with API requirements");
         return &((new OpenGL_RenderTarget())->init(target));
     }

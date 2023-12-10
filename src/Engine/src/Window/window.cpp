@@ -29,6 +29,7 @@ namespace Engine
     Window::Window(WindowInterface* interface, bool vsync) : _M_interface(interface)
     {
         _M_render_viewport = Object::new_instance<RenderViewport>();
+        _M_render_viewport->flag(Object::Flag::IsAvailableForGC, false);
         _M_render_viewport->window(this, vsync);
         _M_render_viewport->init_resource();
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
@@ -37,7 +38,6 @@ namespace Engine
         render_pass = &Object::new_instance<WindowRenderPass>()->rhi_create();
 
         rhi_create();
-
         flag(Object::IsAvailableForGC, false);
         update_cached_size();
 
@@ -238,8 +238,12 @@ namespace Engine
 
     Window::~Window()
     {
-        delete _M_interface;
         delete _M_render_viewport;
+        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        delete _M_interface;
+
+        // The window cannot remove the render target because it is a viewport resource
+        _M_rhi_object.release();
     }
 
     Window& Window::update_cached_size()

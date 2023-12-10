@@ -32,6 +32,7 @@ namespace Engine
 
 
         OpenGL();
+        OpenGL& initialize();
         ~OpenGL();
         OpenGL& imgui_init() override;
         OpenGL& imgui_terminate() override;

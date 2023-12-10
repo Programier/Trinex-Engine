@@ -621,15 +621,15 @@ namespace Engine
         }
         else if (_M_api == SDL_WINDOW_OPENGL)
         {
-            _M_gl_context = SDL_GL_CreateContext(_M_window);
-            if (!_M_gl_context)
+            void* gl_context = SDL_GL_CreateContext(_M_window);
+            if (!gl_context)
             {
                 throw EngineException(SDL_GetError());
             }
 
-            make_current(_M_gl_context);
+            make_current(gl_context);
             vsync(_M_vsync_status);
-            return _M_gl_context;
+            return gl_context;
         }
 
         return nullptr;
@@ -645,6 +645,27 @@ namespace Engine
             }
         }
 
+        return *this;
+    }
+
+    WindowInterface& WindowSDL::destroy_surface(void* surface)
+    {
+        if (_M_api == SDL_WINDOW_OPENGL)
+        {
+            SDL_GL_DeleteContext(surface);
+            return *this;
+        }
+
+        throw EngineException("Surface must be destroyed by Graphical API!");
+        return *this;
+    }
+
+    WindowInterface& WindowSDL::link_surface(void* surface)
+    {
+        if (_M_api == SDL_WINDOW_OPENGL)
+        {
+            _M_gl_context = surface;
+        }
         return *this;
     }
 
@@ -732,13 +753,6 @@ namespace Engine
         {
             destroy_icon();
             destroy_cursor();
-
-            if (_M_gl_context)
-            {
-                SDL_GL_DeleteContext(_M_gl_context);
-                _M_gl_context = nullptr;
-            }
-
             SDL_DestroyWindow(_M_window);
             _M_window = 0;
         }

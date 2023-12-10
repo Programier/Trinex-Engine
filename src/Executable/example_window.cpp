@@ -56,8 +56,16 @@ namespace Engine
             pipeline->vertex_shader   = new VertexShader();
             pipeline->fragment_shader = new FragmentShader();
 
-            pipeline->vertex_shader->text_code   = read_buffer("shaders/example_window/vertex.vert");
-            pipeline->fragment_shader->text_code = read_buffer("shaders/example_window/fragment.frag");
+            if (engine_instance->api() == EngineAPI::Vulkan)
+            {
+                pipeline->vertex_shader->binary_code   = read_buffer("shaders/example_window/vertex.vm", false);
+                pipeline->fragment_shader->binary_code = read_buffer("shaders/example_window/fragment.fm", false);
+            }
+            else
+            {
+                pipeline->vertex_shader->text_code   = read_buffer("shaders/example_window/vertex.vert", true);
+                pipeline->fragment_shader->text_code = read_buffer("shaders/example_window/fragment.frag", true);
+            }
 
             pipeline->vertex_shader->init_resource();
             pipeline->fragment_shader->init_resource();
