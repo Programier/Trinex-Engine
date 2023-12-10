@@ -145,14 +145,14 @@ namespace Engine
     }
 
 
-    VulkanMainRenderTargetFrame::VulkanMainRenderTargetFrame()
+    VulkanWindowRenderTargetFrame::VulkanWindowRenderTargetFrame()
     {}
 
-    VulkanMainRenderTargetFrame::~VulkanMainRenderTargetFrame()
+    VulkanWindowRenderTargetFrame::~VulkanWindowRenderTargetFrame()
     {}
 
 
-    bool VulkanMainRenderTargetFrame::is_main_frame()
+    bool VulkanWindowRenderTargetFrame::is_main_frame()
     {
         return true;
     }
@@ -332,7 +332,7 @@ namespace Engine
     }
 
 
-    VulkanMainFrameBuffer& VulkanMainFrameBuffer::destroy()
+    VulkanWindowRenderTarget& VulkanWindowRenderTarget::destroy()
     {
         for (VulkanRenderTargetFrame* frame : _M_frames)
         {
@@ -341,18 +341,18 @@ namespace Engine
         return *this;
     }
 
-    size_t VulkanMainFrameBuffer::buffer_index() const
+    size_t VulkanWindowRenderTarget::buffer_index() const
     {
         return _M_viewport->_M_buffer_index;
     }
 
-    void VulkanMainFrameBuffer::resize_count(size_t new_count)
+    void VulkanWindowRenderTarget::resize_count(size_t new_count)
     {
         _M_frames.resize(new_count);
         for (VulkanRenderTargetFrame*& frame : _M_frames)
         {
             if (frame == nullptr)
-                frame = new VulkanMainRenderTargetFrame();
+                frame = new VulkanWindowRenderTargetFrame();
         }
     }
 
@@ -362,7 +362,7 @@ namespace Engine
         frame->_M_attachments[0] = viewport->_M_image_views[index];
     }
 
-    VulkanMainFrameBuffer& VulkanMainFrameBuffer::init(struct VulkanViewport* viewport)
+    VulkanWindowRenderTarget& VulkanWindowRenderTarget::init(struct VulkanWindowViewport* viewport)
     {
         _M_viewport = viewport;
 
@@ -383,12 +383,12 @@ namespace Engine
         return *this;
     }
 
-    bool VulkanMainFrameBuffer::is_destroyable() const
+    bool VulkanWindowRenderTarget::is_destroyable() const
     {
         return false;
     }
 
-    bool VulkanMainFrameBuffer::is_main_render_target()
+    bool VulkanWindowRenderTarget::is_main_render_target()
     {
         return true;
     }

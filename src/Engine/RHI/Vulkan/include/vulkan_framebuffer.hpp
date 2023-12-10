@@ -29,9 +29,9 @@ namespace Engine
         virtual ~VulkanRenderTargetFrame();
     };
 
-    struct VulkanMainRenderTargetFrame : public VulkanRenderTargetFrame {
-        VulkanMainRenderTargetFrame();
-        ~VulkanMainRenderTargetFrame();
+    struct VulkanWindowRenderTargetFrame : public VulkanRenderTargetFrame {
+        VulkanWindowRenderTargetFrame();
+        ~VulkanWindowRenderTargetFrame();
 
         bool is_main_frame() override;
     };
@@ -70,13 +70,13 @@ namespace Engine
     };
 
 
-    struct VulkanMainFrameBuffer : VulkanRenderTarget {
+    struct VulkanWindowRenderTarget : VulkanRenderTarget {
 
-        struct VulkanViewport* _M_viewport;
+        struct VulkanWindowViewport* _M_viewport;
 
 
-        VulkanMainFrameBuffer& init(struct VulkanViewport* viewport);
-        VulkanMainFrameBuffer& destroy();
+        VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);
+        VulkanWindowRenderTarget& destroy();
 
         size_t buffer_index() const override;
 
