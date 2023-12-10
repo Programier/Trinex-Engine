@@ -10,7 +10,7 @@
 #include <optional>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
-#include <vulkan_framebuffer.hpp>
+#include <vulkan_render_target.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_swap_chain.hpp>
 

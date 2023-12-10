@@ -1,7 +1,7 @@
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
 #include <vulkan_api.hpp>
-#include <vulkan_framebuffer.hpp>
+#include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
