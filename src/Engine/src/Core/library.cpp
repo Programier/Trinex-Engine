@@ -76,8 +76,9 @@ namespace Engine
             return libname;
 
         if (full)
-            return FileManager::root_file_manager()->work_dir() / Path(engine_config.libraries_dir) /
-                   Path(String("lib") + libname + format);
+            return (FileManager::root_file_manager()->work_dir() / Path(engine_config.libraries_dir) /
+                    Path(String("lib") + libname + format))
+                    .string();
         return String("lib") + libname + format;
     }
 

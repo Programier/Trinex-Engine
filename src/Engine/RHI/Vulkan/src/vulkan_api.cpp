@@ -519,11 +519,6 @@ namespace Engine
         return _M_renderer;
     }
 
-    Identifier VulkanAPI::imgui_texture_id(const Identifier&)
-    {
-        throw std::runtime_error(not_implemented);
-    }
-
     void VulkanAPI::push_debug_stage(const char* stage, const Color& color)
     {
         if (pfn.vkCmdBeginDebugUtilsLabelEXT)

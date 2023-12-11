@@ -13,7 +13,6 @@ namespace Engine
         NoApi& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         NoApi& destroy_object(RHI_Object*) override;
-        Identifier imgui_texture_id(const Identifier&) override;
 
         NoApi& draw_indexed(size_t indices_count, size_t indices_offset) override;
         NoApi& draw(size_t vertex_count) override;

@@ -146,8 +146,6 @@ namespace Engine
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
         VulkanAPI& draw(size_t vertex_count) override;
 
-        Identifier imgui_texture_id(const Identifier&) override;
-
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;
         RHI_RenderTarget* create_render_target(const RenderTarget*) override;

@@ -109,7 +109,6 @@ namespace Engine
 
 
         virtual RHI& destroy_object(RHI_Object* object)        = 0;
-        virtual Identifier imgui_texture_id(const Identifier&) = 0;
 
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) = 0;
         virtual RHI& draw(size_t vertex_count)                                 = 0;

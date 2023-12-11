@@ -33,12 +33,6 @@ namespace Engine
         return *this;
     }
 
-    Identifier NoApi::imgui_texture_id(const Identifier&)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
     NoApi& NoApi::draw_indexed(size_t indices_count, size_t indices_offset)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);

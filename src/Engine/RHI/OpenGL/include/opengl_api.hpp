@@ -40,8 +40,6 @@ namespace Engine
         OpenGL& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         //        ///////////////// TEXTURE PART /////////////////
-        //        Identifier imgui_texture_id(const Identifier&) override;
-
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
         OpenGL& draw(size_t vertex_count) override;
 
