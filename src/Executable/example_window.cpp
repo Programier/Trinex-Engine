@@ -1,7 +1,9 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/thread.hpp>
 #include <Event/event_data.hpp>
+#include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
@@ -16,6 +18,8 @@
 
 namespace Engine
 {
+
+    static bool registered = false;
 
     Buffer read_buffer(const Path& filename, bool is_text = false)
     {
@@ -39,18 +43,24 @@ namespace Engine
 
 
         Pipeline* pipeline;
+        ImGuiRenderer::DrawData draw_data;
 
     public:
         TestRenderingClient()
         {
-            EventSystem::new_system<EventSystem>()->add_listener(EventType::KeyDown, [](const Event& event) {
-                const KeyEvent& event_data = event.get<const KeyEvent&>();
-                if (event_data.key == Keyboard::Key::N)
-                {
-                    global_window_config.vsync = false;
-                    WindowManager::instance()->create_window(global_window_config, nullptr);
-                }
-            });
+            if (!registered)
+            {
+                EventSystem::new_system<EventSystem>()->add_listener(EventType::KeyDown, [](const Event& event) {
+                    const KeyEvent& event_data = event.get<const KeyEvent&>();
+                    if (event_data.key == Keyboard::Key::N)
+                    {
+                        global_window_config.vsync = false;
+                        WindowManager::instance()->create_window(global_window_config, nullptr);
+                    }
+                });
+
+                registered = true;
+            }
 
 
             pipeline                  = new Pipeline();
@@ -79,13 +89,50 @@ namespace Engine
             pipeline->init_resource();
         }
 
+        TestRenderingClient& on_bind_to_viewport(RenderViewport* viewport) override
+        {
+            viewport->window()->imgui_initialize();
+            return *this;
+        }
+
+        TestRenderingClient& prepare_render(RenderViewport* viewport) override
+        {
+            ImGui::SetCurrentContext(viewport->window()->imgui_context());
+            draw_data.copy(ImGui::GetDrawData());
+            return *this;
+        }
+
+        TestRenderingClient& update(RenderViewport* viewport, float dt) override
+        {
+
+            viewport->window()->imgui_new_frame();
+
+            ImGui::Begin("Hello");
+            ImGui::Text("HELLO WORLD");
+            ImGui::End();
+
+            viewport->window()->imgui_end_frame();
+
+
+            //            ImGui::Begin("Hello2");
+            //            ImGui::Text("HELLO WORLD");
+            //            ImGui::End();
+
+            return *this;
+        }
+
         TestRenderingClient& render(RenderViewport* viewport) override
         {
             viewport->window()->rhi_bind();
             pipeline->rhi_bind();
             engine_instance->rhi()->draw(3);
+            viewport->window()->imgui_render(draw_data.draw_data());
+
             return *this;
         }
+
+        ~TestRenderingClient()
+        {}
     };
 
 

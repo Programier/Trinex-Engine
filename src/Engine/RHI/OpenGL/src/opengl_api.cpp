@@ -52,27 +52,30 @@ namespace Engine
     }
 
 
-    OpenGL& OpenGL::imgui_init()
+    OpenGL& OpenGL::imgui_init(ImGuiContext* ctx)
     {
+        ImGui::SetCurrentContext(ctx);
         ImGui_ImplOpenGL3_Init("#version 300 es");
+        ImGui_ImplOpenGL3_CreateDeviceObjects();
         return *this;
     }
 
-    OpenGL& OpenGL::imgui_terminate()
+    OpenGL& OpenGL::imgui_terminate(ImGuiContext* ctx)
     {
+        ImGui::SetCurrentContext(ctx);
         ImGui_ImplOpenGL3_Shutdown();
         return *this;
     }
 
-    OpenGL& OpenGL::imgui_new_frame()
+    OpenGL& OpenGL::imgui_new_frame(ImGuiContext* ctx)
     {
-        ImGui_ImplOpenGL3_NewFrame();
         return *this;
     }
 
-    OpenGL& OpenGL::imgui_render()
+    OpenGL& OpenGL::imgui_render(ImGuiContext* ctx, ImDrawData* draw_data)
     {
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui::SetCurrentContext(ctx);
+        ImGui_ImplOpenGL3_RenderDrawData(draw_data);
         return *this;
     }
 

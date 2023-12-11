@@ -2,42 +2,52 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/imgui.hpp>
-#include <Window/window.hpp>
 #include <Graphics/rhi.hpp>
+#include <Window/window.hpp>
 #include <imgui.h>
 
 namespace Engine::ImGuiRenderer
 {
-    ENGINE_EXPORT void init()
+    ImDrawData* DrawData::draw_data()
     {
-       // Window* window = engine_instance->window();
-
-//        if (window == nullptr)
-//        {
-//            error_log("ImGuiRenderer", "Cannot init ImGUI. Create window first!");
-//            return;
-//        }
-
-       // window->initialize_imgui();
-        engine_instance->rhi()->imgui_init();
+        return &_M_draw_data;
     }
 
-    ENGINE_EXPORT void terminate()
+    DrawData& DrawData::release()
     {
-        engine_instance->rhi()->imgui_terminate();
-     //   engine_instance->window()->terminate_imgui();
+        if (_M_draw_data.CmdListsCount > 0)
+        {
+            for (int index = 0; index < _M_draw_data.CmdListsCount; index++)
+            {
+                ImDrawList* drawList = _M_draw_data.CmdLists[index];
+                delete drawList;
+            }
+
+            _M_draw_data.CmdLists.clear();
+        }
+
+        _M_draw_data.Clear();
+        return *this;
     }
 
-    ENGINE_EXPORT void render()
+    DrawData& DrawData::copy(ImDrawData* draw_data)
     {
-        ImGui::Render();
-        engine_instance->rhi()->imgui_render();
+        release();
+
+        _M_draw_data = *draw_data;
+
+        _M_draw_data.CmdLists.resize(draw_data->CmdListsCount);
+        for (int index = 0; index < draw_data->CmdListsCount; index++)
+        {
+            ImDrawList* drawList         = draw_data->CmdLists[index]->CloneOutput();
+            _M_draw_data.CmdLists[index] = drawList;
+        }
+
+        return *this;
     }
 
-    ENGINE_EXPORT void new_frame()
+    DrawData::~DrawData()
     {
-        engine_instance->rhi()->imgui_new_frame();
-        //engine_instance->window()->new_imgui_frame();
-        ImGui::NewFrame();
+        release();
     }
 }// namespace Engine::ImGuiRenderer

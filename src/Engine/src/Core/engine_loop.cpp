@@ -76,8 +76,13 @@ namespace Engine
                 }
 
                 render_thread->wait_all();
-                render_thread->insert_new_task<BeginRenderCommand>(_M_rhi);
 
+                for (size_t i = 0, count = viewports.size(); i < count; ++i)
+                {
+                    viewports[i]->prepare_render();
+                }
+
+                render_thread->insert_new_task<BeginRenderCommand>(_M_rhi);
                 for (RenderViewport* viewport : RenderViewport::viewports())
                 {
                     viewport->render();

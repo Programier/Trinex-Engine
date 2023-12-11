@@ -103,14 +103,14 @@ namespace Engine
         return _M_size;
     }
 
-    bool Class::has_any_flags(BitMask flags) const
+    bool Class::has_any_flags(Flags flags) const
     {
-        return (_M_flags.to_ulong() & flags) != 0;
+        return (_M_flags & flags) != 0;
     }
 
-    bool Class::has_all_flags(BitMask flags) const
+    bool Class::has_all_flags(Flags flags) const
     {
-        return (_M_flags.to_ulong() & flags) == flags;
+        return (_M_flags & flags) == flags;
     }
 
     Class* Class::static_find_class(const String& name)

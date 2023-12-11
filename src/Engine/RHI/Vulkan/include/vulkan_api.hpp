@@ -10,8 +10,8 @@
 #include <optional>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
-#include <vulkan_render_target.hpp>
 #include <vulkan_headers.hpp>
+#include <vulkan_render_target.hpp>
 #include <vulkan_swap_chain.hpp>
 
 namespace Engine
@@ -133,10 +133,10 @@ namespace Engine
 
         VulkanAPI& delete_garbage(bool force);
         VulkanAPI& destroy_object(RHI_Object* object) override;
-        VulkanAPI& imgui_init() override;
-        VulkanAPI& imgui_terminate() override;
-        VulkanAPI& imgui_new_frame() override;
-        VulkanAPI& imgui_render() override;
+        VulkanAPI& imgui_init(ImGuiContext*) override;
+        VulkanAPI& imgui_terminate(ImGuiContext*) override;
+        VulkanAPI& imgui_new_frame(ImGuiContext*) override;
+        VulkanAPI& imgui_render(ImGuiContext*, ImDrawData* draw_data) override;
 
         vk::PresentModeKHR present_mode_of(bool vsync);
         bool vsync_from_present_mode(vk::PresentModeKHR);

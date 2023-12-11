@@ -31,6 +31,7 @@ namespace Engine
     };
 
     class Object;
+    class SingletoneBase;
 
     template<typename T>
     using is_object_based = std::is_base_of<Object, T>;
@@ -76,13 +77,6 @@ namespace Engine
     template<typename T>
     inline constexpr bool has_super_type_v = has_super_type<T>::value;
 
-    template <typename, typename = std::void_t<>>
-    struct is_singletone : std::false_type {};
-
-    template <typename T>
-    struct is_singletone<T, std::void_t<decltype(T::singletone)>> : std::true_type {};
-
     template<typename T>
-    inline constexpr bool is_singletone_v = is_singletone<T>::value;
+    inline constexpr bool is_singletone_v = std::is_base_of_v<SingletoneBase, T>;
 }// namespace Engine
-

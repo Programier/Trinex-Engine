@@ -5,7 +5,7 @@
 #include <Window/config.hpp>
 #include <Window/monitor.hpp>
 #include <imgui.h>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <window_system.hpp>
 
 namespace Engine
@@ -709,11 +709,8 @@ namespace Engine
         ImGui_ImplSDL2_InitForVulkan(_M_window);
     }
 
-    WindowInterface& WindowSDL::initialize_imgui(ImGuiContext* ctx)
+    WindowInterface& WindowSDL::initialize_imgui()
     {
-        _M_imgui_context = ctx;
-
-
         switch (_M_api)
         {
             case SDL_WINDOW_OPENGL:
@@ -727,17 +724,12 @@ namespace Engine
             default:
                 break;
         }
-
-        SDL_SetWindowData(_M_window, "imgui_context", ctx);
         return *this;
     }
 
     WindowInterface& WindowSDL::terminate_imgui()
     {
         ImGui_ImplSDL2_Shutdown();
-        ImGui::DestroyContext(_M_imgui_context);
-
-        SDL_SetWindowData(_M_window, "imgui_context", nullptr);
         return *this;
     }
 

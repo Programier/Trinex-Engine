@@ -1,11 +1,13 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <Window/window_interface.hpp>
+#include <imgui.h>
 
 namespace Engine
 {
@@ -221,23 +223,142 @@ namespace Engine
         return _M_interface->support_orientation(orientation);
     }
 
-    void Window::initialize_imgui(ImGuiContext* ctx)
+    ImGuiContext* Window::imgui_context()
     {
-        _M_interface->initialize_imgui(ctx);
+        return _M_imgui_context;
     }
 
-    void Window::terminate_imgui()
+
+    struct InitContext : public ExecutableObject {
+        ImGuiContext* _M_ctx;
+        RHI* _M_rhi;
+
+        InitContext(RHI* rhi, ImGuiContext* ctx) : _M_ctx(ctx), _M_rhi(rhi)
+        {}
+
+        int_t execute() override
+        {
+            _M_rhi->imgui_init(_M_ctx);
+            return sizeof(InitContext);
+        }
+    };
+
+
+    struct TerminateContext : public ExecutableObject {
+        ImGuiContext* _M_ctx;
+        RHI* _M_rhi;
+
+        TerminateContext(RHI* rhi, ImGuiContext* ctx) : _M_ctx(ctx), _M_rhi(rhi)
+        {}
+
+        int_t execute() override
+        {
+            _M_rhi->imgui_terminate(_M_ctx);
+            return sizeof(InitContext);
+        }
+    };
+
+
+    static ImGuiContext* imgui_create_context(WindowInterface* interface)
     {
-        _M_interface->terminate_imgui();
+        ImGuiContext* context = ImGui::CreateContext();
+        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
+        RHI* rhi              = engine_instance->rhi();
+
+        ImGui::SetCurrentContext(context);
+        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+        interface->initialize_imgui();
+
+        render_thread->insert_new_task<InitContext>(rhi, context);
+        return context;
     }
 
-    void Window::new_imgui_frame()
+    static void imgui_destroy_context(ImGuiContext*& context, WindowInterface* interface)
     {
-        _M_interface->new_imgui_frame();
+        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
+        RHI* rhi              = engine_instance->rhi();
+
+        render_thread->insert_new_task<TerminateContext>(rhi, context);
+        render_thread->wait_all();
+
+        ImGui::SetCurrentContext(context);
+        interface->terminate_imgui();
+
+        ImGui::DestroyContext(context);
+        context = nullptr;
+    }
+
+    Window& Window::imgui_initialize()
+    {
+        if (!_M_imgui_context)
+        {
+            ImGuiContext* current_context = ImGui::GetCurrentContext();
+
+            _M_imgui_context = imgui_create_context(_M_interface);
+            engine_instance->thread(ThreadType::RenderThread)->wait_all();
+            ImGui::SetCurrentContext(current_context);
+        }
+
+        return *this;
+    }
+
+    Window& Window::imgui_terminate()
+    {
+        if (_M_imgui_context)
+        {
+            ImGuiContext* current_context = ImGui::GetCurrentContext();
+
+            imgui_destroy_context(_M_imgui_context, _M_interface);
+            ImGui::SetCurrentContext(current_context);
+            return *this;
+        }
+
+        return *this;
+    }
+
+    Window& Window::imgui_new_frame()
+    {
+        if (_M_imgui_context)
+        {
+            ImGui::SetCurrentContext(_M_imgui_context);
+            _M_interface->new_imgui_frame();
+
+            RHI* rhi = engine_instance->rhi();
+            rhi->imgui_new_frame(_M_imgui_context);
+            ImGui::NewFrame();
+        }
+        return *this;
+    }
+
+    Window& Window::imgui_end_frame()
+    {
+        if (_M_imgui_context)
+        {
+            ImGui::SetCurrentContext(_M_imgui_context);
+            ImGui::Render();
+        }
+
+        return *this;
+    }
+
+
+    Window& Window::imgui_render(ImDrawData* draw_data)
+    {
+        if (_M_imgui_context)
+        {
+            RHI* rhi = engine_instance->rhi();
+            rhi->imgui_render(_M_imgui_context, draw_data);
+        }
+
+        return *this;
     }
 
     Window::~Window()
     {
+        imgui_terminate();
+
         delete _M_render_viewport;
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
         delete _M_interface;

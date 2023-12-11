@@ -59,6 +59,7 @@ namespace Engine
         delete_garbage(true);
         delete _M_main_render_pass;
 
+        DESTROY_CALL(destroyDescriptorPool, _M_imgui_descriptor_pool);
         _M_device.destroyCommandPool(_M_command_pool);
         _M_device.destroy();
         vkb::destroy_instance(_M_instance);
@@ -109,8 +110,9 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::imgui_init()
+    VulkanAPI& VulkanAPI::imgui_init(ImGuiContext* ctx)
     {
+        ImGui::SetCurrentContext(ctx);
         ImGui_ImplVulkan_InitInfo init_info{};
         init_info.Instance       = _M_instance;
         init_info.PhysicalDevice = _M_physical_device;
@@ -118,27 +120,32 @@ namespace Engine
         init_info.QueueFamily    = _M_graphics_and_present_index.graphics_family.value();
         init_info.Queue          = _M_graphics_queue;
 
-        VkDescriptorPoolSize pool_sizes[] = {
-                {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-                {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-                {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-                {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-                {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-                {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-                {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000},
-        };
+        if (!_M_imgui_descriptor_pool)
+        {
+            VkDescriptorPoolSize pool_sizes[] = {
+                    {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+                    {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+                    {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+                    {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+                    {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+                    {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+                    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+                    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+                    {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+                    {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+                    {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000},
+            };
 
-        VkDescriptorPoolCreateInfo descriptor_pool_create_info = {};
-        descriptor_pool_create_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        descriptor_pool_create_info.maxSets                    = 1000;
-        descriptor_pool_create_info.poolSizeCount              = sizeof(pool_sizes) / sizeof(VkDescriptorPoolSize);
-        descriptor_pool_create_info.pPoolSizes                 = pool_sizes;
+            VkDescriptorPoolCreateInfo descriptor_pool_create_info = {};
+            descriptor_pool_create_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            descriptor_pool_create_info.maxSets                    = 1000;
+            descriptor_pool_create_info.poolSizeCount              = sizeof(pool_sizes) / sizeof(VkDescriptorPoolSize);
+            descriptor_pool_create_info.pPoolSizes                 = pool_sizes;
+            descriptor_pool_create_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
-        _M_imgui_descriptor_pool = _M_device.createDescriptorPool(descriptor_pool_create_info);
+            _M_imgui_descriptor_pool = _M_device.createDescriptorPool(descriptor_pool_create_info);
+        }
+
         init_info.DescriptorPool = _M_imgui_descriptor_pool;
 
         init_info.MinImageCount = _M_framebuffers_count;
@@ -146,30 +153,29 @@ namespace Engine
 
         ImGui_ImplVulkan_Init(&init_info, _M_main_render_pass->_M_render_pass);
 
-        auto command_buffer = begin_single_time_command_buffer();
-        ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
-        end_single_time_command_buffer(command_buffer);
+
+        ImGui_ImplVulkan_CreateFontsTexture();
 
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::imgui_terminate()
+    VulkanAPI& VulkanAPI::imgui_terminate(ImGuiContext* ctx)
     {
         wait_idle();
-        DESTROY_CALL(destroyDescriptorPool, _M_imgui_descriptor_pool);
+        ImGui::SetCurrentContext(ctx);
         ImGui_ImplVulkan_Shutdown();
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::imgui_new_frame()
+    VulkanAPI& VulkanAPI::imgui_new_frame(ImGuiContext* ctx)
     {
-        ImGui_ImplVulkan_NewFrame();
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::imgui_render()
+    VulkanAPI& VulkanAPI::imgui_render(ImGuiContext* ctx, ImDrawData* draw_data)
     {
-        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), current_command_buffer());
+        ImGui::SetCurrentContext(ctx);
+        ImGui_ImplVulkan_RenderDrawData(draw_data, current_command_buffer());
         return *this;
     }
 

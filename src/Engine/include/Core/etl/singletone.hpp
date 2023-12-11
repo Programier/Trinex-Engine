@@ -8,7 +8,6 @@
 
 namespace Engine
 {
-
     class ENGINE_EXPORT SingletoneBase
     {
     protected:
@@ -22,7 +21,6 @@ namespace Engine
     {
     public:
         static constexpr inline bool singletone_based_on_object = std::is_base_of_v<Object, Type>;
-        static constexpr inline bool singletone                 = true;
 
         template<typename... Args>
         static Type* create_instance(Args&&... args)

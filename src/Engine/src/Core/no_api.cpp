@@ -3,25 +3,25 @@
 
 namespace Engine
 {
-    NoApi& NoApi::imgui_init()
+    NoApi& NoApi::imgui_init(ImGuiContext*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    NoApi& NoApi::imgui_terminate()
+    NoApi& NoApi::imgui_terminate(ImGuiContext*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    NoApi& NoApi::imgui_new_frame()
+    NoApi& NoApi::imgui_new_frame(ImGuiContext*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    NoApi& NoApi::imgui_render()
+    NoApi& NoApi::imgui_render(ImGuiContext*, ImDrawData*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;

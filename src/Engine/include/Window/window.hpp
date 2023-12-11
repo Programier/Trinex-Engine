@@ -2,6 +2,10 @@
 #include <Graphics/render_target_base.hpp>
 #include <Window/window_interface.hpp>
 
+
+struct ImGuiContext;
+struct ImDrawData;
+
 namespace Engine
 {
     class ENGINE_EXPORT Window : public RenderTargetBase
@@ -12,9 +16,10 @@ namespace Engine
         WindowInterface* _M_interface            = nullptr;
         class RenderViewport* _M_render_viewport = nullptr;
         Size2D _M_cached_size;
-
         Window* _M_parent_window = nullptr;
         Vector<Window*> _M_childs;
+
+        ImGuiContext* _M_imgui_context = nullptr;
 
     public:
         Size1D width();
@@ -59,9 +64,12 @@ namespace Engine
 
         Identifier window_id() const;
 
-        void initialize_imgui(ImGuiContext* ctx);
-        void terminate_imgui();
-        void new_imgui_frame();
+        ImGuiContext* imgui_context();
+        Window& imgui_initialize();
+        Window& imgui_terminate();
+        Window& imgui_new_frame();
+        Window& imgui_end_frame();
+        Window& imgui_render(ImDrawData* draw_data);
 
     private:
         Window(WindowInterface* interface = nullptr, bool vsync = true);

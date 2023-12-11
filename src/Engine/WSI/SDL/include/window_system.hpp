@@ -19,8 +19,7 @@ namespace Engine
         SDL_Surface* _M_cursor_icon = nullptr;
         SDL_Cursor* _M_cursor       = nullptr;
 
-        void* _M_gl_context            = nullptr;
-        ImGuiContext* _M_imgui_context = nullptr;
+        void* _M_gl_context = nullptr;
         SDL_WindowFlags _M_api;
         CursorMode _M_c_mode;
         VkSurfaceKHR _M_vulkan_surface;
@@ -80,7 +79,7 @@ namespace Engine
         bool vsync() override;
 
         // IMGUI
-        WindowInterface& initialize_imgui(ImGuiContext* ctx) override;
+        WindowInterface& initialize_imgui() override;
         WindowInterface& terminate_imgui() override;
         WindowInterface& new_imgui_frame() override;
         void initialize_imgui_opengl();

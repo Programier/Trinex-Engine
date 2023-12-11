@@ -7,10 +7,10 @@ namespace Engine
     class NoApi : public RHI
     {
     public:
-        NoApi& imgui_init() override;
-        NoApi& imgui_terminate() override;
-        NoApi& imgui_new_frame() override;
-        NoApi& imgui_render() override;
+        NoApi& imgui_init(ImGuiContext*) override;
+        NoApi& imgui_terminate(ImGuiContext*) override;
+        NoApi& imgui_new_frame(ImGuiContext*) override;
+        NoApi& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         NoApi& destroy_object(RHI_Object*) override;
         Identifier imgui_texture_id(const Identifier&) override;

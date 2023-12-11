@@ -34,10 +34,10 @@ namespace Engine
         OpenGL();
         OpenGL& initialize();
         ~OpenGL();
-        OpenGL& imgui_init() override;
-        OpenGL& imgui_terminate() override;
-        OpenGL& imgui_new_frame() override;
-        OpenGL& imgui_render() override;
+        OpenGL& imgui_init(ImGuiContext*) override;
+        OpenGL& imgui_terminate(ImGuiContext*) override;
+        OpenGL& imgui_new_frame(ImGuiContext*) override;
+        OpenGL& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         //        ///////////////// TEXTURE PART /////////////////
         //        Identifier imgui_texture_id(const Identifier&) override;

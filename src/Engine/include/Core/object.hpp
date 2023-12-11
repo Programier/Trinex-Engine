@@ -37,6 +37,7 @@ namespace Engine
     public:
         using ObjectClass = Object;
 
+
         enum Flag : BitMask
         {
             None             = 0,

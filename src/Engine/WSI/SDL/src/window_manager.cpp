@@ -1,10 +1,12 @@
+#include <Core/engine.hpp>
 #include <Core/logger.hpp>
+#include <Core/thread.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 #include <window_manager.hpp>
 #include <window_system.hpp>
 
@@ -309,18 +311,44 @@ namespace Engine
         }
     }
 
+    class RenderThreadImGuiEvent : public ExecutableObject
+    {
+        SDL_Event _M_event;
+        ImGuiContext* _M_ctx;
+
+    public:
+        RenderThreadImGuiEvent(const SDL_Event& event, ImGuiContext* ctx) : _M_event(event), _M_ctx(ctx)
+        {}
+
+        int_t execute() override
+        {
+            ImGuiContext* current_ctx = ImGui::GetCurrentContext();
+            ImGui::SetCurrentContext(_M_ctx);
+
+            ImGui_ImplSDL2_ProcessEvent(&_M_event);
+            ImGui::SetCurrentContext(current_ctx);
+
+            return sizeof(RenderThreadImGuiEvent);
+        }
+    };
+
+
     void SDL2_WindowManagerInterface::process_imgui_event()
     {
-        SDL_Window* window = SDL_GetWindowFromID(_M_event.window.windowID);
+        Window* window = WindowManager::instance()->find(_M_event.window.windowID);
+
         if (!window)
+        {
             return;
+        }
 
-        ImGuiContext* imgui_context = reinterpret_cast<ImGuiContext*>(SDL_GetWindowData(window, "imgui_context"));
-        if (!imgui_context)
-            return;
+        ImGuiContext* imgui_context = window->imgui_context();
 
-        ImGui::SetCurrentContext(imgui_context);
-        ImGui_ImplSDL2_ProcessEvent(&_M_event);
+        if (imgui_context)
+        {
+            ImGui::SetCurrentContext(imgui_context);
+            ImGui_ImplSDL2_ProcessEvent(&_M_event);
+        }
     }
 
     void SDL2_WindowManagerInterface::process_event()
