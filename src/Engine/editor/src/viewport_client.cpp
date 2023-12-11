@@ -109,12 +109,9 @@ namespace Engine
         }
 
         window->imgui_initialize(initialize_theme);
-        _M_imgui_texture.init(window->imgui_window()->context(), texture, sampler);
+        _M_imgui_texture = window->imgui_window()->create_texture();
+        _M_imgui_texture->init(window->imgui_window()->context(), texture, sampler);
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
-        window->register_destroy_callback([this]() {
-            _M_imgui_texture.release();
-            engine_instance->thread(ThreadType::RenderThread)->wait_all();
-        });
         return *this;
     }
 
@@ -214,7 +211,7 @@ namespace Engine
         };
 
         auto size = ImGui::GetContentRegionAvail();
-        ImGui::Image(_M_imgui_texture.handle(), size);
+        ImGui::Image(_M_imgui_texture->handle(), size);
         ImGui::End();
 
         return *this;

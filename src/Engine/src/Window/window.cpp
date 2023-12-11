@@ -295,10 +295,10 @@ namespace Engine
         if (!_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-            _M_imgui_window = new ImGuiRenderer::Window(_M_interface, imgui_create_context(_M_interface));
+            _M_imgui_window               = new ImGuiRenderer::Window(_M_interface, imgui_create_context(_M_interface));
             engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
-            if(callback)
+            if (callback)
             {
                 callback(_M_imgui_window->context());
             }
@@ -313,6 +313,7 @@ namespace Engine
         if (_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
+            _M_imgui_window->free_resources();
 
             imgui_destroy_context(_M_imgui_window->context(), _M_interface);
             ImGui::SetCurrentContext(current_context);

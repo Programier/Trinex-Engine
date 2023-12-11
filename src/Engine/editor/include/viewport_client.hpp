@@ -1,6 +1,6 @@
 #pragma once
+#include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/texture.hpp>
 
 namespace Engine
 {
@@ -9,9 +9,9 @@ namespace Engine
     public:
         declare_class(EditorViewportClient, ViewportClient);
 
-        class Texture2D* texture = nullptr;
-        class Sampler* sampler   = nullptr;
-        ImGuiTexture _M_imgui_texture;
+        class Texture2D* texture                      = nullptr;
+        class Sampler* sampler                        = nullptr;
+        ImGuiRenderer::ImGuiTexture* _M_imgui_texture = nullptr;
 
     public:
         EditorViewportClient();
