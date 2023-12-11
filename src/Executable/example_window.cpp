@@ -43,7 +43,6 @@ namespace Engine
 
 
         Pipeline* pipeline;
-        ImGuiRenderer::DrawData draw_data;
 
     public:
         TestRenderingClient()
@@ -97,26 +96,44 @@ namespace Engine
 
         TestRenderingClient& prepare_render(RenderViewport* viewport) override
         {
-            ImGui::SetCurrentContext(viewport->window()->imgui_context());
-            draw_data.copy(ImGui::GetDrawData());
+            viewport->window()->imgui_window()->prepare_render();
             return *this;
         }
 
         TestRenderingClient& update(RenderViewport* viewport, float dt) override
         {
 
-            viewport->window()->imgui_new_frame();
+            viewport->window()->imgui_window()->new_frame();
+            //draw_dock_space();
 
             ImGui::Begin("Hello");
-            ImGui::Text("HELLO WORLD");
+
+            for(auto& [name, instance] : Class::class_table())
+            {
+                ImGui::Text("%s", name.c_str());
+            }
+
             ImGui::End();
+            viewport->window()->imgui_window()->end_frame();
+            return *this;
+        }
 
-            viewport->window()->imgui_end_frame();
+        TestRenderingClient& draw_dock_space()
+        {
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
 
+            ImGui::Begin("DockSpace Demo");
 
-            //            ImGui::Begin("Hello2");
-            //            ImGui::Text("HELLO WORLD");
-            //            ImGui::End();
+            // Submit the DockSpace
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            {
+                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f));
+            }
+
+            ImGui::End();
 
             return *this;
         }
@@ -126,7 +143,9 @@ namespace Engine
             viewport->window()->rhi_bind();
             pipeline->rhi_bind();
             engine_instance->rhi()->draw(3);
-            viewport->window()->imgui_render(draw_data.draw_data());
+
+
+            viewport->window()->imgui_window()->render();
 
             return *this;
         }

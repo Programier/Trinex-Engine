@@ -28,7 +28,7 @@
     },
 
     "Window": {
-        "title": "Trinex Engine",
+        "title": "Trinex Engine Editor",
 
         "size": {
             "x": 1280,
@@ -47,6 +47,6 @@
         ],
         "vsync": false,
         "resizable": true,
-        "client": "Engine::TestRenderingClient"
+        "client": "Engine::EditorViewportClient"
     }
 }

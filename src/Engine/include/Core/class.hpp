@@ -53,6 +53,8 @@ namespace Engine
         Object* (*static_constructor() const)();
 
         Object* singletone_instance() const;
+        static const Map<String, Class*>& class_table();
+
 
         template<typename Type>
         bool is_a() const

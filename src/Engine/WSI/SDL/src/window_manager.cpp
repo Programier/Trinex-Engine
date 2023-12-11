@@ -3,6 +3,7 @@
 #include <Core/thread.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
+#include <Graphics/imgui.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -342,7 +343,11 @@ namespace Engine
             return;
         }
 
-        ImGuiContext* imgui_context = window->imgui_context();
+        auto imgui_window = window->imgui_window();
+        if (!imgui_window)
+            return;
+
+        ImGuiContext* imgui_context = imgui_window->context();
 
         if (imgui_context)
         {
@@ -353,8 +358,6 @@ namespace Engine
 
     void SDL2_WindowManagerInterface::process_event()
     {
-        process_imgui_event();
-
         switch (_M_event.type)
         {
             case SDL_QUIT:
@@ -565,6 +568,9 @@ namespace Engine
 
                 //                    SDL_LASTEVENT
         }
+
+
+        process_imgui_event();
     }
 
 

@@ -1,5 +1,6 @@
 #include <Graphics/texture.hpp>
 #include <opengl_api.hpp>
+#include <imgui.h>
 #include <opengl_texture.hpp>
 
 namespace Engine
@@ -113,6 +114,28 @@ namespace Engine
         OpenGL_Texture* opengl_texture = new OpenGL_Texture();
         opengl_texture->init(texture, data);
         return opengl_texture;
+    }
+
+
+    struct OpenGL_ImGuiTexture : RHI_ImGuiTexture {
+        GLuint _M_id;
+
+
+        OpenGL_ImGuiTexture(Texture* texture)
+        {
+            _M_id = texture->rhi_object<OpenGL_Texture>()->_M_id;
+        }
+
+        void* handle() override
+        {
+            return reinterpret_cast<void*>(_M_id);
+        }
+    };
+
+    RHI_ImGuiTexture* OpenGL::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
+    {
+        ImGui::SetCurrentContext(ctx);
+        return new OpenGL_ImGuiTexture(texture);
     }
 
 }// namespace Engine

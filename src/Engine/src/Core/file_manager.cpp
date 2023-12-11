@@ -9,6 +9,8 @@
 
 namespace Engine
 {
+    static FileManager* _M_root_manager = nullptr;
+
     FileWriter::FileWriter() = default;
     FileWriter::FileWriter(const String& filename, bool clear)
     {
@@ -235,10 +237,9 @@ namespace Engine
 
     static FileManager* root_manager(bool create_if_not_exists = true)
     {
-        static FileManager* manager = nullptr;
-        if (!manager && create_if_not_exists)
-            manager = new FileManager("./");
-        return manager;
+        if (!_M_root_manager && create_if_not_exists)
+            _M_root_manager = new FileManager("./");
+        return _M_root_manager;
     }
 
     static void on_destroy()
@@ -276,6 +277,11 @@ namespace Engine
         if (FS::is_directory(new_path))
         {
             _M_work_dir = std::move(new_path);
+            if (this == _M_root_manager)
+            {
+                info_log("FileManager", "Setting root manager to '%s'", _M_work_dir.string().c_str());
+                std::filesystem::current_path(_M_work_dir);
+            }
             return true;
         }
         else

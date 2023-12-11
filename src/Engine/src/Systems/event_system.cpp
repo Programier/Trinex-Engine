@@ -48,8 +48,11 @@ namespace Engine
     static void on_resize(const Event& event)
     {
         WindowManager* manager          = WindowManager::instance();
-        const WindowEvent& window_event = event.get<const WindowEvent&>();
         Window* window                  = manager->find(event.window_id());
+        if(!window)
+            return;
+
+        const WindowEvent& window_event = event.get<const WindowEvent&>();
 
 
         {

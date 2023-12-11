@@ -1,6 +1,9 @@
+#include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
+#include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
@@ -346,7 +349,8 @@ namespace Engine
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this, location);
+            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this,
+                                                              location);
         }
     }
 
@@ -539,5 +543,41 @@ namespace Engine
                 vk::FormatFeatureFlagBits::eDepthStencilAttachment;
 
         return out_features;
+    }
+
+    struct VulkanImGuiTexture : public RHI_ImGuiTexture {
+        VkDescriptorSet _M_set = 0;
+        ImGuiContext* _M_ctx;
+
+        VulkanImGuiTexture(ImGuiContext* context, Texture* texture, Sampler* sampler)
+        {
+            _M_ctx                    = context;
+            VulkanTexture* vk_texture = texture->rhi_object<VulkanTexture>();
+            VulkanSampler* vk_sampler = sampler->rhi_object<VulkanSampler>();
+            _M_set                    = ImGui_ImplVulkan_AddTexture(vk_sampler->_M_sampler, vk_texture->_M_image_view,
+                                                                    static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal));
+        }
+
+        Identifier destroy_method() const override
+        {
+            return VULKAN_DESTROY_NOW;
+        }
+
+        void* handle() override
+        {
+            return reinterpret_cast<void*>(_M_set);
+        }
+
+        ~VulkanImGuiTexture()
+        {
+            ImGui::SetCurrentContext(_M_ctx);
+            ImGui_ImplVulkan_RemoveTexture(_M_set);
+        }
+    };
+
+    RHI_ImGuiTexture* VulkanAPI::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
+    {
+        ImGui::SetCurrentContext(ctx);
+        return new VulkanImGuiTexture(ctx, texture, sampler);
     }
 }// namespace Engine

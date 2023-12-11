@@ -7,20 +7,20 @@
 
 namespace Engine
 {
-    static FORCE_INLINE Map<String, Class*>& class_table()
+    static FORCE_INLINE Map<String, Class*>& get_class_table()
     {
         static Map<String, Class*> table;
         return table;
     }
 
     static PostDestroyController destroy([]() {
-        for (auto& pair : class_table())
+        for (auto& pair : get_class_table())
         {
             delete pair.second;
             pair.second = nullptr;
         }
 
-        class_table().clear();
+        get_class_table().clear();
     });
 
 
@@ -42,7 +42,7 @@ namespace Engine
         : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent),
           _M_singletone_object(nullptr)
     {
-        class_table()[class_name] = this;
+        get_class_table()[class_name] = this;
         _M_size                   = 0;
         _M_flags                  = 0;
         info_log("Class", "Created class instance '%s'", class_name.c_str());
@@ -143,5 +143,10 @@ namespace Engine
     Object* Class::singletone_instance() const
     {
         return _M_singletone_object;
+    }
+
+    const Map<String, Class*>& Class::class_table()
+    {
+        return get_class_table();
     }
 }// namespace Engine

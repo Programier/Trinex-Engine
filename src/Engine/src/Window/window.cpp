@@ -2,6 +2,7 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
+#include <Graphics/imgui.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
@@ -223,9 +224,9 @@ namespace Engine
         return _M_interface->support_orientation(orientation);
     }
 
-    ImGuiContext* Window::imgui_context()
+    ImGuiRenderer::Window* Window::imgui_window()
     {
-        return _M_imgui_context;
+        return _M_imgui_window;
     }
 
 
@@ -275,7 +276,7 @@ namespace Engine
         return context;
     }
 
-    static void imgui_destroy_context(ImGuiContext*& context, WindowInterface* interface)
+    static void imgui_destroy_context(ImGuiContext* context, WindowInterface* interface)
     {
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         RHI* rhi              = engine_instance->rhi();
@@ -287,17 +288,20 @@ namespace Engine
         interface->terminate_imgui();
 
         ImGui::DestroyContext(context);
-        context = nullptr;
     }
 
-    Window& Window::imgui_initialize()
+    Window& Window::imgui_initialize(const Function<void(ImGuiContext*)>& callback)
     {
-        if (!_M_imgui_context)
+        if (!_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-
-            _M_imgui_context = imgui_create_context(_M_interface);
+            _M_imgui_window = new ImGuiRenderer::Window(_M_interface, imgui_create_context(_M_interface));
             engine_instance->thread(ThreadType::RenderThread)->wait_all();
+
+            if(callback)
+            {
+                callback(_M_imgui_window->context());
+            }
             ImGui::SetCurrentContext(current_context);
         }
 
@@ -306,50 +310,16 @@ namespace Engine
 
     Window& Window::imgui_terminate()
     {
-        if (_M_imgui_context)
+        if (_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
 
-            imgui_destroy_context(_M_imgui_context, _M_interface);
+            imgui_destroy_context(_M_imgui_window->context(), _M_interface);
             ImGui::SetCurrentContext(current_context);
+
+            delete _M_imgui_window;
+            _M_imgui_window = nullptr;
             return *this;
-        }
-
-        return *this;
-    }
-
-    Window& Window::imgui_new_frame()
-    {
-        if (_M_imgui_context)
-        {
-            ImGui::SetCurrentContext(_M_imgui_context);
-            _M_interface->new_imgui_frame();
-
-            RHI* rhi = engine_instance->rhi();
-            rhi->imgui_new_frame(_M_imgui_context);
-            ImGui::NewFrame();
-        }
-        return *this;
-    }
-
-    Window& Window::imgui_end_frame()
-    {
-        if (_M_imgui_context)
-        {
-            ImGui::SetCurrentContext(_M_imgui_context);
-            ImGui::Render();
-        }
-
-        return *this;
-    }
-
-
-    Window& Window::imgui_render(ImDrawData* draw_data)
-    {
-        if (_M_imgui_context)
-        {
-            RHI* rhi = engine_instance->rhi();
-            rhi->imgui_render(_M_imgui_context, draw_data);
         }
 
         return *this;
@@ -357,6 +327,7 @@ namespace Engine
 
     Window::~Window()
     {
+        _M_destroy_callback.trigger();
         imgui_terminate();
 
         delete _M_render_viewport;
@@ -365,6 +336,17 @@ namespace Engine
 
         // The window cannot remove the render target because it is a viewport resource
         _M_rhi_object.release();
+    }
+
+    Identifier Window::register_destroy_callback(const DestroyCallback& callback)
+    {
+        return _M_destroy_callback.push(callback);
+    }
+
+    Window& Window::unregister_destroy_callback(Identifier id)
+    {
+        _M_destroy_callback.remove(id);
+        return *this;
     }
 
     Window& Window::update_cached_size()

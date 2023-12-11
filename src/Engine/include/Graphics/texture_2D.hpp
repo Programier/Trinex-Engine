@@ -19,7 +19,6 @@ namespace Engine
                           const byte* data = nullptr);
         Texture2D& read_data(Buffer& data, MipMapLevel level = 0);
         Texture2D& read_image(Image& image, MipMapLevel level = 0);
-        Image& resource_image(bool create = false);
         TextureType type() const override;
 
         bool archive_process(Archive* archive) override;

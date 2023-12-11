@@ -29,6 +29,7 @@ namespace Engine
     const PriorityIndex Constants::max_priority        = ~static_cast<PriorityIndex>(0);
     const String Constants::default_commandlet         = "GameInit";
     const String Constants::library_load_function_name = "create_library_interface";
+    const Path Constants::configs_dir                  = "configs";
 
     static void on_init()
     {

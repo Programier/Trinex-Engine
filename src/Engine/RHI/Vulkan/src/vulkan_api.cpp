@@ -78,7 +78,6 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::delete_garbage(bool force)
     {
-
         if (force)
         {
             for (auto& ell : _M_garbage)
@@ -106,7 +105,10 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::destroy_object(RHI_Object* object)
     {
-        _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
+        if (object->destroy_method() == VULKAN_DESTROY_NOW)
+            delete object;
+        else
+            _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
         return *this;
     }
 

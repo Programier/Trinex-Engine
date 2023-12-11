@@ -35,6 +35,11 @@ namespace Engine
             return true;
         }
 
+        FORCE_INLINE virtual Identifier destroy_method() const
+        {
+            return 0;
+        }
+
         virtual ~RHI_Object() = default;
     };
 
@@ -43,6 +48,10 @@ namespace Engine
     };
 
     struct RHI_Sampler : RHI_BindingObject {
+    };
+
+    struct RHI_ImGuiTexture : RHI_Object {
+        virtual void* handle() = 0;
     };
 
     struct RHI_Texture : RHI_BindingObject {
@@ -102,13 +111,14 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT RHI {
-        virtual RHI& imgui_init(ImGuiContext*)                = 0;
-        virtual RHI& imgui_terminate(ImGuiContext*)           = 0;
-        virtual RHI& imgui_new_frame(ImGuiContext*)           = 0;
-        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*) = 0;
+        virtual RHI& imgui_init(ImGuiContext*)                                                                = 0;
+        virtual RHI& imgui_terminate(ImGuiContext*)                                                           = 0;
+        virtual RHI& imgui_new_frame(ImGuiContext*)                                                           = 0;
+        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*)                                                 = 0;
+        virtual RHI_ImGuiTexture* imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler) = 0;
 
 
-        virtual RHI& destroy_object(RHI_Object* object)        = 0;
+        virtual RHI& destroy_object(RHI_Object* object) = 0;
 
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) = 0;
         virtual RHI& draw(size_t vertex_count)                                 = 0;

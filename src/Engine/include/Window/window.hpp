@@ -1,16 +1,24 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Window/window_interface.hpp>
-
 
 struct ImGuiContext;
 struct ImDrawData;
 
 namespace Engine
 {
+    namespace ImGuiRenderer
+    {
+        class Window;
+    }
+
     class ENGINE_EXPORT Window : public RenderTargetBase
     {
         declare_class(Window, RenderTargetBase);
+
+    public:
+        using DestroyCallback = CallBack<void()>;
 
     private:
         WindowInterface* _M_interface            = nullptr;
@@ -18,8 +26,8 @@ namespace Engine
         Size2D _M_cached_size;
         Window* _M_parent_window = nullptr;
         Vector<Window*> _M_childs;
-
-        ImGuiContext* _M_imgui_context = nullptr;
+        ImGuiRenderer::Window* _M_imgui_window = nullptr;
+        CallBacks<void()> _M_destroy_callback;
 
     public:
         Size1D width();
@@ -64,12 +72,12 @@ namespace Engine
 
         Identifier window_id() const;
 
-        ImGuiContext* imgui_context();
-        Window& imgui_initialize();
+        ImGuiRenderer::Window* imgui_window();
+        Window& imgui_initialize(const Function<void(ImGuiContext*)>& callback = {});
         Window& imgui_terminate();
-        Window& imgui_new_frame();
-        Window& imgui_end_frame();
-        Window& imgui_render(ImDrawData* draw_data);
+
+        Identifier register_destroy_callback(const DestroyCallback& callback);
+        Window& unregister_destroy_callback(Identifier id);
 
     private:
         Window(WindowInterface* interface = nullptr, bool vsync = true);

@@ -2,10 +2,26 @@
 #include <Core/color_format.hpp>
 #include <Core/render_resource.hpp>
 
+struct ImGuiContext;
 
 namespace Engine
 {
     class Sampler;
+
+
+    class ImGuiTexture final
+    {
+    private:
+        struct RHI_ImGuiTexture* _M_handle = nullptr;
+
+    public:
+        ImGuiTexture();
+        delete_copy_constructors(ImGuiTexture);
+        void* handle() const;
+        ImGuiTexture& init(ImGuiContext* ctx, class Texture* texture, class Sampler* sampler);
+        ImGuiTexture& release();
+        ~ImGuiTexture();
+    };
 
     class ENGINE_EXPORT Texture : public BindedRenderResource
     {

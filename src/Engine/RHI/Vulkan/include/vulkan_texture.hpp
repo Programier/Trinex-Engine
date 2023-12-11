@@ -16,6 +16,7 @@ namespace Engine
         vk::ImageView _M_image_view;
         vk::Format _M_vulkan_format;
         vk::ComponentMapping _M_swizzle;
+        VkDescriptorSet _M_imgui_descriptor_set = 0;
 
         VulkanTexture& create(const Texture* texture, const byte* data);
         VulkanTexture& destroy();

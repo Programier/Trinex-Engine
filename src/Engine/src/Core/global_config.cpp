@@ -1,6 +1,7 @@
 #include <Core/global_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/constants.hpp>
 
 namespace Engine
 {
@@ -8,7 +9,7 @@ namespace Engine
 
     static void initialize()
     {
-        global_config.load(FileManager::root_file_manager()->work_dir() / Path("configs/config.json"));
+        global_config.load(FileManager::root_file_manager()->work_dir() / Constants::configs_dir / Path("config.json"));
     }
 
     static InitializeController on_init(initialize);

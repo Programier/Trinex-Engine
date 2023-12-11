@@ -224,6 +224,8 @@ namespace Engine
         InitializeController().execute();
         engine_config.update();
 
+        load_external_system_libraries();
+
         CommandLet* commandlet = find_commandlet(argc, argv);
 
         if (commandlet)

@@ -293,7 +293,6 @@ namespace Engine
     void VulkanWindowViewport::begin_render()
     {
         before_begin_render();
-
         recreate_swapchain();
 
         auto current_buffer_index = swapchain_image_index();
