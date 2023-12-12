@@ -2,14 +2,71 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
-#include <Graphics/g_buffer.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <Window/window_manager.hpp>
 
 namespace Engine
 {
+
+    implement_engine_class_default_init(EngineRenderTarget);
+
+    void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
+    {
+        if (size.x >= new_size.x || size.y >= new_size.y)
+            return;
+
+        // Initilize/reinitialzie textures
+        if (is_reinit)
+        {
+            Size2D scale_factor = new_size / size;
+            _M_viewport.size *= scale_factor;
+            _M_viewport.pos *= scale_factor;
+
+            _M_scissor.size *= scale_factor;
+            _M_scissor.pos *= scale_factor;
+
+            size = new_size;
+        }
+        else
+        {
+            size                  = new_size;
+            _M_viewport.size      = size;
+            _M_viewport.pos       = {0, 0};
+            _M_viewport.min_depth = 0.0f;
+            _M_viewport.max_depth = 1.0f;
+
+            _M_scissor.pos  = {0, 0};
+            _M_scissor.size = size;
+        }
+
+
+        for (RenderTarget::Frame* frame : _M_frames)
+        {
+            for (Texture2D* texture : frame->color_attachments)
+            {
+                texture->size = size;
+                texture->init_resource();
+            }
+
+            if (frame->depth_stencil_attachment)
+            {
+                frame->depth_stencil_attachment->size = size;
+                frame->depth_stencil_attachment->init_resource();
+            }
+        }
+
+        init_resource();
+    }
+
+    EngineRenderTarget& EngineRenderTarget::resize(const Size2D& new_size)
+    {
+        init(new_size, true);
+        return *this;
+    }
+
 
     static constexpr inline size_t albedo_index   = 0;
     static constexpr inline size_t position_index = 1;
@@ -94,6 +151,32 @@ namespace Engine
     };
 
 
+    Texture2D* GBuffer::Frame::albedo() const
+    {
+        return color_attachments[albedo_index].ptr();
+    }
+
+    Texture2D* GBuffer::Frame::position() const
+    {
+        return color_attachments[position_index].ptr();
+    }
+
+    Texture2D* GBuffer::Frame::normal() const
+    {
+        return color_attachments[normal_index].ptr();
+    }
+
+    Texture2D* GBuffer::Frame::specular() const
+    {
+        return color_attachments[specular_index].ptr();
+    }
+
+    Texture2D* GBuffer::Frame::depth() const
+    {
+        return depth_stencil_attachment.ptr();
+    }
+
+
     GBuffer::GBuffer()
     {
         info_log("GBuffer", "Creating GBuffer");
@@ -159,7 +242,7 @@ namespace Engine
             frame_index++;
         }
 
-        init();
+        init(WindowManager::instance()->calculate_gbuffer_size());
     }
 
     GBuffer::~GBuffer()
@@ -167,62 +250,88 @@ namespace Engine
         info_log("GBuffer", "Destroy GBuffer");
     }
 
-    void GBuffer::init(bool is_reinit)
+    GBuffer::Frame* GBuffer::current_frame() const
     {
-        // Initilize/reinitialzie textures
-        Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
-        if (is_reinit)
+        return reinterpret_cast<Frame*>(Super::current_frame());
+    }
+
+    GBuffer::Frame* GBuffer::frame(byte index) const
+    {
+        return reinterpret_cast<Frame*>(Super::frame(index));
+    }
+
+    Texture2D* SceneColorOutput::Frame::texture() const
+    {
+        return color_attachments[0].ptr();
+    }
+
+    implement_engine_class_default_init(SceneColorOutput);
+
+    SceneColorOutput::SceneColorOutput()
+    {
+        info_log("SceneColorOutput", "Creating SceneColorOutput");
+
+        // Creating render pass
+        render_pass = Object::new_instance_named<RenderPass>("Engine::SceneColorOutput::RenderPass");
+
+        render_pass->has_depth_stancil = false;
+
+        // Initialize color attachments
+        render_pass->color_attachments.resize(1);
+        render_pass->color_attachments[0].clear_on_bind = true;
+        render_pass->color_attachments[0].format =
+                find_color_format(required_albedo_formats(), color_format_requirements(), "Color");
+
+        color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
+        render_pass->init_resource();
+
+        // Initialize render target frames
+        size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
+        Index frame_index   = 0;
+
+        while (frame_index < frames_count)
         {
-            Size2D scale_factor = new_size / size;
-            _M_viewport.size *= scale_factor;
-            _M_viewport.pos *= scale_factor;
-
-            _M_scissor.size *= scale_factor;
-            _M_scissor.pos *= scale_factor;
-
-            size = new_size;
-        }
-        else
-        {
-            size                  = new_size;
-            _M_viewport.size      = size;
-            _M_viewport.pos       = {0, 0};
-            _M_viewport.min_depth = 0.0f;
-            _M_viewport.max_depth = 1.0f;
-
-            _M_scissor.pos  = {0, 0};
-            _M_scissor.size = size;
+            push_frame(new SceneColorOutput::Frame());
+            frame_index++;
         }
 
+        frame_index = 0;
 
         for (RenderTarget::Frame* frame : _M_frames)
         {
-            for (Texture2D* texture : frame->color_attachments)
-            {
-                texture->size = size;
-                texture->init_resource();
-            }
+            frame->color_attachments.resize(1);
 
-            frame->depth_stencil_attachment->size = size;
-            frame->depth_stencil_attachment->init_resource();
+            Texture2D* texture = Object::new_instance_named<Texture2D>(
+                    Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
+
+            texture->format = render_pass->color_attachments[0].format;
+            texture->setup_render_target_texture();
+            frame->color_attachments[0] = texture;
+            frame_index++;
         }
 
-        init_resource();
+        init(WindowManager::instance()->calculate_gbuffer_size());
     }
 
-
-    struct InitGBuffer : public ExecutableObject {
-
-        int_t execute() override
-        {
-            GBuffer::instance()->resize();
-            return sizeof(InitGBuffer);
-        }
-    };
-
-    GBuffer& GBuffer::resize()
+    SceneColorOutput::~SceneColorOutput()
     {
-        init(true);
-        return *this;
+        debug_log("SceneColorOutput", "Destroy SceneColorOutput");
+    }
+
+    SceneColorOutput::Frame* SceneColorOutput::current_frame() const
+    {
+        return reinterpret_cast<Frame*>(Super::current_frame());
+    }
+
+    SceneColorOutput::Frame* SceneColorOutput::frame(byte index) const
+    {
+        return reinterpret_cast<Frame*>(Super::frame(index));
+    }
+
+    void ENGINE_EXPORT update_render_targets_size()
+    {
+        Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
+        GBuffer::instance()->resize(new_size);
+        SceneColorOutput::instance()->resize(new_size);
     }
 }// namespace Engine

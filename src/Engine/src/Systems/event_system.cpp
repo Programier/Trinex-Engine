@@ -6,9 +6,9 @@
 #include <Core/render_thread_call.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
-#include <Graphics/g_buffer.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <Systems/engine_system.hpp>
@@ -47,17 +47,17 @@ namespace Engine
 
     static void on_resize(const Event& event)
     {
-        WindowManager* manager          = WindowManager::instance();
-        Window* window                  = manager->find(event.window_id());
-        if(!window)
+        WindowManager* manager = WindowManager::instance();
+        Window* window         = manager->find(event.window_id());
+        if (!window)
             return;
 
         const WindowEvent& window_event = event.get<const WindowEvent&>();
 
 
         {
-            auto x                        = window_event.x;
-            auto y                        = window_event.y;
+            auto x                          = window_event.x;
+            auto y                          = window_event.y;
             RenderViewport* render_viewport = window->render_viewport();
             if (render_viewport)
             {
@@ -82,8 +82,7 @@ namespace Engine
         }
 
         window->update_cached_size();
-
-        GBuffer::instance()->resize();
+        update_render_targets_size();
     }
 
     EventSystem::EventSystem()

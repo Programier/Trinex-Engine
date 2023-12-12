@@ -328,6 +328,13 @@ namespace Engine
         API->wait_idle();
         DESTROY_CALL(destroyPipeline, _M_pipeline);
         DESTROY_CALL(destroyPipelineLayout, _M_pipeline_layout);
+
+        for(auto& layout : _M_descriptor_set_layout)
+        {
+            DESTROY_CALL(destroyDescriptorSetLayout, layout);
+        }
+
+        _M_descriptor_set_layout.clear();
         return *this;
     }
 

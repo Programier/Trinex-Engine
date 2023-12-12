@@ -4,7 +4,7 @@
 #include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
-#include <Graphics/g_buffer.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>

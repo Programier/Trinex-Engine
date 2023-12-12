@@ -11,8 +11,8 @@
 #include <Core/string_functions.hpp>
 #include <Core/system.hpp>
 #include <Core/thread.hpp>
-#include <Graphics/g_buffer.hpp>
 #include <Graphics/renderer.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <Systems/engine_system.hpp>
 #include <Window/config.hpp>
@@ -372,6 +372,7 @@ namespace Engine
     void EngineInstance::create_render_targets()
     {
         GBuffer::create_instance();
+        SceneColorOutput::create_instance();
         thread(ThreadType::RenderThread)->wait_all();
     }
 

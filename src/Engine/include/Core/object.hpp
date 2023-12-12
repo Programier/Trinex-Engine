@@ -163,44 +163,14 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_instance_named(const String& name, Package* package = nullptr, Args&&... args)
+        static Type* new_instance_named(const String& object_name, Args&&... args)
         {
-            if constexpr (!std::is_base_of_v<Object, Type>)
+            Type* object = new_instance<Type>(std::forward<Args>(args)...);
+            if constexpr (std::is_base_of_v<Object, Type>)
             {
-                return nullptr;
+                object->name(object_name, true);
             }
-            else
-            {
-                if constexpr (is_singletone_v<Type>)
-                {
-                    if (Type::instance() != nullptr)
-                    {
-                        return Type::instance();
-                    }
-                }
-
-                if (package == nullptr)
-                {
-                    package = root_package();
-                }
-
-                if (object_is_exist(package, name))
-                {
-                    return nullptr;
-                }
-
-                Type* instance = new Type(std::forward<Args>(args)...);
-
-                instance->name(name);
-
-                if (!instance->add_to_package(package))
-                {
-                    delete instance;
-                    instance = nullptr;
-                }
-
-                return instance;
-            }
+            return object;
         }
 
         template<typename Type>

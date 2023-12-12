@@ -181,6 +181,30 @@ namespace Engine
         return *this;
     }
 
+    static void render_objects_tree(Package* package)
+    {
+        if (ImGui::TreeNode(package->string_name().c_str()))
+        {
+
+            ImGui::Indent(10.f);
+            for (Object* object : package->objects())
+            {
+                Package* new_package = object->instance_cast<Package>();
+                if (new_package)
+                {
+                    render_objects_tree(new_package);
+                }
+                else
+                {
+                    ImGui::Text("%s", object->string_name().c_str());
+                }
+            }
+
+            ImGui::Unindent(10.f);
+            ImGui::TreePop();
+        }
+    }
+
     EditorViewportClient& EditorViewportClient::create_scene_tree_window()
     {
         if (!ImGui::Begin("Scene Tree"))
@@ -188,6 +212,8 @@ namespace Engine
             ImGui::End();
             return *this;
         }
+
+        render_objects_tree(Object::root_package());
 
         ImGui::End();
 
@@ -215,7 +241,7 @@ namespace Engine
         };
 
         auto size = ImGui::GetContentRegionAvail();
-        ImGui::Image(_M_imgui_texture->handle(), size, {-2, -2}, {2, 2});
+        ImGui::Image(_M_imgui_texture->handle(), size);
         ImGui::End();
 
         return *this;

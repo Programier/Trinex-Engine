@@ -110,7 +110,7 @@ namespace Engine
         : _M_package(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
           _M_instance_index(Constants::index_none)
     {
-        _M_owner = nullptr;
+        _M_owner                   = nullptr;
         ObjectArray& objects_array = get_instances_array();
         _M_instance_index          = objects_array.size();
 
@@ -469,7 +469,9 @@ namespace Engine
             }
             else
             {
-                package = Object::new_instance_named<Package>(package_name, package);
+                Package* new_package = Object::new_instance_named<Package>(package_name);
+                package->add_object(new_package, false);
+                package = new_package;
             }
         }
 
@@ -479,7 +481,14 @@ namespace Engine
         Object* founded_object = package->find_object(new_name, false);
         if (founded_object == nullptr)
         {
-            return create ? Object::new_instance_named<Package>(new_name, package) : nullptr;
+            if(create)
+            {
+                Package* new_package = Object::new_instance_named<Package>(new_name);
+                package->add_object(new_package);
+                return new_package;
+            }
+
+            return nullptr;
         }
 
         Package* new_package =
