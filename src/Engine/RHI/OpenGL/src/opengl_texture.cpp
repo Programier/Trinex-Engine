@@ -1,6 +1,8 @@
+#include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
-#include <opengl_api.hpp>
 #include <imgui.h>
+#include <opengl_api.hpp>
+#include <opengl_sampler.hpp>
 #include <opengl_texture.hpp>
 
 namespace Engine
@@ -118,24 +120,27 @@ namespace Engine
 
 
     struct OpenGL_ImGuiTexture : RHI_ImGuiTexture {
-        GLuint _M_id;
+        void* _M_handle = nullptr;
 
 
-        OpenGL_ImGuiTexture(Texture* texture)
+        OpenGL_ImGuiTexture(Texture* texture, Sampler* sampler)
         {
-            _M_id = texture->rhi_object<OpenGL_Texture>()->_M_id;
+            uint64_t handle_value = static_cast<uint64_t>(sampler->rhi_object<OpenGL_Sampler>()->_M_id) << 32 |
+                                    static_cast<uint64_t>(texture->rhi_object<OpenGL_Texture>()->_M_id);
+            _M_handle = reinterpret_cast<void*>(handle_value);
         }
+
 
         void* handle() override
         {
-            return reinterpret_cast<void*>(_M_id);
+            return _M_handle;
         }
     };
 
     RHI_ImGuiTexture* OpenGL::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
     {
         ImGui::SetCurrentContext(ctx);
-        return new OpenGL_ImGuiTexture(texture);
+        return new OpenGL_ImGuiTexture(texture, sampler);
     }
 
 }// namespace Engine

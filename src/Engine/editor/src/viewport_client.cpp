@@ -97,6 +97,10 @@ namespace Engine
         texture->init_resource();
 
         sampler = Object::new_instance<Sampler>();
+        sampler->wrap_r = WrapValue::ClampToBorder;
+        sampler->wrap_s = WrapValue::ClampToBorder;
+        sampler->wrap_t = WrapValue::ClampToBorder;
+
         sampler->init_resource();
     }
 
@@ -211,7 +215,7 @@ namespace Engine
         };
 
         auto size = ImGui::GetContentRegionAvail();
-        ImGui::Image(_M_imgui_texture->handle(), size);
+        ImGui::Image(_M_imgui_texture->handle(), size, {-2, -2}, {2, 2});
         ImGui::End();
 
         return *this;

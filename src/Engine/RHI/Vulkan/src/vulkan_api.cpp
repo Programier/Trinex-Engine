@@ -310,8 +310,7 @@ namespace Engine
         enable_dynamic_states();
         create_command_pool();
 
-        _M_framebuffers_count =
-                glm::min(_M_surface_capabilities.minImageCount + 1, _M_surface_capabilities.maxImageCount);
+        _M_framebuffers_count = _M_surface_capabilities.minImageCount;
     }
 
     void VulkanAPI::check_extentions()
