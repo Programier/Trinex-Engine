@@ -87,12 +87,6 @@ namespace Engine
         flag(Object::IsPackage, true);
     }
 
-    Package::Package(const String& _name)
-    {
-        flag(Object::IsPackage, true);
-        name(_name);
-    }
-
     bool Package::add_object(Object* object, bool autorename)
     {
         if (!object)
@@ -102,15 +96,6 @@ namespace Engine
         {
             error_log("Package", "Cannot add no name object to package!");
             return false;
-        }
-
-        for (const auto& pair : _M_filters.callbacks())
-        {
-            if (!pair.second(object))
-            {
-                error_log("Package", "The object '%s' does not match the filters", object->full_name().c_str());
-                return false;
-            }
         }
 
         if (!object->is_valid())
@@ -136,21 +121,8 @@ namespace Engine
             object->name(object->string_name() + "_new");
         }
 
-        object->_M_package          = this;
-        object->_M_index_in_package = validate_index(lower_bound_of(object), object->hash_index());
-        if (object->_M_index_in_package == _M_objects.size())
-        {
-            _M_objects.push_back(object);
-        }
-        else
-        {
-            for (Index i = object->_M_index_in_package, j = _M_objects.size(); i < j; i++)
-            {
-                _M_objects[i]->_M_index_in_package += 1;
-            }
-
-            _M_objects.insert(_M_objects.begin() + object->_M_index_in_package, object);
-        }
+        object->_M_package = this;
+        _M_objects.insert_or_assign(object->name(), object);
         return true;
     }
 
@@ -159,75 +131,63 @@ namespace Engine
         if (!object || object->_M_package != this)
             return *this;
 
-        if (object->_M_index_in_package < _M_objects.size() && _M_objects[object->_M_index_in_package] == object)
-        {
-            object->_M_package = nullptr;
-
-            for (Index i = object->_M_index_in_package + 1, j = _M_objects.size(); i < j; i++)
-            {
-                _M_objects[i]->_M_index_in_package -= 1;
-            }
-
-            _M_objects.erase(_M_objects.begin() + object->_M_index_in_package);
-            object->_M_index_in_package = Constants::index_none;
-        }
-
+        _M_objects.erase(object->name());
+        object->_M_package = nullptr;
         return *this;
     }
 
-    Object* Package::get_object_by_name(const String& name) const
+    Object* Package::find_object_private_no_recurce(const char* _name, size_t name_len) const
     {
-        if (_M_objects.empty())
+        Name object_name(_name, name_len);
+        auto it = _M_objects.find(object_name);
+        if (it == _M_objects.end())
             return nullptr;
-
-        Index index = lower_bound_of(name);
-        if (index >= _M_objects.size())
-        {
-            return nullptr;
-        }
-
-        return _M_objects[index]->_M_name == name ? _M_objects[index] : nullptr;
+        return it->second;
     }
 
+    Object* Package::find_object_private(const char* _name, size_t name_len) const
+    {
+        const char* end_name       = _name + name_len;
+        const size_t separator_len = Constants::name_separator.length();
+        const char* separator  = Strings::strnstr(_name, name_len, Constants::name_separator.c_str(), separator_len);
+        const Package* package = this;
+
+
+        while (separator && package)
+        {
+            size_t current_len = separator - _name;
+            package            = package->find_object_checked<Package>(_name, current_len, false);
+            _name              = separator + separator_len;
+            separator = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+        }
+
+        return package ? package->find_object_private_no_recurce(_name, end_name - _name) : nullptr;
+    }
 
     Object* Package::find_object(const String& object_name, bool recursive) const
     {
-        if (!recursive)
-            return get_object_by_name(object_name);
-
-        std::size_t prev_pos           = 0;
-        std::size_t pos                = 0;
-        const Package* current_package = this;
-
-        while (current_package && (pos = object_name.find(Constants::name_separator, prev_pos)) != String::npos)
-        {
-            auto sub_name   = object_name.substr(prev_pos, pos - prev_pos);
-            prev_pos        = pos + Constants::name_separator.length();
-            Object* node    = current_package->get_object_by_name(sub_name);
-            current_package = node->instance_cast<Package>();
-        }
-
-        return current_package ? current_package->get_object_by_name(
-                                         object_name.substr(prev_pos, object_name.length() - prev_pos))
-                               : nullptr;
+        if (recursive)
+            return find_object_private(object_name.c_str(), object_name.length());
+        return find_object_private_no_recurce(object_name.c_str(), object_name.length());
     }
 
-    const Vector<Object*>& Package::objects() const
+    Object* Package::find_object(const char* object_name, bool recursive) const
+    {
+        if (recursive)
+            return find_object_private(object_name, std::strlen(object_name));
+        return find_object_private_no_recurce(object_name, std::strlen(object_name));
+    }
+
+    Object* Package::find_object(const char* object_name, size_t name_len, bool recursive) const
+    {
+        if (recursive)
+            return find_object_private(object_name, name_len);
+        return find_object_private_no_recurce(object_name, name_len);
+    }
+
+    const Package::ObjectMap& Package::objects() const
     {
         return _M_objects;
-    }
-
-    bool Package::can_destroy(MessageList& messages)
-    {
-        bool status = true;
-        status      = status && Object::can_destroy(messages);
-
-        for (Object* object : _M_objects)
-        {
-            status = status && object->can_destroy(messages);
-        }
-
-        return status;
     }
 
     bool Package::save(BufferWriter* writer) const
@@ -251,7 +211,7 @@ namespace Engine
         // Write objects into buffers
 
         size_t offset = sizeof(size_t);
-        for (Object* object : _M_objects)
+        for (auto& [name, object] : _M_objects)
         {
             if (object->flag(Object::IsSerializable))
             {
@@ -344,202 +304,33 @@ namespace Engine
         return status(true);
     }
 
-    static bool check_file(BufferReader* reader)
-    {
-        trinex_check(reader, "Reader can't be nullptr");
+    //    static bool check_file(BufferReader* reader)
+    //    {
+    //        trinex_check(reader, "Reader can't be nullptr");
 
-        uint_t flag;
-        if (!reader->read(flag))
-        {
-            error_log("Package", "Failed to read flag to file!");
-            return false;
-        }
+    //        uint_t flag;
+    //        if (!reader->read(flag))
+    //        {
+    //            error_log("Package", "Failed to read flag to file!");
+    //            return false;
+    //        }
 
-        if (flag != TRINEX_ENGINE_FLAG)
-        {
-            error_log("Package", "File is corrupted or is not supported!");
-            return false;
-        }
+    //        if (flag != TRINEX_ENGINE_FLAG)
+    //        {
+    //            error_log("Package", "File is corrupted or is not supported!");
+    //            return false;
+    //        }
 
-        return true;
-    }
-
-    bool Package::load_buffer(BufferReader* reader, Vector<char>& buffer)
-    {
-        if (this == root_package())
-        {
-            error_log("Package", "Cannot load root package!");
-            return false;
-        }
-
-        bool is_created_reader = false;
-
-        if (reader == nullptr)
-        {
-            String path = engine_config.resources_dir + Strings::replace_all(full_name(), "::", "/") +
-                          Constants::package_extention;
-
-            Path dirname = FileManager::dirname_of(path);
-            FileManager::root_file_manager()->create_dir(dirname);
-
-            reader = FileManager::root_file_manager()->create_file_reader(path);
-
-            if (!reader)
-            {
-                error_log("Package", "Failed to create file '%s'", path.c_str());
-                return false;
-            }
-            is_created_reader = true;
-        }
-
-        auto status = [&is_created_reader, &reader](bool flag) -> bool {
-            if (is_created_reader)
-                delete reader;
-            return flag;
-        };
-
-        if (!check_file(reader))
-        {
-            return status(false);
-        }
-
-
-        size_t buffer_size = reader->size() - reader->position();
-        buffer.clear();
-        buffer.shrink_to_fit();
-        buffer.resize(buffer_size);
-
-        if (!reader->read(reinterpret_cast<byte*>(buffer.data()), buffer_size))
-        {
-            error_log("Package", "Failed to read compressed data from file!");
-            return status(false);
-        }
-
-        return true;
-    }
-
-
-    bool Package::load_entry(void* entry_ptr, Archive* archive_ptr)
-    {
-        Archive& archive   = *archive_ptr;
-        HeaderEntry& entry = *static_cast<HeaderEntry*>(entry_ptr);
-
-        if (entry.object != nullptr)
-            return true;
-
-        archive.reader()->position(entry.offset);
-        Vector<char> compressed_data(entry.compressed_size, 0);
-
-        archive.reader()->read(reinterpret_cast<byte*>(compressed_data.data()), entry.compressed_size);
-
-        Vector<char> original_data(entry.object_size, 0);
-        Compressor::decompress(compressed_data, original_data);
-
-        VectorInputStream stream(original_data);
-        BufferReaderWrapper<BufferReader> reader_wrapper(stream);
-
-        Archive ar(&reader_wrapper);
-
-        Class* object_class = Class::static_find_class(entry.class_name);
-        if (object_class == nullptr)
-        {
-            error_log("Package", "Cannot find class '%s', skip loading!", entry.class_name.c_str());
-            return false;
-        }
-
-        entry.object = object_class->create_object();
-
-        if (entry.object == nullptr)
-        {
-            error_log("Package", "Failed to create instance '%s'", entry.class_name.c_str());
-            return false;
-        }
-
-        entry.object->name(entry.name);
-
-        if (!entry.object->archive_process(&ar))
-        {
-            error_log("Package", "Failed to load object '%s'", entry.name.c_str());
-            delete entry.object;
-            return false;
-        }
-
-        add_object(entry.object);
-        return true;
-    }
+    //        return true;
+    //
 
 
     bool Package::load(BufferReader* reader, bool clean)
     {
-        if (!flag(Object::IsSerializable))
-        {
-            error_log("Package", "Cannot load package '%s', because package is not serializable!", full_name().c_str());
-            return false;
-        }
-
-        if (clean)
-        {
-            while (!_M_objects.empty())
-            {
-                delete (*_M_objects.begin());
-            }
-        }
-
-        Vector<char> original_data;
-
-        if (!load_buffer(reader, original_data))
-        {
-            return false;
-        }
-
-        VectorInputStream temporary_stream(original_data);
-        BufferReaderWrapper<BufferReader> temporary_reader(temporary_stream);
-
-        Archive ar(&temporary_reader);
-
-        Vector<HeaderEntry> header;
-        if (!(ar & header))
-        {
-            error_log("Package", "Failed to read header from file!");
-            return false;
-        }
-
-        Pair<void*, BufferReader*> current_loader = {&header, &temporary_reader};
-
-        _M_loader_data = &current_loader;
-
-        bool result_status = true;
-
-        for (HeaderEntry& entry : header)
-        {
-            if (!contains_object(entry.name))
-            {
-                bool loading_status = load_entry(&entry, &ar);
-                result_status       = (result_status ? loading_status : result_status);
-            }
-        }
-
-        Object::collect_garbage();
-
-        _M_loader_data = nullptr;
-        return result_status;
+        unimplemented_method_exception();
+        return false;
     }
 
-    Identifier Package::add_filter(const Filter& filter)
-    {
-        return _M_filters.push(filter);
-    }
-
-    Package& Package::remove_filter(Identifier id)
-    {
-        _M_filters.remove(id);
-        return *this;
-    }
-
-    const CallBacks<bool(Object*)>& Package::filters() const
-    {
-        return _M_filters;
-    }
 
     bool Package::contains_object(const Object* object) const
     {
@@ -554,59 +345,8 @@ namespace Engine
 
     Object* Package::load_object(const String& name, BufferReader* reader)
     {
-        {
-            Object* object = find_object(name, false);
-            if (object)
-            {
-                return object;
-            }
-        }
-
-
-        auto load_object_from_entry_list = [&]() -> Object* {
-            Vector<HeaderEntry>& entry_list = *static_cast<Vector<HeaderEntry>*>(_M_loader_data->first);
-            for (auto& entry : entry_list)
-            {
-                if (entry.name == name)
-                {
-                    Archive ar(_M_loader_data->second);
-                    load_entry(&entry, &ar);
-                    return entry.object;
-                }
-            }
-            return nullptr;
-        };
-
-        if (_M_loader_data == nullptr)
-        {
-            Vector<char> original_data;
-
-            if (!load_buffer(reader, original_data))
-            {
-                return nullptr;
-            }
-
-            VectorInputStream temporary_stream(original_data);
-            BufferReaderWrapper<BufferReader> temporary_reader(temporary_stream);
-
-            Archive ar(&temporary_reader);
-
-            Vector<HeaderEntry> header;
-            if (!(ar & header))
-            {
-                error_log("Package", "Failed to read header from file!");
-                return nullptr;
-            }
-
-            Pair<void*, BufferReader*> current_loader = {&header, &temporary_reader};
-
-            _M_loader_data = &current_loader;
-            Object* object = load_object_from_entry_list();
-            _M_loader_data = nullptr;
-            return object;
-        }
-
-        return load_object_from_entry_list();
+        unimplemented_method_exception();
+        return nullptr;
     }
 
     Package::~Package()
@@ -620,40 +360,6 @@ namespace Engine
         //            object->_M_package = next_package;
         //        }
     }
-
-    Index Package::lower_bound_of(Name object_name) const
-    {
-        Object* noname  = Object::noname_object();
-        noname->_M_name = object_name;
-        return lower_bound_of(noname);
-    }
-
-    Index Package::lower_bound_of(const Object* object) const
-    {
-        auto it = std::lower_bound(_M_objects.begin(), _M_objects.end(), object, object_comparator);
-        if (it == _M_objects.end())
-        {
-            return Constants::index_none;
-        }
-
-        return it - _M_objects.begin();
-    }
-
-    Index Package::lower_bound_of(const String& name) const
-    {
-        return lower_bound_of(Name::find_name(name));
-    }
-
-    Index Package::validate_index(Index index, HashIndex hash) const
-    {
-        if (index < _M_objects.size())
-            return index;
-        if (_M_objects.empty())
-            return 0;
-
-        return hash > _M_objects[0]->hash_index() ? _M_objects.size() : 0;
-    }
-
 
     implement_class(Package, "Engine");
     implement_initialize_class(Package)

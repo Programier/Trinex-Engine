@@ -96,7 +96,7 @@ namespace Engine
         texture->format = texture->image.format();
         texture->init_resource();
 
-        sampler = Object::new_instance<Sampler>();
+        sampler         = Object::new_instance<Sampler>();
         sampler->wrap_r = WrapValue::ClampToBorder;
         sampler->wrap_s = WrapValue::ClampToBorder;
         sampler->wrap_t = WrapValue::ClampToBorder;
@@ -187,7 +187,7 @@ namespace Engine
         {
 
             ImGui::Indent(10.f);
-            for (Object* object : package->objects())
+            for (auto& [name, object] : package->objects())
             {
                 Package* new_package = object->instance_cast<Package>();
                 if (new_package)
@@ -205,6 +205,7 @@ namespace Engine
         }
     }
 
+
     EditorViewportClient& EditorViewportClient::create_scene_tree_window()
     {
         if (!ImGui::Begin("Scene Tree"))
@@ -214,6 +215,10 @@ namespace Engine
         }
 
         render_objects_tree(Object::root_package());
+
+        if (ImGui::Button("Make Package"))
+        {
+        }
 
         ImGui::End();
 

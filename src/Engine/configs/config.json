@@ -46,7 +46,6 @@
             3
         ],
         "vsync": false,
-        "resizable": true,
         "client": "Engine::TestRenderingClient"
     }
 }

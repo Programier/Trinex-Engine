@@ -45,8 +45,8 @@
             2,
             3
         ],
-        "vsync": false,
-        "resizable": true,
+        "vsync": true,
+
         "client": "Engine::EditorViewportClient"
     }
 }

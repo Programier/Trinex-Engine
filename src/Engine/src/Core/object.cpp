@@ -10,6 +10,7 @@
 #include <Core/package.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
+#include <cstring>
 #include <typeinfo>
 
 
@@ -29,17 +30,17 @@ namespace Engine
             registrar.behave(ScriptClassBehave::Factory, factory.c_str(), c->static_constructor());
         }
 
-        registrar.require_type("Engine::Package")
-                .behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
-                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
-                .method("Package@ root_package()", &Object::root_package)
-                .method("const string& string_name() const", func_of<const String&>(&Object::string_name))
-                .method("ObjectRenameStatus name(string, bool) const", func_of<ObjectRenameStatus>(&Object::name))
-                .method("string as_string() const", &Object::as_string)
-                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
-                .method("Package@ find_package(const string& in, bool)", &Object::find_package)
-                .method("Object@ find_object(const string& in)", &Object::find_object)
-                .method("Object& remove_from_package()", &Object::remove_from_package);
+        //        registrar.require_type("Engine::Package")
+        //                .behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
+        //                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
+        //                .method("Package@ root_package()", &Object::root_package)
+        //                .method("const string& string_name() const", func_of<const String&>(&Object::string_name))
+        //                //.method("ObjectRenameStatus name(string, bool) const", func_of<ObjectRenameStatus, const String&, bool>(&Object::name))
+        //                .method("string as_string() const", &Object::as_string)
+        //                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
+        //                .method("Package@ find_package(const string& in, bool)", &Object::find_package)
+        //                .method("Object@ find_object(const string& in)", &Object::find_object)
+        //                .method("Object& remove_from_package()", &Object::remove_from_package);
     }
 
     implement_class(Object, "Engine");
@@ -78,7 +79,8 @@ namespace Engine
     {
         if (_M_root_package == nullptr)
         {
-            _M_root_package = new Package("Root Package");
+            _M_root_package = new Package();
+            _M_root_package->name("Root Package");
         }
     }
 
@@ -106,9 +108,7 @@ namespace Engine
     }
 
 
-    Object::Object()
-        : _M_package(nullptr), _M_references(0), _M_index_in_package(Constants::index_none),
-          _M_instance_index(Constants::index_none)
+    Object::Object() : _M_package(nullptr), _M_references(0), _M_instance_index(Constants::index_none)
     {
         _M_owner                   = nullptr;
         ObjectArray& objects_array = get_instances_array();
@@ -236,39 +236,92 @@ namespace Engine
         return _M_name.to_string();
     }
 
-    ObjectRenameStatus Object::name(String new_name, bool autorename)
+
+    ObjectRenameStatus Object::name(const char* new_name, size_t name_len, bool autorename)
     {
-        if (_M_name == new_name)
+        if (std::strcmp(_M_name.to_string().c_str(), new_name) == 0)
             return ObjectRenameStatus::Skipped;
 
-        Package* package    = _M_package;
-        String package_name = package_name_of(new_name);
+        Package* package_backup = _M_package;
+        Name name_backup        = _M_name;
 
-        if (!package_name.empty())
+        auto restore_object_name = [&package_backup, &name_backup, this]() {
+            _M_name = name_backup;
+            if (package_backup)
+            {
+                package_backup->add_object(this);
+            }
+        };
+
+
+        Package* package = _M_package;
+        if (package)
         {
-            package  = Package::find_package(package_name, true);
-            new_name = Object::object_name_of(new_name);
+            package->remove_object(this);
         }
 
-        if (!autorename && package && package->contains_object(new_name))
+        // Find package
+        const char* end_name         = new_name + name_len;
+        const String& separator_text = Constants::name_separator;
+        const size_t separator_len   = separator_text.length();
+
+        const char* separator = Strings::strnstr(new_name, name_len, separator_text.c_str(), separator_len);
+
+        if (separator)
         {
-            error_log("Object", "Failed to rename object. Object with name '%s' already exist in package '%s'",
-                      new_name.c_str(), _M_package->string_name().c_str());
-            return ObjectRenameStatus::Failed;
+            package = root_package();
         }
 
-        if (_M_package)
+        while (separator && package)
         {
-            _M_package->remove_object(this);
+            size_t next_name_size = static_cast<size_t>(separator - new_name);
+            Package* next_package = package->find_object_checked<Package>(new_name, next_name_size, false);
+
+            if (next_package == nullptr)
+            {
+                next_package = Object::new_instance<Package>();
+                next_package->name(new_name, next_name_size);
+                if (!package->add_object(next_package))
+                {
+                    restore_object_name();
+                    return ObjectRenameStatus::Failed;
+                }
+            }
+
+            package   = next_package;
+            new_name  = separator + separator_len;
+            separator = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
         }
 
-        _M_name = new_name;
+        // Apply new object name
+        _M_name = Name(new_name, end_name - new_name);
 
         if (package)
-            return Object::add_to_package(package, autorename) ? ObjectRenameStatus::Success
-                                                               : ObjectRenameStatus::Failed;
+        {
+            if (!package->add_object(this))
+            {
+                restore_object_name();
+                return ObjectRenameStatus::Failed;
+            }
+        }
 
         return ObjectRenameStatus::Success;
+    }
+
+
+    ObjectRenameStatus Object::name(const char* new_name, bool autorename)
+    {
+        return name(new_name, std::strlen(new_name), autorename);
+    }
+
+    ObjectRenameStatus Object::name(const String& new_name, bool autorename)
+    {
+        return name(new_name.c_str(), new_name.length(), autorename);
+    }
+
+    const Name& Object::name() const
+    {
+        return _M_name;
     }
 
     Object* Object::copy()
@@ -391,24 +444,7 @@ namespace Engine
 
     ENGINE_EXPORT Object* Object::find_object(const String& object_name)
     {
-        return _M_root_package->find_object(object_name, true);
-    }
-
-    bool Object::can_destroy(MessageList& messages)
-    {
-        if (_M_references > 0)
-        {
-            messages.push_back(Strings::format("Object {} is referenced", string_name()));
-            return false;
-        }
-
-        if (this == _M_root_package)
-        {
-            messages.push_back("Cannot destroy root package!");
-            return false;
-        }
-
-        return true;
+        return _M_root_package->find_object(object_name);
     }
 
     Object& Object::preload()
@@ -434,74 +470,42 @@ namespace Engine
 
     Package* Object::find_package(const String& name, bool create)
     {
+        return find_package(name.c_str(), name.length(), create);
+    }
+
+    Package* Object::find_package(const char* new_name, bool create)
+    {
+        return find_package(new_name, std::strlen(new_name), create);
+    }
+
+    Package* Object::find_package(const char* new_name, size_t len, bool create)
+    {
         Package* package = const_cast<Package*>(root_package());
 
-        Index prev_index = 0;
-        Index index      = 0;
+        const char* end_name         = new_name + len;
+        const String& separator_text = Constants::name_separator;
+        const size_t separator_len   = separator_text.length();
 
-        while ((index = name.find_first_of(Constants::name_separator,
-                                           prev_index + (prev_index ? Constants::name_separator.length() : 0))) !=
-               String::npos)
+        const char* separator = Strings::strnstr(new_name, len, separator_text.c_str(), separator_len);
+
+        while (separator && package)
         {
-            if (index == String::npos)
+            size_t next_name_size = static_cast<size_t>(separator - new_name);
+            Package* next_package = package->find_object_checked<Package>(new_name, next_name_size, false);
+
+            if (next_package == nullptr && create)
             {
-                break;
+                next_package = Object::new_instance<Package>();
+                next_package->name(new_name, next_name_size);
+                package->add_object(next_package);
             }
 
-            String package_name = name.substr(prev_index, index - prev_index);
-            if (package_name.empty())
-                return nullptr;
-            prev_index = index;
-
-            Object* object = package->find_object(package_name, false);
-            if (object)
-            {
-                Package* new_package = object->instance_cast<Package>();
-                if (new_package == nullptr)
-                {
-                    error_log("Object",
-                              "Failed to create new package with name '%s'. Object already exist in "
-                              "package '%s'!",
-                              package_name.c_str(), package->full_name().c_str());
-                    return nullptr;
-                }
-                package = new_package;
-            }
-            else
-            {
-                Package* new_package = Object::new_instance_named<Package>(package_name);
-                package->add_object(new_package, false);
-                package = new_package;
-            }
+            package   = next_package;
+            new_name  = separator + separator_len;
+            separator = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
         }
 
-        if (name[prev_index] == Constants::name_separator[0])
-            prev_index += Constants::name_separator.length();
-        String new_name        = name.substr(prev_index, name.length() - prev_index);
-        Object* founded_object = package->find_object(new_name, false);
-        if (founded_object == nullptr)
-        {
-            if(create)
-            {
-                Package* new_package = Object::new_instance_named<Package>(new_name);
-                package->add_object(new_package);
-                return new_package;
-            }
-
-            return nullptr;
-        }
-
-        Package* new_package =
-                founded_object->flag(Flag::IsPackage) ? reinterpret_cast<Package*>(founded_object) : nullptr;
-        if (new_package == nullptr)
-        {
-            error_log("Object",
-                      "Failed to create new package with name '%s'. Object already exist in "
-                      "package '%s'!",
-                      new_name.c_str(), package->full_name().c_str());
-        }
-
-        return new_package;
+        return package ? package->find_object_checked<Package>(new_name, end_name - new_name, false) : nullptr;
     }
 
 

@@ -12,46 +12,54 @@ namespace Engine
         declare_class(Package, Object);
 
     public:
-        using Filter = CallBack<bool(Object*)>;
+        using ObjectMap = Map<Name, Object*, Name::HashFunction>;
 
     private:
-        Vector<Object*> _M_objects;
-        Object* get_object_by_name(const String& name) const;
-        Pair<void*, BufferReader*>* _M_loader_data = nullptr;
-        bool load_entry(void* entry, class Archive*);
-        bool load_buffer(BufferReader* reader, Vector<char>& original_buffer);
-        CallBacks<bool(Object*)> _M_filters;
+        ObjectMap _M_objects;
 
-        Index lower_bound_of(Name name) const;
-        Index lower_bound_of(const Object* object) const;
-        Index lower_bound_of(const String& name) const;
-        Index validate_index(Index index, HashIndex hash) const;
-
+        Object* find_object_private_no_recurce(const char* name, size_t name_len) const;
+        Object* find_object_private(const char* name, size_t name_len) const;
 
     public:
         delete_copy_constructors(Package);
         Package();
-        Package(const String& name);
 
         bool add_object(Object* object, bool autorename = false);
         Package& remove_object(Object* object);
         Object* find_object(const String& name, bool recursive = true) const;
-        const Vector<Object*>& objects() const;
-        bool can_destroy(MessageList& messages) override;
+        Object* find_object(const char* name, bool recursive = true) const;
+        Object* find_object(const char* name, size_t name_len, bool recursive = true) const;
+
+        const ObjectMap& objects() const;
         bool save(BufferWriter* writer = nullptr) const;
         bool load(BufferReader* read = nullptr, bool clear = false);
         Object* load_object(const String& name, BufferReader* reader = nullptr);
-        Identifier add_filter(const Filter& filter);
-        Package& remove_filter(Identifier id);
         const CallBacks<bool(Object*)>& filters() const;
         bool contains_object(const Object* object) const;
         bool contains_object(const String& name) const;
 
+        template<typename Type>
+        FORCE_INLINE Type* find_object_checked(const String& object_name, bool recursive = true) const
+        {
+            Object* object = Package::find_object(object_name, recursive);
+            if (object)
+                return object->instance_cast<Type>();
+            return nullptr;
+        }
 
         template<typename Type>
-        Type* find_object_checked(const String& name, bool recursive = true)
+        FORCE_INLINE Type* find_object_checked(const char* object_name, bool recursive = true) const
         {
-            Object* object = Package::find_object(name, recursive);
+            Object* object = Package::find_object(object_name, recursive);
+            if (object)
+                return object->instance_cast<Type>();
+            return nullptr;
+        }
+
+        template<typename Type>
+        FORCE_INLINE Type* find_object_checked(const char* object_name, size_t name_len, bool recursive = true) const
+        {
+            Object* object = Package::find_object(object_name, name_len, recursive);
             if (object)
                 return object->instance_cast<Type>();
             return nullptr;

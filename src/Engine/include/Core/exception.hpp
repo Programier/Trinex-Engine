@@ -16,5 +16,8 @@ namespace Engine
 
 #define trinex_check(expression, msg)                                                                                  \
     if (!(expression))                                                                                                 \
-    throw Engine::EngineException(Strings::format("Assertion failed: {}") + #expression)
+    throw Engine::EngineException(Strings::format("Assertion failed: {}", msg))
+
+#define unimplemented_method_exception()                                                                               \
+    throw Engine::EngineException(Strings::format("Unimplemented method: {}", __PRETTY_FUNCTION__))
 }// namespace Engine

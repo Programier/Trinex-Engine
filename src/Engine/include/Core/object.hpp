@@ -55,7 +55,6 @@ namespace Engine
         Package* _M_package;
         Object* _M_owner;
         Counter _M_references;
-        Index _M_index_in_package;
         Name _M_name;
         mutable Index _M_instance_index;
 
@@ -109,7 +108,10 @@ namespace Engine
         String decode_name() const;
         const String& string_name() const;
         HashIndex hash_index() const;
-        ObjectRenameStatus name(String name, bool autorename = false);
+        ObjectRenameStatus name(const char* name, size_t name_len, bool autorename = false);
+        ObjectRenameStatus name(const char* name, bool autorename = false);
+        ObjectRenameStatus name(const String& name, bool autorename = false);
+        const Name& name() const;
         virtual Object* copy();
         bool add_to_package(Package* package, bool autorename = false);
         Object& remove_from_package();
@@ -129,9 +131,10 @@ namespace Engine
         bool archive_process(Archive* archive) override;
         bool is_valid() const;
 
-        static Package* find_package(const String& name, bool create = true);
+        static Package* find_package(const String& name, bool create = false);
+        static Package* find_package(const char* name, bool create = false);
+        static Package* find_package(const char* name, size_t len, bool create = false);
 
-        virtual bool can_destroy(MessageList& messages);
         virtual Object& preload();
         virtual Object& postload();
 

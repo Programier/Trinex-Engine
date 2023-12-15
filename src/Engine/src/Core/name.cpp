@@ -17,9 +17,9 @@ namespace Engine
         return default_name;
     }
 
-    static FORCE_INLINE void push_new_name(const String& name, HashIndex hash)
+    static FORCE_INLINE void push_new_name(const char* name, size_t len, HashIndex hash)
     {
-        name_entries().push_back(Name::Entry{name, hash});
+        name_entries().push_back(Name::Entry{String(name, len), hash});
     }
 
 
@@ -52,16 +52,15 @@ namespace Engine
         return out_name;
     }
 
-    Name& Name::init(const String& name)
+    Name& Name::init(const char* name, size_t len)
     {
-        if(name.empty())
+        if (len == 0 || name == nullptr)
         {
             _M_index = Constants::index_none;
             return *this;
         }
 
-        HashIndex hash = memory_hash_fast(name.data(), name.length(), 0);
-
+        HashIndex hash = memory_hash_fast(name, len, 0);
         Vector<Name::Entry>& name_table = name_entries();
 
         _M_index = name_table.size();
@@ -77,7 +76,7 @@ namespace Engine
             }
         }
 
-        push_new_name(name, hash);
+        push_new_name(name, len, hash);
         return *this;
     }
 
@@ -86,22 +85,27 @@ namespace Engine
 
     Name::Name(const String& name)
     {
-        init(name);
+        init(name.c_str(), name.length());
     }
 
     Name::Name(const char* name)
     {
-        init(name);
+        init(name, std::strlen(name));
+    }
+
+    Name::Name(const char* name, size_t size)
+    {
+        init(name, size);
     }
 
     Name& Name::operator=(const String& name)
     {
-        return init(name);
+        return init(name.c_str(), name.length());
     }
 
     Name& Name::operator=(const char* name)
     {
-        return init(name);
+        return init(name, std::strlen(name));
     }
 
     Name::Name(const Name&) = default;

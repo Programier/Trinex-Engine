@@ -12,11 +12,16 @@ namespace Engine
             HashIndex hash;
         };
 
+        struct HashFunction {
+            FORCE_INLINE HashIndex operator()(const Name& name) const
+            {
+                return name.hash();
+            }
+        };
+
     private:
         Index _M_index;
-
-
-        Name& init(const String& name);
+        Name& init(const char* name, size_t len);
 
     public:
         Name();
@@ -27,12 +32,14 @@ namespace Engine
 
         Name(const String& name);
         Name(const char* name);
+        Name(const char* name, size_t size);
 
         Name& operator=(const String& name);
         Name& operator=(const char* name);
 
         static Name find_name(const String& name);
         static Name find_name(const char* name, size_t size = 0);
+        static Name from_c_string(const char* name, size_t size);
 
 
         bool is_valid() const;
@@ -55,6 +62,26 @@ namespace Engine
         FORCE_INLINE bool operator!=(const Name& name) const
         {
             return name._M_index != _M_index;
+        }
+
+        FORCE_INLINE bool operator<(const Name& name) const
+        {
+            return _M_index < name._M_index;
+        }
+
+        FORCE_INLINE bool operator<=(const Name& name) const
+        {
+            return _M_index <= name._M_index;
+        }
+
+        FORCE_INLINE bool operator>(const Name& name) const
+        {
+            return _M_index > name._M_index;
+        }
+
+        FORCE_INLINE bool operator>=(const Name& name) const
+        {
+            return _M_index >= name._M_index;
         }
     };
 }// namespace Engine

@@ -30,15 +30,15 @@ namespace Engine::Strings
     ENGINE_EXPORT std::wstring to_wstring(const char* str);
     ENGINE_EXPORT String lstrip(String line, const String& chars = " ");
     ENGINE_EXPORT String rstrip(String line, const String& chars = " ");
-    ENGINE_EXPORT String lstrip(String line, bool(*callback)(char ch));
-    ENGINE_EXPORT String rstrip(String line, bool(*callback)(char ch));
+    ENGINE_EXPORT String lstrip(String line, bool (*callback)(char ch));
+    ENGINE_EXPORT String rstrip(String line, bool (*callback)(char ch));
 
     FORCE_INLINE String strip(String line, const String& chars = " ")
     {
         return lstrip(rstrip(line, chars), chars);
     }
 
-    FORCE_INLINE String strip(String line, bool(*callback)(char ch))
+    FORCE_INLINE String strip(String line, bool (*callback)(char ch))
     {
         return lstrip(rstrip(line, callback), callback);
     }
@@ -48,4 +48,6 @@ namespace Engine::Strings
     ENGINE_EXPORT String to_lower(const String& line);
     ENGINE_EXPORT String& to_upper(String& line);
     ENGINE_EXPORT String to_upper(const String& line);
+
+    ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len);
 }// namespace Engine::Strings

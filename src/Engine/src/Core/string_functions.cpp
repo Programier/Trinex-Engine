@@ -1,3 +1,4 @@
+#include <Core/memory.hpp>
 #include <Core/string_functions.hpp>
 #include <algorithm>
 #include <codecvt>
@@ -108,5 +109,11 @@ namespace Engine::Strings
     {
         String result = line;
         return to_upper(result);
+    }
+
+    ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len)
+    {
+        return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const byte*>(haystack), haystack_len,
+                                                           reinterpret_cast<const byte*>(needle), needle_len));
     }
 }// namespace Engine::Strings
