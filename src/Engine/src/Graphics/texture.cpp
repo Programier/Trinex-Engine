@@ -7,6 +7,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
+#include <Core/archive.hpp>
 
 namespace Engine
 {

@@ -2,7 +2,9 @@
 #include <Core/engine.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
+#include <Core/logger.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 #include <Window/window.hpp>
@@ -12,9 +14,14 @@ namespace Engine
 {
     implement_engine_class_default_init(EditorViewportClient);
 
-
     static void initialize_theme(ImGuiContext* context)
     {
+        // Initialize fonts
+        const char* font_path = "/usr/share/fonts/adobe-source-code-pro-fonts/SourceCodePro-Bold.otf";
+        auto& io              = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF(font_path, 14.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+
+
         ImGuiStyle& style = ImGui::GetStyle();
 
         // Налаштування кольорів
@@ -113,6 +120,11 @@ namespace Engine
         }
 
         window->imgui_initialize(initialize_theme);
+
+        // Update window name
+        String new_title = window->title() + Strings::format(" [{} RHI]", engine_instance->rhi()->name().c_str());
+        window->title(new_title);
+
         _M_imgui_texture = window->imgui_window()->create_texture();
         _M_imgui_texture->init(window->imgui_window()->context(), texture, sampler);
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
@@ -206,6 +218,16 @@ namespace Engine
     }
 
 
+
+    static void make_test_package(Texture2D* texture)
+    {
+        Package* package = Package::find_package("TestPackage", true);
+        texture->name("Trinex");
+        package->add_object(texture);
+
+        package->save();
+    }
+
     EditorViewportClient& EditorViewportClient::create_scene_tree_window()
     {
         if (!ImGui::Begin("Scene Tree"))
@@ -218,6 +240,7 @@ namespace Engine
 
         if (ImGui::Button("Make Package"))
         {
+            make_test_package(texture);
         }
 
         ImGui::End();

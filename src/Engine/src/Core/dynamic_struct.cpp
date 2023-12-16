@@ -2,6 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/exception.hpp>
+#include <Core/archive.hpp>
 #include <Core/logger.hpp>
 
 namespace Engine

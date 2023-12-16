@@ -1,6 +1,7 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/archive.hpp>
 #include <Core/transform.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <glm/gtx/matrix_decompose.hpp>

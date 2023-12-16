@@ -96,7 +96,6 @@ namespace Engine
         ENGINE_EXPORT static String decode_name(const std::type_info& info);
         ENGINE_EXPORT static String decode_name(const String& name);
         ENGINE_EXPORT static Package* load_package(const String& name);
-        ENGINE_EXPORT static Object* load_object(const String& name);
         ENGINE_EXPORT static String package_name_of(const String& name);
         ENGINE_EXPORT static String object_name_of(const String& name);
         ENGINE_EXPORT static const ObjectArray& all_objects();
@@ -130,6 +129,7 @@ namespace Engine
         Index instance_index() const;
         bool archive_process(Archive* archive) override;
         bool is_valid() const;
+        Path filepath() const;
 
         static Package* find_package(const String& name, bool create = false);
         static Package* find_package(const char* name, bool create = false);

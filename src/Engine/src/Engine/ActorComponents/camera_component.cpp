@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
@@ -47,7 +48,7 @@ namespace Engine
 
     CameraView& CameraView::operator=(class CameraComponent* component)
     {
-        if(component)
+        if (component)
         {
             component->camera_view(*this);
         }

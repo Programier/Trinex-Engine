@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
@@ -389,22 +390,22 @@ namespace Engine
 
     ColorFormat Image::format() const
     {
-        if(_M_channels == 1)
+        if (_M_channels == 1)
         {
             return ColorFormat::R8Unorm;
         }
 
-        if(_M_channels == 2)
+        if (_M_channels == 2)
         {
             return ColorFormat::R8G8Unorm;
         }
 
-        if(_M_channels == 3)
+        if (_M_channels == 3)
         {
             return ColorFormat::R8G8B8Unorm;
         }
 
-        if(_M_channels == 4)
+        if (_M_channels == 4)
         {
             return ColorFormat::R8G8B8A8Unorm;
         }

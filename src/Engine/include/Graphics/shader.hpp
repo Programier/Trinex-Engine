@@ -3,7 +3,6 @@
 #include <Core/color_format.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
-#include <Core/object_ref.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/rhi_initializers.hpp>
 

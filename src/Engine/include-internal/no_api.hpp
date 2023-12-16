@@ -21,7 +21,8 @@ namespace Engine
         NoApi& begin_render() override;
         NoApi& end_render() override;
         NoApi& wait_idle() override;
-        String renderer() override;
+        const String& renderer() override;
+        const String& name() override;
 
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;

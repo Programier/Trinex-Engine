@@ -84,4 +84,6 @@ namespace Engine
             return _M_index >= name._M_index;
         }
     };
+
+    ENGINE_EXPORT bool operator&(class Archive&, Name& name);
 }// namespace Engine

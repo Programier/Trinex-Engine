@@ -21,6 +21,9 @@ namespace Engine
     };
 
     template<typename T>
+    inline constexpr bool is_container_v = is_container<T>::value;
+
+    template<typename T>
     struct add_pointer_unique {
         using type = T*;
     };

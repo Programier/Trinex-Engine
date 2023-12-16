@@ -255,18 +255,25 @@ namespace Engine
         int_t execute() override
         {
             _M_rhi->imgui_terminate(_M_ctx);
-            return sizeof(InitContext);
+            return sizeof(TerminateContext);
         }
     };
 
 
-    static ImGuiContext* imgui_create_context(WindowInterface* interface)
+    static ImGuiContext* imgui_create_context(WindowInterface* interface, const Function<void(ImGuiContext*)>& callback)
     {
         ImGuiContext* context = ImGui::CreateContext();
+
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         RHI* rhi              = engine_instance->rhi();
 
         ImGui::SetCurrentContext(context);
+
+        if(callback)
+        {
+            callback(context);
+        }
+
         ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
@@ -295,13 +302,8 @@ namespace Engine
         if (!_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-            _M_imgui_window               = new ImGuiRenderer::Window(_M_interface, imgui_create_context(_M_interface));
+            _M_imgui_window = new ImGuiRenderer::Window(_M_interface, imgui_create_context(_M_interface, callback));
             engine_instance->thread(ThreadType::RenderThread)->wait_all();
-
-            if (callback)
-            {
-                callback(_M_imgui_window->context());
-            }
             ImGui::SetCurrentContext(current_context);
         }
 

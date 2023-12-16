@@ -43,6 +43,8 @@ namespace Engine
 
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(debug_callback, nullptr);
+
+        _M_renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
         return *this;
     }
 
@@ -56,7 +58,7 @@ namespace Engine
     {
         ImGui::SetCurrentContext(ctx);
         ImGui_ImplOpenGL3_Init("#version 300 es");
-        ImGui_ImplOpenGL3_CreateDeviceObjects();
+        ImGui_ImplOpenGL3_NewFrame();
         return *this;
     }
 
@@ -124,11 +126,22 @@ namespace Engine
         return *this;
     }
 
-    String OpenGL::renderer()
+    const String& OpenGL::renderer()
     {
-        return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        return _M_renderer;
     }
 
+    const String& OpenGL::name()
+    {
+        static String api_name =
+#if USING_OPENGL_ES
+                "OpenGL ES";
+#else
+                "OpenGL Core";
+#endif
+
+        return api_name;
+    }
 
     RHI_RenderPass* OpenGL::window_render_pass()
     {

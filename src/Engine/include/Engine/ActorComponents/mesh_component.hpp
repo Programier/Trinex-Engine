@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/constants.hpp>
-#include <Core/object_ref.hpp>
 #include <Core/pointer.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Graphics/pipeline_buffers.hpp>

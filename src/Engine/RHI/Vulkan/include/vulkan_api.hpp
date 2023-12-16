@@ -142,7 +142,8 @@ namespace Engine
         vk::PresentModeKHR present_mode_of(bool vsync);
         bool vsync_from_present_mode(vk::PresentModeKHR);
 
-        String renderer() override;
+        const String& renderer() override;
+        const String& name() override;
 
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
         VulkanAPI& draw(size_t vertex_count) override;

@@ -123,10 +123,11 @@ namespace Engine
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) = 0;
         virtual RHI& draw(size_t vertex_count)                                 = 0;
 
-        virtual RHI& begin_render() = 0;
-        virtual RHI& end_render()   = 0;
-        virtual RHI& wait_idle()    = 0;
-        virtual String renderer()   = 0;
+        virtual RHI& begin_render()      = 0;
+        virtual RHI& end_render()        = 0;
+        virtual RHI& wait_idle()         = 0;
+        virtual const String& renderer() = 0;
+        virtual const String& name()     = 0;
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                          = 0;
         virtual RHI_Texture* create_texture(const Texture*, const byte* data)                        = 0;

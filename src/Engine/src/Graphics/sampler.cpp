@@ -3,6 +3,7 @@
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
+#include <Core/archive.hpp>
 #include <Graphics/sampler.hpp>
 
 

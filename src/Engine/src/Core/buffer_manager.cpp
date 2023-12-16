@@ -134,42 +134,4 @@ namespace Engine
         }
         return result;
     }
-
-    Archive::Archive(BufferReader* reader) : _M_is_saving(false)
-    {
-        _M_reader = reader;
-        if (reader == nullptr)
-        {
-            throw EngineException("Archive: Reader can't be nullptr!");
-        }
-    }
-
-    Archive::Archive(BufferWriter* writer) : _M_is_saving(true)
-    {
-        _M_writer = writer;
-        if (writer == nullptr)
-        {
-            throw EngineException("Archive: Writer can't be nullptr!");
-        }
-    }
-
-    bool Archive::is_saving() const
-    {
-        return _M_is_saving;
-    }
-
-    bool Archive::is_reading() const
-    {
-        return !_M_is_saving;
-    }
-
-    BufferReader* Archive::reader() const
-    {
-        return _M_is_saving ? nullptr : _M_reader;
-    }
-
-    BufferWriter* Archive::writer() const
-    {
-        return _M_is_saving ? _M_writer : nullptr;
-    }
 }// namespace Engine

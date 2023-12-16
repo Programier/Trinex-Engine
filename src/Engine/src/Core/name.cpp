@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/constants.hpp>
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
@@ -60,7 +61,7 @@ namespace Engine
             return *this;
         }
 
-        HashIndex hash = memory_hash_fast(name, len, 0);
+        HashIndex hash                  = memory_hash_fast(name, len, 0);
         Vector<Name::Entry>& name_table = name_entries();
 
         _M_index = name_table.size();
@@ -187,4 +188,23 @@ namespace Engine
         return to_string();
     }
 
+
+    ENGINE_EXPORT bool operator&(class Archive& ar, Name& name)
+    {
+        bool is_valid = name.is_valid();
+        ar & is_valid;
+
+        if(is_valid)
+        {
+            String string_name = name.to_string();
+            ar & string_name;
+
+            if(ar.is_reading())
+            {
+                name = string_name;
+            }
+        }
+
+        return ar;
+    }
 }// namespace Engine

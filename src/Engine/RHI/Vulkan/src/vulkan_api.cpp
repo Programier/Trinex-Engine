@@ -156,7 +156,7 @@ namespace Engine
         ImGui_ImplVulkan_Init(&init_info, _M_main_render_pass->_M_render_pass);
 
 
-        ImGui_ImplVulkan_CreateFontsTexture();
+        ImGui_ImplVulkan_NewFrame();
 
         return *this;
     }
@@ -515,9 +515,15 @@ namespace Engine
         return *this;
     }
 
-    String VulkanAPI::renderer()
+    const String& VulkanAPI::renderer()
     {
         return _M_renderer;
+    }
+
+    const String& VulkanAPI::name()
+    {
+        static String api_name = "Vulkan";
+        return api_name;
     }
 
     void VulkanAPI::push_debug_stage(const char* stage, const Color& color)

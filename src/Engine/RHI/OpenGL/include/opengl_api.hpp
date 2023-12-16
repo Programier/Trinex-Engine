@@ -21,7 +21,8 @@ namespace Engine
     {
 
         static OpenGL* _M_instance;
-        void* _M_context                              = nullptr;
+        void* _M_context = nullptr;
+        String _M_renderer;
         struct OpenGL_RenderPass* _M_main_render_pass = nullptr;
 
         // STATE
@@ -49,7 +50,8 @@ namespace Engine
         OpenGL& end_render() override;
         OpenGL& wait_idle() override;
         OpenGL& reset_state();
-        String renderer() override;
+        const String& renderer() override;
+        const String& name() override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data) override;

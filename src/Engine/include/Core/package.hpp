@@ -31,12 +31,11 @@ namespace Engine
         Object* find_object(const char* name, size_t name_len, bool recursive = true) const;
 
         const ObjectMap& objects() const;
-        bool save(BufferWriter* writer = nullptr) const;
-        bool load(BufferReader* read = nullptr, bool clear = false);
-        Object* load_object(const String& name, BufferReader* reader = nullptr);
-        const CallBacks<bool(Object*)>& filters() const;
         bool contains_object(const Object* object) const;
         bool contains_object(const String& name) const;
+
+        bool save(BufferWriter* writer = nullptr) const;
+        bool load(BufferReader* read = nullptr, bool clear = true);
 
         template<typename Type>
         FORCE_INLINE Type* find_object_checked(const String& object_name, bool recursive = true) const

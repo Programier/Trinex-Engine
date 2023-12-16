@@ -69,10 +69,18 @@ namespace Engine
         return *this;
     }
 
-    String NoApi::renderer()
+    const String& NoApi::renderer()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return "Undefined";
+        static const String undefined = "Undefined";
+        return undefined;
+    }
+
+    const String& NoApi::name()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        static const String noapi = "No API";
+        return noapi;
     }
 
     RHI_Sampler* NoApi::create_sampler(const Sampler*)

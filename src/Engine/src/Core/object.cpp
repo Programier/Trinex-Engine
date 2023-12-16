@@ -81,6 +81,7 @@ namespace Engine
         {
             _M_root_package = new Package();
             _M_root_package->name("Root Package");
+            _M_root_package->flag(IsSerializable, false);
         }
     }
 
@@ -168,11 +169,6 @@ namespace Engine
         }
 
         return package;
-    }
-
-    ENGINE_EXPORT Object* Object::load_object(const String& name)
-    {
-        return Package::find_package(package_name_of(name), true)->load_object(object_name_of(name));
     }
 
     ENGINE_EXPORT String Object::package_name_of(const String& name)
@@ -478,6 +474,21 @@ namespace Engine
         return find_package(new_name, std::strlen(new_name), create);
     }
 
+
+    static Package* find_next_package(Package* package, const char* name, size_t len, bool create)
+    {
+        Package* next_package = package->find_object_checked<Package>(name, len, false);
+
+        if (next_package == nullptr && create)
+        {
+            next_package = Object::new_instance<Package>();
+            next_package->name(name, len);
+            package->add_object(next_package);
+        }
+
+        return next_package;
+    }
+
     Package* Object::find_package(const char* new_name, size_t len, bool create)
     {
         Package* package = const_cast<Package*>(root_package());
@@ -491,21 +502,12 @@ namespace Engine
         while (separator && package)
         {
             size_t next_name_size = static_cast<size_t>(separator - new_name);
-            Package* next_package = package->find_object_checked<Package>(new_name, next_name_size, false);
-
-            if (next_package == nullptr && create)
-            {
-                next_package = Object::new_instance<Package>();
-                next_package->name(new_name, next_name_size);
-                package->add_object(next_package);
-            }
-
-            package   = next_package;
-            new_name  = separator + separator_len;
+            package               = find_next_package(package, new_name, next_name_size, create);
+            new_name              = separator + separator_len;
             separator = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
         }
 
-        return package ? package->find_object_checked<Package>(new_name, end_name - new_name, false) : nullptr;
+        return package ? find_next_package(package, new_name, end_name - new_name, create) : nullptr;
     }
 
 
@@ -534,6 +536,29 @@ namespace Engine
         if (has_any(IsUnreachable))
             return false;
         return true;
+    }
+
+    Path Object::filepath() const
+    {
+        const Package* pkg = instance_cast<Package>();
+        if(!pkg)
+        {
+            pkg = _M_package;
+        }
+
+        if(!pkg || pkg == root_package())
+            return {};
+
+        Path path          = pkg->string_name() + Constants::package_extention;
+        pkg                = pkg->package();
+
+        while (pkg && pkg != root_package())
+        {
+            path = Path(pkg->string_name()) / path;
+            pkg  = pkg->package();
+        }
+
+        return path;
     }
 
     Package* Object::root_package()
