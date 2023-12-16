@@ -1,10 +1,10 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/rhi.hpp>
-#include <Graphics/shader.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_target_base.hpp>
+#include <Graphics/rhi.hpp>
+#include <Graphics/shader.hpp>
 
 namespace Engine
 {
@@ -36,6 +36,6 @@ namespace Engine
         return *this;
     }
 
-    implement_class(Pipeline, "Engine");
+    implement_class(Pipeline, "Engine", 0);
     implement_default_initialize_class(Pipeline);
 }// namespace Engine

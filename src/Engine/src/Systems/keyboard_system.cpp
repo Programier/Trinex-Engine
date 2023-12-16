@@ -128,10 +128,10 @@ namespace Engine
 
 #define key_name(name)                                                                                                 \
     {                                                                                                                  \
-#name, Keyboard::name                                                                                          \
+        #name, Keyboard::name                                                                                          \
     }
 
-    implement_class(KeyboardSystem, "Engine");
+    implement_class(KeyboardSystem, "Engine", 0);
     implement_initialize_class(KeyboardSystem)
     {}
 }// namespace Engine

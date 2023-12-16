@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    implement_class(Texture, "Engine");
+    implement_class(Texture, "Engine", 0);
     implement_default_initialize_class(Texture);
 
     Texture::Texture() = default;

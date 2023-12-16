@@ -199,6 +199,6 @@ namespace Engine
     System::~System()
     {}
 
-    implement_class(System, "Engine");
+    implement_class(System, "Engine", 0);
     implement_default_initialize_class(System);
 }// namespace Engine

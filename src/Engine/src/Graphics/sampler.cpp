@@ -9,7 +9,7 @@
 
 namespace Engine
 {
-    implement_class(Sampler, "Engine");
+    implement_class(Sampler, "Engine", 0);
     implement_default_initialize_class(Sampler);
 
     Sampler& Sampler::rhi_create()

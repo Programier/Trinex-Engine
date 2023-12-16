@@ -151,28 +151,9 @@ namespace Engine
         return *this;
     }
 
-    static Identifier script_add_listener(EventSystem* system, class asIScriptFunction* function)
-    {
-        ScriptFunction func            = function;
-        EventSystem::Listener callback = [func](const Event&) mutable { func.prepare().call(); };
-        return system->add_listener(EventType::KeyDown, callback);
-    }
-
-
-    implement_class(EventSystem, "Engine");
+    implement_class(EventSystem, "Engine", 0);
     implement_initialize_class(EventSystem)
-    {
-        Super::initialize_script_bindings<EventSystem>(static_class_instance());
-        ScriptClassRegistrar registrar = static_class_instance();
-
-        {
-            ScriptEngine::NamespaceSaverScoped sv;
-            ScriptEngine::instance()->funcdef("void EventCallback()");
-        }
-
-        registrar.method("EventSystem@ instance()", EventSystem::instance);
-        registrar.opfunc("uint64 add_listener(EventCallback@)", script_add_listener, ScriptCallConv::CDECL_OBJFIRST);
-    }
+    {}
 
 
 }// namespace Engine

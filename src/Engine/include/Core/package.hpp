@@ -84,18 +84,9 @@ namespace Engine
             return nullptr;
         }
 
-        template<typename CurrentClass>
-        static void initialize_script_bindings(class Class* registrable_class)
-        {
-            Super::initialize_script_bindings<CurrentClass>(registrable_class);
-            ScriptClassRegistrar registrar = registrable_class;
-            registrar.method("bool add_object(Object@, bool)", &CurrentClass::add_object)
-                    .method("Package& remove_object(Object@)", &CurrentClass::remove_object);
-        }
-
         ~Package();
         friend class Object;
     };
 
-    ENGINE_EXPORT bool operator & (Archive& ar, Package::HeaderEntry& entry);
+    ENGINE_EXPORT bool operator&(Archive& ar, Package::HeaderEntry& entry);
 }// namespace Engine

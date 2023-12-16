@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    implement_class(GameControllerSystem, "Engine");
+    implement_class(GameControllerSystem, "Engine", 0);
     implement_initialize_class(GameControllerSystem)
     {}
 

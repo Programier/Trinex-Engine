@@ -63,8 +63,6 @@ namespace Engine
         static bool object_is_exist(Package* package, const String& name);
 
         const Object& remove_from_instances_array() const;
-        static void private_bind_class(class Class* c);
-
         static void prepare_next_object_for_gc();
 
     protected:
@@ -85,12 +83,6 @@ namespace Engine
         static class Class* static_class_instance();
         static HashIndex hash_of_name(const String& name);
         virtual class Class* class_instance() const;
-
-        template<typename CurrentClass>
-        static void initialize_script_bindings(class Class* registrable_class)
-        {
-            private_bind_class(registrable_class);
-        }
 
         delete_copy_constructors(Object);
         ENGINE_EXPORT static String decode_name(const std::type_info& info);
@@ -262,7 +254,7 @@ private:
     implement_initialize_class(name)                                                                                   \
     {}
 
-#define implement_class(class_name, namespace_name)                                                                    \
+#define implement_class(class_name, namespace_name, flags)                                                             \
     class Engine::Class* class_name::_M_static_class = nullptr;                                                        \
     Engine::Object* class_name::static_constructor()                                                                   \
     {                                                                                                                  \
@@ -293,14 +285,10 @@ private:
             }                                                                                                          \
             class_instance_name += #class_name;                                                                        \
             _M_static_class = new Engine::Class(class_instance_name, &This::static_constructor,                        \
-                                                has_base_class ? Super::static_class_instance() : nullptr);            \
+                                                has_base_class ? Super::static_class_instance() : nullptr, flags);     \
             _M_static_class->process_type<class_name>();                                                               \
             class_name::static_initialize_class();                                                                     \
-            if constexpr (This::initialize_script_bindings<This> != Super::initialize_script_bindings<This>)           \
-            {                                                                                                          \
-                This::initialize_script_bindings<This>(_M_static_class);                                               \
-                Engine::ScriptClassRegistrar::global_namespace_name("");                                               \
-            }                                                                                                          \
+            _M_static_class->post_initialize();                                                                        \
         }                                                                                                              \
         return _M_static_class;                                                                                        \
     }                                                                                                                  \
@@ -309,9 +297,9 @@ private:
 
 
 #define implement_class_default_init(class_name, namespace_name)                                                       \
-    implement_class(class_name, namespace_name);                                                                       \
+    implement_class(class_name, namespace_name, 0);                                                                    \
     implement_default_initialize_class(class_name)
 
-#define implement_engine_class(class_name) implement_class(class_name, "Engine")
+#define implement_engine_class(class_name, flags) implement_class(class_name, "Engine", flags)
 #define implement_engine_class_default_init(class_name) implement_class_default_init(class_name, "Engine")
 }// namespace Engine

@@ -38,19 +38,18 @@ namespace Engine
         return nullptr;
     }
 
-    Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent)
+    Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent, Flags flags)
         : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent),
           _M_singletone_object(nullptr)
     {
         get_class_table()[class_name] = this;
-        _M_size                   = 0;
-        _M_flags                  = 0;
+        _M_size                       = 0;
+        _M_flags                      = flags;
         info_log("Class", "Created class instance '%s'", class_name.c_str());
 
-        _M_base_name            = Object::object_name_of(class_name);
-        _M_namespace            = Object::package_name_of(class_name);
-        _M_is_script_registered = false;
-        _M_cast_to_this         = nullptr;
+        _M_base_name    = Object::object_name_of(class_name);
+        _M_namespace    = Object::package_name_of(class_name);
+        _M_cast_to_this = nullptr;
     }
 
     Class* Class::parent() const
@@ -75,9 +74,9 @@ namespace Engine
 
     Object* Class::create_object() const
     {
-        if(has_all_flags(Class::IsSingletone))
+        if (has_all_flags(Class::IsSingletone))
         {
-            if(_M_singletone_object == nullptr)
+            if (_M_singletone_object == nullptr)
             {
                 _M_singletone_object = _M_static_constructor();
             }
@@ -127,7 +126,7 @@ namespace Engine
 
     bool Class::is_binded_to_script() const
     {
-        return _M_is_script_registered;
+        return has_all_flags(IsScriptable);
     }
 
     Object* (*Class::cast_to_this() const)(Object*)
@@ -148,5 +147,39 @@ namespace Engine
     const Map<String, Class*>& Class::class_table()
     {
         return get_class_table();
+    }
+
+    Class& Class::set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>& callback)
+    {
+        _M_script_register_callback = callback;
+        return *this;
+    }
+
+    Class& Class::post_initialize()
+    {
+        if (is_binded_to_script())
+        {
+            ScriptClassRegistrar registrar(this);
+            List<Class*> stack;
+
+            Class* current = this;
+            while (current)
+            {
+                stack.push_back(current);
+                current = current->_M_parent;
+            }
+
+            while (!stack.empty())
+            {
+                current = stack.back();
+                if (current->_M_script_register_callback)
+                {
+                    current->_M_script_register_callback(&registrar, this);
+                }
+
+                stack.pop_back();
+            }
+        }
+        return *this;
     }
 }// namespace Engine

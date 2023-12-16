@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/string_functions.hpp>
@@ -13,6 +14,8 @@ namespace Engine
             IsSingletone = 1 << 0,
             IsAbstract   = 1 << 1,
             IsFinal      = 1 << 2,
+
+            IsScriptable = 1 << 3,
         };
 
     private:
@@ -26,8 +29,12 @@ namespace Engine
 
         Class* _M_parent;
         size_t _M_size;
-        bool _M_is_script_registered;
+
         mutable Object* _M_singletone_object;
+
+        /// SCRIPT PART
+        CallBack<void(class ScriptClassRegistrar*, Class*)> _M_script_register_callback;
+
 
         static Object* internal_cast(Class* required_class, Object* object);
 
@@ -38,7 +45,7 @@ namespace Engine
         }
 
     public:
-        Class(const String& class_name, Object* (*) (), Class* parent = nullptr);
+        Class(const String& class_name, Object* (*) (), Class* parent = nullptr, Flags flags = 0);
 
         Class* parent() const;
         const String& name() const;
@@ -51,9 +58,11 @@ namespace Engine
         bool is_binded_to_script() const;
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)();
-
         Object* singletone_instance() const;
         static const Map<String, Class*>& class_table();
+
+        Class& set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>&);
+        Class& post_initialize();
 
 
         template<typename Type>
@@ -68,8 +77,7 @@ namespace Engine
         {
             if (_M_size == 0)
             {
-                _M_size  = sizeof(ObjectClass);
-                _M_flags = 0;
+                _M_size = sizeof(ObjectClass);
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {

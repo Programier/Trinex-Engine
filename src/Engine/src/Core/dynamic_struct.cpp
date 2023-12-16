@@ -334,7 +334,7 @@ namespace Engine
         _M_struct->unlink_instance(this);
     }
 
-    implement_class(DynamicStructBase, "Engine");
+    implement_class(DynamicStructBase, "Engine", 0);
     implement_default_initialize_class(DynamicStructBase);
 
 }// namespace Engine

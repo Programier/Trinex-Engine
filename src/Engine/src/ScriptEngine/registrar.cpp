@@ -177,26 +177,22 @@ namespace Engine
 
     void ScriptClassRegistrar::declare_as_class(Class* _class, const ClassInfo& info)
     {
-        if (!_class->is_binded_to_script())
+        static_declare_new_class(_class->namespace_name(), _class->base_name(), info);
+
+        // Register cast operators
+
+        asIScriptEngine* engine = ScriptEngine::instance()->as_engine();
+        for (Class* parent = _class->parent(); parent != nullptr; parent = parent->parent())
         {
-            static_declare_new_class(_class->namespace_name(), _class->base_name(), info);
-            _class->_M_is_script_registered = true;
-
-            // Register cast operators
-
-            asIScriptEngine* engine = ScriptEngine::instance()->as_engine();
-            for (Class* parent = _class->parent(); parent != nullptr; parent = parent->parent())
+            if (parent->is_binded_to_script())
             {
-                if (parent->is_binded_to_script())
-                {
-                    String op = Strings::format("{}@ opCast()", _class->name());
-                    engine->RegisterObjectMethod(parent->name().c_str(), op.c_str(), asFUNCTION(parent->cast_to_this()),
-                                                 asCALL_CDECL_OBJLAST);
+                String op = Strings::format("{}@ opCast()", _class->name());
+                engine->RegisterObjectMethod(parent->name().c_str(), op.c_str(), asFUNCTION(parent->cast_to_this()),
+                                             asCALL_CDECL_OBJLAST);
 
-                    op = Strings::format("{}@ opImplCast()", parent->name());
-                    engine->RegisterObjectMethod(_class->name().c_str(), op.c_str(), asFUNCTION(_class->cast_to_this()),
-                                                 asCALL_CDECL_OBJLAST);
-                }
+                op = Strings::format("{}@ opImplCast()", parent->name());
+                engine->RegisterObjectMethod(_class->name().c_str(), op.c_str(), asFUNCTION(_class->cast_to_this()),
+                                             asCALL_CDECL_OBJLAST);
             }
         }
     }

@@ -19,6 +19,6 @@ namespace Engine
         return *this;
     }
 
-    implement_class(CommandLet, "Engine");
+    implement_class(CommandLet, "Engine", 0);
     implement_default_initialize_class(CommandLet);
 }// namespace Engine

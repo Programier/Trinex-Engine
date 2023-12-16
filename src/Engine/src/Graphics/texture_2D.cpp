@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    implement_class(Texture2D, "Engine");
+    implement_class(Texture2D, "Engine", 0);
     implement_default_initialize_class(Texture2D);
 
     Texture2D::Texture2D() = default;

@@ -1,8 +1,8 @@
 #include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
-#include <Graphics/material.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
@@ -11,9 +11,9 @@
 
 namespace Engine
 {
-    implement_class(MaterialInterface, "Engine");
-    implement_class(Material, "Engine");
-    implement_class(MaterialInstance, "Engine");
+    implement_class(MaterialInterface, "Engine", 0);
+    implement_class(Material, "Engine", 0);
+    implement_class(MaterialInstance, "Engine", 0);
     implement_default_initialize_class(MaterialInterface);
     implement_default_initialize_class(Material);
     implement_default_initialize_class(MaterialInstance);
@@ -467,7 +467,7 @@ namespace Engine
 
     bool MaterialInstance::apply() const
     {
-        if(!_M_material->apply_internal(false))
+        if (!_M_material->apply_internal(false))
         {
             return false;
         }

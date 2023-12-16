@@ -340,7 +340,7 @@ namespace Engine
         //        }
     }
 
-    implement_class(Package, "Engine");
+    implement_class(Package, "Engine", 0);
     implement_initialize_class(Package)
     {}
 

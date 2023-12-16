@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    implement_class(RenderTarget, "Engine");
+    implement_class(RenderTarget, "Engine", 0);
     implement_default_initialize_class(RenderTarget);
 
     RenderTarget& RenderTarget::rhi_create()

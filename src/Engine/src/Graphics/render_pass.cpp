@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    implement_class(RenderPass, "Engine");
+    implement_class(RenderPass, "Engine", 0);
     implement_default_initialize_class(RenderPass);
 
     RenderPass& RenderPass::rhi_create()

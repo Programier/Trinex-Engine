@@ -8,12 +8,35 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_module.hpp>
 #include <Window/window.hpp>
 #include <viewport_client.hpp>
+
+
+const char* test_script = R"(
+
+Engine::Object@ object = null;
+
+void main()
+{
+    if(@object == null)
+    {
+        @object = Engine::Object();
+        object.name("Programier");
+    }
+
+    print(object.string_name());
+}
+
+)";
+
 
 namespace Engine
 {
     implement_engine_class_default_init(EditorViewportClient);
+    ScriptFunction function;
 
     static void initialize_theme(ImGuiContext* context)
     {
@@ -21,7 +44,6 @@ namespace Engine
         const char* font_path = "/usr/share/fonts/adobe-source-code-pro-fonts/SourceCodePro-Bold.otf";
         auto& io              = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF(font_path, 14.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
-
 
         ImGuiStyle& style = ImGui::GetStyle();
 
@@ -122,6 +144,14 @@ namespace Engine
         _M_imgui_texture = window->imgui_window()->create_texture();
         _M_imgui_texture->init(window->imgui_window()->context(), texture, sampler);
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
+
+
+        auto module = ScriptEngine::instance()->module("Script");
+        module.add_script_section("test_section", test_script);
+        module.build();
+
+        function = module.function_by_name("main");
+
         return *this;
     }
 
@@ -149,6 +179,8 @@ namespace Engine
         create_log_window();
         create_viewport_window();
         window->end_frame();
+
+        function.prepare().call();
         return *this;
     }
 

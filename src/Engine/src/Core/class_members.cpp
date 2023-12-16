@@ -53,6 +53,6 @@ namespace Engine
         return ((*this).*_M_archive_process)(ar, object);
     }
 
-    implement_class(ClassField, "Engine");
+    implement_class(ClassField, "Engine", 0);
     implement_default_initialize_class(ClassField);
 }// namespace Engine

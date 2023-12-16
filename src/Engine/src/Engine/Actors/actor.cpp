@@ -84,7 +84,7 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
-    implement_class(Actor, "Engine");
+    implement_class(Actor, "Engine", 0);
     implement_initialize_class(Actor)
     {}
 }// namespace Engine

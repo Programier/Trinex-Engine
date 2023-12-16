@@ -19,18 +19,24 @@ namespace Engine
 
     static thread_local bool _M_next_available_for_gc = false;
 
-    void Object::private_bind_class(class Class* c)
+    implement_class(Object, "Engine", Class::IsScriptable);
+
+
+    static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
     {
-        ScriptClassRegistrar registrar(c);
+        String factory = Strings::format("{}@ f()", self->name());
 
-        String factory = Strings::format("{}@ f()", c->name());
-
-        if (!c->has_all_flags(Class::IsSingletone))
+        if (!self->has_all_flags(Class::IsSingletone))
         {
-            registrar.behave(ScriptClassBehave::Factory, factory.c_str(), c->static_constructor());
+            registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor());
         }
 
-        //        registrar.require_type("Engine::Package")
+        registrar->behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
+                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
+                .method("const string& string_name() const", &Object::string_name)
+                .method("Engine::ObjectRenameStatus name(const string& in, bool = false)",
+                        func_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name));
+        //        registrar->require_type("Engine::Package")
         //                .behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
         //                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
         //                .method("Package@ root_package()", &Object::root_package)
@@ -43,8 +49,6 @@ namespace Engine
         //                .method("Object& remove_from_package()", &Object::remove_from_package);
     }
 
-    implement_class(Object, "Engine");
-
     implement_initialize_class(Object)
     {
         ScriptEnumRegistrar("Engine::ObjectRenameStatus")
@@ -52,7 +56,7 @@ namespace Engine
                 .set("Success", static_cast<int_t>(ObjectRenameStatus::Success))
                 .set("Failed", static_cast<int_t>(ObjectRenameStatus::Failed));
 
-        private_bind_class(This::static_class_instance());
+        static_class_instance()->set_script_registration_callback(register_object_to_script);
     }
 
     void Object::prepare_next_object_for_gc()
@@ -541,16 +545,16 @@ namespace Engine
     Path Object::filepath() const
     {
         const Package* pkg = instance_cast<Package>();
-        if(!pkg)
+        if (!pkg)
         {
             pkg = _M_package;
         }
 
-        if(!pkg || pkg == root_package())
+        if (!pkg || pkg == root_package())
             return {};
 
-        Path path          = pkg->string_name() + Constants::package_extention;
-        pkg                = pkg->package();
+        Path path = pkg->string_name() + Constants::package_extention;
+        pkg       = pkg->package();
 
         while (pkg && pkg != root_package())
         {
