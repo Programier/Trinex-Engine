@@ -28,12 +28,17 @@ namespace Engine
         FileWriter(FileWriter&&);
         FileWriter& operator=(FileWriter&&);
 
+        const String& filename() const;
         bool open(const String& filename, bool clear = true);
         FileWriter& close();
-        Stream& stream() override;
+
+        bool write(const byte* data, size_t size) override;
+        WritePos position() override;
+        FileWriter& position(WritePos pos) override;
+        FileWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
         bool is_open() const override;
         FileWriter& clear() override;
-        const String& filename() const;
+
 
         ~FileWriter();
     };
@@ -56,62 +61,17 @@ namespace Engine
         FileReader(FileReader&&);
         FileReader& operator=(FileReader&&);
 
-        Stream& stream() override;
+        const String& filename() const;
         bool open(const String& filename);
         FileReader& close();
+
+        bool read(byte* data, size_t size) override;
+        ReadPos position() override;
+        FileReader& position(ReadPos pos) override;
+        FileReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
         bool is_open() const override;
-        const String& filename() const;
+
         ~FileReader();
-    };
-
-
-    class ENGINE_EXPORT TextFileWriter : public TextBufferWriter
-    {
-    public:
-        using Pointer = TextFileWriter*;
-
-    private:
-        std::ofstream _M_file;
-        String _M_filename;
-
-    public:
-        TextFileWriter();
-        TextFileWriter(const String& filename, bool clear = true);
-        TextFileWriter(TextFileWriter&&);
-        TextFileWriter& operator=(TextFileWriter&&);
-
-        bool open(const String& filename, bool clear = true);
-        TextFileWriter& close();
-        Stream& stream() override;
-        bool is_open() const override;
-        TextFileWriter& clear() override;
-        const String& filename() const;
-
-        ~TextFileWriter();
-    };
-
-
-    class ENGINE_EXPORT TextFileReader : public TextBufferReader
-    {
-    public:
-        using Pointer = TextFileReader*;
-
-    private:
-        std::ifstream _M_file;
-        String _M_filename;
-
-    public:
-        TextFileReader();
-        TextFileReader(const String& filename);
-        TextFileReader(TextFileReader&&);
-        TextFileReader& operator=(TextFileReader&&);
-
-        Stream& stream() override;
-        bool open(const String& filename);
-        TextFileReader& close();
-        bool is_open() const override;
-        const String& filename() const;
-        ~TextFileReader();
     };
 
 
@@ -143,8 +103,6 @@ namespace Engine
 
         FileReader::Pointer create_file_reader(const Path& filename) const;
         FileWriter::Pointer create_file_writer(const Path& filename, bool clear = true) const;
-        TextFileReader::Pointer create_text_file_reader(const Path& filename) const;
-        TextFileWriter::Pointer create_text_file_writer(const Path& filename, bool clear = true) const;
 
         bool remove(const Path& path, bool recursive = false) const;
         bool create_dir(const Path& path) const;

@@ -42,11 +42,6 @@ namespace Engine
     }
 
 
-    BufferWriter::Stream& FileWriter::stream()
-    {
-        return _M_file;
-    }
-
     bool FileWriter::is_open() const
     {
         return _M_file.is_open();
@@ -64,6 +59,36 @@ namespace Engine
         return _M_filename;
     }
 
+
+    bool FileWriter::write(const byte* data, size_t size)
+    {
+        return static_cast<bool>(_M_file.write(reinterpret_cast<const char*>(data), size));
+    }
+
+
+    FileWriter::WritePos FileWriter::position()
+    {
+        if (!is_open())
+            return 0;
+        return static_cast<WritePos>(_M_file.tellp());
+    }
+
+    FileWriter& FileWriter::position(WritePos pos)
+    {
+        return offset(pos, BufferSeekDir::Begin);
+    }
+
+    FileWriter& FileWriter::offset(PosOffset offset, BufferSeekDir dir)
+    {
+        std::ios_base::seekdir _M_dir =
+                (dir == BufferSeekDir::Begin
+                         ? std::ios_base::beg
+                         : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
+        _M_file.seekp(static_cast<std::ostream::pos_type>(offset), _M_dir);
+        return *this;
+    }
+
+
     FileWriter::~FileWriter()
     {
         close();
@@ -79,11 +104,6 @@ namespace Engine
     FileReader::FileReader(FileReader&&)            = default;
     FileReader& FileReader::operator=(FileReader&&) = default;
 
-
-    BufferReader::Stream& FileReader::stream()
-    {
-        return _M_file;
-    }
 
     bool FileReader::open(const String& filename)
     {
@@ -118,118 +138,38 @@ namespace Engine
         return _M_filename;
     }
 
+
+    bool FileReader::read(byte* data, size_t size)
+    {
+        return static_cast<bool>(_M_file.read(reinterpret_cast<char*>(data), size));
+    }
+
+
+    FileReader::ReadPos FileReader::position()
+    {
+        if (!is_open())
+            return 0;
+        return static_cast<ReadPos>(_M_file.tellg());
+    }
+
+
+    FileReader& FileReader::position(ReadPos pos)
+    {
+        return offset(pos, BufferSeekDir::Begin);
+    }
+
+    FileReader& FileReader::offset(PosOffset offset, BufferSeekDir dir)
+    {
+        std::ios_base::seekdir _M_dir =
+                (dir == BufferSeekDir::Begin
+                         ? std::ios_base::beg
+                         : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
+        _M_file.seekg(static_cast<std::ostream::pos_type>(offset), _M_dir);
+
+        return *this;
+    }
+
     FileReader::~FileReader()
-    {
-        close();
-    }
-
-    TextFileWriter::TextFileWriter() = default;
-    TextFileWriter::TextFileWriter(const String& filename, bool clear)
-    {
-        open(filename, clear);
-    }
-
-    TextFileWriter::TextFileWriter(TextFileWriter&&)            = default;
-    TextFileWriter& TextFileWriter::operator=(TextFileWriter&&) = default;
-
-    bool TextFileWriter::open(const String& filename, bool clear)
-    {
-        std::ios_base::openmode mode = std::ios_base::out | (clear ? std::ios_base::trunc : std::ios_base::ate);
-
-        close();
-        _M_file.open(filename, mode);
-        bool is_opened = _M_file.is_open();
-        _M_filename    = is_opened ? filename : "";
-        return is_opened;
-    }
-
-    TextFileWriter& TextFileWriter::close()
-    {
-        if (_M_file.is_open())
-        {
-            _M_file.close();
-        }
-        return *this;
-    }
-
-
-    BufferWriter::Stream& TextFileWriter::stream()
-    {
-        return _M_file;
-    }
-
-    bool TextFileWriter::is_open() const
-    {
-        return _M_file.is_open();
-    }
-
-
-    TextFileWriter& TextFileWriter::clear()
-    {
-        open(_M_filename, true);
-        return *this;
-    }
-
-    const String& TextFileWriter::filename() const
-    {
-        return _M_filename;
-    }
-
-    TextFileWriter::~TextFileWriter()
-    {
-        close();
-    }
-
-
-    TextFileReader::TextFileReader() = default;
-    TextFileReader::TextFileReader(const String& filename)
-    {
-        open(filename);
-    }
-
-    TextFileReader::TextFileReader(TextFileReader&&)            = default;
-    TextFileReader& TextFileReader::operator=(TextFileReader&&) = default;
-
-
-    BufferReader::Stream& TextFileReader::stream()
-    {
-        return _M_file;
-    }
-
-    bool TextFileReader::open(const String& filename)
-    {
-        close();
-
-        std::ios_base::openmode mode = std::ios_base::binary | std::ios_base::in;
-
-        _M_file.open(filename, mode);
-        (void) size();
-        bool is_opened = is_open();
-
-        _M_filename = is_opened ? filename : "";
-        return is_opened;
-    }
-
-    TextFileReader& TextFileReader::close()
-    {
-        if (_M_file.is_open())
-        {
-            _M_file.close();
-        }
-        return *this;
-    }
-
-    bool TextFileReader::is_open() const
-    {
-        return _M_file.is_open();
-    }
-
-    const String& TextFileReader::filename() const
-    {
-        return _M_filename;
-    }
-
-    TextFileReader::~TextFileReader()
     {
         close();
     }
@@ -327,30 +267,6 @@ namespace Engine
         }
         return FileWriter::Pointer(file_writer);
     }
-
-    TextFileReader::Pointer FileManager::create_text_file_reader(const Path& filename) const
-    {
-        TextFileReader* file_reader = new TextFileReader((_M_work_dir / filename).string());
-        if (!file_reader->is_open())
-        {
-            delete file_reader;
-            file_reader = nullptr;
-        }
-
-        return TextFileReader::Pointer(file_reader);
-    }
-
-    TextFileWriter::Pointer FileManager::create_text_file_writer(const Path& filename, bool clear) const
-    {
-        TextFileWriter* file_writer = new TextFileWriter((_M_work_dir / filename).string(), clear);
-        if (!file_writer->is_open())
-        {
-            delete file_writer;
-            file_writer = nullptr;
-        }
-        return TextFileWriter::Pointer(file_writer);
-    }
-
 
     bool FileManager::remove(const Path& path, bool recursive) const
     {

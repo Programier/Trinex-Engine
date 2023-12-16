@@ -3,12 +3,12 @@
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_config.hpp>
-#include <Core/etl/vector_stream.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <cstring>
 
 namespace Engine
 {
@@ -150,7 +150,7 @@ namespace Engine
 
 
         // Compress data
-        VectorOutputStream stream;
+        //VectorOutputStream stream;
 
 
         const bool need_delete_writer = writer == nullptr;
