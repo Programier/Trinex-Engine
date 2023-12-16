@@ -1,9 +1,9 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
-#include <Core/archive.hpp>
 #include <Graphics/sampler.hpp>
 
 
@@ -37,10 +37,6 @@ namespace Engine
         (*archive) & compare_func;
         (*archive) & unnormalized_coordinates;
 
-        if (archive->is_reading())
-        {
-            rhi_create();
-        }
         return *archive;
     }
 }// namespace Engine

@@ -138,8 +138,6 @@ namespace Engine
 
     template<size_t length, typename Type>
     using TypedVector = glm::vec<length, Type, glm::defaultp>;
-
-    inline constexpr size_t TRINEX_ENGINE_FLAG = 1414678092U;
 }// namespace Engine
 
 

@@ -73,11 +73,6 @@ namespace Engine
         return static_cast<WritePos>(_M_file.tellp());
     }
 
-    FileWriter& FileWriter::position(WritePos pos)
-    {
-        return offset(pos, BufferSeekDir::Begin);
-    }
-
     FileWriter& FileWriter::offset(PosOffset offset, BufferSeekDir dir)
     {
         std::ios_base::seekdir _M_dir =
@@ -152,11 +147,6 @@ namespace Engine
         return static_cast<ReadPos>(_M_file.tellg());
     }
 
-
-    FileReader& FileReader::position(ReadPos pos)
-    {
-        return offset(pos, BufferSeekDir::Begin);
-    }
 
     FileReader& FileReader::offset(PosOffset offset, BufferSeekDir dir)
     {

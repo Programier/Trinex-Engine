@@ -1,10 +1,11 @@
+#include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
-#include <Core/logger.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 #include <Window/window.hpp>
@@ -97,17 +98,10 @@ namespace Engine
 
     EditorViewportClient::EditorViewportClient()
     {
-        texture = Object::new_instance<Texture2D>();
-        texture->image.load("resources/logo.png");
-        texture->size   = texture->image.size();
-        texture->format = texture->image.format();
-        texture->init_resource();
-
-        sampler         = Object::new_instance<Sampler>();
-        sampler->wrap_r = WrapValue::ClampToBorder;
-        sampler->wrap_s = WrapValue::ClampToBorder;
-        sampler->wrap_t = WrapValue::ClampToBorder;
-
+        Package* package = Package::find_package("TestResources", true);
+        package->load();
+        texture = package->find_object_checked<Texture2D>("Trinex", false);
+        sampler = package->find_object_checked<Sampler>("Trinex Sampler", false);
         sampler->init_resource();
     }
 
@@ -217,17 +211,6 @@ namespace Engine
         }
     }
 
-
-
-    static void make_test_package(Texture2D* texture)
-    {
-        Package* package = Package::find_package("TestPackage", true);
-        texture->name("Trinex");
-        package->add_object(texture);
-
-        package->save();
-    }
-
     EditorViewportClient& EditorViewportClient::create_scene_tree_window()
     {
         if (!ImGui::Begin("Scene Tree"))
@@ -237,11 +220,6 @@ namespace Engine
         }
 
         render_objects_tree(Object::root_package());
-
-        if (ImGui::Button("Make Package"))
-        {
-            make_test_package(texture);
-        }
 
         ImGui::End();
 

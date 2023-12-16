@@ -34,7 +34,6 @@ namespace Engine
 
         bool write(const byte* data, size_t size) override;
         WritePos position() override;
-        FileWriter& position(WritePos pos) override;
         FileWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
         bool is_open() const override;
         FileWriter& clear() override;
@@ -67,7 +66,6 @@ namespace Engine
 
         bool read(byte* data, size_t size) override;
         ReadPos position() override;
-        FileReader& position(ReadPos pos) override;
         FileReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
         bool is_open() const override;
 

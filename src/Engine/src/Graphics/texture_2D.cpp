@@ -65,6 +65,7 @@ namespace Engine
         return static_cast<bool>(*archive);
     }
 
+
     TextureType Texture2D::type() const
     {
         return TextureType::Texture2D;

@@ -98,9 +98,26 @@ namespace Engine
             vector.resize(size);
         }
 
-        for (auto& ell : vector)
+        if constexpr (std::is_fundamental_v<Type>)
         {
-            ar& ell;
+            byte* data   = reinterpret_cast<byte*>(vector.data());
+            size_t bytes = size * sizeof(Type);
+
+            if (ar.is_reading())
+            {
+                ar.read_data(data, bytes);
+            }
+            else if (ar.is_saving())
+            {
+                ar.write_data(data, bytes);
+            }
+        }
+        else
+        {
+            for (auto& ell : vector)
+            {
+                ar& ell;
+            }
         }
 
         return ar;

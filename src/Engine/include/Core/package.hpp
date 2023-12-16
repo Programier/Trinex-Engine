@@ -7,6 +7,7 @@
 
 namespace Engine
 {
+
     class ENGINE_EXPORT Package : public Object
     {
         declare_class(Package, Object);
@@ -14,11 +15,28 @@ namespace Engine
     public:
         using ObjectMap = Map<Name, Object*, Name::HashFunction>;
 
+        struct HeaderEntry {
+            String class_name        = "";
+            size_t offset            = 0;
+            size_t uncompressed_size = 0;
+            Object* object           = nullptr;
+            Name object_name;
+
+            Vector<byte> compressed_data;
+        };
+
+        using Header = Vector<HeaderEntry>;
+
     private:
         ObjectMap _M_objects;
+        Header _M_header;
 
         Object* find_object_private_no_recurce(const char* name, size_t name_len) const;
         Object* find_object_private(const char* name, size_t name_len) const;
+
+
+        const Package& build_header(Header& header) const;
+        Header& load_header_private(class BufferReader* reader);
 
     public:
         delete_copy_constructors(Package);
@@ -31,11 +49,13 @@ namespace Engine
         Object* find_object(const char* name, size_t name_len, bool recursive = true) const;
 
         const ObjectMap& objects() const;
+        const Header& header() const;
         bool contains_object(const Object* object) const;
         bool contains_object(const String& name) const;
 
-        bool save(BufferWriter* writer = nullptr) const;
-        bool load(BufferReader* read = nullptr, bool clear = true);
+        bool save() const;
+        bool load();
+        Header& load_header();
 
         template<typename Type>
         FORCE_INLINE Type* find_object_checked(const String& object_name, bool recursive = true) const
@@ -76,4 +96,6 @@ namespace Engine
         ~Package();
         friend class Object;
     };
+
+    ENGINE_EXPORT bool operator & (Archive& ar, Package::HeaderEntry& entry);
 }// namespace Engine

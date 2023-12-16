@@ -47,6 +47,8 @@ namespace Engine
         RenderResource& init_resource();
         RenderResource& rhi_destroy();
 
+        RenderResource& postload() override;
+
         static void release_render_resouce(RHI_Object* object);
         ~RenderResource();
     };

@@ -3,6 +3,7 @@
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_config.hpp>
+#include <Core/file_flag.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
@@ -13,8 +14,15 @@
 namespace Engine
 {
 
-    struct HeaderEntry {
-    };
+    ENGINE_EXPORT bool operator&(Archive& ar, Package::HeaderEntry& entry)
+    {
+        ar& entry.class_name;
+        ar& entry.offset;
+        ar& entry.uncompressed_size;
+        ar& entry.object_name;
+
+        return ar;
+    }
 
     Package::Package()
     {
@@ -124,6 +132,10 @@ namespace Engine
         return _M_objects;
     }
 
+    const Package::Header& Package::header() const
+    {
+        return _M_header;
+    }
 
     bool Package::contains_object(const Object* object) const
     {
@@ -136,10 +148,76 @@ namespace Engine
     }
 
 
-    static void create_header(Vector<HeaderEntry>& header)
-    {}
+    const Package& Package::build_header(Header& header) const
+    {
+        size_t current_entry = 0;
+        header.resize(_M_objects.size());
 
-    bool Package::save(BufferWriter* writer) const
+        for (auto& [name, object] : _M_objects)
+        {
+            HeaderEntry& entry = header[current_entry];
+            entry.object       = object;
+            entry.object_name  = object->name();
+            entry.class_name   = object->class_instance()->name();
+
+            // Make buffer
+            Vector<byte> object_data;
+
+            {
+                VectorWriter writer = &object_data;
+                Archive ar(&writer);
+
+                if (!object->archive_process(&ar))
+                {
+                    error_log("Package", "Cannot serialize object '%s'", object->full_name().c_str());
+                    continue;
+                }
+                else
+                {
+                    ++current_entry;
+                }
+            }
+
+            entry.uncompressed_size = object_data.size();
+
+            // Compress data
+            Compressor::compress(object_data, entry.compressed_data);
+        }
+
+        current_entry = header.size() - current_entry;
+
+        if (current_entry > 0)
+        {
+            header.resize(header.size() - current_entry);
+        }
+
+        return *this;
+    }
+
+    Package::Header& Package::load_header_private(class BufferReader* reader)
+    {
+        _M_header.clear();
+
+        FileFlag flag;
+        Archive ar(reader);
+
+        ar& flag;
+
+        if (flag != FileFlag::package_flag())
+        {
+            error_log("Package", "File is not trinex package!");
+            return _M_header;
+        }
+
+        if (!(ar & _M_header))
+        {
+            error_log("Package", "Failed to reader header!");
+        }
+
+        return _M_header;
+    }
+
+    bool Package::save() const
     {
 
         if (!flag(Object::IsSerializable))
@@ -148,35 +226,105 @@ namespace Engine
             return false;
         }
 
+        Header current_header;
+        build_header(current_header);
 
-        // Compress data
-        //VectorOutputStream stream;
-
-
-        const bool need_delete_writer = writer == nullptr;
-
-        if (need_delete_writer)
+        if (current_header.empty())
         {
-            writer = new FileWriter(filepath());
+            error_log("Package", "Cannot save package '%s', because header is empty!", full_name().c_str());
+            return false;
         }
+
+
+        Path path = Path(engine_config.resources_dir) / filepath();
+        FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
+        BufferWriter* writer = FileManager::root_file_manager()->create_file_writer(path);
+
 
         Archive ar(writer);
 
-        uint_t flag = TRINEX_ENGINE_FLAG;
+        FileFlag flag = FileFlag::package_flag();
         ar& flag;
+        auto header_position = writer->position();
 
-        if (need_delete_writer)
+        ar& current_header;
+
+        for (auto& entry : current_header)
         {
-            delete writer;
+            entry.offset = writer->position();
+            ar& entry.compressed_data;
+        }
+
+        writer->position(header_position);
+        ar& current_header;
+
+        delete writer;
+
+        return false;
+    }
+
+    bool Package::load()
+    {
+        _M_objects.clear();
+
+        Path path = Path(engine_config.resources_dir) / filepath();
+        FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
+        BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
+
+        Archive ar(reader);
+
+        Vector<byte> compressed_buffer;
+        Vector<byte> uncompressed_buffer;
+
+        VectorReader uncompressed_reader = &uncompressed_buffer;
+        Archive uncompressed_ar = &uncompressed_reader;
+
+        load_header_private(reader);
+
+        for (auto& entry : _M_header)
+        {
+            Class* object_class = Class::static_find_class(entry.class_name);
+            if (object_class)
+            {
+                entry.object = object_class->create_object();
+                entry.object->name(entry.object_name);
+
+                add_object(entry.object);
+                entry.object->preload();
+
+                reader->position(entry.offset);
+                ar& compressed_buffer;
+
+                uncompressed_buffer.resize(entry.uncompressed_size);
+                Compressor::decompress(compressed_buffer, uncompressed_buffer);
+
+                uncompressed_reader.VectorReaderBase::position(0);
+                entry.object->archive_process(&uncompressed_ar);
+
+                entry.object->postload();
+            }
         }
 
         return false;
     }
 
-    bool Package::load(BufferReader* reader, bool clean)
+    Package::Header& Package::load_header()
     {
-        unimplemented_method_exception();
-        return false;
+        _M_header.clear();
+
+        Path path = Path(engine_config.resources_dir) / filepath();
+        FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
+        BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
+
+        if (reader == nullptr)
+        {
+            error_log("Package", "Cannot open file '%s'", path.string().c_str());
+            return _M_header;
+        }
+
+        load_header_private(reader);
+        delete reader;
+        return _M_header;
     }
 
 

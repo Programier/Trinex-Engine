@@ -77,6 +77,11 @@ namespace Engine
         return *this;
     }
 
+    RenderResource& RenderResource::postload()
+    {
+        return init_resource();
+    }
+
     bool RenderResource::has_object() const
     {
         return _M_rhi_object != nullptr;
