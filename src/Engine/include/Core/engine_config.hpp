@@ -1,10 +1,15 @@
 #pragma once
 #include <Core/config.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/build.hpp>
 
 namespace Engine
 {
     struct ENGINE_EXPORT EngineConfig : public Config {
+#if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
+        Map<String, Vector<int>> jit_skip_instructions;
+#endif
+
         Vector<String> external_system_libraries;
         Vector<String> systems;
 
@@ -28,6 +33,7 @@ namespace Engine
         bool load_shaders_to_gpu;
         bool load_meshes_to_gpu;
         bool load_textures_to_gpu;
+        bool enable_jit;
 
 
         virtual EngineConfig& update() override;

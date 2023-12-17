@@ -25,3 +25,8 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/stb_image")
 
 # Compile tinygltf library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tinygltf")
+
+# Compile AsmJIT library
+set(ASMJIT_STATIC on)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/asmjit/" EXCLUDE_FROM_ALL)
+set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")

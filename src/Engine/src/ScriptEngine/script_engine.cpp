@@ -1,3 +1,4 @@
+#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
@@ -8,6 +9,15 @@
 #include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
+
+#if ARCH_ARM
+#include "jit_compiler/arm64/compiler.hpp"
+using PlatformJitCompiler = JIT::ARM64_Compiler;
+
+#elif ARCH_X86_64
+#include "jit_compiler/x86-64/compiler.hpp"
+using PlatformJitCompiler = JIT::X86_64_Compiler;
+#endif
 
 
 namespace Print
@@ -89,7 +99,6 @@ namespace Engine
             return *this;
         }
 
-
         ~ScriptContextManager()
         {
             for (asIScriptContext* context : _M_context_array)
@@ -115,8 +124,29 @@ namespace Engine
         _M_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
         _M_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
         _M_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
-
         _M_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
+
+#if ARCH_X86_64 || ARCH_ARM
+        if (engine_config.enable_jit)
+        {
+            info_log("ScriptEngine", "Enable JIT compiler!");
+            auto compiler   = new PlatformJitCompiler();
+            _M_jit_compiler = compiler;
+            _M_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
+            _M_engine->SetJITCompiler(_M_jit_compiler);
+
+#if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
+            for (auto& [func_name, indices] : engine_config.jit_skip_instructions)
+            {
+                for (auto index : indices)
+                {
+                    compiler->push_instruction_index_for_skip(func_name, index);
+                }
+            }
+#endif
+        }
+#endif
+
         asInitializeAddons(_M_engine);
         _M_context_manager = new ScriptContextManager();
 
@@ -129,6 +159,11 @@ namespace Engine
     {
         delete _M_context_manager;
         _M_engine->Release();
+
+        if (_M_jit_compiler)
+        {
+            delete _M_jit_compiler;
+        }
     }
 
     void ScriptEngine::terminate()

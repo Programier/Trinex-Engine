@@ -41,7 +41,8 @@ set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     lz4_static
                                     angelscript
                                     stb_image
-                                    tinygltf)
+                                    tinygltf
+                                    asmjit)
 
 set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor)
 

@@ -1,5 +1,6 @@
 {
     "Engine": {
+        "enable_jit": true,
         "load_meshes_to_gpu": true,
         "api": "OpenGLES",
         "delete_resources_after_load": false,

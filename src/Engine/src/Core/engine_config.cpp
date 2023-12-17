@@ -23,6 +23,18 @@ namespace Engine
         shader_compiler      = engine_json.checked_get_value<JSON::JsonString>("shader_compiler");
         window_system        = engine_json.checked_get_value<JSON::JsonString>("window_system");
 
+#if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
+        {
+            auto object = engine_json.checked_get_value<JSON::JsonObject>("jit_skip_instructions");
+            for (auto& [name, array] : object)
+            {
+                Vector<int> indices;
+                array.copy_to_array(indices, JSON::ValueType::Integer);
+                jit_skip_instructions[name] = std::move(indices);
+            }
+        }
+#endif
+
         lz4_compression_level    = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level");
         max_gc_collected_objects = engine_json.checked_get_value<JSON::JsonInt>("max_gc_collected_objects");
         min_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_width");
@@ -35,6 +47,7 @@ namespace Engine
         load_shaders_to_gpu         = engine_json.checked_get_value<JSON::JsonBool>("load_shaders_to_gpu");
         load_meshes_to_gpu          = engine_json.checked_get_value<JSON::JsonBool>("load_meshes_to_gpu");
         load_textures_to_gpu        = engine_json.checked_get_value<JSON::JsonBool>("load_textures_to_gpu");
+        enable_jit                  = engine_json.checked_get_value<JSON::JsonBool>("enable_jit");
         return *this;
     }
 

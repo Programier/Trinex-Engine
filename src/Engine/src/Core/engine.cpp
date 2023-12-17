@@ -205,7 +205,6 @@ namespace Engine
         info_log("TrinexEngine", "Start engine!");
         start_time = current_time_point();
 
-        PreInitializeController().execute();
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
@@ -220,9 +219,11 @@ namespace Engine
 
         Thread::this_thread()->name("Logic");
 
+        PreInitializeController().execute();
+        engine_config.update();
+
         ScriptEngine::instance();
         InitializeController().execute();
-        engine_config.update();
 
         load_external_system_libraries();
 

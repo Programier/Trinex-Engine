@@ -24,6 +24,20 @@
 #endif
 
 
+#if defined(arm) || defined(__arm__) || defined(__ARM_ARCH)
+#define ARCH_ARM 1
+#else
+#define ARCH_ARM 0
+#endif
+
+#if defined(__x86_64__) || defined(_M_X64)
+#define ARCH_X86_64 1
+#else
+#define ARCH_X86_64 0
+#endif
+
+
+
 #if __GNUC__
 #define GNU_COMPILER
 #elif __clang__

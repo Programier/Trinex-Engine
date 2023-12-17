@@ -4,6 +4,7 @@
 
 class asIScriptEngine;
 class asIScriptContext;
+class asIJITCompiler;
 
 namespace Engine
 {
@@ -25,6 +26,7 @@ namespace Engine
         struct ScriptContextManager* _M_context_manager;
         static ScriptEngine* _M_instance;
         asIScriptEngine* _M_engine;
+        asIJITCompiler* _M_jit_compiler = nullptr;
 
         ScriptEngine();
         ~ScriptEngine();

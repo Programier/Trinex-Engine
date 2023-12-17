@@ -12,5 +12,5 @@ namespace Engine
         global_config.load(FileManager::root_file_manager()->work_dir() / Constants::configs_dir / Path("config.json"));
     }
 
-    static InitializeController on_init(initialize);
+    static PreInitializeController on_init(initialize);
 }

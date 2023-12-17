@@ -1,5 +1,9 @@
 {
     "Engine": {
+        "enable_jit": true,
+        "jit_skip_instructions": {
+            "update": []
+        },
         "load_meshes_to_gpu": true,
         "api": "Vulkan",
         "delete_resources_after_load": false,

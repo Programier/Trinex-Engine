@@ -170,11 +170,11 @@ namespace Engine
     {
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
-        create_docking_window();
-        create_scene_tree_window();
-        create_properties_window();
-        create_log_window();
-        create_viewport_window();
+        create_docking_window(dt);
+        create_scene_tree_window(dt);
+        create_properties_window(dt);
+        create_log_window(dt);
+        create_viewport_window(dt);
 
         if (script_viewport_update.is_valid())
         {
@@ -186,7 +186,7 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_docking_window()
+    EditorViewportClient& EditorViewportClient::create_docking_window(float dt)
     {
 
         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -209,13 +209,15 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_properties_window()
+    EditorViewportClient& EditorViewportClient::create_properties_window(float dt)
     {
         if (!ImGui::Begin("Properties"))
         {
             ImGui::End();
             return *this;
         }
+
+        ImGui::Text("FPS: %f", 1.0 / dt);
 
         ImGui::End();
         return *this;
@@ -245,7 +247,7 @@ namespace Engine
         }
     }
 
-    EditorViewportClient& EditorViewportClient::create_scene_tree_window()
+    EditorViewportClient& EditorViewportClient::create_scene_tree_window(float dt)
     {
         if (!ImGui::Begin("Scene Tree"))
         {
@@ -260,7 +262,7 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_log_window()
+    EditorViewportClient& EditorViewportClient::create_log_window(float dt)
     {
         if (!ImGui::Begin("Logs"))
         {
@@ -272,7 +274,7 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_viewport_window()
+    EditorViewportClient& EditorViewportClient::create_viewport_window(float dt)
     {
         if (!ImGui::Begin("Viewport", nullptr))
         {
@@ -287,7 +289,7 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_bar()
+    EditorViewportClient& EditorViewportClient::create_bar(float dt)
     {
         return *this;
     }

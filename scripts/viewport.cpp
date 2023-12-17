@@ -1,14 +1,10 @@
-Boolean@ boolean = true;
 
-Engine::Vector3D color;
 
-string buffer = "Hello World";
+string scripted_window_name = "Scripted Window";
 
 void update()
 {
-    if (boolean.value)
-    {
-        ImGui::Begin("Hello World", boolean);
-        ImGui::End();
-    }
+    ImGui::Begin("Scripted Window");
+    ImGui::InputText("Input name of window", scripted_window_name, ImGuiInputTextFlags::CallbackResize);
+    ImGui::End();
 }
