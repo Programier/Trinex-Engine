@@ -11,12 +11,13 @@ namespace Engine
     {
         const auto& engine_json = global_config.checked_get("Engine").checked_get<JSON::JsonObject>();
 
-        engine_json.checked_get("external_system_libraries").copy_to_array(external_system_libraries, JSON::ValueType::String);
+        engine_json.checked_get("external_system_libraries")
+                .copy_to_array(external_system_libraries, JSON::ValueType::String);
         engine_json.checked_get("systems").copy_to_array(systems, JSON::ValueType::String);
 
         resources_dir        = engine_json.checked_get_value<JSON::JsonString>("resources_dir");
         api                  = engine_json.checked_get_value<JSON::JsonString>("api");
-        lua_scripts_dir      = engine_json.checked_get_value<JSON::JsonString>("lua_scripts_dir");
+        scripts_dir          = engine_json.checked_get_value<JSON::JsonString>("scripts_dir");
         libraries_dir        = engine_json.checked_get_value<JSON::JsonString>("libraries_dir");
         shader_compilers_lib = engine_json.checked_get_value<JSON::JsonString>("shader_compilers_lib");
         shader_compiler      = engine_json.checked_get_value<JSON::JsonString>("shader_compiler");

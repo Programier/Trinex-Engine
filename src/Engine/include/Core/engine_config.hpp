@@ -10,7 +10,7 @@ namespace Engine
 
         String resources_dir;
         String api;
-        String lua_scripts_dir;
+        String scripts_dir;
         String libraries_dir;
         String shader_compilers_lib;
         String shader_compiler;

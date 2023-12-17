@@ -9,7 +9,7 @@
         "max_g_buffer_height": 20000,
         "min_g_buffer_height": 0,
         "max_g_buffer_width": 20000,
-        "lua_scripts_dir": "scripts",
+        "scripts_dir": "scripts",
         "resources_dir": "resources/",
         "lz4_compression_level": 10,
         "load_shaders_to_gpu": true,

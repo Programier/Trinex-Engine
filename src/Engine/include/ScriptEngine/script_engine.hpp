@@ -64,8 +64,8 @@ namespace Engine
         ScriptEngine& bind_imports();
         ScriptEngine& funcdef(const char* declaration);
         ScriptEngine& funcdef(const String& declaration);
-        ScriptEngine& register_typedef(const char* type, const char* declaration);
-        ScriptEngine& register_typedef(const String& type, const String& declaration);
+        ScriptEngine& register_typedef(const char* new_type_name, const char* type);
+        ScriptEngine& register_typedef(const String& new_type_name, const String& type);
         ScriptObject create_script_object(const ScriptTypeInfo& info) const;
         ScriptObject create_script_object_uninited(const ScriptTypeInfo& info) const;
 

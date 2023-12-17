@@ -4,31 +4,31 @@ namespace Engine
 {
 
     template<typename Return, typename... Args>
-    Return (*func_of(Return (*function)(Args...)))(Args...)
+    constexpr Return (*func_of(Return (*function)(Args...)))(Args...)
     {
         return function;
     }
 
     template<typename Return, typename Instance, typename... Args>
-    Return (Instance::*func_of(Return (Instance::*function)(Args...)))(Args...)
+    constexpr Return (Instance::*func_of(Return (Instance::*function)(Args...)))(Args...)
     {
         return function;
     }
 
     template<typename Return, typename Instance, typename... Args>
-    Return (Instance::*func_of(Return (Instance::*function)(Args...) const))(Args...) const
+    constexpr Return (Instance::*func_of(Return (Instance::*function)(Args...) const))(Args...) const
     {
         return function;
     }
 
     template<typename Return, typename Instance, typename... Args>
-    Return (Instance::*method_of(Return (Instance::*function)(Args...)))(Args...)
+    constexpr Return (Instance::*method_of(Return (Instance::*function)(Args...)))(Args...)
     {
         return function;
     }
 
     template<typename Return, typename Instance, typename... Args>
-    Return (Instance::*method_of(Return (Instance::*function)(Args...) const))(Args...) const
+    constexpr Return (Instance::*method_of(Return (Instance::*function)(Args...) const))(Args...) const
     {
         return function;
     }

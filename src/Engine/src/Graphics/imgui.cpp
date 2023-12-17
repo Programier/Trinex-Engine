@@ -23,7 +23,7 @@ namespace Engine::ImGuiRenderer
             for (int index = 0; index < _M_draw_data.CmdListsCount; index++)
             {
                 ImDrawList* drawList = _M_draw_data.CmdLists[index];
-                delete drawList;
+                IM_DELETE(drawList);
             }
 
             _M_draw_data.CmdLists.clear();

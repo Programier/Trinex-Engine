@@ -100,6 +100,7 @@ namespace Engine
 
         _M_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
         _M_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
+        _M_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
 
         _M_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
         asInitializeAddons(_M_engine);

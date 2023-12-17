@@ -1,6 +1,8 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
@@ -15,28 +17,10 @@
 #include <viewport_client.hpp>
 
 
-const char* test_script = R"(
-
-Engine::Object@ object = null;
-
-void main()
-{
-    if(@object == null)
-    {
-        @object = Engine::Object();
-        object.name("Programier");
-    }
-
-    print(object.string_name());
-}
-
-)";
-
-
 namespace Engine
 {
     implement_engine_class_default_init(EditorViewportClient);
-    ScriptFunction function;
+    ScriptFunction script_viewport_update;
 
     static void initialize_theme(ImGuiContext* context)
     {
@@ -146,11 +130,24 @@ namespace Engine
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
 
-        auto module = ScriptEngine::instance()->module("Script");
-        module.add_script_section("test_section", test_script);
-        module.build();
+        auto module = ScriptEngine::instance()->module("ViewportScript");
 
-        function = module.function_by_name("main");
+        {
+            FileReader* reader = FileManager::root_file_manager()->create_file_reader(Path(engine_config.scripts_dir) /
+                                                                                      "viewport.cpp");
+            if (reader)
+            {
+                auto size = reader->size();
+                String data(size, ' ');
+                reader->read((byte*)data.data(), size);
+
+                module.add_script_section("test_section", data.c_str());
+                module.build();
+
+                script_viewport_update = module.function_by_name("update");
+                delete reader;
+            }
+        }
 
         return *this;
     }
@@ -178,9 +175,14 @@ namespace Engine
         create_properties_window();
         create_log_window();
         create_viewport_window();
+
+        if (script_viewport_update.is_valid())
+        {
+            script_viewport_update.prepare().call();
+        }
+
         window->end_frame();
 
-        function.prepare().call();
         return *this;
     }
 
