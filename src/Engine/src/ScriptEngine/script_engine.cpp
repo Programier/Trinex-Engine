@@ -9,8 +9,20 @@
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
+
+namespace Print
+{
+    void asRegister(asIScriptEngine* engine);
+}
+
 namespace Engine
 {
+
+    namespace PrimitiveWrappers
+    {
+        void initialize();
+    }
+
     static void angel_script_callback(const asSMessageInfo* msg, void* param)
     {
         if (msg->type == asMSGTYPE_WARNING)
@@ -95,6 +107,8 @@ namespace Engine
 
     ScriptEngine::ScriptEngine()
     {
+        _M_instance = this;
+
         logger->log("ScriptEngine", "Created script engine [%p]", this);
         _M_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
 
@@ -105,6 +119,10 @@ namespace Engine
         _M_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
         asInitializeAddons(_M_engine);
         _M_context_manager = new ScriptContextManager();
+
+
+        Print::asRegister(_M_engine);
+        PrimitiveWrappers::initialize();
     }
 
     ScriptEngine::~ScriptEngine()
@@ -123,7 +141,7 @@ namespace Engine
     {
         if (_M_instance == nullptr)
         {
-            _M_instance = new ScriptEngine();
+            new ScriptEngine();
             PostDestroyController controller(ScriptEngine::terminate);
         }
 
@@ -227,14 +245,14 @@ namespace Engine
         }
     }
 
-    ScriptModule ScriptEngine::module(const char* module_name, ModuleCreateFlags flags)
+    ScriptModule ScriptEngine::new_module(const char* module_name, ModuleCreateFlags flags)
     {
         return _M_engine->GetModule(module_name, create_module_flags(flags));
     }
 
-    ScriptModule ScriptEngine::module(const String& module_name, ModuleCreateFlags flags)
+    ScriptModule ScriptEngine::new_module(const String& module_name, ModuleCreateFlags flags)
     {
-        return module(module_name.c_str(), flags);
+        return new_module(module_name.c_str(), flags);
     }
 
     ScriptModule ScriptEngine::module(uint_t index)

@@ -517,7 +517,7 @@ namespace Engine
         engine->register_typedef("ImGuiID", "uint");
         engine->default_namespace("ImGui");
 
-        engine->register_function("bool Begin(const string& in, bool &inout opened, int = 0)",
+        engine->register_function("bool Begin(const string& in, bool&, int = 0)",
                                   make_wrap<ImGui::Begin>());
 
         engine->register_function("void End()", ImGui::End);
@@ -553,19 +553,19 @@ namespace Engine
         reg_func("bool BeginPopupContextItem(const string& in, int = 1)", BeginPopupContextItem);
         reg_func("bool BeginPopupContextVoid(const string& in, int = 1)", BeginPopupContextVoid);
         reg_func("bool BeginPopupContextWindow(const string& in, int = 1)", BeginPopupContextWindow);
-        reg_func("bool BeginPopupModal(const string& in name, bool& inout, int = 0)", BeginPopupModal);
+        reg_func("bool BeginPopupModal(const string& in name, bool& , int = 0)", BeginPopupModal);
         reg_func("bool BeginTabBar(const string& in, int = 0)", BeginTabBar);
         reg_func("bool BeginTabItem(const string& in, bool&, int = 0)", BeginTabItem);
         reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)",
                  BeginTable);
         reg_func_nw("bool BeginTooltip()", BeginTooltip);
         reg_func("bool Button(const string& in, const ImVec2& size = ImVec2(0, 0))", Button);
-        reg_func("bool Checkbox(const string& in, bool& inout)", Checkbox);
+        reg_func("bool Checkbox(const string& in, bool& )", Checkbox);
         reg_func_no_ns("bool CheckboxFlags(const string& in, int& flags, int flags_value)",
                        (func_of<bool, const char*, int*, int>(ImGui::CheckboxFlags)));
         reg_func_no_ns("bool CheckboxFlags(const string& in, uint& flags, uint flags_value)",
                        (func_of<bool, const char*, unsigned int*, unsigned int>(ImGui::CheckboxFlags)));
-        reg_func_no_ns("bool CollapsingHeader(const string& in, bool& inout, int = 0)",
+        reg_func_no_ns("bool CollapsingHeader(const string& in, bool& , int = 0)",
                        (func_of<bool, const char*, bool*, int>(ImGui::CollapsingHeader)));
         reg_func_no_ns("bool CollapsingHeader(const string& in, int = 0)",
                        (func_of<bool, const char*, int>(ImGui::CollapsingHeader)));
@@ -576,7 +576,7 @@ namespace Engine
         reg_func("bool ColorEdit4(const string& in, Engine::Vector4D& inout, int = 0)", ColorEdit4);
         reg_func("bool ColorPicker3(const string& in, Engine::Vector3D& inout, int = 0)", ColorPicker3);
         reg_func("bool ColorPicker4(const string& in, Engine::Vector4D& inout, int = 0)", ColorPicker4);
-        reg_func_nw_ns("bool Combo(const string& in, int& inout, const string[]& in, int = -1)", wrapped_combo);
+        reg_func_nw_ns("bool Combo(const string& in, int&, const string[]& in, int = -1)", wrapped_combo);
         reg_func(
                 "bool DebugCheckVersionAndDataLayout(const string& in, uint64, uint64, uint64, uint64, uint64, uint64)",
                 DebugCheckVersionAndDataLayout);
@@ -593,11 +593,11 @@ namespace Engine
                  "const string& in = \"%.3f\", int = 0)",
                  DragFloat4);
 
-        reg_func("bool DragFloat(const string&, float& inout, float = 1.0f, float = 0.0f, float = 0.0f, "
+        reg_func("bool DragFloat(const string&, float&, float = 1.0f, float = 0.0f, float = 0.0f, "
                  "const string& in = \"%.3f\", int = 0)",
                  DragFloat);
 
-        reg_func("bool DragFloatRange2(const string& in, float& inout, float& inout, float = 1.0f, float = 0.0f, float "
+        reg_func("bool DragFloatRange2(const string& in, float&, float&, float = 1.0f, float = 0.0f, float "
                  "= 0.0f, const string& in = \"%.3f\", const string& in = \"%.3f\", int = 0)",
                  DragFloatRange2);
 
@@ -614,11 +614,11 @@ namespace Engine
                  "const string& in = \"%.d\", int = 0)",
                  DragInt4);
 
-        reg_func("bool DragInt(const string&, int& inout, float = 1.0f, int= 0, int = 0,"
+        reg_func("bool DragInt(const string&, int&, float = 1.0f, int= 0, int = 0,"
                  "const string& in = \"%.d\", int = 0)",
                  DragInt);
 
-        reg_func("bool DragIntRange2(const string& in, int& inout, int& inout, float = 1.0f, int = 0, int"
+        reg_func("bool DragIntRange2(const string& in, int&, int&, float = 1.0f, int = 0, int"
                  "= 0, const string& in = \"%.d\", const string& in = \"%.d\", int = 0)",
                  DragIntRange2);
 
@@ -932,7 +932,7 @@ namespace Engine
         //        void ShowDemoWindow(bool* p_open = NULL);
         //        void ShowFontSelector(const char* label);
         //        void ShowIDStackToolWindow(bool* p_open = NULL);
-        reg_func("void ShowMetricsWindow(bool& inout)", ShowMetricsWindow);
+        reg_func("void ShowMetricsWindow(bool&)", ShowMetricsWindow);
         reg_func_nw_ns("void ShowStyleEditor()", wrapped_show_style_editor);
         reg_func_nw("void ShowUserGuide()", ShowUserGuide);
         reg_func_nw("void Spacing()", Spacing);

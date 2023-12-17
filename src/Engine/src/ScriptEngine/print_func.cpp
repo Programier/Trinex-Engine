@@ -409,11 +409,3 @@ void Print::asRegister(asIScriptEngine* engine)
                                        asCALL_CDECL);
     assert(r == asALREADY_REGISTERED || r >= 0);
 }
-
-
-static void on_init()
-{
-    Print::asRegister(Engine::ScriptEngine::instance()->as_engine());
-}
-
-static Engine::InitializeController controller(on_init);

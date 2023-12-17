@@ -130,7 +130,7 @@ namespace Engine
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
 
-        auto module = ScriptEngine::instance()->module("ViewportScript");
+        auto module = ScriptEngine::instance()->new_module("ViewportScript");
 
         {
             FileReader* reader = FileManager::root_file_manager()->create_file_reader(Path(engine_config.scripts_dir) /

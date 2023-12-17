@@ -56,8 +56,9 @@ namespace Engine
         String default_namespace() const;
         ScriptEngine& register_property(const char* declaration, void* data);
         ScriptEngine& register_property(const String& declaration, void* data);
-        ScriptModule module(const char* module_name, ModuleCreateFlags flags = ModuleCreateFlags::CreateIsNotExist);
-        ScriptModule module(const String& module_name, ModuleCreateFlags flags = ModuleCreateFlags::CreateIsNotExist);
+        ScriptModule new_module(const char* module_name, ModuleCreateFlags flags = ModuleCreateFlags::CreateIsNotExist);
+        ScriptModule new_module(const String& module_name,
+                                ModuleCreateFlags flags = ModuleCreateFlags::CreateIsNotExist);
         ScriptModule module(uint_t index);
         uint_t module_count() const;
 
