@@ -130,9 +130,8 @@ namespace Engine
     }
 
     ScriptClassRegistrar::ScriptClassRegistrar(const String& full_name, const ClassInfo& info)
-        : _M_class_base_name(Object::object_name_of(full_name)),
-          _M_class_namespace_name(Object::package_name_of(full_name)), _M_class_name(full_name),
-          _M_engine(ScriptEngine::instance()->as_engine())
+        : _M_class_base_name(Object::object_name_of(full_name)), _M_class_namespace_name(Object::package_name_of(full_name)),
+          _M_class_name(full_name), _M_engine(ScriptEngine::instance()->as_engine())
     {
         _M_info = info;
         declare_as_class();
@@ -202,8 +201,17 @@ namespace Engine
     {
 
         prepare_namespace();
-        _M_engine->RegisterObjectMethod(_M_class_base_name.c_str(), declaration,
-                                        create_function(method, FuncType::Method), create_call_conv(conv));
+        _M_engine->RegisterObjectMethod(_M_class_base_name.c_str(), declaration, create_function(method, FuncType::Method),
+                                        create_call_conv(conv));
+        return release_namespace();
+    }
+
+    ScriptClassRegistrar& ScriptClassRegistrar::private_register_virtual_method(const char* declaration, void* method,
+                                                                                ScriptCallConv conv)
+    {
+        prepare_namespace();
+        _M_engine->RegisterObjectMethod(_M_class_base_name.c_str(), declaration, create_function(method, FuncType::Func),
+                                        create_call_conv(conv));
         return release_namespace();
     }
 
@@ -236,9 +244,8 @@ namespace Engine
         return *this;
     }
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_behaviour(ScriptClassBehave behave,
-                                                                           const char* declaration, void* method,
-                                                                           bool is_method, ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::private_register_behaviour(ScriptClassBehave behave, const char* declaration,
+                                                                           void* method, bool is_method, ScriptCallConv conv)
     {
         prepare_namespace();
         asSFuncPtr ptr = create_function(method, is_method ? FuncType::Method : FuncType::Func);
@@ -276,8 +283,8 @@ namespace Engine
 
 
     ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name)
-        : _M_enum_base_name(Object::object_name_of(full_name)),
-          _M_enum_namespace_name(Object::package_name_of(full_name)), _M_engine(ScriptEngine::instance()->as_engine())
+        : _M_enum_base_name(Object::object_name_of(full_name)), _M_enum_namespace_name(Object::package_name_of(full_name)),
+          _M_engine(ScriptEngine::instance()->as_engine())
     {
         prepare_namespace();
         _M_engine->RegisterEnum(_M_enum_base_name.c_str());
@@ -306,8 +313,8 @@ namespace Engine
     }
 
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_operator(const char* declaration, void* method,
-                                                                          bool is_method, ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::private_register_operator(const char* declaration, void* method, bool is_method,
+                                                                          ScriptCallConv conv)
     {
         asSFuncPtr ptr = create_function(method, is_method ? Method : Func);
         prepare_namespace();

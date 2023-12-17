@@ -83,6 +83,7 @@ namespace Engine
 
         static void declare_as_class(Class* _class, const ClassInfo& info);
         ScriptClassRegistrar& private_register_method(const char* declaration, void* method, ScriptCallConv conv);
+        ScriptClassRegistrar& private_register_virtual_method(const char* declaration, void* method, ScriptCallConv conv);
         ScriptClassRegistrar& private_register_static_method(const char* declaration, void* method, ScriptCallConv conv);
 
         ScriptClassRegistrar& private_register_behaviour(ScriptClassBehave behave, const char* declaration, void* method,
@@ -129,10 +130,11 @@ namespace Engine
         }
 
         template<typename ReturnType, typename... Args, typename LambdaType>
-        ScriptClassRegistrar& method(const char* declaration, LambdaType lambda, ScriptCallConv conv = ScriptCallConv::CDECL)
+        ScriptClassRegistrar& virtual_method(const char* declaration, LambdaType lambda,
+                                             ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
         {
             ReturnType (*method_address)(Args...) = static_cast<ReturnType (*)(Args...)>(lambda);
-            return private_register_static_method(declaration, reinterpret_cast<void*>(method_address), conv);
+            return private_register_virtual_method(declaration, reinterpret_cast<void*>(method_address), conv);
         }
 
 

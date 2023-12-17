@@ -51,7 +51,13 @@ namespace Engine
                 .method("Object@ static_find_object(const string& in)", &Object::find_object)
                 .method("Object& remove_from_package()", &Object::remove_from_package)
                 .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
-                .method("string opConv() const", &Object::as_string);
+                .method("string opConv() const", &Object::as_string)
+                .virtual_method<Object&, Object*>(
+                        "Object@ preload()", [](Object* self) -> Object& { return self->preload(); },
+                        ScriptCallConv::CDECL_OBJFIRST)
+                .virtual_method<Object&, Object*>(
+                        "Object@ postload()", [](Object* self) -> Object& { return self->postload(); },
+                        ScriptCallConv::CDECL_OBJFIRST);
     }
 
     implement_initialize_class(Object)
