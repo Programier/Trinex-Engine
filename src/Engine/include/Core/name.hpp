@@ -39,7 +39,6 @@ namespace Engine
 
         static Name find_name(const String& name);
         static Name find_name(const char* name, size_t size = 0);
-        static Name from_c_string(const char* name, size_t size);
 
 
         bool is_valid() const;

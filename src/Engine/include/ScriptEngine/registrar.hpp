@@ -83,11 +83,10 @@ namespace Engine
 
         static void declare_as_class(Class* _class, const ClassInfo& info);
         ScriptClassRegistrar& private_register_method(const char* declaration, void* method, ScriptCallConv conv);
-        ScriptClassRegistrar& private_register_static_method(const char* declaration, void* method,
-                                                             ScriptCallConv conv);
+        ScriptClassRegistrar& private_register_static_method(const char* declaration, void* method, ScriptCallConv conv);
 
-        ScriptClassRegistrar& private_register_behaviour(ScriptClassBehave behave, const char* declaration,
-                                                         void* method, bool is_method, ScriptCallConv conv);
+        ScriptClassRegistrar& private_register_behaviour(ScriptClassBehave behave, const char* declaration, void* method,
+                                                         bool is_method, ScriptCallConv conv);
         ScriptClassRegistrar& private_register_operator(const char* declaration, void* method, bool is_method,
                                                         ScriptCallConv conv);
 
@@ -126,6 +125,13 @@ namespace Engine
         ScriptClassRegistrar& method(const char* declaration, ReturnType (*method_address)(Args...),
                                      ScriptCallConv conv = ScriptCallConv::CDECL)
         {
+            return private_register_static_method(declaration, reinterpret_cast<void*>(method_address), conv);
+        }
+
+        template<typename ReturnType, typename... Args, typename LambdaType>
+        ScriptClassRegistrar& method(const char* declaration, LambdaType lambda, ScriptCallConv conv = ScriptCallConv::CDECL)
+        {
+            ReturnType (*method_address)(Args...) = static_cast<ReturnType (*)(Args...)>(lambda);
             return private_register_static_method(declaration, reinterpret_cast<void*>(method_address), conv);
         }
 
@@ -168,11 +174,10 @@ namespace Engine
         }
 
         template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& behave(ScriptClassBehave behave, const char* declaration,
-                                     ReturnType (*method_address)(Args...), ScriptCallConv conv = ScriptCallConv::CDECL)
+        ScriptClassRegistrar& behave(ScriptClassBehave behave, const char* declaration, ReturnType (*method_address)(Args...),
+                                     ScriptCallConv conv = ScriptCallConv::CDECL)
         {
-            return private_register_behaviour(behave, declaration, reinterpret_cast<void*>(method_address), false,
-                                              conv);
+            return private_register_behaviour(behave, declaration, reinterpret_cast<void*>(method_address), false, conv);
         }
 
         // Operator registration
@@ -202,8 +207,7 @@ namespace Engine
         static ClassInfo create_type_info(BitMask additional_flags = 0)
         {
             ClassInfo info;
-#if defined(_MSC_VER) || defined(_LIBCPP_TYPE_TRAITS) || (__GNUC__ >= 5) ||                                            \
-        (defined(__clang__) && !defined(CLANG_PRE_STANDARD))
+#if defined(_MSC_VER) || defined(_LIBCPP_TYPE_TRAITS) || (__GNUC__ >= 5) || (defined(__clang__) && !defined(CLANG_PRE_STANDARD))
             // MSVC, XCode/Clang, and gnuc 5+
             // C++11 compliant code
             constexpr bool has_constructor =
@@ -213,14 +217,13 @@ namespace Engine
                     std::is_copy_assignable<T>::value && !std::is_trivially_copy_assignable<T>::value;
             constexpr bool has_copy_constructor =
                     std::is_copy_constructible<T>::value && !std::is_trivially_copy_constructible<T>::value;
-#elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                               \
+#elif (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))) ||                                         \
         (defined(__clang__) && defined(CLANG_PRE_STANDARD))
             // gnuc 4.8 is using a mix of C++11 standard and pre-standard templates
             constexpr bool has_constructor =
                     std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
-            constexpr bool has_destructor = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
-            constexpr bool has_assignment_operator =
-                    std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
+            constexpr bool has_destructor          = std::is_destructible<T>::value && !std::is_trivially_destructible<T>::value;
+            constexpr bool has_assignment_operator = std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
             constexpr bool has_copy_constructor =
                     std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
 #else
@@ -231,17 +234,15 @@ namespace Engine
             // https://github.com/mozart/mozart2/issues/51
             constexpr bool has_constructor =
                     std::is_default_constructible<T>::value && !std::has_trivial_default_constructor<T>::value;
-            constexpr bool has_destructor = std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
-            constexpr bool has_assignment_operator =
-                    std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
+            constexpr bool has_destructor          = std::is_destructible<T>::value && !std::has_trivial_destructor<T>::value;
+            constexpr bool has_assignment_operator = std::is_copy_assignable<T>::value && !std::has_trivial_copy_assign<T>::value;
             constexpr bool has_copy_constructor =
                     std::is_copy_constructible<T>::value && !std::has_trivial_copy_constructor<T>::value;
 #endif
-            constexpr bool is_float = std::is_floating_point<T>::value;
-            constexpr bool is_primitive =
-                    std::is_integral<T>::value || std::is_pointer<T>::value || std::is_enum<T>::value;
-            constexpr bool is_class = std::is_class<T>::value;
-            constexpr bool is_array = std::is_array<T>::value;
+            constexpr bool is_float     = std::is_floating_point<T>::value;
+            constexpr bool is_primitive = std::is_integral<T>::value || std::is_pointer<T>::value || std::is_enum<T>::value;
+            constexpr bool is_class     = std::is_class<T>::value;
+            constexpr bool is_array     = std::is_array<T>::value;
 
             if constexpr (is_float)
                 info.flags = ScriptClassRegistrar::AppFloat;
@@ -259,7 +260,6 @@ namespace Engine
                 if (has_copy_constructor)
                     flags |= ScriptClassRegistrar::AppClassCopyConstructor;
                 info.flags = flags;
-
             }
             else if (is_array)
                 info.flags = ScriptClassRegistrar::AppArray;

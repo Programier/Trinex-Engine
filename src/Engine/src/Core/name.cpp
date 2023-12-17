@@ -1,7 +1,9 @@
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <cstring>
 
 namespace Engine
@@ -192,14 +194,14 @@ namespace Engine
     ENGINE_EXPORT bool operator&(class Archive& ar, Name& name)
     {
         bool is_valid = name.is_valid();
-        ar & is_valid;
+        ar& is_valid;
 
-        if(is_valid)
+        if (is_valid)
         {
             String string_name = name.to_string();
-            ar & string_name;
+            ar& string_name;
 
-            if(ar.is_reading())
+            if (ar.is_reading())
             {
                 name = string_name;
             }
@@ -207,4 +209,37 @@ namespace Engine
 
         return ar;
     }
+
+
+    static void on_init()
+    {
+        ScriptClassRegistrar registrar("Engine::Name",
+                                       ScriptClassRegistrar::create_type_info<Name>(
+                                               ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassMoreConstructors));
+
+        registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Name>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",
+                         ScriptClassRegistrar::constructor<Name, const String&>, ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const Name& in)",
+                         ScriptClassRegistrar::constructor<Name, const Name&>, ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Name>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+
+        registrar.method("Name find_name(const string& in)", func_of<Name, const String&>(Name::find_name));
+
+        registrar.method("bool is_valid() const", &Name::is_valid);
+        registrar.method("uint64 hash() const", &Name::hash);
+        registrar.method("const string& to_string() const", method_of<const String&>(&Name::to_string));
+        registrar.method("const Name& to_string(string& out) const", method_of<const Name&>(&Name::to_string));
+
+        registrar.method("Engine::Name& opAssign(const Engine::Name& in)", method_of<Name&, Name, const Name&>(&Name::operator=));
+        registrar.method("Engine::Name& opAssign(const string& in)", method_of<Name&, Name, const String&>(&Name::operator=));
+        registrar.method("bool opEquals(const string& in) const", method_of<bool, Name, const String&>(&Name::operator==));
+        registrar.method("bool opEquals(const Name& in) const", method_of<bool, Name, const Name&>(&Name::operator==));
+
+        registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
+    }
+
+    static InitializeController controller(on_init, "Bind class Name");
 }// namespace Engine

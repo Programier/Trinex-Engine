@@ -91,8 +91,8 @@ namespace Engine
     {
         const char* end_name       = _name + name_len;
         const size_t separator_len = Constants::name_separator.length();
-        const char* separator  = Strings::strnstr(_name, name_len, Constants::name_separator.c_str(), separator_len);
-        const Package* package = this;
+        const char* separator      = Strings::strnstr(_name, name_len, Constants::name_separator.c_str(), separator_len);
+        const Package* package     = this;
 
 
         while (separator && package)
@@ -100,7 +100,7 @@ namespace Engine
             size_t current_len = separator - _name;
             package            = package->find_object_checked<Package>(_name, current_len, false);
             _name              = separator + separator_len;
-            separator = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+            separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
         }
 
         return package ? package->find_object_private_no_recurce(_name, end_name - _name) : nullptr;
@@ -277,7 +277,7 @@ namespace Engine
         Vector<byte> uncompressed_buffer;
 
         VectorReader uncompressed_reader = &uncompressed_buffer;
-        Archive uncompressed_ar = &uncompressed_reader;
+        Archive uncompressed_ar          = &uncompressed_reader;
 
         load_header_private(reader);
 
@@ -340,8 +340,24 @@ namespace Engine
         //        }
     }
 
-    implement_class(Package, "Engine", 0);
+
+    static void bind_to_script(ScriptClassRegistrar* registrar, Class* self)
+    {
+        registrar->method("bool add_object(Object@, bool = false)", &Package::add_object)
+                .method("Package@ remove_object(Object@)", &Package::remove_object)
+                .method("Object@ find_object(const string& in, bool) const",
+                        method_of<Object*, Package, const String&, bool>(&Package::find_object))
+                /* .method("bool contains_object(const Object@) const",
+                        method_of<bool, Package, const Object*>(&Package::contains_object))
+                .method("bool contains_object(const string& in) const",
+                        method_of<bool, Package, const String&>(&Package::contains_object))*/
+                ;
+    }
+
+    implement_class(Package, "Engine", Class::IsScriptable);
     implement_initialize_class(Package)
-    {}
+    {
+        static_class_instance()->set_script_registration_callback(bind_to_script);
+    }
 
 }// namespace Engine

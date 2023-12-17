@@ -31,8 +31,8 @@
 #include <cstring>
 #include <stdexcept>
 
-#define WITH_LOG 1
-#define SHOW_JIT_ENTRY 1
+#define WITH_LOG 0
+#define SHOW_JIT_ENTRY 0
 
 #if WITH_LOG
 #define logf printf

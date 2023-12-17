@@ -21,32 +21,37 @@ namespace Engine
 
     implement_class(Object, "Engine", Class::IsScriptable);
 
+#define script_virtual_method(type, method)
 
     static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
     {
         String factory = Strings::format("{}@ f()", self->name());
+
+        InitializeController().require("Bind class Name");
 
         if (!self->has_all_flags(Class::IsSingletone))
         {
             registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor());
         }
 
+        registrar->require_type("Engine::Package");
+
         registrar->behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
                 .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
                 .method("const string& string_name() const", &Object::string_name)
                 .method("Engine::ObjectRenameStatus name(const string& in, bool = false)",
-                        func_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name));
-        //        registrar->require_type("Engine::Package")
-        //                .behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
-        //                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
-        //                .method("Package@ root_package()", &Object::root_package)
-        //                .method("const string& string_name() const", func_of<const String&>(&Object::string_name))
-        //                //.method("ObjectRenameStatus name(string, bool) const", func_of<ObjectRenameStatus, const String&, bool>(&Object::name))
-        //                .method("string as_string() const", &Object::as_string)
-        //                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
-        //                .method("Package@ find_package(const string& in, bool)", &Object::find_package)
-        //                .method("Object@ find_object(const string& in)", &Object::find_object)
-        //                .method("Object& remove_from_package()", &Object::remove_from_package);
+                        func_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
+                .method("Package@ root_package()", &Object::root_package)
+                .method("ObjectRenameStatus name(string, bool) const",
+                        method_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
+                .method("string as_string() const", &Object::as_string)
+                .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
+                .method("Package@ find_package(const string& in, bool)",
+                        func_of<Package*, const String&, bool>(&Object::find_package))
+                .method("Object@ static_find_object(const string& in)", &Object::find_object)
+                .method("Object& remove_from_package()", &Object::remove_from_package)
+                .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
+                .method("string opConv() const", &Object::as_string);
     }
 
     implement_initialize_class(Object)
@@ -364,8 +369,8 @@ namespace Engine
 
     String Object::full_name() const
     {
-        String result   = _M_name.is_valid() ? static_cast<String>(_M_name)
-                                             : Strings::format("Noname object {}", _M_instance_index);
+        String result =
+                _M_name.is_valid() ? static_cast<String>(_M_name) : Strings::format("Noname object {}", _M_instance_index);
         Package* parent = this->_M_package;
 
         if (parent && parent != _M_root_package && !is_instance_of<Package>())
@@ -508,7 +513,7 @@ namespace Engine
             size_t next_name_size = static_cast<size_t>(separator - new_name);
             package               = find_next_package(package, new_name, next_name_size, create);
             new_name              = separator + separator_len;
-            separator = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
+            separator             = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
         }
 
         return package ? find_next_package(package, new_name, end_name - new_name, create) : nullptr;
