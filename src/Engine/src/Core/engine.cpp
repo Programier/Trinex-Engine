@@ -329,10 +329,12 @@ namespace Engine
 
         if (_M_renderer)
             delete _M_renderer;
-        if (_M_rhi)
-            delete _M_rhi;
+
         if (WindowManager::instance())
             delete WindowManager::instance();
+
+        if (_M_rhi)
+            delete _M_rhi;
 
         _M_rhi                                                              = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;

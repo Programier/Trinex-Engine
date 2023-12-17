@@ -131,12 +131,6 @@ namespace Engine
     {
         Super::update(dt);
         WindowManager::instance()->pool_events();
-
-
-        if (KeyboardSystem::instance()->is_just_pressed(Keyboard::Key::G))
-        {
-            WindowManager::instance()->create_window(global_window_config, nullptr);
-        }
         return *this;
     }
 
