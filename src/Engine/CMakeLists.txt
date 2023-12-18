@@ -39,12 +39,11 @@ add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/")
 # List of libraries, which TrinexEngine use
 set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     lz4_static
-                                    angelscript
                                     stb_image
                                     tinygltf
                                     asmjit)
 
-set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor)
+set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui_texteditor)
 
 if(ANDROID)
     set(PLATFORM_DEPENDED_LIBRARIES android log)

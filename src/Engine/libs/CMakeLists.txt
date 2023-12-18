@@ -17,6 +17,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui/")
 # Compile ImGUI Node Editor
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-node-editor/")
 
+# Compile ImGUI Text Editor
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-texteditor/")
+
 # Compile JSON library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/json/")
 
