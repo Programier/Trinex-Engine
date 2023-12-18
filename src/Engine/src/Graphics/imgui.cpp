@@ -116,7 +116,7 @@ namespace Engine::ImGuiRenderer
 
     void Window::free_resources()
     {
-        while(!_M_textures.empty())
+        while (!_M_textures.empty())
         {
             release_texture(*_M_textures.begin());
         }
@@ -174,7 +174,7 @@ namespace Engine::ImGuiRenderer
 
     Window& Window::release_texture(ImGuiTexture* texture)
     {
-        if(_M_textures.contains(texture))
+        if (_M_textures.contains(texture))
         {
             _M_textures.erase(texture);
             delete texture;
@@ -185,4 +185,43 @@ namespace Engine::ImGuiRenderer
 
     Window::~Window()
     {}
+
+
+    struct InputTextCallback {
+        ImGuiInputTextCallback callback;
+        void* userdata;
+        String* str;
+    };
+
+    static int input_text_callback(ImGuiInputTextCallbackData* data)
+    {
+        InputTextCallback* userdata = reinterpret_cast<InputTextCallback*>(data->UserData);
+
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+        {
+            String* str        = userdata->str;
+            const int new_size = data->BufTextLen;
+            str->resize(new_size);
+            data->Buf = str->data();
+        }
+
+        if (userdata->callback)
+        {
+            data->UserData = userdata->userdata;
+            return userdata->callback(data);
+        }
+
+        return 0;
+    }
+
+    bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+    {
+        InputTextCallback data;
+        data.callback = callback;
+        data.userdata = user_data;
+        data.str      = &buffer;
+
+        flags |= ImGuiInputTextFlags_CallbackResize;
+        return ImGui::InputText(label, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
+    }
 }// namespace Engine::ImGuiRenderer

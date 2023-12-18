@@ -20,6 +20,12 @@ namespace Engine
         return _M_path;
     }
 
+    Script& Script::replace_code(const char* new_code, size_t len, size_t offset)
+    {
+        ScriptModule::global().add_script_section(_M_path.string().c_str(), new_code, len, offset);
+        return *this;
+    }
+
     Script& Script::load()
     {
         FileManager manager(engine_config.scripts_dir);
@@ -32,8 +38,7 @@ namespace Engine
 
             if (_M_path.string().ends_with(Constants::script_extension))
             {
-                ScriptModule::global().add_script_section(_M_path.string().c_str(), reinterpret_cast<const char*>(buffer.data()),
-                                                          buffer.size(), 0);
+                replace_code(reinterpret_cast<const char*>(buffer.data()), buffer.size(), 0);
             }
             else
             {
@@ -72,7 +77,7 @@ namespace Engine
     }
 
 
-    static void static_load_scripts(const Path& base, const Path& current)
+    static void static_load_scripts(const Path& base, const Path& current, Set<Path>& scripts)
     {
         for (const auto& entry : FS::directory_iterator(current))
         {
@@ -81,20 +86,37 @@ namespace Engine
                 if (entry.path().extension() == Constants::script_extension)
                 {
                     Path diff = FS::relative(entry.path(), base);
+                    scripts.insert(diff);
                     ScriptEngine::instance()->new_script(diff)->load();
                 }
             }
             else if (FS::is_directory(entry.path()))
             {
-                static_load_scripts(base, entry.path());
+                static_load_scripts(base, entry.path(), scripts);
             }
         }
     }
 
+    void ScriptEngine::release_scripts()
+    {
+        for (Script* script : _M_scripts)
+        {
+            delete script;
+        }
+
+        _M_scripts.clear();
+    }
+
     ScriptEngine& ScriptEngine::load_scripts()
     {
+        release_scripts();
+        ScriptModule::global().discard();
+
         Path path = FileManager::root_file_manager()->work_dir() / engine_config.scripts_dir;
-        static_load_scripts(path, path);
+        Set<Path> scripts;
+        static_load_scripts(path, path, scripts);
+
+        List<Script*> scripts_for_delete;
         ScriptModule::global().build();
         return *this;
     }

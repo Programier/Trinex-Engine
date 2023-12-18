@@ -1,5 +1,6 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/string_functions.hpp>
+#include <Graphics/imgui.hpp>
 #include <ScriptEngine/primitive_wrappers.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -279,29 +280,28 @@ namespace Engine
 
     static bool wrap_input_text(const String& label, String& buffer, int flags)
     {
-        return ImGui::InputText(label.c_str(), buffer.data(), buffer.size() + 1, flags, input_text_callback, &buffer);
+        return ImGuiRenderer::InputText(label.c_str(), buffer, flags);
     }
 
     static bool wrap_input_text_hint(const String& label, const String& hint, String& buffer, int flags)
     {
-        return ImGui::InputTextWithHint(label.c_str(), hint.c_str(), buffer.data(), buffer.size() + 1, flags,
-                                        input_text_callback, &buffer);
+        return ImGui::InputTextWithHint(label.c_str(), hint.c_str(), buffer.data(), buffer.size() + 1, flags, input_text_callback,
+                                        &buffer);
     }
 
     static bool wrap_input_text_multiline(const String& label, String& buffer, const ImVec2& size, int flags)
     {
-        return ImGui::InputTextMultiline(label.c_str(), buffer.data(), buffer.size() + 1, size, flags,
-                                         input_text_callback, &buffer);
+        return ImGui::InputTextMultiline(label.c_str(), buffer.data(), buffer.size() + 1, size, flags, input_text_callback,
+                                         &buffer);
     }
 
     template<typename Type, size_t count = 1>
     void register_vector_type(const char* name)
     {
         ScriptClassRegistrar registrar(
-                name, ScriptClassRegistrar::create_type_info<Type>(ScriptClassRegistrar::Value |
-                                                                   ScriptClassRegistrar::AppClassMoreConstructors |
-                                                                   ScriptClassRegistrar::AppClassCopyConstructor |
-                                                                   ScriptClassRegistrar::AppClassAssignment));
+                name, ScriptClassRegistrar::create_type_info<Type>(
+                              ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassMoreConstructors |
+                              ScriptClassRegistrar::AppClassCopyConstructor | ScriptClassRegistrar::AppClassAssignment));
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Type>,
                          ScriptCallConv::CDECL_OBJFIRST);
@@ -316,8 +316,7 @@ namespace Engine
 
         if constexpr (count == 4)
             registrar.behave(ScriptClassBehave::Construct, "void f(float, float, float, float)",
-                             ScriptClassRegistrar::constructor<Type, float, float, float, float>,
-                             ScriptCallConv::CDECL_OBJFIRST);
+                             ScriptClassRegistrar::constructor<Type, float, float, float, float>, ScriptCallConv::CDECL_OBJFIRST);
 
 
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Type>,
@@ -971,8 +970,7 @@ namespace Engine
         reg_func("bool BeginTabBar(const string& in, int = 0)", BeginTabBar);
         reg_func_nw_ns("bool BeginTabItem(const string& in, Boolean@ = null, int = 0)",
                        (result_wrapped_func<ImGui::BeginTabItem, bool, const String&, Boolean*, int>) );
-        reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)",
-                 BeginTable);
+        reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)", BeginTable);
         reg_func_nw("bool BeginTooltip()", BeginTooltip);
         reg_func("bool Button(const string& in, const ImVec2& size = ImVec2(0, 0))", Button);
         reg_func("bool Checkbox(const string& in, bool&)", Checkbox);
@@ -992,9 +990,8 @@ namespace Engine
         reg_func("bool ColorPicker3(const string& in, Engine::Vector3D& inout, int = 0)", ColorPicker3);
         reg_func("bool ColorPicker4(const string& in, Engine::Vector4D& inout, int = 0)", ColorPicker4);
         reg_func_nw_ns("bool Combo(const string& in, int&, const string[]& in, int = -1)", wrapped_combo);
-        reg_func(
-                "bool DebugCheckVersionAndDataLayout(const string& in, uint64, uint64, uint64, uint64, uint64, uint64)",
-                DebugCheckVersionAndDataLayout);
+        reg_func("bool DebugCheckVersionAndDataLayout(const string& in, uint64, uint64, uint64, uint64, uint64, uint64)",
+                 DebugCheckVersionAndDataLayout);
 
         reg_func("bool DragFloat2(const string&, Engine::Vector2D& inout, float = 1.0f, float = 0.0f, float = 0.0f, "
                  "const string& in = \"%.3f\", int = 0)",
@@ -1059,9 +1056,8 @@ namespace Engine
         reg_func_nw_ns("bool InputText(const string& in, string& inout, int = 0)", wrap_input_text);
         reg_func_nw_ns("bool InputTextWithHint(const string& in, const string& in, string& inout, int = 0)",
                        wrap_input_text_hint);
-        reg_func_nw_ns(
-                "bool InputTextMultiline(const string& in, string& inout, const ImVec2& size = ImVec2(0, 0), int = 0)",
-                wrap_input_text_multiline);
+        reg_func_nw_ns("bool InputTextMultiline(const string& in, string& inout, const ImVec2& size = ImVec2(0, 0), int = 0)",
+                       wrap_input_text_multiline);
         reg_func("bool InvisibleButton(const string&, const ImVec2&, int = 0)", InvisibleButton);
         reg_func("bool IsAnyItemActive()", IsAnyItemActive);
         reg_func("bool IsAnyItemFocused()", IsAnyItemFocused);
@@ -1154,8 +1150,7 @@ namespace Engine
         engine->register_function("float GetScrollX()", make_wrap<ImGui::GetScrollX>());
         engine->register_function("float GetScrollY()", make_wrap<ImGui::GetScrollY>());
         engine->register_function("float GetTextLineHeight()", make_wrap<ImGui::GetTextLineHeight>());
-        engine->register_function("float GetTextLineHeightWithSpacing()",
-                                  make_wrap<ImGui::GetTextLineHeightWithSpacing>());
+        engine->register_function("float GetTextLineHeightWithSpacing()", make_wrap<ImGui::GetTextLineHeightWithSpacing>());
         engine->register_function("float GetTreeNodeToLabelSpacing()", make_wrap<ImGui::GetTreeNodeToLabelSpacing>());
         engine->register_function("float GetWindowDpiScale()", make_wrap<ImGui::GetWindowDpiScale>());
         engine->register_function("float GetWindowHeight()", make_wrap<ImGui::GetWindowHeight>());
@@ -1329,18 +1324,14 @@ namespace Engine
         reg_func_nw("void SetWindowFontScale(float)", SetWindowFontScale);
         reg_func_no_ns("void SetWindowPos(const string& in, const ImVec2& , int = 0)",
                        (func_of<void, const char*, const ImVec2&, int>(ImGui::SetWindowPos)));
-        reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)",
-                       (func_of<void, const ImVec2&, int>(ImGui::SetWindowPos)));
+        reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)", (func_of<void, const ImVec2&, int>(ImGui::SetWindowPos)));
         reg_func_no_ns("void SetWindowSize(const string& in, const ImVec2& , int = 0)",
                        (func_of<void, const char*, const ImVec2&, int>(ImGui::SetWindowSize)));
-        reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)",
-                       (func_of<void, const ImVec2&, int>(ImGui::SetWindowSize)));
-        reg_func_nw_ns("void ShowAboutWindow(Boolean@ = null)",
-                       (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
+        reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)", (func_of<void, const ImVec2&, int>(ImGui::SetWindowSize)));
+        reg_func_nw_ns("void ShowAboutWindow(Boolean@ = null)", (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
         reg_func_nw_ns("void ShowDebugLogWindow(Boolean@ = null)",
                        (result_wrapped_func<ImGui::ShowDebugLogWindow, void, Boolean*>) );
-        reg_func_nw_ns("void ShowDemoWindow(Boolean@ = null)",
-                       (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
+        reg_func_nw_ns("void ShowDemoWindow(Boolean@ = null)", (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
         reg_func("void ShowFontSelector(const string& in)", ShowFontSelector);
         reg_func_nw_ns("void ShowIDStackToolWindow(Boolean@ = null)",
                        (result_wrapped_func<ImGui::ShowIDStackToolWindow, void, Boolean*>) );

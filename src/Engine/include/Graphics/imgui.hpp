@@ -73,4 +73,7 @@ namespace Engine::ImGuiRenderer
 
         friend class Engine::Window;
     };
+
+    bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
+                   void* user_data = nullptr);
 }// namespace Engine::ImGuiRenderer

@@ -29,6 +29,7 @@ namespace Engine
         uint_t max_g_buffer_width;
         uint_t max_g_buffer_height;
         uint_t back_buffer_count;
+        uint_t fps_limit = 60;
 
         bool delete_resources_after_load;
         bool load_shaders_to_gpu;

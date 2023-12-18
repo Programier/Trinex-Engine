@@ -1,4 +1,5 @@
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -53,12 +54,21 @@ namespace Engine
         {
             static constexpr float smoothing_factor = 0.05;
 
-            float prev_time    = 0.0167;
+            float prev_time    = 1.0f / static_cast<float>(engine_config.fps_limit);
             float current_time = 0.0f;
             float dt           = 0.0f;
 
             while (!is_requesting_exit())
             {
+                {
+                    float wait_time = (1.0f / static_cast<float>(engine_config.fps_limit)) - (time_seconds() - prev_time);
+
+                    if (wait_time > 0)
+                    {
+                        Thread::sleep_for(wait_time);
+                    }
+                }
+
                 current_time = time_seconds();
                 dt           = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * dt;
                 prev_time    = current_time;

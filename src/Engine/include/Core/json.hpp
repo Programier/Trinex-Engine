@@ -123,7 +123,7 @@ namespace Engine::JSON
         template<typename T>
         FORCE_INLINE T checked_get_value(const String& key, const T& default_value = {}) const
         {
-            return checked_get(key).checked_get<T>();
+            return checked_get(key).checked_get<T>(default_value);
         }
     };
 }// namespace Engine::JSON

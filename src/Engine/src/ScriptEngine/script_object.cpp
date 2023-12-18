@@ -7,6 +7,16 @@
 
 namespace Engine
 {
+    HashIndex ScriptObject::HashFunction::operator()(const ScriptObject& object) const
+    {
+        return reinterpret_cast<HashIndex>(object._M_object);
+    }
+
+    HashIndex ScriptObject::HashFunction::operator()(const ScriptObject* object) const
+    {
+        return reinterpret_cast<HashIndex>(object->_M_object);
+    }
+
     void ScriptObject::bind_script_functions()
     {
         if (_M_object)
@@ -26,6 +36,14 @@ namespace Engine
     {
         bind_script_functions();
     }
+
+    ScriptObject::ScriptObject(const char* name, bool uninited)
+    {
+        (*this) = ScriptModule::global().create_script_object(name, uninited);
+    }
+
+    ScriptObject::ScriptObject(const String& name, bool uninited) : ScriptObject(name.c_str(), uninited)
+    {}
 
     ScriptObject& ScriptObject::remove_reference()
     {
@@ -123,6 +141,26 @@ namespace Engine
         return _M_object->GetAddressOfProperty(prop);
     }
 
+    bool ScriptObject::operator==(const ScriptObject& other) const
+    {
+        return _M_object == other._M_object;
+    }
+
+    bool ScriptObject::operator!=(const ScriptObject& other) const
+    {
+        return _M_object != other._M_object;
+    }
+
+    bool ScriptObject::operator==(const asIScriptObject* other) const
+    {
+        return _M_object == other;
+    }
+
+    bool ScriptObject::operator!=(const asIScriptObject* other) const
+    {
+        return _M_object != other;
+    }
+
     // Miscellaneous
     int_t ScriptObject::copy_from(const ScriptObject& other)
     {
@@ -144,7 +182,7 @@ namespace Engine
 
     void ScriptObject::on_create(Object* owner)
     {
-        if(_M_on_create.is_valid())
+        if (_M_on_create.is_valid())
         {
             _M_on_create.prepare().object(*this).arg_object(0, owner).call().unbind_context();
         }

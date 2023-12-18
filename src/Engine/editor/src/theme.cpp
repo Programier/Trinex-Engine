@@ -8,7 +8,7 @@ namespace Engine
         // Initialize fonts
         const char* font_path = "/usr/share/fonts/adobe-source-code-pro-fonts/SourceCodePro-Bold.otf";
         auto& io              = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF(font_path, 16.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        io.Fonts->AddFontFromFileTTF(font_path, 18.0f, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
         ImGuiStyle& style = ImGui::GetStyle();
 

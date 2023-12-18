@@ -123,6 +123,7 @@ namespace Engine
         bool is_valid() const;
         Path filepath() const;
 
+
         static Package* find_package(const String& name, bool create = false);
         static Package* find_package(const char* name, bool create = false);
         static Package* find_package(const char* name, size_t len, bool create = false);
@@ -132,6 +133,8 @@ namespace Engine
 
         Object* owner() const;
         Object& owner(Object* new_owner);
+
+        virtual Object& destroy_script_object(class ScriptObject* object);
 
 
         // Override new and delete operators

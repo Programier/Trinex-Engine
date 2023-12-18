@@ -10,6 +10,8 @@
 #include <Core/package.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/script_object.hpp>
+#include <angelscript.h>
 #include <cstring>
 #include <typeinfo>
 
@@ -57,7 +59,14 @@ namespace Engine
                         ScriptCallConv::CDECL_OBJFIRST)
                 .virtual_method<Object&, Object*>(
                         "Object@ postload()", [](Object* self) -> Object& { return self->postload(); },
-                        ScriptCallConv::CDECL_OBJFIRST);
+                        ScriptCallConv::CDECL_OBJFIRST)
+                .virtual_method<Object&, Object*, class asIScriptObject**>(
+                        "Object@ destroy_script_object(?& in)", [](Object* self, asIScriptObject** obj) -> Object& {
+                            // Obj always must be descriptor!
+                            ScriptObject object = *obj;
+                            object.add_reference();
+                            return self->destroy_script_object(&object);
+                        });
     }
 
     implement_initialize_class(Object)
@@ -476,6 +485,11 @@ namespace Engine
     Object& Object::owner(Object* new_owner)
     {
         _M_owner = new_owner;
+        return *this;
+    }
+
+    Object& Object::destroy_script_object(class ScriptObject* object)
+    {
         return *this;
     }
 

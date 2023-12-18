@@ -13,6 +13,7 @@ namespace Engine
     class ScriptObject;
     class ScriptFunction;
 
+
     class ENGINE_EXPORT ScriptEngine
     {
     private:
@@ -25,6 +26,8 @@ namespace Engine
 
         ScriptEngine();
         ~ScriptEngine();
+
+        void release_scripts();
 
         static void terminate();
         asIScriptContext* new_context() const;
@@ -39,6 +42,14 @@ namespace Engine
         public:
             NamespaceSaverScoped();
             ~NamespaceSaverScoped();
+        };
+
+        enum GarbageCollectFlags
+        {
+            FullCycle      = 1,
+            OneStep        = 2,
+            DestroyGarbage = 4,
+            DetectGarbage  = 8
         };
 
 
@@ -71,6 +82,8 @@ namespace Engine
         ScriptFunction global_function_by_index(uint_t index) const;
         ScriptFunction global_function_by_decl(const char* declaration) const;
         ScriptFunction global_function_by_decl(const String& declaration) const;
+
+        ScriptEngine& garbage_collect(Flags flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
 
         uint_t object_type_count() const;
         ScriptTypeInfo object_type_by_index(uint_t index) const;

@@ -236,6 +236,8 @@ namespace Engine
             commandlet->load_configs();
         }
 
+        engine_config.update();
+
 
         load_external_system_libraries();
         info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());

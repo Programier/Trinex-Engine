@@ -158,7 +158,7 @@ namespace Engine
     {
         delete _M_context_manager;
         _M_engine->Release();
-
+        release_scripts();
         if (_M_jit_compiler)
         {
             delete _M_jit_compiler;
@@ -361,6 +361,12 @@ namespace Engine
     ScriptFunction ScriptEngine::global_function_by_decl(const String& declaration) const
     {
         return global_function_by_decl(declaration.c_str());
+    }
+
+    ScriptEngine& ScriptEngine::garbage_collect(Flags flags, size_t iterations)
+    {
+        _M_engine->GarbageCollect(flags, iterations);
+        return *this;
     }
 
     uint_t ScriptEngine::object_type_count() const
