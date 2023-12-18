@@ -11,8 +11,7 @@ namespace Engine
     {
         const auto& engine_json = global_config.checked_get("Engine").checked_get<JSON::JsonObject>();
 
-        engine_json.checked_get("external_system_libraries")
-                .copy_to_array(external_system_libraries, JSON::ValueType::String);
+        engine_json.checked_get("external_system_libraries").copy_to_array(external_system_libraries, JSON::ValueType::String);
         engine_json.checked_get("systems").copy_to_array(systems, JSON::ValueType::String);
 
         resources_dir        = engine_json.checked_get_value<JSON::JsonString>("resources_dir");

@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
+#include <ScriptEngine/script_function.hpp>
 
 
 
@@ -9,18 +10,24 @@ class asIScriptObject;
 namespace Engine
 {
     class ScriptTypeInfo;
+    class ScriptFunction;
 
     class ENGINE_EXPORT ScriptObject
     {
     private:
         asIScriptObject* _M_object = nullptr;
+        ScriptFunction _M_update;
+        ScriptFunction _M_on_create;
 
-        ScriptObject& bind();
+
+        void bind_script_functions();
 
     public:
         ScriptObject(asIScriptObject* object = nullptr);
         copy_constructors_hpp(ScriptObject);
-        ScriptObject& unbind();
+
+        ScriptObject& add_reference();
+        ScriptObject& remove_reference();
 
         int_t type_id() const;
         ScriptTypeInfo object_type() const;
@@ -37,6 +44,10 @@ namespace Engine
         int_t copy_from(const ScriptObject& other);
         ~ScriptObject();
 
+
+        // Class methods
+        void update(float dt);
+        void on_create(Object* owner);
         friend class ScriptFunction;
     };
 }// namespace Engine

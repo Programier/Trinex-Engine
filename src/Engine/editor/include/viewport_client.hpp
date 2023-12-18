@@ -1,6 +1,7 @@
 #pragma once
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <ScriptEngine/script_object.hpp>
 
 namespace Engine
 {
@@ -12,6 +13,7 @@ namespace Engine
         class Texture2D* texture                      = nullptr;
         class Sampler* sampler                        = nullptr;
         ImGuiRenderer::ImGuiTexture* _M_imgui_texture = nullptr;
+        ScriptObject _M_script_object;
 
     public:
         EditorViewportClient();

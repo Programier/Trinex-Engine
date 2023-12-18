@@ -10,8 +10,6 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
-#include <ScriptEngine/script_engine.hpp>
-#include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Window/window.hpp>
 #include <viewport_client.hpp>
@@ -20,7 +18,6 @@
 namespace Engine
 {
     implement_engine_class_default_init(EditorViewportClient);
-    ScriptFunction script_viewport_update;
 
     static void initialize_theme(ImGuiContext* context)
     {
@@ -129,25 +126,8 @@ namespace Engine
         _M_imgui_texture->init(window->imgui_window()->context(), texture, sampler);
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
-
-        auto module = ScriptEngine::instance()->new_module("ViewportScript");
-
-        {
-            FileReader* reader = FileManager::root_file_manager()->create_file_reader(Path(engine_config.scripts_dir) /
-                                                                                      "viewport.cpp");
-            if (reader)
-            {
-                auto size = reader->size();
-                String data(size, ' ');
-                reader->read((byte*)data.data(), size);
-
-                module.add_script_section("test_section", data.c_str());
-                module.build();
-
-                script_viewport_update = module.function_by_name("update");
-                delete reader;
-            }
-        }
+        _M_script_object = ScriptModule::global().create_script_object("Viewport");
+        _M_script_object.on_create(this);
 
         return *this;
     }
@@ -176,11 +156,7 @@ namespace Engine
         create_log_window(dt);
         create_viewport_window(dt);
 
-        if (script_viewport_update.is_valid())
-        {
-            script_viewport_update.prepare().call();
-        }
-
+        _M_script_object.update(dt);
         window->end_frame();
 
         return *this;
@@ -195,8 +171,8 @@ namespace Engine
 
 
         static ImGuiWindowFlags dock_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse |
-                                             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-                                             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus;
+                                             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
+                                             ImGuiWindowFlags_NoBringToFrontOnFocus;
 
         if (ImGui::Begin("EditorDockWindow", nullptr, dock_flags))
         {

@@ -1,7 +1,7 @@
 #pragma once
+#include <Core/build.hpp>
 #include <Core/config.hpp>
 #include <Core/engine_types.hpp>
-#include <Core/build.hpp>
 
 namespace Engine
 {
@@ -13,10 +13,11 @@ namespace Engine
         Vector<String> external_system_libraries;
         Vector<String> systems;
 
-        String resources_dir;
+        Path resources_dir;
+        Path scripts_dir;
+        Path libraries_dir;
+
         String api;
-        String scripts_dir;
-        String libraries_dir;
         String shader_compilers_lib;
         String shader_compiler;
         String window_system;

@@ -236,7 +236,7 @@ namespace Engine
         }
 
 
-        Path path = Path(engine_config.resources_dir) / filepath();
+        Path path = engine_config.resources_dir / filepath();
         FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
         BufferWriter* writer = FileManager::root_file_manager()->create_file_writer(path);
 
@@ -267,7 +267,7 @@ namespace Engine
     {
         _M_objects.clear();
 
-        Path path = Path(engine_config.resources_dir) / filepath();
+        Path path = engine_config.resources_dir / filepath();
         FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
         BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
 
@@ -311,8 +311,7 @@ namespace Engine
     Package::Header& Package::load_header()
     {
         _M_header.clear();
-
-        Path path = Path(engine_config.resources_dir) / filepath();
+        Path path = engine_config.resources_dir / filepath();
         FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
         BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
 

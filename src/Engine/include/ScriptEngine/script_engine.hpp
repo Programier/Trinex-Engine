@@ -13,17 +13,12 @@ namespace Engine
     class ScriptObject;
     class ScriptFunction;
 
-    enum class ModuleCreateFlags
-    {
-        OnlyIfExist      = 0,
-        CreateIsNotExist = 1,
-        AlwaysCreate     = 2
-    };
-
     class ENGINE_EXPORT ScriptEngine
     {
     private:
         struct ScriptContextManager* _M_context_manager;
+
+        Vector<class Script*> _M_scripts;
         static ScriptEngine* _M_instance;
         asIScriptEngine* _M_engine;
         asIJITCompiler* _M_jit_compiler = nullptr;
@@ -34,7 +29,6 @@ namespace Engine
         static void terminate();
         asIScriptContext* new_context() const;
         ScriptEngine& private_register_function(const char* declaration, void* func, ScriptCallConv conv);
-
         ScriptEngine& destroy_script_object(ScriptObjectAddress, const ScriptTypeInfo& info);
 
     public:
@@ -58,19 +52,20 @@ namespace Engine
         String default_namespace() const;
         ScriptEngine& register_property(const char* declaration, void* data);
         ScriptEngine& register_property(const String& declaration, void* data);
-        ScriptModule new_module(const char* module_name, ModuleCreateFlags flags = ModuleCreateFlags::CreateIsNotExist);
-        ScriptModule new_module(const String& module_name,
-                                ModuleCreateFlags flags = ModuleCreateFlags::CreateIsNotExist);
+        ScriptModule global_module() const;
         ScriptModule module(uint_t index);
         uint_t module_count() const;
+
+        class Script* new_script(const Path& path);
+        const Vector<class Script*>& scripts() const;
+        ScriptEngine& load_scripts();
 
         ScriptEngine& bind_imports();
         ScriptEngine& funcdef(const char* declaration);
         ScriptEngine& funcdef(const String& declaration);
         ScriptEngine& register_typedef(const char* new_type_name, const char* type);
         ScriptEngine& register_typedef(const String& new_type_name, const String& type);
-        ScriptObject create_script_object(const ScriptTypeInfo& info) const;
-        ScriptObject create_script_object_uninited(const ScriptTypeInfo& info) const;
+        ScriptObject create_script_object(const ScriptTypeInfo& info, bool uninited = false) const;
 
         uint_t global_function_count() const;
         ScriptFunction global_function_by_index(uint_t index) const;

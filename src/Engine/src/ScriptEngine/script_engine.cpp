@@ -27,11 +27,10 @@ namespace Print
 
 namespace Engine
 {
-
-    namespace PrimitiveWrappers
+    namespace Initializers
     {
-        void initialize();
-    }
+        void init_primitive_wrappers();
+    }// namespace Initializers
 
     static void angel_script_callback(const asSMessageInfo* msg, void* param)
     {
@@ -152,7 +151,7 @@ namespace Engine
 
 
         Print::asRegister(_M_engine);
-        PrimitiveWrappers::initialize();
+        Initializers::init_primitive_wrappers();
     }
 
     ScriptEngine::~ScriptEngine()
@@ -265,29 +264,10 @@ namespace Engine
         return register_property(declaration.c_str(), data);
     }
 
-    static asEGMFlags create_module_flags(ModuleCreateFlags flags)
-    {
-        switch (flags)
-        {
-            case ModuleCreateFlags::AlwaysCreate:
-                return asEGMFlags::asGM_ALWAYS_CREATE;
-            case ModuleCreateFlags::CreateIsNotExist:
-                return asEGMFlags::asGM_CREATE_IF_NOT_EXISTS;
-            case ModuleCreateFlags::OnlyIfExist:
-                return asEGMFlags::asGM_ONLY_IF_EXISTS;
-            default:
-                return asEGMFlags::asGM_CREATE_IF_NOT_EXISTS;
-        }
-    }
 
-    ScriptModule ScriptEngine::new_module(const char* module_name, ModuleCreateFlags flags)
+    ScriptModule ScriptEngine::global_module() const
     {
-        return _M_engine->GetModule(module_name, create_module_flags(flags));
-    }
-
-    ScriptModule ScriptEngine::new_module(const String& module_name, ModuleCreateFlags flags)
-    {
-        return new_module(module_name.c_str(), flags);
+        return _M_engine->GetModule("Global", asGM_CREATE_IF_NOT_EXISTS);
     }
 
     ScriptModule ScriptEngine::module(uint_t index)
@@ -331,14 +311,21 @@ namespace Engine
         return register_typedef(type.c_str(), declaration.c_str());
     }
 
-    ScriptObject ScriptEngine::create_script_object(const ScriptTypeInfo& info) const
+    ScriptObject ScriptEngine::create_script_object(const ScriptTypeInfo& info, bool uninited) const
     {
-        return reinterpret_cast<asIScriptObject*>(_M_engine->CreateScriptObject(info._M_info));
-    }
+        if (info.is_valid())
+        {
+            if (uninited)
+            {
+                return reinterpret_cast<asIScriptObject*>(_M_engine->CreateUninitializedScriptObject(info._M_info));
+            }
+            else
+            {
+                return reinterpret_cast<asIScriptObject*>(_M_engine->CreateScriptObject(info._M_info));
+            }
+        }
 
-    ScriptObject ScriptEngine::create_script_object_uninited(const ScriptTypeInfo& info) const
-    {
-        return reinterpret_cast<asIScriptObject*>(_M_engine->CreateUninitializedScriptObject(info._M_info));
+        return {};
     }
 
     ScriptEngine& ScriptEngine::destroy_script_object(ScriptObjectAddress object, const ScriptTypeInfo& info)

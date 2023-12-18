@@ -528,7 +528,7 @@ namespace Engine
 
     String Object::as_string() const
     {
-        return Strings::format("{}: {}", class_instance()->name(), _M_name.to_string());
+        return Strings::format("{}: {}", class_instance()->name(), _M_name.is_valid() ? _M_name.to_string().c_str() : "NoName");
     }
 
     Index Object::instance_index() const

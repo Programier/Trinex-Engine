@@ -30,6 +30,8 @@ namespace Engine
     const String Constants::default_commandlet         = "GameInit";
     const String Constants::library_load_function_name = "create_library_interface";
     const Path Constants::configs_dir                  = "configs";
+    const String Constants::script_extension           = ".as";
+    const String Constants::script_byte_code_extension = ".asbc";
 
     static void on_init()
     {

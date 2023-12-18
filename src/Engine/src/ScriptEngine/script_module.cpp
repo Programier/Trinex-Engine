@@ -1,6 +1,7 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
@@ -11,6 +12,11 @@ namespace Engine
 
     ScriptModule::ScriptModule(asIScriptModule* module) : _M_module(module)
     {}
+
+    ScriptModule ScriptModule::global()
+    {
+        return ScriptEngine::instance()->global_module();
+    }
 
     bool ScriptModule::is_valid() const
     {
@@ -40,14 +46,12 @@ namespace Engine
     }
 
     // Compilation
-    int_t ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length,
-                                           int_t line_offset)
+    int_t ScriptModule::add_script_section(const char* section_name, const char* code, size_t code_length, int_t line_offset)
     {
         return static_cast<int_t>(_M_module->AddScriptSection(section_name, code, code_length, line_offset));
     }
 
-    int_t ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length,
-                                           int line_offset)
+    int_t ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int line_offset)
     {
         return add_script_section(section_name.c_str(), code.c_str(), code_length, line_offset);
     }
@@ -216,6 +220,22 @@ namespace Engine
     ScriptTypeInfo ScriptModule::type_info_by_decl(const String& decl) const
     {
         return type_info_by_decl(decl.c_str());
+    }
+
+
+    ScriptObject ScriptModule::create_script_object(const ScriptTypeInfo& type_info, bool uninited)
+    {
+        return ScriptEngine::instance()->create_script_object(type_info, uninited);
+    }
+
+    ScriptObject ScriptModule::create_script_object(const char* class_name, bool uninited)
+    {
+        return create_script_object(type_info_by_name(class_name), uninited);
+    }
+
+    ScriptObject ScriptModule::create_script_object(const String& name, bool uninited)
+    {
+        return create_script_object(name.c_str(), uninited);
     }
 
     //        // Enums

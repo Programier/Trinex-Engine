@@ -29,5 +29,7 @@ namespace Engine
         static const String default_commandlet;
         static const String library_load_function_name;
         static const Path configs_dir;
+        static const String script_extension;
+        static const String script_byte_code_extension;
     };
 }// namespace Engine

@@ -238,7 +238,7 @@ namespace Engine
 
     const char* ScriptFunction::name() const
     {
-        return _M_function->GetModuleName();
+        return _M_function->GetName();
     }
 
     const char* ScriptFunction::namespace_name() const
@@ -246,8 +246,7 @@ namespace Engine
         return _M_function->GetNamespace();
     }
 
-    const char* ScriptFunction::declaration(bool include_object_name, bool include_namespace,
-                                            bool include_param_names) const
+    const char* ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const
     {
         return _M_function->GetDeclaration(include_object_name, include_namespace, include_param_names);
     }

@@ -38,7 +38,7 @@ declare_primitive(UnsignedInteger, Engine::uint32_t);
 declare_primitive(UnsignedInteger64, Engine::uint64_t);
 declare_primitive(Float, float);
 
-namespace Engine::PrimitiveWrappers
+namespace Engine::Initializers
 {
     template<typename T1, typename T2>
     T1* factory(T2 value)
@@ -66,7 +66,7 @@ namespace Engine::PrimitiveWrappers
         registrar.property(Strings::format("{} value", base).c_str(), &T::value);
     }
 
-    void initialize()
+    void init_primitive_wrappers()
     {
         register_base_type<Boolean, bool>("Boolean", "bool", "false");
         register_base_type<Integer8, Engine::int8_t>("Integer8", "int8", "0");

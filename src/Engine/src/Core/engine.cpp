@@ -227,6 +227,8 @@ namespace Engine
 
         load_external_system_libraries();
 
+        ScriptEngine::instance()->load_scripts();
+
         CommandLet* commandlet = find_commandlet(argc, argv);
 
         if (commandlet)
