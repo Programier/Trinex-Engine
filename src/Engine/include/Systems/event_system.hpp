@@ -15,10 +15,20 @@ namespace Engine
         using Listener          = Function<ListenerSignature>;
         using ListenerMap       = TreeMap<byte, CallBacks<ListenerSignature>>;
 
+        enum ProcessEventMethod
+        {
+            PoolEvents,
+            WaitingEvents,
+        };
+
 
     private:
         ListenerMap _M_listeners;
+        EventSystem& (EventSystem::*_M_process_events)() = nullptr;
 
+
+        EventSystem& wait_events();
+        EventSystem& pool_events();
         EventSystem();
 
     public:
@@ -28,6 +38,8 @@ namespace Engine
         EventSystem& create() override;
         EventSystem& update(float dt) override;
         const EventSystem& push_event(const Event& event) const;
+
+        EventSystem& process_event_method(ProcessEventMethod method);
 
         friend class Object;
     };

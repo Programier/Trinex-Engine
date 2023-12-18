@@ -274,15 +274,21 @@ namespace Engine
         return *this;
     }
 
-    WindowManagerInterface& SDL2_WindowManagerInterface::pool_events()
-    {
-        ImGuiContext* ctx = ImGui::GetCurrentContext();
 
+    SDL2_WindowManagerInterface& SDL2_WindowManagerInterface::pool_events_loop()
+    {
         while (SDL_PollEvent(&_M_event))
         {
             process_event();
         }
 
+        return *this;
+    }
+
+    WindowManagerInterface& SDL2_WindowManagerInterface::pool_events()
+    {
+        ImGuiContext* ctx = ImGui::GetCurrentContext();
+        pool_events_loop();
         ImGui::SetCurrentContext(ctx);
 
         return *this;
@@ -293,6 +299,7 @@ namespace Engine
         ImGuiContext* ctx = ImGui::GetCurrentContext();
         SDL_WaitEvent(&_M_event);
         process_event();
+        pool_events_loop();
         ImGui::SetCurrentContext(ctx);
         return *this;
     }

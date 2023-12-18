@@ -153,7 +153,8 @@ namespace Engine
         int_t execute() override
         {
             _M_rhi_viewport->begin_render();
-            _M_client->render(_M_viewport);
+            if (_M_client)
+                _M_client->render(_M_viewport);
             _M_rhi_viewport->end_render();
 
             return sizeof(StartRenderingViewport);
@@ -180,7 +181,7 @@ namespace Engine
     RenderViewport& RenderViewport::client(ViewportClient* new_client)
     {
         _M_client = new_client;
-        if(new_client)
+        if (new_client)
         {
             new_client->on_bind_to_viewport(this);
         }
@@ -189,7 +190,7 @@ namespace Engine
 
     RenderViewport& RenderViewport::update(float dt)
     {
-        if(_M_client)
+        if (_M_client)
         {
             _M_client->update(this, dt);
         }
@@ -198,7 +199,7 @@ namespace Engine
 
     RenderViewport& RenderViewport::prepare_render()
     {
-        if(_M_client)
+        if (_M_client)
         {
             _M_client->prepare_render(this);
         }

@@ -24,7 +24,6 @@ namespace Engine
         ViewportClient& prepare_render(class RenderViewport* viewport) override;
 
 
-        EditorViewportClient& create_docking_window(float dt);
         EditorViewportClient& create_properties_window(float dt);
         EditorViewportClient& create_scene_tree_window(float dt);
         EditorViewportClient& create_log_window(float dt);

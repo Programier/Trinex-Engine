@@ -26,6 +26,7 @@ namespace Engine
         WindowManagerInterface& remove_all_callbacks(Identifier system_id) override;                             // +
         WindowManagerInterface& start_text_input() override;                                                     // +
         WindowManagerInterface& stop_text_input() override;                                                      // =
+        SDL2_WindowManagerInterface& pool_events_loop();
         WindowManagerInterface& pool_events() override;
         WindowManagerInterface& wait_for_events() override;
 

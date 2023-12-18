@@ -26,4 +26,25 @@ public:
 };
 
 
+class ScriptEditor : public Engine::CommandLet
+{
+    declare_class(ScriptEditor, Engine::CommandLet);
+
+public:
+    Engine::int_t execute(Engine::int_t argc, char** argv) override
+    {
+        Engine::engine_instance->launch();
+        return 0;
+    }
+
+    CommandLet& load_configs() override
+    {
+        Engine::global_config.load(Engine::Constants::configs_dir / Engine::Path("script_editor.json"));
+        Engine::engine_config.update();
+        return *this;
+    }
+};
+
+
 implement_class_default_init(Editor, "");
+implement_class_default_init(ScriptEditor, "");

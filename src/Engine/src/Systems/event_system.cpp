@@ -124,14 +124,15 @@ namespace Engine
         new_system<MouseSystem>();
         new_system<GameControllerSystem>();
 
+        process_event_method(ProcessEventMethod::PoolEvents);
+
         return *this;
     }
 
     EventSystem& EventSystem::update(float dt)
     {
         Super::update(dt);
-        WindowManager::instance()->pool_events();
-        return *this;
+        return (this->*_M_process_events)();
     }
 
     const EventSystem& EventSystem::push_event(const Event& event) const
@@ -142,6 +143,32 @@ namespace Engine
             it->second.trigger(event);
         }
 
+        return *this;
+    }
+
+
+    EventSystem& EventSystem::wait_events()
+    {
+        WindowManager::instance()->wait_for_events();
+        return *this;
+    }
+
+    EventSystem& EventSystem::pool_events()
+    {
+        WindowManager::instance()->pool_events();
+        return *this;
+    }
+
+    EventSystem& EventSystem::process_event_method(ProcessEventMethod method)
+    {
+        if (method == ProcessEventMethod::PoolEvents)
+        {
+            _M_process_events = &EventSystem::pool_events;
+        }
+        else
+        {
+            _M_process_events = &EventSystem::wait_events;
+        }
         return *this;
     }
 

@@ -1,0 +1,52 @@
+{
+    "Engine": {
+        "enable_jit": false,
+        "load_meshes_to_gpu": true,
+        "api": "OpenGLES",
+        "delete_resources_after_load": false,
+        "load_textures_to_gpu": true,
+        "max_gc_collected_objects": 20000,
+        "min_g_buffer_width": 0,
+        "max_g_buffer_height": 20000,
+        "min_g_buffer_height": 0,
+        "max_g_buffer_width": 20000,
+        "scripts_dir": "scripts",
+        "resources_dir": "resources/",
+        "lz4_compression_level": 10,
+        "load_shaders_to_gpu": true,
+        "back_buffer_count": 2,
+        "libraries_dir": "libs/",
+        "shader_compilers_lib": "ShaderCompilers",
+        "shader_compiler": "Engine::GLSLToSPIRV",
+        "window_system": "SDL2",
+        "systems": [
+            "Engine::LogicSystem",
+            "Engine::EventSystem"
+        ],
+        "external_system_libraries": [
+            "TrinexEngineEditor"
+        ]
+    },
+
+    "Window": {
+        "title": "Script Editor",
+
+        "size": {
+            "x": 1280,
+            "y": 720
+        },
+
+        "attributes": [
+            1
+        ],
+
+        "orientations": [
+            0,
+            1,
+            2,
+            3
+        ],
+        "vsync": true,
+        "client": "Engine::ScriptEditorClient"
+    }
+}
