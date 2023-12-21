@@ -10,8 +10,8 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
-#include <Systems/event_system.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <Systems/event_system.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
 #include <theme.hpp>

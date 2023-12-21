@@ -1,7 +1,7 @@
 #pragma once
-#include <Core/render_resource.hpp>
 #include <Core/dynamic_struct.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/render_resource.hpp>
 
 namespace Engine
 {
@@ -23,9 +23,11 @@ namespace Engine
     public:
         VertexBuffer& rhi_create() override;
         VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
+        size_t elements_count() const;
 
-        virtual const byte* data() const = 0;
-        virtual size_t size() const      = 0;
+        virtual const byte* data() const    = 0;
+        virtual size_t size() const         = 0;
+        virtual size_t element_size() const = 0;
     };
 
 
@@ -34,11 +36,13 @@ namespace Engine
         declare_class(PositionVertexBuffer, VertexBuffer);
 
     public:
-        using BufferType = Vector<Vector3D>;
+        using ElementType = Vector3D;
+        using BufferType  = Vector<ElementType>;
         BufferType buffer;
 
         const byte* data() const override;
         size_t size() const override;
+        size_t element_size() const override;
     };
 
     class ENGINE_EXPORT TexCoordVertexBuffer : public VertexBuffer
@@ -46,11 +50,13 @@ namespace Engine
         declare_class(TexCoordVertexBuffer, VertexBuffer);
 
     public:
-        using BufferType = Vector<Vector2D>;
+        using ElementType = Vector2D;
+        using BufferType  = Vector<ElementType>;
         BufferType buffer;
 
         const byte* data() const override;
         size_t size() const override;
+        size_t element_size() const override;
     };
 
     class ENGINE_EXPORT ColorVertexBuffer : public VertexBuffer
@@ -58,11 +64,13 @@ namespace Engine
         declare_class(ColorVertexBuffer, VertexBuffer);
 
     public:
-        using BufferType = Vector<ByteColor>;
+        using ElementType = ByteColor;
+        using BufferType  = Vector<ElementType>;
         BufferType buffer;
 
         const byte* data() const override;
         size_t size() const override;
+        size_t element_size() const override;
     };
 
     class ENGINE_EXPORT NormalVertexBuffer : public VertexBuffer
@@ -70,11 +78,13 @@ namespace Engine
         declare_class(NormalVertexBuffer, VertexBuffer);
 
     public:
-        using BufferType = Vector<Vector3D>;
+        using ElementType = Vector3D;
+        using BufferType  = Vector<ElementType>;
         BufferType buffer;
 
         const byte* data() const override;
         size_t size() const override;
+        size_t element_size() const override;
     };
 
     class ENGINE_EXPORT TangentVertexBuffer : public VertexBuffer
@@ -82,11 +92,13 @@ namespace Engine
         declare_class(TangentVertexBuffer, VertexBuffer);
 
     public:
-        using BufferType = Vector<Vector3D>;
+        using ElementType = Vector3D;
+        using BufferType  = Vector<ElementType>;
         BufferType buffer;
 
         const byte* data() const override;
         size_t size() const override;
+        size_t element_size() const override;
     };
 
     class ENGINE_EXPORT BinormalVertexBuffer : public VertexBuffer
@@ -94,11 +106,13 @@ namespace Engine
         declare_class(BinormalVertexBuffer, VertexBuffer);
 
     public:
-        using BufferType = Vector<Vector3D>;
+        using ElementType = Vector3D;
+        using BufferType  = Vector<ElementType>;
         BufferType buffer;
 
         const byte* data() const override;
         size_t size() const override;
+        size_t element_size() const override;
     };
 
 

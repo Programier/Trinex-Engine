@@ -17,15 +17,19 @@ namespace Engine
     implement_engine_class_default_init(UniformBuffer);
     implement_engine_class_default_init(SSBO);
 
-#define implement_vertex_buffer_class(name)                                                                            \
-    implement_engine_class_default_init(name);                                                                         \
-    const byte* name::data() const                                                                                     \
-    {                                                                                                                  \
-        return reinterpret_cast<const byte*>(buffer.data());                                                           \
-    }                                                                                                                  \
-    size_t name::size() const                                                                                          \
-    {                                                                                                                  \
-        return buffer.size() * sizeof(BufferType::value_type);                                                         \
+#define implement_vertex_buffer_class(name)                                                                                      \
+    implement_engine_class_default_init(name);                                                                                   \
+    const byte* name::data() const                                                                                               \
+    {                                                                                                                            \
+        return reinterpret_cast<const byte*>(buffer.data());                                                                     \
+    }                                                                                                                            \
+    size_t name::size() const                                                                                                    \
+    {                                                                                                                            \
+        return buffer.size() * sizeof(BufferType::value_type);                                                                   \
+    }                                                                                                                            \
+    size_t name::element_size() const                                                                                            \
+    {                                                                                                                            \
+        return sizeof(ElementType);                                                                                              \
     }
 
     implement_vertex_buffer_class(PositionVertexBuffer);
@@ -58,6 +62,12 @@ namespace Engine
         }
 
         return *this;
+    }
+
+
+    size_t VertexBuffer::elements_count() const
+    {
+        return size() / element_size();
     }
 
 

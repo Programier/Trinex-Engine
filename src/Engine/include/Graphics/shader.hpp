@@ -58,6 +58,12 @@ namespace Engine
             ColorFormat format;
             VertexAttributeInputRate rate;
             byte count = 1;
+
+            FORCE_INLINE Attribute(ColorFormat format            = ColorFormat::Undefined,
+                                   VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex, byte count = 1,
+                                   const String& name = "")
+                : name(name), format(format), rate(rate), count(count)
+            {}
         };
 
         Vector<Attribute> attributes;

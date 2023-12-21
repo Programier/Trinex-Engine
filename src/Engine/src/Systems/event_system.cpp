@@ -146,7 +146,6 @@ namespace Engine
         return *this;
     }
 
-
     EventSystem& EventSystem::wait_events()
     {
         WindowManager::instance()->wait_for_events();
@@ -172,9 +171,17 @@ namespace Engine
         return *this;
     }
 
-    implement_class(EventSystem, "Engine", 0);
+
+    static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
+    {
+        registrar->method("EventSystem@ instance()", EventSystem::instance);
+    }
+
+    implement_class(EventSystem, "Engine", Class::IsScriptable);
     implement_initialize_class(EventSystem)
-    {}
+    {
+        static_class_instance()->set_script_registration_callback(init_script_class);
+    }
 
 
 }// namespace Engine

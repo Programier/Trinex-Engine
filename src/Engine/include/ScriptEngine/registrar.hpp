@@ -289,5 +289,11 @@ namespace Engine
         ScriptEnumRegistrar& release_namespace();
 
         ScriptEnumRegistrar& set(const char* name, int_t value);
+
+        template<typename T>
+        ScriptEnumRegistrar& set(const char* name, T value)
+        {
+            return set(name, static_cast<int_t>(value));
+        }
     };
 }// namespace Engine

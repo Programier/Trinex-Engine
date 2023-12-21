@@ -3,22 +3,26 @@
 namespace Engine
 {
 
-    template<typename Return, typename... Args>
-    constexpr Return (*func_of(Return (*function)(Args...)))(Args...)
+    template<typename T>
+    struct SignatureParser {
+        using Type = T;
+    };
+
+    template<typename ReturnType, typename... ArgsType>
+    struct SignatureParser<ReturnType(ArgsType...)> {
+        using Type = ReturnType (*)(ArgsType...);
+    };
+
+    template<typename Signature>
+    constexpr SignatureParser<Signature>::Type func_of(typename SignatureParser<Signature>::Type func)
     {
-        return function;
+        return func;
     }
 
-    template<typename Return, typename Instance, typename... Args>
-    constexpr Return (Instance::*func_of(Return (Instance::*function)(Args...)))(Args...)
+    template<typename Signature, typename T>
+    constexpr SignatureParser<Signature>::Type func_of(T func)
     {
-        return function;
-    }
-
-    template<typename Return, typename Instance, typename... Args>
-    constexpr Return (Instance::*func_of(Return (Instance::*function)(Args...) const))(Args...) const
-    {
-        return function;
+        return static_cast<typename SignatureParser<Signature>::Type>(func);
     }
 
     template<typename Return, typename Instance, typename... Args>

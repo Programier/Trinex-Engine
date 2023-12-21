@@ -76,4 +76,10 @@ namespace Engine::ImGuiRenderer
 
     bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
                    void* user_data = nullptr);
+
+    bool InputTextMultiline(const char* label, String& buffer, const ImVec2& size = ImVec2(0.0f, 0.0f),
+                            ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+
+    bool InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags = 0,
+                           ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 }// namespace Engine::ImGuiRenderer

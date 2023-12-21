@@ -265,19 +265,6 @@ namespace Engine
         return ImGui::Combo(name.c_str(), &current, combo_getter, array, array->GetSize(), value);
     }
 
-
-    static int input_text_callback(ImGuiInputTextCallbackData* data)
-    {
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
-        {
-            String* str        = static_cast<String*>(data->UserData);
-            const int new_size = data->BufTextLen;
-            str->resize(new_size);
-            data->Buf = str->data();
-        }
-        return 0;
-    }
-
     static bool wrap_input_text(const String& label, String& buffer, int flags)
     {
         return ImGuiRenderer::InputText(label.c_str(), buffer, flags);
@@ -285,15 +272,34 @@ namespace Engine
 
     static bool wrap_input_text_hint(const String& label, const String& hint, String& buffer, int flags)
     {
-        return ImGui::InputTextWithHint(label.c_str(), hint.c_str(), buffer.data(), buffer.size() + 1, flags, input_text_callback,
-                                        &buffer);
+        return ImGuiRenderer::InputTextWithHint(label.c_str(), hint.c_str(), buffer, flags);
     }
 
     static bool wrap_input_text_multiline(const String& label, String& buffer, const ImVec2& size, int flags)
     {
-        return ImGui::InputTextMultiline(label.c_str(), buffer.data(), buffer.size() + 1, size, flags, input_text_callback,
-                                         &buffer);
+        return ImGuiRenderer::InputTextMultiline(label.c_str(), buffer, size, flags);
     }
+
+    static bool is_mouse_pos_valid_wrap1()
+    {
+        return ImGui::IsMousePosValid();
+    }
+
+    static bool is_mouse_pos_valid_wrap2(const ImVec2& pos)
+    {
+        return ImGui::IsMousePosValid(&pos);
+    }
+
+    static void bullet_text(const String& text)
+    {
+        ImGui::BulletText("%s", text.c_str());
+    }
+
+    static void set_tooltip(const String& in)
+    {
+        ImGui::SetTooltip("%s", in.c_str());
+    }
+
 
     template<typename Type, size_t count = 1>
     void register_vector_type(const char* name)
@@ -833,6 +839,14 @@ namespace Engine
             new_enum_v(ImGuiKey, MouseX2);
             new_enum_v(ImGuiKey, MouseWheelX);
             new_enum_v(ImGuiKey, MouseWheelY);
+
+            new_enum.set("Mod_None", ImGuiMod_None);
+            new_enum.set("Mod_Ctrl", ImGuiMod_Ctrl);
+            new_enum.set("Mod_Shift", ImGuiMod_Shift);
+            new_enum.set("Mod_Alt", ImGuiMod_Alt);
+            new_enum.set("Mod_Super", ImGuiMod_Super);
+            new_enum.set("Mod_Shortcut", ImGuiMod_Shortcut);
+            new_enum.set("Mod_Mask_", ImGuiMod_Mask_);
         }
 
         {
@@ -945,11 +959,11 @@ namespace Engine
         reg_func("bool ArrowButton(const string& in, ImGuiDir)", ArrowButton);
 
         {
-            constexpr auto func = func_of<bool, const char*, const ImVec2&, int, int>(ImGui::BeginChild);
+            constexpr auto func = func_of<bool(const char*, const ImVec2&, int, int)>(ImGui::BeginChild);
             reg_func_no_ns("bool BeginChild(const string&, const ImVec2& in = ImVec2(0, 0), int = 0, int = 0)", func);
         }
         {
-            constexpr auto func = func_of<bool, ImGuiID, const ImVec2&, int, int>(ImGui::BeginChild);
+            constexpr auto func = func_of<bool(ImGuiID, const ImVec2&, int, int)>(ImGui::BeginChild);
             reg_func_no_ns("bool BeginChild(ImGuiID, const ImVec2& in = ImVec2(0, 0), int = 0, int = 0)", func);
         }
 
@@ -975,13 +989,13 @@ namespace Engine
         reg_func("bool Button(const string& in, const ImVec2& size = ImVec2(0, 0))", Button);
         reg_func("bool Checkbox(const string& in, bool&)", Checkbox);
         reg_func_no_ns("bool CheckboxFlags(const string& in, int& flags, int flags_value)",
-                       (func_of<bool, const char*, int*, int>(ImGui::CheckboxFlags)));
+                       (func_of<bool(const char*, int*, int)>(ImGui::CheckboxFlags)));
         reg_func_no_ns("bool CheckboxFlags(const string& in, uint& flags, uint flags_value)",
-                       (func_of<bool, const char*, unsigned int*, unsigned int>(ImGui::CheckboxFlags)));
+                       (func_of<bool(const char*, unsigned int*, unsigned int)>(ImGui::CheckboxFlags)));
         reg_func_no_ns("bool CollapsingHeader(const string& in, bool& , int = 0)",
-                       (func_of<bool, const char*, bool*, int>(ImGui::CollapsingHeader)));
+                       (func_of<bool(const char*, bool*, int)>(ImGui::CollapsingHeader)));
         reg_func_no_ns("bool CollapsingHeader(const string& in, int = 0)",
-                       (func_of<bool, const char*, int>(ImGui::CollapsingHeader)));
+                       (func_of<bool(const char*, int)>(ImGui::CollapsingHeader)));
         reg_func("bool ColorButton(const string& in, const ImVec4& col, int = 0, const ImVec2& size = ImVec2(0, 0))",
                  ColorButton);
 
@@ -1073,34 +1087,34 @@ namespace Engine
         reg_func("bool IsItemHovered(int = 0)", IsItemHovered);
         reg_func("bool IsItemToggledOpen()", IsItemToggledOpen);
         reg_func("bool IsItemVisible()", IsItemVisible);
-        //        bool  IsKeyChordPressed(ImGuiKeyChord key_chord);
-        //        bool  IsKeyDown(ImGuiKey key);
-        //        bool  IsKeyPressed(ImGuiKey key, bool repeat = true);
-        //        bool  IsKeyReleased(ImGuiKey key);
-        //        bool  IsMouseClicked(ImGuiMouseButton button, bool repeat = false);
-        //        bool  IsMouseDoubleClicked(ImGuiMouseButton button);
-        //        bool  IsMouseDown(ImGuiMouseButton button);
-        //        bool  IsMouseDragging(ImGuiMouseButton button, float lock_threshold = -1.0f);
-        //        bool  IsMouseHoveringRect(const ImVec2& r_min, const ImVec2& r_max, bool clip = true);
-        //        bool  IsMousePosValid(const ImVec2* mouse_pos = NULL);
+        reg_func_nw("bool IsKeyChordPressed(int)", IsKeyChordPressed);
+        reg_func_nw("bool IsKeyDown(ImGuiKey)", IsKeyDown);
+        reg_func_nw("bool IsKeyPressed(ImGuiKey, bool = true)", IsKeyPressed);
+        reg_func_nw("bool IsKeyReleased(ImGuiKey)", IsKeyReleased);
+        reg_func_nw("bool IsMouseClicked(ImGuiMouseButton, bool = false)", IsMouseClicked);
+        reg_func_nw("bool IsMouseDoubleClicked(ImGuiMouseButton)", IsMouseDoubleClicked);
+        reg_func_nw("bool IsMouseDown(ImGuiMouseButton)", IsMouseDown);
+        reg_func_nw("bool IsMouseDragging(ImGuiMouseButton, float = -1.0f)", IsMouseDragging);
+        reg_func_nw("bool IsMouseHoveringRect(const ImVec2&, const ImVec2&, bool = true)", IsMouseHoveringRect);
+        reg_func_nw_ns("bool IsMousePosValid()", is_mouse_pos_valid_wrap1);
+        reg_func_nw_ns("bool IsMousePosValid(const ImVec2&)", is_mouse_pos_valid_wrap2);
         reg_func_nw("bool  IsMouseReleased(ImGuiMouseButton)", IsMouseReleased);
         reg_func("bool IsPopupOpen(const string& in, int = 0)", IsPopupOpen);
         reg_func_no_ns("bool IsRectVisible(const ImVec2& in, const ImVec2& in)",
-                       (func_of<bool, const ImVec2&, const ImVec2&>(ImGui::IsRectVisible)));
-        reg_func_no_ns("bool IsRectVisible(const ImVec2& in)", (func_of<bool, const ImVec2&>(ImGui::IsRectVisible)));
+                       func_of<bool(const ImVec2&, const ImVec2&)>(ImGui::IsRectVisible));
+        reg_func_no_ns("bool IsRectVisible(const ImVec2& in)", (func_of<bool(const ImVec2&)>(ImGui::IsRectVisible)));
         reg_func("bool IsWindowDocked()", IsWindowDocked);
-        //        bool  IsWindowFocused(ImGuiFocusedFlags flags=0);
-        //        bool  IsWindowHovered(ImGuiHoveredFlags flags=0);
+        reg_func_nw("bool IsWindowFocused(int=0)", IsWindowFocused);
+        reg_func_nw("bool IsWindowHovered(int=0)", IsWindowHovered);
         //        bool  ListBox(const char* label, int* current_item, const char* const items[], int items_count, int height_in_items = -1);
         //        bool  ListBox(const char* label, int* current_item, const char* (*getter)(void* user_data, int idx), void* user_data, int items_count, int height_in_items = -1);
         //        bool  MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);
         //        bool  MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);
-        //        bool  RadioButton(const char* label, bool active);
+        reg_func_nw_ns("bool RadioButton(const string& in, bool)", func_of<bool(const char*, bool)>(ImGui::RadioButton));
         //        bool  RadioButton(const char* label, int* v, int v_button);
         //        bool  Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));
         //        bool  Selectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));
-        //        bool  SetDragDropPayload(const char* type, const void* data, size_t sz, ImGuiCond cond = 0);
-        //        bool  ShowStyleSelector(const char* label);
+        reg_func("bool ShowStyleSelector(const string& in)", ShowStyleSelector);
         //        bool  SliderAngle(const char* label, float* v_rad, float v_degrees_min = -360.0f, float v_degrees_max = +360.0f, const char* format = "%.0f deg", ImGuiSliderFlags flags = 0);
         //        bool  SliderFloat2(const char* label, float v[2], float v_min, float v_max, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
         //        bool  SliderFloat3(const char* label, float v[3], float v_min, float v_max, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
@@ -1110,32 +1124,28 @@ namespace Engine
         //        bool  SliderInt3(const char* label, int v[3], int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
         //        bool  SliderInt4(const char* label, int v[4], int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
         //        bool  SliderInt(const char* label, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
-        //        bool  SliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format = NULL, ImGuiSliderFlags flags = 0);
-        //        bool  SliderScalarN(const char* label, ImGuiDataType data_type, void* p_data, int components, const void* p_min, const void* p_max, const char* format = NULL, ImGuiSliderFlags flags = 0);
-        //        bool  SmallButton(const char* label);
-        //        bool  TabItemButton(const char* label, ImGuiTabItemFlags flags = 0);
+        reg_func("bool SmallButton(const string& in)", SmallButton);
+        reg_func("bool TabItemButton(const string& in, int = 0)", TabItemButton);
         reg_func_nw("bool TableNextColumn()", TableNextColumn);
-        //        bool  TableSetColumnIndex(int column_n);
-        //        bool  TreeNode(const char* label);
-        //        bool  TreeNode(const char* str_id, const char* fmt, ...) IM_FMTARGS(2);
-        //        bool  TreeNode(const void* ptr_id, const char* fmt, ...) IM_FMTARGS(2);
-        //        bool  TreeNodeEx(const char* label, ImGuiTreeNodeFlags flags = 0);
-        //        bool  TreeNodeEx(const char* str_id, ImGuiTreeNodeFlags flags, const char* fmt, ...) IM_FMTARGS(3);
-        //        bool  TreeNodeEx(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...) IM_FMTARGS(3);
-        //        bool  TreeNodeExV(const char* str_id, ImGuiTreeNodeFlags flags, const char* fmt, va_list args) IM_FMTLIST(3);
-        //        bool  TreeNodeExV(const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, va_list args) IM_FMTLIST(3);
-        //        bool  TreeNodeV(const char* str_id, const char* fmt, va_list args) IM_FMTLIST(2);
-        //        bool  TreeNodeV(const void* ptr_id, const char* fmt, va_list args) IM_FMTLIST(2);
+        reg_func_nw("bool TableSetColumnIndex(int)", TableSetColumnIndex);
+        reg_func_no_ns("bool TreeNode(const string& in)", (func_of<bool(const char*)>(ImGui::TreeNode)));
+        reg_func_no_ns("bool TreeNodeEx(const string& in, int = 0)",
+                       func_of<bool(const char*, ImGuiTreeNodeFlags)>(ImGui::TreeNodeEx));
+        reg_func_nw_ns(
+                "bool  TreeNodeEx(const string& in, int flags, const string& in)",
+                func_of<bool(const String&, int, const String&)>([](const String& id, int flags, const String& fmt) -> bool {
+                    return ImGui::TreeNodeEx(id.c_str(), flags, "%s", fmt.c_str());
+                }));
+
         //        bool  VSliderFloat(const char* label, const ImVec2& size, float* v, float v_min, float v_max, const char* format = "%.3f", ImGuiSliderFlags flags = 0);
         //        bool  VSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format = "%d", ImGuiSliderFlags flags = 0);
-        //        bool  VSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format = NULL, ImGuiSliderFlags flags = 0);
         reg_func("string GetClipboardText()", GetClipboardText);
-        //        const char*   GetKeyName(ImGuiKey key);
+        reg_func("string GetKeyName(ImGuiKey)", GetKeyName);
         reg_func("string GetStyleColorName(int)", GetStyleColorName);
         reg_func("string GetVersion()", GetVersion);
-        //        const char*   SaveIniSettingsToMemory(size_t* out_ini_size = NULL);
-        //        const char* TableGetColumnName(int column_n = -1);
-        //        const ImVec4& GetStyleColorVec4(ImGuiCol idx);
+        //const char*   SaveIniSettingsToMemory(size_t* out_ini_size = NULL);
+        reg_func("string TableGetColumnName(int column_n = -1)", TableGetColumnName);
+        reg_func_nw("const ImVec4& GetStyleColorVec4(int)", GetStyleColorVec4);
         engine->register_function("double GetTime()", make_wrap<ImGui::GetTime>());
         engine->register_function("float CalcItemWidth()", make_wrap<ImGui::CalcItemWidth>());
         engine->register_function("float GetColumnOffset(int = -1)", make_wrap<ImGui::GetColumnOffset>());
@@ -1157,19 +1167,19 @@ namespace Engine
         engine->register_function("float GetWindowWidth()", make_wrap<ImGui::GetWindowWidth>());
         //        ImGuiID       DockSpace(ImGuiID id, const ImVec2& size = ImVec2(0, 0), ImGuiDockNodeFlags flags = 0, const ImGuiWindowClass* window_class = NULL);
         //        ImGuiID       DockSpaceOverViewport(const ImGuiViewport* viewport = NULL, ImGuiDockNodeFlags flags = 0, const ImGuiWindowClass* window_class = NULL);
-        //        ImGuiID       GetID(const char* str_id);
-        //        ImGuiID       GetID(const char* str_id_begin, const char* str_id_end);
-        //        ImGuiID       GetID(const void* ptr_id);
-        //        ImGuiID       GetItemID();
-        //        ImGuiID       GetWindowDockID();
-        //        ImGuiMouseCursor GetMouseCursor();
-        //        ImGuiTableColumnFlags TableGetColumnFlags(int column_n = -1);
-        //        ImGuiTableSortSpecs*  TableGetSortSpecs();
-        //        ImU32 ColorConvertFloat4ToU32(const ImVec4& in);
-        //        ImU32 GetColorU32(const ImVec4& col);
-        //        ImU32 GetColorU32(ImGuiCol idx, float alpha_mul = 1.0f);
-        //        ImU32 GetColorU32(ImU32 col);
-        //        ImVec2        CalcTextSize(const char* text, const char* text_end = NULL, bool hide_text_after_double_hash = false, float wrap_width = -1.0f);
+        reg_func_no_ns("ImGuiID GetID(const string& in)", func_of<ImGuiID(const char*)>(ImGui::GetID));
+        reg_func_nw("ImGuiID GetItemID()", GetItemID);
+        reg_func_nw("ImGuiID GetWindowDockID()", GetWindowDockID);
+        reg_func_nw("int GetMouseCursor()", GetMouseCursor);
+        reg_func_nw("int TableGetColumnFlags(int = -1)", TableGetColumnFlags);
+        reg_func_nw("uint ColorConvertFloat4ToU32(const ImVec4& )", ColorConvertFloat4ToU32);
+        reg_func_nw_ns("uint GetColorU32(const ImVec4& )", (func_of<ImU32(const ImVec4&)>(ImGui::GetColorU32)));
+        reg_func_nw_ns("uint GetColorU32(int, float = 1.0f)", (func_of<ImU32(ImGuiCol, float)>(ImGui::GetColorU32)));
+        reg_func_nw_ns("uint GetColorU32(uint)", (func_of<ImU32(ImU32)>(ImGui::GetColorU32)));
+        reg_func_nw_ns("ImVec2 CalcTextSize(const string& in, bool = false, float = -1.0f)",
+                       func_of<ImVec2(const String&, bool, float)>([](const String& text, bool hide, float wrap) -> ImVec2 {
+                           return ImGui::CalcTextSize(text.c_str(), nullptr, hide, wrap);
+                       }));
         reg_func_nw("ImVec2 GetContentRegionAvail()", GetContentRegionAvail);
         reg_func_nw("ImVec2 GetContentRegionMax()", GetContentRegionMax);
         reg_func_nw("ImVec2 GetCursorPos()", GetCursorPos);
@@ -1179,65 +1189,59 @@ namespace Engine
         reg_func_nw("ImVec2 GetItemRectMax()", GetItemRectMax);
         reg_func_nw("ImVec2 GetItemRectMin()", GetItemRectMin);
         reg_func_nw("ImVec2 GetItemRectSize()", GetItemRectSize);
-        //        ImVec2 GetMouseDragDelta(ImGuiMouseButton button = 0, float lock_threshold = -1.0f);
-        //        ImVec2 GetMousePos();
-        //        ImVec2 GetMousePosOnOpeningCurrentPopup();
-        //        ImVec2 GetWindowContentRegionMax();
-        //        ImVec2 GetWindowContentRegionMin();
-        //        ImVec2 GetWindowPos();
-        //        ImVec2 GetWindowSize();
-        //        ImVec4 ColorConvertU32ToFloat4(ImU32 in);
-        //        int GetColumnIndex();
-        //        int GetColumnsCount();
-        //        int GetFrameCount();
-        //        int GetKeyPressedAmount(ImGuiKey key, float repeat_delay, float rate);
-        //        int GetMouseClickedCount(ImGuiMouseButton button);
-        //        int TableGetColumnCount();
-        //        int TableGetColumnIndex();
-        //        int TableGetRowIndex();
-        //        void  AlignTextToFramePadding();
-        //        void  BeginDisabled(bool disabled = true);
+        reg_func_nw("ImVec2 GetMouseDragDelta(ImGuiMouseButton = 0, float = -1.0f)", GetMouseDragDelta);
+        reg_func_nw("ImVec2 GetMousePos()", GetMousePos);
+        reg_func_nw("ImVec2 GetMousePosOnOpeningCurrentPopup()", GetMousePosOnOpeningCurrentPopup);
+        reg_func_nw("ImVec2 GetWindowContentRegionMax()", GetWindowContentRegionMax);
+        reg_func_nw("ImVec2 GetWindowContentRegionMin()", GetWindowContentRegionMin);
+        reg_func_nw("ImVec2 GetWindowPos()", GetWindowPos);
+        reg_func_nw("ImVec2 GetWindowSize()", GetWindowSize);
+        reg_func_nw("ImVec4 ColorConvertU32ToFloat4(uint)", ColorConvertU32ToFloat4);
+        reg_func_nw("int GetColumnIndex()", GetColumnIndex);
+        reg_func_nw("int GetColumnsCount()", GetColumnsCount);
+        reg_func_nw("int GetFrameCount()", GetFrameCount);
+        reg_func_nw("int GetKeyPressedAmount(ImGuiKey key, float repeat_delay, float rate)", GetKeyPressedAmount);
+        reg_func_nw("int GetMouseClickedCount(ImGuiMouseButton)", GetMouseClickedCount);
+        reg_func_nw("int TableGetColumnCount()", TableGetColumnCount);
+        reg_func_nw("int TableGetColumnIndex()", TableGetColumnIndex);
+        reg_func_nw("int TableGetRowIndex()", TableGetRowIndex);
+        reg_func_nw("void AlignTextToFramePadding()", AlignTextToFramePadding);
+        reg_func_nw("void BeginDisabled(bool = true)", BeginDisabled);
         reg_func_nw("void BeginGroup()", BeginGroup);
         reg_func_nw("void Bullet()", Bullet);
-
-        //        void  BulletText(const char* fmt, ...)    IM_FMTARGS(1);
-        //        void  BulletTextV(const char* fmt, va_list args)  IM_FMTLIST(1);
-        //        void  CloseCurrentPopup();
-        //        void  ColorConvertHSVtoRGB(float h, float s, float v, float& out_r, float& out_g, float& out_b);
-        //        void  ColorConvertRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v);
-        //        void  Columns(int count = 1, const char* id = NULL, bool border = true);
-        //        void  DebugFlashStyleColor(ImGuiCol idx);
-        //        void  DebugTextEncoding(const char* text);
-        //        void  DestroyContext(ImGuiContext* ctx = NULL);
-        //        void      DestroyPlatformWindows();
-        //        void  Dummy(const ImVec2& size);
-        reg_func_nw("void  EndDisabled()", EndDisabled);
-        reg_func_nw("void  EndDragDropSource()", EndDragDropSource);
-        reg_func_nw("void  EndDragDropTarget()", EndDragDropTarget);
-        reg_func_nw("void  EndGroup()", EndGroup);
-        reg_func_nw("void  EndListBox()", EndListBox);
-        reg_func_nw("void  EndMainMenuBar()", EndMainMenuBar);
-        reg_func_nw("void  EndMenu()", EndMenu);
-        reg_func_nw("void  EndMenuBar()", EndMenuBar);
-        reg_func_nw("void  EndPopup()", EndPopup);
-        reg_func_nw("void  EndTabBar()", EndTabBar);
-        reg_func_nw("void  EndTabItem()", EndTabItem);
-        reg_func_nw("void  EndTable()", EndTable);
-        reg_func_nw("void  EndTooltip()", EndTooltip);
-        //        void  GetAllocatorFunctions(ImGuiMemAllocFunc* p_alloc_func, ImGuiMemFreeFunc* p_free_func, void** p_user_data);
+        reg_func_nw_ns("void BulletText(const string& in)", bullet_text);
+        reg_func_nw("void CloseCurrentPopup()", CloseCurrentPopup);
+        reg_func_nw("void ColorConvertHSVtoRGB(float, float, float, float& out, float& out, float& out)", ColorConvertHSVtoRGB);
+        reg_func_nw("void ColorConvertRGBtoHSV(float, float, float, float& out, float& out, float& out)", ColorConvertRGBtoHSV);
+        reg_func("void Columns(int, const string& in, bool= true)", Columns);
+        reg_func_nw_ns("void Columns(int = 1)", static_cast<void (*)(int)>(([](int value) { ImGui::Columns(value); })));
+        reg_func_nw("void DebugFlashStyleColor(int)", DebugFlashStyleColor);
+        reg_func("void DebugTextEncoding(const string& in)", DebugTextEncoding);
+        reg_func_nw("void Dummy(const ImVec2& in size)", Dummy);
+        reg_func_nw("void EndDisabled()", EndDisabled);
+        reg_func_nw("void EndDragDropSource()", EndDragDropSource);
+        reg_func_nw("void EndDragDropTarget()", EndDragDropTarget);
+        reg_func_nw("void EndGroup()", EndGroup);
+        reg_func_nw("void EndListBox()", EndListBox);
+        reg_func_nw("void EndMainMenuBar()", EndMainMenuBar);
+        reg_func_nw("void EndMenu()", EndMenu);
+        reg_func_nw("void EndMenuBar()", EndMenuBar);
+        reg_func_nw("void EndPopup()", EndPopup);
+        reg_func_nw("void EndTabBar()", EndTabBar);
+        reg_func_nw("void EndTabItem()", EndTabItem);
+        reg_func_nw("void EndTable()", EndTable);
+        reg_func_nw("void EndTooltip()", EndTooltip);
         //        void  Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
-        //        void  Indent(float indent_w = 0.0f);
-        //        void  LabelText(const char* label, const char* fmt, ...)    IM_FMTARGS(2);
-        //        void  LabelTextV(const char* label, const char* fmt, va_list args)    IM_FMTLIST(2);
-        //        void  LoadIniSettingsFromDisk(const char* ini_filename);
-        //        void  LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size=0);
+        reg_func_nw("void Indent(float = 0.0f)", Indent);
+        reg_func_nw_ns("void LabelText(const string& in, const string& in fmt)",
+                       func_of<void(const String& label, const String& fmt)>([](const String& label, const String& fmt) {
+                           ImGui::LabelText(label.c_str(), "%s", fmt.c_str());
+                       }));
+
+        reg_func("void LoadIniSettingsFromDisk(const string& in)", LoadIniSettingsFromDisk);
+        reg_func("void LoadIniSettingsFromMemory(const string& in, uint64 =0)", LoadIniSettingsFromMemory);
         reg_func_nw("void  LogButtons()", LogButtons);
         reg_func_nw("void  LogFinish()", LogFinish);
-        //        void  LogText(const char* fmt, ...) IM_FMTARGS(1);
-        //        void  LogTextV(const char* fmt, va_list args) IM_FMTLIST(1);
-        //        void  LogToClipboard(int auto_open_depth = -1);
-        //        void  LogToFile(int auto_open_depth = -1, const char* filename = NULL);
-        //        void  LogToTTY(int auto_open_depth = -1);
         reg_func_nw("void NewLine()", NewLine);
         reg_func_nw("void NextColumn()", NextColumn);
         //        void  OpenPopup(const char* str_id, ImGuiPopupFlags popup_flags = 0);
@@ -1247,87 +1251,85 @@ namespace Engine
         //        void  PlotHistogram(const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
         //        void  PlotLines(const char* label, const float* values, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0), int stride = sizeof(float));
         //        void  PlotLines(const char* label, float(*values_getter)(void* data, int idx), void* data, int values_count, int values_offset = 0, const char* overlay_text = NULL, float scale_min = FLT_MAX, float scale_max = FLT_MAX, ImVec2 graph_size = ImVec2(0, 0));
-        reg_func_nw("void  PopButtonRepeat()", PopButtonRepeat);
-        reg_func_nw("void  PopClipRect()", PopClipRect);
-        reg_func_nw("void  PopFont()", PopFont);
-        reg_func_nw("void  PopID()", PopID);
-        reg_func_nw("void  PopItemWidth()", PopItemWidth);
-        //        void  PopStyleColor(int count = 1);
-        //        void  PopStyleVar(int count = 1);
-        //        void  PopTabStop();
-        //        void  PopTextWrapPos();
-        //        void  ProgressBar(float fraction, const ImVec2& size_arg = ImVec2(-FLT_MIN, 0), const char* overlay = NULL);
-        //        void  PushButtonRepeat(bool repeat);
-        //        void  PushClipRect(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect);
-        //        void  PushFont(ImFont* font);
-        //        void  PushID(const char* str_id);
-        //        void  PushID(const char* str_id_begin, const char* str_id_end);
-        //        void  PushID(const void* ptr_id);
-        //        void  PushID(int int_id);
-        //        void  PushItemWidth(float item_width);
-        //        void  PushStyleColor(ImGuiCol idx, const ImVec4& col);
-        //        void  PushStyleColor(ImGuiCol idx, ImU32 col);
-        //        void  PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
-        //        void  PushStyleVar(ImGuiStyleVar idx, float val);
-        //        void  PushTabStop(bool tab_stop);
-        //        void  PushTextWrapPos(float wrap_local_pos_x = 0.0f);
+        reg_func_nw("void PopButtonRepeat()", PopButtonRepeat);
+        reg_func_nw("void PopClipRect()", PopClipRect);
+        reg_func_nw("void PopFont()", PopFont);
+        reg_func_nw("void PopID()", PopID);
+        reg_func_nw("void PopItemWidth()", PopItemWidth);
+        reg_func_nw("void PopStyleColor(int = 1)", PopStyleColor);
+        reg_func_nw("void PopStyleVar(int = 1)", PopStyleVar);
+        reg_func_nw("void PopTabStop()", PopTabStop);
+        reg_func_nw("void PopTextWrapPos()", PopTextWrapPos);
+
+        //        void ProgressBar(float fraction, const ImVec2& size_arg = ImVec2(-FLT_MIN, 0), const char* overlay = NULL);
+        //        void PushButtonRepeat(bool repeat);
+        //        void PushClipRect(const ImVec2& clip_rect_min, const ImVec2& clip_rect_max, bool intersect_with_current_clip_rect);
+        //        void PushFont(ImFont* font);
+        //        void PushID(const char* str_id);
+        //        void PushID(const char* str_id_begin, const char* str_id_end);
+        //        void PushID(const void* ptr_id);
+        //        void PushID(int int_id);
+        //        void PushItemWidth(float item_width);
+        //        void PushStyleColor(ImGuiCol idx, const ImVec4& col);
+        //        void PushStyleColor(ImGuiCol idx, ImU32 col);
+        //        void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
+        //        void PushStyleVar(ImGuiStyleVar idx, float val);
+        //        void PushTabStop(bool tab_stop);
+        //        void PushTextWrapPos(float wrap_local_pos_x = 0.0f);
         //        void ResetMouseDragDelta(ImGuiMouseButton button = 0);
         //        void SameLine(float offset_from_start_x=0.0f, float spacing=-1.0f);
         //        void SaveIniSettingsToDisk(const char* ini_filename);
         reg_func_nw("void Separator()", Separator);
-        //        void SeparatorText(const char* label);
-        //        void SetAllocatorFunctions(ImGuiMemAllocFunc alloc_func, ImGuiMemFreeFunc free_func, void* user_data = NULL);
-        //        void SetClipboardText(const char* text);
+        reg_func("void SeparatorText(const string& in)", SeparatorText);
+        reg_func("void SetClipboardText(const string& in)", SetClipboardText);
         //        void SetColorEditOptions(ImGuiColorEditFlags flags);
-        //        void SetColumnOffset(int column_index, float offset_x);
-        //        void SetColumnWidth(int column_index, float width);
-        //        void SetCurrentContext(ImGuiContext* ctx);
-        //        void SetCursorPos(const ImVec2& local_pos);
-        //        void SetCursorPosX(float local_x);
-        //        void SetCursorPosY(float local_y);
-        //        void SetCursorScreenPos(const ImVec2& pos);
+        reg_func_nw("void SetColumnOffset(int, float)", SetColumnOffset);
+        reg_func_nw("void SetColumnWidth(int, float)", SetColumnWidth);
+        reg_func_nw("void SetCursorPos(const ImVec2&)", SetCursorPos);
+        reg_func_nw("void SetCursorPosX(float)", SetCursorPosX);
+        reg_func_nw("void SetCursorPosY(float)", SetCursorPosY);
+        reg_func_nw("void SetCursorScreenPos(const ImVec2&)", SetCursorScreenPos);
         reg_func_nw("void SetItemDefaultFocus()", SetItemDefaultFocus);
-        //        void SetItemTooltip(const char* fmt, ...) IM_FMTARGS(1);
-        //        void SetItemTooltipV(const char* fmt, va_list args) IM_FMTLIST(1);
-        //        void SetKeyboardFocusHere(int offset = 0);
+        reg_func_nw_ns("void SetItemTooltip(const string& in)",
+                       func_of<void(const String&)>([](const String& fmt) { ImGui::SetItemTooltip("%s", fmt.c_str()); }));
+        reg_func_nw("void SetKeyboardFocusHere(int = 0)", SetKeyboardFocusHere);
         //        void SetMouseCursor(ImGuiMouseCursor cursor_type);
-        //        void SetNextFrameWantCaptureKeyboard(bool want_capture_keyboard);
-        //        void SetNextFrameWantCaptureMouse(bool want_capture_mouse);
-        //        void SetNextItemAllowOverlap();
-        //        void SetNextItemOpen(bool is_open, ImGuiCond cond = 0);
-        //        void SetNextItemWidth(float item_width);
-        //        void SetNextWindowBgAlpha(float alpha);
-        //        void SetNextWindowClass(const ImGuiWindowClass* window_class);
-        //        void SetNextWindowCollapsed(bool collapsed, ImGuiCond cond = 0);
-        //        void SetNextWindowContentSize(const ImVec2& size);
-        //        void SetNextWindowDockID(ImGuiID dock_id, ImGuiCond cond = 0);
-        //        void SetNextWindowFocus();
-        //        void SetNextWindowPos(const ImVec2& pos, ImGuiCond cond = 0, const ImVec2& pivot = ImVec2(0, 0));
-        //        void SetNextWindowScroll(const ImVec2& scroll);
-        //        void SetNextWindowSize(const ImVec2& size, ImGuiCond cond = 0);
+        reg_func_nw("void SetNextFrameWantCaptureKeyboard(bool)", SetNextFrameWantCaptureKeyboard);
+        reg_func_nw("void SetNextFrameWantCaptureMouse(bool)", SetNextFrameWantCaptureMouse);
+
+        reg_func_nw("void SetNextItemAllowOverlap()", SetNextItemAllowOverlap);
+        reg_func_nw("void SetNextItemOpen(bool, ImGuiCond = 0)", SetNextItemOpen);
+        reg_func_nw("void SetNextItemWidth(float)", SetNextItemWidth);
+        reg_func_nw("void SetNextWindowBgAlpha(float)", SetNextWindowBgAlpha);
+        reg_func_nw("void SetNextWindowCollapsed(bool, ImGuiCond = 0)", SetNextWindowCollapsed);
+        reg_func_nw("void SetNextWindowContentSize(const ImVec2& size)", SetNextWindowContentSize);
+        reg_func_nw("void SetNextWindowDockID(ImGuiID, ImGuiCond = 0)", SetNextWindowDockID);
+        reg_func_nw("void SetNextWindowFocus()", SetNextWindowFocus);
+        reg_func_nw("void SetNextWindowPos(const ImVec2& pos, ImGuiCond = 0, const ImVec2& pivot = ImVec2(0, 0))",
+                    SetNextWindowPos);
+        reg_func_nw("void SetNextWindowScroll(const ImVec2& scroll)", SetNextWindowScroll);
+        reg_func_nw("void SetNextWindowSize(const ImVec2& size, int = 0)", SetNextWindowSize);
         //        void SetNextWindowSizeConstraints(const ImVec2& size_min, const ImVec2& size_max, ImGuiSizeCallback custom_callback = NULL, void* custom_callback_data = NULL);
-        //        void SetNextWindowViewport(ImGuiID viewport_id);
-        //        void SetScrollFromPosX(float local_x, float center_x_ratio = 0.5f);
-        //        void SetScrollFromPosY(float local_y, float center_y_ratio = 0.5f);
-        //        void SetScrollHereX(float center_x_ratio = 0.5f);
-        //        void SetScrollHereY(float center_y_ratio = 0.5f);
-        //        void SetScrollX(float scroll_x);
-        //        void SetScrollY(float scroll_y);
-        //        void SetStateStorage(ImGuiStorage* storage);
-        //        void SetTabItemClosed(const char* tab_or_docked_window_label);
-        //        void SetTooltip(const char* fmt, ...) IM_FMTARGS(1);
-        //        void SetTooltipV(const char* fmt, va_list args) IM_FMTLIST(1);
-        //        void SetWindowCollapsed(bool collapsed, ImGuiCond cond = 0);
-        //        void SetWindowCollapsed(const char* name, bool collapsed, ImGuiCond cond = 0);
-        reg_func_nw_ns("void  SetWindowFocus()", (func_of<void>(ImGui::SetWindowFocus)));
-        reg_func_no_ns("void  SetWindowFocus(const string& in)", (func_of<void, const char*>(ImGui::SetWindowFocus)));
+        reg_func_nw("void SetScrollFromPosX(float, float = 0.5f)", SetScrollFromPosX);
+        reg_func_nw("void SetScrollFromPosY(float, float = 0.5f)", SetScrollFromPosY);
+        reg_func_nw("void SetScrollHereX(float = 0.5f)", SetScrollHereX);
+        reg_func_nw("void SetScrollHereY(float = 0.5f)", SetScrollHereY);
+        reg_func_nw("void SetScrollX(float)", SetScrollX);
+        reg_func_nw("void SetScrollY(float)", SetScrollY);
+        reg_func("void SetTabItemClosed(const string& in)", SetTabItemClosed);
+        reg_func_nw_ns("void SetToolTip(const string& in)", set_tooltip);
+        reg_func_nw_ns("void SetWindowCollapsed(bool collapsed, int= 0)", (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
+        reg_func_no_ns("void SetWindowCollapsed(const string& in, bool collapsed, int= 0)",
+                       (func_of<void(bool, int)>(ImGui::SetWindowCollapsed)));
+        reg_func_nw_ns("void  SetWindowFocus()", (func_of<void()>(ImGui::SetWindowFocus)));
+        reg_func_no_ns("void  SetWindowFocus(const string& in)", (func_of<void(const char*)>(ImGui::SetWindowFocus)));
         reg_func_nw("void SetWindowFontScale(float)", SetWindowFontScale);
         reg_func_no_ns("void SetWindowPos(const string& in, const ImVec2& , int = 0)",
-                       (func_of<void, const char*, const ImVec2&, int>(ImGui::SetWindowPos)));
-        reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)", (func_of<void, const ImVec2&, int>(ImGui::SetWindowPos)));
+                       (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowPos)));
+        reg_func_nw_ns("void SetWindowPos(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowPos)));
         reg_func_no_ns("void SetWindowSize(const string& in, const ImVec2& , int = 0)",
-                       (func_of<void, const char*, const ImVec2&, int>(ImGui::SetWindowSize)));
-        reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)", (func_of<void, const ImVec2&, int>(ImGui::SetWindowSize)));
+                       (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowSize)));
+        reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowSize)));
         reg_func_nw_ns("void ShowAboutWindow(Boolean@ = null)", (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
         reg_func_nw_ns("void ShowDebugLogWindow(Boolean@ = null)",
                        (result_wrapped_func<ImGui::ShowDebugLogWindow, void, Boolean*>) );
@@ -1351,20 +1353,18 @@ namespace Engine
         reg_func("void TextUnformatted(const string& in , const string& in)", TextUnformatted);
         reg_func_nw("void TreePop()", TreePop);
 
-        reg_func_no_ns("void TreePush(const string& in)", (func_of<void, const char*>(ImGui::TreePush)));
+        reg_func_no_ns("void TreePush(const string& in)", (func_of<void(const char*)>(ImGui::TreePush)));
         engine->register_function("void Unindent(float = 0.0)", make_wrap<ImGui::Unindent>());
         engine->register_function("void Value(const string& in, bool)",
-                                  make_wrap<func_of<void, const char*, bool>(ImGui::Value)>());
+                                  make_wrap<func_of<void(const char*, bool)>(ImGui::Value)>());
 
         engine->register_function("void Value(const string& in, float, const string& in)",
-                                  make_wrap<func_of<void, const char*, float, const char*>(ImGui::Value)>());
+                                  make_wrap<func_of<void(const char*, float, const char*)>(ImGui::Value)>());
 
         engine->register_function("void Value(const string& in, int)",
-                                  make_wrap<func_of<void, const char*, int>(ImGui::Value)>());
+                                  make_wrap<func_of<void(const char*, int)>(ImGui::Value)>());
         engine->register_function("void Value(const string& in, uint)",
-                                  make_wrap<func_of<void, const char*, unsigned int>(ImGui::Value)>());
-
-
+                                  make_wrap<func_of<void(const char*, unsigned int)>(ImGui::Value)>());
         engine->default_namespace("");
     }
 

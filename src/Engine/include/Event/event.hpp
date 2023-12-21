@@ -113,7 +113,6 @@ namespace Engine
 
         EventType type() const;
         Identifier window_id() const;
-        const String& name() const;
         const Any& any() const;
 
         template<typename Type>

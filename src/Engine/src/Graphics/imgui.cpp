@@ -224,4 +224,28 @@ namespace Engine::ImGuiRenderer
         flags |= ImGuiInputTextFlags_CallbackResize;
         return ImGui::InputText(label, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
     }
+
+    bool InputTextMultiline(const char* label, String& buffer, const ImVec2& size, ImGuiInputTextFlags flags,
+                            ImGuiInputTextCallback callback, void* user_data)
+    {
+        InputTextCallback data;
+        data.callback = callback;
+        data.userdata = user_data;
+        data.str      = &buffer;
+
+        flags |= ImGuiInputTextFlags_CallbackResize;
+        return ImGui::InputTextMultiline(label, buffer.data(), buffer.size() + 1, size, flags, input_text_callback, &data);
+    }
+
+    bool InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags,
+                           ImGuiInputTextCallback callback, void* user_data)
+    {
+        InputTextCallback data;
+        data.callback = callback;
+        data.userdata = user_data;
+        data.str      = &buffer;
+
+        flags |= ImGuiInputTextFlags_CallbackResize;
+        return ImGui::InputTextWithHint(label, hint, buffer.data(), buffer.size() + 1, flags, input_text_callback, &data);
+    }
 }// namespace Engine::ImGuiRenderer

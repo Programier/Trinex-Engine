@@ -42,14 +42,14 @@ namespace Engine
                 .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
                 .method("const string& string_name() const", &Object::string_name)
                 .method("Engine::ObjectRenameStatus name(const string& in, bool = false)",
-                        func_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
+                        method_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
                 .method("Package@ root_package()", &Object::root_package)
                 .method("ObjectRenameStatus name(string, bool) const",
                         method_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
                 .method("string as_string() const", &Object::as_string)
                 .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
                 .method("Package@ find_package(const string& in, bool)",
-                        func_of<Package*, const String&, bool>(&Object::find_package))
+                        func_of<Package*(const String&, bool)>(&Object::find_package))
                 .method("Object@ static_find_object(const string& in)", &Object::find_object)
                 .method("Object& remove_from_package()", &Object::remove_from_package)
                 .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
@@ -60,13 +60,13 @@ namespace Engine
                 .virtual_method<Object&, Object*>(
                         "Object@ postload()", [](Object* self) -> Object& { return self->postload(); },
                         ScriptCallConv::CDECL_OBJFIRST)
-                .virtual_method<Object&, Object*, class asIScriptObject**>(
-                        "Object@ destroy_script_object(?& in)", [](Object* self, asIScriptObject** obj) -> Object& {
-                            // Obj always must be descriptor!
-                            ScriptObject object = *obj;
-                            object.add_reference();
-                            return self->destroy_script_object(&object);
-                        });
+                .virtual_method<Object&, Object*, class asIScriptObject**>("Object@ destroy_script_object(?& in)",
+                                                                           [](Object* self, asIScriptObject** obj) -> Object& {
+                                                                               // Obj always must be descriptor!
+                                                                               ScriptObject object = *obj;
+                                                                               object.add_reference();
+                                                                               return self->destroy_script_object(&object);
+                                                                           });
     }
 
     implement_initialize_class(Object)
