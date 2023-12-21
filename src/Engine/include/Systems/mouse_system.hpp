@@ -19,7 +19,7 @@ namespace Engine
         };
 
         struct ButtonInfo {
-            Mouse::ButtonStatus status;
+            Mouse::Status status;
             int_t x;
             int_t y;
             int_t clicks;

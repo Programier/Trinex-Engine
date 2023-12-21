@@ -3,7 +3,7 @@
 
 namespace Engine::Mouse
 {
-    enum ButtonStatus : EnumerateType
+    enum Status : EnumerateType
     {
         Released = 0,
         JustReleased,
@@ -27,4 +27,4 @@ namespace Engine::Mouse
         Normal,
         Flipped,
     };
-}
+}// namespace Engine::Mouse

@@ -226,8 +226,7 @@ namespace Engine
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Name>,
                          ScriptCallConv::CDECL_OBJFIRST);
 
-        registrar.method("Name find_name(const string& in)", func_of<Name(const String&)>(Name::find_name));
-
+        registrar.static_function("Name find_name(const string& in)", func_of<Name(const String&)>(Name::find_name));
         registrar.method("bool is_valid() const", &Name::is_valid);
         registrar.method("uint64 hash() const", &Name::hash);
         registrar.method("const string& to_string() const", method_of<const String&>(&Name::to_string));

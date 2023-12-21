@@ -1,0 +1,142 @@
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/keyboard.hpp>
+#include <ScriptEngine/registrar.hpp>
+
+namespace Engine::Keyboard
+{
+    static void on_init()
+    {
+        ScriptEnumRegistrar status_registrar("Engine::Keyboard::Status");
+        ScriptEnumRegistrar key_registrar("Engine::Keyboard::Key");
+
+        status_registrar.set("Released", Released);
+        status_registrar.set("JustReleased", JustReleased);
+        status_registrar.set("JustPressed", JustPressed);
+        status_registrar.set("Pressed", Pressed);
+        status_registrar.set("Repeat", Repeat);
+
+        key_registrar.set("Unknown", Unknown);
+        key_registrar.set("Space", Space);
+        key_registrar.set("Apostrophe", Apostrophe);
+        key_registrar.set("Comma", Comma);
+        key_registrar.set("Minus", Minus);
+        key_registrar.set("Period", Period);
+        key_registrar.set("Slash", Slash);
+        key_registrar.set("Num0", Num0);
+        key_registrar.set("Num1", Num1);
+        key_registrar.set("Num2", Num2);
+        key_registrar.set("Num3", Num3);
+        key_registrar.set("Num4", Num4);
+        key_registrar.set("Num5", Num5);
+        key_registrar.set("Num6", Num6);
+        key_registrar.set("Num7", Num7);
+        key_registrar.set("Num8", Num8);
+        key_registrar.set("Num9", Num9);
+        key_registrar.set("Semicolon", Semicolon);
+        key_registrar.set("Equal", Equal);
+        key_registrar.set("A", A);
+        key_registrar.set("B", B);
+        key_registrar.set("C", C);
+        key_registrar.set("D", D);
+        key_registrar.set("E", E);
+        key_registrar.set("F", F);
+        key_registrar.set("G", G);
+        key_registrar.set("H", H);
+        key_registrar.set("I", I);
+        key_registrar.set("J", J);
+        key_registrar.set("K", K);
+        key_registrar.set("L", L);
+        key_registrar.set("M", M);
+        key_registrar.set("N", N);
+        key_registrar.set("O", O);
+        key_registrar.set("P", P);
+        key_registrar.set("Q", Q);
+        key_registrar.set("R", R);
+        key_registrar.set("S", S);
+        key_registrar.set("T", T);
+        key_registrar.set("U", U);
+        key_registrar.set("V", V);
+        key_registrar.set("W", W);
+        key_registrar.set("X", X);
+        key_registrar.set("Y", Y);
+        key_registrar.set("Z", Z);
+        key_registrar.set("LeftBracket", LeftBracket);
+        key_registrar.set("Backslash", Backslash);
+        key_registrar.set("RightBracket", RightBracket);
+        key_registrar.set("GraveAccent", GraveAccent);
+        key_registrar.set("Www", Www);
+        key_registrar.set("Escape", Escape);
+        key_registrar.set("Enter", Enter);
+        key_registrar.set("Tab", Tab);
+        key_registrar.set("Backspace", Backspace);
+        key_registrar.set("Insert", Insert);
+        key_registrar.set("Delete", Delete);
+        key_registrar.set("Right", Right);
+        key_registrar.set("Left", Left);
+        key_registrar.set("Down", Down);
+        key_registrar.set("Up", Up);
+        key_registrar.set("PageUp", PageUp);
+        key_registrar.set("PageDown", PageDown);
+        key_registrar.set("Home", Home);
+        key_registrar.set("End", End);
+        key_registrar.set("CapsLock", CapsLock);
+        key_registrar.set("ScrollLock", ScrollLock);
+        key_registrar.set("NumLock", NumLock);
+        key_registrar.set("PrintScreen", PrintScreen);
+        key_registrar.set("Pause", Pause);
+        key_registrar.set("F1", F1);
+        key_registrar.set("F2", F2);
+        key_registrar.set("F3", F3);
+        key_registrar.set("F4", F4);
+        key_registrar.set("F5", F5);
+        key_registrar.set("F6", F6);
+        key_registrar.set("F7", F7);
+        key_registrar.set("F8", F8);
+        key_registrar.set("F9", F9);
+        key_registrar.set("F10", F10);
+        key_registrar.set("F11", F11);
+        key_registrar.set("F12", F12);
+        key_registrar.set("F13", F13);
+        key_registrar.set("F14", F14);
+        key_registrar.set("F15", F15);
+        key_registrar.set("F16", F16);
+        key_registrar.set("F17", F17);
+        key_registrar.set("F18", F18);
+        key_registrar.set("F19", F19);
+        key_registrar.set("F20", F20);
+        key_registrar.set("F21", F21);
+        key_registrar.set("F22", F22);
+        key_registrar.set("F23", F23);
+        key_registrar.set("F24", F24);
+        key_registrar.set("Kp0", Kp0);
+        key_registrar.set("Kp1", Kp1);
+        key_registrar.set("Kp2", Kp2);
+        key_registrar.set("Kp3", Kp3);
+        key_registrar.set("Kp4", Kp4);
+        key_registrar.set("Kp5", Kp5);
+        key_registrar.set("Kp6", Kp6);
+        key_registrar.set("Kp7", Kp7);
+        key_registrar.set("Kp8", Kp8);
+        key_registrar.set("Kp9", Kp9);
+        key_registrar.set("KpDecimal", KpDecimal);
+        key_registrar.set("KpDivide", KpDivide);
+        key_registrar.set("KpMultiply", KpMultiply);
+        key_registrar.set("KpSubtract", KpSubtract);
+        key_registrar.set("KpAdd", KpAdd);
+        key_registrar.set("KpEnter", KpEnter);
+        key_registrar.set("KpEqual", KpEqual);
+        key_registrar.set("LeftShift", LeftShift);
+        key_registrar.set("LeftControl", LeftControl);
+        key_registrar.set("LeftAlt", LeftAlt);
+        key_registrar.set("LeftSuper", LeftSuper);
+        key_registrar.set("RightShift", RightShift);
+        key_registrar.set("RightControl", RightControl);
+        key_registrar.set("RightAlt", RightAlt);
+        key_registrar.set("RightSuper", RightSuper);
+        key_registrar.set("Menu", Menu);
+        key_registrar.set("__COUNT__", __COUNT__);
+    };
+
+
+    static InitializeController controller(on_init, "Bind Keyboard");
+}// namespace Engine::Keyboard

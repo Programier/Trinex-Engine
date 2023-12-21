@@ -16,10 +16,10 @@
 #include <Systems/game_controller_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
+#include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-
-#include <Window/config.hpp>
+#include <angelscript.h>
 
 
 namespace Engine
@@ -172,9 +172,23 @@ namespace Engine
     }
 
 
+    static Identifier add_script_listener(EventSystem* system, EventType type, asIScriptFunction* _function)
+    {
+        ScriptFunction function        = _function;
+        EventSystem::Listener callback = [function](const Event& event) mutable {
+            const void* address = &event;
+            function.prepare().arg_address(0, const_cast<void*>(address)).call().unbind_context();
+        };
+        return system->add_listener(type, callback);
+    }
+
     static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
     {
-        registrar->method("EventSystem@ instance()", EventSystem::instance);
+        InitializeController().require("Bind Event");
+        ScriptEngine::instance()->funcdef("void Engine::EventCallback(const Engine::Event&)");
+        registrar->static_function("EventSystem@ instance()", EventSystem::new_system<EventSystem>);
+        registrar->func_as_method("uint64 add_listener(Engine::EventType, Engine::EventCallback@)", add_script_listener,
+                                  ScriptCallConv::CDECL_OBJFIRST);
     }
 
     implement_class(EventSystem, "Engine", Class::IsScriptable);

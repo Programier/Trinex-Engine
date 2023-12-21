@@ -42,7 +42,7 @@ namespace Engine
 
     static void* platform_load_library(const String& name)
     {
-        return dlopen(name.empty() ? nullptr : name.c_str(), RTLD_LAZY);
+        return dlopen(name.empty() ? nullptr : name.c_str(), RTLD_LAZY | RTLD_GLOBAL);
     }
 
     static void* platform_load_func(void* handle, const char* name)

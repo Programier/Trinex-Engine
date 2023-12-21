@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <any>
 
 
 namespace Engine
@@ -68,6 +69,8 @@ namespace Engine
 
     template<typename Signature>
     using Function = std::function<Signature>;
+
+    using Any = std::any;
 
     template<typename Type>
     void fake_delete(Type*)

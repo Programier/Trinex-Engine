@@ -44,11 +44,11 @@ namespace Engine
         EventSystem* event_system = System::new_system<EventSystem>();
         event_system->register_subsystem(this);
 
-        _M_key_press_id = event_system->add_listener(
-                EventType::KeyDown, std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
+        _M_key_press_id = event_system->add_listener(EventType::KeyDown,
+                                                     std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
 
-        _M_key_release_id = event_system->add_listener(
-                EventType::KeyUp, std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
+        _M_key_release_id = event_system->add_listener(EventType::KeyUp,
+                                                       std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
         return *this;
     }
 
@@ -124,11 +124,6 @@ namespace Engine
     bool KeyboardSystem::is_repeated(Keyboard::Key key) const
     {
         return status_of(key) == Keyboard::Repeat;
-    }
-
-#define key_name(name)                                                                                                 \
-    {                                                                                                                  \
-        #name, Keyboard::name                                                                                          \
     }
 
     implement_class(KeyboardSystem, "Engine", 0);

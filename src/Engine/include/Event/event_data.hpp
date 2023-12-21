@@ -38,7 +38,6 @@ namespace Engine
 
     struct KeyEvent {
         Keyboard::Key key;
-        Keyboard::Key type;
         bool repeat = false;
     };
 

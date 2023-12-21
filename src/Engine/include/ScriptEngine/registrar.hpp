@@ -106,7 +106,6 @@ namespace Engine
 
         static ENGINE_EXPORT void global_namespace_name(const String& name);
 
-
         // Method registration
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
@@ -123,23 +122,27 @@ namespace Engine
         }
 
         template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& method(const char* declaration, ReturnType (*method_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::CDECL)
+        ScriptClassRegistrar& static_function(const char* declaration, ReturnType (*method_address)(Args...),
+                                              ScriptCallConv conv = ScriptCallConv::CDECL)
         {
             return private_register_static_method(declaration, reinterpret_cast<void*>(method_address), conv);
         }
 
-        template<typename ReturnType, typename... Args, typename LambdaType>
-        ScriptClassRegistrar& virtual_method(const char* declaration, LambdaType lambda,
+        template<typename ReturnType, typename... Args>
+        ScriptClassRegistrar& virtual_method(const char* declaration, ReturnType (*func)(Args...),
                                              ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
         {
-            ReturnType (*method_address)(Args...) = static_cast<ReturnType (*)(Args...)>(lambda);
-            return private_register_virtual_method(declaration, reinterpret_cast<void*>(method_address), conv);
+            return private_register_virtual_method(declaration, reinterpret_cast<void*>(func), conv);
         }
 
+        template<typename ReturnType, typename... Args>
+        ScriptClassRegistrar& func_as_method(const char* declaration, ReturnType (*func)(Args...),
+                                             ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
+        {
+            return virtual_method(declaration, func, conv);
+        }
 
         // Property registration
-
         template<typename T, typename C>
         ScriptClassRegistrar& property(const char* declaration, T C::*prop)
         {
@@ -147,7 +150,6 @@ namespace Engine
         }
 
         ScriptClassRegistrar& static_property(const char* declaration, void* prop);
-
         ScriptClassRegistrar& require_type(const String& name, const ClassInfo& info = {});
 
         template<typename... Types>

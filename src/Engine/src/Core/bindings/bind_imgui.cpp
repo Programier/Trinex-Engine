@@ -337,7 +337,10 @@ namespace Engine
 
     static void on_init()
     {
-        InitializeController().require("Bind Engine::Vector");
+        InitializeController()
+                .require("Bind Engine::Vector")
+                .require("Bind Engine::IntVector")
+                .require("Bind Engine::UIntVector");
 
         ScriptEngine* engine = ScriptEngine::instance();
 

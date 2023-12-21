@@ -1,7 +1,9 @@
-void print_hello()
+void event_callback(const Engine::Event& event)
 {
-	print("Hello!");
+	Engine::WindowEvent data = event.window_event();
+	printf("New Pos: {%0, %1}", data.x, data.y);
 }
+
 
 class Viewport
 {
@@ -14,12 +16,12 @@ class Viewport
 		ImGui::TabItemButton("Hello");
 		ImGui::EndTabBar();
 		ImGui::End();
-
-		print(string(Engine::EventSystem::instance()));
 	}
 
 	void on_create(Engine::Object@ owner)
 	{
 		@native = @owner;
+		print("Hello World");
+		uint64 id = Engine::EventSystem::instance().add_listener(Engine::EventType::WindowMoved, event_callback);
 	}
 }

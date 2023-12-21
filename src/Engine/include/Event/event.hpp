@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/any.hpp>
+#include <Core/implement.hpp>
 
 namespace Engine
 {
@@ -103,12 +103,15 @@ namespace Engine
 
 
     public:
+        Event();
+        copy_constructors_hpp(Event);
         Event(Identifier window_id, EventType type);
+        Event(Identifier window_id, EventType type, const Any& any);
 
-        template<typename Type>
-        Event(Identifier window_id, EventType type, Type&& any) : Event(window_id, type)
+        template<typename T>
+        Event(Identifier window_id, EventType type, T&& value) : Event(window_id, type)
         {
-            _M_any = std::forward<Type>(any);
+            _M_any = std::forward<T>(value);
         }
 
         EventType type() const;
@@ -118,7 +121,7 @@ namespace Engine
         template<typename Type>
         Type get() const
         {
-            return _M_any.get<Type>();
+            return std::any_cast<Type>(_M_any);
         }
     };
 }// namespace Engine

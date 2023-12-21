@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <Core/etl/any.hpp>
 
 
 namespace Engine::JSON
@@ -64,13 +63,13 @@ namespace Engine::JSON
         template<typename T>
         T get()
         {
-            return _M_value.checked_get<T>();
+            return std::any_cast<T>(_M_value);
         }
 
         template<typename T>
         T get() const
         {
-            return _M_value.checked_get<T>();
+            return std::any_cast<T>(_M_value);
         }
 
         template<typename T>
@@ -78,7 +77,7 @@ namespace Engine::JSON
         {
             try
             {
-                return _M_value.checked_get<T>();
+                return std::any_cast<T>(_M_value);
             }
             catch (...)
             {
@@ -89,7 +88,7 @@ namespace Engine::JSON
         template<typename T>
         const Value& copy_to_array(Vector<T>& out, ValueType filter) const
         {
-            if(type() == ValueType::Array)
+            if (type() == ValueType::Array)
             {
                 const JsonArray& array = checked_get<const JsonArray&>();
                 for (auto& ell : array)

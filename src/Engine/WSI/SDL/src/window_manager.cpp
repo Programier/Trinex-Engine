@@ -7,6 +7,7 @@
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
+#include <cstring>
 #include <imgui_impl_sdl2.h>
 #include <window_manager.hpp>
 #include <window_system.hpp>
@@ -261,8 +262,7 @@ namespace Engine
         return *this;
     }
 
-    WindowManagerInterface& SDL2_WindowManagerInterface::add_event_callback(Identifier system_id,
-                                                                            const EventCallback& callback)
+    WindowManagerInterface& SDL2_WindowManagerInterface::add_event_callback(Identifier system_id, const EventCallback& callback)
     {
         _M_event_callbacks[system_id].push_back(callback);
         return *this;
@@ -479,10 +479,9 @@ namespace Engine
             case SDL_MOUSEWHEEL:
             {
                 MouseWheelEvent wheel_event;
-                wheel_event.x = _M_event.wheel.preciseX;
-                wheel_event.y = _M_event.wheel.preciseY;
-                wheel_event.direction =
-                        _M_event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? Mouse::Normal : Mouse::Flipped;
+                wheel_event.x         = _M_event.wheel.preciseX;
+                wheel_event.y         = _M_event.wheel.preciseY;
+                wheel_event.direction = _M_event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? Mouse::Normal : Mouse::Flipped;
                 new_event(MouseWheel, wheel_event);
                 break;
             }
@@ -524,11 +523,11 @@ namespace Engine
                 break;
             }
 
-#define kek(x)                                                                                                         \
-    case x:                                                                                                            \
-    {                                                                                                                  \
-        info_log("SDL", #x);                                                                                           \
-        break;                                                                                                         \
+#define kek(x)                                                                                                                   \
+    case x:                                                                                                                      \
+    {                                                                                                                            \
+        info_log("SDL", #x);                                                                                                     \
+        break;                                                                                                                   \
     }
 
                 kek(SDL_CONTROLLERBUTTONDOWN);

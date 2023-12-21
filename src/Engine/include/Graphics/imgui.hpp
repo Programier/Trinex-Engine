@@ -26,7 +26,7 @@ namespace Engine::ImGuiRenderer
         ~DrawData();
     };
 
-    class ImGuiTexture final
+    class ENGINE_EXPORT ImGuiTexture final
     {
     private:
         RHI_ImGuiTexture* _M_handle = nullptr;

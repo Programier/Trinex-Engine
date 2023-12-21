@@ -1,6 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/game_controller.hpp>
 #include <Core/logger.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <numeric>
 
 namespace Engine
@@ -32,7 +33,29 @@ namespace Engine
     }
 
     static void on_init()
-    {}
+    {
 
-    static InitializeController init(on_init);
+        ScriptClassRegistrar::ClassInfo info;
+        info.size  = sizeof(GameController);
+        info.flags = ScriptClassRegistrar::Ref | ScriptClassRegistrar::NoCount;
+
+        ScriptClassRegistrar registrar("Engine::GameController", info);
+        ScriptEnumRegistrar axis_enum("Engine::GameController::Axis");
+
+        axis_enum.set("None", GameController::None);
+        axis_enum.set("LeftX", GameController::LeftX);
+        axis_enum.set("LeftY", GameController::LeftY);
+        axis_enum.set("RightX", GameController::RightX);
+        axis_enum.set("RightY", GameController::RightY);
+        axis_enum.set("TriggerLeft", GameController::TriggerLeft);
+        axis_enum.set("TriggerRight", GameController::TriggerRight);
+        axis_enum.set("__COUNT__", GameController::__COUNT__);
+
+        registrar.method("uint64 id() const", &GameController::id);
+        registrar.method("int16 axis_value(Engine::GameController::Axis) const", &GameController::axis_value);
+        registrar.method("float axis_value_normalized(Engine::GameController::Axis) const",
+                         &GameController::axis_value_normalized);
+    }
+
+    static InitializeController init(on_init, "Bind GameController");
 }// namespace Engine
