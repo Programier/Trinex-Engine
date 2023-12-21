@@ -1,6 +1,6 @@
 {
     "Engine": {
-        "enable_jit": false,
+        "enable_jit": true,
         "load_meshes_to_gpu": true,
         "api": "OpenGL",
         "delete_resources_after_load": false,

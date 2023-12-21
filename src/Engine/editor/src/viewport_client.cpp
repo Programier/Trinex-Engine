@@ -70,6 +70,15 @@ namespace Engine
         return *this;
     }
 
+    ViewportClient& EditorViewportClient::destroy_script_object(ScriptObject* object)
+    {
+        if(*object == _M_script_object)
+        {
+            _M_script_object.remove_reference();
+        }
+        return *this;
+    }
+
 
     ViewportClient& EditorViewportClient::update(class RenderViewport* viewport, float dt)
     {

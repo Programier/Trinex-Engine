@@ -42,8 +42,8 @@
 #define STDCALL_DECL
 
 #define RETURN_CONTROL_TO_VM() return exec_asBC_RET(info)
-#define NEED_IMPLEMENTATION()                                                                                          \
-    printf("Function %s need implementaion!\n", __FUNCTION__);                                                         \
+#define NEED_IMPLEMENTATION()                                                                                                    \
+    printf("Function %s need implementaion!\n", __FUNCTION__);                                                                   \
     RETURN_CONTROL_TO_VM()
 #define CHECK_IT() printf("Function %s marked for check\n", __FUNCTION__)
 
@@ -183,8 +183,8 @@ namespace JIT
 
     ARM64_Compiler::ARM64_Compiler(bool with_suspend) : _M_with_suspend(with_suspend)
     {
-#define register_code(name)                                                                                            \
-    exec[static_cast<size_t>(name)]       = &ARM64_Compiler::exec_##name;                                              \
+#define register_code(name)                                                                                                      \
+    exec[static_cast<size_t>(name)]       = &ARM64_Compiler::exec_##name;                                                        \
     code_names[static_cast<size_t>(name)] = #name;
 
         register_code(asBC_PopPtr);
@@ -477,8 +477,7 @@ namespace JIT
             auto size           = instruction_size(info->instruction);
             bool is_implemented = current_offset != info->assembler.offset();
 
-            if (info->instruction == asBC_JitEntry || info->instruction == asBC_SUSPEND ||
-                info->instruction == asBC_iTOb)
+            if (info->instruction == asBC_JitEntry || info->instruction == asBC_SUSPEND || info->instruction == asBC_iTOb)
             {
                 is_implemented = true;
             }
@@ -555,8 +554,7 @@ namespace JIT
     void ARM64_Compiler::restore_registers(CompileInfo* info)
     {
         new_instruction(ldr(restore_register, a64::ptr(stack_pointer, vm_register_offset - ptr_size_1)));
-        new_instruction(
-                ldr(vm_stack_frame_pointer, a64::ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer))));
+        new_instruction(ldr(vm_stack_frame_pointer, a64::ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer))));
         new_instruction(ldr(vm_stack_pointer, a64::ptr(restore_register, offsetof(asSVMRegisters, stackPointer))));
         new_instruction(ldr(vm_value_q, a64::ptr(restore_register, offsetof(asSVMRegisters, valueRegister))));
         new_instruction(ldr(vm_object, a64::ptr(restore_register, offsetof(asSVMRegisters, objectRegister))));
@@ -573,8 +571,7 @@ namespace JIT
             new_instruction(str(qword_free_1, a64::ptr(restore_register, offsetof(asSVMRegisters, programPointer))));
         }
 
-        new_instruction(
-                str(vm_stack_frame_pointer, a64::ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer))));
+        new_instruction(str(vm_stack_frame_pointer, a64::ptr(restore_register, offsetof(asSVMRegisters, stackFramePointer))));
         new_instruction(str(vm_stack_pointer, a64::ptr(restore_register, offsetof(asSVMRegisters, stackPointer))));
         new_instruction(str(vm_value_q, a64::ptr(restore_register, offsetof(asSVMRegisters, valueRegister))));
         new_instruction(str(vm_object, a64::ptr(restore_register, offsetof(asSVMRegisters, objectRegister))));
@@ -1390,7 +1387,8 @@ namespace JIT
 
     void ARM64_Compiler::exec_asBC_GETOBJ(CompileInfo* info)
     {
-        short offset = -arg_offset(0);
+        short offset = arg_value_word(0) * sizeof(asDWORD);
+
         new_instruction(mov(qword_free_1, vm_stack_pointer));
         new_instruction(add(qword_free_1, qword_free_1, offset));
 
@@ -1398,10 +1396,10 @@ namespace JIT
         new_instruction(mov(qword_free_3, -sizeof(asDWORD)));
         new_instruction(mul(qword_free_2, qword_free_2, qword_free_3));
 
-        new_instruction(ldr(qword_free_3, a64::ptr(vm_stack_pointer, qword_free_2)));
+        new_instruction(ldr(qword_free_3, a64::ptr(vm_stack_frame_pointer, qword_free_2)));
         new_instruction(str(qword_free_3, a64::ptr(qword_free_1)));
         new_instruction(mov(qword_free_3, 0));
-        new_instruction(str(qword_free_2, a64::ptr(vm_stack_pointer, qword_free_2)));
+        new_instruction(str(qword_free_2, a64::ptr(vm_stack_frame_pointer, qword_free_2)));
     }
 
     void ARM64_Compiler::exec_asBC_REFCPY(CompileInfo* info)

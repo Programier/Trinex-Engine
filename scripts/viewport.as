@@ -21,7 +21,6 @@ class Viewport
 	void on_create(Engine::Object@ owner)
 	{
 		@native = @owner;
-		print("Hello World");
-		uint64 id = Engine::EventSystem::instance().add_listener(Engine::EventType::WindowMoved, event_callback);
+		Engine::EventSystem::instance().add_listener(Engine::EventType::WindowMoved, event_callback);
 	}
 }

@@ -23,6 +23,8 @@ namespace Engine
         ViewportClient& update(class RenderViewport* viewport, float dt) override;
         ViewportClient& prepare_render(class RenderViewport* viewport) override;
 
+        ViewportClient& destroy_script_object(ScriptObject* object) override;
+
 
         EditorViewportClient& create_properties_window(float dt);
         EditorViewportClient& create_scene_tree_window(float dt);
