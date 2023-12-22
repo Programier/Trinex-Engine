@@ -81,6 +81,7 @@ namespace Engine
 
         asIScriptEngine* _M_engine;
 
+        static void declare_as_class(Class* _class);
         static void declare_as_class(Class* _class, const ClassInfo& info);
         ScriptClassRegistrar& private_register_method(const char* declaration, void* method, ScriptCallConv conv);
         ScriptClassRegistrar& private_register_virtual_method(const char* declaration, void* method, ScriptCallConv conv);

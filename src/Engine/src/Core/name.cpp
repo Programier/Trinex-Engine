@@ -240,5 +240,5 @@ namespace Engine
         registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
     }
 
-    static InitializeController controller(on_init, "Bind class Name");
+    static InitializeController controller(on_init, "Bind Engine::Name");
 }// namespace Engine

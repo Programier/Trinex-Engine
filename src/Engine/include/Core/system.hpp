@@ -31,10 +31,6 @@ namespace Engine
         System* _M_parent_system;
 
     public:
-        bool save(BufferWriter* writer = nullptr) const                         = delete;
-        bool load(BufferReader* read = nullptr, bool clear = false)             = delete;
-        Object* load_object(const String& name, BufferReader* reader = nullptr) = delete;
-
         System();
         virtual System& create();
         virtual System& wait();

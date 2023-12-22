@@ -5,22 +5,41 @@ void event_callback(const Engine::Event& event)
 }
 
 
+void render_class_hierarchy(Engine::Class@ class_instance)
+{
+	if(@class_instance != null)
+	{
+		if(ImGui::CollapsingHeader(class_instance.name()))
+		{
+			ImGui::Indent(10);
+			render_class_hierarchy(class_instance.parent());
+			ImGui::Text("Size: %0".format(class_instance.sizeof_class()));
+			ImGui::Unindent(10);
+		}
+	}
+}
+
 class Viewport
 {
 	Engine::Object@ native;
+	uint64 listener_id = 0;
 
 	void update(float dt)
 	{
 		ImGui::Begin("Scripted Window");
-		ImGui::BeginTabBar("Hello2");
-		ImGui::TabItemButton("Hello");
-		ImGui::EndTabBar();
+		
+		if(@native != null)
+		{
+			Engine::Class@ class_instance = native.class_instance();
+			render_class_hierarchy(class_instance);
+		}
+		
 		ImGui::End();
 	}
 
 	void on_create(Engine::Object@ owner)
 	{
 		@native = @owner;
-		Engine::EventSystem::instance().add_listener(Engine::EventType::WindowMoved, event_callback);
+		listener_id = Engine::EventSystem::instance().add_listener(Engine::EventType::WindowMoved, event_callback);
 	}
 }

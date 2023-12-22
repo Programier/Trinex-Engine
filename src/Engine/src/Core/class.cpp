@@ -39,8 +39,7 @@ namespace Engine
     }
 
     Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent, Flags flags)
-        : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent),
-          _M_singletone_object(nullptr)
+        : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent), _M_singletone_object(nullptr)
     {
         get_class_table()[class_name] = this;
         _M_size                       = 0;
@@ -182,4 +181,26 @@ namespace Engine
         }
         return *this;
     }
+
+
+    static void on_init()
+    {
+        ScriptClassRegistrar::ClassInfo info;
+        info.size  = sizeof(Class);
+        info.flags = ScriptClassRegistrar::Ref | ScriptClassRegistrar::NoCount;
+        ScriptClassRegistrar("Engine::Class", info)
+                .require_types<Object>()
+                .method("Class@ parent() const", &Class::parent)
+                .method("const string& name() const", &Class::name)
+                .method("const string& namespace_name() const", &Class::namespace_name)
+                .method("const string& base_name() const", &Class::base_name)
+                .method("Object@ create_object() const", &Class::create_object)
+                .static_function("Class@ static_find_class(const string& in)", Class::static_find_class)
+                .method("bool contains_class(const Class@) const", &Class::contains_class)
+                .method("uint64 sizeof_class() const", &Class::sizeof_class)
+                .method("bool is_binded_to_script() const", &Class::is_binded_to_script)
+                .method("Object@ singletone_instance() const", &Class::singletone_instance);
+    }
+
+    static InitializeController initializer(on_init, "Bind Engine::Class");
 }// namespace Engine

@@ -174,6 +174,14 @@ namespace Engine
     }
 
 
+    void ScriptClassRegistrar::declare_as_class(Class* _class)
+    {
+        ClassInfo info;
+        info      = {};
+        info.size = _class->sizeof_class();
+        declare_as_class(_class, info);
+    }
+
     void ScriptClassRegistrar::declare_as_class(Class* _class, const ClassInfo& info)
     {
         static_declare_new_class(_class->namespace_name(), _class->base_name(), info);

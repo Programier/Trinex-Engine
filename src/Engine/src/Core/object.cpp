@@ -29,7 +29,7 @@ namespace Engine
     {
         String factory = Strings::format("{}@ f()", self->name());
 
-        InitializeController().require("Bind class Name");
+        InitializeController().require("Bind Engine::Name").require("Bind Engine::Class");
 
         if (!self->has_all_flags(Class::IsSingletone))
         {
@@ -67,7 +67,9 @@ namespace Engine
                                             ScriptObject object = *obj;
                                             object.add_reference();
                                             return self->destroy_script_object(&object);
-                                        }));
+                                        }))
+                .virtual_method("Engine::Class@ class_instance() const",
+                                func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
     }
 
     implement_initialize_class(Object)

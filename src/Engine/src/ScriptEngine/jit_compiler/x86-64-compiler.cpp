@@ -880,7 +880,6 @@ namespace JIT
     void X86_64_Compiler::exec_asBC_TNZ(CompileInfo* info)
     {
         // If the value in the register is not 0, then set the register to 1, else to 0
-        CHECK_IT();
         Label is_zero = info->assembler.newLabel();
         Label end     = info->assembler.newLabel();
 

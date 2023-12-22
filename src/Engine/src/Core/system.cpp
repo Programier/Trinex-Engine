@@ -20,8 +20,7 @@ namespace Engine
 
     void System::on_create_fail()
     {
-        throw EngineException(
-                "Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
+        throw EngineException("Cannot create new system. Please, call Super::create(); in the overrided method 'create'");
     }
 
     void System::on_new_system(System* system)
@@ -199,6 +198,26 @@ namespace Engine
     System::~System()
     {}
 
-    implement_class(System, "Engine", 0);
-    implement_default_initialize_class(System);
+    static void bind_to_script(ScriptClassRegistrar* registar, Class* self)
+    {
+        registar->static_function("System@ new_system_by_name(const string& in)", System::new_system_by_name)
+                .method("System@ register_subsystem(System@)", &System::register_subsystem)
+                .method("System@ remove_subsystem(System@)", &System::remove_subsystem)
+                .method("System@ parent_system() const", &System::parent_system)
+                .method("System@ sort_subsystems()", &System::sort_subsystems)
+                .virtual_method("System@ wait()", func_of<System&(System*)>([](System* self) -> System& { return self->wait(); }))
+                .virtual_method("System@ update(float)", func_of<System&(System*, float)>([](System* self, float dt) -> System& {
+                                    return self->update(dt);
+                                }))
+                .virtual_method("System@ shutdown()",
+                                func_of<System&(System*)>([](System* self) -> System& { return self->shutdown(); }))
+                .virtual_method("Class@ depends_on() const",
+                                func_of<Class*(System*)>([](System* self) -> Class* { return self->depends_on(); }));
+    }
+
+    implement_class(System, "Engine", Class::IsScriptable);
+    implement_initialize_class(System)
+    {
+        static_class_instance()->set_script_registration_callback(bind_to_script);
+    }
 }// namespace Engine
