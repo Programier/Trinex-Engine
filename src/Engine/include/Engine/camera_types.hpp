@@ -15,7 +15,7 @@ namespace Engine
         CameraProjectionMode projection_mode;
         float fov;
         float ortho_width;
-        float ortho_geight;
+        float ortho_height;
         float near_clip_plane;
         float far_clip_plane;
         float aspect_ratio;
