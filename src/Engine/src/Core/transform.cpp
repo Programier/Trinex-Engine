@@ -12,7 +12,7 @@ namespace Engine
     Matrix4f Transform::local_to_world() const
     {
         Matrix4f transformation = Matrix4f(1.0f);
-        transformation          = glm::translate(transformation, position);
+        transformation          = glm::translate(transformation, location);
         transformation          = transformation * glm::mat4_cast(rotation);
         transformation          = glm::scale(transformation, scale);
         return transformation;
@@ -43,7 +43,7 @@ namespace Engine
         return Strings::format("Position: {}\n"
                                "Scale:    {}\n"
                                "Rotation: {}",
-                               position, scale, rotation);
+                               location, scale, rotation);
     }
 
 
@@ -59,7 +59,7 @@ namespace Engine
 
     bool operator&(Archive& ar, Transform& t)
     {
-        ar& t.position;
+        ar& t.location;
         ar& t.scale;
         ar& t.rotation;
         return static_cast<bool>(ar);
@@ -80,13 +80,11 @@ namespace Engine
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Transform>,
                          ScriptCallConv::CDECL_OBJFIRST);
         registrar.behave(ScriptClassBehave::Construct, "void f(const Engine::Transform& in)",
-                         ScriptClassRegistrar::constructor<Transform, const Transform&>,
-                         ScriptCallConv::CDECL_OBJFIRST);
+                         ScriptClassRegistrar::constructor<Transform, const Transform&>, ScriptCallConv::CDECL_OBJFIRST);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Transform>,
                          ScriptCallConv::CDECL_OBJFIRST);
 
-        registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign,
-                         ScriptCallConv::CDECL_OBJFIRST);
+        registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDECL_OBJFIRST);
     }
 
     static InitializeController init(on_init, "Bind Engine::Transform",

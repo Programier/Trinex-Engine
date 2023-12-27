@@ -45,7 +45,7 @@ namespace Engine
             throw EngineException("Each class based from Engine::System must be registered!");
         }
 
-        name(Strings::format("Engine::Systems::{}", _class->base_name()));
+        name(Strings::format("Engine::Systems::{}", _class->base_name()), true);
         debug_log("System", "Created system '%s'", string_name().c_str());
         is_fully_created = true;
         return *this;
@@ -170,9 +170,8 @@ namespace Engine
         return *this;
     }
 
-    System* System::new_system_by_name(const String& name)
+    System* System::new_system(class Class* class_instance)
     {
-        Class* class_instance = Class::static_find_class(name);
         if (class_instance && class_instance->contains_class(System::static_class_instance()))
         {
             System* system = class_instance->create_object()->instance_cast<System>();
@@ -182,7 +181,13 @@ namespace Engine
             }
             return system;
         }
+
         return nullptr;
+    }
+
+    System* System::new_system(const String& name)
+    {
+        return new_system(Class::static_find_class(name));
     }
 
     const Vector<System*>& System::subsystems() const
@@ -200,7 +205,7 @@ namespace Engine
 
     static void bind_to_script(ScriptClassRegistrar* registar, Class* self)
     {
-        registar->static_function("System@ new_system_by_name(const string& in)", System::new_system_by_name)
+        registar->static_function("System@ new_system(const string& in)", func_of<System*(const String&)>(System::new_system))
                 .method("System@ register_subsystem(System@)", &System::register_subsystem)
                 .method("System@ remove_subsystem(System@)", &System::remove_subsystem)
                 .method("System@ parent_system() const", &System::parent_system)

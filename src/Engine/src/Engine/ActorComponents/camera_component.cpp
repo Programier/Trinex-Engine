@@ -58,8 +58,8 @@ namespace Engine
 
     CameraComponent& CameraComponent::camera_view(CameraView& out)
     {
-        out.position        = position;
-        out.rotation        = rotation;
+        out.location        = transform.location;
+        out.rotation        = transform.rotation;
         out.projection_mode = projection_mode;
         out.fov             = fov;
         out.ortho_width     = ortho_width;

@@ -10,9 +10,7 @@ namespace Engine
         declare_class(SceneComponent, ActorComponent);
 
     public:
-        Quaternion rotation = Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
-        Vector3D position   = Vector3D(0.0f);
-        Vector3D scale      = Vector3D(1.0f);
+        Transform transform;
 
     private:
         Pointer<SceneComponent> _M_parent = nullptr;

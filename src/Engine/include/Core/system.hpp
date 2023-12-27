@@ -36,28 +36,20 @@ namespace Engine
         virtual System& wait();
         virtual System& update(float dt);
         virtual System& shutdown();
-        static System* new_system_by_name(const String& name);
+        static System* new_system(const String& name);
+        static System* new_system(class Class* class_instance);
 
         const Vector<System*>& subsystems() const;
         System& register_subsystem(System* system);
         System& remove_subsystem(System* system);
         System* parent_system() const;
         System& sort_subsystems();
-
         virtual class Class* depends_on() const;
 
-
-        template<typename SystemType, typename... Args>
-        static SystemType* new_system(Args&&... args)
+        template<typename SystemType>
+        static SystemType* new_system()
         {
-            if (SystemType::instance() == nullptr)
-            {
-                SystemType* system = SystemType::create_instance(std::forward<Args>(args)...);
-                on_new_system(system);
-                return system;
-            }
-
-            return SystemType::instance();
+            return reinterpret_cast<SystemType*>(new_system(SystemType::static_class_instance()));
         }
         ~System();
         Identifier id() const;

@@ -19,6 +19,10 @@ namespace Engine
             Name name;
             size_t size;
             BindLocation location;
+
+            FORCE_INLINE UniformBuffer(size_t size = 0, BindLocation location = {}, Name name = Name())
+                : name(name), size(size), location(location)
+            {}
         };
 
         struct SSBO {

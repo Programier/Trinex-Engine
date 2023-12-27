@@ -10,7 +10,7 @@ namespace Engine
     };
 
     struct CameraView {
-        Vector3D position;
+        Vector3D location;
         Quaternion rotation;
         CameraProjectionMode projection_mode;
         float fov;

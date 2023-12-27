@@ -16,6 +16,12 @@ namespace Engine
         float min_depth = 0.0f;
         float max_depth = 1.0f;
 
+
+        FORCE_INLINE float aspect() const
+        {
+            return size.x / size.y;
+        }
+
         FORCE_INLINE bool operator==(const ViewPort& v) const
         {
             return pos == v.pos && size == v.size && min_depth == v.min_depth && max_depth == v.max_depth;

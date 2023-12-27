@@ -304,7 +304,7 @@ namespace Engine
             {
                 next_package = Object::new_instance<Package>();
                 next_package->name(new_name, next_name_size);
-                if (!package->add_object(next_package))
+                if (!package->add_object(next_package, false))
                 {
                     restore_object_name();
                     return ObjectRenameStatus::Failed;
@@ -321,7 +321,7 @@ namespace Engine
 
         if (package)
         {
-            if (!package->add_object(this))
+            if (!package->add_object(this, autorename))
             {
                 restore_object_name();
                 return ObjectRenameStatus::Failed;

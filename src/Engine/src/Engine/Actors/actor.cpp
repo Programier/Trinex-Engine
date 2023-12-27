@@ -1,86 +1,78 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
+#include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 
 namespace Engine
 {
     Actor& Actor::update(float dt)
     {
+        _M_script_object.update(dt);
         return *this;
     }
 
-    Actor& Actor::load()
+    Actor& Actor::start_play()
+    {
+        _M_is_playing = true;
+        return *this;
+    }
+
+    Actor& Actor::stop_play()
+    {
+        _M_is_playing = false;
+        return *this;
+    }
+
+    bool Actor::is_playing() const
+    {
+        return _M_is_playing;
+    }
+
+    Actor& Actor::spawned()
     {
         return *this;
     }
 
-    Actor& Actor::unload()
+    Actor& Actor::destroyed()
     {
         return *this;
     }
 
-    Actor& Actor::render()
+    Actor& Actor::destroy_script_object(ScriptObject* object)
     {
-        return *this;
-    }
-
-    Actor& Actor::ready()
-    {
-        return *this;
-    }
-
-    Actor& Actor::parent(Actor* actor)
-    {
-        Actor* parent_actor = _M_parent.ptr();
-        if (parent_actor)
+        if(*object == _M_script_object)
         {
-            parent_actor->remove_child(this);
-        }
-
-        actor->child(this);
-        return *this;
-    }
-
-    Actor* Actor::parent() const
-    {
-        return const_cast<Actor*>(_M_parent.ptr());
-    }
-
-    const Actor::ActorChilds& Actor::childs() const
-    {
-        return _M_childs;
-    }
-
-    Actor& Actor::child(Actor* actor)
-    {
-        if (actor->_M_parent && actor->_M_parent.ptr() != this)
-        {
-            actor->_M_parent->remove_child(actor);
-        }
-
-        _M_childs.insert(Pointer(actor));
-        actor->_M_parent = this;
-        return *this;
-    }
-
-    Actor& Actor::remove_child(Actor* actor)
-    {
-        if (actor->_M_parent.ptr() == this)
-        {
-            _M_childs.erase(Pointer(actor));
-            actor->_M_parent = nullptr;
+            _M_script_object.remove_reference();
         }
 
         return *this;
+    }
+
+    Transform* Actor::transfrom() const
+    {
+        return _M_root_component ? &_M_root_component->transform : nullptr;
+    }
+
+    SceneComponent* Actor::scene_component() const
+    {
+        return _M_root_component.ptr();
+    }
+
+    const Vector<Pointer<class ActorComponent>>& Actor::owned_components() const
+    {
+        return _M_owned_components;
+    }
+
+    class World* Actor::world() const
+    {
+        return _M_world;
     }
 
     bool Actor::archive_process(Archive* archive)
     {
         if (!Super::archive_process(archive))
             return false;
-
-        (*archive) & transform;
         return static_cast<bool>(*archive);
     }
 

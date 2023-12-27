@@ -5,12 +5,14 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
+#include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
@@ -52,7 +54,7 @@ namespace Engine
         _M_script_object = ScriptModule::global().create_script_object("Viewport");
         _M_script_object.on_create(this);
 
-        EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::WaitingEvents);
+        EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 
         return *this;
     }
@@ -72,7 +74,7 @@ namespace Engine
 
     ViewportClient& EditorViewportClient::destroy_script_object(ScriptObject* object)
     {
-        if(*object == _M_script_object)
+        if (*object == _M_script_object)
         {
             _M_script_object.remove_reference();
         }
@@ -107,6 +109,11 @@ namespace Engine
 
         ImGui::Text("FPS: %f", 1.0 / dt);
 
+        if(ImGui::Button("Make new world"))
+        {
+            World::new_system<World>();
+        }
+
         ImGui::End();
         return *this;
     }
@@ -135,6 +142,21 @@ namespace Engine
         }
     }
 
+    static void render_system_tree(System* system)
+    {
+        if (ImGui::TreeNode(system->string_name().c_str()))
+        {
+            ImGui::Indent(10.f);
+            for (System* subsystem : system->subsystems())
+            {
+                render_system_tree(subsystem);
+            }
+
+            ImGui::Unindent(10.f);
+            ImGui::TreePop();
+        }
+    }
+
     EditorViewportClient& EditorViewportClient::create_scene_tree_window(float dt)
     {
         if (!ImGui::Begin("Scene Tree"))
@@ -144,6 +166,7 @@ namespace Engine
         }
 
         render_objects_tree(Object::root_package());
+        render_system_tree(EngineSystem::instance());
 
         ImGui::End();
 

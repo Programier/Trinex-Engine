@@ -58,9 +58,15 @@ namespace Engine
             object->_M_package->remove_object(object);
         }
 
-        while (contains_object(object->_M_name))
         {
-            object->name(object->string_name() + "_new");
+            static size_t index    = 2;
+            String new_object_name = object->_M_name;
+            while (contains_object(new_object_name))
+            {
+                new_object_name = object->_M_name.to_string() + Strings::format(" {}", index++);
+            }
+            if (new_object_name != object->_M_name.to_string())
+                object->name(new_object_name);
         }
 
         object->_M_package = this;
