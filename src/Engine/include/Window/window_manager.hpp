@@ -23,7 +23,7 @@ namespace Engine
 
     public:
         ~WindowManager();
-        Window* create_window(const WindowConfig& config, Window* parent);
+        Window* create_window(const WindowConfig& config, Window* parent = nullptr);
         WindowManager& destroy_window(Window* window);
 
         WindowManager& create_notify(const NotifyCreateInfo& info);

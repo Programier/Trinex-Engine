@@ -78,7 +78,8 @@ namespace Engine
 
                 // Update Viewports
 
-                auto& viewports = RenderViewport::viewports();
+                auto& viewports        = RenderViewport::viewports();
+                size_t viewports_count = viewports.size();
 
                 for (size_t i = 0, count = viewports.size(); i < count; ++i)
                 {
@@ -87,15 +88,16 @@ namespace Engine
 
                 render_thread->wait_all();
 
-                for (size_t i = 0, count = viewports.size(); i < count; ++i)
+                for (size_t i = 0, count = glm::min(viewports.size(), viewports_count); i < count; ++i)
                 {
                     viewports[i]->prepare_render();
                 }
 
                 render_thread->insert_new_task<BeginRenderCommand>(_M_rhi);
-                for (RenderViewport* viewport : RenderViewport::viewports())
+
+                for (size_t i = 0, count = glm::min(viewports.size(), viewports_count); i < count; ++i)
                 {
-                    viewport->render();
+                    viewports[i]->render();
                 }
 
                 render_thread->insert_new_task<EndRenderCommand>(_M_rhi);

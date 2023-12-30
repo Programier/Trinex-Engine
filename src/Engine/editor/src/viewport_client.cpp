@@ -1,61 +1,27 @@
-#include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
-#include <Engine/octree.hpp>
-#include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/sampler.hpp>
-#include <Graphics/scene_render_targets.hpp>
-#include <Graphics/shader.hpp>
-#include <Graphics/texture_2D.hpp>
-#include <Image/image.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
+#include <Window/config.hpp>
 #include <Window/window.hpp>
+#include <Window/window_manager.hpp>
 #include <dock_window.hpp>
 #include <theme.hpp>
 #include <viewport_client.hpp>
 
 namespace Engine
 {
-
-    Octree<int> octree;
-    VertexShader* build_vertex_shader()
-    {
-        VertexShader* shader = Object::new_instance<VertexShader>();
-        shader->text_code    = FileReader("shaders/line_rendering/vertex.vert").to_string();
-        shader->binary_code  = FileReader("shaders/line_rendering/vertex.vm").read_buffer();
-        shader->attributes.push_back(VertexShader::Attribute(ColorFormat::R32G32B32A32Sfloat));
-        shader->init_resource();
-        return shader;
-    }
-
-    FragmentShader* build_fragment_shader()
-    {
-        FragmentShader* shader = Object::new_instance<FragmentShader>();
-        shader->text_code      = FileReader("shaders/line_rendering/fragment.frag").to_string();
-        shader->binary_code    = FileReader("shaders/line_rendering/fragment.fm").read_buffer();
-        shader->init_resource();
-        return shader;
-    }
-
     implement_engine_class_default_init(EditorViewportClient);
 
     EditorViewportClient::EditorViewportClient()
-    {
-        Package* package = Package::find_package("TestResources", true);
-        package->load();
-        texture = package->find_object_checked<Texture2D>("Trinex", false);
-        sampler = package->find_object_checked<Sampler>("Trinex Sampler", false);
-        sampler->init_resource();
-    }
+    {}
 
     ViewportClient& EditorViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
@@ -71,26 +37,12 @@ namespace Engine
         String new_title = window->title() + Strings::format(" [{} RHI]", engine_instance->rhi()->name().c_str());
         window->title(new_title);
 
-        _M_imgui_texture = window->imgui_window()->create_texture();
-        _M_imgui_texture->init(window->imgui_window()->context(), texture, sampler);
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
         _M_script_object = ScriptModule::global().create_script_object("Viewport");
         _M_script_object.on_create(this);
 
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
-
-        _M_line_rendering_pipeline                                    = Object::new_instance<Pipeline>();
-        _M_line_rendering_pipeline->input_assembly.primitive_topology = PrimitiveTopology::LineList;
-        _M_line_rendering_pipeline->depth_test.enable                 = false;
-        _M_line_rendering_pipeline->rasterizer.cull_mode              = CullMode::None;
-        _M_line_rendering_pipeline->render_pass                       = window->render_pass;
-        _M_line_rendering_pipeline->color_blending.blend_attachment.emplace_back();
-
-        _M_line_rendering_pipeline->vertex_shader   = build_vertex_shader();
-        _M_line_rendering_pipeline->fragment_shader = build_fragment_shader();
-        _M_line_rendering_pipeline->init_resource();
-
         return init_world();
     }
 
@@ -117,11 +69,35 @@ namespace Engine
     }
 
 
+    static void open_material_editor()
+    {
+        WindowConfig new_config = global_window_config;
+        new_config.title        = "Material Editor";
+        new_config.client       = "Engine::MaterialEditorClient";
+        WindowManager::instance()->create_window(new_config);
+    }
+
+    static void create_bar()
+    {
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("View"))
+            {
+                if (ImGui::MenuItem("Open Material Editor"))
+                {
+                    open_material_editor();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+    }
+
     ViewportClient& EditorViewportClient::update(class RenderViewport* viewport, float dt)
     {
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
-        make_dock_window();
+        make_dock_window("EditorDock", create_bar, ImGuiWindowFlags_MenuBar);
         create_scene_tree_window(dt);
         create_properties_window(dt);
         create_log_window(dt);
@@ -150,13 +126,6 @@ namespace Engine
         }
 
         ImGui::Text("FPS: %f", 1.0 / dt);
-
-        if (ImGui::Button("Build octree"))
-        {
-            octree.find_or_create({{0, 0, 0}, {10, 10, 10}});
-            octree.find_or_create({{-1, -1, -1}, {-0.5, -0.5, -0.5}});
-        }
-
         ImGui::End();
         return *this;
     }
@@ -200,23 +169,6 @@ namespace Engine
         }
     }
 
-    static void render_octree_tree(Octree<int>::Node* node)
-    {
-        if (!node)
-            return;
-
-        if (ImGui::TreeNode(Strings::format("{}, {}", node->box().min(), node->box().max()).c_str()))
-        {
-            ImGui::Indent(10.f);
-            for (int i = 0; i < 8; i++)
-            {
-                render_octree_tree(node->child_at(i));
-            }
-
-            ImGui::Unindent(10.f);
-            ImGui::TreePop();
-        }
-    }
 
     EditorViewportClient& EditorViewportClient::create_scene_tree_window(float dt)
     {
@@ -228,8 +180,6 @@ namespace Engine
 
         render_objects_tree(Object::root_package());
         render_system_tree(EngineSystem::instance());
-        render_octree_tree(octree.root_node());
-
         ImGui::End();
 
         return *this;
@@ -255,15 +205,11 @@ namespace Engine
             return *this;
         };
 
-        auto size = ImGui::GetContentRegionAvail();
-        ImGui::Image(_M_imgui_texture->handle(), size);
+        //        auto size = ImGui::GetContentRegionAvail();
+        //        ImGui::Image(_M_imgui_texture->handle(), size);
+
         ImGui::End();
 
-        return *this;
-    }
-
-    EditorViewportClient& EditorViewportClient::create_bar(float dt)
-    {
         return *this;
     }
 }// namespace Engine

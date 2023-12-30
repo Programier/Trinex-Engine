@@ -9,13 +9,7 @@ namespace Engine
     {
     public:
         declare_class(EditorViewportClient, ViewportClient);
-
-        class Texture2D* texture                      = nullptr;
-        class Sampler* sampler                        = nullptr;
-        ImGuiRenderer::ImGuiTexture* _M_imgui_texture = nullptr;
         ScriptObject _M_script_object;
-        class Pipeline* _M_line_rendering_pipeline;
-        class PositionVertexBuffer* batched_lines;
 
     public:
         EditorViewportClient();
@@ -32,6 +26,5 @@ namespace Engine
         EditorViewportClient& create_scene_tree_window(float dt);
         EditorViewportClient& create_log_window(float dt);
         EditorViewportClient& create_viewport_window(float dt);
-        EditorViewportClient& create_bar(float dt);
     };
 }// namespace Engine

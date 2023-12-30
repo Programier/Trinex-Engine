@@ -27,22 +27,6 @@ class Viewport
 
 	void update(float dt)
 	{
-		if(is_window_open.value)
-		{
-			ImGui::Begin("Scripted Window", is_window_open);
-		
-			if(@native != null)
-			{
-				Engine::Class@ class_instance = native.class_instance();
-				render_class_hierarchy(class_instance);
-			}
-
-			ImGui::End();
-		}
-		else
-		{
-			native.destroy_script_object(@this);
-		}
 	}
 
 	void on_create(Engine::Object@ owner)
