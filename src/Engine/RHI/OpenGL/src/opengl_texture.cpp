@@ -31,13 +31,11 @@ namespace Engine
         sampler->bind(location);
     }
 
-    void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
-                                           const byte* data)
+    void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
         glBindTexture(_M_type, _M_id);
-        glTexSubImage2D(_M_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x),
-                        static_cast<GLsizei>(offset.y), static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y),
-                        _M_format._M_format, _M_format._M_type, data);
+        glTexSubImage2D(_M_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
+                        static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), _M_format._M_format, _M_format._M_type, data);
         glBindTexture(_M_type, 0);
     }
 
@@ -136,11 +134,4 @@ namespace Engine
             return _M_handle;
         }
     };
-
-    RHI_ImGuiTexture* OpenGL::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
-    {
-        ImGui::SetCurrentContext(ctx);
-        return new OpenGL_ImGuiTexture(texture, sampler);
-    }
-
 }// namespace Engine
