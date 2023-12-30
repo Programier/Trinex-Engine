@@ -5,10 +5,14 @@
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
+#include <Engine/octree.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
+#include <Graphics/scene_render_targets.hpp>
+#include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
 #include <ScriptEngine/script_module.hpp>
@@ -19,9 +23,29 @@
 #include <theme.hpp>
 #include <viewport_client.hpp>
 
-
 namespace Engine
 {
+
+    Octree<int> octree;
+    VertexShader* build_vertex_shader()
+    {
+        VertexShader* shader = Object::new_instance<VertexShader>();
+        shader->text_code    = FileReader("shaders/line_rendering/vertex.vert").to_string();
+        shader->binary_code  = FileReader("shaders/line_rendering/vertex.vm").read_buffer();
+        shader->attributes.push_back(VertexShader::Attribute(ColorFormat::R32G32B32A32Sfloat));
+        shader->init_resource();
+        return shader;
+    }
+
+    FragmentShader* build_fragment_shader()
+    {
+        FragmentShader* shader = Object::new_instance<FragmentShader>();
+        shader->text_code      = FileReader("shaders/line_rendering/fragment.frag").to_string();
+        shader->binary_code    = FileReader("shaders/line_rendering/fragment.fm").read_buffer();
+        shader->init_resource();
+        return shader;
+    }
+
     implement_engine_class_default_init(EditorViewportClient);
 
     EditorViewportClient::EditorViewportClient()
@@ -56,7 +80,18 @@ namespace Engine
 
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 
-        return *this;
+        _M_line_rendering_pipeline                                    = Object::new_instance<Pipeline>();
+        _M_line_rendering_pipeline->input_assembly.primitive_topology = PrimitiveTopology::LineList;
+        _M_line_rendering_pipeline->depth_test.enable                 = false;
+        _M_line_rendering_pipeline->rasterizer.cull_mode              = CullMode::None;
+        _M_line_rendering_pipeline->render_pass                       = window->render_pass;
+        _M_line_rendering_pipeline->color_blending.blend_attachment.emplace_back();
+
+        _M_line_rendering_pipeline->vertex_shader   = build_vertex_shader();
+        _M_line_rendering_pipeline->fragment_shader = build_fragment_shader();
+        _M_line_rendering_pipeline->init_resource();
+
+        return init_world();
     }
 
     ViewportClient& EditorViewportClient::render(class RenderViewport* viewport)
@@ -98,6 +133,13 @@ namespace Engine
         return *this;
     }
 
+    EditorViewportClient& EditorViewportClient::init_world()
+    {
+        //        World* world = Object::find_object_checked<System>("Engine::Systems::EngineSystem")
+        //                               ->find_subsystem("LogicSystem::Global World")
+        //                               ->instance_cast<World>();
+        return *this;
+    }
 
     EditorViewportClient& EditorViewportClient::create_properties_window(float dt)
     {
@@ -109,9 +151,10 @@ namespace Engine
 
         ImGui::Text("FPS: %f", 1.0 / dt);
 
-        if(ImGui::Button("Make new world"))
+        if (ImGui::Button("Build octree"))
         {
-            World::new_system<World>();
+            octree.find_or_create({{0, 0, 0}, {10, 10, 10}});
+            octree.find_or_create({{-1, -1, -1}, {-0.5, -0.5, -0.5}});
         }
 
         ImGui::End();
@@ -157,6 +200,24 @@ namespace Engine
         }
     }
 
+    static void render_octree_tree(Octree<int>::Node* node)
+    {
+        if (!node)
+            return;
+
+        if (ImGui::TreeNode(Strings::format("{}, {}", node->box().min(), node->box().max()).c_str()))
+        {
+            ImGui::Indent(10.f);
+            for (int i = 0; i < 8; i++)
+            {
+                render_octree_tree(node->child_at(i));
+            }
+
+            ImGui::Unindent(10.f);
+            ImGui::TreePop();
+        }
+    }
+
     EditorViewportClient& EditorViewportClient::create_scene_tree_window(float dt)
     {
         if (!ImGui::Begin("Scene Tree"))
@@ -167,6 +228,7 @@ namespace Engine
 
         render_objects_tree(Object::root_package());
         render_system_tree(EngineSystem::instance());
+        render_octree_tree(octree.root_node());
 
         ImGui::End();
 

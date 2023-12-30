@@ -23,7 +23,7 @@ namespace Engine
         }
     }
 
-    static GLuint compile_shader_module(const FileBuffer& shader_code, GLenum type, const String& name)
+    static GLuint compile_shader_module(const String& shader_code, GLenum type, const String& name)
     {
         GLint shader_id = 0;
         GLuint program  = 0;
@@ -49,7 +49,7 @@ namespace Engine
         static GLchar log[1024];
         shader_id = glCreateShader(type);
 
-        const GLchar* code = reinterpret_cast<const GLchar*>(shader_code.data());
+        const GLchar* code = reinterpret_cast<const GLchar*>(shader_code.c_str());
 
         glShaderSource(shader_id, 1, &code, nullptr);
         glCompileShader(shader_id);

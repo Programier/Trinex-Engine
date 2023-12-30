@@ -50,24 +50,25 @@ namespace Engine
 
     private:
         std::ifstream _M_file;
-        String _M_filename;
+        Path _M_path;
 
     public:
         FileReader();
-        FileReader(const String& filename);
-        FORCE_INLINE FileReader(const Path& path) : FileReader(path.string())
-        {}
+        FileReader(const Path& path);
         FileReader(FileReader&&);
         FileReader& operator=(FileReader&&);
 
-        const String& filename() const;
-        bool open(const String& filename);
+        const Path& path() const;
+        bool open(const Path& path);
         FileReader& close();
 
         bool read(byte* data, size_t size) override;
         ReadPos position() override;
         FileReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
         bool is_open() const override;
+
+        String to_string(size_t len = -1);
+        Buffer read_buffer(size_t len = -1);
 
         ~FileReader();
     };

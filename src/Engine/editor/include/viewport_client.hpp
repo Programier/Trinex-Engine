@@ -14,6 +14,8 @@ namespace Engine
         class Sampler* sampler                        = nullptr;
         ImGuiRenderer::ImGuiTexture* _M_imgui_texture = nullptr;
         ScriptObject _M_script_object;
+        class Pipeline* _M_line_rendering_pipeline;
+        class PositionVertexBuffer* batched_lines;
 
     public:
         EditorViewportClient();
@@ -22,10 +24,10 @@ namespace Engine
         ViewportClient& render(class RenderViewport* viewport) override;
         ViewportClient& update(class RenderViewport* viewport, float dt) override;
         ViewportClient& prepare_render(class RenderViewport* viewport) override;
-
         ViewportClient& destroy_script_object(ScriptObject* object) override;
 
 
+        EditorViewportClient& init_world();
         EditorViewportClient& create_properties_window(float dt);
         EditorViewportClient& create_scene_tree_window(float dt);
         EditorViewportClient& create_log_window(float dt);

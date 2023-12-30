@@ -44,7 +44,7 @@ namespace Engine
         Vector<Texture> combined_samplers;
         Vector<SSBO> ssbo;
 
-        Buffer text_code;
+        String text_code;
         Buffer binary_code;
         BindLocation global_ubo_location;
 

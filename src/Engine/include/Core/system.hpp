@@ -25,6 +25,7 @@ namespace Engine
         bool is_fully_created = false;
         static void on_create_fail();
         static void on_new_system(System* system);
+        System* find_system_private_no_recurse(const char* name, size_t len) const;
 
     protected:
         Vector<System*> _M_subsystems;
@@ -44,6 +45,9 @@ namespace Engine
         System& remove_subsystem(System* system);
         System* parent_system() const;
         System& sort_subsystems();
+        System* find_subsystem(const char* name, size_t len);
+        System* find_subsystem(const char* name);
+        System* find_subsystem(const String& name);
         virtual class Class* depends_on() const;
 
         template<typename SystemType>

@@ -11,6 +11,7 @@
 #include <Core/string_functions.hpp>
 #include <Core/system.hpp>
 #include <Core/thread.hpp>
+#include <Engine/world.hpp>
 #include <Graphics/renderer.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -144,8 +145,7 @@ namespace Engine
 
         if (!class_instance->contains_class(base_class))
         {
-            error_log("Engine", "Class '%s' does not inherit from class Engine::CommandLet!",
-                      class_instance->name().c_str());
+            error_log("Engine", "Class '%s' does not inherit from class Engine::CommandLet!", class_instance->name().c_str());
             return nullptr;
         }
 
@@ -241,6 +241,8 @@ namespace Engine
 
         load_external_system_libraries();
         info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
+        World::new_system<World>()->name("Global World");
+
         _M_api = get_api_by_name(engine_config.api);
 
         init_api();

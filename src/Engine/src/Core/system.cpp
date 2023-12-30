@@ -2,8 +2,10 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
+#include <Core/string_functions.hpp>
 #include <Core/system.hpp>
 #include <algorithm>
+#include <cstring>
 
 
 namespace Engine
@@ -144,6 +146,50 @@ namespace Engine
         std::sort(_M_subsystems.begin(), _M_subsystems.end(), sort_systems_predicate);
         std::for_each(_M_subsystems.begin(), _M_subsystems.end(), [](System* system) { system->sort_subsystems(); });
         return *this;
+    }
+
+    System* System::find_system_private_no_recurse(const char* _name, size_t len) const
+    {
+        for (System* system : _M_subsystems)
+        {
+            const String& system_name = system->string_name();
+            if (system_name.length() != len)
+                continue;
+
+            if (std::strncmp(_name, system_name.c_str(), len) == 0)
+                return system;
+        }
+
+        return nullptr;
+    }
+
+    System* System::find_subsystem(const char* _name, size_t len)
+    {
+        const char* end_name       = _name + len;
+        const size_t separator_len = Constants::name_separator.length();
+        const char* separator      = Strings::strnstr(_name, len, Constants::name_separator.c_str(), separator_len);
+        const System* system       = this;
+
+
+        while (separator && system)
+        {
+            size_t current_len = separator - _name;
+            system            = system->find_system_private_no_recurse(_name, current_len);
+            _name              = separator + separator_len;
+            separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+        }
+
+        return system ? system->find_system_private_no_recurse(_name, end_name - _name) : nullptr;
+    }
+
+    System* System::find_subsystem(const char* name)
+    {
+        return find_subsystem(name, std::strlen(name));
+    }
+
+    System* System::find_subsystem(const String& name)
+    {
+        return find_subsystem(name.c_str(), name.length());
     }
 
     class Class* System::depends_on() const

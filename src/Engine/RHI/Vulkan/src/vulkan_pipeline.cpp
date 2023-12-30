@@ -15,8 +15,8 @@
 
 namespace Engine
 {
-    static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage,
-                                    uint_t set, uint_t binding, vk::DescriptorType type)
+    static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage, uint_t set,
+                                    uint_t binding, vk::DescriptorType type)
     {
         if (set >= out.size())
         {
@@ -32,20 +32,17 @@ namespace Engine
 
         for (auto& buffer : shader->uniform_buffers)
         {
-            push_layout_binding(out, stage, buffer.location.set, buffer.location.binding,
-                                vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stage, buffer.location.set, buffer.location.binding, vk::DescriptorType::eUniformBuffer);
         }
 
         for (auto& texture : shader->textures)
         {
-            push_layout_binding(out, stage, texture.location.set, texture.location.binding,
-                                vk::DescriptorType::eSampledImage);
+            push_layout_binding(out, stage, texture.location.set, texture.location.binding, vk::DescriptorType::eSampledImage);
         }
 
         for (auto& sampler : shader->samplers)
         {
-            push_layout_binding(out, stage, sampler.location.set, sampler.location.binding,
-                                vk::DescriptorType::eSampler);
+            push_layout_binding(out, stage, sampler.location.set, sampler.location.binding, vk::DescriptorType::eSampler);
         }
 
         for (auto& combined_sampler : shader->combined_samplers)
@@ -61,14 +58,12 @@ namespace Engine
         }
     }
 
-    static void create_vertex_descriptor_layout(const Pipeline* pipeline,
-                                                Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
+    static void create_vertex_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
         create_base_descriptor_layout(pipeline->vertex_shader, out, vk::ShaderStageFlagBits::eVertex);
     }
 
-    static void create_fragment_descriptor_layout(const Pipeline* pipeline,
-                                                  Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
+    static void create_fragment_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
         create_base_descriptor_layout(pipeline->fragment_shader, out, vk::ShaderStageFlagBits::eFragment);
     }
@@ -116,8 +111,7 @@ namespace Engine
 
         if (descriptor_array.size() <= binded_set._M_current_descriptor_index)
         {
-            descriptor_array.push_back(
-                    _M_descriptor_pool.current().allocate_descriptor_set(&_M_descriptor_set_layout[set], set));
+            descriptor_array.push_back(_M_descriptor_pool.current().allocate_descriptor_set(&_M_descriptor_set_layout[set], set));
         }
 
         VulkanDescriptorSet* new_set = descriptor_array[binded_set._M_current_descriptor_index];
@@ -190,14 +184,14 @@ namespace Engine
                             in_state.color_blending.blend_attachment[index].src_color_func)])
                     .setDstColorBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].dst_color_func)])
-                    .setColorBlendOp(_M_blend_ops[static_cast<EnumerateType>(
-                            in_state.color_blending.blend_attachment[index].color_op)])
+                    .setColorBlendOp(
+                            _M_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].color_op)])
                     .setSrcAlphaBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].src_alpha_func)])
                     .setDstAlphaBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].dst_alpha_func)])
-                    .setAlphaBlendOp(_M_blend_ops[static_cast<EnumerateType>(
-                            in_state.color_blending.blend_attachment[index].alpha_op)]);
+                    .setAlphaBlendOp(
+                            _M_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].alpha_op)]);
 
             vk::ColorComponentFlags color_mask;
 
@@ -236,8 +230,18 @@ namespace Engine
     }
 
 
+    static FORCE_INLINE void check_pipeline(const Pipeline* pipeline)
+    {
+        if (!pipeline)
+            throw EngineException("Cannot create Vulkan Pipeline from nullptr engine pipeline");
+
+        if (pipeline->render_pass == nullptr)
+            throw EngineException("Cannot create Vulkan Pipeline without render_pass");
+    }
+
     VulkanPipeline& VulkanPipeline::create(const Pipeline* pipeline)
     {
+        check_pipeline(pipeline);
         destroy();
         create_descriptor_layout(pipeline);
 
@@ -246,16 +250,16 @@ namespace Engine
 
         if (pipeline->vertex_shader)
         {
-            pipeline_stage_create_infos.emplace_back(
-                    vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->_M_shader, "main");
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
+                                                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->_M_shader,
+                                                     "main");
         }
 
         if (pipeline->fragment_shader)
         {
-            pipeline_stage_create_infos.emplace_back(
-                    vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
-                    pipeline->fragment_shader->rhi_object<VulkanFragmentShader>()->_M_shader, "main");
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
+                                                     pipeline->fragment_shader->rhi_object<VulkanFragmentShader>()->_M_shader,
+                                                     "main");
         }
 
         if (pipeline_stage_create_infos.empty())
@@ -289,10 +293,10 @@ namespace Engine
         vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->_M_dynamic_states);
 
         vk::GraphicsPipelineCreateInfo pipeline_info(
-                {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr,
-                &viewport_state, &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil,
-                &out_state.color_blending, &dynamic_state_info, _M_pipeline_layout,
-                pipeline->render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0, {});
+                {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
+                &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
+                &dynamic_state_info, _M_pipeline_layout, pipeline->render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0,
+                {});
 
         auto pipeline_result = API->_M_device.createGraphicsPipeline({}, pipeline_info);
 
@@ -329,7 +333,7 @@ namespace Engine
         DESTROY_CALL(destroyPipeline, _M_pipeline);
         DESTROY_CALL(destroyPipelineLayout, _M_pipeline_layout);
 
-        for(auto& layout : _M_descriptor_set_layout)
+        for (auto& layout : _M_descriptor_set_layout)
         {
             DESTROY_CALL(destroyDescriptorSetLayout, layout);
         }
@@ -391,20 +395,19 @@ namespace Engine
             PoolSizeInfo& info = pool_size_info[index];
 
             if (info.samplers)
-                pool_size.push_back(
-                        vk::DescriptorPoolSize(vk::DescriptorType::eSampler, MAX_BINDLESS_RESOURCES * info.samplers));
+                pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eSampler, MAX_BINDLESS_RESOURCES * info.samplers));
             if (info.combined_samplers)
                 pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler,
                                                            MAX_BINDLESS_RESOURCES * info.combined_samplers));
             if (info.textures)
-                pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eSampledImage,
-                                                           MAX_BINDLESS_RESOURCES * info.textures));
+                pool_size.push_back(
+                        vk::DescriptorPoolSize(vk::DescriptorType::eSampledImage, MAX_BINDLESS_RESOURCES * info.textures));
             if (info.ubos)
                 pool_size.push_back(
                         vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, MAX_BINDLESS_RESOURCES * info.ubos));
             if (info.ssbos)
-                pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eStorageBuffer,
-                                                           MAX_BINDLESS_RESOURCES * info.ssbos));
+                pool_size.push_back(
+                        vk::DescriptorPoolSize(vk::DescriptorType::eStorageBuffer, MAX_BINDLESS_RESOURCES * info.ssbos));
 
             ++index;
         }
@@ -453,8 +456,7 @@ namespace Engine
 
             if (current_set->_M_current_ubo[location.binding] != buffer)
             {
-                vk::DescriptorBufferInfo buffer_info(buffer->current_buffer()->_M_buffer, 0,
-                                                     buffer->current_buffer()->_M_size);
+                vk::DescriptorBufferInfo buffer_info(buffer->current_buffer()->_M_buffer, 0, buffer->current_buffer()->_M_size);
 
                 vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);
@@ -499,8 +501,8 @@ namespace Engine
             if (current_sampler != sampler)
             {
                 vk::DescriptorImageInfo image_info(sampler->_M_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
-                                                        vk::DescriptorType::eSampler, image_info);
+                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0, vk::DescriptorType::eSampler,
+                                                        image_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
                 current_sampler = sampler;
             }

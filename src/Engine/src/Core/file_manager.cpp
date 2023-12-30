@@ -76,9 +76,8 @@ namespace Engine
     FileWriter& FileWriter::offset(PosOffset offset, BufferSeekDir dir)
     {
         std::ios_base::seekdir _M_dir =
-                (dir == BufferSeekDir::Begin
-                         ? std::ios_base::beg
-                         : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
+                (dir == BufferSeekDir::Begin ? std::ios_base::beg
+                                             : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
         _M_file.seekp(static_cast<std::ostream::pos_type>(offset), _M_dir);
         return *this;
     }
@@ -91,7 +90,7 @@ namespace Engine
 
 
     FileReader::FileReader() = default;
-    FileReader::FileReader(const String& filename)
+    FileReader::FileReader(const Path& filename)
     {
         open(filename);
     }
@@ -100,17 +99,17 @@ namespace Engine
     FileReader& FileReader::operator=(FileReader&&) = default;
 
 
-    bool FileReader::open(const String& filename)
+    bool FileReader::open(const Path& path)
     {
         close();
 
         std::ios_base::openmode mode = std::ios_base::in | std::ios_base::binary;
 
-        _M_file.open(filename, mode);
+        _M_file.open(path, mode);
         (void) size();
         bool is_opened = is_open();
 
-        _M_filename = is_opened ? filename : "";
+        _M_path = is_opened ? path : "";
         return is_opened;
     }
 
@@ -128,9 +127,25 @@ namespace Engine
         return _M_file.is_open();
     }
 
-    const String& FileReader::filename() const
+    String FileReader::to_string(size_t len)
     {
-        return _M_filename;
+        len = glm::min(len, size());
+        String result(len, 0);
+        read(reinterpret_cast<byte*>(result.data()), len);
+        return result;
+    }
+
+    Buffer FileReader::read_buffer(size_t len)
+    {
+        len = glm::min(len, size());
+        Buffer result(len, 0);
+        read(reinterpret_cast<byte*>(result.data()), len);
+        return result;
+    }
+
+    const Path& FileReader::path() const
+    {
+        return _M_path;
     }
 
 
@@ -151,9 +166,8 @@ namespace Engine
     FileReader& FileReader::offset(PosOffset offset, BufferSeekDir dir)
     {
         std::ios_base::seekdir _M_dir =
-                (dir == BufferSeekDir::Begin
-                         ? std::ios_base::beg
-                         : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
+                (dir == BufferSeekDir::Begin ? std::ios_base::beg
+                                             : (dir == BufferSeekDir::Current ? std::ios_base::cur : std::ios_base::end));
         _M_file.seekg(static_cast<std::ostream::pos_type>(offset), _M_dir);
 
         return *this;
