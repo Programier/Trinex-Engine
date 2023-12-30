@@ -2,7 +2,7 @@
     "Engine": {
         "enable_jit": false,
         "load_meshes_to_gpu": true,
-        "api": "OpenGL",
+        "api": "Vulkan",
         "delete_resources_after_load": false,
         "load_textures_to_gpu": true,
         "max_gc_collected_objects": 20000,

@@ -544,40 +544,4 @@ namespace Engine
 
         return out_features;
     }
-
-    struct VulkanImGuiTexture : public RHI_ImGuiTexture {
-        VkDescriptorSet _M_set = 0;
-        ImGuiContext* _M_ctx;
-
-        VulkanImGuiTexture(ImGuiContext* context, Texture* texture, Sampler* sampler)
-        {
-            _M_ctx                    = context;
-            VulkanTexture* vk_texture = texture->rhi_object<VulkanTexture>();
-            VulkanSampler* vk_sampler = sampler->rhi_object<VulkanSampler>();
-            _M_set                    = ImGui_ImplVulkan_AddTexture(vk_sampler->_M_sampler, vk_texture->_M_image_view,
-                                                                    static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal));
-        }
-
-        Identifier destroy_method() const override
-        {
-            return VULKAN_DESTROY_NOW;
-        }
-
-        void* handle() override
-        {
-            return reinterpret_cast<void*>(_M_set);
-        }
-
-        ~VulkanImGuiTexture()
-        {
-            ImGui::SetCurrentContext(_M_ctx);
-            ImGui_ImplVulkan_RemoveTexture(_M_set);
-        }
-    };
-
-    RHI_ImGuiTexture* VulkanAPI::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
-    {
-        ImGui::SetCurrentContext(ctx);
-        return new VulkanImGuiTexture(ctx, texture, sampler);
-    }
 }// namespace Engine

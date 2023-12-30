@@ -77,6 +77,7 @@
 //  2016-10-18: Vulkan: Add location decorators & change to use structs as in/out in glsl, update embedded spv (produced with glslangValidator -x). Null the released resources.
 //  2016-08-27: Vulkan: Fix Vulkan example for use when a depth buffer is active.
 
+#include <vulkan_imgui_texture.hpp>
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_vulkan.h"
@@ -139,7 +140,7 @@ struct ImGui_ImplVulkan_Data
     VkDeviceMemory              FontMemory;
     VkImage                     FontImage;
     VkImageView                 FontView;
-    VkDescriptorSet             FontDescriptorSet;
+    Engine::VulkanImGuiTextureInterface*             FontDescriptorSet;
     VkCommandPool               FontCommandPool;
     VkCommandBuffer             FontCommandBuffer;
 
@@ -598,12 +599,12 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
                 // Bind DescriptorSet with font or user texture
-                VkDescriptorSet desc_set[1] = { (VkDescriptorSet)pcmd->TextureId };
+                VkDescriptorSet desc_set[1] = { ((Engine::VulkanImGuiTextureInterface*)pcmd->TextureId)->descriptor_set() };
                 if (sizeof(ImTextureID) < sizeof(ImU64))
                 {
                     // We don't support texture switches if ImTextureID hasn't been redefined to be 64-bit. Do a flaky check that other textures haven't been used.
                     IM_ASSERT(pcmd->TextureId == (ImTextureID)bd->FontDescriptorSet);
-                    desc_set[0] = bd->FontDescriptorSet;
+                    desc_set[0] = bd->FontDescriptorSet->descriptor_set();
                 }
                 vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 0, 1, desc_set, 0, nullptr);
 
@@ -720,7 +721,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture()
     }
 
     // Create the Descriptor Set:
-    bd->FontDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(bd->FontSampler, bd->FontView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    bd->FontDescriptorSet = new Engine::VulkanImGuiTextureBasic(ImGui_ImplVulkan_AddTexture(bd->FontSampler, bd->FontView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 
     // Create the Upload Buffer:
     VkDeviceMemory upload_buffer_memory;
@@ -830,8 +831,9 @@ void ImGui_ImplVulkan_DestroyFontsTexture()
 
     if (bd->FontDescriptorSet)
     {
-        ImGui_ImplVulkan_RemoveTexture(bd->FontDescriptorSet);
-        bd->FontDescriptorSet = VK_NULL_HANDLE;
+        ImGui_ImplVulkan_RemoveTexture(bd->FontDescriptorSet->descriptor_set());
+        delete bd->FontDescriptorSet;
+        bd->FontDescriptorSet = nullptr;
         io.Fonts->SetTexID(0);
     }
 
