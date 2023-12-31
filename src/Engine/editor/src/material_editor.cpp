@@ -3,12 +3,17 @@
 #include <Core/package.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
+#include <helpers.hpp>
+#include <imgui_internal.h>
 #include <material_editor_client.hpp>
 #include <theme.hpp>
-#include <Graphics/material.hpp>
+
+
+#define MATERIAL_EDITOR_DEBUG 1
 
 namespace Engine
 {
@@ -28,6 +33,10 @@ namespace Engine
         window->title(new_title);
 
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        _M_viewport = viewport;
+
+        _M_package_tree.list    = &window_list;
+        _M_content_browser.list = &window_list;
         return *this;
     }
 
@@ -38,12 +47,40 @@ namespace Engine
         return *this;
     }
 
+    void MaterialEditorClient::render_dock_window(void* userdata)
+    {
+        auto dock_id                       = ImGui::GetID("MaterialEditorDock##Dock");
+        ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+        if (_M_frame == 0)
+        {
+            ImGui::DockBuilderRemoveNode(dock_id);
+            ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
+
+
+            auto dock_id_left = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
+            auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
+
+            ImGui::DockBuilderDockWindow(_M_package_tree.name(), dock_id_left);
+            ImGui::DockBuilderDockWindow(_M_content_browser.name(), dock_id_down);
+
+            ImGui::DockBuilderFinish(dock_id);
+        }
+    }
+
     MaterialEditorClient& MaterialEditorClient::update(class RenderViewport* viewport, float dt)
     {
         viewport->window()->imgui_window()->new_frame();
-        make_dock_window("MaterialEditorDock");
-        render_properties(dt);
+        make_dock_window("MaterialEditorDock", 0, &MaterialEditorClient::render_dock_window, this);
+        render_viewport(dt).render_properties(dt);
+
+        _M_package_tree.render(viewport);
+        _M_content_browser.render(viewport);
+        window_list.render(viewport);
         viewport->window()->imgui_window()->end_frame();
+        ++_M_frame;
         return *this;
     }
 
@@ -53,37 +90,18 @@ namespace Engine
         return *this;
     }
 
-
-    static void render_material_tree(Package* package)
+    MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
-        if (ImGui::CollapsingHeader(package->string_name().c_str()))
-        {
-            ImGui::Indent(10.f);
-
-            for (auto& [name, object] : package->objects())
-            {
-            }
-
-            for (auto& [name, object] : package->objects())
-            {
-                Package* next_package = object->instance_cast<Package>();
-                if(next_package)
-                {
-                    render_material_tree(next_package);
-                }
-            }
-
-            ImGui::Unindent(10.0f);
-        }
+        return *this;
     }
+
 
     MaterialEditorClient& MaterialEditorClient::render_properties(float dt)
     {
-        Package* package = Object::root_package();
-        ImGui::Begin("Resource Tree");
-        render_material_tree(package);
-        ImGui::End();
+        ImGui::Begin("Properties");
 
+
+        ImGui::End();
         return *this;
     }
 }// namespace Engine

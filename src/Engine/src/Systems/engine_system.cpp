@@ -22,6 +22,11 @@ namespace Engine
             }
         }
 
+        Package* package = Package::find_package("Engine::Systems", false);
+        if (package)
+        {
+            package->flag(Object::IsInternal, true);
+        }
         return *this;
     }
 

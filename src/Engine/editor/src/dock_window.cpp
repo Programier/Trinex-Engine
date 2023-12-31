@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-    void make_dock_window(const char* name, void (*callback)(), unsigned int flags)
+    void make_dock_window(const char* name, unsigned int flags, void (*callback)(void* userdata), void* userdata)
     {
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -16,12 +16,8 @@ namespace Engine
 
         if (ImGui::Begin(name, nullptr, dock_flags))
         {
-            auto id                            = ImGui::GetID(name);
-            ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-            ImGui::DockSpace(id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
             if (callback)
-                callback();
+                callback(userdata);
         }
 
         ImGui::End();

@@ -266,6 +266,7 @@ namespace Engine
             init_engine_for_rendering();
         }
 
+        Object::mark_internal_objects();
         int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch();
 
         if (status == 0)

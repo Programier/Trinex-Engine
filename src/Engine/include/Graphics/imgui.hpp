@@ -12,6 +12,19 @@ namespace Engine
     class Sampler;
 }// namespace Engine
 
+
+namespace Engine::ImGuiHelpers
+{
+    template<typename OutType, typename InType>
+    OutType construct_vec2(const InType& in)
+    {
+        OutType out;
+        out.x = in.x;
+        out.y = in.y;
+        return out;
+    }
+}// namespace Engine::ImGuiHelpers
+
 namespace Engine::ImGuiRenderer
 {
     class ENGINE_EXPORT DrawData final
@@ -74,12 +87,50 @@ namespace Engine::ImGuiRenderer
         friend class Engine::Window;
     };
 
-    bool InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
-                   void* user_data = nullptr);
+    bool ENGINE_EXPORT InputText(const char* label, String& buffer, ImGuiInputTextFlags flags = 0,
+                                 ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
 
-    bool InputTextMultiline(const char* label, String& buffer, const ImVec2& size = ImVec2(0.0f, 0.0f),
-                            ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+    bool ENGINE_EXPORT InputTextMultiline(const char* label, String& buffer, const ImVec2& size = ImVec2(0.0f, 0.0f),
+                                          ImGuiInputTextFlags flags = 0, ImGuiInputTextCallback callback = nullptr,
+                                          void* user_data = nullptr);
 
-    bool InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags = 0,
-                           ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+    bool ENGINE_EXPORT InputTextWithHint(const char* label, const char* hint, String& buffer, ImGuiInputTextFlags flags = 0,
+                                         ImGuiInputTextCallback callback = nullptr, void* user_data = nullptr);
+
+    bool ENGINE_EXPORT BeginPopup(const char* name, ImGuiWindowFlags flags = 0, bool (*callback)(void*) = nullptr,
+                                  void* userdata = nullptr);
+
+
+    template<typename Instance>
+    FORCE_INLINE bool BeginPopup(const char* name, ImGuiWindowFlags flags = 0, bool (Instance::*callback)() = nullptr,
+                                 Instance* instance = nullptr)
+    {
+        struct InternalData {
+            bool (Instance::*callback)() = nullptr;
+            Instance* instance           = nullptr;
+        } data;
+
+        data.callback = callback;
+        data.instance = instance;
+
+        struct InternalFunction {
+            static bool execute(void* _userdata)
+            {
+                InternalData* data = reinterpret_cast<InternalData*>(_userdata);
+                return (data->instance->*data->callback)();
+            }
+        };
+
+        return BeginPopup(name, flags, InternalFunction::execute, &data);
+    }
+
+
+    template<typename... Args>
+    FORCE_INLINE void TextWrappedColored(const ImVec4& color, const char* fmt, Args... args)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        ImGui::TextWrapped(fmt, args...);
+        ImGui::PopStyleColor();
+    }
+
 }// namespace Engine::ImGuiRenderer

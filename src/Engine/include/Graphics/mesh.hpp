@@ -26,7 +26,6 @@ namespace Engine
             Pointer<MaterialInterface> material;
 
             VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
-            const LOD& render() const;
 
         private:
             VertexBuffer* find_position_vertex_buffer(Index index) const;

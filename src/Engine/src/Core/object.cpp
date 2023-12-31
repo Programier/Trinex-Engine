@@ -50,7 +50,8 @@ namespace Engine
                 .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
                 .static_function("Package@ find_package(const string& in, bool)",
                                  func_of<Package*(const String&, bool)>(&Object::find_package))
-                .static_function("Object@ static_find_object(const string& in)", &Object::find_object)
+                .static_function("Object@ static_find_object(const string& in)",
+                                 func_of<Object*(const String&)>(&Object::find_object))
                 .method("Object& remove_from_package()", &Object::remove_from_package)
                 .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
                 .method("string opConv() const", &Object::as_string)
@@ -109,6 +110,7 @@ namespace Engine
             _M_root_package = new Package();
             _M_root_package->name("Root Package");
             _M_root_package->flag(IsSerializable, false);
+            _M_root_package->flag(IsInternal, true);
         }
     }
 
@@ -468,6 +470,16 @@ namespace Engine
     ENGINE_EXPORT Object* Object::find_object(const String& object_name)
     {
         return _M_root_package->find_object(object_name);
+    }
+
+    ENGINE_EXPORT Object* Object::find_object(const char* object_name)
+    {
+        return _M_root_package->find_object(object_name);
+    }
+
+    ENGINE_EXPORT Object* Object::find_object(const char* object_name, size_t len)
+    {
+        return _M_root_package->find_object(object_name, len, true);
     }
 
     Object& Object::preload()

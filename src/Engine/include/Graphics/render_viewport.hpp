@@ -57,6 +57,7 @@ namespace Engine
         RenderViewport& window(Window* window_interface, bool vsync);
         RenderViewport& render_target(RenderTarget* rt);
         Type type() const;
+        Size2D size() const;
 
         bool vsync();
         RenderViewport& vsync(bool flag);

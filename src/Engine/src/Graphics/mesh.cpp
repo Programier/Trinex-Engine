@@ -54,38 +54,10 @@ namespace Engine
         }
 
         static VertexBuffer* (LOD::*find_buffer_private[])(Index) const = {
-                &LOD::find_position_vertex_buffer,  &LOD::find_position_tex_coord_buffer,
-                &LOD::find_position_color_buffer,   &LOD::find_position_normal_buffer,
-                &LOD::find_position_tangent_buffer, &LOD::find_position_binormal_buffer,
+                &LOD::find_position_vertex_buffer, &LOD::find_position_tex_coord_buffer, &LOD::find_position_color_buffer,
+                &LOD::find_position_normal_buffer, &LOD::find_position_tangent_buffer,   &LOD::find_position_binormal_buffer,
         };
 
         return ((*this).*(find_buffer_private[semantic_index]))(index);
-    }
-
-    const StaticMesh::LOD& StaticMesh::LOD::render() const
-    {
-        if (!material->apply())
-        {
-            return *this;
-        }
-
-        for (auto& stream : material->streams())
-        {
-            VertexBuffer* buffer = find_vertex_buffer(stream.semantic, stream.index);
-            if (buffer)
-            {
-                buffer->rhi_bind(stream.stream);
-            }
-        }
-
-        if (indices)
-        {
-            indices->rhi_bind();
-        }
-        else
-        {
-            // TODO
-        }
-        return *this;
     }
 }// namespace Engine

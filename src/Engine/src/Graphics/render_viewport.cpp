@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/render_thread_call.hpp>
+#include <Graphics/render_target_base.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
@@ -95,7 +96,6 @@ namespace Engine
         return _M_type;
     }
 
-
     bool RenderViewport::vsync()
     {
         RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
@@ -136,6 +136,12 @@ namespace Engine
             return viewport->render_target();
         }
         return nullptr;
+    }
+
+    Size2D RenderViewport::size() const
+    {
+        RenderTargetBase* rt = reinterpret_cast<RenderTargetBase*>(_M_handle);
+        return rt->viewport().size;
     }
 
 

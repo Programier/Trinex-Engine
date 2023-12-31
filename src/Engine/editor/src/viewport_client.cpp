@@ -13,6 +13,7 @@
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 #include <dock_window.hpp>
+#include <imgui_internal.h>
 #include <theme.hpp>
 #include <viewport_client.hpp>
 
@@ -33,17 +34,22 @@ namespace Engine
 
         window->imgui_initialize(initialize_theme);
 
-        // Update window name
         String new_title = window->title() + Strings::format(" [{} RHI]", engine_instance->rhi()->name().c_str());
         window->title(new_title);
-
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
-
         _M_script_object = ScriptModule::global().create_script_object("Viewport");
         _M_script_object.on_create(this);
-
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
+
+        _M_package_tree.list    = &_M_window_list;
+        _M_content_browser.list = &_M_window_list;
+        _M_package_tree.on_package_select.push(std::bind(&EditorViewportClient::on_package_select, this, std::placeholders::_1));
         return init_world();
+    }
+
+    void EditorViewportClient::on_package_select(Package* package)
+    {
+        _M_content_browser.package = package;
     }
 
     ViewportClient& EditorViewportClient::render(class RenderViewport* viewport)
@@ -68,7 +74,6 @@ namespace Engine
         return *this;
     }
 
-
     static void open_material_editor()
     {
         WindowConfig new_config = global_window_config;
@@ -77,8 +82,12 @@ namespace Engine
         WindowManager::instance()->create_window(new_config);
     }
 
-    static void create_bar()
+    void EditorViewportClient::render_dock_window(void* userdata)
     {
+        auto dock_id                       = ImGui::GetID("EditorDock##Dock");
+        ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("View"))
@@ -91,20 +100,43 @@ namespace Engine
             }
             ImGui::EndMenuBar();
         }
+
+        if (_M_frame == 0)
+        {
+            ImGui::DockBuilderRemoveNode(dock_id);
+            ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
+
+
+            auto dock_id_left = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
+            auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
+
+            ImGui::DockBuilderDockWindow(_M_package_tree.name(), dock_id_left);
+            ImGui::DockBuilderDockWindow(_M_content_browser.name(), dock_id_down);
+            //ImGui::DockBuilderDockWindow("Viewport", dock_id);
+
+            ImGui::DockBuilderFinish(dock_id);
+        }
     }
 
     ViewportClient& EditorViewportClient::update(class RenderViewport* viewport, float dt)
     {
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
-        make_dock_window("EditorDock", create_bar, ImGuiWindowFlags_MenuBar);
-        create_scene_tree_window(dt);
+        make_dock_window("EditorDock", ImGuiWindowFlags_MenuBar, &EditorViewportClient::render_dock_window, this, nullptr);
+
         create_properties_window(dt);
         create_log_window(dt);
         create_viewport_window(dt);
 
+        _M_package_tree.render(viewport);
+        _M_content_browser.render(viewport);
+        _M_window_list.render(viewport);
+
         _M_script_object.update(dt);
         window->end_frame();
+
+        ++_M_frame;
 
         return *this;
     }
@@ -119,96 +151,42 @@ namespace Engine
 
     EditorViewportClient& EditorViewportClient::create_properties_window(float dt)
     {
-        if (!ImGui::Begin("Properties"))
-        {
-            ImGui::End();
-            return *this;
-        }
+        //        if (!ImGui::Begin("Properties"))
+        //        {
+        //            ImGui::End();
+        //            return *this;
+        //        }
 
-        ImGui::Text("FPS: %f", 1.0 / dt);
-        ImGui::End();
+        //        ImGui::Text("FPS: %f", 1.0 / dt);
+        //        ImGui::End();
         return *this;
     }
 
-    static void render_objects_tree(Package* package)
-    {
-        if (ImGui::TreeNode(package->string_name().c_str()))
-        {
-
-            ImGui::Indent(10.f);
-            for (auto& [name, object] : package->objects())
-            {
-                Package* new_package = object->instance_cast<Package>();
-                if (new_package)
-                {
-                    render_objects_tree(new_package);
-                }
-                else
-                {
-                    ImGui::Text("%s", object->string_name().c_str());
-                }
-            }
-
-            ImGui::Unindent(10.f);
-            ImGui::TreePop();
-        }
-    }
-
-    static void render_system_tree(System* system)
-    {
-        if (ImGui::TreeNode(system->string_name().c_str()))
-        {
-            ImGui::Indent(10.f);
-            for (System* subsystem : system->subsystems())
-            {
-                render_system_tree(subsystem);
-            }
-
-            ImGui::Unindent(10.f);
-            ImGui::TreePop();
-        }
-    }
-
-
-    EditorViewportClient& EditorViewportClient::create_scene_tree_window(float dt)
-    {
-        if (!ImGui::Begin("Scene Tree"))
-        {
-            ImGui::End();
-            return *this;
-        }
-
-        render_objects_tree(Object::root_package());
-        render_system_tree(EngineSystem::instance());
-        ImGui::End();
-
-        return *this;
-    }
 
     EditorViewportClient& EditorViewportClient::create_log_window(float dt)
     {
-        if (!ImGui::Begin("Logs"))
-        {
-            ImGui::End();
-            return *this;
-        }
+        //        if (!ImGui::Begin("Logs"))
+        //        {
+        //            ImGui::End();
+        //            return *this;
+        //        }
 
-        ImGui::End();
+        //        ImGui::End();
         return *this;
     }
 
     EditorViewportClient& EditorViewportClient::create_viewport_window(float dt)
     {
-        if (!ImGui::Begin("Viewport", nullptr))
-        {
-            ImGui::End();
-            return *this;
-        };
+        //        if (!ImGui::Begin("Viewport", nullptr))
+        //        {
+        //            ImGui::End();
+        //            return *this;
+        //        };
 
-        //        auto size = ImGui::GetContentRegionAvail();
-        //        ImGui::Image(_M_imgui_texture->handle(), size);
+        //        //        auto size = ImGui::GetContentRegionAvail();
+        //        //        ImGui::Image(_M_imgui_texture->handle(), size);
 
-        ImGui::End();
+        //        ImGui::End();
 
         return *this;
     }

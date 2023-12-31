@@ -2,14 +2,22 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
+#include <helpers.hpp>
 
 namespace Engine
 {
     class EditorViewportClient : public ViewportClient
     {
-    public:
+
         declare_class(EditorViewportClient, ViewportClient);
+
+    private:
         ScriptObject _M_script_object;
+        ImGuiPackageTree _M_package_tree;
+        ImGuiContentBrowser _M_content_browser;
+        ImGuiAdditionalWindowList _M_window_list;
+
+        size_t _M_frame = 0;
 
     public:
         EditorViewportClient();
@@ -23,8 +31,10 @@ namespace Engine
 
         EditorViewportClient& init_world();
         EditorViewportClient& create_properties_window(float dt);
-        EditorViewportClient& create_scene_tree_window(float dt);
         EditorViewportClient& create_log_window(float dt);
         EditorViewportClient& create_viewport_window(float dt);
+        void render_dock_window(void* userdata);
+
+        void on_package_select(Package* package);
     };
 }// namespace Engine
