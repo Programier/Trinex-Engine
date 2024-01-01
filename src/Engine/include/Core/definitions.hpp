@@ -37,7 +37,6 @@
 #endif
 
 
-
 #if __GNUC__
 #define GNU_COMPILER
 #elif __clang__
@@ -69,5 +68,7 @@
 #endif
 
 #define TRINEX_EXTERNAL_LIB_INIT_FUNC(ReturnType) extern "C" FORCE_ENGINE_EXPORT ReturnType create_library_interface()
+#define STRUCT_OFFSET(StructClass, Member) (reinterpret_cast<size_t>(&reinterpret_cast<StructClass*>(0)->Member))
+
 
 // USER SPECIFIC DEFINITIONS!

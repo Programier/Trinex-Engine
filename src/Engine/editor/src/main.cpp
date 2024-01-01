@@ -13,6 +13,7 @@ class Editor : public Engine::CommandLet
 public:
     Engine::int_t execute(Engine::int_t argc, char** argv) override
     {
+        Engine::Package::load_package("Editor");
         Engine::engine_instance->launch();
         return 0;
     }

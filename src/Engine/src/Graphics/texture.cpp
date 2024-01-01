@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
@@ -7,12 +8,20 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
-#include <Core/archive.hpp>
 
 namespace Engine
 {
-    implement_class(Texture, "Engine", 0);
-    implement_default_initialize_class(Texture);
+    implement_class(Texture, "Engine", Class::IsAsset);
+    implement_initialize_class(Texture)
+    {
+        Class* self = static_class_instance();
+        self->create_prop<Vec2Property>("Size", "Size of texture", STRUCT_OFFSET(This, size));
+        self->create_prop<ByteProperty>("Base mip level", "Base mip level", STRUCT_OFFSET(This, base_mip_level));
+        self->create_prop<ByteProperty>("MipMap count", "MipMap Count", STRUCT_OFFSET(This, mipmap_count));
+
+        //        ColorFormat format         = ColorFormat::R8G8B8A8Unorm;
+        //        SwizzleRGBA swizzle;
+    }
 
     Texture::Texture() = default;
 

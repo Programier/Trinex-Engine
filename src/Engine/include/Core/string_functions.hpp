@@ -1,7 +1,12 @@
 #pragma once
 
+#include <Core/build.hpp>
 #include <Core/engine_types.hpp>
+#if TRINEX_CUSTOM_STRING_FORMAT
 #include <sstream>
+#else
+#include <format>
+#endif
 
 namespace Engine::Strings
 {
@@ -11,6 +16,7 @@ namespace Engine::Strings
     }
 
 
+#if TRINEX_CUSTOM_STRING_FORMAT
     template<typename Type, typename... Args>
     String format(String text, const Type& value, const Args&... args)
     {
@@ -23,6 +29,9 @@ namespace Engine::Strings
 
         return format(text.replace(pos, 2, stream.str()), args...);
     }
+#else
+    using std::format;
+#endif
 
 
     ENGINE_EXPORT String c_style_format(const char* text, ...);

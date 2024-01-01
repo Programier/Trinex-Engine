@@ -9,6 +9,8 @@
 #include <Window/window_interface.hpp>
 #include <imgui.h>
 
+#include <imfilebrowser.h>
+
 namespace Engine::ImGuiRenderer
 {
     ImDrawData* DrawData::draw_data()
@@ -111,7 +113,93 @@ namespace Engine::ImGuiRenderer
         release();
     }
 
-    Window::Window(WindowInterface* interface, ImGuiContext* ctx) : _M_context(ctx), _M_interface(interface)
+    ImGuiAdditionalWindow::ImGuiAdditionalWindow()
+    {}
+
+    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::render(class RenderViewport* viewport)
+    {
+        Node* node = _M_root;
+
+        while (node)
+        {
+            bool status = node->window->render(viewport);
+            node->window->frame_number += 1;
+            if (status)
+            {
+                node = node->next;
+            }
+            else
+            {
+                node = destroy(node);
+            }
+        }
+
+        return *this;
+    }
+
+    void ImGuiAdditionalWindow::init(class RenderViewport* viewport)
+    {}
+
+    ImGuiAdditionalWindowList::Node* ImGuiAdditionalWindowList::destroy(Node* node)
+    {
+        if (node == _M_root)
+        {
+            _M_root = _M_root->next;
+        }
+
+        if (node->parent)
+        {
+            node->parent->next = node->next;
+        }
+
+        if (node->next)
+        {
+            node->next->parent = node->parent;
+        }
+
+        delete node->window;
+
+        Node* next = node->next;
+        delete node;
+
+        return next;
+    }
+
+    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::push(class RenderViewport* viewport, ImGuiAdditionalWindow* window)
+    {
+        window->init(viewport);
+        Node* parent_node = _M_root;
+        while (parent_node && parent_node->next) parent_node = parent_node->next;
+
+        Node* node   = new Node();
+        node->window = window;
+        node->parent = parent_node;
+        node->next   = nullptr;
+
+        if (parent_node)
+        {
+            parent_node->next = node;
+        }
+
+        if (_M_root == nullptr)
+        {
+            _M_root = node;
+        }
+
+        return *this;
+    }
+
+    ImGuiAdditionalWindowList::~ImGuiAdditionalWindowList()
+    {
+        while (_M_root)
+        {
+            destroy(_M_root);
+        }
+    }
+
+    static Window* _M_current_window = nullptr;
+
+    Window::Window(Engine::Window* window, ImGuiContext* ctx) : _M_context(ctx), _M_window(window)
     {}
 
     void Window::free_resources()
@@ -135,19 +223,22 @@ namespace Engine::ImGuiRenderer
     Window& Window::new_frame()
     {
         ImGui::SetCurrentContext(_M_context);
-        _M_interface->new_imgui_frame();
+        _M_window->interface()->new_imgui_frame();
 
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_new_frame(_M_context);
         ImGui::NewFrame();
 
+        _M_current_window = this;
         return *this;
     }
 
     Window& Window::end_frame()
     {
         ImGui::SetCurrentContext(_M_context);
+        window_list.render(_M_window->render_viewport());
         ImGui::Render();
+        _M_current_window = nullptr;
         return *this;
     }
 
@@ -181,6 +272,11 @@ namespace Engine::ImGuiRenderer
         }
 
         return *this;
+    }
+
+    Window* Window::current()
+    {
+        return _M_current_window;
     }
 
     Window::~Window()

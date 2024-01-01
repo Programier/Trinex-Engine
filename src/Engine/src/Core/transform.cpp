@@ -40,10 +40,12 @@ namespace Engine
 
     String Transform::as_string() const
     {
-        return Strings::format("Position: {}\n"
-                               "Scale:    {}\n"
-                               "Rotation: {}",
-                               location, scale, rotation);
+        return Strings::format("Location: {}, {}, {}\n"
+                               "Rotation: {}, {}, {}, {}\n"
+                               "Scale: {}, {}, {}",                           //
+                               location.x, location.y, location.z,            //
+                               rotation.x, rotation.y, rotation.z, rotation.w,//
+                               scale.x, scale.y, scale.z);
     }
 
 

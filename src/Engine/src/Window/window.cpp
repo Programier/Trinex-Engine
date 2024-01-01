@@ -32,7 +32,7 @@ namespace Engine
     Window::Window(WindowInterface* interface, bool vsync) : _M_interface(interface)
     {
         _M_render_viewport = Object::new_instance<RenderViewport>();
-        _M_render_viewport->flag(Object::Flag::IsAvailableForGC, false);
+        _M_render_viewport->flags(Object::Flag::IsAvailableForGC, false);
         _M_render_viewport->window(this, vsync);
         _M_render_viewport->init_resource();
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
@@ -41,7 +41,7 @@ namespace Engine
         render_pass = &Object::new_instance<WindowRenderPass>()->rhi_create();
 
         rhi_create();
-        flag(Object::IsAvailableForGC, false);
+        flags(Object::IsAvailableForGC, false);
         update_cached_size();
 
 
@@ -302,7 +302,7 @@ namespace Engine
         if (!_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-            _M_imgui_window = new ImGuiRenderer::Window(_M_interface, imgui_create_context(_M_interface, callback));
+            _M_imgui_window = new ImGuiRenderer::Window(this, imgui_create_context(_M_interface, callback));
             engine_instance->thread(ThreadType::RenderThread)->wait_all();
             ImGui::SetCurrentContext(current_context);
         }

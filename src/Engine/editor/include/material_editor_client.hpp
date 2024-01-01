@@ -1,7 +1,6 @@
 #pragma once
 #include <Graphics/render_viewport.hpp>
-#include <additional_window.hpp>
-#include <helpers.hpp>
+#include <imgui_windows.hpp>
 
 namespace Engine
 {
@@ -19,8 +18,6 @@ namespace Engine
         size_t _M_frame                              = 0;
 
     public:
-        ImGuiAdditionalWindowList window_list;
-
         MaterialEditorClient& on_bind_to_viewport(class RenderViewport* viewport) override;
         MaterialEditorClient& render(class RenderViewport* viewport) override;
         MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;

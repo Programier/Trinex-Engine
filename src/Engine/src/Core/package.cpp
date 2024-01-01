@@ -26,7 +26,7 @@ namespace Engine
 
     Package::Package()
     {
-        flag(Object::IsPackage, true);
+        flags(Object::IsPackage, true);
     }
 
     bool Package::add_object(Object* object, bool autorename)
@@ -226,7 +226,7 @@ namespace Engine
     bool Package::save() const
     {
 
-        if (!flag(Object::IsSerializable))
+        if (!flags(Object::IsSerializable))
         {
             error_log("Package", "Cannot save non-serializable package!");
             return false;
@@ -276,6 +276,11 @@ namespace Engine
         Path path = engine_config.resources_dir / filepath();
         FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
         BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
+        if (reader == nullptr)
+        {
+            error_log("Package", "Failed to load package '%s': File '%s' not found!", full_name().c_str(), path.c_str());
+            return false;
+        }
 
         Archive ar(reader);
 
@@ -311,7 +316,7 @@ namespace Engine
             }
         }
 
-        return false;
+        return true;
     }
 
     Package::Header& Package::load_header()
@@ -335,14 +340,22 @@ namespace Engine
 
     Package::~Package()
     {
-        //        Package* next_package = const_cast<Package*>(root_package());
-        //        if (this == next_package)
-        //            next_package = nullptr;
+        Package* next_package = const_cast<Package*>(root_package());
+        if (this == next_package)
+            next_package = nullptr;
 
-        //        for (Object* object : _M_objects)
-        //        {
-        //            object->_M_package = next_package;
-        //        }
+        for (auto& [name, object] : _M_objects)
+        {
+            if (next_package)
+            {
+                object->_M_package = nullptr;
+                next_package->add_object(object);
+            }
+            else
+            {
+                object->_M_package = nullptr;
+            }
+        }
     }
 
 

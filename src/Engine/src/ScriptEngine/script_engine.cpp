@@ -363,7 +363,7 @@ namespace Engine
         return global_function_by_decl(declaration.c_str());
     }
 
-    ScriptEngine& ScriptEngine::garbage_collect(Flags flags, size_t iterations)
+    ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, size_t iterations)
     {
         _M_engine->GarbageCollect(flags, iterations);
         return *this;

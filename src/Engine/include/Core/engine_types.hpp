@@ -14,7 +14,6 @@ namespace Engine
     using byte        = std::uint8_t;
     using signed_byte = std::int8_t;
     using size_t      = std::uint64_t;
-    using Flags       = std::uint64_t;
 
 
     using Point1D      = float;

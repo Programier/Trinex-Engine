@@ -58,7 +58,7 @@ namespace Engine
         auto& objects = Object::all_objects();
         for (Object* object : objects)
         {
-            if (object && object->has_any(Object::IsAvailableForGC))
+            if (object && object->flags.has_any(Object::IsAvailableForGC))
                 Object::delete_object(object);
         }
     }
@@ -68,7 +68,7 @@ namespace Engine
         while (!deferred_destroy_list().empty())
         {
             Object* object = *deferred_destroy_list().begin();
-            if (object && object->has_all(Object::IsAvailableForGC))
+            if (object && object->flags(Object::IsAvailableForGC))
             {
                 delete_object(object);
             }

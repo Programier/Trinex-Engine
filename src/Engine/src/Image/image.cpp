@@ -422,11 +422,11 @@ namespace Engine
 
         Archive& archive = *archive_ptr;
 
-        if (archive.is_saving() && _M_data.empty())
-        {
-            error_log("Image", "Failed to serialize image. Data is empty!");
-            return false;
-        }
+//        if (archive.is_saving() && _M_data.empty())
+//        {
+//            error_log("Image", "Failed to serialize image. Data is empty!");
+//            return false;
+//        }
 
         archive& _M_width;
         archive& _M_height;

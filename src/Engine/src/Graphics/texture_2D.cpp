@@ -12,7 +12,11 @@
 namespace Engine
 {
     implement_class(Texture2D, "Engine", 0);
-    implement_default_initialize_class(Texture2D);
+    implement_initialize_class(Texture2D)
+    {
+        Class* self_class = static_class_instance();
+        self_class->create_prop<PathProperty>("Path", "Path to texture", STRUCT_OFFSET(This, path));
+    }
 
     Texture2D::Texture2D() = default;
 
@@ -24,7 +28,8 @@ namespace Engine
 
     Texture2D& Texture2D::rhi_create(const byte* data)
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_texture(this, data));
+        if (size.x >= 1.0f && size.y >= 1.f)
+            _M_rhi_object.reset(engine_instance->rhi()->create_texture(this, data));
         return *this;
     }
 
@@ -62,6 +67,7 @@ namespace Engine
         }
 
         (*archive) & image;
+        (*archive) & path;
         return static_cast<bool>(*archive);
     }
 

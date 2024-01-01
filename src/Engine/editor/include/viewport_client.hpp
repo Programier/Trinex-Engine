@@ -2,7 +2,7 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
-#include <helpers.hpp>
+#include <imgui_windows.hpp>
 
 namespace Engine
 {
@@ -15,7 +15,7 @@ namespace Engine
         ScriptObject _M_script_object;
         ImGuiPackageTree _M_package_tree;
         ImGuiContentBrowser _M_content_browser;
-        ImGuiAdditionalWindowList _M_window_list;
+        ImGuiObjectProperties _M_properties;
 
         size_t _M_frame = 0;
 
@@ -36,5 +36,6 @@ namespace Engine
         void render_dock_window(void* userdata);
 
         void on_package_select(Package* package);
+        void on_object_select(Object* object);
     };
 }// namespace Engine

@@ -7,7 +7,7 @@
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
-#include <helpers.hpp>
+#include <imgui_windows.hpp>
 #include <imgui_internal.h>
 #include <material_editor_client.hpp>
 #include <theme.hpp>
@@ -34,9 +34,6 @@ namespace Engine
 
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
         _M_viewport = viewport;
-
-        _M_package_tree.list    = &window_list;
-        _M_content_browser.list = &window_list;
         return *this;
     }
 
@@ -78,7 +75,7 @@ namespace Engine
 
         _M_package_tree.render(viewport);
         _M_content_browser.render(viewport);
-        window_list.render(viewport);
+
         viewport->window()->imgui_window()->end_frame();
         ++_M_frame;
         return *this;

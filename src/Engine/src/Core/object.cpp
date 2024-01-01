@@ -31,7 +31,7 @@ namespace Engine
 
         InitializeController().require("Bind Engine::Name").require("Bind Engine::Class");
 
-        if (!self->has_all_flags(Class::IsSingletone))
+        if (!self->flags(Class::IsSingletone))
         {
             registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor());
         }
@@ -109,8 +109,8 @@ namespace Engine
         {
             _M_root_package = new Package();
             _M_root_package->name("Root Package");
-            _M_root_package->flag(IsSerializable, false);
-            _M_root_package->flag(IsInternal, true);
+            _M_root_package->flags(IsSerializable, false);
+            _M_root_package->flags(IsInternal, true);
         }
     }
 
@@ -155,9 +155,9 @@ namespace Engine
             objects_array.push_back(this);
         }
 
-        _M_flags = 0;
-        flag(Flag::IsSerializable, true);
-        flag(Flag::IsAvailableForGC, _M_next_available_for_gc);
+
+        flags(Flag::IsSerializable, true);
+        flags(Flag::IsAvailableForGC, _M_next_available_for_gc);
         _M_next_available_for_gc = false;
     }
 
@@ -249,10 +249,15 @@ namespace Engine
 
     Object::~Object()
     {
-        if (flag(Flag::IsDestructed) == false)
+        if (flags(Flag::IsDestructed) == false)
         {
+            if(_M_package)
+            {
+                _M_package->remove_object(this);
+                _M_package = nullptr;
+            }
             remove_from_instances_array();
-            flag(Flag::IsDestructed, true);
+            flags(Flag::IsDestructed, true);
         }
     }
 
@@ -351,14 +356,14 @@ namespace Engine
 
     Object* Object::copy()
     {
-        if (flag(Flag::IsDestructed))
+        if (flags(Flag::IsDestructed))
             return nullptr;
 
         Object* object = nullptr;
 
         {
-            object           = class_instance()->create_object();
-            object->_M_flags = _M_flags;
+            object        = class_instance()->create_object();
+            object->flags = flags;
         }
 
         return object;
@@ -421,39 +426,6 @@ namespace Engine
     void Object::remove_reference()
     {
         --_M_references;
-    }
-
-    const decltype(Object::_M_flags)& Object::flags() const
-    {
-        return _M_flags;
-    }
-
-    Object& Object::flag(Flag flag, bool status)
-    {
-        if (status)
-        {
-            _M_flags |= flag;
-        }
-        else
-        {
-            _M_flags &= ~flag;
-        }
-        return *this;
-    }
-
-    bool Object::flag(Flag flag) const
-    {
-        return (_M_flags & flag) == flag;
-    }
-
-    bool Object::has_all(Flags flags) const
-    {
-        return (_M_flags & flags) == flags;
-    }
-
-    bool Object::has_any(Flags flags) const
-    {
-        return (_M_flags & flags) != 0;
     }
 
     bool Object::is_noname() const
@@ -572,12 +544,12 @@ namespace Engine
             return false;
         }
 
-        return flag(Flag::IsSerializable);
+        return flags(Flag::IsSerializable);
     }
 
     bool Object::is_valid() const
     {
-        if (has_any(IsUnreachable))
+        if (flags(IsUnreachable))
             return false;
         return true;
     }

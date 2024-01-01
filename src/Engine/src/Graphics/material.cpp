@@ -12,10 +12,12 @@
 namespace Engine
 {
     implement_engine_class_default_init(MaterialInterface);
-    implement_engine_class_default_init(Material);
-    implement_engine_class_default_init(MaterialInstance);
     implement_engine_class_default_init(MaterialObject);
 
+    implement_engine_class(Material, Class::IsAsset);
+    implement_default_initialize_class(Material);
+    implement_engine_class(MaterialInstance, Class::IsAsset);
+    implement_default_initialize_class(MaterialInstance);
 
     Material::Material()
     {

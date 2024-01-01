@@ -2,27 +2,30 @@
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/flags.hpp>
+#include <Core/property.hpp>
 #include <Core/string_functions.hpp>
 
 namespace Engine
 {
-    class ENGINE_EXPORT Class
+    class ENGINE_EXPORT Class final
     {
     public:
-        enum Flag : Flags
+        enum Flag : BitMask
         {
             IsSingletone = 1 << 0,
             IsAbstract   = 1 << 1,
             IsFinal      = 1 << 2,
-
             IsScriptable = 1 << 3,
+            IsAsset      = 1 << 4,
         };
+
+        Flags flags;
 
     private:
         String _M_name;
         String _M_namespace;
         String _M_base_name;
-        Flags _M_flags;
 
         Object* (*_M_static_constructor)();
         Object* (*_M_cast_to_this)(Object* object);
@@ -31,6 +34,7 @@ namespace Engine
         size_t _M_size;
 
         mutable Object* _M_singletone_object;
+        Vector<Property*> _M_properties;
 
         /// SCRIPT PART
         CallBack<void(class ScriptClassRegistrar*, Class*)> _M_script_register_callback;
@@ -45,25 +49,29 @@ namespace Engine
         }
 
     public:
-        Class(const String& class_name, Object* (*) (), Class* parent = nullptr, Flags flags = 0);
+        Class(const String& class_name, Object* (*) (), Class* parent = nullptr, BitMask flags = 0);
 
         Class* parent() const;
         const String& name() const;
         const String& namespace_name() const;
         const String& base_name() const;
         Object* create_object() const;
-        static Class* static_find_class(const String& name);
         bool contains_class(const Class* c) const;
         size_t sizeof_class() const;
         bool is_binded_to_script() const;
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)();
         Object* singletone_instance() const;
-        static const Map<String, Class*>& class_table();
 
         Class& set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>&);
         Class& post_initialize();
+        bool is_asset() const;
+        const Vector<Property*>& properties() const;
+        ~Class();
 
+        static Class* static_find_class(const String& name);
+        static const Vector<Class*>& asset_classes();
+        static const Map<String, Class*>& class_table();
 
         template<typename Type>
         bool is_a() const
@@ -81,25 +89,31 @@ namespace Engine
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {
-                    _M_flags |= static_cast<Flags>(Flag::IsFinal);
+                    flags(static_cast<BitMask>(Flag::IsFinal), true);
                 }
 
                 if constexpr (std::is_abstract_v<ObjectClass>)
                 {
-                    _M_flags |= static_cast<Flags>(Flag::IsAbstract);
+                    flags(static_cast<BitMask>(Flag::IsAbstract), true);
                 }
 
                 if constexpr (is_singletone_v<ObjectClass>)
                 {
-                    _M_flags |= static_cast<Flags>(Flag::IsSingletone);
+                    flags(static_cast<BitMask>(Flag::IsSingletone), true);
                 }
 
                 _M_cast_to_this = private_cast_func<ObjectClass>;
             }
         }
 
-        bool has_any_flags(Flags flags) const;
-        bool has_all_flags(Flags flags) const;
+        template<typename PropType>
+        PropType* create_prop(const Name& name, const String& description, size_t offset, BitMask flags = 0)
+        {
+            PropType* prop = new PropType(name, description, offset, flags);
+            _M_properties.push_back(prop);
+            return prop;
+        }
+
 
         friend class ScriptClassRegistrar;
     };

@@ -86,6 +86,7 @@ namespace Engine
 
 
     ENGINE_EXPORT bool operator&(Archive&, String&);
+    ENGINE_EXPORT bool operator&(Archive&, Path&);
 
     template<typename Type, typename AllocatorType>
     FORCE_INLINE bool operator&(Archive& ar, Vector<Type, AllocatorType>& vector)

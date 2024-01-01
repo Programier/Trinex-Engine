@@ -83,7 +83,7 @@ namespace Engine
         ScriptFunction global_function_by_decl(const char* declaration) const;
         ScriptFunction global_function_by_decl(const String& declaration) const;
 
-        ScriptEngine& garbage_collect(Flags flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
+        ScriptEngine& garbage_collect(BitMask flags = GarbageCollectFlags::FullCycle, size_t iterations = 1);
 
         uint_t object_type_count() const;
         ScriptTypeInfo object_type_by_index(uint_t index) const;

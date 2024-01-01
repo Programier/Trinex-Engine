@@ -2,6 +2,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/flags.hpp>
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
@@ -50,8 +51,6 @@ namespace Engine
         };
 
     private:
-        mutable Flags _M_flags;
-
         Package* _M_package;
         Object* _M_owner;
         Counter _M_references;
@@ -76,6 +75,8 @@ namespace Engine
 
 
     public:
+        mutable Flags flags;
+
         using This  = Object;
         using Super = Object;
         static Object* static_constructor();
@@ -113,11 +114,6 @@ namespace Engine
         Counter references() const;
         void add_reference();
         void remove_reference();
-        const decltype(Object::_M_flags)& flags() const;
-        Object& flag(Flag flag, bool status);
-        bool flag(Flag flag) const;
-        bool has_all(Flags mask) const;
-        bool has_any(Flags mask) const;
         bool is_noname() const;
         String as_string() const;
         Index instance_index() const;

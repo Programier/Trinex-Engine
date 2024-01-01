@@ -19,7 +19,7 @@ namespace Engine
             Object* object = Object::find_object(internal_objects_list[i]);
             if (object)
             {
-                object->flag(Object::IsInternal, true);
+                object->flags(Object::IsInternal, true);
             }
         }
     }

@@ -3,6 +3,12 @@
 #include <Core/implement.hpp>
 #include <imgui.h>
 
+
+namespace ImGui
+{
+    class FileBrowser;
+}
+
 namespace Engine
 {
     class Window;
@@ -10,6 +16,7 @@ namespace Engine
     struct RHI_ImGuiTexture;
     class Texture;
     class Sampler;
+    class RenderViewport;
 }// namespace Engine
 
 
@@ -56,6 +63,52 @@ namespace Engine::ImGuiRenderer
         friend class Window;
     };
 
+
+    class ImGuiAdditionalWindowList;
+
+    class ImGuiAdditionalWindow
+    {
+    public:
+        size_t frame_number             = 0;
+
+        ImGuiAdditionalWindow();
+        delete_copy_constructors(ImGuiAdditionalWindow);
+
+        virtual void init(RenderViewport* viewport);
+        virtual bool render(RenderViewport* viewport) = 0;
+        FORCE_INLINE virtual ~ImGuiAdditionalWindow(){};
+    };
+
+
+    class ImGuiAdditionalWindowList final
+    {
+        struct Node {
+            ImGuiAdditionalWindow* window = nullptr;
+            Node* next                    = nullptr;
+            Node* parent                  = nullptr;
+        };
+
+        Node* _M_root = nullptr;
+
+        ImGuiAdditionalWindowList& push(class RenderViewport* viewport, ImGuiAdditionalWindow* window);
+        Node* destroy(Node* node);
+
+    public:
+        ImGuiAdditionalWindowList() = default;
+        delete_copy_constructors(ImGuiAdditionalWindowList);
+
+        template<typename Type, typename... Args>
+        Type* create(class RenderViewport* viewport, Args&&... args)
+        {
+            Type* instance = new Type(std::forward<Args>(args)...);
+            push(viewport, instance);
+            return instance;
+        }
+
+        ImGuiAdditionalWindowList& render(class RenderViewport* viewport);
+        ~ImGuiAdditionalWindowList();
+    };
+
     class ENGINE_EXPORT Window final
     {
     private:
@@ -63,14 +116,16 @@ namespace Engine::ImGuiRenderer
         Set<ImGuiTexture*> _M_textures;
 
         ImGuiContext* _M_context;
-        WindowInterface* _M_interface;
+        Engine::Window* _M_window;
 
-
-        Window(WindowInterface* interface, ImGuiContext* context);
+        Window(Engine::Window* window, ImGuiContext* context);
         void free_resources();
         ~Window();
 
     public:
+        ImGuiAdditionalWindowList window_list;
+
+
         Window(const Window& window)     = delete;
         Window& operator=(const Window&) = delete;
 
@@ -83,6 +138,7 @@ namespace Engine::ImGuiRenderer
 
         ImGuiTexture* create_texture();
         Window& release_texture(ImGuiTexture*);
+        static Window* current();
 
         friend class Engine::Window;
     };
@@ -102,22 +158,25 @@ namespace Engine::ImGuiRenderer
 
 
     template<typename Instance>
-    FORCE_INLINE bool BeginPopup(const char* name, ImGuiWindowFlags flags = 0, bool (Instance::*callback)() = nullptr,
-                                 Instance* instance = nullptr)
+    FORCE_INLINE bool BeginPopup(const char* name, ImGuiWindowFlags flags = 0,
+                                 bool (Instance::*callback)(void* userdata) = nullptr, Instance* instance = nullptr,
+                                 void* userdata = nullptr)
     {
         struct InternalData {
-            bool (Instance::*callback)() = nullptr;
-            Instance* instance           = nullptr;
+            bool (Instance::*callback)(void*) = nullptr;
+            Instance* instance                = nullptr;
+            void* userdata                    = nullptr;
         } data;
 
         data.callback = callback;
         data.instance = instance;
+        data.userdata = userdata;
 
         struct InternalFunction {
             static bool execute(void* _userdata)
             {
                 InternalData* data = reinterpret_cast<InternalData*>(_userdata);
-                return (data->instance->*data->callback)();
+                return (data->instance->*data->callback)(data->userdata);
             }
         };
 

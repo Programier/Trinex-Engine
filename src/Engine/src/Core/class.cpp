@@ -13,6 +13,12 @@ namespace Engine
         return table;
     }
 
+    static FORCE_INLINE Vector<Class*>& get_asset_class_table()
+    {
+        static Vector<Class*> vector;
+        return vector;
+    }
+
     static PostDestroyController destroy([]() {
         for (auto& pair : get_class_table())
         {
@@ -38,17 +44,22 @@ namespace Engine
         return nullptr;
     }
 
-    Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent, Flags flags)
+    Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent, BitMask _flags)
         : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent), _M_singletone_object(nullptr)
     {
         get_class_table()[class_name] = this;
         _M_size                       = 0;
-        _M_flags                      = flags;
         info_log("Class", "Created class instance '%s'", class_name.c_str());
 
         _M_base_name    = Object::object_name_of(class_name);
         _M_namespace    = Object::package_name_of(class_name);
+        flags.flags     = _flags;
         _M_cast_to_this = nullptr;
+
+        if (is_asset())
+        {
+            get_asset_class_table().push_back(this);
+        }
     }
 
     Class* Class::parent() const
@@ -73,7 +84,7 @@ namespace Engine
 
     Object* Class::create_object() const
     {
-        if (has_all_flags(Class::IsSingletone))
+        if (flags(Class::IsSingletone))
         {
             if (_M_singletone_object == nullptr)
             {
@@ -101,15 +112,6 @@ namespace Engine
         return _M_size;
     }
 
-    bool Class::has_any_flags(Flags flags) const
-    {
-        return (_M_flags & flags) != 0;
-    }
-
-    bool Class::has_all_flags(Flags flags) const
-    {
-        return (_M_flags & flags) == flags;
-    }
 
     Class* Class::static_find_class(const String& name)
     {
@@ -125,7 +127,7 @@ namespace Engine
 
     bool Class::is_binded_to_script() const
     {
-        return has_all_flags(IsScriptable);
+        return flags(IsScriptable);
     }
 
     Object* (*Class::cast_to_this() const)(Object*)
@@ -182,6 +184,41 @@ namespace Engine
         return *this;
     }
 
+    bool Class::is_asset() const
+    {
+        const Class* self = this;
+        while (self)
+        {
+            if (self->flags(Class::IsAsset))
+            {
+                return true;
+            }
+
+            self = self->_M_parent;
+        }
+
+        return false;
+    }
+
+    const Vector<Property*>& Class::properties() const
+    {
+        return _M_properties;
+    }
+
+    const Vector<Class*>& Class::asset_classes()
+    {
+        return get_asset_class_table();
+    }
+
+    Class::~Class()
+    {
+        for (Property* prop : _M_properties)
+        {
+            delete prop;
+        }
+
+        _M_properties.clear();
+    }
 
     static void on_init()
     {
