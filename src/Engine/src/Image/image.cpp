@@ -56,7 +56,7 @@ namespace Engine
         return Image::ImageRow(_M_data.data() + _M_channels * index, _M_width, _M_channels);
     }
 
-    Image& Image::load(const String& image, const bool& invert_horizontal)
+    Image& Image::load(const Path& image, const bool& invert_horizontal)
     {
         _M_data.clear();
         stbi_set_flip_vertically_on_load(invert_horizontal);

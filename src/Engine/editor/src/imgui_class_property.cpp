@@ -3,6 +3,7 @@
 #include <Graphics/imgui.hpp>
 #include <imgui.h>
 #include <imgui_class_property.hpp>
+#include <imgui_windows.hpp>
 
 #include <imfilebrowser.h>
 
@@ -97,6 +98,21 @@ namespace Engine
     static void render_path_property(Object* object, Property* prop, bool can_edit)
     {
         ImGuiRenderer::Window* window = ImGuiRenderer::Window::current();
+
+        PropertyValue value = prop->property_value(object);
+        if (!value.has_value())
+            return;
+
+        Path path = std::any_cast<Path>(value);
+
+        if (ImGui::Selectable(Strings::format("{}: {}", prop->name().c_str(), path.c_str()).c_str()))
+        {
+            Function<void(Package*, const Path&)> callback = [object, prop](Package*, const Path& path) {
+                prop->property_value(object, FS::relative(path));
+            };
+
+            window->window_list.create<ImGuiOpenFile>(nullptr, callback);
+        }
     }
 
     void render_object_property(class Object* object, class Property* prop, bool can_edit)

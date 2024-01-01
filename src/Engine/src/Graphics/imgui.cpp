@@ -9,8 +9,6 @@
 #include <Window/window_interface.hpp>
 #include <imgui.h>
 
-#include <imfilebrowser.h>
-
 namespace Engine::ImGuiRenderer
 {
     ImDrawData* DrawData::draw_data()
@@ -165,9 +163,9 @@ namespace Engine::ImGuiRenderer
         return next;
     }
 
-    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::push(class RenderViewport* viewport, ImGuiAdditionalWindow* window)
+    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::push(ImGuiAdditionalWindow* window)
     {
-        window->init(viewport);
+        window->init(Window::current()->window()->render_viewport());
         Node* parent_node = _M_root;
         while (parent_node && parent_node->next) parent_node = parent_node->next;
 
@@ -254,6 +252,11 @@ namespace Engine::ImGuiRenderer
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_render(_M_context, draw_data());
         return *this;
+    }
+
+    Engine::Window* Window::window() const
+    {
+        return _M_window;
     }
 
     ImGuiTexture* Window::create_texture()

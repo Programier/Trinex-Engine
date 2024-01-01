@@ -16,6 +16,8 @@ namespace Engine
         ImGuiPackageTree _M_package_tree;
         ImGuiContentBrowser _M_content_browser;
         ImGuiObjectProperties _M_properties;
+        ImGuiRenderer::ImGuiTexture* _M_imgui_texture = nullptr;
+        class Sampler* _M_sampler                     = nullptr;
 
         size_t _M_frame = 0;
 

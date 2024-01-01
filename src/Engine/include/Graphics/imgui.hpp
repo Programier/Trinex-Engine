@@ -53,10 +53,10 @@ namespace Engine::ImGuiRenderer
 
         ImGuiTexture();
         ~ImGuiTexture();
-        ImGuiTexture& release();
 
     public:
         delete_copy_constructors(ImGuiTexture);
+        ImGuiTexture& release();
         void* handle() const;
         ImGuiTexture& init(ImGuiContext* ctx, Texture* texture, Sampler* sampler);
 
@@ -69,7 +69,7 @@ namespace Engine::ImGuiRenderer
     class ImGuiAdditionalWindow
     {
     public:
-        size_t frame_number             = 0;
+        size_t frame_number = 0;
 
         ImGuiAdditionalWindow();
         delete_copy_constructors(ImGuiAdditionalWindow);
@@ -90,7 +90,7 @@ namespace Engine::ImGuiRenderer
 
         Node* _M_root = nullptr;
 
-        ImGuiAdditionalWindowList& push(class RenderViewport* viewport, ImGuiAdditionalWindow* window);
+        ImGuiAdditionalWindowList& push(ImGuiAdditionalWindow* window);
         Node* destroy(Node* node);
 
     public:
@@ -98,10 +98,10 @@ namespace Engine::ImGuiRenderer
         delete_copy_constructors(ImGuiAdditionalWindowList);
 
         template<typename Type, typename... Args>
-        Type* create(class RenderViewport* viewport, Args&&... args)
+        Type* create(Args&&... args)
         {
             Type* instance = new Type(std::forward<Args>(args)...);
-            push(viewport, instance);
+            push(instance);
             return instance;
         }
 
@@ -135,6 +135,7 @@ namespace Engine::ImGuiRenderer
         Window& end_frame();
         Window& prepare_render();
         Window& render();
+        Engine::Window* window() const;
 
         ImGuiTexture* create_texture();
         Window& release_texture(ImGuiTexture*);

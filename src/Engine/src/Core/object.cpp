@@ -464,6 +464,11 @@ namespace Engine
         return *this;
     }
 
+    Object& Object::reload()
+    {
+        return *this;
+    }
+
     Object* Object::owner() const
     {
         return _M_owner;

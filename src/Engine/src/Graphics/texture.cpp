@@ -15,7 +15,7 @@ namespace Engine
     implement_initialize_class(Texture)
     {
         Class* self = static_class_instance();
-        self->create_prop<Vec2Property>("Size", "Size of texture", STRUCT_OFFSET(This, size));
+        self->create_prop<Vec2Property>("Size", "Size of texture", STRUCT_OFFSET(This, size), Property::IsConst);
         self->create_prop<ByteProperty>("Base mip level", "Base mip level", STRUCT_OFFSET(This, base_mip_level));
         self->create_prop<ByteProperty>("MipMap count", "MipMap Count", STRUCT_OFFSET(This, mipmap_count));
 

@@ -77,4 +77,13 @@ namespace Engine
         return TextureType::Texture2D;
     }
 
+    Texture2D& Texture2D::reload()
+    {
+        Super::reload();
+        image.load(path);
+        format = image.format();
+        size = image.size();
+        postload();
+        return *this;
+    }
 }// namespace Engine

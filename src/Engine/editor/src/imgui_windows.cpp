@@ -206,7 +206,7 @@ namespace Engine
                 if (_M_object->name(new_object_name, allow_rename) == ObjectRenameStatus::Failed)
                 {
                     ImGuiRenderer::Window::current()->window_list.create<ImGuiNotificationMessage>(
-                            viewport, "Failed to rename object", ImGuiNotificationMessage::Error);
+                            "Failed to rename object", ImGuiNotificationMessage::Error);
                 }
 
                 open = false;
@@ -229,17 +229,15 @@ namespace Engine
 
     bool ImGuiPackageTree::render_popup_internal(void* userdata)
     {
-        class RenderViewport* viewport = reinterpret_cast<RenderViewport*>(userdata);
-
         if (ImGui::Button("Create new package"))
         {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewPackage>(viewport, _M_selected);
+            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewPackage>(_M_selected);
             return false;
         }
 
         if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("Rename"))
         {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(viewport, _M_selected);
+            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(_M_selected);
             return false;
         }
 

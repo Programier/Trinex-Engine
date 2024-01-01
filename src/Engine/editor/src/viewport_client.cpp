@@ -6,6 +6,8 @@
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/sampler.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
@@ -47,6 +49,9 @@ namespace Engine
         _M_package_tree.on_package_select.push(std::bind(&EditorViewportClient::on_package_select, this, std::placeholders::_1));
         _M_content_browser.on_object_selected.push(
                 std::bind(&EditorViewportClient::on_object_select, this, std::placeholders::_1));
+
+        _M_imgui_texture = window->imgui_window()->create_texture();
+        _M_sampler = Package::find_package("Editor")->find_object_checked<Sampler>("DefaultSampler");
         return init_world();
     }
 
@@ -58,6 +63,16 @@ namespace Engine
     void EditorViewportClient::on_object_select(Object* object)
     {
         _M_properties.object = object;
+
+        Texture2D* texture = object->instance_cast<Texture2D>();
+        if (texture)
+        {
+            _M_imgui_texture->init(ImGuiRenderer::Window::current()->context(), texture, _M_sampler);
+        }
+        else
+        {
+            _M_imgui_texture->release();
+        }
     }
 
     ViewportClient& EditorViewportClient::render(class RenderViewport* viewport)
@@ -118,8 +133,7 @@ namespace Engine
             {
                 if (ImGui::MenuItem("Texture", "Import Texture2D to selected package"))
                 {
-                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>(
-                            reinterpret_cast<RenderViewport*>(userdata), selected, import_texture);
+                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>(selected, import_texture);
                 }
                 ImGui::EndMenu();
             }
@@ -139,6 +153,7 @@ namespace Engine
             ImGui::DockBuilderDockWindow(_M_package_tree.name(), dock_id_left);
             ImGui::DockBuilderDockWindow(_M_content_browser.name(), dock_id_down);
             ImGui::DockBuilderDockWindow(_M_properties.name(), dock_id_right);
+            ImGui::DockBuilderDockWindow("Viewport", dock_id);
 
             ImGui::DockBuilderFinish(dock_id);
         }
@@ -150,13 +165,13 @@ namespace Engine
         window->new_frame();
         make_dock_window("EditorDock", ImGuiWindowFlags_MenuBar, &EditorViewportClient::render_dock_window, this, viewport);
 
-        create_properties_window(dt);
-        create_log_window(dt);
-        create_viewport_window(dt);
-
         _M_package_tree.render(viewport);
         _M_content_browser.render(viewport);
         _M_properties.render(viewport);
+
+        create_properties_window(dt);
+        create_log_window(dt);
+        create_viewport_window(dt);
 
         _M_script_object.update(dt);
         window->end_frame();
@@ -202,16 +217,17 @@ namespace Engine
 
     EditorViewportClient& EditorViewportClient::create_viewport_window(float dt)
     {
-        //        if (!ImGui::Begin("Viewport", nullptr))
-        //        {
-        //            ImGui::End();
-        //            return *this;
-        //        };
+        void* handle = _M_imgui_texture->handle();
+        if (!ImGui::Begin("Viewport", nullptr) || handle == nullptr)
+        {
+            ImGui::End();
+            return *this;
+        };
 
-        //        //        auto size = ImGui::GetContentRegionAvail();
-        //        //        ImGui::Image(_M_imgui_texture->handle(), size);
+        auto size = ImGui::GetContentRegionAvail();
+        ImGui::Image(handle, size);
 
-        //        ImGui::End();
+        ImGui::End();
 
         return *this;
     }

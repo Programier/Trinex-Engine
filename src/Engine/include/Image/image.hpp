@@ -69,7 +69,7 @@ namespace Engine
         Size1D height() const;
         uint_t channels() const;
         ImageRow operator[](int_t index);
-        Image& load(const String& image, const bool& invert = false);
+        Image& load(const Path& image, const bool& invert = false);
         Image& remove_alpha_channel();
         Image& add_alpha_channel();
         Buffer::iterator begin();

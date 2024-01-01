@@ -129,6 +129,7 @@ namespace Engine
 
         virtual Object& preload();
         virtual Object& postload();
+        virtual Object& reload();
 
         Object* owner() const;
         Object& owner(Object* new_owner);

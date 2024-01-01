@@ -7,11 +7,15 @@ namespace Engine
 {
     bool ImGuiContentBrowser::show_context_menu(void* userdata)
     {
-        RenderViewport* viewport = reinterpret_cast<RenderViewport*>(userdata);
         if (ImGui::Button("Create new asset"))
         {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewAsset>(viewport, package);
+            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewAsset>(package);
             return false;
+        }
+
+        if(_M_selected && ImGui::Button("Reload"))
+        {
+            _M_selected->reload();
         }
         return true;
     }
@@ -41,7 +45,7 @@ namespace Engine
 
         for (auto& [name, object] : package->objects())
         {
-            if(ImGui::Selectable(object->string_name().c_str(), _M_selected == object))
+            if (ImGui::Selectable(object->string_name().c_str(), _M_selected == object))
             {
                 _M_selected = object;
                 on_object_selected.trigger(object);
