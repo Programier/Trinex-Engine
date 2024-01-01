@@ -1,13 +1,11 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
-#include <Core/engine_config.hpp>
-#include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
@@ -49,9 +47,7 @@ namespace Engine
         _M_package_tree.on_package_select.push(std::bind(&EditorViewportClient::on_package_select, this, std::placeholders::_1));
         _M_content_browser.on_object_selected.push(
                 std::bind(&EditorViewportClient::on_object_select, this, std::placeholders::_1));
-
-        _M_imgui_texture = window->imgui_window()->create_texture();
-        _M_sampler = Package::find_package("Editor")->find_object_checked<Sampler>("DefaultSampler");
+        _M_sampler = Package::load_package("Editor")->find_object_checked<Sampler>("DefaultSampler");
         return init_world();
     }
 
@@ -63,20 +59,14 @@ namespace Engine
     void EditorViewportClient::on_object_select(Object* object)
     {
         _M_properties.object = object;
-
-        Texture2D* texture = object->instance_cast<Texture2D>();
-        if (texture)
-        {
-            _M_imgui_texture->init(ImGuiRenderer::Window::current()->context(), texture, _M_sampler);
-        }
-        else
-        {
-            _M_imgui_texture->release();
-        }
     }
 
     ViewportClient& EditorViewportClient::render(class RenderViewport* viewport)
     {
+
+        // Render base frame
+        SceneColorOutput::instance()->rhi_bind();
+
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;
@@ -217,15 +207,24 @@ namespace Engine
 
     EditorViewportClient& EditorViewportClient::create_viewport_window(float dt)
     {
-        void* handle = _M_imgui_texture->handle();
-        if (!ImGui::Begin("Viewport", nullptr) || handle == nullptr)
+        if (!ImGui::Begin("Viewport", nullptr))
         {
             ImGui::End();
             return *this;
         };
 
-        auto size = ImGui::GetContentRegionAvail();
-        ImGui::Image(handle, size);
+        auto* frame = SceneColorOutput::instance()->current_frame();
+
+        if (frame)
+        {
+            Texture* texture = frame->texture();
+            if (texture)
+            {
+                void* output = ImGuiRenderer::Window::current()->create_texture(texture, _M_sampler)->handle();
+                auto size    = ImGui::GetContentRegionAvail();
+                ImGui::Image(output, size);
+            }
+        }
 
         ImGui::End();
 

@@ -445,6 +445,15 @@ namespace Engine
             logger->log("Engine", "Begin destroy!");
             delete engine_instance;
             engine_instance = nullptr;
+
+            if (result == 0)
+            {
+                info_log("Engine", "Execution success. Exit code %d", result);
+            }
+            else
+            {
+                error_log("Engine", "Execution fail. Exit code %d", result);
+            }
             return result;
         }
 

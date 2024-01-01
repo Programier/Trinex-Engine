@@ -105,10 +105,7 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::destroy_object(RHI_Object* object)
     {
-        if (object->destroy_method() == VULKAN_DESTROY_NOW)
-            delete object;
-        else
-            _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
+        _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
         return *this;
     }
 
@@ -163,7 +160,6 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::imgui_terminate(ImGuiContext* ctx)
     {
-        wait_idle();
         ImGui::SetCurrentContext(ctx);
         ImGui_ImplVulkan_Shutdown();
         return *this;
@@ -370,8 +366,7 @@ namespace Engine
         {
             vk::FormatProperties properties = _M_physical_device.getFormatProperties(format);
 
-            if (tiling != vk::ImageTiling::eDrmFormatModifierEXT &&
-                (properties.linearTilingFeatures & features) == features)
+            if (tiling != vk::ImageTiling::eDrmFormatModifierEXT && (properties.linearTilingFeatures & features) == features)
             {
                 return format;
             }
@@ -391,16 +386,14 @@ namespace Engine
                                        vk::DeviceMemory& image_memory, uint32_t layers)
     {
 
-        vk::ImageCreateInfo image_info(
-                flags, vk::ImageType::e2D, texture->_M_vulkan_format,
-                vk::Extent3D(texture->_M_engine_texture->size.x, texture->_M_engine_texture->size.y, 1),
-                texture->_M_engine_texture->mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling, usage,
-                vk::SharingMode::eExclusive);
+        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->_M_vulkan_format,
+                                       vk::Extent3D(texture->_M_engine_texture->size.x, texture->_M_engine_texture->size.y, 1),
+                                       texture->_M_engine_texture->mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling,
+                                       usage, vk::SharingMode::eExclusive);
 
         image                                      = API->_M_device.createImage(image_info);
         vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
-        auto memory_type =
-                API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+        auto memory_type = API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
         image_memory = API->_M_device.allocateMemory(alloc_info);
         API->_M_device.bindImageMemory(image, image_memory, 0);
@@ -409,9 +402,8 @@ namespace Engine
 
     void VulkanAPI::create_command_pool()
     {
-        _M_command_pool = _M_device.createCommandPool(
-                vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                          _M_graphics_and_present_index.graphics_family.value()));
+        _M_command_pool = _M_device.createCommandPool(vk::CommandPoolCreateInfo(
+                vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _M_graphics_and_present_index.graphics_family.value()));
     }
 
 
@@ -447,9 +439,8 @@ namespace Engine
         throw std::runtime_error("VulkanAPI: Failed to find suitable memory type!");
     }
 
-    VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
-                                        vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-                                        vk::DeviceMemory& buffer_memory)
+    VulkanAPI& VulkanAPI::create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
+                                        vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
     {
         vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
 
@@ -458,8 +449,7 @@ namespace Engine
 
         vk::MemoryRequirements mem_requirements = _M_device.getBufferMemoryRequirements(buffer);
 
-        vk::MemoryAllocateInfo alloc_info(mem_requirements.size,
-                                          find_memory_type(mem_requirements.memoryTypeBits, properties));
+        vk::MemoryAllocateInfo alloc_info(mem_requirements.size, find_memory_type(mem_requirements.memoryTypeBits, properties));
 
 
         buffer_memory = _M_device.allocateMemory(alloc_info);

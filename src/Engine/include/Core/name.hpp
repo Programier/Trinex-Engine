@@ -49,6 +49,7 @@ namespace Engine
         bool operator!=(const char* name) const;
 
         const String& to_string() const;
+        const char* c_str() const;
         const Name& to_string(String& out) const;
 
         operator const String&() const;

@@ -8,10 +8,13 @@ namespace Engine
         virtual uint_t sampler_id() = 0;
 
 
-        FORCE_INLINE void* handle()
+        FORCE_INLINE void* handle() override
         {
             return this;
         }
+
+        FORCE_INLINE void destroy_now() override
+        {}
 
         virtual ~OpenGL_ImGuiTextureInterface()
         {}

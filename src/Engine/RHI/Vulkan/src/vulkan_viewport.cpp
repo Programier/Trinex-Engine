@@ -108,7 +108,6 @@ namespace Engine
 
     VulkanViewport::~VulkanViewport()
     {
-        API->wait_idle();
         API->_M_device.freeCommandBuffers(API->_M_command_pool, _M_command_buffers);
         _M_sync_objects.clear();
     }

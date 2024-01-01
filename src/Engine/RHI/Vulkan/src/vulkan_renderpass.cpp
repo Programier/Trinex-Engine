@@ -129,7 +129,6 @@ namespace Engine
 
     VulkanRenderPass& VulkanRenderPass::destroy()
     {
-        API->wait_idle();
         DESTROY_CALL(destroyRenderPass, _M_render_pass);
 
         _M_attachment_descriptions.clear();

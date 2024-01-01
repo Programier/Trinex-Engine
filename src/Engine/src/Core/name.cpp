@@ -185,6 +185,11 @@ namespace Engine
         return default_string();
     }
 
+    const char* Name::c_str() const
+    {
+        return to_string().c_str();
+    }
+
     Name::operator const String&() const
     {
         return to_string();

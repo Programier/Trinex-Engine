@@ -231,8 +231,6 @@ namespace Engine
 
     VulkanRenderTarget& VulkanRenderTarget::destroy()
     {
-        API->wait_idle();
-
         for (VulkanRenderTargetFrame* frame : _M_frames)
         {
             frame->destroy();

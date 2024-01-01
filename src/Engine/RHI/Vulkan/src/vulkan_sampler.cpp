@@ -60,7 +60,6 @@ namespace Engine
 
     VulkanSampler& VulkanSampler::destroy()
     {
-        API->wait_idle();
         DESTROY_CALL(destroySampler, _M_sampler);
         return *this;
     }

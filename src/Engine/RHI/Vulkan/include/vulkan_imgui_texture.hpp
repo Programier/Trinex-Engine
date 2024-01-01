@@ -26,6 +26,9 @@ namespace Engine
         {
             return _M_set;
         }
+
+        FORCE_INLINE void destroy_now() override
+        {}
     };
 
     struct VulkanImGuiTexture : public VulkanImGuiTextureInterface {
@@ -41,8 +44,8 @@ namespace Engine
             : _M_ctx(ctx), _M_texture(texture), _M_sampler(sampler)
         {}
 
-        Identifier destroy_method() const override;
         VkDescriptorSet descriptor_set() override;
+        void destroy_now() override;
         void destroy();
         ~VulkanImGuiTexture() override;
     };

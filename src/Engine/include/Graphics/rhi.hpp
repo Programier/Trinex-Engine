@@ -35,11 +35,6 @@ namespace Engine
             return true;
         }
 
-        FORCE_INLINE virtual Identifier destroy_method() const
-        {
-            return 0;
-        }
-
         virtual ~RHI_Object() = default;
     };
 
@@ -51,14 +46,14 @@ namespace Engine
     };
 
     struct RHI_ImGuiTexture : RHI_Object {
-        virtual void* handle() = 0;
+        virtual void* handle()     = 0;
+        virtual void destroy_now() = 0;
     };
 
     struct RHI_Texture : RHI_BindingObject {
-        virtual void generate_mipmap()                                          = 0;
-        virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
-        virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
-                                       const byte* data)                        = 0;
+        virtual void generate_mipmap()                                                                                   = 0;
+        virtual void bind_combined(RHI_Sampler* sampler, BindLocation location)                                          = 0;
+        virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data) = 0;
     };
 
     struct RHI_RenderTarget : RHI_Object {

@@ -78,6 +78,9 @@ namespace Engine::ImGuiRenderer
     ImGuiTexture& ImGuiTexture::init(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
     {
         release();
+        _M_texture = texture;
+        _M_sampler = sampler;
+
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         if (Thread::this_thread() == render_thread)
         {
@@ -86,8 +89,19 @@ namespace Engine::ImGuiRenderer
         else
         {
             render_thread->insert_new_task<ImGuiTextureInitTask>(ctx, this, texture, sampler);
+            render_thread->wait_all();
         }
         return *this;
+    }
+
+    Texture* ImGuiTexture::texture() const
+    {
+        return _M_texture;
+    }
+
+    Sampler* ImGuiTexture::sampler() const
+    {
+        return _M_sampler;
     }
 
     void* ImGuiTexture::handle() const
@@ -98,17 +112,45 @@ namespace Engine::ImGuiRenderer
     }
 
 
-    ImGuiTexture& ImGuiTexture::release()
+    class ForceDestroyImGuiTexture : public ExecutableObject
+    {
+        RHI_ImGuiTexture* _M_texture;
+
+    public:
+        ForceDestroyImGuiTexture(RHI_ImGuiTexture* texture) : _M_texture(texture)
+        {}
+
+        int_t execute() override
+        {
+            _M_texture->destroy_now();
+            return sizeof(ForceDestroyImGuiTexture);
+        }
+    };
+
+    void ImGuiTexture::release_internal(bool force)
     {
         if (_M_handle)
+        {
+            if (force)
+            {
+                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<ForceDestroyImGuiTexture>(_M_handle);
+            }
             RenderResource::release_render_resouce(_M_handle);
-        _M_handle = nullptr;
+        }
+        _M_handle  = nullptr;
+        _M_texture = nullptr;
+        _M_sampler = nullptr;
+    }
+
+    ImGuiTexture& ImGuiTexture::release()
+    {
+        release_internal(false);
         return *this;
     }
 
     ImGuiTexture::~ImGuiTexture()
     {
-        release();
+        release_internal(true);
     }
 
     ImGuiAdditionalWindow::ImGuiAdditionalWindow()
@@ -200,12 +242,25 @@ namespace Engine::ImGuiRenderer
     Window::Window(Engine::Window* window, ImGuiContext* ctx) : _M_context(ctx), _M_window(window)
     {}
 
-    void Window::free_resources()
+    Window& Window::free_resources()
     {
         while (!_M_textures.empty())
         {
-            release_texture(*_M_textures.begin());
+            release_texture_internal(*_M_textures.begin(), true);
         }
+
+        return *this;
+    }
+
+    Window& Window::release_texture_internal(ImGuiTexture* texture, bool force)
+    {
+        if (_M_textures.contains(texture))
+        {
+            _M_textures.erase(texture);
+            delete texture;
+        }
+
+        return *this;
     }
 
     ImGuiContext* Window::context() const
@@ -266,15 +321,22 @@ namespace Engine::ImGuiRenderer
         return texture;
     }
 
-    Window& Window::release_texture(ImGuiTexture* texture)
+    ImGuiTexture* Window::create_texture(Texture* texture, Sampler* sampler)
     {
-        if (_M_textures.contains(texture))
+        for (ImGuiTexture* imgui_texture : _M_textures)
         {
-            _M_textures.erase(texture);
-            delete texture;
+            if (imgui_texture->texture() == texture && imgui_texture->sampler() == sampler)
+                return imgui_texture;
         }
 
-        return *this;
+        ImGuiTexture* new_texture = create_texture();
+        new_texture->init(_M_context, texture, sampler);
+        return new_texture;
+    }
+
+    Window& Window::release_texture(ImGuiTexture* texture)
+    {
+        return release_texture_internal(texture, false);
     }
 
     Window* Window::current()

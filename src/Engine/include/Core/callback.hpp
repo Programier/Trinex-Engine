@@ -51,5 +51,11 @@ namespace Engine
         {
             return _M_callbacks;
         }
+
+        template<typename... Args>
+        const CallBacks& operator()(Args&&... args) const
+        {
+            return trigger(std::forward<Args>(args)...);
+        }
     };
 }// namespace Engine
