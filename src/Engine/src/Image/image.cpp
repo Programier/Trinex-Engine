@@ -59,6 +59,7 @@ namespace Engine
     Image& Image::load(const Path& image, const bool& invert_horizontal)
     {
         _M_data.clear();
+        _M_data.shrink_to_fit();
         stbi_set_flip_vertically_on_load(invert_horizontal);
         byte* address = stbi_load(image.c_str(), &_M_width, &_M_height, &_M_channels, 0);
         stbi_set_flip_vertically_on_load(false);

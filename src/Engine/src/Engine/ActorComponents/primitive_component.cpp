@@ -14,4 +14,14 @@ namespace Engine
     {
         return _M_bounding_box;
     }
+
+    PrimitiveComponent& PrimitiveComponent::spawned()
+    {
+        return* this;
+    }
+
+    PrimitiveComponent& PrimitiveComponent::destroyed()
+    {
+        return* this;
+    }
 }// namespace Engine

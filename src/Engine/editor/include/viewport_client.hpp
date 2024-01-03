@@ -15,6 +15,8 @@ namespace Engine
         ImGuiPackageTree _M_package_tree;
         ImGuiContentBrowser _M_content_browser;
         ImGuiObjectProperties _M_properties;
+        ImGuiSceneTree _M_scene_tree;
+
         class Sampler* _M_sampler = nullptr;
 
         size_t _M_frame = 0;
@@ -30,7 +32,6 @@ namespace Engine
 
 
         EditorViewportClient& init_world();
-        EditorViewportClient& create_properties_window(float dt);
         EditorViewportClient& create_log_window(float dt);
         EditorViewportClient& create_viewport_window(float dt);
         void render_dock_window(void* userdata);

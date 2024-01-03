@@ -15,5 +15,8 @@ namespace Engine
     public:
         bool is_visible() const;
         const AABB_3Df& bounding_box() const;
+
+        PrimitiveComponent& spawned() override;
+        PrimitiveComponent& destroyed() override;
     };
 }// namespace Engine

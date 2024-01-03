@@ -6,6 +6,7 @@
 
 namespace Engine
 {
+    class ActorComponent;
 
     class ENGINE_EXPORT Actor : public Object
     {
@@ -18,6 +19,17 @@ namespace Engine
 
         class World* _M_world = nullptr;
         bool _M_is_playing    = false;
+
+    protected:
+        ActorComponent* create_component(Class* self, const Name& name = {});
+        Actor& add_component(ActorComponent* component);
+        Actor& remove_component(ActorComponent* component);
+
+        template<typename ComponentType>
+        FORCE_INLINE ComponentType* create_component(const Name& name = {})
+        {
+            return create_component(ComponentType::static_class_instance(), name)->template instance_cast<ComponentType>();
+        }
 
 
     public:

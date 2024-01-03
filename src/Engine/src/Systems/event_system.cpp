@@ -3,7 +3,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
-#include <Core/render_thread_call.hpp>
+#include <Core/render_thread.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/render_viewport.hpp>

@@ -409,4 +409,26 @@ namespace Engine
         return "Properties";
     }
 
+
+    ImGuiSceneTree::ImGuiSceneTree(SceneComponent* root_component) : root_component(root_component)
+    {}
+
+
+    void ImGuiSceneTree::render_scene_tree(class SceneComponent* component)
+    {}
+
+    bool ImGuiSceneTree::render(RenderViewport* viewport)
+    {
+        ImGui::Begin(name());
+        render_scene_tree(root_component);
+        ImGui::End();
+
+        return true;
+    }
+
+    const char* ImGuiSceneTree::name()
+    {
+        return "Scene Tree";
+    }
+
 }// namespace Engine

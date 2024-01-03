@@ -1,21 +1,21 @@
+#include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
-#include <Core/class.hpp>
 
 
 namespace Engine
 {
     implement_engine_class_default_init(SceneComponent);
 
-    SceneComponent& SceneComponent::attach(SceneComponent* parent)
+    SceneComponent& SceneComponent::attach(SceneComponent* child)
     {
-        trinex_check(parent != this, "Cannot attach a component to itself");
-        trinex_check(parent && !parent->is_attachet_to(this), "Setting up attachment would create a cycle");
+        trinex_check(child != this, "Cannot attach a component to itself");
+        trinex_check(child && !is_attachet_to(child), "Setting up attachment would create a cycle");
 
         detach_from_parent();
 
-        _M_parent = parent;
-        _M_parent->_M_childs.push_back(this);
+        child->_M_parent = this;
+        _M_childs.push_back(this);
         return *this;
     }
 

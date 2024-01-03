@@ -16,6 +16,7 @@ namespace Engine
         virtual ActorComponent& update(float InDeltaTime);
         virtual ActorComponent& spawned();
         virtual ActorComponent& destroyed();
-        class Actor* owner() const;
+        class Actor* actor() const;
+        class ActorComponent& actor(Actor* actor);
     };
 }// namespace Engine

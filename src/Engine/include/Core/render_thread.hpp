@@ -31,4 +31,6 @@ namespace Engine
             render_thread->insert_new_task<Command>(std::forward<Callable>(callable));
         }
     }
+
+    ENGINE_EXPORT Thread* render_thread();
 }// namespace Engine

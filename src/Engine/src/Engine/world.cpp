@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
+#include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 #include <Systems/logic_system.hpp>
 
@@ -13,6 +14,9 @@ namespace Engine
         Super::create();
         LogicSystem::new_system<LogicSystem>()->register_subsystem(this);
         _M_is_playing = false;
+
+        _M_scene = new Scene();
+
         return *this;
     }
 
@@ -49,6 +53,7 @@ namespace Engine
     World& World::shutdown()
     {
         Super::shutdown();
+        delete _M_scene;
         return *this;
     }
 
@@ -145,5 +150,24 @@ namespace Engine
     World& World::destroy_actor(Actor* actor)
     {
         return destroy_actor(actor, false);
+    }
+
+    SceneInterface* World::scene() const
+    {
+        return _M_scene;
+    }
+
+    World* World::global()
+    {
+        static World* global_world = nullptr;
+        if (global_world == nullptr)
+        {
+            System* system = Object::find_object_checked<System>("Engine::Systems::EngineSystem");
+            if (!system)
+                return nullptr;
+            global_world = system->find_subsystem("LogicSystem::Global World")->instance_cast<World>();
+        }
+
+        return global_world;
     }
 }// namespace Engine

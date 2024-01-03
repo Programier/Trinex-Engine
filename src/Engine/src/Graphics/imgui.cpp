@@ -422,7 +422,7 @@ namespace Engine::ImGuiRenderer
                 status = callback(userdata);
             }
 
-            if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::IsWindowHovered())
+            if ((ImGui::IsMouseReleased(ImGuiMouseButton_Left)) && !ImGui::IsWindowHovered())
             {
                 ImGui::CloseCurrentPopup();
                 status = false;

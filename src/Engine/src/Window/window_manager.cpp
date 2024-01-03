@@ -4,7 +4,7 @@
 #include <Core/engine_config.hpp>
 #include <Core/exception.hpp>
 #include <Core/library.hpp>
-#include <Core/render_thread_call.hpp>
+#include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_viewport.hpp>

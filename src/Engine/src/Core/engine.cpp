@@ -7,7 +7,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
-#include <Core/render_thread_call.hpp>
+#include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/system.hpp>
 #include <Core/thread.hpp>
@@ -423,6 +423,14 @@ namespace Engine
     Index EngineInstance::frame_index() const
     {
         return _M_frame_index;
+    }
+
+    ENGINE_EXPORT Thread* render_thread()
+    {
+        static Thread* thread = nullptr;
+        if (thread == nullptr)
+            thread = engine_instance->thread(ThreadType::RenderThread);
+        return thread;
     }
 
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)

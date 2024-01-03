@@ -28,12 +28,12 @@ namespace Engine
             VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
 
         private:
-            VertexBuffer* find_position_vertex_buffer(Index index) const;
-            VertexBuffer* find_position_tex_coord_buffer(Index index) const;
-            VertexBuffer* find_position_color_buffer(Index index) const;
-            VertexBuffer* find_position_normal_buffer(Index index) const;
-            VertexBuffer* find_position_tangent_buffer(Index index) const;
-            VertexBuffer* find_position_binormal_buffer(Index index) const;
+            VertexBuffer* find_position_buffer(Index index) const;
+            VertexBuffer* find_tex_coord_buffer(Index index) const;
+            VertexBuffer* find_color_buffer(Index index) const;
+            VertexBuffer* find_normal_buffer(Index index) const;
+            VertexBuffer* find_tangent_buffer(Index index) const;
+            VertexBuffer* find_binormal_buffer(Index index) const;
         };
 
         Vector<LOD> lods;

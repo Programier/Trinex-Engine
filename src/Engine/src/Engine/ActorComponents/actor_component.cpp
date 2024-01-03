@@ -31,8 +31,14 @@ namespace Engine
         return *this;
     }
 
-    class Actor* ActorComponent::owner() const
+    class Actor* ActorComponent::actor() const
     {
         return Super::owner()->instance_cast<Actor>();
+    }
+
+    class ActorComponent& ActorComponent::actor(Actor* actor)
+    {
+        owner(actor);
+        return *this;
     }
 }// namespace Engine

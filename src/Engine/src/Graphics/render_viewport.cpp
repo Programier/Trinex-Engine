@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
-#include <Core/render_thread_call.hpp>
+#include <Core/render_thread.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
