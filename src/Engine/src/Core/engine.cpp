@@ -250,16 +250,6 @@ namespace Engine
 
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
-        if (engine_config.max_g_buffer_height < 200)
-        {
-            engine_config.max_g_buffer_height = static_cast<uint_t>(Monitor::height());
-        }
-
-        if (engine_config.max_g_buffer_width < 200)
-        {
-            engine_config.max_g_buffer_width = static_cast<uint_t>(Monitor::width());
-        }
-
         // If API is not NoApi, than we need to init Window
         if (_M_api != EngineAPI::NoAPI)
         {

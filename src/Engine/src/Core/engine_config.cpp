@@ -36,17 +36,17 @@ namespace Engine
 
         lz4_compression_level    = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level", 9);
         max_gc_collected_objects = engine_json.checked_get_value<JSON::JsonInt>("max_gc_collected_objects", 2000);
-        min_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_width");
-        min_g_buffer_height      = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_height");
-        max_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("max_g_buffer_width");
-        max_g_buffer_height      = engine_json.checked_get_value<JSON::JsonInt>("max_g_buffer_height");
-        back_buffer_count        = engine_json.checked_get_value<JSON::JsonInt>("back_buffer_count");
+//        min_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_width");
+//        min_g_buffer_height      = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_height");
+//        max_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("max_g_buffer_width");
+//        max_g_buffer_height      = engine_json.checked_get_value<JSON::JsonInt>("max_g_buffer_height");
+//        back_buffer_count        = engine_json.checked_get_value<JSON::JsonInt>("back_buffer_count");
         fps_limit                = engine_json.checked_get_value<JSON::JsonInt>("fps_limit", 60);
 
-        delete_resources_after_load = engine_json.checked_get_value<JSON::JsonBool>("delete_resources_after_load");
-        load_shaders_to_gpu         = engine_json.checked_get_value<JSON::JsonBool>("load_shaders_to_gpu");
-        load_meshes_to_gpu          = engine_json.checked_get_value<JSON::JsonBool>("load_meshes_to_gpu");
-        load_textures_to_gpu        = engine_json.checked_get_value<JSON::JsonBool>("load_textures_to_gpu");
+//        delete_resources_after_load = engine_json.checked_get_value<JSON::JsonBool>("delete_resources_after_load");
+//        load_shaders_to_gpu         = engine_json.checked_get_value<JSON::JsonBool>("load_shaders_to_gpu");
+//        load_meshes_to_gpu          = engine_json.checked_get_value<JSON::JsonBool>("load_meshes_to_gpu");
+//        load_textures_to_gpu        = engine_json.checked_get_value<JSON::JsonBool>("load_textures_to_gpu");
         enable_jit                  = engine_json.checked_get_value<JSON::JsonBool>("enable_jit", true);
         return *this;
     }
