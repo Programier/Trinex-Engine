@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/arguments.hpp>
 #include <Core/color_format.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
@@ -43,6 +44,8 @@ namespace Engine
         EngineAPI _M_api;
         Index _M_frame_index = 0;
 
+        Arguments _M_args;
+
 
         EngineInstance& trigger_terminate_functions();
         EngineInstance();
@@ -69,6 +72,7 @@ namespace Engine
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
+        const Arguments& args() const;
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;

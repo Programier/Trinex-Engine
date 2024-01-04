@@ -205,6 +205,21 @@ namespace Engine
         info_log("TrinexEngine", "Start engine!");
         start_time = current_time_point();
 
+        _M_args.init(argc, argv);
+
+        // Load libraries
+
+        {
+            const Arguments::Argument* argument = _M_args.find("libs");
+            if (argument && argument->type == Arguments::Type::Array)
+            {
+                for (const String& library : std::any_cast<Arguments::ArrayType>(argument->data))
+                {
+                    Library().load(library);
+                }
+            }
+        }
+
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
@@ -230,7 +245,7 @@ namespace Engine
         ScriptEngine::instance()->load_scripts();
 
         CommandLet* commandlet = find_commandlet(argc, argv);
-        if(!commandlet)
+        if (!commandlet)
         {
             error_log("Engine", "Failed to load commandlet for engine start!");
             return -1;
@@ -298,6 +313,11 @@ namespace Engine
     {
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)] = true;
         return *this;
+    }
+
+    const Arguments& EngineInstance::args() const
+    {
+        return _M_args;
     }
 
     EngineInstance& EngineInstance::trigger_terminate_functions()
