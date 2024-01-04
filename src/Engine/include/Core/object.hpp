@@ -293,13 +293,15 @@ private:
             _M_static_class = new Engine::Class(class_instance_name, &This::static_constructor,                                  \
                                                 has_base_class ? Super::static_class_instance() : nullptr, flags);               \
             _M_static_class->process_type<class_name>();                                                                         \
-            class_name::static_initialize_class();                                                                               \
-            _M_static_class->post_initialize();                                                                                  \
+            Engine::PostInitializeController controller([]() {                                                                   \
+                class_name::static_initialize_class();                                                                           \
+                class_name::static_class_instance()->post_initialize();                                                          \
+            });                                                                                                                  \
         }                                                                                                                        \
         return _M_static_class;                                                                                                  \
     }                                                                                                                            \
-    static Engine::InitializeController pre_initialize_##class_name([]() { class_name::static_class_instance(); },               \
-                                                                    "Initialize " namespace_name #class_name);
+    static Engine::InitializeController initialize_##class_name([]() { class_name::static_class_instance(); },                   \
+                                                                "Initialize " namespace_name #class_name);
 
 
 #define implement_class_default_init(class_name, namespace_name)                                                                 \

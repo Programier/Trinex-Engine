@@ -201,25 +201,10 @@ namespace Engine
             return -1;
         }
 
-
         info_log("TrinexEngine", "Start engine!");
         start_time = current_time_point();
 
         _M_args.init(argc, argv);
-
-        // Load libraries
-
-        {
-            const Arguments::Argument* argument = _M_args.find("libs");
-            if (argument && argument->type == Arguments::Type::Array)
-            {
-                for (const String& library : std::any_cast<Arguments::ArrayType>(argument->data))
-                {
-                    Library().load(library);
-                }
-            }
-        }
-
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
 
@@ -235,14 +220,21 @@ namespace Engine
         Thread::this_thread()->name("Logic");
 
         PreInitializeController().execute();
-        engine_config.update();
 
-        ScriptEngine::instance();
+        // Load libraries
+
+        {
+            const Arguments::Argument* argument = _M_args.find("libs");
+            if (argument && argument->type == Arguments::Type::Array)
+            {
+                for (const String& library : std::any_cast<Arguments::ArrayType>(argument->data))
+                {
+                    Library().load(library);
+                }
+            }
+        }
+
         InitializeController().execute();
-
-        load_external_system_libraries();
-
-        ScriptEngine::instance()->load_scripts();
 
         CommandLet* commandlet = find_commandlet(argc, argv);
         if (!commandlet)
@@ -253,18 +245,17 @@ namespace Engine
 
         commandlet->load_configs();
         engine_config.update();
-
+        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
         load_external_system_libraries();
-        info_log("EngineInstance", "Work dir is '%s'", root_manager->work_dir().c_str());
+        ScriptEngine::instance();
+
         World::new_system<World>()->name("Global World");
 
         _M_api = get_api_by_name(engine_config.api);
 
         init_api();
         _M_renderer = new Renderer(_M_rhi);
-
-        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
         // If API is not NoApi, than we need to init Window
         if (_M_api != EngineAPI::NoAPI)
@@ -273,7 +264,9 @@ namespace Engine
         }
 
         Object::mark_internal_objects();
+
         PostInitializeController().execute();
+        ScriptEngine::instance()->load_scripts();
 
         int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch();
 

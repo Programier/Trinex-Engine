@@ -1,3 +1,4 @@
+#include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
@@ -70,16 +71,32 @@ namespace Engine
     Library::Library() = default;
 
 
-    static String get_libname(const String& libname, bool full = true)
+    enum LibPathModification
     {
-        if (libname.empty())
-            return libname;
+        None,
+        Engine,
+        Global,
+    };
 
-        if (full)
-            return (FileManager::root_file_manager()->work_dir() / engine_config.libraries_dir /
-                    Path(String("lib") + libname + format))
-                    .string();
-        return String("lib") + libname + format;
+    static Path get_libname(const Path& path, LibPathModification mode)
+    {
+        if (path.empty())
+            return path;
+
+        if (mode == LibPathModification::None)
+            return path;
+
+        if (mode == Engine)
+        {
+            return engine_config.libraries_dir / path;
+        }
+
+        if (mode == LibPathModification::Global)
+        {
+            return path.filename();
+        }
+
+        return path;
     }
 
     void* Library::load_function(void* handle, const String& name)
@@ -91,35 +108,48 @@ namespace Engine
     }
 
 
+    static void validate_path(Path& path)
+    {
+        Path base = path.filename();
+        if (!base.string().starts_with("lib"))
+        {
+            base = "lib" + base.string();
+        }
+
+        if (!base.string().ends_with(format))
+        {
+            base += format;
+        }
+
+        path = path.parent_path() / base;
+    }
+
     Library& Library::load(const String& libname)
     {
         close();
-        String libnames[2] =
-#if TRINEX_DEBUG_BUILD
-                {get_libname(libname, false), get_libname(libname, true)};
-#else
-                {get_libname(libname, true), get_libname(libname, false)};
-#endif
+        Path libnames[3] = {get_libname(libname, None), get_libname(libname, Engine), get_libname(libname, Global)};
 
         bool is_new_load = false;
-        for (auto& name : libnames)
+        for (auto& path : libnames)
         {
-            void*& lib = _M_libraries[name];
+            validate_path(path);
+
+            void*& lib = _M_libraries[path.string()];
             if (!lib)
             {
-                lib         = platform_load_library(name);
+                lib         = platform_load_library(path.string());
                 is_new_load = static_cast<bool>(lib);
             }
 
             if (lib)
             {
                 _M_handle  = lib;
-                _M_libname = name;
+                _M_libname = path.string();
                 break;
             }
             else
             {
-                _M_libraries.erase(name);
+                _M_libraries.erase(path.string());
             }
         }
 
@@ -133,11 +163,13 @@ namespace Engine
         }
         else if (is_new_load)
         {
-            PreInitializeController controller1;
-            controller1.execute();
+            PreInitializeController().execute();
 
-            InitializeController controller2;
-            controller2.execute();
+            if (engine_instance->is_inited())
+            {
+                InitializeController().execute();
+                PostInitializeController().execute();
+            }
         }
 
         return *this;
