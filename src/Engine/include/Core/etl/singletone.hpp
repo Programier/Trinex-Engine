@@ -16,6 +16,9 @@ namespace Engine
         static Object* extract_object_from_class(const Class* class_instance);
     };
 
+    struct EmptySingletoneParent {
+    };
+
     template<typename Type, typename Parent = Object>
     class Singletone : public Parent, private SingletoneBase
     {

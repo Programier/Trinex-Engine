@@ -37,6 +37,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(InitializeController);
     IMPLEMENT_CONTROLLER(AfterRHIInitializeController);
     IMPLEMENT_CONTROLLER(PreInitializeController);
+    IMPLEMENT_CONTROLLER(PostInitializeController);
 
 
 #undef IMPLEMENT_CONTROLLER

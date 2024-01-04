@@ -98,6 +98,9 @@ namespace Engine
         ENGINE_EXPORT static Package* root_package();
 
         ENGINE_EXPORT static void collect_garbage(GCFlag flag = GCFlag::OnlyMarked);
+        ENGINE_EXPORT static const String& language();
+        ENGINE_EXPORT static void language(const String& new_language);
+        ENGINE_EXPORT static void language(const char* new_language);
 
         String decode_name() const;
         const String& string_name() const;

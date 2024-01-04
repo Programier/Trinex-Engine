@@ -230,12 +230,13 @@ namespace Engine
         ScriptEngine::instance()->load_scripts();
 
         CommandLet* commandlet = find_commandlet(argc, argv);
-
-        if (commandlet)
+        if(!commandlet)
         {
-            commandlet->load_configs();
+            error_log("Engine", "Failed to load commandlet for engine start!");
+            return -1;
         }
 
+        commandlet->load_configs();
         engine_config.update();
 
 
@@ -257,6 +258,8 @@ namespace Engine
         }
 
         Object::mark_internal_objects();
+        PostInitializeController().execute();
+
         int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch();
 
         if (status == 0)

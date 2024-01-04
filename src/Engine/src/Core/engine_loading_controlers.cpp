@@ -45,6 +45,12 @@ namespace Engine
         return _M_init_list;
     }
 
+    static CallbacksList& post_initialize_list()
+    {
+        static CallbacksList _M_init_list;
+        return _M_init_list;
+    }
+
 
     static inline CallbackListGetter convert_function_address(void* address)
     {
@@ -123,16 +129,16 @@ namespace Engine
     {}
 
 
-#define IMPLEMENT_CONTROLLER(ControllerName, func)                                                                     \
-    ControllerName::ControllerName() : ControllerBase(reinterpret_cast<void*>(func))                                   \
-    {}                                                                                                                 \
-                                                                                                                       \
-                                                                                                                       \
-    ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                             \
-                                   const std::initializer_list<String>& require_initializers)                          \
-        : ControllerName()                                                                                             \
-    {                                                                                                                  \
-        push(callback, name, require_initializers);                                                                    \
+#define IMPLEMENT_CONTROLLER(ControllerName, func)                                                                               \
+    ControllerName::ControllerName() : ControllerBase(reinterpret_cast<void*>(func))                                             \
+    {}                                                                                                                           \
+                                                                                                                                 \
+                                                                                                                                 \
+    ControllerName::ControllerName(const ControllerCallback& callback, const String& name,                                       \
+                                   const std::initializer_list<String>& require_initializers)                                    \
+        : ControllerName()                                                                                                       \
+    {                                                                                                                            \
+        push(callback, name, require_initializers);                                                                              \
     }
 
     IMPLEMENT_CONTROLLER(PostDestroyController, post_terminate_list);
@@ -140,5 +146,6 @@ namespace Engine
     IMPLEMENT_CONTROLLER(InitializeController, initialize_list);
     IMPLEMENT_CONTROLLER(AfterRHIInitializeController, after_rhi_initialize_list);
     IMPLEMENT_CONTROLLER(PreInitializeController, preinitialize_list);
+    IMPLEMENT_CONTROLLER(PostInitializeController, post_initialize_list);
 
 }// namespace Engine
