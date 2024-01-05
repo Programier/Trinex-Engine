@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/exception.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
@@ -102,18 +103,20 @@ namespace Engine
     }
 
     InitRenderResourceTask::InitRenderResourceTask(RenderResource* object, bool wait) : resource(object), wait(wait)
-    {}
+    {
+        if (object == nullptr)
+        {
+            throw EngineException("Cannot init render resource! Resource is null!");
+        }
+    }
 
     int_t InitRenderResourceTask::execute()
     {
-        if (resource)
+        if (wait)
         {
-            if (wait)
-            {
-                engine_instance->rhi()->wait_idle();
-            }
-            resource->rhi_create();
+            engine_instance->rhi()->wait_idle();
         }
+        resource->rhi_create();
 
         return sizeof(InitRenderResourceTask);
     }

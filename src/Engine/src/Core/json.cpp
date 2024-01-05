@@ -125,7 +125,7 @@ namespace Engine::JSON
 
     Value& Value::operator=(JsonObject&& object)
     {
-        _M_type  = ValueType::Array;
+        _M_type  = ValueType::Object;
         _M_value = std::move(object);
         return *this;
     }
@@ -135,18 +135,18 @@ namespace Engine::JSON
         return _M_type;
     }
 
-    Object& Object::load(const Path& file)
+    Object& Object::load(const Path& file, bool mix_objects)
     {
         FileReader reader(file);
         String json(reader.size(), '\0');
         reader.read(reinterpret_cast<byte*>(json.data()), json.size());
-        return parse(json);
+        return parse(json, mix_objects);
     }
 
-    static void copy_value_to(Value& value, const nlohmann::json& json_value);
+    static void copy_value_to(Value& value, const nlohmann::json& json_value, bool mix_objects);
 
     template<typename T>
-    static void copy_object(Object& object, const T& json)
+    static void copy_object(Object& object, const T& json, bool mix_objects)
     {
         auto it  = json.begin();
         auto end = json.end();
@@ -167,13 +167,35 @@ namespace Engine::JSON
                 value = &it->second;
             }
 
-            copy_value_to(object[key], *value);
+            copy_value_to(object[key], *value, mix_objects);
             ++it;
         }
     }
 
+    static void mix_objects_internal(JSON::Value& to, const JSON::Object& from)
+    {
+        if (to.type() != ValueType::Object)
+        {
+            to = from;
+        }
+        else
+        {
+            JsonObject& map = to.get<JsonObject&>();
+            for (auto& [name, value] : from)
+            {
+                if (value.type() != ValueType::Object)
+                {
+                    map[name] = value;
+                }
+                else
+                {
+                    mix_objects_internal(map[name], value.get<const JSON::Object&>());
+                }
+            }
+        }
+    }
 
-    static void copy_value_to(Value& value, const nlohmann::json::value_type& json_value)
+    static void copy_value_to(Value& value, const nlohmann::json::value_type& json_value, bool mix_objects)
     {
         if (json_value.is_boolean())
         {
@@ -199,24 +221,31 @@ namespace Engine::JSON
             size_t index = 0;
             for (auto& ell : json_array)
             {
-                copy_value_to(array[index++], ell);
+                copy_value_to(array[index++], ell, mix_objects);
             }
             value = array;
         }
         else if (json_value.is_object())
         {
             Object sub_object;
-            copy_object(sub_object, json_value.get<nlohmann::json::object_t>());
-            value = sub_object;
+            copy_object(sub_object, json_value.get<nlohmann::json::object_t>(), mix_objects);
+            if (mix_objects)
+            {
+                mix_objects_internal(value, sub_object);
+            }
+            else
+            {
+                value = sub_object;
+            }
         }
     }
 
-    Object& Object::parse(const String& json)
+    Object& Object::parse(const String& json, bool mix_objects)
     {
         try
         {
             nlohmann::json object = nlohmann::json::parse(json);
-            copy_object(*this, object);
+            copy_object(*this, object, mix_objects);
         }
         catch (const std::exception& e)
         {

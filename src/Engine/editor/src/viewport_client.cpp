@@ -66,12 +66,13 @@ namespace Engine
         _M_properties.object = object;
     }
 
+    size_t count = 0;
+
     ViewportClient& EditorViewportClient::render(class RenderViewport* viewport)
     {
 
         // Render base frame
         SceneColorOutput::instance()->rhi_bind();
-
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;
@@ -155,6 +156,7 @@ namespace Engine
         create_viewport_window(dt);
 
         _M_script_object.update(dt);
+
         window->end_frame();
 
         ++_M_frame;

@@ -18,13 +18,14 @@ namespace Engine
 
     RenderTargetBase& RenderTargetBase::rhi_bind()
     {
-        if (_M_rhi_object)
+        if (_M_rhi_object != nullptr)
         {
             _M_frame_index  = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind());
             _M_current      = this;
             global_ubo.size = glm::min(_M_viewport.size, _M_scissor.size);
             _M_uniform_buffer->rhi_update(0, sizeof(global_ubo), reinterpret_cast<const byte*>(&global_ubo));
         }
+
         return *this;
     }
 

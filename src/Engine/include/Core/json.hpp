@@ -45,10 +45,10 @@ namespace Engine::JSON
         Value(JsonArray&&);
         Value(JsonObject&&);
 
-        Value& operator=(const Value&);
         Value& operator=(JsonBool);
         Value& operator=(JsonInt);
         Value& operator=(JsonFloat);
+        Value& operator=(const Value&);
         Value& operator=(const JsonString&);
         Value& operator=(const JsonArray&);
         Value& operator=(const JsonObject&);
@@ -112,8 +112,8 @@ namespace Engine::JSON
     public:
         using Super::unordered_map;
 
-        Object& load(const Path& file);
-        Object& parse(const String& json);
+        Object& load(const Path& file, bool mix_objects = true);
+        Object& parse(const String& json, bool mix_objects = true);
         Object& write(const Path& json);
         String dump(const int_t indent = -1, const char indent_char = ' ', const bool ensure_ascii = false) const;
 

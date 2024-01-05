@@ -165,7 +165,11 @@ namespace Engine
             System* system = Object::find_object_checked<System>("Engine::Systems::EngineSystem");
             if (!system)
                 return nullptr;
-            global_world = system->find_subsystem("LogicSystem::Global World")->instance_cast<World>();
+            system = system->find_subsystem("LogicSystem::Global World");
+            if(!system)
+                return nullptr;
+
+            global_world = system->instance_cast<World>();
         }
 
         return global_world;

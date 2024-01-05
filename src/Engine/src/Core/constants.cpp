@@ -27,9 +27,8 @@ namespace Engine
     const String Constants::package_extention          = ".tpk";
     const String Constants::name_separator             = "::";
     const PriorityIndex Constants::max_priority        = ~static_cast<PriorityIndex>(0);
-    const String Constants::default_commandlet         = "Engine::EngineStart";
+    const String Constants::default_entry_point        = "Engine::EngineStart";
     const String Constants::library_load_function_name = "create_library_interface";
-    const Path Constants::configs_dir                  = "configs";
     const String Constants::script_extension           = ".as";
     const String Constants::script_byte_code_extension = ".asbc";
 

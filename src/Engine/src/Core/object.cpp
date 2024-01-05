@@ -133,6 +133,10 @@ namespace Engine
 
     bool Object::private_check_instance(const Class* const check_class) const
     {
+        const void* self = this;
+        if (self == nullptr)
+            return false;
+
         auto _class = class_instance();
         return _class != nullptr && _class->contains_class(check_class);
     }
@@ -251,7 +255,7 @@ namespace Engine
     {
         if (flags(Flag::IsDestructed) == false)
         {
-            if(_M_package)
+            if (_M_package)
             {
                 _M_package->remove_object(this);
                 _M_package = nullptr;

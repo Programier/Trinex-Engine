@@ -8,6 +8,10 @@ namespace Engine
     implement_class(RenderTarget, "Engine", 0);
     implement_default_initialize_class(RenderTarget);
 
+
+    RenderTarget::RenderTarget() : size({0, 0})
+    {}
+
     RenderTarget& RenderTarget::rhi_create()
     {
         Super::rhi_create();
@@ -45,7 +49,7 @@ namespace Engine
 
     RenderTarget::Frame* RenderTarget::frame(byte index) const
     {
-        if(static_cast<byte>(_M_frames.size()) > index)
+        if (static_cast<byte>(_M_frames.size()) > index)
             return _M_frames[index];
         return nullptr;
     }

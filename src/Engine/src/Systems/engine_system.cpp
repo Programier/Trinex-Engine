@@ -13,6 +13,17 @@ namespace Engine
     {
         Super::create();
 
+
+        Package* package = Package::find_package("Engine::Systems", false);
+        if (package)
+        {
+            package->flags(Object::IsInternal, true);
+        }
+        return *this;
+    }
+
+    EngineSystem& EngineSystem::create_systems_from_config()
+    {
         for (const String& system_name : engine_config.systems)
         {
             System* system = System::new_system(system_name);
@@ -22,11 +33,6 @@ namespace Engine
             }
         }
 
-        Package* package = Package::find_package("Engine::Systems", false);
-        if (package)
-        {
-            package->flags(Object::IsInternal, true);
-        }
         return *this;
     }
 

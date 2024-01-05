@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/thread.hpp>
+#include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/logic_system.hpp>
 
@@ -11,6 +12,7 @@ namespace Engine
     LogicSystem& LogicSystem::create()
     {
         Super::create();
+        EngineSystem::new_system<EngineSystem>()->register_subsystem(this);
         return *this;
     }
 

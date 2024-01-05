@@ -41,6 +41,8 @@ namespace Engine
         EngineSystem* engine_system = System::new_system<EngineSystem>();
         Thread* render_thread       = thread(ThreadType::RenderThread);
 
+        engine_system->create_systems_from_config();
+
         if (engine_system->subsystems().empty())
         {
             error_log("Engine", "No systems found! Please, add systems before call '%s' method!", __FUNCTION__);

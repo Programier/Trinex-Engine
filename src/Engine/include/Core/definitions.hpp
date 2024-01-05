@@ -60,6 +60,7 @@
 #define DISABLE_ALIGN __attribute((packed))
 #define ALIGNED(value) __attribute((aligned(value)))
 #define FORCE_INLINE __attribute__((always_inline)) inline
+#define INLINE_DEBUGGABLE inline
 
 #if PLATFORM_ANDROID
 #define ANDROID_API __ANDROID_API__

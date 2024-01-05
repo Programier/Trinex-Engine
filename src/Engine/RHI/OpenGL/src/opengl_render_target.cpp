@@ -160,6 +160,14 @@ namespace Engine
         return *this;
     }
 
+    OpenGL_RenderTarget::~OpenGL_RenderTarget()
+    {
+        if(_M_framebuffer != 0)
+        {
+            glDeleteFramebuffers(1, &_M_framebuffer);
+        }
+    }
+
     OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
     {
         _M_render_pass = OPENGL_API->_M_main_render_pass;

@@ -1,7 +1,6 @@
 {
     "Engine": {
         "enable_jit": false,
-        "load_meshes_to_gpu": true,
         "api": "OpenGL",
         "max_gc_collected_objects": 20000,
         "scripts_dir": "scripts",
@@ -11,13 +10,8 @@
         "shader_compilers_lib": "ShaderCompilers",
         "shader_compiler": "Engine::GLSLToSPIRV",
         "window_system": "SDL2",
-        "systems": [
-            "Engine::LogicSystem",
-            "Engine::EventSystem"
-        ],
-        "external_system_libraries": [
-            "TrinexEngineEditor"
-        ]
+        "systems": [],
+        "external_system_libraries": []
     },
 
     "Window": {

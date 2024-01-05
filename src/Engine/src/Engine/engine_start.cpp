@@ -1,25 +1,32 @@
 #include <Core/class.hpp>
-#include <Core/commandlet.hpp>
-
+#include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
+#include <Core/global_config.hpp>
+#include <Engine/engine_start.hpp>
 
 namespace Engine
 {
-    class EngineStart : public CommandLet
+    EngineBaseEntryPoint::EngineBaseEntryPoint()
+    {}
+
+    EngineBaseEntryPoint& EngineBaseEntryPoint::load_configs()
     {
-        declare_class(EngineStart, CommandLet);
+        global_config.load(engine_config.config_dir / "engine.json");
+        return *this;
+    }
+
+    class EngineStart : public EngineBaseEntryPoint
+    {
+        declare_class(EngineStart, EngineBaseEntryPoint);
 
     public:
         int_t execute(int_t argc, char** argv) override
         {
-            return 0;
-        }
-
-        EngineStart& load_configs() override
-        {
-            return *this;
+            return engine_instance->launch();
         }
     };
 
 
+    implement_engine_class_default_init(EngineBaseEntryPoint);
     implement_engine_class_default_init(EngineStart);
 }// namespace Engine

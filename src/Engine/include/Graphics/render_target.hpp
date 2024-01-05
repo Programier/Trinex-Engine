@@ -31,6 +31,8 @@ namespace Engine
         DepthStencilClearValue depth_stencil_clear;
         Size2D size;
 
+
+        RenderTarget();
         RenderTarget& rhi_create() override;
         Frame* current_frame() const;
         Frame* frame(byte index) const;

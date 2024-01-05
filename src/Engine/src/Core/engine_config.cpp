@@ -1,6 +1,6 @@
+#include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/global_config.hpp>
-
 
 namespace Engine
 {
@@ -36,18 +36,20 @@ namespace Engine
 
         lz4_compression_level    = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level", 9);
         max_gc_collected_objects = engine_json.checked_get_value<JSON::JsonInt>("max_gc_collected_objects", 2000);
-//        min_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_width");
-//        min_g_buffer_height      = engine_json.checked_get_value<JSON::JsonInt>("min_g_buffer_height");
-//        max_g_buffer_width       = engine_json.checked_get_value<JSON::JsonInt>("max_g_buffer_width");
-//        max_g_buffer_height      = engine_json.checked_get_value<JSON::JsonInt>("max_g_buffer_height");
-//        back_buffer_count        = engine_json.checked_get_value<JSON::JsonInt>("back_buffer_count");
         fps_limit                = engine_json.checked_get_value<JSON::JsonInt>("fps_limit", 60);
+        enable_jit               = engine_json.checked_get_value<JSON::JsonBool>("enable_jit", true);
 
-//        delete_resources_after_load = engine_json.checked_get_value<JSON::JsonBool>("delete_resources_after_load");
-//        load_shaders_to_gpu         = engine_json.checked_get_value<JSON::JsonBool>("load_shaders_to_gpu");
-//        load_meshes_to_gpu          = engine_json.checked_get_value<JSON::JsonBool>("load_meshes_to_gpu");
-//        load_textures_to_gpu        = engine_json.checked_get_value<JSON::JsonBool>("load_textures_to_gpu");
-        enable_jit                  = engine_json.checked_get_value<JSON::JsonBool>("enable_jit", true);
+        {
+            Arguments::Argument* arg = engine_instance->args().find("config_dir");
+            if (arg && arg->type == Arguments::Type::String)
+            {
+                config_dir = arg->get<String>();
+            }
+            else
+            {
+                config_dir = "configs";
+            }
+        }
         return *this;
     }
 

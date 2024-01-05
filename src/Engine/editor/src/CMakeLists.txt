@@ -2,8 +2,8 @@ set(TRINEX_ENGINE_EDITOR_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB TRINEX_ENGINE_EDITOR_SRC "${TRINEX_ENGINE_EDITOR_SOURCES_DIR}/*.cpp")
 
 
-add_library(TrinexEngineEditor SHARED ${TRINEX_ENGINE_EDITOR_SRC})
+add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC})
 
 target_link_libraries(TrinexEngineEditor PUBLIC TrinexEngine)
 
-install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
+install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})

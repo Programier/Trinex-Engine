@@ -16,6 +16,7 @@ namespace Engine
         Path resources_dir;
         Path scripts_dir;
         Path libraries_dir;
+        Path config_dir;
 
         String api;
         String shader_compilers_lib;

@@ -1,4 +1,4 @@
-#include <Core/commandlet.hpp>
+#include <Core/entry_point.hpp>
 #include <Core/class.hpp>
 #include <Core/engine_config.hpp>
 
@@ -9,13 +9,13 @@
 
 namespace Engine
 {
-    class Main : public CommandLet
+    class Main : public EntryPoint
     {
-        declare_class(Main, CommandLet);
+        declare_class(Main, EntryPoint);
 
     public:
 
-        CommandLet& load_configs() override
+        EntryPoint& load_configs() override
         {
             new (&engine_config) EngineConfig();
             return *this;

@@ -1,45 +1,6 @@
 {
-    "Engine": {
-        "enable_jit": false,
-        "load_meshes_to_gpu": true,
-        "api": "OpenGLES",
-        "max_gc_collected_objects": 20000,
-        "scripts_dir": "scripts",
-        "resources_dir": "resources/",
-        "lz4_compression_level": 10,
-        "libraries_dir": "libs/",
-        "shader_compilers_lib": "ShaderCompilers",
-        "shader_compiler": "Engine::GLSLToSPIRV",
-        "window_system": "SDL2",
-        "systems": [
-            "Engine::LogicSystem",
-            "Engine::EventSystem"
-        ],
-        "external_system_libraries": [
-            "TrinexEngineEditor"
-        ]
-    },
-
     "Window": {
         "title": "Trinex Engine Editor",
-
-        "size": {
-            "x": 1280,
-            "y": 720
-        },
-
-        "attributes": [
-            1
-        ],
-
-        "orientations": [
-            0,
-            1,
-            2,
-            3
-        ],
-        "vsync": true,
-
         "client": "Engine::EditorViewportClient"
     }
 }

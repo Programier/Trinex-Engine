@@ -127,7 +127,12 @@ namespace Engine
     Library& Library::load(const String& libname)
     {
         close();
-        Path libnames[3] = {get_libname(libname, None), get_libname(libname, Engine), get_libname(libname, Global)};
+        Path libnames[3] =
+#if TRINEX_DEBUG_BUILD
+                {get_libname(libname, Global), get_libname(libname, Engine), get_libname(libname, None)};
+#else
+                {get_libname(libname, None), get_libname(libname, Engine), get_libname(libname, Global)};
+#endif
 
         bool is_new_load = false;
         for (auto& path : libnames)

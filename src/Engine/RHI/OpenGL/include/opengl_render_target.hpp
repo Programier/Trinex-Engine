@@ -30,6 +30,8 @@ namespace Engine
 
         OpenGL_RenderTarget& init(const class RenderTarget* render_target);
         OpenGL_RenderTarget& attach_texture(const class Texture2D* texture_attachmend, GLuint attachment);
+
+        ~OpenGL_RenderTarget();
     };
 
     struct OpenGL_MainRenderTarget : OpenGL_RenderTarget

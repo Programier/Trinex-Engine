@@ -26,9 +26,8 @@ namespace Engine
         static const String package_extention;
         static const String name_separator;
         static const PriorityIndex max_priority;
-        static const String default_commandlet;
+        static const String default_entry_point;
         static const String library_load_function_name;
-        static const Path configs_dir;
         static const String script_extension;
         static const String script_byte_code_extension;
     };

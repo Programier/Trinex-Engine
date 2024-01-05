@@ -43,7 +43,7 @@ namespace Engine
             return instance();
         }
 
-        FORCE_INLINE static Type* instance()
+        INLINE_DEBUGGABLE static Type* instance()
         {
             if constexpr (singletone_based_on_object)
             {

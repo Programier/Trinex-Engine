@@ -4,6 +4,28 @@
 
 namespace Engine
 {
+    Arguments::Argument::Argument() = default;
+
+    Arguments::Argument::Argument(const String& name) : Argument()
+    {
+        this->name = name;
+        type       = Type::Define;
+    }
+
+    Arguments::Argument::Argument(const String& name, const String& value) : Argument(name)
+    {
+        data = value;
+        type = Type::String;
+    }
+
+    Arguments::Argument::Argument(const String& name, const ArrayType& value) : Argument(name)
+    {
+        data = value;
+        type = Type::Array;
+    }
+
+    default_copy_constructors_scoped_cpp(Arguments, Argument);
+
     Arguments& Arguments::init(int argc, char** argv)
     {
         for (int i = 0; i < argc; i++)
@@ -125,5 +147,30 @@ namespace Engine
         if (it == _M_arguments.end())
             return nullptr;
         return &it->second;
+    }
+
+    Arguments::Argument* Arguments::find(const String& name)
+    {
+        auto it = _M_arguments.find(name);
+        if (it == _M_arguments.end())
+            return nullptr;
+        return &it->second;
+    }
+
+    Arguments& Arguments::push_argument(const Argument& argument, bool override)
+    {
+        Argument* arg = find(argument.name);
+        if (arg)
+        {
+            if (override)
+            {
+                arg->data = argument.data;
+                arg->type = argument.type;
+            }
+            return *this;
+        }
+
+        _M_arguments[argument.name] = argument;
+        return *this;
     }
 }// namespace Engine

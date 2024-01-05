@@ -1,8 +1,8 @@
 #include <Core/class.hpp>
-#include <Core/commandlet.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/entry_point.hpp>
 #include <Core/executable_object.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/library.hpp>
@@ -16,11 +16,10 @@
 #include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <Systems/engine_system.hpp>
+#include <Systems/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window_manager.hpp>
-#include <cstring>
-#include <glm/gtc/quaternion.hpp>
 #include <no_api.hpp>
 
 
@@ -134,48 +133,51 @@ namespace Engine
     ENGINE_EXPORT EngineInstance* engine_instance = nullptr;
 
 
-    static CommandLet* try_load_commandlet(const String& name, Class* base_class)
+    static EntryPoint* try_load_entry_point(const String& name, Class* base_class)
     {
         Class* class_instance = Class::static_find_class(name);
         if (!class_instance)
         {
-            error_log("Engine", "Failed to load commandlet '%s'", name.c_str());
+            error_log("Engine", "Failed to load entry point '%s'", name.c_str());
             return nullptr;
         }
 
         if (!class_instance->contains_class(base_class))
         {
-            error_log("Engine", "Class '%s' does not inherit from class Engine::CommandLet!", class_instance->name().c_str());
+            error_log("Engine", "Class '%s' does not inherit from class Engine::EntryPoint!", class_instance->name().c_str());
             return nullptr;
         }
 
-        Object* object         = class_instance->create_object();
-        CommandLet* commandlet = object->instance_cast<CommandLet>();
+        Object* object    = class_instance->create_object();
+        EntryPoint* entry = object->instance_cast<EntryPoint>();
 
-        if (!commandlet)
+        if (!entry)
         {
-            error_log("Engine", "Class '%s' is not commandlet!", class_instance->name().c_str());
+            error_log("Engine", "Class '%s' is not entry point!", class_instance->name().c_str());
         }
 
-        return commandlet;
+        return entry;
     }
 
-    static CommandLet* find_commandlet(int argc, char** argv)
+    static EntryPoint* find_entry_point(const Arguments& args)
     {
-        Class* commandlet_base_class = Class::static_find_class("Engine::CommandLet");
-        CommandLet* commandlet       = nullptr;
-        // Load commandlet
-        if (argc > 1)
+        Class* entry_point_base_class = Class::static_find_class("Engine::EntryPoint");
+        EntryPoint* entry_point       = nullptr;
+
         {
-            commandlet = try_load_commandlet(argv[1], commandlet_base_class);
+            const Arguments::Argument* arg = args.find("entry");
+            if (arg && arg->type == Arguments::Type::String)
+            {
+                entry_point = try_load_entry_point(arg->get<String>(), entry_point_base_class);
+            }
         }
 
-        if (!commandlet)
+        if (!entry_point)
         {
-            commandlet = try_load_commandlet(Constants::default_commandlet, commandlet_base_class);
+            entry_point = try_load_entry_point(Constants::default_entry_point, entry_point_base_class);
         }
 
-        return commandlet;
+        return entry_point;
     }
 
 
@@ -235,15 +237,16 @@ namespace Engine
         }
 
         InitializeController().execute();
+        engine_config.update();
 
-        CommandLet* commandlet = find_commandlet(argc, argv);
-        if (!commandlet)
+        EntryPoint* entry_point = find_entry_point(_M_args);
+        if (!entry_point)
         {
-            error_log("Engine", "Failed to load commandlet for engine start!");
+            error_log("Engine", "Failed to load entry point for engine start!");
             return -1;
         }
 
-        commandlet->load_configs();
+        entry_point->load_configs();
         engine_config.update();
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
 
@@ -268,7 +271,7 @@ namespace Engine
         PostInitializeController().execute();
         ScriptEngine::instance()->load_scripts();
 
-        int_t status = commandlet ? commandlet->execute(argc - 1, argv + 1) : launch();
+        int_t status = entry_point->execute(argc - 1, argv + 1);
 
         if (status == 0)
         {
@@ -276,7 +279,7 @@ namespace Engine
         }
         else
         {
-            info_log("EngineInstance", "Failed to execute commandlet. Error code: %d", status);
+            error_log("EngineInstance", "Failed to execute commandlet. Error code: %d", status);
         }
 
         return status;
@@ -309,6 +312,11 @@ namespace Engine
     }
 
     const Arguments& EngineInstance::args() const
+    {
+        return _M_args;
+    }
+
+    Arguments& EngineInstance::args()
     {
         return _M_args;
     }
@@ -379,9 +387,9 @@ namespace Engine
         global_window_config.api_name = engine_config.api;
 
         WindowManager::create_instance();
+        EventSystem::new_system<EventSystem>();
 
         WindowManager::instance()->create_window(global_window_config, nullptr);
-
         AfterRHIInitializeController().execute();
     }
 

@@ -13,6 +13,7 @@ namespace Engine
     public:
         EngineSystem& create() override;
         EngineSystem& update(float dt) override;
+        EngineSystem& create_systems_from_config();
 
         friend class Object;
     };

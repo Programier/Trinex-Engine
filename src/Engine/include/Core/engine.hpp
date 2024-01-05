@@ -73,6 +73,7 @@ namespace Engine
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
         const Arguments& args() const;
+        Arguments& args();
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;
