@@ -1,7 +1,7 @@
 {
     "Engine": {
         "enable_jit": false,
-        "api": "OpenGL",
+        "api": "Vulkan",
         "max_gc_collected_objects": 20000,
         "scripts_dir": "scripts",
         "resources_dir": "resources/",

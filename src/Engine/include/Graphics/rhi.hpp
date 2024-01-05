@@ -25,9 +25,9 @@ namespace Engine
     class Texture;
 
     struct RHI_Object {
-        FORCE_INLINE Identifier id() const
+        FORCE_INLINE virtual Identifier internal_type()// For internal usage
         {
-            return reinterpret_cast<Identifier>(this);
+            return 0;
         }
 
         FORCE_INLINE virtual bool is_destroyable() const

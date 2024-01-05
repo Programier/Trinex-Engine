@@ -3,6 +3,7 @@
 #include <Window/window_interface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_render_target.hpp>
+#include <vulkan_transition_image_layout.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -62,14 +63,18 @@ namespace Engine
         SyncObject& sync = _M_sync_objects[API->_M_current_buffer];
 
         static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        vk::SubmitInfo submit_info(sync._M_image_present, wait_flags, API->current_command_buffer(),
-                                   sync._M_render_finished);
+        vk::SubmitInfo submit_info(sync._M_image_present, wait_flags, API->current_command_buffer(), sync._M_render_finished);
 
         API->_M_graphics_queue.submit(submit_info, sync._M_fence);
     }
 
     void VulkanViewport::on_resize(const Size2D& new_size)
     {}
+
+    Identifier VulkanViewport::internal_type()
+    {
+        return VULKAN_VIEWPORT_ID;
+    }
 
     bool VulkanViewport::vsync()
     {
@@ -183,7 +188,7 @@ namespace Engine
 
     void VulkanWindowViewport::vsync(bool flag)
     {
-        _M_present_mode = API->present_mode_of(flag);
+        _M_present_mode             = API->present_mode_of(flag);
         _M_need_recreate_swap_chain = true;
     }
 
@@ -203,8 +208,8 @@ namespace Engine
         size_t images_count = API->_M_framebuffers_count;
         swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
 
-        swapchain_builder.add_image_usage_flags(static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc |
-                                                                               vk::ImageUsageFlagBits::eTransferDst));
+        swapchain_builder.add_image_usage_flags(
+                static_cast<VkImageUsageFlags>(vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst));
 #if PLATFORM_ANDROID
         swapchain_builder.set_pre_transform_flags(VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR);
 #endif
@@ -230,6 +235,11 @@ namespace Engine
 
         (*_M_swapchain) = swap_ret.value();
 
+        auto images_result = _M_swapchain->get_images();
+        if (!images_result.has_value())
+            throw EngineException(images_result.error().message());
+        _M_images = std::move(images_result.value());
+
         auto image_views_result = _M_swapchain->get_image_views();
         if (!image_views_result.has_value())
             throw EngineException(image_views_result.error().message());
@@ -243,8 +253,6 @@ namespace Engine
             _M_need_recreate_swap_chain             = false;
             VulkanWindowRenderTarget* render_target = reinterpret_cast<VulkanWindowRenderTarget*>(_M_render_target);
             API->wait_idle();
-            API->_M_graphics_queue.waitIdle();
-            API->_M_present_queue.waitIdle();
 
             render_target->destroy();
             create_swapchain();
@@ -272,6 +280,7 @@ namespace Engine
         if (fully)
         {
             delete _M_swapchain;
+            _M_swapchain = nullptr;
         }
     }
 
@@ -304,8 +313,7 @@ namespace Engine
             return begin_render();
         }
 
-        if (current_buffer_index.result != vk::Result::eSuccess &&
-            current_buffer_index.result != vk::Result::eSuboptimalKHR)
+        if (current_buffer_index.result != vk::Result::eSuccess && current_buffer_index.result != vk::Result::eSuboptimalKHR)
         {
             throw std::runtime_error("failed to acquire swap chain image!");
         }
@@ -317,6 +325,29 @@ namespace Engine
 
     void VulkanWindowViewport::end_render()
     {
+        if (!API->_M_state->_M_is_image_rendered_to_swapchain)
+        {
+            TransitionImageLayout transition;
+
+            transition.command_buffer = &_M_command_buffers[API->_M_current_buffer];
+            transition.old_layout     = vk::ImageLayout::eUndefined;
+            transition.new_layout     = vk::ImageLayout::ePresentSrcKHR;
+            transition.base_mip       = 0;
+            transition.mip_count      = 1;
+            transition.base_layer     = 0;
+            transition.layer_count    = 1;
+            transition.aspect_flags   = vk::ImageAspectFlagBits::eColor;
+
+            for (vk::Image image : _M_images)
+            {
+                transition.image = &image;
+                transition.execute(vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
+                                           vk::PipelineStageFlagBits::eComputeShader,
+                                   vk::AccessFlagBits::eShaderRead, vk::PipelineStageFlagBits::eTopOfPipe,
+                                   vk::AccessFlagBits::eNone);
+            }
+        }
+
         VulkanViewport::end_render();
 
         SyncObject& sync = _M_sync_objects[API->_M_current_buffer];

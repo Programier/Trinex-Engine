@@ -59,8 +59,7 @@ namespace Engine
 
     void VulkanRenderTargetFrame::push_barriers(size_t count)
     {
-        auto src_stage_mask =
-                vk::PipelineStageFlagBits::eLateFragmentTests | vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        auto src_stage_mask  = vk::PipelineStageFlagBits::eLateFragmentTests | vk::PipelineStageFlagBits::eColorAttachmentOutput;
         auto dest_stage_mask = vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader |
                                vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader |
                                vk::PipelineStageFlagBits::eTransfer;
@@ -68,8 +67,7 @@ namespace Engine
 
         std::vector<vk::MemoryBarrier> barriers(count);
 
-        auto src_access_mask =
-                vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+        auto src_access_mask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         auto dst_access_mask = vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eVertexAttributeRead |
                                vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
                                vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
@@ -101,6 +99,11 @@ namespace Engine
         API->_M_state->_M_framebuffer = this;
         _M_owner->_M_render_pass_info.setFramebuffer(_M_framebuffer);
         API->current_command_buffer().beginRenderPass(_M_owner->_M_render_pass_info, vk::SubpassContents::eInline);
+
+        if (_M_owner->_M_render_pass == API->_M_main_render_pass)
+        {
+            API->_M_state->_M_is_image_rendered_to_swapchain = true;
+        }
 
         update_viewport().update_scissors();
     }
@@ -178,8 +181,8 @@ namespace Engine
 
         if (render_pass->_M_has_depth_attachment)
         {
-            _M_clear_values.back().depthStencil = vk::ClearDepthStencilValue(
-                    render_target->depth_stencil_clear.depth, render_target->depth_stencil_clear.stencil);
+            _M_clear_values.back().depthStencil = vk::ClearDepthStencilValue(render_target->depth_stencil_clear.depth,
+                                                                             render_target->depth_stencil_clear.stencil);
         }
 
 
@@ -290,8 +293,7 @@ namespace Engine
 
         if (layout < layouts_count)
         {
-            _M_clear_values[layout].setColor(
-                    vk::ClearColorValue(Array<float, 4>({color.x, color.y, color.z, color.a})));
+            _M_clear_values[layout].setColor(vk::ClearColorValue(Array<float, 4>({color.x, color.y, color.z, color.a})));
         }
         else
         {
@@ -395,7 +397,6 @@ namespace Engine
     {
         if (render_target->frames_count() != render_target_buffer_count())
             throw EngineException("Frames count is mismatch with API requirements");
-        return &(new VulkanRenderTarget())
-                        ->init(render_target, render_target->render_pass->rhi_object<VulkanRenderPass>());
+        return &(new VulkanRenderTarget())->init(render_target, render_target->render_pass->rhi_object<VulkanRenderPass>());
     }
 }// namespace Engine

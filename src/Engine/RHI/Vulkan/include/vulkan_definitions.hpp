@@ -7,7 +7,7 @@
 #define vulkan_error_log error_log
 #define vulkan_debug_log debug_log
 #define vulkan_info_log info_log
-#define USE_INTEGRATED_GPU 1
+#define USE_INTEGRATED_GPU 0
 #define API Engine::VulkanAPI::_M_vulkan
 #define VIEW_PORT API->window_data.view_port
 
@@ -29,3 +29,7 @@
             API->_M_device.func(instance);                                                                                       \
         instance = nullptr;                                                                                                      \
     }
+
+
+#define VULKAN_FORCED_DESTROY_TYPES 255
+#define VULKAN_VIEWPORT_ID (VULKAN_FORCED_DESTROY_TYPES + 1)

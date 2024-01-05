@@ -55,7 +55,7 @@ namespace Engine
 
     VulkanAPI::~VulkanAPI()
     {
-        _M_device.waitIdle();
+        wait_idle();
         delete_garbage(true);
         delete _M_main_render_pass;
 
@@ -105,7 +105,14 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::destroy_object(RHI_Object* object)
     {
-        _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
+        if (object->internal_type() > VULKAN_FORCED_DESTROY_TYPES)
+        {
+            delete object;
+        }
+        else
+        {
+            _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
+        }
         return *this;
     }
 
@@ -204,6 +211,7 @@ namespace Engine
         _M_window = window;
 
         vkb::InstanceBuilder instance_builder;
+        instance_builder.require_api_version(VK_API_VERSION_1_3);
 
         auto extentions = _M_window->required_extensions();
         for (auto& extension : extentions)
@@ -488,6 +496,9 @@ namespace Engine
     VulkanAPI& VulkanAPI::wait_idle()
     {
         _M_device.waitIdle();
+        _M_graphics_queue.waitIdle();
+        _M_present_queue.waitIdle();
+
         return *this;
     }
 

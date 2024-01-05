@@ -34,6 +34,7 @@ namespace Engine
         void end_render() override;
 
         void on_resize(const Size2D& new_size) override;
+        Identifier internal_type() override;
         bool vsync() override;
         void vsync(bool flag) override;
         RHI_RenderTarget* render_target() override;
@@ -53,6 +54,7 @@ namespace Engine
         vk::PresentModeKHR _M_present_mode;
         vkb::Swapchain* _M_swapchain = nullptr;
         vk::SurfaceKHR _M_surface;
+        std::vector<VkImage> _M_images;
         bool _M_need_recreate_swap_chain = false;
 
         VulkanViewport* init(WindowInterface* window, bool vsync, bool create_render_pass);

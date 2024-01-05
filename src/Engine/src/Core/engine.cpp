@@ -327,6 +327,23 @@ namespace Engine
         return *this;
     }
 
+
+    class DestroyRHI_Task : public ExecutableObject
+    {
+    private:
+        RHI* _M_rhi;
+
+    public:
+        DestroyRHI_Task(RHI* rhi) : _M_rhi(rhi)
+        {}
+
+        int_t execute() override
+        {
+            delete _M_rhi;
+            return sizeof(DestroyRHI_Task);
+        }
+    };
+
     EngineInstance::~EngineInstance()
     {
         request_exit();
@@ -356,7 +373,13 @@ namespace Engine
             delete WindowManager::instance();
 
         if (_M_rhi)
-            delete _M_rhi;
+        {
+            // Cannot delete rhi in logic thread, becouse the gpu resources can be used now
+            // So, delete it on render thread
+            render_thread()->insert_new_task<DestroyRHI_Task>(_M_rhi);
+            render_thread()->wait_all();
+            _M_rhi = nullptr;
+        }
 
         _M_rhi                                                              = nullptr;
         _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;

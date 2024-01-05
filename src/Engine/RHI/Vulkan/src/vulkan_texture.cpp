@@ -236,13 +236,11 @@ namespace Engine
             _M_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
         }
 
-        vk::ImageTiling tiling =
-                texture->is_render_target_texture() ? vk::ImageTiling::eOptimal : vk::ImageTiling::eLinear;
+        vk::ImageTiling tiling = texture->is_render_target_texture() ? vk::ImageTiling::eOptimal : vk::ImageTiling::eLinear;
 
         API->create_image(this, tiling,
-                          _M_engine_texture->type() == TextureType::Texture2D
-                                  ? default_flags
-                                  : vk::ImageCreateFlagBits::eCubeCompatible,
+                          _M_engine_texture->type() == TextureType::Texture2D ? default_flags
+                                                                              : vk::ImageCreateFlagBits::eCubeCompatible,
                           _M_usage_flags, _M_memory_flags, _M_image, _M_image_memory, layer_count());
 
 
@@ -268,7 +266,9 @@ namespace Engine
 
 
             transition.execute(vk::PipelineStageFlagBits::eTopOfPipe, vk::AccessFlagBits::eNone,
-                               vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
+                               vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
+                                       vk::PipelineStageFlagBits::eComputeShader,
+                               vk::AccessFlagBits::eShaderRead);
         }
 
         if (data)
@@ -292,8 +292,8 @@ namespace Engine
 
 
         API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
-                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-                           staging_buffer, staging_buffer_memory);
+                           vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, staging_buffer,
+                           staging_buffer_memory);
 
         void* vulkan_data = API->_M_device.mapMemory(staging_buffer_memory, 0, buffer_size);
         std::memcpy(vulkan_data, data, buffer_size);
@@ -330,8 +330,7 @@ namespace Engine
                            vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
     }
 
-    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
-                                          const byte* data)
+    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
         update_texture(size, offset, mipmap, 0, data);
     }
@@ -349,8 +348,7 @@ namespace Engine
     {
         if (API->_M_state->_M_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this,
-                                                              location);
+            API->_M_state->_M_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this, location);
         }
     }
 
@@ -464,11 +462,10 @@ namespace Engine
                     const Array<vk::Offset3D, 2> src_offsets = {vk::Offset3D(0, 0, 0),
                                                                 vk::Offset3D(base_mip_size.x, base_mip_size.y, 1)};
 
-                    const Array<vk::Offset3D, 2> dst_offsets = {
-                            vk::Offset3D(0, 0, 0), vk::Offset3D(current_mip_size.x, current_mip_size.y, 1)};
+                    const Array<vk::Offset3D, 2> dst_offsets = {vk::Offset3D(0, 0, 0),
+                                                                vk::Offset3D(current_mip_size.x, current_mip_size.y, 1)};
 
-                    vk::ImageBlit blit(src_image_subresource_layers, src_offsets, dst_image_subresource_layers,
-                                       dst_offsets);
+                    vk::ImageBlit blit(src_image_subresource_layers, src_offsets, dst_image_subresource_layers, dst_offsets);
 
                     command_buffer.blitImage(_M_image, vk::ImageLayout::eTransferSrcOptimal, _M_image,
                                              vk::ImageLayout::eTransferDstOptimal, blit, vk::Filter::eLinear);

@@ -269,7 +269,7 @@ namespace Engine
 
         ImGui::SetCurrentContext(context);
 
-        if(callback)
+        if (callback)
         {
             callback(context);
         }
@@ -302,7 +302,7 @@ namespace Engine
         if (!_M_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-            _M_imgui_window = new ImGuiRenderer::Window(this, imgui_create_context(_M_interface, callback));
+            _M_imgui_window               = new ImGuiRenderer::Window(this, imgui_create_context(_M_interface, callback));
             engine_instance->thread(ThreadType::RenderThread)->wait_all();
             ImGui::SetCurrentContext(current_context);
         }
@@ -334,7 +334,6 @@ namespace Engine
         imgui_terminate();
 
         delete _M_render_viewport;
-        engine_instance->thread(ThreadType::RenderThread)->wait_all();
         delete _M_interface;
 
         // The window cannot remove the render target because it is a viewport resource

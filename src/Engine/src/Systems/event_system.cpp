@@ -31,18 +31,14 @@ namespace Engine
         WindowManager* manager = WindowManager::instance();
         Window* window         = manager->find(event.window_id());
 
-        if (window)
-            manager->destroy_window(window);
-
-        if (manager->windows().empty())
+        if (manager->main_window() == window)
+        {
             engine_instance->request_exit();
-    }
-
-    static void on_quit(const Event& event)
-    {
-        WindowManager* manager = WindowManager::instance();
-        manager->destroy_window(manager->main_window());
-        engine_instance->request_exit();
+        }
+        else
+        {
+            manager->destroy_window(window);
+        }
     }
 
     static void on_resize(const Event& event)
@@ -111,7 +107,7 @@ namespace Engine
         Super::create();
 
         System::new_system<EngineSystem>()->register_subsystem(this);
-        add_listener(EventType::Quit, on_quit);
+        add_listener(EventType::Quit, on_window_close);
         add_listener(EventType::WindowClose, on_window_close);
 
         WindowManager::instance()->add_event_callback(id(), [this](const Event& e) { push_event(e); });
@@ -197,7 +193,8 @@ namespace Engine
                                   ScriptCallConv::CDECL_OBJFIRST);
         registrar->method("EventSystem& remove_listener(const Engine::EventType, uint64 id)", &EventSystem::remove_listener);
         registrar->method("const EventSystem& push_event(const Engine::Event& in) const", &EventSystem::push_event);
-        registrar->method("EventSystem& process_event_method(Engine::EventSystem::ProcessEventMethod)", &EventSystem::process_event_method);
+        registrar->method("EventSystem& process_event_method(Engine::EventSystem::ProcessEventMethod)",
+                          &EventSystem::process_event_method);
     }
 
     implement_class(EventSystem, "Engine", Class::IsScriptable);

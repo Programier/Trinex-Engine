@@ -29,8 +29,7 @@ namespace Engine
             throw EngineException("Cannot load window system library!");
         }
 
-        WindowManagerInterface* (*loader)() =
-                library.get<WindowManagerInterface*>(Constants::library_load_function_name);
+        WindowManagerInterface* (*loader)() = library.get<WindowManagerInterface*>(Constants::library_load_function_name);
         if (!loader)
         {
             throw EngineException("Cannot create window manager loader");
