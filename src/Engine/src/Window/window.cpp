@@ -334,6 +334,7 @@ namespace Engine
         imgui_terminate();
 
         delete _M_render_viewport;
+        engine_instance->thread(ThreadType::RenderThread)->wait_all();
         delete _M_interface;
 
         // The window cannot remove the render target because it is a viewport resource
