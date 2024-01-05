@@ -19,9 +19,4 @@ namespace Engine::Demangle
         delete ptr;
         return _M_name;
     }
-
-    ENGINE_EXPORT String decode_name(const std::type_info& info)
-    {
-        return decode_name(info.name());
-    }
 }// namespace Engine::Demangle

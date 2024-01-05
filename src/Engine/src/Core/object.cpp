@@ -1,7 +1,6 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
-#include <Core/demangle.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
@@ -175,16 +174,6 @@ namespace Engine
         return _M_name.hash();
     }
 
-    ENGINE_EXPORT String Object::decode_name(const std::type_info& info)
-    {
-        return Engine::Demangle::decode_name(info);
-    }
-
-    ENGINE_EXPORT String Object::decode_name(const String& name)
-    {
-        return Engine::Demangle::decode_name(name);
-    }
-
     ENGINE_EXPORT Package* Object::load_package(const String& name)
     {
         // Try to find package
@@ -224,11 +213,6 @@ namespace Engine
 
         pos += Constants::name_separator.length() - 1;
         return name.substr(pos, name.length() - pos);
-    }
-
-    String Object::decode_name() const
-    {
-        return decode_name(typeid(*this));
     }
 
     const Object& Object::remove_from_instances_array() const

@@ -58,7 +58,7 @@ namespace Engine
     }
 
 
-    ControllerBase::ControllerBase(void* function_address) : _M_func_address(function_address)
+    ControllerBase::ControllerBase(void* function_address, const char* name) : _M_func_address(function_address), _M_name(name)
     {}
 
 
@@ -81,12 +81,6 @@ namespace Engine
 
         auto& list = it->second;
 
-        String class_name;
-        if (!name.empty() && !list.empty())
-        {
-            class_name = Demangle::decode_name(typeid(*this));
-        }
-
         while (!list.empty())
         {
             CallbackEntry entry = list.front();
@@ -99,7 +93,7 @@ namespace Engine
 
             if (!name.empty())
             {
-                debug_log(class_name.c_str(), "Executing initializer '%s'", name.c_str());
+                debug_log(_M_name, "Executing initializer '%s'", name.c_str());
             }
             entry.function();
         }
@@ -110,8 +104,7 @@ namespace Engine
 
     ControllerBase& ControllerBase::execute()
     {
-        auto name = Demangle::decode_name(typeid(*this));
-        info_log(name.c_str(), "Executing command list!");
+        info_log(_M_name, "Executing command list!");
 
         auto& list = convert_function_address(_M_func_address)();
 
@@ -130,7 +123,7 @@ namespace Engine
 
 
 #define IMPLEMENT_CONTROLLER(ControllerName, func)                                                                               \
-    ControllerName::ControllerName() : ControllerBase(reinterpret_cast<void*>(func))                                             \
+    ControllerName::ControllerName() : ControllerBase(reinterpret_cast<void*>(func), #ControllerName)                            \
     {}                                                                                                                           \
                                                                                                                                  \
                                                                                                                                  \

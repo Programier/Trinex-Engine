@@ -86,8 +86,6 @@ namespace Engine
         virtual class Class* class_instance() const;
 
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static String decode_name(const std::type_info& info);
-        ENGINE_EXPORT static String decode_name(const String& name);
         ENGINE_EXPORT static Package* load_package(const String& name);
         ENGINE_EXPORT static String package_name_of(const String& name);
         ENGINE_EXPORT static String object_name_of(const String& name);
@@ -102,7 +100,6 @@ namespace Engine
         ENGINE_EXPORT static void language(const String& new_language);
         ENGINE_EXPORT static void language(const char* new_language);
 
-        String decode_name() const;
         const String& string_name() const;
         HashIndex hash_index() const;
         ObjectRenameStatus name(const char* name, size_t name_len, bool autorename = false);
@@ -172,12 +169,6 @@ namespace Engine
                 object->name(object_name, true);
             }
             return object;
-        }
-
-        template<typename Type>
-        inline static std::size_t instance_hash_of()
-        {
-            return typeid(Type).hash_code();
         }
 
         template<typename Type>

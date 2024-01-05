@@ -107,6 +107,7 @@ add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
 target_compile_options(TrinexEngine PRIVATE "-Wall")
 target_compile_options(TrinexEngine PRIVATE "-Wno-unknown-pragmas")
 target_compile_options(TrinexEngine PRIVATE "-Wmismatched-tags")
+target_compile_options(TrinexEngine PUBLIC "-fno-rtti")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_options(TrinexEngine PRIVATE "-O3")

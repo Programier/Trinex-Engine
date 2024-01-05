@@ -11,9 +11,10 @@ namespace Engine
     {
     private:
         void* _M_func_address = nullptr;
+        const char* _M_name   = nullptr;
 
     protected:
-        ControllerBase(void* function_address);
+        ControllerBase(void* function_address, const char* name);
 
     public:
         ControllerBase& push(const ControllerCallback& callback, const String& name = "",
@@ -23,13 +24,13 @@ namespace Engine
         virtual ~ControllerBase();
     };
 
-#define IMPLEMENT_CONTROLLER(ControllerName)                                                                           \
-    class ENGINE_EXPORT ControllerName : public ControllerBase                                                         \
-    {                                                                                                                  \
-    public:                                                                                                            \
-        ControllerName();                                                                                              \
-        ControllerName(const ControllerCallback& callback, const String& name = "",                                    \
-                       const std::initializer_list<String>& require_initializers = {});                                \
+#define IMPLEMENT_CONTROLLER(ControllerName)                                                                                     \
+    class ENGINE_EXPORT ControllerName : public ControllerBase                                                                   \
+    {                                                                                                                            \
+    public:                                                                                                                      \
+        ControllerName();                                                                                                        \
+        ControllerName(const ControllerCallback& callback, const String& name = "",                                              \
+                       const std::initializer_list<String>& require_initializers = {});                                          \
     }
 
     IMPLEMENT_CONTROLLER(PostDestroyController);
