@@ -17,7 +17,10 @@ namespace Engine
         MipMapLevel base_mip_level = 0;
         MipMapLevel mipmap_count   = 1;
         ColorFormat format         = ColorFormat::R8G8B8A8Unorm;
-        SwizzleRGBA swizzle;
+        Swizzle swizzle_r          = Swizzle::Identity;
+        Swizzle swizzle_g          = Swizzle::Identity;
+        Swizzle swizzle_b          = Swizzle::Identity;
+        Swizzle swizzle_a          = Swizzle::Identity;
 
     protected:
         bool _M_use_for_render_target = false;

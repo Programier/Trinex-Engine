@@ -3,13 +3,6 @@
 
 namespace Engine
 {
-    struct SwizzleRGBA {
-        SwizzleValue R = SwizzleValue::Identity;
-        SwizzleValue G = SwizzleValue::Identity;
-        SwizzleValue B = SwizzleValue::Identity;
-        SwizzleValue A = SwizzleValue::Identity;
-    };
-
     struct ViewPort {
         Point2D pos = {0.0f, 0.0f};
         Size2D size;

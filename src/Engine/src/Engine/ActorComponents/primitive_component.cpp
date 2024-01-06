@@ -3,6 +3,9 @@
 
 namespace Engine
 {
+    PrimitiveDrawingProxy::~PrimitiveDrawingProxy()
+    {}
+
     implement_engine_class_default_init(PrimitiveComponent);
 
     bool PrimitiveComponent::is_visible() const
@@ -17,11 +20,16 @@ namespace Engine
 
     PrimitiveComponent& PrimitiveComponent::spawned()
     {
-        return* this;
+        return *this;
     }
 
     PrimitiveComponent& PrimitiveComponent::destroyed()
     {
-        return* this;
+        return *this;
+    }
+
+    PrimitiveDrawingProxy* PrimitiveComponent::drawing_proxy() const
+    {
+        return nullptr;
     }
 }// namespace Engine

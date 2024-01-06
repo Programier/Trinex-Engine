@@ -23,7 +23,7 @@ namespace Engine
         Trilinear = 2,
     };
 
-    enum class SwizzleValue : EnumerateType
+    enum class Swizzle : EnumerateType
     {
         Identity = 0,
         Zero     = 1,

@@ -27,6 +27,8 @@ namespace Engine
         MaterialEditorClient& render_viewport(float dt);
         MaterialEditorClient& render_properties(float dt);
 
+        void on_package_select(Package* package);
+
         void render_dock_window(void* userdata);
     };
 }// namespace Engine

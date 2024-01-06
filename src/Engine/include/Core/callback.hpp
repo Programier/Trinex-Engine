@@ -52,6 +52,11 @@ namespace Engine
             return _M_callbacks;
         }
 
+        bool empty() const
+        {
+            return _M_callbacks.empty();
+        }
+
         template<typename... Args>
         const CallBacks& operator()(Args&&... args) const
         {

@@ -7,8 +7,8 @@
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
-#include <imgui_windows.hpp>
 #include <imgui_internal.h>
+#include <imgui_windows.hpp>
 #include <material_editor_client.hpp>
 #include <theme.hpp>
 
@@ -19,6 +19,18 @@ namespace Engine
 {
     implement_engine_class_default_init(MaterialEditorClient);
 
+
+    static bool is_material(Object* object)
+    {
+        const class Class* class_instance = object->class_instance();
+        if (class_instance->contains_class(MaterialInterface::static_class_instance()))
+            return true;
+
+        if (class_instance == MaterialObject::static_class_instance())
+            return true;
+
+        return false;
+    }
 
     MaterialEditorClient& MaterialEditorClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
@@ -34,6 +46,10 @@ namespace Engine
 
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
         _M_viewport = viewport;
+
+        _M_package_tree.on_package_select.push(std::bind(&MaterialEditorClient::on_package_select, this, std::placeholders::_1));
+        _M_content_browser.filters.push(is_material);
+
         return *this;
     }
 
@@ -42,6 +58,11 @@ namespace Engine
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;
+    }
+
+    void MaterialEditorClient::on_package_select(Package* package)
+    {
+        _M_content_browser.package = package;
     }
 
     void MaterialEditorClient::render_dock_window(void* userdata)
@@ -91,7 +112,6 @@ namespace Engine
     {
         return *this;
     }
-
 
     MaterialEditorClient& MaterialEditorClient::render_properties(float dt)
     {

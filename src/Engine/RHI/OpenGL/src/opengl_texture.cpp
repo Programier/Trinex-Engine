@@ -53,24 +53,24 @@ namespace Engine
         }
     }
 
-    static GLuint swizzle_value(SwizzleValue value, GLuint _default)
+    static GLuint swizzle_value(Swizzle value, GLuint _default)
     {
         switch (value)
         {
-            case SwizzleValue::R:
+            case Swizzle::R:
                 return GL_BLUE;
-            case SwizzleValue::G:
+            case Swizzle::G:
                 return GL_GREEN;
-            case SwizzleValue::B:
+            case Swizzle::B:
                 return GL_BLUE;
-            case SwizzleValue::A:
+            case Swizzle::A:
                 return GL_ALPHA;
-            case SwizzleValue::One:
+            case Swizzle::One:
                 return GL_ONE;
-            case SwizzleValue::Zero:
+            case Swizzle::Zero:
                 return GL_ZERO;
 
-            case SwizzleValue::Identity:
+            case Swizzle::Identity:
                 return _default;
             default:
                 break;
@@ -90,10 +90,10 @@ namespace Engine
         glBindTexture(_M_type, _M_id);
         glTexParameteri(_M_type, GL_TEXTURE_BASE_LEVEL, texture->base_mip_level);
         glTexParameteri(_M_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(texture->mipmap_count - 1));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_R, swizzle_value(texture->swizzle.R, GL_RED));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_G, swizzle_value(texture->swizzle.G, GL_GREEN));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle.B, GL_BLUE));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_A, swizzle_value(texture->swizzle.A, GL_ALPHA));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_R, swizzle_value(texture->swizzle_r, GL_RED));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_G, swizzle_value(texture->swizzle_g, GL_GREEN));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle_b, GL_BLUE));
+        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_A, swizzle_value(texture->swizzle_a, GL_ALPHA));
 
         glTexImage2D(_M_type, 0, _M_format._M_internal_format, _M_size.x, _M_size.y, GL_FALSE, _M_format._M_format,
                      _M_format._M_type, data);

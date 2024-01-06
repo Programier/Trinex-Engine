@@ -90,6 +90,7 @@ namespace Engine
     public:
         Package* package = nullptr;
         CallBacks<void(Object*)> on_object_selected;
+        CallBacks<bool(Object*)> filters;
 
         bool render(RenderViewport* viewport) override;
         static const char* name();

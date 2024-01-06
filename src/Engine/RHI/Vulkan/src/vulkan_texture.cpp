@@ -245,8 +245,8 @@ namespace Engine
 
 
         // Creating image view
-        _M_swizzle = vk::ComponentMapping(get_type(texture->swizzle.R), get_type(texture->swizzle.G),
-                                          get_type(texture->swizzle.B), get_type(texture->swizzle.A));
+        _M_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g),
+                                          get_type(texture->swizzle_b), get_type(texture->swizzle_a));
         vk::ImageViewCreateInfo view_info({}, _M_image, view_type(), _M_vulkan_format, _M_swizzle,
                                           subresource_range(texture->base_mip_level));
         _M_image_view = API->_M_device.createImageView(view_info);

@@ -30,15 +30,15 @@ namespace Engine
         };
 
     private:
-        String _M_name;
+        Name _M_name;
         String _M_description;
         size_t _M_offset;
         Flags _M_flags;
 
     public:
-        Property(const String& name, const String& description, size_t offset, BitMask flags = 0);
+        Property(const Name& name, const String& description, size_t offset, BitMask flags = 0);
 
-        const String& name() const;
+        const Name& name() const;
         const String& description() const;
         size_t offset() const;
         const Flags& flags() const;

@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/dynamic_struct.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/render_resource.hpp>
 

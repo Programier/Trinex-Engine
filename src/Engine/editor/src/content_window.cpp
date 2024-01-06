@@ -74,8 +74,26 @@ namespace Engine
 
         float padding = ImGui::GetStyle().FramePadding.x;
 
+        size_t rendered = 0;
         for (auto& [name, object] : package->objects())
         {
+            bool in_filter = filters.empty();
+
+            if (!in_filter)
+            {
+                for (auto& [id, callback] : filters.callbacks())
+                {
+                    in_filter = callback(object);
+                    if (in_filter)
+                        break;
+                }
+            }
+
+            if (!in_filter)
+                continue;
+
+            ++rendered;
+
             if (not_first_item)
             {
                 ImGui::SameLine();
@@ -163,6 +181,11 @@ namespace Engine
             }
 
             ImGui::EndGroup();
+        }
+
+        if (rendered == 0)
+        {
+            ImGui::Text("%s", "editor/No objects found"_localized);
         }
 
         ImGui::End();

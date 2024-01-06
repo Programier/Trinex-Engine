@@ -3,11 +3,11 @@
 namespace Engine
 {
 
-    Property::Property(const String& name, const String& description, size_t offset, BitMask flags)
+    Property::Property(const Name& name, const String& description, size_t offset, BitMask flags)
         : _M_name(name), _M_description(description), _M_offset(offset), _M_flags(flags)
     {}
 
-    const String& Property::name() const
+    const Name& Property::name() const
     {
         return _M_name;
     }

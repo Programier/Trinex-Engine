@@ -80,7 +80,10 @@ namespace Engine
         (*archive) & base_mip_level;
         (*archive) & mipmap_count;
         (*archive) & format;
-        (*archive) & swizzle;
+        (*archive) & swizzle_r;
+        (*archive) & swizzle_g;
+        (*archive) & swizzle_b;
+        (*archive) & swizzle_a;
         return static_cast<bool>(*archive);
     }
 
