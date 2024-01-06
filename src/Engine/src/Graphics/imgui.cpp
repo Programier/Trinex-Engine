@@ -431,7 +431,12 @@ namespace Engine::ImGuiRenderer
                 }
             }
 
-            if (!ImGui::IsWindowAppearing() && !ImGui::IsWindowHovered())
+            auto pos     = ImGui::GetWindowPos();
+            auto end_pos = pos + ImGui::GetWindowSize();
+
+            bool hovered = ImGui::IsMouseHoveringRect(pos, end_pos);
+
+            if (!ImGui::IsWindowAppearing() && !hovered)
             {
                 for (int_t i = 0; i < ImGuiMouseButton_COUNT; ++i)
                 {
