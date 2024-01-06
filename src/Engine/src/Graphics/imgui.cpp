@@ -375,6 +375,11 @@ namespace Engine::ImGuiRenderer
         return 0;
     }
 
+    bool ENGINE_EXPORT IsMouseDownNow(ImGuiMouseButton button)
+    {
+        return ImGui::GetIO().MouseDownDuration[button] == 0.f && ImGui::IsMouseDown(button);
+    }
+
     bool ENGINE_EXPORT InputText(const char* label, String& buffer, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback,
                                  void* user_data)
     {
@@ -420,12 +425,23 @@ namespace Engine::ImGuiRenderer
             if (callback)
             {
                 status = callback(userdata);
+                if (status == false)
+                {
+                    ImGui::CloseCurrentPopup();
+                }
             }
 
-            if ((ImGui::IsMouseReleased(ImGuiMouseButton_Left)) && !ImGui::IsWindowHovered())
+            if (!ImGui::IsWindowAppearing() && !ImGui::IsWindowHovered())
             {
-                ImGui::CloseCurrentPopup();
-                status = false;
+                for (int_t i = 0; i < ImGuiMouseButton_COUNT; ++i)
+                {
+                    if (IsMouseDownNow(i))
+                    {
+                        ImGui::CloseCurrentPopup();
+                        status = false;
+                        break;
+                    }
+                }
             }
 
             ImGui::EndPopup();

@@ -40,6 +40,7 @@ namespace Engine
             delete _M_selected;
             _M_selected = nullptr;
             on_object_selected(nullptr);
+            return false;
         }
         return true;
     }

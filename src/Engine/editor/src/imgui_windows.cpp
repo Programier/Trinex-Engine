@@ -381,8 +381,8 @@ namespace Engine
         ImGui::Begin(name());
         if (object)
         {
-            ImGui::Text("Object: %s", object->name().to_string().c_str());
-            ImGui::Text("Class: %s", object->class_instance()->name().c_str());
+            ImGui::Text("editor/Object: %s"_localized, object->name().to_string().c_str());
+            ImGui::Text("editor/Class: %s"_localized, object->class_instance()->name().c_str());
             ImGui::Separator();
 
             for (Class* self = object->class_instance(); self; self = self->parent())
