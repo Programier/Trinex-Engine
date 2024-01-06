@@ -547,6 +547,11 @@ namespace Engine
         return true;
     }
 
+    bool Object::is_internal() const
+    {
+        return flags(Object::Flag::IsInternal);
+    }
+
     Path Object::filepath() const
     {
         const Package* pkg = instance_cast<Package>();

@@ -7,10 +7,10 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Window/window_manager.hpp>
-#include <Core/logger.hpp>
 
 namespace Engine
 {
+#define TRINEX_WITH_STENCIL_BUFFER 0
 
     implement_engine_class_default_init(EngineRenderTarget);
 
@@ -105,7 +105,11 @@ namespace Engine
 
     static Vector<ColorFormat> required_depth_formats()
     {
+#if TRINEX_WITH_STENCIL_BUFFER
         return {ColorFormat::D32SfloatS8Uint, ColorFormat::D24UnormS8Uint, ColorFormat::D16UnormS8Uint};
+#else
+        return {ColorFormat::D32Sfloat, ColorFormat::D16Unorm, ColorFormat::D16UnormS8Uint};
+#endif
     }
 
     static ColorFormatFeatures color_format_requirements()
@@ -116,7 +120,7 @@ namespace Engine
         return features;
     }
 
-    static ColorFormatFeatures depth_format_кequirements()
+    static ColorFormatFeatures depth_format_requirements()
     {
         ColorFormatFeatures features;
         features.is_supported          = true;
@@ -125,8 +129,7 @@ namespace Engine
     }
 
 
-    static ColorFormat find_color_format(const Vector<ColorFormat>& formats, ColorFormatFeatures features,
-                                         const char* type)
+    static ColorFormat find_color_format(const Vector<ColorFormat>& formats, ColorFormatFeatures features, const char* type)
     {
         for (const ColorFormat& format : formats)
         {
@@ -189,7 +192,7 @@ namespace Engine
         render_pass->has_depth_stancil                      = true;
         render_pass->depth_stencil_attachment.clear_on_bind = true;
         render_pass->depth_stencil_attachment.format =
-                find_color_format(required_depth_formats(), depth_format_кequirements(), "depth");
+                find_color_format(required_depth_formats(), depth_format_requirements(), "depth");
 
         // Initialize color attachments
         render_pass->color_attachments.resize(gbuffer_color_attachments);
@@ -197,9 +200,8 @@ namespace Engine
         for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
             render_pass->color_attachments[i].clear_on_bind = true;
-            render_pass->color_attachments[i].format =
-                    find_color_format(attachment_texture_info[i].required_formats(), color_format_requirements(),
-                                      attachment_texture_info[i].name);
+            render_pass->color_attachments[i].format        = find_color_format(
+                    attachment_texture_info[i].required_formats(), color_format_requirements(), attachment_texture_info[i].name);
 
             color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
         }
@@ -232,9 +234,9 @@ namespace Engine
             frame->color_attachments.resize(gbuffer_color_attachments);
             for (size_t i = 0; i < gbuffer_color_attachments; i++)
             {
-                auto& info         = attachment_texture_info[i];
-                Texture2D* texture = Object::new_instance_named<Texture2D>(
-                        Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
+                auto& info = attachment_texture_info[i];
+                Texture2D* texture =
+                        Object::new_instance_named<Texture2D>(Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
 
                 texture->format = render_pass->color_attachments[i].format;
                 texture->setup_render_target_texture();
@@ -303,8 +305,8 @@ namespace Engine
         {
             frame->color_attachments.resize(1);
 
-            Texture2D* texture = Object::new_instance_named<Texture2D>(
-                    Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
+            Texture2D* texture =
+                    Object::new_instance_named<Texture2D>(Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
 
             texture->format = render_pass->color_attachments[0].format;
             texture->setup_render_target_texture();

@@ -73,6 +73,63 @@ namespace Engine::Strings
         return line.substr(0, pos + 1);
     }
 
+    static bool (*insert_space[])(char, char, String& to) = {
+            [](char, char ch, String& to) {
+                if (ch == '_')
+                {
+                    to.push_back(' ');
+                    return true;
+                }
+                return false;
+            },
+            [](char prev, char ch, String& to) -> bool {
+                if (std::isdigit(ch) && !isdigit(prev))
+                {
+                    to.push_back(' ');
+                    to.push_back(ch);
+                    return true;
+                }
+                else if (std::isupper(ch) && std::islower(prev) && !std::isdigit(prev))
+                {
+                    to.push_back(' ');
+                    to.push_back(ch);
+                    return true;
+                }
+
+                return false;
+            },
+    };
+
+
+    ENGINE_EXPORT String make_sentence(const String& line)
+    {
+        std::string result;
+        result.reserve(line.size());
+        char prev_char = '\0';
+
+        for (char ch : line)
+        {
+            bool inserted = false;
+            if (ch != ' ')
+            {
+                for (size_t i = 0; i < ARRAY_SIZE(insert_space) && !inserted; ++i)
+                {
+                    inserted = insert_space[i](prev_char, ch, result);
+                }
+            }
+
+            if (!inserted)
+            {
+                result.push_back(ch);
+            }
+
+            prev_char = ch;
+        }
+
+        return result;
+    }
+
+
     String replace_all(String line, const String& old, const String& new_line)
     {
         size_t pos = 0;

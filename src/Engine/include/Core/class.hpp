@@ -26,6 +26,7 @@ namespace Engine
         String _M_name;
         String _M_namespace;
         String _M_base_name;
+        String _M_base_name_splitted;
 
         Object* (*_M_static_constructor)();
         Object* (*_M_cast_to_this)(Object* object);
@@ -53,6 +54,7 @@ namespace Engine
 
         Class* parent() const;
         const String& name() const;
+        const String& base_name_splitted() const;
         const String& namespace_name() const;
         const String& base_name() const;
         Object* create_object() const;

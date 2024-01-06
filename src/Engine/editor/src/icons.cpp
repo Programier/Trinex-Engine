@@ -6,9 +6,9 @@
 #include <icons.hpp>
 
 
-namespace Engine
+namespace Engine::Icons
 {
-    static Sampler* default_sampler()
+    Sampler* default_sampler()
     {
         static Sampler* sampler = nullptr;
         if (sampler == nullptr)
@@ -23,7 +23,21 @@ namespace Engine
         return sampler;
     }
 
-    void* find_imgui_icon(class Object* object)
+    Texture2D* default_texture()
+    {
+        static Texture2D* texture = nullptr;
+        if (texture == nullptr)
+        {
+            Package* pkg = Package::find_package("Editor");
+            if (pkg)
+            {
+                texture = pkg->find_object_checked<Texture2D>("DefaultIcon");
+            }
+        }
+        return texture;
+    }
+
+    ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object)
     {
         if (!object)
             return nullptr;
@@ -39,9 +53,13 @@ namespace Engine
         {
             Texture2D* texture = object->instance_cast<Texture2D>();
             if (texture && texture->has_object())
-                return window->create_texture(texture, sampler)->handle();
+                return window->create_texture(texture, sampler);
         }
+
+        Texture2D* texture = default_texture();
+        if (texture && texture->has_object())
+            return window->create_texture(texture, sampler);
 
         return nullptr;
     }
-}// namespace Engine
+}// namespace Engine::Icons

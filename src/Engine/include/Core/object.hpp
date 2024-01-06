@@ -124,6 +124,7 @@ namespace Engine
         bool archive_process(Archive* archive) override;
         bool is_valid() const;
         Path filepath() const;
+        bool is_internal() const;
 
 
         static void mark_internal_objects();

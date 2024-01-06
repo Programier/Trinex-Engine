@@ -81,6 +81,7 @@ namespace Engine
     {
         Super::reload();
         image.load(path);
+        image.add_alpha_channel();
         format = image.format();
         size = image.size();
         postload();

@@ -74,6 +74,7 @@ namespace Engine
     {
 
         // Render base frame
+        GBuffer::instance()->rhi_bind();
         SceneColorOutput::instance()->rhi_bind();
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
@@ -233,7 +234,6 @@ namespace Engine
         }
 
         ImGui::End();
-
         return *this;
     }
 }// namespace Engine

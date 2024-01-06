@@ -79,5 +79,7 @@
 
 #define BIT(index) (1 << (index))
 
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
+
 
 // USER SPECIFIC DEFINITIONS!

@@ -55,6 +55,7 @@ namespace Engine
         _M_namespace    = Object::package_name_of(class_name);
         flags.flags     = _flags;
         _M_cast_to_this = nullptr;
+        _M_base_name_splitted = Strings::make_sentence(_M_base_name);
 
         if (is_asset())
         {
@@ -70,6 +71,11 @@ namespace Engine
     const String& Class::name() const
     {
         return _M_name;
+    }
+
+    const String& Class::base_name_splitted() const
+    {
+        return _M_base_name_splitted;
     }
 
     const String& Class::namespace_name() const

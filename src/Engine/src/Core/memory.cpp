@@ -74,8 +74,6 @@ namespace Engine
         return ~start_hash;
     }
 
-    ENGINE_EXPORT HashIndex memory_hash_fast(const void* memory, const size_t size, HashIndex start_hash);
-
     ENGINE_EXPORT const byte* memory_search(const byte* haystack, size_t haystack_len, const byte* needle, size_t needle_len)
     {
         if (needle_len > haystack_len)

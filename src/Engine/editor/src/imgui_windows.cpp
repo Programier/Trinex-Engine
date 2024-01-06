@@ -202,7 +202,7 @@ namespace Engine
         {
             ImGui::Separator();
 
-            if (ImGui::Button("editor/Rename"_localized, ImVec2(100, 25)))
+            if (ImGui::Button("editor/Rename"_localized))
             {
                 if (_M_object->name(new_object_name, allow_rename) == ObjectRenameStatus::Failed)
                 {

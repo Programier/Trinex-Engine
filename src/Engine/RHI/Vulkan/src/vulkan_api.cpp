@@ -283,6 +283,8 @@ namespace Engine
         /// FEATURES
         vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
         device_builder.add_pNext(&idx_byte_feature);
+        vk::PhysicalDeviceSeparateDepthStencilLayoutsFeatures separate_depth_stencil(VK_TRUE);
+        device_builder.add_pNext(&separate_depth_stencil);
 
         auto device_ret = device_builder.build();
         if (!device_ret)
