@@ -21,7 +21,6 @@ namespace Engine
     public:
         ImGuiNotificationMessage(const String& msg, Type type = Type::Info);
         bool render(class RenderViewport* viewport) override;
-
         static const char* name();
     };
 
@@ -124,8 +123,6 @@ namespace Engine
 
     class ImGuiSceneTree : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-
-
         void render_scene_tree(class SceneComponent* component);
 
     public:

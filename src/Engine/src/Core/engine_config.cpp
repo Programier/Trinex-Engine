@@ -11,13 +11,21 @@ namespace Engine
     {
         const auto& engine_json = global_config.checked_get("Engine").checked_get<JSON::JsonObject>();
 
+        external_system_libraries.clear();
+        systems.clear();
+        languages.clear();
+
         engine_json.checked_get("external_system_libraries").copy_to_array(external_system_libraries, JSON::ValueType::String);
         engine_json.checked_get("systems").copy_to_array(systems, JSON::ValueType::String);
+        engine_json.checked_get("languages").copy_to_array(languages, JSON::ValueType::String);
 
         resources_dir        = engine_json.checked_get_value<JSON::JsonString>("resources_dir", "resources");
         api                  = engine_json.checked_get_value<JSON::JsonString>("api", "OpenGLES");
         scripts_dir          = engine_json.checked_get_value<JSON::JsonString>("scripts_dir", "scripts");
         libraries_dir        = engine_json.checked_get_value<JSON::JsonString>("libraries_dir", "libs");
+        localization_dir     = engine_json.checked_get_value<JSON::JsonString>("localization_dir", "localization");
+        default_language     = engine_json.checked_get_value<JSON::JsonString>("default_language", "eng");
+        current_language     = engine_json.checked_get_value<JSON::JsonString>("current_language", "eng");
         shader_compilers_lib = engine_json.checked_get_value<JSON::JsonString>("shader_compilers_lib");
         shader_compiler      = engine_json.checked_get_value<JSON::JsonString>("shader_compiler");
         window_system        = engine_json.checked_get_value<JSON::JsonString>("window_system", "SDL2");

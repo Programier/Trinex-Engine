@@ -16,31 +16,34 @@ namespace Engine
 
     struct RHI;
 
-    enum class EngineInstanceFlags : EnumerateType
-    {
-        IsInited,
-        IsShutingDown,
-        IsRequestingExit,
-        __COUNT__
-    };
 
     enum class ThreadType : EnumerateType
     {
         RenderThread = 0,
-
         __COUNT__,
     };
 
 
     class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass>
     {
+    public:
+        enum Flag : EnumerateType
+        {
+            PreInitTriggered  = BIT(0),
+            InitTriggered     = BIT(1),
+            PostInitTriggered = BIT(2),
+            IsInited          = BIT(3),
+            IsShutingDown     = BIT(4),
+            IsRequestingExit  = BIT(5),
+        };
+
     private:
         static EngineInstance* _M_instance;
 
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
         class Renderer* _M_renderer = nullptr;
         RHI* _M_rhi                 = nullptr;
-        BitSet<static_cast<EnumerateType>(EngineInstanceFlags::__COUNT__)> _M_flags;
+        Flags _M_flags;
         EngineAPI _M_api;
         Index _M_frame_index = 0;
 
@@ -74,6 +77,7 @@ namespace Engine
         EngineInstance& request_exit();
         const Arguments& args() const;
         Arguments& args();
+        const Flags& flags() const;
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;

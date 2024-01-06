@@ -12,16 +12,20 @@ namespace Engine
 
         Vector<String> external_system_libraries;
         Vector<String> systems;
+        Vector<String> languages;
 
         Path resources_dir;
         Path scripts_dir;
         Path libraries_dir;
         Path config_dir;
+        Path localization_dir;
 
         String api;
         String shader_compilers_lib;
         String shader_compiler;
         String window_system;
+        String default_language;
+        String current_language;
 
         uint_t lz4_compression_level;
         uint_t max_gc_collected_objects;

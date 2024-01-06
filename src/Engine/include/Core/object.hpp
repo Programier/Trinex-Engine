@@ -17,6 +17,8 @@ namespace Engine
     using MessageList = List<String>;
 
 
+    const char* operator ""_localized(const char* line, size_t len);
+
     enum class ObjectRenameStatus
     {
         Success,
@@ -99,6 +101,8 @@ namespace Engine
         ENGINE_EXPORT static const String& language();
         ENGINE_EXPORT static void language(const String& new_language);
         ENGINE_EXPORT static void language(const char* new_language);
+        ENGINE_EXPORT static const String& localize(const String& line);
+        ENGINE_EXPORT static const String& localize(const char* line);
 
         const String& string_name() const;
         HashIndex hash_index() const;

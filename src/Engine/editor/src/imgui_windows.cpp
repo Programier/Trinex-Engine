@@ -44,7 +44,7 @@ namespace Engine
             ImGui::SetCursorPosX((ImGui::GetWindowSize().x - button_width) * 0.5f);
             ImGui::SetCursorPosY(ImGui::GetWindowSize().y - button_height - 10.0f);
 
-            if (ImGui::Button("OK", ImVec2(button_width, button_height)))
+            if (ImGui::Button("editor/Ok"_localized, ImVec2(button_width, button_height)))
             {
                 open = false;
             }
@@ -57,7 +57,7 @@ namespace Engine
 
     const char* ImGuiNotificationMessage::name()
     {
-        return "Notification";
+        return "editor/Notification Title"_localized;
     }
 
     ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent) : _M_parent(parent ? parent : Object::root_package())
@@ -73,8 +73,8 @@ namespace Engine
         ImGui::Begin(name(), &open, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
 
-        ImGuiRenderer::InputText("Package Name", new_package_name);
-        ImGui::Checkbox("Allow rename", &allow_rename);
+        ImGuiRenderer::InputText("editor/Package Name"_localized, new_package_name);
+        ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
         if (!allow_rename && _M_parent->contains_object(new_package_name))
         {
@@ -91,7 +91,7 @@ namespace Engine
         {
             ImGui::Separator();
 
-            if (ImGui::Button("Create", ImVec2(100, 25)))
+            if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
             {
                 Package* new_package = Object::new_instance<Package>();
                 new_package->name(new_package_name);
@@ -106,7 +106,7 @@ namespace Engine
 
     const char* ImGuiCreateNewPackage::name()
     {
-        return "New Package";
+        return "editor/New Package Title"_localized;
     }
 
     ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg) : _M_parent(pkg)
@@ -127,10 +127,11 @@ namespace Engine
         ImGui::Begin(name(), &open, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
 
-        ImGui::Combo("Class", &current_index, get_asset_class_name_by_index, nullptr, Class::asset_classes().size());
+        ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_by_index, nullptr,
+                     Class::asset_classes().size());
 
-        ImGuiRenderer::InputText("Asset Name", new_asset_name);
-        ImGui::Checkbox("Allow rename", &allow_rename);
+        ImGuiRenderer::InputText("editor/Asset Name"_localized, new_asset_name);
+        ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
         if (!allow_rename && _M_parent->contains_object(new_asset_name))
         {
@@ -147,7 +148,7 @@ namespace Engine
         {
             ImGui::Separator();
 
-            if (ImGui::Button("Create", ImVec2(100, 25)))
+            if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
             {
                 Class* class_instance  = Class::asset_classes()[current_index];
                 Object* created_object = class_instance->create_object();
@@ -163,7 +164,7 @@ namespace Engine
 
     const char* ImGuiCreateNewAsset::name()
     {
-        return "New Asset";
+        return "editor/New Asset Title"_localized;
     }
 
     ImGuiRenameObject::ImGuiRenameObject(Object* object) : _M_object(object)
@@ -182,11 +183,11 @@ namespace Engine
         ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
-        ImGui::Begin("Rename Object", &open, ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(name(), &open, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Object: %s", _M_object->full_name().c_str());
 
-        ImGuiRenderer::InputText("New Name", new_object_name);
-        ImGui::Checkbox("Allow rename", &allow_rename);
+        ImGuiRenderer::InputText("editor/New Name"_localized, new_object_name);
+        ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
         if (_M_object->flags(Object::IsInternal))
         {
@@ -201,7 +202,7 @@ namespace Engine
         {
             ImGui::Separator();
 
-            if (ImGui::Button("Rename", ImVec2(100, 25)))
+            if (ImGui::Button("editor/Rename"_localized, ImVec2(100, 25)))
             {
                 if (_M_object->name(new_object_name, allow_rename) == ObjectRenameStatus::Failed)
                 {
@@ -219,7 +220,7 @@ namespace Engine
 
     const char* ImGuiRenameObject::name()
     {
-        return "Rename Object";
+        return "editor/Rename Object Title"_localized;
     }
 
 
@@ -229,19 +230,19 @@ namespace Engine
 
     bool ImGuiPackageTree::render_popup_internal(void* userdata)
     {
-        if (ImGui::Button("Create new package"))
+        if (ImGui::Button("editor/Create new package"_localized))
         {
             ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewPackage>(_M_selected);
             return false;
         }
 
-        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("Rename"))
+        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("editor/Rename"_localized))
         {
             ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(_M_selected);
             return false;
         }
 
-        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("Save"))
+        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("editor/Save"_localized))
         {
             _M_selected->save();
             return false;
@@ -330,7 +331,7 @@ namespace Engine
 
     const char* ImGuiPackageTree::name()
     {
-        return "Package Tree";
+        return "editor/Package Tree Title"_localized;
     }
 
 
@@ -369,9 +370,10 @@ namespace Engine
         delete reinterpret_cast<ImGui::FileBrowser*>(_M_browser);
     }
 
+
     const char* ImGuiOpenFile::name()
     {
-        return "Open File";
+        return "editor/Open File Title"_localized;
     }
 
     bool ImGuiObjectProperties::render(RenderViewport* viewport)
@@ -406,7 +408,7 @@ namespace Engine
 
     const char* ImGuiObjectProperties::name()
     {
-        return "Properties";
+        return "editor/Properties Title"_localized;
     }
 
 
@@ -428,7 +430,7 @@ namespace Engine
 
     const char* ImGuiSceneTree::name()
     {
-        return "Scene Tree";
+        return "editor/Scene Tree Title"_localized;
     }
 
 }// namespace Engine

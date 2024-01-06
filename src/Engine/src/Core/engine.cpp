@@ -79,7 +79,7 @@ namespace Engine
 
     bool EngineInstance::is_inited() const
     {
-        return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)];
+        return _M_flags(IsInited);
     }
 
     static EngineAPI get_api_by_name(const String& name)
@@ -222,7 +222,7 @@ namespace Engine
         Thread::this_thread()->name("Logic");
 
         PreInitializeController().execute();
-
+        _M_flags(PreInitTriggered, true);
         // Load libraries
 
         {
@@ -237,6 +237,7 @@ namespace Engine
         }
 
         InitializeController().execute();
+        _M_flags(InitTriggered, true);
         engine_config.update();
 
         EntryPoint* entry_point = find_entry_point(_M_args);
@@ -248,7 +249,7 @@ namespace Engine
 
         entry_point->load_configs();
         engine_config.update();
-        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = true;
+
 
         load_external_system_libraries();
         ScriptEngine::instance();
@@ -269,8 +270,10 @@ namespace Engine
         Object::mark_internal_objects();
 
         PostInitializeController().execute();
+        _M_flags(PostInitTriggered, true);
         ScriptEngine::instance()->load_scripts();
 
+        _M_flags(IsInited, true);
         int_t status = entry_point->execute(argc - 1, argv + 1);
 
         if (status == 0)
@@ -297,17 +300,17 @@ namespace Engine
 
     bool EngineInstance::is_shuting_down() const
     {
-        return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)];
+        return _M_flags(IsShutingDown);
     }
 
     bool EngineInstance::is_requesting_exit() const
     {
-        return _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)];
+        return _M_flags(IsRequestingExit);
     }
 
     EngineInstance& EngineInstance::request_exit()
     {
-        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsRequestingExit)] = true;
+        _M_flags(IsRequestingExit, true);
         return *this;
     }
 
@@ -319,6 +322,11 @@ namespace Engine
     Arguments& EngineInstance::args()
     {
         return _M_args;
+    }
+
+    const Flags& EngineInstance::flags() const
+    {
+        return _M_flags;
     }
 
     EngineInstance& EngineInstance::trigger_terminate_functions()
@@ -347,7 +355,7 @@ namespace Engine
     EngineInstance::~EngineInstance()
     {
         request_exit();
-        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsShutingDown)] = true;
+        _M_flags(IsShutingDown, true);
         info_log("EngineInstance", "Terminate Engine");
 
         if (_M_rhi)
@@ -381,8 +389,8 @@ namespace Engine
             _M_rhi = nullptr;
         }
 
-        _M_rhi                                                              = nullptr;
-        _M_flags[static_cast<EnumerateType>(EngineInstanceFlags::IsInited)] = false;
+        _M_rhi = nullptr;
+        _M_flags(IsInited, false);
         Library::close_all();
 
         PostDestroyController().execute();

@@ -168,11 +168,20 @@ namespace Engine
         }
         else if (is_new_load)
         {
-            PreInitializeController().execute();
+            const Flags& flags = engine_instance->flags();
 
-            if (engine_instance->is_inited())
+            if (flags(EngineInstance::PreInitTriggered))
+            {
+                PreInitializeController().execute();
+            }
+
+            if (flags(EngineInstance::InitTriggered))
             {
                 InitializeController().execute();
+            }
+
+            if (flags(EngineInstance::PostInitTriggered))
+            {
                 PostInitializeController().execute();
             }
         }

@@ -9,19 +9,20 @@ namespace Engine
     {
     private:
         static Localization* _M_instance;
-        Name _M_language;
-
+        Map<HashIndex, String> _M_translation_map;
+        mutable Map<HashIndex, String> _M_default_translation_map;
 
     public:
         CallBacks<void()> on_language_changed;
 
-        const String& localize(const String& line);
-        const String& localize(const char* line);
+        const String& localize(const String& line) const;
+        const String& localize(const char* line) const;
+        const String& localize(const char* line, size_t len) const;
 
-        const Name& language() const;
+        const String& language() const;
         Localization& language(const String&);
         Localization& language(const char*);
-        Localization& reload();
+        Localization& reload(bool clear = true, bool with_default = false);
 
         friend class Singletone<Localization, EmptySingletoneParent>;
     };

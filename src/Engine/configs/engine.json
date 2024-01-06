@@ -1,12 +1,18 @@
 {
     "Engine": {
         "enable_jit": false,
-        "api": "Vulkan",
+        "api": "OpenGL",
+        "lz4_compression_level": 10,
         "max_gc_collected_objects": 20000,
+
         "scripts_dir": "scripts",
         "resources_dir": "resources/",
-        "lz4_compression_level": 10,
         "libraries_dir": "libs/",
+        "localization_dir": "localization/",
+        "default_language": "eng",
+        "current_language": "ukr",
+        "languages": ["eng", "ukr"],
+
         "shader_compilers_lib": "ShaderCompilers",
         "shader_compiler": "Engine::GLSLToSPIRV",
         "window_system": "SDL2",

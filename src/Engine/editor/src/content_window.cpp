@@ -11,13 +11,13 @@ namespace Engine
 {
     bool ImGuiContentBrowser::show_context_menu(void* userdata)
     {
-        if (ImGui::Button("Create new asset"))
+        if (ImGui::Button("editor/Create new asset"_localized))
         {
             ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewAsset>(package);
             return false;
         }
 
-        if (_M_selected && ImGui::Button("Reload"))
+        if (_M_selected && ImGui::Button("editor/Reload"_localized))
         {
             _M_selected->reload();
         }
@@ -31,7 +31,7 @@ namespace Engine
         ImGui::Begin(name());
         if (package == nullptr)
         {
-            ImGui::Text("No package selected!");
+            ImGui::Text("%s!", "editor/No package selected"_localized);
             ImGui::End();
             return true;
         }
@@ -92,8 +92,8 @@ namespace Engine
                 }
 
                 ImGui::TextWrapped("%s", name.c_str());
-
                 ImGui::PopID();
+
             }
             else
             {
@@ -114,6 +114,6 @@ namespace Engine
 
     const char* ImGuiContentBrowser::name()
     {
-        return "Content Browser";
+        return "editor/Content Browser Title"_localized;
     }
 }// namespace Engine

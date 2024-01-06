@@ -77,5 +77,7 @@
 #define TRINEX_WITH_RTTI 0
 #endif
 
+#define BIT(index) (1 << (index))
+
 
 // USER SPECIFIC DEFINITIONS!

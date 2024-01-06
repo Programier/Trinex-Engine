@@ -1,5 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
+#include <Core/localization.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/thread.hpp>
@@ -109,12 +111,37 @@ namespace Engine
 
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenu("View"))
+            if (ImGui::BeginMenu("editor/View"_localized))
             {
-                if (ImGui::MenuItem("Open Material Editor"))
+                if (ImGui::MenuItem("editor/Open Material Editor"_localized))
                 {
                     open_material_editor();
                 }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("editor/Edit"_localized))
+            {
+                if (ImGui::MenuItem("editor/Reload localization"_localized))
+                {
+                    Localization::instance()->reload();
+                }
+
+                if (ImGui::BeginMenu("editor/Change language"_localized))
+                {
+                    for (const String& lang : engine_config.languages)
+                    {
+                        const char* localized = Object::localize("editor/" + lang).c_str();
+                        if(ImGui::MenuItem(localized))
+                        {
+                            Object::language(lang);
+                            break;
+                        }
+                    }
+
+                    ImGui::EndMenu();
+                }
+
                 ImGui::EndMenu();
             }
             ImGui::EndMenuBar();
@@ -135,7 +162,7 @@ namespace Engine
             ImGui::DockBuilderDockWindow(_M_scene_tree.name(), dock_id_left);
             ImGui::DockBuilderDockWindow(_M_content_browser.name(), dock_id_down);
             ImGui::DockBuilderDockWindow(_M_properties.name(), dock_id_right);
-            ImGui::DockBuilderDockWindow("Viewport", dock_id);
+            ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport Title").c_str(), dock_id);
 
             ImGui::DockBuilderFinish(dock_id);
         }
@@ -186,7 +213,7 @@ namespace Engine
 
     EditorViewportClient& EditorViewportClient::create_viewport_window(float dt)
     {
-        if (!ImGui::Begin("Viewport", nullptr))
+        if (!ImGui::Begin(Object::localize("editor/Viewport Title").c_str(), nullptr))
         {
             ImGui::End();
             return *this;

@@ -31,6 +31,7 @@ namespace Engine
     const String Constants::library_load_function_name = "create_library_interface";
     const String Constants::script_extension           = ".as";
     const String Constants::script_byte_code_extension = ".asbc";
+    const Path Constants::translation_config_extension = ".lang";
 
     static void on_init()
     {
