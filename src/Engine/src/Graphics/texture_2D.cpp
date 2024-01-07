@@ -13,7 +13,7 @@
 
 namespace Engine
 {
-    implement_class(Texture2D, "Engine", 0);
+    implement_class(Texture2D, Engine, 0);
 
     implement_initialize_class(Texture2D)
     {

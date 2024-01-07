@@ -280,7 +280,7 @@ private:
         if (!_M_static_class)                                                                                                    \
         {                                                                                                                        \
             constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-            _M_static_class               = new Engine::Class(#class_name, namespace_name, &This::static_constructor,            \
+            _M_static_class               = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
                                                 has_base_class ? Super::static_class_instance() : nullptr, flags); \
             _M_static_class->process_type<class_name>();                                                                         \
             Engine::PostInitializeController controller([]() {                                                                   \
@@ -291,13 +291,13 @@ private:
         return _M_static_class;                                                                                                  \
     }                                                                                                                            \
     static Engine::InitializeController initialize_##class_name = Engine::InitializeController(                                  \
-            []() { class_name::static_class_instance(); }, "Initialize " namespace_name #class_name)
+            []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name))
 
 
 #define implement_class_default_init(class_name, namespace_name)                                                                 \
     implement_default_initialize_class(class_name);                                                                              \
     implement_class(class_name, namespace_name, 0)
 
-#define implement_engine_class(class_name, flags) implement_class(class_name, "Engine", flags)
-#define implement_engine_class_default_init(class_name) implement_class_default_init(class_name, "Engine")
+#define implement_engine_class(class_name, flags) implement_class(class_name, Engine, flags)
+#define implement_engine_class_default_init(class_name) implement_class_default_init(class_name, Engine)
 }// namespace Engine

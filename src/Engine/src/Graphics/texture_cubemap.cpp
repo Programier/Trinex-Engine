@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    implement_class(TextureCubeMap, "Engine", 0);
+    implement_class(TextureCubeMap, Engine, 0);
     implement_default_initialize_class(TextureCubeMap);
 
     TextureCubeMap::TextureCubeMap() = default;

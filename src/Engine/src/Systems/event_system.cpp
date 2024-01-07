@@ -197,7 +197,7 @@ namespace Engine
                           &EventSystem::process_event_method);
     }
 
-    implement_class(EventSystem, "Engine", Class::IsScriptable);
+    implement_class(EventSystem, Engine, Class::IsScriptable);
     implement_initialize_class(EventSystem)
     {
         static_class_instance()->set_script_registration_callback(init_script_class);

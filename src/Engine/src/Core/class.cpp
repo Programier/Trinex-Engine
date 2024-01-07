@@ -33,10 +33,10 @@ namespace Engine
     {
         _M_size = 0;
         info_log("Class", "Created class instance '%s'", this->name().c_str());
-        flags.flags     = _flags;
-        _M_cast_to_this = nullptr;
+        flags.flags           = _flags;
+        _M_cast_to_this       = nullptr;
         _M_static_constructor = constructor;
-        _M_singletone_object = nullptr;
+        _M_singletone_object  = nullptr;
 
         if (is_asset())
         {
@@ -69,9 +69,9 @@ namespace Engine
         return _M_size;
     }
 
-    Class* Class::static_find(const String& name)
+    Class* Class::static_find(const String& name, bool required)
     {
-        Struct* self = Struct::static_find(name);
+        Struct* self = Struct::static_find(name, required);
         if (self && self->is_class())
         {
             return reinterpret_cast<Class*>(self);

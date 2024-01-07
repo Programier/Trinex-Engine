@@ -12,10 +12,10 @@
 namespace Engine
 {
 
-    implement_class(MeshComponent, "Engine", 0);
+    implement_class(MeshComponent, Engine, 0);
     implement_default_initialize_class(MeshComponent);
-    implement_class(StaticMeshComponent, "Engine", 0);
+    implement_class(StaticMeshComponent, Engine, 0);
     implement_default_initialize_class(StaticMeshComponent);
-    implement_class(DynamicMeshComponent, "Engine", 0);
+    implement_class(DynamicMeshComponent, Engine, 0);
     implement_default_initialize_class(DynamicMeshComponent);
 }// namespace Engine

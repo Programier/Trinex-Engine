@@ -8,8 +8,8 @@
 
 namespace Engine
 {
-    implement_class(StaticMesh, "Engine", 0);
-    implement_class(DynamicMesh, "Engine", 0);
+    implement_class(StaticMesh, Engine, 0);
+    implement_class(DynamicMesh, Engine, 0);
     implement_default_initialize_class(StaticMesh);
     implement_default_initialize_class(DynamicMesh);
 

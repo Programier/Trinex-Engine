@@ -24,6 +24,7 @@ namespace Engine
             Enum,
             Object,
             ObjectReference,
+            Struct,
         };
 
         enum Flag
@@ -49,30 +50,22 @@ namespace Engine
         const String& description() const;
         const Flags& flags() const;
 
-        virtual PropertyValue property_value(const Object* object) const                 = 0;
-        virtual bool property_value(Object* object, const PropertyValue& property_value) = 0;
-        virtual size_t element_size() const                                              = 0;
-        virtual size_t min_alignment() const                                             = 0;
-        virtual Property::Type type() const                                              = 0;
-        virtual bool is_const() const                                                    = 0;
+        virtual PropertyValue property_value(const void* object) const                 = 0;
+        virtual bool property_value(void* object, const PropertyValue& property_value) = 0;
+        virtual size_t element_size() const                                            = 0;
+        virtual size_t min_alignment() const                                           = 0;
+        virtual Property::Type type() const                                            = 0;
+        virtual bool is_const() const                                                  = 0;
 
         virtual void* property_class() const;
         virtual ~Property();
     };
 
-    template<typename Instance, typename PropType, typename OutputType = PropType>
-    class TypedProperty : public Property
+    template<typename PropType>
+    class BaseTypedProperty : public Property
     {
-    private:
-        PropType Instance::*_M_address = nullptr;
-
     public:
-        FORCE_INLINE TypedProperty(const Name& name, const String& description, PropType Instance::*prop,
-                                   const Name& group = Name::none, BitMask flags = 0)
-            : Property(name, description, group, flags)
-        {
-            _M_address = prop;
-        }
+        using Property::Property;
 
         FORCE_INLINE size_t element_size() const override
         {
@@ -88,17 +81,36 @@ namespace Engine
         {
             return flags()(IsConst) || std::is_const_v<PropType>;
         }
+    };
 
-        PropertyValue property_value(const Object* object) const override
+    template<typename Instance, typename PropType, typename OutputType = PropType>
+    class TypedProperty : public BaseTypedProperty<PropType>
+    {
+    private:
+        PropType Instance::*_M_address = nullptr;
+
+    public:
+        FORCE_INLINE TypedProperty(const Name& name, const String& description, PropType Instance::*prop,
+                                   const Name& group = Name::none, BitMask flags = 0)
+            : BaseTypedProperty<PropType>(name, description, group, flags)
         {
-            if (!is_valid_object(Instance::static_class_instance(), object))
-                return {};
+            _M_address = prop;
+        }
 
-            const Instance* instance = reinterpret_cast<const Instance*>(object);
+        PropertyValue property_value(const void* _object) const override
+        {
+            if constexpr (std::is_base_of_v<Object, Instance>)
+            {
+                const Object* object = reinterpret_cast<const Object*>(_object);
+                if (!this->is_valid_object(Instance::static_class_instance(), object))
+                    return {};
+            }
+
+            const Instance* instance = reinterpret_cast<const Instance*>(_object);
             return static_cast<OutputType>(instance->*_M_address);
         }
 
-        bool property_value(Object* object, const PropertyValue& property_value) override
+        bool property_value(void* _object, const PropertyValue& property_value) override
         {
             if constexpr (std::is_const_v<PropType>)
             {
@@ -106,10 +118,17 @@ namespace Engine
             }
             else
             {
-                if (!is_valid_object(Instance::static_class_instance(), object))
+                if (this->flags()(Property::IsConst))
                     return false;
-                Instance* instance    = reinterpret_cast<Instance*>(object);
-                instance->*_M_address = (PropType)(std::any_cast<const OutputType&>(property_value));
+
+                if constexpr (std::is_base_of_v<Object, Instance>)
+                {
+                    Object* object = reinterpret_cast<Object*>(_object);
+                    if (!this->is_valid_object(Instance::static_class_instance(), object))
+                        return false;
+                }
+                Instance* instance    = reinterpret_cast<Instance*>(_object);
+                instance->*_M_address = (PropType) (std::any_cast<const OutputType&>(property_value));
                 return true;
             }
         }
@@ -202,7 +221,7 @@ namespace Engine
             : ObjectReferenceProperty<Instance, ObjectType>(name, description, prop, group, flags)
         {}
 
-        FORCE_INLINE bool property_value(Object* object, const PropertyValue& property_value) override
+        FORCE_INLINE bool property_value(void* object, const PropertyValue& property_value) override
         {
             return false;
         }
@@ -210,6 +229,75 @@ namespace Engine
         FORCE_INLINE Property::Type type() const override
         {
             return Property::Type::Object;
+        }
+    };
+
+    template<typename Instance, typename StructType>
+    class StructProperty : public BaseTypedProperty<StructType>
+    {
+    private:
+        class Struct* _M_struct;
+        StructType Instance::*_M_address;
+
+    public:
+        static_assert(std::is_class_v<StructType>, "PropType must be struct or class");
+
+        StructProperty(const Name& name, const String& description, StructType Instance::*address, class Struct* struct_class,
+                       const Name& group = Name::none, BitMask flags = 0)
+            : BaseTypedProperty<StructType>(name, description, group, flags)
+        {
+            _M_struct  = struct_class;
+            _M_address = address;
+        }
+
+        FORCE_INLINE Property::Type type() const override
+        {
+            return Property::Type::Struct;
+        }
+
+        PropertyValue property_value(const void* _object) const override
+        {
+            if constexpr (std::is_base_of_v<Object, Instance>)
+            {
+                const Object* object = reinterpret_cast<const Object*>(_object);
+                if (!this->is_valid_object(Instance::static_class_instance(), object))
+                    return {};
+            }
+
+            const Instance* instance = reinterpret_cast<const Instance*>(_object);
+            const StructType& out    = (instance->*_M_address);
+            const void* out_address  = &out;
+            return const_cast<void*>(out_address);
+        }
+
+        bool property_value(void* _object, const PropertyValue& property_value) override
+        {
+            if constexpr (std::is_const_v<StructType>)
+            {
+                return false;
+            }
+            else
+            {
+                if (this->flags()(Property::IsConst))
+                    return false;
+
+                if constexpr (std::is_base_of_v<Object, Instance>)
+                {
+                    Object* object = reinterpret_cast<Object*>(_object);
+                    if (!this->is_valid_object(Instance::static_class_instance(), object))
+                        return false;
+                }
+                Instance* instance      = reinterpret_cast<Instance*>(_object);
+                StructType* new_struct  = reinterpret_cast<StructType*>(std::any_cast<void*>(property_value));
+                (instance->*_M_address) = *new_struct;
+
+                return true;
+            }
+        }
+
+        void* property_class() const override
+        {
+            return _M_struct;
         }
     };
 }// namespace Engine

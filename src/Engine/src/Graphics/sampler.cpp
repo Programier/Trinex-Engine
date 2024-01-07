@@ -10,7 +10,7 @@
 
 namespace Engine
 {
-    implement_class(Sampler, "Engine", 0);
+    implement_class(Sampler, Engine, 0);
     implement_initialize_class(Sampler)
     {
         Class* self = static_class_instance();

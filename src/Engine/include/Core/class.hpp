@@ -58,7 +58,7 @@ namespace Engine
         bool is_asset() const;
         bool is_class() const override;
 
-        static Class* static_find(const String& name);
+        static Class* static_find(const String& name, bool required = false);
         static const Vector<Class*>& asset_classes();
 
         using Struct::is_a;

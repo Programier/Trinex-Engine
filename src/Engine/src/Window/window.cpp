@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-    implement_class(Window, "Engine", 0);
+    implement_class(Window, Engine, 0);
     implement_default_initialize_class(Window);
 
     class WindowRenderPass : public RenderPass

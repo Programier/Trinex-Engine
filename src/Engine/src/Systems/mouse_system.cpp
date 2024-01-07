@@ -167,7 +167,7 @@ namespace Engine
 
 #define member(x) set(#x, &MouseSystem::x)
 
-    implement_class(MouseSystem, "Engine", 0);
+    implement_class(MouseSystem, Engine, 0);
 
     implement_initialize_class(MouseSystem)
     {}

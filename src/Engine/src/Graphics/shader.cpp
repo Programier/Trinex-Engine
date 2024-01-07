@@ -15,13 +15,13 @@
 
 namespace Engine
 {
-    implement_class(Shader, "Engine", 0);
+    implement_class(Shader, Engine, 0);
     implement_default_initialize_class(Shader);
 
-    implement_class(VertexShader, "Engine", 0);
+    implement_class(VertexShader, Engine, 0);
     implement_default_initialize_class(VertexShader);
 
-    implement_class(FragmentShader, "Engine", 0);
+    implement_class(FragmentShader, Engine, 0);
     implement_default_initialize_class(FragmentShader);
 
 

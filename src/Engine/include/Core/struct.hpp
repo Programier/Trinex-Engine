@@ -28,7 +28,7 @@ namespace Engine
 
     public:
         static ENGINE_EXPORT Struct* create(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
-        static ENGINE_EXPORT Struct* static_find(const String& name);
+        static ENGINE_EXPORT Struct* static_find(const String& name, bool requred = false);
 
         const String& base_name_splitted() const;
         const Name& name() const;
@@ -53,4 +53,9 @@ namespace Engine
 
         virtual ~Struct();
     };
+
+#define implement_struct(struct_name, namespace_name, parent_struct_name)                                                        \
+    Engine::InitializeController initialize_##struct_name =                                                                      \
+            Engine::InitializeController([]() { Engine::Struct::create(#struct_name, #namespace_name, #parent_struct_name); },   \
+                                         ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
 }// namespace Engine

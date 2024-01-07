@@ -19,6 +19,6 @@ namespace Engine
         return *this;
     }
 
-    implement_class(EntryPoint, "Engine", 0);
+    implement_class(EntryPoint, Engine, 0);
     implement_default_initialize_class(EntryPoint);
 }// namespace Engine

@@ -126,7 +126,7 @@ namespace Engine
         return status_of(key) == Keyboard::Repeat;
     }
 
-    implement_class(KeyboardSystem, "Engine", 0);
+    implement_class(KeyboardSystem, Engine, 0);
     implement_initialize_class(KeyboardSystem)
     {}
 }// namespace Engine

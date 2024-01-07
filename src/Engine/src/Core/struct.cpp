@@ -1,3 +1,4 @@
+#include <Core/exception.hpp>
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/struct.hpp>
@@ -61,12 +62,25 @@ namespace Engine
         return self;
     }
 
-    ENGINE_EXPORT Struct* Struct::static_find(const String& name)
+    ENGINE_EXPORT Struct* Struct::static_find(const String& name, bool requred)
     {
         auto& map = struct_map();
         auto it   = map.find(name);
         if (it == map.end())
+        {
+            // Maybe initializer is not executed?
+            InitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.c_str()));
+            it = map.find(name);
+
+            if (it != map.end())
+                return it->second;
+
+            if (requred)
+            {
+                throw EngineException(Strings::format("Failed to find struct '{}'", name.c_str()));
+            }
             return nullptr;
+        }
         return it->second;
     }
 

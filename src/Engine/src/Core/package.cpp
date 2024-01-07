@@ -372,7 +372,7 @@ namespace Engine
                 ;
     }
 
-    implement_class(Package, "Engine", Class::IsScriptable);
+    implement_class(Package, Engine, Class::IsScriptable);
     implement_initialize_class(Package)
     {
         static_class_instance()->set_script_registration_callback(bind_to_script);

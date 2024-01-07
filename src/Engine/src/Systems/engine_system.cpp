@@ -42,6 +42,6 @@ namespace Engine
         return *this;
     }
 
-    implement_class(EngineSystem, "Engine", 0);
+    implement_class(EngineSystem, Engine, 0);
     implement_default_initialize_class(EngineSystem);
 }// namespace Engine

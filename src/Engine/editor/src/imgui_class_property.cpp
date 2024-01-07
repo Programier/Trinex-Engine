@@ -20,7 +20,7 @@ namespace Engine
     }
 
     template<typename Type>
-    static void render_prop_internal(Object* object, Property* prop, bool can_edit, void (*show_only)(Property*, const Type&),
+    static void render_prop_internal(void* object, Property* prop, bool can_edit, void (*show_only)(Property*, const Type&),
                                      bool (*edit)(Property*, Type&))
     {
         if (prop->is_const() || !can_edit)
@@ -50,35 +50,35 @@ namespace Engine
 #define view_f(type) [](Property * prop, const type& value)
 #define edit_f(type) [](Property * prop, type & value) -> bool
 
-    static void render_byte_prop(Object* object, Property* prop, bool can_edit)
+    static void render_byte_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<byte>(
                 object, prop, can_edit, view_f(byte) { prop_text("%s: %d", prop->name().c_str(), int(value)); },
                 edit_f(byte) { return ImGui::InputScalar(prop->name().c_str(), ImGuiDataType_U8, &value); });
     }
 
-    static void render_int_prop(Object* object, Property* prop, bool can_edit)
+    static void render_int_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<int_t>(
                 object, prop, can_edit, view_f(int_t) { prop_text("%s: %d", prop->name().c_str(), int_t(value)); },
                 edit_f(int_t) { return ImGui::InputScalar(prop->name().c_str(), ImGuiDataType_S32, &value); });
     }
 
-    static void render_bool_prop(Object* object, Property* prop, bool can_edit)
+    static void render_bool_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<bool>(
                 object, prop, can_edit, view_f(bool) { prop_text("%s: %s", prop->name().c_str(), value ? "True" : "False"); },
                 edit_f(bool) { return ImGui::Checkbox(prop->name().c_str(), &value); });
     }
 
-    static void render_float_prop(Object* object, Property* prop, bool can_edit)
+    static void render_float_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<float>(
                 object, prop, can_edit, view_f(float) { prop_text("%s: %.2f", prop->name().c_str(), value); },
                 edit_f(float) { return ImGui::InputFloat(prop->name().c_str(), &value); });
     }
 
-    static void render_vec2_prop(Object* object, Property* prop, bool can_edit)
+    static void render_vec2_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<Vector2D>(
                 object, prop, can_edit,
@@ -86,7 +86,7 @@ namespace Engine
                 edit_f(Vector2D) { return ImGui::InputFloat2(prop->name().c_str(), &value.x); });
     }
 
-    static void render_vec3_prop(Object* object, Property* prop, bool can_edit)
+    static void render_vec3_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<Vector3D>(
                 object, prop, can_edit,
@@ -94,7 +94,7 @@ namespace Engine
                 edit_f(Vector3D) { return ImGui::InputFloat3(prop->name().c_str(), &value.x); });
     }
 
-    static void render_vec4_prop(Object* object, Property* prop, bool can_edit)
+    static void render_vec4_prop(void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<Vector4D>(
                 object, prop, can_edit,
@@ -104,7 +104,7 @@ namespace Engine
                 edit_f(Vector4D) { return ImGui::InputFloat4(prop->name().c_str(), &value.x); });
     }
 
-    static void render_path_property(Object* object, Property* prop, bool can_edit)
+    static void render_path_property(void* object, Property* prop, bool can_edit)
     {
         ImGuiRenderer::Window* window = ImGuiRenderer::Window::current();
 
@@ -130,7 +130,7 @@ namespace Engine
         return reinterpret_cast<Enum*>(userdata)->entries()[index].name.c_str();
     }
 
-    static void render_enum_property(Object* object, Property* prop, bool can_edit)
+    static void render_enum_property(void* object, Property* prop, bool can_edit)
     {
         PropertyValue value = prop->property_value(object);
         if (!value.has_value())
@@ -174,7 +174,18 @@ namespace Engine
         }
     }
 
-    static void process_property(Object* object, Property* prop, bool can_edit)
+    void render_struct_property(void* object, Property* prop, bool can_edit)
+    {
+        PropertyValue value = prop->property_value(object);
+        if (value.has_value())
+        {
+            void* struct_object  = std::any_cast<void*>(value);
+            Struct* struct_class = reinterpret_cast<Struct*>(prop->property_class());
+            render_struct_properties(struct_object, struct_class, can_edit);
+        }
+    }
+
+    static void process_property(void* object, Property* prop, bool can_edit)
     {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2.f);
         switch (prop->type())
@@ -207,16 +218,19 @@ namespace Engine
                 render_enum_property(object, prop, can_edit);
                 break;
             case Property::Type::Object:
-                render_object_property(object, prop, can_edit);
+                render_object_property(reinterpret_cast<Object*>(object), prop, can_edit);
+                break;
+            case Property::Type::Struct:
+                render_struct_property(object, prop, can_edit);
                 break;
             default:
                 break;
         }
     }
 
-    void render_object_properties(class Object* object, bool editable)
+    void render_struct_properties(void* object, class Struct* struct_class, bool editable)
     {
-        for (Class* self = object->class_instance(); self; self = self->parent())
+        for (Struct* self = struct_class; self; self = self->parent())
         {
             if (!self->properties().empty())
             {
@@ -244,5 +258,10 @@ namespace Engine
                 }
             }
         }
+    }
+
+    void render_object_properties(class Object* object, bool editable)
+    {
+        render_struct_properties(object, object->class_instance(), editable);
     }
 }// namespace Engine

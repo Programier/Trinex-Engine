@@ -7,9 +7,9 @@
 
 namespace Engine
 {
-    implement_class(RenderResource, "Engine", 0);
+    implement_class(RenderResource, Engine, 0);
     implement_default_initialize_class(RenderResource);
-    implement_class(BindedRenderResource, "Engine", 0);
+    implement_class(BindedRenderResource, Engine, 0);
     implement_default_initialize_class(BindedRenderResource);
 
     struct DestroyRenderResourceTask : public ExecutableObject {

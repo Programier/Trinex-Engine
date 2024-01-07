@@ -41,10 +41,11 @@ namespace Engine
         const Name& namespace_name() const;
         const Name& base_name() const;
         const Vector<Enum::Entry>& entries() const;
-        static ENGINE_EXPORT Enum* find(const Name& name);
+        static ENGINE_EXPORT Enum* find(const String& name, bool required = false);
     };
 
 #define implement_enum(enum_name, namespace_name, ...)                                                                           \
     static Engine::InitializeController initialize_##enum_name = Engine::InitializeController(                                   \
-            []() { Enum::create(#namespace_name, #enum_name, Vector<Engine::Enum::Entry>({__VA_ARGS__})); })
+            []() { Enum::create(#namespace_name, #enum_name, Vector<Engine::Enum::Entry>({__VA_ARGS__})); },                     \
+            ENTITY_INITIALIZER_NAME(enum_name, namespace_name))
 }// namespace Engine

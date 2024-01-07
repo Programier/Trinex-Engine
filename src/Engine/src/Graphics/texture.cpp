@@ -13,7 +13,7 @@
 
 namespace Engine
 {
-    implement_class(Texture, "Engine", Class::IsAsset);
+    implement_class(Texture, Engine, Class::IsAsset);
     implement_initialize_class(Texture)
     {
         Class* self        = static_class_instance();

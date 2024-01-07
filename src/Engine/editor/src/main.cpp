@@ -26,7 +26,7 @@ public:
 };
 
 
-implement_class_default_init(Editor, "");
+implement_class_default_init(Editor, );
 
 // If entry point is not set in engine arguments, we need to set it to Editor
 static void on_init()

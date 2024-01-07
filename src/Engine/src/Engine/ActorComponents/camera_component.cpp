@@ -10,7 +10,7 @@
 
 namespace Engine
 {
-    implement_class(CameraComponent, "Engine", 0);
+    implement_class(CameraComponent, Engine, 0);
     implement_initialize_class(CameraComponent)
     {}
 

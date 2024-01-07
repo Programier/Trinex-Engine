@@ -58,6 +58,6 @@ namespace Engine
         return _M_compiler;
     }
 
-    implement_class(ShaderCompiler, "Engine", 0);
+    implement_class(ShaderCompiler, Engine, 0);
     implement_default_initialize_class(ShaderCompiler);
 }// namespace Engine

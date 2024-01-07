@@ -20,7 +20,7 @@ namespace Engine
 
     static thread_local bool _M_next_available_for_gc = false;
 
-    implement_class(Object, "Engine", Class::IsScriptable);
+    implement_class(Object, Engine, Class::IsScriptable);
 
 #define script_virtual_method(type, method)
 

@@ -65,7 +65,6 @@ namespace Engine
                    {"Less", DepthFunc::Less}, {"Greater", DepthFunc::Greater}, {"Equal", DepthFunc::Equal},
                    {"NotEqual", DepthFunc::NotEqual}, {"Never", DepthFunc::Never});
 
-
     implement_enum(PrimitiveTopology, Engine, {"TriangleList", PrimitiveTopology::TriangleList},
                    {"PointList", PrimitiveTopology::PointList}, {"LineList", PrimitiveTopology::LineList},
                    {"LineStrip", PrimitiveTopology::LineStrip}, {"TriangleStrip", PrimitiveTopology::TriangleStrip},

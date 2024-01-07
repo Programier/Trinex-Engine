@@ -263,6 +263,6 @@ namespace Engine
         }
     };
 
-    implement_class(GLSLToSPIRV, "Engine");
+    implement_class(GLSLToSPIRV, Engine);
     implement_default_initialize_class(GLSLToSPIRV);
 }// namespace Engine

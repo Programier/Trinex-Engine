@@ -78,7 +78,7 @@ namespace Engine
     static constexpr inline size_t gbuffer_color_attachments = 4;
 
 
-    implement_class(GBuffer, "Engine", 0);
+    implement_class(GBuffer, Engine, 0);
     implement_default_initialize_class(GBuffer);
 
     static Vector<ColorFormat> required_albedo_formats()

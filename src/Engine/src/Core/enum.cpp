@@ -1,9 +1,11 @@
 #include <Core/constants.hpp>
 #include <Core/enum.hpp>
+#include <Core/exception.hpp>
+#include <Core/string_functions.hpp>
 
 namespace Engine
 {
-    using EnumMap = Map<Name, Enum*, Name::HashFunction>;
+    using EnumMap = Map<String, Enum*>;
     static EnumMap& enums_map()
     {
         static EnumMap enums;
@@ -93,13 +95,26 @@ namespace Engine
         return _M_entries;
     }
 
-    ENGINE_EXPORT Enum* Enum::find(const Name& name)
+    ENGINE_EXPORT Enum* Enum::find(const String& name, bool required)
     {
         auto& map = enums_map();
         auto it   = map.find(name);
 
         if (it == map.end())
+        {
+            // Maybe initializer is not executed?
+            InitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.c_str()));
+            it = map.find(name);
+
+            if (it != map.end())
+                return it->second;
+
+            if (required)
+            {
+                throw EngineException(Strings::format("Failed to find enum '{}'", name.c_str()));
+            }
             return nullptr;
+        }
 
         return it->second;
     }

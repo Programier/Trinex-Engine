@@ -266,7 +266,7 @@ namespace Engine
                                 func_of<Class*(System*)>([](System* self) -> Class* { return self->depends_on(); }));
     }
 
-    implement_class(System, "Engine", Class::IsScriptable);
+    implement_class(System, Engine, Class::IsScriptable);
     implement_initialize_class(System)
     {
         static_class_instance()->set_script_registration_callback(bind_to_script);
