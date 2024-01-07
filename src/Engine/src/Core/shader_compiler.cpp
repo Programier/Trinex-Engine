@@ -47,7 +47,7 @@ namespace Engine
                 return nullptr;
             }
 
-            if (!compiler_class->contains_class(Class::static_find_class("Engine::ShaderCompiler")))
+            if (!compiler_class->is_a(Class::static_find_class("Engine::ShaderCompiler")))
             {
                 error_log("ShaderCompiler", "Class '%s' does not inherit from class Engine::ShaderCompiler!",
                           compiler_class->name().c_str());

@@ -19,6 +19,15 @@ namespace Engine
             }
         };
 
+        struct Less {
+            FORCE_INLINE bool operator()(const Name& x, const Name& y) const
+            {
+                return std::less<String>()(x.to_string(), y.to_string());
+            }
+        };
+
+        static ENGINE_EXPORT Name none;
+
     private:
         Index _M_index;
         Name& init(const char* name, size_t len);

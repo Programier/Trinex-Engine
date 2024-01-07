@@ -3,6 +3,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
+#include <Core/property.hpp>
 
 
 namespace Engine
@@ -36,7 +37,7 @@ namespace Engine
         {
             return nullptr;
         }
-        if (object->class_instance()->contains_class(required_class))
+        if (object->class_instance()->is_a(required_class))
         {
             return object;
         }
@@ -51,10 +52,10 @@ namespace Engine
         _M_size                       = 0;
         info_log("Class", "Created class instance '%s'", class_name.c_str());
 
-        _M_base_name    = Object::object_name_of(class_name);
-        _M_namespace    = Object::package_name_of(class_name);
-        flags.flags     = _flags;
-        _M_cast_to_this = nullptr;
+        _M_base_name          = Object::object_name_of(class_name);
+        _M_namespace          = Object::package_name_of(class_name);
+        flags.flags           = _flags;
+        _M_cast_to_this       = nullptr;
         _M_base_name_splitted = Strings::make_sentence(_M_base_name);
 
         if (is_asset())
@@ -103,7 +104,7 @@ namespace Engine
         return _M_static_constructor();
     }
 
-    bool Class::contains_class(const Class* c) const
+    bool Class::is_a(const Class* c) const
     {
         const Class* current = this;
         while (current && current != c)
@@ -149,6 +150,16 @@ namespace Engine
     Object* Class::singletone_instance() const
     {
         return _M_singletone_object;
+    }
+
+    Class& Class::add_property(class Property* prop)
+    {
+        if (!prop)
+            return *this;
+
+        _M_properties.push_back(prop);
+        _M_grouped_property[prop->group()].push_back(prop);
+        return *this;
     }
 
     const Map<String, Class*>& Class::class_table()
@@ -211,6 +222,11 @@ namespace Engine
         return _M_properties;
     }
 
+    const Class::GroupedPropertiesMap& Class::grouped_properties() const
+    {
+        return _M_grouped_property;
+    }
+
     const Vector<Class*>& Class::asset_classes()
     {
         return get_asset_class_table();
@@ -239,7 +255,7 @@ namespace Engine
                 .method("const string& base_name() const", &Class::base_name)
                 .method("Object@ create_object() const", &Class::create_object)
                 .static_function("Class@ static_find_class(const string& in)", Class::static_find_class)
-                .method("bool contains_class(const Class@) const", &Class::contains_class)
+                .method("bool is_a(const Class@) const", method_of<bool, Class, const Class*>(&Class::is_a))
                 .method("uint64 sizeof_class() const", &Class::sizeof_class)
                 .method("bool is_binded_to_script() const", &Class::is_binded_to_script)
                 .method("Object@ singletone_instance() const", &Class::singletone_instance);

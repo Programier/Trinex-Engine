@@ -2,8 +2,10 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
+#include <Core/property.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture.hpp>
@@ -14,13 +16,18 @@ namespace Engine
     implement_class(Texture, "Engine", Class::IsAsset);
     implement_initialize_class(Texture)
     {
-        Class* self = static_class_instance();
-        self->create_prop<Vec2Property>("Size", "Size of texture", STRUCT_OFFSET(This, size), Property::IsConst);
-        self->create_prop<ByteProperty>("Base mip level", "Base mip level", STRUCT_OFFSET(This, base_mip_level));
-        self->create_prop<ByteProperty>("MipMap count", "MipMap Count", STRUCT_OFFSET(This, mipmap_count));
+        Class* self        = static_class_instance();
+        Enum* swizzle_enum = Enum::find("Engine::Swizzle");
+        self->add_properties(new Vec2Property("Size", "Size of texture", &This::size, Name::none, Property::IsConst),
+                             new EnumProperty("Format", "Color format of texture", &This::format,
+                                              Enum::find("Engine::ColorFormat"), Name::none, Property::IsConst),
 
-        //        ColorFormat format         = ColorFormat::R8G8B8A8Unorm;
-        //        SwizzleRGBA swizzle;
+                             new ByteProperty("Base mip level", "Base mip level of texture", &This::base_mip_level),
+                             new ByteProperty("MipMap count", "MipMap Count of texture", &This::mipmap_count),
+                             new EnumProperty("Swizze R", "Swizze R of texture", &This::swizzle_r, swizzle_enum),
+                             new EnumProperty("Swizze G", "Swizze G of texture", &This::swizzle_g, swizzle_enum),
+                             new EnumProperty("Swizze B", "Swizze B of texture", &This::swizzle_b, swizzle_enum),
+                             new EnumProperty("Swizze A", "Swizze A of texture", &This::swizzle_a, swizzle_enum));
     }
 
     Texture::Texture() = default;

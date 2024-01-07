@@ -3,19 +3,22 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
+#include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
+#include <Core/property.hpp>
 
 namespace Engine
 {
     implement_class(Texture2D, "Engine", 0);
+
     implement_initialize_class(Texture2D)
     {
         Class* self_class = static_class_instance();
-        self_class->create_prop<PathProperty>("Path", "Path to texture", STRUCT_OFFSET(This, path));
+        self_class->add_properties(new PathProperty("Path", "Path to texture", &Texture2D::path));
     }
 
     Texture2D::Texture2D() = default;
@@ -83,7 +86,7 @@ namespace Engine
         image.load(path);
         image.add_alpha_channel();
         format = image.format();
-        size = image.size();
+        size   = image.size();
         postload();
         return *this;
     }

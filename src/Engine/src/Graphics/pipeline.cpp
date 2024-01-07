@@ -5,6 +5,7 @@
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
+#include <Core/property.hpp>
 
 namespace Engine
 {
@@ -37,5 +38,17 @@ namespace Engine
     }
 
     implement_class(Pipeline, "Engine", 0);
-    implement_default_initialize_class(Pipeline);
+    implement_initialize_class(Pipeline)
+    {
+        Class* self = static_class_instance();
+
+//        struct DepthTestInfo {
+//            DepthFunc func             = DepthFunc::Less;
+//            float min_depth_bound      = 0.0;
+//            float max_depth_bound      = 0.0;
+//            byte enable : 1            = 1;
+//            byte write_enable : 1      = 1;
+//            byte bound_test_enable : 1 = 0;
+//        } depth_test;
+    }
 }// namespace Engine

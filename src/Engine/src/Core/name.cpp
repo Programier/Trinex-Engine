@@ -26,6 +26,8 @@ namespace Engine
     }
 
 
+    ENGINE_EXPORT Name Name::none;
+
     Name Name::find_name(const String& name)
     {
         return find_name(name.c_str(), name.length());

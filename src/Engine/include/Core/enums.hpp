@@ -3,14 +3,13 @@
 
 namespace Engine
 {
-    enum class TextureType
+    enum class TextureType : EnumerateType
     {
         Texture2D,
         TextureCubeMap,
     };
 
-
-    enum class CompareMode
+    enum class CompareMode : EnumerateType
     {
         None,
         RefToTexture
@@ -78,15 +77,6 @@ namespace Engine
         Y,
         Z
     };
-
-    enum class EngineAPI : EnumerateType
-    {
-        NoAPI    = 0,
-        OpenGLES = 1,
-        OpenGL   = 2,
-        Vulkan   = 3
-    };
-
 
     enum class DataType : EnumerateType
     {

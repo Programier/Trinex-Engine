@@ -12,7 +12,6 @@
 #include <Core/system.hpp>
 #include <Core/thread.hpp>
 #include <Engine/world.hpp>
-#include <Graphics/renderer.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <Systems/engine_system.hpp>
@@ -65,11 +64,6 @@ namespace Engine
 #endif
     }
 
-    EngineAPI EngineInstance::api() const
-    {
-        return _M_api;
-    }
-
     const String& EngineInstance::api_name() const
     {
         return engine_config.api;
@@ -82,21 +76,9 @@ namespace Engine
         return _M_flags(IsInited);
     }
 
-    static EngineAPI get_api_by_name(const String& name)
+    bool EngineInstance::init_api()
     {
-        if (name == "Vulkan")
-            return EngineAPI::Vulkan;
-        else if (name == "OpenGLES")
-            return EngineAPI::OpenGLES;
-        else if (name == "OpenGL")
-            return EngineAPI::OpenGL;
-
-        return EngineAPI::NoAPI;
-    }
-
-    EngineInstance& EngineInstance::init_api()
-    {
-        if (_M_api != EngineAPI::NoAPI)
+        if (!engine_config.api.empty())
         {
             Library api_library(engine_config.api.c_str());
             info_log("Engine", "Using API: %s", engine_config.api.c_str());
@@ -121,12 +103,13 @@ namespace Engine
             {
                 throw EngineException("Failed to init API");
             }
+
+            return true;
         }
-        else
-        {
-            _M_rhi = new NoApi();
-        }
-        return *this;
+
+
+        _M_rhi = new NoApi();
+        return false;
     }
 
     EngineInstance* EngineInstance::_M_instance   = nullptr;
@@ -142,7 +125,7 @@ namespace Engine
             return nullptr;
         }
 
-        if (!class_instance->contains_class(base_class))
+        if (!class_instance->is_a(base_class))
         {
             error_log("Engine", "Class '%s' does not inherit from class Engine::EntryPoint!", class_instance->name().c_str());
             return nullptr;
@@ -256,13 +239,7 @@ namespace Engine
 
         World::new_system<World>()->name("Global World");
 
-        _M_api = get_api_by_name(engine_config.api);
-
-        init_api();
-        _M_renderer = new Renderer(_M_rhi);
-
-        // If API is not NoApi, than we need to init Window
-        if (_M_api != EngineAPI::NoAPI)
+        if (init_api())
         {
             init_engine_for_rendering();
         }
@@ -291,11 +268,6 @@ namespace Engine
     RHI* EngineInstance::rhi() const
     {
         return _M_rhi;
-    }
-
-    class Renderer* EngineInstance::renderer() const
-    {
-        return _M_renderer;
     }
 
     bool EngineInstance::is_shuting_down() const
@@ -374,8 +346,6 @@ namespace Engine
                 thread->wait_all();
         }
 
-        if (_M_renderer)
-            delete _M_renderer;
 
         if (WindowManager::instance())
             delete WindowManager::instance();

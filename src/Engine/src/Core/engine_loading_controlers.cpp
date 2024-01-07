@@ -132,6 +132,22 @@ namespace Engine
         : ControllerName()                                                                                                       \
     {                                                                                                                            \
         push(callback, name, require_initializers);                                                                              \
+    }                                                                                                                            \
+    ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                                 \
+                                         const std::initializer_list<String>& require_initializers)                              \
+    {                                                                                                                            \
+        ControllerBase::push(callback, name, require_initializers);                                                              \
+        return *this;                                                                                                            \
+    }                                                                                                                            \
+    ControllerName& ControllerName::require(const String& name)                                                                  \
+    {                                                                                                                            \
+        ControllerBase::require(name);                                                                                           \
+        return *this;                                                                                                            \
+    }                                                                                                                            \
+    ControllerName& ControllerName::execute()                                                                                    \
+    {                                                                                                                            \
+        ControllerBase::execute();                                                                                               \
+        return *this;                                                                                                            \
     }
 
     IMPLEMENT_CONTROLLER(PostDestroyController, post_terminate_list);

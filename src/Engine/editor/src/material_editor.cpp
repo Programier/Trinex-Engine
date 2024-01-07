@@ -23,7 +23,7 @@ namespace Engine
     static bool is_material(Object* object)
     {
         const class Class* class_instance = object->class_instance();
-        if (class_instance->contains_class(MaterialInterface::static_class_instance()))
+        if (class_instance->is_a(MaterialInterface::static_class_instance()))
             return true;
 
         if (class_instance == MaterialObject::static_class_instance())

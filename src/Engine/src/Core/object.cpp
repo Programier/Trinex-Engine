@@ -137,7 +137,7 @@ namespace Engine
             return false;
 
         auto _class = class_instance();
-        return _class != nullptr && _class->contains_class(check_class);
+        return _class != nullptr && _class->is_a(check_class);
     }
 
 

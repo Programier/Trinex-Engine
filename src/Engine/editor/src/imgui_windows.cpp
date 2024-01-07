@@ -385,21 +385,7 @@ namespace Engine
             ImGui::Text("editor/Class: %s"_localized, object->class_instance()->name().c_str());
             ImGui::Separator();
 
-            for (Class* self = object->class_instance(); self; self = self->parent())
-            {
-                if (!self->properties().empty())
-                {
-                    if (ImGui::CollapsingHeader(self->name().c_str()))
-                    {
-                        ImGui::Indent(5.f);
-                        for (Property* prop : self->properties())
-                        {
-                            render_object_property(object, prop, true);
-                        }
-                        ImGui::Unindent(5.f);
-                    }
-                }
-            }
+            render_object_properties(object);
         }
         ImGui::End();
 

@@ -87,16 +87,10 @@ namespace Engine
             return _M_instance;
         }
 
-        operator InstanceClass*()
+        operator InstanceClass*() const
         {
             return _M_instance;
         }
-
-        operator const InstanceClass*() const
-        {
-            return _M_instance;
-        }
-
 
         InstanceClass* ptr() const
         {

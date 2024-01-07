@@ -34,9 +34,11 @@ namespace Engine
         declare_class(Material, MaterialInterface);
 
     public:
-        Pointer<Pipeline> pipeline;
+        Pipeline* pipeline;
 
         Material();
+        bool archive_process(Archive* archive) override;
+        ~Material();
     };
 
     class ENGINE_EXPORT MaterialInstance : public MaterialInterface

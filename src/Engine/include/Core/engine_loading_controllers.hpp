@@ -31,6 +31,10 @@ namespace Engine
         ControllerName();                                                                                                        \
         ControllerName(const ControllerCallback& callback, const String& name = "",                                              \
                        const std::initializer_list<String>& require_initializers = {});                                          \
+        ControllerName& push(const ControllerCallback& callback, const String& name = "",                                        \
+                             const std::initializer_list<String>& require_initializers = {});                                    \
+        ControllerName& require(const String& name);                                                                             \
+        ControllerName& execute();                                                                                               \
     }
 
     IMPLEMENT_CONTROLLER(PostDestroyController);

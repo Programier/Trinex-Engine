@@ -17,7 +17,7 @@ namespace Engine
     using MessageList = List<String>;
 
 
-    const char* operator ""_localized(const char* line, size_t len);
+    const char* operator""_localized(const char* line, size_t len);
 
     enum class ObjectRenameStatus
     {
@@ -296,13 +296,13 @@ private:
         }                                                                                                                        \
         return _M_static_class;                                                                                                  \
     }                                                                                                                            \
-    static Engine::InitializeController initialize_##class_name([]() { class_name::static_class_instance(); },                   \
-                                                                "Initialize " namespace_name #class_name);
+    static Engine::InitializeController initialize_##class_name = Engine::InitializeController(                                  \
+            []() { class_name::static_class_instance(); }, "Initialize " namespace_name #class_name)
 
 
 #define implement_class_default_init(class_name, namespace_name)                                                                 \
-    implement_class(class_name, namespace_name, 0);                                                                              \
-    implement_default_initialize_class(class_name)
+    implement_default_initialize_class(class_name);                                                                              \
+    implement_class(class_name, namespace_name, 0)
 
 #define implement_engine_class(class_name, flags) implement_class(class_name, "Engine", flags)
 #define implement_engine_class_default_init(class_name) implement_class_default_init(class_name, "Engine")

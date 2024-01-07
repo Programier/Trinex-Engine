@@ -218,7 +218,7 @@ namespace Engine
 
     System* System::new_system(class Class* class_instance)
     {
-        if (class_instance && class_instance->contains_class(System::static_class_instance()))
+        if (class_instance && class_instance->is_a(System::static_class_instance()))
         {
             System* system = class_instance->create_object()->instance_cast<System>();
             if (system && system->is_fully_created == false)

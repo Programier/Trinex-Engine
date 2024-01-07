@@ -41,10 +41,8 @@ namespace Engine
         static EngineInstance* _M_instance;
 
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
-        class Renderer* _M_renderer = nullptr;
         RHI* _M_rhi                 = nullptr;
         Flags _M_flags;
-        EngineAPI _M_api;
         Index _M_frame_index = 0;
 
         Arguments _M_args;
@@ -52,7 +50,7 @@ namespace Engine
 
         EngineInstance& trigger_terminate_functions();
         EngineInstance();
-        EngineInstance& init_api();
+        bool init_api();
 
         ~EngineInstance();
         int start(int argc, char** argv);
@@ -67,11 +65,9 @@ namespace Engine
         ENGINE_EXPORT static const String& project_name(const String& name);
         ENGINE_EXPORT static int initialize(int argc, char** argv);
         SystemName system_type() const;
-        EngineAPI api() const;
         const String& api_name() const;
         bool is_inited() const;
         RHI* rhi() const;
-        class Renderer* renderer() const;
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
         EngineInstance& request_exit();
