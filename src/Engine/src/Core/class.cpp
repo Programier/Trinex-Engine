@@ -8,28 +8,11 @@
 
 namespace Engine
 {
-    static FORCE_INLINE Map<String, Class*>& get_class_table()
-    {
-        static Map<String, Class*> table;
-        return table;
-    }
-
     static FORCE_INLINE Vector<Class*>& get_asset_class_table()
     {
         static Vector<Class*> vector;
         return vector;
     }
-
-    static PostDestroyController destroy([]() {
-        for (auto& pair : get_class_table())
-        {
-            delete pair.second;
-            pair.second = nullptr;
-        }
-
-        get_class_table().clear();
-    });
-
 
     Object* Class::internal_cast(Class* required_class, Object* object)
     {
@@ -45,18 +28,15 @@ namespace Engine
         return nullptr;
     }
 
-    Class::Class(const String& class_name, Object* (*static_constructor)(), Class* parent, BitMask _flags)
-        : _M_name(class_name), _M_static_constructor(static_constructor), _M_parent(parent), _M_singletone_object(nullptr)
+    Class::Class(const Name& name, const Name& namespace_name, Object* (*constructor)(), Class* parent, BitMask _flags)
+        : Struct(name, namespace_name, parent)
     {
-        get_class_table()[class_name] = this;
-        _M_size                       = 0;
-        info_log("Class", "Created class instance '%s'", class_name.c_str());
-
-        _M_base_name          = Object::object_name_of(class_name);
-        _M_namespace          = Object::package_name_of(class_name);
-        flags.flags           = _flags;
-        _M_cast_to_this       = nullptr;
-        _M_base_name_splitted = Strings::make_sentence(_M_base_name);
+        _M_size = 0;
+        info_log("Class", "Created class instance '%s'", this->name().c_str());
+        flags.flags     = _flags;
+        _M_cast_to_this = nullptr;
+        _M_static_constructor = constructor;
+        _M_singletone_object = nullptr;
 
         if (is_asset())
         {
@@ -66,27 +46,7 @@ namespace Engine
 
     Class* Class::parent() const
     {
-        return _M_parent;
-    }
-
-    const String& Class::name() const
-    {
-        return _M_name;
-    }
-
-    const String& Class::base_name_splitted() const
-    {
-        return _M_base_name_splitted;
-    }
-
-    const String& Class::namespace_name() const
-    {
-        return _M_namespace;
-    }
-
-    const String& Class::base_name() const
-    {
-        return _M_base_name;
+        return reinterpret_cast<Class*>(Struct::parent());
     }
 
     Object* Class::create_object() const
@@ -104,32 +64,20 @@ namespace Engine
         return _M_static_constructor();
     }
 
-    bool Class::is_a(const Class* c) const
-    {
-        const Class* current = this;
-        while (current && current != c)
-        {
-            current = current->_M_parent;
-        }
-        return current != nullptr;
-    }
-
     size_t Class::sizeof_class() const
     {
         return _M_size;
     }
 
-
-    Class* Class::static_find_class(const String& name)
+    Class* Class::static_find(const String& name)
     {
-        try
+        Struct* self = Struct::static_find(name);
+        if (self && self->is_class())
         {
-            return class_table().at(name);
+            return reinterpret_cast<Class*>(self);
         }
-        catch (...)
-        {
-            return nullptr;
-        }
+
+        return nullptr;
     }
 
     bool Class::is_binded_to_script() const
@@ -152,21 +100,6 @@ namespace Engine
         return _M_singletone_object;
     }
 
-    Class& Class::add_property(class Property* prop)
-    {
-        if (!prop)
-            return *this;
-
-        _M_properties.push_back(prop);
-        _M_grouped_property[prop->group()].push_back(prop);
-        return *this;
-    }
-
-    const Map<String, Class*>& Class::class_table()
-    {
-        return get_class_table();
-    }
-
     Class& Class::set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>& callback)
     {
         _M_script_register_callback = callback;
@@ -184,7 +117,7 @@ namespace Engine
             while (current)
             {
                 stack.push_back(current);
-                current = current->_M_parent;
+                current = current->parent();
             }
 
             while (!stack.empty())
@@ -211,20 +144,15 @@ namespace Engine
                 return true;
             }
 
-            self = self->_M_parent;
+            self = self->parent();
         }
 
         return false;
     }
 
-    const Vector<Property*>& Class::properties() const
+    bool Class::is_class() const
     {
-        return _M_properties;
-    }
-
-    const Class::GroupedPropertiesMap& Class::grouped_properties() const
-    {
-        return _M_grouped_property;
+        return true;
     }
 
     const Vector<Class*>& Class::asset_classes()
@@ -233,14 +161,7 @@ namespace Engine
     }
 
     Class::~Class()
-    {
-        for (Property* prop : _M_properties)
-        {
-            delete prop;
-        }
-
-        _M_properties.clear();
-    }
+    {}
 
     static void on_init()
     {
@@ -254,8 +175,8 @@ namespace Engine
                 .method("const string& namespace_name() const", &Class::namespace_name)
                 .method("const string& base_name() const", &Class::base_name)
                 .method("Object@ create_object() const", &Class::create_object)
-                .static_function("Class@ static_find_class(const string& in)", Class::static_find_class)
-                .method("bool is_a(const Class@) const", method_of<bool, Class, const Class*>(&Class::is_a))
+                .static_function("Class@ static_find(const string& in)", Class::static_find)
+                .method("bool is_a(const Class@) const", method_of<bool, Class, const Struct*>(&Class::is_a))
                 .method("uint64 sizeof_class() const", &Class::sizeof_class)
                 .method("bool is_binded_to_script() const", &Class::is_binded_to_script)
                 .method("Object@ singletone_instance() const", &Class::singletone_instance);

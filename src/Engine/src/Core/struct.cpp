@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    using StructMap = Map<Name, Struct*, Name::HashFunction>;
+    using StructMap = Map<String, Struct*>;
 
     static StructMap& struct_map()
     {
@@ -25,33 +25,43 @@ namespace Engine
     static PostDestroyController destroy_struct_map(on_destroy);
 
 
-    Struct::Struct(const Name& name, const String& namespace_name, const Name& parent)
+    Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent)
+        : _M_namespace_name(namespace_name), _M_base_name(name), _M_parent(_parent)
     {
-        _M_full_name = namespace_name.empty() ? name : Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str()));
-        _M_base_name = name;
+        _M_full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
+        _M_base_name_splitted = Strings::make_sentence(_M_base_name.to_string());
+
+        if (_M_parent.is_valid())
+        {
+            parent();
+        }
+
+        struct_map()[_M_full_name] = this;
     }
 
-    ENGINE_EXPORT Struct* Struct::create(const Name& name, const String& namespace_name, const Name& parent)
+    Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent) : Struct(name, namespace_name)
     {
-        Name full_name = namespace_name.empty() ? name : Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str()));
-        Struct* self   = find(full_name);
+        _M_parent_struct = parent;
+        if (_M_parent_struct)
+        {
+            _M_parent = _M_parent_struct->name();
+        }
+    }
+
+    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& namespace_name, const Name& parent)
+    {
+        Name full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
+        Struct* self   = static_find(full_name);
 
         if (!self)
         {
-            self                    = new Struct(name, namespace_name, parent);
-            self->_M_base_name      = name;
-            self->_M_namespace_name = namespace_name;
-            self->_M_full_name      = full_name;
-            self->_M_parent         = parent;
-            self->_M_base_name_splitted = Strings::make_sentence(self->_M_base_name.to_string());
-
-            struct_map()[full_name] = self;
+            self = new Struct(name, namespace_name, parent);
         }
 
         return self;
     }
 
-    ENGINE_EXPORT Struct* Struct::find(const Name& name)
+    ENGINE_EXPORT Struct* Struct::static_find(const String& name)
     {
         auto& map = struct_map();
         auto it   = map.find(name);
@@ -89,9 +99,24 @@ namespace Engine
     {
         if (_M_parent_struct == nullptr)
         {
-            _M_parent_struct = find(_M_parent);
+            _M_parent_struct = static_find(_M_parent);
         }
         return _M_parent_struct;
+    }
+
+    bool Struct::is_a(const Struct* other) const
+    {
+        const Struct* current = this;
+        while (current && current != other)
+        {
+            current = current->parent();
+        }
+        return current != nullptr;
+    }
+
+    bool Struct::is_class() const
+    {
+        return false;
     }
 
     Struct& Struct::add_property(Property* prop)

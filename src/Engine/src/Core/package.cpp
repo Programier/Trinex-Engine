@@ -294,7 +294,7 @@ namespace Engine
 
         for (auto& entry : _M_header)
         {
-            Class* object_class = Class::static_find_class(entry.class_name);
+            Class* object_class = Class::static_find(entry.class_name);
             if (object_class)
             {
                 entry.object = object_class->create_object();

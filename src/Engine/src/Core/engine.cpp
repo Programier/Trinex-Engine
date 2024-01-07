@@ -118,7 +118,7 @@ namespace Engine
 
     static EntryPoint* try_load_entry_point(const String& name, Class* base_class)
     {
-        Class* class_instance = Class::static_find_class(name);
+        Class* class_instance = Class::static_find(name);
         if (!class_instance)
         {
             error_log("Engine", "Failed to load entry point '%s'", name.c_str());
@@ -144,7 +144,7 @@ namespace Engine
 
     static EntryPoint* find_entry_point(const Arguments& args)
     {
-        Class* entry_point_base_class = Class::static_find_class("Engine::EntryPoint");
+        Class* entry_point_base_class = Class::static_find("Engine::EntryPoint");
         EntryPoint* entry_point       = nullptr;
 
         {

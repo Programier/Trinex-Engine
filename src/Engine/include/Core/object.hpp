@@ -279,15 +279,9 @@ private:
     {                                                                                                                            \
         if (!_M_static_class)                                                                                                    \
         {                                                                                                                        \
-            constexpr bool has_base_class      = !std::is_same_v<class_name, Engine::Object>;                                    \
-            Engine::String class_instance_name = namespace_name;                                                                 \
-            if (!class_instance_name.empty())                                                                                    \
-            {                                                                                                                    \
-                class_instance_name += "::";                                                                                     \
-            }                                                                                                                    \
-            class_instance_name += #class_name;                                                                                  \
-            _M_static_class = new Engine::Class(class_instance_name, &This::static_constructor,                                  \
-                                                has_base_class ? Super::static_class_instance() : nullptr, flags);               \
+            constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
+            _M_static_class               = new Engine::Class(#class_name, namespace_name, &This::static_constructor,            \
+                                                has_base_class ? Super::static_class_instance() : nullptr, flags); \
             _M_static_class->process_type<class_name>();                                                                         \
             Engine::PostInitializeController controller([]() {                                                                   \
                 class_name::static_initialize_class();                                                                           \

@@ -114,7 +114,7 @@ namespace Engine
         _M_windows[window->window_id()] = window;
 
         // Initialize client
-        Class* client_class = Class::static_find_class(config.client);
+        Class* client_class = Class::static_find(config.client);
         if (client_class)
         {
             Object* object         = client_class->create_object();

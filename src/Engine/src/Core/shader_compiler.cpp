@@ -8,8 +8,7 @@ namespace Engine
 {
     ShaderCompiler* ShaderCompiler::_M_compiler;
 
-    bool ShaderCompiler::compile(const String& code, ShaderStage stage, Buffer& out_binary, bool debug,
-                                 ErrorList* errors)
+    bool ShaderCompiler::compile(const String& code, ShaderStage stage, Buffer& out_binary, bool debug, ErrorList* errors)
     {
         error_log("ShaderCompiler", "Method '%s' is not implemented!", __PRETTY_FUNCTION__);
         return false;
@@ -39,15 +38,14 @@ namespace Engine
                 return nullptr;
             }
 
-            Class* compiler_class = Class::static_find_class(engine_config.shader_compiler);
+            Class* compiler_class = Class::static_find(engine_config.shader_compiler);
             if (compiler_class == nullptr)
             {
-                error_log("ShaderCompiler", "Failed to find shader compiler class '%'",
-                          engine_config.shader_compiler.c_str());
+                error_log("ShaderCompiler", "Failed to find shader compiler class '%'", engine_config.shader_compiler.c_str());
                 return nullptr;
             }
 
-            if (!compiler_class->is_a(Class::static_find_class("Engine::ShaderCompiler")))
+            if (!compiler_class->is_a(Class::static_find("Engine::ShaderCompiler")))
             {
                 error_log("ShaderCompiler", "Class '%s' does not inherit from class Engine::ShaderCompiler!",
                           compiler_class->name().c_str());

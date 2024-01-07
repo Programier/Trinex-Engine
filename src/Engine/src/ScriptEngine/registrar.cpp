@@ -193,11 +193,11 @@ namespace Engine
         {
             if (parent->is_binded_to_script())
             {
-                String op = Strings::format("{}@ opCast()", _class->name());
+                String op = Strings::format("{}@ opCast()", _class->name().c_str());
                 engine->RegisterObjectMethod(parent->name().c_str(), op.c_str(), asFUNCTION(parent->cast_to_this()),
                                              asCALL_CDECL_OBJLAST);
 
-                op = Strings::format("{}@ opImplCast()", parent->name());
+                op = Strings::format("{}@ opImplCast()", parent->name().c_str());
                 engine->RegisterObjectMethod(_class->name().c_str(), op.c_str(), asFUNCTION(_class->cast_to_this()),
                                              asCALL_CDECL_OBJLAST);
             }

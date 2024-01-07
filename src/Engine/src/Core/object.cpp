@@ -26,7 +26,7 @@ namespace Engine
 
     static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
     {
-        String factory = Strings::format("{}@ f()", self->name());
+        String factory = Strings::format("{}@ f()", self->name().c_str());
 
         InitializeController().require("Bind Engine::Name").require("Bind Engine::Class");
 
@@ -522,7 +522,7 @@ namespace Engine
 
     String Object::as_string() const
     {
-        return Strings::format("{}: {}", class_instance()->name(), _M_name.is_valid() ? _M_name.to_string().c_str() : "NoName");
+        return Strings::format("{}: {}", class_instance()->name().c_str(), _M_name.is_valid() ? _M_name.to_string().c_str() : "NoName");
     }
 
     Index Object::instance_index() const

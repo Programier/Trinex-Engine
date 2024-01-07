@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT Struct final
+    class ENGINE_EXPORT Struct
     {
     public:
         using GroupedPropertiesMap = TreeMap<Name, Vector<class Property*>, Name::Less>;
@@ -23,11 +23,12 @@ namespace Engine
         Vector<class Property*> _M_properties;
         GroupedPropertiesMap _M_grouped_properties;
 
-        Struct(const Name& name, const String& namespace_name, const Name& parent = Name::none);
+        Struct(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
+        Struct(const Name& name, const Name& namespace_name, Struct* parent);
 
     public:
-        static ENGINE_EXPORT Struct* create(const Name& name, const String& namespace_name, const Name& parent = Name::none);
-        static ENGINE_EXPORT Struct* find(const Name& name);
+        static ENGINE_EXPORT Struct* create(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
+        static ENGINE_EXPORT Struct* static_find(const String& name);
 
         const String& base_name_splitted() const;
         const Name& name() const;
@@ -35,6 +36,9 @@ namespace Engine
         const Name& base_name() const;
         const Name& parent_name() const;
         Struct* parent() const;
+
+        bool is_a(const Struct* other) const;
+        virtual bool is_class() const;
 
         Struct& add_property(Property* prop);
         const Vector<class Property*>& properties() const;
@@ -47,6 +51,6 @@ namespace Engine
             return *this;
         }
 
-        ~Struct();
+        virtual ~Struct();
     };
 }// namespace Engine
