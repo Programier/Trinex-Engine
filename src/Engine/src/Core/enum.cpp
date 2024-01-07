@@ -3,21 +3,35 @@
 
 namespace Engine
 {
-    static TreeMap<HashIndex, Enum>& enums_map()
+    using EnumMap = Map<Name, Enum*, Name::HashFunction>;
+    static EnumMap& enums_map()
     {
-        static TreeMap<HashIndex, Enum> enums;
+        static EnumMap enums;
         return enums;
     }
+
+    static void on_destroy()
+    {
+        for (auto& [name, enum_entry] : enums_map())
+        {
+            delete enum_entry;
+        }
+
+        enums_map().clear();
+    }
+
+    static PostDestroyController destroy_struct_map(on_destroy);
 
     ENGINE_EXPORT Enum* Enum::create(const String& namespace_name, const String& name, const Vector<Enum::Entry>& entries)
     {
         Name full_name = Name(namespace_name.empty() ? name : namespace_name + "::" + name);
-
-        Enum* _enum = find(full_name);
+        Enum* _enum    = find(full_name);
 
         if (!_enum)
         {
-            _enum               = &(enums_map()[full_name.hash()]);
+            _enum                  = new Enum();
+            enums_map()[full_name] = _enum;
+
             _enum->_M_base_name = name;
             _enum->_M_full_name = full_name;
 
@@ -27,7 +41,7 @@ namespace Engine
 
             Index index = 0;
 
-            for(auto& entry : _enum->_M_entries)
+            for (auto& entry : _enum->_M_entries)
             {
                 entry.index = index;
                 ++index;
@@ -82,11 +96,11 @@ namespace Engine
     ENGINE_EXPORT Enum* Enum::find(const Name& name)
     {
         auto& map = enums_map();
-        auto it   = map.find(name.hash());
+        auto it   = map.find(name);
 
         if (it == map.end())
             return nullptr;
 
-        return &it->second;
+        return it->second;
     }
 }// namespace Engine
