@@ -201,13 +201,13 @@ namespace Engine::JSON
         {
             value = json_value.get<bool>();
         }
-        else if (json_value.is_number())
-        {
-            value = json_value.get<JsonInt>();
-        }
         else if (json_value.is_number_float())
         {
             value = json_value.get<JsonFloat>();
+        }
+        else if (json_value.is_number())
+        {
+            value = json_value.get<JsonInt>();
         }
         else if (json_value.is_string())
         {
@@ -244,7 +244,7 @@ namespace Engine::JSON
     {
         try
         {
-            nlohmann::json object = nlohmann::json::parse(json);
+            nlohmann::json object = nlohmann::json::parse(json, nullptr, true, true);
             copy_object(*this, object, mix_objects);
         }
         catch (const std::exception& e)

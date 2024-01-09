@@ -63,7 +63,6 @@ namespace Engine
 
     class ImGuiPackageTree : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        bool _M_always_visible;
         class Package* _M_selected = nullptr;
         bool _M_open_package_popup = false;
 
@@ -74,7 +73,7 @@ namespace Engine
     public:
         CallBacks<void(Package*)> on_package_select;
 
-        ImGuiPackageTree(bool always_visible = true);
+        ImGuiPackageTree();
         bool render(class RenderViewport* viewport) override;
         Package* selected_package() const;
         static const char* name();
@@ -85,9 +84,9 @@ namespace Engine
     private:
         bool _M_show_context_menu = false;
         bool show_context_menu(void* userdata);
-        Object* _M_selected = nullptr;
 
     public:
+        Object* selected = nullptr;
         Package* package = nullptr;
         CallBacks<void(Object*)> on_object_selected;
         CallBacks<bool(Object*)> filters;

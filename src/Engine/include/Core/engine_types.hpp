@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Core/definitions.hpp>
-#include <Core/etl/helpers.hpp>
 #include <Core/etl/stl_wrapper.hpp>
 #include <cstddef>
 #include <glm/glm.hpp>
@@ -127,8 +126,7 @@ namespace Engine
     using int64_t  = std::int64_t;
     using uint64_t = std::uint64_t;
 
-    using SampleMask         = size_t;
-    using ColorComponentMask = size_t;
+    using SampleMask = size_t;
 
     using ScriptObjectAddress = void*;
     using Buffer              = Vector<byte>;
@@ -221,3 +219,5 @@ namespace glm
         return print_glm_object(stream, value);
     }
 }// namespace glm
+
+#include <Core/etl/helpers.hpp>

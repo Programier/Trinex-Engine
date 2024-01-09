@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
 #include <imgui.h>
@@ -75,6 +76,8 @@ namespace Engine::ImGuiRenderer
     {
     public:
         size_t frame_number = 0;
+        bool closable       = true;
+        CallBacks<void()> on_close;
 
         ImGuiAdditionalWindow();
         delete_copy_constructors(ImGuiAdditionalWindow);
@@ -147,6 +150,7 @@ namespace Engine::ImGuiRenderer
         ImGuiTexture* create_texture(Texture* texture, Sampler* sampler);
         Window& release_texture(ImGuiTexture*);
         static Window* current();
+        static void make_current(Window*);
 
         friend class Engine::Window;
     };

@@ -110,4 +110,11 @@ namespace Engine
 
     implement_enum(VertexAttributeInputRate, Engine, {"Vertex", VertexAttributeInputRate::Vertex},
                    {"Instance", VertexAttributeInputRate::Instance});
+
+    implement_enum(ColorComponentMask, Engine, {"RGBA", ColorComponentMask::RGBA}, {"RGB", ColorComponentMask::RGB},
+                   {"RGA", ColorComponentMask::RGA}, {"RG", ColorComponentMask::RG}, {"RBA", ColorComponentMask::RBA},
+                   {"RB", ColorComponentMask::RB}, {"RA", ColorComponentMask::RA}, {"R", ColorComponentMask::R},
+                   {"GBA", ColorComponentMask::GBA}, {"GB", ColorComponentMask::GB}, {"GA", ColorComponentMask::GA},
+                   {"G", ColorComponentMask::G}, {"BA", ColorComponentMask::BA}, {"B", ColorComponentMask::B},
+                   {"A", ColorComponentMask::A});
 }// namespace Engine

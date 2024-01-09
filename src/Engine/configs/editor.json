@@ -2,5 +2,8 @@
     "Window": {
         "title": "Trinex Engine Editor",
         "client": "Engine::EditorViewportClient"
+    },
+    "Editor": {
+        "font size": 18.0
     }
 }

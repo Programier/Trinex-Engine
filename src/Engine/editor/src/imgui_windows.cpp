@@ -70,7 +70,7 @@ namespace Engine
         ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
-        ImGui::Begin(name(), &open, ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
 
         ImGuiRenderer::InputText("editor/Package Name"_localized, new_package_name);
@@ -124,7 +124,7 @@ namespace Engine
         ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
-        ImGui::Begin(name(), &open, ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
 
         ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_by_index, nullptr,
@@ -183,7 +183,7 @@ namespace Engine
         ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
-        ImGui::Begin(name(), &open, ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Object: %s", _M_object->full_name().c_str());
 
         ImGuiRenderer::InputText("editor/New Name"_localized, new_object_name);
@@ -224,7 +224,7 @@ namespace Engine
     }
 
 
-    ImGuiPackageTree::ImGuiPackageTree(bool always_visible) : _M_always_visible(always_visible)
+    ImGuiPackageTree::ImGuiPackageTree()
     {}
 
 
@@ -314,7 +314,7 @@ namespace Engine
     {
         bool open = true;
 
-        if (ImGui::Begin(name(), _M_always_visible ? nullptr : &open))
+        if (ImGui::Begin(name(), closable ? &open : nullptr))
         {
             render_internal(Object::root_package());
             render_popup(viewport);
@@ -378,7 +378,8 @@ namespace Engine
 
     bool ImGuiObjectProperties::render(RenderViewport* viewport)
     {
-        ImGui::Begin(name());
+        bool open = true;
+        ImGui::Begin(name(), closable ? &open : nullptr);
         if (object)
         {
             ImGui::Text("editor/Object: %s"_localized, object->name().to_string().c_str());
@@ -389,7 +390,7 @@ namespace Engine
         }
         ImGui::End();
 
-        return true;
+        return open;
     }
 
     const char* ImGuiObjectProperties::name()
@@ -407,11 +408,12 @@ namespace Engine
 
     bool ImGuiSceneTree::render(RenderViewport* viewport)
     {
-        ImGui::Begin(name());
+        bool open = true;
+        ImGui::Begin(name(), closable ? &open : nullptr);
         render_scene_tree(root_component);
         ImGui::End();
 
-        return true;
+        return open;
     }
 
     const char* ImGuiSceneTree::name()

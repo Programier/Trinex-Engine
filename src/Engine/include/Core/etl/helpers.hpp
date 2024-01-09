@@ -1,8 +1,8 @@
 #pragma once
 
+
 namespace Engine
 {
-
     template<typename T>
     struct SignatureParser {
         using Type = T;
@@ -38,8 +38,14 @@ namespace Engine
     }
 
     template<typename OutType, typename... Args>
-    OutType mask_of(Args&&... args)
+    constexpr OutType mask_of(Args&&... args)
     {
         return (static_cast<OutType>(args) | ...);
+    }
+
+    template<typename EnumType>
+    FORCE_INLINE EnumerateType enum_value_of(EnumType value)
+    {
+        return static_cast<EnumerateType>(value);
     }
 }// namespace Engine

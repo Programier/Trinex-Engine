@@ -19,26 +19,26 @@ namespace Engine
             return false;
         }
 
-        if (_M_selected && ImGui::Button("editor/Reload"_localized))
+        if (selected && ImGui::Button("editor/Reload"_localized))
         {
-            _M_selected->reload();
+            selected->reload();
             return false;
         }
 
-        bool is_editable_object = _M_selected && !_M_selected->is_internal();
+        bool is_editable_object = selected && !selected->is_internal();
 
         if (is_editable_object && ImGui::Button("editor/Rename"_localized))
         {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(_M_selected);
+            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(selected);
             return false;
         }
 
         if (is_editable_object && ImGui::Button("editor/Delete"_localized))
         {
-            Package* package = _M_selected->package();
-            package->remove_object(_M_selected);
-            delete _M_selected;
-            _M_selected = nullptr;
+            Package* package = selected->package();
+            package->remove_object(selected);
+            delete selected;
+            selected = nullptr;
             on_object_selected(nullptr);
             return false;
         }
@@ -49,12 +49,14 @@ namespace Engine
     {
         static const ImVec2 item_size = {100, 100};
 
-        ImGui::Begin(name());
+        bool open = true;
+
+        ImGui::Begin(name(), closable ? &open : nullptr);
         if (package == nullptr)
         {
             ImGui::Text("%s!", "editor/No package selected"_localized);
             ImGui::End();
-            return true;
+            return open;
         }
 
         if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
@@ -117,9 +119,9 @@ namespace Engine
             {
                 ImGui::PushID(name.to_string().c_str());
 
-                bool selected = _M_selected == object;
+                bool is_selected = selected == object;
 
-                if (selected)
+                if (is_selected)
                 {
                     static ImVec4 color1 = ImVec4(79.f / 255.f, 109.f / 255.f, 231.f / 255.f, 1.0),
                                   color2 = ImVec4(114.f / 255.f, 138.f / 255.f, 233.f / 255.f, 1.0);
@@ -132,15 +134,14 @@ namespace Engine
 
                 if (ImGui::ImageButton(imgui_texture->handle(), item_size))
                 {
-                    _M_selected = object;
+                    selected = object;
                     on_object_selected(object);
                 }
 
-                if (selected)
+                if (is_selected)
                 {
                     ImGui::PopStyleColor(2);
                 }
-
 
                 ImVec2 current_pos = ImGui::GetCursorPos();
 
@@ -173,9 +174,9 @@ namespace Engine
             }
             else
             {
-                if (ImGui::Selectable(name.c_str(), _M_selected == object, 0, item_size))
+                if (ImGui::Selectable(name.c_str(), selected == object, 0, item_size))
                 {
-                    _M_selected = object;
+                    selected = object;
                     on_object_selected(object);
                 }
             }
@@ -190,7 +191,7 @@ namespace Engine
 
         ImGui::End();
 
-        return true;
+        return open;
     }
 
     const char* ImGuiContentBrowser::name()

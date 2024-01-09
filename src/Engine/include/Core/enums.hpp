@@ -173,12 +173,6 @@ namespace Engine
 
     using DepthFunc = CompareFunc;
 
-    union BlendConstants
-    {
-        Array<float, 4> array = {0.0f, 0.0f, 0.0f, 0.0f};
-        Vector4D vector;
-    };
-
     enum class PrimitiveTopology : EnumerateType
     {
         TriangleList               = 0,
@@ -281,5 +275,24 @@ namespace Engine
     {
         Vertex   = 0,
         Instance = 1
+    };
+
+    enum class ColorComponentMask : EnumerateType
+    {
+        RGBA = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B, ColorComponent::A),
+        RGB  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::B),
+        RGA  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G, ColorComponent::A),
+        RG   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::G),
+        RBA  = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B, ColorComponent::A),
+        RB   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::B),
+        RA   = mask_of<EnumerateType>(ColorComponent::R, ColorComponent::A),
+        R    = mask_of<EnumerateType>(ColorComponent::R),
+        GBA  = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B, ColorComponent::A),
+        GB   = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::B),
+        GA   = mask_of<EnumerateType>(ColorComponent::G, ColorComponent::A),
+        G    = mask_of<EnumerateType>(ColorComponent::G),
+        BA   = mask_of<EnumerateType>(ColorComponent::B, ColorComponent::A),
+        B    = mask_of<EnumerateType>(ColorComponent::B),
+        A    = mask_of<EnumerateType>(ColorComponent::A)
     };
 }// namespace Engine

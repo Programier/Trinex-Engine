@@ -12,10 +12,10 @@ namespace Engine
 
     private:
         ScriptObject _M_script_object;
-        ImGuiPackageTree _M_package_tree;
-        ImGuiContentBrowser _M_content_browser;
-        ImGuiObjectProperties _M_properties;
-        ImGuiSceneTree _M_scene_tree;
+        ImGuiPackageTree* _M_package_tree;
+        ImGuiContentBrowser* _M_content_browser;
+        ImGuiObjectProperties* _M_properties;
+        ImGuiSceneTree* _M_scene_tree;
 
         class Sampler* _M_sampler = nullptr;
 
@@ -23,6 +23,16 @@ namespace Engine
 
     public:
         EditorViewportClient();
+
+        void on_package_tree_close();
+        void on_content_browser_close();
+        void on_properties_window_close();
+        void on_scene_tree_close();
+
+        EditorViewportClient& create_package_tree();
+        EditorViewportClient& create_content_browser();
+        EditorViewportClient& create_properties_window();
+        EditorViewportClient& create_scene_tree();
 
         ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override;
         ViewportClient& render(class RenderViewport* viewport) override;

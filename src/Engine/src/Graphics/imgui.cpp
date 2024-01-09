@@ -170,6 +170,7 @@ namespace Engine::ImGuiRenderer
             }
             else
             {
+                node->window->on_close();
                 node = destroy(node);
             }
         }
@@ -273,6 +274,11 @@ namespace Engine::ImGuiRenderer
         return _M_draw_data.draw_data();
     }
 
+    void Window::make_current(Window* window)
+    {
+        _M_current_window = window;
+    }
+
     Window& Window::new_frame()
     {
         ImGui::SetCurrentContext(_M_context);
@@ -281,8 +287,7 @@ namespace Engine::ImGuiRenderer
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_new_frame(_M_context);
         ImGui::NewFrame();
-
-        _M_current_window = this;
+        make_current(this);
         return *this;
     }
 
@@ -291,7 +296,7 @@ namespace Engine::ImGuiRenderer
         ImGui::SetCurrentContext(_M_context);
         window_list.render(_M_window->render_viewport());
         ImGui::Render();
-        _M_current_window = nullptr;
+
         return *this;
     }
 

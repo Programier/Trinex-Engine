@@ -59,8 +59,7 @@ namespace Engine
         if (!success)
         {
             glGetShaderInfoLog(shader_id, 1024, nullptr, log);
-            error_log("OpenGL Shader", "Failed to compile %s shader '%s'\n\n%s\n", shader_type_name(type), name.c_str(),
-                      log);
+            error_log("OpenGL Shader", "Failed to compile %s shader '%s'\n\n%s\n", shader_type_name(type), name.c_str(), log);
             cleanup();
             return 0;
         }
@@ -170,18 +169,16 @@ namespace Engine
 
         if (pipeline->vertex_shader && pipeline->vertex_shader->rhi_object<OpenGL_Shader>())
         {
-            glUseProgramStages(_M_pipeline, GL_VERTEX_SHADER_BIT,
-                               pipeline->vertex_shader->rhi_object<OpenGL_Shader>()->_M_id);
+            glUseProgramStages(_M_pipeline, GL_VERTEX_SHADER_BIT, pipeline->vertex_shader->rhi_object<OpenGL_Shader>()->_M_id);
 
             _M_vertex_input.reserve(pipeline->vertex_shader->attributes.size());
 
             for (auto& attribute : pipeline->vertex_shader->attributes)
             {
                 VertexInput input;
-                input.count =
-                        static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).components();
-                input.size = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).size();
-                input.type = color_format_from_engine_format(attribute.format)._M_type;
+                input.count = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).components();
+                input.size  = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).size();
+                input.type  = color_format_from_engine_format(attribute.format)._M_type;
 
                 auto metadata       = ColorFormatInfo::info_of(attribute.format).metadata();
                 bool need_normalize = metadata == ColorFormatMetaData::Snorm || metadata == ColorFormatMetaData::Unorm;
@@ -208,8 +205,7 @@ namespace Engine
 #if USING_OPENGL_CORE
         new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable), GL_PRIMITIVE_RESTART);
 #else
-        new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable),
-                    GL_PRIMITIVE_RESTART_FIXED_INDEX);
+        new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable), GL_PRIMITIVE_RESTART_FIXED_INDEX);
 #endif
 
 
@@ -247,7 +243,7 @@ namespace Engine
         new_command(glLineWidth, pipeline->rasterizer.line_width);
 
 #if USING_OPENGL_CORE
-        new_command(glPolygonMode, GL_FRONT_AND_BACK, polygon_mode(pipeline->rasterizer.poligon_mode));
+        new_command(glPolygonMode, GL_FRONT_AND_BACK, polygon_mode(pipeline->rasterizer.polygon_mode));
 #endif
 
 
@@ -277,10 +273,8 @@ namespace Engine
         }
 #endif
 
-        new_command(glBlendColor, pipeline->color_blending.blend_constants.vector.r,
-                    pipeline->color_blending.blend_constants.vector.g,
-                    pipeline->color_blending.blend_constants.vector.b,
-                    pipeline->color_blending.blend_constants.vector.a);
+        new_command(glBlendColor, pipeline->color_blending.blend_constants.r, pipeline->color_blending.blend_constants.g,
+                    pipeline->color_blending.blend_constants.b, pipeline->color_blending.blend_constants.a);
 
         for (GLuint i = 0, size = static_cast<GLuint>(pipeline->color_blending.blend_attachment.size()); i < size; i++)
         {
@@ -298,14 +292,11 @@ namespace Engine
                 new_command(glBlendFuncSeparatei, i, src_color_func, dst_color_func, src_alpha_func, dst_alpha_func);
                 new_command(glBlendEquationSeparatei, i, color_op, alpha_op);
 
-                GLboolean r_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::R)) ==
-                                   mask_of<ColorComponentMask>(ColorComponent::R);
-                GLboolean g_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::G)) ==
-                                   mask_of<ColorComponentMask>(ColorComponent::G);
-                GLboolean b_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::B)) ==
-                                   mask_of<ColorComponentMask>(ColorComponent::B);
-                GLboolean a_mask = (attachment.color_mask & mask_of<ColorComponentMask>(ColorComponent::A)) ==
-                                   mask_of<ColorComponentMask>(ColorComponent::A);
+                EnumerateType mask = enum_value_of(attachment.color_mask);
+                GLboolean r_mask   = (mask & enum_value_of(ColorComponent::R)) == enum_value_of(ColorComponent::R);
+                GLboolean g_mask   = (mask & enum_value_of(ColorComponent::G)) == enum_value_of(ColorComponent::G);
+                GLboolean b_mask   = (mask & enum_value_of(ColorComponent::B)) == enum_value_of(ColorComponent::B);
+                GLboolean a_mask   = (mask & enum_value_of(ColorComponent::A)) == enum_value_of(ColorComponent::A);
 
                 new_command(glColorMaski, i, r_mask, g_mask, b_mask, a_mask);
             }

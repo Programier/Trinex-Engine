@@ -12,19 +12,30 @@ namespace Engine
     public:
         enum class Type
         {
-            Byte,
-            Int,
-            Bool,
-            Float,
-            Vec2,
-            Vec3,
-            Vec4,
-            String,
-            Path,
-            Enum,
-            Object,
-            ObjectReference,
-            Struct,
+            Byte            = 1,
+            SignedByte      = 2,
+            Int8            = SignedByte,
+            UnsignedInt8    = Byte,
+            Int16           = 3,
+            UnsignedInt16   = 4,
+            Int             = 5,
+            UnsignedInt     = 6,
+            Int32           = 7,
+            UnsignedInt32   = 8,
+            Int64           = 9,
+            UnsignedInt64   = 10,
+            Bool            = 11,
+            Float           = 12,
+            Vec2            = 13,
+            Vec3            = 14,
+            Vec4            = 15,
+            String          = 16,
+            Path            = 17,
+            Enum            = 18,
+            Object          = 19,
+            ObjectReference = 20,
+            Struct          = 21,
+            Array           = 22,
         };
 
         enum Flag
@@ -83,6 +94,7 @@ namespace Engine
         }
     };
 
+    // If _M_address is nullptr, then _object is property address
     template<typename Instance, typename PropType, typename OutputType = PropType>
     class TypedProperty : public BaseTypedProperty<PropType>
     {
@@ -99,15 +111,28 @@ namespace Engine
 
         PropertyValue property_value(const void* _object) const override
         {
-            if constexpr (std::is_base_of_v<Object, Instance>)
+            if (_object == nullptr)
             {
-                const Object* object = reinterpret_cast<const Object*>(_object);
-                if (!this->is_valid_object(Instance::static_class_instance(), object))
-                    return {};
+                return {};
             }
 
-            const Instance* instance = reinterpret_cast<const Instance*>(_object);
-            return static_cast<OutputType>(instance->*_M_address);
+            if (_M_address)
+            {
+                if constexpr (std::is_base_of_v<Object, Instance>)
+                {
+                    const Object* object = reinterpret_cast<const Object*>(_object);
+                    if (!this->is_valid_object(Instance::static_class_instance(), object))
+                        return {};
+                }
+
+                const Instance* instance = reinterpret_cast<const Instance*>(_object);
+                return static_cast<OutputType>(instance->*_M_address);
+            }
+            else
+            {
+                const PropType* address = reinterpret_cast<const PropType*>(_object);
+                return static_cast<OutputType>(*address);
+            }
         }
 
         bool property_value(void* _object, const PropertyValue& property_value) override
@@ -118,17 +143,24 @@ namespace Engine
             }
             else
             {
-                if (this->flags()(Property::IsConst))
+                if (this->flags()(Property::IsConst) || !property_value.has_value() || !_object)
                     return false;
 
-                if constexpr (std::is_base_of_v<Object, Instance>)
+                if (_M_address)
                 {
-                    Object* object = reinterpret_cast<Object*>(_object);
-                    if (!this->is_valid_object(Instance::static_class_instance(), object))
-                        return false;
+                    if constexpr (std::is_base_of_v<Object, Instance>)
+                    {
+                        Object* object = reinterpret_cast<Object*>(_object);
+                        if (!this->is_valid_object(Instance::static_class_instance(), object))
+                            return false;
+                    }
+                    Instance* instance    = reinterpret_cast<Instance*>(_object);
+                    instance->*_M_address = (PropType) (std::any_cast<const OutputType&>(property_value));
                 }
-                Instance* instance    = reinterpret_cast<Instance*>(_object);
-                instance->*_M_address = (PropType) (std::any_cast<const OutputType&>(property_value));
+                else
+                {
+                    (*reinterpret_cast<PropType*>(_object)) = (PropType) (std::any_cast<const OutputType&>(property_value));
+                }
                 return true;
             }
         }
@@ -149,10 +181,25 @@ namespace Engine
         {                                                                                                                        \
             return Property::Type::enum_type;                                                                                    \
         }                                                                                                                        \
+    };                                                                                                                           \
+    template<typename PropType = native_type>                                                                                    \
+    class enum_type##ArrayElementProperty : public enum_type##Property<Property, PropType>                                       \
+    {                                                                                                                            \
+    public:                                                                                                                      \
+        enum_type##ArrayElementProperty(const Name& name = Name::none, const String& description = "",                           \
+                                        const Name& group = Name::none, BitMask flags = 0)                                       \
+            : enum_type##Property<Property, PropType>(name, description, nullptr, group, flags)                                  \
+        {}                                                                                                                       \
     }
 
     declare_property_type(byte, Byte);
+    declare_property_type(signed_byte, SignedByte);
+    declare_property_type(int16_t, Int16);
+    declare_property_type(uint16_t, UnsignedInt16);
     declare_property_type(int_t, Int);
+    declare_property_type(uint_t, UnsignedInt);
+    declare_property_type(int64_t, Int64);
+    declare_property_type(uint64_t, UnsignedInt64);
     declare_property_type(bool, Bool);
     declare_property_type(float, Float);
     declare_property_type(Vector2D, Vec2);
@@ -160,6 +207,19 @@ namespace Engine
     declare_property_type(Vector4D, Vec4);
     declare_property_type(String, String);
     declare_property_type(Path, Path);
+
+
+    template<typename Instance, typename PropType = byte>
+    using UnsignedInt8Property = ByteProperty<Instance, PropType>;
+
+    template<typename Instance, typename PropType = int_t>
+    using Int8Property = SignedByteProperty<Instance, PropType>;
+
+    template<typename Instance, typename PropType = byte>
+    using UnsignedInt32Property = UnsignedIntProperty<Instance, PropType>;
+
+    template<typename Instance, typename PropType = uint_t>
+    using Int32Property = IntProperty<Instance, PropType>;
 
 #undef declare_property_type
 
@@ -190,6 +250,16 @@ namespace Engine
         {
             return _M_enum;
         }
+    };
+
+    template<typename PropType>
+    class EnumArrayElementPropperty : public EnumProperty<Property, PropType>
+    {
+    public:
+        EnumArrayElementPropperty(class Enum* _enum, BitMask flags = 0, const Name& name = Name::none,
+                                  const String& description = "", const Name& group = Name::none)
+            : EnumProperty<Property, PropType>(name, description, nullptr, _enum, group, flags)
+        {}
     };
 
 
@@ -257,17 +327,27 @@ namespace Engine
 
         PropertyValue property_value(const void* _object) const override
         {
-            if constexpr (std::is_base_of_v<Object, Instance>)
-            {
-                const Object* object = reinterpret_cast<const Object*>(_object);
-                if (!this->is_valid_object(Instance::static_class_instance(), object))
-                    return {};
-            }
+            if (!_object)
+                return {};
 
-            const Instance* instance = reinterpret_cast<const Instance*>(_object);
-            const StructType& out    = (instance->*_M_address);
-            const void* out_address  = &out;
-            return const_cast<void*>(out_address);
+            if (_M_address)
+            {
+                if constexpr (std::is_base_of_v<Object, Instance>)
+                {
+                    const Object* object = reinterpret_cast<const Object*>(_object);
+                    if (!this->is_valid_object(Instance::static_class_instance(), object))
+                        return {};
+                }
+
+                const Instance* instance = reinterpret_cast<const Instance*>(_object);
+                const StructType& out    = (instance->*_M_address);
+                const void* out_address  = &out;
+                return const_cast<void*>(out_address);
+            }
+            else
+            {
+                return const_cast<void*>(_object);
+            }
         }
 
         bool property_value(void* _object, const PropertyValue& property_value) override
@@ -278,18 +358,26 @@ namespace Engine
             }
             else
             {
-                if (this->flags()(Property::IsConst))
+                if (this->flags()(Property::IsConst) || !property_value.has_value() || !_object)
                     return false;
 
-                if constexpr (std::is_base_of_v<Object, Instance>)
+                if (_M_address)
                 {
-                    Object* object = reinterpret_cast<Object*>(_object);
-                    if (!this->is_valid_object(Instance::static_class_instance(), object))
-                        return false;
+                    if constexpr (std::is_base_of_v<Object, Instance>)
+                    {
+                        Object* object = reinterpret_cast<Object*>(_object);
+                        if (!this->is_valid_object(Instance::static_class_instance(), object))
+                            return false;
+                    }
+                    Instance* instance      = reinterpret_cast<Instance*>(_object);
+                    StructType* new_struct  = reinterpret_cast<StructType*>(std::any_cast<void*>(property_value));
+                    (instance->*_M_address) = *new_struct;
                 }
-                Instance* instance      = reinterpret_cast<Instance*>(_object);
-                StructType* new_struct  = reinterpret_cast<StructType*>(std::any_cast<void*>(property_value));
-                (instance->*_M_address) = *new_struct;
+                else
+                {
+                    StructType* new_struct = reinterpret_cast<StructType*>(std::any_cast<void*>(property_value));
+                    (*reinterpret_cast<StructType*>(_object)) = *new_struct;
+                }
 
                 return true;
             }
@@ -298,6 +386,143 @@ namespace Engine
         void* property_class() const override
         {
             return _M_struct;
+        }
+    };
+
+    template<typename StructType>
+    class StructArrayElementProperty : public StructProperty<Property, StructType>
+    {
+    public:
+        StructArrayElementProperty(class Struct* struct_class, BitMask flags = 0, const Name& name = Name::none,
+                                   const String& description = "", const Name& group = Name::none)
+            : StructProperty<Property, StructType>(name, description, nullptr, struct_class, group, flags)
+        {}
+    };
+
+    class ENGINE_EXPORT ArrayPropertyInterface : public Property
+    {
+    public:
+        using Property::Property;
+
+        virtual void* at(void* object, Index index)    = 0;
+        virtual size_t size(void* object)              = 0;
+        virtual bool emplace_back(void* object)        = 0;
+        virtual bool pop_back(void* object)            = 0;
+        virtual bool insert(void* object, Index index) = 0;
+        virtual bool erase(void* object, Index index)  = 0;
+    };
+
+    template<typename Instance, typename VectorType>
+    class ArrayProperty : public ArrayPropertyInterface
+    {
+    private:
+        VectorType Instance::*_M_vector;
+        Property* _M_element_property;
+
+    public:
+        FORCE_INLINE ArrayProperty(const Name& name, const String& description, VectorType Instance::*vector,
+                                   Property* element_property, const Name& group = Name::none, BitMask flags = 0)
+            : ArrayPropertyInterface(name, description, group, flags)
+        {
+            _M_vector           = vector;
+            _M_element_property = element_property;
+        }
+
+        FORCE_INLINE size_t element_size() const override
+        {
+            return sizeof(VectorType);
+        }
+
+        FORCE_INLINE size_t min_alignment() const override
+        {
+            return alignof(VectorType);
+        }
+
+        FORCE_INLINE bool is_const() const override
+        {
+            return flags()(IsConst) || std::is_const_v<VectorType>;
+        }
+
+        void* property_class() const override
+        {
+            return _M_element_property;
+        }
+
+        FORCE_INLINE bool is_valid_object(const void* object) const
+        {
+            if constexpr (std::is_base_of_v<class Object, Instance>)
+            {
+                return Property::is_valid_object(Instance::static_class_instance(), reinterpret_cast<const Object*>(object));
+            }
+            return object != nullptr;
+        }
+
+        FORCE_INLINE PropertyValue property_value(const void* object) const override
+        {
+            return {};
+        }
+
+        FORCE_INLINE bool property_value(void* object, const PropertyValue& property_value) override
+        {
+            return false;
+        }
+
+        FORCE_INLINE Property::Type type() const override
+        {
+            return Property::Type::Array;
+        }
+
+        FORCE_INLINE void* at(void* object, Index index) override
+        {
+            if (!is_valid_object(object))
+                return nullptr;
+            return &(reinterpret_cast<Instance*>(object)->*_M_vector)[index];
+        }
+
+        size_t size(void* object) override
+        {
+            if (!is_valid_object(object))
+                return 0;
+            return (reinterpret_cast<Instance*>(object)->*_M_vector).size();
+        }
+
+        bool emplace_back(void* object) override
+        {
+            if (!is_valid_object(object))
+                return false;
+            (reinterpret_cast<Instance*>(object)->*_M_vector).emplace_back();
+            return true;
+        }
+
+        bool pop_back(void* object) override
+        {
+            if (!is_valid_object(object))
+                return false;
+            (reinterpret_cast<Instance*>(object)->*_M_vector).pop_back();
+            return true;
+        }
+
+        bool insert(void* object, Index index) override
+        {
+            if (!is_valid_object(object))
+                return false;
+            auto& vector = (reinterpret_cast<Instance*>(object)->*_M_vector);
+            vector.emplace(vector.begin() + index);
+            return true;
+        }
+
+        bool erase(void* object, Index index) override
+        {
+            if (!is_valid_object(object))
+                return false;
+            auto& vector = (reinterpret_cast<Instance*>(object)->*_M_vector);
+            vector.erase(vector.begin() + index);
+            return true;
+        }
+
+        ~ArrayProperty()
+        {
+            delete _M_element_property;
         }
     };
 }// namespace Engine

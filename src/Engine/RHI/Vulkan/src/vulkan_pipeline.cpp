@@ -148,7 +148,7 @@ namespace Engine
 
         out_state.rasterizer.setCullMode(_M_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
                 .setFrontFace(_M_front_faces[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
-                .setPolygonMode(_M_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.poligon_mode)])
+                .setPolygonMode(_M_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)])
                 .setDepthBiasSlopeFactor(in_state.rasterizer.depth_bias_slope_factor)
                 .setDepthBiasClamp(in_state.rasterizer.depth_bias_clamp)
                 .setDepthBiasConstantFactor(in_state.rasterizer.depth_bias_const_factor)
@@ -196,24 +196,26 @@ namespace Engine
             vk::ColorComponentFlags color_mask;
 
             {
-                ColorComponentMask R = mask_of<ColorComponentMask>(ColorComponent::R);
-                ColorComponentMask G = mask_of<ColorComponentMask>(ColorComponent::G);
-                ColorComponentMask B = mask_of<ColorComponentMask>(ColorComponent::B);
-                ColorComponentMask A = mask_of<ColorComponentMask>(ColorComponent::A);
+                EnumerateType R = enum_value_of(ColorComponent::R);
+                EnumerateType G = enum_value_of(ColorComponent::G);
+                EnumerateType B = enum_value_of(ColorComponent::B);
+                EnumerateType A = enum_value_of(ColorComponent::A);
 
-                if ((in_state.color_blending.blend_attachment[index].color_mask & R) == R)
+                auto mask = enum_value_of(in_state.color_blending.blend_attachment[index].color_mask);
+
+                if ((mask & R) == R)
                 {
                     color_mask |= vk::ColorComponentFlagBits::eR;
                 }
-                if ((in_state.color_blending.blend_attachment[index].color_mask & G) == G)
+                if ((mask & G) == G)
                 {
                     color_mask |= vk::ColorComponentFlagBits::eG;
                 }
-                if ((in_state.color_blending.blend_attachment[index].color_mask & B) == B)
+                if ((mask & B) == B)
                 {
                     color_mask |= vk::ColorComponentFlagBits::eB;
                 }
-                if ((in_state.color_blending.blend_attachment[index].color_mask & A) == A)
+                if ((mask & A) == A)
                 {
                     color_mask |= vk::ColorComponentFlagBits::eA;
                 }
@@ -223,7 +225,9 @@ namespace Engine
             ++index;
         }
 
-        out_state.color_blending.setBlendConstants(in_state.color_blending.blend_constants.array)
+        out_state.color_blending
+                .setBlendConstants({in_state.color_blending.blend_constants.x, in_state.color_blending.blend_constants.y,
+                                    in_state.color_blending.blend_constants.z, in_state.color_blending.blend_constants.w})
                 .setAttachments(out_state.color_blend_attachment)
                 .setLogicOpEnable(in_state.color_blending.logic_op_enable)
                 .setLogicOp(_M_logic_ops[static_cast<EnumerateType>(in_state.color_blending.logic_op)]);

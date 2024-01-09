@@ -29,6 +29,70 @@ namespace Engine
     EditorViewportClient::EditorViewportClient()
     {}
 
+    void EditorViewportClient::on_package_tree_close()
+    {
+        _M_package_tree = nullptr;
+    }
+
+    void EditorViewportClient::on_content_browser_close()
+    {
+        _M_content_browser = nullptr;
+    }
+
+    void EditorViewportClient::on_properties_window_close()
+    {
+        _M_properties = nullptr;
+    }
+
+    void EditorViewportClient::on_scene_tree_close()
+    {
+        _M_scene_tree = nullptr;
+    }
+
+    EditorViewportClient& EditorViewportClient::create_package_tree()
+    {
+        _M_package_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiPackageTree>();
+        _M_package_tree->on_package_select.push(std::bind(&EditorViewportClient::on_package_select, this, std::placeholders::_1));
+        _M_package_tree->on_close.push(std::bind(&EditorViewportClient::on_package_tree_close, this));
+        return *this;
+    }
+
+    EditorViewportClient& EditorViewportClient::create_content_browser()
+    {
+        _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ImGuiContentBrowser>();
+        _M_content_browser->on_close.push(std::bind(&EditorViewportClient::on_content_browser_close, this));
+        _M_content_browser->on_object_selected.push(
+                std::bind(&EditorViewportClient::on_object_select, this, std::placeholders::_1));
+
+        if (_M_package_tree)
+        {
+            _M_content_browser->package = _M_package_tree->selected_package();
+        }
+        return *this;
+    }
+
+    EditorViewportClient& EditorViewportClient::create_properties_window()
+    {
+        _M_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
+        _M_properties->on_close.push(std::bind(&EditorViewportClient::on_properties_window_close, this));
+
+        if (_M_content_browser)
+        {
+            on_object_select(_M_content_browser->selected);
+        }
+        return *this;
+    }
+
+    EditorViewportClient& EditorViewportClient::create_scene_tree()
+    {
+        _M_scene_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiSceneTree>();
+        _M_scene_tree->on_close.push(std::bind(&EditorViewportClient::on_scene_tree_close, this));
+
+        World* world                  = World::global();
+        _M_scene_tree->root_component = world->scene()->root_component();
+        return *this;
+    }
+
     ViewportClient& EditorViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
         Window* window = viewport->window();
@@ -46,26 +110,36 @@ namespace Engine
         _M_script_object.on_create(this);
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 
-        _M_package_tree.init(viewport);
-        _M_content_browser.init(viewport);
-        _M_properties.init(viewport);
-        _M_scene_tree.init(viewport);
 
-        _M_package_tree.on_package_select.push(std::bind(&EditorViewportClient::on_package_select, this, std::placeholders::_1));
-        _M_content_browser.on_object_selected.push(
-                std::bind(&EditorViewportClient::on_object_select, this, std::placeholders::_1));
+        ImGuiRenderer::Window* imgui_window = window->imgui_window();
+        ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
+        ImGuiRenderer::Window::make_current(imgui_window);
+
+        create_package_tree();
+        create_content_browser();
+        create_properties_window();
+        create_scene_tree();
+
         _M_sampler = Package::load_package("Editor")->find_object_checked<Sampler>("DefaultSampler");
+
+        ImGuiRenderer::Window::make_current(prev_window);
         return init_world();
     }
 
     void EditorViewportClient::on_package_select(Package* package)
     {
-        _M_content_browser.package = package;
+        if (_M_content_browser)
+        {
+            _M_content_browser->package = package;
+        }
     }
 
     void EditorViewportClient::on_object_select(Object* object)
     {
-        _M_properties.object = object;
+        if (_M_properties)
+        {
+            _M_properties->object = object;
+        }
     }
 
     size_t count = 0;
@@ -118,6 +192,27 @@ namespace Engine
                 {
                     open_material_editor();
                 }
+
+                if (ImGui::MenuItem("editor/Open Package Tree"_localized, nullptr, false, _M_package_tree == nullptr))
+                {
+                    create_package_tree();
+                }
+
+                if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, _M_content_browser == nullptr))
+                {
+                    create_content_browser();
+                }
+
+                if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, _M_properties == nullptr))
+                {
+                    create_properties_window();
+                }
+
+                if (ImGui::MenuItem("editor/Open Scene Tree"_localized, nullptr, false, _M_scene_tree == nullptr))
+                {
+                    create_scene_tree();
+                }
+
                 ImGui::EndMenu();
             }
 
@@ -133,7 +228,7 @@ namespace Engine
                     for (const String& lang : engine_config.languages)
                     {
                         const char* localized = Object::localize("editor/" + lang).c_str();
-                        if(ImGui::MenuItem(localized))
+                        if (ImGui::MenuItem(localized))
                         {
                             Object::language(lang);
                             break;
@@ -159,10 +254,10 @@ namespace Engine
             auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
             auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
 
-            ImGui::DockBuilderDockWindow(_M_package_tree.name(), dock_id_ld);
-            ImGui::DockBuilderDockWindow(_M_scene_tree.name(), dock_id_left);
-            ImGui::DockBuilderDockWindow(_M_content_browser.name(), dock_id_down);
-            ImGui::DockBuilderDockWindow(_M_properties.name(), dock_id_right);
+            ImGui::DockBuilderDockWindow(ImGuiPackageTree::name(), dock_id_ld);
+            ImGui::DockBuilderDockWindow(ImGuiSceneTree::name(), dock_id_left);
+            ImGui::DockBuilderDockWindow(ImGuiContentBrowser::name(), dock_id_down);
+            ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
             ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport Title").c_str(), dock_id);
 
             ImGui::DockBuilderFinish(dock_id);
@@ -174,11 +269,6 @@ namespace Engine
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
         make_dock_window("EditorDock", ImGuiWindowFlags_MenuBar, &EditorViewportClient::render_dock_window, this, viewport);
-
-        _M_package_tree.render(viewport);
-        _M_content_browser.render(viewport);
-        _M_properties.render(viewport);
-        _M_scene_tree.render(viewport);
 
         create_log_window(dt);
         create_viewport_window(dt);
@@ -194,9 +284,6 @@ namespace Engine
 
     EditorViewportClient& EditorViewportClient::init_world()
     {
-        World* world                 = World::global();
-        _M_scene_tree.root_component = world->scene()->root_component();
-
         return *this;
     }
 
