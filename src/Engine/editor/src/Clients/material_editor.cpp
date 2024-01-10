@@ -12,6 +12,7 @@
 #include <Window/window.hpp>
 #include <dock_window.hpp>
 #include <imgui_internal.h>
+#include <imgui_node_editor.h>
 #include <imgui_windows.hpp>
 #include <theme.hpp>
 
@@ -23,9 +24,8 @@ namespace Engine
     implement_engine_class_default_init(MaterialEditorClient);
 
 
-    static bool is_material(Object* object)
+    static bool is_material(Class* class_instance)
     {
-        const class Class* class_instance = object->class_instance();
         if (class_instance->is_a(MaterialInterface::static_class_instance()))
             return true;
 
@@ -109,6 +109,11 @@ namespace Engine
         ImGuiRenderer::Window::make_current(imgui_window);
 
         create_package_tree().create_properties_window().create_content_browser();
+
+        // Create imgui node editor context
+        ax::NodeEditor::EditorContext* context = ax::NodeEditor::CreateEditor();
+        imgui_window->on_destroy.push([context]() { ax::NodeEditor::DestroyEditor(context); });
+        _M_editor_context = context;
 
         ImGuiRenderer::Window::make_current(prev_window);
 
@@ -237,9 +242,12 @@ namespace Engine
         return *this;
     }
 
+    extern void render_material_nodes(Object* object, void* editor_context);
+
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
         ImGui::Begin("editor/Material Viewport###Material Viewport"_localized);
+        render_material_nodes(_M_current_material, _M_editor_context);
         ImGui::End();
         return *this;
     }

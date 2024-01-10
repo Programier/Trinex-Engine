@@ -21,3 +21,7 @@ Ok => Гаразд
 Object: %s => Об'єкт: %s
 Class: %s => Клас: %s
 No objects found => Об'єкти не знайдено
+Open Package Tree => Відкрити дерево пакетів
+Open Content Browser => Відкрити браузер контенту
+Open Properties Window => Відкрити дерево властивостей
+Open Scene Tree => Відкрити дерево сцени

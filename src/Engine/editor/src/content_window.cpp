@@ -15,7 +15,7 @@ namespace Engine
     {
         if (ImGui::Button("editor/Create new asset"_localized))
         {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewAsset>(package);
+            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewAsset>(package, filters);
             return false;
         }
 
@@ -85,7 +85,7 @@ namespace Engine
             {
                 for (auto& [id, callback] : filters.callbacks())
                 {
-                    in_filter = callback(object);
+                    in_filter = callback(object->class_instance());
                     if (in_filter)
                         break;
                 }

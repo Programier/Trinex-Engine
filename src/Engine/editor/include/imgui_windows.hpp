@@ -43,8 +43,12 @@ namespace Engine
         bool allow_rename = false;
         int current_index = 0;
 
+        Vector<class Class*> _M_filtered_classes;
+
     public:
-        ImGuiCreateNewAsset(class Package* pkg);
+        CallBacks<bool(class Class*)> filters;
+
+        ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& = {});
         bool render(class RenderViewport* viewport) override;
         static const char* name();
     };
@@ -89,7 +93,7 @@ namespace Engine
         Object* selected = nullptr;
         Package* package = nullptr;
         CallBacks<void(Object*)> on_object_selected;
-        CallBacks<bool(Object*)> filters;
+        CallBacks<bool(Class*)> filters;
 
         bool render(RenderViewport* viewport) override;
         static const char* name();

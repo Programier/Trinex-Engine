@@ -12,7 +12,8 @@ namespace Engine
         ImGuiPackageTree* _M_package_tree       = nullptr;
         ImGuiContentBrowser* _M_content_browser = nullptr;
         ImGuiObjectProperties* _M_properties    = nullptr;
-        ;
+
+        void* _M_editor_context = nullptr;
 
         class RenderViewport* _M_viewport = nullptr;
         class Object* _M_current_material = nullptr;

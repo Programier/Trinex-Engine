@@ -133,7 +133,7 @@ namespace Engine::ImGuiRenderer
 
     public:
         ImGuiAdditionalWindowList window_list;
-
+        CallBacks<void()> on_destroy;
 
         Window(const Window& window)     = delete;
         Window& operator=(const Window&) = delete;

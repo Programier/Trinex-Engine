@@ -109,12 +109,32 @@ namespace Engine
         return "editor/New Package Title"_localized;
     }
 
-    ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg) : _M_parent(pkg)
-    {}
-
-    static const char* get_asset_class_name_by_index(void* userdata, int index)
+    ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& filters)
+        : _M_parent(pkg), filters(filters)
     {
-        return Class::asset_classes()[index]->name().c_str();
+        for (Class* class_instance : Class::asset_classes())
+        {
+            for (auto& [id, filter] : filters.callbacks())
+            {
+                if (filter(class_instance))
+                {
+                    _M_filtered_classes.push_back(class_instance);
+                    break;
+                }
+            }
+        }
+    }
+
+    static const char* get_asset_class_name_default(void* userdata, int index)
+    {
+        if (userdata == nullptr)
+        {
+            return Class::asset_classes()[index]->name().c_str();
+        }
+        else
+        {
+            return (*reinterpret_cast<Vector<Class*>*>(userdata))[index]->name().c_str();
+        }
     }
 
     bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
@@ -127,8 +147,17 @@ namespace Engine
         ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
 
-        ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_by_index, nullptr,
-                     Class::asset_classes().size());
+
+        if (filters.empty())
+        {
+            ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, nullptr,
+                         Class::asset_classes().size());
+        }
+        else
+        {
+            ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &_M_filtered_classes,
+                         _M_filtered_classes.size());
+        }
 
         ImGuiRenderer::InputText("editor/Asset Name"_localized, new_asset_name);
         ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);

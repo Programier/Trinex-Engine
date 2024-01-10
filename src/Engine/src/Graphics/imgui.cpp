@@ -245,6 +245,8 @@ namespace Engine::ImGuiRenderer
 
     Window& Window::free_resources()
     {
+        on_destroy();
+
         while (!_M_textures.empty())
         {
             release_texture_internal(*_M_textures.begin(), true);
