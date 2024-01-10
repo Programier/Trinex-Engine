@@ -45,7 +45,7 @@ namespace Engine
         const Vector<Pointer<class ActorComponent>>& owned_components() const;
 
         class World* world() const;
-        bool archive_process(Archive* archive) override;
+        bool archive_process(Archive& archive) override;
 
         friend class World;
     };

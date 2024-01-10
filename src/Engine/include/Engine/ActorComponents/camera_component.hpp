@@ -18,7 +18,7 @@ namespace Engine
         float far_clip_plane;
         float aspect_ratio;
 
-        bool archive_process(Archive* archive) override;
+        bool archive_process(Archive& archive) override;
         CameraComponent& camera_view(CameraView& out);
         Matrix4f projection_matrix();
         static Matrix4f view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector);

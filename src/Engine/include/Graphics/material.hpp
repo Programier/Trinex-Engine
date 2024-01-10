@@ -37,7 +37,7 @@ namespace Engine
         Pipeline* pipeline;
 
         Material();
-        bool archive_process(Archive* archive) override;
+        bool archive_process(Archive& archive) override;
         ~Material();
     };
 

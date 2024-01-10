@@ -530,7 +530,7 @@ namespace Engine
         return _M_instance_index;
     }
 
-    bool Object::archive_process(Archive* archive)
+    bool Object::archive_process(Archive& archive)
     {
         if (!SerializableObject::archive_process(archive))
         {

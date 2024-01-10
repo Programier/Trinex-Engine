@@ -14,21 +14,21 @@ namespace Engine
     implement_initialize_class(CameraComponent)
     {}
 
-    bool CameraComponent::archive_process(Archive* archive)
+    bool CameraComponent::archive_process(Archive& archive)
     {
         if (!Super::archive_process(archive))
             return false;
 
-        (*archive) & projection_mode;
-        (*archive) & fov;
-        (*archive) & ortho_width;
-        (*archive) & ortho_height;
-        (*archive) & near_clip_plane;
-        (*archive) & far_clip_plane;
-        (*archive) & aspect_ratio;
+        archive& projection_mode;
+        archive& fov;
+        archive& ortho_width;
+        archive& ortho_height;
+        archive& near_clip_plane;
+        archive& far_clip_plane;
+        archive& aspect_ratio;
 
 
-        return static_cast<bool>(*archive);
+        return static_cast<bool>(archive);
     }
 
     Matrix4f CameraComponent::projection_matrix()

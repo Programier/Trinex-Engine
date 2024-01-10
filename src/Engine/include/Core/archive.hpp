@@ -27,11 +27,11 @@ namespace Engine
         {
             if constexpr (std::is_pointer_v<Type>)
             {
-                data->archive_process(this);
+                data->archive_process(*this);
             }
             else
             {
-                data.archive_process(this);
+                data.archive_process(*this);
             }
         }
 

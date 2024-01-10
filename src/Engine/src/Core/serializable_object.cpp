@@ -4,14 +4,8 @@
 
 namespace Engine
 {
-    bool SerializableObject::archive_process(Archive* archive)
+    bool SerializableObject::archive_process(Archive& archive)
     {
-        if (archive == nullptr)
-        {
-            error_log("SerializableObject", "Archive can't be nullptr!");
-            return false;
-        }
-
         return true;
     }
 

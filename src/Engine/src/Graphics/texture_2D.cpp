@@ -6,10 +6,10 @@
 #include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
+#include <Core/property.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Image/image.hpp>
-#include <Core/property.hpp>
 
 namespace Engine
 {
@@ -62,16 +62,16 @@ namespace Engine
         return *this;
     }
 
-    bool Texture2D::archive_process(Archive* archive)
+    bool Texture2D::archive_process(Archive& archive)
     {
         if (!Texture::archive_process(archive))
         {
             return false;
         }
 
-        (*archive) & image;
-        (*archive) & path;
-        return static_cast<bool>(*archive);
+        archive& image;
+        archive& path;
+        return static_cast<bool>(archive);
     }
 
 

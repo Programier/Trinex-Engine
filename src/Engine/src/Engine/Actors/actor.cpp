@@ -134,11 +134,11 @@ namespace Engine
         return _M_world;
     }
 
-    bool Actor::archive_process(Archive* archive)
+    bool Actor::archive_process(Archive& archive)
     {
         if (!Super::archive_process(archive))
             return false;
-        return static_cast<bool>(*archive);
+        return static_cast<bool>(archive);
     }
 
     implement_class(Actor, Engine, 0);

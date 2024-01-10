@@ -173,7 +173,7 @@ namespace Engine
                 VectorWriter writer = &object_data;
                 Archive ar(&writer);
 
-                if (!object->archive_process(&ar))
+                if (!object->archive_process(ar))
                 {
                     error_log("Package", "Cannot serialize object '%s'", object->full_name().c_str());
                     continue;
@@ -310,7 +310,7 @@ namespace Engine
                 Compressor::decompress(compressed_buffer, uncompressed_buffer);
 
                 uncompressed_reader.VectorReaderBase::position(0);
-                entry.object->archive_process(&uncompressed_ar);
+                entry.object->archive_process(uncompressed_ar);
 
                 entry.object->postload();
             }

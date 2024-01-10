@@ -86,7 +86,7 @@ namespace Engine
         Image& create(const Size2D& size, uint_t channels, const byte* buffer = nullptr);
         ColorFormat format() const;
 
-        bool archive_process(Archive* archive) override;
+        bool archive_process(Archive& archive) override;
 
         ~Image();
         Image sub_image(const Point2D& point, const Size2D& size);

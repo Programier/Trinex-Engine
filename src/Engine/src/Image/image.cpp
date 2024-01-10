@@ -196,8 +196,7 @@ namespace Engine
 
 
     //          IMAGE ROW
-    Image::ImageRow::ImageRow(byte* data, int_t length, int_t channels)
-        : _M_data(data), _M_length(length), _M_channels(channels)
+    Image::ImageRow::ImageRow(byte* data, int_t length, int_t channels) : _M_data(data), _M_length(length), _M_channels(channels)
     {}
 
     Image::ImageRow::Pixel Image::ImageRow::operator[](int_t index)
@@ -273,8 +272,8 @@ namespace Engine
 
         image._M_data.reserve(image._M_width * image._M_height * _M_channels);
 
-        int_t start_index = (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) +
-                            static_cast<int>(begin.x + 0.5) * _M_channels;
+        int_t start_index =
+                (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) + static_cast<int>(begin.x + 0.5) * _M_channels;
         for (int_t i = 0; i < image._M_height; i++)
         {
             image._M_data.insert(image.end(), _M_data.begin() + start_index,
@@ -313,9 +312,8 @@ namespace Engine
 
         Vector<byte> resized_image(new_width * new_height * _M_channels, 0);
 
-        auto status =
-                stbir_resize_uint8(_M_data.data(), _M_width, _M_height, _M_width * _M_channels, resized_image.data(),
-                                   new_width, new_height, new_width * _M_channels, _M_channels);
+        auto status = stbir_resize_uint8(_M_data.data(), _M_width, _M_height, _M_width * _M_channels, resized_image.data(),
+                                         new_width, new_height, new_width * _M_channels, _M_channels);
 
         _M_width  = new_width;
         _M_height = new_height;
@@ -331,14 +329,13 @@ namespace Engine
 
     bool Image::write_png(const String& filename)
     {
-        return static_cast<bool>(stbi_write_png(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(),
-                                                _M_width * _M_channels));
+        return static_cast<bool>(
+                stbi_write_png(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(), _M_width * _M_channels));
     }
 
     bool Image::write_jpg(const String& filename)
     {
-        return static_cast<bool>(
-                stbi_write_jpg(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(), 100));
+        return static_cast<bool>(stbi_write_jpg(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(), 100));
     }
 
     bool Image::write_bmp(const String& filename)
@@ -355,8 +352,8 @@ namespace Engine
     {
         path += extension_of_type(type);
 
-        static bool (Engine::Image::*write_methods[])(const String& f) = {&Image::write_png, &Image::write_jpg,
-                                                                          &Image::write_bmp, &Image::write_tga};
+        static bool (Engine::Image::*write_methods[])(const String& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
+                                                                          &Image::write_tga};
 
         auto method = write_methods[static_cast<EnumerateType>(type)];
         return ((*this).*method)(path);
@@ -414,20 +411,18 @@ namespace Engine
         return ColorFormat::Undefined;
     }
 
-    bool Image::archive_process(Archive* archive_ptr)
+    bool Image::archive_process(Archive& archive)
     {
-        if (!SerializableObject::archive_process(archive_ptr))
+        if (!SerializableObject::archive_process(archive))
         {
             return false;
         }
 
-        Archive& archive = *archive_ptr;
-
-//        if (archive.is_saving() && _M_data.empty())
-//        {
-//            error_log("Image", "Failed to serialize image. Data is empty!");
-//            return false;
-//        }
+        //        if (archive.is_saving() && _M_data.empty())
+        //        {
+        //            error_log("Image", "Failed to serialize image. Data is empty!");
+        //            return false;
+        //        }
 
         archive& _M_width;
         archive& _M_height;
@@ -442,8 +437,7 @@ namespace Engine
         if (archive.is_reading())
         {
             _M_data.clear();
-            size_t size =
-                    static_cast<size_t>(_M_width) * static_cast<size_t>(_M_height) * static_cast<size_t>(_M_channels);
+            size_t size = static_cast<size_t>(_M_width) * static_cast<size_t>(_M_height) * static_cast<size_t>(_M_channels);
 
             _M_data.resize(size);
 

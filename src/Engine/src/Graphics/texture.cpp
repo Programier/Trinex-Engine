@@ -77,21 +77,21 @@ namespace Engine
     }
 
 
-    bool Texture::archive_process(Archive* archive)
+    bool Texture::archive_process(Archive& archive)
     {
         if (!RenderResource::archive_process(archive))
             return false;
 
 
-        (*archive) & size;
-        (*archive) & base_mip_level;
-        (*archive) & mipmap_count;
-        (*archive) & format;
-        (*archive) & swizzle_r;
-        (*archive) & swizzle_g;
-        (*archive) & swizzle_b;
-        (*archive) & swizzle_a;
-        return static_cast<bool>(*archive);
+        archive& size;
+        archive& base_mip_level;
+        archive& mipmap_count;
+        archive& format;
+        archive& swizzle_r;
+        archive& swizzle_g;
+        archive& swizzle_b;
+        archive& swizzle_a;
+        return static_cast<bool>(archive);
     }
 
     Texture::~Texture()

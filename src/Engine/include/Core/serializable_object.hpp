@@ -10,7 +10,7 @@ namespace Engine
 
 
     struct ENGINE_EXPORT SerializableObject {
-        virtual bool archive_process(Archive* archive);
+        virtual bool archive_process(Archive& archive);
         virtual ~SerializableObject();
     };
 

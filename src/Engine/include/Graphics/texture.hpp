@@ -35,7 +35,7 @@ namespace Engine
 
 
         Size2D mip_size(MipMapLevel level = 0) const;
-        bool archive_process(Archive* archive) override;
+        bool archive_process(Archive& archive) override;
         virtual TextureType type() const = 0;
         ~Texture();
     };

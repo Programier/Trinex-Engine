@@ -41,25 +41,25 @@ namespace Engine
         return *this;
     }
 
-    bool Sampler::archive_process(Archive* archive)
+    bool Sampler::archive_process(Archive& archive)
     {
         if (!Super::archive_process(archive))
         {
             return false;
         }
 
-        (*archive) & filter;
-        (*archive) & wrap_s;
-        (*archive) & wrap_t;
-        (*archive) & wrap_r;
-        (*archive) & mip_lod_bias;
-        (*archive) & anisotropy;
-        (*archive) & compare_mode;
-        (*archive) & min_lod;
-        (*archive) & max_lod;
-        (*archive) & compare_func;
-        (*archive) & unnormalized_coordinates;
+        archive& filter;
+        archive& wrap_s;
+        archive& wrap_t;
+        archive& wrap_r;
+        archive& mip_lod_bias;
+        archive& anisotropy;
+        archive& compare_mode;
+        archive& min_lod;
+        archive& max_lod;
+        archive& compare_func;
+        archive& unnormalized_coordinates;
 
-        return *archive;
+        return archive;
     }
 }// namespace Engine

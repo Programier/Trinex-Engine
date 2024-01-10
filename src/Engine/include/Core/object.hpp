@@ -121,7 +121,7 @@ namespace Engine
         bool is_noname() const;
         String as_string() const;
         Index instance_index() const;
-        bool archive_process(Archive* archive) override;
+        bool archive_process(Archive& archive) override;
         bool is_valid() const;
         Path filepath() const;
         bool is_internal() const;

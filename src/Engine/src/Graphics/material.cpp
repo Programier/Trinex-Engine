@@ -31,7 +31,7 @@ namespace Engine
         pipeline = Object::new_instance<Pipeline>();
     }
 
-    bool Material::archive_process(Archive* archive)
+    bool Material::archive_process(Archive& archive)
     {
         return pipeline->archive_process(archive);
     }
