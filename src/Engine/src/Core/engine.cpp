@@ -339,8 +339,8 @@ namespace Engine
             thread(ThreadType::RenderThread)->wait_all();
         }
 
-        engine_instance->trigger_terminate_functions();
         Object::collect_garbage(GCFlag::DestroyAll);
+        engine_instance->trigger_terminate_functions();
 
         for (Thread*& thread : _M_threads)
         {

@@ -24,6 +24,28 @@ namespace Engine
 
 #define script_virtual_method(type, method)
 
+
+    static FORCE_INLINE bool can_update_reference()
+    {
+        return engine_instance && !engine_instance->is_shuting_down();
+    }
+
+    static void add_object_reference(Object* object)
+    {
+        if (object && can_update_reference())
+        {
+            object->add_reference();
+        }
+    }
+
+    static void remove_object_reference(Object* object)
+    {
+        if (object && can_update_reference())
+        {
+            object->remove_reference();
+        }
+    }
+
     static void register_object_to_script(ScriptClassRegistrar* registrar, Class* self)
     {
         String factory = Strings::format("{}@ f()", self->name().c_str());
@@ -37,8 +59,8 @@ namespace Engine
 
         registrar->require_type("Engine::Package");
 
-        registrar->behave(ScriptClassBehave::AddRef, "void f()", &Object::add_reference)
-                .behave(ScriptClassBehave::Release, "void f()", &Object::remove_reference)
+        registrar->behave(ScriptClassBehave::AddRef, "void f()", add_object_reference, ScriptCallConv::CDECL_OBJFIRST)
+                .behave(ScriptClassBehave::Release, "void f()", remove_object_reference, ScriptCallConv::CDECL_OBJFIRST)
                 .method("const string& string_name() const", &Object::string_name)
                 .method("Engine::ObjectRenameStatus name(const string& in, bool = false)",
                         method_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
