@@ -57,5 +57,5 @@ namespace Engine
                          &GameController::axis_value_normalized);
     }
 
-    static InitializeController init(on_init, "Bind GameController");
+    static ScriptEngineInitializeController init(on_init, "Bind GameController");
 }// namespace Engine

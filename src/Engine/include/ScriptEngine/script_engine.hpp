@@ -29,6 +29,7 @@ namespace Engine
 
         void release_scripts();
 
+        static void initialize();
         static void terminate();
         asIScriptContext* new_context() const;
         ScriptEngine& private_register_function(const char* declaration, void* func, ScriptCallConv conv);
@@ -135,5 +136,6 @@ namespace Engine
         friend class ScriptFunction;
         friend class ScriptClassRegistrar;
         friend class ScriptObject;
+        friend class EngineInstance;
     };
 }// namespace Engine

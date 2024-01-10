@@ -1371,5 +1371,5 @@ namespace Engine
         engine->default_namespace("");
     }
 
-    static InitializeController initializer(on_init, "Bind ImGui");
+    static ScriptEngineInitializeController initializer(on_init, "Bind ImGui");
 }// namespace Engine

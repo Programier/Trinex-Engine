@@ -1,3 +1,5 @@
+#include <Clients/editor_client.hpp>
+#include <Clients/open_client.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
@@ -20,49 +22,47 @@
 #include <dock_window.hpp>
 #include <imgui_internal.h>
 #include <theme.hpp>
-#include <viewport_client.hpp>
 
 namespace Engine
 {
-    implement_engine_class_default_init(EditorViewportClient);
+    implement_engine_class_default_init(EditorClient);
 
-    EditorViewportClient::EditorViewportClient()
+    EditorClient::EditorClient()
     {}
 
-    void EditorViewportClient::on_package_tree_close()
+    void EditorClient::on_package_tree_close()
     {
         _M_package_tree = nullptr;
     }
 
-    void EditorViewportClient::on_content_browser_close()
+    void EditorClient::on_content_browser_close()
     {
         _M_content_browser = nullptr;
     }
 
-    void EditorViewportClient::on_properties_window_close()
+    void EditorClient::on_properties_window_close()
     {
         _M_properties = nullptr;
     }
 
-    void EditorViewportClient::on_scene_tree_close()
+    void EditorClient::on_scene_tree_close()
     {
         _M_scene_tree = nullptr;
     }
 
-    EditorViewportClient& EditorViewportClient::create_package_tree()
+    EditorClient& EditorClient::create_package_tree()
     {
         _M_package_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiPackageTree>();
-        _M_package_tree->on_package_select.push(std::bind(&EditorViewportClient::on_package_select, this, std::placeholders::_1));
-        _M_package_tree->on_close.push(std::bind(&EditorViewportClient::on_package_tree_close, this));
+        _M_package_tree->on_package_select.push(std::bind(&EditorClient::on_package_select, this, std::placeholders::_1));
+        _M_package_tree->on_close.push(std::bind(&EditorClient::on_package_tree_close, this));
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_content_browser()
+    EditorClient& EditorClient::create_content_browser()
     {
         _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ImGuiContentBrowser>();
-        _M_content_browser->on_close.push(std::bind(&EditorViewportClient::on_content_browser_close, this));
-        _M_content_browser->on_object_selected.push(
-                std::bind(&EditorViewportClient::on_object_select, this, std::placeholders::_1));
+        _M_content_browser->on_close.push(std::bind(&EditorClient::on_content_browser_close, this));
+        _M_content_browser->on_object_selected.push(std::bind(&EditorClient::on_object_select, this, std::placeholders::_1));
 
         if (_M_package_tree)
         {
@@ -71,10 +71,10 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_properties_window()
+    EditorClient& EditorClient::create_properties_window()
     {
         _M_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
-        _M_properties->on_close.push(std::bind(&EditorViewportClient::on_properties_window_close, this));
+        _M_properties->on_close.push(std::bind(&EditorClient::on_properties_window_close, this));
 
         if (_M_content_browser)
         {
@@ -83,17 +83,17 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_scene_tree()
+    EditorClient& EditorClient::create_scene_tree()
     {
         _M_scene_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiSceneTree>();
-        _M_scene_tree->on_close.push(std::bind(&EditorViewportClient::on_scene_tree_close, this));
+        _M_scene_tree->on_close.push(std::bind(&EditorClient::on_scene_tree_close, this));
 
         World* world                  = World::global();
         _M_scene_tree->root_component = world->scene()->root_component();
         return *this;
     }
 
-    ViewportClient& EditorViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
+    ViewportClient& EditorClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
         Window* window = viewport->window();
         if (window == nullptr)
@@ -103,7 +103,7 @@ namespace Engine
 
         window->imgui_initialize(initialize_theme);
 
-        String new_title = window->title() + Strings::format(" [{} RHI]", engine_instance->rhi()->name().c_str());
+        String new_title = Strings::format("Trinex Editor [{} RHI]", engine_instance->rhi()->name().c_str());
         window->title(new_title);
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
         _M_script_object = ScriptModule::global().create_script_object("Viewport");
@@ -126,7 +126,7 @@ namespace Engine
         return init_world();
     }
 
-    void EditorViewportClient::on_package_select(Package* package)
+    void EditorClient::on_package_select(Package* package)
     {
         if (_M_content_browser)
         {
@@ -134,7 +134,7 @@ namespace Engine
         }
     }
 
-    void EditorViewportClient::on_object_select(Object* object)
+    void EditorClient::on_object_select(Object* object)
     {
         if (_M_properties)
         {
@@ -144,9 +144,8 @@ namespace Engine
 
     size_t count = 0;
 
-    ViewportClient& EditorViewportClient::render(class RenderViewport* viewport)
+    ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-
         // Render base frame
         GBuffer::instance()->rhi_bind();
         SceneColorOutput::instance()->rhi_bind();
@@ -155,13 +154,13 @@ namespace Engine
         return *this;
     }
 
-    ViewportClient& EditorViewportClient::prepare_render(class RenderViewport* viewport)
+    ViewportClient& EditorClient::prepare_render(class RenderViewport* viewport)
     {
         viewport->window()->imgui_window()->prepare_render();
         return *this;
     }
 
-    ViewportClient& EditorViewportClient::destroy_script_object(ScriptObject* object)
+    ViewportClient& EditorClient::destroy_script_object(ScriptObject* object)
     {
         if (*object == _M_script_object)
         {
@@ -170,15 +169,8 @@ namespace Engine
         return *this;
     }
 
-    static void open_material_editor()
-    {
-        WindowConfig new_config = global_window_config;
-        new_config.title        = "Material Editor";
-        new_config.client       = "Engine::MaterialEditorClient";
-        WindowManager::instance()->create_window(new_config);
-    }
 
-    void EditorViewportClient::render_dock_window(void* userdata)
+    void EditorClient::render_dock_window(void* userdata)
     {
         auto dock_id                       = ImGui::GetID("EditorDock##Dock");
         ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -264,11 +256,11 @@ namespace Engine
         }
     }
 
-    ViewportClient& EditorViewportClient::update(class RenderViewport* viewport, float dt)
+    ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
-        make_dock_window("EditorDock", ImGuiWindowFlags_MenuBar, &EditorViewportClient::render_dock_window, this, viewport);
+        make_dock_window("EditorDock", ImGuiWindowFlags_MenuBar, &EditorClient::render_dock_window, this, viewport);
 
         create_log_window(dt);
         create_viewport_window(dt);
@@ -282,12 +274,12 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::init_world()
+    EditorClient& EditorClient::init_world()
     {
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_log_window(float dt)
+    EditorClient& EditorClient::create_log_window(float dt)
     {
         //        if (!ImGui::Begin("Logs"))
         //        {
@@ -299,7 +291,7 @@ namespace Engine
         return *this;
     }
 
-    EditorViewportClient& EditorViewportClient::create_viewport_window(float dt)
+    EditorClient& EditorClient::create_viewport_window(float dt)
     {
         if (!ImGui::Begin(Object::localize("editor/Viewport Title").c_str(), nullptr))
         {

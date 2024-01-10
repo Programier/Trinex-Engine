@@ -44,6 +44,8 @@ namespace Engine
     IMPLEMENT_CONTROLLER(PreInitializeController);
     IMPLEMENT_CONTROLLER(PostInitializeController);
 
+    using ScriptEngineInitializeController = PostInitializeController;
+
 
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

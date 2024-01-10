@@ -49,7 +49,12 @@ namespace Engine
     {
         if (_M_object)
         {
-            ScriptEngine::instance()->destroy_script_object(_M_object, object_type());
+            ScriptEngine* engine = ScriptEngine::instance();
+            if (engine)
+            {
+                ScriptEngine::instance()->destroy_script_object(_M_object, object_type());
+            }
+
             _M_object = nullptr;
             bind_script_functions();
         }

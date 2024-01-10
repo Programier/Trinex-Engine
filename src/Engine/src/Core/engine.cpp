@@ -237,7 +237,7 @@ namespace Engine
 
 
         load_external_system_libraries();
-        ScriptEngine::instance();
+        ScriptEngine::initialize();
 
         World::new_system<World>()->name("Global World");
 

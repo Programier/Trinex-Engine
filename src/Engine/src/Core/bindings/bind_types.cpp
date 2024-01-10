@@ -34,5 +34,5 @@ namespace Engine
     }
 
 
-    static InitializeController initializer(on_init, "Bind Engine Types");
+    static ScriptEngineInitializeController initializer(on_init, "Bind Engine Types");
 }// namespace Engine

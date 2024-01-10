@@ -13,14 +13,14 @@ namespace Engine
     static void bind_functions()
     {
         String vtype = "bool";
-        bind_wrapped_functions<BoolVector1DWrapper, BoolVector1D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::BoolVector1D", vtype);
-        bind_wrapped_functions<BoolVector2DWrapper, BoolVector2D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::BoolVector2D", vtype);
-        bind_wrapped_functions<BoolVector3DWrapper, BoolVector3D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::BoolVector3D", vtype);
-        bind_wrapped_functions<BoolVector4DWrapper, BoolVector4D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::BoolVector4D", vtype);
+        bind_wrapped_functions<BoolVector1DWrapper, BoolVector1D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::BoolVector1D",
+                                                                                                          vtype);
+        bind_wrapped_functions<BoolVector2DWrapper, BoolVector2D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::BoolVector2D",
+                                                                                                          vtype);
+        bind_wrapped_functions<BoolVector3DWrapper, BoolVector3D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::BoolVector3D",
+                                                                                                          vtype);
+        bind_wrapped_functions<BoolVector4DWrapper, BoolVector4D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::BoolVector4D",
+                                                                                                          vtype);
     }
 
     static void on_init()
@@ -72,5 +72,5 @@ namespace Engine
         bind_functions();
     }
 
-    static InitializeController controller(on_init, "Bind Engine::BoolVector");
+    static ScriptEngineInitializeController controller(on_init, "Bind Engine::BoolVector");
 }// namespace Engine

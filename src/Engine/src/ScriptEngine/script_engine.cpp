@@ -165,6 +165,15 @@ namespace Engine
         }
     }
 
+    void ScriptEngine::initialize()
+    {
+        if (_M_instance == nullptr)
+        {
+            new ScriptEngine();
+            DestroyController controller(ScriptEngine::terminate);
+        }
+    }
+
     void ScriptEngine::terminate()
     {
         if (_M_instance)
@@ -176,12 +185,6 @@ namespace Engine
 
     ScriptEngine* ScriptEngine::instance()
     {
-        if (_M_instance == nullptr)
-        {
-            new ScriptEngine();
-            DestroyController controller(ScriptEngine::terminate);
-        }
-
         return _M_instance;
     }
 

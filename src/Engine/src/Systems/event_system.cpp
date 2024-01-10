@@ -180,7 +180,7 @@ namespace Engine
 
     static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
     {
-        InitializeController().require("Bind Event");
+        ScriptEngineInitializeController().require("Bind Event");
 
         ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
         enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);

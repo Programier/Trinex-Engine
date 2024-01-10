@@ -15,14 +15,14 @@ namespace Engine
     {
         String vtype = "uint";
 
-        bind_wrapped_functions<UIntVector1DWrapper, UIntVector1D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::UIntVector1D", vtype);
-        bind_wrapped_functions<UIntVector2DWrapper, UIntVector2D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::UIntVector2D", vtype);
-        bind_wrapped_functions<UIntVector3DWrapper, UIntVector3D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::UIntVector3D", vtype);
-        bind_wrapped_functions<UIntVector4DWrapper, UIntVector4D, All ^ Length ^ Cross ^ Normalize ^ Dot>(
-                "Engine::UIntVector4D", vtype);
+        bind_wrapped_functions<UIntVector1DWrapper, UIntVector1D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::UIntVector1D",
+                                                                                                          vtype);
+        bind_wrapped_functions<UIntVector2DWrapper, UIntVector2D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::UIntVector2D",
+                                                                                                          vtype);
+        bind_wrapped_functions<UIntVector3DWrapper, UIntVector3D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::UIntVector3D",
+                                                                                                          vtype);
+        bind_wrapped_functions<UIntVector4DWrapper, UIntVector4D, All ^ Length ^ Cross ^ Normalize ^ Dot>("Engine::UIntVector4D",
+                                                                                                          vtype);
     }
 
     static void on_init()
@@ -75,5 +75,5 @@ namespace Engine
         bind_functions();
     }
 
-    static InitializeController controller(on_init, "Bind Engine::UIntVector");
+    static ScriptEngineInitializeController controller(on_init, "Bind Engine::UIntVector");
 }// namespace Engine

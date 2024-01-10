@@ -176,5 +176,5 @@ namespace Engine
         }
     }
 
-    static InitializeController controller(on_init, "Bind Engine::Quaternion");
+    static ScriptEngineInitializeController controller(on_init, "Bind Engine::Quaternion");
 }// namespace Engine

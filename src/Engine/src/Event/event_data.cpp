@@ -68,6 +68,6 @@ namespace Engine
                 &ControllerAxisMotionEvent::axis);
     }
 
-    static InitializeController initializer(on_init, "Bind EventData",
-                                            {"Bind Event", "Bind Keyboard", "Bind Mouse", "Bind GameController"});
+    static ScriptEngineInitializeController initializer(on_init, "Bind EventData",
+                                                        {"Bind Event", "Bind Keyboard", "Bind Mouse", "Bind GameController"});
 }// namespace Engine

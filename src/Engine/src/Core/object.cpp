@@ -28,7 +28,7 @@ namespace Engine
     {
         String factory = Strings::format("{}@ f()", self->name().c_str());
 
-        InitializeController().require("Bind Engine::Name").require("Bind Engine::Class");
+        ScriptEngineInitializeController().require("Bind Engine::Name").require("Bind Engine::Class");
 
         if (!self->flags(Class::IsSingletone))
         {
@@ -522,7 +522,8 @@ namespace Engine
 
     String Object::as_string() const
     {
-        return Strings::format("{}: {}", class_instance()->name().c_str(), _M_name.is_valid() ? _M_name.to_string().c_str() : "NoName");
+        return Strings::format("{}: {}", class_instance()->name().c_str(),
+                               _M_name.is_valid() ? _M_name.to_string().c_str() : "NoName");
     }
 
     Index Object::instance_index() const

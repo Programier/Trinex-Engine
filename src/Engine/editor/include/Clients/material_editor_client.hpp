@@ -9,15 +9,25 @@ namespace Engine
         declare_class(MaterialEditorClient, ViewportClient);
 
     private:
-        ImGuiPackageTree _M_package_tree;
-        ImGuiContentBrowser _M_content_browser;
+        ImGuiPackageTree* _M_package_tree       = nullptr;
+        ImGuiContentBrowser* _M_content_browser = nullptr;
+        ImGuiObjectProperties* _M_properties    = nullptr;
+        ;
 
-        class RenderViewport* _M_viewport            = nullptr;
-        class MaterialInterface* _M_current_material = nullptr;
-        bool _M_open_package_popup                   = false;
-        size_t _M_frame                              = 0;
+        class RenderViewport* _M_viewport = nullptr;
+        class Object* _M_current_material = nullptr;
+        bool _M_open_package_popup        = false;
+        size_t _M_frame                   = 0;
 
     public:
+        void on_package_tree_close();
+        void on_content_browser_close();
+        void on_properties_window_close();
+
+        MaterialEditorClient& create_package_tree();
+        MaterialEditorClient& create_content_browser();
+        MaterialEditorClient& create_properties_window();
+
         MaterialEditorClient& on_bind_to_viewport(class RenderViewport* viewport) override;
         MaterialEditorClient& render(class RenderViewport* viewport) override;
         MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
@@ -25,9 +35,9 @@ namespace Engine
 
 
         MaterialEditorClient& render_viewport(float dt);
-        MaterialEditorClient& render_properties(float dt);
 
         void on_package_select(Package* package);
+        void on_object_select(Object* object);
 
         void render_dock_window(void* userdata);
     };

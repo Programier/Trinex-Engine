@@ -27,5 +27,5 @@ namespace Engine::Mouse
         direction_reg.set("Flipped", Flipped);
     }
 
-    static InitializeController controller(on_init, "Bind Mouse");
+    static ScriptEngineInitializeController controller(on_init, "Bind Mouse");
 }// namespace Engine::Mouse

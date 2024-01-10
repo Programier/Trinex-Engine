@@ -115,5 +115,5 @@ namespace Engine
         registrar.method("const any& any() const", &Event::any);
     }
 
-    static InitializeController initializer(on_init, "Bind Event");
+    static ScriptEngineInitializeController initializer(on_init, "Bind Event");
 }// namespace Engine
