@@ -45,6 +45,7 @@ namespace Engine
         Super::create();
 
         EventSystem* event_system = System::new_system<EventSystem>();
+        event_system->register_subsystem(this);
 
         new_id(event_system->add_listener(
                 EventType::ControllerDeviceAdded,

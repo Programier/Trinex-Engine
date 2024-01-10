@@ -22,7 +22,8 @@ namespace Engine
 
 
     private:
-        bool is_fully_created = false;
+        bool _M_is_fully_created = false;
+
         static void on_create_fail();
         static void on_new_system(System* system);
         System* find_system_private_no_recurse(const char* name, size_t len) const;

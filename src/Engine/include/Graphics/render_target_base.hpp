@@ -33,7 +33,7 @@ namespace Engine
         byte _M_frame_index = -1;
 
     public:
-        Pointer<RenderPass> render_pass;
+        RenderPass* render_pass;
 
         delete_copy_constructors(RenderTargetBase);
         RenderTargetBase();

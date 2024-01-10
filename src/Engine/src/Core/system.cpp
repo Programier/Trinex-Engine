@@ -28,7 +28,7 @@ namespace Engine
     void System::on_new_system(System* system)
     {
         system->create();
-        if (!system->is_fully_created)
+        if (!system->_M_is_fully_created)
         {
             on_create_fail();
         }
@@ -49,7 +49,7 @@ namespace Engine
 
         name(Strings::format("Engine::Systems::{}", _class->base_name().c_str()), true);
         debug_log("System", "Created system '%s'", string_name().c_str());
-        is_fully_created = true;
+        _M_is_fully_created = true;
         return *this;
     }
 
@@ -174,7 +174,7 @@ namespace Engine
         while (separator && system)
         {
             size_t current_len = separator - _name;
-            system            = system->find_system_private_no_recurse(_name, current_len);
+            system             = system->find_system_private_no_recurse(_name, current_len);
             _name              = separator + separator_len;
             separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
         }
@@ -200,6 +200,7 @@ namespace Engine
 
     System& System::shutdown()
     {
+        info_log("System", "Shutting down system %p", this);
         if (_M_parent_system)
         {
             _M_parent_system->remove_subsystem(this);
@@ -213,6 +214,7 @@ namespace Engine
             system->shutdown();
         }
 
+        _M_is_fully_created = false;
         return *this;
     }
 
@@ -221,7 +223,7 @@ namespace Engine
         if (class_instance && class_instance->is_a(System::static_class_instance()))
         {
             System* system = class_instance->create_object()->instance_cast<System>();
-            if (system && system->is_fully_created == false)
+            if (system && system->_M_is_fully_created == false)
             {
                 on_new_system(system);
             }
@@ -247,7 +249,12 @@ namespace Engine
     }
 
     System::~System()
-    {}
+    {
+        if (_M_is_fully_created)
+        {
+            error_log("System", "You must call shutdown method before destroy system! System address %p", this);
+        }
+    }
 
     static void bind_to_script(ScriptClassRegistrar* registar, Class* self)
     {

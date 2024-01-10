@@ -167,8 +167,11 @@ namespace Engine
 
     void ScriptEngine::terminate()
     {
-        delete ScriptEngine::_M_instance;
-        ScriptEngine::_M_instance = nullptr;
+        if (_M_instance)
+        {
+            delete _M_instance;
+            _M_instance = nullptr;
+        }
     }
 
     ScriptEngine* ScriptEngine::instance()
@@ -176,7 +179,7 @@ namespace Engine
         if (_M_instance == nullptr)
         {
             new ScriptEngine();
-            PostDestroyController controller(ScriptEngine::terminate);
+            DestroyController controller(ScriptEngine::terminate);
         }
 
         return _M_instance;

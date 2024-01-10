@@ -19,7 +19,9 @@ namespace Engine
     {
     public:
         WindowRenderPass()
-        {}
+        {
+            flags(Object::IsAvailableForGC, false);
+        }
 
 
         WindowRenderPass& rhi_create()
@@ -339,6 +341,8 @@ namespace Engine
 
         // The window cannot remove the render target because it is a viewport resource
         _M_rhi_object.release();
+
+        delete render_pass;
     }
 
     Identifier Window::register_destroy_callback(const DestroyCallback& callback)

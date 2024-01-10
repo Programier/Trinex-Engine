@@ -340,21 +340,9 @@ namespace Engine
 
     Package::~Package()
     {
-        Package* next_package = const_cast<Package*>(root_package());
-        if (this == next_package)
-            next_package = nullptr;
-
         for (auto& [name, object] : _M_objects)
         {
-            if (next_package)
-            {
-                object->_M_package = nullptr;
-                next_package->add_object(object);
-            }
-            else
-            {
-                object->_M_package = nullptr;
-            }
+            object->_M_package = nullptr;
         }
     }
 
