@@ -77,10 +77,6 @@ namespace Engine
 
     static constexpr inline size_t gbuffer_color_attachments = 4;
 
-
-    implement_class(GBuffer, Engine, 0);
-    implement_default_initialize_class(GBuffer);
-
     static Vector<ColorFormat> required_albedo_formats()
     {
         return {ColorFormat::R8G8B8A8Unorm, ColorFormat::R8G8B8A8Snorm, ColorFormat::R8G8B8A8Uint};
@@ -156,6 +152,42 @@ namespace Engine
     };
 
 
+    implement_class(GBuffer, Engine, 0);
+    implement_default_initialize_class(GBuffer);
+
+    class GBufferRenderPass : public RenderPass
+    {
+    public:
+        GBufferRenderPass()
+        {
+            has_depth_stancil                      = true;
+            depth_stencil_attachment.clear_on_bind = true;
+            depth_stencil_attachment.format = find_color_format(required_depth_formats(), depth_format_requirements(), "depth");
+
+            color_attachments.resize(gbuffer_color_attachments);
+
+            for (size_t i = 0; i < gbuffer_color_attachments; i++)
+            {
+                color_attachments[i].clear_on_bind = true;
+                color_attachments[i].format        = find_color_format(attachment_texture_info[i].required_formats(),
+                                                                       color_format_requirements(), attachment_texture_info[i].name);
+            }
+        }
+
+        Type type() const override
+        {
+            return Type::GBuffer;
+        }
+    };
+
+
+    RenderPass* RenderPass::load_gbuffer_render_pass()
+    {
+        RenderPass* pass = Object::new_instance<GBufferRenderPass>();
+        pass->init_resource(true);
+        return pass;
+    }
+
     Texture2D* GBuffer::Frame::albedo() const
     {
         return color_attachments[albedo_index].ptr();
@@ -186,30 +218,15 @@ namespace Engine
     {
         info_log("GBuffer", "Creating GBuffer");
 
-        // Creating render pass
-        render_pass = Object::new_instance_named<RenderPass>("Engine::GBuffer::RenderPass");
-
-        render_pass->has_depth_stancil                      = true;
-        render_pass->depth_stencil_attachment.clear_on_bind = true;
-        render_pass->depth_stencil_attachment.format =
-                find_color_format(required_depth_formats(), depth_format_requirements(), "depth");
-
-        // Initialize color attachments
-        render_pass->color_attachments.resize(gbuffer_color_attachments);
+        render_pass = RenderPass::load_render_pass(RenderPass::Type::GBuffer);
 
         for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
-            render_pass->color_attachments[i].clear_on_bind = true;
-            render_pass->color_attachments[i].format        = find_color_format(
-                    attachment_texture_info[i].required_formats(), color_format_requirements(), attachment_texture_info[i].name);
-
             color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
         }
 
         depth_stencil_clear.depth   = 1.f;
         depth_stencil_clear.stencil = 0.0f;
-
-        render_pass->init_resource();
 
         // Initialize render target frames
         size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
@@ -271,23 +288,40 @@ namespace Engine
 
     implement_engine_class_default_init(SceneColorOutput);
 
+    class SceneColorOutputRenderPass : public RenderPass
+    {
+    public:
+        SceneColorOutputRenderPass()
+        {
+            has_depth_stancil = false;
+
+            // Initialize color attachments
+            color_attachments.resize(1);
+            color_attachments[0].clear_on_bind = true;
+            color_attachments[0].format = find_color_format(required_albedo_formats(), color_format_requirements(), "Color");
+        }
+
+        Type type() const override
+        {
+            return Type::SceneOutput;
+        }
+    };
+
+
+    RenderPass* RenderPass::load_scene_color_render_pass()
+    {
+        RenderPass* pass = Object::new_instance<SceneColorOutputRenderPass>();
+        pass->init_resource(true);
+        return pass;
+    }
+
     SceneColorOutput::SceneColorOutput()
     {
         info_log("SceneColorOutput", "Creating SceneColorOutput");
 
-        // Creating render pass
-        render_pass = Object::new_instance_named<RenderPass>("Engine::SceneColorOutput::RenderPass");
-
-        render_pass->has_depth_stancil = false;
-
-        // Initialize color attachments
-        render_pass->color_attachments.resize(1);
-        render_pass->color_attachments[0].clear_on_bind = true;
-        render_pass->color_attachments[0].format =
-                find_color_format(required_albedo_formats(), color_format_requirements(), "Color");
-
+        render_pass = RenderPass::load_render_pass(RenderPass::Type::SceneOutput);
         color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
-        render_pass->init_resource();
+
 
         // Initialize render target frames
         size_t frames_count = engine_instance->rhi()->render_target_buffer_count();

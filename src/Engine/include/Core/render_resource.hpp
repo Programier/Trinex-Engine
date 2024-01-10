@@ -44,7 +44,7 @@ namespace Engine
         }
 
         virtual RenderResource& rhi_create();
-        RenderResource& init_resource();
+        RenderResource& init_resource(bool wait_initialize = false);
         RenderResource& rhi_destroy();
 
         RenderResource& postload() override;

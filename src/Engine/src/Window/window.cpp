@@ -18,34 +18,41 @@ namespace Engine
     class WindowRenderPass : public RenderPass
     {
     public:
-        WindowRenderPass()
-        {
-            flags(Object::IsAvailableForGC, false);
-        }
-
-
-        WindowRenderPass& rhi_create()
+        WindowRenderPass& rhi_create() override
         {
             _M_rhi_object.reset(engine_instance->rhi()->window_render_pass());
             return *this;
         }
+
+        Type type() const override
+        {
+            return Type::Window;
+        }
     };
+
+
+    RenderPass* RenderPass::load_window_render_pass()
+    {
+        RenderPass* render_pass = Object::new_instance<WindowRenderPass>();
+        render_pass->init_resource(true);
+        return render_pass;
+    }
 
     Window::Window(WindowInterface* interface, bool vsync) : _M_interface(interface)
     {
+        flags(Object::IsAvailableForGC, false);
+
         _M_render_viewport = Object::new_instance<RenderViewport>();
         _M_render_viewport->flags(Object::Flag::IsAvailableForGC, false);
         _M_render_viewport->window(this, vsync);
-        _M_render_viewport->init_resource();
-        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        _M_render_viewport->init_resource(true);
 
         _M_rhi_object.reset(_M_render_viewport->render_target());
-        render_pass = &Object::new_instance<WindowRenderPass>()->rhi_create();
+        engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
-        rhi_create();
-        flags(Object::IsAvailableForGC, false);
+        render_pass = RenderPass::load_render_pass(RenderPass::Type::Window);
+
         update_cached_size();
-
 
         _M_viewport.pos       = {0, 0};
         _M_viewport.size      = size();
@@ -56,8 +63,7 @@ namespace Engine
         _M_scissor.size = _M_viewport.size;
 
 
-        viewport(_M_viewport);
-        scissor(_M_scissor);
+        init_resource();
     }
 
 
@@ -341,8 +347,6 @@ namespace Engine
 
         // The window cannot remove the render target because it is a viewport resource
         _M_rhi_object.release();
-
-        delete render_pass;
     }
 
     Identifier Window::register_destroy_callback(const DestroyCallback& callback)

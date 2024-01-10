@@ -77,7 +77,7 @@ namespace Engine
         } color_blending;
 
     public:
-        Pointer<RenderPass> render_pass;
+        RenderPass* render_pass = nullptr;
         Pointer<VertexShader> vertex_shader;
         Pointer<FragmentShader> fragment_shader;
 

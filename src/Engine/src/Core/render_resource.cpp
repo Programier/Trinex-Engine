@@ -57,7 +57,7 @@ namespace Engine
         return *this;
     }
 
-    RenderResource& RenderResource::init_resource()
+    RenderResource& RenderResource::init_resource(bool wait_initialize)
     {
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         if (Thread::this_thread() == render_thread)
@@ -67,6 +67,11 @@ namespace Engine
         else
         {
             render_thread->insert_new_task<InitRenderResourceTask>(this, _M_rhi_object.get() != nullptr);
+
+            if (wait_initialize)
+            {
+                render_thread->wait_all();
+            }
         }
 
         return *this;

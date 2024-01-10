@@ -6,9 +6,15 @@ namespace Engine
 {
     PointerBase::PointerBase() = default;
 
+
+    static FORCE_INLINE bool can_update_reference()
+    {
+        return engine_instance && !engine_instance->is_shuting_down();
+    }
+
     PointerBase& PointerBase::add_reference(Object* object)
     {
-        if (object && !engine_instance->is_shuting_down())
+        if (object && can_update_reference())
         {
             ++object->_M_references;
         }
@@ -17,7 +23,7 @@ namespace Engine
 
     PointerBase& PointerBase::remove_reference(Object* object)
     {
-        if (object && !engine_instance->is_shuting_down())
+        if (object && can_update_reference())
         {
             --object->_M_references;
         }
