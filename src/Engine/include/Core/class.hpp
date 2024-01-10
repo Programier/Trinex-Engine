@@ -46,6 +46,7 @@ namespace Engine
         Class(const Name& name, const Name& namespace_name, Object* (*) (), Class* parent = nullptr, BitMask flags = 0);
 
         Class* parent() const;
+        void* create_struct() const override;
         Object* create_object() const;
         size_t sizeof_class() const;
         bool is_binded_to_script() const;

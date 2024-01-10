@@ -48,4 +48,10 @@ namespace Engine
     {
         return static_cast<EnumerateType>(value);
     }
+
+    template<typename Type, typename... Args>
+    FORCE_INLINE Type* static_constructor_of(Args&&... args)
+    {
+        return new Type(std::forward<Args>(args)...);
+    }
 }// namespace Engine

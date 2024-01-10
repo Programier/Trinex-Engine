@@ -26,8 +26,8 @@ namespace Engine
     static PostDestroyController destroy_struct_map(on_destroy);
 
 
-    Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent)
-        : _M_namespace_name(namespace_name), _M_base_name(name), _M_parent(_parent)
+    Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent, void* (*constructor)())
+        : _M_struct_constructor(constructor), _M_namespace_name(namespace_name), _M_base_name(name), _M_parent(_parent)
     {
         _M_full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
         _M_base_name_splitted = Strings::make_sentence(_M_base_name.to_string());
@@ -40,7 +40,8 @@ namespace Engine
         struct_map()[_M_full_name] = this;
     }
 
-    Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent) : Struct(name, namespace_name)
+    Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent, void* (*constructor)())
+        : Struct(name, namespace_name, Name::none, constructor)
     {
         _M_parent_struct = parent;
         if (_M_parent_struct)
@@ -49,14 +50,14 @@ namespace Engine
         }
     }
 
-    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& namespace_name, const Name& parent)
+    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& namespace_name, const Name& parent, void* (*constructor)())
     {
         Name full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
         Struct* self   = static_find(full_name);
 
         if (!self)
         {
-            self = new Struct(name, namespace_name, parent);
+            self = new Struct(name, namespace_name, parent, constructor);
         }
 
         return self;
@@ -116,6 +117,16 @@ namespace Engine
             _M_parent_struct = static_find(_M_parent);
         }
         return _M_parent_struct;
+    }
+
+    void* Struct::create_struct() const
+    {
+        if (_M_struct_constructor)
+        {
+            return _M_struct_constructor();
+        }
+
+        return nullptr;
     }
 
     bool Struct::is_a(const Struct* other) const

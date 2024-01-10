@@ -49,6 +49,11 @@ namespace Engine
         return reinterpret_cast<Class*>(Struct::parent());
     }
 
+    void* Class::create_struct() const
+    {
+        return create_object();
+    }
+
     Object* Class::create_object() const
     {
         if (flags(Class::IsSingletone))
