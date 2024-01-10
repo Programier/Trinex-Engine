@@ -222,6 +222,7 @@ namespace Engine
         InitializeController().execute();
         _M_flags(InitTriggered, true);
         engine_config.update();
+        engine_config.update_using_args();
 
         EntryPoint* entry_point = find_entry_point(_M_args);
         if (!entry_point)
@@ -232,6 +233,7 @@ namespace Engine
 
         entry_point->load_configs();
         engine_config.update();
+        engine_config.update_using_args();
 
 
         load_external_system_libraries();
@@ -385,7 +387,8 @@ namespace Engine
         }
 
         global_window_config.update();
-        global_window_config.api_name = engine_config.api;
+        global_window_config.update_using_args();
+
 
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();

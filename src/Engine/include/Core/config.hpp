@@ -6,7 +6,8 @@
 namespace Engine
 {
     struct ENGINE_EXPORT Config {
-        virtual Config& update() = 0;
+        virtual Config& update();
+        virtual Config& update_using_args();
         virtual ~Config();
     };
 }// namespace Engine

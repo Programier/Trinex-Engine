@@ -2,9 +2,9 @@
 
 #include <Core/build.hpp>
 #include <Core/engine_types.hpp>
-#if TRINEX_CUSTOM_STRING_FORMAT
 #include <sstream>
-#else
+
+#if !TRINEX_CUSTOM_STRING_FORMAT
 #include <format>
 #endif
 
@@ -61,4 +61,20 @@ namespace Engine::Strings
     ENGINE_EXPORT String to_upper(const String& line);
 
     ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len);
+
+    template<typename T>
+    FORCE_INLINE T convert(const char* line)
+    {
+        T value;
+        std::stringstream(line) >> value;
+        return value;
+    }
+
+    template<typename T>
+    FORCE_INLINE T convert(const String& line)
+    {
+        T value;
+        std::stringstream(line) >> value;
+        return value;
+    }
 }// namespace Engine::Strings

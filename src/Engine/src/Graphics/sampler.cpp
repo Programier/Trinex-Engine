@@ -62,4 +62,10 @@ namespace Engine
 
         return archive;
     }
+
+    Sampler& Sampler::reload()
+    {
+        init_resource();
+        return *this;
+    }
 }// namespace Engine

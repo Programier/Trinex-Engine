@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    struct WindowConfig {
+    struct WindowConfig : public Config {
         Vector<WindowAttribute> attributes;
 
         String title;
@@ -15,6 +15,7 @@ namespace Engine
         bool vsync;
 
         WindowConfig& update();
+        WindowConfig& update_using_args();
     };
 
     extern ENGINE_EXPORT WindowConfig global_window_config;

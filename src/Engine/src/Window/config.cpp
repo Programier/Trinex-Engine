@@ -1,4 +1,7 @@
+#include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/global_config.hpp>
+#include <Core/string_functions.hpp>
 #include <Window/config.hpp>
 
 namespace Engine
@@ -52,9 +55,42 @@ namespace Engine
         {
             vsync = window_json.checked_get_value("vsync", true);
         }
+
+        api_name = engine_config.api;
         return *this;
     }
 
+
+#define new_param(name, convert_func)                                                                                            \
+    arg = args.find("w_" #name);                                                                                                 \
+    if (arg && arg->type == Arguments::Type::String)                                                                             \
+    {                                                                                                                            \
+        name = convert_func(arg->get<const String&>());                                                                          \
+    }
+
+#define new_param_nc(name)                                                                                                       \
+    arg = args.find("w_" #name);                                                                                                 \
+    if (arg && arg->type == Arguments::Type::String)                                                                             \
+    {                                                                                                                            \
+        name = arg->get<const String&>();                                                                                        \
+    }
+
+
+    WindowConfig& WindowConfig::update_using_args()
+    {
+        using Arg             = const Arguments::Argument*;
+        const Arguments& args = engine_instance->args();
+        Arg arg               = nullptr;
+
+
+        new_param_nc(title);
+        new_param_nc(client);
+        new_param(size.x, Strings::convert<float>);
+        new_param(size.y, Strings::convert<float>);
+        new_param(vsync, Strings::convert<bool>);
+
+        return *this;
+    }
 
     ENGINE_EXPORT WindowConfig global_window_config;
 }// namespace Engine
