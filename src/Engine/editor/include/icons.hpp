@@ -15,5 +15,6 @@ namespace Engine
         Sampler* default_sampler();
         Texture2D* default_texture();
         ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object);
+        ImGuiRenderer::ImGuiTexture* find_output_icon();
     }// namespace Icons
 }// namespace Engine

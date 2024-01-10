@@ -8,12 +8,23 @@
 
 namespace Engine::Icons
 {
+
+    static Package* editor_package()
+    {
+        static Package* package = nullptr;
+        if (package == nullptr)
+        {
+            package = Package::load_package("Editor");
+        }
+        return package;
+    }
+
     Sampler* default_sampler()
     {
         static Sampler* sampler = nullptr;
         if (sampler == nullptr)
         {
-            Package* pkg = Package::find_package("Editor");
+            Package* pkg = editor_package();
             if (pkg)
             {
                 sampler = pkg->find_object_checked<Sampler>("DefaultSampler");
@@ -28,7 +39,7 @@ namespace Engine::Icons
         static Texture2D* texture = nullptr;
         if (texture == nullptr)
         {
-            Package* pkg = Package::find_package("Editor");
+            Package* pkg = editor_package();
             if (pkg)
             {
                 texture = pkg->find_object_checked<Texture2D>("DefaultIcon");
@@ -36,6 +47,7 @@ namespace Engine::Icons
         }
         return texture;
     }
+
 
     ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object)
     {
@@ -59,6 +71,35 @@ namespace Engine::Icons
         Texture2D* texture = default_texture();
         if (texture && texture->has_object())
             return window->create_texture(texture, sampler);
+
+        return nullptr;
+    }
+
+    ImGuiRenderer::ImGuiTexture* find_output_icon()
+    {
+        ImGuiRenderer::Window* window = ImGuiRenderer::Window::current();
+        if (!window)
+            return nullptr;
+
+        Sampler* sampler = default_sampler();
+        if (!sampler)
+            return nullptr;
+
+        static Texture2D* texture = nullptr;
+
+        if (texture == nullptr)
+        {
+            Package* package = editor_package();
+            if (package)
+            {
+                texture = package->find_object_checked<Texture2D>("GreenTriangle");
+            }
+        }
+
+        if(texture && texture->has_object())
+        {
+            return window->create_texture(texture, sampler);
+        }
 
         return nullptr;
     }

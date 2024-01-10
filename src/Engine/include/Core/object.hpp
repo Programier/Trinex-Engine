@@ -216,6 +216,14 @@ namespace Engine
             return nullptr;
         }
 
+        template<typename Type>
+        static Type* instance_cast(Object* object)
+        {
+            if (!object)
+                return nullptr;
+            return object->instance_cast<Type>();
+        }
+
         template<typename ObjectInstanceType>
         static ObjectInstanceType* find_object_checked(const String& object_name)
         {

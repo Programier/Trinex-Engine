@@ -7,12 +7,12 @@
 #include <Core/package.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <imnodes.h>
 #include <Graphics/material.hpp>
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
 #include <imgui_internal.h>
-#include <imgui_node_editor.h>
 #include <imgui_windows.hpp>
 #include <theme.hpp>
 
@@ -111,8 +111,8 @@ namespace Engine
         create_package_tree().create_properties_window().create_content_browser();
 
         // Create imgui node editor context
-        ax::NodeEditor::EditorContext* context = ax::NodeEditor::CreateEditor();
-        imgui_window->on_destroy.push([context]() { ax::NodeEditor::DestroyEditor(context); });
+        auto context = ImNodes::CreateContext();
+        imgui_window->on_destroy.push([context]() { ImNodes::DestroyContext(context); });
         _M_editor_context = context;
 
         ImGuiRenderer::Window::make_current(prev_window);
