@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/enum.hpp>
@@ -71,7 +72,7 @@ namespace Engine
                 new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width),
 
                 new BoolProperty("Enable depth bias", "Enable depth bias", &RI::depth_bias_enable),
-                new BoolProperty("Enable discart", "If true then shaders can use discard keyword", &RI::discard_enable),
+                new BoolProperty("Enable discard", "If true then shaders can use discard keyword", &RI::discard_enable),
                 new BoolProperty("Enable depth clamp", "Enable depth clamp", &RI::depth_clamp_enable),
 
                 new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode, Enum::find("Engine::PolygonMode", true)),
@@ -142,6 +143,24 @@ namespace Engine
         }
 
         return *this;
+    }
+
+    bool Pipeline::archive_process(class Archive& archive)
+    {
+        if (!Super::archive_process(archive))
+            return false;
+
+        archive& depth_test;
+        archive& stencil_test;
+        archive& input_assembly;
+        archive& rasterizer;
+
+        archive& color_blending.blend_attachment;
+        archive& color_blending.blend_constants;
+        archive& color_blending.logic_op;
+        archive& color_blending.logic_op_enable;
+
+        return archive;
     }
 
     implement_class(Pipeline, Engine, 0);

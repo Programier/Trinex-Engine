@@ -143,8 +143,9 @@ namespace Engine
     class ImGuiCreateNode : public ImGuiRenderer::ImGuiAdditionalWindow
     {
         class VisualMaterial* _M_material;
-        Vector<class Struct*>* _M_nodes;
-        int _M_current_index = 0;
+        Map<String, Vector<class Struct*>>* _M_nodes;
+        class Struct* _M_selected = nullptr;
+        int _M_current_index      = 0;
 
     public:
         ImGuiCreateNode(class VisualMaterial* material);

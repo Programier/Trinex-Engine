@@ -15,7 +15,7 @@ namespace Engine
         declare_class(Pipeline, RenderResource);
 
     public:
-        struct DepthTestInfo {
+        struct ALIGNED(4) DepthTestInfo {
             DepthFunc func         = DepthFunc::Less;
             float min_depth_bound  = 0.0;
             float max_depth_bound  = 0.0;
@@ -24,7 +24,7 @@ namespace Engine
             bool bound_test_enable = false;
         } depth_test;
 
-        struct StencilTestInfo {
+        struct ALIGNED(4) StencilTestInfo {
             bool enable = false;
 
             struct FaceInfo {
@@ -38,12 +38,12 @@ namespace Engine
             } front, back;
         } stencil_test;
 
-        struct AssemblyInfo {
+        struct ALIGNED(4) AssemblyInfo {
             PrimitiveTopology primitive_topology = PrimitiveTopology::TriangleList;
             bool primitive_restart_enable        = false;
         } input_assembly;
 
-        struct RasterizerInfo {
+        struct ALIGNED(4) RasterizerInfo {
             float depth_bias_const_factor = 0.0;
             float depth_bias_clamp        = 0.0;
             float depth_bias_slope_factor = 0.0;
@@ -58,7 +58,7 @@ namespace Engine
             FrontFace front_face     = FrontFace::CounterClockWise;
         } rasterizer;
 
-        struct ColorBlendAttachmentState {
+        struct ALIGNED(4) ColorBlendAttachmentState {
             bool enable                   = false;
             BlendFunc src_color_func      = BlendFunc::SrcColor;
             BlendFunc dst_color_func      = BlendFunc::OneMinusSrcColor;
@@ -69,12 +69,12 @@ namespace Engine
             ColorComponentMask color_mask = ColorComponentMask::RGBA;
         };
 
-        struct ColorBlendingInfo {
+        struct ALIGNED(4) ColorBlendingInfo {
             Vector<ColorBlendAttachmentState> blend_attachment;
             LogicOp logic_op         = LogicOp::And;
             Vector4D blend_constants = {0.f, 0.f, 0.f, 0.f};
             bool logic_op_enable     = false;
-        } color_blending;
+        } ALIGNED(4) color_blending;
 
     public:
         RenderPass* render_pass = nullptr;
@@ -83,5 +83,7 @@ namespace Engine
 
         Pipeline& rhi_create() override;
         const Pipeline& rhi_bind() const;
+
+        bool archive_process(class Archive& archive) override;
     };
 }// namespace Engine

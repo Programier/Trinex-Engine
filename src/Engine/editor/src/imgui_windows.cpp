@@ -452,9 +452,9 @@ namespace Engine
     }
 
 
-    static Vector<Struct*>* load_material_nodes()
+    static Map<String, Vector<class Struct*>>* load_material_nodes()
     {
-        static Vector<Struct*> nodes;
+        static Map<String, Vector<class Struct*>> nodes;
 
         if (nodes.empty())
         {
@@ -464,7 +464,7 @@ namespace Engine
             {
                 if (struct_instance && struct_instance != base && struct_instance->is_a(base))
                 {
-                    nodes.push_back(struct_instance);
+                    nodes[struct_instance->group().to_string()].push_back(struct_instance);
                 }
             }
         }
@@ -477,31 +477,57 @@ namespace Engine
         _M_nodes = load_material_nodes();
     }
 
-    static const char* get_material_nodes_name_default(void* userdata, int index)
-    {
-        return (*reinterpret_cast<Vector<Struct*>*>(userdata))[index]->base_name_splitted().c_str();
-    }
+
+    //         ImGui::Combo("editor/Node Type"_localized, &_M_current_index, get_material_nodes_name_default, _M_nodes,
+    // _M_nodes->size());
 
     bool ImGuiCreateNode::render(class RenderViewport* viewport)
     {
         bool open = true;
 
-        ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
+        static constexpr float bottom_content_height = 50.f;
+
+        ImGui::SetNextWindowSizeConstraints({300, 350}, ImGuiHelpers::construct_vec2<ImVec2>(viewport->size()));
+        ImGui::SetNextWindowSize(ImVec2(300, 350), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
         ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
 
-        ImGui::Combo("editor/Node Type"_localized, &_M_current_index, get_material_nodes_name_default, _M_nodes,
-                     _M_nodes->size());
+        ImGui::BeginChild("###Child", ImGui::GetContentRegionAvail() - ImVec2(0.f, bottom_content_height));
+
+        for (auto& [group, types] : *_M_nodes)
+        {
+            if (ImGui::CollapsingHeader(group.c_str()))
+            {
+                ImGui::Indent(15.f);
+
+                for (Struct* instance : types)
+                {
+                    if (ImGui::Selectable(instance->base_name_splitted().c_str(), instance == _M_selected))
+                    {
+                        _M_selected = instance;
+                    }
+                }
+
+                ImGui::Unindent(15.f);
+            }
+        }
+
+        ImGui::EndChild();
 
         ImGui::Separator();
 
-        if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
+        auto pos = ImGui::GetCursorPosX() + (ImGui::GetContentRegionAvail().x / 2) - 75.f;
+        ImGui::SetCursorPosX(pos);
+
+        if (_M_selected && ImGui::Button("editor/Create"_localized, {150, 25}))
         {
-            Struct* struct_instance = (*_M_nodes)[_M_current_index];
-            open                    = false;
-            _M_material->create_node(struct_instance);
+            open = false;
+            _M_material->create_node(_M_selected);
         }
+
+        ImGui::Separator();
+
 
         ImGui::End();
         return open;

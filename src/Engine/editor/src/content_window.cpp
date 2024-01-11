@@ -45,9 +45,11 @@ namespace Engine
         return true;
     }
 
+    extern float editor_scale_factor();
+
     bool ImGuiContentBrowser::render(RenderViewport* viewport)
     {
-        static const ImVec2 item_size = {100, 100};
+        const ImVec2 item_size = ImVec2(100, 100) * editor_scale_factor();
 
         bool open = true;
 
