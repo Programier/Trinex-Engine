@@ -22,6 +22,7 @@ namespace Engine
         Name _M_namespace_name;
         Name _M_base_name;
         Name _M_parent;
+        Name _M_group;
 
         mutable Struct* _M_parent_struct = nullptr;
 
@@ -43,6 +44,8 @@ namespace Engine
         Struct* parent() const;
         virtual void* create_struct() const;
         Struct& struct_constructor(void* (*constructor)());
+        Struct& group(const Name& name);
+        const Name& group() const;
 
         bool is_a(const Struct* other) const;
         virtual bool is_class() const;

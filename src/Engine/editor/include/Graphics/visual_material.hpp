@@ -13,16 +13,34 @@ namespace Engine
     };
 
     struct NodePin : VisualMaterialElement {
-        enum DataType : byte
+        enum DataType : EnumerateType
         {
-            Float = 0,
-            Int   = 1,
-        } data_type;
+            Bool  = BIT(0),
+            Int   = BIT(1),
+            UInt  = BIT(2),
+            Float = BIT(3),
+            BVec2 = BIT(4),
+            BVec3 = BIT(5),
+            BVec4 = BIT(6),
+            IVec2 = BIT(7),
+            IVec3 = BIT(8),
+            IVec4 = BIT(9),
+            UVec2 = BIT(10),
+            UVec3 = BIT(11),
+            UVec4 = BIT(12),
+            Vec2  = BIT(13),
+            Vec3  = BIT(14),
+            Vec4  = BIT(15),
+
+            All = ~static_cast<EnumerateType>(0)
+        };
+
+        EnumerateType data_type;
 
         Name name;
         struct Node* node = nullptr;
 
-        NodePin(struct Node*, Name name, DataType data);
+        NodePin(struct Node*, Name name, EnumerateType data);
     };
 
     struct OutputPin : public NodePin {
@@ -40,8 +58,9 @@ namespace Engine
         Vector<OutputPin*> output;
 
         Node& init();
-        virtual const char* name() const   = 0;
-        virtual EnumerateType type() const = 0;
+        virtual const char* name() const          = 0;
+        virtual EnumerateType type() const        = 0;
+        virtual class Struct* node_struct() const = 0;
         virtual ~Node();
     };
 

@@ -132,6 +132,17 @@ namespace Engine
         return *this;
     }
 
+    Struct& Struct::group(const Name& name)
+    {
+        _M_group = name;
+        return *this;
+    }
+
+    const Name& Struct::group() const
+    {
+        return _M_group;
+    }
+
     bool Struct::is_a(const Struct* other) const
     {
         const Struct* current = this;

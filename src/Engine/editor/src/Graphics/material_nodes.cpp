@@ -2,10 +2,13 @@
 #include <Graphics/material_nodes.hpp>
 #include <Graphics/visual_material.hpp>
 
+
 namespace Engine::MaterialNodes
 {
-#define declare_node(node_name, code)                                                                                            \
+#define declare_node(node_name, group_name, code)                                                                                \
     struct node_name : public Node {                                                                                             \
+        static Struct* node_struct_instance;                                                                                     \
+                                                                                                                                 \
         node_name& init() override                                                                                               \
         {                                                                                                                        \
             {                                                                                                                    \
@@ -23,26 +26,34 @@ namespace Engine::MaterialNodes
         {                                                                                                                        \
             return static_cast<EnumerateType>(MaterialNodes::Type::node_name);                                                   \
         }                                                                                                                        \
+                                                                                                                                 \
+        Struct* node_struct() const override                                                                                     \
+        {                                                                                                                        \
+            return node_struct_instance;                                                                                         \
+        }                                                                                                                        \
     };                                                                                                                           \
                                                                                                                                  \
+    Struct* node_name::node_struct_instance = nullptr;                                                                           \
+                                                                                                                                 \
     implement_struct(node_name, Engine::MaterialNodes, Engine::MaterialNodes::Node).push([]() {                                  \
-        Struct::static_find(MAKE_ENTITY_FULL_NAME(node_name, Engine::MaterialNodes), true)                                       \
-                ->struct_constructor(static_void_constructor_of<node_name>);                                                     \
+        node_name::node_struct_instance = &(Struct::static_find(MAKE_ENTITY_FULL_NAME(node_name, Engine::MaterialNodes), true)   \
+                                                    ->struct_constructor(static_void_constructor_of<node_name>)                  \
+                                                    .group(#group_name));                                                        \
     })
 
-    declare_node(Sin, {
+    declare_node(Sin, Math, {
         input.push_back(material->create_element<InputPin>(this, "In", NodePin::DataType::Float));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float));
     });
 
-    declare_node(Cos, {
+    declare_node(Cos, Math, {
         input.push_back(material->create_element<InputPin>(this, "In", NodePin::DataType::Float));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float));
     });
 
-    declare_node(Max, {
-        input.push_back(material->create_element<InputPin>(this, "A", NodePin::DataType::Float));
-        input.push_back(material->create_element<InputPin>(this, "B", NodePin::DataType::Float));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float));
+    declare_node(Max, Math, {
+        input.push_back(material->create_element<InputPin>(this, "A", NodePin::DataType::All));
+        input.push_back(material->create_element<InputPin>(this, "B", NodePin::DataType::All));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::All));
     });
 }// namespace Engine::MaterialNodes

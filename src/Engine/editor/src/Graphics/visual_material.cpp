@@ -62,7 +62,7 @@ namespace Engine
     VisualMaterialElement::~VisualMaterialElement()
     {}
 
-    NodePin::NodePin(struct Node* node, Name name, DataType data) : data_type(data), name(name), node(node)
+    NodePin::NodePin(struct Node* node, Name name, EnumerateType data) : data_type(data), name(name), node(node)
     {}
 
     // Nodes
@@ -107,6 +107,11 @@ namespace Engine
         EnumerateType type() const override
         {
             return static_cast<EnumerateType>(MaterialNodes::Type::GBufferRoot);
+        }
+
+        Struct* node_struct() const override
+        {
+            return nullptr;
         }
     };
 
