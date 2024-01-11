@@ -242,8 +242,12 @@ namespace Engine
         return *this;
     }
 
-    extern void render_material_nodes(VisualMaterial* material, void* editor_context);
+    class VisualMaterial* MaterialEditorClient::current_material() const
+    {
+        return _M_current_material;
+    }
 
+    extern void render_material_nodes(class MaterialEditorClient* client, void* editor_context);
 
     static bool render_viewport_popup(void* userdata)
     {
@@ -260,7 +264,13 @@ namespace Engine
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
         ImGui::Begin("editor/Material Graph###Material Graph"_localized);
-        render_material_nodes(_M_current_material, _M_editor_context);
+        render_material_nodes(this, _M_editor_context);
+
+        if (!_M_current_material)
+        {
+            ImGui::End();
+            return *this;
+        }
 
         if (ImGuiRenderer::IsWindowRectHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
         {

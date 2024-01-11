@@ -5,10 +5,33 @@ namespace Engine::MaterialNodes
 {
     enum class Type : EnumerateType
     {
-        GBufferRoot = 1,
+        GBufferRoot,
 
-        Sin = 10,
-        Cos = 11,
-        Max = 12,
+
+        // Constants group
+        Bool,
+        Int,
+        UInt,
+        Float,
+        BVec2,
+        BVec3,
+        BVec4,
+        IVec2,
+        IVec3,
+        IVec4,
+        UVec2,
+        UVec3,
+        UVec4,
+        Vec2,
+        Vec3,
+        Vec4,
+        Color,
+
+        // Math group
+        Sin,
+        Cos,
+        Max,
+
+
     };
 }

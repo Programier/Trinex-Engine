@@ -65,6 +65,31 @@ namespace Engine
     NodePin::NodePin(struct Node* node, Name name, EnumerateType data) : data_type(data), name(name), node(node)
     {}
 
+    void* NodePin::default_value()
+    {
+        return nullptr;
+    }
+
+    bool NodePin::is_input_pin() const
+    {
+        return false;
+    }
+
+    bool NodePin::is_output_pin() const
+    {
+        return false;
+    }
+
+    bool OutputPin::is_output_pin() const
+    {
+        return true;
+    }
+
+    bool InputPin::is_input_pin() const
+    {
+        return true;
+    }
+
     // Nodes
     Node& Node::init()
     {
@@ -95,7 +120,7 @@ namespace Engine
     struct GBufferRootNode : public Node {
         GBufferRootNode& init() override
         {
-            input.push_back(material->create_element<InputPin>(this, "Albedo", NodePin::DataType::Float));
+            input.push_back(material->create_element<ColorInputPin>(this, "Albedo"));
             return *this;
         }
 

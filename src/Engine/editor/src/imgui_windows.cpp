@@ -503,7 +503,7 @@ namespace Engine
 
                 for (Struct* instance : types)
                 {
-                    if (ImGui::Selectable(instance->base_name_splitted().c_str(), instance == _M_selected))
+                    if (ImGui::Selectable(instance->base_name().c_str(), instance == _M_selected))
                     {
                         _M_selected = instance;
                     }

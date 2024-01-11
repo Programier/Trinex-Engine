@@ -42,12 +42,12 @@ namespace Engine::MaterialNodes
     })
 
     declare_node(Sin, Math, {
-        input.push_back(material->create_element<InputPin>(this, "In", NodePin::DataType::Float));
+        input.push_back(material->create_element<FloatInputPin>(this, "In"));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float));
     });
 
     declare_node(Cos, Math, {
-        input.push_back(material->create_element<InputPin>(this, "In", NodePin::DataType::Float));
+        input.push_back(material->create_element<FloatInputPin>(this, "In"));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float));
     });
 
@@ -56,4 +56,26 @@ namespace Engine::MaterialNodes
         input.push_back(material->create_element<InputPin>(this, "B", NodePin::DataType::All));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::All));
     });
+
+
+#define declare_constant(const_name)                                                                                             \
+    declare_node(const_name, Constants, { output.push_back(material->create_element<const_name##OutputPin>(this, "Out")); })
+
+    declare_constant(Bool);
+    declare_constant(Int);
+    declare_constant(UInt);
+    declare_constant(Float);
+    declare_constant(BVec2);
+    declare_constant(BVec3);
+    declare_constant(BVec4);
+    declare_constant(IVec2);
+    declare_constant(IVec3);
+    declare_constant(IVec4);
+    declare_constant(UVec2);
+    declare_constant(UVec3);
+    declare_constant(UVec4);
+    declare_constant(Vec2);
+    declare_constant(Vec3);
+    declare_constant(Vec4);
+    declare_constant(Color);
 }// namespace Engine::MaterialNodes
