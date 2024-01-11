@@ -3,6 +3,7 @@
 #include <Core/package.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Graphics/visual_material.hpp>
 #include <imfilebrowser.h>
 #include <imgui_class_property.hpp>
 #include <imgui_windows.hpp>
@@ -448,6 +449,67 @@ namespace Engine
     const char* ImGuiSceneTree::name()
     {
         return "editor/Scene Tree Title"_localized;
+    }
+
+
+    static Vector<Struct*>* load_material_nodes()
+    {
+        static Vector<Struct*> nodes;
+
+        if (nodes.empty())
+        {
+            Struct* base = Struct::static_find("Engine::MaterialNodes::Node", true);
+
+            for (auto& [name, struct_instance] : Struct::struct_map())
+            {
+                if (struct_instance && struct_instance != base && struct_instance->is_a(base))
+                {
+                    nodes.push_back(struct_instance);
+                }
+            }
+        }
+
+        return &nodes;
+    }
+
+    ImGuiCreateNode::ImGuiCreateNode(class VisualMaterial* material) : _M_material(material)
+    {
+        _M_nodes = load_material_nodes();
+    }
+
+    static const char* get_material_nodes_name_default(void* userdata, int index)
+    {
+        return (*reinterpret_cast<Vector<Struct*>*>(userdata))[index]->base_name_splitted().c_str();
+    }
+
+    bool ImGuiCreateNode::render(class RenderViewport* viewport)
+    {
+        bool open = true;
+
+        ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
+
+        ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
+
+        ImGui::Combo("editor/Node Type"_localized, &_M_current_index, get_material_nodes_name_default, _M_nodes,
+                     _M_nodes->size());
+
+        ImGui::Separator();
+
+        if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
+        {
+            Struct* struct_instance = (*_M_nodes)[_M_current_index];
+            open                    = false;
+            _M_material->create_node(struct_instance);
+        }
+
+        ImGui::End();
+        return open;
+    }
+
+    const char* ImGuiCreateNode::name()
+    {
+        return "editor/Create Node"_localized;
     }
 
 }// namespace Engine

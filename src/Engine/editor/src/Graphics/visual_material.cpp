@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Graphics/material_nodes.hpp>
 #include <Graphics/visual_material.hpp>
 
 
@@ -20,6 +21,27 @@ namespace Engine
     Identifier VisualMaterial::next_id()
     {
         return _M_next_id++;
+    }
+
+
+    VisualMaterial& VisualMaterial::on_element_created(VisualMaterialElement* element)
+    {
+        element->id       = next_id();
+        element->material = this;
+        element->init();
+        return *this;
+    }
+
+    Node* VisualMaterial::create_node(class Struct* node_struct)
+    {
+        Node* node = reinterpret_cast<Node*>(node_struct->create_struct());
+
+        if (node == nullptr)
+            return nullptr;
+
+        _M_nodes.insert(node);
+        on_element_created(node);
+        return node;
     }
 
     VisualMaterial::~VisualMaterial()
@@ -67,25 +89,29 @@ namespace Engine
         output.clear();
     }
 
-    struct SinNode : public Node {
-        SinNode& init() override
+    implement_struct(Node, Engine::MaterialNodes, );
+
+
+    struct GBufferRootNode : public Node {
+        GBufferRootNode& init() override
         {
-            input.push_back(material->create_element<InputPin>(this, "Value", NodePin::DataType::Float));
-            output.push_back(material->create_element<OutputPin>(this, "Output", NodePin::DataType::Float));
+            input.push_back(material->create_element<InputPin>(this, "Albedo", NodePin::DataType::Float));
             return *this;
         }
 
-        const char* name() override
+        const char* name() const override
         {
-            return "Sin";
+            return "GBuffer Root";
+        }
+
+        EnumerateType type() const override
+        {
+            return static_cast<EnumerateType>(MaterialNodes::Type::GBufferRoot);
         }
     };
 
     VisualMaterial::VisualMaterial()
     {
-        _M_root_node = create_element<SinNode>();
-        create_element<SinNode>();
-        create_element<SinNode>();
-        create_element<SinNode>();
+        _M_root_node = create_element<GBufferRootNode>();
     }
 }// namespace Engine

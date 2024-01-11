@@ -438,10 +438,7 @@ namespace Engine::ImGuiRenderer
                 }
             }
 
-            auto pos     = ImGui::GetWindowPos();
-            auto end_pos = pos + ImGui::GetWindowSize();
-
-            bool hovered = ImGui::IsMouseHoveringRect(pos, end_pos);
+            bool hovered = IsWindowRectHovered();
 
             if (!ImGui::IsWindowAppearing() && !hovered)
             {
@@ -460,5 +457,13 @@ namespace Engine::ImGuiRenderer
         }
 
         return status;
+    }
+
+    bool ENGINE_EXPORT IsWindowRectHovered()
+    {
+        auto pos     = ImGui::GetWindowPos();
+        auto end_pos = pos + ImGui::GetWindowSize();
+
+        return ImGui::IsMouseHoveringRect(pos, end_pos);
     }
 }// namespace Engine::ImGuiRenderer

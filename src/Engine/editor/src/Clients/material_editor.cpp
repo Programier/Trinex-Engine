@@ -7,13 +7,13 @@
 #include <Core/package.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
-#include <imnodes.h>
-#include <Graphics/material.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/visual_material.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
 #include <imgui_internal.h>
 #include <imgui_windows.hpp>
+#include <imnodes.h>
 #include <theme.hpp>
 
 
@@ -138,7 +138,7 @@ namespace Engine
 
     void MaterialEditorClient::on_object_select(Object* object)
     {
-        _M_current_material = object;
+        _M_current_material = Object::instance_cast<VisualMaterial>(object);
         if (_M_properties)
         {
             _M_properties->object = object;
@@ -220,7 +220,7 @@ namespace Engine
             ImGui::DockBuilderDockWindow(ImGuiPackageTree::name(), dock_id_left);
             ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
             ImGui::DockBuilderDockWindow(ImGuiContentBrowser::name(), dock_id_down);
-            ImGui::DockBuilderDockWindow("editor/Material Viewport###Material Viewport"_localized, dock_id);
+            ImGui::DockBuilderDockWindow("editor/Material Graph###Material Graph"_localized, dock_id);
 
             ImGui::DockBuilderFinish(dock_id);
         }
@@ -242,12 +242,38 @@ namespace Engine
         return *this;
     }
 
-    extern void render_material_nodes(Object* object, void* editor_context);
+    extern void render_material_nodes(VisualMaterial* material, void* editor_context);
+
+
+    static bool render_viewport_popup(void* userdata)
+    {
+        VisualMaterial* material = reinterpret_cast<VisualMaterial*>(userdata);
+        if (material && ImGui::Button("Create new node"_localized))
+        {
+            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNode>(material);
+            return false;
+        }
+
+        return true;
+    }
 
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
-        ImGui::Begin("editor/Material Viewport###Material Viewport"_localized);
+        ImGui::Begin("editor/Material Graph###Material Graph"_localized);
         render_material_nodes(_M_current_material, _M_editor_context);
+
+        if (ImGuiRenderer::IsWindowRectHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        {
+            _M_open_viewport_popup = true;
+        }
+
+        if (_M_open_viewport_popup)
+        {
+            const char* name = "editor/Menu"_localized;
+            ImGui::OpenPopup(name);
+            _M_open_viewport_popup = ImGuiRenderer::BeginPopup(name, 0, render_viewport_popup, _M_current_material);
+        }
+
         ImGui::End();
         return *this;
     }

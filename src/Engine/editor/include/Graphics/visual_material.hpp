@@ -39,10 +39,9 @@ namespace Engine
         Vector<InputPin*> input;
         Vector<OutputPin*> output;
 
-        bool is_hovered = false;
-
         Node& init();
-        virtual const char* name() = 0;
+        virtual const char* name() const   = 0;
+        virtual EnumerateType type() const = 0;
         virtual ~Node();
     };
 
@@ -56,10 +55,15 @@ namespace Engine
         Node* _M_root_node = nullptr;
         Set<Node*> _M_nodes;
 
+
+        VisualMaterial& on_element_created(VisualMaterialElement* element);
+
     public:
         Node* root_node() const;
         const Set<Node*>& nodes() const;
         Identifier next_id();
+        Node* create_node(class Struct*);
+
 
         template<typename Type, typename... Args>
         Type* create_element(Args&&... args)
@@ -69,9 +73,7 @@ namespace Engine
             {
                 _M_nodes.insert(element);
             }
-            element->id       = next_id();
-            element->material = this;
-            element->init();
+            on_element_created(element);
             return element;
         }
 

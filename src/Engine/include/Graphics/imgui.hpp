@@ -170,6 +170,8 @@ namespace Engine::ImGuiRenderer
     bool ENGINE_EXPORT BeginPopup(const char* name, ImGuiWindowFlags flags = 0, bool (*callback)(void*) = nullptr,
                                   void* userdata = nullptr);
 
+    bool ENGINE_EXPORT IsWindowRectHovered();
+
 
     template<typename Instance>
     FORCE_INLINE bool BeginPopup(const char* name, ImGuiWindowFlags flags = 0,

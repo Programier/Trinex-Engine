@@ -54,4 +54,10 @@ namespace Engine
     {
         return new Type(std::forward<Args>(args)...);
     }
+
+    template<typename Type, typename... Args>
+    FORCE_INLINE void* static_void_constructor_of(Args&&... args)
+    {
+        return new Type(std::forward<Args>(args)...);
+    }
 }// namespace Engine

@@ -15,10 +15,11 @@ namespace Engine
 
         void* _M_editor_context = nullptr;
 
-        class RenderViewport* _M_viewport = nullptr;
-        class Object* _M_current_material = nullptr;
-        bool _M_open_package_popup        = false;
-        size_t _M_frame                   = 0;
+        class RenderViewport* _M_viewport         = nullptr;
+        class VisualMaterial* _M_current_material = nullptr;
+
+        bool _M_open_viewport_popup = false;
+        size_t _M_frame             = 0;
 
     public:
         void on_package_tree_close();

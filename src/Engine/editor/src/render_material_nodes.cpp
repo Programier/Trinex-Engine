@@ -121,13 +121,9 @@ namespace Engine
         }
     }
 
-    void render_material_nodes(Object* object, void* editor_context)
+    void render_material_nodes(VisualMaterial* material, void* editor_context)
     {
-        ImNodes::SetCurrentContext(reinterpret_cast<ImNodesContext*>(editor_context));
-
         ImNodes::BeginNodeEditor();
-
-        VisualMaterial* material = Object::instance_cast<VisualMaterial>(object);
 
         if (material)
         {

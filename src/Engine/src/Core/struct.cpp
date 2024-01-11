@@ -5,9 +5,7 @@
 
 namespace Engine
 {
-    using StructMap = Map<String, Struct*>;
-
-    static StructMap& struct_map()
+    static StructMap& internal_struct_map()
     {
         static StructMap map;
         return map;
@@ -15,19 +13,19 @@ namespace Engine
 
     static void on_destroy()
     {
-        for (auto& [name, struct_entry] : struct_map())
+        for (auto& [name, struct_entry] : internal_struct_map())
         {
             delete struct_entry;
         }
 
-        struct_map().clear();
+        internal_struct_map().clear();
     }
 
     static PostDestroyController destroy_struct_map(on_destroy);
 
 
-    Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent, void* (*constructor)())
-        : _M_struct_constructor(constructor), _M_namespace_name(namespace_name), _M_base_name(name), _M_parent(_parent)
+    Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent)
+        : _M_struct_constructor(nullptr), _M_namespace_name(namespace_name), _M_base_name(name), _M_parent(_parent)
     {
         _M_full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
         _M_base_name_splitted = Strings::make_sentence(_M_base_name.to_string());
@@ -37,11 +35,10 @@ namespace Engine
             parent();
         }
 
-        struct_map()[_M_full_name] = this;
+        internal_struct_map()[_M_full_name] = this;
     }
 
-    Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent, void* (*constructor)())
-        : Struct(name, namespace_name, Name::none, constructor)
+    Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent) : Struct(name, namespace_name)
     {
         _M_parent_struct = parent;
         if (_M_parent_struct)
@@ -50,14 +47,14 @@ namespace Engine
         }
     }
 
-    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& namespace_name, const Name& parent, void* (*constructor)())
+    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& namespace_name, const Name& parent)
     {
         Name full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
         Struct* self   = static_find(full_name);
 
         if (!self)
         {
-            self = new Struct(name, namespace_name, parent, constructor);
+            self = new Struct(name, namespace_name, parent);
         }
 
         return self;
@@ -65,7 +62,7 @@ namespace Engine
 
     ENGINE_EXPORT Struct* Struct::static_find(const String& name, bool requred)
     {
-        auto& map = struct_map();
+        auto& map = internal_struct_map();
         auto it   = map.find(name);
         if (it == map.end())
         {
@@ -129,6 +126,12 @@ namespace Engine
         return nullptr;
     }
 
+    Struct& Struct::struct_constructor(void* (*constructor)())
+    {
+        _M_struct_constructor = constructor;
+        return *this;
+    }
+
     bool Struct::is_a(const Struct* other) const
     {
         const Struct* current = this;
@@ -159,6 +162,11 @@ namespace Engine
     const Struct::GroupedPropertiesMap& Struct::grouped_properties() const
     {
         return _M_grouped_properties;
+    }
+
+    const StructMap& Struct::struct_map()
+    {
+        return internal_struct_map();
     }
 
     Struct::~Struct()

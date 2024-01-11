@@ -5,6 +5,8 @@
 
 namespace Engine
 {
+    using StructMap = Map<String, class Struct*>;
+
     class ENGINE_EXPORT Struct
     {
     public:
@@ -26,12 +28,11 @@ namespace Engine
         Vector<class Property*> _M_properties;
         GroupedPropertiesMap _M_grouped_properties;
 
-        Struct(const Name& name, const Name& namespace_name, const Name& parent = Name::none, void* (*constructor)() = nullptr);
-        Struct(const Name& name, const Name& namespace_name, Struct* parent, void* (*constructor)() = nullptr);
+        Struct(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
+        Struct(const Name& name, const Name& namespace_name, Struct* parent);
 
     public:
-        static ENGINE_EXPORT Struct* create(const Name& name, const Name& namespace_name, const Name& parent = Name::none,
-                                            void* (*constructor)() = nullptr);
+        static ENGINE_EXPORT Struct* create(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
         static ENGINE_EXPORT Struct* static_find(const String& name, bool requred = false);
 
         const String& base_name_splitted() const;
@@ -41,6 +42,7 @@ namespace Engine
         const Name& parent_name() const;
         Struct* parent() const;
         virtual void* create_struct() const;
+        Struct& struct_constructor(void* (*constructor)());
 
         bool is_a(const Struct* other) const;
         virtual bool is_class() const;
@@ -48,6 +50,8 @@ namespace Engine
         Struct& add_property(Property* prop);
         const Vector<class Property*>& properties() const;
         const GroupedPropertiesMap& grouped_properties() const;
+        static const StructMap& struct_map();
+
 
         template<typename... Args>
         Struct& add_properties(Args&&... args)
@@ -60,10 +64,7 @@ namespace Engine
     };
 
 #define implement_struct(struct_name, namespace_name, parent_struct_name)                                                        \
-    Engine::InitializeController initialize_##struct_name = Engine::InitializeController(                                        \
-            []() {                                                                                                               \
-                Engine::Struct::create(#struct_name, #namespace_name, #parent_struct_name,                                       \
-                                       []() -> void* { return new CONCAT_TYPE_AND_NAMESPACE(struct_name, namespace_name)(); });  \
-            },                                                                                                                   \
-            ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
+    Engine::InitializeController initialize_##struct_name =                                                                      \
+            Engine::InitializeController([]() { Engine::Struct::create(#struct_name, #namespace_name, #parent_struct_name); },   \
+                                         ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
 }// namespace Engine
