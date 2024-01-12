@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <Window/window_manager_interface.hpp>
 
 namespace Engine

@@ -1170,8 +1170,12 @@ static void             UpdateViewportPlatformMonitor(ImGuiViewportP* viewport);
 //   - If you need a finite number of contexts, you may compile and use multiple instances of the ImGui code from a different namespace.
 // - DLL users: read comments above.
 #ifndef GImGui
-thread_local ImGuiContext*   GImGui = NULL;
 #endif
+ImGuiContext*& get_current_imgui_context()
+{
+    static thread_local ImGuiContext* current_context = nullptr;
+    return current_context;
+}
 
 // Memory Allocator functions. Use SetAllocatorFunctions() to change them.
 // - You probably don't want to modify that mid-program, and if you use global/static e.g. ImVector<> instances you may need to keep them accessible during program destruction.
