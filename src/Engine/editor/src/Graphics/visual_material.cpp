@@ -18,17 +18,13 @@ namespace Engine
         return _M_nodes;
     }
 
-    Identifier VisualMaterial::next_id()
-    {
-        return _M_next_id++;
-    }
-
 
     VisualMaterial& VisualMaterial::on_element_created(VisualMaterialElement* element)
     {
-        element->id       = next_id();
+        element->id       = 0;
         element->material = this;
         element->init();
+        element->update_id();
         return *this;
     }
 
@@ -59,6 +55,12 @@ namespace Engine
         return *this;
     }
 
+    VisualMaterialElement& VisualMaterialElement::update_id()
+    {
+        id = reinterpret_cast<Identifier>(this);
+        return *this;
+    }
+
     VisualMaterialElement::~VisualMaterialElement()
     {}
 
@@ -85,14 +87,40 @@ namespace Engine
         return true;
     }
 
+    NodePin::PinType OutputPin::type() const
+    {
+        return NodePin::Output;
+    }
+
     bool InputPin::is_input_pin() const
     {
         return true;
     }
 
+    NodePin::PinType InputPin::type() const
+    {
+        return NodePin::Input;
+    }
+
     // Nodes
     Node& Node::init()
     {
+        return *this;
+    }
+
+    Node& Node::update_id()
+    {
+        VisualMaterialElement::update_id();
+        for (NodePin* pin : input)
+        {
+            pin->update_id();
+        }
+
+        for (NodePin* pin : input)
+        {
+            pin->update_id();
+        }
+
         return *this;
     }
 
@@ -121,6 +149,9 @@ namespace Engine
         GBufferRootNode& init() override
         {
             input.push_back(material->create_element<ColorInputPin>(this, "Albedo"));
+            input.push_back(material->create_element<Vec3InputPin>(this, "Position"));
+            input.push_back(material->create_element<Vec3InputPin>(this, "Normal"));
+            input.push_back(material->create_element<Vec3InputPin>(this, "Specular"));
             return *this;
         }
 

@@ -7,7 +7,9 @@ namespace Engine
     struct VisualMaterialElement {
         Identifier id;
         class VisualMaterial* material = nullptr;
+        Vector2D position;
 
+        virtual VisualMaterialElement& update_id();
         virtual VisualMaterialElement& init();
         virtual ~VisualMaterialElement();
     };
@@ -16,7 +18,10 @@ namespace Engine
         Vector<struct InputPin*> input;
         Vector<struct OutputPin*> output;
 
+        // Render data
+
         Node& init();
+        virtual Node& update_id();
         virtual const char* name() const          = 0;
         virtual EnumerateType type() const        = 0;
         virtual class Struct* node_struct() const = 0;
@@ -47,8 +52,13 @@ namespace Engine
             All = ~static_cast<EnumerateType>(0)
         };
 
-        EnumerateType data_type;
+        enum PinType
+        {
+            Input,
+            Output,
+        };
 
+        EnumerateType data_type;
         Name name;
         struct Node* node = nullptr;
 
@@ -56,12 +66,14 @@ namespace Engine
         virtual void* default_value();
         virtual bool is_input_pin() const;
         virtual bool is_output_pin() const;
+        virtual PinType type() const = 0;
     };
 
     struct OutputPin : public NodePin {
         using NodePin::NodePin;
 
         bool is_output_pin() const override;
+        PinType type() const override;
     };
 
     struct InputPin : public NodePin {
@@ -69,6 +81,7 @@ namespace Engine
         using NodePin::NodePin;
 
         bool is_input_pin() const override;
+        PinType type() const override;
     };
 
     template<typename Type, auto enum_value>
@@ -144,8 +157,6 @@ namespace Engine
         declare_class(VisualMaterial, Material);
 
     private:
-        Identifier _M_next_id = 0;
-
         Node* _M_root_node = nullptr;
         Set<Node*> _M_nodes;
 

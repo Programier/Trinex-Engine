@@ -12,8 +12,8 @@
 #include <Window/window.hpp>
 #include <dock_window.hpp>
 #include <imgui_internal.h>
+#include <imgui_node_editor.h>
 #include <imgui_windows.hpp>
-#include <imnodes.h>
 #include <theme.hpp>
 
 
@@ -111,8 +111,14 @@ namespace Engine
         create_package_tree().create_properties_window().create_content_browser();
 
         // Create imgui node editor context
-        auto context = ImNodes::CreateContext();
-        imgui_window->on_destroy.push([context]() { ImNodes::DestroyContext(context); });
+        ax::NodeEditor::Config config;
+        config.NavigateButtonIndex = ImGuiMouseButton_Middle;
+        config.SettingsFile        = nullptr;
+
+        auto context = ax::NodeEditor::CreateEditor(&config);
+        imgui_window->on_destroy.push([context]() { ax::NodeEditor::DestroyEditor(context); });
+
+
         _M_editor_context = context;
 
         ImGuiRenderer::Window::make_current(prev_window);

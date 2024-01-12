@@ -12,6 +12,11 @@ namespace Engine
         return 1.0f;
     }
 
+    float editor_font_size()
+    {
+        return trinex_editor_font_size;
+    }
+
     void initialize_theme(ImGuiContext* ctx)
     {
 
