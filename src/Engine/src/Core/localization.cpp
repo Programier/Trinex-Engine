@@ -121,7 +121,10 @@ namespace Engine
                     {
                         key = (FS::relative(entry.path(), path).stem() / key).string();
                         if (FS::path::preferred_separator != '/')
-                            std::replace(key.begin(), key.end(), FS::path::preferred_separator, '/');
+                        {
+                            std::replace(key.begin(), key.end(), static_cast<char>(FS::path::preferred_separator), '/');
+                        }
+
                         HashIndex hash = memory_hash_fast(key.c_str(), key.length());
                         out[hash]      = value;
                     }
@@ -182,7 +185,7 @@ namespace Engine
         return Localization::instance()->localize(line);
     }
 
-    const char* operator""_localized(const char* line, size_t len)
+    ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len)
     {
         return Localization::instance()->localize(line, len).c_str();
     }

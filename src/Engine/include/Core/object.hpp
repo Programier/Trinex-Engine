@@ -17,7 +17,7 @@ namespace Engine
     using MessageList = List<String>;
 
 
-    const char* operator""_localized(const char* line, size_t len);
+    ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
 
     enum class ObjectRenameStatus
     {

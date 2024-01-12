@@ -24,7 +24,7 @@ namespace Engine
         declare_class(GBuffer, EngineRenderTarget);
 
     public:
-        struct Frame : public RenderTarget::Frame {
+        struct ENGINE_EXPORT Frame : public RenderTarget::Frame {
             Texture2D* albedo() const;
             Texture2D* position() const;
             Texture2D* normal() const;
@@ -48,7 +48,7 @@ namespace Engine
         declare_class(SceneColorOutput, EngineRenderTarget);
 
     public:
-        struct Frame : public RenderTarget::Frame {
+        struct ENGINE_EXPORT Frame : public RenderTarget::Frame {
             Texture2D* texture() const;
         };
 

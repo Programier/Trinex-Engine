@@ -70,9 +70,9 @@ namespace Engine::ImGuiRenderer
     };
 
 
-    class ImGuiAdditionalWindowList;
+    class ENGINE_EXPORT ImGuiAdditionalWindowList;
 
-    class ImGuiAdditionalWindow
+    class ENGINE_EXPORT ImGuiAdditionalWindow
     {
     public:
         size_t frame_number = 0;
@@ -88,7 +88,7 @@ namespace Engine::ImGuiRenderer
     };
 
 
-    class ImGuiAdditionalWindowList final
+    class ENGINE_EXPORT ImGuiAdditionalWindowList final
     {
         struct Node {
             ImGuiAdditionalWindow* window = nullptr;

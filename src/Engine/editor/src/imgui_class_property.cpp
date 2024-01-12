@@ -190,7 +190,7 @@ namespace Engine
 
         Path path = std::any_cast<Path>(value);
 
-        if (ImGui::Selectable(Strings::format("{}: {}", prop->name().c_str(), path.c_str()).c_str()))
+        if (ImGui::Selectable(Strings::format("{}: {}", prop->name().c_str(), path.string().c_str()).c_str()))
         {
             Function<void(Package*, const Path&)> callback = [object, prop](Package*, const Path& path) {
                 prop->property_value(object, FS::relative(path));
