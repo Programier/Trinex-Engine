@@ -25,7 +25,7 @@ namespace Engine
 
         // Initialize fonts
         auto& io              = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto/Roboto-Regular.ttf", trinex_editor_font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto/Roboto-Bold.ttf", trinex_editor_font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
         ImGuiStyle& style = ImGui::GetStyle();
 

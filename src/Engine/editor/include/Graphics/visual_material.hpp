@@ -11,6 +11,7 @@ namespace Engine
 
         virtual VisualMaterialElement& update_id();
         virtual VisualMaterialElement& init();
+        virtual bool is_removable_element();
         virtual ~VisualMaterialElement();
     };
 
@@ -58,7 +59,7 @@ namespace Engine
             Output,
         };
 
-        EnumerateType data_type;
+        EnumerateType data_types;
         Name name;
         struct Node* node = nullptr;
 
@@ -70,6 +71,8 @@ namespace Engine
     };
 
     struct OutputPin : public NodePin {
+        Set<InputPin*> linked_to;
+
         using NodePin::NodePin;
 
         bool is_output_pin() const override;

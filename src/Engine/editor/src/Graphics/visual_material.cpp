@@ -55,6 +55,11 @@ namespace Engine
         return *this;
     }
 
+    bool VisualMaterialElement::is_removable_element()
+    {
+        return true;
+    }
+
     VisualMaterialElement& VisualMaterialElement::update_id()
     {
         id = reinterpret_cast<Identifier>(this);
@@ -64,7 +69,7 @@ namespace Engine
     VisualMaterialElement::~VisualMaterialElement()
     {}
 
-    NodePin::NodePin(struct Node* node, Name name, EnumerateType data) : data_type(data), name(name), node(node)
+    NodePin::NodePin(struct Node* node, Name name, EnumerateType data) : data_types(data), name(name), node(node)
     {}
 
     void* NodePin::default_value()
@@ -145,8 +150,8 @@ namespace Engine
     implement_struct(Node, Engine::MaterialNodes, );
 
 
-    struct GBufferRootNode : public Node {
-        GBufferRootNode& init() override
+    struct MaterialRootNode : public Node {
+        MaterialRootNode& init() override
         {
             input.push_back(material->create_element<ColorInputPin>(this, "Albedo"));
             input.push_back(material->create_element<Vec3InputPin>(this, "Position"));
@@ -157,12 +162,17 @@ namespace Engine
 
         const char* name() const override
         {
-            return "GBuffer Root";
+            return "Material";
         }
 
         EnumerateType type() const override
         {
             return static_cast<EnumerateType>(MaterialNodes::Type::GBufferRoot);
+        }
+
+        bool is_removable_element() override
+        {
+            return false;
         }
 
         Struct* node_struct() const override
@@ -173,6 +183,6 @@ namespace Engine
 
     VisualMaterial::VisualMaterial()
     {
-        _M_root_node = create_element<GBufferRootNode>();
+        _M_root_node = create_element<MaterialRootNode>();
     }
 }// namespace Engine

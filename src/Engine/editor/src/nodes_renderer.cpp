@@ -62,7 +62,7 @@ namespace Engine
 
     static FORCE_INLINE float pin_item_len(NodePin* pin)
     {
-        EnumerateType type       = pin->data_type;
+        EnumerateType type       = pin->data_types;
         bool is_small            = is_small_type(type);
         float spacing_multiplier = type & is_boolean_type ? 2.0 : 1.f;
         float item_width;
@@ -105,7 +105,7 @@ namespace Engine
 
     static FORCE_INLINE void render_typed_pin_content(NodePin* pin, void* data, int max_len, float max_item_len)
     {
-        NodePin::DataType type = static_cast<NodePin::DataType>(pin->data_type);
+        NodePin::DataType type = static_cast<NodePin::DataType>(pin->data_types);
 
         ImGui::PushID(pin->name.c_str());
 
@@ -388,31 +388,47 @@ namespace Engine
             {
                 NodePin* input_pin  = input.AsPointer<InputPin>();
                 NodePin* output_pin = output.AsPointer<OutputPin>();
+
+                if (input_pin->type() != NodePin::Input)
+                {
+                    std::swap(input_pin, output_pin);
+                }
+
                 if (input_pin == output_pin)
                 {
                     ed::RejectNewItem();
                 }
                 else if (input_pin->type() == output_pin->type())
                 {
-                    show_link_label("Incorrect link", ImColor(255, 0, 0), ImColor(255, 255, 255, 255));
+                    show_link_label("editor/Cannot create link to same pin type"_localized, ImColor(255, 0, 0),
+                                    ImColor(255, 255, 255, 255));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), link_trickess);
                 }
                 else if (input_pin->node == output_pin->node)
                 {
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 15.f * editor_scale_factor());
-                    show_link_label("Incorrect link", ImColor(255, 0, 0), ImColor(255, 255, 255, 255));
+                    show_link_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0),
+                                    ImColor(255, 255, 255, 255));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), link_trickess);
                 }
                 else if (ed::AcceptNewItem())
                 {
-                    if (input_pin->type() != NodePin::Input)
-                    {
-                        std::swap(input_pin, output_pin);
-                    }
+                    InputPin* in   = reinterpret_cast<InputPin*>(input_pin);
+                    OutputPin* out = reinterpret_cast<OutputPin*>(output_pin);
 
-                    reinterpret_cast<InputPin*>(input_pin)->linked_to = reinterpret_cast<OutputPin*>(output_pin);
-                    info_log("Material Editor", "Create link from '%s->%s' to %s->%s", output_pin->node->name(),
-                             output_pin->name.c_str(), input_pin->node->name(), input_pin->name.c_str());
+                    if (in->linked_to != out)
+                    {
+                        if (in->linked_to)
+                        {
+                            in->linked_to->linked_to.erase(in);
+                        }
+
+                        in->linked_to = out;
+                        out->linked_to.insert(in);
+
+                        info_log("Material Editor", "Create link from '%s->%s' to %s->%s", output_pin->node->name(),
+                                 output_pin->name.c_str(), input_pin->node->name(), input_pin->name.c_str());
+                    }
                 }
             }
         }
@@ -425,10 +441,66 @@ namespace Engine
         {
             if (pin->linked_to)
             {
-                ed::Link(reinterpret_cast<Identifier>(&pin->linked_to), pin->id, pin->linked_to->id, ImColor(0, 149, 220),
-                         link_trickess);
+                ed::Link(reinterpret_cast<Identifier>(pin) - 1, pin->id, pin->linked_to->id, ImColor(0, 149, 220), link_trickess);
             }
         }
+    }
+
+
+    static void remove_link(InputPin* input)
+    {
+        if (input->linked_to)
+        {
+            input->linked_to->linked_to.erase(input);
+            input->linked_to = nullptr;
+        }
+    }
+
+    static void delete_selected_items()
+    {
+        size_t objects = ed::GetSelectedObjectCount();
+        byte* _data    = new byte[objects * glm::max(sizeof(ed::NodeId), sizeof(ed::PinId))];
+
+        {
+            ed::NodeId* nodes = reinterpret_cast<ed::NodeId*>(_data);
+            for (int i = 0, count = ed::GetSelectedNodes(nodes, objects); i < count; i++)
+            {
+                Node* node = nodes[i].AsPointer<Node>();
+
+                if (node->is_removable_element())
+                {
+                    for (InputPin* in : node->input)
+                    {
+                        remove_link(in);
+                    }
+
+                    for (OutputPin* out : node->output)
+                    {
+                        while (!out->linked_to.empty())
+                        {
+                            InputPin* in = *out->linked_to.begin();
+                            remove_link(in);
+                        }
+                    }
+
+                    delete node;
+                }
+            }
+        }
+
+        {
+            ed::LinkId* links = reinterpret_cast<ed::LinkId*>(_data);
+            for (int i = 0, count = ed::GetSelectedLinks(links, objects); i < count; i++)
+            {
+                InputPin* pin = reinterpret_cast<InputPin*>(static_cast<Identifier>(links[i]) + 1);
+                if (pin)
+                {
+                    remove_link(pin);
+                }
+            }
+        }
+
+        delete[] _data;
     }
 
     void render_material_nodes(class MaterialEditorClient* client, void* editor_context)
@@ -454,6 +526,12 @@ namespace Engine
         }
 
         check_creating_links(material);
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+        {
+            delete_selected_items();
+        }
+
         ed::End();
 
         ed::SetCurrentEditor(nullptr);
