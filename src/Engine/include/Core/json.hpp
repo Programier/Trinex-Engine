@@ -63,21 +63,21 @@ namespace Engine::JSON
         template<typename T>
         T get()
         {
-            return std::any_cast<T>(_M_value);
+            return _M_value.cast<T>();
         }
 
         template<typename T>
-        T get() const
+        const T get() const
         {
-            return std::any_cast<T>(_M_value);
+            return _M_value.cast<const T>();
         }
 
         template<typename T>
-        T checked_get(const std::decay_t<T>& default_value = {}) const
+        const T checked_get(const std::decay_t<T>& default_value = {}) const
         {
             try
             {
-                return std::any_cast<T>(_M_value);
+                return _M_value.cast<const T>();
             }
             catch (...)
             {

@@ -212,7 +212,7 @@ namespace Engine
             const Arguments::Argument* argument = _M_args.find("libs");
             if (argument && argument->type == Arguments::Type::Array)
             {
-                for (const String& library : std::any_cast<Arguments::ArrayType>(argument->data))
+                for (const String& library : argument->data.cast<const Arguments::ArrayType&>())
                 {
                     Library().load(library);
                 }
@@ -331,6 +331,10 @@ namespace Engine
         request_exit();
         _M_flags(IsShutingDown, true);
         info_log("EngineInstance", "Terminate Engine");
+
+        EngineSystem* engine_system = EngineSystem::instance();
+        if (engine_system)
+            engine_system->shutdown();
 
         if (_M_rhi)
         {

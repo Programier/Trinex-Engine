@@ -32,13 +32,13 @@ namespace Engine
             template<typename T>
             FORCE_INLINE T get()
             {
-                return std::any_cast<T>(data);
+                return data.cast<T>();
             }
 
             template<typename T>
             FORCE_INLINE T get() const
             {
-                return std::any_cast<T>(data);
+                return data.cast<T>();
             }
         };
 

@@ -155,11 +155,11 @@ namespace Engine
                             return false;
                     }
                     Instance* instance    = reinterpret_cast<Instance*>(_object);
-                    instance->*_M_address = (PropType) (std::any_cast<const OutputType&>(property_value));
+                    instance->*_M_address = (PropType) (property_value.cast<const OutputType&>());
                 }
                 else
                 {
-                    (*reinterpret_cast<PropType*>(_object)) = (PropType) (std::any_cast<const OutputType&>(property_value));
+                    (*reinterpret_cast<PropType*>(_object)) = (PropType) (property_value.cast<const OutputType&>());
                 }
                 return true;
             }
@@ -370,12 +370,12 @@ namespace Engine
                             return false;
                     }
                     Instance* instance      = reinterpret_cast<Instance*>(_object);
-                    StructType* new_struct  = reinterpret_cast<StructType*>(std::any_cast<void*>(property_value));
+                    StructType* new_struct  = reinterpret_cast<StructType*>(property_value.cast<void*>());
                     (instance->*_M_address) = *new_struct;
                 }
                 else
                 {
-                    StructType* new_struct = reinterpret_cast<StructType*>(std::any_cast<void*>(property_value));
+                    StructType* new_struct                    = reinterpret_cast<StructType*>(property_value.cast<void*>());
                     (*reinterpret_cast<StructType*>(_object)) = *new_struct;
                 }
 

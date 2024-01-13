@@ -107,8 +107,6 @@ namespace Engine
                 ++_M_frame_index;
             }
 
-            engine_system->shutdown();
-
             return 0;
         }
         catch (const std::exception& e)

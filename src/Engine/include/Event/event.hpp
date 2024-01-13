@@ -119,9 +119,15 @@ namespace Engine
         const Any& any() const;
 
         template<typename Type>
-        Type get() const
+        Type get()
         {
-            return std::any_cast<Type>(_M_any);
+            return _M_any.cast<Type>();
+        }
+
+        template<typename Type>
+        const Type get() const
+        {
+            return _M_any.cast<const Type>();
         }
     };
 }// namespace Engine

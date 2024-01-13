@@ -61,7 +61,7 @@ namespace Engine
             PropertyValue result = prop->property_value(object);
             if (result.has_value())
             {
-                Type value = std::any_cast<Type>(result);
+                Type value = result.cast<Type>();
                 show_only(prop, value);
             }
         }
@@ -70,7 +70,7 @@ namespace Engine
             PropertyValue result = prop->property_value(object);
             if (result.has_value())
             {
-                Type value = std::any_cast<Type>(result);
+                Type value = result.cast<Type>();
                 if (edit(prop, value))
                 {
                     result = value;
@@ -188,7 +188,7 @@ namespace Engine
         if (!value.has_value())
             return;
 
-        Path path = std::any_cast<Path>(value);
+        Path path = value.cast<const Path&>();
 
         if (ImGui::Selectable(Strings::format("{}: {}", prop->name().c_str(), path.string().c_str()).c_str()))
         {
@@ -216,7 +216,7 @@ namespace Engine
         if (!enum_class)
             return;
 
-        EnumerateType current            = std::any_cast<EnumerateType>(value);
+        EnumerateType current            = value.cast<EnumerateType>();
         const Enum::Entry* current_entry = enum_class->entry(current);
 
         if (!current_entry)
@@ -245,7 +245,7 @@ namespace Engine
         PropertyValue value = prop->property_value(object);
         if (value.has_value())
         {
-            object = std::any_cast<Object*>(value);
+            object = value.cast<Object*>();
             render_object_properties(object, can_edit);
         }
     }
@@ -255,7 +255,7 @@ namespace Engine
         PropertyValue value = prop->property_value(object);
         if (value.has_value())
         {
-            void* struct_object  = std::any_cast<void*>(value);
+            void* struct_object  = value.cast<void*>();
             Struct* struct_class = reinterpret_cast<Struct*>(prop->property_class());
 
             ImGui::PushID(prop->name().c_str());
