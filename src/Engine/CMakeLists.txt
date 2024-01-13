@@ -124,10 +124,6 @@ else()
     target_compile_options(TrinexEngine PRIVATE "-g")
 endif()
 
-if(UNIX)
-    target_link_options(TrinexEngine PUBLIC -rdynamic)
-endif()
-
 # Trinex Engine compile definitions
 target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS)
 target_compile_definitions(TrinexEngine PRIVATE -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
