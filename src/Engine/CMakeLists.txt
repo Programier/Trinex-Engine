@@ -105,7 +105,7 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_S
 
 
 # Compile Trinex Engine library
-add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
+add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_EXTERNAL_SOURCES})
 
 
 # Trinex Engine compile options

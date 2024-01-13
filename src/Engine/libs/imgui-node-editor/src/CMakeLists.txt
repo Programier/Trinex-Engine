@@ -1,11 +1,7 @@
-set(IMGUI_NODE_EDITOR_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-file(GLOB IMGUI_NODE_EDITOR_SRC "${IMGUI_NODE_EDITOR_SOURCES_DIR}/*.cpp")
+add_library(imgui_node_editor INTERFACE)
 
-add_definitions("-DIMGUI_NODE_EDITOR_EXPORT_ENABLE")
-include_directories("../../imgui/src/")
-include_directories("../../imgui/include/")
-
-
-add_library(imgui_node_editor STATIC ${IMGUI_NODE_EDITOR_SRC})
-target_link_libraries(imgui_node_editor imgui)
-set_target_properties(imgui_node_editor PROPERTIES COMPILE_OPTIONS "-fPIC")
+set(TRINEX_EXTERNAL_SOURCES ${TRINEX_EXTERNAL_SOURCES}
+                            ${CMAKE_CURRENT_SOURCE_DIR}/crude_json.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/imgui_canvas.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/imgui_node_editor.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/imgui_node_editor_api.cpp PARENT_SCOPE)

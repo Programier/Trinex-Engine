@@ -6,14 +6,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-set(SOURCES ./src/imgui.cpp
-            ./src/imgui_demo.cpp
-            ./src/imgui_draw.cpp
-            ./src/imgui_tables.cpp
-            ./src/imgui_widgets.cpp)
-add_definitions("-DIMGUI_EXPORT_ENABLE")
-add_library(imgui STATIC ${SOURCES})
-set_target_properties(imgui PROPERTIES COMPILE_OPTIONS "-fPIC")
+set(TRINEX_EXTERNAL_SOURCES ${TRINEX_EXTERNAL_SOURCES}
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_demo.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_draw.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_tables.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_widgets.cpp PARENT_SCOPE)
 
-target_include_directories(imgui PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
+add_library(imgui INTERFACE)
+target_include_directories(imgui INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 
