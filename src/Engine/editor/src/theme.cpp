@@ -24,9 +24,8 @@ namespace Engine
         trinex_editor_font_size = object.checked_get_value<JSON::JsonFloat>("font size", 18.f) * editor_scale_factor();
 
         // Initialize fonts
-        const char* font_path = "/usr/share/fonts/adobe-source-code-pro-fonts/SourceCodePro-Bold.otf";
         auto& io              = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF(font_path, trinex_editor_font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto/Roboto-Regular.ttf", trinex_editor_font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
 
         ImGuiStyle& style = ImGui::GetStyle();
 

@@ -9,3 +9,5 @@ set(TRINEX_ENGINE_EDITOR_SOURCES_ROOT ${TRINEX_ENGINE_EDITOR_PROJECT_ROOT}/src)
 
 add_subdirectory(src)
 target_include_directories(TrinexEngineEditor PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
+
+install(DIRECTORY resources DESTINATION ${TRINEX_INSTALL_DIR})
