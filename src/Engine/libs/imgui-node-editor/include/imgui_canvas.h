@@ -50,9 +50,10 @@
 
 # include <imgui.h>
 # include <imgui_internal.h> // ImRect, ImFloor
+# include <imgui_node_editor_export.hpp>
 
 #ifndef IMGUIEX_CANVAS_API
-#define IMGUIEX_CANVAS_API
+#define IMGUIEX_CANVAS_API IMGUI_NODE_EDITOR_EXPORT
 #endif
 
 namespace ImGuiEx {

@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    struct WindowConfig : public Config {
+    struct ENGINE_EXPORT WindowConfig : public Config {
         Vector<WindowAttribute> attributes;
 
         String title;

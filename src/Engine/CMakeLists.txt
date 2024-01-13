@@ -25,6 +25,10 @@ set(TRINEX_CONFIGS_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/")
 set(TRINEX_LOCALIZATION_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/")
 set(TRINEX_SHADERS_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/")
 
+if(UNIX)
+    add_compile_options(-fvisibility=hidden)
+endif()
+
 # Global private include directories
 include_directories("${TRINEX_ENGINE_ROOT}/include-internal/"
                     "${TRINEX_ENGINE_ROOT}/libs/angelscript/include/")
