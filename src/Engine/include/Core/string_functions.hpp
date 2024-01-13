@@ -10,13 +10,12 @@
 
 namespace Engine::Strings
 {
+#if TRINEX_CUSTOM_STRING_FORMAT
     inline String format(const String& text)
     {
         return text;
     }
 
-
-#if TRINEX_CUSTOM_STRING_FORMAT
     template<typename Type, typename... Args>
     String format(String text, const Type& value, const Args&... args)
     {

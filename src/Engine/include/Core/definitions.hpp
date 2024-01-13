@@ -86,6 +86,6 @@
 #define ENTITY_INITIALIZER_NAME(entity_name, ...) INITIALIZER_NAME_PREFIX MAKE_ENTITY_FULL_NAME(entity_name, __VA_ARGS__)
 
 #define CONCAT_TYPE_AND_NAMESPACE(object_type, ...) __VA_ARGS__ __VA_OPT__(::) object_type
-
+#define HAS_INCLUDE(include_name) __has_include(<include_name>)
 
 // USER SPECIFIC DEFINITIONS!
