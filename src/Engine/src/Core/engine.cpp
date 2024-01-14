@@ -23,9 +23,6 @@
 
 namespace Engine
 {
-    extern void trinex_init_sdl();
-    extern void trinex_terminate_sdl();
-
     FORCE_INLINE std::chrono::high_resolution_clock::time_point current_time_point()
     {
         return std::chrono::high_resolution_clock::now();

@@ -278,7 +278,7 @@ namespace Engine
             return *this;
         }
 
-        if (ImGuiRenderer::IsWindowRectHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
         {
             _M_open_viewport_popup = true;
         }

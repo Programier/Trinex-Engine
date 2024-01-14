@@ -13,22 +13,5 @@ namespace Engine::Platform
     {
         return "Linux";
     }
-
-    ENGINE_EXPORT Path find_default_font_path()
-    {
-        FILE* pipe = popen("fc-match --format=%{file}", "r");
-        Path path  = {};
-        if (pipe)
-        {
-            char font_path[1024];
-            if (fgets(font_path, sizeof(font_path), pipe) != NULL)
-            {
-                path = font_path;
-            }
-            pclose(pipe);
-        }
-
-        return path;
-    }
 }// namespace Engine::Platform
 #endif

@@ -13,10 +13,5 @@ namespace Engine::Platform
     {
         return "Windows";
     }
-
-    ENGINE_EXPORT Path find_default_font_path()
-    {
-        return {};
-    }
 }// namespace Engine::Platform
 #endif
