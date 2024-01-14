@@ -2,12 +2,8 @@ set(VULKAN_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB VULKAN_SRC "${VULKAN_SOURCES_DIR}/*.cpp")
 
 
-if(UNIX)
-    find_package(Vulkan REQUIRED)
-    set(VULKAN_LIBS Vulkan::Vulkan)
-elseif(WIN32)
-    set(VULKAN_LIBS vulkan-1)
-endif()
+find_package(Vulkan REQUIRED)
+set(VULKAN_LIBS Vulkan::Vulkan)
 
 add_library(Vulkan SHARED ${VULKAN_SRC})
 target_link_libraries(Vulkan PUBLIC ${VULKAN_LIBS} vk-bootstrap TrinexEngine)
@@ -33,8 +29,4 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(Vulkan PRIVATE -DVULKAN_DEBUG_BUILD=0)
     target_compile_definitions(Vulkan PRIVATE -DVULKAN_RELEASE_BUILD=1)
-endif()
-
-if(UNIX)
-    target_link_options(Vulkan PUBLIC -rdynamic)
 endif()
