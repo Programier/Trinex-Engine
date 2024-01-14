@@ -322,14 +322,18 @@ namespace Engine
     {
         if (_M_imgui_window)
         {
-            ImGuiContext* current_context = ImGui::GetCurrentContext();
+            ImGuiRenderer::Window* current_window = ImGuiRenderer::Window::current();
+            if (_M_imgui_window == current_window)
+                current_window = nullptr;
+
             _M_imgui_window->free_resources();
 
             imgui_destroy_context(_M_imgui_window->context(), _M_interface);
-            ImGui::SetCurrentContext(current_context);
 
             delete _M_imgui_window;
             _M_imgui_window = nullptr;
+
+            ImGuiRenderer::Window::make_current(current_window);
             return *this;
         }
 

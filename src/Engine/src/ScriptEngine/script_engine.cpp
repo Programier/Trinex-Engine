@@ -170,7 +170,7 @@ namespace Engine
         if (_M_instance == nullptr)
         {
             new ScriptEngine();
-            DestroyController controller(ScriptEngine::terminate);
+            PostDestroyController controller(ScriptEngine::terminate);
         }
     }
 

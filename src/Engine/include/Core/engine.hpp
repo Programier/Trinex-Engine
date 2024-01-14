@@ -41,14 +41,13 @@ namespace Engine
         static EngineInstance* _M_instance;
 
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
-        RHI* _M_rhi                 = nullptr;
+        RHI* _M_rhi = nullptr;
         Flags _M_flags;
         Index _M_frame_index = 0;
 
         Arguments _M_args;
 
 
-        EngineInstance& trigger_terminate_functions();
         EngineInstance();
         bool init_api();
 

@@ -83,7 +83,7 @@ namespace Engine
                 auto& viewports        = RenderViewport::viewports();
                 size_t viewports_count = viewports.size();
 
-                for (size_t i = 0, count = viewports.size(); i < count; ++i)
+                for (size_t i = 0; i < viewports_count; ++i)
                 {
                     viewports[i]->update(dt);
                 }

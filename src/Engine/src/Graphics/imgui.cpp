@@ -279,33 +279,44 @@ namespace Engine::ImGuiRenderer
     void Window::make_current(Window* window)
     {
         _M_current_window = window;
+
+        if (_M_current_window)
+        {
+            ImGui::SetCurrentContext(window->context());
+        }
+        else
+        {
+            ImGui::SetCurrentContext(nullptr);
+        }
     }
 
     Window& Window::new_frame()
     {
-        ImGui::SetCurrentContext(_M_context);
+        make_current(this);
         _M_window->interface()->new_imgui_frame();
 
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_new_frame(_M_context);
         ImGui::NewFrame();
-        make_current(this);
         return *this;
     }
 
     Window& Window::end_frame()
     {
-        ImGui::SetCurrentContext(_M_context);
         window_list.render(_M_window->render_viewport());
         ImGui::Render();
+
+        make_current(nullptr);
 
         return *this;
     }
 
     Window& Window::prepare_render()
     {
-        ImGui::SetCurrentContext(_M_context);
+        Window* current_window = current();
+        make_current(this);
         _M_draw_data.copy(ImGui::GetDrawData());
+        make_current(current_window);
         return *this;
     }
 

@@ -303,12 +303,6 @@ namespace Engine
         return _M_flags;
     }
 
-    EngineInstance& EngineInstance::trigger_terminate_functions()
-    {
-        DestroyController().execute();
-        return *this;
-    }
-
 
     class DestroyRHI_Task : public ExecutableObject
     {
@@ -344,7 +338,7 @@ namespace Engine
         }
 
         Object::collect_garbage(GCFlag::DestroyAll);
-        engine_instance->trigger_terminate_functions();
+        DestroyController().execute();
 
         for (Thread*& thread : _M_threads)
         {
@@ -354,7 +348,7 @@ namespace Engine
 
 
         if (WindowManager::instance())
-            delete WindowManager::instance();
+            WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
 
         if (_M_rhi)
         {
@@ -364,6 +358,9 @@ namespace Engine
             render_thread()->wait_all();
             _M_rhi = nullptr;
         }
+
+        if (WindowManager::instance())
+            delete WindowManager::instance();
 
         _M_rhi = nullptr;
         _M_flags(IsInited, false);
