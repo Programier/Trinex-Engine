@@ -90,9 +90,10 @@ namespace Engine
 
     template<typename Type, auto enum_value>
     struct TypedInputPin : public InputPin {
-        Type value = Type();
+        Type value;
 
-        TypedInputPin(struct Node* node, Name name) : InputPin(node, name, enum_value)
+        TypedInputPin(struct Node* node, Name name, const Type& default_value = Type())
+            : InputPin(node, name, enum_value), value(default_value)
         {}
 
         void* default_value() override
