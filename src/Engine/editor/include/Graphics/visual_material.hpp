@@ -32,23 +32,24 @@ namespace Engine
     struct NodePin : VisualMaterialElement {
         enum DataType : EnumerateType
         {
-            Bool  = BIT(0),
-            Int   = BIT(1),
-            UInt  = BIT(2),
-            Float = BIT(3),
-            BVec2 = BIT(4),
-            BVec3 = BIT(5),
-            BVec4 = BIT(6),
-            IVec2 = BIT(7),
-            IVec3 = BIT(8),
-            IVec4 = BIT(9),
-            UVec2 = BIT(10),
-            UVec3 = BIT(11),
-            UVec4 = BIT(12),
-            Vec2  = BIT(13),
-            Vec3  = BIT(14),
-            Vec4  = BIT(15),
-            Color = BIT(16),
+            Bool   = BIT(0),
+            Int    = BIT(1),
+            UInt   = BIT(2),
+            Float  = BIT(3),
+            BVec2  = BIT(4),
+            BVec3  = BIT(5),
+            BVec4  = BIT(6),
+            IVec2  = BIT(7),
+            IVec3  = BIT(8),
+            IVec4  = BIT(9),
+            UVec2  = BIT(10),
+            UVec3  = BIT(11),
+            UVec4  = BIT(12),
+            Vec2   = BIT(13),
+            Vec3   = BIT(14),
+            Vec4   = BIT(15),
+            Color3 = BIT(16),
+            Color4 = BIT(17),
 
             All = ~static_cast<EnumerateType>(0)
         };
@@ -118,41 +119,43 @@ namespace Engine
         }
     };
 
-    using BoolInputPin  = TypedInputPin<bool, NodePin::Bool>;
-    using IntInputPin   = TypedInputPin<int_t, NodePin::Int>;
-    using UIntInputPin  = TypedInputPin<uint_t, NodePin::UInt>;
-    using FloatInputPin = TypedInputPin<float, NodePin::Float>;
-    using BVec2InputPin = TypedInputPin<BoolVector2D, NodePin::BVec2>;
-    using BVec3InputPin = TypedInputPin<BoolVector3D, NodePin::BVec3>;
-    using BVec4InputPin = TypedInputPin<BoolVector4D, NodePin::BVec4>;
-    using IVec2InputPin = TypedInputPin<IntVector2D, NodePin::IVec2>;
-    using IVec3InputPin = TypedInputPin<IntVector3D, NodePin::IVec3>;
-    using IVec4InputPin = TypedInputPin<IntVector4D, NodePin::IVec4>;
-    using UVec2InputPin = TypedInputPin<UIntVector2D, NodePin::UVec2>;
-    using UVec3InputPin = TypedInputPin<UIntVector3D, NodePin::UVec3>;
-    using UVec4InputPin = TypedInputPin<UIntVector4D, NodePin::UVec4>;
-    using Vec2InputPin  = TypedInputPin<Vector2D, NodePin::Vec2>;
-    using Vec3InputPin  = TypedInputPin<Vector3D, NodePin::Vec3>;
-    using Vec4InputPin  = TypedInputPin<Vector4D, NodePin::Vec4>;
-    using ColorInputPin = TypedInputPin<Vector4D, NodePin::Color>;
+    using BoolInputPin   = TypedInputPin<bool, NodePin::Bool>;
+    using IntInputPin    = TypedInputPin<int_t, NodePin::Int>;
+    using UIntInputPin   = TypedInputPin<uint_t, NodePin::UInt>;
+    using FloatInputPin  = TypedInputPin<float, NodePin::Float>;
+    using BVec2InputPin  = TypedInputPin<BoolVector2D, NodePin::BVec2>;
+    using BVec3InputPin  = TypedInputPin<BoolVector3D, NodePin::BVec3>;
+    using BVec4InputPin  = TypedInputPin<BoolVector4D, NodePin::BVec4>;
+    using IVec2InputPin  = TypedInputPin<IntVector2D, NodePin::IVec2>;
+    using IVec3InputPin  = TypedInputPin<IntVector3D, NodePin::IVec3>;
+    using IVec4InputPin  = TypedInputPin<IntVector4D, NodePin::IVec4>;
+    using UVec2InputPin  = TypedInputPin<UIntVector2D, NodePin::UVec2>;
+    using UVec3InputPin  = TypedInputPin<UIntVector3D, NodePin::UVec3>;
+    using UVec4InputPin  = TypedInputPin<UIntVector4D, NodePin::UVec4>;
+    using Vec2InputPin   = TypedInputPin<Vector2D, NodePin::Vec2>;
+    using Vec3InputPin   = TypedInputPin<Vector3D, NodePin::Vec3>;
+    using Vec4InputPin   = TypedInputPin<Vector4D, NodePin::Vec4>;
+    using Color3InputPin = TypedInputPin<Vector4D, NodePin::Color3>;
+    using Color4InputPin = TypedInputPin<Vector4D, NodePin::Color4>;
 
-    using BoolOutputPin  = TypedOutputPin<bool, NodePin::Bool>;
-    using IntOutputPin   = TypedOutputPin<int_t, NodePin::Int>;
-    using UIntOutputPin  = TypedOutputPin<uint_t, NodePin::UInt>;
-    using FloatOutputPin = TypedOutputPin<float, NodePin::Float>;
-    using BVec2OutputPin = TypedOutputPin<BoolVector2D, NodePin::BVec2>;
-    using BVec3OutputPin = TypedOutputPin<BoolVector3D, NodePin::BVec3>;
-    using BVec4OutputPin = TypedOutputPin<BoolVector4D, NodePin::BVec4>;
-    using IVec2OutputPin = TypedOutputPin<IntVector2D, NodePin::IVec2>;
-    using IVec3OutputPin = TypedOutputPin<IntVector3D, NodePin::IVec3>;
-    using IVec4OutputPin = TypedOutputPin<IntVector4D, NodePin::IVec4>;
-    using UVec2OutputPin = TypedOutputPin<UIntVector2D, NodePin::UVec2>;
-    using UVec3OutputPin = TypedOutputPin<UIntVector3D, NodePin::UVec3>;
-    using UVec4OutputPin = TypedOutputPin<UIntVector4D, NodePin::UVec4>;
-    using Vec2OutputPin  = TypedOutputPin<Vector2D, NodePin::Vec2>;
-    using Vec3OutputPin  = TypedOutputPin<Vector3D, NodePin::Vec3>;
-    using Vec4OutputPin  = TypedOutputPin<Vector4D, NodePin::Vec4>;
-    using ColorOutputPin = TypedOutputPin<Vector4D, NodePin::Color>;
+    using BoolOutputPin   = TypedOutputPin<bool, NodePin::Bool>;
+    using IntOutputPin    = TypedOutputPin<int_t, NodePin::Int>;
+    using UIntOutputPin   = TypedOutputPin<uint_t, NodePin::UInt>;
+    using FloatOutputPin  = TypedOutputPin<float, NodePin::Float>;
+    using BVec2OutputPin  = TypedOutputPin<BoolVector2D, NodePin::BVec2>;
+    using BVec3OutputPin  = TypedOutputPin<BoolVector3D, NodePin::BVec3>;
+    using BVec4OutputPin  = TypedOutputPin<BoolVector4D, NodePin::BVec4>;
+    using IVec2OutputPin  = TypedOutputPin<IntVector2D, NodePin::IVec2>;
+    using IVec3OutputPin  = TypedOutputPin<IntVector3D, NodePin::IVec3>;
+    using IVec4OutputPin  = TypedOutputPin<IntVector4D, NodePin::IVec4>;
+    using UVec2OutputPin  = TypedOutputPin<UIntVector2D, NodePin::UVec2>;
+    using UVec3OutputPin  = TypedOutputPin<UIntVector3D, NodePin::UVec3>;
+    using UVec4OutputPin  = TypedOutputPin<UIntVector4D, NodePin::UVec4>;
+    using Vec2OutputPin   = TypedOutputPin<Vector2D, NodePin::Vec2>;
+    using Vec3OutputPin   = TypedOutputPin<Vector3D, NodePin::Vec3>;
+    using Vec4OutputPin   = TypedOutputPin<Vector4D, NodePin::Vec4>;
+    using Color3OutputPin = TypedOutputPin<Vector4D, NodePin::Color3>;
+    using Color4OutputPin = TypedOutputPin<Vector4D, NodePin::Color4>;
 
 
     class VisualMaterial : public Material

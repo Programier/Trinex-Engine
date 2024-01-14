@@ -77,5 +77,6 @@ namespace Engine::MaterialNodes
     declare_constant(Vec2);
     declare_constant(Vec3);
     declare_constant(Vec4);
-    declare_constant(Color);
+    declare_constant(Color3);
+    declare_constant(Color4);
 }// namespace Engine::MaterialNodes

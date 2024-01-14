@@ -25,7 +25,8 @@ namespace Engine::MaterialNodes
         Vec2,
         Vec3,
         Vec4,
-        Color,
+        Color3,
+        Color4,
 
         // Math group
         Sin,

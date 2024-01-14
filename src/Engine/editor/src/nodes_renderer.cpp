@@ -13,7 +13,7 @@ namespace Engine
     namespace ed = ax::NodeEditor;
 
     static constexpr inline EnumerateType one_component_types =
-            NodePin::Bool | NodePin::Int | NodePin::UInt | NodePin::Float | NodePin::Color;
+            NodePin::Bool | NodePin::Int | NodePin::UInt | NodePin::Float | NodePin::Color3 | NodePin::Color4;
     static constexpr inline EnumerateType two_component_types = NodePin::BVec2 | NodePin::IVec2 | NodePin::UVec2 | NodePin::Vec2;
     static constexpr inline EnumerateType three_component_types =
             NodePin::BVec3 | NodePin::IVec3 | NodePin::UVec3 | NodePin::Vec3;
@@ -57,7 +57,7 @@ namespace Engine
 
     static FORCE_INLINE bool is_small_type(EnumerateType type)
     {
-        return static_cast<bool>(type & is_boolean_type) || type == NodePin::Color;
+        return static_cast<bool>(type & is_boolean_type) || type == NodePin::Color3 || type == NodePin::Color4;
     }
 
     static FORCE_INLINE float pin_item_len(NodePin* pin)
@@ -180,11 +180,17 @@ namespace Engine
             case NodePin::DataType::Vec4:
                 ImGui::InputScalarN(item_name, ImGuiDataType_Float, data, 4);
                 break;
-            case NodePin::DataType::Color:
+            case NodePin::DataType::Color3:
+            {
+                ImGui::ColorEdit3(item_name, &reinterpret_cast<Vector3D*>(data)->x, ImGuiColorEditFlags_NoInputs);
+                break;
+            }
+            case NodePin::DataType::Color4:
             {
                 ImGui::ColorEdit4(item_name, &reinterpret_cast<Vector4D*>(data)->x, ImGuiColorEditFlags_NoInputs);
                 break;
             }
+
 
             default:
                 throw EngineException("Undefined type!");
