@@ -5,14 +5,11 @@
 #include <Core/engine_types.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/structures.hpp>
-#include <Core/system.hpp>
 
 namespace Engine
 {
-    class System;
     class Thread;
     class Window;
-    class System;
 
     struct RHI;
 
@@ -63,7 +60,6 @@ namespace Engine
         ENGINE_EXPORT static const String& project_name();
         ENGINE_EXPORT static const String& project_name(const String& name);
         ENGINE_EXPORT static int initialize(int argc, char** argv);
-        SystemName system_type() const;
         const String& api_name() const;
         bool is_inited() const;
         RHI* rhi() const;

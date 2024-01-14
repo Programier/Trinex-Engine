@@ -30,8 +30,8 @@ namespace Engine
     implement_enum(Coord, Engine, {"X", Coord::X}, {"Y", Coord::Y}, {"Z", Coord::Z});
     implement_enum(DataType, Engine, {"Text", DataType::Text}, {"Binary", DataType::Binary});
 
-    implement_enum(SystemName, Engine, {"LinuxOS", SystemName::LinuxOS}, {"WindowsOS", SystemName::WindowsOS},
-                   {"AndroidOS", SystemName::AndroidOS});
+    implement_enum(OperationSystemType, Engine, {"Linux", OperationSystemType::Linux}, {"Windows", OperationSystemType::Windows},
+                   {"Android", OperationSystemType::Android});
 
     implement_enum(ColorComponent, Engine, {"R", ColorComponent::R}, {"G", ColorComponent::G}, {"B", ColorComponent::B},
                    {"A", ColorComponent::A});

@@ -9,7 +9,6 @@
 #include <Core/logger.hpp>
 #include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
-#include <Core/system.hpp>
 #include <Core/thread.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -50,18 +49,6 @@ namespace Engine
     {
         const_cast<String&>(project_name()) = name;
         return project_name();
-    }
-
-
-    SystemName EngineInstance::system_type() const
-    {
-#if PLATFORM_WINDOWS
-        return SystemName::WindowsOS;
-#elif PLATFORM_ANDROID
-        return SystemName::AndroidOS;
-#else
-        return SystemName::LinuxOS;
-#endif
     }
 
     const String& EngineInstance::api_name() const

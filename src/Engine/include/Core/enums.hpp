@@ -85,11 +85,11 @@ namespace Engine
     };
 
 
-    enum class SystemName
+    enum class OperationSystemType
     {
-        LinuxOS,
-        WindowsOS,
-        AndroidOS
+        Linux,
+        Windows,
+        Android
     };
 
     enum class ColorComponent : EnumerateType
