@@ -17,6 +17,9 @@
 #include <vulkan_types.hpp>
 #include <vulkan_viewport.hpp>
 
+#define VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT 2
+#define VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT 3
+
 namespace Engine
 {
 #if ENABLE_VALIDATION_LAYERS
@@ -206,6 +209,13 @@ namespace Engine
     }
 #endif
 
+    static bool is_available_swapchain_images_count(uint32_t count)
+    {
+        auto& _M_surface_capabilities = API->_M_surface_capabilities;
+        return (_M_surface_capabilities.maxImageCount == 0 || _M_surface_capabilities.maxImageCount >= count) &&
+               _M_surface_capabilities.minImageCount <= count;
+    }
+
     void VulkanAPI::initialize(WindowInterface* window)
     {
         _M_window = window;
@@ -316,7 +326,18 @@ namespace Engine
         enable_dynamic_states();
         create_command_pool();
 
-        _M_framebuffers_count = _M_surface_capabilities.minImageCount;
+        if (is_available_swapchain_images_count(VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT))
+        {
+            _M_framebuffers_count = VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT;
+        }
+        else if (is_available_swapchain_images_count(VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT))
+        {
+            _M_framebuffers_count = VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT;
+        }
+        else
+        {
+            throw EngineException("Vulkan requires a minimum of 2 images for Swapchain");
+        }
     }
 
     void VulkanAPI::check_extentions()
