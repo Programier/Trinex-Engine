@@ -153,10 +153,17 @@ namespace Engine
     struct MaterialRootNode : public Node {
         MaterialRootNode& init() override
         {
-            input.push_back(material->create_element<Color3InputPin>(this, "Albedo"));
-            input.push_back(material->create_element<Vec3InputPin>(this, "Position"));
+            input.push_back(material->create_element<Color3InputPin>(this, "Base Color"));
+            input.push_back(material->create_element<FloatInputPin>(this, "Metalic"));
+            input.push_back(material->create_element<FloatInputPin>(this, "Specular"));
+            input.push_back(material->create_element<FloatInputPin>(this, "Roughness"));
+            input.push_back(material->create_element<Color3InputPin>(this, "Emmisive"));
+            input.push_back(material->create_element<FloatInputPin>(this, "Opacity"));
+            input.push_back(material->create_element<FloatInputPin>(this, "Opacity Mask"));
             input.push_back(material->create_element<Vec3InputPin>(this, "Normal"));
-            input.push_back(material->create_element<Vec3InputPin>(this, "Specular"));
+
+            input.push_back(material->create_element<Vec3InputPin>(this, "World Position Offset"));
+
             return *this;
         }
 
