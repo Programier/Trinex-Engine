@@ -1,9 +1,10 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/global_config.hpp>
 #include <Core/package.hpp>
-#include <Core/engine_config.hpp>
 #include <Engine/engine_start.hpp>
+#include <editor_config.hpp>
 
 class Editor : public Engine::EngineBaseEntryPoint
 {
@@ -21,6 +22,8 @@ public:
     {
         Super::load_configs();
         Engine::global_config.load(Engine::engine_config.config_dir / Engine::Path("editor.json"));
+        Engine::editor_config.update().update_using_args();
+
         return *this;
     }
 };

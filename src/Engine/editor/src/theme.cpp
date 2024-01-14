@@ -1,12 +1,10 @@
 #include <Core/global_config.hpp>
+#include <editor_config.hpp>
 #include <imgui.h>
 #include <theme.hpp>
 
 namespace Engine
 {
-    float trinex_editor_font_size;
-
-
     float editor_scale_factor()
     {
         return 1.0f;
@@ -14,18 +12,15 @@ namespace Engine
 
     float editor_font_size()
     {
-        return trinex_editor_font_size;
+        return editor_config.font_size;
     }
 
     void initialize_theme(ImGuiContext* ctx)
     {
-
-        const auto& object      = global_config.checked_get("Editor").checked_get<const JSON::JsonObject&>();
-        trinex_editor_font_size = object.checked_get_value<JSON::JsonFloat>("font size", 18.f) * editor_scale_factor();
-
         // Initialize fonts
-        auto& io              = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF("resources/fonts/Roboto/Roboto-Bold.ttf", trinex_editor_font_size, NULL, io.Fonts->GetGlyphRangesCyrillic());
+        auto& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF(editor_config.font_path.string().c_str(), editor_font_size(), NULL,
+                                     io.Fonts->GetGlyphRangesCyrillic());
 
         ImGuiStyle& style = ImGui::GetStyle();
 
