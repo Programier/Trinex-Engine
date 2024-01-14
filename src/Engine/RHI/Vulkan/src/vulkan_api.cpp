@@ -334,6 +334,10 @@ namespace Engine
         {
             _M_framebuffers_count = VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT;
         }
+        else if (_M_surface_capabilities.minImageCount >= VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT)
+        {
+            _M_framebuffers_count = _M_surface_capabilities.minImageCount;
+        }
         else
         {
             throw EngineException("Vulkan requires a minimum of 2 images for Swapchain");
