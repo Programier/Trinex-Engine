@@ -69,8 +69,10 @@ namespace Engine
     VisualMaterialElement::~VisualMaterialElement()
     {}
 
-    NodePin::NodePin(struct Node* node, Name name, EnumerateType data) : data_types(data), name(name), node(node)
+    NodePin::NodePin(struct Node* node, Name name, EnumerateType data, Index index)
+        : data_types(data), name(name), node(node), index(index)
     {}
+
 
     void* NodePin::default_value()
     {
@@ -108,6 +110,8 @@ namespace Engine
     }
 
     // Nodes
+    class Struct* Node::node_struct_instance = nullptr;
+
     Node& Node::init()
     {
         return *this;
@@ -127,6 +131,24 @@ namespace Engine
         }
 
         return *this;
+    }
+
+    EnumerateType Node::output_pin_type(OutputPin* pin)
+    {
+        if (output_type_callback)
+        {
+            return output_type_callback(pin);
+        }
+        return pin->data_types;
+    }
+
+    EnumerateType Node::input_pin_type(InputPin* pin)
+    {
+        if (input_type_callback)
+        {
+            return input_type_callback(pin);
+        }
+        return pin->data_types;
     }
 
     Node::~Node()
@@ -153,16 +175,16 @@ namespace Engine
     struct MaterialRootNode : public Node {
         MaterialRootNode& init() override
         {
-            input.push_back(material->create_element<Color3InputPin>(this, "Base Color"));
-            input.push_back(material->create_element<FloatInputPin>(this, "Metalic"));
-            input.push_back(material->create_element<FloatInputPin>(this, "Specular"));
-            input.push_back(material->create_element<FloatInputPin>(this, "Roughness"));
-            input.push_back(material->create_element<Color3InputPin>(this, "Emmisive"));
-            input.push_back(material->create_element<FloatInputPin>(this, "Opacity"));
-            input.push_back(material->create_element<FloatInputPin>(this, "Opacity Mask"));
-            input.push_back(material->create_element<Vec3InputPin>(this, "Normal"));
+            input.push_back(material->create_element<Color3InputPin>(this, "Base Color", 0));
+            input.push_back(material->create_element<FloatInputPin>(this, "Metalic", 1));
+            input.push_back(material->create_element<FloatInputPin>(this, "Specular", 2));
+            input.push_back(material->create_element<FloatInputPin>(this, "Roughness", 3));
+            input.push_back(material->create_element<Color3InputPin>(this, "Emmisive", 4));
+            input.push_back(material->create_element<FloatInputPin>(this, "Opacity", 5));
+            input.push_back(material->create_element<FloatInputPin>(this, "Opacity Mask", 6));
+            input.push_back(material->create_element<Vec3InputPin>(this, "Normal", 7));
 
-            input.push_back(material->create_element<Vec3InputPin>(this, "World Position Offset"));
+            input.push_back(material->create_element<Vec3InputPin>(this, "World Position Offset", 8));
 
             return *this;
         }

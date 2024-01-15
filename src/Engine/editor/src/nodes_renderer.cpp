@@ -12,8 +12,7 @@ namespace Engine
 {
     namespace ed = ax::NodeEditor;
 
-    static constexpr inline EnumerateType one_component_types =
-            NodePin::Bool | NodePin::Int | NodePin::UInt | NodePin::Float | NodePin::Color3 | NodePin::Color4;
+    static constexpr inline EnumerateType one_component_types = NodePin::Bool | NodePin::Int | NodePin::UInt | NodePin::Float;
     static constexpr inline EnumerateType two_component_types = NodePin::BVec2 | NodePin::IVec2 | NodePin::UVec2 | NodePin::Vec2;
     static constexpr inline EnumerateType three_component_types =
             NodePin::BVec3 | NodePin::IVec3 | NodePin::UVec3 | NodePin::Vec3;
@@ -83,21 +82,25 @@ namespace Engine
         item_width *= factor;
 
 
-        if (type & one_component_types)
+        if ((type & one_component_types) == type)
         {
             return item_width;
         }
-        else if (type & two_component_types)
+        else if ((type & two_component_types) == type)
         {
             return item_width * 2.f + spacing * spacing_multiplier;
         }
-        else if (type & three_component_types)
+        else if ((type & three_component_types) == type)
         {
             return item_width * 3.f + spacing * (2.f * spacing_multiplier);
         }
-        else if (type & four_component_types)
+        else if ((type & four_component_types) == type)
         {
             return item_width * 4.f + spacing * (3.f * spacing_multiplier);
+        }
+        else if ((type & (NodePin::Color3 | NodePin::Color4)) == type)
+        {
+            return item_width;
         }
         return item_width;
     }
@@ -271,7 +274,6 @@ namespace Engine
 
     static void render_node_header(Node* node, ImVec2 pos)
     {
-        // x - left, y - up, z - right, w - down
         auto& style              = ed::GetStyle();
         auto item_min            = ImGui::GetItemRectMin();
         auto item_max            = ImGui::GetItemRectMax();
@@ -411,9 +413,14 @@ namespace Engine
                 }
                 else if (input_pin->node == output_pin->node)
                 {
-                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 15.f * editor_scale_factor());
                     show_link_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0),
                                     ImColor(255, 255, 255, 255));
+                    ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), link_trickess);
+                }
+                else if ((input_pin->node->input_pin_type(reinterpret_cast<InputPin*>(input_pin)) &
+                          output_pin->node->output_pin_type(reinterpret_cast<OutputPin*>(output_pin))) == 0)
+                {
+                    show_link_label("editor/Pin types missmatch"_localized, ImColor(255, 0, 0), ImColor(255, 255, 255, 255));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), link_trickess);
                 }
                 else if (ed::AcceptNewItem())

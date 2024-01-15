@@ -15,20 +15,6 @@ namespace Engine
         virtual ~VisualMaterialElement();
     };
 
-    struct Node : VisualMaterialElement {
-        Vector<struct InputPin*> input;
-        Vector<struct OutputPin*> output;
-
-        // Render data
-
-        Node& init();
-        virtual Node& update_id();
-        virtual const char* name() const          = 0;
-        virtual EnumerateType type() const        = 0;
-        virtual class Struct* node_struct() const = 0;
-        virtual ~Node();
-    };
-
     struct NodePin : VisualMaterialElement {
         enum DataType : EnumerateType
         {
@@ -48,8 +34,8 @@ namespace Engine
             Vec2   = BIT(13),
             Vec3   = BIT(14),
             Vec4   = BIT(15),
-            Color3 = BIT(16),
-            Color4 = BIT(17),
+            Color3 = BIT(16) | DataType::Vec3,
+            Color4 = BIT(17) | DataType::Vec4,
 
             All = ~static_cast<EnumerateType>(0)
         };
@@ -62,14 +48,36 @@ namespace Engine
 
         EnumerateType data_types;
         Name name;
-        struct Node* node = nullptr;
+        struct Node* node;
+        Index index;
 
-        NodePin(struct Node*, Name name, EnumerateType data);
+        NodePin(struct Node*, Name name, EnumerateType data, Index index);
         virtual void* default_value();
         virtual bool is_input_pin() const;
         virtual bool is_output_pin() const;
         virtual PinType type() const = 0;
     };
+
+    struct Node : VisualMaterialElement {
+        static class Struct* node_struct_instance;
+
+        Vector<struct InputPin*> input;
+        Vector<struct OutputPin*> output;
+        EnumerateType (*output_type_callback)(OutputPin*) = nullptr;
+        EnumerateType (*input_type_callback)(InputPin*)   = nullptr;
+
+
+        Node& init();
+        virtual Node& update_id();
+        virtual const char* name() const          = 0;
+        virtual EnumerateType type() const        = 0;
+        virtual class Struct* node_struct() const = 0;
+
+        EnumerateType output_pin_type(OutputPin* pin);
+        EnumerateType input_pin_type(InputPin* pin);
+        virtual ~Node();
+    };
+
 
     struct OutputPin : public NodePin {
         Set<InputPin*> linked_to;
@@ -92,8 +100,8 @@ namespace Engine
     struct TypedInputPin : public InputPin {
         Type value;
 
-        TypedInputPin(struct Node* node, Name name, const Type& default_value = Type())
-            : InputPin(node, name, enum_value), value(default_value)
+        TypedInputPin(struct Node* node, Name name, Index index, const Type& default_value = Type())
+            : InputPin(node, name, enum_value, index), value(default_value)
         {}
 
         void* default_value() override
@@ -107,9 +115,10 @@ namespace Engine
 
     template<typename Type, auto enum_value>
     struct TypedOutputPin : public OutputPin {
-        Type value = Type();
+        Type value;
 
-        TypedOutputPin(struct Node* node, Name name) : OutputPin(node, name, enum_value)
+        TypedOutputPin(struct Node* node, Name name, Index index, const Type& default_value = Type())
+            : OutputPin(node, name, enum_value, index), value(default_value)
         {}
 
         void* default_value() override
