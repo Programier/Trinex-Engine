@@ -167,6 +167,32 @@ namespace Engine
         return false;
     }
 
+    bool Name::equals(const char* name, size_t len) const
+    {
+        if (is_valid())
+        {
+            const String& str = name_entries()[_M_index].name;
+            return str.length() == len && std::memcmp(str.c_str(), name, len) == 0;
+        }
+
+        return false;
+    }
+
+    bool Name::equals(const char* name) const
+    {
+        return *this == name;
+    }
+
+    bool Name::equals(const String& name) const
+    {
+        return *this == name;
+    }
+
+    bool Name::equals(const Name& name) const
+    {
+        return *this == name;
+    }
+
     const Name& Name::to_string(String& out) const
     {
         if (is_valid())

@@ -57,6 +57,11 @@ namespace Engine
         bool operator!=(const String& name) const;
         bool operator!=(const char* name) const;
 
+        bool equals(const char* name, size_t len) const;
+        bool equals(const char* name) const;
+        bool equals(const String& name) const;
+        bool equals(const Name& name) const;
+
         const String& to_string() const;
         const char* c_str() const;
         const Name& to_string(String& out) const;
