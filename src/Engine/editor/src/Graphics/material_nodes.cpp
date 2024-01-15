@@ -57,6 +57,12 @@ namespace Engine::MaterialNodes
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::All));
     });
 
+    declare_node(Min, Math, {
+        input.push_back(material->create_element<InputPin>(this, "A", NodePin::DataType::All));
+        input.push_back(material->create_element<InputPin>(this, "B", NodePin::DataType::All));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::All));
+    });
+
 
 #define declare_constant(const_name)                                                                                             \
     declare_node(const_name, Constants, { output.push_back(material->create_element<const_name##OutputPin>(this, "Out")); })

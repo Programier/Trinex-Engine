@@ -451,7 +451,6 @@ namespace Engine
         return "editor/Scene Tree Title"_localized;
     }
 
-
     static Map<String, Vector<class Struct*>>* load_material_nodes()
     {
         static Map<String, Vector<class Struct*>> nodes;
@@ -476,10 +475,6 @@ namespace Engine
     {
         _M_nodes = load_material_nodes();
     }
-
-
-    //         ImGui::Combo("editor/Node Type"_localized, &_M_current_index, get_material_nodes_name_default, _M_nodes,
-    // _M_nodes->size());
 
     bool ImGuiCreateNode::render(class RenderViewport* viewport)
     {

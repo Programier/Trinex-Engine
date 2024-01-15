@@ -133,14 +133,13 @@ namespace Engine
                 render_bool_vector(data, 1);
                 break;
             case NodePin::DataType::Int:
-                ImGui::InputScalar(item_name, ImGuiDataType_S32, data, nullptr, nullptr, nullptr,
-                                   ImGuiInputTextFlags_CallbackResize);
+                ImGui::InputScalarN(item_name, ImGuiDataType_S32, data, 1);
                 break;
             case NodePin::DataType::UInt:
-                ImGui::InputScalar(item_name, ImGuiDataType_U32, data);
+                ImGui::InputScalarN(item_name, ImGuiDataType_U32, data, 1);
                 break;
             case NodePin::DataType::Float:
-                ImGui::InputScalar(item_name, ImGuiDataType_Float, data);
+                ImGui::InputScalarN(item_name, ImGuiDataType_Float, data, 1);
                 break;
 
             case NodePin::DataType::BVec2:

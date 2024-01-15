@@ -32,7 +32,7 @@ namespace Engine::MaterialNodes
         Sin,
         Cos,
         Max,
-
+        Min
 
     };
 }
