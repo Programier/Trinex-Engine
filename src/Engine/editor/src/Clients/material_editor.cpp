@@ -3,6 +3,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
+#include <Core/group.hpp>
 #include <Core/localization.hpp>
 #include <Core/package.hpp>
 #include <Core/thread.hpp>
@@ -253,24 +254,58 @@ namespace Engine
         return _M_current_material;
     }
 
-    extern void render_material_nodes(class MaterialEditorClient* client, void* editor_context);
+    extern void render_material_nodes(class MaterialEditorClient* client);
 
-    static bool render_viewport_popup(void* userdata)
+
+    static Struct* render_node_types(Group* group)
     {
-        VisualMaterial* material = reinterpret_cast<VisualMaterial*>(userdata);
-        if (material && ImGui::Button("Create new node"_localized))
+        if (!group)
+            return nullptr;
+
+
+        Struct* current = nullptr;
+
+        for (Group* child : group->childs())
         {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNode>(material);
-            return false;
+            if (ImGui::CollapsingHeader(child->name().c_str()))
+            {
+                ImGui::Indent(10.f);
+                Struct* new_struct = render_node_types(child);
+                if (!current && new_struct)
+                    current = new_struct;
+
+                ImGui::Unindent(10.f);
+            }
         }
 
-        return true;
+
+        for (Struct* instance : group->structs())
+        {
+            if (ImGui::Selectable(instance->base_name_splitted().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+            {
+                if (!current && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    current = instance;
+                }
+            }
+        }
+
+        return current;
+    }
+
+    static Struct* render_nodes_window()
+    {
+        static Group* root_group = Group::find("Engine::VisualMaterialNodes");
+        return render_node_types(root_group);
     }
 
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
         ImGui::Begin("editor/Material Graph###Material Graph"_localized);
-        render_material_nodes(this, _M_editor_context);
+
+        ax::NodeEditor::SetCurrentEditor(reinterpret_cast<ax::NodeEditor::EditorContext*>(_M_editor_context));
+
+        render_material_nodes(this);
 
         if (!_M_current_material)
         {
@@ -280,16 +315,40 @@ namespace Engine
 
         if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
         {
-            _M_open_viewport_popup = true;
+            _M_open_select_node_window = true;
         }
 
-        if (_M_open_viewport_popup)
+
+        if (_M_open_select_node_window)
         {
             const char* name = "editor/Menu"_localized;
-            ImGui::OpenPopup(name);
-            _M_open_viewport_popup = ImGuiRenderer::BeginPopup(name, 0, render_viewport_popup, _M_current_material);
+
+            ImGui::SetNextWindowSize({300, 350}, ImGuiCond_Appearing);
+            ImGui::SetNextWindowSizeConstraints({300, 350}, {FLT_MAX, FLT_MAX});
+            auto pos = ImGui::GetMousePos();
+            ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+
+            ImGui::Begin(name, &_M_open_select_node_window);
+
+            if (ImGui::IsWindowAppearing())
+            {
+                _M_next_node_pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(pos));
+            }
+
+            {
+                Struct* selected = render_nodes_window();
+
+                if (selected)
+                {
+                    _M_open_select_node_window                           = false;
+                    _M_current_material->create_node(selected)->position = _M_next_node_pos;
+                }
+            }
+
+            ImGui::End();
         }
 
+        ax::NodeEditor::SetCurrentEditor(nullptr);
         ImGui::End();
         return *this;
     }

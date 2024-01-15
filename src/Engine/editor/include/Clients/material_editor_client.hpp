@@ -18,8 +18,9 @@ namespace Engine
         class RenderViewport* _M_viewport         = nullptr;
         class VisualMaterial* _M_current_material = nullptr;
 
-        bool _M_open_viewport_popup = false;
-        size_t _M_frame             = 0;
+        bool _M_open_select_node_window = false;
+        Vector2D _M_next_node_pos;
+        size_t _M_frame = 0;
 
     public:
         void on_package_tree_close();

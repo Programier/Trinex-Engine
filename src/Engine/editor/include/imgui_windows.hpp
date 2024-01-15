@@ -139,18 +139,4 @@ namespace Engine
         bool render(RenderViewport* viewport) override;
         static const char* name();
     };
-
-    class ImGuiCreateNode : public ImGuiRenderer::ImGuiAdditionalWindow
-    {
-        class VisualMaterial* _M_material;
-        Map<String, Vector<class Struct*>>* _M_nodes;
-        class Struct* _M_selected = nullptr;
-        int _M_current_index      = 0;
-
-    public:
-        ImGuiCreateNode(class VisualMaterial* material);
-
-        bool render(RenderViewport* viewport) override;
-        static const char* name();
-    };
 }// namespace Engine

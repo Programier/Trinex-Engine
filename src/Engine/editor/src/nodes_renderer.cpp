@@ -265,7 +265,7 @@ namespace Engine
                 trickness);
 
         ed::BeginPin(pin->id, kind);
-        radius += trickness;
+        radius *= 2.f;
         ImVec2 square_size = ImVec2(radius, radius);
         ed::PinRect(center - square_size, center + square_size);
 
@@ -515,11 +515,8 @@ namespace Engine
         delete[] _data;
     }
 
-    void render_material_nodes(class MaterialEditorClient* client, void* editor_context)
+    void render_material_nodes(class MaterialEditorClient* client)
     {
-        ed::EditorContext* context = reinterpret_cast<ed::EditorContext*>(editor_context);
-        ed::SetCurrentEditor(context);
-
         ed::Begin("###Viewport", ImGui::GetContentRegionAvail());
 
         VisualMaterial* material = client->current_material();
@@ -545,7 +542,5 @@ namespace Engine
         }
 
         ed::End();
-
-        ed::SetCurrentEditor(nullptr);
     }
 }// namespace Engine

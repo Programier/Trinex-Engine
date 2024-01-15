@@ -1,7 +1,7 @@
+#include <Core/group.hpp>
 #include <Core/struct.hpp>
 #include <Graphics/material_nodes.hpp>
 #include <Graphics/visual_material.hpp>
-
 
 namespace Engine::MaterialNodes
 {
@@ -34,7 +34,7 @@ namespace Engine::MaterialNodes
     implement_struct(node_name, Engine::MaterialNodes, Engine::MaterialNodes::Node).push([]() {                                  \
         node_name::node_struct_instance = &(Struct::static_find(MAKE_ENTITY_FULL_NAME(node_name, Engine::MaterialNodes), true)   \
                                                     ->struct_constructor(static_void_constructor_of<node_name>)                  \
-                                                    .group(#group_name));                                                        \
+                                                    .group(Group::find("Engine::VisualMaterialNodes::" #group_name, true)));     \
     })
 
 

@@ -1,4 +1,5 @@
 #include <Core/exception.hpp>
+#include <Core/group.hpp>
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/struct.hpp>
@@ -132,13 +133,23 @@ namespace Engine
         return *this;
     }
 
-    Struct& Struct::group(const Name& name)
+    Struct& Struct::group(class Group* group)
     {
-        _M_group = name;
+        if (_M_group)
+        {
+            _M_group->remove_struct(this);
+        }
+
+        _M_group = group;
+
+        if (_M_group)
+        {
+            _M_group->add_struct(this);
+        }
         return *this;
     }
 
-    const Name& Struct::group() const
+    class Group* Struct::group() const
     {
         return _M_group;
     }
