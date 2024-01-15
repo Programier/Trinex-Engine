@@ -48,6 +48,27 @@ namespace Engine::MaterialNodes
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
+    declare_node(Tan, Math, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(ASin, Math, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(ACos, Math, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(ATan, Math, {
+        input.push_back(material->create_element<FloatInputPin>(this, "X", 0));
+        input.push_back(material->create_element<FloatInputPin>(this, "Y", 1, 1.f));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
 
     static EnumerateType minmax_input_type(InputPin* pin)
     {
@@ -56,6 +77,12 @@ namespace Engine::MaterialNodes
         if (second_pin->linked_to)
         {
             return second_pin->linked_to->node->output_pin_type(second_pin->linked_to);
+        }
+
+        if (!pin->node->output[0]->linked_to.empty())
+        {
+            InputPin* in = *pin->node->output[0]->linked_to.begin();
+            return in->node->input_pin_type(in);
         }
 
         return pin->data_types;
@@ -69,6 +96,12 @@ namespace Engine::MaterialNodes
             {
                 return in->linked_to->node->output_pin_type(in->linked_to);
             }
+        }
+
+        if (!pin->linked_to.empty())
+        {
+            InputPin* in = *pin->linked_to.begin();
+            return in->node->input_pin_type(in);
         }
 
         return pin->data_types;

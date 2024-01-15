@@ -31,6 +31,11 @@ namespace Engine::MaterialNodes
         // Math group
         Sin,
         Cos,
+        Tan,
+        ASin,
+        ACos,
+        ATan,
+
         Max,
         Min
 
