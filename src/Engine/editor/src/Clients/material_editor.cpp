@@ -281,7 +281,7 @@ namespace Engine
 
         for (Struct* instance : group->structs())
         {
-            if (ImGui::Selectable(instance->base_name_splitted().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
+            if (ImGui::Selectable(instance->base_name().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
             {
                 if (!current && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
@@ -303,52 +303,55 @@ namespace Engine
     {
         ImGui::Begin("editor/Material Graph###Material Graph"_localized);
 
-        ax::NodeEditor::SetCurrentEditor(reinterpret_cast<ax::NodeEditor::EditorContext*>(_M_editor_context));
-
-        render_material_nodes(this);
-
-        if (!_M_current_material)
+        if (!ImGui::IsWindowAppearing())
         {
-            ImGui::End();
-            return *this;
-        }
+            ax::NodeEditor::SetCurrentEditor(reinterpret_cast<ax::NodeEditor::EditorContext*>(_M_editor_context));
+            render_material_nodes(this);
 
-        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-        {
-            _M_open_select_node_window = true;
-        }
-
-
-        if (_M_open_select_node_window)
-        {
-            const char* name = "editor/Menu"_localized;
-
-            ImGui::SetNextWindowSize({300, 350}, ImGuiCond_Appearing);
-            ImGui::SetNextWindowSizeConstraints({300, 350}, {FLT_MAX, FLT_MAX});
-            auto pos = ImGui::GetMousePos();
-            ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
-
-            ImGui::Begin(name, &_M_open_select_node_window);
-
-            if (ImGui::IsWindowAppearing())
+            if (!_M_current_material)
             {
-                _M_next_node_pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(pos));
+                ImGui::End();
+                return *this;
             }
 
+            if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
-                Struct* selected = render_nodes_window();
+                _M_open_select_node_window = true;
+            }
 
-                if (selected)
+
+            if (_M_open_select_node_window)
+            {
+                const char* name = "editor/Menu"_localized;
+
+                ImGui::SetNextWindowSize({300, 350}, ImGuiCond_Appearing);
+                ImGui::SetNextWindowSizeConstraints({300, 350}, {FLT_MAX, FLT_MAX});
+                auto pos = ImGui::GetMousePos();
+                ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
+
+                ImGui::Begin(name, &_M_open_select_node_window, ImGuiWindowFlags_NoSavedSettings);
+
+                if (ImGui::IsWindowAppearing())
                 {
-                    _M_open_select_node_window                           = false;
-                    _M_current_material->create_node(selected)->position = _M_next_node_pos;
+                    _M_next_node_pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(pos));
                 }
+
+                {
+                    Struct* selected = render_nodes_window();
+
+                    if (selected)
+                    {
+                        _M_open_select_node_window                           = false;
+                        _M_current_material->create_node(selected)->position = _M_next_node_pos;
+                    }
+                }
+
+                ImGui::End();
             }
 
-            ImGui::End();
-        }
 
-        ax::NodeEditor::SetCurrentEditor(nullptr);
+            ax::NodeEditor::SetCurrentEditor(nullptr);
+        }
         ImGui::End();
         return *this;
     }

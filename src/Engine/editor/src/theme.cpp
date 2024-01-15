@@ -22,6 +22,10 @@ namespace Engine
         io.Fonts->AddFontFromFileTTF(editor_config.font_path.string().c_str(), editor_font_size(), NULL,
                                      io.Fonts->GetGlyphRangesCyrillic());
 
+        io.IniFilename = nullptr;
+        io.LogFilename = nullptr;
+
+
         ImGuiStyle& style = ImGui::GetStyle();
 
         ImVec4* colors                         = style.Colors;

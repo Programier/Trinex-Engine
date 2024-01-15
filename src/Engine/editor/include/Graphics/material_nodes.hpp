@@ -36,6 +36,19 @@ namespace Engine::MaterialNodes
         ACos,
         ATan,
 
+        SinH,
+        CosH,
+        TanH,
+        ASinH,
+        ACosH,
+        ATanH,
+
+        Pow,
+        Exp,
+        Log,
+        Exp2,
+        Log2,
+
         Max,
         Min
 

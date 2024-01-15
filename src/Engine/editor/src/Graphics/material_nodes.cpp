@@ -38,34 +38,90 @@ namespace Engine::MaterialNodes
     })
 
 
-    declare_node(Sin, Math, {
+    declare_node(Sin, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
-    declare_node(Cos, Math, {
+    declare_node(Cos, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
-    declare_node(Tan, Math, {
+    declare_node(Tan, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
-    declare_node(ASin, Math, {
+    declare_node(ASin, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
-    declare_node(ACos, Math, {
+    declare_node(ACos, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
-    declare_node(ATan, Math, {
+    declare_node(ATan, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "X", 0));
         input.push_back(material->create_element<FloatInputPin>(this, "Y", 1, 1.f));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+
+    declare_node(SinH, Math::Hyperbolic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(CosH, Math::Hyperbolic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(TanH, Math::Hyperbolic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(ASinH, Math::Hyperbolic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(ACosH, Math::Hyperbolic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(ATanH, Math::Hyperbolic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(Pow, Math::Exponential and Logarithmic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(Exp, Math::Exponential and Logarithmic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(Log, Math::Exponential and Logarithmic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(Exp2, Math::Exponential and Logarithmic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+    });
+
+    declare_node(Log2, Math::Exponential and Logarithmic, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
     });
 
@@ -126,25 +182,25 @@ namespace Engine::MaterialNodes
     });
 
 
-#define declare_constant(const_name)                                                                                             \
-    declare_node(const_name, Constants, { output.push_back(material->create_element<const_name##OutputPin>(this, "Out", 0)); })
+#define declare_constant(const_name, group_name)                                                                                 \
+    declare_node(const_name, group_name, { output.push_back(material->create_element<const_name##OutputPin>(this, "Out", 0)); })
 
-    declare_constant(Bool);
-    declare_constant(Int);
-    declare_constant(UInt);
-    declare_constant(Float);
-    declare_constant(BVec2);
-    declare_constant(BVec3);
-    declare_constant(BVec4);
-    declare_constant(IVec2);
-    declare_constant(IVec3);
-    declare_constant(IVec4);
-    declare_constant(UVec2);
-    declare_constant(UVec3);
-    declare_constant(UVec4);
-    declare_constant(Vec2);
-    declare_constant(Vec3);
-    declare_constant(Vec4);
-    declare_constant(Color3);
-    declare_constant(Color4);
+    declare_constant(Bool, Constants);
+    declare_constant(Int, Constants);
+    declare_constant(UInt, Constants);
+    declare_constant(Float, Constants);
+    declare_constant(BVec2, Constants::Vectors::Bool);
+    declare_constant(BVec3, Constants::Vectors::Bool);
+    declare_constant(BVec4, Constants::Vectors::Bool);
+    declare_constant(IVec2, Constants::Vectors::Int);
+    declare_constant(IVec3, Constants::Vectors::Int);
+    declare_constant(IVec4, Constants::Vectors::Int);
+    declare_constant(UVec2, Constants::Vectors::UInt);
+    declare_constant(UVec3, Constants::Vectors::UInt);
+    declare_constant(UVec4, Constants::Vectors::UInt);
+    declare_constant(Vec2, Constants::Vectors::Float);
+    declare_constant(Vec3, Constants::Vectors::Float);
+    declare_constant(Vec4, Constants::Vectors::Float);
+    declare_constant(Color3, Constants::Colors);
+    declare_constant(Color4, Constants::Colors);
 }// namespace Engine::MaterialNodes

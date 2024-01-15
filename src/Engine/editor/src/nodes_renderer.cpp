@@ -517,7 +517,7 @@ namespace Engine
 
     void render_material_nodes(class MaterialEditorClient* client)
     {
-        ed::Begin("###Viewport", ImGui::GetContentRegionAvail());
+        ed::Begin("###Viewport");
 
         VisualMaterial* material = client->current_material();
 

@@ -2,6 +2,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/group.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/struct.hpp>
 #include <cstring>
 
 namespace Engine
@@ -47,7 +48,16 @@ namespace Engine
             Group* new_group     = new Group();
             new_group->_M_name   = Name(name, len);
             new_group->_M_parent = this;
-            _M_childs.push_back(new_group);
+
+            // Find index for insert
+            Index index = 0;
+            auto& name  = new_group->name().to_string();
+
+            for (Index size = _M_childs.size(); index < size && name > _M_childs[index]->name().to_string(); index++)
+            {
+            }
+
+            _M_childs.insert(_M_childs.begin() + index, new_group);
             return new_group;
         }
 
@@ -101,7 +111,15 @@ namespace Engine
                 return *this;
         }
 
-        _M_structs.push_back(instance);
+        // Find index for insert
+        Index index = 0;
+        auto& name  = instance->base_name().to_string();
+        for (Index size = _M_structs.size(); index < size && name > _M_structs[index]->name().to_string(); index++)
+        {
+        }
+
+
+        _M_structs.insert(_M_structs.begin() + index, instance);
         return *this;
     }
 
