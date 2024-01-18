@@ -157,26 +157,6 @@ install(DIRECTORY configs DESTINATION ${TRINEX_CONFIGS_INSTALL_DIR})
 install(DIRECTORY shaders DESTINATION ${TRINEX_SHADERS_INSTALL_DIR})
 install(DIRECTORY localization DESTINATION ${TRINEX_LOCALIZATION_INSTALL_DIR})
 
-if (FALSE)
-    # Compile glslang
-    set(SPIRV_CROSS_STATIC ON)
-    set(SPIRV_CROSS_SHARED OFF)
-    set(SPIRV_CROSS_CLI OFF)
-    set(SPIRV_CROSS_ENABLE_HLSL OFF)
-
-
-    add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/glslang/ EXCLUDE_FROM_ALL)
-    add_subdirectory(${TRINEX_ENGINE_ROOT}/libs/SPIRV-Cross/ EXCLUDE_FROM_ALL)
-    set_target_properties(spirv-cross-core PROPERTIES COMPILE_OPTIONS "-fPIC")
-    set_target_properties(spirv-cross-glsl PROPERTIES COMPILE_OPTIONS "-fPIC")
-
-    set(TRINEX_SHADER_COMPILERS_DIR "${TRINEX_ENGINE_SRC}/ShaderCompilers/")
-    file(GLOB TRINEX_SHADER_COMPILERS_SRC "${TRINEX_SHADER_COMPILERS_DIR}*.cpp")
-    add_library(ShaderCompilers SHARED ${TRINEX_SHADER_COMPILERS_SRC})
-    target_link_libraries(ShaderCompilers PRIVATE TrinexEngine glslang SPIRV glslang-default-resource-limits spirv-cross-core spirv-cross-glsl)
-    install(TARGETS ShaderCompilers DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
-endif()
-
 if (TRINEX_WITH_EDITOR)
     add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
 endif()

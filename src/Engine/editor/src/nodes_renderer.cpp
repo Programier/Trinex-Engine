@@ -313,6 +313,7 @@ namespace Engine
             node->position.y = current_position.y;
         }
 
+        ImGui::PushID(node->id);
         ed::BeginNode(node->id);
         {
             auto header_pos = ImGui::GetCursorPos();
@@ -362,6 +363,7 @@ namespace Engine
 
             render_node_header(node, header_pos);
             ed::EndNode();
+            ImGui::PopID();
         }
     }
 
@@ -415,12 +417,6 @@ namespace Engine
                 {
                     show_link_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0),
                                     ImColor(255, 255, 255, 255));
-                    ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), link_trickess);
-                }
-                else if ((input_pin->node->input_pin_type(reinterpret_cast<InputPin*>(input_pin)) &
-                          output_pin->node->output_pin_type(reinterpret_cast<OutputPin*>(output_pin))) == 0)
-                {
-                    show_link_label("editor/Pin types missmatch"_localized, ImColor(255, 0, 0), ImColor(255, 255, 255, 255));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), link_trickess);
                 }
                 else if (ed::AcceptNewItem())

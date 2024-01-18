@@ -1,5 +1,6 @@
 #pragma once
 #include <Graphics/material.hpp>
+#include <Graphics/material_nodes.hpp>
 
 namespace Engine
 {
@@ -18,26 +19,25 @@ namespace Engine
     struct NodePin : VisualMaterialElement {
         enum DataType : EnumerateType
         {
-            Bool   = BIT(0),
-            Int    = BIT(1),
-            UInt   = BIT(2),
-            Float  = BIT(3),
-            BVec2  = BIT(4),
-            BVec3  = BIT(5),
-            BVec4  = BIT(6),
-            IVec2  = BIT(7),
-            IVec3  = BIT(8),
-            IVec4  = BIT(9),
-            UVec2  = BIT(10),
-            UVec3  = BIT(11),
-            UVec4  = BIT(12),
-            Vec2   = BIT(13),
-            Vec3   = BIT(14),
-            Vec4   = BIT(15),
-            Color3 = BIT(16) | DataType::Vec3,
-            Color4 = BIT(17) | DataType::Vec4,
-
-            All = ~static_cast<EnumerateType>(0)
+            Undefined = 0,
+            Bool      = BIT(0),
+            Int       = BIT(1),
+            UInt      = BIT(2),
+            Float     = BIT(3),
+            BVec2     = BIT(4),
+            BVec3     = BIT(5),
+            BVec4     = BIT(6),
+            IVec2     = BIT(7),
+            IVec3     = BIT(8),
+            IVec4     = BIT(9),
+            UVec2     = BIT(10),
+            UVec3     = BIT(11),
+            UVec4     = BIT(12),
+            Vec2      = BIT(13),
+            Vec3      = BIT(14),
+            Vec4      = BIT(15),
+            Color3    = BIT(16) | DataType::Vec3,
+            Color4    = BIT(17) | DataType::Vec4,
         };
 
         enum PinType
@@ -63,18 +63,12 @@ namespace Engine
 
         Vector<struct InputPin*> input;
         Vector<struct OutputPin*> output;
-        EnumerateType (*output_type_callback)(OutputPin*) = nullptr;
-        EnumerateType (*input_type_callback)(InputPin*)   = nullptr;
-
 
         Node& init();
         virtual Node& update_id();
         virtual const char* name() const          = 0;
-        virtual EnumerateType type() const        = 0;
+        virtual MaterialNodes::Type type() const  = 0;
         virtual class Struct* node_struct() const = 0;
-
-        EnumerateType output_pin_type(OutputPin* pin);
-        EnumerateType input_pin_type(InputPin* pin);
         virtual ~Node();
     };
 
@@ -86,6 +80,7 @@ namespace Engine
 
         bool is_output_pin() const override;
         PinType type() const override;
+        bool has_one_output_link() const;
     };
 
     struct InputPin : public NodePin {

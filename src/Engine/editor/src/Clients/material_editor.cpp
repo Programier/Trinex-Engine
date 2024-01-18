@@ -1,5 +1,6 @@
 #include <Clients/material_editor_client.hpp>
 #include <Clients/open_client.hpp>
+#include <Compiler/compiler.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
@@ -12,6 +13,7 @@
 #include <Graphics/visual_material.hpp>
 #include <Window/window.hpp>
 #include <dock_window.hpp>
+#include <editor_config.hpp>
 #include <imgui_internal.h>
 #include <imgui_node_editor.h>
 #include <imgui_windows.hpp>
@@ -124,6 +126,12 @@ namespace Engine
 
         ImGuiRenderer::Window::make_current(prev_window);
 
+        Class* instance = Class::static_find(editor_config.material_compiler);
+        if (instance)
+        {
+            auto obj = instance->create_object();
+            _M_compiler = obj->instance_cast<MaterialCompiler>();
+        }
 
         return *this;
     }
@@ -210,6 +218,19 @@ namespace Engine
 
                 ImGui::EndMenu();
             }
+
+            if (ImGui::BeginMenu("editor/Material"_localized))
+            {
+                if (ImGui::MenuItem("editor/Compile"_localized, "editor/Compile current material"_localized, false,
+                                    _M_current_material && _M_compiler))
+                {
+                    MessageList list;
+                    _M_compiler->compile(_M_current_material, list);
+                }
+                ImGui::EndMenu();
+            }
+
+
             ImGui::EndMenuBar();
         }
 

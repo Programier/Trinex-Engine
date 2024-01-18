@@ -99,6 +99,11 @@ namespace Engine
         return NodePin::Output;
     }
 
+    bool OutputPin::has_one_output_link() const
+    {
+        return linked_to.size() == 1;
+    }
+
     bool InputPin::is_input_pin() const
     {
         return true;
@@ -133,23 +138,6 @@ namespace Engine
         return *this;
     }
 
-    EnumerateType Node::output_pin_type(OutputPin* pin)
-    {
-        if (output_type_callback)
-        {
-            return output_type_callback(pin);
-        }
-        return pin->data_types;
-    }
-
-    EnumerateType Node::input_pin_type(InputPin* pin)
-    {
-        if (input_type_callback)
-        {
-            return input_type_callback(pin);
-        }
-        return pin->data_types;
-    }
 
     Node::~Node()
     {
@@ -194,9 +182,9 @@ namespace Engine
             return "Material";
         }
 
-        EnumerateType type() const override
+        MaterialNodes::Type type() const override
         {
-            return static_cast<EnumerateType>(MaterialNodes::Type::GBufferRoot);
+            return MaterialNodes::Type::Root;
         }
 
         bool is_removable_element() override

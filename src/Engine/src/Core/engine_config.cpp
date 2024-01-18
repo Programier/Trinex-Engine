@@ -26,8 +26,6 @@ namespace Engine
         localization_dir     = engine_json.checked_get_value<JSON::JsonString>("localization_dir", "localization");
         default_language     = engine_json.checked_get_value<JSON::JsonString>("default_language", "eng");
         current_language     = engine_json.checked_get_value<JSON::JsonString>("current_language", "eng");
-        shader_compilers_lib = engine_json.checked_get_value<JSON::JsonString>("shader_compilers_lib");
-        shader_compiler      = engine_json.checked_get_value<JSON::JsonString>("shader_compiler");
         window_system        = engine_json.checked_get_value<JSON::JsonString>("window_system", "SDL2");
 
 #if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS

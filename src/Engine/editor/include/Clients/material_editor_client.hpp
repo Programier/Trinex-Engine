@@ -17,6 +17,7 @@ namespace Engine
 
         class RenderViewport* _M_viewport         = nullptr;
         class VisualMaterial* _M_current_material = nullptr;
+        class MaterialCompiler* _M_compiler       = nullptr;
 
         bool _M_open_select_node_window = false;
         Vector2D _M_next_node_pos;

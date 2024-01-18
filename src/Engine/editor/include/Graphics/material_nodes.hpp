@@ -1,11 +1,11 @@
 #pragma once
-#include <Graphics/visual_material.hpp>
+#include <Core/engine_types.hpp>
 
 namespace Engine::MaterialNodes
 {
     enum class Type : EnumerateType
     {
-        GBufferRoot,
+        Root,
 
 
         // Constants group

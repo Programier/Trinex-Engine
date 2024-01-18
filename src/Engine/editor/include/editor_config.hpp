@@ -4,6 +4,7 @@
 namespace Engine
 {
     struct EditorConfig : public Config {
+        String material_compiler;
         Path font_path;
         float font_size;
 

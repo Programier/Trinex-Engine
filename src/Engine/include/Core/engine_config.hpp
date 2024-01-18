@@ -21,8 +21,6 @@ namespace Engine
         Path localization_dir;
 
         String api;
-        String shader_compilers_lib;
-        String shader_compiler;
         String window_system;
         String default_language;
         String current_language;

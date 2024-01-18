@@ -12,6 +12,7 @@ namespace Engine
     EditorConfig& EditorConfig::update()
     {
         const auto& editor_json = global_config.checked_get("Editor").checked_get<JSON::JsonObject>();
+        material_compiler       = editor_json.checked_get_value<JSON::JsonString>("material_compiler", "Engine::GLSL_Compiler");
         font_path               = editor_json.checked_get_value<JSON::JsonString>("font_path", editor_default_font);
         font_size               = editor_json.checked_get_value<JSON::JsonFloat>("font_size", 18.f);
 

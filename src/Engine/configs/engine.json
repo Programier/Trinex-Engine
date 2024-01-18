@@ -13,8 +13,6 @@
         "current_language": "ukr",
         "languages": ["eng", "ukr"],
 
-        "shader_compilers_lib": "ShaderCompilers",
-        "shader_compiler": "Engine::GLSLToSPIRV",
         "window_system": "SDL2",
         "systems": [],
         "external_system_libraries": []
