@@ -117,8 +117,26 @@ namespace Engine
                 new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));
     });
 
+
+    Pipeline::Pipeline()
+    {
+        vertex_shader = Object::new_instance<VertexShader>();
+        vertex_shader->flags(Object::IsAvailableForGC, false);
+
+        fragment_shader = Object::new_instance<FragmentShader>();
+        fragment_shader->flags(Object::IsAvailableForGC, false);
+    }
+
+    Pipeline::~Pipeline()
+    {
+        delete vertex_shader;
+        delete fragment_shader;
+    }
+
     Pipeline& Pipeline::rhi_create()
     {
+        vertex_shader->rhi_create();
+        fragment_shader->rhi_create();
         _M_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
         return *this;
     }
@@ -132,14 +150,14 @@ namespace Engine
 
         UniformBuffer* ubo = RenderTargetBase::current_target()->uniform_buffer();
 
-        if (vertex_shader.ptr()->global_ubo_location.is_valid())
+        if (vertex_shader->global_ubo_location.is_valid())
         {
-            ubo->rhi_bind(vertex_shader.ptr()->global_ubo_location);
+            ubo->rhi_bind(vertex_shader->global_ubo_location);
         }
 
-        if (fragment_shader.ptr()->global_ubo_location.is_valid())
+        if (fragment_shader->global_ubo_location.is_valid())
         {
-            ubo->rhi_bind(fragment_shader.ptr()->global_ubo_location);
+            ubo->rhi_bind(fragment_shader->global_ubo_location);
         }
 
         return *this;

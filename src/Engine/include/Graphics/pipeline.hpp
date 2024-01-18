@@ -77,10 +77,12 @@ namespace Engine
         } ALIGNED(4) color_blending;
 
     public:
-        RenderPass* render_pass = nullptr;
-        Pointer<VertexShader> vertex_shader;
-        Pointer<FragmentShader> fragment_shader;
+        RenderPass* render_pass         = nullptr;
+        VertexShader* vertex_shader     = nullptr;
+        FragmentShader* fragment_shader = nullptr;
 
+        Pipeline();
+        ~Pipeline();
         Pipeline& rhi_create() override;
         const Pipeline& rhi_bind() const;
 
