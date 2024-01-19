@@ -13,7 +13,6 @@ class Editor : public Engine::EngineBaseEntryPoint
 public:
     Engine::int_t execute(Engine::int_t argc, char** argv) override
     {
-        Engine::Package::load_package("Editor");
         Engine::engine_instance->launch();
         return 0;
     }
@@ -37,4 +36,10 @@ static void on_init()
     Engine::engine_instance->args().push_argument(Engine::Arguments::Argument("entry", "Editor"), false);
 }
 
+namespace Engine
+{
+    extern void on_post_init();
+}// namespace Engine
+
 static Engine::InitializeController initializer(on_init);
+static Engine::PostInitializeController post_init(Engine::on_post_init);

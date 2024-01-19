@@ -120,7 +120,7 @@ namespace Engine
         create_properties_window();
         create_scene_tree();
 
-        _M_sampler = Package::load_package("Editor")->find_object_checked<Sampler>("DefaultSampler");
+        _M_sampler = Package::find_package("Editor", true)->find_object_checked<Sampler>("DefaultSampler");
 
         ImGuiRenderer::Window::make_current(prev_window);
         return init_world();

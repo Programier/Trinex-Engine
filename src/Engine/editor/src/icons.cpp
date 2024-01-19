@@ -14,7 +14,7 @@ namespace Engine::Icons
         static Package* package = nullptr;
         if (package == nullptr)
         {
-            package = Package::load_package("Editor");
+            package = Package::find_package("Editor", true);
         }
         return package;
     }
@@ -96,7 +96,7 @@ namespace Engine::Icons
             }
         }
 
-        if(texture && texture->has_object())
+        if (texture && texture->has_object())
         {
             return window->create_texture(texture, sampler);
         }
