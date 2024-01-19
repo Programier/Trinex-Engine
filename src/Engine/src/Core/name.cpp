@@ -142,7 +142,7 @@ namespace Engine
     {
         if (is_valid())
         {
-            return std::strcmp(name, name_entries()[_M_index].name.c_str()) != 0;
+            return std::strcmp(name, name_entries()[_M_index].name.c_str()) == 0;
         }
 
         return false;
