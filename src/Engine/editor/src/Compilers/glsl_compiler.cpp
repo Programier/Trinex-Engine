@@ -2,6 +2,8 @@
 #include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/material_nodes.hpp>
+#include <Graphics/pipeline.hpp>
+#include <Graphics/shader.hpp>
 #include <Graphics/visual_material.hpp>
 
 namespace Engine
@@ -22,7 +24,7 @@ namespace Engine
     }
 
 
-    static EnumerateType deduce_pin_type(OutputPin* pin, CompiledNodes& compiled)
+    static NodePin::DataType deduce_pin_type(OutputPin* pin, CompiledNodes& compiled)
     {
         if (pin == nullptr)
             return NodePin::Undefined;
@@ -145,6 +147,7 @@ namespace Engine
         {
             compiler->is_build_fail = true;
             compiler->errors->push_back("Failed to determine node output type");
+            error_log("GLSL Compiler", "Failed to get type of output pin");
         }
         else
         {
@@ -339,6 +342,16 @@ namespace Engine
     }
 
 
+    GLSL_Compiler& GLSL_Compiler::compile_fragment_shader(VisualMaterial* material)
+    {
+        fragment.globals.push_back("#version 310 es");
+        fragment.globals.push_back("layout(location = 0) out vec3 out_color;");
+
+        Node* root = material->root_node();
+        fragment.main.push_back(Strings::format("out_color = {}", pin_source(root->input[0], &fragment, NodePin::Vec3)));
+        return *this;
+    }
+
     bool GLSL_Compiler::compile(VisualMaterial* material, MessageList& errors)
     {
         fragment.clear();
@@ -346,12 +359,9 @@ namespace Engine
         this->errors  = &errors;
         is_build_fail = false;
 
-        fragment.globals.push_back("layout(location = 0) out vec3 out_color;");
+        compile_fragment_shader(material);
 
-        Node* root = material->root_node();
-        fragment.main.push_back(Strings::format("out_color = {}", pin_source(root->input[0], &fragment, NodePin::Vec3)));
-
-        printf("Output:\n\n%s\n\n", fragment.output().c_str());
+        material->pipeline->fragment_shader->text_code = fragment.output();
 
         if (is_build_fail)
         {
@@ -363,9 +373,13 @@ namespace Engine
     implement_engine_class_default_init(GLSL_Compiler);
 
 
-    static EnumerateType default_deduce_func(OutputPin* pin, CompiledNodes& nodes)
+    static NodePin::DataType default_deduce_func(OutputPin* pin, CompiledNodes& nodes)
     {
-        return deduce_pin_type(pin->node->input[0]->linked_to, nodes);
+        InputPin* in_pin = pin->node->input[0];
+        if (in_pin->linked_to)
+            return deduce_pin_type(in_pin->linked_to, nodes);
+
+        return static_cast<NodePin::DataType>(in_pin->data_types);
     }
 
 #define compile_func() info->compile = [](GLSL_Compiler * compiler, Node * node, CompiledNode & out, ShaderCode * code)
@@ -564,13 +578,104 @@ namespace Engine
             deduce_func_default();
         };
 
+
+        implement_node(Sqrt)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("sqrt({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(InverseSqrt)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("inversesqrt({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(Abs)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("abs({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(Sign)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("sign({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(Floor)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("floor({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(Ceil)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("ceil({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(Fract)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("fract({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+        implement_node(Mod)
+        {
+            compile_func()
+            {
+                code->submit(node->output[0], Strings::format("mod({})", compiler->pin_source(node->input[0], code)),
+                             out.pin_info[0]);
+            };
+
+            deduce_func_default();
+        };
+
+
         implement_node(Max)
         {
             compile_func()
             {
                 code->submit(node->output[0],
                              Strings::format("max({}, {})", compiler->pin_source(node->input[0], code),
-                                             compiler->pin_source(node->input[1], code)),
+                                             compiler->pin_source(node->input[1], code,
+                                                                  deduce_pin_type(node->output[0], code->compiled_nodes))),
                              out.pin_info[0]);
             };
 
@@ -583,11 +688,17 @@ namespace Engine
             {
                 code->submit(node->output[0],
                              Strings::format("min({}, {})", compiler->pin_source(node->input[0], code),
-                                             compiler->pin_source(node->input[1], code)),
+                                             compiler->pin_source(node->input[1], code,
+                                                                  deduce_pin_type(node->output[0], code->compiled_nodes))),
                              out.pin_info[0]);
             };
 
             deduce_func_default();
         };
+
+        //                Clamp,
+        //                Mix,
+        //                Step,
+        //                Smoothstep
     });
 }// namespace Engine

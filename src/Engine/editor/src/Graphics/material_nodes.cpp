@@ -40,101 +40,146 @@ namespace Engine::MaterialNodes
 
     declare_node(Sin, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Cos, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Tan, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(ASin, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(ACos, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(ATan, Math::Trigonometric, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
 
     declare_node(SinH, Math::Hyperbolic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(CosH, Math::Hyperbolic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(TanH, Math::Hyperbolic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(ASinH, Math::Hyperbolic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(ACosH, Math::Hyperbolic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(ATanH, Math::Hyperbolic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Pow, Math::Exponential and Logarithmic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Exp, Math::Exponential and Logarithmic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Log, Math::Exponential and Logarithmic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Exp2, Math::Exponential and Logarithmic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
     declare_node(Log2, Math::Exponential and Logarithmic, {
         input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
-        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Float, 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
-    declare_node(Max, Math, {
+    declare_node(Sqrt, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(InverseSqrt, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Abs, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Sign, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Floor, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Ceil, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Fract, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Mod, Math::Common, {
+        input.push_back(material->create_element<FloatInputPin>(this, "In", 0));
+        output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
+    });
+
+    declare_node(Max, Math::Common, {
         input.push_back(material->create_element<InputPin>(this, "A", NodePin::DataType::Undefined, 0));
         input.push_back(material->create_element<InputPin>(this, "B", NodePin::DataType::Undefined, 1));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
 
-    declare_node(Min, Math, {
+    declare_node(Min, Math::Common, {
         input.push_back(material->create_element<InputPin>(this, "A", NodePin::DataType::Undefined, 0));
         input.push_back(material->create_element<InputPin>(this, "B", NodePin::DataType::Undefined, 1));
         output.push_back(material->create_element<OutputPin>(this, "Out", NodePin::DataType::Undefined, 0));
     });
+
+//          Clamp,
+//            Mix,
+//            Step,
+//            Smoothstep
 
 
 #define declare_constant(const_name, group_name)                                                                                 \

@@ -49,8 +49,19 @@ namespace Engine::MaterialNodes
         Exp2,
         Log2,
 
+        Sqrt,
+        InverseSqrt,
+        Abs,
+        Sign,
+        Floor,
+        Ceil,
+        Fract,
+        Mod,
+        Min,
         Max,
-        Min
-
+        Clamp,
+        Mix,
+        Step,
+        Smoothstep
     };
 }

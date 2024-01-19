@@ -10,7 +10,7 @@ namespace Engine
                                           struct ShaderCode* code);
 
     using CompiledNodes         = Map<Identifier, CompiledNode>;
-    using DeducePinTypeFunction = EnumerateType (*)(OutputPin* pin, CompiledNodes& nodes);
+    using DeducePinTypeFunction = NodePin::DataType (*)(OutputPin* pin, CompiledNodes& nodes);
 
     struct NodeInfo {
         NodeCompilerFunction compile = nullptr;
@@ -62,6 +62,8 @@ namespace Engine
         String default_value_of(void* data, NodePin::DataType type);
         const CompiledNode& compile_node(Node* node, ShaderCode* code);
         String pin_source(InputPin* pin, ShaderCode* code, NodePin::DataType out_type = NodePin::DataType::Undefined);
+
+        GLSL_Compiler& compile_fragment_shader(VisualMaterial* material);
         bool compile(VisualMaterial* material, MessageList& errors) override;
     };
 }// namespace Engine

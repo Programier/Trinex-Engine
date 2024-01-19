@@ -9,6 +9,8 @@ namespace Engine
         declare_class(MaterialEditorClient, ViewportClient);
 
     private:
+        MessageList _M_shader_compile_error_list;
+
         ImGuiPackageTree* _M_package_tree       = nullptr;
         ImGuiContentBrowser* _M_content_browser = nullptr;
         ImGuiObjectProperties* _M_properties    = nullptr;
@@ -19,7 +21,9 @@ namespace Engine
         class VisualMaterial* _M_current_material = nullptr;
         class MaterialCompiler* _M_compiler       = nullptr;
 
-        bool _M_open_select_node_window = false;
+        bool _M_open_select_node_window   = false;
+        bool _M_open_material_code_window = false;
+
         Vector2D _M_next_node_pos;
         size_t _M_frame = 0;
 
@@ -45,5 +49,6 @@ namespace Engine
         void on_object_select(Object* object);
 
         void render_dock_window(void* userdata);
+        void render_material_code();
     };
 }// namespace Engine

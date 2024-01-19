@@ -19,6 +19,9 @@
 #include <imgui_windows.hpp>
 #include <theme.hpp>
 
+#include <Graphics/pipeline.hpp>
+#include <Graphics/shader.hpp>
+
 
 #define MATERIAL_EDITOR_DEBUG 1
 
@@ -129,7 +132,7 @@ namespace Engine
         Class* instance = Class::static_find(editor_config.material_compiler);
         if (instance)
         {
-            auto obj = instance->create_object();
+            auto obj    = instance->create_object();
             _M_compiler = obj->instance_cast<MaterialCompiler>();
         }
 
@@ -190,7 +193,7 @@ namespace Engine
                     create_properties_window();
                 }
 
-
+                ImGui::Checkbox("editor/Open Material Code"_localized, &_M_open_material_code_window);
                 ImGui::EndMenu();
             }
 
@@ -224,8 +227,8 @@ namespace Engine
                 if (ImGui::MenuItem("editor/Compile"_localized, "editor/Compile current material"_localized, false,
                                     _M_current_material && _M_compiler))
                 {
-                    MessageList list;
-                    _M_compiler->compile(_M_current_material, list);
+                    _M_shader_compile_error_list.clear();
+                    _M_compiler->compile(_M_current_material, _M_shader_compile_error_list);
                 }
                 ImGui::EndMenu();
             }
@@ -259,6 +262,7 @@ namespace Engine
         viewport->window()->imgui_window()->new_frame();
         make_dock_window("MaterialEditorDock", ImGuiWindowFlags_MenuBar, &MaterialEditorClient::render_dock_window, this);
         render_viewport(dt);
+        render_material_code();
         viewport->window()->imgui_window()->end_frame();
         ++_M_frame;
         return *this;
@@ -375,5 +379,47 @@ namespace Engine
         }
         ImGui::End();
         return *this;
+    }
+
+    void MaterialEditorClient::render_material_code()
+    {
+        if (_M_open_material_code_window)
+        {
+            ImGui::SetNextWindowSize({400, 500}, ImGuiCond_Appearing);
+            ImGui::Begin("editor/Material Code"_localized, &_M_open_material_code_window);
+            ImGui::BeginTabBar("TabBar");
+
+            if (_M_current_material)
+            {
+                if (ImGui::BeginTabItem("editor/Vertex"_localized))
+                {
+                    String& code = _M_current_material->pipeline->vertex_shader->text_code;
+                    ImGui::TextWrapped("%s", code.c_str());
+                    ImGui::EndTabItem();
+                }
+
+                if (ImGui::BeginTabItem("editor/Fragment"_localized))
+                {
+                    String& code = _M_current_material->pipeline->fragment_shader->text_code;
+                    ImGui::TextWrapped("%s", code.c_str());
+                    ImGui::EndTabItem();
+                }
+            }
+
+            if (ImGui::BeginTabItem("editor/Errors"_localized))
+            {
+                Index index = 1;
+                for(auto& msg : _M_shader_compile_error_list)
+                {
+                    ImGui::TextColored(ImColor(255, 0, 0), "%zu: %s", index++, msg.c_str());
+                }
+                ImGui::EndTabItem();
+            }
+
+
+            ImGui::EndTabBar();
+
+            ImGui::End();
+        }
     }
 }// namespace Engine
