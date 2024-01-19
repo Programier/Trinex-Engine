@@ -10,20 +10,29 @@
 
 namespace Engine
 {
-
-    void Image::delete_image()
-    {
-        _M_height = 0, _M_width = 0, _M_channels = 0;
-    }
-
     bool Image::empty() const
     {
         return _M_data.empty() || _M_channels == 0 || _M_width == 0 || _M_height == 0;
     }
 
+    byte* Image::data()
+    {
+        return _M_data.data();
+    }
+
     const byte* Image::data() const
     {
         return _M_data.data();
+    }
+
+    Buffer& Image::buffer()
+    {
+        return _M_data;
+    }
+
+    const Buffer& Image::buffer() const
+    {
+        return _M_data;
     }
 
     Size1D Image::width() const
@@ -47,14 +56,6 @@ namespace Engine
         return _M_channels;
     }
 
-    Image::ImageRow Image::operator[](int_t index)
-    {
-
-        if (index >= _M_height || index < -_M_height)
-            EngineException("Index out of range");
-        index = index < 0 ? _M_height - index : index;
-        return Image::ImageRow(_M_data.data() + _M_channels * index, _M_width, _M_channels);
-    }
 
     Image& Image::load(const Path& image, const bool& invert_horizontal)
     {
@@ -72,6 +73,24 @@ namespace Engine
         _M_data.insert(_M_data.begin(), address, address + _M_width * _M_height * _M_channels);
         stbi_image_free(address);
         return *this;
+    }
+
+    Image& Image::load_from_memory(const byte* buffer, size_t size)
+    {
+        _M_data.clear();
+        _M_data.shrink_to_fit();
+
+        stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &_M_width, &_M_height, &_M_channels, 0);
+        _M_data.resize(_M_width * _M_height * _M_channels);
+        std::copy(image_data, image_data + _M_data.size(), _M_data.data());
+        stbi_image_free(image_data);
+
+        return *this;
+    }
+
+    Image& Image::load_from_memory(const Buffer& buffer)
+    {
+        return load_from_memory(buffer.data(), buffer.size());
     }
 
     Image::Image() = default;
@@ -158,132 +177,10 @@ namespace Engine
         return *this;
     }
 
-    Vector<byte>& Image::vector()
-    {
-        return _M_data;
-    }
-
-    const Buffer& Image::vector() const
-    {
-        return _M_data;
-    }
-
-    Buffer::iterator Image::begin()
-    {
-        return _M_data.begin();
-    }
-
-    Buffer::iterator Image::end()
-    {
-        return _M_data.end();
-    }
-
-    Buffer::const_iterator Image::begin() const
-    {
-        return _M_data.begin();
-    }
-
-    Buffer::const_iterator Image::end() const
-    {
-        return _M_data.end();
-    }
-
 
     Image::~Image()
-    {
-        delete_image();
-    }
-
-
-    //          IMAGE ROW
-    Image::ImageRow::ImageRow(byte* data, int_t length, int_t channels) : _M_data(data), _M_length(length), _M_channels(channels)
     {}
 
-    Image::ImageRow::Pixel Image::ImageRow::operator[](int_t index)
-    {
-        if (index >= _M_length || index < -_M_length)
-            EngineException("Index out of range");
-        index = index < 0 ? _M_length - index : index;
-        return Pixel(_M_data + index * _M_channels, _M_channels);
-    }
-
-    //          PIXEL
-
-    Image::ImageRow::Pixel::Pixel(byte* data, int_t channels) : _M_data(data), _M_channels(channels)
-    {}
-
-    byte& Image::ImageRow::Pixel::R()
-    {
-        return _M_data[0];
-    }
-
-    byte& Image::ImageRow::Pixel::G()
-    {
-        return _M_data[1];
-    }
-
-    byte& Image::ImageRow::Pixel::B()
-    {
-        return _M_data[2];
-    }
-
-    byte& Image::ImageRow::Pixel::A()
-    {
-        if (has_alpha() == false)
-            throw std::runtime_error("Pixel: Alpha channel not found");
-        return _M_data[3];
-    }
-
-    bool Image::ImageRow::Pixel::has_alpha()
-    {
-        return _M_channels == 4;
-    }
-
-    byte* Image::ImageRow::Pixel::begin()
-    {
-        return _M_data;
-    }
-
-    byte* Image::ImageRow::Pixel::end()
-    {
-        return _M_data + _M_channels;
-    }
-
-    Image::ImageRow::Pixel& Image::ImageRow::Pixel::operator=(const Pixel& pixel)
-    {
-        std::copy(pixel._M_data, pixel._M_data + std::min(_M_channels, pixel._M_channels), _M_data);
-
-        return *this;
-    }
-
-    Image Image::sub_image(const Point2D& begin, const Size2D& size)
-    {
-        Image image;
-        auto end = begin + size;
-
-        if (size.x < 0 || size.y < 0)
-            throw EngineException("Imcorrect index");
-        if (end.x > _M_width || begin.x > _M_width || end.y > _M_height || begin.y > _M_height)
-            throw EngineException("Index out of range");
-
-        image._M_width    = static_cast<int>(size.x + 0.5);
-        image._M_height   = static_cast<int>(size.y + 0.5);
-        image._M_channels = _M_channels;
-
-        image._M_data.reserve(image._M_width * image._M_height * _M_channels);
-
-        int_t start_index =
-                (_M_width * _M_channels * static_cast<int>(begin.y + 0.5)) + static_cast<int>(begin.x + 0.5) * _M_channels;
-        for (int_t i = 0; i < image._M_height; i++)
-        {
-            image._M_data.insert(image.end(), _M_data.begin() + start_index,
-                                 _M_data.begin() + start_index + image._M_width * image._M_channels);
-            start_index += _M_width * _M_channels;
-        }
-
-
-        return image;
-    }
 
     Image::Image(Image&& img)
     {
@@ -295,7 +192,6 @@ namespace Engine
         if (this == &img)
             return *this;
 
-        delete_image();
         _M_data     = std::move(img._M_data);
         _M_channels = img._M_channels;
         _M_width    = img._M_width;

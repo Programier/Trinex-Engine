@@ -417,7 +417,7 @@ namespace Engine
         {
             destroy_icon();
 
-            _M_icon_buffer = image.vector();
+            _M_icon_buffer = image.buffer();
             _M_icon        = create_surface(_M_icon_buffer, image.width(), image.height(), channels);
 
             SDL_SetWindowIcon(_M_window, _M_icon);
@@ -437,7 +437,7 @@ namespace Engine
         {
             destroy_cursor();
 
-            _M_cursor_icon_buffer = image.vector();
+            _M_cursor_icon_buffer = image.buffer();
             _M_cursor_icon        = create_surface(_M_cursor_icon_buffer, image.width(), image.height(), channels);
 
             if (_M_cursor_icon)

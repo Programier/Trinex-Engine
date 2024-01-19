@@ -46,22 +46,22 @@ namespace Engine
 
         Image _M_images[6];
 
-        _M_images[(byte) TextureCubeMapFace::Up] =
-                invert ? img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3})
-                       : img.sub_image({block_width, 0}, {block_width * 2, block_height});
+//        _M_images[(byte) TextureCubeMapFace::Up] =
+//                invert ? img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3})
+//                       : img.sub_image({block_width, 0}, {block_width * 2, block_height});
 
 
-        _M_images[(byte) TextureCubeMapFace::Down] =
-                invert ? img.sub_image({block_width, 0}, {block_width * 2, block_height})
-                       : img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3});
+//        _M_images[(byte) TextureCubeMapFace::Down] =
+//                invert ? img.sub_image({block_width, 0}, {block_width * 2, block_height})
+//                       : img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3});
 
-        _M_images[(byte) TextureCubeMapFace::Left] = img.sub_image({0, block_height}, {block_width, block_height * 2});
-        _M_images[(byte) TextureCubeMapFace::Right] =
-                img.sub_image({block_width * 2, block_height}, {block_width * 3, block_height * 2});
-        _M_images[(byte) TextureCubeMapFace::Back] =
-                img.sub_image({block_width * 1, block_height}, {block_width * 2, block_height * 2});
-        _M_images[(byte) TextureCubeMapFace::Front] =
-                img.sub_image({block_width * 3, block_height}, {block_width * 4, block_height * 2});
+//        _M_images[(byte) TextureCubeMapFace::Left] = img.sub_image({0, block_height}, {block_width, block_height * 2});
+//        _M_images[(byte) TextureCubeMapFace::Right] =
+//                img.sub_image({block_width * 2, block_height}, {block_width * 3, block_height * 2});
+//        _M_images[(byte) TextureCubeMapFace::Back] =
+//                img.sub_image({block_width * 1, block_height}, {block_width * 2, block_height * 2});
+//        _M_images[(byte) TextureCubeMapFace::Front] =
+//                img.sub_image({block_width * 3, block_height}, {block_width * 4, block_height * 2});
 
 
         for (byte i = 0; i < 6; i++)
