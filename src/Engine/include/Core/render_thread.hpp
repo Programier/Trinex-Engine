@@ -1,10 +1,11 @@
 #pragma once
-#include <Core/engine.hpp>
 #include <Core/thread.hpp>
 
 
 namespace Engine
 {
+    ENGINE_EXPORT Thread* render_thread();
+
     template<typename Callable>
     FORCE_INLINE void call_in_render_thread(Callable&& callable)
     {
@@ -21,16 +22,15 @@ namespace Engine
             }
         };
 
-        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
-        if (Thread::this_thread() == render_thread)
+        Thread* rt = render_thread();
+        if (Thread::this_thread() == rt)
         {
             callable();
         }
         else
         {
-            render_thread->insert_new_task<Command>(std::forward<Callable>(callable));
+            rt->insert_new_task<Command>(std::forward<Callable>(callable));
         }
     }
 
-    ENGINE_EXPORT Thread* render_thread();
 }// namespace Engine
