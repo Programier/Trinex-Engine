@@ -11,6 +11,7 @@ namespace Engine
         String api_name;
         String client;
         Size2D size;
+        Point2D position = {-1, -1};
         Vector<WindowOrientation> orientations;
         bool vsync;
 

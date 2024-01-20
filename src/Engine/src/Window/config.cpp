@@ -7,15 +7,15 @@
 namespace Engine
 {
 
-    static float to_float(const JSON::Value& value)
+    static float to_float(const JSON::Value& value, float default_value = 0.f)
     {
         if (value.type() == JSON::ValueType::Integer)
         {
-            return static_cast<float>(value.checked_get<JSON::JsonInt>());
+            return static_cast<float>(value.checked_get<JSON::JsonInt>(default_value));
         }
         else
         {
-            return value.checked_get<JSON::JsonFloat>();
+            return value.checked_get<JSON::JsonFloat>(default_value);
         }
     }
 
@@ -29,6 +29,12 @@ namespace Engine
             const auto& window_size = window_json.checked_get("size").checked_get<JSON::JsonObject>();
             size.x                  = to_float(window_size.checked_get("x"));
             size.y                  = to_float(window_size.checked_get("y"));
+        }
+
+        {
+            const auto& window_pos = window_json.checked_get("position").checked_get<JSON::JsonObject>();
+            position.x             = to_float(window_pos.checked_get("x"), -1.f);
+            position.y             = to_float(window_pos.checked_get("y"), -1.f);
         }
         {
             const auto& attributes_array = window_json.checked_get("attributes").checked_get<JSON::JsonArray>();
@@ -87,6 +93,8 @@ namespace Engine
         new_param_nc(client);
         new_param(size.x, Strings::convert<float>);
         new_param(size.y, Strings::convert<float>);
+        new_param(position.x, Strings::convert<float>);
+        new_param(position.y, Strings::convert<float>);
         new_param(vsync, Strings::convert<bool>);
 
         return *this;

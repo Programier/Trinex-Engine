@@ -63,6 +63,12 @@ namespace Engine
         throw std::runtime_error("Failed to create Window: " + msg);
     }
 
+
+    static int validate_pos(int pos)
+    {
+        return pos < 0 ? SDL_WINDOWPOS_UNDEFINED : pos;
+    }
+
     WindowInterface* WindowSDL::initialize(const WindowConfig* info)
     {
         _M_vsync_status = info->vsync;
@@ -71,7 +77,7 @@ namespace Engine
 
         _M_api = sdl_api(info->api_name);
 
-        _M_window = SDL_CreateWindow(info->title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        _M_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
                                      static_cast<int>(info->size.x), static_cast<int>(info->size.y),
                                      _M_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
@@ -329,8 +335,7 @@ namespace Engine
                                                          static_cast<Uint8>(info.sheme.background.r),
                                                          static_cast<Uint8>(info.sheme.background.r)};
 
-        sheme.colors[SDL_MESSAGEBOX_COLOR_TEXT] = {static_cast<Uint8>(info.sheme.text.r),
-                                                   static_cast<Uint8>(info.sheme.text.r),
+        sheme.colors[SDL_MESSAGEBOX_COLOR_TEXT] = {static_cast<Uint8>(info.sheme.text.r), static_cast<Uint8>(info.sheme.text.r),
                                                    static_cast<Uint8>(info.sheme.text.r)};
 
         sheme.colors[SDL_MESSAGEBOX_COLOR_BUTTON_BORDER] = {static_cast<Uint8>(info.sheme.button_border.r),
@@ -401,8 +406,8 @@ namespace Engine
         int_t b_mask = 0x0000FF00 >> s;
         int_t a_mask = 0x000000FF >> s;
 #endif
-        SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask,
-                                                        g_mask, b_mask, a_mask);
+        SDL_Surface* surface =
+                SDL_CreateRGBSurfaceFrom(data, width, height, channels * 8, width * channels, r_mask, g_mask, b_mask, a_mask);
         if (surface == nullptr)
         {
             error_log("WindowSDL", "Failed to create surface from image: %s", SDL_GetError());
