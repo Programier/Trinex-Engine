@@ -944,6 +944,8 @@ namespace Engine
         icon->init_resource();
 
         Sampler* sampler = Object::new_instance_named<Sampler>("DefaultSampler");
+        sampler->filter = SamplerFilter::Trilinear;
+        sampler->anisotropy = 16.f;
         sampler->init_resource();
 
         editor->add_object(icon);
