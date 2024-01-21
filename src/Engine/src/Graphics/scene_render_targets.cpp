@@ -16,9 +16,10 @@ namespace Engine
 
     void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
     {
-        info_log("EngineRenderTarget", "{%f, %f} -> {%f, %f}", size.x, size.y, new_size.x, new_size.y);
-        if (size.x >= new_size.x || size.y >= new_size.y)
+        if (size.x >= new_size.x && size.y >= new_size.y)
             return;
+
+        info_log("EngineRenderTarget", "{%f, %f} -> {%f, %f}", size.x, size.y, new_size.x, new_size.y);
 
         // Initilize/reinitialzie textures
         if (is_reinit)
