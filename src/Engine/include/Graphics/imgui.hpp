@@ -2,6 +2,7 @@
 #include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <imgui.h>
 
 
@@ -117,6 +118,7 @@ namespace Engine::ImGuiRenderer
         ~ImGuiAdditionalWindowList();
     };
 
+
     class ENGINE_EXPORT Window final
     {
     private:
@@ -153,6 +155,21 @@ namespace Engine::ImGuiRenderer
         static void make_current(Window*);
 
         friend class Engine::Window;
+    };
+
+    class ENGINE_EXPORT ImGuiViewportClient : public ViewportClient
+    {
+        declare_class(ImGuiViewportClient, ViewportClient);
+
+        DrawData _M_draw_data;
+        class Window* _M_window;
+
+    public:
+        ImGuiViewport* viewport = nullptr;
+
+        ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override;
+        ViewportClient& render(class RenderViewport* viewport) override;
+        ViewportClient& prepare_render(class RenderViewport* viewport) override;
     };
 
     bool ENGINE_EXPORT IsMouseDownNow(ImGuiMouseButton button);

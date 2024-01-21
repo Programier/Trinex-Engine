@@ -43,7 +43,7 @@ namespace Engine
 
     void OpenGL_WindowViewport::init(WindowInterface* window, bool vsync)
     {
-        _M_context             = window->create_surface("");
+        _M_context = window->create_surface("");
 
         if (!(OPENGL_API->_M_context))
         {
@@ -69,7 +69,7 @@ namespace Engine
     void OpenGL_WindowViewport::begin_render()
     {
         OPENGL_API->reset_state();
-        _M_window->make_current(OPENGL_API->_M_context);
+        _M_window->make_current();
     }
 
     void OpenGL_WindowViewport::end_render()
@@ -79,11 +79,7 @@ namespace Engine
 
     OpenGL_WindowViewport::~OpenGL_WindowViewport()
     {
-        if (_M_context)
-        {
-            _M_window->destroy_surface(_M_context);
-        }
-
+        _M_window->destroy_surface();
         delete _M_render_target;
     }
 

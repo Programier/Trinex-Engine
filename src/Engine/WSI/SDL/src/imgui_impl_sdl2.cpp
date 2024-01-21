@@ -830,6 +830,9 @@ struct ImGui_ImplSDL2_ViewportData
     ~ImGui_ImplSDL2_ViewportData() { IM_ASSERT(Window == nullptr && GLContext == nullptr); }
 };
 
+extern void* create_engine_window(SDL_Window* main_window, SDL_Window* window, ImGuiViewport* viewport);
+extern void destroy_engine_window(SDL_Window* window);
+
 static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 {
     ImGui_ImplSDL2_Data* bd = ImGui_ImplSDL2_GetBackendData();
@@ -841,13 +844,13 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 
     // Share GL resources with main context
     bool use_opengl = (main_viewport_data->GLContext != nullptr);
-    SDL_GLContext backup_context = nullptr;
-    if (use_opengl)
-    {
-        backup_context = SDL_GL_GetCurrentContext();
-        SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-        SDL_GL_MakeCurrent(main_viewport_data->Window, main_viewport_data->GLContext);
-    }
+//    SDL_GLContext backup_context = nullptr;
+//    if (use_opengl)
+//    {
+//        backup_context = SDL_GL_GetCurrentContext();
+//        SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+//        SDL_GL_MakeCurrent(main_viewport_data->Window, main_viewport_data->GLContext);
+//    }
 
     Uint32 sdl_flags = 0;
     sdl_flags |= use_opengl ? SDL_WINDOW_OPENGL : (bd->UseVulkan ? SDL_WINDOW_VULKAN : 0);
@@ -864,13 +867,13 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
 #endif
     vd->Window = SDL_CreateWindow("No Title Yet", (int)viewport->Pos.x, (int)viewport->Pos.y, (int)viewport->Size.x, (int)viewport->Size.y, sdl_flags);
     vd->WindowOwned = true;
-    if (use_opengl)
-    {
-        vd->GLContext = SDL_GL_CreateContext(vd->Window);
-        SDL_GL_SetSwapInterval(0);
-    }
-    if (use_opengl && backup_context)
-        SDL_GL_MakeCurrent(vd->Window, backup_context);
+//    if (use_opengl)
+//    {
+//        vd->GLContext = SDL_GL_CreateContext(vd->Window);
+//        SDL_GL_SetSwapInterval(0);
+//    }
+//    if (use_opengl && backup_context)
+//        SDL_GL_MakeCurrent(vd->Window, backup_context);
 
     viewport->PlatformHandle = (void*)vd->Window;
     viewport->PlatformHandleRaw = nullptr;
@@ -884,16 +887,22 @@ static void ImGui_ImplSDL2_CreateWindow(ImGuiViewport* viewport)
         viewport->PlatformHandleRaw = (void*)info.info.cocoa.window;
 #endif
     }
+
+    void* gl_context = create_engine_window(main_viewport_data->Window, vd->Window, viewport);
+    if(use_opengl)
+    {
+        vd->GLContext = gl_context;
+    }
 }
 
 static void ImGui_ImplSDL2_DestroyWindow(ImGuiViewport* viewport)
 {
     if (ImGui_ImplSDL2_ViewportData* vd = (ImGui_ImplSDL2_ViewportData*)viewport->PlatformUserData)
     {
-        if (vd->GLContext && vd->WindowOwned)
-            SDL_GL_DeleteContext(vd->GLContext);
+//        if (vd->GLContext && vd->WindowOwned)
+//            SDL_GL_DeleteContext(vd->GLContext);
         if (vd->Window && vd->WindowOwned)
-            SDL_DestroyWindow(vd->Window);
+            destroy_engine_window(vd->Window);
         vd->GLContext = nullptr;
         vd->Window = nullptr;
         IM_DELETE(vd);

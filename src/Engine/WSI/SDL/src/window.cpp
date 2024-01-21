@@ -1,12 +1,16 @@
 #include <Core/logger.hpp>
 #include <Event/event_data.hpp>
+#include <Graphics/imgui.hpp>
 #include <Image/image.hpp>
 #include <SDL_gamecontroller.h>
 #include <Window/config.hpp>
 #include <Window/monitor.hpp>
+#include <Window/window.hpp>
+#include <Window/window_manager.hpp>
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
 #include <window.hpp>
+
 
 namespace Engine
 {
@@ -626,26 +630,26 @@ namespace Engine
         }
         else if (_M_api == SDL_WINDOW_OPENGL)
         {
-            SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-            void* gl_context = SDL_GL_CreateContext(_M_window);
-            if (!gl_context)
+            if (!_M_gl_context)
             {
-                throw EngineException(SDL_GetError());
+                SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+                _M_gl_context = SDL_GL_CreateContext(_M_window);
+                if (!_M_gl_context)
+                {
+                    throw EngineException(SDL_GetError());
+                }
             }
-
-            make_current(gl_context);
-            vsync(_M_vsync_status);
-            return gl_context;
+            return _M_gl_context;
         }
 
         return nullptr;
     }
 
-    WindowInterface& WindowSDL::make_current(void* context)
+    WindowInterface& WindowSDL::make_current()
     {
-        if (_M_api == SDL_WINDOW_OPENGL)
+        if (_M_api == SDL_WINDOW_OPENGL && _M_gl_context)
         {
-            if (SDL_GL_MakeCurrent(_M_window, context) != 0)
+            if (SDL_GL_MakeCurrent(_M_window, _M_gl_context) != 0)
             {
                 error_log("SDL", "Cannot set context as current: %s", SDL_GetError());
             }
@@ -654,15 +658,14 @@ namespace Engine
         return *this;
     }
 
-    WindowInterface& WindowSDL::destroy_surface(void* surface)
+    WindowInterface& WindowSDL::destroy_surface()
     {
-        if (_M_api == SDL_WINDOW_OPENGL)
+        if (_M_api == SDL_WINDOW_OPENGL && _M_gl_context)
         {
-            SDL_GL_DeleteContext(surface);
+            SDL_GL_DeleteContext(_M_gl_context);
+            _M_gl_context = nullptr;
             return *this;
         }
-
-        throw EngineException("Surface must be destroyed by Graphical API!");
         return *this;
     }
 
@@ -708,6 +711,8 @@ namespace Engine
 
     WindowInterface& WindowSDL::initialize_imgui()
     {
+        SDL_SetWindowData(_M_window, "trinex_imgui_context", ImGui::GetCurrentContext());
+
         switch (_M_api)
         {
             case SDL_WINDOW_OPENGL:
@@ -726,6 +731,7 @@ namespace Engine
 
     WindowInterface& WindowSDL::terminate_imgui()
     {
+        SDL_SetWindowData(_M_window, "trinex_imgui_context", nullptr);
         ImGui_ImplSDL2_Shutdown();
         return *this;
     }
@@ -740,6 +746,7 @@ namespace Engine
     {
         if (_M_window)
         {
+            destroy_surface();
             destroy_icon();
             destroy_cursor();
             SDL_DestroyWindow(_M_window);
@@ -747,3 +754,44 @@ namespace Engine
         }
     }
 }// namespace Engine
+
+
+void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiViewport* viewport)
+{
+    Engine::WindowSDL* main_window = nullptr;
+    {
+        Engine::Window* main_window_handle = Engine::WindowManager::instance()->find(SDL_GetWindowID(_main_window));
+        if (!main_window_handle)
+            return nullptr;
+        main_window = reinterpret_cast<Engine::WindowSDL*>(main_window_handle->interface());
+        if (!main_window)
+            return nullptr;
+    }
+
+    SDL_SetWindowData(window, "trinex_imgui_context", ImGui::GetCurrentContext());
+
+    Engine::WindowSDL* new_window = new Engine::WindowSDL();
+    new_window->_M_window         = window;
+    new_window->_M_id             = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
+    new_window->_M_api            = main_window->_M_api;
+    new_window->_M_vsync_status   = main_window->_M_vsync_status;
+
+
+    Engine::WindowConfig config;
+    config.client = "Engine::ImGuiViewportClient";
+    config.vsync  = new_window->_M_vsync_status;
+    auto* client  = reinterpret_cast<Engine::ImGuiRenderer::ImGuiViewportClient*>(
+            Engine::WindowManager::instance()->create_window(config, nullptr, new_window)->render_viewport()->client());
+    if (client)
+    {
+        client->viewport = viewport;
+    }
+
+    return new_window->_M_gl_context;
+}
+
+void destroy_engine_window(SDL_Window* window)
+{
+    Engine::Window* main_window_handle = Engine::WindowManager::instance()->find(SDL_GetWindowID(window));
+    Engine::WindowManager::instance()->destroy_window(main_window_handle);
+}

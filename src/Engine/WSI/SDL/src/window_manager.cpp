@@ -9,8 +9,8 @@
 #include <Window/window_manager.hpp>
 #include <cstring>
 #include <imgui_impl_sdl2.h>
-#include <window_manager.hpp>
 #include <window.hpp>
+#include <window_manager.hpp>
 
 namespace Engine
 {
@@ -350,11 +350,18 @@ namespace Engine
             return;
         }
 
-        auto imgui_window = window->imgui_window();
-        if (!imgui_window)
-            return;
+        ImGuiContext* imgui_context = nullptr;
+        {
+            auto imgui_window = window->imgui_window();
+            if (imgui_window)
+                imgui_context = imgui_window->context();
+        }
 
-        ImGuiContext* imgui_context = imgui_window->context();
+        if (imgui_context == nullptr)
+        {
+            WindowSDL* sdl_window = reinterpret_cast<WindowSDL*>(window->interface());
+            imgui_context = reinterpret_cast<ImGuiContext*>(SDL_GetWindowData(sdl_window->_M_window, "trinex_imgui_context"));
+        }
 
         if (imgui_context)
         {

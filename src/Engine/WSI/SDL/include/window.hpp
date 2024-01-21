@@ -67,8 +67,8 @@ namespace Engine
         Identifier id() override;
 
         void* create_surface(const char* any_text, ...) override;
-        WindowInterface& make_current(void* surface) override;
-        WindowInterface& destroy_surface(void* surface) override;
+        WindowInterface& make_current() override;
+        WindowInterface& destroy_surface() override;
 
         int_t create_message_box(const MessageBoxCreateInfo& info) override;
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);

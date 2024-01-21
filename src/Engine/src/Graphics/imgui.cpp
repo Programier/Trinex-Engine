@@ -1,3 +1,4 @@
+#include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
@@ -238,6 +239,28 @@ namespace Engine::ImGuiRenderer
         }
     }
 
+    ViewportClient& ImGuiViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
+    {
+        _M_window = Window::current();
+        return *this;
+    }
+
+    ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
+    {
+        RHI* rhi = engine_instance->rhi();
+        rhi->imgui_render(_M_window->context(), _M_draw_data.draw_data());
+        return *this;
+    }
+
+    ViewportClient& ImGuiViewportClient::prepare_render(class RenderViewport*)
+    {
+        _M_draw_data.copy(viewport->DrawData);
+        return *this;
+    }
+
+
+    implement_engine_class_default_init(ImGuiViewportClient);
+
     static Window* _M_current_window = nullptr;
 
     Window::Window(Engine::Window* window, ImGuiContext* ctx) : _M_context(ctx), _M_window(window)
@@ -278,6 +301,9 @@ namespace Engine::ImGuiRenderer
 
     void Window::make_current(Window* window)
     {
+        if (_M_current_window == window)
+            return;
+
         _M_current_window = window;
 
         if (_M_current_window)
@@ -303,8 +329,15 @@ namespace Engine::ImGuiRenderer
 
     Window& Window::end_frame()
     {
+        make_current(this);
+
         window_list.render(_M_window->render_viewport());
         ImGui::Render();
+
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+        }
 
         make_current(nullptr);
 

@@ -63,6 +63,11 @@ namespace Engine
         _M_scissor.size = _M_viewport.size;
 
 
+        // Need update viewport and scissor on rhi side
+        viewport(_M_viewport);
+        scissor(_M_scissor);
+
+
         init_resource();
     }
 
@@ -282,7 +287,7 @@ namespace Engine
             callback(context);
         }
 
-        ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         interface->initialize_imgui();
