@@ -247,6 +247,7 @@ namespace Engine::ImGuiRenderer
 
     ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
     {
+        viewport->window()->rhi_bind();
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_render(_M_window->context(), _M_draw_data.draw_data());
         return *this;
