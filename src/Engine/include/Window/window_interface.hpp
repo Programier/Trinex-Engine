@@ -56,7 +56,6 @@ namespace Engine
         virtual void* create_surface(const char* any_text, ...) = 0;
         virtual WindowInterface& make_current(void* surface)    = 0;
         virtual WindowInterface& destroy_surface(void* surface) = 0;
-        virtual WindowInterface& link_surface(void* surface)    = 0;
 
         virtual int_t create_message_box(const MessageBoxCreateInfo& info) = 0;
 

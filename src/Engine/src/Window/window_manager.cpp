@@ -90,9 +90,10 @@ namespace Engine
     }
 
 
-    Window* WindowManager::create_window(const WindowConfig& config, Window* parent)
+    Window* WindowManager::create_window(const WindowConfig& config, Window* parent, WindowInterface* window_interface)
     {
-        WindowInterface* window_interface = _M_interface->create_window(&config);
+        if (window_interface == nullptr)
+            window_interface = _M_interface->create_window(&config);
 
         if (window_interface == nullptr)
             return nullptr;

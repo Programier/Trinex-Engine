@@ -43,16 +43,16 @@ namespace Engine
 
     void OpenGL_WindowViewport::init(WindowInterface* window, bool vsync)
     {
+        _M_context             = window->create_surface("");
+
         if (!(OPENGL_API->_M_context))
         {
-            _M_context             = window->create_surface("");
             OPENGL_API->_M_context = _M_context;
             OPENGL_API->initialize();
         }
 
         _M_window        = window;
         _M_render_target = new OpenGL_MainRenderTarget();
-        _M_window->link_surface(OPENGL_API->_M_context);
     }
 
 

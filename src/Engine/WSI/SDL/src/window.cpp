@@ -626,6 +626,7 @@ namespace Engine
         }
         else if (_M_api == SDL_WINDOW_OPENGL)
         {
+            SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
             void* gl_context = SDL_GL_CreateContext(_M_window);
             if (!gl_context)
             {
@@ -662,15 +663,6 @@ namespace Engine
         }
 
         throw EngineException("Surface must be destroyed by Graphical API!");
-        return *this;
-    }
-
-    WindowInterface& WindowSDL::link_surface(void* surface)
-    {
-        if (_M_api == SDL_WINDOW_OPENGL)
-        {
-            _M_gl_context = surface;
-        }
         return *this;
     }
 
