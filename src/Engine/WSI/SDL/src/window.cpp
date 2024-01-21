@@ -6,7 +6,7 @@
 #include <Window/monitor.hpp>
 #include <imgui.h>
 #include <imgui_impl_sdl2.h>
-#include <window_system.hpp>
+#include <window.hpp>
 
 namespace Engine
 {

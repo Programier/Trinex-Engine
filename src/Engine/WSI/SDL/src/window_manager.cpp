@@ -10,7 +10,7 @@
 #include <cstring>
 #include <imgui_impl_sdl2.h>
 #include <window_manager.hpp>
-#include <window_system.hpp>
+#include <window.hpp>
 
 namespace Engine
 {
