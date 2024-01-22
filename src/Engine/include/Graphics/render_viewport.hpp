@@ -33,7 +33,7 @@ namespace Engine
         };
 
     private:
-        static Vector<RenderViewport*> _M_viewports;
+        static List<RenderViewport*> _M_viewports;
 
         Type _M_type  = Type::Undefined;
         bool _M_vsync = true;
@@ -70,6 +70,6 @@ namespace Engine
         RenderViewport& update(float dt);
         RenderViewport& prepare_render();
 
-        static const Vector<RenderViewport*>& viewports();
+        static const List<RenderViewport*>& viewports();
     };
 }// namespace Engine

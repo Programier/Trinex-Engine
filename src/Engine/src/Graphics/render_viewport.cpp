@@ -33,7 +33,7 @@ namespace Engine
         return *this;
     }
 
-    Vector<RenderViewport*> RenderViewport::_M_viewports;
+    List<RenderViewport*> RenderViewport::_M_viewports;
 
     RenderViewport::RenderViewport()
     {
@@ -42,14 +42,7 @@ namespace Engine
 
     RenderViewport::~RenderViewport()
     {
-        for (size_t i = 0, count = _M_viewports.size(); i < count; i++)
-        {
-            if (_M_viewports[i] == this)
-            {
-                _M_viewports.erase(_M_viewports.begin() + i);
-                break;
-            }
-        }
+        _M_viewports.remove(this);
     }
 
     RenderViewport& RenderViewport::rhi_create()
@@ -212,7 +205,7 @@ namespace Engine
         return *this;
     }
 
-    const Vector<RenderViewport*>& RenderViewport::viewports()
+    const List<RenderViewport*>& RenderViewport::viewports()
     {
         return _M_viewports;
     }
