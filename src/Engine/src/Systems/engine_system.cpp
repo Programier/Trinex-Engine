@@ -17,7 +17,7 @@ namespace Engine
         Package* package = Package::find_package("Engine::Systems", false);
         if (package)
         {
-            package->flags(Object::IsInternal, true);
+            package->flags(Object::IsSerializable, false);
         }
         return *this;
     }

@@ -38,6 +38,7 @@ namespace Engine
         EventSystem& create() override;
         EventSystem& update(float dt) override;
         const EventSystem& push_event(const Event& event) const;
+        EventSystem& shutdown() override;
 
         EventSystem& process_event_method(ProcessEventMethod method);
 

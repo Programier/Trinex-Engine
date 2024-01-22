@@ -142,6 +142,13 @@ namespace Engine
         return *this;
     }
 
+    EventSystem& EventSystem::shutdown()
+    {
+        Super::shutdown();
+        _M_listeners.clear();
+        return *this;
+    }
+
     EventSystem& EventSystem::wait_events()
     {
         WindowManager::instance()->wait_for_events();

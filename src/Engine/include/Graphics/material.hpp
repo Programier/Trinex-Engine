@@ -27,6 +27,10 @@ namespace Engine
     class ENGINE_EXPORT MaterialInterface : public Object
     {
         declare_class(MaterialInterface, Object);
+
+    public:
+        virtual MaterialInterface* parent();
+        virtual MaterialInterface& apply();
     };
 
     class ENGINE_EXPORT Material : public MaterialInterface
@@ -38,6 +42,8 @@ namespace Engine
 
         Material();
         bool archive_process(Archive& archive) override;
+        Material& preload() override;
+        Material& postload() override;
         ~Material();
     };
 

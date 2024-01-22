@@ -8,7 +8,23 @@
 
 namespace Engine
 {
-    default_copy_constructors_cpp(ScriptModule);
+    ScriptModule::ScriptModule(const ScriptModule&)            = default;
+
+    ScriptModule::ScriptModule(ScriptModule&& other) : _M_module(other._M_module)
+    {
+        _M_module = nullptr;
+    }
+
+    ScriptModule& ScriptModule::operator=(ScriptModule&& other)
+    {
+        if(this != &other)
+        {
+            _M_module = other._M_module;
+        }
+        return *this;
+    }
+
+    ScriptModule& ScriptModule::operator=(const ScriptModule&) = default;
 
     ScriptModule::ScriptModule(asIScriptModule* module) : _M_module(module)
     {}

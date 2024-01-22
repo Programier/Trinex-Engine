@@ -230,8 +230,6 @@ namespace Engine
             init_engine_for_rendering();
         }
 
-        Object::mark_internal_objects();
-
         PostInitializeController().execute();
         _M_flags(PostInitTriggered, true);
         ScriptEngine::instance()->load_scripts();

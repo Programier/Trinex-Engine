@@ -131,7 +131,6 @@ namespace Engine
             _M_root_package = new Package();
             _M_root_package->name("Root Package");
             _M_root_package->flags(IsSerializable, false);
-            _M_root_package->flags(IsInternal, true);
         }
     }
 
@@ -182,6 +181,7 @@ namespace Engine
 
 
         flags(Flag::IsSerializable, true);
+        flags(Flag::IsEditable, true);
         flags(Flag::IsAvailableForGC, _M_next_available_for_gc);
         _M_next_available_for_gc = false;
     }
@@ -570,11 +570,6 @@ namespace Engine
         return true;
     }
 
-    bool Object::is_internal() const
-    {
-        return flags(Object::Flag::IsInternal);
-    }
-
     Path Object::filepath() const
     {
         const Package* pkg = instance_cast<Package>();
@@ -596,6 +591,11 @@ namespace Engine
         }
 
         return path;
+    }
+
+    bool Object::is_editable() const
+    {
+        return flags(IsEditable);
     }
 
     Package* Object::root_package()

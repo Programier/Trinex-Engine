@@ -49,7 +49,7 @@ namespace Engine
             IsAvailableForGC = (1 << 2),
             IsPackage        = (1 << 3),
             IsUnreachable    = (1 << 4),
-            IsInternal       = (1 << 5),
+            IsEditable       = (1 << 5),
         };
 
     private:
@@ -124,10 +124,8 @@ namespace Engine
         bool archive_process(Archive& archive) override;
         bool is_valid() const;
         Path filepath() const;
-        bool is_internal() const;
+        bool is_editable() const;
 
-
-        static void mark_internal_objects();
         static Package* find_package(const String& name, bool create = false);
         static Package* find_package(const char* name, bool create = false);
         static Package* find_package(const char* name, size_t len, bool create = false);
@@ -166,9 +164,39 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
+        static Type* new_non_serializable_instance(Args&&... args)
+        {
+            if constexpr (is_singletone_v<Type>)
+            {
+                if (Type::instance() != nullptr)
+                {
+                    return Type::instance();
+                }
+            }
+
+            Type* instance = new Type(std::forward<Args>(args)...);
+            if constexpr (is_object_based_v<Type>)
+            {
+                instance->flags(IsSerializable, false);
+            }
+            return instance;
+        }
+
+        template<typename Type, typename... Args>
         static Type* new_instance_named(const String& object_name, Args&&... args)
         {
             Type* object = new_instance<Type>(std::forward<Args>(args)...);
+            if constexpr (std::is_base_of_v<Object, Type>)
+            {
+                object->name(object_name, true);
+            }
+            return object;
+        }
+
+        template<typename Type, typename... Args>
+        static Type* new_non_serializable_instance_named(const String& object_name, Args&&... args)
+        {
+            Type* object = new_non_serializable_instance<Type>(std::forward<Args>(args)...);
             if constexpr (std::is_base_of_v<Object, Type>)
             {
                 object->name(object_name, true);

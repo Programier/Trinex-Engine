@@ -14,6 +14,22 @@ namespace Engine
 
     implement_engine_class_default_init(EngineRenderTarget);
 
+    static void make_textures_non_editable(Vector<RenderTarget::Frame*>& frames)
+    {
+        for (auto& frame : frames)
+        {
+            if (frame->depth_stencil_attachment)
+            {
+                frame->depth_stencil_attachment->flags(Object::IsEditable, false);
+            }
+
+            for (auto& texture : frame->color_attachments)
+            {
+                texture->flags(Object::IsSerializable, false);
+            }
+        }
+    }
+
     void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
     {
         if (size.x >= new_size.x && size.y >= new_size.y)
@@ -43,6 +59,8 @@ namespace Engine
 
             _M_scissor.pos  = {0, 0};
             _M_scissor.size = size;
+
+            make_textures_non_editable(_M_frames);
         }
 
 
@@ -184,7 +202,7 @@ namespace Engine
 
     RenderPass* RenderPass::load_gbuffer_render_pass()
     {
-        RenderPass* pass = Object::new_instance<GBufferRenderPass>();
+        RenderPass* pass = Object::new_non_serializable_instance<GBufferRenderPass>();
         pass->init_resource(true);
         return pass;
     }
@@ -243,8 +261,8 @@ namespace Engine
 
         for (RenderTarget::Frame* frame : _M_frames)
         {
-            frame->depth_stencil_attachment =
-                    Object::new_instance_named<Texture2D>(Strings::format("Engine::GBuffer::Depth {}", frame_index));
+            frame->depth_stencil_attachment = Object::new_non_serializable_instance_named<Texture2D>(
+                    Strings::format("Engine::GBuffer::Depth {}", frame_index));
             frame->depth_stencil_attachment->format = render_pass->depth_stencil_attachment.format;
             frame->depth_stencil_attachment->setup_render_target_texture();
 
@@ -252,9 +270,9 @@ namespace Engine
             frame->color_attachments.resize(gbuffer_color_attachments);
             for (size_t i = 0; i < gbuffer_color_attachments; i++)
             {
-                auto& info = attachment_texture_info[i];
-                Texture2D* texture =
-                        Object::new_instance_named<Texture2D>(Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
+                auto& info         = attachment_texture_info[i];
+                Texture2D* texture = Object::new_non_serializable_instance_named<Texture2D>(
+                        Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
 
                 texture->format = render_pass->color_attachments[i].format;
                 texture->setup_render_target_texture();
@@ -311,7 +329,7 @@ namespace Engine
 
     RenderPass* RenderPass::load_scene_color_render_pass()
     {
-        RenderPass* pass = Object::new_instance<SceneColorOutputRenderPass>();
+        RenderPass* pass = Object::new_non_serializable_instance<SceneColorOutputRenderPass>();
         pass->init_resource(true);
         return pass;
     }
@@ -340,8 +358,8 @@ namespace Engine
         {
             frame->color_attachments.resize(1);
 
-            Texture2D* texture =
-                    Object::new_instance_named<Texture2D>(Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
+            Texture2D* texture = Object::new_non_serializable_instance_named<Texture2D>(
+                    Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
 
             texture->format = render_pass->color_attachments[0].format;
             texture->setup_render_target_texture();

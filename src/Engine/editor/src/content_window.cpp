@@ -25,7 +25,7 @@ namespace Engine
             return false;
         }
 
-        bool is_editable_object = selected && !selected->is_internal();
+        bool is_editable_object = selected && selected->is_editable();
 
         if (is_editable_object && ImGui::Button("editor/Rename"_localized))
         {

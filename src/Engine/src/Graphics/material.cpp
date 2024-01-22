@@ -26,6 +26,17 @@ namespace Engine
     implement_engine_class(MaterialInstance, Class::IsAsset);
     implement_default_initialize_class(MaterialInstance);
 
+
+    MaterialInterface* MaterialInterface::parent()
+    {
+        return nullptr;
+    }
+
+    MaterialInterface& MaterialInterface::apply()
+    {
+        return *this;
+    }
+
     Material::Material()
     {
         pipeline = Object::new_instance<Pipeline>();
@@ -35,6 +46,19 @@ namespace Engine
     {
         return pipeline->archive_process(archive);
     }
+
+    Material& Material::preload()
+    {
+        pipeline->preload();
+        return *this;
+    }
+
+    Material& Material::postload()
+    {
+        pipeline->postload();
+        return *this;
+    }
+
 
     Material::~Material()
     {

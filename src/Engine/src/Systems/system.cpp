@@ -35,7 +35,9 @@ namespace Engine
     }
 
     System::System() : _M_parent_system(nullptr)
-    {}
+    {
+        flags(IsSerializable, false);
+    }
 
     System& System::create()
     {

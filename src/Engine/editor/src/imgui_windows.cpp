@@ -219,7 +219,7 @@ namespace Engine
         ImGuiRenderer::InputText("editor/New Name"_localized, new_object_name);
         ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
-        if (_M_object->flags(Object::IsInternal))
+        if (!_M_object->is_editable())
         {
             ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot rename internal object!");
         }
@@ -266,19 +266,19 @@ namespace Engine
             return false;
         }
 
-        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("editor/Rename"_localized))
+        if (_M_selected->is_editable() && ImGui::Button("editor/Rename"_localized))
         {
             ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(_M_selected);
             return false;
         }
 
-        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("editor/Save"_localized))
+        if (_M_selected->is_editable() && ImGui::Button("editor/Save"_localized))
         {
             _M_selected->save();
             return false;
         }
 
-        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("editor/Load"_localized))
+        if (_M_selected->is_editable() && ImGui::Button("editor/Load"_localized))
         {
             _M_selected->load();
             return false;
