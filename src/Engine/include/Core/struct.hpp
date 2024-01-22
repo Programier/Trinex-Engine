@@ -46,6 +46,8 @@ namespace Engine
         Struct& struct_constructor(void* (*constructor)());
         Struct& group(class Group*);
         class Group* group() const;
+        size_t abstraction_level() const;
+        Vector<Name> hierarchy(size_t offset = 0) const;
 
         bool is_a(const Struct* other) const;
         virtual bool is_class() const;

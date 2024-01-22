@@ -37,6 +37,7 @@ namespace Engine
         Attachment depth_stencil_attachment;
         bool has_depth_stancil = false;
 
+        RenderPass();
         RenderPass& rhi_create() override;
         virtual Type type() const;
 

@@ -16,7 +16,7 @@ namespace Engine
         using ObjectMap = Map<Name, Object*, Name::HashFunction>;
 
         struct HeaderEntry {
-            String class_name        = "";
+            Vector<Name> class_hierarchy;
             size_t offset            = 0;
             size_t uncompressed_size = 0;
             Object* object           = nullptr;

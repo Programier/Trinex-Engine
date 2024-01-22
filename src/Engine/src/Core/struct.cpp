@@ -154,6 +154,42 @@ namespace Engine
         return _M_group;
     }
 
+    size_t Struct::abstraction_level() const
+    {
+        size_t level = 1;
+
+        Struct* next = parent();
+        while (next)
+        {
+            ++level;
+            next = next->parent();
+        }
+
+        return level;
+    }
+
+    Vector<Name> Struct::hierarchy(size_t offset) const
+    {
+        size_t level = abstraction_level();
+        if (offset >= level)
+            return {};
+
+        level -= offset;
+
+        Vector<Name> result;
+        result.reserve(level);
+
+        const Struct* current = this;
+        while (current && level != 0)
+        {
+            result.emplace_back(current->_M_full_name);
+            current = current->parent();
+            --level;
+        }
+
+        return result;
+    }
+
     bool Struct::is_a(const Struct* other) const
     {
         const Struct* current = this;

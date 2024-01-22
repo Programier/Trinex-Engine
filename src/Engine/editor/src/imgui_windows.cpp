@@ -278,6 +278,12 @@ namespace Engine
             return false;
         }
 
+        if (!_M_selected->flags(Object::IsInternal) && ImGui::Button("editor/Load"_localized))
+        {
+            _M_selected->load();
+            return false;
+        }
+
         return true;
     }
 

@@ -68,7 +68,7 @@ namespace Engine
         template<typename Type>
         bool is_a() const
         {
-            return contains_class(Type::static_class_instance());
+            return is_a(Type::static_class_instance());
         }
 
 

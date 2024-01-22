@@ -941,11 +941,13 @@ namespace Engine
         icon->image.load_from_memory(load_default_icon());
         icon->size   = icon->image.size();
         icon->format = icon->image.format();
+        icon->flags(Object::IsSerializable, false);
         icon->init_resource();
 
         Sampler* sampler = Object::new_instance_named<Sampler>("DefaultSampler");
         sampler->filter = SamplerFilter::Trilinear;
         sampler->anisotropy = 16.f;
+        sampler->flags(Object::IsSerializable, false);
         sampler->init_resource();
 
         editor->add_object(icon);

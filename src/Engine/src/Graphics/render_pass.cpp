@@ -9,6 +9,11 @@ namespace Engine
     implement_default_initialize_class(RenderPass);
 
 
+    RenderPass::RenderPass()
+    {
+        flags(IsSerializable, false);
+    }
+
     RenderPass& RenderPass::rhi_create()
     {
         _M_rhi_object.reset(engine_instance->rhi()->create_render_pass(this));

@@ -16,12 +16,25 @@ namespace Engine
 
     ENGINE_EXPORT bool operator&(Archive& ar, Package::HeaderEntry& entry)
     {
-        ar& entry.class_name;
+        ar& entry.class_hierarchy;
         ar& entry.offset;
         ar& entry.uncompressed_size;
         ar& entry.object_name;
 
         return ar;
+    }
+
+    static FORCE_INLINE Class* find_class_from_entry(Package::HeaderEntry& entry)
+    {
+        Class* instance = nullptr;
+        for (auto& entry : entry.class_hierarchy)
+        {
+            if ((instance = Class::static_find(entry.to_string(), false)))
+            {
+                return instance;
+            }
+        }
+        return instance;
     }
 
     Package::Package()
@@ -161,10 +174,10 @@ namespace Engine
 
         for (auto& [name, object] : _M_objects)
         {
-            HeaderEntry& entry = header[current_entry];
-            entry.object       = object;
-            entry.object_name  = object->name();
-            entry.class_name   = object->class_instance()->name();
+            HeaderEntry& entry    = header[current_entry];
+            entry.object          = object;
+            entry.object_name     = object->name();
+            entry.class_hierarchy = object->class_instance()->hierarchy(1);// Skip Object class
 
             // Make buffer
             Vector<byte> object_data;
@@ -175,7 +188,6 @@ namespace Engine
 
                 if (!object->archive_process(ar))
                 {
-                    error_log("Package", "Cannot serialize object '%s'", object->full_name().c_str());
                     continue;
                 }
                 else
@@ -271,8 +283,6 @@ namespace Engine
 
     bool Package::load()
     {
-        _M_objects.clear();
-
         Path path = engine_config.resources_dir / filepath();
         FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
         BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
@@ -294,14 +304,17 @@ namespace Engine
 
         for (auto& entry : _M_header)
         {
-            Class* object_class = Class::static_find(entry.class_name);
+            Class* object_class = find_class_from_entry(entry);
             if (object_class)
             {
-                entry.object = object_class->create_object();
-                entry.object->name(entry.object_name);
+                if (!(entry.object = find_object(entry.object_name, false)))
+                {
+                    entry.object = object_class->create_object();
+                    entry.object->name(entry.object_name);
 
-                add_object(entry.object);
-                entry.object->preload();
+                    add_object(entry.object);
+                    entry.object->preload();
+                }
 
                 reader->position(entry.offset);
                 ar& compressed_buffer;
