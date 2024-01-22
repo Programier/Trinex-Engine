@@ -89,11 +89,6 @@ namespace Engine
 
                 render_thread->wait_all();
 
-                for (auto& viewport : viewports)
-                {
-                    viewport->prepare_render();
-                }
-
                 render_thread->insert_new_task<BeginRenderCommand>(_M_rhi);
 
                 for (auto& viewport : viewports)

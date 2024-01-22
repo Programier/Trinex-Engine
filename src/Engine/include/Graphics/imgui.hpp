@@ -38,12 +38,17 @@ namespace Engine::ImGuiRenderer
 {
     class ENGINE_EXPORT DrawData final
     {
-        ImDrawData _M_draw_data;
+        ImDrawData _M_draw_data[2];
+        byte _M_logic_index  = 0;
+        byte _M_render_index = 0;
 
     public:
         ImDrawData* draw_data();
-        DrawData& release();
+        DrawData& release(bool full = false);
         DrawData& copy(ImDrawData* draw_data);
+
+        DrawData& swap_render_index();
+        DrawData& swap_logic_index();
 
         ~DrawData();
     };
@@ -144,7 +149,6 @@ namespace Engine::ImGuiRenderer
         ImDrawData* draw_data();
         Window& new_frame();
         Window& end_frame();
-        Window& prepare_render();
         Window& render();
         Engine::Window* window() const;
 
@@ -169,7 +173,7 @@ namespace Engine::ImGuiRenderer
 
         ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override;
         ViewportClient& render(class RenderViewport* viewport) override;
-        ViewportClient& prepare_render(class RenderViewport* viewport) override;
+        ViewportClient& update(class RenderViewport* viewport, float dt) override;
     };
 
     bool ENGINE_EXPORT IsMouseDownNow(ImGuiMouseButton button);

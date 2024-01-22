@@ -154,12 +154,6 @@ namespace Engine
         return *this;
     }
 
-    ViewportClient& EditorClient::prepare_render(class RenderViewport* viewport)
-    {
-        viewport->window()->imgui_window()->prepare_render();
-        return *this;
-    }
-
     ViewportClient& EditorClient::destroy_script_object(ScriptObject* object)
     {
         if (*object == _M_script_object)
@@ -266,7 +260,6 @@ namespace Engine
         create_viewport_window(dt);
 
         _M_script_object.update(dt);
-
         window->end_frame();
 
         ++_M_frame;

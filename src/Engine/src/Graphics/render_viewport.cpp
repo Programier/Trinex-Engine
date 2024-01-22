@@ -12,6 +12,7 @@ namespace Engine
     implement_engine_class_default_init(RenderViewport);
     implement_engine_class_default_init(ViewportClient);
 
+    static RenderViewport* _M_current_render_viewport = nullptr;
 
     ViewportClient& ViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
@@ -24,11 +25,6 @@ namespace Engine
     }
 
     ViewportClient& ViewportClient::update(class RenderViewport* viewport, float dt)
-    {
-        return *this;
-    }
-
-    ViewportClient& ViewportClient::prepare_render(class RenderViewport* viewport)
     {
         return *this;
     }
@@ -191,18 +187,16 @@ namespace Engine
     {
         if (_M_client)
         {
+            _M_current_render_viewport = this;
             _M_client->update(this, dt);
+            _M_current_render_viewport = nullptr;
         }
         return *this;
     }
 
-    RenderViewport& RenderViewport::prepare_render()
+    RenderViewport* RenderViewport::current()
     {
-        if (_M_client)
-        {
-            _M_client->prepare_render(this);
-        }
-        return *this;
+        return _M_current_render_viewport;
     }
 
     const List<RenderViewport*>& RenderViewport::viewports()

@@ -268,12 +268,6 @@ namespace Engine
         return *this;
     }
 
-    MaterialEditorClient& MaterialEditorClient::prepare_render(class RenderViewport* viewport)
-    {
-        viewport->window()->imgui_window()->prepare_render();
-        return *this;
-    }
-
     class VisualMaterial* MaterialEditorClient::current_material() const
     {
         return _M_current_material;
@@ -409,7 +403,7 @@ namespace Engine
             if (ImGui::BeginTabItem("editor/Errors"_localized))
             {
                 Index index = 1;
-                for(auto& msg : _M_shader_compile_error_list)
+                for (auto& msg : _M_shader_compile_error_list)
                 {
                     ImGui::TextColored(ImColor(255, 0, 0), "%zu: %s", index++, msg.c_str());
                 }

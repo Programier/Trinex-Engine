@@ -14,45 +14,66 @@ namespace Engine::ImGuiRenderer
 {
     ImDrawData* DrawData::draw_data()
     {
-        return &_M_draw_data;
+        return &_M_draw_data[_M_render_index];
     }
 
-    DrawData& DrawData::release()
+    static void release_draw_data(ImDrawData& data)
     {
-        if (_M_draw_data.CmdListsCount > 0)
+        if (data.CmdListsCount > 0)
         {
-            for (int index = 0; index < _M_draw_data.CmdListsCount; index++)
+            for (int index = 0; index < data.CmdListsCount; index++)
             {
-                ImDrawList* drawList = _M_draw_data.CmdLists[index];
+                ImDrawList* drawList = data.CmdLists[index];
                 IM_DELETE(drawList);
             }
 
-            _M_draw_data.CmdLists.clear();
+            data.CmdLists.clear();
         }
 
-        _M_draw_data.Clear();
+        data.Clear();
+    }
+
+    DrawData& DrawData::release(bool full)
+    {
+
+        release_draw_data(_M_draw_data[_M_logic_index]);
+        if (full)
+            release_draw_data(_M_draw_data[_M_render_index]);
+
         return *this;
     }
 
     DrawData& DrawData::copy(ImDrawData* draw_data)
     {
-        release();
+        release(false);
 
-        _M_draw_data = *draw_data;
+        _M_draw_data[_M_logic_index] = *draw_data;
 
-        _M_draw_data.CmdLists.resize(draw_data->CmdListsCount);
+        _M_draw_data[_M_logic_index].CmdLists.resize(draw_data->CmdListsCount);
         for (int index = 0; index < draw_data->CmdListsCount; index++)
         {
-            ImDrawList* drawList         = draw_data->CmdLists[index]->CloneOutput();
-            _M_draw_data.CmdLists[index] = drawList;
+            ImDrawList* drawList                         = draw_data->CmdLists[index]->CloneOutput();
+            _M_draw_data[_M_logic_index].CmdLists[index] = drawList;
         }
 
         return *this;
     }
 
+    DrawData& DrawData::swap_render_index()
+    {
+        _M_render_index = (_M_render_index + 1) % 2;
+        return *this;
+    }
+
+    DrawData& DrawData::swap_logic_index()
+    {
+        _M_logic_index = (_M_logic_index + 1) % 2;
+        return *this;
+    }
+
     DrawData::~DrawData()
     {
-        release();
+        release(true);
     }
 
 
@@ -250,15 +271,16 @@ namespace Engine::ImGuiRenderer
         viewport->window()->rhi_bind();
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_render(_M_window->context(), _M_draw_data.draw_data());
+        _M_draw_data.swap_render_index();
         return *this;
     }
 
-    ViewportClient& ImGuiViewportClient::prepare_render(class RenderViewport*)
+    ViewportClient& ImGuiViewportClient::update(class RenderViewport*, float dt)
     {
         _M_draw_data.copy(viewport->DrawData);
+        _M_draw_data.swap_logic_index();
         return *this;
     }
-
 
     implement_engine_class_default_init(ImGuiViewportClient);
 
@@ -335,6 +357,9 @@ namespace Engine::ImGuiRenderer
         window_list.render(_M_window->render_viewport());
         ImGui::Render();
 
+        _M_draw_data.copy(ImGui::GetDrawData());
+        _M_draw_data.swap_logic_index();
+
         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
             ImGui::UpdatePlatformWindows();
@@ -345,19 +370,11 @@ namespace Engine::ImGuiRenderer
         return *this;
     }
 
-    Window& Window::prepare_render()
-    {
-        Window* current_window = current();
-        make_current(this);
-        _M_draw_data.copy(ImGui::GetDrawData());
-        make_current(current_window);
-        return *this;
-    }
-
     Window& Window::render()
     {
         RHI* rhi = engine_instance->rhi();
         rhi->imgui_render(_M_context, draw_data());
+        _M_draw_data.swap_render_index();
         return *this;
     }
 

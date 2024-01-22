@@ -39,7 +39,6 @@ namespace Engine
         MaterialEditorClient& on_bind_to_viewport(class RenderViewport* viewport) override;
         MaterialEditorClient& render(class RenderViewport* viewport) override;
         MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
-        MaterialEditorClient& prepare_render(class RenderViewport* viewport) override;
         class VisualMaterial* current_material() const;
 
 
