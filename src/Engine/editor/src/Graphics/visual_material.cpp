@@ -8,9 +8,14 @@ namespace Engine
     implement_engine_class_default_init(VisualMaterial);
 
 
-    Node* VisualMaterial::root_node() const
+    Node* VisualMaterial::vertex_node() const
     {
-        return _M_root_node;
+        return _M_vertex_node;
+    }
+
+    Node* VisualMaterial::fragment_node() const
+    {
+        return _M_fragment_node;
     }
 
     const Set<Node*>& VisualMaterial::nodes() const
@@ -160,8 +165,36 @@ namespace Engine
     implement_struct(Node, Engine::MaterialNodes, );
 
 
-    struct MaterialRootNode : public Node {
-        MaterialRootNode& init() override
+    struct MaterialVertex : public Node {
+        MaterialVertex& init() override
+        {
+            input.push_back(material->create_element<Vec3InputPin>(this, "Position", 0));
+            return *this;
+        }
+
+        const char* name() const override
+        {
+            return "Vertex Shader";
+        }
+
+        MaterialNodes::Type type() const override
+        {
+            return MaterialNodes::Type::VertexRoot;
+        }
+
+        bool is_removable_element() override
+        {
+            return false;
+        }
+
+        Struct* node_struct() const override
+        {
+            return nullptr;
+        }
+    };
+
+    struct MaterialFragment : public Node {
+        MaterialFragment& init() override
         {
             input.push_back(material->create_element<Color3InputPin>(this, "Base Color", 0));
             input.push_back(material->create_element<FloatInputPin>(this, "Metalic", 1));
@@ -171,20 +204,17 @@ namespace Engine
             input.push_back(material->create_element<FloatInputPin>(this, "Opacity", 5));
             input.push_back(material->create_element<FloatInputPin>(this, "Opacity Mask", 6));
             input.push_back(material->create_element<Vec3InputPin>(this, "Normal", 7));
-
-            input.push_back(material->create_element<Vec3InputPin>(this, "World Position Offset", 8));
-
             return *this;
         }
 
         const char* name() const override
         {
-            return "Material";
+            return "Fragment Shader";
         }
 
         MaterialNodes::Type type() const override
         {
-            return MaterialNodes::Type::Root;
+            return MaterialNodes::Type::FragmentRoot;
         }
 
         bool is_removable_element() override
@@ -200,6 +230,8 @@ namespace Engine
 
     VisualMaterial::VisualMaterial()
     {
-        _M_root_node = create_element<MaterialRootNode>();
+        _M_vertex_node   = create_element<MaterialVertex>();
+        _M_fragment_node = create_element<MaterialFragment>();
+        _M_fragment_node->position.y = 150;
     }
 }// namespace Engine

@@ -37,7 +37,8 @@ namespace Engine
         CompiledNodes compiled_nodes;
         class GLSL_Compiler* compiler;
 
-        Vector<String> globals;
+        Vector<String> inputs;
+        Vector<String> outputs;
         Vector<String> main;
 
         Identifier next_var_id = 1;
@@ -46,6 +47,9 @@ namespace Engine
         String output() const;
         String create_variable(struct OutputPin* pin, const String& compiled);
         ShaderCode& submit(struct OutputPin* pin, const String& compiled, String& out);
+
+        ShaderCode& push_input(const char* type, const char* input);
+        ShaderCode& push_output(const char* type, const char* output);
     };
 
     class GLSL_Compiler : public MaterialCompiler
@@ -63,6 +67,7 @@ namespace Engine
         const CompiledNode& compile_node(Node* node, ShaderCode* code);
         String pin_source(InputPin* pin, ShaderCode* code, NodePin::DataType out_type = NodePin::DataType::Undefined);
 
+        GLSL_Compiler& compile_vertex_shader(VisualMaterial* material);
         GLSL_Compiler& compile_fragment_shader(VisualMaterial* material);
         bool compile(VisualMaterial* material, MessageList& errors) override;
     };

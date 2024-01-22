@@ -5,7 +5,8 @@ namespace Engine::MaterialNodes
 {
     enum class Type : EnumerateType
     {
-        Root,
+        VertexRoot,
+        FragmentRoot,
 
 
         // Constants group

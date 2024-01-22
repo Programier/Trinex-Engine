@@ -168,14 +168,16 @@ namespace Engine
         declare_class(VisualMaterial, Material);
 
     private:
-        Node* _M_root_node = nullptr;
+        Node* _M_vertex_node   = nullptr;
+        Node* _M_fragment_node = nullptr;
         Set<Node*> _M_nodes;
 
 
         VisualMaterial& on_element_created(VisualMaterialElement* element);
 
     public:
-        Node* root_node() const;
+        Node* vertex_node() const;
+        Node* fragment_node() const;
         const Set<Node*>& nodes() const;
         Identifier next_id();
         Node* create_node(class Struct*);

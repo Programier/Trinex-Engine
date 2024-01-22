@@ -110,7 +110,8 @@ namespace Engine
 
     void ShaderCode::clear()
     {
-        globals.clear();
+        inputs.clear();
+        outputs.clear();
         main.clear();
         next_var_id = 1;
         compiled_nodes.clear();
@@ -118,11 +119,12 @@ namespace Engine
 
     String ShaderCode::output() const
     {
-        String out;
-        for (const String& global : globals)
+        String out = "#version 310 es\nprecision highp float;\n";
+
+        for (const String& input : inputs)
         {
-            out += global;
-            out.push_back('\n');
+            out += input;
+            out += ";\n";
         }
 
         out += "\n\nvoid main()\n{\n";
@@ -166,6 +168,20 @@ namespace Engine
         {
             out = create_variable(pin, compiled);
         }
+        return *this;
+    }
+
+    ShaderCode& ShaderCode::push_input(const char* type, const char* input)
+    {
+        Index location = inputs.size();
+        inputs.emplace_back(Strings::format("layout(location = {}) in {} in_{}", location, type, input));
+        return *this;
+    }
+
+    ShaderCode& ShaderCode::push_output(const char* type, const char* output)
+    {
+        Index location = inputs.size();
+        outputs.emplace_back(Strings::format("layout(location = {}) out {} in_{}", location, type, output));
         return *this;
     }
 
@@ -342,12 +358,18 @@ namespace Engine
     }
 
 
+    GLSL_Compiler& GLSL_Compiler::compile_vertex_shader(VisualMaterial* material)
+    {
+        Node* root = material->vertex_node();
+        vertex.main.push_back(Strings::format("glPosition = vec4({}, 1.0)", pin_source(root->input[0], &vertex, NodePin::Vec3)));
+        return *this;
+    }
+
     GLSL_Compiler& GLSL_Compiler::compile_fragment_shader(VisualMaterial* material)
     {
-        fragment.globals.push_back("#version 310 es");
-        fragment.globals.push_back("layout(location = 0) out vec3 out_color;");
+        fragment.push_output("vec3", "color");
 
-        Node* root = material->root_node();
+        Node* root = material->fragment_node();
         fragment.main.push_back(Strings::format("out_color = {}", pin_source(root->input[0], &fragment, NodePin::Vec3)));
         return *this;
     }
@@ -359,8 +381,10 @@ namespace Engine
         this->errors  = &errors;
         is_build_fail = false;
 
+        compile_vertex_shader(material);
         compile_fragment_shader(material);
 
+        material->pipeline->vertex_shader->text_code   = vertex.output();
         material->pipeline->fragment_shader->text_code = fragment.output();
 
         if (is_build_fail)
