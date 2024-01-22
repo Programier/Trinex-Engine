@@ -12,10 +12,24 @@
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
+#include "logo.hpp"
+#include <Image/image.hpp>
 
 
 namespace Engine
 {
+
+    static const Image& load_image_icon()
+    {
+        static Image image;
+
+        if(image.empty())
+        {
+            image.load_from_memory(logo_png, logo_png_len);
+        }
+
+        return image;
+    }
 
     WindowManager* WindowManager::_M_instance = nullptr;
 
@@ -130,6 +144,7 @@ namespace Engine
             }
         }
 
+        window->icon(load_image_icon());
         return window;
     }
 
