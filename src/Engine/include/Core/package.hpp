@@ -54,7 +54,7 @@ namespace Engine
         bool contains_object(const String& name) const;
 
         bool save() const;
-        bool load();
+        bool load(BufferReader* reader = nullptr);
         Header& load_header();
 
         template<typename Type>

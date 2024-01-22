@@ -281,15 +281,21 @@ namespace Engine
         return false;
     }
 
-    bool Package::load()
+    bool Package::load(BufferReader* reader)
     {
-        Path path = engine_config.resources_dir / filepath();
-        FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
-        BufferReader* reader = FileManager::root_file_manager()->create_file_reader(path);
-        if (reader == nullptr)
+        bool need_destroy_reader = reader == nullptr;
+
+        if (need_destroy_reader)
         {
-            error_log("Package", "Failed to load package '%s': File '%s' not found!", full_name().c_str(), path.c_str());
-            return false;
+            Path path = engine_config.resources_dir / filepath();
+            FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
+            reader = FileManager::root_file_manager()->create_file_reader(path);
+
+            if (reader == nullptr)
+            {
+                error_log("Package", "Failed to load package '%s': File '%s' not found!", full_name().c_str(), path.c_str());
+                return false;
+            }
         }
 
         Archive ar(reader);
@@ -327,6 +333,11 @@ namespace Engine
 
                 entry.object->postload();
             }
+        }
+
+        if(need_destroy_reader)
+        {
+            delete reader;
         }
 
         return true;
