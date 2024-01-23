@@ -113,14 +113,21 @@ namespace Engine
     ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& filters)
         : _M_parent(pkg), filters(filters)
     {
-        for (Class* class_instance : Class::asset_classes())
+        if (filters.empty())
         {
-            for (auto& [id, filter] : filters.callbacks())
+            _M_filtered_classes = Class::asset_classes();
+        }
+        else
+        {
+            for (Class* class_instance : Class::asset_classes())
             {
-                if (filter(class_instance))
+                for (auto& [id, filter] : filters.callbacks())
                 {
-                    _M_filtered_classes.push_back(class_instance);
-                    break;
+                    if (filter(class_instance))
+                    {
+                        _M_filtered_classes.push_back(class_instance);
+                        break;
+                    }
                 }
             }
         }
@@ -128,14 +135,7 @@ namespace Engine
 
     static const char* get_asset_class_name_default(void* userdata, int index)
     {
-        if (userdata == nullptr)
-        {
-            return Class::asset_classes()[index]->name().c_str();
-        }
-        else
-        {
-            return (*reinterpret_cast<Vector<Class*>*>(userdata))[index]->name().c_str();
-        }
+        return (*reinterpret_cast<Vector<Class*>*>(userdata))[index]->name().c_str();
     }
 
     bool ImGuiCreateNewAsset::render(class RenderViewport* viewport)
@@ -148,17 +148,8 @@ namespace Engine
         ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
         ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
 
-
-        if (filters.empty())
-        {
-            ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, nullptr,
-                         Class::asset_classes().size());
-        }
-        else
-        {
-            ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &_M_filtered_classes,
-                         _M_filtered_classes.size());
-        }
+        ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &_M_filtered_classes,
+                     _M_filtered_classes.size());
 
         ImGuiRenderer::InputText("editor/Asset Name"_localized, new_asset_name);
         ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
@@ -180,7 +171,7 @@ namespace Engine
 
             if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
             {
-                Class* class_instance  = Class::asset_classes()[current_index];
+                Class* class_instance  = _M_filtered_classes[current_index];
                 Object* created_object = class_instance->create_object();
                 created_object->name(new_asset_name);
                 _M_parent->add_object(created_object);
