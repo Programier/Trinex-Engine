@@ -269,6 +269,7 @@ namespace Engine
 
     EditorClient& EditorClient::init_world()
     {
+        _M_renderer.scene(World::global()->scene());
         return *this;
     }
 

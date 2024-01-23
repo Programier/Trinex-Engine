@@ -8,7 +8,6 @@
 
 namespace Engine
 {
-
     static Map<MaterialNodes::Type, NodeInfo>& node_info()
     {
         static Map<MaterialNodes::Type, NodeInfo> functions;
@@ -373,6 +372,7 @@ namespace Engine
         fragment.main.push_back(Strings::format("out_color = {}", pin_source(root->input[0], &fragment, NodePin::Vec3)));
         return *this;
     }
+
 
     bool GLSL_Compiler::compile(VisualMaterial* material, MessageList& errors)
     {

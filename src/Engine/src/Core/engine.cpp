@@ -434,6 +434,11 @@ namespace Engine
         return thread;
     }
 
+    ENGINE_EXPORT bool is_in_render_thread()
+    {
+        return Thread::this_thread() == render_thread();
+    }
+
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)
     {
         engine_instance = EngineInstance::create_instance();

@@ -11,10 +11,19 @@ namespace Engine
 {
     class ENGINE_EXPORT Shader : public RenderResource
     {
-    public:
         declare_class(Shader, RenderResource);
 
+    private:
+        bool load_source();
+        bool save_source();
+
     public:
+        enum class Type
+        {
+            Vertex,
+            Fragment,
+        };
+
         struct UniformBuffer {
             Name name;
             size_t size;
@@ -48,6 +57,7 @@ namespace Engine
         Buffer binary_code;
 
         bool archive_process(Archive& ar) override;
+        virtual Type type() const = 0;
     };
 
 
@@ -74,6 +84,7 @@ namespace Engine
     public:
         VertexShader& rhi_create() override;
         bool archive_process(Archive& ar) override;
+        Type type() const override;
     };
 
     class ENGINE_EXPORT FragmentShader : public Shader
@@ -82,6 +93,7 @@ namespace Engine
 
     public:
         FragmentShader& rhi_create() override;
+        Type type() const override;
     };
 
     ENGINE_EXPORT bool operator&(Archive&, Shader::UniformBuffer&);

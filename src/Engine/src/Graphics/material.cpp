@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/ActorComponents/mesh_component.hpp>
 #include <Graphics/material.hpp>
@@ -39,7 +40,8 @@ namespace Engine
 
     Material::Material()
     {
-        pipeline = Object::new_instance<Pipeline>();
+        pipeline = Object::new_instance_named<Pipeline>("Pipeline");
+        pipeline->owner(this);
     }
 
     bool Material::archive_process(Archive& archive)
@@ -61,6 +63,8 @@ namespace Engine
 
     Material& Material::apply()
     {
+        trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
+        pipeline->rhi_bind();
         return *this;
     }
 

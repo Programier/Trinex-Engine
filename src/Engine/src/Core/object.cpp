@@ -402,22 +402,39 @@ namespace Engine
         return _M_package;
     }
 
+
     String Object::full_name() const
     {
-        String result =
-                _M_name.is_valid() ? static_cast<String>(_M_name) : Strings::format("Noname object {}", _M_instance_index);
-        Package* parent = this->_M_package;
+        static auto object_name_of = [](const Object* object) -> String {
+            if (object->_M_name.is_valid())
+                return object->_M_name.to_string();
 
-        if (parent && parent != _M_root_package && !is_instance_of<Package>())
-        {
-            result = (parent->_M_name.to_string() + Constants::name_separator) + result;
-            parent = parent->_M_package;
-        }
+            return Strings::format("Noname object {}", object->_M_instance_index);
+        };
 
-        while (parent && parent != _M_root_package)
+        static auto parent_object_of = [](const Object* object) -> Object* {
+            Object* parent = object->owner();
+            if (parent)
+                return parent;
+
+            parent = object->package();
+            if (parent != Object::root_package())
+                return parent;
+
+            return nullptr;
+        };
+
+        String result         = object_name_of(this);
+        const Object* current = parent_object_of(this);
+
+        while (current)
         {
-            result = (parent->_M_name.to_string() + Constants::name_separator) + result;
-            parent = parent->_M_package;
+            result  = Strings::format("{}{}{}",
+                                      (current->_M_name.is_valid()
+                                               ? _M_name.to_string()
+                                               : Strings::format("Noname object {}", current->_M_instance_index)),
+                                      Constants::name_separator, result);
+            current = parent_object_of(current);
         }
 
         return result;

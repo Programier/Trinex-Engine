@@ -120,11 +120,13 @@ namespace Engine
 
     Pipeline::Pipeline()
     {
-        vertex_shader = Object::new_instance<VertexShader>();
+        vertex_shader = Object::new_instance_named<VertexShader>("Vertex Shader");
         vertex_shader->flags(Object::IsAvailableForGC, false);
+        vertex_shader->owner(this);
 
-        fragment_shader = Object::new_instance<FragmentShader>();
+        fragment_shader = Object::new_instance_named<FragmentShader>("Fragment Shader");
         fragment_shader->flags(Object::IsAvailableForGC, false);
+        fragment_shader->owner(this);
     }
 
     Pipeline::~Pipeline()

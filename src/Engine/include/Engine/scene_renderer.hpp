@@ -55,15 +55,11 @@ namespace Engine
         class SceneInterface* _M_scene;
 
     public:
-        SceneRenderer(class SceneInterface* scene);
+        SceneRenderer();
         delete_copy_constructors(SceneRenderer);
 
-
-        FORCE_INLINE SceneInterface* scene() const
-        {
-            return _M_scene;
-        }
-
+        SceneRenderer& scene(SceneInterface* scene);
+        SceneInterface* scene() const;
         SceneRenderer& render(const SceneView& view);
 
         FORCE_INLINE SceneLayer* root_layer() const

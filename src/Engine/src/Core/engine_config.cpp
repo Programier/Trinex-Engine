@@ -19,14 +19,15 @@ namespace Engine
         engine_json.checked_get("systems").copy_to_array(systems, JSON::ValueType::String);
         engine_json.checked_get("languages").copy_to_array(languages, JSON::ValueType::String);
 
-        resources_dir        = engine_json.checked_get_value<JSON::JsonString>("resources_dir", "resources");
-        api                  = engine_json.checked_get_value<JSON::JsonString>("api", "OpenGLES");
-        scripts_dir          = engine_json.checked_get_value<JSON::JsonString>("scripts_dir", "scripts");
-        libraries_dir        = engine_json.checked_get_value<JSON::JsonString>("libraries_dir", "libs");
-        localization_dir     = engine_json.checked_get_value<JSON::JsonString>("localization_dir", "localization");
-        default_language     = engine_json.checked_get_value<JSON::JsonString>("default_language", "eng");
-        current_language     = engine_json.checked_get_value<JSON::JsonString>("current_language", "eng");
-        window_system        = engine_json.checked_get_value<JSON::JsonString>("window_system", "SDL2");
+        resources_dir    = engine_json.checked_get_value<JSON::JsonString>("resources_dir", "resources");
+        api              = engine_json.checked_get_value<JSON::JsonString>("api", "OpenGLES");
+        scripts_dir      = engine_json.checked_get_value<JSON::JsonString>("scripts_dir", "scripts");
+        libraries_dir    = engine_json.checked_get_value<JSON::JsonString>("libraries_dir", "libs");
+        localization_dir = engine_json.checked_get_value<JSON::JsonString>("localization_dir", "localization");
+        default_language = engine_json.checked_get_value<JSON::JsonString>("default_language", "eng");
+        current_language = engine_json.checked_get_value<JSON::JsonString>("current_language", "eng");
+        window_system    = engine_json.checked_get_value<JSON::JsonString>("window_system", "SDL2");
+        shading_language = engine_json.checked_get_value<JSON::JsonString>("shading_language", "GLSL");
 
 #if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
         {

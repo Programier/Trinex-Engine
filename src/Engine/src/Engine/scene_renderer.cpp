@@ -125,10 +125,21 @@ namespace Engine
         return new_layer;
     }
 
-    SceneRenderer::SceneRenderer(class SceneInterface* scene) : _M_scene(scene)
+    SceneRenderer::SceneRenderer() : _M_scene(nullptr)
     {
         _M_root_layer                       = new SceneLayer("Root Layer");
         _M_root_layer->_M_can_create_parent = false;
+    }
+
+    SceneRenderer& SceneRenderer::scene(SceneInterface* scene)
+    {
+        _M_scene = scene;
+        return *this;
+    }
+
+    SceneInterface* SceneRenderer::scene() const
+    {
+        return _M_scene;
     }
 
     SceneRenderer& SceneRenderer::render(const SceneView& view)

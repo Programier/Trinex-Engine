@@ -15,7 +15,8 @@
 
         "window_system": "SDL2",
         "systems": [],
-        "external_system_libraries": []
+        "external_system_libraries": [],
+        "shading_language": "GLSL"
     },
 
     "Window": {

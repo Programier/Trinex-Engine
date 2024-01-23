@@ -24,6 +24,7 @@ namespace Engine
         String window_system;
         String default_language;
         String current_language;
+        String shading_language;
 
         uint_t lz4_compression_level;
         uint_t max_gc_collected_objects;

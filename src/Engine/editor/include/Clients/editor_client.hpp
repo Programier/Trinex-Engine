@@ -2,6 +2,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <imgui_windows.hpp>
+#include <Engine/scene_renderer.hpp>
 
 namespace Engine
 {
@@ -11,6 +12,8 @@ namespace Engine
         declare_class(EditorClient, ViewportClient);
 
     private:
+        SceneRenderer _M_renderer;
+
         ScriptObject _M_script_object;
         ImGuiPackageTree* _M_package_tree;
         ImGuiContentBrowser* _M_content_browser;
@@ -18,7 +21,6 @@ namespace Engine
         ImGuiSceneTree* _M_scene_tree;
 
         class Sampler* _M_sampler = nullptr;
-
         size_t _M_frame = 0;
 
     public:
