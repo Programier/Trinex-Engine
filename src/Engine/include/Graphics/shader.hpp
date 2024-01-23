@@ -46,11 +46,10 @@ namespace Engine
 
         String text_code;
         Buffer binary_code;
-        BindLocation global_ubo_location;
 
-
-        Shader& init_global_ubo(BindLocation location);
+        bool archive_process(Archive& ar) override;
     };
+
 
     class ENGINE_EXPORT VertexShader : public Shader
     {
@@ -58,14 +57,14 @@ namespace Engine
 
     public:
         struct Attribute {
-            String name;
+            Name name;
             ColorFormat format;
             VertexAttributeInputRate rate;
             byte count = 1;
 
             FORCE_INLINE Attribute(ColorFormat format            = ColorFormat::Undefined,
                                    VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex, byte count = 1,
-                                   const String& name = "")
+                                   const Name& name = Name::none)
                 : name(name), format(format), rate(rate), count(count)
             {}
         };
@@ -74,6 +73,7 @@ namespace Engine
 
     public:
         VertexShader& rhi_create() override;
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT FragmentShader : public Shader
@@ -84,4 +84,8 @@ namespace Engine
         FragmentShader& rhi_create() override;
     };
 
+    ENGINE_EXPORT bool operator&(Archive&, Shader::UniformBuffer&);
+    ENGINE_EXPORT bool operator&(Archive&, Shader::SSBO&);
+    ENGINE_EXPORT bool operator&(Archive&, Shader::Texture&);
+    ENGINE_EXPORT bool operator&(Archive&, VertexShader::Attribute&);
 }// namespace Engine

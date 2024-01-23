@@ -141,25 +141,20 @@ namespace Engine
         return *this;
     }
 
+    Pipeline& Pipeline::postload()
+    {
+        Super::postload();
+        vertex_shader->postload();
+        fragment_shader->postload();
+        return *this;
+    }
+
     const Pipeline& Pipeline::rhi_bind() const
     {
         if (_M_rhi_object)
         {
             rhi_object<RHI_Pipeline>()->bind();
         }
-
-        UniformBuffer* ubo = RenderTargetBase::current_target()->uniform_buffer();
-
-        if (vertex_shader->global_ubo_location.is_valid())
-        {
-            ubo->rhi_bind(vertex_shader->global_ubo_location);
-        }
-
-        if (fragment_shader->global_ubo_location.is_valid())
-        {
-            ubo->rhi_bind(fragment_shader->global_ubo_location);
-        }
-
         return *this;
     }
 
@@ -177,6 +172,9 @@ namespace Engine
         archive& color_blending.blend_constants;
         archive& color_blending.logic_op;
         archive& color_blending.logic_op_enable;
+
+        vertex_shader->archive_process(archive);
+        fragment_shader->archive_process(archive);
 
         return archive;
     }

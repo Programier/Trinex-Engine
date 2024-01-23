@@ -1,11 +1,13 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
+#include <Core/name.hpp>
 
 namespace Engine
 {
     class SceneRenderer;
     class RenderViewport;
+    class SceneView;
 
 
     class ENGINE_EXPORT SceneLayer final
@@ -19,19 +21,28 @@ namespace Engine
 
 
     private:
-        SceneLayer* _M_parent     = nullptr;
-        SceneLayer* _M_next       = nullptr;
+        SceneLayer* _M_parent = nullptr;
+        SceneLayer* _M_next   = nullptr;
+        Name _M_name;
         bool _M_can_create_parent = true;
 
+
+        SceneLayer(const Name& name);
+        ~SceneLayer();
+
     public:
+        delete_copy_constructors(SceneLayer);
+
         SceneLayer& clear();
         SceneLayer& render(SceneRenderer*, RenderViewport*);
         SceneLayer* parent() const;
         SceneLayer* next() const;
+        const Name& name() const;
 
         void destroy();
-        SceneLayer* create_next();
-        SceneLayer* create_parent();
+        SceneLayer* find(const Name& name);
+        SceneLayer* create_next(const Name& name);
+        SceneLayer* create_parent(const Name& name);
 
 
         friend class SceneRenderer;
@@ -41,10 +52,19 @@ namespace Engine
     {
     private:
         SceneLayer* _M_root_layer = nullptr;
+        class SceneInterface* _M_scene;
 
     public:
-        SceneRenderer();
+        SceneRenderer(class SceneInterface* scene);
         delete_copy_constructors(SceneRenderer);
+
+
+        FORCE_INLINE SceneInterface* scene() const
+        {
+            return _M_scene;
+        }
+
+        SceneRenderer& render(const SceneView& view);
 
         FORCE_INLINE SceneLayer* root_layer() const
         {

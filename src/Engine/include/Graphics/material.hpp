@@ -44,6 +44,8 @@ namespace Engine
         bool archive_process(Archive& archive) override;
         Material& preload() override;
         Material& postload() override;
+
+        Material& apply() override;
         ~Material();
     };
 

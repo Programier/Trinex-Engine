@@ -84,6 +84,7 @@ namespace Engine
         Pipeline();
         ~Pipeline();
         Pipeline& rhi_create() override;
+        Pipeline& postload() override;
         const Pipeline& rhi_bind() const;
 
         bool archive_process(class Archive& archive) override;

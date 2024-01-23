@@ -59,6 +59,10 @@ namespace Engine
         return *this;
     }
 
+    Material& Material::apply()
+    {
+        return *this;
+    }
 
     Material::~Material()
     {

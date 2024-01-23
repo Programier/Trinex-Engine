@@ -1,17 +1,18 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/logger.hpp>
-#include <Graphics/scene_render_targets.hpp>
+#include <Core/name.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <sstream>
-
 
 namespace Engine
 {
@@ -25,19 +26,20 @@ namespace Engine
     implement_default_initialize_class(FragmentShader);
 
 
-    Shader& Shader::init_global_ubo(BindLocation location)
+    bool Shader::archive_process(Archive& ar)
     {
-        global_ubo_location = location;
-        uniform_buffers.emplace_back();
-        UniformBuffer& ubo = uniform_buffers.back();
+        if (!Super::archive_process(ar))
+            return false;
 
-        ubo.location = location;
-        ubo.name     = "Global";
-        ubo.size     = sizeof(RenderTargetBase::GlobalUniforms);
-
-        return *this;
+        ar& uniform_buffers;
+        ar& samplers;
+        ar& textures;
+        ar& combined_samplers;
+        ar& ssbo;
+        ar& text_code;
+        ar& binary_code;
+        return ar;
     }
-
 
     VertexShader& VertexShader::rhi_create()
     {
@@ -45,9 +47,51 @@ namespace Engine
         return *this;
     }
 
+    bool VertexShader::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+
+        ar& attributes;
+        return ar;
+    }
+
     FragmentShader& FragmentShader::rhi_create()
     {
         _M_rhi_object.reset(engine_instance->rhi()->create_fragment_shader(this));
         return *this;
     }
+
+
+    ENGINE_EXPORT bool operator&(Archive& ar, Shader::UniformBuffer& buffer)
+    {
+        ar& buffer.name;
+        ar& buffer.location.id;
+        ar& buffer.size;
+        return ar;
+    }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, Shader::SSBO& buffer)
+    {
+        ar& buffer.name;
+        ar& buffer.location.id;
+        return ar;
+    }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, Shader::Texture& texture)
+    {
+        ar& texture.name;
+        ar& texture.location.id;
+        return ar;
+    }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
+    {
+        ar& attrib.name;
+        ar& attrib.count;
+        ar& attrib.format;
+        ar& attrib.rate;
+        return ar;
+    }
+
 }// namespace Engine

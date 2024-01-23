@@ -65,8 +65,9 @@ namespace Engine
         const String& to_string() const;
         const char* c_str() const;
         const Name& to_string(String& out) const;
-
         operator const String&() const;
+
+        static const Vector<Name::Entry>& entries();
 
         FORCE_INLINE bool operator==(const Name& name) const
         {

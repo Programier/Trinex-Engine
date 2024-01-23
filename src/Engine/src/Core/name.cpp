@@ -223,6 +223,10 @@ namespace Engine
         return to_string();
     }
 
+    const Vector<Name::Entry>& Name::entries()
+    {
+        return name_entries();
+    }
 
     ENGINE_EXPORT bool operator&(class Archive& ar, Name& name)
     {
