@@ -173,4 +173,34 @@ namespace Engine::Strings
         return reinterpret_cast<const char*>(memory_search(reinterpret_cast<const byte*>(haystack), haystack_len,
                                                            reinterpret_cast<const byte*>(needle), needle_len));
     }
+
+
+    template<typename DelimiterType>
+    static FORCE_INLINE Vector<String> internal_split(const StringView& line, DelimiterType delimiter)
+    {
+        Vector<String> tokens;
+        String token;
+
+        size_t start = 0;
+        size_t end   = 0;
+
+        while ((end = line.find(delimiter, start)) != String::npos)
+        {
+            tokens.emplace_back(line.substr(start, end - start));
+            start = end + 1;
+        }
+
+        tokens.emplace_back(line.substr(start, end));
+        return tokens;
+    }
+
+    ENGINE_EXPORT Vector<String> split(const StringView& line, char delimiter)
+    {
+        return internal_split<char>(line, delimiter);
+    }
+
+    ENGINE_EXPORT Vector<String> split(const StringView& line, const StringView& delimiter)
+    {
+        return internal_split<const StringView&>(line, delimiter);
+    }
 }// namespace Engine::Strings

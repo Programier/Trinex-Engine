@@ -10,6 +10,8 @@
 #include <memory>
 #include <set>
 #include <span>
+#include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -94,4 +96,7 @@ namespace Engine
 
     template<typename Type, typename Dp = std::default_delete<Type>>
     using ScopedPtr = std::unique_ptr<Type, Dp>;
+
+    using String     = std::string;
+    using StringView = std::string_view;
 }// namespace Engine

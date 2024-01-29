@@ -60,6 +60,8 @@ namespace Engine::Strings
     ENGINE_EXPORT String to_upper(const String& line);
 
     ENGINE_EXPORT const char* strnstr(const char* haystack, size_t haystack_len, const char* needle, size_t needle_len);
+    ENGINE_EXPORT Vector<String> split(const StringView& line, char delimiter = ' ');
+    ENGINE_EXPORT Vector<String> split(const StringView& line, const StringView& delimiter);
 
     template<typename T>
     FORCE_INLINE T convert(const char* line)

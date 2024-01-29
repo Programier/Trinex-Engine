@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <string>
 #include <typeindex>
 
 namespace Engine
@@ -76,7 +75,6 @@ namespace Engine
 
     using AssimpObject = const void*;
     using BitMask      = size_t;
-    using String       = std::string;
     using MessageList  = List<String>;
     using PixelRGB     = glm::vec<3, byte, glm::defaultp>;
     using PixelRGBA    = glm::vec<4, byte, glm::defaultp>;
