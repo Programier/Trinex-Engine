@@ -93,6 +93,11 @@ namespace Engine
         init(name.c_str(), name.length());
     }
 
+    Name::Name(const StringView& name)
+    {
+        init(name.data(), name.length());
+    }
+
     Name::Name(const char* name)
     {
         init(name, std::strlen(name));
@@ -106,6 +111,11 @@ namespace Engine
     Name& Name::operator=(const String& name)
     {
         return init(name.c_str(), name.length());
+    }
+
+    Name& Name::operator=(const StringView& name)
+    {
+        return init(name.data(), name.length());
     }
 
     Name& Name::operator=(const char* name)
@@ -138,6 +148,11 @@ namespace Engine
         return false;
     }
 
+    bool Name::operator==(const StringView& name) const
+    {
+        return equals(name);
+    }
+
     bool Name::operator==(const char* name) const
     {
         if (is_valid())
@@ -155,6 +170,11 @@ namespace Engine
             return name != name_entries()[_M_index].name;
         }
         return false;
+    }
+
+    bool Name::operator!=(const StringView& name) const
+    {
+        return !equals(name);
     }
 
     bool Name::operator!=(const char* name) const
@@ -186,6 +206,17 @@ namespace Engine
     bool Name::equals(const String& name) const
     {
         return *this == name;
+    }
+
+    bool Name::equals(const StringView& name) const
+    {
+        if (is_valid())
+        {
+            const String& str = name_entries()[_M_index].name;
+            return str == name;
+        }
+
+        return false;
     }
 
     bool Name::equals(const Name& name) const

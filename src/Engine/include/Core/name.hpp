@@ -40,10 +40,12 @@ namespace Engine
         Name& operator=(Name&&);
 
         Name(const String& name);
+        Name(const StringView& name);
         Name(const char* name);
         Name(const char* name, size_t size);
 
         Name& operator=(const String& name);
+        Name& operator=(const StringView& name);
         Name& operator=(const char* name);
 
         static Name find_name(const String& name);
@@ -53,13 +55,16 @@ namespace Engine
         bool is_valid() const;
         HashIndex hash() const;
         bool operator==(const String& name) const;
+        bool operator==(const StringView& name) const;
         bool operator==(const char* name) const;
         bool operator!=(const String& name) const;
+        bool operator!=(const StringView& name) const;
         bool operator!=(const char* name) const;
 
         bool equals(const char* name, size_t len) const;
         bool equals(const char* name) const;
         bool equals(const String& name) const;
+        bool equals(const StringView& name) const;
         bool equals(const Name& name) const;
 
         const String& to_string() const;
