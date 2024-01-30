@@ -13,5 +13,11 @@ namespace Engine::Platform
     {
         return "Android";
     }
+
+    ENGINE_EXPORT Path find_root_directory(int_t argc, char** argv)
+    {
+        // TODO: It needs to be made more scalable
+        return Strings::format("/sdcard/TrinexGames/{}/", EngineInstance::project_name());
+    }
 }// namespace Engine::Platform
 #endif

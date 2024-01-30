@@ -7,6 +7,7 @@
 #include <Core/file_manager.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
+#include <Core/platform.hpp>
 #include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
@@ -156,11 +157,20 @@ namespace Engine
         }
     }
 
-    void EngineInstance::init_engine_for_rendering()
+    void EngineInstance::initialize_resources()
     {
-        create_thread(ThreadType::RenderThread);
-        create_window();
-        create_render_targets();
+        if (_M_rhi)
+        {
+            // Initialize it only if engine has initialized render interface
+            create_window();
+            create_render_targets();
+        }
+    }
+
+    static void create_threads()
+    {
+        Thread::this_thread()->name("Logic");
+        engine_instance->create_thread(ThreadType::RenderThread);
     }
 
     int EngineInstance::start(int argc, char** argv)
@@ -176,22 +186,14 @@ namespace Engine
         _M_args.init(argc, argv);
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
+        root_manager->work_dir(Platform::find_root_directory(argc, argv));
 
-#if PLATFORM_ANDROID
-        root_manager->work_dir(Strings::format("/sdcard/TrinexGames/{}/", EngineInstance::project_name()));
-#else
-        if (argc > 0)
-        {
-            root_manager->work_dir(FileManager::dirname_of(argv[0]));
-        }
-#endif
-
-        Thread::this_thread()->name("Logic");
+        create_threads();
 
         PreInitializeController().execute();
         _M_flags(PreInitTriggered, true);
-        // Load libraries
 
+        // Load libraries
         {
             const Arguments::Argument* argument = _M_args.find("libs");
             if (argument && argument->type == Arguments::Type::Array)
@@ -225,15 +227,13 @@ namespace Engine
 
         World::new_system<World>()->name("Global World");
 
-        if (init_api())
-        {
-            init_engine_for_rendering();
-        }
+        init_api();
 
         PostInitializeController().execute();
         _M_flags(PostInitTriggered, true);
         ScriptEngine::instance()->load_scripts();
 
+        initialize_resources();
         _M_flags(IsInited, true);
         int_t status = entry_point->execute(argc - 1, argv + 1);
 

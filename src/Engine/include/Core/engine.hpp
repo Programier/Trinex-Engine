@@ -52,7 +52,7 @@ namespace Engine
         int start(int argc, char** argv);
 
     private:
-        void init_engine_for_rendering();
+        void initialize_resources();
         void create_window();
         void create_render_targets();
 

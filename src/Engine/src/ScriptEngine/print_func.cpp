@@ -94,9 +94,8 @@ class CScriptDictionary;
 #define V_ARGS_2(q) V_ARGS_1(q), V_ARG(1, q)
 #define V_ARGS_4(q) V_ARGS_2(q), V_ARG(2, q), V_ARG(3, q)
 #define V_ARGS_8(q) V_ARGS_4(q), V_ARG(4, q), V_ARG(5, q), V_ARG(6, q), V_ARG(7, q)
-#define V_ARGS_16(q)                                                                                                   \
-    V_ARGS_8(q), V_ARG(8, q), V_ARG(9, q), V_ARG(10, q), V_ARG(11, q), V_ARG(12, q), V_ARG(13, q), V_ARG(14, q),       \
-            V_ARG(15, q)
+#define V_ARGS_16(q)                                                                                                             \
+    V_ARGS_8(q), V_ARG(8, q), V_ARG(9, q), V_ARG(10, q), V_ARG(11, q), V_ARG(12, q), V_ARG(13, q), V_ARG(14, q), V_ARG(15, q)
 
 #define IN_ARGS_1 V_ARGS_1(const)
 #define IN_ARGS_2 V_ARGS_2(const)
@@ -111,10 +110,10 @@ class CScriptDictionary;
 #define W_ARGS_8 W_ARGS_4, W_ARG(4), W_ARG(5), W_ARG(6), W_ARG(7)
 #define W_ARGS_16 W_ARGS_8, W_ARG(8), W_ARG(9), W_ARG(10), W_ARG(11), W_ARG(12), W_ARG(13), W_ARG(14), W_ARG(15)
 
-#define A_ARG(n)                                                                                                       \
-    std::pair<void const*, int>                                                                                        \
-    {                                                                                                                  \
-        objPtr##n, typeId##n                                                                                           \
+#define A_ARG(n)                                                                                                                 \
+    std::pair<void const*, int>                                                                                                  \
+    {                                                                                                                            \
+        objPtr##n, typeId##n                                                                                                     \
     }
 #define A_ARGS_1 A_ARG(0)
 #define A_ARGS_2 A_ARGS_1, A_ARG(1)
@@ -138,9 +137,19 @@ bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, i
         return true;
     }
 
-    auto typeInfo = engine->GetTypeInfoById(typeId);
 
-    if (depth < 2 && strcmp(typeInfo->GetName(), "array") == 0)
+    auto typeInfo    = engine->GetTypeInfoById(typeId);
+    const char* name = typeInfo->GetName();
+
+
+    if (strcmp(name, "StringView") == 0)
+    {
+        auto const& string = *((std::string_view const*) objPtr);
+        dst << string;
+        return true;
+    }
+
+    if (depth < 2 && strcmp(name, "array") == 0)
     {
         CScriptArray const* array{};
 
@@ -165,7 +174,7 @@ bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, i
         return true;
     }
 
-    if (strcmp(typeInfo->GetName(), "dictionary") == 0)
+    if (strcmp(name, "dictionary") == 0)
     {
         CScriptDictionary const* dictionary{};
 
@@ -194,7 +203,7 @@ bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, i
         return true;
     }
 
-    if (strcmp(typeInfo->GetName(), "dictionaryValue") == 0)
+    if (strcmp(name, "dictionaryValue") == 0)
     {
         auto value = reinterpret_cast<CScriptDictValue const*>(objPtr);
 
@@ -307,6 +316,7 @@ void Print::PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int
         {
             dst << typeInfo->GetName() << "(" << objPtr << ")";
         }
+        return;
     }
 
     if (typeId & (asTYPEID_APPOBJECT | asTYPEID_TEMPLATE))

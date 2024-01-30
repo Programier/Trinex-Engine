@@ -50,11 +50,11 @@ namespace Engine
     {
         String factory = Strings::format("{}@ f()", self->name().c_str());
 
-        ScriptEngineInitializeController().require("Bind Engine::Name").require("Bind Engine::Class");
+        ScriptEngineInitializeController().require("Initialize bindings");
 
         if (!self->flags(Class::IsSingletone))
         {
-            registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor());
+            registrar->behave(ScriptClassBehave::Factory, factory.c_str(), self->static_constructor(), ScriptCallConv::CDECL);
         }
 
         registrar->require_type("Engine::Package");

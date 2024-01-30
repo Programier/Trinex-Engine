@@ -180,7 +180,7 @@ namespace Engine
 
         template<typename ReturnType, typename... Args>
         ScriptClassRegistrar& behave(ScriptClassBehave behave, const char* declaration, ReturnType (*method_address)(Args...),
-                                     ScriptCallConv conv = ScriptCallConv::CDECL)
+                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
         {
             return private_register_behaviour(behave, declaration, reinterpret_cast<void*>(method_address), false, conv);
         }
