@@ -97,39 +97,37 @@ namespace Engine
         return *this;
     }
 
-    Object* Package::find_object_private_no_recurce(const char* _name, size_t name_len) const
+    Object* Package::find_object_private_no_recurce(const StringView& _name) const
     {
-        Name object_name(_name, name_len);
-        auto it = _M_objects.find(object_name);
+        Name object_name = _name;
+        auto it          = _M_objects.find(object_name);
         if (it == _M_objects.end())
             return nullptr;
         return it->second;
     }
 
-    Object* Package::find_object_private(const char* _name, size_t name_len) const
+    Object* Package::find_object_private(StringView _name) const
     {
-        const char* end_name       = _name + name_len;
-        const size_t separator_len = Constants::name_separator.length();
-        const char* separator      = Strings::strnstr(_name, name_len, Constants::name_separator.c_str(), separator_len);
+        const String& separator    = Constants::name_separator;
+        const size_t separator_len = separator.length();
+        size_t separator_index     = _name.find_first_of(separator);
         const Package* package     = this;
 
-
-        while (separator && package)
+        while (separator_index != StringView::npos && package)
         {
-            size_t current_len = separator - _name;
-            package            = package->find_object_checked<Package>(StringView(_name, current_len), false);
-            _name              = separator + separator_len;
-            separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
+            package         = package->find_object_checked<Package>(_name.substr(0, separator_index), false);
+            _name           = _name.substr(separator_index + separator_len);
+            separator_index = _name.find_first_of(separator);
         }
 
-        return package ? package->find_object_private_no_recurce(_name, end_name - _name) : nullptr;
+        return package ? package->find_object_private_no_recurce(_name) : nullptr;
     }
 
     Object* Package::find_object(const StringView& object_name, bool recursive) const
     {
         if (recursive)
-            return find_object_private(object_name.data(), object_name.length());
-        return find_object_private_no_recurce(object_name.data(), object_name.length());
+            return find_object_private(object_name);
+        return find_object_private_no_recurce(object_name);
     }
 
     const Package::ObjectMap& Package::objects() const
@@ -147,7 +145,7 @@ namespace Engine
         return object ? object->package() == this : false;
     }
 
-    bool Package::contains_object(const String& name) const
+    bool Package::contains_object(const StringView& name) const
     {
         return find_object(name, false) != nullptr;
     }

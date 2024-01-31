@@ -31,8 +31,8 @@ namespace Engine
         ObjectMap _M_objects;
         Header _M_header;
 
-        Object* find_object_private_no_recurce(const char* name, size_t name_len) const;
-        Object* find_object_private(const char* name, size_t name_len) const;
+        Object* find_object_private_no_recurce(const StringView& name) const;
+        Object* find_object_private(StringView name) const;
 
 
         const Package& build_header(Header& header) const;
@@ -49,7 +49,7 @@ namespace Engine
         const ObjectMap& objects() const;
         const Header& header() const;
         bool contains_object(const Object* object) const;
-        bool contains_object(const String& name) const;
+        bool contains_object(const StringView& name) const;
 
         bool save() const;
         bool load(BufferReader* reader = nullptr);
