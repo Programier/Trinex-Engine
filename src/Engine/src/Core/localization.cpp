@@ -13,19 +13,9 @@ namespace Engine
 {
     Localization* Localization::_M_instance = nullptr;
 
-    const String& Localization::localize(const String& line) const
+    const String& Localization::localize(const StringView& line) const
     {
-        return localize(line.c_str(), line.length());
-    }
-
-    const String& Localization::localize(const char* line) const
-    {
-        return localize(line, std::strlen(line));
-    }
-
-    const String& Localization::localize(const char* line, size_t len) const
-    {
-        HashIndex hash = memory_hash_fast(line, len);
+        HashIndex hash = memory_hash_fast(line.data(), line.length());
         auto it        = _M_translation_map.find(hash);
 
         if (it != _M_translation_map.end())
@@ -39,13 +29,16 @@ namespace Engine
             if (it != _M_default_translation_map.end())
                 return it->second;
 
-            size_t sep_pos = len - 1;
-            while (sep_pos > 0 && line[sep_pos] != '/') --sep_pos;
+            size_t separator_index = line.find_last_of('/');
 
-            if (line[sep_pos] == '/')
-                ++sep_pos;
-
-            _M_default_translation_map[hash] = line + sep_pos;
+            if (separator_index == StringView::npos)
+            {
+                _M_default_translation_map[hash] = line;
+            }
+            else
+            {
+                _M_default_translation_map[hash] = line.substr(separator_index + 1);
+            }
         }
 
         throw EngineException("Failed to get localized string");
@@ -56,7 +49,7 @@ namespace Engine
         return engine_config.current_language;
     }
 
-    Localization& Localization::language(const String& lang)
+    Localization& Localization::language(const StringView& lang)
     {
         if (engine_config.current_language == lang)
             return *this;
@@ -67,18 +60,6 @@ namespace Engine
         on_language_changed.trigger();
         return *this;
     }
-
-    Localization& Localization::language(const char* lang)
-    {
-        if (engine_config.current_language == lang)
-            return *this;
-
-        engine_config.current_language = lang;
-        reload();
-        on_language_changed.trigger();
-        return *this;
-    }
-
 
     static bool parse_string(const std::string& formatString, String& key, String& value)
     {
@@ -165,29 +146,19 @@ namespace Engine
         return Localization::instance()->language();
     }
 
-    ENGINE_EXPORT void Object::language(const String& new_language)
+    ENGINE_EXPORT void Object::language(const StringView& new_language)
     {
         Localization::instance()->language(new_language);
     }
 
-    ENGINE_EXPORT void language(const char* new_language)
-    {
-        Localization::instance()->language(new_language);
-    }
-
-    ENGINE_EXPORT const String& Object::localize(const String& line)
-    {
-        return Localization::instance()->localize(line);
-    }
-
-    ENGINE_EXPORT const String& Object::localize(const char* line)
+    ENGINE_EXPORT const String& Object::localize(const StringView& line)
     {
         return Localization::instance()->localize(line);
     }
 
     ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len)
     {
-        return Localization::instance()->localize(line, len).c_str();
+        return Localization::instance()->localize(StringView(line, len)).c_str();
     }
 
     static PostInitializeController post_init([]() { Localization::create_instance()->reload(true, true); });

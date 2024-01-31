@@ -44,9 +44,7 @@ namespace Engine
 
         bool add_object(Object* object, bool autorename = false);
         Package& remove_object(Object* object);
-        Object* find_object(const String& name, bool recursive = true) const;
-        Object* find_object(const char* name, bool recursive = true) const;
-        Object* find_object(const char* name, size_t name_len, bool recursive = true) const;
+        Object* find_object(const StringView& name, bool recursive = true) const;
 
         const ObjectMap& objects() const;
         const Header& header() const;
@@ -58,27 +56,9 @@ namespace Engine
         Header& load_header();
 
         template<typename Type>
-        FORCE_INLINE Type* find_object_checked(const String& object_name, bool recursive = true) const
+        FORCE_INLINE Type* find_object_checked(const StringView& object_name, bool recursive = true) const
         {
             Object* object = Package::find_object(object_name, recursive);
-            if (object)
-                return object->instance_cast<Type>();
-            return nullptr;
-        }
-
-        template<typename Type>
-        FORCE_INLINE Type* find_object_checked(const char* object_name, bool recursive = true) const
-        {
-            Object* object = Package::find_object(object_name, recursive);
-            if (object)
-                return object->instance_cast<Type>();
-            return nullptr;
-        }
-
-        template<typename Type>
-        FORCE_INLINE Type* find_object_checked(const char* object_name, size_t name_len, bool recursive = true) const
-        {
-            Object* object = Package::find_object(object_name, name_len, recursive);
             if (object)
                 return object->instance_cast<Type>();
             return nullptr;

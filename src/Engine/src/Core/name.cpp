@@ -28,15 +28,10 @@ namespace Engine
 
     ENGINE_EXPORT Name Name::none;
 
-    Name Name::find_name(const String& name)
-    {
-        return find_name(name.c_str(), name.length());
-    }
-
-    Name Name::find_name(const char* name, size_t size)
+    Name Name::find_name(const StringView& name)
     {
         Name out_name;
-        HashIndex hash = memory_hash_fast(name, size == 0 ? std::strlen(name) : size, 0);
+        HashIndex hash = memory_hash_fast(name.data(), name.length(), 0);
 
         Vector<Name::Entry>& name_table = name_entries();
 
@@ -57,15 +52,16 @@ namespace Engine
         return out_name;
     }
 
-    Name& Name::init(const char* name, size_t len)
+
+    Name& Name::init(const StringView& view)
     {
-        if (len == 0 || name == nullptr)
+        if (view.empty())
         {
             _M_index = Constants::index_none;
             return *this;
         }
 
-        HashIndex hash                  = memory_hash_fast(name, len, 0);
+        HashIndex hash                  = memory_hash_fast(view.data(), view.length(), 0);
         Vector<Name::Entry>& name_table = name_entries();
 
         _M_index = name_table.size();
@@ -81,46 +77,40 @@ namespace Engine
             }
         }
 
-        push_new_name(name, len, hash);
+        push_new_name(view.data(), view.length(), hash);
         return *this;
     }
 
     Name::Name() : _M_index(Constants::index_none)
     {}
 
-    Name::Name(const String& name)
-    {
-        init(name.c_str(), name.length());
-    }
+    Name::Name(const char* name) : Name(StringView(name))
+    {}
+
+    Name::Name(const char* name, size_t len) : Name(StringView(name, len))
+    {}
+
+    Name::Name(const String& name) : Name(StringView(name))
+    {}
 
     Name::Name(const StringView& name)
     {
-        init(name.data(), name.length());
-    }
-
-    Name::Name(const char* name)
-    {
-        init(name, std::strlen(name));
-    }
-
-    Name::Name(const char* name, size_t size)
-    {
-        init(name, size);
-    }
-
-    Name& Name::operator=(const String& name)
-    {
-        return init(name.c_str(), name.length());
-    }
-
-    Name& Name::operator=(const StringView& name)
-    {
-        return init(name.data(), name.length());
+        init(name);
     }
 
     Name& Name::operator=(const char* name)
     {
-        return init(name, std::strlen(name));
+        return init(name);
+    }
+
+    Name& Name::operator=(const String& name)
+    {
+        return init(name);
+    }
+
+    Name& Name::operator=(const StringView& name)
+    {
+        return init(name);
     }
 
     Name::Name(const Name&) = default;
@@ -139,37 +129,9 @@ namespace Engine
         return is_valid() ? name_entries()[_M_index].hash : Constants::invalid_hash;
     }
 
-    bool Name::operator==(const String& name) const
-    {
-        if (is_valid())
-        {
-            return name == name_entries()[_M_index].name;
-        }
-        return false;
-    }
-
     bool Name::operator==(const StringView& name) const
     {
         return equals(name);
-    }
-
-    bool Name::operator==(const char* name) const
-    {
-        if (is_valid())
-        {
-            return std::strcmp(name, name_entries()[_M_index].name.c_str()) == 0;
-        }
-
-        return false;
-    }
-
-    bool Name::operator!=(const String& name) const
-    {
-        if (is_valid())
-        {
-            return name != name_entries()[_M_index].name;
-        }
-        return false;
     }
 
     bool Name::operator!=(const StringView& name) const
@@ -177,35 +139,39 @@ namespace Engine
         return !equals(name);
     }
 
+    bool Name::operator==(const char* name) const
+    {
+        return equals(name);
+    }
+
     bool Name::operator!=(const char* name) const
     {
-        if (is_valid())
-        {
-            return std::strcmp(name, name_entries()[_M_index].name.c_str()) != 0;
-        }
-
-        return false;
+        return !equals(name);
     }
 
-    bool Name::equals(const char* name, size_t len) const
+    bool Name::operator==(const String& name) const
     {
-        if (is_valid())
-        {
-            const String& str = name_entries()[_M_index].name;
-            return str.length() == len && std::memcmp(str.c_str(), name, len) == 0;
-        }
-
-        return false;
+        return equals(name);
     }
 
-    bool Name::equals(const char* name) const
+    bool Name::operator!=(const String& name) const
     {
-        return *this == name;
+        return !equals(name);
     }
 
     bool Name::equals(const String& name) const
     {
-        return *this == name;
+        return equals(StringView(name));
+    }
+
+    bool Name::equals(const char* name) const
+    {
+        return equals(StringView(name));
+    }
+
+    bool Name::equals(const char* name, size_t len) const
+    {
+        return equals(StringView(name, len));
     }
 
     bool Name::equals(const StringView& name) const
@@ -221,6 +187,7 @@ namespace Engine
 
     bool Name::equals(const Name& name) const
     {
+        name.equals("Hello");
         return *this == name;
     }
 
@@ -247,6 +214,11 @@ namespace Engine
     const char* Name::c_str() const
     {
         return to_string().c_str();
+    }
+
+    Name::operator StringView() const
+    {
+        return StringView(to_string());
     }
 
     Name::operator const String&() const
@@ -281,28 +253,40 @@ namespace Engine
 
     static void on_init()
     {
-        ScriptClassRegistrar registrar("Engine::Name",
-                                       ScriptClassRegistrar::create_type_info<Name>(
-                                               ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassMoreConstructors));
+
+        ScriptEngineInitializeController().require("Bind Engine::StringView");
+
+        ScriptClassRegistrar registrar(
+                "Engine::Name", ScriptClassRegistrar::create_type_info<Name>(ScriptClassRegistrar::Value |
+                                                                             ScriptClassRegistrar::AppClassMoreConstructors |
+                                                                             ScriptClassRegistrar::AppClassAllInts));
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<Name>,
                          ScriptCallConv::CDECL_OBJFIRST);
         registrar.behave(ScriptClassBehave::Construct, "void f(const string& in)",
                          ScriptClassRegistrar::constructor<Name, const String&>, ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const StringView& in)",
+                         ScriptClassRegistrar::constructor<Name, const StringView&>, ScriptCallConv::CDECL_OBJFIRST);
         registrar.behave(ScriptClassBehave::Construct, "void f(const Name& in)",
                          ScriptClassRegistrar::constructor<Name, const Name&>, ScriptCallConv::CDECL_OBJFIRST);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Name>,
                          ScriptCallConv::CDECL_OBJFIRST);
 
-        registrar.static_function("Name find_name(const string& in)", func_of<Name(const String&)>(Name::find_name));
+        registrar.static_function("Name find_name(const StringView& in)", func_of<Name(const StringView&)>(Name::find_name));
         registrar.method("bool is_valid() const", &Name::is_valid);
         registrar.method("uint64 hash() const", &Name::hash);
         registrar.method("const string& to_string() const", method_of<const String&>(&Name::to_string));
         registrar.method("const Name& to_string(string& out) const", method_of<const Name&>(&Name::to_string));
 
         registrar.method("Engine::Name& opAssign(const Engine::Name& in)", method_of<Name&, Name, const Name&>(&Name::operator=));
-        registrar.method("Engine::Name& opAssign(const string& in)", method_of<Name&, Name, const String&>(&Name::operator=));
-        registrar.method("bool opEquals(const string& in) const", method_of<bool, Name, const String&>(&Name::operator==));
+        registrar.method("Engine::Name& opAssign(const StringView& in)",
+                         method_of<Name&, Name, const StringView&>(&Name::operator=));
+        registrar.method("Engine::Name& opAssign(const string& in)",
+                         method_of<Name&, Name, const String&>(&Name::operator=));
+        registrar.method("bool opEquals(const StringView& in) const",
+                         method_of<bool, Name, const StringView&>(&Name::operator==));
+        registrar.method("bool opEquals(const string& in) const",
+                         method_of<bool, Name, const String&>(&Name::operator==));
         registrar.method("bool opEquals(const Name& in) const", method_of<bool, Name, const Name&>(&Name::operator==));
 
         registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);

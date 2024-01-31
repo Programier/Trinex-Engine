@@ -1,6 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
-#include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 

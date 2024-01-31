@@ -61,8 +61,6 @@ namespace Engine
 
     private:
         static void create_default_package();
-        static bool object_is_exist(Package* package, const String& name);
-
         const Object& remove_from_instances_array() const;
         static void prepare_next_object_for_gc();
 
@@ -84,31 +82,25 @@ namespace Engine
         static Object* static_constructor();
         static void static_initialize_class();
         static class Class* static_class_instance();
-        static HashIndex hash_of_name(const String& name);
+        static HashIndex hash_of_name(const StringView& name);
         virtual class Class* class_instance() const;
 
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static Package* load_package(const String& name);
-        ENGINE_EXPORT static String package_name_of(const String& name);
-        ENGINE_EXPORT static String object_name_of(const String& name);
+        ENGINE_EXPORT static Package* load_package(const StringView& name);
+        ENGINE_EXPORT static String package_name_of(const StringView& name);
+        ENGINE_EXPORT static String object_name_of(const StringView& name);
         ENGINE_EXPORT static const ObjectArray& all_objects();
-        ENGINE_EXPORT static Object* find_object(const String& object_name);
-        ENGINE_EXPORT static Object* find_object(const char* object_name);
-        ENGINE_EXPORT static Object* find_object(const char* object_name, size_t len);
+        ENGINE_EXPORT static Object* find_object(const StringView& object_name);
         ENGINE_EXPORT static Package* root_package();
 
         ENGINE_EXPORT static void collect_garbage(GCFlag flag = GCFlag::OnlyMarked);
         ENGINE_EXPORT static const String& language();
-        ENGINE_EXPORT static void language(const String& new_language);
-        ENGINE_EXPORT static void language(const char* new_language);
-        ENGINE_EXPORT static const String& localize(const String& line);
-        ENGINE_EXPORT static const String& localize(const char* line);
+        ENGINE_EXPORT static void language(const StringView& new_language);
+        ENGINE_EXPORT static const String& localize(const StringView& line);
 
         const String& string_name() const;
         HashIndex hash_index() const;
-        ObjectRenameStatus name(const char* name, size_t name_len, bool autorename = false);
-        ObjectRenameStatus name(const char* name, bool autorename = false);
-        ObjectRenameStatus name(const String& name, bool autorename = false);
+        ObjectRenameStatus name(StringView name, bool autorename = false);
         const Name& name() const;
         virtual Object* copy();
         bool add_to_package(Package* package, bool autorename = false);
@@ -126,9 +118,7 @@ namespace Engine
         Path filepath() const;
         bool is_editable() const;
 
-        static Package* find_package(const String& name, bool create = false);
-        static Package* find_package(const char* name, bool create = false);
-        static Package* find_package(const char* name, size_t len, bool create = false);
+        static Package* find_package(StringView name, bool create = false);
 
         virtual Object& preload();
         virtual Object& postload();
@@ -183,7 +173,7 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_instance_named(const String& object_name, Args&&... args)
+        static Type* new_instance_named(const StringView& object_name, Args&&... args)
         {
             Type* object = new_instance<Type>(std::forward<Args>(args)...);
             if constexpr (std::is_base_of_v<Object, Type>)
@@ -194,7 +184,7 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        static Type* new_non_serializable_instance_named(const String& object_name, Args&&... args)
+        static Type* new_non_serializable_instance_named(const StringView& object_name, Args&&... args)
         {
             Type* object = new_non_serializable_instance<Type>(std::forward<Args>(args)...);
             if constexpr (std::is_base_of_v<Object, Type>)
@@ -253,7 +243,7 @@ namespace Engine
         }
 
         template<typename ObjectInstanceType>
-        static ObjectInstanceType* find_object_checked(const String& object_name)
+        static ObjectInstanceType* find_object_checked(const StringView& object_name)
         {
             Object* object = find_object(object_name);
             if (object)

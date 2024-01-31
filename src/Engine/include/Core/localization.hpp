@@ -15,13 +15,10 @@ namespace Engine
     public:
         CallBacks<void()> on_language_changed;
 
-        const String& localize(const String& line) const;
-        const String& localize(const char* line) const;
-        const String& localize(const char* line, size_t len) const;
+        const String& localize(const StringView& line) const;
 
         const String& language() const;
-        Localization& language(const String&);
-        Localization& language(const char*);
+        Localization& language(const StringView&);
         Localization& reload(bool clear = true, bool with_default = false);
 
         friend class Singletone<Localization, EmptySingletoneParent>;

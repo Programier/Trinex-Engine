@@ -117,7 +117,7 @@ namespace Engine
         while (separator && package)
         {
             size_t current_len = separator - _name;
-            package            = package->find_object_checked<Package>(_name, current_len, false);
+            package            = package->find_object_checked<Package>(StringView(_name, current_len), false);
             _name              = separator + separator_len;
             separator          = Strings::strnstr(_name, end_name - _name, Constants::name_separator.c_str(), separator_len);
         }
@@ -125,25 +125,11 @@ namespace Engine
         return package ? package->find_object_private_no_recurce(_name, end_name - _name) : nullptr;
     }
 
-    Object* Package::find_object(const String& object_name, bool recursive) const
+    Object* Package::find_object(const StringView& object_name, bool recursive) const
     {
         if (recursive)
-            return find_object_private(object_name.c_str(), object_name.length());
-        return find_object_private_no_recurce(object_name.c_str(), object_name.length());
-    }
-
-    Object* Package::find_object(const char* object_name, bool recursive) const
-    {
-        if (recursive)
-            return find_object_private(object_name, std::strlen(object_name));
-        return find_object_private_no_recurce(object_name, std::strlen(object_name));
-    }
-
-    Object* Package::find_object(const char* object_name, size_t name_len, bool recursive) const
-    {
-        if (recursive)
-            return find_object_private(object_name, name_len);
-        return find_object_private_no_recurce(object_name, name_len);
+            return find_object_private(object_name.data(), object_name.length());
+        return find_object_private_no_recurce(object_name.data(), object_name.length());
     }
 
     const Package::ObjectMap& Package::objects() const
@@ -335,7 +321,7 @@ namespace Engine
             }
         }
 
-        if(need_destroy_reader)
+        if (need_destroy_reader)
         {
             delete reader;
         }
@@ -375,8 +361,8 @@ namespace Engine
     {
         registrar->method("bool add_object(Object@, bool = false)", &Package::add_object)
                 .method("Package@ remove_object(Object@)", &Package::remove_object)
-                .method("Object@ find_object(const string& in, bool) const",
-                        method_of<Object*, Package, const String&, bool>(&Package::find_object))
+                .method("Object@ find_object(const StringView& in, bool=false) const",
+                        method_of<Object*, Package, const StringView&, bool>(&Package::find_object))
                 /* .method("bool contains_object(const Object@) const",
                         method_of<bool, Package, const Object*>(&Package::contains_object))
                 .method("bool contains_object(const string& in) const",

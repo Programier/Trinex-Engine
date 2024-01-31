@@ -30,7 +30,7 @@ namespace Engine
 
     private:
         Index _M_index;
-        Name& init(const char* name, size_t len);
+        Name& init(const StringView& view);
 
     public:
         Name();
@@ -39,31 +39,30 @@ namespace Engine
         Name& operator=(const Name&);
         Name& operator=(Name&&);
 
+        Name(const char* name);
+        Name(const char* name, size_t len);
         Name(const String& name);
         Name(const StringView& name);
-        Name(const char* name);
-        Name(const char* name, size_t size);
 
+        Name& operator=(const char* name);
         Name& operator=(const String& name);
         Name& operator=(const StringView& name);
-        Name& operator=(const char* name);
 
-        static Name find_name(const String& name);
-        static Name find_name(const char* name, size_t size = 0);
-
+        static Name find_name(const StringView& name);
 
         bool is_valid() const;
         HashIndex hash() const;
-        bool operator==(const String& name) const;
         bool operator==(const StringView& name) const;
-        bool operator==(const char* name) const;
-        bool operator!=(const String& name) const;
         bool operator!=(const StringView& name) const;
+        bool operator==(const char* name) const;
         bool operator!=(const char* name) const;
+        bool operator==(const String& name) const;
+        bool operator!=(const String& name) const;
 
-        bool equals(const char* name, size_t len) const;
-        bool equals(const char* name) const;
+
         bool equals(const String& name) const;
+        bool equals(const char* name) const;
+        bool equals(const char* name, size_t len) const;
         bool equals(const StringView& name) const;
         bool equals(const Name& name) const;
 
@@ -71,6 +70,7 @@ namespace Engine
         const char* c_str() const;
         const Name& to_string(String& out) const;
         operator const String&() const;
+        operator StringView() const;
 
         static const Vector<Name::Entry>& entries();
 

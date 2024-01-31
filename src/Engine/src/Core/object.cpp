@@ -62,17 +62,15 @@ namespace Engine
         registrar->behave(ScriptClassBehave::AddRef, "void f()", add_object_reference, ScriptCallConv::CDECL_OBJFIRST)
                 .behave(ScriptClassBehave::Release, "void f()", remove_object_reference, ScriptCallConv::CDECL_OBJFIRST)
                 .method("const string& string_name() const", &Object::string_name)
-                .method("Engine::ObjectRenameStatus name(const string& in, bool = false)",
-                        method_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
+                .method("Engine::ObjectRenameStatus name(StringView, bool = false)",
+                        method_of<ObjectRenameStatus, Object, StringView, bool>(&Object::name))
                 .static_function("Package@ root_package()", &Object::root_package)
-                .method("ObjectRenameStatus name(string, bool) const",
-                        method_of<ObjectRenameStatus, Object, const String&, bool>(&Object::name))
                 .method("string as_string() const", &Object::as_string)
                 .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
-                .static_function("Package@ find_package(const string& in, bool)",
-                                 func_of<Package*(const String&, bool)>(&Object::find_package))
-                .static_function("Object@ static_find_object(const string& in)",
-                                 func_of<Object*(const String&)>(&Object::find_object))
+                .static_function("Package@ find_package(StringView, bool)",
+                                 func_of<Package*(StringView, bool)>(&Object::find_package))
+                .static_function("Object@ static_find_object(const StringView&)",
+                                 func_of<Object*(const StringView&)>(&Object::find_object))
                 .method("Object& remove_from_package()", &Object::remove_from_package)
                 .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
                 .method("string opConv() const", &Object::as_string)
@@ -134,23 +132,6 @@ namespace Engine
         }
     }
 
-    bool Object::object_is_exist(Package* package, const String& name)
-    {
-        if (package)
-        {
-            bool status = package->contains_object(name);
-            if (status)
-            {
-                error_log("Object", "Cannot create new object. Object '%s' is exist in package '%s'!", name.c_str(),
-                          package->full_name().c_str());
-            }
-            return status;
-        }
-
-        return false;
-    }
-
-
     bool Object::private_check_instance(const Class* const check_class) const
     {
         const void* self = this;
@@ -186,9 +167,9 @@ namespace Engine
         _M_next_available_for_gc = false;
     }
 
-    ENGINE_EXPORT HashIndex Object::hash_of_name(const String& name)
+    ENGINE_EXPORT HashIndex Object::hash_of_name(const StringView& name)
     {
-        return memory_hash_fast(name.c_str(), name.length(), 0);
+        return memory_hash_fast(name.data(), name.length(), 0);
     }
 
     HashIndex Object::hash_index() const
@@ -196,7 +177,7 @@ namespace Engine
         return _M_name.hash();
     }
 
-    ENGINE_EXPORT Package* Object::load_package(const String& name)
+    ENGINE_EXPORT Package* Object::load_package(const StringView& name)
     {
         // Try to find package
         Package* package = Object::find_object_checked<Package>(name);
@@ -215,26 +196,26 @@ namespace Engine
         return package;
     }
 
-    ENGINE_EXPORT String Object::package_name_of(const String& name)
+    ENGINE_EXPORT String Object::package_name_of(const StringView& name)
     {
         auto index = name.find_last_of(Constants::name_separator);
         if (index == String::npos)
             return "";
 
         index -= 1;
-        return name.substr(0, index);
+        return String(name.substr(0, index));
     }
 
-    ENGINE_EXPORT String Object::object_name_of(const String& name)
+    ENGINE_EXPORT String Object::object_name_of(const StringView& name)
     {
         auto pos = name.find_last_of(Constants::name_separator);
         if (pos == String::npos)
         {
-            return name;
+            return String(name);
         }
 
         pos += Constants::name_separator.length() - 1;
-        return name.substr(pos, name.length() - pos);
+        return String(name.substr(pos, name.length() - pos));
     }
 
     const Object& Object::remove_from_instances_array() const
@@ -277,9 +258,9 @@ namespace Engine
     }
 
 
-    ObjectRenameStatus Object::name(const char* new_name, size_t name_len, bool autorename)
+    ObjectRenameStatus Object::name(StringView new_name, bool autorename)
     {
-        if (std::strcmp(_M_name.to_string().c_str(), new_name) == 0)
+        if (_M_name == new_name)
             return ObjectRenameStatus::Skipped;
 
         Package* package_backup = _M_package;
@@ -301,26 +282,23 @@ namespace Engine
         }
 
         // Find package
-        const char* end_name         = new_name + name_len;
         const String& separator_text = Constants::name_separator;
-        const size_t separator_len   = separator_text.length();
+        size_t separator_index       = new_name.find_first_of(separator_text);
 
-        const char* separator = Strings::strnstr(new_name, name_len, separator_text.c_str(), separator_len);
-
-        if (separator)
+        if (separator_index != StringView::npos)
         {
             package = root_package();
         }
 
-        while (separator && package)
+        while (separator_index != StringView::npos && package)
         {
-            size_t next_name_size = static_cast<size_t>(separator - new_name);
-            Package* next_package = package->find_object_checked<Package>(new_name, next_name_size, false);
+            StringView package_name = new_name.substr(0, separator_index);
+            Package* next_package   = package->find_object_checked<Package>(package_name, false);
 
             if (next_package == nullptr)
             {
                 next_package = Object::new_instance<Package>();
-                next_package->name(new_name, next_name_size);
+                next_package->name(package_name);
                 if (!package->add_object(next_package, false))
                 {
                     restore_object_name();
@@ -328,13 +306,14 @@ namespace Engine
                 }
             }
 
-            package   = next_package;
-            new_name  = separator + separator_len;
-            separator = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
+            package  = next_package;
+            new_name = new_name.substr(separator_index + separator_text.length());
+
+            separator_index = new_name.find(separator_text);
         }
 
         // Apply new object name
-        _M_name = Name(new_name, end_name - new_name);
+        _M_name = new_name;
 
         if (package)
         {
@@ -348,16 +327,6 @@ namespace Engine
         return ObjectRenameStatus::Success;
     }
 
-
-    ObjectRenameStatus Object::name(const char* new_name, bool autorename)
-    {
-        return name(new_name, std::strlen(new_name), autorename);
-    }
-
-    ObjectRenameStatus Object::name(const String& new_name, bool autorename)
-    {
-        return name(new_name.c_str(), new_name.length(), autorename);
-    }
 
     const Name& Object::name() const
     {
@@ -466,19 +435,9 @@ namespace Engine
         return _M_root_package;
     }
 
-    ENGINE_EXPORT Object* Object::find_object(const String& object_name)
+    ENGINE_EXPORT Object* Object::find_object(const StringView& object_name)
     {
         return _M_root_package->find_object(object_name);
-    }
-
-    ENGINE_EXPORT Object* Object::find_object(const char* object_name)
-    {
-        return _M_root_package->find_object(object_name);
-    }
-
-    ENGINE_EXPORT Object* Object::find_object(const char* object_name, size_t len)
-    {
-        return _M_root_package->find_object(object_name, len, true);
     }
 
     Object& Object::preload()
@@ -512,52 +471,36 @@ namespace Engine
         return *this;
     }
 
-    Package* Object::find_package(const String& name, bool create)
+    static FORCE_INLINE Package* find_next_package(Package* package, const StringView& name, bool create)
     {
-        return find_package(name.c_str(), name.length(), create);
-    }
-
-    Package* Object::find_package(const char* new_name, bool create)
-    {
-        return find_package(new_name, std::strlen(new_name), create);
-    }
-
-
-    static Package* find_next_package(Package* package, const char* name, size_t len, bool create)
-    {
-        Package* next_package = package->find_object_checked<Package>(name, len, false);
-
+        Package* next_package = package->find_object_checked<Package>(name, false);
         if (next_package == nullptr && create)
         {
             next_package = Object::new_instance<Package>();
-            next_package->name(name, len);
+            next_package->name(name);
             package->add_object(next_package);
         }
-
         return next_package;
     }
 
-    Package* Object::find_package(const char* new_name, size_t len, bool create)
+    Package* Object::find_package(StringView name, bool create)
     {
         Package* package = const_cast<Package*>(root_package());
 
-        const char* end_name         = new_name + len;
         const String& separator_text = Constants::name_separator;
         const size_t separator_len   = separator_text.length();
 
-        const char* separator = Strings::strnstr(new_name, len, separator_text.c_str(), separator_len);
+        size_t separator = name.find_first_of(separator_text);
 
-        while (separator && package)
+        while (separator != StringView::npos && package)
         {
-            size_t next_name_size = static_cast<size_t>(separator - new_name);
-            package               = find_next_package(package, new_name, next_name_size, create);
-            new_name              = separator + separator_len;
-            separator             = Strings::strnstr(new_name, end_name - new_name, separator_text.c_str(), separator_len);
+            package   = find_next_package(package, name.substr(0, separator), create);
+            name      = name.substr(separator + separator_len);
+            separator = name.find_first_of(separator_text);
         }
 
-        return package ? find_next_package(package, new_name, end_name - new_name, create) : nullptr;
+        return package ? find_next_package(package, name, create) : nullptr;
     }
-
 
     String Object::as_string() const
     {
