@@ -43,9 +43,9 @@ namespace Engine
     IMPLEMENT_CONTROLLER(AfterRHIInitializeController);
     IMPLEMENT_CONTROLLER(PreInitializeController);
     IMPLEMENT_CONTROLLER(PostInitializeController);
+    IMPLEMENT_CONTROLLER(ClassInitializeController);
 
-    using ScriptEngineInitializeController = PostInitializeController;
-
+    using ScriptEngineInitializeController = ClassInitializeController;
 
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

@@ -17,6 +17,8 @@ namespace Engine
         virtual ViewportClient& on_bind_to_viewport(class RenderViewport* viewport);
         virtual ViewportClient& render(class RenderViewport* viewport);
         virtual ViewportClient& update(class RenderViewport* viewport, float dt);
+
+        static ViewportClient* create(const StringView& name);
     };
 
     class ENGINE_EXPORT RenderViewport : public RenderResource

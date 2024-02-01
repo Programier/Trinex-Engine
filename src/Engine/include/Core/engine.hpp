@@ -26,12 +26,13 @@ namespace Engine
     public:
         enum Flag : EnumerateType
         {
-            PreInitTriggered  = BIT(0),
-            InitTriggered     = BIT(1),
-            PostInitTriggered = BIT(2),
-            IsInited          = BIT(3),
-            IsShutingDown     = BIT(4),
-            IsRequestingExit  = BIT(5),
+            PreInitTriggered   = BIT(0),
+            InitTriggered      = BIT(1),
+            PostInitTriggered  = BIT(2),
+            ClassInitTriggered = BIT(3),
+            IsInited           = BIT(4),
+            IsShutingDown      = BIT(5),
+            IsRequestingExit   = BIT(6),
         };
 
     private:
@@ -52,7 +53,6 @@ namespace Engine
         int start(int argc, char** argv);
 
     private:
-        void initialize_resources();
         void create_window();
         void create_render_targets();
 

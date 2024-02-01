@@ -129,6 +129,10 @@ namespace Engine::Strings
         return result;
     }
 
+    ENGINE_EXPORT HashIndex hash_of(const StringView& str)
+    {
+        return memory_hash_fast(str.data(), str.length(), 0);
+    }
 
     String replace_all(String line, const String& old, const String& new_line)
     {

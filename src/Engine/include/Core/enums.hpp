@@ -295,4 +295,23 @@ namespace Engine
         B    = mask_of<EnumerateType>(ColorComponent::B),
         A    = mask_of<EnumerateType>(ColorComponent::A)
     };
+
+    enum class ObjectRenameStatus
+    {
+        Success,
+        Skipped,
+        Failed,
+    };
+
+    enum class GCFlag
+    {
+        OnlyMarked      = 0,
+        FindUnreacheble = 1,
+        DestroyAll      = 2,
+    };
+
+    enum class LoadingFlags : EnumerateType
+    {
+        // Reserved for future
+    };
 }// namespace Engine

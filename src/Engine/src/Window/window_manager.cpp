@@ -1,3 +1,4 @@
+#include "logo.hpp"
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine.hpp>
@@ -9,11 +10,10 @@
 #include <Core/thread.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
+#include <Image/image.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include "logo.hpp"
-#include <Image/image.hpp>
 
 
 namespace Engine
@@ -23,7 +23,7 @@ namespace Engine
     {
         static Image image;
 
-        if(image.empty())
+        if (image.empty())
         {
             image.load_from_memory(logo_png, logo_png_len);
         }
@@ -62,8 +62,11 @@ namespace Engine
         if (window)
         {
             RHI* rhi = engine_instance->rhi();
-            call_in_render_thread([rhi]() { rhi->wait_idle(); });
-            engine_instance->thread(ThreadType::RenderThread)->wait_all();
+            if (rhi)
+            {
+                call_in_render_thread([rhi]() { rhi->wait_idle(); });
+                engine_instance->thread(ThreadType::RenderThread)->wait_all();
+            }
 
             if (window == _M_main_window)
                 _M_main_window = nullptr;
@@ -129,20 +132,7 @@ namespace Engine
         _M_windows[window->window_id()] = window;
 
         // Initialize client
-        Class* client_class = Class::static_find(config.client);
-        if (client_class)
-        {
-            Object* object         = client_class->create_object();
-            ViewportClient* client = object->instance_cast<ViewportClient>();
-            if (client)
-            {
-                window->render_viewport()->client(client);
-            }
-            else if (object)
-            {
-                delete object;
-            }
-        }
+        create_client(window, global_window_config.client);
 
         window->icon(load_image_icon());
         return window;
@@ -224,6 +214,16 @@ namespace Engine
         if (it == _M_windows.end())
             return nullptr;
         return it->second;
+    }
+
+    WindowManager& WindowManager::create_client(Window* window, const StringView& client_name)
+    {
+        ViewportClient* client = ViewportClient::create(client_name);
+        if (client)
+        {
+            window->render_viewport()->client(client);
+        }
+        return *this;
     }
 
     Size2D WindowManager::calculate_gbuffer_size() const

@@ -180,6 +180,11 @@ namespace Engine
                 InitializeController().execute();
             }
 
+            if (flags(EngineInstance::ClassInitTriggered))
+            {
+                ClassInitializeController().execute();
+            }
+
             if (flags(EngineInstance::PostInitTriggered))
             {
                 PostInitializeController().execute();

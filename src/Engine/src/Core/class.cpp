@@ -74,7 +74,7 @@ namespace Engine
         return _M_size;
     }
 
-    Class* Class::static_find(const String& name, bool required)
+    Class* Class::static_find(const StringView& name, bool required)
     {
         Struct* self = Struct::static_find(name, required);
         if (self && self->is_class())

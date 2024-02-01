@@ -36,7 +36,7 @@ namespace Engine
             parent();
         }
 
-        internal_struct_map()[_M_full_name] = this;
+        internal_struct_map()[Strings::hash_of(_M_full_name)] = this;
     }
 
     Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent) : Struct(name, namespace_name)
@@ -61,22 +61,22 @@ namespace Engine
         return self;
     }
 
-    ENGINE_EXPORT Struct* Struct::static_find(const String& name, bool requred)
+    ENGINE_EXPORT Struct* Struct::static_find(const StringView& name, bool requred)
     {
         auto& map = internal_struct_map();
-        auto it   = map.find(name);
+        auto it   = map.find(Strings::hash_of(name));
         if (it == map.end())
         {
             // Maybe initializer is not executed?
-            InitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.c_str()));
-            it = map.find(name);
+            InitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.data()));
+            it = map.find(Strings::hash_of(name));
 
             if (it != map.end())
                 return it->second;
 
             if (requred)
             {
-                throw EngineException(Strings::format("Failed to find struct '{}'", name.c_str()));
+                throw EngineException(Strings::format("Failed to find struct '{}'", name.data()));
             }
             return nullptr;
         }

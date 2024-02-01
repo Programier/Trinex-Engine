@@ -39,6 +39,7 @@ namespace Engine
         WindowManager& pool_events();
         WindowManager& wait_for_events();
         Window* find(Identifier id) const;
+        WindowManager& create_client(Window* window, const StringView& client_name);
 
         Size2D calculate_gbuffer_size() const;
         Window* main_window() const;

@@ -123,4 +123,35 @@ namespace Engine
 
         return ar;
     }
+
+    template<typename Type>
+    FORCE_INLINE bool write_container(Archive& ar, Type& container)
+    {
+        size_t size = container.size();
+
+        ar& size;
+        if (ar.is_reading())
+        {
+            container.resize(size);
+        }
+
+        for (auto& ell : container)
+        {
+            ar& ell;
+        }
+
+        return ar;
+    }
+
+    template<typename Type, typename AllocatorType>
+    FORCE_INLINE bool operator&(Archive& ar, List<Type, AllocatorType>& list)
+    {
+        return write_container(ar, list);
+    }
+
+    template<typename Type, typename AllocatorType = Allocator<Type>>
+    FORCE_INLINE bool operator&(Archive& ar, ForwardList<Type, AllocatorType>& list)
+    {
+        return write_container(ar, list);
+    }
 }// namespace Engine

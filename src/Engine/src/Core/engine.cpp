@@ -89,6 +89,8 @@ namespace Engine
                 throw EngineException("Failed to init API");
             }
 
+            create_window();
+            create_render_targets();
             return true;
         }
 
@@ -157,16 +159,6 @@ namespace Engine
         }
     }
 
-    void EngineInstance::initialize_resources()
-    {
-        if (_M_rhi)
-        {
-            // Initialize it only if engine has initialized render interface
-            create_window();
-            create_render_targets();
-        }
-    }
-
     static void create_threads()
     {
         Thread::this_thread()->name("Logic");
@@ -223,7 +215,11 @@ namespace Engine
 
 
         load_external_system_libraries();
+
         ScriptEngine::initialize();
+        ClassInitializeController().execute();
+        _M_flags(ClassInitTriggered, true);
+        ScriptEngine::instance()->load_scripts();
 
         World::new_system<World>()->name("Global World");
 
@@ -231,10 +227,13 @@ namespace Engine
 
         PostInitializeController().execute();
         _M_flags(PostInitTriggered, true);
-        ScriptEngine::instance()->load_scripts();
-
-        initialize_resources();
         _M_flags(IsInited, true);
+
+        if (_M_rhi)
+        {
+            WindowManager::instance()->create_client(WindowManager::instance()->main_window(), global_window_config.client);
+        }
+
         int_t status = entry_point->execute(argc - 1, argv + 1);
 
         if (status == 0)
@@ -376,8 +375,10 @@ namespace Engine
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();
 
+        String client = std::move(global_window_config.client);
         WindowManager::instance()->create_window(global_window_config, nullptr);
         AfterRHIInitializeController().execute();
+        global_window_config.client = std::move(client);
     }
 
     void EngineInstance::create_render_targets()

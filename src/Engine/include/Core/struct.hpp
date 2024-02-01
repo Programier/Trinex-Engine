@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    using StructMap = Map<String, class Struct*>;
+    using StructMap = Map<HashIndex, class Struct*>;
 
     class ENGINE_EXPORT Struct
     {
@@ -34,7 +34,7 @@ namespace Engine
 
     public:
         static ENGINE_EXPORT Struct* create(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
-        static ENGINE_EXPORT Struct* static_find(const String& name, bool requred = false);
+        static ENGINE_EXPORT Struct* static_find(const StringView& name, bool requred = false);
 
         const String& base_name_splitted() const;
         const Name& name() const;

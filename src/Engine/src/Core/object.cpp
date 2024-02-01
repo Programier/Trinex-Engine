@@ -177,46 +177,38 @@ namespace Engine
         return _M_name.hash();
     }
 
-    ENGINE_EXPORT Package* Object::load_package(const StringView& name)
-    {
-        // Try to find package
-        Package* package = Object::find_object_checked<Package>(name);
-
-        if (package != nullptr)
-            return package;
-
-        package = find_package(name, true);
-
-        if (package != nullptr && !package->load())
-        {
-            delete package;
-            return nullptr;
-        }
-
-        return package;
-    }
-
     ENGINE_EXPORT String Object::package_name_of(const StringView& name)
     {
-        auto index = name.find_last_of(Constants::name_separator);
-        if (index == String::npos)
-            return "";
-
-        index -= 1;
-        return String(name.substr(0, index));
+        return String(package_name_sv_of(name));
     }
 
     ENGINE_EXPORT String Object::object_name_of(const StringView& name)
     {
+        return String(object_name_sv_of(name));
+    }
+
+    ENGINE_EXPORT StringView Object::package_name_sv_of(const StringView& name)
+    {
+        auto index = name.find_last_of(Constants::name_separator);
+        if (index == String::npos)
+            return StringView();
+
+        index -= 1;
+        return name.substr(0, index);
+    }
+
+    ENGINE_EXPORT StringView Object::object_name_sv_of(const StringView& name)
+    {
         auto pos = name.find_last_of(Constants::name_separator);
         if (pos == String::npos)
         {
-            return String(name);
+            return name;
         }
 
         pos += Constants::name_separator.length() - 1;
-        return String(name.substr(pos, name.length() - pos));
+        return name.substr(pos, name.length() - pos);
     }
+
 
     const Object& Object::remove_from_instances_array() const
     {

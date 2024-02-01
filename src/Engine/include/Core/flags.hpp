@@ -94,7 +94,7 @@ namespace Engine
             {
                 return set(mask);
             }
-            return remove(flags);
+            return remove(mask);
         }
     };
 }// namespace Engine

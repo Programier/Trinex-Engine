@@ -41,6 +41,7 @@ namespace Engine::Strings
     ENGINE_EXPORT String lstrip(String line, bool (*callback)(char ch));
     ENGINE_EXPORT String rstrip(String line, bool (*callback)(char ch));
     ENGINE_EXPORT String make_sentence(const String& line);
+    ENGINE_EXPORT HashIndex hash_of(const StringView& str);
 
 
     FORCE_INLINE String strip(String line, const String& chars = " ")

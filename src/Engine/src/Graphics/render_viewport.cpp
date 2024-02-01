@@ -29,6 +29,26 @@ namespace Engine
         return *this;
     }
 
+    ViewportClient* ViewportClient::create(const StringView& name)
+    {
+        Class* client_class = Class::static_find(name);
+        if (client_class)
+        {
+            Object* object         = client_class->create_object();
+            ViewportClient* client = object->instance_cast<ViewportClient>();
+            if (client)
+            {
+                return client;
+            }
+            else if (object)
+            {
+                delete object;
+            }
+        }
+
+        return nullptr;
+    }
+
     List<RenderViewport*> RenderViewport::_M_viewports;
 
     RenderViewport::RenderViewport()

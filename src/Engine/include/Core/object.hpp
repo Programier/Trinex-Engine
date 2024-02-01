@@ -1,14 +1,13 @@
 #pragma once
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
 #include <ScriptEngine/registrar.hpp>
-
-#include <typeinfo>
 
 namespace Engine
 {
@@ -18,20 +17,6 @@ namespace Engine
 
 
     ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
-
-    enum class ObjectRenameStatus
-    {
-        Success,
-        Skipped,
-        Failed,
-    };
-
-    enum class GCFlag
-    {
-        OnlyMarked      = 0,
-        FindUnreacheble = 1,
-        DestroyAll      = 2,
-    };
 
 
     // Head of all classes in the Engine
@@ -86,9 +71,14 @@ namespace Engine
         virtual class Class* class_instance() const;
 
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static Package* load_package(const StringView& name);
+        ENGINE_EXPORT static Package* load_package(const StringView& name, Flags flags = 0,
+                                                   class BufferReader* package_reader = nullptr);
+        ENGINE_EXPORT static Object* load_object(const StringView& name, Flags flags = 0,
+                                                 class BufferReader* package_reader = nullptr);
         ENGINE_EXPORT static String package_name_of(const StringView& name);
         ENGINE_EXPORT static String object_name_of(const StringView& name);
+        ENGINE_EXPORT static StringView package_name_sv_of(const StringView& name);
+        ENGINE_EXPORT static StringView object_name_sv_of(const StringView& name);
         ENGINE_EXPORT static const ObjectArray& all_objects();
         ENGINE_EXPORT static Object* find_object(const StringView& object_name);
         ENGINE_EXPORT static Package* root_package();
@@ -309,7 +299,7 @@ private:
             _M_static_class               = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
                                                 has_base_class ? Super::static_class_instance() : nullptr, flags); \
             _M_static_class->process_type<class_name>();                                                                         \
-            Engine::PostInitializeController controller([]() {                                                                   \
+            Engine::ClassInitializeController controller([]() {                                                                  \
                 class_name::static_initialize_class();                                                                           \
                 class_name::static_class_instance()->post_initialize();                                                          \
             });                                                                                                                  \
