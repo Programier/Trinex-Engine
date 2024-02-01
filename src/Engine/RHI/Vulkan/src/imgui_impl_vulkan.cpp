@@ -82,6 +82,7 @@
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_vulkan.h"
 #include <stdio.h>
+#include <Core/render_thread.hpp>
 
 // Visual Studio warnings
 #ifdef _MSC_VER
@@ -1262,7 +1263,9 @@ int ImGui_ImplVulkanH_GetMinImageCountFromPresentMode(VkPresentModeKHR present_m
 
 void ImGui_ImplVulkanH_DestroyWindow(VkInstance instance, VkDevice device, ImGui_ImplVulkanH_Window* wd, const VkAllocationCallbacks* allocator)
 {
-    vkDeviceWaitIdle(device);
+    using namespace Engine;
+    call_in_render_thread([device](){vkDeviceWaitIdle(device);});
+    render_thread()->wait_all();
     *wd = ImGui_ImplVulkanH_Window();
 }
 
@@ -1286,7 +1289,7 @@ void ImGui_ImplVulkanH_DestroyFrameSemaphores(VkDevice device, ImGui_ImplVulkanH
     fsd->ImageAcquiredSemaphore = fsd->RenderCompleteSemaphore = VK_NULL_HANDLE;
 }
 
-void ImGui_ImplVulkanH_DestroyFrameRenderBuffers(VkDevice device, ImGui_ImplVulkanH_FrameRenderBuffers* buffers, const VkAllocationCallbacks* allocator)
+void ImGui_ImplVulkanH_DestroyFrameRenderBuffers_render_thread(VkDevice device, ImGui_ImplVulkanH_FrameRenderBuffers* buffers, const VkAllocationCallbacks* allocator)
 {
     if (buffers->VertexBuffer) { vkDestroyBuffer(device, buffers->VertexBuffer, allocator); buffers->VertexBuffer = VK_NULL_HANDLE; }
     if (buffers->VertexBufferMemory) { vkFreeMemory(device, buffers->VertexBufferMemory, allocator); buffers->VertexBufferMemory = VK_NULL_HANDLE; }
@@ -1298,12 +1301,17 @@ void ImGui_ImplVulkanH_DestroyFrameRenderBuffers(VkDevice device, ImGui_ImplVulk
 
 void ImGui_ImplVulkanH_DestroyWindowRenderBuffers(VkDevice device, ImGui_ImplVulkanH_WindowRenderBuffers* buffers, const VkAllocationCallbacks* allocator)
 {
-    for (uint32_t n = 0; n < buffers->Count; n++)
-        ImGui_ImplVulkanH_DestroyFrameRenderBuffers(device, &buffers->FrameRenderBuffers[n], allocator);
+    Engine::call_in_render_thread([&]() {
+        for (uint32_t n = 0; n < buffers->Count; n++)
+        {
+            ImGui_ImplVulkanH_DestroyFrameRenderBuffers_render_thread(device, &buffers->FrameRenderBuffers[n], allocator);
+        }
+    });
+    Engine::render_thread()->wait_all();
     IM_FREE(buffers->FrameRenderBuffers);
     buffers->FrameRenderBuffers = nullptr;
-    buffers->Index = 0;
-    buffers->Count = 0;
+    buffers->Index              = 0;
+    buffers->Count              = 0;
 }
 
 void ImGui_ImplVulkanH_DestroyAllViewportsRenderBuffers(VkDevice device, const VkAllocationCallbacks* allocator)
