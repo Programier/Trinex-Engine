@@ -132,7 +132,7 @@ namespace Engine
         _M_windows[window->window_id()] = window;
 
         // Initialize client
-        create_client(window, global_window_config.client);
+        create_client(window, config.client);
 
         window->icon(load_image_icon());
         return window;
