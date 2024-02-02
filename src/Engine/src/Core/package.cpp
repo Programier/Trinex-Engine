@@ -14,20 +14,27 @@
 namespace Engine
 {
     struct HeaderEntry {
-        Vector<Name> class_hierarchy;
+        Vector<Index> class_hierarchy;
         size_t offset            = 0;
         size_t uncompressed_size = 0;
-        Object* object           = nullptr;
-        Name object_name;
+        Index object_name        = 0;
 
         Vector<byte> compressed_data;
+    };
 
-        FORCE_INLINE Class* find_class()
+    struct Header {
+        Vector<String> names;
+        Vector<HeaderEntry> entries;
+        size_t header_size;
+        size_t header_begin_offset;
+
+
+        FORCE_INLINE Class* find_class(HeaderEntry* entry)
         {
             Class* instance = nullptr;
-            for (auto& entry : class_hierarchy)
+            for (Index index : entry->class_hierarchy)
             {
-                if ((instance = Class::static_find(entry.to_string(), false)))
+                if ((instance = Class::static_find(names[index], false)))
                 {
                     return instance;
                 }
@@ -35,7 +42,7 @@ namespace Engine
             return instance;
         }
 
-        Object* load(Package* pkg, Archive& ar)
+        Object* load(HeaderEntry* entry, Package* pkg, Archive& ar)
         {
             Vector<byte> compressed_buffer;
             Vector<byte> uncompressed_buffer;
@@ -43,36 +50,43 @@ namespace Engine
             VectorReader uncompressed_reader = &uncompressed_buffer;
             Archive uncompressed_ar          = &uncompressed_reader;
 
-            Class* object_class = find_class();
+            Class* object_class = find_class(entry);
+            Object* object      = nullptr;
             if (object_class)
             {
-                if (!(object = pkg->find_object(object_name, false)))
+                if (!(object = pkg->find_object(names[entry->object_name], false)))
                 {
                     object = object_class->create_object();
-                    object->name(object_name);
+                    object->name(names[entry->object_name]);
 
                     pkg->add_object(object);
                     object->preload();
                 }
 
-                ar.reader()->position(offset);
+                ar.reader()->position(header_begin_offset + header_size + entry->offset);
                 ar& compressed_buffer;
 
-                uncompressed_buffer.resize(uncompressed_size);
+                uncompressed_buffer.resize(entry->uncompressed_size);
                 Compressor::decompress(compressed_buffer, uncompressed_buffer);
 
                 uncompressed_reader.VectorReaderBase::position(0);
                 object->archive_process(uncompressed_ar);
-
                 object->postload();
             }
-
             return object;
         }
-    };
 
-    struct Header {
-        Vector<HeaderEntry> entries;
+        size_t index_of(const StringView& name)
+        {
+            auto it = std::find_if(names.begin(), names.end(), [name](const String& ell) { return name == ell; });
+            if (it == names.end())
+            {
+                names.emplace_back(name);
+                return names.size() - 1;
+            }
+
+            return it - names.begin();
+        }
 
         Header& build(const Package* package)
         {
@@ -80,16 +94,22 @@ namespace Engine
             auto& objects        = package->objects();
             entries.resize(objects.size());
 
+            size_t offset = 0;
             for (auto& [name, object] : objects)
             {
-                HeaderEntry& entry    = entries[current_entry];
-                entry.object          = object;
-                entry.object_name     = object->name();
-                entry.class_hierarchy = object->class_instance()->hierarchy(1);// Skip Object class
+                HeaderEntry& entry = entries[current_entry];
+                entry.object_name  = index_of(object->name());
+
+                auto hierarchy = object->class_instance()->hierarchy(1);// Skip Object class
+                entry.class_hierarchy.reserve(hierarchy.size());
+
+                for (const String& name : hierarchy)
+                {
+                    entry.class_hierarchy.push_back(index_of(name));
+                }
 
                 // Make buffer
                 Vector<byte> object_data;
-
                 {
                     VectorWriter writer = &object_data;
                     Archive ar(&writer);
@@ -108,6 +128,8 @@ namespace Engine
 
                 // Compress data
                 Compressor::compress(object_data, entry.compressed_data);
+                entry.offset = offset;
+                offset += entry.compressed_data.size() + sizeof(size_t);
             }
 
             current_entry = entries.size() - current_entry;
@@ -120,30 +142,53 @@ namespace Engine
             return *this;
         }
 
-        BufferReader::ReadPos load(BufferReader* reader)
+        bool archive_process(Archive& ar, bool (*callback)(HeaderEntry& entry, void*) = nullptr, void* userdata = nullptr)
         {
-            entries.clear();
+            header_begin_offset = ar.position();
 
-            Archive ar(reader);
+            ar& header_size;
+            Buffer uncompressed;
+            Buffer compressed;
 
-            if (!(ar & entries))
+            if (ar.is_saving())
             {
-                error_log("Package", "Failed to reader header!");
+                VectorWriter writer = &uncompressed;
+                Archive buffer_ar   = &writer;
+
+                buffer_ar.process_vector(names);
+                buffer_ar.process_vector(entries, callback, userdata);
+
+                Compressor::compress(uncompressed, compressed);
+                size_t size = uncompressed.size();
+
+                ar& size;
+                ar& compressed;
+            }
+            else if (ar.is_reading())
+            {
+                size_t size;
+                ar& size;
+                ar& compressed;
+
+                uncompressed.resize(size);
+                Compressor::decompress(compressed, uncompressed);
+
+                VectorReader reader = &uncompressed;
+                Archive buffer_ar   = &reader;
+
+                buffer_ar.process_vector(names);
+                buffer_ar.process_vector(entries, callback, userdata);
             }
 
-            return reader->position();
-        }
+            if (ar.is_saving())
+            {
+                header_size = ar.position() - header_begin_offset;
+                ar.position(header_begin_offset);
+                ar& header_size;
+                ar.position(header_begin_offset + header_size);
+            }
 
-        BufferWriter::WritePos save(BufferWriter* writer)
-        {
-            Archive ar(writer);
-            ar& entries;
-            return writer->position();
-        }
-
-        bool empty() const
-        {
-            return entries.empty();
+            return ar;
         }
     };
 
@@ -154,12 +199,6 @@ namespace Engine
         ar& entry.uncompressed_size;
         ar& entry.object_name;
 
-        return ar;
-    }
-
-    static bool operator&(Archive& ar, Header& header)
-    {
-        ar& header.entries;
         return ar;
     }
 
@@ -314,7 +353,7 @@ namespace Engine
         Header current_header;
         current_header.build(this);
 
-        if (current_header.empty())
+        if (current_header.entries.empty())
         {
             error_log("Package", "Cannot save package '%s', because header is empty!", full_name().c_str());
             return false;
@@ -334,18 +373,12 @@ namespace Engine
 
         FileFlag flag = FileFlag::package_flag();
         ar& flag;
-        auto header_position = writer->position();
-
-        ar& current_header;
+        current_header.archive_process(ar);
 
         for (auto& entry : current_header.entries)
         {
-            entry.offset = writer->position();
             ar& entry.compressed_data;
         }
-
-        writer->position(header_position);
-        ar& current_header;
 
         if (need_destroy_writer)
         {
@@ -392,11 +425,11 @@ namespace Engine
         if (is_valid)
         {
             Header header;
-            header.load(reader);
+            header.archive_process(ar);
 
             for (auto& entry : header.entries)
             {
-                entry.load(this, ar);
+                header.load(&entry, this, ar);
             }
         }
         if (need_destroy_reader)
@@ -411,6 +444,26 @@ namespace Engine
     {
         FileReader reader = path;
         return load(&reader, flags);
+    }
+
+
+    struct HeaderLoadingUserData {
+        Object* object   = nullptr;
+        Package* package = nullptr;
+        Archive* ar;
+        Header* header;
+        StringView name;
+    };
+
+    static bool header_loading_callback(HeaderEntry& entry, void* _data)
+    {
+        HeaderLoadingUserData* data = reinterpret_cast<HeaderLoadingUserData*>(_data);
+        if (data->header->names[entry.object_name] == data->name)
+        {
+            data->object = data->header->load(&entry, data->package, *data->ar);
+            return false;
+        }
+        return true;
     }
 
     Object* Package::load_object(const StringView& name, Flags flags, BufferReader* reader)
@@ -442,28 +495,30 @@ namespace Engine
         }
 
         Header header;
-        header.load(reader);
+        HeaderLoadingUserData result;
+        result.name    = name;
+        result.package = this;
+        result.ar      = &ar;
+        result.header  = &header;
 
-
-        Object* result = nullptr;
-
-        // TODO: Need optimize it
-        for (auto& entry : header.entries)
-        {
-            if (entry.object_name == name)
-            {
-                entry.load(this, ar);
-                result = entry.object;
-                break;
-            }
-        }
+        header.archive_process(ar, header_loading_callback, &result);
 
         if (need_delete_reader)
         {
             delete reader;
         }
 
-        return result;
+        return result.object;
+    }
+
+    Object* Package::load_object(const Path& file_path, const StringView& name, Flags flags)
+    {
+        FileReader reader = file_path;
+        if(reader.is_open())
+        {
+            return load_object(name, flags, &reader);
+        }
+        return nullptr;
     }
 
 
@@ -516,10 +571,19 @@ namespace Engine
 
     ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags flags, class BufferReader* package_reader)
     {
-        Object* object = Object::find_object(name);
-        if (object)
-            return object;
+        StringView object_name  = Object::object_name_sv_of(name);
+        StringView package_name = Object::package_name_sv_of(name);
 
-        return Package::find_package(Object::package_name_sv_of(name), true)->load_object(name, flags, package_reader);
+        Package* package = Package::find_package(package_name, true);
+        return package->load_object(object_name, flags, package_reader);
+    }
+
+    ENGINE_EXPORT Object* Object::load_object(const Path& path, const StringView& name, Flags flags)
+    {
+        StringView object_name  = Object::object_name_sv_of(name);
+        StringView package_name = Object::package_name_sv_of(name);
+
+        Package* package = Package::find_package(package_name, true);
+        return package->load_object(path, object_name, flags);
     }
 }// namespace Engine

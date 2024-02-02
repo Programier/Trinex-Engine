@@ -41,6 +41,7 @@ namespace Engine
         bool load(BufferReader* reader = nullptr, Flags flags = 0);
         bool load(const Path& path, Flags flags = 0);
         Object* load_object(const StringView& name, Flags flags = 0, BufferReader* reader = nullptr);
+        Object* load_object(const Path& file_path, const StringView& name, Flags flags = 0);
 
         template<typename Type>
         FORCE_INLINE Type* find_object_checked(const StringView& object_name, bool recursive = true) const

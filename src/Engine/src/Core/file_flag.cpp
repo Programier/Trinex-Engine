@@ -4,9 +4,24 @@
 
 namespace Engine
 {
-    static constexpr size_t make_flag_from_string(const char* string, size_t value = 0)
+    static constexpr size_t make_flag_from_string(const char* string)
     {
-        return *string == 0 ? value : make_flag_from_string(string + 1, (value << 8) | *string);
+        union
+        {
+            size_t result = 0;
+            char data[8];
+        };
+
+        size_t count = 0;
+
+        while (count < 8 && *string)
+        {
+            data[count] = *string;
+            ++string;
+            ++count;
+        }
+
+        return result;
     }
 
 

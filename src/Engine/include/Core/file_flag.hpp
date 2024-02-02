@@ -5,7 +5,11 @@
 namespace Engine
 {
     struct ENGINE_EXPORT FileFlag final {
-        size_t data[2];
+        union
+        {
+            size_t data[2];
+            char line[8 * sizeof(data)];
+        };
 
         FileFlag(size_t first = 0, size_t second = 0);
 

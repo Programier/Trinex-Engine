@@ -61,6 +61,24 @@ namespace Engine
         return *this;
     }
 
+    size_t Archive::position() const
+    {
+        return is_saving() ? writer()->position() : reader()->position();
+    }
+
+    Archive& Archive::position(size_t position)
+    {
+        if (is_saving())
+        {
+            writer()->position(position);
+        }
+        else
+        {
+            reader()->position(position);
+        }
+        return *this;
+    }
+
     ENGINE_EXPORT bool operator&(Archive& ar, String& str)
     {
         size_t size = str.length();

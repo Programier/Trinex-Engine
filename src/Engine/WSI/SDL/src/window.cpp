@@ -77,7 +77,9 @@ namespace Engine
     {
         _M_vsync_status = info->vsync;
         uint32_t attrib = to_sdl_attrib(info->attributes);
+#if PLATFORM_LINUX
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+#endif
 
         _M_api = sdl_api(info->api_name);
 

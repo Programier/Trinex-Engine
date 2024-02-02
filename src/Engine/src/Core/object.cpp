@@ -392,7 +392,7 @@ namespace Engine
         {
             result  = Strings::format("{}{}{}",
                                       (current->_M_name.is_valid()
-                                               ? _M_name.to_string()
+                                               ? current->_M_name.to_string()
                                                : Strings::format("Noname object {}", current->_M_instance_index)),
                                       Constants::name_separator, result);
             current = parent_object_of(current);

@@ -75,6 +75,7 @@ namespace Engine
                                                    class BufferReader* package_reader = nullptr);
         ENGINE_EXPORT static Object* load_object(const StringView& name, Flags flags = 0,
                                                  class BufferReader* package_reader = nullptr);
+        ENGINE_EXPORT static Object* load_object(const Path& path, const StringView& name, Flags flags = 0);
         ENGINE_EXPORT static String package_name_of(const StringView& name);
         ENGINE_EXPORT static String object_name_of(const StringView& name);
         ENGINE_EXPORT static StringView package_name_sv_of(const StringView& name);
