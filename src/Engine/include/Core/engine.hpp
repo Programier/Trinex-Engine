@@ -21,7 +21,7 @@ namespace Engine
     };
 
 
-    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass>
+    class ENGINE_EXPORT EngineInstance final : public Singletone<EngineInstance, EmptyClass, false>
     {
     public:
         enum Flag : EnumerateType

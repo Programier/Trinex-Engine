@@ -5,6 +5,7 @@
 #include <Core/entry_point.hpp>
 #include <Core/executable_object.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/platform.hpp>
@@ -20,7 +21,6 @@
 #include <Window/monitor.hpp>
 #include <Window/window_manager.hpp>
 #include <no_api.hpp>
-
 
 namespace Engine
 {
@@ -176,6 +176,8 @@ namespace Engine
         start_time = current_time_point();
 
         _M_args.init(argc, argv);
+
+        VFS::RootFS::create_instance(StringView(Platform::find_root_directory(argc, argv).string()));
 
         FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
         root_manager->work_dir(Platform::find_root_directory(argc, argv));

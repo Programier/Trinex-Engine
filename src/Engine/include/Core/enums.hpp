@@ -314,4 +314,21 @@ namespace Engine
     {
         // Reserved for future
     };
+
+    enum class BufferSeekDir : EnumerateType
+    {
+        Current = 0,
+        Begin   = 1,
+        End     = 2,
+    };
+
+    enum class FileOpenMode : EnumerateType
+    {
+        In        = 0x01,
+        Out       = 0x02,
+        ReadWrite = In | Out,
+        Append    = 0x04,
+        Trunc     = 0x08
+    };
+    using FileSeekDir = BufferSeekDir;
 }// namespace Engine

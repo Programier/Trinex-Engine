@@ -1,17 +1,9 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
 #include <Core/exception.hpp>
 
 namespace Engine
 {
-    enum class BufferSeekDir : EnumerateType
-    {
-        Current = 0,
-        Begin   = 1,
-        End     = 2,
-    };
-
-
     class ENGINE_EXPORT BufferWriter
     {
     public:
@@ -103,6 +95,7 @@ namespace Engine
         VectorWriter(Vector<T, AllocatorType>* buffer) : _M_buffer(buffer)
         {}
 
+        using VectorWriterBase::position;
         FORCE_INLINE WritePos position() override
         {
             return _M_write_pos;
@@ -156,6 +149,7 @@ namespace Engine
         VectorReader(Vector<T, AllocatorType>* buffer) : _M_buffer(buffer)
         {}
 
+        using VectorReaderBase::position;
         FORCE_INLINE ReadPos position() override
         {
             return _M_read_pos;

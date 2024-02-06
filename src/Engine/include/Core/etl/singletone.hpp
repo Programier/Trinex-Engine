@@ -19,7 +19,7 @@ namespace Engine
     struct EmptySingletoneParent {
     };
 
-    template<typename Type, typename Parent = Object>
+    template<typename Type, typename Parent = Object, bool with_destroy_controller = true>
     class Singletone : public Parent, private SingletoneBase
     {
     public:
@@ -36,7 +36,18 @@ namespace Engine
                 }
                 else
                 {
-                    Type::_M_instance = Object::new_instance<Type>(std::forward<Args>(args)...);
+                    Type::_M_instance = new Type(std::forward<Args>(args)...);
+
+                    if constexpr (with_destroy_controller)
+                    {
+                        PostDestroyController post_destroy([]() {
+                            if (Type::_M_instance)
+                            {
+                                delete Type::_M_instance;
+                                Type::_M_instance = nullptr;
+                            }
+                        });
+                    }
                 }
             }
 

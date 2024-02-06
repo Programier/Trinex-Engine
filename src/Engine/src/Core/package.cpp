@@ -64,7 +64,7 @@ namespace Engine
                 }
 
                 ar.reader()->position(header_begin_offset + header_size + entry->offset);
-                ar& compressed_buffer;
+                ar & compressed_buffer;
 
                 uncompressed_buffer.resize(entry->uncompressed_size);
                 Compressor::decompress(compressed_buffer, uncompressed_buffer);
@@ -146,7 +146,7 @@ namespace Engine
         {
             header_begin_offset = ar.position();
 
-            ar& header_size;
+            ar & header_size;
             Buffer uncompressed;
             Buffer compressed;
 
@@ -161,14 +161,14 @@ namespace Engine
                 Compressor::compress(uncompressed, compressed);
                 size_t size = uncompressed.size();
 
-                ar& size;
-                ar& compressed;
+                ar & size;
+                ar & compressed;
             }
             else if (ar.is_reading())
             {
                 size_t size;
-                ar& size;
-                ar& compressed;
+                ar & size;
+                ar & compressed;
 
                 uncompressed.resize(size);
                 Compressor::decompress(compressed, uncompressed);
@@ -184,7 +184,7 @@ namespace Engine
             {
                 header_size = ar.position() - header_begin_offset;
                 ar.position(header_begin_offset);
-                ar& header_size;
+                ar & header_size;
                 ar.position(header_begin_offset + header_size);
             }
 
@@ -194,10 +194,10 @@ namespace Engine
 
     ENGINE_EXPORT bool operator&(Archive& ar, HeaderEntry& entry)
     {
-        ar& entry.class_hierarchy;
-        ar& entry.offset;
-        ar& entry.uncompressed_size;
-        ar& entry.object_name;
+        ar & entry.class_hierarchy;
+        ar & entry.offset;
+        ar & entry.uncompressed_size;
+        ar & entry.object_name;
 
         return ar;
     }
@@ -263,7 +263,7 @@ namespace Engine
         return *this;
     }
 
-    Object* Package::find_object_private_no_recurce(const StringView& _name) const
+    Object* Package::find_object_private_no_recurse(const StringView& _name) const
     {
         Name object_name = _name;
         auto it          = _M_objects.find(object_name);
@@ -286,14 +286,14 @@ namespace Engine
             separator_index = _name.find_first_of(separator);
         }
 
-        return package ? package->find_object_private_no_recurce(_name) : nullptr;
+        return package ? package->find_object_private_no_recurse(_name) : nullptr;
     }
 
     Object* Package::find_object(const StringView& object_name, bool recursive) const
     {
         if (recursive)
             return find_object_private(object_name);
-        return find_object_private_no_recurce(object_name);
+        return find_object_private_no_recurse(object_name);
     }
 
     const Package::ObjectMap& Package::objects() const
@@ -372,12 +372,12 @@ namespace Engine
         Archive ar(writer);
 
         FileFlag flag = FileFlag::package_flag();
-        ar& flag;
+        ar & flag;
         current_header.archive_process(ar);
 
         for (auto& entry : current_header.entries)
         {
-            ar& entry.compressed_data;
+            ar & entry.compressed_data;
         }
 
         if (need_destroy_writer)
@@ -413,7 +413,7 @@ namespace Engine
         if (need_destroy_reader)
         {
             FileFlag flag;
-            ar& flag;
+            ar & flag;
 
             is_valid = flag == FileFlag::package_flag();
             if (!is_valid)
@@ -489,7 +489,7 @@ namespace Engine
         if (need_delete_reader)
         {
             FileFlag flag;
-            ar& flag;
+            ar & flag;
 
             trinex_always_check(flag == FileFlag::package_flag(), "Invalid package flag in file");
         }
@@ -514,7 +514,7 @@ namespace Engine
     Object* Package::load_object(const Path& file_path, const StringView& name, Flags flags)
     {
         FileReader reader = file_path;
-        if(reader.is_open())
+        if (reader.is_open())
         {
             return load_object(name, flags, &reader);
         }
