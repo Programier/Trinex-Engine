@@ -4,6 +4,8 @@
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
+#include <cerrno>
+#include <cstring>
 #include <filesystem>
 
 namespace Engine::VFS
@@ -103,8 +105,8 @@ namespace Engine::VFS
     {
         Path full_path = _M_path / path;
 
-        std::ios_base::openmode open_mode;
-        bool is_read_only = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
+        std::ios_base::openmode open_mode = static_cast<std::ios_base::openmode>(0);
+        bool is_read_only                 = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
 
 
         if (mode & FileOpenMode::In)
@@ -121,6 +123,10 @@ namespace Engine::VFS
         if (file.is_open())
         {
             return new NativeFile(path, full_path, std::move(file), is_read_only);
+        }
+        else
+        {
+            error_log("Native FS", "%s", std::strerror(errno));
         }
         return nullptr;
     }
