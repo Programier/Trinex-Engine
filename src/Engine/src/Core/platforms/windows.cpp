@@ -18,7 +18,7 @@ namespace Engine::Platform
     {
         if(argc == 0) // Usually it's impossible, but just in case, let it be
             return Path(".\\");
-        return Path(argv[0]).parent_path();
+        return Path(argv[0]).base_path();
     }
 
 }// namespace Engine::Platform
