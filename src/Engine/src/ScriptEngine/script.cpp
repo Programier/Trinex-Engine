@@ -30,7 +30,7 @@ namespace Engine
 
     Script& Script::load()
     {
-        FileReader reader(_M_path);
+        FileReader reader(engine_config.scripts_dir / _M_path);
         if (reader.is_open())
         {
             Buffer buffer(reader.size(), 0);
@@ -42,6 +42,7 @@ namespace Engine
             }
             else
             {
+                throw not_implemented;
             }
         }
 
@@ -84,8 +85,9 @@ namespace Engine
             {
                 if (entry.extension() == Constants::script_extension)
                 {
-                    scripts.insert(entry);
-                    ScriptEngine::instance()->new_script(entry)->load();
+                    Path relative = entry.relative(base);
+                    scripts.insert(relative);
+                    ScriptEngine::instance()->new_script(relative)->load();
                 }
             }
             else if (fs->is_dir(entry))

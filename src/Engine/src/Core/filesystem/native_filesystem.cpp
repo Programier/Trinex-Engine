@@ -24,7 +24,8 @@ namespace Engine::VFS
         {
             if (is_valid())
             {
-                _M_path = _M_base->mount_point() / Path(fs::relative(*_M_it, _M_base->path().str()));
+                const std::filesystem::path& path = *_M_it;
+                _M_path = _M_base->mount_point() / Path(path.string()).relative(_M_base->path());
             }
         }
 

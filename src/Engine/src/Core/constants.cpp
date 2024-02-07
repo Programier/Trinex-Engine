@@ -32,7 +32,7 @@ namespace Engine
     const String Constants::script_extension              = ".as";
     const String Constants::script_byte_code_extension    = ".asbc";
     const String Constants::virtual_file_system_extension = ".tvfs";
-    const Path Constants::translation_config_extension    = ".lang";
+    const String Constants::translation_config_extension  = ".lang";
 
     static void on_init()
     {

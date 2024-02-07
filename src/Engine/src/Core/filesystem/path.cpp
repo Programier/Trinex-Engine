@@ -4,7 +4,8 @@
 
 namespace Engine
 {
-    const char Path::separator = '/';
+    const char Path::separator            = '/';
+    static constexpr const char* prev_dir = "../";
 
     size_t Path::Hash::operator()(const Path& p) const noexcept
     {
@@ -45,13 +46,13 @@ namespace Engine
             position = view.rfind(separator);
             if (position != StringView::npos)
             {
-                _M_filename = view.substr(position + 1);
+                _M_filename  = view.substr(position + 1);
                 _M_base_path = view.substr(0, position);
             }
             else
             {
                 _M_base_path = {};
-                _M_filename = view;
+                _M_filename  = view;
             }
         }
 
@@ -145,5 +146,70 @@ namespace Engine
 
         _M_path += path._M_path;
         return on_path_changed();
+    }
+
+    Vector<StringView> Path::split_sv() const
+    {
+        Index index   = 0;
+        Index current = 0;
+
+        StringView view = _M_path;
+        Vector<StringView> result;
+
+        while ((current = view.find(Path::separator, index)) != StringView::npos)
+        {
+            result.push_back(view.substr(index, current - index));
+            index = current + 1;
+        }
+
+        if (index != view.length() - 1)
+            result.push_back(view.substr(index));
+
+        return result;
+    }
+
+    Vector<String> Path::split() const
+    {
+        Index index   = 0;
+        Index current = 0;
+
+        Vector<String> result;
+
+        while ((current = _M_path.find(Path::separator, index)) != String::npos)
+        {
+            result.push_back(_M_path.substr(index, current - index));
+            index = current + 1;
+        }
+
+        if (index != _M_path.length() - 1)
+            result.push_back(_M_path.substr(index));
+
+        return result;
+    }
+
+    Path Path::relative(const Path& base) const
+    {
+        Vector<StringView> base_sv = base.split_sv();
+        Vector<StringView> self_sv = split_sv();
+
+        size_t min_len = glm::min(base_sv.size(), self_sv.size());
+        Index index    = 0;
+
+        while (index < min_len && base_sv[index] == self_sv[index]) ++index;
+
+        String result;
+
+        for (Index i = index, count = base_sv.size(); i < count; ++i)
+        {
+            result += prev_dir;
+        }
+
+        for (Index i = index, count = self_sv.size(); i < count; ++i)
+        {
+            result += self_sv[i];
+            result.push_back(separator);
+        }
+
+        return result;
     }
 }// namespace Engine

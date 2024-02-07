@@ -1,13 +1,15 @@
 #include <Core/constants.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/file_manager.hpp>
+#include <Core/filesystem/directory_iterator.hpp>
 #include <Core/localization.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
 #include <cstring>
-#include <fstream>
 #include <regex>
+#include <sstream>
 
 namespace Engine
 {
@@ -82,37 +84,34 @@ namespace Engine
     {
         try
         {
-//            for (auto& entry : FS::recursive_directory_iterator(path))
-//            {
-//                if (entry.path().extension() != Constants::translation_config_extension)
-//                    continue;
+            std::stringstream stream;
 
-//                info_log("Localization", "Loading localization file '%s'", entry.path().c_str());
+            for (auto& entry : VFS::RecursiveDirectoryIterator(path))
+            {
+                if (entry.extension() != Constants::translation_config_extension)
+                    continue;
+                info_log("Localization", "Loading localization file '%s'", entry.c_str());
 
-//                std::ifstream file(entry.path());
-//                if (!file.is_open())
-//                    continue;
+                FileReader reader(entry);
+                if (!reader.is_open())
+                    continue;
 
-//                String line;
+                std::stringstream stream;
+                stream << reader.read_string();
 
-//                while (std::getline(file, line))
-//                {
-//                    String key, value;
-//                    if (parse_string(line, key, value))
-//                    {
-//                        key = (FS::relative(entry.path(), path).stem() / key).string();
-//                        if (FS::path::preferred_separator != '/')
-//                        {
-//                            std::replace(key.begin(), key.end(), static_cast<char>(FS::path::preferred_separator), '/');
-//                        }
-
-//                        HashIndex hash = memory_hash_fast(key.c_str(), key.length());
-//                        out[hash]      = value;
-//                    }
-//                }
-
-//                file.close();
-//            }
+                String line;
+                while (std::getline(stream, line))
+                {
+                    String key, value;
+                    if (parse_string(line, key, value))
+                    {
+                        String p = entry.relative(path);
+                        key = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+                        HashIndex hash = memory_hash_fast(key.c_str(), key.length());
+                        out[hash]      = value;
+                    }
+                }
+            }
         }
         catch (const std::exception& e)
         {

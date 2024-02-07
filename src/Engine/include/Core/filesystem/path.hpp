@@ -36,6 +36,10 @@ namespace Engine
         Path& operator=(const char* path);
         Path& operator/=(const Path& path);
 
+        Vector<StringView> split_sv() const;
+        Vector<String> split() const;
+        Path relative(const Path& base) const;
+
         FORCE_INLINE Path operator/(const Path& path) const
         {
             Path result = *this;
