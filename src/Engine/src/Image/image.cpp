@@ -1,5 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Image/image.hpp>
@@ -61,19 +62,9 @@ namespace Engine
     {
         _M_data.clear();
         _M_data.shrink_to_fit();
-        stbi_set_flip_vertically_on_load(invert_horizontal);
-        throw not_implemented; // TODO: Need rewrite for use with VFS
-        byte* address = stbi_load(image.c_str(), &_M_width, &_M_height, &_M_channels, 0);
-        stbi_set_flip_vertically_on_load(false);
 
-        if (address == nullptr)
-        {
-            return *this;
-        }
-
-        _M_data.insert(_M_data.begin(), address, address + _M_width * _M_height * _M_channels);
-        stbi_image_free(address);
-        return *this;
+        Buffer buffer = FileReader(image).read_buffer();
+        return load_from_memory(buffer);
     }
 
     Image& Image::load_from_memory(const byte* buffer, size_t size)
@@ -96,7 +87,7 @@ namespace Engine
 
     Image::Image() = default;
 
-    Image::Image(const String& path, const bool& invert_horizontal)
+    Image::Image(const Path& path, const bool& invert_horizontal)
     {
         load(path, invert_horizontal);
     }
@@ -129,7 +120,6 @@ namespace Engine
 
     Image& Image::remove_alpha_channel()
     {
-
         if (_M_channels == 3)
             return *this;
         if (_M_channels != 4)
@@ -224,33 +214,47 @@ namespace Engine
         return extensions[static_cast<EnumerateType>(type)];
     }
 
-    bool Image::write_png(const String& filename)
+    static void image_writer_func(void* context, void* data, int size)
     {
+        FileWriter* writer = reinterpret_cast<FileWriter*>(context);
+        writer->write(reinterpret_cast<const byte*>(data), size);
+    }
+
+#define make_writer()                                                                                                            \
+    FileWriter writer(filename);                                                                                                 \
+    if (!writer.is_open())                                                                                                       \
+        return false;
+
+    bool Image::write_png(const Path& filename)
+    {
+        make_writer();
+        return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, _M_width, _M_height, _M_channels,
+                                                        _M_data.data(), _M_width * _M_channels));
+    }
+
+    bool Image::write_jpg(const Path& filename)
+    {
+        make_writer();
         return static_cast<bool>(
-                stbi_write_png(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(), _M_width * _M_channels));
+                stbi_write_jpg_to_func(image_writer_func, &writer, _M_width, _M_height, _M_channels, _M_data.data(), 100));
     }
 
-    bool Image::write_jpg(const String& filename)
-    {
-        return static_cast<bool>(stbi_write_jpg(filename.c_str(), _M_width, _M_height, _M_channels, _M_data.data(), 100));
-    }
-
-    bool Image::write_bmp(const String& filename)
+    bool Image::write_bmp(const Path& filename)
     {
         return false;
     }
 
-    bool Image::write_tga(const String& filename)
+    bool Image::write_tga(const Path& filename)
     {
         return false;
     }
 
-    bool Image::save(String path, ImageType type)
+    bool Image::save(Path path, ImageType type)
     {
         path += extension_of_type(type);
 
-        static bool (Engine::Image::*write_methods[])(const String& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
-                                                                          &Image::write_tga};
+        static bool (Engine::Image::*write_methods[])(const Path& f) = {&Image::write_png, &Image::write_jpg, &Image::write_bmp,
+                                                                        &Image::write_tga};
 
         auto method = write_methods[static_cast<EnumerateType>(type)];
         return ((*this).*method)(path);
@@ -321,9 +325,9 @@ namespace Engine
         //            return false;
         //        }
 
-        archive& _M_width;
-        archive& _M_height;
-        archive& _M_channels;
+        archive & _M_width;
+        archive & _M_height;
+        archive & _M_channels;
 
         if (!archive)
         {
