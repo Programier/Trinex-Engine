@@ -4,6 +4,7 @@
 #include <Core/engine_types.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 
@@ -88,7 +89,11 @@ namespace Engine
 
         if (mode == Engine)
         {
-            return engine_config.libraries_dir / path;
+            Path new_path = engine_config.libraries_dir / path;
+            auto entry    = rootfs()->find_filesystem(new_path);
+            if (entry.first == nullptr || entry.first->type() != VFS::FileSystem::Type::Native)
+                return path.filename();
+            return entry.first->native_path(entry.second);
         }
 
         if (mode == LibPathModification::Global)

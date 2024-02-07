@@ -20,6 +20,8 @@ namespace Engine::VFS
         NativeFileSystem(const Path& directory);
 
         const Path& path() const override;
+        Path native_path(const Path& path) const override;
+
         bool is_read_only() const override;
         File* open(const Path& path, Flags<FileOpenMode> mode) override;
         bool create_dir(const Path& path) override;
@@ -30,6 +32,5 @@ namespace Engine::VFS
         bool is_file(const Path& file) const override;
         bool is_dir(const Path& dir) const override;
         Type type() const override;
-        Path native_path(const Path& path) const override;
     };
 }// namespace Engine::VFS
