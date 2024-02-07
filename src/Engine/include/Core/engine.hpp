@@ -40,7 +40,7 @@ namespace Engine
 
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
         RHI* _M_rhi = nullptr;
-        Flags _M_flags;
+        Flags<EngineInstance::Flag> _M_flags;
         Index _M_frame_index = 0;
 
         Arguments _M_args;
@@ -68,7 +68,7 @@ namespace Engine
         EngineInstance& request_exit();
         const Arguments& args() const;
         Arguments& args();
-        const Flags& flags() const;
+        const Flags<EngineInstance::Flag>& flags() const;
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;

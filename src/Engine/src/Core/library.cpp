@@ -111,17 +111,17 @@ namespace Engine
     static void validate_path(Path& path)
     {
         Path base = path.filename();
-        if (!base.string().starts_with("lib"))
+        if (!base.str().starts_with("lib"))
         {
-            base = "lib" + base.string();
+            base = "lib" + base.str();
         }
 
-        if (!base.string().ends_with(format))
+        if (!base.str().ends_with(format))
         {
             base += format;
         }
 
-        path = path.parent_path() / base;
+        path = Path(path.base_path()) / base;
     }
 
     Library& Library::load(const String& libname)
@@ -139,22 +139,22 @@ namespace Engine
         {
             validate_path(path);
 
-            void*& lib = _M_libraries[path.string()];
+            void*& lib = _M_libraries[path.str()];
             if (!lib)
             {
-                lib         = platform_load_library(path.string());
+                lib         = platform_load_library(path.str());
                 is_new_load = static_cast<bool>(lib);
             }
 
             if (lib)
             {
                 _M_handle  = lib;
-                _M_libname = path.string();
+                _M_libname = path.str();
                 break;
             }
             else
             {
-                _M_libraries.erase(path.string());
+                _M_libraries.erase(path.str());
             }
         }
 
@@ -168,7 +168,7 @@ namespace Engine
         }
         else if (is_new_load)
         {
-            const Flags& flags = engine_instance->flags();
+            const Flags<EngineInstance::Flag>& flags = engine_instance->flags();
 
             if (flags(EngineInstance::PreInitTriggered))
             {

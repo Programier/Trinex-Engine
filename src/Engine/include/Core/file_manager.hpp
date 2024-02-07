@@ -9,7 +9,10 @@
 
 namespace Engine
 {
-    using FileSeekDir = BufferSeekDir;
+    namespace VFS
+    {
+        class File;
+    }
 
     class ENGINE_EXPORT FileWriter : public BufferWriter
     {
@@ -17,19 +20,16 @@ namespace Engine
         using Pointer = FileWriter*;
 
     private:
-        std::ofstream _M_file;
-        String _M_filename;
+        VFS::File* _M_file = nullptr;
 
     public:
         FileWriter();
-        FileWriter(const String& filename, bool clear = true);
-        FORCE_INLINE FileWriter(const Path& path, bool clear = true) : FileWriter(path.string(), clear)
-        {}
+        FileWriter(const Path& filename, bool clear = true);
         FileWriter(FileWriter&&);
         FileWriter& operator=(FileWriter&&);
 
-        const String& filename() const;
-        bool open(const String& filename, bool clear = true);
+        const Path& filename() const;
+        bool open(const Path& filename, bool clear = true);
         FileWriter& close();
 
         bool write(const byte* data, size_t size) override;
@@ -49,8 +49,7 @@ namespace Engine
         using Pointer = FileReader*;
 
     private:
-        std::ifstream _M_file;
-        Path _M_path;
+        VFS::File* _M_file = nullptr;
 
     public:
         FileReader();
@@ -58,7 +57,7 @@ namespace Engine
         FileReader(FileReader&&);
         FileReader& operator=(FileReader&&);
 
-        const Path& path() const;
+        const Path& filename() const;
         bool open(const Path& path);
         FileReader& close();
 
@@ -67,43 +66,9 @@ namespace Engine
         FileReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override;
         bool is_open() const override;
 
-        String to_string(size_t len = -1);
+        String read_string(size_t len = -1);
         Buffer read_buffer(size_t len = -1);
 
         ~FileReader();
-    };
-
-
-    class ENGINE_EXPORT FileManager
-    {
-
-    public:
-        using Files       = Set<String>;
-        using Directories = Set<String>;
-
-    private:
-        Path _M_work_dir = "./";
-
-    public:
-        FileManager(const Path& directory = "./");
-        FileManager(const FileManager& manager);
-        FileManager(FileManager&&);
-        static const FileManager* root_file_manager();
-
-        FileManager& operator=(const FileManager&);
-        FileManager& operator=(FileManager&&);
-
-        static Path dirname_of(const Path& filename);
-        static Path basename_of(const Path& filename);
-
-        bool work_dir(const Path& directory);
-
-        const Path& work_dir() const;
-
-        FileReader::Pointer create_file_reader(const Path& filename) const;
-        FileWriter::Pointer create_file_writer(const Path& filename, bool clear = true) const;
-
-        bool remove(const Path& path, bool recursive = false) const;
-        bool create_dir(const Path& path) const;
     };
 }// namespace Engine

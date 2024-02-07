@@ -2,7 +2,6 @@
 #include <Core/etl/any.hpp>
 #include <array>
 #include <bitset>
-#include <filesystem>
 #include <forward_list>
 #include <functional>
 #include <list>
@@ -87,12 +86,6 @@ namespace Engine
     {
         delete[] array;
     }
-
-    namespace FS = std::filesystem;
-
-    using Path                       = FS::path;
-    using DirectoryIterator          = FS::directory_iterator;
-    using RecursiveDirectoryIterator = FS::recursive_directory_iterator;
 
     template<typename Type, typename Dp = std::default_delete<Type>>
     using ScopedPtr = std::unique_ptr<Type, Dp>;

@@ -9,7 +9,7 @@ namespace Engine::VFS
 {
     static void on_init()
     {
-        for (auto& file : DirectoryIterator(""))
+        for (auto& file : RecursiveDirectoryIterator(""))
         {
             printf("%s\n", file.c_str());
         }

@@ -177,10 +177,7 @@ namespace Engine
 
         _M_args.init(argc, argv);
 
-        VFS::RootFS::create_instance(StringView(Platform::find_root_directory(argc, argv).string()));
-
-        FileManager* root_manager = const_cast<FileManager*>(FileManager::root_file_manager());
-        root_manager->work_dir(Platform::find_root_directory(argc, argv));
+        VFS::RootFS::create_instance(Platform::find_root_directory(argc, argv));
 
         create_threads();
 
@@ -281,7 +278,7 @@ namespace Engine
         return _M_args;
     }
 
-    const Flags& EngineInstance::flags() const
+    const Flags<EngineInstance::Flag>& EngineInstance::flags() const
     {
         return _M_flags;
     }

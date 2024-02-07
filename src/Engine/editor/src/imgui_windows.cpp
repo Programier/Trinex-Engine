@@ -383,7 +383,7 @@ namespace Engine
 
         if (browser->HasSelected())
         {
-            _M_callback(_M_package, browser->GetSelected());
+            _M_callback(_M_package, Path(browser->GetSelected().string()));
             return false;
         }
 

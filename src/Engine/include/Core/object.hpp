@@ -60,7 +60,7 @@ namespace Engine
 
 
     public:
-        mutable Flags flags;
+        mutable Flags<Object::Flag> flags;
 
         using This  = Object;
         using Super = Object;
@@ -71,11 +71,11 @@ namespace Engine
         virtual class Class* class_instance() const;
 
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static Package* load_package(const StringView& name, Flags flags = 0,
+        ENGINE_EXPORT static Package* load_package(const StringView& name, Flags<LoadingFlags> flags = {},
                                                    class BufferReader* package_reader = nullptr);
-        ENGINE_EXPORT static Object* load_object(const StringView& name, Flags flags = 0,
+        ENGINE_EXPORT static Object* load_object(const StringView& name, Flags<LoadingFlags> flags = {},
                                                  class BufferReader* package_reader = nullptr);
-        ENGINE_EXPORT static Object* load_object(const Path& path, const StringView& name, Flags flags = 0);
+        ENGINE_EXPORT static Object* load_object(const Path& path, const StringView& name, Flags<LoadingFlags> flags = {});
         ENGINE_EXPORT static String package_name_of(const StringView& name);
         ENGINE_EXPORT static String object_name_of(const StringView& name);
         ENGINE_EXPORT static StringView package_name_sv_of(const StringView& name);

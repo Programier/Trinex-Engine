@@ -2,9 +2,15 @@
 #include <Core/filesystem/path.hpp>
 #include <Core/string_functions.hpp>
 
-namespace Engine::VFS
+namespace Engine
 {
     const char Path::separator = '/';
+
+    size_t Path::Hash::operator()(const Path& p) const noexcept
+    {
+        static Engine::Hash<String> hasher;
+        return hasher(p._M_path);
+    }
 
     static FORCE_INLINE void simplify_path(String& path)
     {
@@ -39,28 +45,28 @@ namespace Engine::VFS
             position = view.rfind(separator);
             if (position != StringView::npos)
             {
-                _M_base_name = view.substr(position + 1);
+                _M_filename = view.substr(position + 1);
                 _M_base_path = view.substr(0, position);
             }
             else
             {
-                _M_base_name = {};
-                _M_base_path = view;
+                _M_base_path = {};
+                _M_filename = view;
             }
         }
 
         {
-            position = _M_base_name.rfind('.');
+            position = _M_filename.rfind('.');
 
             if (position != StringView::npos)
             {
-                _M_extension = _M_base_name.substr(position);
-                _M_stem      = _M_base_name.substr(0, position);
+                _M_extension = _M_filename.substr(position);
+                _M_stem      = _M_filename.substr(0, position);
             }
             else
             {
                 _M_extension = {};
-                _M_stem      = _M_base_name;
+                _M_stem      = _M_filename;
             }
         }
 
@@ -122,9 +128,9 @@ namespace Engine::VFS
 
     Path& Path::operator=(const char* path)
     {
-        if(path == nullptr)
+        if (path == nullptr)
         {
-            new(this) Path();
+            new (this) Path();
             return *this;
         }
         return (*this) = StringView(path);
@@ -132,7 +138,7 @@ namespace Engine::VFS
 
     Path& Path::operator/=(const Path& path)
     {
-        if (!is_empty() && _M_path.back() != Path::separator)
+        if (!empty() && _M_path.back() != Path::separator)
         {
             _M_path.push_back(separator);
         }
@@ -140,4 +146,4 @@ namespace Engine::VFS
         _M_path += path._M_path;
         return on_path_changed();
     }
-}// namespace Engine::VFS
+}// namespace Engine

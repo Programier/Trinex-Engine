@@ -5,20 +5,45 @@
 
 namespace Engine
 {
-    struct ENGINE_EXPORT Flags {
+    template<typename T, typename EnumType>
+    concept FlagsConcept = std::is_same_v<T, EnumType> || (!std::is_enum_v<T> && std::is_integral_v<T>);
+
+
+    enum class FlagsOperator
+    {
+        And,
+        Or,
+        Xor,
+    };
+
+    template<typename FlagsType = BitMask>
+    struct Flags {
         BitMask flags;
 
-        FORCE_INLINE Flags(BitMask mask = 0) : flags(mask)
+        template<typename T = BitMask>
+            requires FlagsConcept<T, FlagsType>
+        FORCE_INLINE Flags(T mask = 0) : flags(static_cast<BitMask>(mask))
         {}
+
+        template<typename... Args>
+        FORCE_INLINE Flags(FlagsOperator op, FlagsType first, Args... args) : flags(BitMask(first))
+        {
+            switch (op)
+            {
+                case FlagsOperator::And:
+                    (((*this) &= args), ...);
+                    break;
+                case FlagsOperator::Or:
+                    (((*this) |= args), ...);
+                    break;
+                case FlagsOperator::Xor:
+                    (((*this) ^= args), ...);
+                    break;
+            }
+        }
 
         FORCE_INLINE Flags(const Flags&)            = default;
         FORCE_INLINE Flags& operator=(const Flags&) = default;
-
-        FORCE_INLINE Flags& operator=(const BitMask& mask)
-        {
-            flags = mask;
-            return *this;
-        }
 
         FORCE_INLINE operator BitMask() const
         {
@@ -35,32 +60,36 @@ namespace Engine
             return flags;
         }
 
-
-        FORCE_INLINE bool has_all(BitMask mask) const
+        FORCE_INLINE operator bool() const
         {
-            return (flags & mask) == mask;
+            return flags != 0;
         }
 
-        FORCE_INLINE bool has_any(BitMask mask) const
+        FORCE_INLINE bool has_all(Flags mask) const
         {
-            return (flags & mask) != 0;
+            return (flags & mask.flags) == mask.flags;
         }
 
-        FORCE_INLINE Flags& set(BitMask mask)
+        FORCE_INLINE bool has_any(Flags mask) const
         {
-            flags |= mask;
+            return (flags & mask.flags) != 0;
+        }
+
+        FORCE_INLINE Flags& set(Flags mask)
+        {
+            flags |= mask.flags;
             return *this;
         }
 
-        FORCE_INLINE Flags& remove(BitMask mask)
+        FORCE_INLINE Flags& remove(Flags mask)
         {
-            flags &= ~mask;
+            flags &= ~mask.flags;
             return *this;
         }
 
-        FORCE_INLINE Flags& toggle(BitMask mask)
+        FORCE_INLINE Flags& toggle(Flags mask)
         {
-            flags ^= mask;
+            flags ^= mask.flags;
             return *this;
         }
 
@@ -83,18 +112,56 @@ namespace Engine
             return count;
         }
 
-        FORCE_INLINE bool operator()(BitMask mask) const
+        FORCE_INLINE bool operator()(Flags mask) const
         {
             return has_all(mask);
         }
 
-        FORCE_INLINE Flags& operator()(BitMask mask, bool flag)
+        FORCE_INLINE Flags& operator()(Flags mask, bool flag)
         {
             if (flag)
             {
                 return set(mask);
             }
             return remove(mask);
+        }
+
+        FORCE_INLINE Flags operator&(Flags mask) const
+        {
+            return flags & mask.flags;
+        }
+
+        FORCE_INLINE Flags operator|(Flags mask) const
+        {
+            return flags | mask.flags;
+        }
+
+        FORCE_INLINE Flags operator^(Flags mask) const
+        {
+            return flags ^ mask.flags;
+        }
+
+        FORCE_INLINE Flags operator~() const
+        {
+            return ~flags;
+        }
+
+        FORCE_INLINE Flags& operator&=(Flags mask)
+        {
+            flags &= mask.flags;
+            return *this;
+        }
+
+        FORCE_INLINE Flags& operator|=(Flags mask)
+        {
+            flags |= mask.flags;
+            return *this;
+        }
+
+        FORCE_INLINE Flags& operator^=(Flags mask)
+        {
+            flags ^= mask.flags;
+            return *this;
         }
     };
 }// namespace Engine

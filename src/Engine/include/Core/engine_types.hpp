@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <iomanip>
 #include <typeindex>
 
 namespace Engine
@@ -219,3 +220,4 @@ namespace glm
 }// namespace glm
 
 #include <Core/etl/helpers.hpp>
+#include <Core/filesystem/path.hpp>

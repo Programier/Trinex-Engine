@@ -21,7 +21,7 @@ namespace Engine
             IsAsset      = 1 << 4,
         };
 
-        Flags flags;
+        Flags<Class::Flag> flags;
 
     private:
         mutable Object* _M_singletone_object;
@@ -81,17 +81,17 @@ namespace Engine
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {
-                    flags(static_cast<BitMask>(Flag::IsFinal), true);
+                    flags(Flag::IsFinal, true);
                 }
 
                 if constexpr (std::is_abstract_v<ObjectClass>)
                 {
-                    flags(static_cast<BitMask>(Flag::IsAbstract), true);
+                    flags(Flag::IsAbstract, true);
                 }
 
                 if constexpr (is_singletone_v<ObjectClass>)
                 {
-                    flags(static_cast<BitMask>(Flag::IsSingletone), true);
+                    flags(Flag::IsSingletone, true);
                 }
 
                 _M_cast_to_this = private_cast_func<ObjectClass>;

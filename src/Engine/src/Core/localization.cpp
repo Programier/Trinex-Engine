@@ -82,37 +82,37 @@ namespace Engine
     {
         try
         {
-            for (auto& entry : FS::recursive_directory_iterator(path))
-            {
-                if (entry.path().extension() != Constants::translation_config_extension)
-                    continue;
+//            for (auto& entry : FS::recursive_directory_iterator(path))
+//            {
+//                if (entry.path().extension() != Constants::translation_config_extension)
+//                    continue;
 
-                info_log("Localization", "Loading localization file '%s'", entry.path().c_str());
+//                info_log("Localization", "Loading localization file '%s'", entry.path().c_str());
 
-                std::ifstream file(entry.path());
-                if (!file.is_open())
-                    continue;
+//                std::ifstream file(entry.path());
+//                if (!file.is_open())
+//                    continue;
 
-                String line;
+//                String line;
 
-                while (std::getline(file, line))
-                {
-                    String key, value;
-                    if (parse_string(line, key, value))
-                    {
-                        key = (FS::relative(entry.path(), path).stem() / key).string();
-                        if (FS::path::preferred_separator != '/')
-                        {
-                            std::replace(key.begin(), key.end(), static_cast<char>(FS::path::preferred_separator), '/');
-                        }
+//                while (std::getline(file, line))
+//                {
+//                    String key, value;
+//                    if (parse_string(line, key, value))
+//                    {
+//                        key = (FS::relative(entry.path(), path).stem() / key).string();
+//                        if (FS::path::preferred_separator != '/')
+//                        {
+//                            std::replace(key.begin(), key.end(), static_cast<char>(FS::path::preferred_separator), '/');
+//                        }
 
-                        HashIndex hash = memory_hash_fast(key.c_str(), key.length());
-                        out[hash]      = value;
-                    }
-                }
+//                        HashIndex hash = memory_hash_fast(key.c_str(), key.length());
+//                        out[hash]      = value;
+//                    }
+//                }
 
-                file.close();
-            }
+//                file.close();
+//            }
         }
         catch (const std::exception& e)
         {

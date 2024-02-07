@@ -3,6 +3,16 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 
+
+namespace Engine
+{
+    ENGINE_EXPORT VFS::RootFS* rootfs()
+    {
+        return VFS::RootFS::instance();
+    }
+
+}// namespace Engine
+
 namespace Engine::VFS
 {
 #define vfs_error(...) error_log("VFS", __VA_ARGS__)
@@ -13,11 +23,15 @@ namespace Engine::VFS
 
     RootFS* RootFS::_M_instance = nullptr;
 
-    RootFS::RootFS(const StringView& native_path)
+    RootFS::RootFS(const Path& native_path)
     {
         if (!native_path.empty())
         {
             mount("", new NativeFileSystem(native_path), [](FileSystem* fs) { delete fs; });
+        }
+        else
+        {
+            mount("", new NativeFileSystem("./"), [](FileSystem* fs) { delete fs; });
         }
     }
 
@@ -29,17 +43,22 @@ namespace Engine::VFS
         }
     }
 
-    ENGINE_EXPORT RootFS* rootfs()
-    {
-        return RootFS::instance();
-    }
-
     DirectoryIteratorInterface* RootFS::create_directory_iterator(const Path& path)
     {
         auto entry = find_filesystem(path);
         if (entry.first)
         {
             return entry.first->create_directory_iterator(entry.second);
+        }
+        return nullptr;
+    }
+
+    DirectoryIteratorInterface* RootFS::create_recursive_directory_iterator(const Path& path)
+    {
+        auto entry = find_filesystem(path);
+        if (entry.first)
+        {
+            return entry.first->create_recursive_directory_iterator(entry.second);
         }
         return nullptr;
     }
@@ -99,7 +118,7 @@ namespace Engine::VFS
 
         for (auto& [fs_path, fs] : _M_file_systems)
         {
-            if (path.path().starts_with(fs_path) && next_symbol_of(path, fs_path) == Path::separator)
+            if (path.path().starts_with(fs_path) && (next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
             {
                 return {fs, Path(StringView(path.path()).substr(fs_path.length()))};
             }
@@ -119,7 +138,7 @@ namespace Engine::VFS
         return false;
     }
 
-    File* RootFS::open(const Path& path, FileOpenMode mode)
+    File* RootFS::open(const Path& path, Flags<FileOpenMode> mode)
     {
         auto entry = find_filesystem(path);
         if (entry.first)

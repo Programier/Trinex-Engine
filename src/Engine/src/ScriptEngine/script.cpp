@@ -1,6 +1,8 @@
 #include <Core/constants.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/directory_iterator.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <ScriptEngine/script.hpp>
 #include <ScriptEngine/script_engine.hpp>
@@ -22,29 +24,25 @@ namespace Engine
 
     Script& Script::replace_code(const char* new_code, size_t len, size_t offset)
     {
-        ScriptModule::global().add_script_section(_M_path.string().c_str(), new_code, len, offset);
+        ScriptModule::global().add_script_section(_M_path.str().c_str(), new_code, len, offset);
         return *this;
     }
 
     Script& Script::load()
     {
-        FileManager manager(engine_config.scripts_dir);
-        FileReader* reader = manager.create_file_reader(_M_path);
-
-        if (reader)
+        FileReader reader(engine_config.scripts_dir / _M_path);
+        if (reader.is_open())
         {
-            Buffer buffer(reader->size(), 0);
-            reader->read(buffer.data(), buffer.size());
+            Buffer buffer(reader.size(), 0);
+            reader.read(buffer.data(), buffer.size());
 
-            if (_M_path.string().ends_with(Constants::script_extension))
+            if (_M_path.str().ends_with(Constants::script_extension))
             {
                 replace_code(reinterpret_cast<const char*>(buffer.data()), buffer.size(), 0);
             }
             else
             {
             }
-
-            delete reader;
         }
 
         return *this;
@@ -79,20 +77,21 @@ namespace Engine
 
     static void static_load_scripts(const Path& base, const Path& current, Set<Path>& scripts)
     {
-        for (const auto& entry : FS::directory_iterator(current))
+        auto fs = rootfs();
+        for (const auto& entry : VFS::DirectoryIterator(current))
         {
-            if (FS::is_regular_file(entry.path()))
+            if (rootfs()->is_file(entry))
             {
-                if (entry.path().extension() == Constants::script_extension)
+                if (entry.extension() == Constants::script_extension)
                 {
-                    Path diff = FS::relative(entry.path(), base);
+                    Path diff = entry.c_str() + base.length() + 1;
                     scripts.insert(diff);
                     ScriptEngine::instance()->new_script(diff)->load();
                 }
             }
-            else if (FS::is_directory(entry.path()))
+            else if (fs->is_dir(entry))
             {
-                static_load_scripts(base, entry.path(), scripts);
+                static_load_scripts(base, entry, scripts);
             }
         }
     }
@@ -112,7 +111,7 @@ namespace Engine
         release_scripts();
         ScriptModule::global().discard();
 
-        Path path = FileManager::root_file_manager()->work_dir() / engine_config.scripts_dir;
+        Path path = engine_config.scripts_dir;
         Set<Path> scripts;
         static_load_scripts(path, path, scripts);
 

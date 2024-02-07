@@ -32,7 +32,7 @@ namespace Engine
         static String replace_to = "";
         if (replace_to.empty())
         {
-            replace_to += char(Path::preferred_separator);
+            replace_to += char(Path::separator);
         }
 
         String path = shader->full_name();

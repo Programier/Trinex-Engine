@@ -28,7 +28,7 @@ namespace Engine
         return _M_description;
     }
 
-    const Flags& Property::flags() const
+    const Flags<Property::Flag>& Property::flags() const
     {
         return _M_flags;
     }

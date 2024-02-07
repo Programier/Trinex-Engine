@@ -48,7 +48,7 @@ namespace Engine
         Name _M_name;
         Name _M_group;
         String _M_description;
-        Flags _M_flags;
+        Flags<Property::Flag> _M_flags;
 
     protected:
         static bool is_valid_object(const class Class* instance, const class Object* object);
@@ -59,7 +59,7 @@ namespace Engine
         const Name& name() const;
         const Name& group() const;
         const String& description() const;
-        const Flags& flags() const;
+        const Flags<Property::Flag>& flags() const;
 
         virtual PropertyValue property_value(const void* object) const                 = 0;
         virtual bool property_value(void* object, const PropertyValue& property_value) = 0;

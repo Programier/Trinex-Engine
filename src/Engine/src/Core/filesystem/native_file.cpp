@@ -47,24 +47,24 @@ namespace Engine::VFS
         }
     }
 
-    NativeFile::FilePosition NativeFile::seek_write(FileOffset offset, FileSeekDir dir)
+    NativeFile::FilePosition NativeFile::write_position(FileOffset offset, FileSeekDir dir)
     {
         _M_stream.seekp(offset, direction_of(dir));
-        return tell_write();
+        return write_position();
     }
 
-    NativeFile::FilePosition NativeFile::tell_write()
+    NativeFile::FilePosition NativeFile::write_position()
     {
         return _M_stream.tellp();
     }
 
-    NativeFile::FilePosition NativeFile::seek_read(FileOffset offset, FileSeekDir dir)
+    NativeFile::FilePosition NativeFile::read_position(FileOffset offset, FileSeekDir dir)
     {
         _M_stream.seekg(offset, direction_of(dir));
-        return tell_read();
+        return read_position();
     }
 
-    NativeFile::FilePosition NativeFile::tell_read()
+    NativeFile::FilePosition NativeFile::read_position()
     {
         return _M_stream.tellg();
     }

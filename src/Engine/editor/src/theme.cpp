@@ -1,3 +1,4 @@
+#include <Core/file_manager.hpp>
 #include <Core/global_config.hpp>
 #include <editor_config.hpp>
 #include <imgui.h>
@@ -19,8 +20,18 @@ namespace Engine
     {
         // Initialize fonts
         auto& io = ImGui::GetIO();
-        io.Fonts->AddFontFromFileTTF(editor_config.font_path.string().c_str(), editor_font_size(), NULL,
-                                     io.Fonts->GetGlyphRangesCyrillic());
+
+        FileReader reader(editor_config.font_path);
+
+        if (reader.is_open())
+        {
+            Buffer buffer = reader.read_buffer();
+            ImFontConfig config;
+            config.FontDataOwnedByAtlas = false;
+
+            io.Fonts->AddFontFromMemoryTTF(buffer.data(), buffer.size(), editor_font_size(), &config,
+                                           io.Fonts->GetGlyphRangesCyrillic());
+        }
 
         io.IniFilename = nullptr;
         io.LogFilename = nullptr;

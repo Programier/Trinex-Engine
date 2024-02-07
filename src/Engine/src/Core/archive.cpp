@@ -98,7 +98,7 @@ namespace Engine
 
     ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
     {
-        String str = path.string();
+        String str = path.str();
         ar& str;
         if (ar.is_reading())
             path = str;

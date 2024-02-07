@@ -11,6 +11,8 @@ namespace Engine::VFS
 
     protected:
         DirectoryIteratorInterface* create_directory_iterator(const Path& path) override;
+        DirectoryIteratorInterface* create_recursive_directory_iterator(const Path& path) override;
+
 
     public:
         delete_copy_constructors(NativeFileSystem);
@@ -19,7 +21,7 @@ namespace Engine::VFS
 
         const Path& path() const override;
         bool is_read_only() const override;
-        File* open(const Path& path, FileOpenMode mode) override;
+        File* open(const Path& path, Flags<FileOpenMode> mode) override;
         bool create_dir(const Path& path) override;
         bool remove(const Path& path) override;
         bool copy(const Path& src, const Path& dest) override;

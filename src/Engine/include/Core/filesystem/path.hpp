@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine::VFS
+namespace Engine
 {
     class ENGINE_EXPORT Path final
     {
@@ -9,13 +9,17 @@ namespace Engine::VFS
         String _M_path;
 
         StringView _M_extension;
-        StringView _M_base_name;
+        StringView _M_filename;
         StringView _M_stem;
         StringView _M_base_path;
 
         Path& on_path_changed();
 
     public:
+        struct ENGINE_EXPORT Hash {
+            size_t operator()(const Path& p) const noexcept;
+        };
+
         static const char separator;
 
         Path();
@@ -48,9 +52,9 @@ namespace Engine::VFS
             return _M_extension;
         }
 
-        FORCE_INLINE const StringView& base_name() const
+        FORCE_INLINE const StringView& filename() const
         {
-            return _M_base_name;
+            return _M_filename;
         }
 
         FORCE_INLINE const StringView& stem() const
@@ -88,7 +92,7 @@ namespace Engine::VFS
             return _M_path.length();
         }
 
-        FORCE_INLINE bool is_empty() const
+        FORCE_INLINE bool empty() const
         {
             return length() == 0;
         }
@@ -102,5 +106,49 @@ namespace Engine::VFS
         {
             return _M_path != path._M_path;
         }
+
+        FORCE_INLINE Path& operator+=(const StringView& view)
+        {
+            _M_path += view;
+            return on_path_changed();
+        }
+
+        FORCE_INLINE Path operator+(const StringView& view)
+        {
+            Path p = *this;
+            return p += view;
+        }
+
+        FORCE_INLINE bool operator<(const Path& p) const
+        {
+            return _M_path < p._M_path;
+        }
+
+        FORCE_INLINE bool operator>(const Path& p) const
+        {
+            return _M_path > p._M_path;
+        }
+
+        FORCE_INLINE bool operator<=(const Path& p) const
+        {
+            return _M_path <= p._M_path;
+        }
+
+        FORCE_INLINE bool operator>=(const Path& p) const
+        {
+            return _M_path >= p._M_path;
+        }
     };
-}// namespace Engine::VFS
+}// namespace Engine
+
+namespace std
+{
+    template<>
+    struct hash<Engine::Path> {
+        size_t operator()(const Engine::Path& p) const noexcept
+        {
+            static Engine::Path::Hash h;
+            return h(p);
+        }
+    };
+}// namespace std

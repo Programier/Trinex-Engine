@@ -23,10 +23,10 @@ namespace Engine::VFS
         bool is_read_only() const override;
         void close() override;
         bool is_open() const override;
-        FilePosition seek_write(FileOffset offset, FileSeekDir dir) override;
-        FilePosition tell_write() override;
-        FilePosition seek_read(FileOffset offset, FileSeekDir dir) override;
-        FilePosition tell_read() override;
+        FilePosition write_position(FileOffset offset, FileSeekDir dir) override;
+        FilePosition write_position() override;
+        FilePosition read_position(FileOffset offset, FileSeekDir dir) override;
+        FilePosition read_position() override;
         size_t read(byte* buffer, size_t size) override;
         size_t write(const byte* buffer, size_t size) override;
 

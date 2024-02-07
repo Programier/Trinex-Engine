@@ -16,9 +16,9 @@ namespace Engine::Platform
 
     ENGINE_EXPORT Path find_root_directory(int_t argc, char** argv)
     {
-        if(argc == 0) // Usually it's impossible, but just in case, let it be
+        if (argc == 0)// Usually it's impossible, but just in case, let it be
             return Path("./");
-        return Path(argv[0]).parent_path();
+        return Path(argv[0]).base_path();
     }
 }// namespace Engine::Platform
 #endif

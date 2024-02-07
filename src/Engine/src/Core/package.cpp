@@ -5,6 +5,7 @@
 #include <Core/engine_config.hpp>
 #include <Core/file_flag.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
@@ -316,9 +317,10 @@ namespace Engine
     static Type* open_package_file(const Package* package, bool create_dir = false)
     {
         Path path = engine_config.resources_dir / package->filepath();
+
         if (create_dir)
         {
-            FileManager::root_file_manager()->create_dir(FileManager::dirname_of(path));
+            rootfs()->create_dir(path.base_path());
         }
 
         Type* value = new Type(path);
@@ -394,7 +396,7 @@ namespace Engine
         return save(&writer);
     }
 
-    bool Package::load(BufferReader* reader, Flags flags)
+    bool Package::load(BufferReader* reader, Flags<LoadingFlags> flags)
     {
         bool need_destroy_reader = reader == nullptr;
 
@@ -440,7 +442,7 @@ namespace Engine
         return true;
     }
 
-    bool Package::load(const Path& path, Flags flags)
+    bool Package::load(const Path& path, Flags<LoadingFlags> flags)
     {
         FileReader reader = path;
         return load(&reader, flags);
@@ -466,7 +468,7 @@ namespace Engine
         return true;
     }
 
-    Object* Package::load_object(const StringView& name, Flags flags, BufferReader* reader)
+    Object* Package::load_object(const StringView& name, Flags<LoadingFlags> flags, BufferReader* reader)
     {
         Object* object = find_object(name);
 
@@ -511,7 +513,7 @@ namespace Engine
         return result.object;
     }
 
-    Object* Package::load_object(const Path& file_path, const StringView& name, Flags flags)
+    Object* Package::load_object(const Path& file_path, const StringView& name, Flags<LoadingFlags> flags)
     {
         FileReader reader = file_path;
         if (reader.is_open())
@@ -550,7 +552,8 @@ namespace Engine
     }
 
 
-    ENGINE_EXPORT Package* Object::load_package(const StringView& name, Flags flags, class BufferReader* package_reader)
+    ENGINE_EXPORT Package* Object::load_package(const StringView& name, Flags<LoadingFlags> flags,
+                                                class BufferReader* package_reader)
     {
         // Try to find package
         Package* package = Object::find_object_checked<Package>(name);
@@ -569,7 +572,8 @@ namespace Engine
         return package;
     }
 
-    ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags flags, class BufferReader* package_reader)
+    ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags<LoadingFlags> flags,
+                                              class BufferReader* package_reader)
     {
         StringView object_name  = Object::object_name_sv_of(name);
         StringView package_name = Object::package_name_sv_of(name);
@@ -578,7 +582,7 @@ namespace Engine
         return package->load_object(object_name, flags, package_reader);
     }
 
-    ENGINE_EXPORT Object* Object::load_object(const Path& path, const StringView& name, Flags flags)
+    ENGINE_EXPORT Object* Object::load_object(const Path& path, const StringView& name, Flags<LoadingFlags> flags)
     {
         StringView object_name  = Object::object_name_sv_of(name);
         StringView package_name = Object::package_name_sv_of(name);

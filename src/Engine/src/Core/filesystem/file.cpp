@@ -4,10 +4,10 @@ namespace Engine::VFS
 {
     size_t File::size()
     {
-        FilePosition pos = tell_read();
-        seek_read(0, FileSeekDir::End);
-        FilePosition size = tell_read();
-        seek_read(static_cast<FileOffset>(pos), FileSeekDir::Begin);
+        FilePosition pos = read_position();
+        read_position(0, FileSeekDir::End);
+        FilePosition size = read_position();
+        read_position(static_cast<FileOffset>(pos), FileSeekDir::Begin);
         return size;
     }
 }// namespace Engine::VFS

@@ -4,6 +4,7 @@
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/logger.hpp>
+#include <filesystem>
 
 namespace Engine::VFS
 {
@@ -11,9 +12,10 @@ namespace Engine::VFS
     namespace fs = std::filesystem;
 
 
+    template<typename Iterator>
     struct NativeIterator : public DirectoryIteratorInterface {
         NativeFileSystem* _M_base;
-        fs::directory_iterator _M_it;
+        Iterator _M_it;
         Path _M_path;
 
         void update_path()
@@ -37,7 +39,7 @@ namespace Engine::VFS
 
         bool is_valid() const override
         {
-            static fs::directory_iterator tmp;
+            static Iterator tmp;
             return _M_it != tmp;
         }
 
@@ -63,10 +65,20 @@ namespace Engine::VFS
 
     DirectoryIteratorInterface* NativeFileSystem::create_directory_iterator(const Path& path)
     {
-        NativeIterator* it = new NativeIterator();
-        it->_M_base        = this;
-        Path dir           = _M_path / path;
-        it->_M_it          = fs::directory_iterator(dir.str());
+        NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
+        it->_M_base                                = this;
+        Path dir                                   = _M_path / path;
+        it->_M_it                                  = fs::directory_iterator(dir.str());
+        it->update_path();
+        return it;
+    }
+
+    DirectoryIteratorInterface* NativeFileSystem::create_recursive_directory_iterator(const Path& path)
+    {
+        NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
+        it->_M_base                                          = this;
+        Path dir                                             = _M_path / path;
+        it->_M_it                                            = fs::recursive_directory_iterator(dir.str());
         it->update_path();
         return it;
     }
@@ -87,35 +99,22 @@ namespace Engine::VFS
         return (fs::status(_M_path.str()).permissions() & fs::perms::owner_write) != fs::perms::owner_write;
     }
 
-    File* NativeFileSystem::open(const Path& path, FileOpenMode mode)
+    File* NativeFileSystem::open(const Path& path, Flags<FileOpenMode> mode)
     {
         Path full_path = _M_path / path;
 
-
         std::ios_base::openmode open_mode;
-        bool is_read_only = true;
+        bool is_read_only = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
 
-        switch (mode)
-        {
-            case FileOpenMode::In:
-                open_mode = std::ios_base::in;
-                break;
-            case FileOpenMode::Out:
-                is_read_only = false;
-                open_mode    = std::ios_base::out;
-                break;
-            case FileOpenMode::Append:
-                is_read_only = false;
-                open_mode    = std::ios_base::app;
-                break;
-            case FileOpenMode::ReadWrite:
-                is_read_only = false;
-                open_mode    = std::ios_base::in | std::ios_base::out;
-                break;
-            case FileOpenMode::Trunc:
-                open_mode = std::ios_base::trunc;
-                break;
-        }
+
+        if (mode & FileOpenMode::In)
+            open_mode |= std::ios_base::in;
+        if (mode & FileOpenMode::Out)
+            open_mode |= std::ios_base::out;
+        if (mode & FileOpenMode::Append)
+            open_mode |= std::ios_base::app;
+        if (mode & FileOpenMode::Trunc)
+            open_mode |= std::ios_base::trunc;
 
         std::fstream file;
         file.open(full_path.str(), open_mode);
