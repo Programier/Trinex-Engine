@@ -49,7 +49,7 @@ set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     tinygltf
                                     asmjit)
 
-set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser)
+set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser zip)
 
 if(ANDROID)
     set(PLATFORM_DEPENDED_LIBRARIES android log)

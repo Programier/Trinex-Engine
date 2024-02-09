@@ -5,5 +5,6 @@ namespace Engine::VFS
 {
     class ENGINE_EXPORT VirtualFile : public File
     {
+
     };
 }// namespace Engine::VFS

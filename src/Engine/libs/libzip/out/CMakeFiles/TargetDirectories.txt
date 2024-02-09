@@ -1,0 +1,17 @@
+/home/programier/Projects/libzip/out/CMakeFiles/dist.dir
+/home/programier/Projects/libzip/out/CMakeFiles/distcheck.dir
+/home/programier/Projects/libzip/out/CMakeFiles/test.dir
+/home/programier/Projects/libzip/out/CMakeFiles/edit_cache.dir
+/home/programier/Projects/libzip/out/CMakeFiles/rebuild_cache.dir
+/home/programier/Projects/libzip/out/CMakeFiles/list_install_components.dir
+/home/programier/Projects/libzip/out/CMakeFiles/install.dir
+/home/programier/Projects/libzip/out/CMakeFiles/install/local.dir
+/home/programier/Projects/libzip/out/CMakeFiles/install/strip.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/zip.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/test.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/edit_cache.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/rebuild_cache.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/list_install_components.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/install.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/install/local.dir
+/home/programier/Projects/libzip/out/lib/CMakeFiles/install/strip.dir
