@@ -189,6 +189,9 @@ namespace Engine
 
     Path Path::relative(const Path& base) const
     {
+        if(base.empty())
+            return *this;
+
         Vector<StringView> base_sv = base.split_sv();
         Vector<StringView> self_sv = split_sv();
 

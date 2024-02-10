@@ -14,9 +14,10 @@ namespace Engine::VFS
     public:
         enum Type
         {
-            Root    = 0,
-            Virtual = 1,
-            Native  = 2,
+            Undefined = -1,
+            Root      = 0,
+            Virtual   = 1,
+            Native    = 2,
         };
 
         using UnMountCallback = Function<void(FileSystem*)>;

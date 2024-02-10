@@ -117,7 +117,7 @@ namespace Engine
             return on_path_changed();
         }
 
-        FORCE_INLINE Path operator+(const StringView& view)
+        FORCE_INLINE Path operator+(const StringView& view) const
         {
             Path p = *this;
             return p += view;
@@ -141,6 +141,11 @@ namespace Engine
         FORCE_INLINE bool operator>=(const Path& p) const
         {
             return _M_path >= p._M_path;
+        }
+
+        FORCE_INLINE bool starts_with(const Path& path) const
+        {
+            return _M_path.starts_with(path._M_path);
         }
     };
 }// namespace Engine

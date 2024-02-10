@@ -43,6 +43,9 @@ namespace Engine::VFS
         bool is_dir(const Path& dir) const override;
         Type type() const override;
         Path native_path(const Path& path) const override;
+        FileSystem* filesystem_of(const Path& path) const;
+        FileSystem::Type filesystem_type_of(const Path& path) const;
+        bool pack_native_folder(const Path& native, const Path& virtual_fs, const StringView& password = {}) const;
 
         friend class Singletone<RootFS, FileSystem>;
         friend class DirectoryIterator;

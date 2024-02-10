@@ -1,8 +1,9 @@
+#include "vfs_log.hpp"
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
-
+#include <filesystem>
 
 namespace Engine
 {
@@ -15,7 +16,6 @@ namespace Engine
 
 namespace Engine::VFS
 {
-#define vfs_error(...) error_log("VFS", __VA_ARGS__)
     bool RootFS::FileSystemCompare::operator()(const String& first, const String& second) const
     {
         return first.length() > second.length();
@@ -28,6 +28,7 @@ namespace Engine::VFS
         if (!native_path.empty())
         {
             mount("", new NativeFileSystem(native_path), [](FileSystem* fs) { delete fs; });
+            std::filesystem::current_path(native_path.str());
         }
         else
         {
@@ -120,7 +121,7 @@ namespace Engine::VFS
         {
             if (path.path().starts_with(fs_path) && (next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
             {
-                return {fs, Path(StringView(path.path()).substr(fs_path.length()))};
+                return {fs, path.relative(fs_path)};
             }
         }
 
@@ -236,5 +237,18 @@ namespace Engine::VFS
             return entry.first->native_path(entry.second);
         }
         return {};
+    }
+
+    FileSystem* RootFS::filesystem_of(const Path& path) const
+    {
+        return find_filesystem(path).first;
+    }
+
+    FileSystem::Type RootFS::filesystem_type_of(const Path& path) const
+    {
+        FileSystem* fs = filesystem_of(path);
+        if (fs == nullptr)
+            return Type::Undefined;
+        return fs->type();
     }
 }// namespace Engine::VFS

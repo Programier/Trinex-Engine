@@ -7,10 +7,10 @@
 #include <cerrno>
 #include <cstring>
 #include <filesystem>
+#include "vfs_log.hpp"
 
 namespace Engine::VFS
 {
-#define vfs_error(...) error_log("VFS", __VA_ARGS__)
     namespace fs = std::filesystem;
 
 
