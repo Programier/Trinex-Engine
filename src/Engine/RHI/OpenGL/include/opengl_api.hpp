@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/logger.hpp>
-#include <Graphics/shader_parameters.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <opengl_definitions.hpp>
 #include <opengl_headers.hpp>
 
@@ -33,8 +33,8 @@ namespace Engine
         Vector<BindingIndex> _M_sampler_units;
 
         Vector<GlobalShaderParameters> _M_global_parameters_stack;
-        struct OpenGL_UniformBuffer* _M_global_ubo = nullptr;
-        struct OpenGL_UniformBuffer* _M_local_ubo  = nullptr;
+        struct OpenGL_UniformBuffer* _M_global_ubo     = nullptr;
+        struct OpenGL_LocalUniformBuffer* _M_local_ubo = nullptr;
 
 
         OpenGL();
@@ -78,9 +78,9 @@ namespace Engine
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
 
-        OpenGL& push_global_params(GlobalShaderParameters* params = nullptr) override;
-        OpenGL& update_global_params(void* data, size_t size, size_t offset) override;
+        OpenGL& push_global_params(const GlobalShaderParameters& params) override;
         OpenGL& pop_global_params() override;
+        OpenGL& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
         void push_debug_stage(const char* stage, const Color& color = {}) override;
         void pop_debug_stage() override;

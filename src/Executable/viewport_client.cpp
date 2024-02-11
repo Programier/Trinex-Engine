@@ -8,11 +8,11 @@
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Systems/mouse_system.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/mouse_system.hpp>
 
 namespace Engine
 {
@@ -70,10 +70,8 @@ namespace Engine
             pipeline->vertex_shader->attributes.push_back(VertexShader::Attribute(ColorFormat::R32G32Sfloat));
             pipeline->vertex_shader->binary_code = FileReader("shaders/gradient/vertex.vm").read_buffer();
             pipeline->vertex_shader->text_code   = FileReader("shaders/gradient/vertex.vert").read_string();
-            pipeline->vertex_shader->uniform_buffers.push_back(
-                    VertexShader::UniformBuffer(sizeof(GlobalShaderParameters), {0, 0}));
-            pipeline->fragment_shader->uniform_buffers.push_back(
-                    VertexShader::UniformBuffer(sizeof(GlobalShaderParameters), {0, 0}));
+            pipeline->local_parameters.parameters.insert({"offset", LocalMaterialParametersInfo::Entry{"offset", 12, 0}});
+            pipeline->has_global_parameters = true;
 
             pipeline->fragment_shader->binary_code = FileReader("shaders/gradient/fragment.fm").read_buffer();
             pipeline->fragment_shader->text_code   = FileReader("shaders/gradient/fragment.frag").read_string();
@@ -110,12 +108,19 @@ namespace Engine
             static GlobalShaderParameters params;
 
             params.update(viewport->base_render_target(), camera);
-            engine_instance->rhi()->push_global_params(&params);
+            engine_instance->rhi()->push_global_params(params);
 
             viewport->rhi_bind();
-            pipeline->rhi_bind();
-            vertex_buffer->rhi_bind(0, 0);
-            engine_instance->rhi()->draw(6);
+
+            for (int i = 0; i < 2; i++)
+            {
+                pipeline->rhi_bind();
+                vertex_buffer->rhi_bind(0, 0);
+
+                Vector3D offset = {0, 0, -i};
+                engine_instance->rhi()->update_local_parameter(&offset, sizeof(offset), 0);
+                engine_instance->rhi()->draw(6);
+            }
 
             engine_instance->rhi()->pop_global_params();
             return *this;

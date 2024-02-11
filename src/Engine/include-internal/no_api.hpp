@@ -40,9 +40,9 @@ namespace Engine
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
 
-        NoApi& push_global_params(GlobalShaderParameters* params = nullptr) override;
-        NoApi& update_global_params(void* data, size_t size, size_t offset) override;
-        NoApi& pop_global_params()                                          override;
+        NoApi& push_global_params(const GlobalShaderParameters& params) override;
+        NoApi& pop_global_params() override;
+        NoApi& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
         void line_width(float width) override;
 

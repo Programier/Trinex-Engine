@@ -85,6 +85,7 @@ namespace Engine
     OpenGL& OpenGL::prepare_render()
     {
         _M_global_ubo->bind({0, 0});
+        _M_local_ubo->bind();
         return *this;
     }
 

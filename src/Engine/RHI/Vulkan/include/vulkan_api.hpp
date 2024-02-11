@@ -170,9 +170,9 @@ namespace Engine
 
         VulkanUniformBuffer* uniform_buffer() const;
 
-        VulkanAPI& push_global_params(GlobalShaderParameters* params = nullptr) override;
-        VulkanAPI& update_global_params(void* data, size_t size, size_t offset) override;
+        VulkanAPI& push_global_params(const GlobalShaderParameters& params) override;
         VulkanAPI& pop_global_params() override;
+        VulkanAPI& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
         void line_width(float width) override;
 

@@ -10,32 +10,31 @@ namespace Engine
             vk::Buffer buffer;
             vk::DeviceMemory memory;
             size_t size;
-            void* mapped;
+            byte* mapped;
         };
 
         Vector<BufferEntry> buffers;
 
     protected:
         UniformBufferPoolBase& allocate_new(size_t size);
-        UniformBufferPoolBase& update(size_t index, void* data, size_t size, size_t offset);
+        UniformBufferPoolBase& update(size_t index, const void* data, size_t size, size_t offset);
 
         ~UniformBufferPoolBase();
     };
 
     template<size_t pool_size>
     struct UniformBufferPool : public UniformBufferPoolBase {
-        UniformBufferPool& allocate_new()
+        UniformBufferPool& allocate_new(size_t size = pool_size)
         {
-            UniformBufferPoolBase::allocate_new(pool_size);
+            UniformBufferPoolBase::allocate_new(glm::min(size, pool_size));
             return *this;
         }
     };
 
-    struct GlobalUniformBufferPool : public UniformBufferPool<align_memory(sizeof(GlobalShaderParameters), 256)> {
+    struct GlobalUniformBufferPool : public UniformBufferPool<sizeof(GlobalShaderParameters)> {
         int64_t index = -1;
 
-        void push(GlobalShaderParameters* params = nullptr);
-        void update(void* data, size_t size, size_t offset);
+        void push(const GlobalShaderParameters* params = nullptr);
         void pop();
 
         void bind();
@@ -43,6 +42,14 @@ namespace Engine
     };
 
     struct LocalUniformBufferPool : public UniformBufferPool<4096> {
+        Vector<byte> shadow_data;
+        size_t shadow_data_size = 0;
+        size_t index            = 0;
+        size_t used_data        = 0;
+
+        LocalUniformBufferPool();
+
+        void update(const void* data, size_t size, size_t offset);
         void bind();
         void reset();
     };

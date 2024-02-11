@@ -41,9 +41,18 @@ layout(binding = 0, std140) uniform _Global
     float far_clip_plane;
     float aspect_ratio;
     int camera_type;
-} global;
+}
+global;
+
+layout(binding = 1, std140) uniform _Local
+{
+    vec3 offset;
+}
+local;
+
 
 void main()
 {
-    out_color = vec4(0.5 + 0.5 * sin(global.time), 0.5 + 0.5 * cos(global.time), 0.5 + 0.5 * sin(global.time + global.delta_time), 1.0);
+    out_color = vec4(0.5 + 0.5 * sin(global.time + local.offset.x), 0.5 + 0.5 * cos(global.time + local.offset.x),
+                     0.5 + 0.5 * sin(global.time + global.delta_time + local.offset.x), 1.0);
 }

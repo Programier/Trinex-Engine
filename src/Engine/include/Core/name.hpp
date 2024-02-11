@@ -15,7 +15,7 @@ namespace Engine
         struct HashFunction {
             FORCE_INLINE HashIndex operator()(const Name& name) const
             {
-                return name.hash();
+                return name._M_index;
             }
         };
 

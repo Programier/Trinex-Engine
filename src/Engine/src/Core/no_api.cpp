@@ -188,19 +188,19 @@ namespace Engine
         return nullptr;
     }
 
-    NoApi& NoApi::push_global_params(GlobalShaderParameters* params)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return *this;
-    }
-
-    NoApi& NoApi::update_global_params(void* data, size_t size, size_t offset)
+    NoApi& NoApi::push_global_params(const GlobalShaderParameters& params)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
     }
 
     NoApi& NoApi::pop_global_params()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
+    NoApi& NoApi::update_local_parameter(const void* data, size_t size, size_t offset)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;

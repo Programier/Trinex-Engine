@@ -138,9 +138,9 @@ namespace Engine
         virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
         virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;
 
-        virtual RHI& push_global_params(GlobalShaderParameters* params = nullptr) = 0;
-        virtual RHI& update_global_params(void* data, size_t size, size_t offset) = 0;
-        virtual RHI& pop_global_params()                                          = 0;
+        virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
+        virtual RHI& pop_global_params()                                                  = 0;
+        virtual RHI& update_local_parameter(const void* data, size_t size, size_t offset) = 0;
 
         // Dynamic state
         virtual void line_width(float width) = 0;

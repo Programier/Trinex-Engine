@@ -13,11 +13,11 @@ namespace Engine
                            vk::MemoryPropertyFlagBits::eHostVisible, buffer.buffer, buffer.memory);
 
         buffer.size   = size;
-        buffer.mapped = API->_M_device.mapMemory(buffer.memory, 0, size);
+        buffer.mapped = reinterpret_cast<byte*>(API->_M_device.mapMemory(buffer.memory, 0, size));
         return *this;
     }
 
-    UniformBufferPoolBase& UniformBufferPoolBase::update(size_t index, void* data, size_t size, size_t offset)
+    UniformBufferPoolBase& UniformBufferPoolBase::update(size_t index, const void* data, size_t size, size_t offset)
     {
         if (index >= buffers.size())
             return *this;
@@ -43,22 +43,12 @@ namespace Engine
         buffers.clear();
     }
 
-
-    void GlobalUniformBufferPool::push(GlobalShaderParameters* params)
+    void GlobalUniformBufferPool::push(const GlobalShaderParameters* params)
     {
         ++index;
         if (index >= static_cast<int64_t>(buffers.size()))
             allocate_new();
-
-        if (params)
-        {
-            update(params, sizeof(GlobalShaderParameters), 0);
-        }
-    }
-
-    void GlobalUniformBufferPool::update(void* data, size_t size, size_t offset)
-    {
-        UniformBufferPoolBase::update(index, data, size, offset);
+        UniformBufferPoolBase::update(index, params, sizeof(GlobalShaderParameters), 0);
     }
 
     void GlobalUniformBufferPool::pop()
@@ -80,11 +70,52 @@ namespace Engine
         index = -1;
     }
 
+    LocalUniformBufferPool::LocalUniformBufferPool()
+    {
+        allocate_new();
+    }
+
     void LocalUniformBufferPool::bind()
-    {}
+    {
+        if (shadow_data_size == 0)
+            return;
+
+        if (buffers[index].size < used_data + shadow_data_size)
+        {
+            ++index;
+            used_data = 0;
+
+            if (buffers.size() <= index)
+            {
+                allocate_new(shadow_data_size);
+            }
+        }
+
+        auto& current_buffer = buffers[index];
+        std::memcpy(current_buffer.mapped + used_data, shadow_data.data(), shadow_data_size);
+        static BindLocation local_params_location = {1, 0};
+        API->_M_state->_M_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
+                                                        local_params_location);
+        used_data = align_memory(used_data + shadow_data_size, API->_M_properties.limits.minUniformBufferOffsetAlignment);
+    }
+
+    void LocalUniformBufferPool::update(const void* data, size_t size, size_t offset)
+    {
+        shadow_data_size = glm::max(size + offset, shadow_data_size);
+
+        if (shadow_data.size() < shadow_data_size)
+        {
+            shadow_data.resize(shadow_data_size);
+        }
+
+        std::memcpy(shadow_data.data() + offset, data, size);
+    }
 
     void LocalUniformBufferPool::reset()
-    {}
+    {
+        shadow_data_size = 0;
+        index            = 0;
+    }
 
     void VulkanUniformBuffer::reset()
     {
@@ -99,21 +130,21 @@ namespace Engine
     }
 
 
-    VulkanAPI& VulkanAPI::push_global_params(GlobalShaderParameters* params)
+    VulkanAPI& VulkanAPI::push_global_params(const GlobalShaderParameters& params)
     {
-        API->uniform_buffer()->global_pool.push(params);
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::update_global_params(void* data, size_t size, size_t offset)
-    {
-        API->uniform_buffer()->global_pool.update(data, size, offset);
+        API->uniform_buffer()->global_pool.push(&params);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::pop_global_params()
     {
         API->uniform_buffer()->global_pool.pop();
+        return *this;
+    }
+
+    VulkanAPI& VulkanAPI::update_local_parameter(const void* data, size_t size, size_t offset)
+    {
+        API->uniform_buffer()->local_pool.update(data, size, offset);
         return *this;
     }
 }// namespace Engine

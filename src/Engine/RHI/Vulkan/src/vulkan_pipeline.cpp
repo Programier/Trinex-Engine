@@ -35,12 +35,17 @@ namespace Engine
         out[location.set].push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stage, nullptr));
     }
 
-    static void create_base_descriptor_layout(const Shader* shader, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
-                                              vk::ShaderStageFlags stage)
+    static void create_base_descriptor_layout(const Pipeline* pipeline, const Shader* shader,
+                                              Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage)
     {
-        for (auto& buffer : shader->uniform_buffers)
+        if (pipeline->has_global_parameters)
         {
-            push_layout_binding(out, stage, buffer.location, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stage, {0, 0}, vk::DescriptorType::eUniformBuffer);
+        }
+
+        if (!pipeline->local_parameters.empty())
+        {
+            push_layout_binding(out, stage, {1, 0}, vk::DescriptorType::eUniformBuffer);
         }
 
         for (auto& texture : shader->textures)
@@ -66,12 +71,12 @@ namespace Engine
 
     static void create_vertex_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
-        create_base_descriptor_layout(pipeline->vertex_shader, out, vk::ShaderStageFlagBits::eVertex);
+        create_base_descriptor_layout(pipeline, pipeline->vertex_shader, out, vk::ShaderStageFlagBits::eVertex);
     }
 
     static void create_fragment_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
-        create_base_descriptor_layout(pipeline->fragment_shader, out, vk::ShaderStageFlagBits::eFragment);
+        create_base_descriptor_layout(pipeline, pipeline->fragment_shader, out, vk::ShaderStageFlagBits::eFragment);
     }
 
 
@@ -360,7 +365,7 @@ namespace Engine
         uint_t ssbos             = 0;
     };
 
-    static void process_pool_sizes(const Shader* shader, Vector<PoolSizeInfo>& out)
+    static void process_pool_sizes(const Pipeline* pipeline, const Shader* shader, Vector<PoolSizeInfo>& out)
     {
         for (auto& texture : shader->textures)
         {
@@ -377,9 +382,14 @@ namespace Engine
             ++(out[combined_sampler.location.set].combined_samplers);
         }
 
-        for (auto& ubo : shader->uniform_buffers)
+        if (pipeline->has_global_parameters)
         {
-            ++(out[ubo.location.set].ubos);
+            ++(out[0].ubos);
+        }
+
+        if (!pipeline->local_parameters.empty())
+        {
+            ++(out[0].ubos);
         }
 
         for (auto& ssbo : shader->ssbo)
@@ -392,8 +402,8 @@ namespace Engine
     {
         Vector<PoolSizeInfo> pool_size_info(_M_descriptor_set_layout.size(), PoolSizeInfo{});
 
-        process_pool_sizes(pipeline->vertex_shader, pool_size_info);
-        process_pool_sizes(pipeline->fragment_shader, pool_size_info);
+        process_pool_sizes(pipeline, pipeline->vertex_shader, pool_size_info);
+        process_pool_sizes(pipeline, pipeline->fragment_shader, pool_size_info);
 
 
         Vector<Vector<vk::DescriptorPoolSize>> pool_sizes(pool_size_info.size());

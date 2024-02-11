@@ -5,6 +5,7 @@
 #include <Core/implement.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/rhi_initializers.hpp>
+#include <Graphics/shader_parameters.hpp>
 
 
 namespace Engine
@@ -24,16 +25,6 @@ namespace Engine
             Fragment,
         };
 
-        struct UniformBuffer {
-            Name name;
-            size_t size;
-            BindLocation location;
-
-            FORCE_INLINE UniformBuffer(size_t size = 0, BindLocation location = {}, Name name = Name())
-                : name(name), size(size), location(location)
-            {}
-        };
-
         struct SSBO {
             Name name;
             BindLocation location;
@@ -47,10 +38,9 @@ namespace Engine
         using Sampler         = Texture;
         using SamplerCombined = Texture;
 
-        Vector<UniformBuffer> uniform_buffers;
         Vector<Sampler> samplers;
         Vector<Texture> textures;
-        Vector<Texture> combined_samplers;
+        Vector<SamplerCombined> combined_samplers;
         Vector<SSBO> ssbo;
 
         String text_code;
@@ -96,7 +86,6 @@ namespace Engine
         Type type() const override;
     };
 
-    ENGINE_EXPORT bool operator&(Archive&, Shader::UniformBuffer&);
     ENGINE_EXPORT bool operator&(Archive&, Shader::SSBO&);
     ENGINE_EXPORT bool operator&(Archive&, Shader::Texture&);
     ENGINE_EXPORT bool operator&(Archive&, VertexShader::Attribute&);

@@ -309,7 +309,7 @@ namespace Engine
 
     void OpenGL_Pipeline::bind()
     {
-        if (OPENGL_API->_M_current_pipeline != this)
+        //if (OPENGL_API->_M_current_pipeline != this)
         {
             OPENGL_API->_M_current_pipeline = this;
             glBindProgramPipeline(_M_pipeline);

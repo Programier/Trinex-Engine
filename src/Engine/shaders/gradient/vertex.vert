@@ -43,8 +43,13 @@ layout(binding = 0, std140) uniform _Global
     int camera_projection_mode;
 } global;
 
+layout(binding = 1, std140) uniform _Local
+{
+    vec3 offset;
+} local;
+
 
 void main(void)
 {
-    gl_Position = global.projview * vec4(in_coords.xy, 0.0, 1.0);
+    gl_Position = global.projview * vec4(vec3(vec3(in_coords.xy, 0.0) + local.offset), 1.0);
 }

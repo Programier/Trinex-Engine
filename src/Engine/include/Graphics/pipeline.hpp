@@ -10,6 +10,23 @@ namespace Engine
     class FragmentShader;
     class RenderPass;
 
+    struct ENGINE_EXPORT LocalMaterialParametersInfo {
+        struct ENGINE_EXPORT Entry {
+            Name name;
+            size_t size;
+            size_t offset;
+
+            bool is_valid() const;
+        };
+
+        Map<Name, Entry, Name::HashFunction> parameters;
+
+        const Entry& find(const Name& name) const;
+        bool empty() const;
+    };
+
+    ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
+
     class ENGINE_EXPORT Pipeline : public RenderResource
     {
         declare_class(Pipeline, RenderResource);
@@ -75,6 +92,10 @@ namespace Engine
             Vector4D blend_constants = {0.f, 0.f, 0.f, 0.f};
             bool logic_op_enable     = false;
         } ALIGNED(4) color_blending;
+
+
+        LocalMaterialParametersInfo local_parameters;
+        bool has_global_parameters;
 
     public:
         RenderPass* render_pass         = nullptr;

@@ -26,7 +26,6 @@ namespace Engine
     implement_class(FragmentShader, Engine, 0);
     implement_default_initialize_class(FragmentShader);
 
-
     static FORCE_INLINE Path get_shader_path(Shader* shader)
     {
         static String replace_to = "";
@@ -49,8 +48,8 @@ namespace Engine
             return false;
 
         Archive ar(&reader);
-        ar& text_code;
-        ar& binary_code;
+        ar & text_code;
+        ar & binary_code;
         return true;
     }
 
@@ -63,8 +62,8 @@ namespace Engine
             return false;
 
         Archive ar(&writer);
-        ar& text_code;
-        ar& binary_code;
+        ar & text_code;
+        ar & binary_code;
         return true;
     }
 
@@ -73,11 +72,10 @@ namespace Engine
         if (!Super::archive_process(ar))
             return false;
 
-        ar& uniform_buffers;
-        ar& samplers;
-        ar& textures;
-        ar& combined_samplers;
-        ar& ssbo;
+        ar & samplers;
+        ar & textures;
+        ar & combined_samplers;
+        ar & ssbo;
 
         bool result = false;
         if (ar.is_reading())
@@ -102,7 +100,7 @@ namespace Engine
         if (!Super::archive_process(ar))
             return false;
 
-        ar& attributes;
+        ar & attributes;
         return ar;
     }
 
@@ -122,35 +120,26 @@ namespace Engine
         return Type::Fragment;
     }
 
-
-    ENGINE_EXPORT bool operator&(Archive& ar, Shader::UniformBuffer& buffer)
-    {
-        ar& buffer.name;
-        ar& buffer.location.id;
-        ar& buffer.size;
-        return ar;
-    }
-
     ENGINE_EXPORT bool operator&(Archive& ar, Shader::SSBO& buffer)
     {
-        ar& buffer.name;
-        ar& buffer.location.id;
+        ar & buffer.name;
+        ar & buffer.location.id;
         return ar;
     }
 
     ENGINE_EXPORT bool operator&(Archive& ar, Shader::Texture& texture)
     {
-        ar& texture.name;
-        ar& texture.location.id;
+        ar & texture.name;
+        ar & texture.location.id;
         return ar;
     }
 
     ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
     {
-        ar& attrib.name;
-        ar& attrib.count;
-        ar& attrib.format;
-        ar& attrib.rate;
+        ar & attrib.name;
+        ar & attrib.count;
+        ar & attrib.format;
+        ar & attrib.rate;
         return ar;
     }
 

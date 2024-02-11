@@ -11,6 +11,58 @@
 
 namespace Engine
 {
+    const LocalMaterialParametersInfo::Entry& LocalMaterialParametersInfo::find(const Name& name) const
+    {
+        static const LocalMaterialParametersInfo::Entry entry = {};
+        auto it                                               = parameters.find(name);
+        if (it != parameters.end())
+            return it->second;
+
+        return entry;
+    }
+
+    bool LocalMaterialParametersInfo::empty() const
+    {
+        return parameters.empty();
+    }
+
+    bool LocalMaterialParametersInfo::Entry::is_valid() const
+    {
+        return name.is_valid() && size != 0;
+    }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info)
+    {
+        size_t count = info.parameters.size();
+        ar & count;
+
+        if (ar.is_saving())
+        {
+            for (auto& ell : info.parameters)
+            {
+                ar & ell.second.name;
+                ar & ell.second.size;
+                ar & ell.second.offset;
+            }
+        }
+        else
+        {
+            LocalMaterialParametersInfo::Entry entry;
+            while (count > 0)
+            {
+                ar & entry.name;
+                ar & entry.size;
+                ar & entry.offset;
+
+                info.parameters[entry.name] = entry;
+                --count;
+            }
+        }
+
+        return ar;
+    }
+
+
     implement_struct(DepthTestInfo, Engine::Pipeline, ).push([]() {
         using DTI    = Pipeline::DepthTestInfo;
         Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);
@@ -165,15 +217,17 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
-        archive& depth_test;
-        archive& stencil_test;
-        archive& input_assembly;
-        archive& rasterizer;
+        archive & depth_test;
+        archive & stencil_test;
+        archive & input_assembly;
+        archive & rasterizer;
 
-        archive& color_blending.blend_attachment;
-        archive& color_blending.blend_constants;
-        archive& color_blending.logic_op;
-        archive& color_blending.logic_op_enable;
+        archive & color_blending.blend_attachment;
+        archive & color_blending.blend_constants;
+        archive & color_blending.logic_op;
+        archive & color_blending.logic_op_enable;
+
+        archive& has_global_parameters;
 
         vertex_shader->archive_process(archive);
         fragment_shader->archive_process(archive);

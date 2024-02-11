@@ -28,12 +28,25 @@ namespace Engine
 
     struct OpenGL_UniformBuffer {
         GLuint _M_id;
+        size_t _M_size;
 
         OpenGL_UniformBuffer(size_t size);
         void bind(BindLocation location);
         void update(size_t offset, size_t size, const byte* data);
 
         ~OpenGL_UniformBuffer();
+    };
+
+    struct OpenGL_LocalUniformBuffer {
+        Vector<OpenGL_UniformBuffer*> _M_buffers;
+        Vector<byte> shadow_data;
+        size_t shadow_data_size = 0;
+        Index index             = 0;
+
+        OpenGL_LocalUniformBuffer();
+        void bind();
+        void update(const void* data, size_t size, size_t offset);
+        ~OpenGL_LocalUniformBuffer();
     };
 
     struct OpenGL_SSBO : public RHI_SSBO {
