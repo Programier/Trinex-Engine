@@ -34,10 +34,6 @@ namespace Engine
     {
         if (class_instance->is_a(MaterialInterface::static_class_instance()))
             return true;
-
-        if (class_instance == MaterialObject::static_class_instance())
-            return true;
-
         return false;
     }
 

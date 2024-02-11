@@ -4,6 +4,7 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_pass.hpp>
@@ -20,7 +21,7 @@ namespace Engine
     {
         declare_class(GameViewportClient, ViewportClient);
         TexCoordVertexBuffer* vertex_buffer;
-        Pipeline* pipeline;
+        Material* material;
 
         CameraComponent* camera;
 
@@ -65,12 +66,13 @@ namespace Engine
             vertex_buffer->buffer = {{-1, -1}, {-1, 1}, {1, 1}, {-1, -1}, {1, 1}, {1, -1}};
             vertex_buffer->init_resource();
 
-            pipeline = Object::new_instance<Pipeline>();
+            material           = Object::new_instance<Material>();
+            Pipeline* pipeline = material->pipeline;
 
             pipeline->vertex_shader->attributes.push_back(VertexShader::Attribute(ColorFormat::R32G32Sfloat));
             pipeline->vertex_shader->binary_code = FileReader("shaders/gradient/vertex.vm").read_buffer();
             pipeline->vertex_shader->text_code   = FileReader("shaders/gradient/vertex.vert").read_string();
-            pipeline->local_parameters.parameters.insert({"offset", LocalMaterialParametersInfo::Entry{"offset", 12, 0}});
+            pipeline->local_parameters.update("offset", 0);
             pipeline->has_global_parameters = true;
 
             pipeline->fragment_shader->binary_code = FileReader("shaders/gradient/fragment.fm").read_buffer();
@@ -81,7 +83,7 @@ namespace Engine
 
             pipeline->color_blending.blend_attachment.resize(1);
             pipeline->render_pass = RenderPass::load_render_pass(RenderPass::Window);
-            pipeline->postload();
+            material->postload();
 
 
             camera = Object::new_instance<CameraComponent>();
@@ -114,7 +116,7 @@ namespace Engine
 
             for (int i = 0; i < 2; i++)
             {
-                pipeline->rhi_bind();
+                material->apply();
                 vertex_buffer->rhi_bind(0, 0);
 
                 Vector3D offset = {0, 0, -i};

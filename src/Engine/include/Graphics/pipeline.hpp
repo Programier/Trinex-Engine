@@ -11,18 +11,24 @@ namespace Engine
     class RenderPass;
 
     struct ENGINE_EXPORT LocalMaterialParametersInfo {
-        struct ENGINE_EXPORT Entry {
-            Name name;
-            size_t size;
-            size_t offset;
+    public:
+        using OffsetMap = Map<Name, size_t, Name::HashFunction>;
 
-            bool is_valid() const;
-        };
+    private:
+        OffsetMap _M_parameters_offset;
 
-        Map<Name, Entry, Name::HashFunction> parameters;
+    public:
+        static const size_t no_offset;
 
-        const Entry& find(const Name& name) const;
         bool empty() const;
+        size_t size() const;
+
+        const size_t offset_of(const Name& name) const;
+        LocalMaterialParametersInfo& update(const Name& name, size_t new_offset);
+        LocalMaterialParametersInfo& remove(const Name& name);
+        const OffsetMap& offset_map() const;
+
+        friend bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
     };
 
     ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info);

@@ -13,6 +13,8 @@ namespace Engine
         PointerBase& add_reference(Object* object);
         PointerBase& remove_reference(Object* object);
         PointerBase();
+
+        bool archive_process(class Archive& ar, Object*& object, bool is_reference);
     };
 
 
@@ -120,6 +122,12 @@ namespace Engine
         ~Pointer()
         {
             remove_reference(_M_object);
+        }
+
+
+        bool archive_process(class Archive& ar, bool is_reference = true)
+        {
+            return PointerBase::archive_process(ar, _M_object, is_reference);
         }
     };
 }// namespace Engine

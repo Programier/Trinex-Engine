@@ -137,4 +137,20 @@ namespace Engine
         bool operator>=(const BindLocation& location) const;
         bool is_valid() const;
     };
+
+    struct ENGINE_EXPORT VertexBufferStream {
+        BindingIndex stream;
+        VertexBufferSemantic semantic;
+        byte index = 0;
+
+        FORCE_INLINE bool operator==(const VertexBufferStream& other) const
+        {
+            return other.stream == stream && other.semantic == semantic && other.index == index;
+        }
+
+        FORCE_INLINE bool operator!=(const VertexBufferStream& other) const
+        {
+            return !((*this) == other);
+        }
+    };
 }// namespace Engine

@@ -186,7 +186,6 @@ namespace Engine
         _M_buffers.clear();
     }
 
-
     OpenGL_SSBO::OpenGL_SSBO(size_t size, const byte* data)
     {
         glGenBuffers(1, &_M_id);

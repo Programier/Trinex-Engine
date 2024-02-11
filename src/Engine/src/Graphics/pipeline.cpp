@@ -11,50 +11,73 @@
 
 namespace Engine
 {
-    const LocalMaterialParametersInfo::Entry& LocalMaterialParametersInfo::find(const Name& name) const
+
+    const size_t LocalMaterialParametersInfo::no_offset = ~static_cast<size_t>(0);
+
+    const size_t LocalMaterialParametersInfo::offset_of(const Name& name) const
     {
-        static const LocalMaterialParametersInfo::Entry entry = {};
-        auto it                                               = parameters.find(name);
-        if (it != parameters.end())
+        auto it = _M_parameters_offset.find(name);
+        if (it != _M_parameters_offset.end())
             return it->second;
 
-        return entry;
+        return no_offset;
+    }
+
+    LocalMaterialParametersInfo& LocalMaterialParametersInfo::update(const Name& name, size_t new_offset)
+    {
+        if (name.is_valid())
+        {
+            _M_parameters_offset[name] = new_offset;
+        }
+        return *this;
+    }
+
+    LocalMaterialParametersInfo& LocalMaterialParametersInfo::remove(const Name& name)
+    {
+        _M_parameters_offset.erase(name);
+        return *this;
+    }
+
+    const LocalMaterialParametersInfo::OffsetMap& LocalMaterialParametersInfo::offset_map() const
+    {
+        return _M_parameters_offset;
     }
 
     bool LocalMaterialParametersInfo::empty() const
     {
-        return parameters.empty();
+        return _M_parameters_offset.empty();
     }
 
-    bool LocalMaterialParametersInfo::Entry::is_valid() const
+    size_t LocalMaterialParametersInfo::size() const
     {
-        return name.is_valid() && size != 0;
+        return _M_parameters_offset.size();
     }
 
     ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info)
     {
-        size_t count = info.parameters.size();
+        size_t count = info._M_parameters_offset.size();
         ar & count;
 
         if (ar.is_saving())
         {
-            for (auto& ell : info.parameters)
+            Name name;
+            for (auto& ell : info._M_parameters_offset)
             {
-                ar & ell.second.name;
-                ar & ell.second.size;
-                ar & ell.second.offset;
+                name = ell.first;
+                ar & name;
+                ar & ell.second;
             }
         }
         else
         {
-            LocalMaterialParametersInfo::Entry entry;
+            Name name;
+            size_t offset = 0;
             while (count > 0)
             {
-                ar & entry.name;
-                ar & entry.size;
-                ar & entry.offset;
+                ar & name;
+                ar & offset;
 
-                info.parameters[entry.name] = entry;
+                info.update(name, offset);
                 --count;
             }
         }
@@ -230,7 +253,7 @@ namespace Engine
         archive & color_blending.logic_op;
         archive & color_blending.logic_op_enable;
 
-        archive& has_global_parameters;
+        archive & has_global_parameters;
 
         vertex_shader->archive_process(archive);
         fragment_shader->archive_process(archive);
