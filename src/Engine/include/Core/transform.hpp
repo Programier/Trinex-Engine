@@ -25,7 +25,7 @@ namespace Engine
         static Quaternion calc_rotation(const Vector3D& axis, float angle);
         static Quaternion calc_rotation(const Vector3D& angles);
 
-        Transform& update(class SceneComponent* scene_component);
+        Transform& update(class SceneComponent* scene_component, bool is_parent = false);
         Transform& update();
 
         String as_string() const;

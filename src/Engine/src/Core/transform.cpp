@@ -4,6 +4,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/transform.hpp>
+#include <Engine/ActorComponents/scene_component.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
@@ -19,9 +20,19 @@ namespace Engine
     }
 
 
-    Transform& Transform::update(class SceneComponent* scene_component)
+    Transform& Transform::update(class SceneComponent* scene_component, bool is_parent)
     {
-        local_to_world = matrix();
+        if (!is_parent)
+            scene_component = scene_component->parent();
+
+        if (scene_component)
+        {
+            local_to_world = scene_component->transform.local_to_world * matrix();
+        }
+        else
+        {
+            local_to_world = matrix();
+        }
         return *this;
     }
 
