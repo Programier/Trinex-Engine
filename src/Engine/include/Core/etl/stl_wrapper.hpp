@@ -44,9 +44,17 @@ namespace Engine
              typename AllocatorType = Allocator<Type>>
     using Set = std::unordered_set<Type, HashType, Pred, AllocatorType>;
 
+    template<typename Type, typename HashType = Hash<Type>, typename Pred = std::equal_to<Type>,
+             typename AllocatorType = Allocator<Type>>
+    using MultiSet = std::unordered_multiset<Type, HashType, Pred, AllocatorType>;
+
     template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,
              typename AllocatorType = Allocator<Pair<const Key, Value>>>
     using Map = std::unordered_map<Key, Value, HashType, Pred, AllocatorType>;
+
+    template<typename Key, typename Value, typename HashType = Hash<Key>, typename Pred = std::equal_to<Key>,
+             typename AllocatorType = Allocator<Pair<const Key, Value>>>
+    using MultiMap = std::unordered_multimap<Key, Value, HashType, Pred, AllocatorType>;
 
     template<typename Type, size_t extend = std::dynamic_extent>
     using Span = std::span<Type, extend>;
@@ -54,9 +62,16 @@ namespace Engine
     template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = Allocator<Type>>
     using TreeSet = std::set<Type, Compare, AllocatorType>;
 
+    template<typename Type, typename Compare = std::less<Type>, typename AllocatorType = Allocator<Type>>
+    using TreeMultiSet = std::multiset<Type, Compare, AllocatorType>;
+
     template<typename Key, typename Value, typename Compare = std::less<Key>,
              typename AllocatorType = Allocator<Pair<const Key, Value>>>
     using TreeMap = std::map<Key, Value, Compare, AllocatorType>;
+
+    template<typename Key, typename Value, typename Compare = std::less<Key>,
+             typename AllocatorType = Allocator<Pair<const Key, Value>>>
+    using TreeMultiMap = std::multimap<Key, Value, Compare, AllocatorType>;
 
     template<typename... Args>
     using Tuple = std::tuple<Args...>;

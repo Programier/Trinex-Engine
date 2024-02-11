@@ -14,6 +14,12 @@ namespace Engine
         return entries;
     }
 
+    static MultiMap<HashIndex, Index>& name_index_map()
+    {
+        static MultiMap<HashIndex, Index> indices;
+        return indices;
+    }
+
     static const String& default_string()
     {
         static String default_name;
@@ -22,6 +28,7 @@ namespace Engine
 
     static FORCE_INLINE void push_new_name(const char* name, size_t len, HashIndex hash)
     {
+        name_index_map().insert({hash, name_entries().size()});
         name_entries().push_back(Name::Entry{String(name, len), hash});
     }
 
@@ -61,20 +68,25 @@ namespace Engine
             return *this;
         }
 
-        HashIndex hash                  = memory_hash_fast(view.data(), view.length(), 0);
-        Vector<Name::Entry>& name_table = name_entries();
+        HashIndex hash                      = memory_hash_fast(view.data(), view.length(), 0);
+        Vector<Name::Entry>& name_table     = name_entries();
+        MultiMap<HashIndex, Index>& indices = name_index_map();
 
         _M_index = name_table.size();
 
-        for (Index index = 0; index < _M_index; ++index)
-        {
-            const Name::Entry& entry = name_table[index];
+        auto range = indices.equal_range(hash);
 
-            if (entry.hash == hash)
+        while (range.first != range.second)
+        {
+            Index index = range.first->second;
+
+            if (name_table[index].name == view)
             {
                 _M_index = index;
                 return *this;
             }
+
+            ++range.first;
         }
 
         push_new_name(view.data(), view.length(), hash);
@@ -234,12 +246,12 @@ namespace Engine
     ENGINE_EXPORT bool operator&(class Archive& ar, Name& name)
     {
         bool is_valid = name.is_valid();
-        ar& is_valid;
+        ar & is_valid;
 
         if (is_valid)
         {
             String string_name = name.to_string();
-            ar& string_name;
+            ar & string_name;
 
             if (ar.is_reading())
             {
@@ -281,12 +293,10 @@ namespace Engine
         registrar.method("Engine::Name& opAssign(const Engine::Name& in)", method_of<Name&, Name, const Name&>(&Name::operator=));
         registrar.method("Engine::Name& opAssign(const StringView& in)",
                          method_of<Name&, Name, const StringView&>(&Name::operator=));
-        registrar.method("Engine::Name& opAssign(const string& in)",
-                         method_of<Name&, Name, const String&>(&Name::operator=));
+        registrar.method("Engine::Name& opAssign(const string& in)", method_of<Name&, Name, const String&>(&Name::operator=));
         registrar.method("bool opEquals(const StringView& in) const",
                          method_of<bool, Name, const StringView&>(&Name::operator==));
-        registrar.method("bool opEquals(const string& in) const",
-                         method_of<bool, Name, const String&>(&Name::operator==));
+        registrar.method("bool opEquals(const string& in) const", method_of<bool, Name, const String&>(&Name::operator==));
         registrar.method("bool opEquals(const Name& in) const", method_of<bool, Name, const Name&>(&Name::operator==));
 
         registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
