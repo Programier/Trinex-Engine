@@ -197,9 +197,12 @@ namespace Engine
 
     Pipeline& Pipeline::postload()
     {
-        Super::postload();
+        // Initialize shaders first!
         vertex_shader->postload();
         fragment_shader->postload();
+
+        Super::postload();
+
         return *this;
     }
 
