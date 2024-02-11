@@ -32,7 +32,6 @@ namespace Engine
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
-        RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
@@ -40,6 +39,10 @@ namespace Engine
         size_t render_target_buffer_count() override;
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
+
+        NoApi& push_global_params(GlobalShaderParameters* params = nullptr) override;
+        NoApi& update_global_params(void* data, size_t size, size_t offset) override;
+        NoApi& pop_global_params()                                          override;
 
         void line_width(float width) override;
 

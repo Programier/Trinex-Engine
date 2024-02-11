@@ -44,6 +44,7 @@ namespace Engine
             void* _M_handle = nullptr;
             class Window* _M_window;
             class RenderTarget* _M_render_target;
+            class RenderTargetBase* _M_render_target_base;
         };
 
         Pointer<ViewportClient> _M_client;
@@ -55,6 +56,7 @@ namespace Engine
         RenderViewport& rhi_create() override;
         Window* window() const;
         RenderTarget* render_target() const;
+        RenderTargetBase* base_render_target() const;
         RenderViewport& window(Window* window_interface, bool vsync);
         RenderViewport& render_target(RenderTarget* rt);
         Type type() const;
@@ -63,12 +65,13 @@ namespace Engine
         bool vsync();
         RenderViewport& vsync(bool flag);
         RenderViewport& on_resize(const Size2D& new_size);
-        RHI_RenderTarget* render_target();
+        RHI_RenderTarget* rhi_render_target();
         RenderViewport& render();
 
         ViewportClient* client() const;
         RenderViewport& client(ViewportClient* client);
         RenderViewport& update(float dt);
+        RenderViewport& rhi_bind();
 
         static RenderViewport* current();
 

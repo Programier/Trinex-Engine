@@ -9,7 +9,7 @@
 
 namespace Engine
 {
-    Matrix4f Transform::local_to_world() const
+    Matrix4f Transform::matrix() const
     {
         Matrix4f transformation = Matrix4f(1.0f);
         transformation          = glm::translate(transformation, location);
@@ -18,9 +18,22 @@ namespace Engine
         return transformation;
     }
 
+
+    Transform& Transform::update(class SceneComponent* scene_component)
+    {
+        local_to_world = matrix();
+        return *this;
+    }
+
+    Transform& Transform::update()
+    {
+        local_to_world = matrix();
+        return *this;
+    }
+
     Matrix4f Transform::world_to_local()
     {
-        return glm::inverse(local_to_world());
+        return glm::inverse(local_to_world);
     }
 
     Vector3D Transform::forward_vector() const
@@ -61,9 +74,9 @@ namespace Engine
 
     bool operator&(Archive& ar, Transform& t)
     {
-        ar& t.location;
-        ar& t.scale;
-        ar& t.rotation;
+        ar & t.location;
+        ar & t.scale;
+        ar & t.rotation;
         return static_cast<bool>(ar);
     }
 

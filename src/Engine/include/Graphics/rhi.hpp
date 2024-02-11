@@ -23,6 +23,7 @@ namespace Engine
     class RenderTarget;
     class RenderPass;
     class Texture;
+    struct GlobalShaderParameters;
 
     struct RHI_Object {
         FORCE_INLINE virtual Identifier internal_type()// For internal usage
@@ -83,10 +84,6 @@ namespace Engine
         virtual void bind(size_t offset) = 0;
     };
 
-    struct RHI_UniformBuffer : RHI_Buffer {
-        virtual void bind(BindLocation location) = 0;
-    };
-
     struct RHI_SSBO : RHI_Buffer {
         virtual void bind(BindLocation location) = 0;
     };
@@ -132,7 +129,6 @@ namespace Engine
         virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                              = 0;
         virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data)                = 0;
         virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) = 0;
-        virtual RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data)              = 0;
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                 = 0;
         virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                    = 0;
         virtual RHI_RenderPass* window_render_pass()                                                 = 0;
@@ -141,6 +137,10 @@ namespace Engine
 
         virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
         virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;
+
+        virtual RHI& push_global_params(GlobalShaderParameters* params = nullptr) = 0;
+        virtual RHI& update_global_params(void* data, size_t size, size_t offset) = 0;
+        virtual RHI& pop_global_params()                                          = 0;
 
         // Dynamic state
         virtual void line_width(float width) = 0;

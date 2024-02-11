@@ -26,13 +26,12 @@ namespace Engine
         ~OpenGL_IndexBuffer();
     };
 
-    struct OpenGL_UniformBuffer : public RHI_UniformBuffer {
+    struct OpenGL_UniformBuffer {
         GLuint _M_id;
 
-
-        OpenGL_UniformBuffer(size_t size, const byte* data);
-        void bind(BindLocation location) override;
-        void update(size_t offset, size_t size, const byte* data) override;
+        OpenGL_UniformBuffer(size_t size);
+        void bind(BindLocation location);
+        void update(size_t offset, size_t size, const byte* data);
 
         ~OpenGL_UniformBuffer();
     };

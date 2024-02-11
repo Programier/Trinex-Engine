@@ -58,7 +58,7 @@ namespace Engine
 
             float prev_time    = 1.0f / static_cast<float>(engine_config.fps_limit);
             float current_time = 0.0f;
-            float dt           = 0.0f;
+            _M_delta_time      = 0.0f;
 
             while (!is_requesting_exit())
             {
@@ -71,11 +71,11 @@ namespace Engine
                     }
                 }
 
-                current_time = time_seconds();
-                dt           = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * dt;
-                prev_time    = current_time;
+                current_time  = time_seconds();
+                _M_delta_time = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * _M_delta_time;
+                prev_time     = current_time;
 
-                engine_system->update(dt);
+                engine_system->update(_M_delta_time);
                 engine_system->wait();
 
                 // Update Viewports
@@ -84,7 +84,7 @@ namespace Engine
 
                 for (auto& viewport : viewports)
                 {
-                    viewport->update(dt);
+                    viewport->update(_M_delta_time);
                 }
 
                 render_thread->wait_all();

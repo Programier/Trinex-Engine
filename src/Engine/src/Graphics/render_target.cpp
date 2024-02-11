@@ -59,6 +59,11 @@ namespace Engine
         return _M_frames.size();
     }
 
+    Size2D RenderTarget::render_target_size() const
+    {
+        return size;
+    }
+
 
     RenderTarget::~RenderTarget()
     {

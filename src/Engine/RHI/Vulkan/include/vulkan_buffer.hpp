@@ -46,18 +46,4 @@ namespace Engine
         void bind(BindLocation location) override;
         void update(size_t offset, size_t size, const byte* data) override;
     };
-
-
-    struct VulkanUniformBuffer : public RHI_UniformBuffer {
-        Vector<VulkanBuffer*> _M_buffer;
-
-        VulkanUniformBuffer(const byte* data, size_t size);
-        VulkanBuffer* current_buffer();
-
-        void bind(BindLocation location) override;
-        void update(size_t offset, size_t size, const byte* data) override;
-
-        ~VulkanUniformBuffer();
-    };
-
 }// namespace Engine

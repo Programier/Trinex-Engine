@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/logger.hpp>
+#include <Graphics/global_shader_parameters.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_definitions.hpp>
 #include <opengl_headers.hpp>
@@ -31,9 +32,14 @@ namespace Engine
         struct OpenGL_IndexBuffer* _M_current_index_buffer   = nullptr;
         Vector<BindingIndex> _M_sampler_units;
 
+        Vector<GlobalShaderParameters> _M_global_parameters_stack;
+        struct OpenGL_UniformBuffer* _M_global_ubo = nullptr;
+        struct OpenGL_UniformBuffer* _M_local_ubo  = nullptr;
+
 
         OpenGL();
         OpenGL& initialize();
+        OpenGL& initialize_ubo();
         ~OpenGL();
         OpenGL& imgui_init(ImGuiContext*) override;
         OpenGL& imgui_terminate(ImGuiContext*) override;
@@ -42,6 +48,7 @@ namespace Engine
         RHI_ImGuiTexture* imgui_create_texture(ImGuiContext*, Texture* texture, Sampler* sampler) override;
 
         //        ///////////////// TEXTURE PART /////////////////
+        OpenGL& prepare_render();
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
         OpenGL& draw(size_t vertex_count) override;
 
@@ -61,7 +68,6 @@ namespace Engine
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
-        RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
@@ -71,6 +77,10 @@ namespace Engine
 
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
+
+        OpenGL& push_global_params(GlobalShaderParameters* params = nullptr) override;
+        OpenGL& update_global_params(void* data, size_t size, size_t offset) override;
+        OpenGL& pop_global_params() override;
 
         void push_debug_stage(const char* stage, const Color& color = {}) override;
         void pop_debug_stage() override;

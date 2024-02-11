@@ -13,8 +13,10 @@ namespace Engine
         Vector3D location   = Vector3D(0.0f);
         Vector3D scale      = Vector3D(1.0f);
 
+        Matrix4f local_to_world;
+
     public:
-        Matrix4f local_to_world() const;
+        Matrix4f matrix() const;
         Matrix4f world_to_local();
         Vector3D forward_vector() const;
         Vector3D right_vector() const;
@@ -22,6 +24,9 @@ namespace Engine
 
         static Quaternion calc_rotation(const Vector3D& axis, float angle);
         static Quaternion calc_rotation(const Vector3D& angles);
+
+        Transform& update(class SceneComponent* scene_component);
+        Transform& update();
 
         String as_string() const;
     };

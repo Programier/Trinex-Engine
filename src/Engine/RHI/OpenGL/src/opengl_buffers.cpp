@@ -1,8 +1,12 @@
+#include <Graphics/global_shader_parameters.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>
 #include <opengl_buffers.hpp>
 #include <opengl_shader.hpp>
+
+
+#define MAX_LOCAL_UBO_SIZE 4096
 
 namespace Engine
 {
@@ -108,18 +112,17 @@ namespace Engine
     }
 
 
-    OpenGL_UniformBuffer::OpenGL_UniformBuffer(size_t size, const byte* data)
+    OpenGL_UniformBuffer::OpenGL_UniformBuffer(size_t size)
     {
         glGenBuffers(1, &_M_id);
         glBindBuffer(GL_UNIFORM_BUFFER, _M_id);
-        glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
     }
 
     void OpenGL_UniformBuffer::bind(BindLocation location)
     {
         glBindBufferBase(GL_UNIFORM_BUFFER, location.binding, _M_id);
     }
-
 
     void OpenGL_UniformBuffer::update(size_t offset, size_t size, const byte* data)
     {
@@ -131,13 +134,6 @@ namespace Engine
     {
         glDeleteBuffers(1, &_M_id);
     }
-
-
-    RHI_UniformBuffer* OpenGL::create_uniform_buffer(size_t size, const byte* data)
-    {
-        return new OpenGL_UniformBuffer(size, data);
-    }
-
 
     OpenGL_SSBO::OpenGL_SSBO(size_t size, const byte* data)
     {
@@ -166,4 +162,42 @@ namespace Engine
     {
         return new OpenGL_SSBO(size, data);
     }
+
+    OpenGL& OpenGL::initialize_ubo()
+    {
+        _M_global_ubo = new OpenGL_UniformBuffer(sizeof(GlobalShaderParameters));
+        _M_local_ubo  = new OpenGL_UniformBuffer(MAX_LOCAL_UBO_SIZE);
+        return *this;
+    }
+
+    OpenGL& OpenGL::push_global_params(GlobalShaderParameters* params)
+    {
+        if (params)
+        {
+            _M_global_parameters_stack.push_back(*params);
+            update_global_params(reinterpret_cast<void*>(params), sizeof(GlobalShaderParameters), 0);
+        }
+        return *this;
+    }
+
+    OpenGL& OpenGL::update_global_params(void* data, size_t size, size_t offset)
+    {
+        _M_global_ubo->update(offset, size, reinterpret_cast<const byte*>(data));
+        return *this;
+    }
+
+    OpenGL& OpenGL::pop_global_params()
+    {
+        if (!_M_global_parameters_stack.empty())
+        {
+            _M_global_parameters_stack.pop_back();
+            if (!_M_global_parameters_stack.empty())
+            {
+                GlobalShaderParameters& params = _M_global_parameters_stack.back();
+                _M_global_ubo->update(0, sizeof(GlobalShaderParameters), reinterpret_cast<const byte*>(&params));
+            }
+        }
+        return *this;
+    }
+
 }// namespace Engine

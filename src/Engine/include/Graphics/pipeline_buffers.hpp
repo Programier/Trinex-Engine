@@ -155,19 +155,6 @@ namespace Engine
         IntBuffer* int_buffer() const;
     };
 
-    class ENGINE_EXPORT UniformBuffer : public PipelineBuffer
-    {
-        declare_class(UniformBuffer, PipelineBuffer);
-
-    public:
-        size_t init_size      = 0;
-        const byte* init_data = nullptr;
-
-        UniformBuffer& rhi_create() override;
-        UniformBuffer& rhi_bind(BindLocation location);
-    };
-
-
     class ENGINE_EXPORT SSBO : public PipelineBuffer
     {
         declare_class(SSBO, PipelineBuffer);

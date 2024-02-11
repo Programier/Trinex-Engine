@@ -38,12 +38,13 @@ namespace Engine
     private:
         static EngineInstance* _M_instance;
 
+        Arguments _M_args;
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
         RHI* _M_rhi = nullptr;
         Flags<EngineInstance::Flag> _M_flags;
         Index _M_frame_index = 0;
 
-        Arguments _M_args;
+        float _M_delta_time;
 
 
         EngineInstance();
@@ -75,6 +76,7 @@ namespace Engine
         int_t launch();
 
         float time_seconds() const;
+        float delta_time() const;
         Index frame_index() const;
 
         friend class Singletone;

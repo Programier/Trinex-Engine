@@ -47,7 +47,7 @@ namespace Engine
         _M_render_viewport->window(this, vsync);
         _M_render_viewport->init_resource(true);
 
-        _M_rhi_object.reset(_M_render_viewport->render_target());
+        _M_rhi_object.reset(_M_render_viewport->rhi_render_target());
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
         render_pass = RenderPass::load_render_pass(RenderPass::Type::Window);
@@ -95,6 +95,11 @@ namespace Engine
     }
 
     Size2D Window::size()
+    {
+        return _M_interface->size();
+    }
+
+    Size2D Window::render_target_size() const
     {
         return _M_interface->size();
     }

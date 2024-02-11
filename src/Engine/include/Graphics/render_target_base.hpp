@@ -12,24 +12,11 @@ namespace Engine
     {
         declare_class(RenderTargetBase, RenderResource);
 
-    public:
-        struct GlobalUniforms {
-            Matrix4f projview;
-            Vector2D size;
-            float time;
-            float dt;
-            float min_depth = 0.0f;
-            float max_depth = 1.0f;
-        };
-
-        GlobalUniforms global_ubo;
-
     protected:
         static RenderTargetBase* _M_current;
 
         ViewPort _M_viewport;
         Scissor _M_scissor;
-        Pointer<class UniformBuffer> _M_uniform_buffer;
         byte _M_frame_index = -1;
 
     public:
@@ -46,7 +33,7 @@ namespace Engine
         const RenderTargetBase& clear_color(const ColorClearValue& color, byte layout = 0) const;
         const RenderTargetBase& clear_depth_stencil(const DepthStencilClearValue& value) const;
         RenderTargetBase& rhi_create() override;
-        UniformBuffer* uniform_buffer() const;
+        virtual Size2D render_target_size() const = 0;
 
         static RenderTargetBase* current_target();
         static void reset_current_target();

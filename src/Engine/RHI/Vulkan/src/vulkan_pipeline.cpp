@@ -15,46 +15,52 @@
 
 namespace Engine
 {
-    static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage, uint_t set,
-                                    uint_t binding, vk::DescriptorType type)
+    static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage,
+                                    BindLocation location, vk::DescriptorType type)
     {
-        if (set >= out.size())
+        if (location.set >= out.size())
         {
-            out.resize(set + 1);
+            out.resize(location.set + 1);
         }
 
-        out[set].push_back(vk::DescriptorSetLayoutBinding(binding, type, 1, stage, nullptr));
+        for (auto& entry : out[location.set])
+        {
+            if (entry.binding == location.binding && entry.descriptorType == type)
+            {
+                entry.stageFlags |= stage;
+                return;
+            }
+        }
+
+        out[location.set].push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stage, nullptr));
     }
 
     static void create_base_descriptor_layout(const Shader* shader, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
                                               vk::ShaderStageFlags stage)
     {
-
         for (auto& buffer : shader->uniform_buffers)
         {
-            push_layout_binding(out, stage, buffer.location.set, buffer.location.binding, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stage, buffer.location, vk::DescriptorType::eUniformBuffer);
         }
 
         for (auto& texture : shader->textures)
         {
-            push_layout_binding(out, stage, texture.location.set, texture.location.binding, vk::DescriptorType::eSampledImage);
+            push_layout_binding(out, stage, texture.location, vk::DescriptorType::eSampledImage);
         }
 
         for (auto& sampler : shader->samplers)
         {
-            push_layout_binding(out, stage, sampler.location.set, sampler.location.binding, vk::DescriptorType::eSampler);
+            push_layout_binding(out, stage, sampler.location, vk::DescriptorType::eSampler);
         }
 
         for (auto& combined_sampler : shader->combined_samplers)
         {
-            push_layout_binding(out, stage, combined_sampler.location.set, combined_sampler.location.binding,
-                                vk::DescriptorType::eCombinedImageSampler);
+            push_layout_binding(out, stage, combined_sampler.location, vk::DescriptorType::eCombinedImageSampler);
         }
 
         for (auto& shared_buffer : shader->ssbo)
         {
-            push_layout_binding(out, stage, shared_buffer.location.set, shared_buffer.location.binding,
-                                vk::DescriptorType::eStorageBuffer);
+            push_layout_binding(out, stage, shared_buffer.location, vk::DescriptorType::eStorageBuffer);
         }
     }
 
@@ -452,20 +458,17 @@ namespace Engine
         return *this;
     }
 
-    VulkanPipeline& VulkanPipeline::bind_uniform_buffer(VulkanUniformBuffer* buffer, BindLocation location)
+    VulkanPipeline& VulkanPipeline::bind_uniform_buffer(const vk::Buffer& buffer, size_t offset, size_t size,
+                                                        BindLocation location)
     {
         if (!_M_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-
-            if (current_set->_M_current_ubo[location.binding] != buffer)
             {
-                vk::DescriptorBufferInfo buffer_info(buffer->current_buffer()->_M_buffer, 0, buffer->current_buffer()->_M_size);
-
+                vk::DescriptorBufferInfo buffer_info(buffer, offset, size);
                 vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);
                 API->_M_device.updateDescriptorSets(write_descriptor, {});
-                current_set->_M_current_ubo[location.binding] = buffer;
             }
         }
         return *this;

@@ -14,7 +14,6 @@ namespace Engine
     implement_engine_class_default_init(PipelineBuffer);
     implement_engine_class_default_init(IndexBuffer);
     implement_engine_class_default_init(VertexBuffer);
-    implement_engine_class_default_init(UniformBuffer);
     implement_engine_class_default_init(SSBO);
 
 #define implement_vertex_buffer_class(name)                                                                                      \
@@ -194,23 +193,6 @@ namespace Engine
     {
         return size() / component_size();
     }
-
-
-    UniformBuffer& UniformBuffer::rhi_create()
-    {
-        _M_rhi_object.reset(engine_instance->rhi()->create_uniform_buffer(init_size, init_data));
-        return *this;
-    }
-
-    UniformBuffer& UniformBuffer::rhi_bind(BindLocation location)
-    {
-        if (_M_rhi_object)
-        {
-            rhi_object<RHI_UniformBuffer>()->bind(location);
-        }
-        return *this;
-    }
-
 
     SSBO& SSBO::rhi_create()
     {

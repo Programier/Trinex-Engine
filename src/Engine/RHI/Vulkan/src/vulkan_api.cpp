@@ -15,6 +15,7 @@
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_types.hpp>
+#include <vulkan_uniform_buffer.hpp>
 #include <vulkan_viewport.hpp>
 
 #define VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT 2
@@ -59,6 +60,13 @@ namespace Engine
     VulkanAPI::~VulkanAPI()
     {
         wait_idle();
+        for (VulkanUniformBuffer* buffer : _M_uniform_buffer)
+        {
+            delete buffer;
+        }
+
+        _M_uniform_buffer.clear();
+
         delete_garbage(true);
         delete _M_main_render_pass;
 
@@ -342,6 +350,13 @@ namespace Engine
         {
             throw EngineException("Vulkan requires a minimum of 2 images for Swapchain");
         }
+
+        _M_uniform_buffer.resize(_M_framebuffers_count);
+
+        for (VulkanUniformBuffer*& buffer : _M_uniform_buffer)
+        {
+            buffer = new VulkanUniformBuffer();
+        }
     }
 
     void VulkanAPI::check_extentions()
@@ -445,6 +460,7 @@ namespace Engine
     VulkanAPI& VulkanAPI::begin_render()
     {
         delete_garbage(false);
+        uniform_buffer()->reset();
         return *this;
     }
 
@@ -529,16 +545,22 @@ namespace Engine
         return *this;
     }
 
+    VulkanAPI& VulkanAPI::prepare_draw()
+    {
+        uniform_buffer()->bind();
+        return *this;
+    }
+
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
-        current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
+        prepare_draw().current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
         _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
-        current_command_buffer().draw(vertex_count, 1, 0, 0);
+        prepare_draw().current_command_buffer().draw(vertex_count, 1, 0, 0);
         _M_state->_M_pipeline->increment_set_index();
         return *this;
     }
@@ -552,6 +574,11 @@ namespace Engine
     {
         static String api_name = "Vulkan";
         return api_name;
+    }
+
+    VulkanUniformBuffer* VulkanAPI::uniform_buffer() const
+    {
+        return _M_uniform_buffer[_M_current_buffer];
     }
 
     void VulkanAPI::push_debug_stage(const char* stage, const Color& color)

@@ -13,15 +13,14 @@ namespace Engine
 
     OpenGL* OpenGL::_M_instance = nullptr;
 
-    static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                               const GLchar* message, const void* userParam)
+    static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
+                               const void* userParam)
     {
         if (type == GL_DEBUG_TYPE_ERROR)
         {
             error_log("OpenGL", "%s", message);
         }
     }
-
 
     OpenGL::OpenGL()
     {
@@ -45,11 +44,13 @@ namespace Engine
         glDebugMessageCallback(debug_callback, nullptr);
 
         _M_renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-        return *this;
+        return initialize_ubo();
     }
 
     OpenGL::~OpenGL()
     {
+        delete _M_global_ubo;
+        delete _M_local_ubo;
         delete _M_main_render_pass;
     }
 
@@ -81,8 +82,15 @@ namespace Engine
         return *this;
     }
 
+    OpenGL& OpenGL::prepare_render()
+    {
+        _M_global_ubo->bind({0, 0});
+        return *this;
+    }
+
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
     {
+        prepare_render();
         glDrawElements(_M_current_pipeline->_M_topology, indices_count, _M_current_index_buffer->_M_element_type,
                        reinterpret_cast<void*>(indices_offset));
         reset_samplers();
@@ -91,6 +99,7 @@ namespace Engine
 
     OpenGL& OpenGL::draw(size_t vertex_count)
     {
+        prepare_render();
         glDrawArrays(_M_current_pipeline->_M_topology, 0, vertex_count);
         reset_samplers();
         return *this;
@@ -113,6 +122,7 @@ namespace Engine
 
     OpenGL& OpenGL::begin_render()
     {
+        _M_global_parameters_stack.clear();
         return *this;
     }
 

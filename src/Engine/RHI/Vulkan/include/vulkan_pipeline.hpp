@@ -47,7 +47,7 @@ namespace Engine
 
         void bind() override;
         VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
-        VulkanPipeline& bind_uniform_buffer(VulkanUniformBuffer* buffer, BindLocation location);
+        VulkanPipeline& bind_uniform_buffer(const vk::Buffer& buffer, size_t offset, size_t size, BindLocation location);
         VulkanPipeline& bind_combined_sampler(struct VulkanSampler* sampler, struct VulkanTexture* texture,
                                               BindLocation location);
         VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);

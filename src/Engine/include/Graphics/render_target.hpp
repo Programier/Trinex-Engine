@@ -37,6 +37,7 @@ namespace Engine
         Frame* current_frame() const;
         Frame* frame(byte index) const;
         size_t frames_count() const;
+        Size2D render_target_size() const override;
 
         ~RenderTarget() override;
     };

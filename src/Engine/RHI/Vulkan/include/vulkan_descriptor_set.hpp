@@ -27,8 +27,6 @@ namespace Engine
         BindingVariable<VulkanSampler*> _M_sampler                      = {};
         BindingVariable<VulkanTexture*> _M_texture                      = {};
         BindingVariable<CombinedImageSampler> _M_combined_image_sampler = {};
-        BindingVariable<struct VulkanUniformBuffer*> _M_current_ubo     = {};
-
 
         VulkanDescriptorSet(vk::DescriptorPool& pool, vk::DescriptorSetLayout* layout);
         VulkanDescriptorSet& bind(vk::PipelineLayout& layout, BindingIndex set);

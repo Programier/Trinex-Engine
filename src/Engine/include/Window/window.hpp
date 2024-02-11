@@ -35,6 +35,7 @@ namespace Engine
         Size1D height();
         Window& height(const Size1D& height);
         Size2D size();
+        Size2D render_target_size() const override;
         Window& size(const Size2D& size);
         String title();
         Window& title(const String& title);

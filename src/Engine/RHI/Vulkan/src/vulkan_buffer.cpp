@@ -1,3 +1,4 @@
+#include <Graphics/global_shader_parameters.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_pipeline.hpp>
@@ -130,44 +131,6 @@ namespace Engine
         _M_buffer.update(offset, data, size);
     }
 
-
-    VulkanUniformBuffer::VulkanUniformBuffer(const byte* data, size_t size)
-    {
-        _M_buffer.reserve(API->_M_framebuffers_count);
-        for (uint32_t i = 0; i < API->_M_framebuffers_count; i++)
-        {
-            VulkanBuffer* buffer = new VulkanBuffer();
-            buffer->create(size, data, vk::BufferUsageFlagBits::eUniformBuffer);
-            _M_buffer.push_back(buffer);
-        }
-    }
-
-    VulkanBuffer* VulkanUniformBuffer::current_buffer()
-    {
-        return _M_buffer[API->_M_current_buffer];
-    }
-
-    void VulkanUniformBuffer::bind(BindLocation location)
-    {
-        if (API->_M_state->_M_pipeline)
-        {
-            API->_M_state->_M_pipeline->bind_uniform_buffer(this, location);
-        }
-    }
-
-    void VulkanUniformBuffer::update(size_t offset, size_t size, const byte* data)
-    {
-        current_buffer()->update(offset, data, size);
-    }
-
-    VulkanUniformBuffer::~VulkanUniformBuffer()
-    {
-        for (VulkanBuffer* buffer : _M_buffer)
-        {
-            delete buffer;
-        }
-    }
-
     RHI_VertexBuffer* VulkanAPI::create_vertex_buffer(size_t size, const byte* data)
     {
         return &(new VulkanVertexBuffer())->create(data, size);
@@ -178,10 +141,6 @@ namespace Engine
         return &(new VulkanIndexBuffer())->create(data, size, component);
     }
 
-    RHI_UniformBuffer* VulkanAPI::create_uniform_buffer(size_t size, const byte* data)
-    {
-        return new VulkanUniformBuffer(data, size);
-    }
 
     RHI_SSBO* VulkanAPI::create_ssbo(size_t size, const byte* data)
     {

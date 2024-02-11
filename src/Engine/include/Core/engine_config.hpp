@@ -30,6 +30,8 @@ namespace Engine
         uint_t max_gc_collected_objects;
         uint_t fps_limit = 60;
         bool enable_jit;
+
+        float gamma;
         virtual EngineConfig& update() override;
     };
 

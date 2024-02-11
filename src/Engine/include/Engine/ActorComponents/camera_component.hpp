@@ -10,13 +10,13 @@ namespace Engine
         declare_class(CameraComponent, SceneComponent);
 
     public:
-        CameraProjectionMode projection_mode;
-        float fov;
-        float ortho_width;
-        float ortho_height;
-        float near_clip_plane;
-        float far_clip_plane;
-        float aspect_ratio;
+        CameraProjectionMode projection_mode = CameraProjectionMode::Perspective;
+        float fov                            = 75.f;
+        float ortho_width                    = 1000.f;
+        float ortho_height                   = 1000.f;
+        float near_clip_plane                = 1.f;
+        float far_clip_plane                 = 100000.f;
+        float aspect_ratio                   = 1.f;
 
         bool archive_process(Archive& archive) override;
         CameraComponent& camera_view(CameraView& out);

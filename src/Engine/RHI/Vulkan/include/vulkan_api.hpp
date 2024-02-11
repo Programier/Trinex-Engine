@@ -18,6 +18,7 @@ namespace Engine
 {
     struct VulkanTexture;
     struct VulkanViewport;
+    struct VulkanUniformBuffer;
 
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphics_family;
@@ -50,6 +51,7 @@ namespace Engine
 
         Vector<VulkanExtention> _M_device_extensions;
         Vector<vk::DynamicState> _M_dynamic_states;
+        Vector<VulkanUniformBuffer*> _M_uniform_buffer;
         List<Garbage> _M_garbage;
 
 
@@ -110,8 +112,8 @@ namespace Engine
         vk::CommandBuffer begin_single_time_command_buffer();
         VulkanAPI& end_single_time_command_buffer(const vk::CommandBuffer& buffer);
 
-        VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size,
-                               vk::DeviceSize src_offset = 0, vk::DeviceSize dst_offset = 0);
+        VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size, vk::DeviceSize src_offset = 0,
+                               vk::DeviceSize dst_offset = 0);
         vk::Format find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
                                          vk::FormatFeatureFlags features);
         bool has_stencil_component(vk::Format format);
@@ -145,6 +147,7 @@ namespace Engine
         const String& renderer() override;
         const String& name() override;
 
+        VulkanAPI& prepare_draw();
         VulkanAPI& draw_indexed(size_t indices, size_t offset) override;
         VulkanAPI& draw(size_t vertex_count) override;
 
@@ -156,7 +159,6 @@ namespace Engine
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
-        RHI_UniformBuffer* create_uniform_buffer(size_t size, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass() override;
@@ -165,6 +167,12 @@ namespace Engine
 
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
+
+        VulkanUniformBuffer* uniform_buffer() const;
+
+        VulkanAPI& push_global_params(GlobalShaderParameters* params = nullptr) override;
+        VulkanAPI& update_global_params(void* data, size_t size, size_t offset) override;
+        VulkanAPI& pop_global_params() override;
 
         void line_width(float width) override;
 

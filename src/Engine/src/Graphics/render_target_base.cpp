@@ -20,10 +20,8 @@ namespace Engine
     {
         if (_M_rhi_object != nullptr)
         {
-            _M_frame_index  = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind());
-            _M_current      = this;
-            global_ubo.size = glm::min(_M_viewport.size, _M_scissor.size);
-            _M_uniform_buffer->rhi_update(0, sizeof(global_ubo), reinterpret_cast<const byte*>(&global_ubo));
+            _M_frame_index = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind());
+            _M_current     = this;
         }
 
         return *this;
@@ -77,21 +75,7 @@ namespace Engine
 
     RenderTargetBase& RenderTargetBase::rhi_create()
     {
-        if (_M_uniform_buffer == nullptr)
-        {
-            UniformBuffer* ubo = Object::new_instance<UniformBuffer>();
-            ubo->init_data     = reinterpret_cast<const byte*>(&global_ubo);
-            ubo->init_size     = sizeof(global_ubo);
-
-            ubo->init_resource();
-            _M_uniform_buffer = ubo;
-        }
         return *this;
-    }
-
-    UniformBuffer* RenderTargetBase::uniform_buffer() const
-    {
-        return _M_uniform_buffer.ptr();
     }
 
     RenderTargetBase* RenderTargetBase::current_target()

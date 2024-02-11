@@ -85,6 +85,11 @@ namespace Engine
         return _M_type == Type::RenderTarget ? _M_render_target : nullptr;
     }
 
+    RenderTargetBase* RenderViewport::base_render_target() const
+    {
+        return _M_render_target_base;
+    }
+
     RenderViewport& RenderViewport::window(Window* window, bool vsync)
     {
         _M_vsync  = vsync;
@@ -137,7 +142,7 @@ namespace Engine
         return *this;
     }
 
-    RHI_RenderTarget* RenderViewport::render_target()
+    RHI_RenderTarget* RenderViewport::rhi_render_target()
     {
         RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
         if (viewport)
@@ -211,6 +216,16 @@ namespace Engine
             _M_client->update(this, dt);
             _M_current_render_viewport = nullptr;
         }
+        return *this;
+    }
+
+    RenderViewport& RenderViewport::rhi_bind()
+    {
+        if (_M_handle)
+        {
+            reinterpret_cast<RenderTargetBase*>(_M_handle)->rhi_bind();
+        }
+
         return *this;
     }
 

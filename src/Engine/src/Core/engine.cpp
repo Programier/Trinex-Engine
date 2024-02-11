@@ -421,6 +421,11 @@ namespace Engine
         return std::chrono::duration_cast<std::chrono::duration<float>>(current_time_point() - start_time).count();
     }
 
+    float EngineInstance::delta_time() const
+    {
+        return _M_delta_time;
+    }
+
     Index EngineInstance::frame_index() const
     {
         return _M_frame_index;

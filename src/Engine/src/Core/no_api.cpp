@@ -131,12 +131,6 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_UniformBuffer* NoApi::create_uniform_buffer(size_t size, const byte* data)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return nullptr;
-    }
-
     RHI_SSBO* NoApi::create_ssbo(size_t size, const byte* data)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -193,4 +187,23 @@ namespace Engine
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;
     }
+
+    NoApi& NoApi::push_global_params(GlobalShaderParameters* params)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
+    NoApi& NoApi::update_global_params(void* data, size_t size, size_t offset)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
+    NoApi& NoApi::pop_global_params()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return *this;
+    }
+
 }// namespace Engine
