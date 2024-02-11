@@ -8,6 +8,9 @@ namespace Engine
         static const Vector3D OX;
         static const Vector3D OY;
         static const Vector3D OZ;
+        static const Vector3D right_vector;
+        static const Vector3D up_vector;
+        static const Vector3D forward_vector;
         static const float PI;
         static const float E;
         static const Matrix4f identity_matrix;

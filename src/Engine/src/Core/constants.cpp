@@ -6,9 +6,12 @@
 namespace Engine
 {
     const uint_t Constants::processor_count = std::thread::hardware_concurrency();
-    const glm::vec3 Constants::OX(1.f, 0.f, 0.f);
-    const glm::vec3 Constants::OY(0.f, 1.f, 0.f);
-    const glm::vec3 Constants::OZ(0.f, 0.f, 1.f);
+    const Vector3D Constants::OX(1.f, 0.f, 0.f);
+    const Vector3D Constants::OY(0.f, 1.f, 0.f);
+    const Vector3D Constants::OZ(0.f, 0.f, 1.f);
+    const Vector3D Constants::right_vector(1.f, 0.f, 0.f);
+    const Vector3D Constants::up_vector(0.f, 1.f, 0.f);
+    const Vector3D Constants::forward_vector(0.f, 0.f, -1.f);
     const float Constants::PI                             = glm::pi<float>();
     const float Constants::E                              = glm::e<float>();
     const glm::mat4 Constants::identity_matrix            = Matrix4f(1.0f);

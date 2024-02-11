@@ -53,13 +53,12 @@ namespace Engine
 
     Matrix4f CameraComponent::view_matrix()
     {
-        Vector3D location = transform.global_location();
-        return glm::lookAt(location, location + transform.forward_vector(true), transform.up_vector(true));
+        return view_matrix(transform.global_location(), transform.forward_vector(true), transform.up_vector(true));
     }
 
     Matrix4f CameraComponent::view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector)
     {
-        return glm::lookAt(position, direction, up_vector);
+        return glm::lookAt(position, position + direction, up_vector);
     }
 
     CameraComponent& CameraComponent::camera_view(CameraView& out)

@@ -4,13 +4,14 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
-#include <Graphics/shader_parameters.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Systems/mouse_system.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <Systems/event_system.hpp>
 
 namespace Engine
@@ -25,6 +26,7 @@ namespace Engine
 
         float speed             = 10.f;
         Vector3D move_direction = Vector3D(0.f);
+        Vector2D move_offset    = {0, 0};
 
     public:
         void move(float value, const Event& event)
@@ -49,6 +51,12 @@ namespace Engine
             {
                 move_direction.x = value;
             }
+        }
+
+        void on_mouse_move(const Event& event)
+        {
+            const MouseMotionEvent& data = event.get<const MouseMotionEvent&>();
+            move_offset                  = {float(data.xrel), float(data.yrel)};
         }
 
         ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override
@@ -87,6 +95,13 @@ namespace Engine
                                        std::bind(&GameViewportClient::move, this, 1.0f, std::placeholders::_1));
             event_system->add_listener(EventType::KeyUp, std::bind(&GameViewportClient::move, this, 0.0f, std::placeholders::_1));
 
+            event_system->add_listener(EventType::MouseMotion,
+                                       std::bind(&GameViewportClient::on_mouse_move, this, std::placeholders::_1));
+
+            MouseSystem::new_system<MouseSystem>()->relative_mode(true);
+
+            camera->transform.rotation_method = Transform::RotationMethod::YXZ;
+
             return *this;
         }
 
@@ -108,10 +123,13 @@ namespace Engine
 
         ViewportClient& update(class RenderViewport* viewport, float dt) override
         {
-            camera->transform.location += move_direction * speed * dt;
+            camera->transform.location += Matrix3f(camera->transform.rotation_matrix()) * move_direction * speed * dt;
+            camera->transform.rotation.y -= move_offset.x * dt * 5.f;
+            camera->transform.rotation.x += move_offset.y * dt * 5.f;
 
+            move_offset = {0, 0};
 
-            auto size = viewport->size();
+            auto size            = viewport->size();
             camera->aspect_ratio = size.x / size.y;
             camera->transform.update(camera);
             return *this;
