@@ -1,4 +1,4 @@
-#include <Graphics/global_shader_parameters.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>

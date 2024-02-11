@@ -23,13 +23,19 @@ namespace Engine
         alignas(8) Vector2D size;
         alignas(8) Vector2D depth_range;
 
+        alignas(4) float gamma;
         alignas(4) float time;
         alignas(4) float delta_time;
+
         alignas(4) float fov;
-        alignas(4) float gamma;
+        alignas(4) float ortho_width;
+        alignas(4) float ortho_height;
+        alignas(4) float near_clip_plane;
+        alignas(4) float far_clip_plane;
         alignas(4) float aspect_ratio;
+        alignas(4) int camera_projection_mode;
 
-
+        static StringView shader_code();
         GlobalShaderParameters& update(class RenderTargetBase* render_target, class CameraComponent* camera);
     };
 }// namespace Engine

@@ -1,4 +1,4 @@
-#include <Graphics/global_shader_parameters.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_pipeline.hpp>

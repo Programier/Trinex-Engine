@@ -19,13 +19,13 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
-        archive& projection_mode;
-        archive& fov;
-        archive& ortho_width;
-        archive& ortho_height;
-        archive& near_clip_plane;
-        archive& far_clip_plane;
-        archive& aspect_ratio;
+        archive & projection_mode;
+        archive & fov;
+        archive & ortho_width;
+        archive & ortho_height;
+        archive & near_clip_plane;
+        archive & far_clip_plane;
+        archive & aspect_ratio;
 
 
         return static_cast<bool>(archive);
@@ -49,6 +49,12 @@ namespace Engine
         }
 
         return glm::mat4(1.0);
+    }
+
+    Matrix4f CameraComponent::view_matrix()
+    {
+        Vector3D location = transform.global_location();
+        return glm::lookAt(location, location + transform.forward_vector(true), transform.up_vector(true));
     }
 
     Matrix4f CameraComponent::view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector)

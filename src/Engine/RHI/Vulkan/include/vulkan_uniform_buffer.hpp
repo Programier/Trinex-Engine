@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/memory.hpp>
-#include <Graphics/global_shader_parameters.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <vulkan_headers.hpp>
 
 namespace Engine

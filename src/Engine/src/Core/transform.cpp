@@ -47,19 +47,33 @@ namespace Engine
         return glm::inverse(local_to_world);
     }
 
-    Vector3D Transform::forward_vector() const
+    Vector3D Transform::forward_vector(bool global) const
     {
-        return glm::normalize(glm::mat3_cast(rotation) * Vector3D(0.0f, 0.0f, -1.0f));
+        static const Vector3D forward = {0.0f, 0.0f, -1.f};
+        if (global)
+            return glm::normalize(Matrix3f(local_to_world) * forward);
+        return glm::normalize(glm::mat3_cast(rotation) * forward);
     }
 
-    Vector3D Transform::right_vector() const
+    Vector3D Transform::right_vector(bool global) const
     {
-        return glm::normalize(glm::mat3_cast(rotation) * Vector3D(1.0f, 0.0f, 0.0f));
+        static const Vector3D right = {1.0f, 0.0f, 0.f};
+        if (global)
+            return glm::normalize(Matrix3f(local_to_world) * right);
+        return glm::normalize(glm::mat3_cast(rotation) * right);
     }
 
-    Vector3D Transform::up_vector() const
+    Vector3D Transform::up_vector(bool global) const
     {
-        return glm::normalize(glm::mat3_cast(rotation) * Vector3D(0.0f, 1.0f, 0.0f));
+        static const Vector3D up = {0.0f, 1.0f, 0.f};
+        if (global)
+            return glm::normalize(Matrix3f(local_to_world) * up);
+        return glm::normalize(glm::mat3_cast(rotation) * up);
+    }
+
+    Vector3D Transform::global_location() const
+    {
+        return local_to_world * Vector4D(0.0, 0.0, 0.0, 1.f);
     }
 
     String Transform::as_string() const

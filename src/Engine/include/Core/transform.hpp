@@ -18,9 +18,11 @@ namespace Engine
     public:
         Matrix4f matrix() const;
         Matrix4f world_to_local();
-        Vector3D forward_vector() const;
-        Vector3D right_vector() const;
-        Vector3D up_vector() const;
+        Vector3D forward_vector(bool global = false) const;
+        Vector3D right_vector(bool global = false) const;
+        Vector3D up_vector(bool global = false) const;
+
+        Vector3D global_location() const;
 
         static Quaternion calc_rotation(const Vector3D& axis, float angle);
         static Quaternion calc_rotation(const Vector3D& angles);

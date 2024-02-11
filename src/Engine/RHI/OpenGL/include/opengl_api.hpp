@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/logger.hpp>
-#include <Graphics/global_shader_parameters.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <Graphics/rhi.hpp>
 #include <opengl_definitions.hpp>
 #include <opengl_headers.hpp>

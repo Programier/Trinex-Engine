@@ -4,7 +4,7 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
-#include <Graphics/global_shader_parameters.hpp>
+#include <Graphics/shader_parameters.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_pass.hpp>
@@ -110,6 +110,9 @@ namespace Engine
         {
             camera->transform.location += move_direction * speed * dt;
 
+
+            auto size = viewport->size();
+            camera->aspect_ratio = size.x / size.y;
             camera->transform.update(camera);
             return *this;
         }
