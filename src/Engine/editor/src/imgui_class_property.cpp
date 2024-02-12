@@ -212,7 +212,7 @@ namespace Engine
         if (!value.has_value())
             return;
 
-        Enum* enum_class = reinterpret_cast<Enum*>(prop->property_class());
+        Enum* enum_class = prop->enum_instance();
         if (!enum_class)
             return;
 
@@ -230,7 +230,7 @@ namespace Engine
             if (ImGui::Combo(prop->name().c_str(), &index, enum_element_name, enum_class, entries.size()))
             {
                 current_entry = &entries[index];
-                value         = current_entry->value;
+                value         = PropertyValue(current_entry->value, PropertyType::Enum);
                 prop->property_value(object, value);
             }
         }
@@ -256,7 +256,7 @@ namespace Engine
         if (value.has_value())
         {
             void* struct_object  = value.cast<void*>();
-            Struct* struct_class = reinterpret_cast<Struct*>(prop->property_class());
+            Struct* struct_class = prop->struct_instance();
 
             ImGui::PushID(prop->name().c_str());
             if (ImGui::CollapsingHeader(prop->name().c_str()))
@@ -272,9 +272,9 @@ namespace Engine
     static void render_array_property(void* object, Property* prop, bool can_edit)
     {
         ArrayPropertyInterface* interface = reinterpret_cast<ArrayPropertyInterface*>(prop);
-        Property* element_property        = reinterpret_cast<Property*>(prop->property_class());
+        Property* element_property        = interface->element_type();
 
-        size_t count = interface->size(object);
+        size_t count = interface->elements_count(object);
 
         ImGui::PushID(prop->name().c_str());
 
@@ -299,59 +299,59 @@ namespace Engine
         ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.50f);
         switch (prop->type())
         {
-            case Property::Type::Byte:
+            case PropertyType::Byte:
                 render_byte_prop(object, prop, can_edit);
                 break;
-            case Property::Type::SignedByte:
+            case PropertyType::SignedByte:
                 render_signed_byte_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Int16:
+            case PropertyType::Int16:
                 render_int16_prop(object, prop, can_edit);
                 break;
-            case Property::Type::UnsignedInt16:
+            case PropertyType::UnsignedInt16:
                 render_uint16_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Int:
+            case PropertyType::Int:
                 render_int_prop(object, prop, can_edit);
                 break;
-            case Property::Type::UnsignedInt:
+            case PropertyType::UnsignedInt:
                 render_uint_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Int64:
+            case PropertyType::Int64:
                 render_int64_prop(object, prop, can_edit);
                 break;
-            case Property::Type::UnsignedInt64:
+            case PropertyType::UnsignedInt64:
                 render_uint64_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Bool:
+            case PropertyType::Bool:
                 render_bool_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Float:
+            case PropertyType::Float:
                 render_float_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Vec2:
+            case PropertyType::Vec2:
                 render_vec2_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Vec3:
+            case PropertyType::Vec3:
                 render_vec3_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Vec4:
+            case PropertyType::Vec4:
                 render_vec4_prop(object, prop, can_edit);
                 break;
-            case Property::Type::Path:
+            case PropertyType::Path:
                 render_path_property(object, prop, can_edit);
                 break;
-            case Property::Type::Enum:
+            case PropertyType::Enum:
                 render_enum_property(object, prop, can_edit);
                 break;
-            case Property::Type::Object:
+            case PropertyType::Object:
                 render_object_property(reinterpret_cast<Object*>(object), prop, can_edit);
                 break;
-            case Property::Type::Struct:
+            case PropertyType::Struct:
                 render_struct_property(object, prop, can_edit);
                 break;
 
-            case Property::Type::Array:
+            case PropertyType::Array:
                 render_array_property(object, prop, can_edit);
                 break;
             default:

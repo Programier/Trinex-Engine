@@ -13,8 +13,7 @@ namespace Engine
     implement_class(Sampler, Engine, 0);
     implement_initialize_class(Sampler)
     {
-        Class* self = static_class_instance();
-
+        Class* self     = static_class_instance();
         Enum* wrap_enum = Enum::find("Engine::WrapValue");
 
         self->add_properties(new BoolProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
@@ -48,17 +47,17 @@ namespace Engine
             return false;
         }
 
-        archive& filter;
-        archive& wrap_s;
-        archive& wrap_t;
-        archive& wrap_r;
-        archive& mip_lod_bias;
-        archive& anisotropy;
-        archive& compare_mode;
-        archive& min_lod;
-        archive& max_lod;
-        archive& compare_func;
-        archive& unnormalized_coordinates;
+        archive & filter;
+        archive & wrap_s;
+        archive & wrap_t;
+        archive & wrap_r;
+        archive & mip_lod_bias;
+        archive & anisotropy;
+        archive & compare_mode;
+        archive & min_lod;
+        archive & max_lod;
+        archive & compare_func;
+        archive & unnormalized_coordinates;
 
         return archive;
     }

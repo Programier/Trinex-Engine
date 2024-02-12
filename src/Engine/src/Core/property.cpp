@@ -1,18 +1,203 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
+#include <Core/struct.hpp>
 
 namespace Engine
 {
+    ArrayPropertyValue::ArrayPropertyValue(const void* _instance, class Property* _element_type)
+        : instace(_instance), element_type(_element_type)
+    {}
+
+    StructPropertyValue::StructPropertyValue(const void* _instance, class Struct* _struct)
+        : instace(_instance), struct_instance(_struct)
+    {}
+
+    PropertyValue::PropertyValue() : Any()
+    {
+        _M_type = PropertyType::Undefined;
+    }
+
+
+#define declare_prop_constructor(type, enum_type)                                                                                \
+    PropertyValue::PropertyValue(const type& value) : Any(value)                                                                 \
+    {                                                                                                                            \
+        _M_type = PropertyType::enum_type;                                                                                       \
+    }                                                                                                                            \
+    PropertyValue& PropertyValue::operator=(const type& value)                                                                   \
+    {                                                                                                                            \
+        static_cast<Any&>(*this) = value;                                                                                        \
+        _M_type                  = PropertyType::enum_type;                                                                      \
+        return *this;                                                                                                            \
+    }
+
+#define check_prop_type(type)                                                                                                    \
+    if (_M_type != PropertyType::type)                                                                                           \
+        return {};
+
+    PropertyValue::PropertyValue(const PropertyValue&)            = default;
+    PropertyValue::PropertyValue(PropertyValue&&)                 = default;
+    PropertyValue& PropertyValue::operator=(const PropertyValue&) = default;
+    PropertyValue& PropertyValue::operator=(PropertyValue&&)      = default;
+
+    declare_prop_constructor(byte, Byte);
+    declare_prop_constructor(signed_byte, SignedByte);
+    declare_prop_constructor(int16_t, Int16);
+    declare_prop_constructor(uint16_t, UnsignedInt16);
+    declare_prop_constructor(int32_t, Int32);
+    declare_prop_constructor(uint32_t, UnsignedInt32);
+    declare_prop_constructor(int64_t, Int64);
+    declare_prop_constructor(uint64_t, UnsignedInt64);
+    declare_prop_constructor(bool, Bool);
+    declare_prop_constructor(float, Float);
+    declare_prop_constructor(Vector2D, Vec2);
+    declare_prop_constructor(Vector3D, Vec3);
+    declare_prop_constructor(Vector4D, Vec4);
+    declare_prop_constructor(String, String);
+    declare_prop_constructor(Path, Path);
+    declare_prop_constructor(ArrayPropertyValue, Array);
+    declare_prop_constructor(StructPropertyValue, Struct);
+
+    PropertyType PropertyValue::type() const
+    {
+        return _M_type;
+    }
+
+    byte PropertyValue::byte_v() const
+    {
+        check_prop_type(Byte);
+        return cast<byte>();
+    }
+
+    signed_byte PropertyValue::signed_byte_v() const
+    {
+        check_prop_type(SignedByte);
+        return cast<signed_byte>();
+    }
+
+    int8_t PropertyValue::int8_v() const
+    {
+        check_prop_type(Int8);
+        return cast<int8_t>();
+    }
+
+    uint8_t PropertyValue::uint8_v() const
+    {
+        check_prop_type(UnsignedInt8);
+        return cast<uint8_t>();
+    }
+
+    int16_t PropertyValue::int16_v() const
+    {
+        check_prop_type(Int16);
+        return cast<int16_t>();
+    }
+
+    uint16_t PropertyValue::uint16_v() const
+    {
+        check_prop_type(UnsignedInt16);
+        return cast<uint16_t>();
+    }
+
+    int32_t PropertyValue::int32_v() const
+    {
+        check_prop_type(Int32);
+        return cast<int32_t>();
+    }
+
+    uint32_t PropertyValue::uint32_v() const
+    {
+        check_prop_type(UnsignedInt32);
+        return cast<uint32_t>();
+    }
+
+    int64_t PropertyValue::int64_v() const
+    {
+        check_prop_type(Int64);
+        return cast<int64_t>();
+    }
+
+    uint64_t PropertyValue::uint64_v() const
+    {
+        check_prop_type(UnsignedInt64);
+        return cast<uint64_t>();
+    }
+
+    bool PropertyValue::bool_v() const
+    {
+        check_prop_type(Bool);
+        return cast<bool>();
+    }
+
+    float PropertyValue::float_v() const
+    {
+        check_prop_type(Float);
+        return cast<float>();
+    }
+
+    Vector2D PropertyValue::vec2_v() const
+    {
+        check_prop_type(Vec2);
+        return cast<Vector2D>();
+    }
+
+    Vector3D PropertyValue::vec3_v() const
+    {
+        check_prop_type(Vec3);
+        return cast<Vector3D>();
+    }
+
+    Vector4D PropertyValue::vec4_v() const
+    {
+        check_prop_type(Vec4);
+        return cast<Vector4D>();
+    }
+
+    String PropertyValue::string_v() const
+    {
+        check_prop_type(String);
+        return cast<String>();
+    }
+
+    Path PropertyValue::path_v() const
+    {
+        check_prop_type(Path);
+        return cast<Path>();
+    }
+
+    EnumerateType PropertyValue::enum_v() const
+    {
+        check_prop_type(Enum);
+        return cast<EnumerateType>();
+    }
+
+    Object* PropertyValue::object_v() const
+    {
+        check_prop_type(Object);
+        return cast<Object*>();
+    }
+
+    Object* PropertyValue::object_referece_v() const
+    {
+        check_prop_type(ObjectReference);
+        return cast<Object*>();
+    }
+
+    StructPropertyValue PropertyValue::struct_v() const
+    {
+        check_prop_type(Struct);
+        return cast<StructPropertyValue>();
+    }
+
+    ArrayPropertyValue PropertyValue::array_v() const
+    {
+        check_prop_type(Array);
+        return cast<ArrayPropertyValue>();
+    }
+
     Property::Property(const Name& name, const String& description, const Name& group, BitMask flags)
         : _M_name(name), _M_group(group), _M_description(description), _M_flags(flags)
     {}
-
-    bool Property::is_valid_object(const class Class* instance, const class Object* object)
-    {
-        return object && object->class_instance()->is_a(instance);
-    }
 
     const Name& Property::name() const
     {
@@ -34,17 +219,30 @@ namespace Engine
         return _M_flags;
     }
 
-    void* Property::property_class() const
+    Struct* Property::struct_instance()
     {
         return nullptr;
     }
 
-    Property::~Property()
-    {}
+    class Enum* Property::enum_instance()
+    {
+        return nullptr;
+    }
 
-    static bool serialize_object_properies(Class* self, Object* object, Archive& ar)
+    bool Property::is_const() const
+    {
+        return _M_flags(IsConst);
+    }
+
+    bool Property::is_private() const
+    {
+        return _M_flags(IsPrivate);
+    }
+
+    static bool serialize_object_properies(Struct* self, void* object, Archive& ar)
     {
         self = self->parent();
+
         if (self)
         {
             return serialize_object_properies(self, object, ar);
@@ -53,9 +251,48 @@ namespace Engine
         return ar;
     }
 
+    bool Property::serialize_properies(class Struct* self, void* object, Archive& ar)
+    {
+        return serialize_object_properies(self, object, ar);
+    }
+
+    bool Property::archive_process(void* object, Archive& ar)
+    {
+        if (is_const())
+            return false;
+
+        PropertyType prop_type = type();
+        if (static_cast<EnumerateType>(prop_type) <= static_cast<EnumerateType>(PropertyType::LastPrimitive))
+        {
+            if (ar.is_reading())
+            {
+                ar.read_data(reinterpret_cast<byte*>(prop_address(object)), size());
+            }
+            else if (ar.is_saving())
+            {
+                ar.write_data(reinterpret_cast<const byte*>(prop_address(object)), size());
+            }
+        }
+        else if (prop_type == PropertyType::String)
+        {
+            ar&(*reinterpret_cast<String*>(prop_address(object)));
+        }
+        else if (prop_type == PropertyType::Path)
+        {
+            ar&(*reinterpret_cast<Path*>(prop_address(object)));
+        }
+        return ar;
+    }
+
+    Property::~Property()
+    {}
+
     bool Object::serialize_object_properties(Archive& ar)
     {
-        Class* _class = class_instance();
-        return serialize_object_properies(_class, this, ar);
+        Struct* self = reinterpret_cast<Struct*>(class_instance());
+        if (self == nullptr)
+            return false;
+
+        return serialize_object_properies(self, this, ar);
     }
 }// namespace Engine

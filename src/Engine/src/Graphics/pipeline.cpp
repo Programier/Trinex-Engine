@@ -113,8 +113,8 @@ namespace Engine
                              new EnumProperty("Depth pass", "Operation on depth pass", &FI::depth_pass, stencil_op_enum),
                              new EnumProperty("Depth Fail", "Operation on depth fail", &FI::depth_fail, stencil_op_enum),
                              new EnumProperty("Compare func", "Stencil compare function", &FI::compare, compare_func_enum),
-                             new UnsignedIntProperty("Compare mask", "Stencil compare mask", &FI::compare_mask),
-                             new UnsignedIntProperty("Write mask", "Stencil write mask", &FI::write_mask),
+                             new UIntProperty("Compare mask", "Stencil compare mask", &FI::compare_mask),
+                             new UIntProperty("Write mask", "Stencil write mask", &FI::write_mask),
                              new IntProperty("Reference", "Stencil reference", &FI::reference));
     });
 
@@ -188,9 +188,9 @@ namespace Engine
         Struct* attachment_state = Struct::static_find("Engine::Pipeline::ColorBlendAttachmentState", true);
 
         self->add_properties(
-                new ArrayProperty("Blend attachments", "Blend attachments", &CBI::blend_attachment,
-                                  new StructArrayElementProperty<Pipeline::ColorBlendingInfo>(attachment_state)),
-
+                new ArrayProperty(
+                        "Blend attachments", "Blend attachments", &CBI::blend_attachment,
+                        new StructProperty<Object, Pipeline::ColorBlendAttachmentState>("", "", nullptr, attachment_state)),
                 new EnumProperty("Logic operator", "Logic operator", &CBI::logic_op, Enum::find("Engine::LogicOp", true)),
                 new Vec4Property("Blend constants", "Blend constant values", &CBI::blend_constants),
                 new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));

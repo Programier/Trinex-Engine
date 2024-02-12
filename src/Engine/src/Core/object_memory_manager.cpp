@@ -124,7 +124,7 @@ namespace Engine
                     }
 
                     auto type = prop->type();
-                    if (type == Property::Type::Object || type == Property::Type::ObjectReference)
+                    if (type == PropertyType::Object || type == PropertyType::ObjectReference)
                     {
                         Object* object = prop->property_value(object).cast<Object*>();
                         if (object)

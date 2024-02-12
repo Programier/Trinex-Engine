@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT Any final
+    class ENGINE_EXPORT Any
     {
     private:
         class ENGINE_EXPORT bad_any_cast : public std::bad_cast
