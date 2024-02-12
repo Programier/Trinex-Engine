@@ -1,9 +1,9 @@
 {
     "Engine": {
         "enable_jit": false,
-        "api": "OpenGLES",
+        "api": "OpenGL",
         "lz4_compression_level": 10,
-        "max_gc_collected_objects": 20000,
+        "gc_max_object_per_tick": 200,
 
         "scripts_dir": "scripts",
         "resources_dir": "resources/",
@@ -37,7 +37,7 @@
             2,
             3
         ],
-        "vsync": false,
+        "vsync": true,
         "client": "Engine::TestRenderingClient"
     }
 }
