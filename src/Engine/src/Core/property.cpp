@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
@@ -40,4 +41,21 @@ namespace Engine
 
     Property::~Property()
     {}
+
+    static bool serialize_object_properies(Class* self, Object* object, Archive& ar)
+    {
+        self = self->parent();
+        if (self)
+        {
+            return serialize_object_properies(self, object, ar);
+        }
+
+        return ar;
+    }
+
+    bool Object::serialize_object_properties(Archive& ar)
+    {
+        Class* _class = class_instance();
+        return serialize_object_properies(_class, this, ar);
+    }
 }// namespace Engine

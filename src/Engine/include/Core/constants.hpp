@@ -27,6 +27,7 @@ namespace Engine
         static const IntVector4D uint_zero_vector;
         static const IntVector4D uint_identity_vector;
         static const String package_extention;
+        static const String shader_extention;
         static const String name_separator;
         static const PriorityIndex max_priority;
         static const String default_entry_point;

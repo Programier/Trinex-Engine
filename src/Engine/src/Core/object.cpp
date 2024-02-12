@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
@@ -365,7 +366,7 @@ namespace Engine
     }
 
 
-    String Object::full_name() const
+    String Object::full_name(bool override_by_owner) const
     {
         static auto object_name_of = [](const Object* object) -> String {
             if (object->_M_name.is_valid())
@@ -374,12 +375,15 @@ namespace Engine
             return Strings::format("Noname object {}", object->_M_instance_index);
         };
 
-        static auto parent_object_of = [](const Object* object) -> Object* {
-            Object* parent = object->owner();
-            if (parent)
-                return parent;
+        static auto parent_object_of = [](const Object* object, bool override_by_owner) -> Object* {
+            if (override_by_owner)
+            {
+                Object* parent = object->owner();
+                if (parent)
+                    return parent;
+            }
 
-            parent = object->package();
+            Object* parent = object->package();
             if (parent != Object::root_package())
                 return parent;
 
@@ -387,7 +391,7 @@ namespace Engine
         };
 
         String result         = object_name_of(this);
-        const Object* current = parent_object_of(this);
+        const Object* current = parent_object_of(this, override_by_owner);
 
         while (current)
         {
@@ -396,7 +400,7 @@ namespace Engine
                                                ? current->_M_name.to_string()
                                                : Strings::format("Noname object {}", current->_M_instance_index)),
                                       Constants::name_separator, result);
-            current = parent_object_of(current);
+            current = parent_object_of(current, override_by_owner);
         }
 
         return result;
@@ -513,7 +517,12 @@ namespace Engine
             return false;
         }
 
-        return flags(Flag::IsSerializable);
+        if (!flags(Flag::IsSerializable))
+        {
+            return false;
+        }
+
+        return serialize_object_properties(archive);
     }
 
     bool Object::is_valid() const

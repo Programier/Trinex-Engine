@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/logger.hpp>
@@ -28,6 +29,22 @@ namespace Engine
         return *this;
     }
 
+    bool MaterialParameter::archive_process(Archive& ar)
+    {
+        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(Type::Mat4))
+        {
+            if (ar.is_reading())
+            {
+                ar.read_data(data(), size());
+            }
+            else if (ar.is_saving())
+            {
+                ar.write_data(data(), size());
+            }
+        }
+        return ar;
+    }
+
     implement_engine_class_default_init(MaterialInterface);
 
     implement_engine_class(Material, Class::IsAsset);
@@ -39,8 +56,56 @@ namespace Engine
     }
 
     implement_engine_class(MaterialInstance, Class::IsAsset);
-    implement_default_initialize_class(MaterialInstance);
+    implement_initialize_class(MaterialInstance)
+    {
+        Class* self = MaterialInstance::static_class_instance();
+        self->add_property(new ObjectReferenceProperty("Parent Material", "Parent Material of this instance",
+                                                       &MaterialInstance::parent_material));
+    }
 
+
+    bool MaterialInterface::serialize_parameters(Map<Name, MaterialParameter*, Name::HashFunction>& map, Archive& ar)
+    {
+        size_t count = map.size();
+        ar & count;
+        if (ar.is_saving())
+        {
+            for (auto& [_name, param] : map)
+            {
+                MaterialParameter::Type type = param->type();
+                Name name                    = _name;
+                ar & name;
+                ar & type;
+
+                param->archive_process(ar);
+            }
+        }
+        else if (ar.is_reading())
+        {
+            Name name;
+            MaterialParameter::Type type;
+
+            while (count > 0)
+            {
+                ar & name;
+                ar & type;
+
+                MaterialParameter* param = create_parameter_internal(name, type);
+
+                if (param)
+                {
+                    param->archive_process(ar);
+                }
+                else
+                {
+                    return false;
+                }
+
+                --count;
+            }
+        }
+        return ar;
+    }
 
     MaterialParameter* MaterialInterface::find_parameter(const Name& name) const
     {
@@ -71,6 +136,10 @@ namespace Engine
 
     bool Material::archive_process(Archive& archive)
     {
+        if (!Super::archive_process(archive))
+            return false;
+
+        serialize_parameters(_M_material_parameters, archive);
         return pipeline->archive_process(archive);
     }
 
@@ -119,7 +188,7 @@ namespace Engine
     }
 
 
-    MaterialParameter* Material::create_parameter(const Name& name, MaterialParameter::Type type)
+    MaterialParameter* Material::create_parameter_internal(const Name& name, MaterialParameter::Type type)
     {
         MaterialParameter* param = find_parameter(name);
         if (param)
@@ -134,9 +203,14 @@ namespace Engine
             return param;
         }
 
-        param = params_allocators()[static_cast<EnumerateType>(type)](name);
+        param                        = params_allocators()[static_cast<EnumerateType>(type)](name);
         _M_material_parameters[name] = param;
         return param;
+    }
+
+    MaterialParameter* Material::create_parameter(const Name& name, MaterialParameter::Type type)
+    {
+        return create_parameter_internal(name, type);
     }
 
     Material& Material::remove_parameter(const Name& name)
@@ -183,6 +257,34 @@ namespace Engine
         delete pipeline;
     }
 
+    MaterialParameter* MaterialInstance::create_parameter_internal(const Name& name, MaterialParameter::Type type)
+    {
+        MaterialParameter* param = find_parameter(name);
+        if (param)
+        {
+            if (param->type() != type)
+            {
+                error_log("MaterialInstance",
+                          "Failed to create new material parameter with type [%d]. Parameter with same name, but "
+                          "different type already exist!");
+                return nullptr;
+            }
+
+            return param;
+        }
+
+        param                        = params_allocators()[static_cast<EnumerateType>(type)](name);
+        _M_material_parameters[name] = param;
+        return param;
+    }
+
+    bool MaterialInstance::archive_process(Archive& archive)
+    {
+        if (!Super::archive_process(archive))
+            return false;
+        return serialize_parameters(_M_material_parameters, archive);
+    }
+
     MaterialParameter* MaterialInstance::find_parameter(const Name& name) const
     {
         auto it = _M_material_parameters.find(name);
@@ -197,7 +299,7 @@ namespace Engine
 
     MaterialInterface* MaterialInstance::parent() const
     {
-        return parent_material.ptr();
+        return parent_material;
     }
 
     bool MaterialInstance::apply()

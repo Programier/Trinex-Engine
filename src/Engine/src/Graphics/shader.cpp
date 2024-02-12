@@ -26,47 +26,6 @@ namespace Engine
     implement_class(FragmentShader, Engine, 0);
     implement_default_initialize_class(FragmentShader);
 
-    static FORCE_INLINE Path get_shader_path(Shader* shader)
-    {
-        static String replace_to = "";
-        if (replace_to.empty())
-        {
-            replace_to += char(Path::separator);
-        }
-
-        String path = shader->full_name();
-        path        = Strings::replace_all(path, Constants::name_separator, replace_to);
-        return Path(Strings::format("{}{}{}.tsdr", engine_config.shading_language, replace_to, path));
-    }
-
-    bool Shader::load_source()
-    {
-        Path file = get_shader_path(this);
-        FileReader reader(file);
-
-        if (!reader.is_open())
-            return false;
-
-        Archive ar(&reader);
-        ar & text_code;
-        ar & binary_code;
-        return true;
-    }
-
-    bool Shader::save_source()
-    {
-        Path file = get_shader_path(this);
-        FileWriter writer(file);
-
-        if (!writer.is_open())
-            return false;
-
-        Archive ar(&writer);
-        ar & text_code;
-        ar & binary_code;
-        return true;
-    }
-
     bool Shader::archive_process(Archive& ar)
     {
         if (!Super::archive_process(ar))
@@ -77,16 +36,10 @@ namespace Engine
         ar & combined_samplers;
         ar & ssbo;
 
-        bool result = false;
-        if (ar.is_reading())
-        {
-            result = load_source();
-        }
-        else if (ar.is_saving())
-        {
-            result = save_source();
-        }
-        return static_cast<bool>(ar) && result;
+        ar & text_code;
+        ar & binary_code;
+
+        return ar;
     }
 
     VertexShader& VertexShader::rhi_create()

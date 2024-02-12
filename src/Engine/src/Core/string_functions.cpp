@@ -134,15 +134,22 @@ namespace Engine::Strings
         return memory_hash_fast(str.data(), str.length(), 0);
     }
 
-    String replace_all(String line, const String& old, const String& new_line)
+    String replace_all(StringView line, StringView old, StringView new_line)
     {
-        size_t pos = 0;
-        while ((pos = line.find(old, pos)) != String::npos)
+        String result;
+        size_t pos     = 0;
+        size_t old_len = old.length();
+
+        while ((pos = line.find(old, pos)) != StringView::npos)
         {
-            line.replace(pos, old.length(), new_line);
-            pos += new_line.length();
+            result += line.substr(0, pos);
+            result += new_line;
+            pos += old_len;
+            line.remove_prefix(pos);
         }
-        return line;
+
+        result += line;
+        return result;
     }
 
 

@@ -49,6 +49,7 @@ namespace Engine
         static void create_default_package();
         const Object& remove_from_instances_array() const;
         static void prepare_next_object_for_gc();
+        bool serialize_object_properties(Archive& ar);
 
     protected:
         Object();
@@ -98,7 +99,7 @@ namespace Engine
         bool add_to_package(Package* package, bool autorename = false);
         Object& remove_from_package();
         Package* package() const;
-        String full_name() const;
+        String full_name(bool override_by_owner = false) const;
         Counter references() const;
         void add_reference();
         void remove_reference();

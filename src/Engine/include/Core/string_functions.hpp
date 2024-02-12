@@ -54,7 +54,7 @@ namespace Engine::Strings
         return lstrip(rstrip(line, callback), callback);
     }
 
-    ENGINE_EXPORT String replace_all(String line, const String& old, const String& new_line);
+    ENGINE_EXPORT String replace_all(StringView line, StringView old, StringView new_line);
     ENGINE_EXPORT String& to_lower(String& line);
     ENGINE_EXPORT String to_lower(const String& line);
     ENGINE_EXPORT String& to_upper(String& line);

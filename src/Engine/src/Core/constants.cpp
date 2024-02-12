@@ -28,6 +28,7 @@ namespace Engine
     const IntVector4D Constants::uint_zero_vector         = UIntVector4D(0);
     const IntVector4D Constants::uint_identity_vector     = UIntVector4D(1);
     const String Constants::package_extention             = ".tpk";
+    const String Constants::shader_extention              = ".tsdr";
     const String Constants::name_separator                = "::";
     const PriorityIndex Constants::max_priority           = ~static_cast<PriorityIndex>(0);
     const String Constants::default_entry_point           = "Engine::EngineStart";

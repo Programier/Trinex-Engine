@@ -3,6 +3,9 @@
 
 namespace Engine
 {
+    Archive::Archive() : _M_reader(nullptr), _M_is_saving(false), _M_process_status(false)
+    {}
+
     Archive::Archive(BufferReader* reader) : _M_is_saving(false)
     {
         _M_reader = reader;
@@ -10,6 +13,8 @@ namespace Engine
         {
             throw EngineException("Archive: Reader can't be nullptr!");
         }
+
+        _M_process_status = _M_reader->is_open();
     }
 
     Archive::Archive(BufferWriter* writer) : _M_is_saving(true)
@@ -19,16 +24,39 @@ namespace Engine
         {
             throw EngineException("Archive: Writer can't be nullptr!");
         }
+
+        _M_process_status = _M_writer->is_open();
+    }
+
+    Archive::Archive(Archive&& other)
+    {
+        (*this) = std::move(other);
+    }
+
+    Archive& Archive::operator=(Archive&& other)
+    {
+        if (this == &other)
+            return *this;
+
+        _M_reader         = other._M_reader;
+        _M_process_status = other._M_process_status;
+        _M_is_saving      = other._M_is_saving;
+
+        other._M_process_status = false;
+        other._M_reader         = nullptr;
+        other._M_is_saving      = false;
+
+        return *this;
     }
 
     bool Archive::is_saving() const
     {
-        return _M_is_saving;
+        return _M_is_saving && _M_writer;
     }
 
     bool Archive::is_reading() const
     {
-        return !_M_is_saving;
+        return !_M_is_saving && _M_reader;
     }
 
     BufferReader* Archive::reader() const
@@ -63,7 +91,16 @@ namespace Engine
 
     size_t Archive::position() const
     {
-        return is_saving() ? writer()->position() : reader()->position();
+        if (is_saving())
+        {
+            return writer()->position();
+        }
+        else if (is_reading())
+        {
+            return reader()->position();
+        }
+
+        return 0;
     }
 
     Archive& Archive::position(size_t position)
@@ -72,17 +109,32 @@ namespace Engine
         {
             writer()->position(position);
         }
-        else
+        else if (is_reading())
         {
             reader()->position(position);
         }
         return *this;
     }
 
+    bool Archive::is_open() const
+    {
+        if (is_saving())
+        {
+            return writer()->is_open();
+        }
+        else if (is_reading())
+        {
+            return reader()->is_open();
+        }
+
+        return false;
+    }
+
+
     ENGINE_EXPORT bool operator&(Archive& ar, String& str)
     {
         size_t size = str.length();
-        ar& size;
+        ar & size;
 
         if (ar.is_reading())
         {
@@ -99,7 +151,7 @@ namespace Engine
     ENGINE_EXPORT bool operator&(Archive& ar, Path& path)
     {
         String str = path.str();
-        ar& str;
+        ar & str;
         if (ar.is_reading())
             path = str;
         return ar;

@@ -2,7 +2,11 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/enum.hpp>
+#include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
+#include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_target_base.hpp>
@@ -238,8 +242,20 @@ namespace Engine
         return *this;
     }
 
+    class Material* Pipeline::material() const
+    {
+        return Object::instance_cast<Material>(owner());
+    }
+
     bool Pipeline::archive_process(class Archive& archive)
     {
+        Material* material_object = material();
+        if (material_object == nullptr)
+        {
+            error_log("Pipeline", "Cannot serialize pipeline! Pipeline must be child of material!");
+            return false;
+        }
+
         if (!Super::archive_process(archive))
             return false;
 
@@ -255,10 +271,52 @@ namespace Engine
 
         archive & has_global_parameters;
 
-        vertex_shader->archive_process(archive);
-        fragment_shader->archive_process(archive);
+        static const char separator_line[2] = {Path::separator, 0};
 
-        return archive;
+        Path path =
+                Strings::format("ShaderCache{}{}{}", Path::separator,
+                                Strings::replace_all(material_object->full_name(true), Constants::name_separator, separator_line),
+                                Constants::shader_extention);
+
+        union
+        {
+            BufferReader* reader = nullptr;
+            BufferWriter* writer;
+        };
+
+        Archive second_archive;
+
+        if (archive.is_reading())
+        {
+            reader         = new FileReader(path);
+            second_archive = reader;
+        }
+        else if (archive.is_saving())
+        {
+            rootfs()->create_dir(path.base_path());
+            writer         = new FileWriter(path);
+            second_archive = writer;
+        }
+
+
+        if (second_archive.is_open())
+        {
+            vertex_shader->archive_process(second_archive);
+            fragment_shader->archive_process(second_archive);
+        }
+
+        bool status = static_cast<bool>(second_archive);
+
+        if (second_archive.is_reading())
+        {
+            delete reader;
+        }
+        else
+        {
+            delete writer;
+        }
+
+        return archive && status;
     }
 
     implement_class(Pipeline, Engine, 0);

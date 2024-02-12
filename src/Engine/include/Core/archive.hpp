@@ -37,12 +37,13 @@ namespace Engine
 
 
     public:
+        Archive();
         Archive(BufferReader* reader);
         Archive(BufferWriter* writer);
-        Archive(const Archive&)            = delete;
-        Archive(Archive&&)                 = delete;
+        Archive(const Archive&) = delete;
+        Archive(Archive&&);
         Archive& operator=(const Archive&) = delete;
-        Archive& operator=(Archive&&)      = delete;
+        Archive& operator=(Archive&&);
 
         bool is_saving() const;
         bool is_reading() const;
@@ -55,6 +56,7 @@ namespace Engine
 
         size_t position() const;
         Archive& position(size_t position);
+        bool is_open() const;
 
         template<typename Type>
         bool operator&(Type& value)
@@ -94,7 +96,7 @@ namespace Engine
             size_t size = vector.size();
             Archive& ar = *this;
 
-            ar& size;
+            ar & size;
             if (ar.is_reading())
             {
                 vector.resize(size);
@@ -120,7 +122,7 @@ namespace Engine
                 {
                     for (auto& ell : vector)
                     {
-                        ar& ell;
+                        ar & ell;
                         if (!on_item_processed(ell, userdata))
                         {
                             return ar;
@@ -131,7 +133,7 @@ namespace Engine
                 {
                     for (auto& ell : vector)
                     {
-                        ar& ell;
+                        ar & ell;
                     }
                 }
             }
@@ -146,7 +148,7 @@ namespace Engine
             size_t size = set.size();
             Archive& ar = *this;
 
-            ar& size;
+            ar & size;
 
             if (ar.is_reading())
             {
@@ -156,7 +158,7 @@ namespace Engine
                 {
                     while (size-- > 0)
                     {
-                        ar& value;
+                        ar & value;
                         on_item_processed(value, userdata);
                         if (!set.insert(std::move(value)))
                         {
@@ -168,7 +170,7 @@ namespace Engine
                 {
                     while (size-- > 0)
                     {
-                        ar& value;
+                        ar & value;
                         set.insert(std::move(value));
                     }
                 }
@@ -205,7 +207,7 @@ namespace Engine
             size_t size = map.size();
             Archive& ar = *this;
 
-            ar& size;
+            ar & size;
 
             if (ar.is_reading())
             {
@@ -215,8 +217,8 @@ namespace Engine
 
                 while (size-- > 0)
                 {
-                    ar& key;
-                    ar& value;
+                    ar & key;
+                    ar & value;
                     map.insert_or_assign(std::move(key), std::move(value));
                 }
             }
@@ -225,7 +227,7 @@ namespace Engine
                 for (auto& [key, value] : map)
                 {
                     ar& const_cast<Type::key_type&>(key);
-                    ar& value;
+                    ar & value;
                 }
             }
 
@@ -238,7 +240,7 @@ namespace Engine
             size_t size = container.size();
             Archive& ar = *this;
 
-            ar& size;
+            ar & size;
             if (ar.is_reading())
             {
                 container.resize(size);
@@ -246,7 +248,7 @@ namespace Engine
 
             for (auto& ell : container)
             {
-                ar& ell;
+                ar & ell;
             }
 
             return ar;

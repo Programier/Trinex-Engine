@@ -8,7 +8,7 @@ namespace Engine
 {
     class Pipeline;
 
-    class ENGINE_EXPORT MaterialParameter
+    class ENGINE_EXPORT MaterialParameter : public SerializableObject
     {
     public:
         enum Type
@@ -33,6 +33,7 @@ namespace Engine
         virtual byte* data()             = 0;
         virtual const byte* data() const = 0;
         virtual MaterialParameter& apply(const Pipeline* pipeline);
+        virtual bool archive_process(Archive& ar) override;
 
         virtual ~MaterialParameter() = default;
     };
@@ -79,6 +80,11 @@ namespace Engine
     {
         declare_class(MaterialInterface, Object);
 
+    protected:
+        bool serialize_parameters(Map<Name, MaterialParameter*, Name::HashFunction>& map, Archive& ar);
+
+        virtual MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) = 0;
+
     public:
         virtual MaterialParameter* find_parameter(const Name& name) const;
         virtual MaterialInterface* parent() const;
@@ -92,6 +98,9 @@ namespace Engine
 
     private:
         Map<Name, MaterialParameter*, Name::HashFunction> _M_material_parameters;
+
+    protected:
+        MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;
 
     public:
         Pipeline* pipeline;
@@ -120,9 +129,13 @@ namespace Engine
     private:
         Map<Name, MaterialParameter*, Name::HashFunction> _M_material_parameters;
 
-    public:
-        Pointer<MaterialInterface> parent_material;
+    protected:
+        MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;
 
+    public:
+        MaterialInterface* parent_material = nullptr;
+
+        bool archive_process(Archive& archive) override;
         MaterialParameter* find_parameter(const Name& name) const override;
         MaterialInterface* parent() const override;
         bool apply() override;

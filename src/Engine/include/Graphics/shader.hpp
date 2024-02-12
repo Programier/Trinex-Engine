@@ -14,10 +14,6 @@ namespace Engine
     {
         declare_class(Shader, RenderResource);
 
-    private:
-        bool load_source();
-        bool save_source();
-
     public:
         enum class Type
         {
