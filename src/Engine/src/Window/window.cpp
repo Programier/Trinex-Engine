@@ -28,6 +28,11 @@ namespace Engine
         {
             return Type::Window;
         }
+
+        bool is_engine_resource() const override
+        {
+            return true;
+        }
     };
 
 
@@ -420,6 +425,11 @@ namespace Engine
     const Vector<Window*>& Window::child_windows() const
     {
         return _M_childs;
+    }
+
+    bool Window::is_engine_resource() const
+    {
+        return true;
     }
 
     Identifier Window::window_id() const

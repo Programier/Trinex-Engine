@@ -70,6 +70,7 @@ namespace Engine
         RenderViewport* render_viewport() const;
         Window* parent_window() const;
         const Vector<Window*>& child_windows() const;
+        bool is_engine_resource() const override;
 
         Identifier window_id() const;
 

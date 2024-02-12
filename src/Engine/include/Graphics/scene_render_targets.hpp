@@ -17,6 +17,7 @@ namespace Engine
 
     public:
         EngineRenderTarget& resize(const Size2D& new_size);
+        bool is_engine_resource() const override;
     };
 
     class ENGINE_EXPORT GBuffer : public Singletone<GBuffer, EngineRenderTarget>

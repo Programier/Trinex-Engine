@@ -7,6 +7,11 @@ namespace Engine
 {
     implement_engine_class_default_init(SceneComponent);
 
+    SceneComponent::SceneComponent()
+    {
+
+    }
+
     SceneComponent& SceneComponent::attach(SceneComponent* child)
     {
         trinex_check(child != this, "Cannot attach a component to itself");

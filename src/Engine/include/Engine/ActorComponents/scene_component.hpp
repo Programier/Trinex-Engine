@@ -17,6 +17,7 @@ namespace Engine
         Vector<Pointer<SceneComponent>> _M_childs;
 
     public:
+        SceneComponent();
         SceneComponent& attach(SceneComponent* child);
         SceneComponent& detach_from_parent();
         bool is_attachet_to(SceneComponent* component) const;

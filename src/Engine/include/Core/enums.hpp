@@ -305,9 +305,10 @@ namespace Engine
 
     enum class GCFlag
     {
-        OnlyMarked      = 0,
-        FindUnreacheble = 1,
-        DestroyAll      = 2,
+        None           = 0,
+        DetectGarbage  = 1,
+        DestroyGargabe = 2,
+        DestroyAll     = 3,
     };
 
     enum class LoadingFlags : EnumerateType

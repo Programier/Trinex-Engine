@@ -434,6 +434,7 @@ namespace Engine
                 header.load(&entry, this, ar);
             }
         }
+
         if (need_destroy_reader)
         {
             delete reader;
@@ -448,6 +449,10 @@ namespace Engine
         return load(&reader, flags);
     }
 
+    bool Package::is_engine_resource() const
+    {
+        return true;
+    }
 
     struct HeaderLoadingUserData {
         Object* object   = nullptr;

@@ -41,11 +41,12 @@ namespace Engine
         }
 #endif
 
-        lz4_compression_level    = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level", 9);
-        max_gc_collected_objects = engine_json.checked_get_value<JSON::JsonInt>("max_gc_collected_objects", 2000);
-        fps_limit                = engine_json.checked_get_value<JSON::JsonInt>("fps_limit", 60);
-        gamma                = engine_json.checked_get_value<JSON::JsonFloat>("gamma", 1.f);
-        enable_jit               = engine_json.checked_get_value<JSON::JsonBool>("enable_jit", true);
+        lz4_compression_level  = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level", 9);
+        gc_max_object_per_tick = engine_json.checked_get_value<JSON::JsonInt>("gc_max_object_per_tick", 200);
+        fps_limit              = engine_json.checked_get_value<JSON::JsonInt>("fps_limit", 60);
+        gamma                  = engine_json.checked_get_value<JSON::JsonFloat>("gamma", 1.f);
+        gc_wait_time           = engine_json.checked_get_value<JSON::JsonFloat>("gc_wait_time", 10.f);
+        enable_jit             = engine_json.checked_get_value<JSON::JsonBool>("enable_jit", true);
 
         {
             Arguments::Argument* arg = engine_instance->args().find("config_dir");

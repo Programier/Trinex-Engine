@@ -27,11 +27,12 @@ namespace Engine
         String shading_language;
 
         uint_t lz4_compression_level;
-        uint_t max_gc_collected_objects;
+        uint_t gc_max_object_per_tick;
         uint_t fps_limit = 60;
         bool enable_jit;
 
         float gamma;
+        float gc_wait_time;
         virtual EngineConfig& update() override;
     };
 

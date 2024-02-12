@@ -75,6 +75,8 @@ namespace Engine
                 _M_delta_time = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * _M_delta_time;
                 prev_time     = current_time;
 
+                _M_current_gc_stage = Object::collect_garbage(_M_current_gc_stage);
+
                 engine_system->update(_M_delta_time);
                 engine_system->wait();
 

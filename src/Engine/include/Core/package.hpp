@@ -42,6 +42,7 @@ namespace Engine
         bool load(const Path& path, Flags<LoadingFlags> flags = {});
         Object* load_object(const StringView& name, Flags<LoadingFlags> flags = {}, BufferReader* reader = nullptr);
         Object* load_object(const Path& file_path, const StringView& name, Flags<LoadingFlags> flags = {});
+        bool is_engine_resource() const override;
 
         template<typename Type>
         FORCE_INLINE Type* find_object_checked(const StringView& object_name, bool recursive = true) const

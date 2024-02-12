@@ -86,7 +86,7 @@ namespace Engine
 
         _M_subsystems.push_back(system);
         system->_M_parent_system = this;
-
+        system->owner(this);
         return *this;
     }
 

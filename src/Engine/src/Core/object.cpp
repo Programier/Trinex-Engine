@@ -129,6 +129,7 @@ namespace Engine
             _M_root_package = new Package();
             _M_root_package->name("Root Package");
             _M_root_package->flags(IsSerializable, false);
+            _M_root_package->add_reference();
         }
     }
 
@@ -548,6 +549,11 @@ namespace Engine
     bool Object::is_editable() const
     {
         return flags(IsEditable);
+    }
+
+    bool Object::is_engine_resource() const
+    {
+        return false;
     }
 
     Package* Object::root_package()

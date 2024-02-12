@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/etl/engine_resource.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_pass.hpp>
@@ -88,6 +89,11 @@ namespace Engine
         return *this;
     }
 
+    bool EngineRenderTarget::is_engine_resource() const
+    {
+        return true;
+    }
+
 
     static constexpr inline size_t albedo_index   = 0;
     static constexpr inline size_t position_index = 1;
@@ -174,7 +180,7 @@ namespace Engine
     implement_class(GBuffer, Engine, 0);
     implement_default_initialize_class(GBuffer);
 
-    class GBufferRenderPass : public RenderPass
+    class GBufferRenderPass : public EngineResource<RenderPass>
     {
     public:
         GBufferRenderPass()
@@ -261,7 +267,7 @@ namespace Engine
 
         for (RenderTarget::Frame* frame : _M_frames)
         {
-            frame->depth_stencil_attachment = Object::new_non_serializable_instance_named<Texture2D>(
+            frame->depth_stencil_attachment = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
                     Strings::format("Engine::GBuffer::Depth {}", frame_index));
             frame->depth_stencil_attachment->format = render_pass->depth_stencil_attachment.format;
             frame->depth_stencil_attachment->setup_render_target_texture();
@@ -271,7 +277,7 @@ namespace Engine
             for (size_t i = 0; i < gbuffer_color_attachments; i++)
             {
                 auto& info         = attachment_texture_info[i];
-                Texture2D* texture = Object::new_non_serializable_instance_named<Texture2D>(
+                Texture2D* texture = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
                         Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
 
                 texture->format = render_pass->color_attachments[i].format;
@@ -307,7 +313,7 @@ namespace Engine
 
     implement_engine_class_default_init(SceneColorOutput);
 
-    class SceneColorOutputRenderPass : public RenderPass
+    class SceneColorOutputRenderPass : public EngineResource<RenderPass>
     {
     public:
         SceneColorOutputRenderPass()
@@ -358,7 +364,7 @@ namespace Engine
         {
             frame->color_attachments.resize(1);
 
-            Texture2D* texture = Object::new_non_serializable_instance_named<Texture2D>(
+            Texture2D* texture = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
                     Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
 
             texture->format = render_pass->color_attachments[0].format;

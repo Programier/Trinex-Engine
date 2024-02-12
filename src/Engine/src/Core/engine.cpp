@@ -207,6 +207,10 @@ namespace Engine
             error_log("Engine", "Failed to load entry point for engine start!");
             return -1;
         }
+        else
+        {
+            entry_point->add_reference();
+        }
 
         entry_point->load_configs();
         engine_config.update();
@@ -283,6 +287,12 @@ namespace Engine
         return _M_flags;
     }
 
+    EngineInstance& EngineInstance::start_garbage_collection()
+    {
+        if (_M_current_gc_stage == GCFlag::None)
+            _M_current_gc_stage = GCFlag::DetectGarbage;
+        return *this;
+    }
 
     class DestroyRHI_Task : public ExecutableObject
     {

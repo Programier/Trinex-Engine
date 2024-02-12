@@ -25,16 +25,17 @@ namespace Engine
     public:
         using ObjectClass = Object;
 
-
         enum Flag : BitMask
         {
-            None             = 0,
-            IsDestructed     = (1 << 0),
-            IsSerializable   = (1 << 1),
-            IsAvailableForGC = (1 << 2),
-            IsPackage        = (1 << 3),
-            IsUnreachable    = (1 << 4),
-            IsEditable       = (1 << 5),
+            None                   = 0,
+            IsDestructed           = (1 << 0),
+            IsSerializable         = (1 << 1),
+            IsAvailableForGC       = (1 << 2),
+            IsPackage              = (1 << 3),
+            IsUnreachable          = (1 << 4),
+            IsDefinetlyUnreachable = (1 << 5),
+            IsWaitDestroy          = (1 << 6),
+            IsEditable             = (1 << 7),
         };
 
     private:
@@ -84,7 +85,7 @@ namespace Engine
         ENGINE_EXPORT static Object* find_object(const StringView& object_name);
         ENGINE_EXPORT static Package* root_package();
 
-        ENGINE_EXPORT static void collect_garbage(GCFlag flag = GCFlag::OnlyMarked);
+        ENGINE_EXPORT static GCFlag collect_garbage(GCFlag flag = GCFlag::None);
         ENGINE_EXPORT static const String& language();
         ENGINE_EXPORT static void language(const StringView& new_language);
         ENGINE_EXPORT static const String& localize(const StringView& line);
@@ -108,6 +109,8 @@ namespace Engine
         bool is_valid() const;
         Path filepath() const;
         bool is_editable() const;
+        virtual bool is_engine_resource() const;
+
 
         static Package* find_package(StringView name, bool create = false);
 

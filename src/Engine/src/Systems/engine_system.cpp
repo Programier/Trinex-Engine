@@ -13,12 +13,12 @@ namespace Engine
     {
         Super::create();
 
-
         Package* package = Package::find_package("Engine::Systems", false);
         if (package)
         {
             package->flags(Object::IsSerializable, false);
         }
+        add_reference();
         return *this;
     }
 
