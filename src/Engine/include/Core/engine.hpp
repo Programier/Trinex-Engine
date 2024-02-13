@@ -26,13 +26,14 @@ namespace Engine
     public:
         enum Flag : EnumerateType
         {
-            PreInitTriggered   = BIT(0),
-            InitTriggered      = BIT(1),
-            PostInitTriggered  = BIT(2),
-            ClassInitTriggered = BIT(3),
-            IsInited           = BIT(4),
-            IsShutingDown      = BIT(5),
-            IsRequestingExit   = BIT(6),
+            PreInitTriggered              = BIT(0),
+            InitTriggered                 = BIT(1),
+            PostInitTriggered             = BIT(2),
+            ClassInitTriggered            = BIT(3),
+            DefaultResourcesInitTriggered = BIT(4),
+            IsInited                      = BIT(5),
+            IsShutingDown                 = BIT(6),
+            IsRequestingExit              = BIT(7),
         };
 
     private:
@@ -53,6 +54,7 @@ namespace Engine
 
         ~EngineInstance();
         int start(int argc, char** argv);
+        void load_default_resources();
 
     private:
         void create_window();

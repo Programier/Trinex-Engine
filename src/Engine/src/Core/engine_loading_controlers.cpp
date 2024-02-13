@@ -57,6 +57,12 @@ namespace Engine
         return _M_init_list;
     }
 
+    static CallbacksList& default_resources_initialize_list()
+    {
+        static CallbacksList _M_init_list;
+        return _M_init_list;
+    }
+
 
     static inline CallbackListGetter convert_function_address(void* address)
     {
@@ -163,5 +169,6 @@ namespace Engine
     IMPLEMENT_CONTROLLER(PreInitializeController, preinitialize_list);
     IMPLEMENT_CONTROLLER(PostInitializeController, post_initialize_list);
     IMPLEMENT_CONTROLLER(ClassInitializeController, class_initialize_list);
+    IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, default_resources_initialize_list);
 
 }// namespace Engine

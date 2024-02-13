@@ -226,6 +226,8 @@ namespace Engine
 
         init_api();
 
+        load_default_resources();
+
         PostInitializeController().execute();
         _M_flags(PostInitTriggered, true);
         _M_flags(IsInited, true);

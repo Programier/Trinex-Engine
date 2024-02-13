@@ -412,16 +412,13 @@ namespace Engine
 
         bool is_valid = true;
 
-        if (need_destroy_reader)
-        {
-            FileFlag flag;
-            ar & flag;
+        FileFlag flag;
+        ar & flag;
 
-            is_valid = flag == FileFlag::package_flag();
-            if (!is_valid)
-            {
-                error_log("Package", "Invalid package flag in file");
-            }
+        is_valid = flag == FileFlag::package_flag();
+        if (!is_valid)
+        {
+            error_log("Package", "Invalid package flag in file");
         }
 
         if (is_valid)

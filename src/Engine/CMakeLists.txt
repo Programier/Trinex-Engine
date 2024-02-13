@@ -101,8 +101,19 @@ file(GLOB TRINEX_TINYGLTF_SRC "${TRINEX_TINYGLTF_DIR}*.cpp")
 set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_SRC})
 
 
+
+add_executable(header_generator header_generator/main.cpp)
+
+set(TRINEX_PRECOMPILED_HEADERS include-internal/DefaultResources/default.hpp)
+
+add_custom_command(
+    OUTPUT include-internal/DefaultResources/default.hpp
+    COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Default.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
+    COMMENT "Generating default resources header"
+)
+
 # Compile Trinex Engine library
-add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_EXTERNAL_SOURCES})
+add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_EXTERNAL_SOURCES} ${TRINEX_PRECOMPILED_HEADERS})
 
 
 # Trinex Engine compile options
@@ -133,12 +144,6 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=0)
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=1)
 endif()
-
-
-## Include additional lib directory and include dir if build system is Windows OS
-#if (WIN32)
-#    target_link_directories(TrinexEngine "${TRINEX_ENGINE_ROOT}/libs/")
-#endif()
 
 
 # Linking libraries and including directories

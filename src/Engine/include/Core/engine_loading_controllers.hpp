@@ -43,6 +43,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(AfterRHIInitializeController);
     IMPLEMENT_CONTROLLER(PreInitializeController);
     IMPLEMENT_CONTROLLER(PostInitializeController);
+    IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController);
     IMPLEMENT_CONTROLLER(ClassInitializeController);
 
     using ScriptEngineInitializeController = ClassInitializeController;

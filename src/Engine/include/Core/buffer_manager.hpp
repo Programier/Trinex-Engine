@@ -142,11 +142,11 @@ namespace Engine
     class VectorReader : public VectorReaderBase
     {
     private:
-        Vector<T, AllocatorType>* _M_buffer;
+        const Vector<T, AllocatorType>* _M_buffer;
         ReadPos _M_read_pos = 0;
 
     public:
-        VectorReader(Vector<T, AllocatorType>* buffer) : _M_buffer(buffer)
+        VectorReader(const Vector<T, AllocatorType>* buffer) : _M_buffer(buffer)
         {}
 
         using VectorReaderBase::position;

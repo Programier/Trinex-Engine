@@ -194,6 +194,11 @@ namespace Engine
             {
                 PostInitializeController().execute();
             }
+
+            if (flags(EngineInstance::DefaultResourcesInitTriggered))
+            {
+                DefaultResourcesInitializeController().execute();
+            }
         }
 
         return *this;
