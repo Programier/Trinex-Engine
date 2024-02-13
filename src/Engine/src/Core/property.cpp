@@ -246,22 +246,42 @@ namespace Engine
             size_t count = self->properties().size();
             ar & count;
 
+            Vector<size_t> offsets(count + 1, 0);
+            auto start_pos = ar.position();
+            ar.write_data(reinterpret_cast<const byte*>(offsets.data()), offsets.size() * sizeof(size_t));
+
+            count = 0;
             for (auto& prop : self->properties())
             {
-                Name name = prop->name();
+                Name name      = prop->name();
+                offsets[count] = ar.position() - start_pos;
                 ar & name;
                 prop->archive_process(object, ar);
+                ++count;
             }
+
+            auto end_pos   = ar.position();
+            offsets[count] = end_pos - start_pos;
+
+            ar.position(start_pos);
+            ar.write_data(reinterpret_cast<const byte*>(offsets.data()), offsets.size() * sizeof(size_t));
+            ar.position(end_pos);
         }
-        else
+        else if (ar.is_reading())
         {
             size_t count = 0;
             ar & count;
 
+            Vector<size_t> offsets(count + 1, 0);
+            auto start_pos = ar.position();
+            ar.read_data(reinterpret_cast<byte*>(offsets.data()), offsets.size() * sizeof(size_t));
+
             Name name;
 
-            while (count > 0)
+            for (size_t i = 0; i < count; ++i)
             {
+                ar.position(start_pos + offsets[i]);
+
                 ar & name;
                 Property* prop = self->find_property(name);
                 if (prop)
@@ -270,6 +290,8 @@ namespace Engine
                 }
                 --count;
             }
+
+            ar.position(start_pos + offsets.back());
         }
 
         self = self->parent();
