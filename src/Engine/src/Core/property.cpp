@@ -231,7 +231,7 @@ namespace Engine
 
     bool Property::is_const() const
     {
-        return _M_flags(IsConst);
+        return _M_flags.has_any(Flags<Flag>(IsConst) | Flags<Flag>(IsNativeConst));
     }
 
     bool Property::is_private() const
@@ -241,6 +241,37 @@ namespace Engine
 
     static bool serialize_object_properies(Struct* self, void* object, Archive& ar)
     {
+        if (ar.is_saving())
+        {
+            size_t count = self->properties().size();
+            ar & count;
+
+            for (auto& prop : self->properties())
+            {
+                Name name = prop->name();
+                ar & name;
+                prop->archive_process(object, ar);
+            }
+        }
+        else
+        {
+            size_t count = 0;
+            ar & count;
+
+            Name name;
+
+            while (count > 0)
+            {
+                ar & name;
+                Property* prop = self->find_property(name);
+                if (prop)
+                {
+                    prop->archive_process(object, ar);
+                }
+                --count;
+            }
+        }
+
         self = self->parent();
 
         if (self)
@@ -258,7 +289,7 @@ namespace Engine
 
     bool Property::archive_process(void* object, Archive& ar)
     {
-        if (is_const())
+        if (_M_flags(IsNativeConst))
             return false;
 
         PropertyType prop_type = type();
@@ -281,11 +312,66 @@ namespace Engine
         {
             ar&(*reinterpret_cast<Path*>(prop_address(object)));
         }
+        else if (prop_type == PropertyType::Object)
+        {
+            Object* new_object = property_value(object).object_v();
+            trinex_always_check(new_object != nullptr, "Property with type 'Object' can't be nullptr!");
+            return new_object->archive_process(ar);
+        }
+        else if (prop_type == PropertyType::ObjectReference)
+        {
+            Object*& new_object = *reinterpret_cast<Object**>(prop_address(object));
+
+            if (ar.is_saving())
+            {
+                String name = new_object ? new_object->full_name() : "";
+                ar & name;
+            }
+            else if (ar.is_reading())
+            {
+                String name;
+                ar & name;
+                if (name.empty())
+                {
+                    new_object = nullptr;
+                }
+                else
+                {
+                    new_object = Object::load_object(name);
+                }
+
+                return ar;
+            }
+        }
         return ar;
     }
 
     Property::~Property()
     {}
+
+
+    bool ArrayPropertyInterface::archive_process(void* object, Archive& ar)
+    {
+        Property* e_type = element_type();
+        if (e_type == nullptr)
+            return false;
+
+        size_t count = elements_count(object);
+        ar & count;
+
+        if (ar.is_reading())
+        {
+            resize(object, count);
+        }
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            void* element = at(object, i);
+            e_type->archive_process(element, ar);
+        }
+
+        return ar;
+    }
 
     bool Object::serialize_object_properties(Archive& ar)
     {

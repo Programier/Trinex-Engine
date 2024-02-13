@@ -217,6 +217,41 @@ namespace Engine
         return _M_properties;
     }
 
+
+    static FORCE_INLINE Property* find_prop_internal(Struct* self, const Name& name)
+    {
+        for (auto& prop : self->properties())
+        {
+            if (prop->name() == name)
+            {
+                return prop;
+            }
+        }
+
+        return nullptr;
+    }
+
+    class Property* Struct::find_property(const Name& name, bool recursive)
+    {
+        if (recursive)
+        {
+            Struct* self   = this;
+            Property* prop = nullptr;
+
+            while (self && (prop = find_prop_internal(self, name)) == nullptr)
+            {
+                self = self->parent();
+            }
+
+            return prop;
+        }
+        else
+        {
+            return find_prop_internal(this, name);
+        }
+        return nullptr;
+    }
+
     const Struct::GroupedPropertiesMap& Struct::grouped_properties() const
     {
         return _M_grouped_properties;

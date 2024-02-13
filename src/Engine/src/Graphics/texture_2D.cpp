@@ -70,7 +70,6 @@ namespace Engine
         }
 
         archive& image;
-        archive& path;
         return static_cast<bool>(archive);
     }
 

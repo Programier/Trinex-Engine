@@ -54,6 +54,7 @@ namespace Engine
 
         Struct& add_property(Property* prop);
         const Vector<class Property*>& properties() const;
+        class Property* find_property(const Name& name, bool recursive = false);
         const GroupedPropertiesMap& grouped_properties() const;
         static const StructMap& struct_map();
 

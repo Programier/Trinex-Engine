@@ -259,16 +259,6 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
-        archive & depth_test;
-        archive & stencil_test;
-        archive & input_assembly;
-        archive & rasterizer;
-
-        archive & color_blending.blend_attachment;
-        archive & color_blending.blend_constants;
-        archive & color_blending.logic_op;
-        archive & color_blending.logic_op_enable;
-
         archive & has_global_parameters;
 
         static const char separator_line[2] = {Path::separator, 0};

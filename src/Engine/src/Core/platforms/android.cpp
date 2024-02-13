@@ -19,5 +19,10 @@ namespace Engine::Platform
         // TODO: It needs to be made more scalable
         return Strings::format("/sdcard/TrinexGames/{}/", EngineInstance::project_name());
     }
+
+    ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()
+    {
+        return {{"/", "/"}};
+    }
 }// namespace Engine::Platform
 #endif

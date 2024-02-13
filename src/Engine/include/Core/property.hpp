@@ -130,8 +130,9 @@ namespace Engine
     public:
         enum Flag
         {
-            IsPrivate = (1 << 0),
-            IsConst   = (1 << 1),
+            IsPrivate     = (1 << 0),
+            IsConst       = (1 << 1),
+            IsNativeConst = (1 << 2),
         };
 
     protected:
@@ -215,7 +216,11 @@ namespace Engine
 
             if constexpr (std::is_const_v<DataType>)
             {
-                Super::_M_flags(Super::IsConst, true);
+                Super::_M_flags(Super::IsNativeConst, true);
+            }
+            else
+            {
+                Super::_M_flags(Super::IsNativeConst, false);
             }
         }
 
@@ -559,6 +564,10 @@ namespace Engine
             {
                 Super::_M_flags(Super::IsConst, true);
             }
+            else
+            {
+                Super::_M_flags(Super::IsNativeConst, true);
+            }
         }
 
         PropertyValue property_value(const void* object) const override
@@ -605,7 +614,12 @@ namespace Engine
 
         bool archive_process(void* object, Archive& ar) override
         {
-            return Super::serialize_properies(_M_struct, object, ar);
+            object = Super::prop_address(object);
+            if (object)
+            {
+                return Super::serialize_properies(_M_struct, object, ar);
+            }
+            return false;
         }
 
         Struct* struct_instance() override
@@ -627,6 +641,8 @@ namespace Engine
         virtual bool insert(void* object, Index index)     = 0;
         virtual bool erase(void* object, Index index)      = 0;
         virtual void resize(void* object, size_t new_size) = 0;
+
+        bool archive_process(void* object, Archive& ar) override;
     };
 
     template<typename InstanceType, typename ArrayType>

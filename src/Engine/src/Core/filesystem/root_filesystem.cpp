@@ -3,6 +3,7 @@
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Core/platform.hpp>
 #include <filesystem>
 
 namespace Engine
@@ -23,16 +24,30 @@ namespace Engine::VFS
 
     RootFS* RootFS::_M_instance = nullptr;
 
+
+    static void destroy_fs(FileSystem* fs)
+    {
+        delete fs;
+    }
+
     RootFS::RootFS(const Path& native_path)
     {
         if (!native_path.empty())
         {
-            mount("", new NativeFileSystem(native_path), [](FileSystem* fs) { delete fs; });
+            mount("", new NativeFileSystem(native_path), destroy_fs);
             std::filesystem::current_path(native_path.str());
         }
         else
         {
-            mount("", new NativeFileSystem("./"), [](FileSystem* fs) { delete fs; });
+            mount("", new NativeFileSystem("./"), destroy_fs);
+        }
+
+        // Mount platform hard drives
+        Vector<Pair<Path, Path>> hard_drives = Platform::hard_drives();
+
+        for (auto& pair : hard_drives)
+        {
+            mount(pair.first, new NativeFileSystem(pair.second));
         }
     }
 
@@ -95,6 +110,8 @@ namespace Engine::VFS
         _M_file_systems[mount_point] = system;
         system->_M_mount_point       = mount_point;
         system->_M_on_unmount        = callback;
+
+        vfs_log("Mounted '%s' to '%s'", system->path().c_str(), mount_point.c_str());
         return system;
     }
 
@@ -112,6 +129,9 @@ namespace Engine::VFS
     Pair<FileSystem*, Path> RootFS::find_filesystem(const Path& path) const
     {
         static auto next_symbol_of = [](const Path& path, const String& fs_path) -> char {
+            if(fs_path.back() == Path::separator)
+                return Path::separator;
+
             if (path.length() <= fs_path.length())
                 return Path::separator;
             return path.str()[fs_path.length()];

@@ -139,8 +139,7 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
-        serialize_parameters(_M_material_parameters, archive);
-        return pipeline->archive_process(archive);
+        return serialize_parameters(_M_material_parameters, archive);
     }
 
     Material& Material::preload()
