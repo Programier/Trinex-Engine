@@ -198,8 +198,6 @@ namespace Engine
 
         InitializeController().execute();
         _M_flags(InitTriggered, true);
-        engine_config.update();
-        engine_config.update_using_args();
 
         EntryPoint* entry_point = find_entry_point(_M_args);
         if (!entry_point)

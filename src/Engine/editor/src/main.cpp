@@ -19,6 +19,7 @@ public:
 
     Editor& load_configs() override
     {
+        Engine::engine_config.config_dir = "resources/configs";
         Super::load_configs();
         Engine::global_config.load(Engine::engine_config.config_dir / Engine::Path("editor.json"));
         Engine::editor_config.update().update_using_args();

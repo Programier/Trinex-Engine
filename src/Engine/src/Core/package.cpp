@@ -316,7 +316,7 @@ namespace Engine
     template<typename Type>
     static Type* open_package_file(const Package* package, bool create_dir = false)
     {
-        Path path = engine_config.resources_dir / package->filepath();
+        Path path = engine_config.packages_dir / package->filepath();
 
         if (create_dir)
         {

@@ -5,10 +5,10 @@
         "lz4_compression_level": 10,
         "gc_max_object_per_tick": 200,
 
-        "scripts_dir": "scripts",
-        "resources_dir": "resources/",
+        "scripts_dir": "resources/scripts",
+        "packages_dir": "resources/packages/",
         "libraries_dir": "libs/",
-        "localization_dir": "localization/",
+        "localization_dir": "resources/localization/",
         "default_language": "eng",
         "current_language": "ukr",
         "languages": ["eng", "ukr"],

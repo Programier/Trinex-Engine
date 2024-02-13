@@ -25,18 +25,9 @@ endif()
 add_subdirectory(src)
 target_include_directories(TrinexEngineLauncher PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")
 
-#install(DIRECTORY ${GAME_PROJECT_ROOT}/resources DESTINATION "./")
-#install(DIRECTORY ${GAME_PROJECT_ROOT}/src/Shaders DESTINATION "./")
-
 install(TARGETS TrinexEngineLauncher DESTINATION "./")
 
-if (ANDROID OR (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    install(DIRECTORY resources DESTINATION "./")
-    install(DIRECTORY scripts DESTINATION "./")
-else()
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${CMAKE_INSTALL_PREFIX}/resources)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/scripts ${CMAKE_INSTALL_PREFIX}/scripts)
-endif()
+install(DIRECTORY resources DESTINATION "./")
 
 if (LINUX)
     install(PROGRAMS launch.sh

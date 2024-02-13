@@ -14,7 +14,7 @@ namespace Engine
         Vector<String> systems;
         Vector<String> languages;
 
-        Path resources_dir;
+        Path packages_dir;
         Path scripts_dir;
         Path libraries_dir;
         Path config_dir;
