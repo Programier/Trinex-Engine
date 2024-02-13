@@ -4,11 +4,18 @@
 
 namespace Engine
 {
-    class MaterialCompiler : public Object
+    class MaterialNode;
+    class MaterialPin;
+    class MaterialInputPin;
+    class MaterialOutputPin;
+
+    class ShaderCompiler : public Object
     {
-        declare_class(MaterialCompiler, Object);
+        declare_class(ShaderCompiler, Object);
 
     public:
         virtual bool compile(class VisualMaterial* material, MessageList& errors) = 0;
+
+        virtual size_t sin(MaterialInputPin*) = 0;
     };
 }// namespace Engine

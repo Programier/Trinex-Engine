@@ -18,7 +18,7 @@ namespace Engine
     {
         if (default_package_len != 0)
         {
-            load_package(Vector<byte>(default_package_data, default_package_data + default_package_len), "Default");
+           // load_package(Vector<byte>(default_package_data, default_package_data + default_package_len), "Default");
         }
 
         DefaultResourcesInitializeController().execute();

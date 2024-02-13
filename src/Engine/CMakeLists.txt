@@ -7,6 +7,7 @@ option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
 option(TRINEX_WITH_SDL "Build SDL2 WindowSystem shared library" ON)
 option(TRINEX_WITH_SHADER_COMPILERS "Build engine with shader compilers" OFF)
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
+option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" ON)
 
 
 set(CMAKE_CXX_STANDARD 20)
@@ -106,11 +107,13 @@ add_executable(header_generator header_generator/main.cpp)
 
 set(TRINEX_PRECOMPILED_HEADERS include-internal/DefaultResources/default.hpp)
 
-add_custom_command(
-    OUTPUT include-internal/DefaultResources/default.hpp
-    COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Default.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
-    COMMENT "Generating default resources header"
-)
+if (TRINEX_REBUILD_HEADERS)
+    add_custom_command(
+        OUTPUT include-internal/DefaultResources/default.hpp
+        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Default.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
+        COMMENT "Generating default package header"
+    )
+endif()
 
 # Compile Trinex Engine library
 add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_EXTERNAL_SOURCES} ${TRINEX_PRECOMPILED_HEADERS})

@@ -1,68 +1,22 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Graphics/visual_material.hpp>
 
 namespace Engine::MaterialNodes
 {
-    enum class Type : EnumerateType
-    {
-        VertexRoot,
-        FragmentRoot,
+    struct VertexNode : public MaterialNode {
+        static Struct* static_struct_instance;
 
-
-        // Constants group
-        Bool,
-        Int,
-        UInt,
-        Float,
-        BVec2,
-        BVec3,
-        BVec4,
-        IVec2,
-        IVec3,
-        IVec4,
-        UVec2,
-        UVec3,
-        UVec4,
-        Vec2,
-        Vec3,
-        Vec4,
-        Color3,
-        Color4,
-
-        // Math group
-        Sin,
-        Cos,
-        Tan,
-        ASin,
-        ACos,
-        ATan,
-
-        SinH,
-        CosH,
-        TanH,
-        ASinH,
-        ACosH,
-        ATanH,
-
-        Pow,
-        Exp,
-        Log,
-        Exp2,
-        Log2,
-
-        Sqrt,
-        InverseSqrt,
-        Abs,
-        Sign,
-        Floor,
-        Ceil,
-        Fract,
-        Mod,
-        Min,
-        Max,
-        Clamp,
-        Mix,
-        Step,
-        Smoothstep
+        Struct* struct_instance() const override;
+        const char* name() const override;
+        VertexNode();
     };
-}
+
+    struct FragmentNode : public MaterialNode {
+        static Struct* static_struct_instance;
+
+        Struct* struct_instance() const override;
+        const char* name() const override;
+        FragmentNode();
+    };
+}// namespace Engine::MaterialNodes

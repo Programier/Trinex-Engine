@@ -129,7 +129,7 @@ namespace Engine
         if (instance)
         {
             auto obj    = instance->create_object();
-            _M_compiler = obj->instance_cast<MaterialCompiler>();
+            _M_compiler = obj->instance_cast<ShaderCompiler>();
         }
 
         return *this;
@@ -321,7 +321,14 @@ namespace Engine
         if (!ImGui::IsWindowAppearing())
         {
             ax::NodeEditor::SetCurrentEditor(reinterpret_cast<ax::NodeEditor::EditorContext*>(_M_editor_context));
-            render_material_nodes(this);
+
+            ax::NodeEditor::Begin("###Viewport");
+            if (_M_current_material)
+            {
+                _M_current_material->render_nodes(_M_editor_context);
+            }
+            ax::NodeEditor::End();
+
 
             if (!_M_current_material)
             {
