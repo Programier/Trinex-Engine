@@ -250,7 +250,7 @@ namespace Engine
         if (!pipeline)
             throw EngineException("Cannot create Vulkan Pipeline from nullptr engine pipeline");
 
-        if (pipeline->render_pass == nullptr)
+        if (pipeline->render_pass == RenderPassType::Undefined)
             throw EngineException("Cannot create Vulkan Pipeline without render_pass");
     }
 
@@ -307,11 +307,12 @@ namespace Engine
 
         vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->_M_dynamic_states);
 
+        RenderPass* render_pass = RenderPass::load_render_pass(pipeline->render_pass);
+
         vk::GraphicsPipelineCreateInfo pipeline_info(
                 {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
                 &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
-                &dynamic_state_info, _M_pipeline_layout, pipeline->render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0,
-                {});
+                &dynamic_state_info, _M_pipeline_layout, render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0, {});
 
         auto pipeline_result = API->_M_device.createGraphicsPipeline({}, pipeline_info);
 

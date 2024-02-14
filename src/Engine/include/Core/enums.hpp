@@ -332,4 +332,13 @@ namespace Engine
         Trunc     = 0x08
     };
     using FileSeekDir = BufferSeekDir;
+
+    enum class RenderPassType : EnumerateType
+    {
+        Undefined   = 0,
+        Window      = 1,
+        SceneOutput = 2,
+        GBuffer     = 3,
+        __COUNT__,
+    };
 }// namespace Engine

@@ -4,6 +4,10 @@ file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SRC "${TRINEX_ENGINE_EDITOR_SOURCES_DIR}/
 
 add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC})
 
-target_link_libraries(TrinexEngineEditor PUBLIC TrinexEngine glslang spirv-cross-core spirv-cross-glsl)
+target_link_libraries(TrinexEngineEditor PUBLIC TrinexEngine    glslang
+                                                                glslang-default-resource-limits
+                                                                SPIRV
+                                                                spirv-cross-core
+                                                                spirv-cross-glsl)
 
 install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})

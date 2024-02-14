@@ -311,6 +311,8 @@ namespace Engine
     {
         Class* self = static_class_instance();
 
+        Enum* render_pass_type_enum = Enum::find("Engine::RenderPassType", true);
+
         self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
                                                 Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
                              new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
@@ -320,6 +322,8 @@ namespace Engine
                              new StructProperty("Rasterizer", "Rasterizer properties", &Pipeline::rasterizer,
                                                 Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
                              new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
-                                                Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)));
+                                                Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)),
+                             new EnumProperty("Render pass", "Type of render pass for this pipeline", &Pipeline::render_pass,
+                                              render_pass_type_enum));
     }
 }// namespace Engine

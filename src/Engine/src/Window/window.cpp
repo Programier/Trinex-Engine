@@ -24,9 +24,9 @@ namespace Engine
             return *this;
         }
 
-        Type type() const override
+        RenderPassType type() const override
         {
-            return Type::Window;
+            return RenderPassType::Window;
         }
 
         bool is_engine_resource() const override
@@ -55,7 +55,7 @@ namespace Engine
         _M_rhi_object.reset(_M_render_viewport->rhi_render_target());
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
 
-        render_pass = RenderPass::load_render_pass(RenderPass::Type::Window);
+        render_pass = RenderPass::load_render_pass(RenderPassType::Window);
 
         update_cached_size();
 

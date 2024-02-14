@@ -117,4 +117,7 @@ namespace Engine
                    {"GBA", ColorComponentMask::GBA}, {"GB", ColorComponentMask::GB}, {"GA", ColorComponentMask::GA},
                    {"G", ColorComponentMask::G}, {"BA", ColorComponentMask::BA}, {"B", ColorComponentMask::B},
                    {"A", ColorComponentMask::A});
+
+    implement_enum(RenderPassType, Engine, {"Undefined", RenderPassType::Undefined}, {"Window", RenderPassType::Window},
+                   {"SceneOutput", RenderPassType::SceneOutput}, {"GBuffer", RenderPassType::GBuffer});
 }// namespace Engine

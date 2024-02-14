@@ -199,9 +199,9 @@ namespace Engine
             }
         }
 
-        Type type() const override
+        RenderPassType type() const override
         {
-            return Type::GBuffer;
+            return RenderPassType::GBuffer;
         }
     };
 
@@ -243,7 +243,7 @@ namespace Engine
     {
         info_log("GBuffer", "Creating GBuffer");
 
-        render_pass = RenderPass::load_render_pass(RenderPass::Type::GBuffer);
+        render_pass = RenderPass::load_render_pass(RenderPassType::GBuffer);
 
         for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
@@ -326,9 +326,9 @@ namespace Engine
             color_attachments[0].format = find_color_format(required_albedo_formats(), color_format_requirements(), "Color");
         }
 
-        Type type() const override
+        RenderPassType type() const override
         {
-            return Type::SceneOutput;
+            return RenderPassType::SceneOutput;
         }
     };
 
@@ -344,7 +344,7 @@ namespace Engine
     {
         info_log("SceneColorOutput", "Creating SceneColorOutput");
 
-        render_pass = RenderPass::load_render_pass(RenderPass::Type::SceneOutput);
+        render_pass = RenderPass::load_render_pass(RenderPassType::SceneOutput);
         color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
 
 

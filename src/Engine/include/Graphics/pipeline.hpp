@@ -104,7 +104,7 @@ namespace Engine
         bool has_global_parameters;
 
     public:
-        RenderPass* render_pass         = nullptr;
+        RenderPassType render_pass      = RenderPassType::Undefined;
         VertexShader* vertex_shader     = nullptr;
         FragmentShader* fragment_shader = nullptr;
 

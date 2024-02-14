@@ -9,18 +9,7 @@ namespace Engine
 
     class ENGINE_EXPORT RenderPass : public RenderResource
     {
-        declare_class(RenderPass, RenderResource);
-
-
-    public:
-        enum Type : EnumerateType
-        {
-            Undefined   = 0,
-            Window      = 1,
-            SceneOutput = 2,
-            GBuffer     = 3,
-            __COUNT__   = 4,
-        };
+        declare_class(RenderPass, RenderResource);  
 
     private:
         static RenderPass* load_window_render_pass();
@@ -39,8 +28,8 @@ namespace Engine
 
         RenderPass();
         RenderPass& rhi_create() override;
-        virtual Type type() const;
+        virtual RenderPassType type() const;
 
-        static RenderPass* load_render_pass(Type type);
+        static RenderPass* load_render_pass(RenderPassType type);
     };
 }// namespace Engine

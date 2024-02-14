@@ -21,9 +21,9 @@ namespace Engine
     }
 
 
-    static RenderPass* render_passes[RenderPass::Type::__COUNT__] = {};
+    static RenderPass* render_passes[static_cast<EnumerateType>(RenderPassType::__COUNT__)] = {};
 
-    RenderPass* RenderPass::load_render_pass(Type type)
+    RenderPass* RenderPass::load_render_pass(RenderPassType type)
     {
         RenderPass*& pass = render_passes[static_cast<EnumerateType>(type)];
         if (pass)
@@ -31,14 +31,14 @@ namespace Engine
 
         switch (type)
         {
-            case Type::Window:
+            case RenderPassType::Window:
                 pass = load_window_render_pass();
                 break;
 
-            case Type::SceneOutput:
+            case RenderPassType::SceneOutput:
                 pass = load_scene_color_render_pass();
                 break;
-            case Type::GBuffer:
+            case RenderPassType::GBuffer:
                 pass = load_gbuffer_render_pass();
                 break;
             default:
@@ -52,8 +52,8 @@ namespace Engine
         return pass;
     }
 
-    RenderPass::Type RenderPass::type() const
+    RenderPassType RenderPass::type() const
     {
-        return Type::Undefined;
+        return RenderPassType::Undefined;
     }
 }// namespace Engine

@@ -5,10 +5,82 @@
 #include <Graphics/shader_parameters.hpp>
 #include <Graphics/visual_material.hpp>
 
+#include <SPIRV/GLSL.std.450.h>
+#include <SPIRV/GlslangToSpv.h>
+#include <glslang/Public/ResourceLimits.h>
+#include <glslang/Public/ShaderLang.h>
 
 namespace Engine
 {
     static thread_local MessageList* errors;
+
+    static bool compile_shader(const String& text, Buffer& out, EShLanguage lang)
+    {
+        glslang::InitializeProcess();
+
+        glslang::TShader shader(lang);
+        const char* shaderStrings[1];
+        shaderStrings[0] = text.c_str();
+        shader.setStrings(shaderStrings, 1);
+
+        // Set up shader options
+        int clientInputSemanticsVersion                 = 100;// default for Vulkan
+        glslang::EShTargetClientVersion clientVersion   = glslang::EShTargetVulkan_1_0;
+        glslang::EShTargetLanguageVersion targetVersion = glslang::EShTargetSpv_1_0;
+
+        // Set up shader environment
+        shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, clientInputSemanticsVersion);
+        shader.setEnvClient(glslang::EShClientVulkan, clientVersion);
+        shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
+
+        // Preprocess the shader
+        if (!shader.parse(GetDefaultResources(), clientInputSemanticsVersion, false, EShMsgDefault))
+        {
+            errors->push_back(shader.getInfoLog());
+            errors->push_back(shader.getInfoDebugLog());
+            glslang::FinalizeProcess();
+            return false;
+        }
+
+        // Create and link shader program
+        glslang::TProgram program;
+        program.addShader(&shader);
+        if (!program.link(EShMsgDefault))
+        {
+            errors->push_back(program.getInfoLog());
+            errors->push_back(program.getInfoDebugLog());
+            glslang::FinalizeProcess();
+            return false;
+        }
+
+        // Translate to SPIR-V
+        glslang::SpvOptions spvOptions;
+        spvOptions.generateDebugInfo = true;
+        spvOptions.disableOptimizer  = false;
+        spvOptions.optimizeSize      = false;
+        spvOptions.stripDebugInfo    = false;
+        spvOptions.validate          = true;
+        std::vector<unsigned int> spirv;
+        glslang::GlslangToSpv(*program.getIntermediate(lang), spirv, &spvOptions);
+
+
+        out.resize(spirv.size() * sizeof(unsigned int));
+        std::memcpy(out.data(), spirv.data(), out.size());
+
+        // Clean up
+        glslang::FinalizeProcess();
+        return true;
+    }
+
+    static bool compile_fragment_source(const String& text, Buffer& out)
+    {
+        return compile_shader(text, out, EShLangFragment);
+    }
+
+    static bool compile_vertex_source(const String& text, Buffer& out)
+    {
+        return compile_shader(text, out, EShLangVertex);
+    }
 
     static String reinterpret_value(void* data, MaterialNodeDataType type)
     {
@@ -249,7 +321,6 @@ namespace Engine
             compiled_pins[pin->id()]    = source;
             return source;
         }
-
 
         ~GLSL_CompilerState()
         {
