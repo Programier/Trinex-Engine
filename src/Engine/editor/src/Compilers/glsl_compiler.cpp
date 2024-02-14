@@ -7,6 +7,7 @@
 
 #include <SPIRV/GLSL.std.450.h>
 #include <SPIRV/GlslangToSpv.h>
+#include <glsl_optimizer.h>
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
@@ -80,6 +81,20 @@ namespace Engine
     static bool compile_vertex_source(const String& text, Buffer& out)
     {
         return compile_shader(text, out, EShLangVertex);
+    }
+
+    static void optimize_source(glslopt_ctx* ctx, String& text, glslopt_shader_type type, uint_t options)
+    {
+        auto shader = glslopt_optimize(ctx, type, text.c_str(), options);
+        if (glslopt_get_status(shader))
+        {
+            text = glslopt_get_output(shader);
+        }
+        else
+        {
+            errors->push_back(glslopt_get_log(shader));
+        }
+        glslopt_shader_delete(shader);
     }
 
     static String reinterpret_value(void* data, MaterialNodeDataType type)
@@ -341,7 +356,18 @@ namespace Engine
     public:
         GLSL_CompilerState vertex_state;
         GLSL_CompilerState fragment_state;
-        CompileStage stage = CompileStage::Vertex;
+        CompileStage stage             = CompileStage::Vertex;
+        glslopt_ctx* optimizer_context = nullptr;
+
+        GLSL_Compiler()
+        {
+            optimizer_context = glslopt_initialize(kGlslTargetOpenGLES30);
+        }
+
+        ~GLSL_Compiler()
+        {
+            glslopt_cleanup(optimizer_context);
+        }
 
         GLSL_CompilerState& state()
         {
@@ -438,8 +464,9 @@ namespace Engine
 
             MaterialNodeDataType result_type = operator_result_between(t1, t2);
 
-            auto source = (new GLSL_CompiledSource(
-                    Strings::format("{}({} + {})", glsl_type_of(result_type), get_pin_source(pin1, result_type), get_pin_source(pin2, result_type))));
+            auto source = (new GLSL_CompiledSource(Strings::format("{}({} + {})", glsl_type_of(result_type),
+                                                                   get_pin_source(pin1, result_type),
+                                                                   get_pin_source(pin2, result_type))));
             return source->id();
         }
 
@@ -493,9 +520,7 @@ namespace Engine
             return (new GLSL_CompiledSource(reinterpret_value(&value, MaterialNodeDataType::Float)))->id();
         }
 
-
         /// FRAGMENT OUTPUT
-
         size_t base_color(MaterialInputPin* pin) override
         {
             GLSL_Output out;
