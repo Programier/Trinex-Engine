@@ -3,6 +3,7 @@
 #include <ScriptEngine/script_object.hpp>
 #include <imgui_windows.hpp>
 #include <Engine/scene_renderer.hpp>
+#include <Graphics/pipeline_buffers.hpp>
 
 namespace Engine
 {
@@ -19,6 +20,7 @@ namespace Engine
         ImGuiContentBrowser* _M_content_browser;
         ImGuiObjectProperties* _M_properties;
         ImGuiSceneTree* _M_scene_tree;
+        TexCoordVertexBuffer* mesh;
 
         class Sampler* _M_sampler = nullptr;
         size_t _M_frame = 0;

@@ -10,6 +10,9 @@
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material.hpp>
+#include <Graphics/pipeline.hpp>
+#include <Graphics/render_pass.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -22,6 +25,7 @@
 #include <dock_window.hpp>
 #include <imgui_internal.h>
 #include <theme.hpp>
+#include <Graphics/shader_parameters.hpp>
 
 namespace Engine
 {
@@ -123,6 +127,11 @@ namespace Engine
         _M_sampler = Package::find_package("Editor", true)->find_object_checked<Sampler>("DefaultSampler");
 
         ImGuiRenderer::Window::make_current(prev_window);
+
+
+        mesh         = Object::new_instance<TexCoordVertexBuffer>();
+        mesh->buffer = {{-1, -1}, {-1, 1}, {1, 1}, {-1, -1}, {1, 1}, {1, -1}};
+        mesh->init_resource();
         return init_world();
     }
 
@@ -148,7 +157,21 @@ namespace Engine
     {
         // Render base frame
         GBuffer::instance()->rhi_bind();
-        SceneColorOutput::instance()->rhi_bind();
+        SceneColorOutput* rt = SceneColorOutput::instance();
+        rt->rhi_bind();
+
+        class Material* material = Object::find_object_checked<Material>("Default::DefaultMaterial");
+
+        if (material && material->pipeline->has_object())
+        {
+            static GlobalShaderParameters params;
+            engine_instance->rhi()->push_global_params(params);
+            material->apply();
+            mesh->rhi_bind(0);
+            engine_instance->rhi()->draw(6);
+            engine_instance->rhi()->pop_global_params();
+        }
+
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;

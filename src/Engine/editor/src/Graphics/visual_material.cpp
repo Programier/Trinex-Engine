@@ -512,7 +512,7 @@ namespace Engine
         return MaterialPinType::Output;
     }
 
-    const size_t MaterialNode::compile_error = ~static_cast<size_t>(0);
+    const size_t MaterialNode::compile_error = static_cast<size_t>(0);
 
     size_t MaterialNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
@@ -524,7 +524,7 @@ namespace Engine
         return "Node";
     }
 
-    MaterialNodeDataType MaterialNode::output_type(MaterialOutputPin* pin) const
+    MaterialNodeDataType MaterialNode::output_type(const MaterialOutputPin* pin) const
     {
         return MaterialNodeDataType::Undefined;
     }

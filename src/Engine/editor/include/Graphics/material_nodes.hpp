@@ -10,6 +10,8 @@ namespace Engine::MaterialNodes
         Struct* struct_instance() const override;
         const char* name() const override;
         VertexNode();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
     };
 
     struct FragmentNode : public MaterialNode {
@@ -18,5 +20,7 @@ namespace Engine::MaterialNodes
         Struct* struct_instance() const override;
         const char* name() const override;
         FragmentNode();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
     };
 }// namespace Engine::MaterialNodes

@@ -74,7 +74,7 @@ namespace Engine
 
         virtual size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin);
         virtual const char* name() const;
-        virtual MaterialNodeDataType output_type(MaterialOutputPin* pin) const;
+        virtual MaterialNodeDataType output_type(const MaterialOutputPin* pin) const;
 
         Identifier id() const;
         virtual class Struct* struct_instance() const;

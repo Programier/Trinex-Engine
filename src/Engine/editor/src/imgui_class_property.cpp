@@ -281,6 +281,21 @@ namespace Engine
         if (ImGui::CollapsingHeader(prop->name().c_str()))
         {
             ImGui::Indent(indent);
+
+            {
+                int new_count = static_cast<int>(interface->elements_count(object));
+                if (ImGui::InputInt("editor/Array Len"_localized, &new_count))
+                {
+                    if (new_count >= 0)
+                    {
+                        interface->resize(object, new_count);
+                        count = new_count;
+                    }
+                }
+            }
+
+            ImGui::Separator();
+
             for (size_t i = 0; i < count; i++)
             {
                 void* array_object = interface->at(object, i);

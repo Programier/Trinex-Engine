@@ -40,6 +40,11 @@ namespace Engine::MaterialNodes
         return "Vertex";
     }
 
+    size_t VertexNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    {
+        return 0;
+    }
+
     FragmentNode::FragmentNode()
     {
         inputs.push_back(new Color3InputPin(this, "Base Color"));
@@ -55,6 +60,12 @@ namespace Engine::MaterialNodes
     const char* FragmentNode::name() const
     {
         return "Fragment";
+    }
+
+    size_t FragmentNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    {
+        compiler->base_color(inputs[0]);
+        return 0;
     }
 
 
@@ -96,6 +107,21 @@ namespace Engine::MaterialNodes
         }
     };
 
+    struct Float : public MaterialNode {
+        declare_material_node();
+
+        Float()
+        {
+            outputs.push_back(new FloatOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->float_constant(*reinterpret_cast<float*>(pin->default_value()));
+        }
+    };
+
     implement_material_node(Sin, Math);
+    implement_material_node(Float, Constants);
 
 }// namespace Engine::MaterialNodes
