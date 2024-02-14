@@ -484,6 +484,16 @@ namespace Engine
         {
             return _M_enum;
         }
+
+        size_t size() const override
+        {
+            return sizeof(EnumerateType);
+        }
+
+        size_t min_alignment() const override
+        {
+            return alignof(EnumerateType);
+        }
     };
 
     template<typename InstanceType>

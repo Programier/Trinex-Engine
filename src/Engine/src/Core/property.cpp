@@ -288,7 +288,6 @@ namespace Engine
                 {
                     prop->archive_process(object, ar);
                 }
-                --count;
             }
 
             ar.position(start_pos + offsets.back());
