@@ -70,7 +70,7 @@ namespace Engine
         Vector<MaterialInputPin*> inputs;
         Vector<MaterialOutputPin*> outputs;
 
-        Vector2D position;
+        Vector2D position = {0, 0};
 
         virtual size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin);
         virtual const char* name() const;
