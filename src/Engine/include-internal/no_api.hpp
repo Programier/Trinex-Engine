@@ -44,6 +44,15 @@ namespace Engine
         NoApi& pop_global_params() override;
         NoApi& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
+
+        ColorFormat base_color_format() override;
+        ColorFormat position_format()      override;
+        ColorFormat normal_format()        override;
+        ColorFormat specular_format()      override;
+        ColorFormat depth_format()         override;
+        ColorFormat stencil_format()       override;
+        ColorFormat depth_stencil_format() override;
+
         void line_width(float width) override;
 
         void push_debug_stage(const char* stage, const Color& color) override;

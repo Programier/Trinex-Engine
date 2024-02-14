@@ -147,9 +147,9 @@ namespace Engine
 
     // Window Viewport
 
-    VulkanViewport* VulkanWindowViewport::init(WindowInterface* window, bool vsync, bool create_render_pass)
+    VulkanViewport* VulkanWindowViewport::init(WindowInterface* window, bool vsync, bool need_initialize)
     {
-        if (create_render_pass)
+        if (need_initialize)
         {
             _M_surface = API->_M_surface;
         }
@@ -162,11 +162,16 @@ namespace Engine
         VulkanViewport::init();
         _M_present_mode = API->present_mode_of(vsync);
         create_swapchain();
-        if (create_render_pass)
+        if (need_initialize)
         {
             API->create_render_pass(static_cast<vk::Format>(_M_swapchain->image_format));
         }
         create_main_render_target();
+
+        if(need_initialize)
+        {
+            API->initialize_color_formats();
+        }
         return this;
     }
 

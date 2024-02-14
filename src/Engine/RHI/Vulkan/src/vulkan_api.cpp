@@ -409,23 +409,6 @@ namespace Engine
         return _M_physical_device.getSurfaceCapabilitiesKHR(surface).currentExtent;
     }
 
-    vk::Format VulkanAPI::find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
-                                                vk::FormatFeatureFlags features)
-    {
-        for (const vk::Format& format : candidates)
-        {
-            vk::FormatProperties properties = _M_physical_device.getFormatProperties(format);
-
-            if (tiling != vk::ImageTiling::eDrmFormatModifierEXT && (properties.linearTilingFeatures & features) == features)
-            {
-                return format;
-            }
-        }
-
-        throw std::runtime_error("VulkanAPI: Failed to find supported format!");
-    }
-
-
     bool VulkanAPI::has_stencil_component(vk::Format format)
     {
         return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
@@ -494,12 +477,9 @@ namespace Engine
                                         vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
     {
         vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
-
         buffer = _M_device.createBuffer(buffer_info);
 
-
         vk::MemoryRequirements mem_requirements = _M_device.getBufferMemoryRequirements(buffer);
-
         vk::MemoryAllocateInfo alloc_info(mem_requirements.size, find_memory_type(mem_requirements.memoryTypeBits, properties));
 
 

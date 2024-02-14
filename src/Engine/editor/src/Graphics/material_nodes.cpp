@@ -47,14 +47,14 @@ namespace Engine::MaterialNodes
 
     FragmentNode::FragmentNode()
     {
-        inputs.push_back(new Color3InputPin(this, "Base Color"));
+        inputs.push_back(new Color4InputPin(this, "Base Color"));
         inputs.push_back(new FloatInputPin(this, "Metalic"));
         inputs.push_back(new FloatInputPin(this, "Specular"));
         inputs.push_back(new FloatInputPin(this, "Roughness"));
-        inputs.push_back(new Color3InputPin(this, "Emmisive"));
+        inputs.push_back(new Color4InputPin(this, "Emmisive"));
         inputs.push_back(new FloatInputPin(this, "Opacity"));
         inputs.push_back(new FloatInputPin(this, "Opacity Mask"));
-        inputs.push_back(new Vec3InputPin(this, "Normal"));
+        inputs.push_back(new Vec4InputPin(this, "Normal"));
     }
 
     const char* FragmentNode::name() const

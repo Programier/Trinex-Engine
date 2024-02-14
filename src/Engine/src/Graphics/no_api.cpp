@@ -206,4 +206,47 @@ namespace Engine
         return *this;
     }
 
+    ColorFormat NoApi::base_color_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+    ColorFormat NoApi::position_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+    ColorFormat NoApi::normal_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+    ColorFormat NoApi::specular_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+    ColorFormat NoApi::depth_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+    ColorFormat NoApi::stencil_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+    ColorFormat NoApi::depth_stencil_format()
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return ColorFormat::Undefined;
+    }
+
+
 }// namespace Engine

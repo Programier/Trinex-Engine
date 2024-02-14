@@ -216,4 +216,50 @@ namespace Engine
 
         return features;
     }
+
+
+    static struct OpenGLColorFormats {
+        ColorFormat base_color           = ColorFormat::R32G32B32A32Sfloat;
+        ColorFormat position_format      = ColorFormat::R32G32B32A32Sfloat;
+        ColorFormat normal_format        = ColorFormat::R32G32B32A32Sfloat;
+        ColorFormat specular_format      = ColorFormat::R32G32B32A32Sfloat;
+        ColorFormat depth_format         = ColorFormat::D32Sfloat;
+        ColorFormat stencil_format       = ColorFormat::S8Uint;
+        ColorFormat depth_stencil_format = ColorFormat::D32SfloatS8Uint;
+    } formats;
+
+    ColorFormat OpenGL::base_color_format()
+    {
+        return formats.base_color;
+    }
+
+    ColorFormat OpenGL::position_format()
+    {
+        return formats.position_format;
+    }
+
+    ColorFormat OpenGL::normal_format()
+    {
+        return formats.normal_format;
+    }
+
+    ColorFormat OpenGL::specular_format()
+    {
+        return formats.specular_format;
+    }
+
+    ColorFormat OpenGL::depth_format()
+    {
+        return formats.depth_format;
+    }
+
+    ColorFormat OpenGL::stencil_format()
+    {
+        return formats.stencil_format;
+    }
+
+    ColorFormat OpenGL::depth_stencil_format()
+    {
+        return formats.depth_stencil_format;
+    }
 }// namespace Engine

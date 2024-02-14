@@ -114,8 +114,6 @@ namespace Engine
 
         VulkanAPI& copy_buffer(vk::Buffer src_buffer, vk::Buffer dst_buffer, vk::DeviceSize size, vk::DeviceSize src_offset = 0,
                                vk::DeviceSize dst_offset = 0);
-        vk::Format find_supported_format(const Vector<vk::Format>& candidates, vk::ImageTiling tiling,
-                                         vk::FormatFeatureFlags features);
         bool has_stencil_component(vk::Format format);
         VulkanAPI& create_image(struct VulkanTexture* state, vk::ImageTiling tiling, vk::ImageCreateFlags flags,
                                 vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
@@ -127,6 +125,7 @@ namespace Engine
 
         VulkanAPI();
         void initialize(WindowInterface* window);
+        void initialize_color_formats();
 
         VulkanAPI& begin_render() override;
         VulkanAPI& end_render() override;
@@ -174,6 +173,14 @@ namespace Engine
         VulkanAPI& pop_global_params() override;
         VulkanAPI& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
+        ColorFormat base_color_format() override;
+        ColorFormat position_format() override;
+        ColorFormat normal_format() override;
+        ColorFormat specular_format() override;
+        ColorFormat depth_format() override;
+        ColorFormat stencil_format() override;
+        ColorFormat depth_stencil_format() override;
+
         void line_width(float width) override;
 
         void push_debug_stage(const char* stage, const Color& color) override;
@@ -181,4 +188,7 @@ namespace Engine
 
         ~VulkanAPI();
     };
+
+    vk::Format parse_engine_format(ColorFormat format);
+    ColorFormat to_engine_format(vk::Format format);
 }// namespace Engine

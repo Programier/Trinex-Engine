@@ -102,78 +102,56 @@ namespace Engine
 
     static constexpr inline size_t gbuffer_color_attachments = 4;
 
-    static Vector<ColorFormat> required_albedo_formats()
+    static ColorFormat base_color_format()
     {
-        return {ColorFormat::R8G8B8A8Unorm, ColorFormat::R8G8B8A8Snorm, ColorFormat::R8G8B8A8Uint};
+        ColorFormat format = engine_instance->rhi()->base_color_format();
+        trinex_always_check(format != ColorFormat::Undefined, "Color format can't be undefined!");
+        return format;
     }
 
-    static Vector<ColorFormat> required_position_formats()
+    static ColorFormat position_format()
     {
-        return {ColorFormat::R16G16B16A16Sfloat, ColorFormat::R16G16B16A16Sfloat, ColorFormat::R32G32B32Sfloat,
-                ColorFormat::R32G32B32A32Sfloat};
+        ColorFormat format = engine_instance->rhi()->position_format();
+        trinex_always_check(format != ColorFormat::Undefined, "Position format can't be undefined!");
+        return format;
     }
 
-    static Vector<ColorFormat> required_normal_formats()
+    static ColorFormat normal_format()
     {
-        return {ColorFormat::R16G16B16A16Sfloat, ColorFormat::R16G16B16A16Sfloat, ColorFormat::R32G32B32Sfloat,
-                ColorFormat::R32G32B32A32Sfloat};
+        ColorFormat format = engine_instance->rhi()->normal_format();
+        trinex_always_check(format != ColorFormat::Undefined, "Normal format can't be undefined!");
+        return format;
     }
 
-    static Vector<ColorFormat> required_specular_formats()
+    static ColorFormat specular_format()
     {
-        return {ColorFormat::R8G8B8A8Unorm, ColorFormat::R8G8B8A8Snorm, ColorFormat::R8G8B8A8Uint};
+        ColorFormat format = engine_instance->rhi()->specular_format();
+        trinex_always_check(format != ColorFormat::Undefined, "Specular format can't be undefined!");
+        return format;
     }
 
-    static Vector<ColorFormat> required_depth_formats()
+    static ColorFormat depth_format()
     {
 #if TRINEX_WITH_STENCIL_BUFFER
-        return {ColorFormat::D32SfloatS8Uint, ColorFormat::D24UnormS8Uint, ColorFormat::D16UnormS8Uint};
+        ColorFormat format = engine_instance->rhi()->depth_stencil_format();
 #else
-        return {ColorFormat::D32Sfloat, ColorFormat::D16Unorm, ColorFormat::D16UnormS8Uint};
+
+        ColorFormat format = engine_instance->rhi()->depth_format();
 #endif
+        trinex_always_check(format != ColorFormat::Undefined, "Color format can't be undefined!");
+        return format;
     }
-
-    static ColorFormatFeatures color_format_requirements()
-    {
-        ColorFormatFeatures features;
-        features.is_supported             = true;
-        features.support_color_attachment = true;
-        return features;
-    }
-
-    static ColorFormatFeatures depth_format_requirements()
-    {
-        ColorFormatFeatures features;
-        features.is_supported          = true;
-        features.support_depth_stencil = true;
-        return features;
-    }
-
-
-    static ColorFormat find_color_format(const Vector<ColorFormat>& formats, ColorFormatFeatures features, const char* type)
-    {
-        for (const ColorFormat& format : formats)
-        {
-            if (ColorFormatInfo::info_of(format).features().contains(features))
-            {
-                return format;
-            }
-        }
-
-        throw EngineException(Strings::format("Cannot find format for {} gbuffer texture", type));
-    }
-
 
     struct AttachmentTextureInfo {
-        Vector<ColorFormat> (*required_formats)() = nullptr;
-        const char* name                          = nullptr;
+        ColorFormat (*required_format)() = nullptr;
+        const char* name                 = nullptr;
     };
 
     static AttachmentTextureInfo attachment_texture_info[gbuffer_color_attachments] = {
-            {required_albedo_formats, "Albedo"},
-            {required_position_formats, "Position"},
-            {required_normal_formats, "Normal"},
-            {required_specular_formats, "Specular"},
+            {base_color_format, "Albedo"},
+            {position_format, "Position"},
+            {normal_format, "Normal"},
+            {specular_format, "Specular"},
     };
 
 
@@ -187,15 +165,14 @@ namespace Engine
         {
             has_depth_stancil                      = true;
             depth_stencil_attachment.clear_on_bind = true;
-            depth_stencil_attachment.format = find_color_format(required_depth_formats(), depth_format_requirements(), "depth");
+            depth_stencil_attachment.format        = depth_format();
 
             color_attachments.resize(gbuffer_color_attachments);
 
             for (size_t i = 0; i < gbuffer_color_attachments; i++)
             {
                 color_attachments[i].clear_on_bind = true;
-                color_attachments[i].format        = find_color_format(attachment_texture_info[i].required_formats(),
-                                                                       color_format_requirements(), attachment_texture_info[i].name);
+                color_attachments[i].format        = attachment_texture_info[i].required_format();
             }
         }
 
@@ -323,7 +300,7 @@ namespace Engine
             // Initialize color attachments
             color_attachments.resize(1);
             color_attachments[0].clear_on_bind = true;
-            color_attachments[0].format = find_color_format(required_albedo_formats(), color_format_requirements(), "Color");
+            color_attachments[0].format        = base_color_format();
         }
 
         RenderPassType type() const override

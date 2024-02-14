@@ -209,7 +209,6 @@ namespace Engine
                 break;
             }
 
-
             default:
                 throw EngineException("Undefined type!");
         }

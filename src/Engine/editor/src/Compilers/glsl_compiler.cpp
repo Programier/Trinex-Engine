@@ -406,6 +406,9 @@ namespace Engine
             material->pipeline->vertex_shader->text_code   = vertex_state.compile();
             material->pipeline->fragment_shader->text_code = fragment_state.compile();
 
+
+            compile_vertex_source(material->pipeline->vertex_shader->text_code, material->pipeline->vertex_shader->binary_code);
+            compile_fragment_source(material->pipeline->fragment_shader->text_code, material->pipeline->fragment_shader->binary_code);
             material->postload();
             return false;
         }
@@ -424,12 +427,12 @@ namespace Engine
         {
             GLSL_Output out;
             out.location = 0;
-            out.type     = MaterialNodeDataType::Vec3;
+            out.type     = MaterialNodeDataType::Vec4;
             out.param    = "color";
 
             fragment_state.outputs.push_back(std::move(out));
 
-            String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
+            String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
             state().statements.push_back(Strings::format("out_color = {}", source));
             return 0;
         }

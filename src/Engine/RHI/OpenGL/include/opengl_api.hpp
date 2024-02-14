@@ -82,6 +82,14 @@ namespace Engine
         OpenGL& pop_global_params() override;
         OpenGL& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
+        ColorFormat base_color_format() override;
+        ColorFormat position_format() override;
+        ColorFormat normal_format() override;
+        ColorFormat specular_format() override;
+        ColorFormat depth_format() override;
+        ColorFormat stencil_format() override;
+        ColorFormat depth_stencil_format() override;
+
         void push_debug_stage(const char* stage, const Color& color = {}) override;
         void pop_debug_stage() override;
 

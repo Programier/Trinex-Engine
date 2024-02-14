@@ -57,7 +57,7 @@ namespace Engine
         std::vector<VkImage> _M_images;
         bool _M_need_recreate_swap_chain = false;
 
-        VulkanViewport* init(WindowInterface* window, bool vsync, bool create_render_pass);
+        VulkanViewport* init(WindowInterface* window, bool vsync, bool need_initialize);
 
         void create_main_render_target();
         void create_swapchain();

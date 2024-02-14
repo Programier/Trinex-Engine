@@ -157,7 +157,7 @@ namespace Engine
         bool contains(const ColorFormatFeatures& other) const;
     };
 
-    class ColorFormatInfo
+    class ENGINE_EXPORT ColorFormatInfo
     {
     private:
         EnumerateType _M_value;

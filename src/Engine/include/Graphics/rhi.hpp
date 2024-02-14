@@ -142,6 +142,14 @@ namespace Engine
         virtual RHI& pop_global_params()                                                  = 0;
         virtual RHI& update_local_parameter(const void* data, size_t size, size_t offset) = 0;
 
+        virtual ColorFormat base_color_format()    = 0;
+        virtual ColorFormat position_format()      = 0;
+        virtual ColorFormat normal_format()        = 0;
+        virtual ColorFormat specular_format()      = 0;
+        virtual ColorFormat depth_format()         = 0;
+        virtual ColorFormat stencil_format()       = 0;
+        virtual ColorFormat depth_stencil_format() = 0;
+
         // Dynamic state
         virtual void line_width(float width) = 0;
 
