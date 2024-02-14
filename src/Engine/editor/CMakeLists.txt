@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(TRINEX_ENGINE_EDITOR_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(TRINEX_ENGINE_EDITOR_SOURCES_ROOT ${TRINEX_ENGINE_EDITOR_PROJECT_ROOT}/src)
 
+add_subdirectory(libs)
 add_subdirectory(src)
 target_include_directories(TrinexEngineEditor PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 
