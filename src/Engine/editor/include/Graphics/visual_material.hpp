@@ -8,7 +8,7 @@ namespace Engine
 #define CAST_FLAG(index) BIT(32 + index)
     enum class MaterialNodeDataType : size_t
     {
-        Undefined = 0,
+        Undefined = CAST_FLAG(20),
         Bool      = BIT(0) | CAST_FLAG(1),
         Int       = BIT(1) | CAST_FLAG(2),
         UInt      = BIT(2) | CAST_FLAG(2),
@@ -58,6 +58,7 @@ namespace Engine
 
         using MaterialPin::MaterialPin;
         MaterialPinType type() const override;
+        MaterialNodeDataType value_type() const override;
     };
 
     struct MaterialOutputPin : public MaterialPin {
@@ -65,6 +66,7 @@ namespace Engine
 
         using MaterialPin::MaterialPin;
         MaterialPinType type() const override;
+        MaterialNodeDataType value_type() const override;
     };
 
     struct MaterialNode {
@@ -72,9 +74,11 @@ namespace Engine
 
         Vector<MaterialInputPin*> inputs;
         Vector<MaterialOutputPin*> outputs;
+        class VisualMaterial* material = nullptr;
 
         Vector2D position = {0, 0};
 
+        virtual bool is_removable() const;
         virtual size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin);
         virtual const char* name() const;
         virtual MaterialNodeDataType output_type(const MaterialOutputPin* pin) const;
@@ -202,6 +206,8 @@ namespace Engine
         VisualMaterial();
         VisualMaterial& render_nodes(void* context);
         ~VisualMaterial();
+
+        friend struct MaterialNode;
     };
 
 }// namespace Engine

@@ -45,6 +45,11 @@ namespace Engine::MaterialNodes
         return 0;
     }
 
+    bool VertexNode::is_removable() const
+    {
+        return false;
+    }
+
     FragmentNode::FragmentNode()
     {
         inputs.push_back(new Color4InputPin(this, "Base Color"));
@@ -66,6 +71,11 @@ namespace Engine::MaterialNodes
     {
         compiler->base_color(inputs[0]);
         return 0;
+    }
+
+    bool FragmentNode::is_removable() const
+    {
+        return false;
     }
 
 

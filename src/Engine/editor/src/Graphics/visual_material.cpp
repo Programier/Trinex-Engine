@@ -18,7 +18,8 @@ namespace Engine
         size_t cast_flags1 = static_cast<size_t>(t1) >> 32;
         size_t cast_flags2 = static_cast<size_t>(t2) >> 32;
 
-        if(cast_flags1 < cast_flags2)
+
+        if (cast_flags1 < cast_flags2)
             return t2;
         return t1;
     }
@@ -480,6 +481,63 @@ namespace Engine
         ed::EndCreate();
     }
 
+    static void remove_link(MaterialInputPin* input)
+    {
+        if (input->linked_to)
+        {
+            input->linked_to->linked_to.erase(input);
+            input->linked_to = nullptr;
+        }
+    }
+
+    static void delete_selected_items()
+    {
+        size_t objects = ed::GetSelectedObjectCount();
+        byte* _data    = new byte[objects * glm::max(sizeof(ed::NodeId), sizeof(ed::PinId))];
+
+        {
+            ed::NodeId* nodes = reinterpret_cast<ed::NodeId*>(_data);
+            for (int i = 0, count = ed::GetSelectedNodes(nodes, objects); i < count; i++)
+            {
+                MaterialNode* node = nodes[i].AsPointer<MaterialNode>();
+
+                if (node->is_removable())
+                {
+                    for (MaterialInputPin* in : node->inputs)
+                    {
+                        remove_link(in);
+                    }
+
+                    for (MaterialOutputPin* out : node->outputs)
+                    {
+                        while (!out->linked_to.empty())
+                        {
+                            MaterialInputPin* in = *out->linked_to.begin();
+                            remove_link(in);
+                        }
+                    }
+
+                    delete node;
+                }
+            }
+        }
+
+        {
+            ed::LinkId* links = reinterpret_cast<ed::LinkId*>(_data);
+            for (int i = 0, count = ed::GetSelectedLinks(links, objects); i < count; i++)
+            {
+                MaterialInputPin* pin = reinterpret_cast<MaterialInputPin*>(static_cast<Identifier>(links[i]) + 1);
+
+                if (pin)
+                {
+                    remove_link(pin);
+                }
+            }
+        }
+
+        delete[] _data;
+    }
+
     MaterialPin::MaterialPin(MaterialNode* node, Name name) : name(name), node(node)
     {}
 
@@ -517,12 +575,32 @@ namespace Engine
         return MaterialPinType::Input;
     }
 
+    MaterialNodeDataType MaterialInputPin::value_type() const
+    {
+        if (linked_to)
+        {
+            return linked_to->value_type();
+        }
+
+        return MaterialNodeDataType::Undefined;
+    }
+
     MaterialPinType MaterialOutputPin::type() const
     {
         return MaterialPinType::Output;
     }
 
+    MaterialNodeDataType MaterialOutputPin::value_type() const
+    {
+        return node->output_type(this);
+    }
+
     const size_t MaterialNode::compile_error = static_cast<size_t>(0);
+
+    bool MaterialNode::is_removable() const
+    {
+        return true;
+    }
 
     size_t MaterialNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
@@ -564,6 +642,17 @@ namespace Engine
 
         inputs.clear();
         outputs.clear();
+
+        Index index = 0;
+        for (MaterialNode* node : material->_M_nodes)
+        {
+            if (node == this)
+            {
+                material->_M_nodes.erase(material->_M_nodes.begin() + index);
+                break;
+            }
+            ++index;
+        }
     }
 
     implement_struct(VertexNode, Engine, );
@@ -594,14 +683,18 @@ namespace Engine
             return nullptr;
 
         _M_nodes.push_back(node);
+        node->material = this;
         return node;
     }
 
     VisualMaterial::VisualMaterial()
     {
-        _M_vertex_node               = new MaterialNodes::VertexNode();
+        _M_vertex_node           = new MaterialNodes::VertexNode();
+        _M_vertex_node->material = this;
+
         _M_fragment_node             = new MaterialNodes::FragmentNode();
         _M_fragment_node->position.y = 150;
+        _M_fragment_node->material   = this;
 
         _M_nodes.push_back(_M_vertex_node);
         _M_nodes.push_back(_M_fragment_node);
@@ -621,21 +714,19 @@ namespace Engine
 
         check_creating_links();
 
-        //        if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
-        //        {
-        //            delete_selected_items();
-        //        }
+        if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
+        {
+            delete_selected_items();
+        }
 
         return *this;
     }
 
     VisualMaterial::~VisualMaterial()
     {
-        for (auto& ell : _M_nodes)
+        while (!_M_nodes.empty())
         {
-            delete ell;
+            delete _M_nodes.front();
         }
-
-        _M_nodes.clear();
     }
 }// namespace Engine

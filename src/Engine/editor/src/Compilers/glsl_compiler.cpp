@@ -7,7 +7,6 @@
 
 #include <SPIRV/GLSL.std.450.h>
 #include <SPIRV/GlslangToSpv.h>
-#include <glsl_optimizer.h>
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
@@ -37,8 +36,8 @@ namespace Engine
         // Preprocess the shader
         if (!shader.parse(GetDefaultResources(), clientInputSemanticsVersion, false, EShMsgDefault))
         {
-            errors->push_back(shader.getInfoLog());
-            errors->push_back(shader.getInfoDebugLog());
+            errors->push_back(Strings::format("Compiler: {}", shader.getInfoLog()));
+            errors->push_back(Strings::format("Compiler: {}", shader.getInfoDebugLog()));
             glslang::FinalizeProcess();
             return false;
         }
@@ -48,8 +47,8 @@ namespace Engine
         program.addShader(&shader);
         if (!program.link(EShMsgDefault))
         {
-            errors->push_back(program.getInfoLog());
-            errors->push_back(program.getInfoDebugLog());
+            errors->push_back(Strings::format("Compiler: {}", shader.getInfoLog()));
+            errors->push_back(Strings::format("Compiler: {}", shader.getInfoDebugLog()));
             glslang::FinalizeProcess();
             return false;
         }
@@ -83,19 +82,19 @@ namespace Engine
         return compile_shader(text, out, EShLangVertex);
     }
 
-    static void optimize_source(glslopt_ctx* ctx, String& text, glslopt_shader_type type, uint_t options)
-    {
-        auto shader = glslopt_optimize(ctx, type, text.c_str(), options);
-        if (glslopt_get_status(shader))
-        {
-            text = glslopt_get_output(shader);
-        }
-        else
-        {
-            errors->push_back(glslopt_get_log(shader));
-        }
-        glslopt_shader_delete(shader);
-    }
+//    static void optimize_source(glslopt_ctx* ctx, String& text, glslopt_shader_type type, uint_t options)
+//    {
+//        auto shader = glslopt_optimize(ctx, type, text.c_str(), options);
+//        if (glslopt_get_status(shader))
+//        {
+//            text = glslopt_get_output(shader);
+//        }
+//        else
+//        {
+//            errors->push_back(Strings::format("Optimizer: {}", glslopt_get_log(shader)));
+//        }
+//        glslopt_shader_delete(shader);
+//    }
 
     static String reinterpret_value(void* data, MaterialNodeDataType type)
     {
@@ -236,7 +235,10 @@ namespace Engine
             case MaterialNodeDataType::Color4:
                 return "vec4";
             default:
-                return nullptr;
+            {
+                errors->push_back("Failed to get type of node!");
+                return "undefined_type";
+            }
         }
     }
 
@@ -357,16 +359,13 @@ namespace Engine
         GLSL_CompilerState vertex_state;
         GLSL_CompilerState fragment_state;
         CompileStage stage             = CompileStage::Vertex;
-        glslopt_ctx* optimizer_context = nullptr;
 
         GLSL_Compiler()
         {
-            optimizer_context = glslopt_initialize(kGlslTargetOpenGLES30);
         }
 
         ~GLSL_Compiler()
         {
-            glslopt_cleanup(optimizer_context);
         }
 
         GLSL_CompilerState& state()
@@ -433,11 +432,25 @@ namespace Engine
             material->pipeline->fragment_shader->text_code = fragment_state.compile();
 
 
+            if (!errors->empty())
+                return false;
+
+//            optimize_source(optimizer_context, material->pipeline->vertex_shader->text_code,
+//                            glslopt_shader_type::kGlslOptShaderVertex, 0);
+//            optimize_source(optimizer_context, material->pipeline->fragment_shader->text_code,
+//                            glslopt_shader_type::kGlslOptShaderFragment, 0);
+
+            if (!errors->empty())
+                return false;
+
             compile_vertex_source(material->pipeline->vertex_shader->text_code, material->pipeline->vertex_shader->binary_code);
             compile_fragment_source(material->pipeline->fragment_shader->text_code,
                                     material->pipeline->fragment_shader->binary_code);
+            if(!errors->empty())
+                return false;
+
             material->postload();
-            return false;
+            return true;
         }
 
         /// MATH
