@@ -12,37 +12,62 @@ namespace ed = ax::NodeEditor;
 
 namespace Engine
 {
+    bool need_cast_to_lower_to_upper(MaterialNodeDataType t1, MaterialNodeDataType t2)
+    {
+        if (static_cast<size_t>(t1) < static_cast<size_t>(t2))
+        {
+            std::swap(t1, t2);
+        }
+
+        bool status = t2 != operator_result_between(t1, t2);
+        return status;
+    }
+
+    bool is_equal_types(MaterialNodeDataType type1, MaterialNodeDataType type2)
+    {
+        if (type1 == type2)
+            return true;
+
+        MaterialDataTypeInfo info1 = MaterialDataTypeInfo::from(type1);
+        MaterialDataTypeInfo info2 = MaterialDataTypeInfo::from(type2);
+
+        if (info1.components_count != info2.components_count)
+            return false;
+
+        return ((info1.base_type == MaterialBaseDataType::Color && info2.base_type == MaterialBaseDataType::Float) ||
+                (info1.base_type == MaterialBaseDataType::Float && info2.base_type == MaterialBaseDataType::Color));
+    }
 
     MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2)
     {
-        size_t cast_flags1 = static_cast<size_t>(t1) >> 32;
-        size_t cast_flags2 = static_cast<size_t>(t2) >> 32;
+        MaterialDataTypeInfo info1 = MaterialDataTypeInfo::from(t1);
+        MaterialDataTypeInfo info2 = MaterialDataTypeInfo::from(t2);
 
+        if (info1.is_matrix() || info2.is_matrix())
+        {
+            if (info1.is_matrix() && info2.is_matrix())
+                return info1.components_count < info2.components_count ? t2 : t1;
 
-        if (cast_flags1 < cast_flags2)
-            return t2;
-        return t1;
+            if (info2.is_matrix())
+            {
+                std::swap(info1, info2);
+                std::swap(t1, t2);
+            }
+
+            return static_cast<MaterialNodeDataType>(material_type_value(info1.base_type, info1.matrix_size()));
+        }
+
+        return static_cast<size_t>(t1) < static_cast<size_t>(t2) ? t2 : t1;
     }
 
-    static Flags<MaterialNodeDataType> one_component_types = Flags<MaterialNodeDataType>() | MaterialNodeDataType::Bool |
-                                                             MaterialNodeDataType::Int | MaterialNodeDataType::UInt |
-                                                             MaterialNodeDataType::Float;
-
-    static Flags<MaterialNodeDataType> two_component_types = Flags<MaterialNodeDataType>() | MaterialNodeDataType::BVec2 |
-                                                             MaterialNodeDataType::IVec2 | MaterialNodeDataType::UVec2 |
-                                                             MaterialNodeDataType::Vec2;
-
-    static Flags<MaterialNodeDataType> three_component_types = Flags<MaterialNodeDataType>() | MaterialNodeDataType::BVec3 |
-                                                               MaterialNodeDataType::IVec3 | MaterialNodeDataType::UVec3 |
-                                                               MaterialNodeDataType::Vec3;
-
-    static Flags<MaterialNodeDataType> four_component_types = Flags<MaterialNodeDataType>() | MaterialNodeDataType::BVec4 |
-                                                              MaterialNodeDataType::IVec4 | MaterialNodeDataType::UVec4 |
-                                                              MaterialNodeDataType::Vec4;
-
-    static Flags<MaterialNodeDataType> is_boolean_type = Flags<MaterialNodeDataType>() | MaterialNodeDataType::Bool |
-                                                         MaterialNodeDataType::BVec2 | MaterialNodeDataType::BVec3 |
-                                                         MaterialNodeDataType::BVec4;
+    MaterialDataTypeInfo MaterialDataTypeInfo::from(MaterialNodeDataType type)
+    {
+        MaterialDataTypeInfo info;
+        size_t value          = static_cast<size_t>(type);
+        info.base_type        = static_cast<MaterialBaseDataType>(value & 0b111);
+        info.components_count = ((value >> 3) & 0b111);
+        return info;
+    }
 
     static constexpr inline float link_trickess = 4.f;
 
@@ -78,18 +103,18 @@ namespace Engine
     }
 
 
-    static FORCE_INLINE bool is_small_type(Flags<MaterialNodeDataType> type)
+    static FORCE_INLINE bool is_small_type(MaterialNodeDataType type)
     {
-        return static_cast<bool>(is_boolean_type & type) ||
-               static_cast<MaterialNodeDataType>(type.flags) == MaterialNodeDataType::Color3 ||
-               static_cast<MaterialNodeDataType>(type.flags) == MaterialNodeDataType::Color4;
+        MaterialDataTypeInfo info = MaterialDataTypeInfo::from(type);
+        return info.base_type == MaterialBaseDataType::Bool || info.base_type == MaterialBaseDataType::Color;
     }
 
     static FORCE_INLINE float pin_item_len(MaterialPin* pin)
     {
-        Flags<MaterialNodeDataType> type = pin->value_type();
-        bool is_small                    = is_small_type(type);
-        float spacing_multiplier         = is_boolean_type & type ? 2.0 : 1.f;
+        MaterialNodeDataType type = pin->value_type();
+        MaterialDataTypeInfo info = MaterialDataTypeInfo::from(type);
+        bool is_small             = is_small_type(type);
+        float spacing_multiplier  = info.base_type == MaterialBaseDataType::Bool ? 2.0 : 1.f;
         float item_width;
         float spacing;
 
@@ -108,26 +133,23 @@ namespace Engine
         item_width *= factor;
 
 
-        static Flags<MaterialNodeDataType> is_color =
-                Flags<MaterialNodeDataType>() | MaterialNodeDataType::Color3 | MaterialNodeDataType::Color4;
-
-        if ((type & one_component_types) == type)
+        if (info.components_count == 1)
         {
             return item_width;
         }
-        else if ((type & two_component_types) == type)
+        else if (info.components_count == 2)
         {
             return item_width * 2.f + spacing * spacing_multiplier;
         }
-        else if ((type & three_component_types) == type)
+        else if (info.components_count == 3)
         {
             return item_width * 3.f + spacing * (2.f * spacing_multiplier);
         }
-        else if ((type & four_component_types) == type)
+        else if (info.components_count == 4)
         {
             return item_width * 4.f + spacing * (3.f * spacing_multiplier);
         }
-        else if ((type & is_color) == type)
+        else if (info.base_type == MaterialBaseDataType::Color)
         {
             return item_width;
         }
@@ -346,8 +368,12 @@ namespace Engine
 
             ImGui::BeginGroup();
             {
+                int header_len = static_cast<int>(strlen(node->name()));
+                ImGui::Text("%*s", header_len, "");
                 ImGui::NewLine();
-                ImGui::NewLine();
+
+                header_len /= 2;
+                int offset = header_len;
 
                 ImGui::BeginGroup();
                 {
@@ -355,6 +381,7 @@ namespace Engine
                     for (MaterialInputPin* pin : node->inputs)
                     {
                         max_len = glm::max(max_len, static_cast<int>(pin->name.to_string().length()));
+                        offset  = glm::max(glm::min(offset - max_len, offset), 0);
                     }
 
                     for (MaterialInputPin* pin : node->inputs)
@@ -379,6 +406,11 @@ namespace Engine
 
                     for (MaterialOutputPin* pin : node->outputs)
                     {
+                        if (offset > 0)
+                        {
+                            ImGui::Text("%*s", offset, "");
+                            ImGui::SameLine();
+                        }
                         render_pin(pin, ed::PinKind::Output, -max_len, max_item_len);
                     }
                     ImGui::EndGroup();

@@ -10,9 +10,12 @@
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
+
 namespace Engine
 {
     static thread_local MessageList* errors;
+
+    static const StringView variable_prefix = "tnx_var_";
 
     static bool compile_shader(const String& text, Buffer& out, EShLanguage lang)
     {
@@ -32,6 +35,7 @@ namespace Engine
         shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, clientInputSemanticsVersion);
         shader.setEnvClient(glslang::EShClientVulkan, clientVersion);
         shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
+
 
         // Preprocess the shader
         if (!shader.parse(GetDefaultResources(), clientInputSemanticsVersion, false, EShMsgDefault))
@@ -53,14 +57,16 @@ namespace Engine
             return false;
         }
 
+
         // Translate to SPIR-V
         glslang::SpvOptions spvOptions;
         spvOptions.generateDebugInfo = true;
         spvOptions.disableOptimizer  = false;
-        spvOptions.optimizeSize      = false;
+        spvOptions.optimizeSize      = true;
         spvOptions.stripDebugInfo    = false;
         spvOptions.validate          = true;
         std::vector<unsigned int> spirv;
+
         glslang::GlslangToSpv(*program.getIntermediate(lang), spirv, &spvOptions);
 
 
@@ -82,19 +88,54 @@ namespace Engine
         return compile_shader(text, out, EShLangVertex);
     }
 
-//    static void optimize_source(glslopt_ctx* ctx, String& text, glslopt_shader_type type, uint_t options)
-//    {
-//        auto shader = glslopt_optimize(ctx, type, text.c_str(), options);
-//        if (glslopt_get_status(shader))
-//        {
-//            text = glslopt_get_output(shader);
-//        }
-//        else
-//        {
-//            errors->push_back(Strings::format("Optimizer: {}", glslopt_get_log(shader)));
-//        }
-//        glslopt_shader_delete(shader);
-//    }
+    static bool is_variable(const StringView& code)
+    {
+        return code.starts_with(variable_prefix);
+    }
+
+    static const char* default_value_of_base_type(MaterialBaseDataType type, bool is_zero = true)
+    {
+        if (is_zero)
+        {
+            switch (type)
+            {
+                case MaterialBaseDataType::Void:
+                    return "";
+                case MaterialBaseDataType::Bool:
+                    return "false";
+                case MaterialBaseDataType::Int:
+                    return "0";
+                case MaterialBaseDataType::UInt:
+                    return "0";
+                case MaterialBaseDataType::Float:
+                    return "0.0";
+                case MaterialBaseDataType::Color:
+                    return "0.0";
+                default:
+                    return "";
+            }
+        }
+        else
+        {
+            switch (type)
+            {
+                case MaterialBaseDataType::Void:
+                    return "";
+                case MaterialBaseDataType::Bool:
+                    return "true";
+                case MaterialBaseDataType::Int:
+                    return "1";
+                case MaterialBaseDataType::UInt:
+                    return "1";
+                case MaterialBaseDataType::Float:
+                    return "1.0";
+                case MaterialBaseDataType::Color:
+                    return "1.0";
+                default:
+                    return "";
+            }
+        }
+    }
 
     static String reinterpret_value(void* data, MaterialNodeDataType type)
     {
@@ -242,6 +283,18 @@ namespace Engine
         }
     }
 
+    static bool need_extens_type(MaterialNodeDataType in_type, MaterialNodeDataType out_type)
+    {
+        MaterialDataTypeInfo in_info  = MaterialDataTypeInfo::from(in_type);
+        MaterialDataTypeInfo out_info = MaterialDataTypeInfo::from(out_type);
+
+        if (in_info.is_matrix() || out_info.is_matrix())
+            return false;
+
+        return in_info.components_count != out_info.components_count;
+    }
+
+
     struct GLSL_CompiledSource {
         String source;
 
@@ -286,6 +339,34 @@ namespace Engine
             outputs.clear();
             statements.clear();
             compiled_pins.clear();
+        }
+
+
+        void create_variable(GLSL_CompiledSource* source, MaterialNodeDataType type)
+        {
+            if (!is_variable(source->source))
+            {
+                String variable_name = Strings::format("{}{}", variable_prefix, statements.size());
+                String new_source    = Strings::format("{} {} = {}", glsl_type_of(type), variable_name, source->source);
+                statements.push_back(new_source);
+                source->source = std::move(variable_name);
+            }
+        }
+
+        StringView create_variable(const StringView& code, MaterialNodeDataType type)
+        {
+            if (!is_variable(code))
+            {
+                String variable_name  = Strings::format("{}{}", variable_prefix, statements.size());
+                const char* type_name = glsl_type_of(type);
+                String new_source     = Strings::format("{} {} = {}", type_name, variable_name, code);
+                statements.push_back(new_source);
+
+                const char* var_start = statements.back().c_str() + std::strlen(type_name) + 1;
+                return StringView(var_start, variable_name.length());
+            }
+
+            return code;
         }
 
         String compile()
@@ -358,15 +439,13 @@ namespace Engine
     public:
         GLSL_CompilerState vertex_state;
         GLSL_CompilerState fragment_state;
-        CompileStage stage             = CompileStage::Vertex;
+        CompileStage stage = CompileStage::Vertex;
 
         GLSL_Compiler()
-        {
-        }
+        {}
 
         ~GLSL_Compiler()
-        {
-        }
+        {}
 
         GLSL_CompilerState& state()
         {
@@ -378,20 +457,101 @@ namespace Engine
             return fragment_state;
         }
 
-        static String validate_type(String value, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
+        String cast_primitive_value(const String& in, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
         {
-            if ((Flags<MaterialNodeDataType>(out_type) & Flags<MaterialNodeDataType>(in_type)) !=
-                        Flags<MaterialNodeDataType>(out_type) &&
-                out_type != MaterialNodeDataType::Undefined)
+            MaterialDataTypeInfo in_info  = MaterialDataTypeInfo::from(in_type);
+            MaterialDataTypeInfo out_info = MaterialDataTypeInfo::from(out_type);
+
+            if (in_info.components_count != 1 || out_info.components_count != 1)
+                throw EngineException("Types in not primitive!");
+
+            return Strings::format("{}({})", glsl_type_of(out_type), in);
+        }
+
+        String cast_value(const String& in, GLSL_CompiledSource* source, MaterialNodeDataType in_type,
+                          MaterialNodeDataType out_type)
+        {
+            if (is_equal_types(in_type, out_type) || out_type == MaterialNodeDataType::Undefined)
+                return in;
+
+            MaterialDataTypeInfo in_info  = MaterialDataTypeInfo::from(in_type);
+            MaterialDataTypeInfo out_info = MaterialDataTypeInfo::from(out_type);
+
+            if (in_info.components_count == 1 && out_info.components_count == 1)
             {
-                return Strings::format("{}({})", glsl_type_of(out_type), value);
+                return cast_primitive_value(in, in_type, out_type);
             }
-            return value;
+
+            if (need_extens_type(in_type, out_type))
+            {
+                String out = Strings::format("{}(", glsl_type_of(out_type));
+
+                if (in_info.components_count == 1)
+                {
+                    StringView code = in;
+
+                    if (source)
+                    {
+                        state().create_variable(source, in_type);
+                        code = source->source;
+                    }
+                    else
+                    {
+                        code = state().create_variable(in, in_type);
+                    }
+
+                    out += code;
+                    for (size_t i = 1, j = glm::min(out_info.components_count, static_cast<size_t>(3)); i < j; ++i)
+                    {
+                        out = Strings::format("{}, {}", out, code);
+                    }
+
+                    if (out_info.components_count == 4)
+                        out = Strings::format("{}, {}", out, default_value_of_base_type(out_info.base_type, false));
+                }
+                else
+                {
+                    char components[]                                                             = ".xyzw";
+                    components[glm::min(in_info.components_count, out_info.components_count) + 1] = 0;
+
+                    // Maybe compiled source already have swizzling?
+                    if (in.ends_with(components))
+                    {
+                        out += in;
+                    }
+                    else
+                    {
+                        const char* in_type_name = glsl_type_of(in_type);
+                        bool is_typed_variable   = in.starts_with(in_type_name) && in.ends_with(')');
+
+                        if (is_typed_variable)
+                        {
+                            out += Strings::format("{}{}", in, components);
+                        }
+                        else
+                        {
+                            out += Strings::format("{}({}){}", in_type_name, in, components);
+                        }
+                    }
+
+                    for (size_t i = in_info.components_count; i < out_info.components_count; ++i)
+                    {
+                        out = Strings::format("{}, {}", out, default_value_of_base_type(out_info.base_type, i < 3));
+                    }
+                }
+
+                out.push_back(')');
+                return out;
+            }
+
+            // will be used for matrices
+            return Strings::format("{}({})", glsl_type_of(out_type), in);
         }
 
         String get_pin_source(MaterialOutputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined)
         {
-            return validate_type(state().pin_source(pin, this)->source, pin->node->output_type(pin), out_type);
+            auto source = state().pin_source(pin, this);
+            return cast_value(source->source, source, pin->node->output_type(pin), out_type);
         }
 
         String get_pin_source(MaterialInputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined)
@@ -402,7 +562,7 @@ namespace Engine
             }
 
             auto type = pin->value_type();
-            return validate_type(reinterpret_value(pin->default_value(), type), type, out_type);
+            return cast_value(reinterpret_value(pin->default_value(), type), nullptr, type, out_type);
         }
 
         bool compile(class VisualMaterial* material, MessageList& _errors) override
@@ -435,18 +595,13 @@ namespace Engine
             if (!errors->empty())
                 return false;
 
-//            optimize_source(optimizer_context, material->pipeline->vertex_shader->text_code,
-//                            glslopt_shader_type::kGlslOptShaderVertex, 0);
-//            optimize_source(optimizer_context, material->pipeline->fragment_shader->text_code,
-//                            glslopt_shader_type::kGlslOptShaderFragment, 0);
-
             if (!errors->empty())
                 return false;
 
             compile_vertex_source(material->pipeline->vertex_shader->text_code, material->pipeline->vertex_shader->binary_code);
             compile_fragment_source(material->pipeline->fragment_shader->text_code,
                                     material->pipeline->fragment_shader->binary_code);
-            if(!errors->empty())
+            if (!errors->empty())
                 return false;
 
             material->postload();
@@ -470,6 +625,7 @@ namespace Engine
         }
 
 
+        /// OPERATORS
         size_t add(MaterialInputPin* pin1, MaterialInputPin* pin2) override
         {
             auto t1 = pin1->value_type();
@@ -521,10 +677,65 @@ namespace Engine
         }
 
 
-        /// COMMON
+        /// GLOBALS
         size_t time() override
         {
-            return (new GLSL_CompiledSource(Strings::format("global.time")))->id();
+            return (new GLSL_CompiledSource("global.time"))->id();
+        }
+
+        size_t gamma() override
+        {
+            return (new GLSL_CompiledSource("global.gamma"))->id();
+        }
+
+        size_t delta_time() override
+        {
+            return (new GLSL_CompiledSource("global.delta_time"))->id();
+        }
+
+        size_t fov() override
+        {
+            return (new GLSL_CompiledSource("global.fov"))->id();
+        }
+
+        size_t ortho_width() override
+        {
+            return (new GLSL_CompiledSource("global.ortho_width"))->id();
+        }
+
+        size_t ortho_height() override
+        {
+            return (new GLSL_CompiledSource("global.ortho_height"))->id();
+        }
+
+        size_t near_clip_plane() override
+        {
+            return (new GLSL_CompiledSource("global.near_clip_plane"))->id();
+        }
+
+        size_t far_clip_plane() override
+        {
+            return (new GLSL_CompiledSource("global.far_clip_plane"))->id();
+        }
+
+        size_t aspect_ratio() override
+        {
+            return (new GLSL_CompiledSource("global.aspect_ratio"))->id();
+        }
+
+        size_t camera_projection_mode() override
+        {
+            return (new GLSL_CompiledSource("global.camera_projection_mode"))->id();
+        }
+
+        size_t frag_coord() override
+        {
+            return (new GLSL_CompiledSource("gl_FragCoord.xy"))->id();
+        }
+
+        size_t render_target_size() override
+        {
+            return (new GLSL_CompiledSource("global.size"))->id();
         }
 
         /// CONSTANTS
@@ -543,14 +754,7 @@ namespace Engine
 
             fragment_state.outputs.push_back(std::move(out));
 
-            String source = get_pin_source(pin);
-            auto pin_type = pin->value_type();
-
-            if (pin_type != MaterialNodeDataType::Vec4)
-            {
-                source = Strings::format("vec4({}, 1.0)", validate_type(source, pin_type, MaterialNodeDataType::Vec3));
-            }
-
+            String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
             state().statements.push_back(Strings::format("out_color = {}", source));
             return 0;
         }

@@ -5,31 +5,73 @@ namespace Engine
 {
     class ShaderCompiler;
 
-#define CAST_FLAG(index) BIT(32 + index)
-    enum class MaterialNodeDataType : size_t
+    enum class MaterialBaseDataType
     {
-        Undefined = CAST_FLAG(20),
-        Bool      = BIT(0) | CAST_FLAG(1),
-        Int       = BIT(1) | CAST_FLAG(2),
-        UInt      = BIT(2) | CAST_FLAG(2),
-        Float     = BIT(3) | CAST_FLAG(3),
-        BVec2     = BIT(4) | CAST_FLAG(4),
-        BVec3     = BIT(5) | CAST_FLAG(7),
-        BVec4     = BIT(6) | CAST_FLAG(10),
-        IVec2     = BIT(7) | CAST_FLAG(5),
-        IVec3     = BIT(8) | CAST_FLAG(8),
-        IVec4     = BIT(9) | CAST_FLAG(11),
-        UVec2     = BIT(10) | CAST_FLAG(5),
-        UVec3     = BIT(11) | CAST_FLAG(8),
-        UVec4     = BIT(12) | CAST_FLAG(11),
-        Vec2      = BIT(13) | CAST_FLAG(6),
-        Vec3      = BIT(14) | CAST_FLAG(9),
-        Vec4      = BIT(15) | CAST_FLAG(12),
-        Color3    = BIT(16) | Vec3,
-        Color4    = BIT(17) | Vec4,
+        Void  = 0,
+        Bool  = 1,
+        Int   = 2,
+        UInt  = 3,
+        Float = 4,
+        Color = 5,
     };
 
+
+    constexpr inline size_t material_type_value(MaterialBaseDataType bt, size_t component_count)
+    {
+        return static_cast<size_t>(bt) | (component_count << 3);
+    }
+
+    enum class MaterialNodeDataType : size_t
+    {
+        Undefined = ~static_cast<size_t>(0),
+        Bool      = material_type_value(MaterialBaseDataType::Bool, 1),
+        Int       = material_type_value(MaterialBaseDataType::Int, 1),
+        UInt      = material_type_value(MaterialBaseDataType::UInt, 1),
+        Float     = material_type_value(MaterialBaseDataType::Float, 1),
+        BVec2     = material_type_value(MaterialBaseDataType::Bool, 2),
+        BVec3     = material_type_value(MaterialBaseDataType::Bool, 3),
+        BVec4     = material_type_value(MaterialBaseDataType::Bool, 4),
+        IVec2     = material_type_value(MaterialBaseDataType::Int, 2),
+        IVec3     = material_type_value(MaterialBaseDataType::Int, 3),
+        IVec4     = material_type_value(MaterialBaseDataType::Int, 4),
+        UVec2     = material_type_value(MaterialBaseDataType::UInt, 2),
+        UVec3     = material_type_value(MaterialBaseDataType::UInt, 3),
+        UVec4     = material_type_value(MaterialBaseDataType::UInt, 4),
+        Vec2      = material_type_value(MaterialBaseDataType::Float, 2),
+        Vec3      = material_type_value(MaterialBaseDataType::Float, 3),
+        Vec4      = material_type_value(MaterialBaseDataType::Float, 4),
+        Color3    = material_type_value(MaterialBaseDataType::Color, 3),
+        Color4    = material_type_value(MaterialBaseDataType::Color, 4),
+        Mat3      = material_type_value(MaterialBaseDataType::Float, 9),
+        Mat4      = material_type_value(MaterialBaseDataType::Float, 16),
+    };
+
+
+    struct MaterialDataTypeInfo {
+        MaterialBaseDataType base_type;
+        size_t components_count;
+
+
+        FORCE_INLINE bool is_matrix() const
+        {
+            return components_count == 9 || components_count == 16;
+        }
+
+        FORCE_INLINE size_t matrix_size() const
+        {
+            if (!is_matrix())
+                return 0;
+
+            return components_count == 9 ? 3 : 4;
+        }
+
+        static MaterialDataTypeInfo from(MaterialNodeDataType type);
+    };
+
+
     MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2);
+    bool need_cast_to_lower_to_upper(MaterialNodeDataType t1, MaterialNodeDataType t2);
+    bool is_equal_types(MaterialNodeDataType type1, MaterialNodeDataType type2);
 
     enum class MaterialPinType
     {
@@ -88,14 +130,14 @@ namespace Engine
         virtual ~MaterialNode();
     };
 
-    template<typename Type, MaterialNodeDataType enum_value>
+    template<typename Type, MaterialNodeDataType enum_value, bool enable_default = true>
     struct TypedInputPin : public MaterialInputPin {
         Type value;
         bool has_default;
 
         TypedInputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
                       const Type& default_value = Type())
-            : MaterialInputPin(node, name), value(default_value), has_default(has_default)
+            : MaterialInputPin(node, name), value(default_value), has_default(has_default && enable_default)
         {}
 
         void* default_value() override
@@ -123,14 +165,14 @@ namespace Engine
     };
 
 
-    template<typename Type, MaterialNodeDataType enum_value>
+    template<typename Type, MaterialNodeDataType enum_value, bool enable_default = true>
     struct TypedOutputPin : public MaterialOutputPin {
         Type value;
         bool has_default;
 
         TypedOutputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
                        const Type& default_value = Type())
-            : MaterialOutputPin(node, name), value(default_value), has_default(has_default)
+            : MaterialOutputPin(node, name), value(default_value), has_default(has_default && enable_default)
         {}
 
         void* default_value() override
@@ -167,6 +209,9 @@ namespace Engine
     using Color3InputPin = TypedInputPin<Vector3D, MaterialNodeDataType::Color3>;
     using Color4InputPin = TypedInputPin<Vector4D, MaterialNodeDataType::Color4>;
 
+    using Mat3InputPin = TypedInputPin<Matrix3f, MaterialNodeDataType::Mat3, false>;
+    using Mat4InputPin = TypedInputPin<Matrix4f, MaterialNodeDataType::Mat4, false>;
+
     using BoolOutputPin   = TypedOutputPin<bool, MaterialNodeDataType::Bool>;
     using IntOutputPin    = TypedOutputPin<int_t, MaterialNodeDataType::Int>;
     using UIntOutputPin   = TypedOutputPin<uint_t, MaterialNodeDataType::UInt>;
@@ -185,7 +230,8 @@ namespace Engine
     using Vec4OutputPin   = TypedOutputPin<Vector4D, MaterialNodeDataType::Vec4>;
     using Color3OutputPin = TypedOutputPin<Vector3D, MaterialNodeDataType::Color3>;
     using Color4OutputPin = TypedOutputPin<Vector4D, MaterialNodeDataType::Color4>;
-
+    using Mat3OutputPin   = TypedOutputPin<Matrix3f, MaterialNodeDataType::Mat3, false>;
+    using Mat4OutputPin   = TypedOutputPin<Matrix4f, MaterialNodeDataType::Mat4, false>;
 
     class VisualMaterial : public Material
     {
