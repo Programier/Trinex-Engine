@@ -95,11 +95,11 @@ namespace Engine
             case MaterialNodeDataType::Bool:
                 return (*reinterpret_cast<bool*>(data)) ? "true" : "false";
             case MaterialNodeDataType::Int:
-                return Strings::format("{}", *reinterpret_cast<int_t*>(data));
+                return Strings::format("int({})", *reinterpret_cast<int_t*>(data));
             case MaterialNodeDataType::UInt:
-                return Strings::format("{}", *reinterpret_cast<uint_t*>(data));
+                return Strings::format("uint({})", *reinterpret_cast<uint_t*>(data));
             case MaterialNodeDataType::Float:
-                return Strings::format("{}", *reinterpret_cast<float*>(data));
+                return Strings::format("float({})", *reinterpret_cast<float*>(data));
 
             case MaterialNodeDataType::BVec2:
                 break;
@@ -408,20 +408,93 @@ namespace Engine
 
 
             compile_vertex_source(material->pipeline->vertex_shader->text_code, material->pipeline->vertex_shader->binary_code);
-            compile_fragment_source(material->pipeline->fragment_shader->text_code, material->pipeline->fragment_shader->binary_code);
+            compile_fragment_source(material->pipeline->fragment_shader->text_code,
+                                    material->pipeline->fragment_shader->binary_code);
             material->postload();
             return false;
         }
 
+        /// MATH
         size_t sin(MaterialInputPin* pin) override
         {
-            return MaterialNode::compile_error;
+            return (new GLSL_CompiledSource(Strings::format("sin({})", get_pin_source(pin))))->id();
         }
 
+        size_t cos(MaterialInputPin* pin) override
+        {
+            return (new GLSL_CompiledSource(Strings::format("cos({})", get_pin_source(pin))))->id();
+        }
+
+        size_t tan(MaterialInputPin* pin) override
+        {
+            return (new GLSL_CompiledSource(Strings::format("tan({})", get_pin_source(pin))))->id();
+        }
+
+
+        size_t add(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = operator_result_between(t1, t2);
+
+            auto source = (new GLSL_CompiledSource(
+                    Strings::format("{}({} + {})", glsl_type_of(result_type), get_pin_source(pin1, result_type), get_pin_source(pin2, result_type))));
+            return source->id();
+        }
+
+        size_t sub(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = operator_result_between(t1, t2);
+
+            auto source = (new GLSL_CompiledSource(Strings::format("{}({} - {})", glsl_type_of(result_type),
+                                                                   get_pin_source(pin1, result_type),
+                                                                   get_pin_source(pin2, result_type))));
+            return source->id();
+        }
+
+        size_t mul(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = operator_result_between(t1, t2);
+            auto source                      = (new GLSL_CompiledSource(Strings::format("{}({} * {})", glsl_type_of(result_type),
+                                                                                        get_pin_source(pin1, result_type),
+                                                                                        get_pin_source(pin2, result_type))));
+            return source->id();
+        }
+
+        size_t div(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = operator_result_between(t1, t2);
+            auto source                      = (new GLSL_CompiledSource(Strings::format("{}({} / {})", glsl_type_of(result_type),
+                                                                                        get_pin_source(pin1, result_type),
+                                                                                        get_pin_source(pin2, result_type))));
+            return source->id();
+        }
+
+
+        /// COMMON
+        size_t time() override
+        {
+            return (new GLSL_CompiledSource(Strings::format("global.time")))->id();
+        }
+
+        /// CONSTANTS
         size_t float_constant(float value) override
         {
             return (new GLSL_CompiledSource(reinterpret_value(&value, MaterialNodeDataType::Float)))->id();
         }
+
+
+        /// FRAGMENT OUTPUT
 
         size_t base_color(MaterialInputPin* pin) override
         {
@@ -432,7 +505,14 @@ namespace Engine
 
             fragment_state.outputs.push_back(std::move(out));
 
-            String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
+            String source = get_pin_source(pin);
+            auto pin_type = pin->value_type();
+
+            if (pin_type != MaterialNodeDataType::Vec4)
+            {
+                source = Strings::format("vec4({}, 1.0)", validate_type(source, pin_type, MaterialNodeDataType::Vec3));
+            }
+
             state().statements.push_back(Strings::format("out_color = {}", source));
             return 0;
         }

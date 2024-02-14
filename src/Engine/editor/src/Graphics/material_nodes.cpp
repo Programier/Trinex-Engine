@@ -93,11 +93,14 @@ namespace Engine::MaterialNodes
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+    //////////////////////////// MATH NODES ////////////////////////////
+
     struct Sin : public MaterialNode {
         declare_material_node();
         Sin()
         {
-            inputs.push_back(new FloatInputPin(this, "In", 0.f));
+            inputs.push_back(new FloatInputPin(this, "In", true, 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -105,7 +108,167 @@ namespace Engine::MaterialNodes
         {
             return compiler->sin(inputs[0]);
         }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return inputs[0]->value_type();
+        }
     };
+
+    struct Cos : public MaterialNode {
+        declare_material_node();
+        Cos()
+        {
+            inputs.push_back(new FloatInputPin(this, "In", true, 0.f));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->cos(inputs[0]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return inputs[0]->value_type();
+        }
+    };
+
+    struct Tan : public MaterialNode {
+        declare_material_node();
+        Tan()
+        {
+            inputs.push_back(new FloatInputPin(this, "In", true, 0.f));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->tan(inputs[0]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return inputs[0]->value_type();
+        }
+    };
+
+    implement_material_node(Sin, Math);
+    implement_material_node(Cos, Math);
+    implement_material_node(Tan, Math);
+
+    //////////////////////////// OPERATOR NODES ////////////////////////////
+
+    struct Add : public MaterialNode {
+        declare_material_node();
+        Add()
+        {
+            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->add(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return operator_result_between(inputs[0]->value_type(), inputs[1]->value_type());
+        }
+    };
+
+    struct Sub : public MaterialNode {
+        declare_material_node();
+        Sub()
+        {
+            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->sub(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return operator_result_between(inputs[0]->value_type(), inputs[1]->value_type());
+        }
+    };
+
+    struct Mul : public MaterialNode {
+        declare_material_node();
+        Mul()
+        {
+            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->mul(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return operator_result_between(inputs[0]->value_type(), inputs[1]->value_type());
+        }
+    };
+
+    struct Div : public MaterialNode {
+        declare_material_node();
+        Div()
+        {
+            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->div(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return operator_result_between(inputs[0]->value_type(), inputs[1]->value_type());
+        }
+    };
+
+    implement_material_node(Add, Operators);
+    implement_material_node(Sub, Operators);
+    implement_material_node(Mul, Operators);
+    implement_material_node(Div, Operators);
+
+
+    //////////////////////////// COMMON NODES ////////////////////////////
+
+    struct Time : public MaterialNode {
+        declare_material_node();
+
+        Time()
+        {
+            outputs.push_back(new FloatOutputPin(this, "Out", false));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->time();
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return MaterialNodeDataType::Float;
+        }
+    };
+
+    implement_material_node(Time, Common);
+
+    //////////////////////////// CONSTANT NODES ////////////////////////////
 
     struct Float : public MaterialNode {
         declare_material_node();
@@ -121,7 +284,6 @@ namespace Engine::MaterialNodes
         }
     };
 
-    implement_material_node(Sin, Math);
     implement_material_node(Float, Constants);
 
 }// namespace Engine::MaterialNodes

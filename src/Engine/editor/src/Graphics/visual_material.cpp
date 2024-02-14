@@ -12,6 +12,17 @@ namespace ed = ax::NodeEditor;
 
 namespace Engine
 {
+
+    MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2)
+    {
+        size_t cast_flags1 = static_cast<size_t>(t1) >> 32;
+        size_t cast_flags2 = static_cast<size_t>(t2) >> 32;
+
+        if(cast_flags1 < cast_flags2)
+            return t2;
+        return t1;
+    }
+
     static Flags<MaterialNodeDataType> one_component_types = Flags<MaterialNodeDataType>() | MaterialNodeDataType::Bool |
                                                              MaterialNodeDataType::Int | MaterialNodeDataType::UInt |
                                                              MaterialNodeDataType::Float;

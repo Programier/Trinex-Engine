@@ -77,7 +77,7 @@
 #define TRINEX_WITH_RTTI 0
 #endif
 
-#define BIT(index) (1 << (index))
+#define BIT(index) (1ULL << (index))
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 

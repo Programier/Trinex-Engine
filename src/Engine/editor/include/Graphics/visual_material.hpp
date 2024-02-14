@@ -5,28 +5,31 @@ namespace Engine
 {
     class ShaderCompiler;
 
-    enum class MaterialNodeDataType
+#define CAST_FLAG(index) BIT(32 + index)
+    enum class MaterialNodeDataType : size_t
     {
         Undefined = 0,
-        Bool      = BIT(0),
-        Int       = BIT(1),
-        UInt      = BIT(2),
-        Float     = BIT(3),
-        BVec2     = BIT(4),
-        BVec3     = BIT(5),
-        BVec4     = BIT(6),
-        IVec2     = BIT(7),
-        IVec3     = BIT(8),
-        IVec4     = BIT(9),
-        UVec2     = BIT(10),
-        UVec3     = BIT(11),
-        UVec4     = BIT(12),
-        Vec2      = BIT(13),
-        Vec3      = BIT(14),
-        Vec4      = BIT(15),
+        Bool      = BIT(0) | CAST_FLAG(1),
+        Int       = BIT(1) | CAST_FLAG(2),
+        UInt      = BIT(2) | CAST_FLAG(2),
+        Float     = BIT(3) | CAST_FLAG(3),
+        BVec2     = BIT(4) | CAST_FLAG(4),
+        BVec3     = BIT(5) | CAST_FLAG(7),
+        BVec4     = BIT(6) | CAST_FLAG(10),
+        IVec2     = BIT(7) | CAST_FLAG(5),
+        IVec3     = BIT(8) | CAST_FLAG(8),
+        IVec4     = BIT(9) | CAST_FLAG(11),
+        UVec2     = BIT(10) | CAST_FLAG(5),
+        UVec3     = BIT(11) | CAST_FLAG(8),
+        UVec4     = BIT(12) | CAST_FLAG(11),
+        Vec2      = BIT(13) | CAST_FLAG(6),
+        Vec3      = BIT(14) | CAST_FLAG(9),
+        Vec4      = BIT(15) | CAST_FLAG(12),
         Color3    = BIT(16) | Vec3,
         Color4    = BIT(17) | Vec4,
     };
+
+    MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2);
 
     enum class MaterialPinType
     {
@@ -84,17 +87,25 @@ namespace Engine
     template<typename Type, MaterialNodeDataType enum_value>
     struct TypedInputPin : public MaterialInputPin {
         Type value;
+        bool has_default;
 
-        TypedInputPin(struct MaterialNode* node, Name name = Name::none, const Type& default_value = Type())
-            : MaterialInputPin(node, name), value(default_value)
+        TypedInputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
+                      const Type& default_value = Type())
+            : MaterialInputPin(node, name), value(default_value), has_default(has_default)
         {}
 
         void* default_value() override
         {
-            if (linked_to)
+            if (has_default)
+            {
+                if (linked_to)
+                    return nullptr;
+                return &value;
+            }
+            else
+            {
                 return nullptr;
-
-            return &value;
+            }
         }
 
         MaterialNodeDataType value_type() const override
@@ -111,14 +122,16 @@ namespace Engine
     template<typename Type, MaterialNodeDataType enum_value>
     struct TypedOutputPin : public MaterialOutputPin {
         Type value;
+        bool has_default;
 
-        TypedOutputPin(struct MaterialNode* node, Name name = Name::none, const Type& default_value = Type())
-            : MaterialOutputPin(node, name), value(default_value)
+        TypedOutputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
+                       const Type& default_value = Type())
+            : MaterialOutputPin(node, name), value(default_value), has_default(has_default)
         {}
 
         void* default_value() override
         {
-            if (node->inputs.empty())
+            if (node->inputs.empty() && has_default)
                 return &value;
             return nullptr;
         }

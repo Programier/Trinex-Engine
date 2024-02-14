@@ -165,6 +165,7 @@ namespace Engine
         if (material && material->pipeline->has_object())
         {
             static GlobalShaderParameters params;
+            params.update(rt, nullptr);
             engine_instance->rhi()->push_global_params(params);
             material->apply();
             mesh->rhi_bind(0);
