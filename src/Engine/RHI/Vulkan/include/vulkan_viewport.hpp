@@ -52,6 +52,7 @@ namespace Engine
     struct VulkanWindowViewport : VulkanViewport {
 
         vk::PresentModeKHR _M_present_mode;
+        WindowInterface* _M_window   = nullptr;
         vkb::Swapchain* _M_swapchain = nullptr;
         vk::SurfaceKHR _M_surface;
         std::vector<VkImage> _M_images;

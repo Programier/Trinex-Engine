@@ -53,9 +53,10 @@ namespace Engine
         virtual bool vsync()                                                              = 0;
         virtual Identifier id()                                                           = 0;
 
-        virtual void* create_surface(const char* any_text, ...) = 0;
-        virtual WindowInterface& make_current()                 = 0;
-        virtual WindowInterface& destroy_surface()              = 0;
+        virtual void* create_api_context(const char* any_text, ...) = 0;
+        virtual void bind_api_context(void* context)                = 0;
+        virtual WindowInterface& make_current()                     = 0;
+        virtual WindowInterface& destroy_api_context()              = 0;
 
         virtual int_t create_message_box(const MessageBoxCreateInfo& info) = 0;
 

@@ -149,15 +149,8 @@ namespace Engine
 
     VulkanViewport* VulkanWindowViewport::init(WindowInterface* window, bool vsync, bool need_initialize)
     {
-        if (need_initialize)
-        {
-            _M_surface = API->_M_surface;
-        }
-        else
-        {
-            _M_surface = API->create_surface(window);
-        }
-
+        _M_window  = window;
+        _M_surface = need_initialize ? API->_M_surface : API->create_surface(window);
 
         VulkanViewport::init();
         _M_present_mode = API->present_mode_of(vsync);
@@ -167,11 +160,6 @@ namespace Engine
             API->create_render_pass(static_cast<vk::Format>(_M_swapchain->image_format));
         }
         create_main_render_target();
-
-        if(need_initialize)
-        {
-            API->initialize_color_formats();
-        }
         return this;
     }
 
@@ -300,6 +288,7 @@ namespace Engine
         delete _M_render_target;
         destroy_swapchain(true);
         vk::Instance(API->_M_instance.instance).destroySurfaceKHR(_M_surface);
+        _M_window->destroy_api_context();
     }
 
 

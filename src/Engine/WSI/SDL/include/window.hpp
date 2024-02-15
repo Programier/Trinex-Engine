@@ -8,6 +8,12 @@
 
 namespace Engine
 {
+    union SDL_ApiContext
+    {
+        void* opengl_context = nullptr;
+        VkSurfaceKHR vulkan_surface;
+    };
+
     struct WindowSDL : public WindowInterface {
         Set<void (*)(SDL_Event*)> _M_on_event;
 
@@ -19,10 +25,11 @@ namespace Engine
         SDL_Surface* _M_cursor_icon = nullptr;
         SDL_Cursor* _M_cursor       = nullptr;
 
-        void* _M_gl_context = nullptr;
+        SDL_ApiContext created_context;
+        SDL_ApiContext binded_context;
+
         SDL_WindowFlags _M_api;
         CursorMode _M_c_mode;
-        VkSurfaceKHR _M_vulkan_surface;
         SDL_Event _M_event;
 
         Identifier _M_id;
@@ -66,9 +73,10 @@ namespace Engine
         Vector<const char*> required_extensions() override;
         Identifier id() override;
 
-        void* create_surface(const char* any_text, ...) override;
+        void* create_api_context(const char* any_text, ...) override;
+        void bind_api_context(void* context) override;
         WindowInterface& make_current() override;
-        WindowInterface& destroy_surface() override;
+        WindowInterface& destroy_api_context() override;
 
         int_t create_message_box(const MessageBoxCreateInfo& info) override;
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);

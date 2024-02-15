@@ -357,6 +357,8 @@ namespace Engine
         {
             buffer = new VulkanUniformBuffer();
         }
+
+        initialize_color_formats();
     }
 
     void VulkanAPI::check_extentions()
@@ -395,7 +397,8 @@ namespace Engine
 
     vk::SurfaceKHR VulkanAPI::create_surface(WindowInterface* interface)
     {
-        void* _surface = interface->create_surface("", static_cast<VkInstance>(_M_instance));
+        void* _surface = interface->create_api_context("", static_cast<VkInstance>(_M_instance));
+        interface->bind_api_context(_surface);
         return vk::SurfaceKHR(*reinterpret_cast<VkSurfaceKHR*>(_surface));
     }
 

@@ -618,40 +618,56 @@ namespace Engine
         }
     }
 
-    void* WindowSDL::create_surface(const char* any_text, ...)
+    void* WindowSDL::create_api_context(const char* any_text, ...)
     {
         if (_M_api == SDL_WINDOW_VULKAN)
         {
-            va_list args;
-            va_start(args, any_text);
-            VkInstance instance = va_arg(args, VkInstance);
-            va_end(args);
+            if (!created_context.vulkan_surface)
+            {
+                va_list args;
+                va_start(args, any_text);
+                VkInstance instance = va_arg(args, VkInstance);
+                va_end(args);
 
-            SDL_Vulkan_CreateSurface(_M_window, instance, &_M_vulkan_surface);
-            return &_M_vulkan_surface;
+                SDL_Vulkan_CreateSurface(_M_window, instance, &created_context.vulkan_surface);
+            }
+            binded_context.vulkan_surface = created_context.vulkan_surface;
+            return &created_context.vulkan_surface;
         }
         else if (_M_api == SDL_WINDOW_OPENGL)
         {
-            if (!_M_gl_context)
+            if (!created_context.opengl_context)
             {
-                SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-                _M_gl_context = SDL_GL_CreateContext(_M_window);
-                if (!_M_gl_context)
+                created_context.opengl_context = SDL_GL_CreateContext(_M_window);
+                if (!created_context.opengl_context)
                 {
                     throw EngineException(SDL_GetError());
                 }
             }
-            return _M_gl_context;
+            binded_context.opengl_context = created_context.opengl_context;
+            return created_context.opengl_context;
         }
 
         return nullptr;
     }
 
+    void WindowSDL::bind_api_context(void* context)
+    {
+        if (_M_api == SDL_WINDOW_OPENGL)
+        {
+            binded_context.opengl_context = context;
+        }
+        else if (_M_api == SDL_WINDOW_VULKAN)
+        {
+            binded_context.vulkan_surface = *reinterpret_cast<VkSurfaceKHR*>(context);
+        }
+    }
+
     WindowInterface& WindowSDL::make_current()
     {
-        if (_M_api == SDL_WINDOW_OPENGL && _M_gl_context)
+        if (_M_api == SDL_WINDOW_OPENGL && binded_context.opengl_context)
         {
-            if (SDL_GL_MakeCurrent(_M_window, _M_gl_context) != 0)
+            if (SDL_GL_MakeCurrent(_M_window, binded_context.opengl_context) != 0)
             {
                 error_log("SDL", "Cannot set context as current: %s", SDL_GetError());
             }
@@ -660,12 +676,12 @@ namespace Engine
         return *this;
     }
 
-    WindowInterface& WindowSDL::destroy_surface()
+    WindowInterface& WindowSDL::destroy_api_context()
     {
-        if (_M_api == SDL_WINDOW_OPENGL && _M_gl_context)
+        if (_M_api == SDL_WINDOW_OPENGL && created_context.opengl_context)
         {
-            SDL_GL_DeleteContext(_M_gl_context);
-            _M_gl_context = nullptr;
+            SDL_GL_DeleteContext(created_context.opengl_context);
+            created_context.opengl_context = nullptr;
             return *this;
         }
         return *this;
@@ -703,7 +719,7 @@ namespace Engine
 
     void WindowSDL::initialize_imgui_opengl()
     {
-        ImGui_ImplSDL2_InitForOpenGL(_M_window, _M_gl_context);
+        ImGui_ImplSDL2_InitForOpenGL(_M_window, binded_context.opengl_context);
     }
 
     void WindowSDL::initialize_imgui_vulkan()
@@ -748,7 +764,7 @@ namespace Engine
     {
         if (_M_window)
         {
-            destroy_surface();
+            destroy_api_context();
             destroy_icon();
             destroy_cursor();
             SDL_DestroyWindow(_M_window);
@@ -789,7 +805,7 @@ void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiVi
         client->viewport = viewport;
     }
 
-    return new_window->_M_gl_context;
+    return new_window->binded_context.opengl_context;
 }
 
 void destroy_engine_window(SDL_Window* window)
