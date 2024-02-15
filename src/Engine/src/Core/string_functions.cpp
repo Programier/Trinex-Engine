@@ -140,12 +140,11 @@ namespace Engine::Strings
         size_t pos     = 0;
         size_t old_len = old.length();
 
-        while ((pos = line.find(old, pos)) != StringView::npos)
+        while ((pos = line.find(old)) != StringView::npos)
         {
             result += line.substr(0, pos);
             result += new_line;
-            pos += old_len;
-            line.remove_prefix(pos);
+            line.remove_prefix(pos + old_len);
         }
 
         result += line;

@@ -1,6 +1,6 @@
 #pragma once
 #include <Graphics/render_viewport.hpp>
-#include <imgui_windows.hpp>
+#include <Widgets/imgui_windows.hpp>
 
 namespace Engine
 {
@@ -10,10 +10,8 @@ namespace Engine
 
     private:
         MessageList _M_shader_compile_error_list;
-
-        ImGuiPackageTree* _M_package_tree       = nullptr;
-        ImGuiContentBrowser* _M_content_browser = nullptr;
-        ImGuiObjectProperties* _M_properties    = nullptr;
+        class ContentBrowser* _M_content_browser = nullptr;
+        ImGuiObjectProperties* _M_properties     = nullptr;
 
         void* _M_editor_context = nullptr;
 
@@ -28,11 +26,9 @@ namespace Engine
         size_t _M_frame = 0;
 
     public:
-        void on_package_tree_close();
         void on_content_browser_close();
         void on_properties_window_close();
 
-        MaterialEditorClient& create_package_tree();
         MaterialEditorClient& create_content_browser();
         MaterialEditorClient& create_properties_window();
 
@@ -44,10 +40,9 @@ namespace Engine
 
         MaterialEditorClient& render_viewport(float dt);
 
-        void on_package_select(Package* package);
         void on_object_select(Object* object);
 
-        void render_dock_window(void* userdata);
+        void render_dock_window();
         void render_material_code();
     };
 }// namespace Engine

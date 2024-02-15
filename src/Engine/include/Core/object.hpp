@@ -110,6 +110,7 @@ namespace Engine
         bool is_valid() const;
         Path filepath() const;
         bool is_editable() const;
+        bool is_serializable() const;
         virtual bool is_engine_resource() const;
 
 

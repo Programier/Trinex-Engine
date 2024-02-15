@@ -11,12 +11,12 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/visual_material.hpp>
+#include <Widgets/content_browser.hpp>
+#include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
-#include <dock_window.hpp>
 #include <editor_config.hpp>
 #include <imgui_internal.h>
 #include <imgui_node_editor.h>
-#include <imgui_windows.hpp>
 #include <theme.hpp>
 
 #include <Graphics/pipeline.hpp>
@@ -37,11 +37,6 @@ namespace Engine
         return false;
     }
 
-    void MaterialEditorClient::on_package_tree_close()
-    {
-        _M_package_tree = nullptr;
-    }
-
     void MaterialEditorClient::on_content_browser_close()
     {
         _M_content_browser = nullptr;
@@ -53,27 +48,14 @@ namespace Engine
     }
 
 
-    MaterialEditorClient& MaterialEditorClient::create_package_tree()
-    {
-        _M_package_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiPackageTree>();
-        _M_package_tree->on_package_select.push(std::bind(&MaterialEditorClient::on_package_select, this, std::placeholders::_1));
-        _M_package_tree->on_close.push(std::bind(&MaterialEditorClient::on_package_tree_close, this));
-        return *this;
-    }
-
     MaterialEditorClient& MaterialEditorClient::create_content_browser()
     {
-        _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ImGuiContentBrowser>();
+        _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
         _M_content_browser->on_close.push(std::bind(&MaterialEditorClient::on_content_browser_close, this));
-        _M_content_browser->on_object_selected.push(
+        _M_content_browser->on_object_select.push(
                 std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
 
         _M_content_browser->filters.push(is_material);
-
-        if (_M_package_tree)
-        {
-            _M_content_browser->package = _M_package_tree->selected_package();
-        }
         return *this;
     }
 
@@ -84,7 +66,7 @@ namespace Engine
 
         if (_M_content_browser)
         {
-            on_object_select(_M_content_browser->selected);
+            on_object_select(_M_content_browser->selected_object);
         }
         return *this;
     }
@@ -110,7 +92,7 @@ namespace Engine
         ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
         ImGuiRenderer::Window::make_current(imgui_window);
 
-        create_package_tree().create_properties_window().create_content_browser();
+        create_properties_window().create_content_browser();
 
         // Create imgui node editor context
         ax::NodeEditor::Config config;
@@ -142,14 +124,6 @@ namespace Engine
         return *this;
     }
 
-    void MaterialEditorClient::on_package_select(Package* package)
-    {
-        if (_M_content_browser)
-        {
-            _M_content_browser->package = package;
-        }
-    }
-
     void MaterialEditorClient::on_object_select(Object* object)
     {
         _M_current_material = Object::instance_cast<VisualMaterial>(object);
@@ -159,7 +133,7 @@ namespace Engine
         }
     }
 
-    void MaterialEditorClient::render_dock_window(void* userdata)
+    void MaterialEditorClient::render_dock_window()
     {
         auto dock_id                       = ImGui::GetID("MaterialEditorDock##Dock");
         ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -172,11 +146,6 @@ namespace Engine
                 if (ImGui::MenuItem("editor/Open Editor"_localized))
                 {
                     open_editor();
-                }
-
-                if (ImGui::MenuItem("editor/Open Package Tree"_localized, nullptr, false, _M_package_tree == nullptr))
-                {
-                    create_package_tree();
                 }
 
                 if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, _M_content_browser == nullptr))
@@ -240,13 +209,12 @@ namespace Engine
             ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
 
-            auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
+            auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
+            //auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
             auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.2f, nullptr, &dock_id);
-            auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
 
-            ImGui::DockBuilderDockWindow(ImGuiPackageTree::name(), dock_id_left);
             ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
-            ImGui::DockBuilderDockWindow(ImGuiContentBrowser::name(), dock_id_down);
+            ImGui::DockBuilderDockWindow(ContentBrowser::name(), dock_id_down);
             ImGui::DockBuilderDockWindow("editor/Material Graph###Material Graph"_localized, dock_id);
 
             ImGui::DockBuilderFinish(dock_id);
@@ -256,9 +224,20 @@ namespace Engine
     MaterialEditorClient& MaterialEditorClient::update(class RenderViewport* viewport, float dt)
     {
         viewport->window()->imgui_window()->new_frame();
-        make_dock_window("MaterialEditorDock", ImGuiWindowFlags_MenuBar, &MaterialEditorClient::render_dock_window, this);
+        ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
+        ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
+
+        ImGui::Begin("MaterialEditorDock", nullptr,
+                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                             ImGuiWindowFlags_MenuBar);
+        render_dock_window();
+
         render_viewport(dt);
         render_material_code();
+
+        ImGui::End();
         viewport->window()->imgui_window()->end_frame();
         ++_M_frame;
         return *this;

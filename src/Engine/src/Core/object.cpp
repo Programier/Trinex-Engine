@@ -565,6 +565,11 @@ namespace Engine
         return false;
     }
 
+    bool Object::is_serializable() const
+    {
+        return flags(IsSerializable);
+    }
+
     Package* Object::root_package()
     {
         Object::create_default_package();

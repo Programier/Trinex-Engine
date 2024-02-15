@@ -4,9 +4,9 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/visual_material.hpp>
+#include <Widgets/imgui_windows.hpp>
 #include <imfilebrowser.h>
 #include <imgui_class_property.hpp>
-#include <imgui_windows.hpp>
 
 namespace Engine
 {
@@ -61,7 +61,8 @@ namespace Engine
         return "editor/Notification Title"_localized;
     }
 
-    ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent) : _M_parent(parent ? parent : Object::root_package())
+    ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent, const CallBack<void(Package*)>& on_create)
+        : _M_parent(parent ? parent : Object::root_package()), _M_on_create(on_create)
     {}
 
     bool ImGuiCreateNewPackage::render(class RenderViewport* viewport)
@@ -98,6 +99,8 @@ namespace Engine
                 new_package->name(new_package_name);
                 _M_parent->add_object(new_package, allow_rename);
                 open = false;
+
+                _M_on_create(new_package);
             }
         }
 
@@ -242,123 +245,6 @@ namespace Engine
     const char* ImGuiRenameObject::name()
     {
         return "editor/Rename Object Title"_localized;
-    }
-
-
-    ImGuiPackageTree::ImGuiPackageTree()
-    {}
-
-
-    bool ImGuiPackageTree::render_popup_internal(void* userdata)
-    {
-        if (ImGui::Button("editor/Create new package"_localized))
-        {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewPackage>(_M_selected);
-            return false;
-        }
-
-        if (_M_selected->is_editable() && ImGui::Button("editor/Rename"_localized))
-        {
-            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(_M_selected);
-            return false;
-        }
-
-        if (_M_selected->is_editable() && ImGui::Button("editor/Save"_localized))
-        {
-            _M_selected->save();
-            return false;
-        }
-
-        if (_M_selected->is_editable() && ImGui::Button("editor/Load"_localized))
-        {
-            _M_selected->load();
-            return false;
-        }
-
-        return true;
-    }
-
-    void ImGuiPackageTree::render_popup(RenderViewport* viewport)
-    {
-        if (!_M_open_package_popup)
-            return;
-
-        _M_open_package_popup =
-                ImGuiRenderer::BeginPopup("Package Menu##Popup1", 0, &ImGuiPackageTree::render_popup_internal, this, viewport);
-    }
-
-    void ImGuiPackageTree::render_internal(Package* pkg)
-    {
-        if (pkg == _M_selected)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
-        }
-
-        bool opened = ImGui::CollapsingHeader(pkg->string_name().c_str());
-
-        if (pkg == _M_selected)
-        {
-            ImGui::PopStyleColor();
-        }
-
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-        {
-            _M_selected           = pkg;
-            _M_open_package_popup = false;
-            on_package_select.trigger(_M_selected);
-        }
-
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
-        {
-            _M_selected           = pkg;
-            _M_open_package_popup = true;
-            on_package_select.trigger(_M_selected);
-        }
-
-        if (pkg == _M_selected && _M_open_package_popup)
-        {
-            ImGui::OpenPopup("Package Menu##Popup1");
-        }
-
-
-        if (opened)
-        {
-            ImGui::Indent(5.f);
-            for (auto& [name, object] : pkg->objects())
-            {
-                Package* next_package = object->instance_cast<Package>();
-                if (next_package)
-                {
-                    render_internal(next_package);
-                }
-            }
-
-            ImGui::Unindent(5.0f);
-        }
-    }
-
-    bool ImGuiPackageTree::render(class RenderViewport* viewport)
-    {
-        bool open = true;
-
-        if (ImGui::Begin(name(), closable ? &open : nullptr))
-        {
-            render_internal(Object::root_package());
-            render_popup(viewport);
-        }
-        ImGui::End();
-
-        return open;
-    }
-
-    Package* ImGuiPackageTree::selected_package() const
-    {
-        return _M_selected;
-    }
-
-    const char* ImGuiPackageTree::name()
-    {
-        return "editor/Package Tree Title"_localized;
     }
 
 

@@ -1,3 +1,4 @@
+#include "vfs_log.hpp"
 #include <Core/exception.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/native_file.hpp>
@@ -7,7 +8,6 @@
 #include <cerrno>
 #include <cstring>
 #include <filesystem>
-#include "vfs_log.hpp"
 
 namespace Engine::VFS
 {
@@ -25,7 +25,7 @@ namespace Engine::VFS
             if (is_valid())
             {
                 const std::filesystem::path& path = *_M_it;
-                _M_path = _M_base->mount_point() / Path(path.string()).relative(_M_base->path());
+                _M_path                           = _M_base->mount_point() / Path(path.string()).relative(_M_base->path());
             }
         }
 
@@ -68,22 +68,40 @@ namespace Engine::VFS
 
     DirectoryIteratorInterface* NativeFileSystem::create_directory_iterator(const Path& path)
     {
-        NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
-        it->_M_base                                = this;
-        Path dir                                   = _M_path / path;
-        it->_M_it                                  = fs::directory_iterator(dir.str());
-        it->update_path();
-        return it;
+        try
+        {
+            Path dir      = _M_path / path;
+            auto iterator = fs::directory_iterator(dir.str());
+
+            NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
+            it->_M_base                                = this;
+            it->_M_it                                  = std::move(iterator);
+            it->update_path();
+            return it;
+        }
+        catch (...)
+        {
+            return nullptr;
+        }
     }
 
     DirectoryIteratorInterface* NativeFileSystem::create_recursive_directory_iterator(const Path& path)
     {
-        NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
-        it->_M_base                                          = this;
-        Path dir                                             = _M_path / path;
-        it->_M_it                                            = fs::recursive_directory_iterator(dir.str());
-        it->update_path();
-        return it;
+        try
+        {
+            Path dir      = _M_path / path;
+            auto iterator = fs::recursive_directory_iterator(dir.str());
+
+            NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
+            it->_M_base                                          = this;
+            it->_M_it = std::move(iterator);
+            it->update_path();
+            return it;
+        }
+        catch (...)
+        {
+            return nullptr;
+        }
     }
 
 
@@ -127,7 +145,7 @@ namespace Engine::VFS
         }
         else
         {
-            error_log("Native FS", "%s", std::strerror(errno));
+            error_log("Native FS", "%s: %s", path.c_str(), std::strerror(errno));
         }
         return nullptr;
     }

@@ -5,6 +5,7 @@
 namespace Engine
 {
     const char Path::separator            = '/';
+    const StringView Path::sv_separator   = "/";
     static constexpr const char* prev_dir = "../";
 
     size_t Path::Hash::operator()(const Path& p) const noexcept
@@ -189,7 +190,7 @@ namespace Engine
 
     Path Path::relative(const Path& base) const
     {
-        if(base.empty())
+        if (base.empty())
             return *this;
 
         Vector<StringView> base_sv = base.split_sv();

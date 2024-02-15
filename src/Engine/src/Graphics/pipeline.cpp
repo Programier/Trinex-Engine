@@ -258,12 +258,10 @@ namespace Engine
 
         archive & has_global_parameters;
 
-        static const char separator_line[2] = {Path::separator, 0};
-
-        Path path =
-                Strings::format("ShaderCache{}{}{}", Path::separator,
-                                Strings::replace_all(material_object->full_name(true), Constants::name_separator, separator_line),
-                                Constants::shader_extention);
+        Path path = Strings::format(
+                "ShaderCache{}{}{}", Path::separator,
+                Strings::replace_all(material_object->full_name(true), Constants::name_separator, Path::sv_separator),
+                Constants::shader_extention);
 
         union
         {

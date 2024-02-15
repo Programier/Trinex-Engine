@@ -29,9 +29,10 @@ namespace Engine
         class Package* _M_parent = nullptr;
         String new_package_name;
         bool allow_rename = false;
+        CallBack<void(Package*)> _M_on_create;
 
     public:
-        ImGuiCreateNewPackage(class Package* pkg);
+        ImGuiCreateNewPackage(class Package* pkg, const CallBack<void(Package*)>& on_create = {});
         bool render(class RenderViewport* viewport) override;
         static const char* name();
     };
@@ -64,41 +65,6 @@ namespace Engine
         bool render(class RenderViewport* viewport) override;
         static const char* name();
     };
-
-    class ImGuiPackageTree : public ImGuiRenderer::ImGuiAdditionalWindow
-    {
-        class Package* _M_selected = nullptr;
-        bool _M_open_package_popup = false;
-
-        void render_internal(Package* package);
-        bool render_popup_internal(void* userdata);
-        void render_popup(RenderViewport* viewport);
-
-    public:
-        CallBacks<void(Package*)> on_package_select;
-
-        ImGuiPackageTree();
-        bool render(class RenderViewport* viewport) override;
-        Package* selected_package() const;
-        static const char* name();
-    };
-
-    class ImGuiContentBrowser : public ImGuiRenderer::ImGuiAdditionalWindow
-    {
-    private:
-        bool _M_show_context_menu = false;
-        bool show_context_menu(void* userdata);
-
-    public:
-        Object* selected = nullptr;
-        Package* package = nullptr;
-        CallBacks<void(Object*)> on_object_selected;
-        CallBacks<bool(Class*)> filters;
-
-        bool render(RenderViewport* viewport) override;
-        static const char* name();
-    };
-
 
     class ImGuiOpenFile : public ImGuiRenderer::ImGuiAdditionalWindow
     {

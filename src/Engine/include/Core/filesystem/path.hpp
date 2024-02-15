@@ -21,6 +21,7 @@ namespace Engine
         };
 
         static const char separator;
+        static const StringView sv_separator;
 
         Path();
         Path(const Path&);

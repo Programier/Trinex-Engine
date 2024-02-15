@@ -86,7 +86,7 @@ namespace Engine
     {
         size_t count = 1;
 
-        if (object->references() > 0 || object->is_engine_resource())
+        if (object->references() > 0 || object->is_engine_resource() || object->is_instance_of<Package>())
         {
             object->flags(Object::IsUnreachable, false);
         }

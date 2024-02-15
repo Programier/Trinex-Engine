@@ -446,11 +446,6 @@ namespace Engine
         return load(&reader, flags);
     }
 
-    bool Package::is_engine_resource() const
-    {
-        return true;
-    }
-
     struct HeaderLoadingUserData {
         Object* object   = nullptr;
         Package* package = nullptr;

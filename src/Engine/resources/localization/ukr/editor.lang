@@ -1,12 +1,12 @@
 Scene Tree Title => Дерево сцени###Scene Tree Title
 Create new asset => Створити новий ресурс
+Load => Завантажити
 Reload => Перезавантажити
 No package selected => Пакет не вибрано
 Viewport Title => Видове вікно###Viewport Title
 Properties Title => Властивості###Properties Title
-Package Tree Title => Дерево пакетів###Package Tree Title
 View => Перегляд
-Content Browser Title => Вміст пакету###Content Browser Title
+Content Browser Title => Переглядач ресурсів###Content Browser Title
 Edit => Редагування
 Reload localization => Перезавантажити локалізацію
 Open Material Editor => Відкрити редактор матеріалів
