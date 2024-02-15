@@ -15,7 +15,13 @@ namespace Engine
 {
     static thread_local MessageList* errors;
 
-    static const StringView variable_prefix = "tnx_var_";
+    static const StringView variable_prefix        = "tnx_var_";
+    static const StringView global_ubo_name        = "global";
+    static const StringView local_ubo_name         = "local";
+    static const StringView global_variable_prefix = "global.";
+    static const StringView local_variable_prefix  = "local.";
+
+    static constexpr inline size_t max_sentence_len = 80;
 
     static bool compile_shader(const String& text, Buffer& out, EShLanguage lang)
     {
@@ -90,7 +96,7 @@ namespace Engine
 
     static bool is_variable(const StringView& code)
     {
-        return code.starts_with(variable_prefix);
+        return code.starts_with(variable_prefix) || code.starts_with(global_variable_prefix) || code.starts_with(local_variable_prefix);
     }
 
     static const char* default_value_of_base_type(MaterialBaseDataType type, bool is_zero = true)
@@ -150,11 +156,11 @@ namespace Engine
             case MaterialNodeDataType::Bool:
                 return (*reinterpret_cast<bool*>(data)) ? "true" : "false";
             case MaterialNodeDataType::Int:
-                return Strings::format("int({})", *reinterpret_cast<int_t*>(data));
+                return Strings::format("{}", *reinterpret_cast<int_t*>(data));
             case MaterialNodeDataType::UInt:
-                return Strings::format("uint({})", *reinterpret_cast<uint_t*>(data));
+                return Strings::format("{}", *reinterpret_cast<uint_t*>(data));
             case MaterialNodeDataType::Float:
-                return Strings::format("float({})", *reinterpret_cast<float*>(data));
+                return Strings::format("{:f}", *reinterpret_cast<float*>(data));
 
             case MaterialNodeDataType::BVec2:
                 break;
@@ -387,6 +393,10 @@ namespace Engine
 
             result += "\n\n";
             result += GlobalShaderParameters::shader_code();
+            result.push_back(' ');
+            result += global_ubo_name;
+            result.push_back(';');
+
             result += "\n\nvoid main()\n{\n";
 
             for (auto& statement : statements)
@@ -400,24 +410,50 @@ namespace Engine
             return result;
         }
 
-        GLSL_CompiledSource* pin_source(MaterialOutputPin* pin, ShaderCompiler* compiler)
+        GLSL_CompiledSource* find_pin_source(Identifier id, bool create = false)
         {
-            // Try to find it
-            auto it = compiled_pins.find(pin->id());
+            auto it = compiled_pins.find(id);
             if (it != compiled_pins.end())
                 return it->second;
 
-            GLSL_CompiledSource* source = reinterpret_cast<GLSL_CompiledSource*>(pin->node->compile(compiler, pin));
-            compiled_pins[pin->id()]    = source;
+            if (create)
+            {
+                GLSL_CompiledSource* new_source = new GLSL_CompiledSource();
+                compiled_pins[id]               = new_source;
+                return new_source;
+            }
+            return nullptr;
+        }
+
+        GLSL_CompiledSource* pin_source(MaterialOutputPin* pin, ShaderCompiler* compiler)
+        {
+            // Try to find it
+            GLSL_CompiledSource* source = find_pin_source(pin->id(), false);
+            if (source)
+                return source;
+
+            source                   = reinterpret_cast<GLSL_CompiledSource*>(pin->node->compile(compiler, pin));
+            compiled_pins[pin->id()] = source;
             return source;
         }
 
-        GLSL_CompiledSource* push_source(MaterialOutputPin* pin, const String& code)
+        GLSL_CompiledSource* pin_source(MaterialInputPin* pin, ShaderCompiler* compiler)
         {
-            GLSL_CompiledSource* source = new GLSL_CompiledSource();
-            source->source              = code;
-            compiled_pins[pin->id()]    = source;
+            if (pin->linked_to)
+            {
+                return pin_source(pin->linked_to, compiler);
+            }
+
+            // Try to find it
+            GLSL_CompiledSource* source = find_pin_source(pin->id(), false);
+            if (source)
+                return source;
+
+            String code              = reinterpret_value(pin->default_value(), pin->value_type());
+            source                   = new GLSL_CompiledSource(code);
+            compiled_pins[pin->id()] = source;
             return source;
+            ;
         }
 
         ~GLSL_CompilerState()
@@ -522,7 +558,7 @@ namespace Engine
                     else
                     {
                         const char* in_type_name = glsl_type_of(in_type);
-                        bool is_typed_variable   = in.starts_with(in_type_name) && in.ends_with(')');
+                        bool is_typed_variable   = (in.starts_with(in_type_name) && in.ends_with(')')) || is_variable(in);
 
                         if (is_typed_variable)
                         {
@@ -548,21 +584,33 @@ namespace Engine
             return Strings::format("{}({})", glsl_type_of(out_type), in);
         }
 
-        String get_pin_source(MaterialOutputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined)
+        String get_pin_source(MaterialOutputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined,
+                              bool force_as_var = false)
         {
             auto source = state().pin_source(pin, this);
+
+            if (pin->refereces_count() > 1 || source->source.length() > max_sentence_len || force_as_var)
+            {
+                // Compile this source to variable
+                state().create_variable(source, pin->value_type());
+            }
+
             return cast_value(source->source, source, pin->node->output_type(pin), out_type);
         }
 
-        String get_pin_source(MaterialInputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined)
+        String get_pin_source(MaterialInputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined,
+                              bool force_as_var = false)
         {
-            if (pin->linked_to)
+            auto source = state().pin_source(pin, this);
+
+            if (source->source.length() > max_sentence_len || force_as_var)
             {
-                return get_pin_source(pin->linked_to, out_type);
+                // Compile this source to variable
+                state().create_variable(source, pin->value_type());
             }
 
             auto type = pin->value_type();
-            return cast_value(reinterpret_value(pin->default_value(), type), nullptr, type, out_type);
+            return cast_value(source->source, source, type, out_type);
         }
 
         bool compile(class VisualMaterial* material, MessageList& _errors) override
@@ -676,6 +724,56 @@ namespace Engine
             return source->id();
         }
 
+        size_t construct_vec2(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto source = Strings::format("vec2({}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
+                                          get_pin_source(pin2, MaterialNodeDataType::Float));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t construct_vec3(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3) override
+        {
+            auto source = Strings::format("vec3({}, {}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
+                                          get_pin_source(pin2, MaterialNodeDataType::Float),
+                                          get_pin_source(pin3, MaterialNodeDataType::Float));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t construct_vec4(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3,
+                              MaterialInputPin* pin4) override
+        {
+            auto source = Strings::format("vec4({}, {}, {}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
+                                          get_pin_source(pin2, MaterialNodeDataType::Float),
+                                          get_pin_source(pin3, MaterialNodeDataType::Float),
+                                          get_pin_source(pin4, MaterialNodeDataType::Float));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t decompose_vec(MaterialInputPin* pin, DecomposeVectorComponent component) override
+        {
+            Index component_index                = static_cast<Index>(component);
+            MaterialNodeDataType input_type      = pin->value_type();
+            MaterialDataTypeInfo input_type_info = MaterialDataTypeInfo::from(input_type);
+
+            MaterialNodeDataType vector_type =
+                    static_cast<MaterialNodeDataType>(material_type_value(input_type_info.base_type, 4));
+
+            GLSL_CompiledSource* input_source = state().pin_source(pin, this);
+            GLSL_CompiledSource* pin_source   = state().find_pin_source(pin->id(), true);
+
+            if (pin_source != input_source)
+            {
+                pin_source->source = input_source->source;
+            }
+
+            pin_source->source = cast_value(pin_source->source, nullptr, input_type, vector_type);
+            state().create_variable(pin_source, vector_type);
+
+            static char components[] = "xyzw";
+            String out_source        = Strings::format("{}.{}", pin_source->source, components[component_index]);
+
+            return (new GLSL_CompiledSource(out_source))->id();
+        }
 
         /// GLOBALS
         size_t time() override
@@ -739,10 +837,30 @@ namespace Engine
         }
 
         /// CONSTANTS
-        size_t float_constant(float value) override
-        {
-            return (new GLSL_CompiledSource(reinterpret_value(&value, MaterialNodeDataType::Float)))->id();
-        }
+#define declare_constant_value_method(name, type)                                                                                \
+    size_t name##_constant(void* value) override                                                                                 \
+    {                                                                                                                            \
+        return (new GLSL_CompiledSource(reinterpret_value(value, MaterialNodeDataType::type)))->id();                            \
+    }
+        declare_constant_value_method(bool, Bool);
+        declare_constant_value_method(int, Int);
+        declare_constant_value_method(uint, UInt);
+        declare_constant_value_method(float, Float);
+        declare_constant_value_method(bvec2, BVec2);
+        declare_constant_value_method(bvec3, BVec3);
+        declare_constant_value_method(bvec4, BVec4);
+        declare_constant_value_method(ivec2, IVec2);
+        declare_constant_value_method(ivec3, IVec3);
+        declare_constant_value_method(ivec4, IVec4);
+        declare_constant_value_method(uvec2, UVec2);
+        declare_constant_value_method(uvec3, UVec3);
+        declare_constant_value_method(uvec4, UVec4);
+        declare_constant_value_method(vec2, Vec2);
+        declare_constant_value_method(vec3, Vec3);
+        declare_constant_value_method(vec4, Vec4);
+        declare_constant_value_method(color3, Color3);
+        declare_constant_value_method(color4, Color4);
+
 
         /// FRAGMENT OUTPUT
         size_t base_color(MaterialInputPin* pin) override

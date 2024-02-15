@@ -627,6 +627,11 @@ namespace Engine
         return node->output_type(this);
     }
 
+    size_t MaterialOutputPin::refereces_count() const
+    {
+        return linked_to.size();
+    }
+
     const size_t MaterialNode::compile_error = static_cast<size_t>(0);
 
     bool MaterialNode::is_removable() const

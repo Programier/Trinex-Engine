@@ -109,6 +109,7 @@ namespace Engine
         using MaterialPin::MaterialPin;
         MaterialPinType type() const override;
         MaterialNodeDataType value_type() const override;
+        size_t refereces_count() const;
     };
 
     struct MaterialNode {
@@ -134,6 +135,9 @@ namespace Engine
     struct TypedInputPin : public MaterialInputPin {
         Type value;
         bool has_default;
+
+        using NativeType                                = Type;
+        static constexpr MaterialNodeDataType data_type = enum_value;
 
         TypedInputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
                       const Type& default_value = Type())
@@ -169,6 +173,9 @@ namespace Engine
     struct TypedOutputPin : public MaterialOutputPin {
         Type value;
         bool has_default;
+
+        using NativeType                                = Type;
+        static constexpr MaterialNodeDataType data_type = enum_value;
 
         TypedOutputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
                        const Type& default_value = Type())

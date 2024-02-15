@@ -48,7 +48,7 @@ layout(binding = 0, std140) uniform _Global
     float far_clip_plane;
     float aspect_ratio;
     int camera_projection_mode;
-} global;)";
+})";
     }
 
     GlobalShaderParameters& GlobalShaderParameters::update(class RenderTargetBase* render_target, class CameraComponent* camera)

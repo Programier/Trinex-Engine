@@ -249,10 +249,118 @@ namespace Engine::MaterialNodes
         }
     };
 
+
+    template<typename InputType, typename OutputType>
+    struct ConstructVec2Base : public MaterialNode {
+
+        ConstructVec2Base()
+        {
+            inputs.push_back(new InputType(this, "X", true, typename InputType::NativeType(0)));
+            inputs.push_back(new InputType(this, "Y", true, typename InputType::NativeType(0)));
+            outputs.push_back(new OutputType(this, "Out"));
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return OutputType::data_type;
+        }
+    };
+
+    template<typename InputType, typename OutputType>
+    struct ConstructVec3Base : public ConstructVec2Base<InputType, OutputType> {
+        ConstructVec3Base()
+        {
+            ConstructVec2Base<InputType, OutputType>::inputs.push_back(
+                    new InputType(this, "Z", true, typename InputType::NativeType(0)));
+        }
+    };
+
+    template<typename InputType, typename OutputType>
+    struct ConstructVec4Base : public ConstructVec3Base<InputType, OutputType> {
+
+        ConstructVec4Base()
+        {
+            ConstructVec3Base<InputType, OutputType>::inputs.push_back(
+                    new InputType(this, "W", true, typename InputType::NativeType(1)));
+        }
+    };
+
+    template<typename InputType>
+    struct DecomposeVecBase : public MaterialNode {
+        DecomposeVecBase()
+        {
+            inputs.push_back(new InputType(this, "Vec", true, typename InputType::NativeType(0)));
+            outputs.push_back(new MaterialOutputPin(this, "X"));
+            outputs.push_back(new MaterialOutputPin(this, "Y"));
+            outputs.push_back(new MaterialOutputPin(this, "Z"));
+            outputs.push_back(new MaterialOutputPin(this, "W"));
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            MaterialNodeDataType input_type = reinterpret_cast<MaterialInputPin*>(inputs[0])->value_type();
+            MaterialDataTypeInfo info       = MaterialDataTypeInfo::from(input_type);
+            return static_cast<MaterialNodeDataType>(material_type_value(info.base_type, 1));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            Index index = 0;
+            for (MaterialOutputPin* out_pin : outputs)
+            {
+                if (out_pin == pin)
+                {
+                    break;
+                }
+                ++index;
+            }
+
+            if (index < 4)
+                return compiler->decompose_vec(inputs[0], static_cast<DecomposeVectorComponent>(index));
+            return compile_error;
+        }
+    };
+
+    struct ConstructVec2 : public ConstructVec2Base<FloatInputPin, Vec2OutputPin> {
+        declare_material_node();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->construct_vec2(inputs[0], inputs[1]);
+        }
+    };
+
+    struct ConstructVec3 : public ConstructVec3Base<FloatInputPin, Vec3OutputPin> {
+        declare_material_node();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->construct_vec3(inputs[0], inputs[1], inputs[2]);
+        }
+    };
+
+    struct ConstructVec4 : public ConstructVec4Base<FloatInputPin, Vec4OutputPin> {
+        declare_material_node();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->construct_vec4(inputs[0], inputs[1], inputs[2], inputs[3]);
+        }
+    };
+
+    struct DecomposeVec : public DecomposeVecBase<Vec4InputPin> {
+        declare_material_node();
+    };
+
+
     implement_material_node(Add, Operators);
     implement_material_node(Sub, Operators);
     implement_material_node(Mul, Operators);
     implement_material_node(Div, Operators);
+    implement_material_node(ConstructVec2, Operators);
+    implement_material_node(ConstructVec3, Operators);
+    implement_material_node(ConstructVec4, Operators);
+    implement_material_node(DecomposeVec, Operators);
 
 
     //////////////////////////// GLOBALS NODES ////////////////////////////
@@ -501,20 +609,41 @@ namespace Engine::MaterialNodes
 
     //////////////////////////// CONSTANT NODES ////////////////////////////
 
-    struct Float : public MaterialNode {
-        declare_material_node();
 
-        Float()
-        {
-            outputs.push_back(new FloatOutputPin(this, "Out"));
-        }
+#define declare_constant_type(name, func_name)                                                                                   \
+    struct name : public MaterialNode {                                                                                          \
+        declare_material_node();                                                                                                 \
+        name()                                                                                                                   \
+        {                                                                                                                        \
+            outputs.push_back(new name##OutputPin(this, "Out"));                                                                 \
+        }                                                                                                                        \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func_name##_constant(pin->default_value());                                                         \
+        }                                                                                                                        \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::name;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(name, Constants);
 
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->float_constant(*reinterpret_cast<float*>(pin->default_value()));
-        }
-    };
-
-    implement_material_node(Float, Constants);
-
+    declare_constant_type(Bool, bool);
+    declare_constant_type(Int, int);
+    declare_constant_type(UInt, uint);
+    declare_constant_type(Float, float);
+    declare_constant_type(BVec2, bvec2);
+    declare_constant_type(BVec3, bvec3);
+    declare_constant_type(BVec4, bvec4);
+    declare_constant_type(IVec2, ivec2);
+    declare_constant_type(IVec3, ivec3);
+    declare_constant_type(IVec4, ivec4);
+    declare_constant_type(UVec2, uvec2);
+    declare_constant_type(UVec3, uvec3);
+    declare_constant_type(UVec4, uvec4);
+    declare_constant_type(Vec2, vec2);
+    declare_constant_type(Vec3, vec3);
+    declare_constant_type(Vec4, vec4);
+    declare_constant_type(Color3, color3);
+    declare_constant_type(Color4, color4);
 }// namespace Engine::MaterialNodes

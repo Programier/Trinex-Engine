@@ -9,6 +9,14 @@ namespace Engine
     class MaterialInputPin;
     class MaterialOutputPin;
 
+    enum class DecomposeVectorComponent
+    {
+        X = 0,
+        Y = 1,
+        Z = 2,
+        W = 3
+    };
+
     class ShaderCompiler : public Object
     {
         declare_class(ShaderCompiler, Object);
@@ -23,10 +31,14 @@ namespace Engine
         virtual size_t tan(MaterialInputPin*) = 0;
 
         // OPERATORS
-        virtual size_t add(MaterialInputPin*, MaterialInputPin*) = 0;
-        virtual size_t sub(MaterialInputPin*, MaterialInputPin*) = 0;
-        virtual size_t mul(MaterialInputPin*, MaterialInputPin*) = 0;
-        virtual size_t div(MaterialInputPin*, MaterialInputPin*) = 0;
+        virtual size_t add(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
+        virtual size_t sub(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
+        virtual size_t mul(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
+        virtual size_t div(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
+        virtual size_t construct_vec2(MaterialInputPin*, MaterialInputPin*)                                       = 0;
+        virtual size_t construct_vec3(MaterialInputPin*, MaterialInputPin*, MaterialInputPin*)                    = 0;
+        virtual size_t construct_vec4(MaterialInputPin*, MaterialInputPin*, MaterialInputPin*, MaterialInputPin*) = 0;
+        virtual size_t decompose_vec(MaterialInputPin*, DecomposeVectorComponent component)                       = 0;
 
 
         // GLOBALS
@@ -52,7 +64,27 @@ namespace Engine
         virtual size_t frag_coord()             = 0;
 
         // Constants
-        virtual size_t float_constant(float value) = 0;
+
+        virtual size_t bool_constant(void* value)   = 0;
+        virtual size_t int_constant(void* value)    = 0;
+        virtual size_t uint_constant(void* value)   = 0;
+        virtual size_t float_constant(void* value)  = 0;
+        virtual size_t bvec2_constant(void* value)  = 0;
+        virtual size_t bvec3_constant(void* value)  = 0;
+        virtual size_t bvec4_constant(void* value)  = 0;
+        virtual size_t ivec2_constant(void* value)  = 0;
+        virtual size_t ivec3_constant(void* value)  = 0;
+        virtual size_t ivec4_constant(void* value)  = 0;
+        virtual size_t uvec2_constant(void* value)  = 0;
+        virtual size_t uvec3_constant(void* value)  = 0;
+        virtual size_t uvec4_constant(void* value)  = 0;
+        virtual size_t vec2_constant(void* value)   = 0;
+        virtual size_t vec3_constant(void* value)   = 0;
+        virtual size_t vec4_constant(void* value)   = 0;
+        virtual size_t color3_constant(void* value) = 0;
+        virtual size_t color4_constant(void* value) = 0;
+        //        virtual size_t mat3_constant()              = 0;
+        //        virtual size_t mat4_constant()              = 0;
 
         virtual size_t base_color(MaterialInputPin*) = 0;
     };
