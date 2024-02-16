@@ -18,9 +18,12 @@ namespace Engine
     class WindowRenderPass : public RenderPass
     {
     public:
+        WindowRenderPass()
+        {}
+
         WindowRenderPass& rhi_create() override
         {
-            _M_rhi_object.reset(engine_instance->rhi()->window_render_pass());
+            _M_rhi_object.reset(engine_instance->rhi()->window_render_pass(this));
             return *this;
         }
 

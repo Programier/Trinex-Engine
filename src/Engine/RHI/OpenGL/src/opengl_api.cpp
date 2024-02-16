@@ -154,10 +154,6 @@ namespace Engine
         return api_name;
     }
 
-    RHI_RenderPass* OpenGL::window_render_pass()
-    {
-        return _M_main_render_pass;
-    }
 
     void OpenGL::push_debug_stage(const char* stage, const Color& color)
     {

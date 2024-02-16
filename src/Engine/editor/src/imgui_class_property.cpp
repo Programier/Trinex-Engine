@@ -5,10 +5,10 @@
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
+#include <Widgets/imgui_windows.hpp>
 #include <imfilebrowser.h>
 #include <imgui.h>
 #include <imgui_class_property.hpp>
-#include <Widgets/imgui_windows.hpp>
 
 namespace Engine
 {
@@ -273,7 +273,6 @@ namespace Engine
     {
         ArrayPropertyInterface* interface = reinterpret_cast<ArrayPropertyInterface*>(prop);
         Property* element_property        = interface->element_type();
-
         size_t count = interface->elements_count(object);
 
         ImGui::PushID(prop->name().c_str());
@@ -281,26 +280,17 @@ namespace Engine
         if (ImGui::CollapsingHeader(prop->name().c_str()))
         {
             ImGui::Indent(indent);
-
-            {
-                int new_count = static_cast<int>(interface->elements_count(object));
-                if (ImGui::InputInt("editor/Array Len"_localized, &new_count))
-                {
-                    if (new_count >= 0)
-                    {
-                        interface->resize(object, new_count);
-                        count = new_count;
-                    }
-                }
-            }
-
-            ImGui::Separator();
-
             for (size_t i = 0; i < count; i++)
             {
                 void* array_object = interface->at(object, i);
                 ImGui::PushID(i);
+                ImGui::Text("[%zu]", i);
+                ImGui::SameLine();
+
+                ImGui::BeginGroup();
                 render_property(array_object, element_property, can_edit);
+                ImGui::EndGroup();
+
                 ImGui::PopID();
             }
             ImGui::Unindent(indent);

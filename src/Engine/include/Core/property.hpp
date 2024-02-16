@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/callback.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/any.hpp>
 #include <Core/flags.hpp>
@@ -144,6 +145,8 @@ namespace Engine
         bool serialize_properies(class Struct* self, void* object, Archive& ar);
 
     public:
+        CallBacks<void(void* object)> on_prop_changed;
+
         Property(const Name& name, const String& description, const Name& group = Name::none, BitMask flags = 0);
 
         const Name& name() const;
@@ -242,6 +245,7 @@ namespace Engine
             {
                 (*reinterpret_cast<DataType*>(Super::prop_address(object))) =
                         static_cast<DataType>(property_value.cast<CastType>());
+                Property::on_prop_changed(object);
             }
             return false;
         }
@@ -604,6 +608,7 @@ namespace Engine
 
 
             (*reinterpret_cast<StructType*>(Super::prop_address(object))) = *reinterpret_cast<const StructType*>(value.instace);
+            Property::on_prop_changed(object);
             return true;
         }
 

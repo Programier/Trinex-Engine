@@ -131,7 +131,7 @@ namespace Engine
         virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) = 0;
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                 = 0;
         virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                    = 0;
-        virtual RHI_RenderPass* window_render_pass()                                                 = 0;
+        virtual RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass)                   = 0;
         virtual ColorFormatFeatures color_format_features(ColorFormat format)                        = 0;
         virtual size_t render_target_buffer_count()                                                  = 0;
 

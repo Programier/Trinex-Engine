@@ -143,7 +143,7 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_RenderPass* NoApi::window_render_pass()
+    RHI_RenderPass* NoApi::window_render_pass(RenderPass* engine_render_pass)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

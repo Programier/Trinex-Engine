@@ -45,4 +45,12 @@ namespace Engine
     {
         return false;
     }
+
+    RHI_RenderPass* OpenGL::window_render_pass(RenderPass* engine_render_pass)
+    {
+        engine_render_pass->color_attachments.resize(1);
+        engine_render_pass->color_attachments[0].clear_on_bind = true;
+        engine_render_pass->color_attachments[0].format = ColorFormat::R8G8B8A8Unorm;
+        return _M_main_render_pass;
+    }
 }// namespace Engine

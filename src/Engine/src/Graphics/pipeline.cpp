@@ -9,6 +9,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
+#include <Graphics/render_pass.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
@@ -311,6 +312,18 @@ namespace Engine
 
         Enum* render_pass_type_enum = Enum::find("Engine::RenderPassType", true);
 
+        auto render_pass_prop = new EnumProperty("Render pass", "Type of render pass for this pipeline", &Pipeline::render_pass,
+                                                 render_pass_type_enum);
+
+        render_pass_prop->on_prop_changed.push([](void* address) -> void {
+            Pipeline* pipeline      = reinterpret_cast<Pipeline*>(address);
+            RenderPass* render_pass = RenderPass::load_render_pass(pipeline->render_pass);
+
+            size_t count = render_pass ? render_pass->color_attachments.size() : 0;
+            pipeline->color_blending.blend_attachment.resize(count);
+            pipeline->color_blending.blend_attachment.shrink_to_fit();
+        });
+
         self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
                                                 Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
                              new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
@@ -321,7 +334,6 @@ namespace Engine
                                                 Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
                              new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
                                                 Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)),
-                             new EnumProperty("Render pass", "Type of render pass for this pipeline", &Pipeline::render_pass,
-                                              render_pass_type_enum));
+                             render_pass_prop);
     }
 }// namespace Engine
