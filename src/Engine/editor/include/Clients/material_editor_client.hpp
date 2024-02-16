@@ -10,8 +10,9 @@ namespace Engine
 
     private:
         MessageList _M_shader_compile_error_list;
-        class ContentBrowser* _M_content_browser = nullptr;
-        ImGuiObjectProperties* _M_properties     = nullptr;
+        class ContentBrowser* _M_content_browser      = nullptr;
+        ImGuiObjectProperties* _M_properties          = nullptr;
+        class ImGuiMaterialPreview* _M_preview_window = nullptr;
 
         void* _M_editor_context = nullptr;
 
@@ -28,21 +29,23 @@ namespace Engine
     public:
         void on_content_browser_close();
         void on_properties_window_close();
+        void on_preview_close();
 
         MaterialEditorClient& create_content_browser();
         MaterialEditorClient& create_properties_window();
+        MaterialEditorClient& create_preview_window();
+        class VisualMaterial* current_material() const;
+        void on_object_select(Object* object);
 
         MaterialEditorClient& on_bind_to_viewport(class RenderViewport* viewport) override;
-        MaterialEditorClient& render(class RenderViewport* viewport) override;
         MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
-        class VisualMaterial* current_material() const;
 
-
-        MaterialEditorClient& render_viewport(float dt);
-
-        void on_object_select(Object* object);
 
         void render_dock_window();
         void render_material_code();
+        MaterialEditorClient& on_object_dropped(Object* object);
+        MaterialEditorClient& update_drag_and_drop();
+        MaterialEditorClient& render_viewport(float dt);
+        MaterialEditorClient& render(class RenderViewport* viewport) override;
     };
 }// namespace Engine

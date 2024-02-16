@@ -30,12 +30,27 @@ namespace Engine
     implement_engine_class_default_init(MaterialEditorClient);
 
 
-    static bool is_material(Class* class_instance)
+    class ImGuiMaterialPreview : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        if (class_instance->is_a(MaterialInterface::static_class_instance()))
-            return true;
-        return false;
-    }
+    public:
+        VisualMaterial* _M_material = nullptr;
+
+        void init(RenderViewport* viewport)
+        {}
+
+        bool render(RenderViewport* viewport)
+        {
+            bool is_open = true;
+            ImGui::Begin(name(), &is_open);
+            ImGui::End();
+            return is_open;
+        }
+
+        static const char* name()
+        {
+            return "editor/MaterialPreview"_localized;
+        }
+    };
 
     void MaterialEditorClient::on_content_browser_close()
     {
@@ -47,6 +62,11 @@ namespace Engine
         _M_properties = nullptr;
     }
 
+    void MaterialEditorClient::on_preview_close()
+    {
+        _M_preview_window = nullptr;
+    }
+
 
     MaterialEditorClient& MaterialEditorClient::create_content_browser()
     {
@@ -54,8 +74,6 @@ namespace Engine
         _M_content_browser->on_close.push(std::bind(&MaterialEditorClient::on_content_browser_close, this));
         _M_content_browser->on_object_select.push(
                 std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
-
-        _M_content_browser->filters.push(is_material);
         return *this;
     }
 
@@ -68,6 +86,14 @@ namespace Engine
         {
             on_object_select(_M_content_browser->selected_object);
         }
+        return *this;
+    }
+
+    MaterialEditorClient& MaterialEditorClient::create_preview_window()
+    {
+        _M_preview_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialPreview>();
+        _M_preview_window->on_close.push(std::bind(&MaterialEditorClient::on_preview_close, this));
+        _M_preview_window->_M_material = _M_current_material;
         return *this;
     }
 
@@ -92,7 +118,7 @@ namespace Engine
         ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
         ImGuiRenderer::Window::make_current(imgui_window);
 
-        create_properties_window().create_content_browser();
+        create_properties_window().create_content_browser().create_preview_window();
 
         // Create imgui node editor context
         ax::NodeEditor::Config config;
@@ -127,6 +153,12 @@ namespace Engine
     void MaterialEditorClient::on_object_select(Object* object)
     {
         _M_current_material = Object::instance_cast<VisualMaterial>(object);
+
+        if (_M_preview_window)
+        {
+            _M_preview_window->_M_material = _M_current_material;
+        }
+
         if (_M_properties)
         {
             _M_properties->object = object;
@@ -209,12 +241,14 @@ namespace Engine
             ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
 
-            auto dock_id_down = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
-            //auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
+            auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
+            auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
             auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.2f, nullptr, &dock_id);
 
-            ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
             ImGui::DockBuilderDockWindow(ContentBrowser::name(), dock_id_down);
+            ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::name(), dock_id_left);
+            ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
+
             ImGui::DockBuilderDockWindow("editor/Material Graph###Material Graph"_localized, dock_id);
 
             ImGui::DockBuilderFinish(dock_id);
@@ -315,6 +349,8 @@ namespace Engine
                 return *this;
             }
 
+            update_drag_and_drop();
+
             if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
                 _M_open_select_node_window = true;
@@ -392,10 +428,29 @@ namespace Engine
                 ImGui::EndTabItem();
             }
 
-
             ImGui::EndTabBar();
 
             ImGui::End();
         }
+    }
+
+    MaterialEditorClient& MaterialEditorClient::on_object_dropped(Object* object)
+    {
+        return *this;
+    }
+
+    MaterialEditorClient& MaterialEditorClient::update_drag_and_drop()
+    {
+        if (ImGui::BeginDragDropTarget())
+        {
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContendBrowser->Object");
+            if (payload)
+            {
+                IM_ASSERT(payload->DataSize == sizeof(Object*));
+                on_object_dropped(*reinterpret_cast<Object**>(payload->Data));
+            }
+            ImGui::EndDragDropTarget();
+        }
+        return *this;
     }
 }// namespace Engine

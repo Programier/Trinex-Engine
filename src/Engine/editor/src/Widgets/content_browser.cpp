@@ -317,7 +317,6 @@ namespace Engine
         const ImVec2 item_size = ImVec2(100, 100) * editor_scale_factor();
 
         ImGui::Begin("##ContentBrowserItems");
-
         Package* package = _M_selected_package->_M_package;
 
         if (package == nullptr)
@@ -344,6 +343,7 @@ namespace Engine
         float padding = ImGui::GetStyle().FramePadding.x;
 
         size_t rendered = 0;
+
         for (auto& [name, object] : package->objects())
         {
             bool in_filter = filters.empty();
@@ -403,6 +403,30 @@ namespace Engine
                 {
                     selected_object = object;
                     on_object_select(object);
+                }
+
+                if (ImGui::BeginDragDropSource())
+                {
+                    ImGui::SetDragDropPayload("ContendBrowser->Object", &object, sizeof(Object**));
+                    ImVec2 item_start = ImGui::GetCursorPos();
+                    ImGui::Image(imgui_texture->handle(), item_size);
+
+                    if (imgui_texture->texture() == Icons::default_texture())
+                    {
+                        const char* class_name = object->class_instance()->base_name_splitted().c_str();
+                        ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
+
+                        ImVec2 text_pos = item_start + ImVec2(((item_size.x / 2) - (text_size.x / 2)) + padding,
+                                                              (item_size.y / 2) - (text_size.y / 2));
+
+                        ImGui::SetCursorPos(text_pos);
+                        ImGui::PushTextWrapPos(text_pos.x + item_size.x);
+
+                        ImGui::TextWrapped("%s", class_name);
+                        ImGui::PopTextWrapPos();
+                    }
+
+                    ImGui::EndDragDropSource();
                 }
 
                 if (is_selected)
