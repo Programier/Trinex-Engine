@@ -12,17 +12,6 @@ namespace ed = ax::NodeEditor;
 
 namespace Engine
 {
-    bool need_cast_to_lower_to_upper(MaterialNodeDataType t1, MaterialNodeDataType t2)
-    {
-        if (static_cast<size_t>(t1) < static_cast<size_t>(t2))
-        {
-            std::swap(t1, t2);
-        }
-
-        bool status = t2 != operator_result_between(t1, t2);
-        return status;
-    }
-
     bool is_equal_types(MaterialNodeDataType type1, MaterialNodeDataType type2)
     {
         if (type1 == type2)
@@ -42,6 +31,11 @@ namespace Engine
     {
         MaterialDataTypeInfo info1 = MaterialDataTypeInfo::from(t1);
         MaterialDataTypeInfo info2 = MaterialDataTypeInfo::from(t2);
+
+        if (!info1.is_convertable || !info2.is_convertable)
+        {
+            return t1 == t2 ? t1 : MaterialNodeDataType::Undefined;
+        }
 
         if (info1.is_matrix() || info2.is_matrix())
         {
@@ -64,8 +58,9 @@ namespace Engine
     {
         MaterialDataTypeInfo info;
         size_t value          = static_cast<size_t>(type);
-        info.base_type        = static_cast<MaterialBaseDataType>(value & 0b111);
-        info.components_count = ((value >> 3) & 0b111);
+        info.base_type        = static_cast<MaterialBaseDataType>((value >> 1) & 0b111);
+        info.components_count = ((value >> 4) & 0b111);
+        info.is_convertable   = static_cast<bool>(value & 0b1);
         return info;
     }
 
@@ -416,6 +411,8 @@ namespace Engine
                     ImGui::EndGroup();
                 }
 
+                node->render();
+
                 ImGui::EndGroup();
             }
 
@@ -638,6 +635,9 @@ namespace Engine
     {
         return true;
     }
+
+    void MaterialNode::render()
+    {}
 
     size_t MaterialNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {

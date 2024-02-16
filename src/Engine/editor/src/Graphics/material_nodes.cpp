@@ -1,18 +1,14 @@
 #include <Compiler/compiler.hpp>
 #include <Core/group.hpp>
 #include <Core/struct.hpp>
+#include <Graphics/imgui.hpp>
 #include <Graphics/material_nodes.hpp>
+#include <icons.hpp>
+#include <imgui.h>
 
 
 namespace Engine::MaterialNodes
 {
-
-#define declare_material_node()                                                                                                  \
-    static Struct* static_struct_instance;                                                                                       \
-    Struct* struct_instance() const override;                                                                                    \
-    const char* name() const override;
-
-
 #define implement_material_node(node_name, group_name)                                                                           \
     Struct* node_name::static_struct_instance = nullptr;                                                                         \
     Struct* node_name::struct_instance() const                                                                                   \
@@ -321,7 +317,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec2 : public ConstructVec2Base<FloatInputPin, Vec2OutputPin> {
+    struct ConstructVec2 : public ConstructVec2Base<FloatInputPin, Vec4OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -330,7 +326,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec3 : public ConstructVec3Base<FloatInputPin, Vec3OutputPin> {
+    struct ConstructVec3 : public ConstructVec3Base<FloatInputPin, Vec4OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -339,7 +335,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec4 : public ConstructVec4Base<FloatInputPin, Vec4OutputPin> {
+    struct ConstructVec4 : public ConstructVec4Base<FloatInputPin, Vec4OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -370,7 +366,7 @@ namespace Engine::MaterialNodes
 
         Time()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -390,7 +386,7 @@ namespace Engine::MaterialNodes
 
         DeltaTime()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -409,7 +405,7 @@ namespace Engine::MaterialNodes
 
         Gamma()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -428,7 +424,7 @@ namespace Engine::MaterialNodes
 
         FOV()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -447,7 +443,7 @@ namespace Engine::MaterialNodes
 
         OrthoWidth()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -466,7 +462,7 @@ namespace Engine::MaterialNodes
 
         OrthoHeight()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -485,7 +481,7 @@ namespace Engine::MaterialNodes
 
         NearClipPlane()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -504,7 +500,7 @@ namespace Engine::MaterialNodes
 
         FarClipPlane()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -523,7 +519,7 @@ namespace Engine::MaterialNodes
 
         AspectRatio()
         {
-            outputs.push_back(new FloatOutputPin(this, "Out", false));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -542,7 +538,7 @@ namespace Engine::MaterialNodes
 
         CameraProjectionMode()
         {
-            outputs.push_back(new IntOutputPin(this, "Out", false));
+            outputs.push_back(new IntOutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -561,7 +557,7 @@ namespace Engine::MaterialNodes
 
         FragCoord()
         {
-            outputs.push_back(new Vec2OutputPin(this, "Out", false));
+            outputs.push_back(new Vec2OutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -580,7 +576,7 @@ namespace Engine::MaterialNodes
 
         RenderTargetSize()
         {
-            outputs.push_back(new Vec2OutputPin(this, "Out", false));
+            outputs.push_back(new Vec2OutputNoDefaultPin(this, "Out"));
         }
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -646,4 +642,32 @@ namespace Engine::MaterialNodes
     declare_constant_type(Vec4, vec4);
     declare_constant_type(Color3, color3);
     declare_constant_type(Color4, color4);
+
+    //////////////////////////// TEXTURE NODES ////////////////////////////
+
+    Texture2D::Texture2D()
+    {
+        outputs.push_back(new Color4OutputNoDefaultPin(this, "Color"));
+        inputs.push_back(new MaterialInputPin(this, "Sampler"));
+        inputs.push_back(new MaterialInputPin(this, "UV"));
+    }
+
+    void Texture2D::render()
+    {
+        if (texture)
+        {
+            Engine::Sampler* sampler = Icons::default_sampler();
+            ImGuiRenderer::ImGuiTexture* imgui_texture =
+                    ImGuiRenderer::Window::current()->create_texture(reinterpret_cast<class Engine::Texture*>(texture), sampler);
+            ImGui::Image(imgui_texture->handle(), {100, 100});
+        }
+    }
+
+    size_t Texture2D::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    {
+        return compiler->texture_2d(texture, inputs[0], inputs[1]);
+    }
+
+    implement_material_node(Sampler, Texture);
+    implement_material_node(Texture2D, Texture);
 }// namespace Engine::MaterialNodes

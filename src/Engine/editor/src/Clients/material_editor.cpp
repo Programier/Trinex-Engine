@@ -6,11 +6,13 @@
 #include <Core/engine_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>
-#include <Core/package.hpp>
-#include <Core/thread.hpp>
+#include <Core/render_thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material_nodes.hpp>
+#include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/visual_material.hpp>
+#include <Graphics/shader.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
@@ -18,9 +20,6 @@
 #include <imgui_internal.h>
 #include <imgui_node_editor.h>
 #include <theme.hpp>
-
-#include <Graphics/pipeline.hpp>
-#include <Graphics/shader.hpp>
 
 
 #define MATERIAL_EDITOR_DEBUG 1
@@ -72,7 +71,7 @@ namespace Engine
     {
         _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
         _M_content_browser->on_close.push(std::bind(&MaterialEditorClient::on_content_browser_close, this));
-        _M_content_browser->on_object_select.push(
+        _M_content_browser->on_object_double_click.push(
                 std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
         return *this;
     }
@@ -152,7 +151,11 @@ namespace Engine
 
     void MaterialEditorClient::on_object_select(Object* object)
     {
-        _M_current_material = Object::instance_cast<VisualMaterial>(object);
+        VisualMaterial* new_material = Object::instance_cast<VisualMaterial>(object);
+        if (!new_material)
+            return;
+
+        _M_current_material = new_material;
 
         if (_M_preview_window)
         {
@@ -241,7 +244,7 @@ namespace Engine
             ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
 
-            auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.2f, nullptr, &dock_id);
+            auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.3f, nullptr, &dock_id);
             auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
             auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.2f, nullptr, &dock_id);
 
@@ -436,6 +439,14 @@ namespace Engine
 
     MaterialEditorClient& MaterialEditorClient::on_object_dropped(Object* object)
     {
+        auto pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(ImGui::GetMousePos()));
+
+        if (Texture2D* texture = Object::instance_cast<Texture2D>(object))
+        {
+            auto node      = _M_current_material->create_node<MaterialNodes::Texture2D>();
+            node->texture  = texture;
+            node->position = pos;
+        }
         return *this;
     }
 

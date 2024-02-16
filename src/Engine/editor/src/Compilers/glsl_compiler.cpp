@@ -96,7 +96,8 @@ namespace Engine
 
     static bool is_variable(const StringView& code)
     {
-        return code.starts_with(variable_prefix) || code.starts_with(global_variable_prefix) || code.starts_with(local_variable_prefix);
+        return code.starts_with(variable_prefix) || code.starts_with(global_variable_prefix) ||
+               code.starts_with(local_variable_prefix);
     }
 
     static const char* default_value_of_base_type(MaterialBaseDataType type, bool is_zero = true)
@@ -324,6 +325,11 @@ namespace Engine
         String param;
         byte location;
         MaterialNodeDataType type;
+    };
+
+    struct GLSL_UniformParameter {
+        MaterialNodeDataType type;
+        String name;
     };
 
 
@@ -652,7 +658,7 @@ namespace Engine
             if (!errors->empty())
                 return false;
 
-            material->postload();
+            //material->postload();
             return true;
         }
 
@@ -874,6 +880,14 @@ namespace Engine
 
             String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
             state().statements.push_back(Strings::format("out_color = {}", source));
+            return 0;
+        }
+
+
+        // TEXTURES
+
+        virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
             return 0;
         }
     };

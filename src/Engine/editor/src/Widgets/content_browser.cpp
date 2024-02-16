@@ -23,6 +23,26 @@ namespace Engine
         return PackageNodeType::Folder;
     }
 
+    CB::PackageTreeNode* CB::PackageTreeNode::find(const Path& path)
+    {
+        if (_M_path == path)
+            return this;
+
+        if (!_M_is_builded)
+            rebuild();
+
+        for (auto& [name, child] : _M_childs)
+        {
+            auto res = child->find(path);
+            if (res)
+            {
+                return res;
+            }
+        }
+
+        return nullptr;
+    }
+
     void ContentBrowser::PackageTreeNode::rebuild()
     {
         if (_M_package)
@@ -115,23 +135,25 @@ namespace Engine
         if (!folder_package_popup(data))
             return false;
 
-        //        if (_M_selected->is_editable() && ImGui::Button("editor/Rename"_localized))
+        Package* pkg = selected_package();
+
+        //        if (pkg->is_editable() && ImGui::Button("editor/Rename"_localized))
         //        {
-        //            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(_M_selected);
+        //            ImGuiRenderer::Window::current()->window_list.create<ImGuiRenameObject>(pkg);
         //            return false;
         //        }
 
-        //        if (_M_selected->is_editable() && ImGui::Button("editor/Save"_localized))
-        //        {
-        //            _M_selected->save();
-        //            return false;
-        //        }
+        if (pkg->is_editable() && ImGui::Button("editor/Save"_localized))
+        {
+            pkg->save();
+            return false;
+        }
 
-        //        if (_M_selected->is_editable() && ImGui::Button("editor/Load"_localized))
-        //        {
-        //            _M_selected->load();
-        //            return false;
-        //        }
+        if (pkg->is_editable() && ImGui::Button("editor/Reload"_localized))
+        {
+            pkg->load();
+            return false;
+        }
 
         return true;
     }
@@ -149,7 +171,8 @@ namespace Engine
                                                Path::sv_separator, Constants::name_separator);
 
             Package::load_package(path);
-            _M_root->clean();
+            Path selected_path = std::move(_M_selected_package->_M_path);
+            rebuild_package_tree(selected_path);
             return false;
         }
 
@@ -171,7 +194,10 @@ namespace Engine
 
         if (ImGui::Button("editor/Create new package"_localized))
         {
-            Function<void(Package*)> callback = [this](Package*) { _M_root->clean(); };
+            Function<void(Package*)> callback = [this](Package*) {
+                Path selected_path = std::move(_M_selected_package->_M_path);
+                rebuild_package_tree(selected_path);
+            };
 
             ImGuiRenderer::Window::current()->window_list.create<ImGuiCreateNewPackage>(pkg, callback);
             return false;
@@ -399,11 +425,25 @@ namespace Engine
 
                 ImVec2 item_start = ImGui::GetCursorPos();
 
-                if (ImGui::ImageButton(imgui_texture->handle(), item_size))
+                bool is_single_press = ImGui::ImageButton(imgui_texture->handle(), item_size);
+                bool is_double_press = false;
+
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                {
+                    is_single_press = false;
+                    is_double_press = true;
+                }
+
+                if (is_single_press)
                 {
                     selected_object = object;
                     on_object_select(object);
                 }
+                else if (is_double_press)
+                {
+                    on_object_double_click(object);
+                }
+
 
                 if (ImGui::BeginDragDropSource())
                 {
@@ -502,6 +542,19 @@ namespace Engine
             ImGui::DockBuilderDockWindow("##ContentBrowserPackages", dock_id_left);
             ImGui::DockBuilderDockWindow("##ContentBrowserItems", _M_dock_window_id);
             ImGui::DockBuilderFinish(_M_dock_window_id);
+        }
+    }
+
+
+    void ContentBrowser::rebuild_package_tree(const Path& selected)
+    {
+        _M_root->clean();
+        _M_show_popup_for   = nullptr;
+        _M_selected_package = _M_root->find(selected);
+
+        if (_M_selected_package == nullptr)
+        {
+            _M_selected_package = _M_root;
         }
     }
 

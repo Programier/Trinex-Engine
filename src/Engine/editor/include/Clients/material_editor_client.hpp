@@ -43,6 +43,8 @@ namespace Engine
 
         void render_dock_window();
         void render_material_code();
+
+
         MaterialEditorClient& on_object_dropped(Object* object);
         MaterialEditorClient& update_drag_and_drop();
         MaterialEditorClient& render_viewport(float dt);

@@ -26,6 +26,7 @@ namespace Engine
             void clean();
             void rebuild();
             PackageNodeType type() const;
+            PackageTreeNode* find(const Path& path);
             ~PackageTreeNode();
         };
 
@@ -41,6 +42,7 @@ namespace Engine
         void render_content_window();
 
         void create_dock_space();
+        void rebuild_package_tree(const Path& selected);
 
         PackageTreeNode* _M_show_popup_for   = nullptr;
         PackageTreeNode* _M_root             = nullptr;
@@ -50,8 +52,10 @@ namespace Engine
 
         ImGuiID _M_dock_window_id;
 
+
     public:
         CallBacks<void(Object*)> on_object_select;
+        CallBacks<void(Object*)> on_object_double_click;
         CallBacks<bool(class Class*)> filters;
 
         class Object* selected_object = nullptr;
