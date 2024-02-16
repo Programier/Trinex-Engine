@@ -171,9 +171,8 @@ namespace Engine
         }
     };
 
-    template<typename Type, MaterialNodeDataType enum_value>
+    template<MaterialNodeDataType enum_value>
     struct TypedOutputNoDefaultPin : public MaterialOutputPin {
-        using NativeType                                = Type;
         static constexpr MaterialNodeDataType data_type = enum_value;
 
         TypedOutputNoDefaultPin(struct MaterialNode* node, Name name = Name::none) : MaterialOutputPin(node, name)
@@ -253,26 +252,27 @@ namespace Engine
     using Mat3OutputPin   = TypedOutputPin<Matrix3f, MaterialNodeDataType::Mat3>;
     using Mat4OutputPin   = TypedOutputPin<Matrix4f, MaterialNodeDataType::Mat4>;
 
-    using BoolOutputNoDefaultPin   = TypedOutputNoDefaultPin<bool, MaterialNodeDataType::Bool>;
-    using IntOutputNoDefaultPin    = TypedOutputNoDefaultPin<int_t, MaterialNodeDataType::Int>;
-    using UIntOutputNoDefaultPin   = TypedOutputNoDefaultPin<uint_t, MaterialNodeDataType::UInt>;
-    using FloatOutputNoDefaultPin  = TypedOutputNoDefaultPin<float, MaterialNodeDataType::Float>;
-    using BVec2OutputNoDefaultPin  = TypedOutputNoDefaultPin<BoolVector2D, MaterialNodeDataType::BVec2>;
-    using BVec3OutputNoDefaultPin  = TypedOutputNoDefaultPin<BoolVector3D, MaterialNodeDataType::BVec3>;
-    using BVec4OutputNoDefaultPin  = TypedOutputNoDefaultPin<BoolVector4D, MaterialNodeDataType::BVec4>;
-    using IVec2OutputNoDefaultPin  = TypedOutputNoDefaultPin<IntVector2D, MaterialNodeDataType::IVec2>;
-    using IVec3OutputNoDefaultPin  = TypedOutputNoDefaultPin<IntVector3D, MaterialNodeDataType::IVec3>;
-    using IVec4OutputNoDefaultPin  = TypedOutputNoDefaultPin<IntVector4D, MaterialNodeDataType::IVec4>;
-    using UVec2OutputNoDefaultPin  = TypedOutputNoDefaultPin<UIntVector2D, MaterialNodeDataType::UVec2>;
-    using UVec3OutputNoDefaultPin  = TypedOutputNoDefaultPin<UIntVector3D, MaterialNodeDataType::UVec3>;
-    using UVec4OutputNoDefaultPin  = TypedOutputNoDefaultPin<UIntVector4D, MaterialNodeDataType::UVec4>;
-    using Vec2OutputNoDefaultPin   = TypedOutputNoDefaultPin<Vector2D, MaterialNodeDataType::Vec2>;
-    using Vec3OutputNoDefaultPin   = TypedOutputNoDefaultPin<Vector3D, MaterialNodeDataType::Vec3>;
-    using Vec4OutputNoDefaultPin   = TypedOutputNoDefaultPin<Vector4D, MaterialNodeDataType::Vec4>;
-    using Color3OutputNoDefaultPin = TypedOutputNoDefaultPin<Vector3D, MaterialNodeDataType::Color3>;
-    using Color4OutputNoDefaultPin = TypedOutputNoDefaultPin<Vector4D, MaterialNodeDataType::Color4>;
-    using Mat3OutputNoDefaultPin   = TypedOutputNoDefaultPin<Matrix3f, MaterialNodeDataType::Mat3>;
-    using Mat4OutputNoDefaultPin   = TypedOutputNoDefaultPin<Matrix4f, MaterialNodeDataType::Mat4>;
+    using BoolOutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::Bool>;
+    using IntOutputNoDefaultPin     = TypedOutputNoDefaultPin<MaterialNodeDataType::Int>;
+    using UIntOutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::UInt>;
+    using FloatOutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::Float>;
+    using BVec2OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::BVec2>;
+    using BVec3OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::BVec3>;
+    using BVec4OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::BVec4>;
+    using IVec2OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::IVec2>;
+    using IVec3OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::IVec3>;
+    using IVec4OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::IVec4>;
+    using UVec2OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::UVec2>;
+    using UVec3OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::UVec3>;
+    using UVec4OutputNoDefaultPin   = TypedOutputNoDefaultPin<MaterialNodeDataType::UVec4>;
+    using Vec2OutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::Vec2>;
+    using Vec3OutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::Vec3>;
+    using Vec4OutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::Vec4>;
+    using Color3OutputNoDefaultPin  = TypedOutputNoDefaultPin<MaterialNodeDataType::Color3>;
+    using Color4OutputNoDefaultPin  = TypedOutputNoDefaultPin<MaterialNodeDataType::Color4>;
+    using Mat3OutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::Mat3>;
+    using Mat4OutputNoDefaultPin    = TypedOutputNoDefaultPin<MaterialNodeDataType::Mat4>;
+    using SamplerOutputNoDefaultPin = TypedOutputNoDefaultPin<MaterialNodeDataType::Sampler>;
 
     class VisualMaterial : public Material
     {
@@ -288,7 +288,7 @@ namespace Engine
         MaterialNode* vertex_node() const;
         MaterialNode* fragment_node() const;
         const Vector<MaterialNode*>& nodes() const;
-        MaterialNode* create_node(class Struct*);
+        MaterialNode* create_node(class Struct*, const Vector2D& position = {});
 
 
         VisualMaterial();
@@ -296,12 +296,13 @@ namespace Engine
         ~VisualMaterial();
 
 
-        template<typename Type, typename... Args>
-        Type* create_node(Args&&... args)
+        template<typename Type>
+        Type* create_node(const Vector2D& position = {})
         {
-            Type* node = new Type(std::move(args)...);
+            Type* node = new Type();
             _M_nodes.push_back(node);
             node->material = this;
+            node->position = position;
             return node;
         }
 

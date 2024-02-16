@@ -9,6 +9,7 @@ namespace Engine
     class MaterialInputPin;
     class MaterialOutputPin;
     class Texture2D;
+    class Sampler;
 
     enum class DecomposeVectorComponent
     {
@@ -89,6 +90,7 @@ namespace Engine
 
         // Texture
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
+        virtual size_t sampler(class Engine::Sampler* texture)                                                       = 0;
 
         virtual size_t base_color(MaterialInputPin*) = 0;
     };

@@ -712,7 +712,7 @@ namespace Engine
         return _M_nodes;
     }
 
-    MaterialNode* VisualMaterial::create_node(class Struct* node_struct)
+    MaterialNode* VisualMaterial::create_node(class Struct* node_struct, const Vector2D& position)
     {
         MaterialNode* node = reinterpret_cast<MaterialNode*>(node_struct->create_struct());
 
@@ -721,6 +721,7 @@ namespace Engine
 
         _M_nodes.push_back(node);
         node->material = this;
+        node->position = position;
         return node;
     }
 

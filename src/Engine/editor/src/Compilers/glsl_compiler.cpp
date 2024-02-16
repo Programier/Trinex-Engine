@@ -327,17 +327,21 @@ namespace Engine
         MaterialNodeDataType type;
     };
 
-    struct GLSL_UniformParameter {
-        MaterialNodeDataType type;
+    struct GLSL_BindingObject {
         String name;
+        void* object = nullptr;
+        StringView type;
+        BindingIndex index;
     };
-
 
     struct GLSL_CompilerState {
         Map<Identifier, GLSL_CompiledSource*> compiled_pins;
+        BindingIndex next_binding_index = 2;
+
         Vector<GLSL_Input> inputs;
         Vector<GLSL_Output> outputs;
 
+        Vector<GLSL_BindingObject*> objects;
         Vector<String> statements;
 
         void reset()
@@ -347,12 +351,39 @@ namespace Engine
                 delete source;
             }
 
+            for (GLSL_BindingObject* object : objects)
+            {
+                delete object;
+            }
+
             inputs.clear();
             outputs.clear();
             statements.clear();
             compiled_pins.clear();
+            objects.clear();
+            next_binding_index = 2;
         }
 
+        GLSL_BindingObject* create_binding_object(void* object, StringView type)
+        {
+            for (GLSL_BindingObject* glsl_object : objects)
+            {
+                if (glsl_object->object == object)
+                {
+                    return glsl_object;
+                }
+            }
+
+            GLSL_BindingObject* new_object = new GLSL_BindingObject();
+            new_object->object             = object;
+            new_object->type               = type;
+            new_object->index              = next_binding_index;
+            new_object->name               = Strings::format("tnx_object_{}", objects.size());
+            objects.push_back(new_object);
+
+            ++next_binding_index;
+            return new_object;
+        }
 
         void create_variable(GLSL_CompiledSource* source, MaterialNodeDataType type)
         {
@@ -383,7 +414,10 @@ namespace Engine
 
         String compile()
         {
-            String result = "#version 310 es\nprecision highp float;\n\n";
+            String result = "#version 310 es\n"
+                            "precision highp float;\n"
+                            "precision highp sampler;\n"
+                            "precision highp texture2D;\n\n";
 
             for (auto& in : inputs)
             {
@@ -401,7 +435,14 @@ namespace Engine
             result += GlobalShaderParameters::shader_code();
             result.push_back(' ');
             result += global_ubo_name;
-            result.push_back(';');
+            result += ";\n\n";
+
+            for (auto& object : objects)
+            {
+                result += Strings::format("layout(binding = {}, set = 0) uniform {} {};\n", object->index, object->type,
+                                          object->name);
+            }
+
 
             result += "\n\nvoid main()\n{\n";
 
@@ -637,6 +678,7 @@ namespace Engine
             vertex_state.statements.push_back(Strings::format("gl_Position = vec4(vec3(in_position0.xy, 0.0).xyz, 1.0)"));
 
 
+            fragment_state.next_binding_index = vertex_state.next_binding_index;
             material->fragment_node()->compile(this, nullptr);
 
 
@@ -885,10 +927,27 @@ namespace Engine
 
 
         // TEXTURES
+        /*
+            layout(set = 1, binding = 0) uniform texture2D u_texture;
+            layout(set = 1, binding = 1) uniform sampler u_sampler;
+        */
 
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
         {
-            return 0;
+            GLSL_BindingObject* glsl_texture = state().create_binding_object(texture, "texture2D");
+
+            String uv_source      = get_pin_source(uv, MaterialNodeDataType::Vec2);
+            String sampler_source = get_pin_source(sampler, MaterialNodeDataType::Sampler);
+
+            String result_source =
+                    Strings::format("texture(sampler2D({}, {}), {})", glsl_texture->name, sampler_source, uv_source);
+            return (new GLSL_CompiledSource(result_source))->id();
+        }
+
+        virtual size_t sampler(class Engine::Sampler* sampler) override
+        {
+            GLSL_BindingObject* glsl_sampler = state().create_binding_object(sampler, "sampler");
+            return (new GLSL_CompiledSource(glsl_sampler->name))->id();
         }
     };
 

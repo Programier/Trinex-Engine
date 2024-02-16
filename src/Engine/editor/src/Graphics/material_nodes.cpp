@@ -645,6 +645,17 @@ namespace Engine::MaterialNodes
 
     //////////////////////////// TEXTURE NODES ////////////////////////////
 
+
+    Sampler::Sampler()
+    {
+        outputs.push_back(new SamplerOutputNoDefaultPin(this, "Out"));
+    }
+
+    size_t Sampler::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    {
+        return compiler->sampler(sampler);
+    }
+
     Texture2D::Texture2D()
     {
         outputs.push_back(new Color4OutputNoDefaultPin(this, "Color"));
@@ -659,6 +670,7 @@ namespace Engine::MaterialNodes
             Engine::Sampler* sampler = Icons::default_sampler();
             ImGuiRenderer::ImGuiTexture* imgui_texture =
                     ImGuiRenderer::Window::current()->create_texture(reinterpret_cast<class Engine::Texture*>(texture), sampler);
+            ImGui::Text("%s", reinterpret_cast<Object*>(texture)->string_name().c_str());
             ImGui::Image(imgui_texture->handle(), {100, 100});
         }
     }

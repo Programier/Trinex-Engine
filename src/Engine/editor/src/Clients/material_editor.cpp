@@ -11,6 +11,7 @@
 #include <Graphics/material_nodes.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Widgets/content_browser.hpp>
@@ -20,7 +21,6 @@
 #include <imgui_internal.h>
 #include <imgui_node_editor.h>
 #include <theme.hpp>
-
 
 #define MATERIAL_EDITOR_DEBUG 1
 
@@ -285,9 +285,6 @@ namespace Engine
         return _M_current_material;
     }
 
-    extern void render_material_nodes(class MaterialEditorClient* client);
-
-
     static Struct* render_node_types(Group* group)
     {
         if (!group)
@@ -381,8 +378,8 @@ namespace Engine
 
                     if (selected)
                     {
-                        _M_open_select_node_window                           = false;
-                        _M_current_material->create_node(selected)->position = _M_next_node_pos;
+                        _M_open_select_node_window = false;
+                        _M_current_material->create_node(selected, _M_next_node_pos);
                     }
                 }
 
@@ -441,12 +438,16 @@ namespace Engine
     {
         auto pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(ImGui::GetMousePos()));
 
+
         if (Texture2D* texture = Object::instance_cast<Texture2D>(object))
         {
-            auto node      = _M_current_material->create_node<MaterialNodes::Texture2D>();
-            node->texture  = texture;
-            node->position = pos;
+            _M_current_material->create_node<MaterialNodes::Texture2D>(pos)->texture = texture;
         }
+        else if (Sampler* sampler = Object::instance_cast<Sampler>(object))
+        {
+            _M_current_material->create_node<MaterialNodes::Sampler>(pos)->sampler = sampler;
+        }
+
         return *this;
     }
 

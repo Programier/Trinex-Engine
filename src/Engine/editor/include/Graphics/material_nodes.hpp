@@ -36,6 +36,9 @@ namespace Engine::MaterialNodes
     struct Sampler : public MaterialNode {
         declare_material_node();
         Engine::Sampler* sampler = nullptr;
+
+        Sampler();
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
     };
 
     struct Texture2D : public MaterialNode {
