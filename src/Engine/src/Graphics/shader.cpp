@@ -42,6 +42,15 @@ namespace Engine
         return ar;
     }
 
+    Shader& Shader::clean()
+    {
+        samplers.clear();
+        textures.clear();
+        combined_samplers.clear();
+        ssbo.clear();
+        return *this;
+    }
+
     VertexShader& VertexShader::rhi_create()
     {
         _M_rhi_object.reset(engine_instance->rhi()->create_vertex_shader(this));

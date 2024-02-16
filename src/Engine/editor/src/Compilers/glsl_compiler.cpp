@@ -10,10 +10,11 @@
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
+#include <chrono>
 
 namespace Engine
 {
-    static thread_local MessageList* errors;
+    static thread_local MessageList* errors = nullptr;
 
     static const StringView variable_prefix        = "tnx_var_";
     static const StringView global_ubo_name        = "global";
@@ -28,23 +29,29 @@ namespace Engine
         glslang::InitializeProcess();
 
         glslang::TShader shader(lang);
-        const char* shaderStrings[1];
-        shaderStrings[0] = text.c_str();
-        shader.setStrings(shaderStrings, 1);
+        const char* shader_strings[3];
+
+        String version = text.substr(0, text.find('\n'));
+
+        shader_strings[0] = version.c_str();
+        shader_strings[1] = "\n#define SPIRV_VULKAN\n";
+        shader_strings[2] = text.c_str() + version.length() + 1;
+
+        shader.setStrings(shader_strings, sizeof(shader_strings) / sizeof(const char*));
 
         // Set up shader options
-        int clientInputSemanticsVersion                 = 100;// default for Vulkan
-        glslang::EShTargetClientVersion clientVersion   = glslang::EShTargetVulkan_1_0;
-        glslang::EShTargetLanguageVersion targetVersion = glslang::EShTargetSpv_1_0;
+        int client_input_semantics_version               = 100;// default for Vulkan
+        glslang::EShTargetClientVersion client_version   = glslang::EShTargetVulkan_1_0;
+        glslang::EShTargetLanguageVersion target_version = glslang::EShTargetSpv_1_0;
 
         // Set up shader environment
-        shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, clientInputSemanticsVersion);
-        shader.setEnvClient(glslang::EShClientVulkan, clientVersion);
-        shader.setEnvTarget(glslang::EShTargetSpv, targetVersion);
+        shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, client_input_semantics_version);
+        shader.setEnvClient(glslang::EShClientVulkan, client_version);
+        shader.setEnvTarget(glslang::EShTargetSpv, target_version);
 
 
         // Preprocess the shader
-        if (!shader.parse(GetDefaultResources(), clientInputSemanticsVersion, false, EShMsgDefault))
+        if (!shader.parse(GetDefaultResources(), client_input_semantics_version, false, EShMsgDefault))
         {
             errors->push_back(Strings::format("Compiler: {}", shader.getInfoLog()));
             errors->push_back(Strings::format("Compiler: {}", shader.getInfoDebugLog()));
@@ -65,15 +72,15 @@ namespace Engine
 
 
         // Translate to SPIR-V
-        glslang::SpvOptions spvOptions;
-        spvOptions.generateDebugInfo = true;
-        spvOptions.disableOptimizer  = false;
-        spvOptions.optimizeSize      = true;
-        spvOptions.stripDebugInfo    = false;
-        spvOptions.validate          = true;
+        glslang::SpvOptions spv_options;
+        spv_options.generateDebugInfo = true;
+        spv_options.disableOptimizer  = false;
+        spv_options.optimizeSize      = true;
+        spv_options.stripDebugInfo    = false;
+        spv_options.validate          = true;
         std::vector<unsigned int> spirv;
 
-        glslang::GlslangToSpv(*program.getIntermediate(lang), spirv, &spvOptions);
+        glslang::GlslangToSpv(*program.getIntermediate(lang), spirv, &spv_options);
 
 
         out.resize(spirv.size() * sizeof(unsigned int));
@@ -304,8 +311,9 @@ namespace Engine
 
     struct GLSL_CompiledSource {
         String source;
+        void* data = nullptr;
 
-        GLSL_CompiledSource(const String& source = {}) : source(source)
+        GLSL_CompiledSource(const String& source = {}, void* data = nullptr) : source(source), data(data)
         {}
 
         size_t id() const
@@ -336,7 +344,7 @@ namespace Engine
 
     struct GLSL_CompilerState {
         Map<Identifier, GLSL_CompiledSource*> compiled_pins;
-        BindingIndex next_binding_index = 2;
+        BindingIndex next_binding_index = 1;
 
         Vector<GLSL_Input> inputs;
         Vector<GLSL_Output> outputs;
@@ -364,8 +372,9 @@ namespace Engine
             next_binding_index = 2;
         }
 
-        GLSL_BindingObject* create_binding_object(void* object, StringView type)
+        GLSL_BindingObject* create_binding_object(void* object, StringView type, bool& created_now)
         {
+            created_now = false;
             for (GLSL_BindingObject* glsl_object : objects)
             {
                 if (glsl_object->object == object)
@@ -373,6 +382,8 @@ namespace Engine
                     return glsl_object;
                 }
             }
+
+            created_now = true;
 
             GLSL_BindingObject* new_object = new GLSL_BindingObject();
             new_object->object             = object;
@@ -412,12 +423,17 @@ namespace Engine
             return code;
         }
 
+
         String compile()
         {
             String result = "#version 310 es\n"
                             "precision highp float;\n"
+                            "\n"
+                            "#ifdef SPIRV_VULKAN\n"
                             "precision highp sampler;\n"
-                            "precision highp texture2D;\n\n";
+                            "precision highp texture2D;\n"
+                            "#endif\n"
+                            "\n";
 
             for (auto& in : inputs)
             {
@@ -439,8 +455,7 @@ namespace Engine
 
             for (auto& object : objects)
             {
-                result += Strings::format("layout(binding = {}, set = 0) uniform {} {};\n", object->index, object->type,
-                                          object->name);
+                result += Strings::format("layout(binding = {}) uniform {} {};\n", object->index, object->type, object->name);
             }
 
 
@@ -496,11 +511,14 @@ namespace Engine
             if (source)
                 return source;
 
-            String code              = reinterpret_value(pin->default_value(), pin->value_type());
+            void* default_value = pin->default_value();
+            if (!default_value)
+                return nullptr;
+
+            String code              = reinterpret_value(default_value, pin->value_type());
             source                   = new GLSL_CompiledSource(code);
             compiled_pins[pin->id()] = source;
             return source;
-            ;
         }
 
         ~GLSL_CompilerState()
@@ -522,7 +540,8 @@ namespace Engine
     public:
         GLSL_CompilerState vertex_state;
         GLSL_CompilerState fragment_state;
-        CompileStage stage = CompileStage::Vertex;
+        CompileStage stage               = CompileStage::Vertex;
+        VisualMaterial* current_material = nullptr;
 
         GLSL_Compiler()
         {}
@@ -660,12 +679,27 @@ namespace Engine
             return cast_value(source->source, source, type, out_type);
         }
 
+        Shader* current_shader()
+        {
+            if (stage == CompileStage::Vertex)
+                return current_material->pipeline->vertex_shader;
+            if (stage == CompileStage::Fragment)
+                return current_material->pipeline->fragment_shader;
+            return nullptr;
+        }
+
         bool compile(class VisualMaterial* material, MessageList& _errors) override
         {
-            errors = &_errors;
+            errors           = &_errors;
+            current_material = material;
+
             vertex_state.reset();
             fragment_state.reset();
             material->pipeline->has_global_parameters = true;
+            material->clear_parameters();
+
+            material->pipeline->vertex_shader->clean();
+            material->pipeline->fragment_shader->clean();
 
             stage = CompileStage::Fragment;
 
@@ -681,12 +715,10 @@ namespace Engine
             fragment_state.next_binding_index = vertex_state.next_binding_index;
             material->fragment_node()->compile(this, nullptr);
 
-
             material->pipeline->vertex_shader->attributes.clear();
             material->pipeline->vertex_shader->attributes.push_back(VertexShader::Attribute(ColorFormat::R32G32Sfloat));
             material->pipeline->vertex_shader->text_code   = vertex_state.compile();
             material->pipeline->fragment_shader->text_code = fragment_state.compile();
-
 
             if (!errors->empty())
                 return false;
@@ -700,7 +732,7 @@ namespace Engine
             if (!errors->empty())
                 return false;
 
-            //material->postload();
+            material->postload();
             return true;
         }
 
@@ -927,27 +959,33 @@ namespace Engine
 
 
         // TEXTURES
-        /*
-            layout(set = 1, binding = 0) uniform texture2D u_texture;
-            layout(set = 1, binding = 1) uniform sampler u_sampler;
-        */
 
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
         {
-            GLSL_BindingObject* glsl_texture = state().create_binding_object(texture, "texture2D");
+            bool created_now;
+            GLSL_BindingObject* glsl_texture = state().create_binding_object(texture, "sampler2D", created_now);
+
+            if (created_now)
+            {
+                GLSL_CompiledSource* sampler_source       = state().pin_source(sampler, this);
+                CombinedSampler2DMaterialParameter* param = reinterpret_cast<CombinedSampler2DMaterialParameter*>(
+                        current_material->create_parameter(glsl_texture->name, MaterialParameter::Type::CombinedSampler2D));
+
+                param->texture  = texture;
+                param->sampler  = reinterpret_cast<class Sampler*>(sampler_source->data);
+                param->location = {glsl_texture->index, 0};
+                current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+            }
 
             String uv_source      = get_pin_source(uv, MaterialNodeDataType::Vec2);
-            String sampler_source = get_pin_source(sampler, MaterialNodeDataType::Sampler);
 
-            String result_source =
-                    Strings::format("texture(sampler2D({}, {}), {})", glsl_texture->name, sampler_source, uv_source);
+            String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_source);
             return (new GLSL_CompiledSource(result_source))->id();
         }
 
         virtual size_t sampler(class Engine::Sampler* sampler) override
         {
-            GLSL_BindingObject* glsl_sampler = state().create_binding_object(sampler, "sampler");
-            return (new GLSL_CompiledSource(glsl_sampler->name))->id();
+            return (new GLSL_CompiledSource("", sampler))->id();
         }
     };
 

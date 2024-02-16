@@ -11,10 +11,25 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
-#include <Graphics/texture.hpp>
+#include <Graphics/texture_2D.hpp>
 
 namespace Engine
 {
+    size_t MaterialParameter::size() const
+    {
+        return 0;
+    }
+
+    byte* MaterialParameter::data()
+    {
+        return nullptr;
+    }
+
+    const byte* MaterialParameter::data() const
+    {
+        return nullptr;
+    }
+
     MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline)
     {
         if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(Type::Mat4))
@@ -107,6 +122,47 @@ namespace Engine
         return ar;
     }
 
+
+    bool BindingMaterialParameter::archive_process(Archive& ar)
+    {
+        ar & location;
+        return ar;
+    }
+
+    MaterialParameter::Type SamplerMaterialParameter::type() const
+    {
+        return MaterialParameter::Type::Sampler;
+    }
+
+    MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline)
+    {
+        sampler->rhi_bind(location);
+        return *this;
+    }
+
+    MaterialParameter::Type CombinedSampler2DMaterialParameter::type() const
+    {
+        return MaterialParameter::Type::CombinedSampler2D;
+    }
+
+    MaterialParameter& CombinedSampler2DMaterialParameter::apply(const Pipeline* pipeline)
+    {
+        texture->rhi_bind(location);
+        sampler->rhi_bind(location);
+        return *this;
+    }
+
+    MaterialParameter::Type Texture2DMaterialParameter::type() const
+    {
+        return MaterialParameter::Type::Texture2D;
+    }
+
+    MaterialParameter& Texture2DMaterialParameter::apply(const Pipeline* pipeline)
+    {
+        texture->rhi_bind(location);
+        return *this;
+    }
+
     MaterialParameter* MaterialInterface::find_parameter(const Name& name) const
     {
         return nullptr;
@@ -177,10 +233,17 @@ namespace Engine
     static const Array<MaterialParameter* (*) (const Name& name), MaterialParameter::Type::__COUNT__>& params_allocators()
     {
         static const Array<MaterialParameter* (*) (const Name& name), MaterialParameter::Type::__COUNT__> allocators = {
-                new_param_allocator(BoolMaterialParameter), new_param_allocator(FloatMaterialParameter),
-                new_param_allocator(IntMaterialParameter),  new_param_allocator(Vec2MaterialParameter),
-                new_param_allocator(Vec3MaterialParameter), new_param_allocator(Vec4MaterialParameter),
-                new_param_allocator(Mat3MaterialParameter), new_param_allocator(Mat4MaterialParameter),
+                new_param_allocator(BoolMaterialParameter),
+                new_param_allocator(FloatMaterialParameter),
+                new_param_allocator(IntMaterialParameter),
+                new_param_allocator(Vec2MaterialParameter),
+                new_param_allocator(Vec3MaterialParameter),
+                new_param_allocator(Vec4MaterialParameter),
+                new_param_allocator(Mat3MaterialParameter),
+                new_param_allocator(Mat4MaterialParameter),
+                new_param_allocator(SamplerMaterialParameter),
+                new_param_allocator(Texture2DMaterialParameter),
+                new_param_allocator(CombinedSampler2DMaterialParameter),
         };
 
         return allocators;
@@ -224,9 +287,51 @@ namespace Engine
         return *this;
     }
 
+    Material& Material::clear_parameters()
+    {
+        for (auto& [name, param] : _M_material_parameters)
+        {
+            delete param;
+        }
+
+        _M_material_parameters.clear();
+        return *this;
+    }
+
     bool Material::apply()
     {
         return apply(this);
+    }
+
+
+    void Material::apply_shader_global_params(class Shader* shader, MaterialInterface* head)
+    {
+        for (auto& texture : shader->textures)
+        {
+            MaterialParameter* parameter = head->find_parameter(texture.name);
+            if (parameter && parameter->type() == MaterialParameter::Type::Texture2D)
+            {
+                parameter->apply(pipeline);
+            }
+        }
+
+        for (auto& sampler : shader->samplers)
+        {
+            MaterialParameter* parameter = head->find_parameter(sampler.name);
+            if (parameter && parameter->type() == MaterialParameter::Type::Sampler)
+            {
+                parameter->apply(pipeline);
+            }
+        }
+
+        for (auto& texture : shader->combined_samplers)
+        {
+            MaterialParameter* parameter = head->find_parameter(texture.name);
+            if (parameter && parameter->type() == MaterialParameter::Type::CombinedSampler2D)
+            {
+                parameter->apply(pipeline);
+            }
+        }
     }
 
     bool Material::apply(MaterialInterface* head)
@@ -242,6 +347,9 @@ namespace Engine
                 parameter->apply(pipeline);
             }
         }
+
+        apply_shader_global_params(pipeline->vertex_shader, head);
+        apply_shader_global_params(pipeline->fragment_shader, head);
 
         return true;
     }

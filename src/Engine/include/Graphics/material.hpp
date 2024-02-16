@@ -13,25 +13,28 @@ namespace Engine
     public:
         enum Type
         {
-            Bool  = 0,
-            Float = 1,
-            Int   = 2,
-            Vec2  = 3,
-            Vec3  = 4,
-            Vec4  = 5,
-            Mat3  = 6,
-            Mat4  = 7,
+            Bool              = 0,
+            Float             = 1,
+            Int               = 2,
+            Vec2              = 3,
+            Vec3              = 4,
+            Vec4              = 5,
+            Mat3              = 6,
+            Mat4              = 7,
+            Sampler           = 8,
+            Texture2D         = 9,
+            CombinedSampler2D = 10,
 
-            __COUNT__ = 8,
+            __COUNT__ = 11,
         };
 
         Name name;
 
     public:
-        virtual Type type() const        = 0;
-        virtual size_t size() const      = 0;
-        virtual byte* data()             = 0;
-        virtual const byte* data() const = 0;
+        virtual size_t size() const;
+        virtual byte* data();
+        virtual const byte* data() const;
+        virtual Type type() const = 0;
         virtual MaterialParameter& apply(const Pipeline* pipeline);
         virtual bool archive_process(Archive& ar) override;
 
@@ -75,6 +78,40 @@ namespace Engine
     using Mat3MaterialParameter  = TypedMaterialParameter<Matrix3f, MaterialParameter::Type::Mat3>;
     using Mat4MaterialParameter  = TypedMaterialParameter<Matrix4f, MaterialParameter::Type::Mat4>;
 
+    class ENGINE_EXPORT BindingMaterialParameter : public MaterialParameter
+    {
+    public:
+        BindLocation location;
+
+        bool archive_process(Archive& ar) override;
+    };
+
+    class SamplerMaterialParameter : public BindingMaterialParameter
+    {
+    public:
+        Pointer<class Sampler> sampler;
+
+        Type type() const override;
+        MaterialParameter& apply(const Pipeline* pipeline) override;
+    };
+
+    class CombinedSampler2DMaterialParameter : public BindingMaterialParameter
+    {
+    public:
+        Pointer<class Sampler> sampler;
+        Pointer<class Texture2D> texture;
+
+        Type type() const override;
+        MaterialParameter& apply(const Pipeline* pipeline) override;
+    };
+
+    struct Texture2DMaterialParameter : public BindingMaterialParameter {
+        Pointer<class Texture2D> texture;
+
+        Type type() const override;
+        MaterialParameter& apply(const Pipeline* pipeline) override;
+    };
+
 
     class ENGINE_EXPORT MaterialInterface : public Object
     {
@@ -102,6 +139,9 @@ namespace Engine
     protected:
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;
 
+
+        void apply_shader_global_params(class Shader* shader, MaterialInterface* head);
+
     public:
         Pipeline* pipeline;
 
@@ -113,6 +153,7 @@ namespace Engine
         MaterialParameter* find_parameter(const Name& name) const override;
         MaterialParameter* create_parameter(const Name& name, MaterialParameter::Type type);
         Material& remove_parameter(const Name& name);
+        Material& clear_parameters();
 
         bool apply() override;
         bool apply(MaterialInterface* head);

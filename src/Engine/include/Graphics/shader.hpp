@@ -43,6 +43,7 @@ namespace Engine
         Buffer binary_code;
 
         bool archive_process(Archive& ar) override;
+        Shader& clean();
         virtual Type type() const = 0;
     };
 
