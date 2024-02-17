@@ -5,7 +5,6 @@ project(TrinexEngine LANGUAGES CXX)
 option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
 option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
 option(TRINEX_WITH_SDL "Build SDL2 WindowSystem shared library" ON)
-option(TRINEX_WITH_SHADER_COMPILERS "Build engine with shader compilers" OFF)
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
 option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" ON)
 

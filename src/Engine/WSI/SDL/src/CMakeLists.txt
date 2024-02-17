@@ -2,9 +2,9 @@ set(SDL_SYSTEM_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB SDL_SYSTEM_SRC "${SDL_SYSTEM_SOURCES_DIR}/*.cpp")
 
 add_library(WindowSystemSDL2 SHARED ${SDL_SYSTEM_SRC})
-target_link_libraries(WindowSystemSDL2 PUBLIC SDL2 TrinexEngine)
+target_link_libraries(WindowSystemSDL2 PUBLIC SDL2-static TrinexEngine)
 
-install (TARGETS WindowSystemSDL2 SDL2 DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
+install (TARGETS WindowSystemSDL2 DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 
 target_compile_options(WindowSystemSDL2 PRIVATE "-Wall")
 target_compile_options(WindowSystemSDL2 PRIVATE "-Wno-unknown-pragmas")

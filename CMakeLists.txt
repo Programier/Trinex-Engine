@@ -14,10 +14,6 @@ set(GAME_COMPILE_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 set(CMAKE_INSTALL_PREFIX "${GAME_COMPILE_DIR}/Game/")
 
-set(BUILD_OPENGL on)
-
-execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAME_PROJECT_ROOT}/resources ${CMAKE_INSTALL_PREFIX}/resources)
-
 if (WIN32)
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy ${GAME_PROJECT_ROOT}/src/Engine/libs/libglew.dll ${CMAKE_INSTALL_PREFIX}/glew32.dll)
 endif()
@@ -28,9 +24,3 @@ target_include_directories(TrinexEngineLauncher PUBLIC "$<BUILD_INTERFACE:${GAME
 install(TARGETS TrinexEngineLauncher DESTINATION "./")
 
 install(DIRECTORY resources DESTINATION "./")
-
-if (LINUX)
-    install(PROGRAMS launch.sh
-        DESTINATION "./"
-        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
-endif()

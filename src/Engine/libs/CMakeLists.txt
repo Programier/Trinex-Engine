@@ -35,6 +35,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/asmjit/" EXCLUDE_FROM_ALL)
 set_target_properties(asmjit PROPERTIES COMPILE_OPTIONS "-fPIC")
 
 # Compile libzip library
-add_subdirectory(libzip)
+add_subdirectory(libzip EXCLUDE_FROM_ALL)
 
 set(TRINEX_EXTERNAL_SOURCES ${TRINEX_EXTERNAL_SOURCES} PARENT_SCOPE)
