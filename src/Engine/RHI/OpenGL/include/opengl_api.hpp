@@ -73,7 +73,6 @@ namespace Engine
         RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;
         ColorFormatFeatures color_format_features(ColorFormat format) override;
         size_t render_target_buffer_count() override;
-        void line_width(float width) override;
 
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;

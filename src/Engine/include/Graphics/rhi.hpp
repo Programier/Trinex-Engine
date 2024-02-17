@@ -150,9 +150,6 @@ namespace Engine
         virtual ColorFormat stencil_format()       = 0;
         virtual ColorFormat depth_stencil_format() = 0;
 
-        // Dynamic state
-        virtual void line_width(float width) = 0;
-
         virtual void push_debug_stage(const char* stage, const Color& color = {}) = 0;
         virtual void pop_debug_stage()                                            = 0;
 

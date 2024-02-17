@@ -120,8 +120,9 @@ namespace Engine
     });
 
     const Array<vk::FrontFace, 2> _M_front_faces = generate_array<vk::FrontFace, 2, FrontFace>({
-            {FrontFace::ClockWise, vk::FrontFace::eClockwise},
-            {FrontFace::CounterClockWise, vk::FrontFace::eCounterClockwise},
+            // So as viewport is flipped, inverse FrontFace values
+            {FrontFace::ClockWise, vk::FrontFace::eCounterClockwise},
+            {FrontFace::CounterClockWise, vk::FrontFace::eClockwise},
     });
 
     const Array<vk::LogicOp, 17> _M_logic_ops = generate_array<vk::LogicOp, 17, LogicOp>({

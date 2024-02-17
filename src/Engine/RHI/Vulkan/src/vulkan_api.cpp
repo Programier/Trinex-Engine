@@ -382,7 +382,6 @@ namespace Engine
         _M_dynamic_states = {
                 vk::DynamicState::eViewport,
                 vk::DynamicState::eScissor,
-                vk::DynamicState::eLineWidth,
         };
     }
 

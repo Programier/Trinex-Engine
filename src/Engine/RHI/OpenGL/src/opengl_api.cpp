@@ -179,11 +179,6 @@ namespace Engine
     {
         return 1;
     }
-
-    void OpenGL::line_width(float width)
-    {
-        glLineWidth(width);
-    }
 }// namespace Engine
 
 
