@@ -8,6 +8,7 @@ target_link_libraries(TrinexEngineEditor PUBLIC TrinexEngine    glslang
                                                                 glslang-default-resource-limits
                                                                 SPIRV
                                                                 spirv-cross-core
-                                                                spirv-cross-glsl)
+                                                                spirv-cross-glsl
+                                                                assimp)
 
 install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})

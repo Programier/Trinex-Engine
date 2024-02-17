@@ -21,9 +21,7 @@ namespace Engine
             Vector<Pointer<class NormalVertexBuffer>> normals;
             Vector<Pointer<class TangentVertexBuffer>> tangents;
             Vector<Pointer<class BinormalVertexBuffer>> binormal;
-
             Pointer<IndexBuffer> indices;
-            Pointer<MaterialInterface> material;
 
             VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
 
@@ -36,6 +34,7 @@ namespace Engine
             VertexBuffer* find_binormal_buffer(Index index) const;
         };
 
+        Pointer<MaterialInterface> material;
         Vector<LOD> lods;
     };
 
