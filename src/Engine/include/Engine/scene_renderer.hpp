@@ -7,18 +7,20 @@ namespace Engine
 {
     class SceneRenderer;
     class RenderViewport;
-    class SceneView;
+    class CameraView;
 
 
     class ENGINE_EXPORT SceneLayer final
     {
     public:
+        static ENGINE_EXPORT const Name name_clear_render_targets;
+        static ENGINE_EXPORT const Name name_base_pass;
+        static ENGINE_EXPORT const Name name_light_pass;
+        static ENGINE_EXPORT const Name name_post_process;
+        static ENGINE_EXPORT const Name name_output;
+
         using FunctionCallback = void (*)(SceneRenderer*, RenderViewport*, SceneLayer*);
-        using MethodCallback   = void (SceneRenderer::*)(RenderViewport*, SceneLayer*);
-
         List<FunctionCallback> function_callbacks;
-        List<MethodCallback> method_callback;
-
 
     private:
         SceneLayer* _M_parent = nullptr;
@@ -60,7 +62,7 @@ namespace Engine
 
         SceneRenderer& scene(SceneInterface* scene);
         SceneInterface* scene() const;
-        SceneRenderer& render(const SceneView& view);
+        SceneRenderer& render(const CameraView& view, RenderViewport* viewport);
 
         FORCE_INLINE SceneLayer* root_layer() const
         {

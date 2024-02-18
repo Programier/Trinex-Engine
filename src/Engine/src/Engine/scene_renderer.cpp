@@ -4,6 +4,11 @@
 
 namespace Engine
 {
+    const Name SceneLayer::name_clear_render_targets = "Clear Render Targets";
+    const Name SceneLayer::name_base_pass            = "Base Pass";
+    const Name SceneLayer::name_light_pass           = "Light Pass";
+    const Name SceneLayer::name_post_process         = "Post Process";
+    const Name SceneLayer::name_output               = "Output Pass";
 
     SceneLayer::SceneLayer(const Name& name) : _M_name(name)
     {}
@@ -32,12 +37,6 @@ namespace Engine
         {
             func(renderer, viewport, this);
         }
-
-        for (auto& method : method_callback)
-        {
-            (renderer->*method)(viewport, this);
-        }
-
         return *this;
     }
 
@@ -129,6 +128,12 @@ namespace Engine
     {
         _M_root_layer                       = new SceneLayer("Root Layer");
         _M_root_layer->_M_can_create_parent = false;
+
+        _M_root_layer->create_next(SceneLayer::name_clear_render_targets)
+                ->create_next(SceneLayer::name_base_pass)
+                ->create_next(SceneLayer::name_light_pass)
+                ->create_next(SceneLayer::name_post_process)
+                ->create_next(SceneLayer::name_output);
     }
 
     SceneRenderer& SceneRenderer::scene(SceneInterface* scene)
@@ -142,8 +147,12 @@ namespace Engine
         return _M_scene;
     }
 
-    SceneRenderer& SceneRenderer::render(const SceneView& view)
+    SceneRenderer& SceneRenderer::render(const CameraView& view, RenderViewport* viewport)
     {
+        for (auto layer = root_layer(); layer; layer = layer->next())
+        {
+            layer->render(this, viewport);
+        }
         return *this;
     }
 

@@ -61,7 +61,7 @@ namespace Engine
         return glm::lookAt(position, position + direction, up_vector);
     }
 
-    CameraComponent& CameraComponent::camera_view(CameraView& out)
+    const CameraComponent& CameraComponent::camera_view(CameraView& out) const
     {
         out.location        = transform.location;
         out.rotation        = transform.rotation;
@@ -74,6 +74,13 @@ namespace Engine
         out.aspect_ratio    = aspect_ratio;
 
         return *this;
+    }
+
+    CameraView CameraComponent::camera_view() const
+    {
+        CameraView view;
+        camera_view(view);
+        return view;
     }
 
     CameraView& CameraView::operator=(class CameraComponent* component)

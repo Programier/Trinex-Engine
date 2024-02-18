@@ -19,14 +19,19 @@ namespace Engine
         W = 3
     };
 
-    class ShaderCompiler : public Object
+    class ShaderCompilerBase : public Object
     {
-        declare_class(ShaderCompiler, Object);
+        declare_class(ShaderCompilerBase, Object);
 
     public:
         virtual bool compile(class VisualMaterial* material, MessageList& errors) = 0;
+    };
 
+    class ShaderCompiler : public ShaderCompilerBase
+    {
+        declare_class(ShaderCompiler, ShaderCompilerBase);
 
+    public:
         // MATH
         virtual size_t sin(MaterialInputPin*) = 0;
         virtual size_t cos(MaterialInputPin*) = 0;
@@ -50,8 +55,14 @@ namespace Engine
         //        vec3 camera_forward;
         //        vec3 camera_right;
         //        vec3 camera_up;
-        //        vec2 size;
         //        vec2 depth_range;
+
+        virtual size_t projection()   = 0;
+        virtual size_t view()         = 0;
+        virtual size_t projview()     = 0;
+        virtual size_t inv_projview() = 0;
+
+
         virtual size_t render_target_size()     = 0;
         virtual size_t time()                   = 0;
         virtual size_t gamma()                  = 0;
@@ -92,6 +103,12 @@ namespace Engine
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
         virtual size_t sampler(class Engine::Sampler* sampler)                                                       = 0;
 
+
+        // Shader outputs
+        virtual size_t position(MaterialInputPin*)   = 0;
         virtual size_t base_color(MaterialInputPin*) = 0;
+
+        // Inputs
+        virtual size_t vertex(byte index) = 0;
     };
 }// namespace Engine

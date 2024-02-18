@@ -38,6 +38,7 @@ namespace Engine::MaterialNodes
 
     size_t VertexNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
+        compiler->position(inputs[0]);
         return 0;
     }
 
@@ -361,247 +362,45 @@ namespace Engine::MaterialNodes
 
     //////////////////////////// GLOBALS NODES ////////////////////////////
 
-    struct Time : public MaterialNode {
-        declare_material_node();
 
-        Time()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
+#define declare_global_node(name, func, type)                                                                                    \
+    struct name : public MaterialNode {                                                                                          \
+        declare_material_node();                                                                                                 \
+                                                                                                                                 \
+        name()                                                                                                                   \
+        {                                                                                                                        \
+            outputs.push_back(new type##OutputNoDefaultPin(this, "Out"));                                                        \
+        }                                                                                                                        \
+                                                                                                                                 \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func();                                                                                             \
+        }                                                                                                                        \
+                                                                                                                                 \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::type;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(name, Globals);
 
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->time();
-        }
+    declare_global_node(Projection, projection, Mat4);
+    declare_global_node(View, view, Mat4);
+    declare_global_node(ProjView, projview, Mat4);
+    declare_global_node(InvProjView, inv_projview, Mat4);
+    declare_global_node(Time, time, Float);
+    declare_global_node(Gamma, gamma, Float);
+    declare_global_node(DeltaTime, delta_time, Float);
+    declare_global_node(FOV, fov, Float);
+    declare_global_node(OrthoWidth, ortho_width, Float);
+    declare_global_node(OrthoHeight, ortho_height, Float);
+    declare_global_node(NearClipPlane, near_clip_plane, Float);
+    declare_global_node(FarClipPlane, far_clip_plane, Float);
+    declare_global_node(AspectRatio, aspect_ratio, Float);
+    declare_global_node(CameraProjectionMode, camera_projection_mode, Int);
+    declare_global_node(FragCoord, frag_coord, Vec2);
+    declare_global_node(RenderTargetSize, render_target_size, Vec2);
 
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-
-    struct DeltaTime : public MaterialNode {
-        declare_material_node();
-
-        DeltaTime()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->delta_time();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct Gamma : public MaterialNode {
-        declare_material_node();
-
-        Gamma()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->gamma();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct FOV : public MaterialNode {
-        declare_material_node();
-
-        FOV()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->fov();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct OrthoWidth : public MaterialNode {
-        declare_material_node();
-
-        OrthoWidth()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->ortho_width();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct OrthoHeight : public MaterialNode {
-        declare_material_node();
-
-        OrthoHeight()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->ortho_height();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct NearClipPlane : public MaterialNode {
-        declare_material_node();
-
-        NearClipPlane()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->near_clip_plane();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct FarClipPlane : public MaterialNode {
-        declare_material_node();
-
-        FarClipPlane()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->far_clip_plane();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct AspectRatio : public MaterialNode {
-        declare_material_node();
-
-        AspectRatio()
-        {
-            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->aspect_ratio();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Float;
-        }
-    };
-
-    struct CameraProjectionMode : public MaterialNode {
-        declare_material_node();
-
-        CameraProjectionMode()
-        {
-            outputs.push_back(new IntOutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->camera_projection_mode();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Int;
-        }
-    };
-
-    struct FragCoord : public MaterialNode {
-        declare_material_node();
-
-        FragCoord()
-        {
-            outputs.push_back(new Vec2OutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->frag_coord();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Vec2;
-        }
-    };
-
-    struct RenderTargetSize : public MaterialNode {
-        declare_material_node();
-
-        RenderTargetSize()
-        {
-            outputs.push_back(new Vec2OutputNoDefaultPin(this, "Out"));
-        }
-
-        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
-        {
-            return compiler->render_target_size();
-        }
-
-        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
-        {
-            return MaterialNodeDataType::Vec2;
-        }
-    };
-
-    implement_material_node(Time, Globals);
-    implement_material_node(Gamma, Globals);
-    implement_material_node(DeltaTime, Globals);
-    implement_material_node(FOV, Globals);
-    implement_material_node(OrthoWidth, Globals);
-    implement_material_node(OrthoHeight, Globals);
-    implement_material_node(NearClipPlane, Globals);
-    implement_material_node(FarClipPlane, Globals);
-    implement_material_node(AspectRatio, Globals);
-    implement_material_node(CameraProjectionMode, Globals);
-    implement_material_node(FragCoord, Globals);
-    implement_material_node(RenderTargetSize, Globals);
 
     //////////////////////////// CONSTANT NODES ////////////////////////////
 
@@ -645,7 +444,6 @@ namespace Engine::MaterialNodes
 
     //////////////////////////// TEXTURE NODES ////////////////////////////
 
-
     Sampler::Sampler()
     {
         outputs.push_back(new SamplerOutputNoDefaultPin(this, "Out"));
@@ -678,7 +476,6 @@ namespace Engine::MaterialNodes
             Engine::Sampler* sampler                   = Icons::default_sampler();
             ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(
                     reinterpret_cast<class Engine::Texture*>(texture.ptr()), sampler);
-            ImGui::Text("%s", reinterpret_cast<Object*>(texture.ptr())->string_name().c_str());
             ImGui::Image(imgui_texture->handle(), {100, 100});
         }
     }
@@ -698,4 +495,32 @@ namespace Engine::MaterialNodes
 
     implement_material_node(Sampler, Texture);
     implement_material_node(Texture2D, Texture);
+
+
+    //////////////////////////// INPUT NODES ////////////////////////////
+    Vertex::Vertex()
+    {
+        outputs.push_back(new Vec3OutputNoDefaultPin(this, "Pos"));
+    }
+
+    size_t Vertex::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    {
+        return compiler->vertex(index);
+    }
+
+    void Vertex::render()
+    {
+        ImGui::InputScalar("Index", ImGuiDataType_U8, &index);
+    }
+
+    bool Vertex::archive_process(Archive& ar)
+    {
+        if (!MaterialNode::archive_process(ar))
+            return false;
+        return ar & index;
+    }
+
+
+    implement_material_node(Vertex, Inputs);
+
 }// namespace Engine::MaterialNodes

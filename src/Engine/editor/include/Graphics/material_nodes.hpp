@@ -51,4 +51,14 @@ namespace Engine::MaterialNodes
         void render() override;
         bool archive_process(Archive& ar) override;
     };
+
+    struct Vertex : public MaterialNode {
+        declare_material_node();
+        byte index = 0;
+
+        Vertex();
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
+        void render() override;
+        bool archive_process(Archive& ar) override;
+    };
 }// namespace Engine::MaterialNodes

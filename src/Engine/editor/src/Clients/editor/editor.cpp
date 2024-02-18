@@ -126,9 +126,6 @@ namespace Engine
 
         ImGuiRenderer::Window::make_current(prev_window);
 
-        mesh         = Object::new_instance<TexCoordVertexBuffer>();
-        mesh->buffer = {{-1, -1}, {-1, 1}, {1, 1}, {-1, -1}, {1, 1}, {1, -1}};
-        mesh->init_resource();
         camera                            = Object::new_instance<CameraComponent>();
         camera->transform.rotation_method = Transform::RotationMethod::YXZ;
         camera->transform.location        = {0, 0, 10};
@@ -146,6 +143,12 @@ namespace Engine
                 EventType::KeyDown, std::bind(&EditorClient::on_key_press, this, std::placeholders::_1)));
         _M_event_system_listeners.push_back(event_system->add_listener(
                 EventType::KeyUp, std::bind(&EditorClient::on_key_release, this, std::placeholders::_1)));
+
+
+        extern void render_editor_grid(SceneRenderer* renderer, RenderViewport* viewport, SceneLayer* layer);
+        auto layer = _M_renderer.root_layer()->find(SceneLayer::name_post_process);
+        layer->function_callbacks.push_back(render_editor_grid);
+
         return init_world();
     }
 
@@ -162,22 +165,10 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        // Render base frame
-        GBuffer::instance()->rhi_bind();
-        SceneColorOutput* rt = SceneColorOutput::instance();
-        rt->rhi_bind();
+        engine_instance->rhi()->push_global_params(*_M_global_shader_params_rt);
+        _M_renderer.render(_M_view, _M_render_viewport);
 
-        class Material* material = Object::find_object_checked<Material>("Default::DefaultMaterial");
-
-        if (material && material->pipeline->has_object())
-        {
-            engine_instance->rhi()->push_global_params(*_M_global_shader_params_rt);
-            material->apply();
-            mesh->rhi_bind(0);
-            engine_instance->rhi()->draw(6);
-            engine_instance->rhi()->pop_global_params();
-        }
-
+        engine_instance->rhi()->pop_global_params();
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;
@@ -303,7 +294,22 @@ namespace Engine
             }
         };
 
+        struct UpdateView : ExecutableObject {
+            CameraView view;
+            CameraView& out;
+
+            UpdateView(const CameraView& in, CameraView& out) : view(in), out(out)
+            {}
+
+            int_t execute() override
+            {
+                out = view;
+                return sizeof(UpdateView);
+            }
+        };
+
         render_thread()->insert_new_task<UpdateParams>(_M_global_shader_params, _M_global_shader_params_rt);
+        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), _M_view);
 
         ++_M_frame;
         return *this;

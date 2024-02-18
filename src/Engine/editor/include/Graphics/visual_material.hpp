@@ -73,6 +73,7 @@ namespace Engine
     };
 
 
+    MaterialNodeDataType calculate_operator_types(MaterialNodeDataType& t1, MaterialNodeDataType& t2);
     MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2);
     bool is_equal_types(MaterialNodeDataType type1, MaterialNodeDataType type2);
 

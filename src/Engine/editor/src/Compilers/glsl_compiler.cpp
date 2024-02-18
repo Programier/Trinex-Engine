@@ -289,6 +289,10 @@ namespace Engine
                 return "vec3";
             case MaterialNodeDataType::Color4:
                 return "vec4";
+            case MaterialNodeDataType::Mat3:
+                return "mat3";
+            case MaterialNodeDataType::Mat4:
+                return "mat4";
             default:
             {
                 errors->push_back("Failed to get type of node!");
@@ -308,6 +312,17 @@ namespace Engine
         return in_info.components_count != out_info.components_count;
     }
 
+    static String cast_primitive_value(const String& in, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
+    {
+        MaterialDataTypeInfo in_info  = MaterialDataTypeInfo::from(in_type);
+        MaterialDataTypeInfo out_info = MaterialDataTypeInfo::from(out_type);
+
+        if (in_info.components_count != 1 || out_info.components_count != 1)
+            throw EngineException("Types in not primitive!");
+
+        return Strings::format("{}({})", glsl_type_of(out_type), in);
+    }
+
 
     struct GLSL_CompiledSource {
         String source;
@@ -322,17 +337,11 @@ namespace Engine
         }
     };
 
-    struct GLSL_Input {
+    struct GLSL_Attribute {
         String param;
         byte location;
         MaterialNodeDataType type;
-        byte index;
-    };
-
-    struct GLSL_Output {
-        String param;
-        byte location;
-        MaterialNodeDataType type;
+        ColorFormat format;
     };
 
     struct GLSL_BindingObject {
@@ -342,36 +351,38 @@ namespace Engine
         BindingIndex index;
     };
 
-    struct GLSL_CompilerState {
-        Map<Identifier, GLSL_CompiledSource*> compiled_pins;
-        BindingIndex next_binding_index = 1;
+    enum class CompileStage
+    {
+        Vertex,
+        Fragment,
+    };
 
-        Vector<GLSL_Input> inputs;
-        Vector<GLSL_Output> outputs;
+    class GLSL_BaseCompiler : public ShaderCompiler
+    {
+    public:
+        VisualMaterial* material = nullptr;
+        Vector<GLSL_Attribute> input_attribute;
+        Vector<GLSL_Attribute> output_attribute;
 
         Vector<GLSL_BindingObject*> objects;
+        Map<Identifier, GLSL_CompiledSource*> compiled_pins;
         Vector<String> statements;
+        byte next_binding_index = 1;
 
-        void reset()
+        ~GLSL_BaseCompiler()
         {
-            for (auto& [id, source] : compiled_pins)
+            for (auto& ell : objects)
+            {
+                delete ell;
+            }
+
+            for (auto& [name, source] : compiled_pins)
             {
                 delete source;
             }
-
-            for (GLSL_BindingObject* object : objects)
-            {
-                delete object;
-            }
-
-            inputs.clear();
-            outputs.clear();
-            statements.clear();
-            compiled_pins.clear();
-            objects.clear();
-            next_binding_index = 2;
         }
 
+        // Helpers
         GLSL_BindingObject* create_binding_object(void* object, StringView type, bool& created_now)
         {
             created_now = false;
@@ -423,55 +434,6 @@ namespace Engine
             return code;
         }
 
-
-        String compile()
-        {
-            String result = "#version 310 es\n"
-                            "precision highp float;\n"
-                            "\n"
-                            "#ifdef SPIRV_VULKAN\n"
-                            "precision highp sampler;\n"
-                            "precision highp texture2D;\n"
-                            "#endif\n"
-                            "\n";
-
-            for (auto& in : inputs)
-            {
-                result += Strings::format("layout(location = {}) in {} in_{}{};\n", in.location, glsl_type_of(in.type),
-                                          in.param.c_str(), in.index);
-            }
-
-            for (auto& out : outputs)
-            {
-                result += Strings::format("layout(location = {}) out {} out_{};\n", out.location, glsl_type_of(out.type),
-                                          out.param.c_str());
-            }
-
-            result += "\n\n";
-            result += GlobalShaderParameters::shader_code();
-            result.push_back(' ');
-            result += global_ubo_name;
-            result += ";\n\n";
-
-            for (auto& object : objects)
-            {
-                result += Strings::format("layout(binding = {}) uniform {} {};\n", object->index, object->type, object->name);
-            }
-
-
-            result += "\n\nvoid main()\n{\n";
-
-            for (auto& statement : statements)
-            {
-                result += "\t";
-                result += statement;
-                result += ";\n";
-            }
-
-            result += "}\n";
-            return result;
-        }
-
         GLSL_CompiledSource* find_pin_source(Identifier id, bool create = false)
         {
             auto it = compiled_pins.find(id);
@@ -521,57 +483,7 @@ namespace Engine
             return source;
         }
 
-        ~GLSL_CompilerState()
-        {
-            reset();
-        }
-    };
-
-    enum class CompileStage
-    {
-        Vertex,
-        Fragment,
-    };
-
-    class GLSL_Compiler : public ShaderCompiler
-    {
-        declare_class(GLSL_Compiler, ShaderCompiler);
-
-    public:
-        GLSL_CompilerState vertex_state;
-        GLSL_CompilerState fragment_state;
-        CompileStage stage               = CompileStage::Vertex;
-        VisualMaterial* current_material = nullptr;
-
-        GLSL_Compiler()
-        {}
-
-        ~GLSL_Compiler()
-        {}
-
-        GLSL_CompilerState& state()
-        {
-            if (stage == CompileStage::Vertex)
-            {
-                return vertex_state;
-            }
-
-            return fragment_state;
-        }
-
-        String cast_primitive_value(const String& in, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
-        {
-            MaterialDataTypeInfo in_info  = MaterialDataTypeInfo::from(in_type);
-            MaterialDataTypeInfo out_info = MaterialDataTypeInfo::from(out_type);
-
-            if (in_info.components_count != 1 || out_info.components_count != 1)
-                throw EngineException("Types in not primitive!");
-
-            return Strings::format("{}({})", glsl_type_of(out_type), in);
-        }
-
-        String cast_value(const String& in, GLSL_CompiledSource* source, MaterialNodeDataType in_type,
-                          MaterialNodeDataType out_type)
+        String cast_value(const String& in, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
         {
             if (is_equal_types(in_type, out_type) || out_type == MaterialNodeDataType::Undefined)
                 return in;
@@ -590,17 +502,7 @@ namespace Engine
 
                 if (in_info.components_count == 1)
                 {
-                    StringView code = in;
-
-                    if (source)
-                    {
-                        state().create_variable(source, in_type);
-                        code = source->source;
-                    }
-                    else
-                    {
-                        code = state().create_variable(in, in_type);
-                    }
+                    StringView code = create_variable(in, in_type);
 
                     out += code;
                     for (size_t i = 1, j = glm::min(out_info.components_count, static_cast<size_t>(3)); i < j; ++i)
@@ -653,207 +555,113 @@ namespace Engine
         String get_pin_source(MaterialOutputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined,
                               bool force_as_var = false)
         {
-            auto source = state().pin_source(pin, this);
+            auto source = pin_source(pin, this);
 
             if (pin->refereces_count() > 1 || source->source.length() > max_sentence_len || force_as_var)
             {
                 // Compile this source to variable
-                state().create_variable(source, pin->value_type());
+                create_variable(source, pin->value_type());
             }
 
-            return cast_value(source->source, source, pin->node->output_type(pin), out_type);
+            return cast_value(source->source, pin->node->output_type(pin), out_type);
         }
 
         String get_pin_source(MaterialInputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined,
                               bool force_as_var = false)
         {
-            auto source = state().pin_source(pin, this);
+            auto source = pin_source(pin, this);
 
             if (source->source.length() > max_sentence_len || force_as_var)
             {
                 // Compile this source to variable
-                state().create_variable(source, pin->value_type());
+                create_variable(source, pin->value_type());
             }
 
             auto type = pin->value_type();
-            return cast_value(source->source, source, type, out_type);
+            return cast_value(source->source, type, out_type);
         }
 
-        Shader* current_shader()
+        bool compile(VisualMaterial* material, MessageList& list) override
         {
-            if (stage == CompileStage::Vertex)
-                return current_material->pipeline->vertex_shader;
-            if (stage == CompileStage::Fragment)
-                return current_material->pipeline->fragment_shader;
-            return nullptr;
+            this->material = material;
+            root_node()->compile(this, nullptr);
+
+            return errors->empty();
         }
 
-        bool compile(class VisualMaterial* material, MessageList& _errors) override
+        bool build_source()
         {
-            errors           = &_errors;
-            current_material = material;
+            String source = "#version 310 es\n"
+                            "precision highp float;\n"
+                            "\n";
 
-            vertex_state.reset();
-            fragment_state.reset();
-            material->pipeline->has_global_parameters = true;
-            material->clear_parameters();
-
-            material->pipeline->vertex_shader->clean();
-            material->pipeline->fragment_shader->clean();
-
-            stage = CompileStage::Fragment;
-
-            GLSL_Input input;
-            input.index    = 0;
-            input.location = 0;
-            input.param    = "position";
-            input.type     = MaterialNodeDataType::Vec2;
-            vertex_state.inputs.push_back(input);
-            vertex_state.statements.push_back(Strings::format("gl_Position = global.projview * vec4(vec3(in_position0.xy, 0.0).xyz, 1.0)"));
-
-
-            fragment_state.next_binding_index = vertex_state.next_binding_index;
-            material->fragment_node()->compile(this, nullptr);
-
-            material->pipeline->vertex_shader->attributes.clear();
-            material->pipeline->vertex_shader->attributes.push_back(VertexShader::Attribute(ColorFormat::R32G32Sfloat));
-            material->pipeline->vertex_shader->text_code   = vertex_state.compile();
-            material->pipeline->fragment_shader->text_code = fragment_state.compile();
-
-            if (!errors->empty())
-                return false;
-
-            if (!errors->empty())
-                return false;
-
-            compile_vertex_source(material->pipeline->vertex_shader->text_code, material->pipeline->vertex_shader->binary_code);
-            compile_fragment_source(material->pipeline->fragment_shader->text_code,
-                                    material->pipeline->fragment_shader->binary_code);
-            if (!errors->empty())
-                return false;
-            return true;
-        }
-
-        /// MATH
-        size_t sin(MaterialInputPin* pin) override
-        {
-            return (new GLSL_CompiledSource(Strings::format("sin({})", get_pin_source(pin))))->id();
-        }
-
-        size_t cos(MaterialInputPin* pin) override
-        {
-            return (new GLSL_CompiledSource(Strings::format("cos({})", get_pin_source(pin))))->id();
-        }
-
-        size_t tan(MaterialInputPin* pin) override
-        {
-            return (new GLSL_CompiledSource(Strings::format("tan({})", get_pin_source(pin))))->id();
-        }
-
-
-        /// OPERATORS
-        size_t add(MaterialInputPin* pin1, MaterialInputPin* pin2) override
-        {
-            auto t1 = pin1->value_type();
-            auto t2 = pin1->value_type();
-
-            MaterialNodeDataType result_type = operator_result_between(t1, t2);
-
-            auto source = (new GLSL_CompiledSource(Strings::format("{}({} + {})", glsl_type_of(result_type),
-                                                                   get_pin_source(pin1, result_type),
-                                                                   get_pin_source(pin2, result_type))));
-            return source->id();
-        }
-
-        size_t sub(MaterialInputPin* pin1, MaterialInputPin* pin2) override
-        {
-            auto t1 = pin1->value_type();
-            auto t2 = pin1->value_type();
-
-            MaterialNodeDataType result_type = operator_result_between(t1, t2);
-
-            auto source = (new GLSL_CompiledSource(Strings::format("{}({} - {})", glsl_type_of(result_type),
-                                                                   get_pin_source(pin1, result_type),
-                                                                   get_pin_source(pin2, result_type))));
-            return source->id();
-        }
-
-        size_t mul(MaterialInputPin* pin1, MaterialInputPin* pin2) override
-        {
-            auto t1 = pin1->value_type();
-            auto t2 = pin1->value_type();
-
-            MaterialNodeDataType result_type = operator_result_between(t1, t2);
-            auto source                      = (new GLSL_CompiledSource(Strings::format("{}({} * {})", glsl_type_of(result_type),
-                                                                                        get_pin_source(pin1, result_type),
-                                                                                        get_pin_source(pin2, result_type))));
-            return source->id();
-        }
-
-        size_t div(MaterialInputPin* pin1, MaterialInputPin* pin2) override
-        {
-            auto t1 = pin1->value_type();
-            auto t2 = pin1->value_type();
-
-            MaterialNodeDataType result_type = operator_result_between(t1, t2);
-            auto source                      = (new GLSL_CompiledSource(Strings::format("{}({} / {})", glsl_type_of(result_type),
-                                                                                        get_pin_source(pin1, result_type),
-                                                                                        get_pin_source(pin2, result_type))));
-            return source->id();
-        }
-
-        size_t construct_vec2(MaterialInputPin* pin1, MaterialInputPin* pin2) override
-        {
-            auto source = Strings::format("vec2({}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
-                                          get_pin_source(pin2, MaterialNodeDataType::Float));
-            return (new GLSL_CompiledSource(source))->id();
-        }
-
-        size_t construct_vec3(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3) override
-        {
-            auto source = Strings::format("vec3({}, {}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
-                                          get_pin_source(pin2, MaterialNodeDataType::Float),
-                                          get_pin_source(pin3, MaterialNodeDataType::Float));
-            return (new GLSL_CompiledSource(source))->id();
-        }
-
-        size_t construct_vec4(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3,
-                              MaterialInputPin* pin4) override
-        {
-            auto source = Strings::format("vec4({}, {}, {}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
-                                          get_pin_source(pin2, MaterialNodeDataType::Float),
-                                          get_pin_source(pin3, MaterialNodeDataType::Float),
-                                          get_pin_source(pin4, MaterialNodeDataType::Float));
-            return (new GLSL_CompiledSource(source))->id();
-        }
-
-        size_t decompose_vec(MaterialInputPin* pin, DecomposeVectorComponent component) override
-        {
-            Index component_index                = static_cast<Index>(component);
-            MaterialNodeDataType input_type      = pin->value_type();
-            MaterialDataTypeInfo input_type_info = MaterialDataTypeInfo::from(input_type);
-
-            MaterialNodeDataType vector_type =
-                    static_cast<MaterialNodeDataType>(material_type_value(input_type_info.base_type, 4));
-
-            GLSL_CompiledSource* input_source = state().pin_source(pin, this);
-            GLSL_CompiledSource* pin_source   = state().find_pin_source(pin->id(), true);
-
-            if (pin_source != input_source)
+            for (auto& attribute : input_attribute)
             {
-                pin_source->source = input_source->source;
+                source += Strings::format("layout(location = {}) in {} in_{};\n", attribute.location,
+                                          glsl_type_of(attribute.type), attribute.param);
             }
 
-            pin_source->source = cast_value(pin_source->source, nullptr, input_type, vector_type);
-            state().create_variable(pin_source, vector_type);
+            source += "\n";
 
-            static char components[] = "xyzw";
-            String out_source        = Strings::format("{}.{}", pin_source->source, components[component_index]);
+            for (auto& attribute : output_attribute)
+            {
+                source += Strings::format("layout(location = {}) out {} out_{};\n", attribute.location,
+                                          glsl_type_of(attribute.type), attribute.param);
+            }
 
-            return (new GLSL_CompiledSource(out_source))->id();
+            source += "\n";
+            source += GlobalShaderParameters::shader_code();
+            source.push_back(' ');
+            source += global_ubo_name;
+            source += ";\n\n";
+
+            for (auto& object : objects)
+            {
+                source += Strings::format("layout(binding = {}) uniform {} {};\n", object->index, object->type, object->name);
+            }
+
+            source += "\n\nvoid main()\n{\n";
+
+            for (auto& statement : statements)
+            {
+                source += "\t";
+                source += statement;
+                source += ";\n";
+            }
+
+            source += "}\n";
+
+
+            compile_shader(source, current_shader()->binary_code, shader_type());
+            current_shader()->text_code = std::move(source);
+            return errors->empty();
         }
 
+        // HELPRES END
+
+
         /// GLOBALS
+
+        size_t projection() override
+        {
+            return (new GLSL_CompiledSource("global.projection"))->id();
+        }
+
+        size_t view() override
+        {
+            return (new GLSL_CompiledSource("global.view"))->id();
+        }
+
+        size_t projview() override
+        {
+            return (new GLSL_CompiledSource("global.projview"))->id();
+        }
+
+        size_t inv_projview() override
+        {
+            return (new GLSL_CompiledSource("global.inv_projview"))->id();
+        }
+
         size_t time() override
         {
             return (new GLSL_CompiledSource("global.time"))->id();
@@ -906,7 +714,8 @@ namespace Engine
 
         size_t frag_coord() override
         {
-            return (new GLSL_CompiledSource("gl_FragCoord.xy"))->id();
+            errors->push_back(Strings::format("FragCoord node doesn't supported in {} shader!", name()));
+            return 0;
         }
 
         size_t render_target_size() override
@@ -939,35 +748,302 @@ namespace Engine
         declare_constant_value_method(color3, Color3);
         declare_constant_value_method(color4, Color4);
 
-
-        /// FRAGMENT OUTPUT
-        size_t base_color(MaterialInputPin* pin) override
+        /// MATH
+        size_t sin(MaterialInputPin* pin) override
         {
-            GLSL_Output out;
-            out.location = 0;
-            out.type     = MaterialNodeDataType::Vec4;
-            out.param    = "color";
+            return (new GLSL_CompiledSource(Strings::format("sin({})", get_pin_source(pin))))->id();
+        }
 
-            fragment_state.outputs.push_back(std::move(out));
+        size_t cos(MaterialInputPin* pin) override
+        {
+            return (new GLSL_CompiledSource(Strings::format("cos({})", get_pin_source(pin))))->id();
+        }
 
-            String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
-            state().statements.push_back(Strings::format("out_color = {}", source));
-            return 0;
+        size_t tan(MaterialInputPin* pin) override
+        {
+            return (new GLSL_CompiledSource(Strings::format("tan({})", get_pin_source(pin))))->id();
+        }
+
+
+        /// OPERATORS
+        size_t add(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = calculate_operator_types(t1, t2);
+
+            auto source = (new GLSL_CompiledSource(Strings::format("{}({} + {})", glsl_type_of(result_type),
+                                                                   get_pin_source(pin1, t1), get_pin_source(pin2, t2))));
+            return source->id();
+        }
+
+        size_t sub(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = calculate_operator_types(t1, t2);
+
+            auto source = (new GLSL_CompiledSource(Strings::format("{}({} - {})", glsl_type_of(result_type),
+                                                                   get_pin_source(pin1, t1), get_pin_source(pin2, t2))));
+            return source->id();
+        }
+
+        size_t mul(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin2->value_type();
+
+            MaterialNodeDataType result_type = calculate_operator_types(t1, t2);
+            auto source                      = (new GLSL_CompiledSource(Strings::format("{}({} * {})", glsl_type_of(result_type),
+                                                                                        get_pin_source(pin1, t1), get_pin_source(pin2, t2))));
+            return source->id();
+        }
+
+        size_t div(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto t1 = pin1->value_type();
+            auto t2 = pin1->value_type();
+
+            MaterialNodeDataType result_type = calculate_operator_types(t1, t2);
+            auto source                      = (new GLSL_CompiledSource(Strings::format("{}({} / {})", glsl_type_of(result_type),
+                                                                                        get_pin_source(pin1, t1), get_pin_source(pin2, t2))));
+            return source->id();
+        }
+
+        size_t construct_vec2(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            auto source = Strings::format("vec2({}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
+                                          get_pin_source(pin2, MaterialNodeDataType::Float));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t construct_vec3(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3) override
+        {
+            auto source = Strings::format("vec3({}, {}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
+                                          get_pin_source(pin2, MaterialNodeDataType::Float),
+                                          get_pin_source(pin3, MaterialNodeDataType::Float));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t construct_vec4(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3,
+                              MaterialInputPin* pin4) override
+        {
+            auto source = Strings::format("vec4({}, {}, {}, {})", get_pin_source(pin1, MaterialNodeDataType::Float),
+                                          get_pin_source(pin2, MaterialNodeDataType::Float),
+                                          get_pin_source(pin3, MaterialNodeDataType::Float),
+                                          get_pin_source(pin4, MaterialNodeDataType::Float));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t decompose_vec(MaterialInputPin* pin, DecomposeVectorComponent component) override
+        {
+            Index component_index                = static_cast<Index>(component);
+            MaterialNodeDataType input_type      = pin->value_type();
+            MaterialDataTypeInfo input_type_info = MaterialDataTypeInfo::from(input_type);
+
+            MaterialNodeDataType vector_type =
+                    static_cast<MaterialNodeDataType>(material_type_value(input_type_info.base_type, 4));
+
+            GLSL_CompiledSource* input_source = pin_source(pin, this);
+            GLSL_CompiledSource* pin_source   = find_pin_source(pin->id(), true);
+
+            if (pin_source != input_source)
+            {
+                pin_source->source = input_source->source;
+            }
+
+            pin_source->source = cast_value(pin_source->source, input_type, vector_type);
+            create_variable(pin_source, vector_type);
+
+            static char components[] = "xyzw";
+            String out_source        = Strings::format("{}.{}", pin_source->source, components[component_index]);
+
+            return (new GLSL_CompiledSource(out_source))->id();
         }
 
 
         // TEXTURES
+        virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        virtual size_t sampler(class Engine::Sampler* sampler) override
+        {
+            errors->push_back(Strings::format("Sampler node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t base_color(MaterialInputPin* pin) override
+        {
+            errors->push_back(Strings::format("BaseColor node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        virtual size_t vertex(byte index) override
+        {
+            errors->push_back(Strings::format("Vertex node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t position(MaterialInputPin* pin) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        virtual const char* name() const        = 0;
+        virtual Shader* current_shader() const  = 0;
+        virtual MaterialNode* root_node() const = 0;
+        virtual EShLanguage shader_type() const = 0;
+    };
+
+    class GLSL_VertexCompiler : public GLSL_BaseCompiler
+    {
+    public:
+        const char* name() const override
+        {
+            return "Vertex Compiler";
+        }
+
+        VertexShader* current_shader() const override
+        {
+            return material->pipeline->vertex_shader;
+        }
+
+        MaterialNode* root_node() const override
+        {
+            return material->vertex_node();
+        }
+
+        EShLanguage shader_type() const override
+        {
+            return EShLangVertex;
+        }
+
+        Index create_vertex_attribute(const String& name, bool* created_now = nullptr)
+        {
+            if (created_now)
+                *created_now = false;
+
+            Index index = 0;
+            for (auto& input : input_attribute)
+            {
+                if (input.param == name)
+                    return index;
+                ++index;
+            }
+
+            if (created_now)
+                *created_now = true;
+
+            input_attribute.emplace_back();
+            auto& attrib    = input_attribute.back();
+            attrib.param    = name;
+            attrib.location = static_cast<byte>(index);
+
+            return index;
+        }
+
+        virtual size_t vertex(byte index) override
+        {
+            String code = Strings::format("position_{}", index);
+
+            bool created_now;
+            auto& attribute = input_attribute[create_vertex_attribute(code, &created_now)];
+
+            if (created_now)
+            {
+                attribute.format = ColorFormat::R32G32B32Sfloat;
+                attribute.type   = MaterialNodeDataType::Vec3;
+            }
+
+            return (new GLSL_CompiledSource(Strings::format("in_{}", code)))->id();
+        }
+
+        size_t position(MaterialInputPin* pin) override
+        {
+            String source = "";
+
+            if (pin->linked_to)
+            {
+                source = get_pin_source(pin, MaterialNodeDataType::Vec4);
+            }
+            else
+            {
+                auto& attribute  = input_attribute[create_vertex_attribute("position_0")];
+                attribute.format = ColorFormat::R32G32B32Sfloat;
+                attribute.type   = MaterialNodeDataType::Vec3;
+                source           = "global.projview * vec4(in_position_0.xyz, 1.0)";
+            }
+
+            statements.push_back(Strings::format("gl_Position = {}", source));
+            return 0;
+        }
+    };
+
+    class GLSL_FragmentCompiler : public GLSL_BaseCompiler
+    {
+    public:
+        const char* name() const override
+        {
+            return "Fragment Compiler";
+        }
+
+        Shader* current_shader() const override
+        {
+            return material->pipeline->fragment_shader;
+        }
+
+        MaterialNode* root_node() const override
+        {
+            return material->fragment_node();
+        }
+
+        EShLanguage shader_type() const override
+        {
+            return EShLangFragment;
+        }
+
+        bool compile(VisualMaterial* material, MessageList& errors) override
+        {
+            RenderPassType type = material->pipeline->render_pass;
+
+            if (type == RenderPassType::Undefined)
+            {
+                errors.push_back("Undefined render pass type! Please, select render pass type!");
+                return false;
+            }
+
+            GLSL_Attribute attribute;
+            attribute.location = 0;
+            attribute.param    = "color";
+            attribute.type     = MaterialNodeDataType::Color4;
+
+            output_attribute.push_back(attribute);
+
+            return GLSL_BaseCompiler::compile(material, errors);
+        }
+
+
+        size_t frag_coord() override
+        {
+            return (new GLSL_CompiledSource("gl_FragCoord.xy"))->id();
+        }
 
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
         {
             bool created_now;
-            GLSL_BindingObject* glsl_texture = state().create_binding_object(texture, "sampler2D", created_now);
+            GLSL_BindingObject* glsl_texture = create_binding_object(texture, "sampler2D", created_now);
 
             if (created_now)
             {
-                GLSL_CompiledSource* sampler_source       = state().pin_source(sampler, this);
+                GLSL_CompiledSource* sampler_source       = pin_source(sampler, this);
                 CombinedSampler2DMaterialParameter* param = reinterpret_cast<CombinedSampler2DMaterialParameter*>(
-                        current_material->create_parameter(glsl_texture->name, MaterialParameter::Type::CombinedSampler2D));
+                        material->create_parameter(glsl_texture->name, MaterialParameter::Type::CombinedSampler2D));
 
                 param->texture  = texture;
                 param->sampler  = reinterpret_cast<class Sampler*>(sampler_source->data);
@@ -975,7 +1051,7 @@ namespace Engine
                 current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
             }
 
-            String uv_source      = get_pin_source(uv, MaterialNodeDataType::Vec2);
+            String uv_source = get_pin_source(uv, MaterialNodeDataType::Vec2);
 
             String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_source);
             return (new GLSL_CompiledSource(result_source))->id();
@@ -984,6 +1060,43 @@ namespace Engine
         virtual size_t sampler(class Engine::Sampler* sampler) override
         {
             return (new GLSL_CompiledSource("", sampler))->id();
+        }
+
+        size_t base_color(MaterialInputPin* pin) override
+        {
+            String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
+            statements.push_back(Strings::format("out_color = {}", source));
+            return 0;
+        }
+    };
+
+#define exec_step(code)                                                                                                          \
+    if (execute_next)                                                                                                            \
+    {                                                                                                                            \
+        execute_next = code;                                                                                                     \
+    }
+    class GLSL_Compiler : public ShaderCompilerBase
+    {
+        declare_class(GLSL_Compiler, ShaderCompiler);
+
+    public:
+        bool compile(class VisualMaterial* material, MessageList& _errors) override
+        {
+            errors = &_errors;
+
+            GLSL_VertexCompiler* vertex_compiler     = new GLSL_VertexCompiler();
+            GLSL_FragmentCompiler* fragment_compiler = new GLSL_FragmentCompiler();
+
+            bool execute_next = true;
+            exec_step(vertex_compiler->compile(material, _errors));
+            exec_step(vertex_compiler->build_source());
+            exec_step(fragment_compiler->compile(material, _errors));
+            exec_step(fragment_compiler->build_source());
+
+            delete vertex_compiler;
+            delete fragment_compiler;
+
+            return true;
         }
     };
 

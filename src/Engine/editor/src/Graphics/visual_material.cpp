@@ -28,7 +28,7 @@ namespace Engine
                 (info1.base_type == MaterialBaseDataType::Float && info2.base_type == MaterialBaseDataType::Color));
     }
 
-    MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2)
+    MaterialNodeDataType calculate_operator_types(MaterialNodeDataType& t1, MaterialNodeDataType& t2)
     {
         MaterialDataTypeInfo info1 = MaterialDataTypeInfo::from(t1);
         MaterialDataTypeInfo info2 = MaterialDataTypeInfo::from(t2);
@@ -41,18 +41,34 @@ namespace Engine
         if (info1.is_matrix() || info2.is_matrix())
         {
             if (info1.is_matrix() && info2.is_matrix())
-                return info1.components_count < info2.components_count ? t2 : t1;
-
-            if (info2.is_matrix())
             {
-                std::swap(info1, info2);
-                std::swap(t1, t2);
+                auto result = info1.components_count < info2.components_count ? t2 : t1;
+                t1          = result;
+                t2          = result;
+                return result;
             }
 
-            return static_cast<MaterialNodeDataType>(material_type_value(info1.base_type, info1.matrix_size()));
+            if (info1.is_matrix())
+            {
+                t2 = static_cast<MaterialNodeDataType>(material_type_value(info1.base_type, info1.matrix_size()));
+                return t2;
+            }
+            else
+            {
+                t1 = static_cast<MaterialNodeDataType>(material_type_value(info2.base_type, info2.matrix_size()));
+                return t1;
+            }
         }
 
-        return static_cast<size_t>(t1) < static_cast<size_t>(t2) ? t2 : t1;
+        auto result = static_cast<size_t>(t1) < static_cast<size_t>(t2) ? t2 : t1;
+        t1          = result;
+        t2          = result;
+        return result;
+    }
+
+    MaterialNodeDataType operator_result_between(MaterialNodeDataType t1, MaterialNodeDataType t2)
+    {
+        return calculate_operator_types(t1, t2);
     }
 
     MaterialDataTypeInfo MaterialDataTypeInfo::from(MaterialNodeDataType type)
@@ -60,7 +76,7 @@ namespace Engine
         MaterialDataTypeInfo info;
         size_t value          = static_cast<size_t>(type);
         info.base_type        = static_cast<MaterialBaseDataType>((value >> 1) & 0b111);
-        info.components_count = ((value >> 4) & 0b111);
+        info.components_count = ((value >> 4) & 0b11111);
         info.is_convertable   = static_cast<bool>(value & 0b1);
         return info;
     }
@@ -391,6 +407,12 @@ namespace Engine
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pins_content_indent());
 
                 ImGui::BeginGroup();
+                node->render();
+                ImGui::EndGroup();
+                ImGui::SameLine();
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pins_content_indent());
+
+                ImGui::BeginGroup();
                 {
                     int max_len        = 0.f;
                     float max_item_len = 0.f;
@@ -411,8 +433,6 @@ namespace Engine
                     }
                     ImGui::EndGroup();
                 }
-
-                node->render();
 
                 ImGui::EndGroup();
             }
@@ -669,12 +689,12 @@ namespace Engine
 
         ar & position;
 
-        for(MaterialInputPin* pin : inputs)
+        for (MaterialInputPin* pin : inputs)
         {
             pin->archive_process(ar);
         }
 
-        for(MaterialOutputPin* pin : outputs)
+        for (MaterialOutputPin* pin : outputs)
         {
             pin->archive_process(ar);
         }

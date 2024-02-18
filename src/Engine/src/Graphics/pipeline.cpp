@@ -16,7 +16,6 @@
 
 namespace Engine
 {
-
     const size_t LocalMaterialParametersInfo::no_offset = ~static_cast<size_t>(0);
 
     const size_t LocalMaterialParametersInfo::offset_of(const Name& name) const

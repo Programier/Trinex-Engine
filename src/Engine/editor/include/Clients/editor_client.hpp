@@ -1,7 +1,8 @@
 #pragma once
+#include <Engine/camera_types.hpp>
+#include <Engine/scene.hpp>
 #include <Engine/scene_renderer.hpp>
 #include <Event/listener_id.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
@@ -15,6 +16,8 @@ namespace Engine
 
     private:
         SceneRenderer _M_renderer;
+        CameraView _M_view;
+
         RenderViewport* _M_render_viewport = nullptr;
         Window* _M_window                  = nullptr;
         size_t _M_frame                    = 0;
@@ -30,8 +33,6 @@ namespace Engine
         Vector2D _M_viewport_size;
         bool _M_viewport_is_hovered = false;
 
-
-        TexCoordVertexBuffer* mesh;
         class CameraComponent* camera;
         float _M_camera_speed   = 10.f;
         Vector3D _M_camera_move = {0, 0, 0};
@@ -60,7 +61,6 @@ namespace Engine
         void on_object_select(Object* object);
 
         ~EditorClient();
-
 
         // Inputs
         void on_mouse_press(const Event& event);

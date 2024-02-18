@@ -19,7 +19,8 @@ namespace Engine
         float aspect_ratio                   = 1.f;
 
         bool archive_process(Archive& archive) override;
-        CameraComponent& camera_view(CameraView& out);
+        const CameraComponent& camera_view(CameraView& out) const;
+        CameraView camera_view() const;
         Matrix4f projection_matrix();
         Matrix4f view_matrix();
         static Matrix4f view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector);

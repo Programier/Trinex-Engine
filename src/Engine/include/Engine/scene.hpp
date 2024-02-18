@@ -9,10 +9,6 @@ namespace Engine
     class PrimitiveComponent;
     class SceneComponent;
 
-    class ENGINE_EXPORT SceneView final
-    {
-    };
-
     class ENGINE_EXPORT SceneInterface
     {
     public:

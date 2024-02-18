@@ -933,24 +933,32 @@ namespace Engine
                 0x44, 0xae, 0x42, 0x60, 0x82};
     }
 
+
+    static void resource_loading()
+    {
+        Package::load_package("Editor");
+    }
+
+    static DefaultResourcesInitializeController on_init(resource_loading, "Load Editor Package");
+
     void on_post_init()
     {
-        Package* editor = Package::find_package("Editor", true);
+//        Package* editor = Package::find_package("Editor", true);
 
-        Texture2D* icon = Object::new_instance_named<Texture2D>("DefaultIcon");
-        icon->image.load_from_memory(load_default_icon());
-        icon->size   = icon->image.size();
-        icon->format = icon->image.format();
-        icon->flags(Object::IsSerializable, false);
-        icon->init_resource();
+//        Texture2D* icon = Object::new_instance_named<Texture2D>("DefaultIcon");
+//        icon->image.load_from_memory(load_default_icon());
+//        icon->size   = icon->image.size();
+//        icon->format = icon->image.format();
+//        //icon->flags(Object::IsSerializable, false);
+//        icon->init_resource();
 
-        Sampler* sampler = Object::new_instance_named<Sampler>("DefaultSampler");
-        sampler->filter = SamplerFilter::Trilinear;
-        sampler->anisotropy = 16.f;
-        sampler->flags(Object::IsSerializable, false);
-        sampler->init_resource();
+//        Sampler* sampler = Object::new_instance_named<Sampler>("DefaultSampler");
+//        sampler->filter = SamplerFilter::Trilinear;
+//        sampler->anisotropy = 16.f;
+//        //sampler->flags(Object::IsSerializable, false);
+//        sampler->init_resource();
 
-        editor->add_object(icon);
-        editor->add_object(sampler);
+//        editor->add_object(icon);
+//        editor->add_object(sampler);
     }
 }// namespace Engine
