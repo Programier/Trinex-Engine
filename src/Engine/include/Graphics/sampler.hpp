@@ -25,6 +25,6 @@ namespace Engine
 
         Sampler& rhi_create() override;
         bool archive_process(Archive& archive) override;
-        Sampler& reload() override;
+        Sampler& apply_changes() override;
     };
 }// namespace Engine

@@ -14,6 +14,7 @@ namespace Engine
         static void allocate_instance(const Class* class_instance);
         static void begin_destroy_instance(const Class* class_instance);
         static Object* extract_object_from_class(const Class* class_instance);
+        static void remove_object_from_class(const Class* class_instance);
     };
 
     struct EmptySingletoneParent {
@@ -78,6 +79,10 @@ namespace Engine
             if constexpr (!singletone_based_on_object)
             {
                 Type::_M_instance = nullptr;
+            }
+            else
+            {
+                remove_object_from_class(Type::static_class_instance());
             }
         }
     };

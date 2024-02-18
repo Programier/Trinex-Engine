@@ -1,5 +1,6 @@
 #include "Core/struct.hpp"
 #include <Core/class.hpp>
+#include <Core/constants.hpp>
 #include <Core/flags.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/imgui.hpp>
@@ -490,20 +491,7 @@ namespace Engine
                 {
                     MaterialInputPin* in   = reinterpret_cast<MaterialInputPin*>(input_pin);
                     MaterialOutputPin* out = reinterpret_cast<MaterialOutputPin*>(output_pin);
-
-                    if (in->linked_to != out)
-                    {
-                        if (in->linked_to)
-                        {
-                            in->linked_to->linked_to.erase(in);
-                        }
-
-                        in->linked_to = out;
-                        out->linked_to.insert(in);
-
-                        info_log("Material Editor", "Create link from '%s->%s' to %s->%s", out->node->name(),
-                                 output_pin->name.c_str(), in->node->name(), input_pin->name.c_str());
-                    }
+                    in->link_to(out);
                 }
             }
         }
@@ -614,6 +602,26 @@ namespace Engine
         return MaterialNodeDataType::Undefined;
     }
 
+    MaterialPin& MaterialInputPin::link_to(MaterialOutputPin* pin)
+    {
+        if (pin && ((pin->node == node) || pin == linked_to))
+            return *this;
+
+        if (linked_to)
+        {
+            linked_to->linked_to.erase(this);
+        }
+
+        linked_to = pin;
+
+        if (linked_to)
+        {
+            linked_to->linked_to.insert(this);
+        }
+
+        return *this;
+    }
+
     MaterialPinType MaterialOutputPin::type() const
     {
         return MaterialPinType::Output;
@@ -653,6 +661,60 @@ namespace Engine
     {
         return MaterialNodeDataType::Undefined;
     }
+
+    bool MaterialNode::archive_process(Archive& ar)
+    {
+        if (!SerializableObject::archive_process(ar))
+            return false;
+
+        ar & position;
+
+        for(MaterialInputPin* pin : inputs)
+        {
+            pin->archive_process(ar);
+        }
+
+        for(MaterialOutputPin* pin : outputs)
+        {
+            pin->archive_process(ar);
+        }
+        return true;
+    }
+
+    Index MaterialNode::pin_index(MaterialOutputPin* pin) const
+    {
+        if (pin)
+        {
+            Index index = 0;
+            for (MaterialOutputPin* out : outputs)
+            {
+                if (out == pin)
+                {
+                    return index;
+                }
+                ++index;
+            }
+        }
+        return Constants::index_none;
+    }
+
+    Index MaterialNode::pin_index(MaterialInputPin* pin) const
+    {
+        if (pin)
+        {
+            Index index = 0;
+            for (MaterialInputPin* in : inputs)
+            {
+                if (in == pin)
+                {
+                    return index;
+                }
+                ++index;
+            }
+        }
+        return Constants::index_none;
+    }
+
 
     Identifier MaterialNode::id() const
     {
@@ -712,6 +774,24 @@ namespace Engine
         return _M_nodes;
     }
 
+    Index VisualMaterial::node_index(const MaterialNode* node) const
+    {
+        if (node)
+        {
+            Index index = 0;
+            for (MaterialNode* material_node : _M_nodes)
+            {
+                if (material_node == node)
+                {
+                    return index;
+                }
+
+                ++index;
+            }
+        }
+        return Constants::index_none;
+    }
+
     MaterialNode* VisualMaterial::create_node(class Struct* node_struct, const Vector2D& position)
     {
         MaterialNode* node = reinterpret_cast<MaterialNode*>(node_struct->create_struct());
@@ -758,6 +838,94 @@ namespace Engine
         }
 
         return *this;
+    }
+
+    bool VisualMaterial::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+
+        // Serialize base nodes position
+        _M_vertex_node->archive_process(ar);
+        _M_fragment_node->archive_process(ar);
+
+
+        if (ar.is_saving())
+        {
+            size_t size = _M_nodes.size() - 2;
+            ar & size;
+
+            for (size_t i = 2, j = _M_nodes.size(); i < j; ++i)
+            {
+                MaterialNode* node = _M_nodes[i];
+                String node_name   = node->struct_instance()->name().to_string();
+
+                ar & node_name;
+                node->archive_process(ar);
+            }
+
+            // Serialize links
+
+            for (MaterialNode* node : _M_nodes)
+            {
+                for (MaterialInputPin* pin : node->inputs)
+                {
+                    Index index     = Constants::index_none;
+                    Index pin_index = Constants::index_none;
+
+                    if (pin->linked_to)
+                    {
+                        index     = node_index(pin->linked_to->node);
+                        pin_index = pin->linked_to->node->pin_index(pin->linked_to);
+                    }
+
+                    ar & index;
+                    ar & pin_index;
+                }
+            }
+        }
+        else
+        {
+            size_t size = 0;
+            ar & size;
+
+            while (size > 0)
+            {
+                String node_name;
+                ar & node_name;
+
+                Struct* struct_instance = Struct::static_find(node_name, true);
+                MaterialNode* node      = create_node(struct_instance);
+                node->archive_process(ar);
+
+                --size;
+            }
+
+            // Serialize links
+
+            for (MaterialNode* node : _M_nodes)
+            {
+                for (MaterialInputPin* pin : node->inputs)
+                {
+                    Index index;
+                    Index pin_index;
+
+                    ar & index;
+                    ar & pin_index;
+
+                    if (index < _M_nodes.size())
+                    {
+                        MaterialNode* linked_node = _M_nodes[index];
+                        if (pin_index < linked_node->outputs.size())
+                        {
+                            pin->link_to(linked_node->outputs[pin_index]);
+                        }
+                    }
+                }
+            }
+        }
+
+        return ar;
     }
 
     VisualMaterial::~VisualMaterial()

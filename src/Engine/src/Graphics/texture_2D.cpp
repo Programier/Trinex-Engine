@@ -79,9 +79,9 @@ namespace Engine
         return TextureType::Texture2D;
     }
 
-    Texture2D& Texture2D::reload()
+    Texture2D& Texture2D::apply_changes()
     {
-        Super::reload();
+        Super::apply_changes();
         image.load(path);
         image.add_alpha_channel();
         format = image.format();

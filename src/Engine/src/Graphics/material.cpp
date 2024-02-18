@@ -359,6 +359,11 @@ namespace Engine
         return this;
     }
 
+    Material& Material::apply_changes()
+    {
+        return postload();
+    }
+
     Material::~Material()
     {
         delete pipeline;

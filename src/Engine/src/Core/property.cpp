@@ -342,27 +342,7 @@ namespace Engine
         else if (prop_type == PropertyType::ObjectReference)
         {
             Object*& new_object = *reinterpret_cast<Object**>(prop_address(object));
-
-            if (ar.is_saving())
-            {
-                String name = new_object ? new_object->full_name() : "";
-                ar & name;
-            }
-            else if (ar.is_reading())
-            {
-                String name;
-                ar & name;
-                if (name.empty())
-                {
-                    new_object = nullptr;
-                }
-                else
-                {
-                    new_object = Object::load_object(name);
-                }
-
-                return ar;
-            }
+            return ar.serialize_reference(new_object);
         }
         return ar;
     }

@@ -100,6 +100,7 @@ namespace Engine
 
 
         friend class ScriptClassRegistrar;
+        friend class SingletoneBase;
     };
 
 }// namespace Engine

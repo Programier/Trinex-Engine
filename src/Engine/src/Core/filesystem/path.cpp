@@ -163,7 +163,7 @@ namespace Engine
             index = current + 1;
         }
 
-        if (index != view.length() - 1)
+        if (index != view.length())
             result.push_back(view.substr(index));
 
         return result;

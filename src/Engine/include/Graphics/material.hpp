@@ -158,6 +158,7 @@ namespace Engine
         bool apply() override;
         bool apply(MaterialInterface* head);
         class Material* material() override;
+        Material& apply_changes() override;
 
 
         ~Material();

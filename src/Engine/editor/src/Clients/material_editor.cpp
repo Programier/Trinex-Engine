@@ -230,6 +230,12 @@ namespace Engine
                     _M_shader_compile_error_list.clear();
                     _M_compiler->compile(_M_current_material, _M_shader_compile_error_list);
                 }
+
+                if (ImGui::MenuItem("editor/Apply"_localized, "editor/Apply changes in current material"_localized, false,
+                                    _M_current_material))
+                {
+                    _M_current_material->apply_changes();
+                }
                 ImGui::EndMenu();
             }
 

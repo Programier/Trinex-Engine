@@ -6,6 +6,8 @@ namespace Engine
 {
     enum class EventType : byte
     {
+        Undefined,
+
         // Application events
         Quit,
         AppTerminating,

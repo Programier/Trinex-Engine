@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/scene_renderer.hpp>
+#include <Event/listener_id.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
@@ -14,15 +15,26 @@ namespace Engine
 
     private:
         SceneRenderer _M_renderer;
+        RenderViewport* _M_render_viewport = nullptr;
+        Window* _M_window                  = nullptr;
+        size_t _M_frame                    = 0;
 
-        ScriptObject _M_script_object;
         class ContentBrowser* _M_content_browser;
         ImGuiObjectProperties* _M_properties;
         ImGuiSceneTree* _M_scene_tree;
-        TexCoordVertexBuffer* mesh;
 
-        class Sampler* _M_sampler = nullptr;
-        size_t _M_frame           = 0;
+        Vector<EventSystemListenerID> _M_event_system_listeners;
+
+        class GlobalShaderParameters* _M_global_shader_params    = nullptr;
+        class GlobalShaderParameters* _M_global_shader_params_rt = nullptr;
+        Vector2D _M_viewport_size;
+        bool _M_viewport_is_hovered = false;
+
+
+        TexCoordVertexBuffer* mesh;
+        class CameraComponent* camera;
+        float _M_camera_speed   = 10.f;
+        Vector3D _M_camera_move = {0, 0, 0};
 
     public:
         EditorClient();
@@ -38,7 +50,6 @@ namespace Engine
         ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override;
         ViewportClient& render(class RenderViewport* viewport) override;
         ViewportClient& update(class RenderViewport* viewport, float dt) override;
-        ViewportClient& destroy_script_object(ScriptObject* object) override;
 
 
         EditorClient& init_world();
@@ -47,5 +58,15 @@ namespace Engine
         void render_dock_window();
 
         void on_object_select(Object* object);
+
+        ~EditorClient();
+
+
+        // Inputs
+        void on_mouse_press(const Event& event);
+        void on_mouse_release(const Event& event);
+        void on_mouse_move(const Event& event);
+        void on_key_press(const Event& event);
+        void on_key_release(const Event& event);
     };
 }// namespace Engine

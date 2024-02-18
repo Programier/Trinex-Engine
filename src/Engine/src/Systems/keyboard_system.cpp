@@ -85,8 +85,8 @@ namespace Engine
         Super::shutdown();
 
         EventSystem* event_system = EventSystem::instance();
-        event_system->remove_listener(EventType::KeyUp, _M_key_release_id);
-        event_system->remove_listener(EventType::KeyDown, _M_key_press_id);
+        event_system->remove_listener(_M_key_release_id);
+        event_system->remove_listener(_M_key_press_id);
 
         return *this;
     }

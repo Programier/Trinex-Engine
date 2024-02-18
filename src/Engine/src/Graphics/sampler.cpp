@@ -62,7 +62,7 @@ namespace Engine
         return archive;
     }
 
-    Sampler& Sampler::reload()
+    Sampler& Sampler::apply_changes()
     {
         init_resource();
         return *this;

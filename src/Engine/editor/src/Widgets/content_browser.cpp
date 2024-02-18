@@ -312,12 +312,6 @@ namespace Engine
             return false;
         }
 
-        if (selected_object && ImGui::Button("editor/Reload"_localized))
-        {
-            selected_object->reload();
-            return false;
-        }
-
         bool is_editable_object = selected_object && selected_object->is_editable();
 
         if (is_editable_object && ImGui::Button("editor/Rename"_localized))

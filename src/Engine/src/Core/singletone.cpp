@@ -13,7 +13,7 @@ namespace Engine
     void SingletoneBase::begin_destroy_instance(const Class* class_instance)
     {
         Object* object = class_instance->singletone_instance();
-        if(object)
+        if (object)
         {
             delete object;
         }
@@ -22,5 +22,10 @@ namespace Engine
     Object* SingletoneBase::extract_object_from_class(const Class* class_instance)
     {
         return class_instance->singletone_instance();
+    }
+
+    void SingletoneBase::remove_object_from_class(const Class* class_instance)
+    {
+        class_instance->_M_singletone_object = nullptr;
     }
 }// namespace Engine

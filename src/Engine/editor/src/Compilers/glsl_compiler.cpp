@@ -709,7 +709,7 @@ namespace Engine
             input.param    = "position";
             input.type     = MaterialNodeDataType::Vec2;
             vertex_state.inputs.push_back(input);
-            vertex_state.statements.push_back(Strings::format("gl_Position = vec4(vec3(in_position0.xy, 0.0).xyz, 1.0)"));
+            vertex_state.statements.push_back(Strings::format("gl_Position = global.projview * vec4(vec3(in_position0.xy, 0.0).xyz, 1.0)"));
 
 
             fragment_state.next_binding_index = vertex_state.next_binding_index;
@@ -731,8 +731,6 @@ namespace Engine
                                     material->pipeline->fragment_shader->binary_code);
             if (!errors->empty())
                 return false;
-
-            material->postload();
             return true;
         }
 

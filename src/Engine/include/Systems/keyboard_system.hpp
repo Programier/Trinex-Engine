@@ -2,7 +2,7 @@
 #include <Core/etl/singletone.hpp>
 #include <Core/keyboard.hpp>
 #include <Systems/system.hpp>
-#include <Event/event.hpp>
+#include <Event/listener_id.hpp>
 
 namespace Engine
 {
@@ -16,7 +16,7 @@ namespace Engine
         Vector<Keyboard::Key> _M_last_released_keys;
 
 
-        Identifier _M_key_press_id, _M_key_release_id;
+        EventSystemListenerID _M_key_press_id, _M_key_release_id;
 
         void on_key_pressed(const Event& event);
         void on_key_released(const Event& event);

@@ -20,7 +20,7 @@ namespace Engine
         Texture2D& read_data(Buffer& data, MipMapLevel level = 0);
         Texture2D& read_image(Image& image, MipMapLevel level = 0);
         TextureType type() const override;
-        Texture2D& reload() override;
+        Texture2D& apply_changes() override;
 
         bool archive_process(Archive& archive) override;
     };

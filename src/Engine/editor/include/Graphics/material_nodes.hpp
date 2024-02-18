@@ -35,18 +35,20 @@ namespace Engine::MaterialNodes
 
     struct Sampler : public MaterialNode {
         declare_material_node();
-        Engine::Sampler* sampler = nullptr;
+        Pointer<Engine::Sampler> sampler;
 
         Sampler();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
+        bool archive_process(Archive& ar) override;
     };
 
     struct Texture2D : public MaterialNode {
         declare_material_node();
-        Engine::Texture2D* texture = nullptr;
+        Pointer<Engine::Texture2D> texture;
 
         Texture2D();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
         void render() override;
+        bool archive_process(Archive& ar) override;
     };
 }// namespace Engine::MaterialNodes

@@ -9,7 +9,7 @@ namespace Engine
     class BufferReader;
     class BufferWriter;
 
-    class Archive
+    class ENGINE_EXPORT Archive
     {
     private:
         union
@@ -35,6 +35,7 @@ namespace Engine
             }
         }
 
+        class Object* load_object(const StringView& name);
 
     public:
         Archive();
@@ -86,6 +87,37 @@ namespace Engine
         inline operator bool()
         {
             return _M_process_status;
+        }
+
+        template<typename Type>
+        typename std::enable_if<std::is_base_of_v<Type, class Engine::Object>, bool>::type serialize_reference(Type*& object)
+        {
+            if (is_saving())
+            {
+                String name = object ? object->full_name() : "";
+                size_t size = name.length();
+                (*this) & size;
+                write_data(reinterpret_cast<const byte*>(name.data()), size);
+            }
+            else if (is_reading())
+            {
+                String name;
+                size_t size;
+                (*this) & size;
+                name.resize(size);
+                read_data(reinterpret_cast<byte*>(name.data()), size);
+
+                if (name.empty())
+                {
+                    object = nullptr;
+                }
+                else
+                {
+                    object = load_object(name);
+                }
+            }
+
+            return *this;
         }
 
         template<typename Type>

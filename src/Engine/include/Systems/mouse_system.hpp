@@ -1,11 +1,12 @@
 #pragma once
 #include <Core/etl/singletone.hpp>
 #include <Core/mouse.hpp>
+#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
-#include <Event/event.hpp>
 
 namespace Engine
 {
+    class Window;
     class ENGINE_EXPORT MouseSystem : public Singletone<MouseSystem, System>
     {
         declare_class(MouseSystem, System);
@@ -19,10 +20,10 @@ namespace Engine
         };
 
         struct ButtonInfo {
-            Mouse::Status status;
-            int_t x;
-            int_t y;
-            int_t clicks;
+            Mouse::Status status = Mouse::Status::Released;
+            int_t x              = 0;
+            int_t y              = 0;
+            int_t clicks         = 0;
         };
 
         struct WheelInfo {
@@ -33,35 +34,40 @@ namespace Engine
 
 
     private:
-        PosInfo _M_pos_info;
-        WheelInfo _M_wheel_info;
+        struct MouseState {
+            PosInfo _M_pos_info;
+            WheelInfo _M_wheel_info;
+            ButtonInfo _M_button_status[static_cast<EnumerateType>(Mouse::Button::__COUNT__)];
+        };
 
+        mutable Map<Window*, MouseState> _M_mouse_state;
         static MouseSystem* _M_instance;
-        ButtonInfo _M_button_status[static_cast<EnumerateType>(Mouse::Button::__COUNT__)];
-        Identifier _M_callbacks_identifier[4];
+        Vector<EventSystemListenerID> _M_callbacks_identifier;
 
         void on_motion_event(const Event& e);
         void on_button_down_event(const Event& e);
         void on_button_up_event(const Event& e);
         void on_wheel_event(const Event& e);
+        void on_window_close(const Event& e);
 
-        MouseSystem& process_buttons();
+        MouseSystem& process_buttons(MouseState& state);
+        MouseState& state_of(Window* window) const;
 
     public:
         MouseSystem& create() override;
         MouseSystem& wait() override;
         MouseSystem& update(float dt) override;
         MouseSystem& shutdown() override;
-        const PosInfo& pos_info() const;
+        const PosInfo& pos_info(Window* window = nullptr) const;
 
-        bool relative_mode() const;
-        MouseSystem& relative_mode(bool flag);
-        bool is_pressed(Mouse::Button button) const;
-        bool is_released(Mouse::Button button) const;
-        bool is_just_pressed(Mouse::Button button) const;
-        bool is_just_released(Mouse::Button button) const;
-        const ButtonInfo& button_info(Mouse::Button button) const;
-        const WheelInfo& wheel_info() const;
+        bool is_relative_mode(Window* window = nullptr) const;
+        MouseSystem& relative_mode(bool flag, Window* window = nullptr);
+        bool is_pressed(Mouse::Button button, Window* window = nullptr) const;
+        bool is_released(Mouse::Button button, Window* window = nullptr) const;
+        bool is_just_pressed(Mouse::Button button, Window* window = nullptr) const;
+        bool is_just_released(Mouse::Button button, Window* window = nullptr) const;
+        const ButtonInfo& button_info(Mouse::Button button, Window* window = nullptr) const;
+        const WheelInfo& wheel_info(Window* window = nullptr) const;
 
         friend class Object;
     };

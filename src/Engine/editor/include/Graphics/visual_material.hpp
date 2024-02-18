@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/archive.hpp>
 #include <Graphics/material.hpp>
 
 namespace Engine
@@ -81,7 +82,7 @@ namespace Engine
         Output = 1,
     };
 
-    struct MaterialPin {
+    struct MaterialPin : public SerializableObject {
         Name name;
         struct MaterialNode* node = nullptr;
 
@@ -103,6 +104,7 @@ namespace Engine
         using MaterialPin::MaterialPin;
         MaterialPinType type() const override;
         MaterialNodeDataType value_type() const override;
+        MaterialPin& link_to(MaterialOutputPin* pin);
     };
 
     struct MaterialOutputPin : public MaterialPin {
@@ -114,7 +116,7 @@ namespace Engine
         size_t refereces_count() const;
     };
 
-    struct MaterialNode {
+    struct MaterialNode : public SerializableObject {
         static const size_t compile_error;
 
         Vector<MaterialInputPin*> inputs;
@@ -128,6 +130,10 @@ namespace Engine
         virtual size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin);
         virtual const char* name() const;
         virtual MaterialNodeDataType output_type(const MaterialOutputPin* pin) const;
+        bool archive_process(Archive& ar) override;
+
+        Index pin_index(MaterialOutputPin* pin) const;
+        Index pin_index(MaterialInputPin* pin) const;
 
         Identifier id() const;
         virtual class Struct* struct_instance() const;
@@ -169,6 +175,15 @@ namespace Engine
             }
             return enum_value;
         }
+
+        bool archive_process(Archive& ar) override
+        {
+            if (!MaterialInputPin::archive_process(ar))
+                return false;
+
+            ar & value;
+            return ar;
+        }
     };
 
     template<MaterialNodeDataType enum_value>
@@ -206,6 +221,15 @@ namespace Engine
         MaterialNodeDataType value_type() const override
         {
             return enum_value;
+        }
+
+        bool archive_process(Archive& ar) override
+        {
+            if (!MaterialOutputPin::archive_process(ar))
+                return false;
+
+            ar & value;
+            return ar;
         }
     };
 
@@ -289,11 +313,13 @@ namespace Engine
         MaterialNode* fragment_node() const;
         const Vector<MaterialNode*>& nodes() const;
         MaterialNode* create_node(class Struct*, const Vector2D& position = {});
+        Index node_index(const MaterialNode* node) const;
 
 
         VisualMaterial();
         VisualMaterial& render_nodes(void* context);
         ~VisualMaterial();
+        bool archive_process(Archive& ar) override;
 
 
         template<typename Type>

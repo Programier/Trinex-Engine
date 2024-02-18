@@ -1,7 +1,8 @@
 #pragma once
 #include <Core/etl/singletone.hpp>
+#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
-#include <Event/event.hpp>
+
 
 namespace Engine
 {
@@ -14,7 +15,7 @@ namespace Engine
 
     private:
         Map<Identifier, GameController*> _M_controllers;
-        Vector<Identifier> _M_callbacks_id;
+        Vector<EventSystemListenerID> _M_callbacks_id;
 
         void on_controller_added(const Event& event);
         void on_controller_removed(const Event& event);

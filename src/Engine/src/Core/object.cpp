@@ -447,7 +447,7 @@ namespace Engine
         return *this;
     }
 
-    Object& Object::reload()
+    Object& Object::apply_changes()
     {
         return *this;
     }

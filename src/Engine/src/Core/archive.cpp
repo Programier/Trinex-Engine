@@ -1,8 +1,14 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/object.hpp>
 
 namespace Engine
 {
+    class Object* Archive::load_object(const StringView& name)
+    {
+        return Object::load_object(name);
+    }
+
     Archive::Archive() : _M_reader(nullptr), _M_is_saving(false), _M_process_status(false)
     {}
 

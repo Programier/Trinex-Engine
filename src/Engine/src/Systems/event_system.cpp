@@ -90,14 +90,14 @@ namespace Engine
         return _M_listeners;
     }
 
-    Identifier EventSystem::add_listener(EventType type, const Listener& listener)
+    EventSystemListenerID EventSystem::add_listener(EventType type, const Listener& listener)
     {
-        return _M_listeners[static_cast<byte>(type)].push(listener);
+        return EventSystemListenerID(type, _M_listeners[static_cast<byte>(type)].push(listener));
     }
 
-    EventSystem& EventSystem::remove_listener(EventType type, Identifier id)
+    EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
     {
-        _M_listeners[static_cast<byte>(type)].remove(id);
+        _M_listeners[static_cast<byte>(id._M_type)].remove(id._M_id);
         return *this;
     }
 
@@ -175,7 +175,7 @@ namespace Engine
     }
 
 
-    static Identifier add_script_listener(EventSystem* system, EventType type, asIScriptFunction* _function)
+    static EventSystemListenerID add_script_listener(EventSystem* system, EventType type, asIScriptFunction* _function)
     {
         ScriptFunction function        = _function;
         EventSystem::Listener callback = [function](const Event& event) mutable {
@@ -185,9 +185,10 @@ namespace Engine
         return system->add_listener(type, callback);
     }
 
+
     static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
     {
-        ScriptEngineInitializeController().require("Bind Event");
+        ScriptEngineInitializeController().require("Bind Event").require("Bind EventSystenListenerID");
 
         ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
         enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);

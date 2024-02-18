@@ -20,7 +20,7 @@ namespace Engine
         };
 
 
-        Matrix4f local_to_world;
+        Matrix4f local_to_world = Matrix4f(1.f);
 
         Vector3D rotation = Vector3D(0.f, 0.f, 0.f);
         Vector3D location = Vector3D(0.0f);

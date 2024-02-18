@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/etl/singletone.hpp>
+#include <Event/listener_id.hpp>
 #include <Systems/system.hpp>
-#include <Event/event.hpp>
 
 
 namespace Engine
@@ -33,8 +33,8 @@ namespace Engine
 
     public:
         const ListenerMap& listeners() const;
-        Identifier add_listener(EventType event_type, const Listener& listener);
-        EventSystem& remove_listener(EventType event_type, Identifier id);
+        EventSystemListenerID add_listener(EventType event_type, const Listener& listener);
+        EventSystem& remove_listener(const EventSystemListenerID&);
         EventSystem& create() override;
         EventSystem& update(float dt) override;
         const EventSystem& push_event(const Event& event) const;

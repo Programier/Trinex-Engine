@@ -656,6 +656,14 @@ namespace Engine::MaterialNodes
         return compiler->sampler(sampler);
     }
 
+    bool Sampler::archive_process(Archive& ar)
+    {
+        if (!MaterialNode::archive_process(ar))
+            return false;
+
+        return sampler.archive_process(ar, true);
+    }
+
     Texture2D::Texture2D()
     {
         outputs.push_back(new Color4OutputNoDefaultPin(this, "Color"));
@@ -667,12 +675,20 @@ namespace Engine::MaterialNodes
     {
         if (texture)
         {
-            Engine::Sampler* sampler = Icons::default_sampler();
-            ImGuiRenderer::ImGuiTexture* imgui_texture =
-                    ImGuiRenderer::Window::current()->create_texture(reinterpret_cast<class Engine::Texture*>(texture), sampler);
-            ImGui::Text("%s", reinterpret_cast<Object*>(texture)->string_name().c_str());
+            Engine::Sampler* sampler                   = Icons::default_sampler();
+            ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(
+                    reinterpret_cast<class Engine::Texture*>(texture.ptr()), sampler);
+            ImGui::Text("%s", reinterpret_cast<Object*>(texture.ptr())->string_name().c_str());
             ImGui::Image(imgui_texture->handle(), {100, 100});
         }
+    }
+
+    bool Texture2D::archive_process(Archive& ar)
+    {
+        if (!MaterialNode::archive_process(ar))
+            return false;
+
+        return texture.archive_process(ar, true);
     }
 
     size_t Texture2D::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
