@@ -13,19 +13,29 @@ namespace Engine
     public:
         enum Type
         {
-            Bool              = 0,
-            Float             = 1,
-            Int               = 2,
-            Vec2              = 3,
-            Vec3              = 4,
-            Vec4              = 5,
-            Mat3              = 6,
-            Mat4              = 7,
-            Sampler           = 8,
-            Texture2D         = 9,
-            CombinedSampler2D = 10,
+            Bool = 0,
+            Int = 1,
+            UInt = 2,
+            Float = 3,
+            BVec2 = 4,
+            BVec3 = 5,
+            BVec4 = 6,
+            IVec2 = 7,
+            IVec3 = 8,
+            IVec4 = 9,
+            UVec2 = 10,
+            UVec3 = 11,
+            UVec4 = 12,
+            Vec2 = 13,
+            Vec3 = 14,
+            Vec4 = 15,
+            Mat3 = 16,
+            Mat4 = 17,
+            Sampler = 18,
+            Texture2D = 19,
+            CombinedSampler2D = 20,
 
-            __COUNT__ = 11,
+            __COUNT__ = 21
         };
 
         Name name;
@@ -90,8 +100,22 @@ namespace Engine
     };
 
     using BoolMaterialParameter  = TypedMaterialParameter<bool, MaterialParameter::Type::Bool>;
-    using FloatMaterialParameter = TypedMaterialParameter<float, MaterialParameter::Type::Float>;
     using IntMaterialParameter   = TypedMaterialParameter<int32_t, MaterialParameter::Type::Int>;
+    using UIntMaterialParameter   = TypedMaterialParameter<uint32_t, MaterialParameter::Type::UInt>;
+    using FloatMaterialParameter = TypedMaterialParameter<float, MaterialParameter::Type::Float>;
+
+    using BVec2MaterialParameter  = TypedMaterialParameter<BoolVector2D, MaterialParameter::Type::BVec2>;
+    using BVec3MaterialParameter  = TypedMaterialParameter<BoolVector3D, MaterialParameter::Type::BVec3>;
+    using BVec4MaterialParameter  = TypedMaterialParameter<BoolVector4D, MaterialParameter::Type::BVec4>;
+
+    using IVec2MaterialParameter  = TypedMaterialParameter<IntVector2D, MaterialParameter::Type::IVec2>;
+    using IVec3MaterialParameter  = TypedMaterialParameter<IntVector3D, MaterialParameter::Type::IVec3>;
+    using IVec4MaterialParameter  = TypedMaterialParameter<IntVector4D, MaterialParameter::Type::IVec4>;
+
+    using UVec2MaterialParameter  = TypedMaterialParameter<UIntVector2D, MaterialParameter::Type::UVec2>;
+    using UVec3MaterialParameter  = TypedMaterialParameter<UIntVector3D, MaterialParameter::Type::UVec3>;
+    using UVec4MaterialParameter  = TypedMaterialParameter<UIntVector4D, MaterialParameter::Type::UVec4>;
+
     using Vec2MaterialParameter  = TypedMaterialParameter<Vector2D, MaterialParameter::Type::Vec2>;
     using Vec3MaterialParameter  = TypedMaterialParameter<Vector3D, MaterialParameter::Type::Vec3>;
     using Vec4MaterialParameter  = TypedMaterialParameter<Vector4D, MaterialParameter::Type::Vec4>;

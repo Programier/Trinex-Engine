@@ -75,7 +75,7 @@ namespace Engine::VFS
 
             NativeIterator<fs::directory_iterator>* it = new NativeIterator<fs::directory_iterator>();
             it->_M_base                                = this;
-            it->_M_it                                  = std::move(iterator);
+            it->_M_it                                  = iterator;
             it->update_path();
             return it;
         }
@@ -94,7 +94,7 @@ namespace Engine::VFS
 
             NativeIterator<fs::recursive_directory_iterator>* it = new NativeIterator<fs::recursive_directory_iterator>();
             it->_M_base                                          = this;
-            it->_M_it = std::move(iterator);
+            it->_M_it                                            = iterator;
             it->update_path();
             return it;
         }

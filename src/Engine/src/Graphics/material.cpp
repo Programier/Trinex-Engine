@@ -259,30 +259,70 @@ namespace Engine
     }
 
 
-#define new_param_allocator(type)                                                                                                \
-    [](const Name& name) -> MaterialParameter* {                                                                                 \
-        type* param = new type();                                                                                                \
-        param->name = name;                                                                                                      \
-        return param;                                                                                                            \
+#define declare_allocator(name)                                                                                                  \
+    static MaterialParameter* name##_material_param_allocator()                                                                  \
+    {                                                                                                                            \
+        return new name##MaterialParameter();                                                                                    \
     }
 
-    static const Array<MaterialParameter* (*) (const Name& name), MaterialParameter::Type::__COUNT__>& params_allocators()
-    {
-        static const Array<MaterialParameter* (*) (const Name& name), MaterialParameter::Type::__COUNT__> allocators = {
-                new_param_allocator(BoolMaterialParameter),
-                new_param_allocator(FloatMaterialParameter),
-                new_param_allocator(IntMaterialParameter),
-                new_param_allocator(Vec2MaterialParameter),
-                new_param_allocator(Vec3MaterialParameter),
-                new_param_allocator(Vec4MaterialParameter),
-                new_param_allocator(Mat3MaterialParameter),
-                new_param_allocator(Mat4MaterialParameter),
-                new_param_allocator(SamplerMaterialParameter),
-                new_param_allocator(Texture2DMaterialParameter),
-                new_param_allocator(CombinedSampler2DMaterialParameter),
-        };
 
-        return allocators;
+    declare_allocator(Bool);
+    declare_allocator(Int);
+    declare_allocator(UInt);
+    declare_allocator(Float);
+    declare_allocator(BVec2);
+    declare_allocator(BVec3);
+    declare_allocator(BVec4);
+    declare_allocator(IVec2);
+    declare_allocator(IVec3);
+    declare_allocator(IVec4);
+    declare_allocator(UVec2);
+    declare_allocator(UVec3);
+    declare_allocator(UVec4);
+    declare_allocator(Vec2);
+    declare_allocator(Vec3);
+    declare_allocator(Vec4);
+    declare_allocator(Mat3);
+    declare_allocator(Mat4);
+    declare_allocator(Sampler);
+    declare_allocator(Texture2D);
+    declare_allocator(CombinedSampler2D);
+
+
+#define new_param_allocator(type)                                                                                                \
+    case MaterialParameter::Type::type:                                                                                          \
+        return type##_material_param_allocator;
+
+
+    static MaterialParameter* (*find_param_allocator(MaterialParameter::Type type))()
+    {
+        switch (type)
+        {
+            new_param_allocator(Bool);
+            new_param_allocator(Int);
+            new_param_allocator(UInt);
+            new_param_allocator(Float);
+            new_param_allocator(BVec2);
+            new_param_allocator(BVec3);
+            new_param_allocator(BVec4);
+            new_param_allocator(IVec2);
+            new_param_allocator(IVec3);
+            new_param_allocator(IVec4);
+            new_param_allocator(UVec2);
+            new_param_allocator(UVec3);
+            new_param_allocator(UVec4);
+            new_param_allocator(Vec2);
+            new_param_allocator(Vec3);
+            new_param_allocator(Vec4);
+            new_param_allocator(Mat3);
+            new_param_allocator(Mat4);
+            new_param_allocator(Sampler);
+            new_param_allocator(Texture2D);
+            new_param_allocator(CombinedSampler2D);
+
+            default:
+                return nullptr;
+        }
     }
 
 
@@ -301,9 +341,17 @@ namespace Engine
             return param;
         }
 
-        param                        = params_allocators()[static_cast<EnumerateType>(type)](name);
-        _M_material_parameters[name] = param;
-        return param;
+        auto allocator = find_param_allocator(type);
+
+        if (allocator)
+        {
+            param                        = allocator();
+            param->name = name;
+            _M_material_parameters[name] = param;
+            return param;
+        }
+
+        return nullptr;
     }
 
     MaterialParameter* Material::create_parameter(const Name& name, MaterialParameter::Type type)
@@ -421,9 +469,14 @@ namespace Engine
             return param;
         }
 
-        param                        = params_allocators()[static_cast<EnumerateType>(type)](name);
-        _M_material_parameters[name] = param;
-        return param;
+        auto allocator = find_param_allocator(type);
+        if (allocator)
+        {
+            param                        = allocator();
+            _M_material_parameters[name] = param;
+            return param;
+        }
+        return nullptr;
     }
 
     bool MaterialInstance::archive_process(Archive& archive)

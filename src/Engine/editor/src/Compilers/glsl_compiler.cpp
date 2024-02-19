@@ -917,14 +917,34 @@ namespace Engine
 
         /// DYNAMIC PARAMETERS
 
-        size_t vec3_parameter(const String& name, void* value) override
-        {
-            GLSL_LocalParameter& parameter    = local_parameters[create_local_parameter(name, MaterialNodeDataType::Vec3)];
-            parameter.data                    = value;
-            parameter.material_parameter_type = MaterialParameter::Type::Vec3;
+#define declare_dynamic_parameter(param, type)                                                                                    \
+    size_t param##_parameter(const String& name, void* data) override                                                             \
+    {                                                                                                                            \
+        GLSL_LocalParameter& parameter    = local_parameters[create_local_parameter(name, MaterialNodeDataType::type)];          \
+        parameter.data                    = data;                                                                                \
+        parameter.material_parameter_type = MaterialParameter::Type::type;                                                       \
+        return (new GLSL_CompiledSource(Strings::format("{}{}", local_variable_prefix, name)))->id();                            \
+    }
 
-            return (new GLSL_CompiledSource(Strings::format("{}{}", local_variable_prefix, name)))->id();
-        }
+        declare_dynamic_parameter(bool, Bool);
+        declare_dynamic_parameter(int, Int);
+        declare_dynamic_parameter(uint, UInt);
+        declare_dynamic_parameter(float, Float);
+        declare_dynamic_parameter(bvec2, BVec2);
+        declare_dynamic_parameter(bvec3, BVec3);
+        declare_dynamic_parameter(bvec4, BVec4);
+        declare_dynamic_parameter(ivec2, IVec2);
+        declare_dynamic_parameter(ivec3, IVec3);
+        declare_dynamic_parameter(ivec4, IVec4);
+        declare_dynamic_parameter(uvec2, UVec2);
+        declare_dynamic_parameter(uvec3, UVec3);
+        declare_dynamic_parameter(uvec4, UVec4);
+        declare_dynamic_parameter(vec2, Vec2);
+        declare_dynamic_parameter(vec3, Vec3);
+        declare_dynamic_parameter(vec4, Vec4);
+        declare_dynamic_parameter(color3, Vec3);
+        declare_dynamic_parameter(color4, Vec4);
+
 
         /// MATH
         size_t sin(MaterialInputPin* pin) override
@@ -961,8 +981,40 @@ namespace Engine
             return (new GLSL_CompiledSource(source))->id();
         }
 
+        size_t floor(MaterialInputPin* pin1) override
+        {
+            String source = Strings::format("floor({})", get_pin_source(pin1));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
 
         /// OPERATORS
+#define declare_type_operator(name, type)                                                                                        \
+    size_t name##_op(MaterialInputPin* pin) override                                                                             \
+    {                                                                                                                            \
+        String source = get_pin_source(pin, MaterialNodeDataType::type);                                                         \
+        return (new GLSL_CompiledSource(source))->id();                                                                          \
+    }
+
+        declare_type_operator(bool, Bool);
+        declare_type_operator(int, Int);
+        declare_type_operator(uint, UInt);
+        declare_type_operator(float, Float);
+        declare_type_operator(bvec2, BVec2);
+        declare_type_operator(bvec3, BVec3);
+        declare_type_operator(bvec4, BVec4);
+        declare_type_operator(ivec2, IVec2);
+        declare_type_operator(ivec3, IVec3);
+        declare_type_operator(ivec4, IVec4);
+        declare_type_operator(uvec2, UVec2);
+        declare_type_operator(uvec3, UVec3);
+        declare_type_operator(uvec4, UVec4);
+        declare_type_operator(vec2, Vec2);
+        declare_type_operator(vec3, Vec3);
+        declare_type_operator(vec4, Vec4);
+        declare_type_operator(color3, Color3);
+        declare_type_operator(color4, Color4);
+
         size_t add(MaterialInputPin* pin1, MaterialInputPin* pin2) override
         {
             auto t1 = pin1->value_type();

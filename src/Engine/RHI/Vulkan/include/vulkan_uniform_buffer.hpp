@@ -26,7 +26,7 @@ namespace Engine
     struct UniformBufferPool : public UniformBufferPoolBase {
         UniformBufferPool& allocate_new(size_t size = pool_size)
         {
-            UniformBufferPoolBase::allocate_new(glm::min(size, pool_size));
+            UniformBufferPoolBase::allocate_new(glm::max(size, pool_size));
             return *this;
         }
     };

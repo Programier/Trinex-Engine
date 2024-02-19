@@ -228,6 +228,7 @@ namespace Engine
                                     _M_current_material && _M_compiler))
                 {
                     _M_shader_compile_error_list.clear();
+                    render_thread()->wait_all();
                     _M_compiler->compile(_M_current_material, _M_shader_compile_error_list);
                 }
 

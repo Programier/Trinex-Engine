@@ -221,14 +221,73 @@ namespace Engine::MaterialNodes
         }
     };
 
+    struct Floor : public MaterialNode {
+        declare_material_node();
+
+        Floor()
+        {
+            inputs.push_back(new FloatInputPin(this, "In"));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->floor(inputs[0]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return inputs[0]->value_type();
+        }
+    };
+
     implement_material_node(Sin, Math);
     implement_material_node(Cos, Math);
     implement_material_node(Tan, Math);
     implement_material_node(Dot, Math);
     implement_material_node(Normalize, Math);
     implement_material_node(Pow, Math);
+    implement_material_node(Floor, Math);
 
     //////////////////////////// OPERATOR NODES ////////////////////////////
+
+#define declare_type_operator(type, func_name)                                                                                   \
+    struct CastTo##type : public MaterialNode {                                                                                  \
+        declare_material_node();                                                                                                 \
+        CastTo##type()                                                                                                           \
+        {                                                                                                                        \
+            inputs.push_back(new type##InputPin(this, "In"));                                                                    \
+            outputs.push_back(new type##OutputNoDefaultPin(this, "Out"));                                                        \
+        }                                                                                                                        \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func_name##_op(inputs[0]);                                                                          \
+        }                                                                                                                        \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::type;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(CastTo##type, Operators);
+
+    declare_type_operator(Bool, bool);
+    declare_type_operator(Int, int);
+    declare_type_operator(UInt, uint);
+    declare_type_operator(Float, float);
+    declare_type_operator(BVec2, bvec2);
+    declare_type_operator(BVec3, bvec3);
+    declare_type_operator(BVec4, bvec4);
+    declare_type_operator(IVec2, ivec2);
+    declare_type_operator(IVec3, ivec3);
+    declare_type_operator(IVec4, ivec4);
+    declare_type_operator(UVec2, uvec2);
+    declare_type_operator(UVec3, uvec3);
+    declare_type_operator(UVec4, uvec4);
+    declare_type_operator(Vec2, vec2);
+    declare_type_operator(Vec3, vec3);
+    declare_type_operator(Vec4, vec4);
+    declare_type_operator(Color3, color3);
+    declare_type_operator(Color4, color4);
 
     struct Add : public MaterialNode {
         declare_material_node();
@@ -382,7 +441,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec2 : public ConstructVec2Base<FloatInputPin, Vec4OutputNoDefaultPin> {
+    struct ConstructVec2 : public ConstructVec2Base<FloatInputPin, Vec2OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -391,7 +450,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec3 : public ConstructVec3Base<FloatInputPin, Vec4OutputNoDefaultPin> {
+    struct ConstructVec3 : public ConstructVec3Base<FloatInputPin, Vec3OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -543,8 +602,24 @@ namespace Engine::MaterialNodes
     };                                                                                                                           \
     implement_material_node(name##Parameter, Parameters);
 
-
+    declare_dynamic_node(Bool, bool);
+    declare_dynamic_node(Int, int);
+    declare_dynamic_node(UInt, uint);
+    declare_dynamic_node(Float, float);
+    declare_dynamic_node(BVec2, bvec2);
+    declare_dynamic_node(BVec3, bvec3);
+    declare_dynamic_node(BVec4, bvec4);
+    declare_dynamic_node(IVec2, ivec2);
+    declare_dynamic_node(IVec3, ivec3);
+    declare_dynamic_node(IVec4, ivec4);
+    declare_dynamic_node(UVec2, uvec2);
+    declare_dynamic_node(UVec3, uvec3);
+    declare_dynamic_node(UVec4, uvec4);
+    declare_dynamic_node(Vec2, vec2);
     declare_dynamic_node(Vec3, vec3);
+    declare_dynamic_node(Vec4, vec4);
+    declare_dynamic_node(Color3, color3);
+    declare_dynamic_node(Color4, color4);
 
     //////////////////////////// TEXTURE NODES ////////////////////////////
 

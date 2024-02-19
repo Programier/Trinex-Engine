@@ -56,7 +56,7 @@ namespace Engine
         EditorClient& init_world();
         EditorClient& create_log_window(float dt);
         EditorClient& create_viewport_window(float dt);
-        void render_dock_window();
+        void render_dock_window(float dt);
 
         void on_object_select(Object* object);
 

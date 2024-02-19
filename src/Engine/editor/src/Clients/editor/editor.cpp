@@ -153,7 +153,6 @@ namespace Engine
         return init_world();
     }
 
-
     void EditorClient::on_object_select(Object* object)
     {
         if (_M_properties)
@@ -176,7 +175,7 @@ namespace Engine
     }
 
 
-    void EditorClient::render_dock_window()
+    void EditorClient::render_dock_window(float dt)
     {
         auto dock_id                       = ImGui::GetID("EditorDock##Dock");
         ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -233,6 +232,8 @@ namespace Engine
 
                 ImGui::EndMenu();
             }
+
+            ImGui::Text("FPS: %f\n", 1.f / dt);
             ImGui::EndMenuBar();
         }
 
@@ -268,7 +269,7 @@ namespace Engine
                      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBringToFrontOnFocus |
                              ImGuiWindowFlags_MenuBar);
-        render_dock_window();
+        render_dock_window(dt);
 
         create_log_window(dt);
         create_viewport_window(dt);
@@ -345,6 +346,7 @@ namespace Engine
                 void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
                 auto size        = ImGui::GetContentRegionAvail();
                 _M_viewport_size = ImGuiHelpers::construct_vec2<Vector2D>(size);
+                camera->aspect_ratio = _M_viewport_size.x / _M_viewport_size.y;
                 ImGui::Image(output, size, ImVec2(0, 1), ImVec2(1, 0));
                 _M_viewport_is_hovered = ImGui::IsItemHovered();
             }

@@ -39,8 +39,28 @@ namespace Engine
         virtual size_t normalize(MaterialInputPin*)                        = 0;
         virtual size_t dot(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
         virtual size_t pow(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
+        virtual size_t floor(MaterialInputPin*)                            = 0;
 
         // OPERATORS
+        virtual size_t bool_op(MaterialInputPin* pin)   = 0;
+        virtual size_t int_op(MaterialInputPin* pin)    = 0;
+        virtual size_t uint_op(MaterialInputPin* pin)   = 0;
+        virtual size_t float_op(MaterialInputPin* pin)  = 0;
+        virtual size_t bvec2_op(MaterialInputPin* pin)  = 0;
+        virtual size_t bvec3_op(MaterialInputPin* pin)  = 0;
+        virtual size_t bvec4_op(MaterialInputPin* pin)  = 0;
+        virtual size_t ivec2_op(MaterialInputPin* pin)  = 0;
+        virtual size_t ivec3_op(MaterialInputPin* pin)  = 0;
+        virtual size_t ivec4_op(MaterialInputPin* pin)  = 0;
+        virtual size_t uvec2_op(MaterialInputPin* pin)  = 0;
+        virtual size_t uvec3_op(MaterialInputPin* pin)  = 0;
+        virtual size_t uvec4_op(MaterialInputPin* pin)  = 0;
+        virtual size_t vec2_op(MaterialInputPin* pin)   = 0;
+        virtual size_t vec3_op(MaterialInputPin* pin)   = 0;
+        virtual size_t vec4_op(MaterialInputPin* pin)   = 0;
+        virtual size_t color3_op(MaterialInputPin* pin) = 0;
+        virtual size_t color4_op(MaterialInputPin* pin) = 0;
+
         virtual size_t add(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
         virtual size_t sub(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
         virtual size_t mul(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
@@ -105,7 +125,24 @@ namespace Engine
         //        virtual size_t mat4_constant()              = 0;
 
         // Dynamic Parameters
-        virtual size_t vec3_parameter(const String& name, void* value) = 0;
+        virtual size_t bool_parameter(const String& name, void* data)   = 0;
+        virtual size_t int_parameter(const String& name, void* data)    = 0;
+        virtual size_t uint_parameter(const String& name, void* data)   = 0;
+        virtual size_t float_parameter(const String& name, void* data)  = 0;
+        virtual size_t bvec2_parameter(const String& name, void* data)  = 0;
+        virtual size_t bvec3_parameter(const String& name, void* data)  = 0;
+        virtual size_t bvec4_parameter(const String& name, void* data)  = 0;
+        virtual size_t ivec2_parameter(const String& name, void* data)  = 0;
+        virtual size_t ivec3_parameter(const String& name, void* data)  = 0;
+        virtual size_t ivec4_parameter(const String& name, void* data)  = 0;
+        virtual size_t uvec2_parameter(const String& name, void* data)  = 0;
+        virtual size_t uvec3_parameter(const String& name, void* data)  = 0;
+        virtual size_t uvec4_parameter(const String& name, void* data)  = 0;
+        virtual size_t vec2_parameter(const String& name, void* data)   = 0;
+        virtual size_t vec3_parameter(const String& name, void* data)   = 0;
+        virtual size_t vec4_parameter(const String& name, void* data)   = 0;
+        virtual size_t color3_parameter(const String& name, void* data) = 0;
+        virtual size_t color4_parameter(const String& name, void* data) = 0;
 
         // Texture
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
