@@ -160,9 +160,73 @@ namespace Engine::MaterialNodes
         }
     };
 
+    struct Dot : public MaterialNode {
+        declare_material_node();
+        Dot()
+        {
+            inputs.push_back(new Vec3InputPin(this, "A"));
+            inputs.push_back(new Vec3InputPin(this, "B"));
+            outputs.push_back(new FloatOutputNoDefaultPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->dot(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return MaterialNodeDataType::Vec3;
+        }
+    };
+
+
+    struct Normalize : public MaterialNode {
+        declare_material_node();
+        Normalize()
+        {
+            inputs.push_back(new Vec3InputPin(this, "In"));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->normalize(inputs[0]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return inputs[0]->value_type();
+        }
+    };
+
+    struct Pow : public MaterialNode {
+        declare_material_node();
+
+        Pow()
+        {
+            inputs.push_back(new FloatInputPin(this, "Value"));
+            inputs.push_back(new FloatInputPin(this, "Base"));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->pow(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return inputs[0]->value_type();
+        }
+    };
+
     implement_material_node(Sin, Math);
     implement_material_node(Cos, Math);
     implement_material_node(Tan, Math);
+    implement_material_node(Dot, Math);
+    implement_material_node(Normalize, Math);
+    implement_material_node(Pow, Math);
 
     //////////////////////////// OPERATOR NODES ////////////////////////////
 
@@ -388,6 +452,7 @@ namespace Engine::MaterialNodes
     declare_global_node(View, view, Mat4);
     declare_global_node(ProjView, projview, Mat4);
     declare_global_node(InvProjView, inv_projview, Mat4);
+    declare_global_node(CameraLocation, camera_location, Vec3);
     declare_global_node(Time, time, Float);
     declare_global_node(Gamma, gamma, Float);
     declare_global_node(DeltaTime, delta_time, Float);
@@ -441,6 +506,45 @@ namespace Engine::MaterialNodes
     declare_constant_type(Vec4, vec4);
     declare_constant_type(Color3, color3);
     declare_constant_type(Color4, color4);
+
+
+    //////////////////////////// DYNAMIC PARAMETERS NODES ////////////////////////////
+
+    void MaterialDynamicParameter::render()
+    {
+        MaterialNode::render();
+        ImGuiRenderer::InputText("Name", node_name);
+    }
+
+    bool MaterialDynamicParameter::archive_process(Archive& ar)
+    {
+        if (!MaterialNode::archive_process(ar))
+            return false;
+
+        ar & node_name;
+        return ar;
+    }
+
+#define declare_dynamic_node(name, func_name)                                                                                    \
+    struct name##Parameter : public MaterialDynamicParameter {                                                                   \
+        declare_material_node();                                                                                                 \
+        name##Parameter()                                                                                                        \
+        {                                                                                                                        \
+            outputs.push_back(new name##OutputPin(this, "Out"));                                                                 \
+        }                                                                                                                        \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func_name##_parameter(node_name, pin->default_value());                                             \
+        }                                                                                                                        \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::name;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(name##Parameter, Parameters);
+
+
+    declare_dynamic_node(Vec3, vec3);
 
     //////////////////////////// TEXTURE NODES ////////////////////////////
 

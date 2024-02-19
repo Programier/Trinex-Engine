@@ -5,12 +5,14 @@
 #include <Graphics/shader_parameters.hpp>
 #include <Graphics/visual_material.hpp>
 
+#include <spirv_glsl.hpp>
+
 #include <SPIRV/GLSL.std.450.h>
 #include <SPIRV/GlslangToSpv.h>
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
-#include <chrono>
+#include <iostream>
 
 namespace Engine
 {
@@ -18,13 +20,12 @@ namespace Engine
 
     static const StringView variable_prefix        = "tnx_var_";
     static const StringView global_ubo_name        = "global";
-    static const StringView local_ubo_name         = "local";
     static const StringView global_variable_prefix = "global.";
     static const StringView local_variable_prefix  = "local.";
 
     static constexpr inline size_t max_sentence_len = 80;
 
-    static bool compile_shader(const String& text, Buffer& out, EShLanguage lang)
+    static bool compile_shader(const String& text, Buffer& out, EShLanguage lang, std::vector<unsigned int>* uint_out = nullptr)
     {
         glslang::InitializeProcess();
 
@@ -88,17 +89,12 @@ namespace Engine
 
         // Clean up
         glslang::FinalizeProcess();
+
+        if (uint_out)
+        {
+            *uint_out = std::move(spirv);
+        }
         return true;
-    }
-
-    static bool compile_fragment_source(const String& text, Buffer& out)
-    {
-        return compile_shader(text, out, EShLangFragment);
-    }
-
-    static bool compile_vertex_source(const String& text, Buffer& out)
-    {
-        return compile_shader(text, out, EShLangVertex);
     }
 
     static bool is_variable(const StringView& code)
@@ -344,17 +340,18 @@ namespace Engine
         ColorFormat format;
     };
 
+    struct GLSL_LocalParameter {
+        String param;
+        MaterialNodeDataType type;
+        MaterialParameter::Type material_parameter_type;
+        void* data = nullptr;
+    };
+
     struct GLSL_BindingObject {
         String name;
         void* object = nullptr;
         StringView type;
         BindingIndex index;
-    };
-
-    enum class CompileStage
-    {
-        Vertex,
-        Fragment,
     };
 
     class GLSL_BaseCompiler : public ShaderCompiler
@@ -364,10 +361,12 @@ namespace Engine
         Vector<GLSL_Attribute> input_attribute;
         Vector<GLSL_Attribute> output_attribute;
 
+        Vector<GLSL_LocalParameter> local_parameters;
+
         Vector<GLSL_BindingObject*> objects;
         Map<Identifier, GLSL_CompiledSource*> compiled_pins;
         Vector<String> statements;
-        byte next_binding_index = 1;
+        byte next_binding_index = 2;
 
         ~GLSL_BaseCompiler()
         {
@@ -383,6 +382,119 @@ namespace Engine
         }
 
         // Helpers
+
+        GLSL_Attribute* find_input_attribute(const StringView& name)
+        {
+            for (auto& input : input_attribute)
+            {
+                if (input.param == name)
+                    return &input;
+            }
+            return nullptr;
+        }
+
+        GLSL_Attribute* find_output_attribute(const StringView& name)
+        {
+            for (auto& output : output_attribute)
+            {
+                if (output.param == name)
+                    return &output;
+            }
+            return nullptr;
+        }
+
+        Index create_input_attribute(const String& name, bool* created_now = nullptr)
+        {
+            if (created_now)
+                *created_now = false;
+
+            Index index = 0;
+            for (auto& input : input_attribute)
+            {
+                if (input.param == name)
+                    return index;
+                ++index;
+            }
+
+            if (created_now)
+                *created_now = true;
+
+            input_attribute.emplace_back();
+            auto& attrib    = input_attribute.back();
+            attrib.param    = name;
+            attrib.location = static_cast<byte>(index);
+
+            return index;
+        }
+
+        Index create_output_attribute(const String& name, bool* created_now = nullptr)
+        {
+            if (created_now)
+                *created_now = false;
+
+            Index index = 0;
+            for (auto& output : output_attribute)
+            {
+                if (output.param == name)
+                    return index;
+                ++index;
+            }
+
+            if (created_now)
+                *created_now = true;
+
+            output_attribute.emplace_back();
+            auto& attrib    = output_attribute.back();
+            attrib.param    = name;
+            attrib.location = static_cast<byte>(index);
+
+            return index;
+        }
+
+        GLSL_LocalParameter* find_local_parameter(const StringView& name)
+        {
+            for (auto& local : local_parameters)
+            {
+                if (local.param == name)
+                {
+                    return &local;
+                }
+            }
+
+            return nullptr;
+        }
+
+        Index create_local_parameter(const String& name, MaterialNodeDataType type, bool* created_now = nullptr)
+        {
+            if (created_now)
+                *created_now = false;
+
+            Index index = 0;
+            for (auto& local : local_parameters)
+            {
+                if (local.param == name)
+                {
+                    if (local.type != type)
+                    {
+                        errors->push_back(
+                                Strings::format("Parameter with name {} already exist, but have different type!", name));
+                    }
+                    return index;
+                }
+                ++index;
+            }
+
+            if (created_now)
+                *created_now = true;
+
+            local_parameters.emplace_back();
+            auto& param = local_parameters.back();
+            param.param = name;
+            param.type  = type;
+
+            return index;
+        }
+
         GLSL_BindingObject* create_binding_object(void* object, StringView type, bool& created_now)
         {
             created_now = false;
@@ -585,11 +697,41 @@ namespace Engine
         {
             this->material = material;
             root_node()->compile(this, nullptr);
-
             return errors->empty();
         }
 
-        bool build_source()
+        void parse_reflection(const std::vector<unsigned int>& spirv)
+        {
+            spirv_cross::CompilerGLSL compiler(spirv);
+            spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+
+            for (const auto& uniform : resources.uniform_buffers)
+            {
+                auto& type = compiler.get_type(uniform.base_type_id);
+                if (compiler.get_name(type.self) != "_Local")
+                    continue;
+
+                for (uint32_t i = 0; i < type.member_types.size(); ++i)
+                {
+                    String member_name     = compiler.get_member_name(uniform.base_type_id, i);
+                    uint32_t member_offset = compiler.get_member_decoration(uniform.base_type_id, i, spv::DecorationOffset);
+
+                    GLSL_LocalParameter* parameter = find_local_parameter(member_name);
+
+                    if (parameter)
+                    {
+                        Name name = member_name;
+                        MaterialParameter* material_parameter =
+                                material->create_parameter(name, parameter->material_parameter_type);
+                        material->pipeline->local_parameters.update(name, member_offset);
+                        std::memcpy(material_parameter->data(), parameter->data, material_parameter->size());
+                    }
+                }
+            }
+        }
+
+        bool build_source(bool with_reflection = false)
         {
             String source = "#version 310 es\n"
                             "precision highp float;\n"
@@ -615,6 +757,19 @@ namespace Engine
             source += global_ubo_name;
             source += ";\n\n";
 
+            if (!local_parameters.empty())
+            {
+                source += "layout(binding = 1, std140) uniform _Local\n{\n";
+
+                for (auto& local : local_parameters)
+                {
+                    source.push_back('\t');
+                    source += Strings::format("{} {};\n", glsl_type_of(local.type), local.param);
+                }
+
+                source += "} local;\n\n";
+            }
+
             for (auto& object : objects)
             {
                 source += Strings::format("layout(binding = {}) uniform {} {};\n", object->index, object->type, object->name);
@@ -632,8 +787,15 @@ namespace Engine
             source += "}\n";
 
 
-            compile_shader(source, current_shader()->binary_code, shader_type());
+            std::vector<unsigned int> spirv;
+            compile_shader(source, current_shader()->binary_code, shader_type(), &spirv);
             current_shader()->text_code = std::move(source);
+
+            if (with_reflection && errors->empty())
+            {
+                parse_reflection(spirv);
+            }
+
             return errors->empty();
         }
 
@@ -660,6 +822,11 @@ namespace Engine
         size_t inv_projview() override
         {
             return (new GLSL_CompiledSource("global.inv_projview"))->id();
+        }
+
+        size_t camera_location() override
+        {
+            return (new GLSL_CompiledSource("global.camera_location"))->id();
         }
 
         size_t time() override
@@ -748,6 +915,17 @@ namespace Engine
         declare_constant_value_method(color3, Color3);
         declare_constant_value_method(color4, Color4);
 
+        /// DYNAMIC PARAMETERS
+
+        size_t vec3_parameter(const String& name, void* value) override
+        {
+            GLSL_LocalParameter& parameter    = local_parameters[create_local_parameter(name, MaterialNodeDataType::Vec3)];
+            parameter.data                    = value;
+            parameter.material_parameter_type = MaterialParameter::Type::Vec3;
+
+            return (new GLSL_CompiledSource(Strings::format("{}{}", local_variable_prefix, name)))->id();
+        }
+
         /// MATH
         size_t sin(MaterialInputPin* pin) override
         {
@@ -762,6 +940,25 @@ namespace Engine
         size_t tan(MaterialInputPin* pin) override
         {
             return (new GLSL_CompiledSource(Strings::format("tan({})", get_pin_source(pin))))->id();
+        }
+
+        size_t dot(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            String source = Strings::format("dot({}, {})", get_pin_source(pin1, MaterialNodeDataType::Vec3),
+                                            get_pin_source(pin2, MaterialNodeDataType::Vec3));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t normalize(MaterialInputPin* pin) override
+        {
+            String source = Strings::format("normalize({})", get_pin_source(pin));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t pow(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            String source = Strings::format("pow({}, {})", get_pin_source(pin1), get_pin_source(pin2, pin1->value_type()));
+            return (new GLSL_CompiledSource(source))->id();
         }
 
 
@@ -924,43 +1121,54 @@ namespace Engine
             return EShLangVertex;
         }
 
-        Index create_vertex_attribute(const String& name, bool* created_now = nullptr)
+        bool compile(VisualMaterial* material, MessageList& errors) override
         {
-            if (created_now)
-                *created_now = false;
+            RenderPassType type = material->pipeline->render_pass;
 
-            Index index = 0;
-            for (auto& input : input_attribute)
+            if (type == RenderPassType::Undefined)
             {
-                if (input.param == name)
-                    return index;
-                ++index;
+                errors.push_back("Undefined render pass type! Please, select render pass type!");
+                return false;
             }
 
-            if (created_now)
-                *created_now = true;
 
-            input_attribute.emplace_back();
-            auto& attrib    = input_attribute.back();
-            attrib.param    = name;
-            attrib.location = static_cast<byte>(index);
+            if (!GLSL_BaseCompiler::compile(material, errors))
+                return false;
 
-            return index;
+            current_shader()->attributes.clear();
+
+            for (auto& input : input_attribute)
+            {
+                current_shader()->attributes.push_back(
+                        VertexShader::Attribute(input.format, VertexAttributeInputRate::Vertex, 1, input.param));
+            }
+
+            return true;
         }
+
 
         virtual size_t vertex(byte index) override
         {
             String code = Strings::format("position_{}", index);
 
             bool created_now;
-            auto& attribute = input_attribute[create_vertex_attribute(code, &created_now)];
+            auto& in_attribute = input_attribute[create_input_attribute(code, &created_now)];
 
             if (created_now)
             {
-                attribute.format = ColorFormat::R32G32B32Sfloat;
-                attribute.type   = MaterialNodeDataType::Vec3;
+                in_attribute.format = ColorFormat::R32G32B32Sfloat;
+                in_attribute.type   = MaterialNodeDataType::Vec3;
             }
 
+            auto& out_attribute = output_attribute[create_output_attribute(code, &created_now)];
+
+            if (created_now)
+            {
+                out_attribute.format = ColorFormat::R32G32B32Sfloat;
+                out_attribute.type   = MaterialNodeDataType::Vec3;
+            }
+
+            statements.push_back(Strings::format("out_{} = in_{}", code, code));
             return (new GLSL_CompiledSource(Strings::format("in_{}", code)))->id();
         }
 
@@ -974,10 +1182,14 @@ namespace Engine
             }
             else
             {
-                auto& attribute  = input_attribute[create_vertex_attribute("position_0")];
-                attribute.format = ColorFormat::R32G32B32Sfloat;
-                attribute.type   = MaterialNodeDataType::Vec3;
-                source           = "global.projview * vec4(in_position_0.xyz, 1.0)";
+                auto& attribute      = input_attribute[create_input_attribute("position_0")];
+                auto& out_attribute  = output_attribute[create_output_attribute("position_0")];
+                attribute.format     = ColorFormat::R32G32B32Sfloat;
+                attribute.type       = MaterialNodeDataType::Vec3;
+                out_attribute.format = ColorFormat::R32G32B32Sfloat;
+                out_attribute.type   = MaterialNodeDataType::Vec3;
+                statements.push_back("out_position_0 = in_position_0");
+                source = "global.projview * vec4(in_position_0.xyz, 1.0)";
             }
 
             statements.push_back(Strings::format("gl_Position = {}", source));
@@ -1006,6 +1218,16 @@ namespace Engine
         EShLanguage shader_type() const override
         {
             return EShLangFragment;
+        }
+
+        void sync(GLSL_VertexCompiler* vertex_compiler)
+        {
+            next_binding_index = vertex_compiler->next_binding_index;
+
+            for (auto& output : vertex_compiler->output_attribute)
+            {
+                input_attribute.push_back(output);
+            }
         }
 
         bool compile(VisualMaterial* material, MessageList& errors) override
@@ -1068,6 +1290,12 @@ namespace Engine
             statements.push_back(Strings::format("out_color = {}", source));
             return 0;
         }
+
+        virtual size_t vertex(byte index) override
+        {
+            String code = Strings::format("in_position_{}", index);
+            return (new GLSL_CompiledSource(code))->id();
+        }
     };
 
 #define exec_step(code)                                                                                                          \
@@ -1077,21 +1305,29 @@ namespace Engine
     }
     class GLSL_Compiler : public ShaderCompilerBase
     {
-        declare_class(GLSL_Compiler, ShaderCompiler);
+        declare_class(GLSL_Compiler, ShaderCompilerBase);
 
     public:
         bool compile(class VisualMaterial* material, MessageList& _errors) override
         {
             errors = &_errors;
 
+            material->clear_parameters();
+            material->pipeline->has_global_parameters = true;
+
             GLSL_VertexCompiler* vertex_compiler     = new GLSL_VertexCompiler();
             GLSL_FragmentCompiler* fragment_compiler = new GLSL_FragmentCompiler();
 
             bool execute_next = true;
             exec_step(vertex_compiler->compile(material, _errors));
-            exec_step(vertex_compiler->build_source());
+
+            fragment_compiler->local_parameters = std::move(vertex_compiler->local_parameters);
+            fragment_compiler->sync(vertex_compiler);
             exec_step(fragment_compiler->compile(material, _errors));
-            exec_step(fragment_compiler->build_source());
+
+            vertex_compiler->local_parameters = fragment_compiler->local_parameters;
+            exec_step(vertex_compiler->build_source());
+            exec_step(fragment_compiler->build_source(true));
 
             delete vertex_compiler;
             delete fragment_compiler;

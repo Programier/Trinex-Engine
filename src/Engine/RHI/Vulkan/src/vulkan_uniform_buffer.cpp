@@ -97,6 +97,7 @@ namespace Engine
         API->_M_state->_M_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
                                                         local_params_location);
         used_data = align_memory(used_data + shadow_data_size, API->_M_properties.limits.minUniformBufferOffsetAlignment);
+        shadow_data_size = 0;
     }
 
     void LocalUniformBufferPool::update(const void* data, size_t size, size_t offset)

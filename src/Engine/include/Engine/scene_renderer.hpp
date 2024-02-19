@@ -19,7 +19,7 @@ namespace Engine
         static ENGINE_EXPORT const Name name_post_process;
         static ENGINE_EXPORT const Name name_output;
 
-        using FunctionCallback = void (*)(SceneRenderer*, RenderViewport*, SceneLayer*);
+        using FunctionCallback = void (*)(SceneRenderer*, RenderViewport*, SceneLayer*, const CameraView&);
         List<FunctionCallback> function_callbacks;
 
     private:
@@ -36,7 +36,7 @@ namespace Engine
         delete_copy_constructors(SceneLayer);
 
         SceneLayer& clear();
-        SceneLayer& render(SceneRenderer*, RenderViewport*);
+        SceneLayer& render(SceneRenderer*, RenderViewport*, const CameraView& view);
         SceneLayer* parent() const;
         SceneLayer* next() const;
         const Name& name() const;

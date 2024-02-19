@@ -136,8 +136,20 @@ namespace Engine
 
     MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline)
     {
-        sampler->rhi_bind(location);
+        if (sampler)
+        {
+            sampler->rhi_bind(location);
+        }
         return *this;
+    }
+
+    bool SamplerMaterialParameter::archive_process(Archive& ar)
+    {
+        if (!BindingMaterialParameter::archive_process(ar))
+            return false;
+
+        sampler.archive_process(ar, true);
+        return ar;
     }
 
     MaterialParameter::Type CombinedSampler2DMaterialParameter::type() const
@@ -147,9 +159,21 @@ namespace Engine
 
     MaterialParameter& CombinedSampler2DMaterialParameter::apply(const Pipeline* pipeline)
     {
-        texture->rhi_bind(location);
-        sampler->rhi_bind(location);
+        if (texture && sampler)
+        {
+            texture->rhi_bind_combined(sampler.ptr(), location);
+        }
         return *this;
+    }
+
+    bool CombinedSampler2DMaterialParameter::archive_process(Archive& ar)
+    {
+        if (!BindingMaterialParameter::archive_process(ar))
+            return false;
+
+        texture.archive_process(ar, true);
+        sampler.archive_process(ar, true);
+        return ar;
     }
 
     MaterialParameter::Type Texture2DMaterialParameter::type() const
@@ -159,8 +183,20 @@ namespace Engine
 
     MaterialParameter& Texture2DMaterialParameter::apply(const Pipeline* pipeline)
     {
-        texture->rhi_bind(location);
+        if (texture)
+        {
+            texture->rhi_bind(location);
+        }
         return *this;
+    }
+
+    bool Texture2DMaterialParameter::archive_process(Archive& ar)
+    {
+        if (!BindingMaterialParameter::archive_process(ar))
+            return false;
+
+        texture.archive_process(ar, true);
+        return ar;
     }
 
     MaterialParameter* MaterialInterface::find_parameter(const Name& name) const

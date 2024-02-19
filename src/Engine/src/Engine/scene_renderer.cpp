@@ -31,11 +31,11 @@ namespace Engine
         return *this;
     }
 
-    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderViewport* viewport)
+    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderViewport* viewport, const CameraView& view)
     {
         for (auto& func : function_callbacks)
         {
-            func(renderer, viewport, this);
+            func(renderer, viewport, this, view);
         }
         return *this;
     }
@@ -151,7 +151,7 @@ namespace Engine
     {
         for (auto layer = root_layer(); layer; layer = layer->next())
         {
-            layer->render(this, viewport);
+            layer->render(this, viewport, view);
         }
         return *this;
     }

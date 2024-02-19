@@ -283,9 +283,9 @@ namespace Engine
             second_archive = writer;
         }
 
-
         if (second_archive.is_open())
         {
+            second_archive & local_parameters;
             vertex_shader->archive_process(second_archive);
             fragment_shader->archive_process(second_archive);
         }

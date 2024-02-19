@@ -28,7 +28,7 @@ namespace Engine
     public:
         Texture();
         delete_copy_constructors(Texture);
-        const Texture& bind_combined(Sampler* sampler, BindLocation location) const;
+        const Texture& rhi_bind_combined(Sampler* sampler, BindLocation location) const;
         Texture& generate_mipmap();
         Texture& setup_render_target_texture();
         bool is_render_target_texture() const;

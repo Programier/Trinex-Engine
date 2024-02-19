@@ -128,7 +128,8 @@ namespace Engine
 
         camera                            = Object::new_instance<CameraComponent>();
         camera->transform.rotation_method = Transform::RotationMethod::YXZ;
-        camera->transform.location        = {0, 0, 10};
+        camera->transform.location        = {0, 10, 10};
+        camera->near_clip_plane           = 0.001;
 
         EventSystem* event_system = EventSystem::new_system<EventSystem>();
         _M_event_system_listeners.push_back(event_system->add_listener(
@@ -145,7 +146,7 @@ namespace Engine
                 EventType::KeyUp, std::bind(&EditorClient::on_key_release, this, std::placeholders::_1)));
 
 
-        extern void render_editor_grid(SceneRenderer* renderer, RenderViewport* viewport, SceneLayer* layer);
+        extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer, const CameraView&);
         auto layer = _M_renderer.root_layer()->find(SceneLayer::name_post_process);
         layer->function_callbacks.push_back(render_editor_grid);
 

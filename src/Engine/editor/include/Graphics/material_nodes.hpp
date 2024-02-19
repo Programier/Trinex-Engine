@@ -61,4 +61,11 @@ namespace Engine::MaterialNodes
         void render() override;
         bool archive_process(Archive& ar) override;
     };
+
+    struct MaterialDynamicParameter : public MaterialNode {
+        String node_name;
+
+        void render() override;
+        bool archive_process(Archive& ar) override;
+    };
 }// namespace Engine::MaterialNodes

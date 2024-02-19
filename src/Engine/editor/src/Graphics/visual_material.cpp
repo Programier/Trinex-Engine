@@ -407,12 +407,6 @@ namespace Engine
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pins_content_indent());
 
                 ImGui::BeginGroup();
-                node->render();
-                ImGui::EndGroup();
-                ImGui::SameLine();
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pins_content_indent());
-
-                ImGui::BeginGroup();
                 {
                     int max_len        = 0.f;
                     float max_item_len = 0.f;
@@ -434,6 +428,7 @@ namespace Engine
                     ImGui::EndGroup();
                 }
 
+                node->render();
                 ImGui::EndGroup();
             }
 

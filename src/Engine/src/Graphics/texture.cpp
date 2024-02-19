@@ -32,7 +32,7 @@ namespace Engine
 
     Texture::Texture() = default;
 
-    const Texture& Texture::bind_combined(Sampler* sampler, BindLocation location) const
+    const Texture& Texture::rhi_bind_combined(Sampler* sampler, BindLocation location) const
     {
         if (_M_rhi_object)
         {

@@ -136,7 +136,7 @@ namespace Engine
         if (instance)
         {
             auto obj    = instance->create_object();
-            _M_compiler = obj->instance_cast<ShaderCompiler>();
+            _M_compiler = obj->instance_cast<ShaderCompilerBase>();
         }
 
         return *this;

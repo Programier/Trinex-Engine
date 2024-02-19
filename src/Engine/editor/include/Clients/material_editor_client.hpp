@@ -18,7 +18,7 @@ namespace Engine
 
         class RenderViewport* _M_viewport         = nullptr;
         class VisualMaterial* _M_current_material = nullptr;
-        class ShaderCompiler* _M_compiler         = nullptr;
+        class ShaderCompilerBase* _M_compiler     = nullptr;
 
         bool _M_open_select_node_window   = false;
         bool _M_open_material_code_window = false;

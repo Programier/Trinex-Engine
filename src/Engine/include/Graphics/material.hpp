@@ -38,14 +38,34 @@ namespace Engine
         virtual MaterialParameter& apply(const Pipeline* pipeline);
         virtual bool archive_process(Archive& ar) override;
 
+        template<typename T>
+        T* get()
+        {
+            if (size() == sizeof(T))
+            {
+                return reinterpret_cast<T*>(data());
+            }
+            return nullptr;
+        }
+
+        template<typename T>
+        const T* get() const
+        {
+            if (size() == sizeof(T))
+            {
+                return reinterpret_cast<const T*>(data());
+            }
+            return nullptr;
+        }
+
         virtual ~MaterialParameter() = default;
     };
 
-    template<typename Type, MaterialParameter::Type _parameter_type>
+    template<typename TypeData, MaterialParameter::Type _parameter_type>
     class TypedMaterialParameter : public MaterialParameter
     {
     public:
-        Type param;
+        TypeData param;
         static constexpr inline MaterialParameter::Type parameter_type = _parameter_type;
 
         MaterialParameter::Type type() const override
@@ -55,7 +75,7 @@ namespace Engine
 
         size_t size() const override
         {
-            return sizeof(Type);
+            return sizeof(TypeData);
         }
 
         byte* data() override
@@ -93,6 +113,7 @@ namespace Engine
 
         Type type() const override;
         MaterialParameter& apply(const Pipeline* pipeline) override;
+        bool archive_process(Archive& ar) override;
     };
 
     class CombinedSampler2DMaterialParameter : public BindingMaterialParameter
@@ -103,6 +124,7 @@ namespace Engine
 
         Type type() const override;
         MaterialParameter& apply(const Pipeline* pipeline) override;
+        bool archive_process(Archive& ar) override;
     };
 
     struct Texture2DMaterialParameter : public BindingMaterialParameter {
@@ -110,6 +132,7 @@ namespace Engine
 
         Type type() const override;
         MaterialParameter& apply(const Pipeline* pipeline) override;
+        bool archive_process(Archive& ar) override;
     };
 
 

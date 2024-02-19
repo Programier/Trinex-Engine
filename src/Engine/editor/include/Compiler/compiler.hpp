@@ -33,9 +33,12 @@ namespace Engine
 
     public:
         // MATH
-        virtual size_t sin(MaterialInputPin*) = 0;
-        virtual size_t cos(MaterialInputPin*) = 0;
-        virtual size_t tan(MaterialInputPin*) = 0;
+        virtual size_t sin(MaterialInputPin*)                              = 0;
+        virtual size_t cos(MaterialInputPin*)                              = 0;
+        virtual size_t tan(MaterialInputPin*)                              = 0;
+        virtual size_t normalize(MaterialInputPin*)                        = 0;
+        virtual size_t dot(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
+        virtual size_t pow(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
 
         // OPERATORS
         virtual size_t add(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
@@ -57,11 +60,13 @@ namespace Engine
         //        vec3 camera_up;
         //        vec2 depth_range;
 
+
         virtual size_t projection()   = 0;
         virtual size_t view()         = 0;
         virtual size_t projview()     = 0;
         virtual size_t inv_projview() = 0;
 
+        virtual size_t camera_location() = 0;
 
         virtual size_t render_target_size()     = 0;
         virtual size_t time()                   = 0;
@@ -98,6 +103,9 @@ namespace Engine
         virtual size_t color4_constant(void* value) = 0;
         //        virtual size_t mat3_constant()              = 0;
         //        virtual size_t mat4_constant()              = 0;
+
+        // Dynamic Parameters
+        virtual size_t vec3_parameter(const String& name, void* value) = 0;
 
         // Texture
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) = 0;

@@ -297,6 +297,10 @@ namespace Engine
         {
             ImGui::Text("editor/Object: %s"_localized, object->name().to_string().c_str());
             ImGui::Text("editor/Class: %s"_localized, object->class_instance()->name().c_str());
+            if(ImGui::Button("editor/Apply changes"_localized))
+            {
+                object->apply_changes();
+            }
             ImGui::Separator();
 
             render_object_properties(object);
