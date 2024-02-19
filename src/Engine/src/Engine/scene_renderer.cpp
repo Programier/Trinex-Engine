@@ -1,5 +1,9 @@
+#include <Core/engine.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/scene_renderer.hpp>
+#include <Graphics/render_pass.hpp>
+#include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 
 
 namespace Engine
@@ -33,6 +37,11 @@ namespace Engine
 
     SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderViewport* viewport, const CameraView& view)
     {
+        for (auto& method : methods_callback)
+        {
+            (renderer->*method)(viewport, this, view);
+        }
+
         for (auto& func : function_callbacks)
         {
             func(renderer, viewport, this, view);
@@ -124,16 +133,24 @@ namespace Engine
         return new_layer;
     }
 
+    void SceneRenderer::clear_render_targets(RenderViewport*, SceneLayer*, const CameraView&)
+    {
+        GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearGBuffer));
+        SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearSceneOutput));
+    }
+
     SceneRenderer::SceneRenderer() : _M_scene(nullptr)
     {
         _M_root_layer                       = new SceneLayer("Root Layer");
         _M_root_layer->_M_can_create_parent = false;
 
-        _M_root_layer->create_next(SceneLayer::name_clear_render_targets)
-                ->create_next(SceneLayer::name_base_pass)
-                ->create_next(SceneLayer::name_light_pass)
-                ->create_next(SceneLayer::name_post_process)
-                ->create_next(SceneLayer::name_output);
+        _M_clear_layer        = _M_root_layer->create_next(SceneLayer::name_clear_render_targets);
+        _M_base_pass_layer    = _M_clear_layer->create_next(SceneLayer::name_base_pass);
+        _M_lighting_layer     = _M_base_pass_layer->create_next(SceneLayer::name_light_pass);
+        _M_post_process_layer = _M_lighting_layer->create_next(SceneLayer::name_post_process);
+        _M_output_layer       = _M_post_process_layer->create_next(SceneLayer::name_output);
+
+        _M_clear_layer->methods_callback.push_back(&SceneRenderer::clear_render_targets);
     }
 
     SceneRenderer& SceneRenderer::scene(SceneInterface* scene)
@@ -149,9 +166,19 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::render(const CameraView& view, RenderViewport* viewport)
     {
+#if TRINEX_DEBUG_BUILD
+        auto rhi = engine_instance->rhi();
+#endif
         for (auto layer = root_layer(); layer; layer = layer->next())
         {
+#if TRINEX_DEBUG_BUILD
+            rhi->push_debug_stage(layer->_M_name.c_str());
+#endif
             layer->render(this, viewport, view);
+
+#if TRINEX_DEBUG_BUILD
+            rhi->pop_debug_stage();
+#endif
         }
         return *this;
     }

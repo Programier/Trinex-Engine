@@ -339,6 +339,9 @@ namespace Engine
         Window      = 1,
         SceneOutput = 2,
         GBuffer     = 3,
+
+        ClearSceneOutput = 4,
+        ClearGBuffer     = 5,
         __COUNT__,
     };
 }// namespace Engine

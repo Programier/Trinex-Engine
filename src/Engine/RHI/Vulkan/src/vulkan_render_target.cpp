@@ -82,7 +82,7 @@ namespace Engine
         API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barriers, {}, {});
     }
 
-    void VulkanRenderTargetFrame::bind()
+    void VulkanRenderTargetFrame::bind(RenderPass* render_pass)
     {
         if (API->_M_state->_M_framebuffer == this)
             return;
@@ -98,7 +98,18 @@ namespace Engine
 
         API->_M_state->_M_framebuffer = this;
         _M_owner->_M_render_pass_info.setFramebuffer(_M_framebuffer);
-        API->current_command_buffer().beginRenderPass(_M_owner->_M_render_pass_info, vk::SubpassContents::eInline);
+
+        VulkanRenderPass* vulkan_render_pass = render_pass->rhi_object<VulkanRenderPass>();
+        if (vulkan_render_pass == _M_owner->_M_render_pass)
+        {
+            API->current_command_buffer().beginRenderPass(_M_owner->_M_render_pass_info, vk::SubpassContents::eInline);
+        }
+        else
+        {
+            _M_owner->_M_render_pass_info.setRenderPass(vulkan_render_pass->_M_render_pass);
+            API->current_command_buffer().beginRenderPass(_M_owner->_M_render_pass_info, vk::SubpassContents::eInline);
+            _M_owner->_M_render_pass_info.setRenderPass(_M_owner->_M_render_pass->_M_render_pass);
+        }
 
         if (_M_owner->_M_render_pass == API->_M_main_render_pass)
         {
@@ -279,10 +290,10 @@ namespace Engine
     }
 
 
-    Index VulkanRenderTarget::bind()
+    Index VulkanRenderTarget::bind(RenderPass* render_pass)
     {
         auto index = buffer_index();
-        _M_frames[index]->bind();
+        _M_frames[index]->bind(render_pass);
         return index;
     }
 
@@ -366,8 +377,7 @@ namespace Engine
     {
         _M_viewport = viewport;
 
-        uint_t index = 0;
-
+        uint_t index   = 0;
         _M_size.height = viewport->_M_swapchain->extent.height;
         _M_size.width  = viewport->_M_swapchain->extent.width;
         _M_render_pass = API->_M_main_render_pass;

@@ -7,7 +7,6 @@
 
 namespace Engine
 {
-
     static GLenum get_attachment_type(GLenum type)
     {
         switch (type)
@@ -23,8 +22,7 @@ namespace Engine
         }
     }
 
-
-    Index OpenGL_RenderTarget::bind()
+    Index OpenGL_RenderTarget::bind(RenderPass* render_pass)
     {
         if (OPENGL_API->_M_current_render_target != this)
         {
@@ -34,7 +32,7 @@ namespace Engine
             update_viewport();
             update_scissors();
 
-            _M_render_pass->apply(this);
+            render_pass->rhi_object<OpenGL_RenderPass>()->apply(this);
         }
 
         return 0;
@@ -89,8 +87,6 @@ namespace Engine
         glGenFramebuffers(1, &_M_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, _M_framebuffer);
 
-        _M_render_pass = render_target->render_pass->rhi_object<OpenGL_RenderPass>();
-
         size_t index           = 0;
         _M_clear_color         = render_target->color_clear;
         _M_depth_stencil_clear = render_target->depth_stencil_clear;
@@ -110,12 +106,14 @@ namespace Engine
             index++;
         }
 
-        if (_M_render_pass->_M_has_depth_stencil_attachment)
+        const Texture2D* depth_attachment = render_target->frame(0)->depth_stencil_attachment.ptr();
+
+        if (depth_attachment)
         {
-            const Texture2D* depth_attachment = render_target->frame(0)->depth_stencil_attachment;
             attach_texture(depth_attachment,
                            get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->_M_format._M_format));
         }
+
 
         if (OPENGL_API->_M_current_render_target != nullptr)
         {
@@ -149,9 +147,8 @@ namespace Engine
 #endif
         else if (status == GL_FRAMEBUFFER_UNSUPPORTED)
         {
-            error_log("Framebuffer",
-                      "Combination of internal formats used by attachments in thef ramebuffer results in a "
-                      "nonrednerable target");
+            error_log("Framebuffer", "Combination of internal formats used by attachments in thef ramebuffer results in a "
+                                     "nonrednerable target");
         }
         else
         {
@@ -162,7 +159,7 @@ namespace Engine
 
     OpenGL_RenderTarget::~OpenGL_RenderTarget()
     {
-        if(_M_framebuffer != 0)
+        if (_M_framebuffer != 0)
         {
             glDeleteFramebuffers(1, &_M_framebuffer);
         }
@@ -170,14 +167,11 @@ namespace Engine
 
     OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
     {
-        _M_render_pass = OPENGL_API->_M_main_render_pass;
         _M_clear_color.push_back(Colors::Black);
     }
 
     OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
-    {
-        _M_render_pass = nullptr;
-    }
+    {}
 
     RHI_RenderTarget* OpenGL::create_render_target(const RenderTarget* target)
     {

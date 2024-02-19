@@ -19,11 +19,13 @@ namespace Engine
 
             vk::AttachmentLoadOp clear_op =
                     color_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad;
+            vk::ImageLayout input_layout_op =
+                    color_attachment.clear_on_bind ? vk::ImageLayout::eUndefined : vk::ImageLayout::eShaderReadOnlyOptimal;
 
             vk::AttachmentDescription description = vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
+                    input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
 
 
             _M_attachment_descriptions.push_back(description);
@@ -40,13 +42,16 @@ namespace Engine
                 throw EngineException("Cannot use attachmet with non depth-/stencil format as depth-/stencil attachment");
             }
 
-            vk::AttachmentLoadOp clear_op = render_pass->depth_stencil_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear
-                                                                                                : vk::AttachmentLoadOp::eLoad;
+            vk::AttachmentLoadOp clear_op   = render_pass->depth_stencil_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear
+                                                                                                  : vk::AttachmentLoadOp::eLoad;
+            vk::ImageLayout input_layout_op = render_pass->depth_stencil_attachment.clear_on_bind
+                                                      ? vk::ImageLayout::eUndefined
+                                                      : vk::ImageLayout::eShaderReadOnlyOptimal;
 
             vk::AttachmentDescription description = vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
+                    input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
 
             _M_attachment_descriptions.push_back(description);
         }

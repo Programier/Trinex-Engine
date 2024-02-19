@@ -13,13 +13,12 @@ namespace Engine
         struct VulkanRenderTarget* _M_owner = nullptr;
 
 
-        void init(struct VulkanRenderTarget* owner, const RenderTarget* info, struct VulkanRenderPass* render_pass,
-                  Index frame);
+        void init(struct VulkanRenderTarget* owner, const RenderTarget* info, struct VulkanRenderPass* render_pass, Index frame);
         void post_init();
         void destroy();
 
         static void push_barriers(size_t count);
-        void bind();
+        void bind(RenderPass* render_pass);
         void unbind();
         VulkanRenderTargetFrame& update_viewport();
         VulkanRenderTargetFrame& update_scissors();
@@ -45,9 +44,7 @@ namespace Engine
         vk::Extent2D _M_size;
         vk::Rect2D _M_scissor;
         vk::Viewport _M_viewport;
-
-        Vector<vk::ClearValue> _M_clear_values = {
-                vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
+        Vector<vk::ClearValue> _M_clear_values = {vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
 
 
         VulkanRenderTarget& init(const RenderTarget* info, VulkanRenderPass* render_pass);
@@ -55,7 +52,7 @@ namespace Engine
         VulkanRenderTarget& destroy();
         VulkanRenderTarget& size(uint32_t width, uint32_t height);
 
-        Index bind() override;
+        Index bind(RenderPass* render_pass) override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         void clear_color(const ColorClearValue& color, byte layout) override;

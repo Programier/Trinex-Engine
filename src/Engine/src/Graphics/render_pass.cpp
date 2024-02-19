@@ -41,14 +41,19 @@ namespace Engine
             case RenderPassType::GBuffer:
                 pass = load_gbuffer_render_pass();
                 break;
+
+            case RenderPassType::ClearGBuffer:
+                pass = load_clear_gbuffer_render_pass();
+                break;
+
+            case RenderPassType::ClearSceneOutput:
+                pass = load_clear_scene_color_render_pass();
+                break;
+
             default:
                 break;
         }
 
-        if(pass)
-        {
-            pass->add_reference();
-        }
         return pass;
     }
 

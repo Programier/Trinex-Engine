@@ -185,7 +185,23 @@ namespace Engine
 
     RenderPass* RenderPass::load_gbuffer_render_pass()
     {
-        RenderPass* pass = Object::new_non_serializable_instance<GBufferRenderPass>();
+        RenderPass* pass = Object::new_non_serializable_instance<EngineResource<GBufferRenderPass>>();
+
+        for (auto& ell : pass->color_attachments)
+        {
+            ell.clear_on_bind = false;
+        }
+
+        pass->depth_stencil_attachment.clear_on_bind = false;
+
+        pass->init_resource(true);
+
+        return pass;
+    }
+
+    RenderPass* RenderPass::load_clear_gbuffer_render_pass()
+    {
+        RenderPass* pass = Object::new_non_serializable_instance<EngineResource<GBufferRenderPass>>();
         pass->init_resource(true);
         return pass;
     }
@@ -311,6 +327,19 @@ namespace Engine
 
 
     RenderPass* RenderPass::load_scene_color_render_pass()
+    {
+        RenderPass* pass = Object::new_non_serializable_instance<SceneColorOutputRenderPass>();
+
+        for (auto& ell : pass->color_attachments)
+        {
+            ell.clear_on_bind = false;
+        }
+
+        pass->init_resource(true);
+        return pass;
+    }
+
+    RenderPass* RenderPass::load_clear_scene_color_render_pass()
     {
         RenderPass* pass = Object::new_non_serializable_instance<SceneColorOutputRenderPass>();
         pass->init_resource(true);

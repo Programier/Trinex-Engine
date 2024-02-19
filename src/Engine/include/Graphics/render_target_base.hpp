@@ -25,7 +25,7 @@ namespace Engine
         delete_copy_constructors(RenderTargetBase);
         RenderTargetBase();
 
-        RenderTargetBase& rhi_bind();
+        RenderTargetBase& rhi_bind(RenderPass* render_pass = nullptr);
         const RenderTargetBase& viewport(const ViewPort& viewport);
         const RenderTargetBase& scissor(const Scissor& scissor);
         const ViewPort& viewport();

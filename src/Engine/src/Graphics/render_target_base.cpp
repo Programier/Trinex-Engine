@@ -16,11 +16,16 @@ namespace Engine
     RenderTargetBase::RenderTargetBase()
     {}
 
-    RenderTargetBase& RenderTargetBase::rhi_bind()
+    RenderTargetBase& RenderTargetBase::rhi_bind(RenderPass* new_render_pass)
     {
         if (_M_rhi_object != nullptr)
         {
-            _M_frame_index = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind());
+            if (!new_render_pass)
+            {
+                new_render_pass = render_pass;
+            }
+
+            _M_frame_index = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
             _M_current     = this;
         }
 

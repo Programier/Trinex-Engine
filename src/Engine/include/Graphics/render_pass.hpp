@@ -9,12 +9,15 @@ namespace Engine
 
     class ENGINE_EXPORT RenderPass : public RenderResource
     {
-        declare_class(RenderPass, RenderResource);  
+        declare_class(RenderPass, RenderResource);
 
     private:
         static RenderPass* load_window_render_pass();
         static RenderPass* load_scene_color_render_pass();
         static RenderPass* load_gbuffer_render_pass();
+
+        static RenderPass* load_clear_scene_color_render_pass();
+        static RenderPass* load_clear_gbuffer_render_pass();
 
     public:
         struct Attachment {
