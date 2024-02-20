@@ -7,35 +7,37 @@
 namespace Engine
 {
     class Pipeline;
+    class SceneComponent;
 
     class ENGINE_EXPORT MaterialParameter : public SerializableObject
     {
     public:
         enum Type
         {
-            Bool = 0,
-            Int = 1,
-            UInt = 2,
-            Float = 3,
-            BVec2 = 4,
-            BVec3 = 5,
-            BVec4 = 6,
-            IVec2 = 7,
-            IVec3 = 8,
-            IVec4 = 9,
-            UVec2 = 10,
-            UVec3 = 11,
-            UVec4 = 12,
-            Vec2 = 13,
-            Vec3 = 14,
-            Vec4 = 15,
-            Mat3 = 16,
-            Mat4 = 17,
-            Sampler = 18,
-            Texture2D = 19,
+            Bool              = 0,
+            Int               = 1,
+            UInt              = 2,
+            Float             = 3,
+            BVec2             = 4,
+            BVec3             = 5,
+            BVec4             = 6,
+            IVec2             = 7,
+            IVec3             = 8,
+            IVec4             = 9,
+            UVec2             = 10,
+            UVec3             = 11,
+            UVec4             = 12,
+            Vec2              = 13,
+            Vec3              = 14,
+            Vec4              = 15,
+            Mat3              = 16,
+            Mat4              = 17,
+            Sampler           = 18,
+            Texture2D         = 19,
             CombinedSampler2D = 20,
+            ModelMatrix       = 21,
 
-            __COUNT__ = 21
+            __COUNT__ = 22
         };
 
         Name name;
@@ -45,7 +47,7 @@ namespace Engine
         virtual byte* data();
         virtual const byte* data() const;
         virtual Type type() const = 0;
-        virtual MaterialParameter& apply(const Pipeline* pipeline);
+        virtual MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component);
         virtual bool archive_process(Archive& ar) override;
 
         template<typename T>
@@ -101,26 +103,26 @@ namespace Engine
 
     using BoolMaterialParameter  = TypedMaterialParameter<bool, MaterialParameter::Type::Bool>;
     using IntMaterialParameter   = TypedMaterialParameter<int32_t, MaterialParameter::Type::Int>;
-    using UIntMaterialParameter   = TypedMaterialParameter<uint32_t, MaterialParameter::Type::UInt>;
+    using UIntMaterialParameter  = TypedMaterialParameter<uint32_t, MaterialParameter::Type::UInt>;
     using FloatMaterialParameter = TypedMaterialParameter<float, MaterialParameter::Type::Float>;
 
-    using BVec2MaterialParameter  = TypedMaterialParameter<BoolVector2D, MaterialParameter::Type::BVec2>;
-    using BVec3MaterialParameter  = TypedMaterialParameter<BoolVector3D, MaterialParameter::Type::BVec3>;
-    using BVec4MaterialParameter  = TypedMaterialParameter<BoolVector4D, MaterialParameter::Type::BVec4>;
+    using BVec2MaterialParameter = TypedMaterialParameter<BoolVector2D, MaterialParameter::Type::BVec2>;
+    using BVec3MaterialParameter = TypedMaterialParameter<BoolVector3D, MaterialParameter::Type::BVec3>;
+    using BVec4MaterialParameter = TypedMaterialParameter<BoolVector4D, MaterialParameter::Type::BVec4>;
 
-    using IVec2MaterialParameter  = TypedMaterialParameter<IntVector2D, MaterialParameter::Type::IVec2>;
-    using IVec3MaterialParameter  = TypedMaterialParameter<IntVector3D, MaterialParameter::Type::IVec3>;
-    using IVec4MaterialParameter  = TypedMaterialParameter<IntVector4D, MaterialParameter::Type::IVec4>;
+    using IVec2MaterialParameter = TypedMaterialParameter<IntVector2D, MaterialParameter::Type::IVec2>;
+    using IVec3MaterialParameter = TypedMaterialParameter<IntVector3D, MaterialParameter::Type::IVec3>;
+    using IVec4MaterialParameter = TypedMaterialParameter<IntVector4D, MaterialParameter::Type::IVec4>;
 
-    using UVec2MaterialParameter  = TypedMaterialParameter<UIntVector2D, MaterialParameter::Type::UVec2>;
-    using UVec3MaterialParameter  = TypedMaterialParameter<UIntVector3D, MaterialParameter::Type::UVec3>;
-    using UVec4MaterialParameter  = TypedMaterialParameter<UIntVector4D, MaterialParameter::Type::UVec4>;
+    using UVec2MaterialParameter = TypedMaterialParameter<UIntVector2D, MaterialParameter::Type::UVec2>;
+    using UVec3MaterialParameter = TypedMaterialParameter<UIntVector3D, MaterialParameter::Type::UVec3>;
+    using UVec4MaterialParameter = TypedMaterialParameter<UIntVector4D, MaterialParameter::Type::UVec4>;
 
-    using Vec2MaterialParameter  = TypedMaterialParameter<Vector2D, MaterialParameter::Type::Vec2>;
-    using Vec3MaterialParameter  = TypedMaterialParameter<Vector3D, MaterialParameter::Type::Vec3>;
-    using Vec4MaterialParameter  = TypedMaterialParameter<Vector4D, MaterialParameter::Type::Vec4>;
-    using Mat3MaterialParameter  = TypedMaterialParameter<Matrix3f, MaterialParameter::Type::Mat3>;
-    using Mat4MaterialParameter  = TypedMaterialParameter<Matrix4f, MaterialParameter::Type::Mat4>;
+    using Vec2MaterialParameter = TypedMaterialParameter<Vector2D, MaterialParameter::Type::Vec2>;
+    using Vec3MaterialParameter = TypedMaterialParameter<Vector3D, MaterialParameter::Type::Vec3>;
+    using Vec4MaterialParameter = TypedMaterialParameter<Vector4D, MaterialParameter::Type::Vec4>;
+    using Mat3MaterialParameter = TypedMaterialParameter<Matrix3f, MaterialParameter::Type::Mat3>;
+    using Mat4MaterialParameter = TypedMaterialParameter<Matrix4f, MaterialParameter::Type::Mat4>;
 
     class ENGINE_EXPORT BindingMaterialParameter : public MaterialParameter
     {
@@ -136,7 +138,7 @@ namespace Engine
         Pointer<class Sampler> sampler;
 
         Type type() const override;
-        MaterialParameter& apply(const Pipeline* pipeline) override;
+        MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
     };
 
@@ -147,7 +149,7 @@ namespace Engine
         Pointer<class Texture2D> texture;
 
         Type type() const override;
-        MaterialParameter& apply(const Pipeline* pipeline) override;
+        MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
     };
 
@@ -155,8 +157,13 @@ namespace Engine
         Pointer<class Texture2D> texture;
 
         Type type() const override;
-        MaterialParameter& apply(const Pipeline* pipeline) override;
+        MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
+    };
+
+    struct ModelMatrixMaterialParameter : public MaterialParameter {
+        Type type() const override;
+        ModelMatrixMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
 
@@ -173,7 +180,7 @@ namespace Engine
         virtual MaterialParameter* find_parameter(const Name& name) const;
         virtual MaterialInterface* parent() const;
         virtual class Material* material();
-        virtual bool apply();
+        virtual bool apply(SceneComponent* component = nullptr);
     };
 
     class ENGINE_EXPORT Material : public MaterialInterface
@@ -187,7 +194,7 @@ namespace Engine
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;
 
 
-        void apply_shader_global_params(class Shader* shader, MaterialInterface* head);
+        void apply_shader_global_params(class Shader* shader, MaterialInterface* head, SceneComponent* component);
 
     public:
         Pipeline* pipeline;
@@ -202,8 +209,8 @@ namespace Engine
         Material& remove_parameter(const Name& name);
         Material& clear_parameters();
 
-        bool apply() override;
-        bool apply(MaterialInterface* head);
+        bool apply(SceneComponent* component = nullptr) override;
+        bool apply(MaterialInterface* head, SceneComponent* component = nullptr);
         class Material* material() override;
         Material& apply_changes() override;
 
@@ -227,7 +234,7 @@ namespace Engine
         bool archive_process(Archive& archive) override;
         MaterialParameter* find_parameter(const Name& name) const override;
         MaterialInterface* parent() const override;
-        bool apply() override;
+        bool apply(SceneComponent* component = nullptr) override;
         class Material* material() override;
     };
 }// namespace Engine

@@ -8,6 +8,8 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 
+#include <Graphics/mesh.hpp>
+
 namespace Engine
 {
     static int lines_per_axis     = 150;
@@ -49,7 +51,7 @@ namespace Engine
 
     static DefaultResourcesInitializeController on_init(initialize_resources);
 
-    void render_editor_grid(SceneRenderer* renderer, RenderViewport* viewport, SceneLayer* layer, const CameraView& view)
+    void render_editor_grid(SceneRenderer* renderer, RenderViewport* viewport, SceneLayer* layer)
     {
         static Name name_color  = "color";
         static Name name_scale  = "scale";
@@ -58,6 +60,8 @@ namespace Engine
         SceneColorOutput::instance()->rhi_bind();
 
         auto rhi = engine_instance->rhi();
+
+        const CameraView& view = renderer->camera_view();
 
         float camera_height = glm::abs(view.location.y);
         float scale         = 1.f;

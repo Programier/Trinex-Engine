@@ -199,6 +199,10 @@ namespace Engine
         return nullptr;
     }
 
+    bool System::is_shutdowned() const
+    {
+        return !_M_is_fully_created;
+    }
 
     System& System::shutdown()
     {

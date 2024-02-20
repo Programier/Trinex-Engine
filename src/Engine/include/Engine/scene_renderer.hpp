@@ -2,106 +2,71 @@
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
+#include <Engine/camera_types.hpp>
 
 namespace Engine
 {
     class SceneRenderer;
     class RenderViewport;
-    class CameraView;
+    class SceneLayer;
 
-
-    class ENGINE_EXPORT SceneLayer final
-    {
-    public:
-        static ENGINE_EXPORT const Name name_clear_render_targets;
-        static ENGINE_EXPORT const Name name_base_pass;
-        static ENGINE_EXPORT const Name name_light_pass;
-        static ENGINE_EXPORT const Name name_post_process;
-        static ENGINE_EXPORT const Name name_output;
-
-        using FunctionCallback = void (*)(SceneRenderer*, RenderViewport*, SceneLayer*, const CameraView&);
-        using MethodCallback   = void (SceneRenderer::*)(RenderViewport*, SceneLayer*, const CameraView&);
-        List<FunctionCallback> function_callbacks;
-        List<MethodCallback> methods_callback;
-
-    private:
-        SceneLayer* _M_parent = nullptr;
-        SceneLayer* _M_next   = nullptr;
-        Name _M_name;
-        bool _M_can_create_parent = true;
-
-
-        SceneLayer(const Name& name);
-        ~SceneLayer();
-
-    public:
-        delete_copy_constructors(SceneLayer);
-
-        SceneLayer& clear();
-        SceneLayer& render(SceneRenderer*, RenderViewport*, const CameraView& view);
-        SceneLayer* parent() const;
-        SceneLayer* next() const;
-        const Name& name() const;
-
-        void destroy();
-        SceneLayer* find(const Name& name);
-        SceneLayer* create_next(const Name& name);
-        SceneLayer* create_parent(const Name& name);
-
-
-        friend class SceneRenderer;
-    };
 
     class ENGINE_EXPORT SceneRenderer final
     {
     private:
-        SceneLayer* _M_root_layer         = nullptr;
-        SceneLayer* _M_clear_layer        = nullptr;
-        SceneLayer* _M_base_pass_layer    = nullptr;
-        SceneLayer* _M_lighting_layer     = nullptr;
-        SceneLayer* _M_post_process_layer = nullptr;
-        SceneLayer* _M_output_layer       = nullptr;
+        class Scene* _M_scene;
 
-        class SceneInterface* _M_scene;
+        CameraView _M_camera_view;
+        Matrix4f _M_projection;
+        Matrix4f _M_view;
+        Matrix4f _M_projview;
+        Matrix4f _M_inv_projview;
+        Size2D _M_size;
 
-        void clear_render_targets(RenderViewport*, SceneLayer*, const CameraView&);
 
     public:
         SceneRenderer();
         delete_copy_constructors(SceneRenderer);
 
-        SceneRenderer& scene(SceneInterface* scene);
-        SceneInterface* scene() const;
-        SceneRenderer& render(const CameraView& view, RenderViewport* viewport);
+        SceneRenderer& scene(Scene* scene);
+        Scene* scene() const;
+        SceneRenderer& render(const CameraView& view, RenderViewport* viewport, const Size2D& size);
 
-        FORCE_INLINE SceneLayer* root_layer() const
+        const SceneRenderer& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
+                                             Vector3D& world_direction) const;
+        Vector4D world_to_screen(const Vector3D& world_point) const;
+
+        void clear_render_targets(RenderViewport*, SceneLayer*);
+
+
+        FORCE_INLINE const Matrix4f& view_matrix() const
         {
-            return _M_root_layer;
+            return _M_view;
         }
 
-        FORCE_INLINE SceneLayer* clear_layer() const
+        FORCE_INLINE const Matrix4f& projection_matrix() const
         {
-            return _M_clear_layer;
+            return _M_projection;
         }
 
-        FORCE_INLINE SceneLayer* base_pass_layer() const
+        FORCE_INLINE const Matrix4f& projview_matrix() const
         {
-            return _M_base_pass_layer;
+            return _M_projview;
         }
 
-        FORCE_INLINE SceneLayer* lighting_layer() const
+        FORCE_INLINE const Matrix4f& inv_projview_matrix() const
         {
-            return _M_lighting_layer;
+            return _M_inv_projview;
         }
 
-        FORCE_INLINE SceneLayer* post_process_layer() const
+        FORCE_INLINE const CameraView& camera_view() const
         {
-            return _M_post_process_layer;
+            return _M_camera_view;
         }
 
-        FORCE_INLINE SceneLayer* output_layer() const
+        FORCE_INLINE const Size2D& view_size() const
         {
-            return _M_output_layer;
+            return _M_size;
         }
 
         ~SceneRenderer();

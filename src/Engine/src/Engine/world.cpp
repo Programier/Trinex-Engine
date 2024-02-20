@@ -53,6 +53,7 @@ namespace Engine
     World& World::shutdown()
     {
         Super::shutdown();
+        stop_play();
         delete _M_scene;
         return *this;
     }
@@ -107,6 +108,7 @@ namespace Engine
             {
                 root->transform.location = location;
                 root->transform.rotation = rotation;
+                _M_scene->root_component()->attach(root);
             }
         }
         actor->_M_world = this;
@@ -133,7 +135,7 @@ namespace Engine
             return *this;
         }
 
-        actor->destroyed();
+        actor->destroy();
 
         for (size_t index = 0, count = _M_actors.size(); index < count; ++index)
         {
@@ -152,9 +154,17 @@ namespace Engine
         return destroy_actor(actor, false);
     }
 
-    SceneInterface* World::scene() const
+    Scene* World::scene() const
     {
         return _M_scene;
+    }
+
+    World::~World()
+    {
+        if (!is_shutdowned())
+        {
+            shutdown();
+        }
     }
 
     World* World::global()
@@ -166,7 +176,7 @@ namespace Engine
             if (!system)
                 return nullptr;
             system = system->find_subsystem("LogicSystem::Global World");
-            if(!system)
+            if (!system)
                 return nullptr;
 
             global_world = system->instance_cast<World>();

@@ -85,6 +85,7 @@ namespace Engine
         virtual size_t view()         = 0;
         virtual size_t projview()     = 0;
         virtual size_t inv_projview() = 0;
+        virtual size_t model()        = 0;
 
         virtual size_t camera_location() = 0;
 

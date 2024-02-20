@@ -105,11 +105,8 @@ namespace Engine
     }
 
 
-    Transform& Transform::update(class SceneComponent* scene_component, bool is_parent)
+    Transform& Transform::update(class SceneComponent* scene_component)
     {
-        if (!is_parent)
-            scene_component = scene_component->parent();
-
         if (scene_component)
         {
             local_to_world = scene_component->transform.local_to_world * matrix();
@@ -118,12 +115,6 @@ namespace Engine
         {
             local_to_world = matrix();
         }
-        return *this;
-    }
-
-    Transform& Transform::update()
-    {
-        local_to_world = matrix();
         return *this;
     }
 

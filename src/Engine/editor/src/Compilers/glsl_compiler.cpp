@@ -725,7 +725,15 @@ namespace Engine
                         MaterialParameter* material_parameter =
                                 material->create_parameter(name, parameter->material_parameter_type);
                         material->pipeline->local_parameters.update(name, member_offset);
-                        std::memcpy(material_parameter->data(), parameter->data, material_parameter->size());
+
+                        void* dest  = material_parameter->data();
+                        void* src   = parameter->data;
+                        size_t size = material_parameter->size();
+
+                        if (dest && src && size > 0)
+                        {
+                            std::memcpy(dest, src, size);
+                        }
                     }
                 }
             }
@@ -824,6 +832,21 @@ namespace Engine
             return (new GLSL_CompiledSource("global.inv_projview"))->id();
         }
 
+        size_t model() override
+        {
+            bool created_now;
+            Index index                = create_local_parameter("model_matrix", MaterialNodeDataType::Mat4, &created_now);
+            GLSL_LocalParameter& param = local_parameters[index];
+
+            if (created_now)
+            {
+                param.data                    = nullptr;
+                param.material_parameter_type = MaterialParameter::Type::ModelMatrix;
+            }
+
+            return (new GLSL_CompiledSource("local.model_matrix"))->id();
+        }
+
         size_t camera_location() override
         {
             return (new GLSL_CompiledSource("global.camera_location"))->id();
@@ -917,8 +940,8 @@ namespace Engine
 
         /// DYNAMIC PARAMETERS
 
-#define declare_dynamic_parameter(param, type)                                                                                    \
-    size_t param##_parameter(const String& name, void* data) override                                                             \
+#define declare_dynamic_parameter(param, type)                                                                                   \
+    size_t param##_parameter(const String& name, void* data) override                                                            \
     {                                                                                                                            \
         GLSL_LocalParameter& parameter    = local_parameters[create_local_parameter(name, MaterialNodeDataType::type)];          \
         parameter.data                    = data;                                                                                \
@@ -1234,6 +1257,8 @@ namespace Engine
             }
             else
             {
+                GLSL_CompiledSource* model_source = reinterpret_cast<GLSL_CompiledSource*>(model());
+
                 auto& attribute      = input_attribute[create_input_attribute("position_0")];
                 auto& out_attribute  = output_attribute[create_output_attribute("position_0")];
                 attribute.format     = ColorFormat::R32G32B32Sfloat;
@@ -1241,7 +1266,7 @@ namespace Engine
                 out_attribute.format = ColorFormat::R32G32B32Sfloat;
                 out_attribute.type   = MaterialNodeDataType::Vec3;
                 statements.push_back("out_position_0 = in_position_0");
-                source = "global.projview * vec4(in_position_0.xyz, 1.0)";
+                source = Strings::format("global.projview * {} * vec4(in_position_0.xyz, 1.0)", model_source->source);
             }
 
             statements.push_back(Strings::format("gl_Position = {}", source));

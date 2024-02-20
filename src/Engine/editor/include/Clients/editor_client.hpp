@@ -28,6 +28,7 @@ namespace Engine
 
         Vector<EventSystemListenerID> _M_event_system_listeners;
 
+        class World* _M_world                                    = nullptr;
         class GlobalShaderParameters* _M_global_shader_params    = nullptr;
         class GlobalShaderParameters* _M_global_shader_params_rt = nullptr;
         Vector2D _M_viewport_size;
@@ -59,6 +60,8 @@ namespace Engine
         void render_dock_window(float dt);
 
         void on_object_select(Object* object);
+        EditorClient& on_object_dropped(Object* object);
+        EditorClient& update_drag_and_drop();
 
         ~EditorClient();
 

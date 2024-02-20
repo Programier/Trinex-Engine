@@ -5,7 +5,7 @@
 #include <Core/property.hpp>
 #include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
-#include <Engine/ActorComponents/mesh_component.hpp>
+#include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
@@ -30,7 +30,7 @@ namespace Engine
         return nullptr;
     }
 
-    MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline)
+    MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline, class SceneComponent* component)
     {
         if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(Type::Mat4))
         {
@@ -134,7 +134,7 @@ namespace Engine
         return MaterialParameter::Type::Sampler;
     }
 
-    MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline)
+    MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
         if (sampler)
         {
@@ -157,7 +157,7 @@ namespace Engine
         return MaterialParameter::Type::CombinedSampler2D;
     }
 
-    MaterialParameter& CombinedSampler2DMaterialParameter::apply(const Pipeline* pipeline)
+    MaterialParameter& CombinedSampler2DMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
         if (texture && sampler)
         {
@@ -181,7 +181,7 @@ namespace Engine
         return MaterialParameter::Type::Texture2D;
     }
 
-    MaterialParameter& Texture2DMaterialParameter::apply(const Pipeline* pipeline)
+    MaterialParameter& Texture2DMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
         if (texture)
         {
@@ -199,6 +199,22 @@ namespace Engine
         return ar;
     }
 
+    ModelMatrixMaterialParameter::Type ModelMatrixMaterialParameter::type() const
+    {
+        return Type::ModelMatrix;
+    }
+
+    ModelMatrixMaterialParameter& ModelMatrixMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
+    {
+        size_t offset = pipeline->local_parameters.offset_of(name);
+        if (offset != LocalMaterialParametersInfo::no_offset)
+        {
+            Matrix4f model = component ? component->transform_render_thread.local_to_world : Matrix4f(1.f);
+            engine_instance->rhi()->update_local_parameter(reinterpret_cast<const byte*>(&model), sizeof(model), offset);
+        }
+        return *this;
+    }
+
     MaterialParameter* MaterialInterface::find_parameter(const Name& name) const
     {
         return nullptr;
@@ -214,7 +230,7 @@ namespace Engine
         return nullptr;
     }
 
-    bool MaterialInterface::apply()
+    bool MaterialInterface::apply(SceneComponent* component)
     {
         return false;
     }
@@ -287,6 +303,7 @@ namespace Engine
     declare_allocator(Sampler);
     declare_allocator(Texture2D);
     declare_allocator(CombinedSampler2D);
+    declare_allocator(ModelMatrix);
 
 
 #define new_param_allocator(type)                                                                                                \
@@ -319,6 +336,7 @@ namespace Engine
             new_param_allocator(Sampler);
             new_param_allocator(Texture2D);
             new_param_allocator(CombinedSampler2D);
+            new_param_allocator(ModelMatrix);
 
             default:
                 return nullptr;
@@ -346,7 +364,7 @@ namespace Engine
         if (allocator)
         {
             param                        = allocator();
-            param->name = name;
+            param->name                  = name;
             _M_material_parameters[name] = param;
             return param;
         }
@@ -382,20 +400,20 @@ namespace Engine
         return *this;
     }
 
-    bool Material::apply()
+    bool Material::apply(SceneComponent* component)
     {
-        return apply(this);
+        return apply(this, component);
     }
 
 
-    void Material::apply_shader_global_params(class Shader* shader, MaterialInterface* head)
+    void Material::apply_shader_global_params(class Shader* shader, MaterialInterface* head, SceneComponent* component)
     {
         for (auto& texture : shader->textures)
         {
             MaterialParameter* parameter = head->find_parameter(texture.name);
             if (parameter && parameter->type() == MaterialParameter::Type::Texture2D)
             {
-                parameter->apply(pipeline);
+                parameter->apply(pipeline, component);
             }
         }
 
@@ -404,7 +422,7 @@ namespace Engine
             MaterialParameter* parameter = head->find_parameter(sampler.name);
             if (parameter && parameter->type() == MaterialParameter::Type::Sampler)
             {
-                parameter->apply(pipeline);
+                parameter->apply(pipeline, component);
             }
         }
 
@@ -413,12 +431,12 @@ namespace Engine
             MaterialParameter* parameter = head->find_parameter(texture.name);
             if (parameter && parameter->type() == MaterialParameter::Type::CombinedSampler2D)
             {
-                parameter->apply(pipeline);
+                parameter->apply(pipeline, component);
             }
         }
     }
 
-    bool Material::apply(MaterialInterface* head)
+    bool Material::apply(MaterialInterface* head, SceneComponent* component)
     {
         trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
         pipeline->rhi_bind();
@@ -428,12 +446,12 @@ namespace Engine
             MaterialParameter* parameter = head->find_parameter(name);
             if (parameter)
             {
-                parameter->apply(pipeline);
+                parameter->apply(pipeline, component);
             }
         }
 
-        apply_shader_global_params(pipeline->vertex_shader, head);
-        apply_shader_global_params(pipeline->fragment_shader, head);
+        apply_shader_global_params(pipeline->vertex_shader, head, component);
+        apply_shader_global_params(pipeline->fragment_shader, head, component);
 
         return true;
     }
@@ -503,7 +521,7 @@ namespace Engine
         return parent_material;
     }
 
-    bool MaterialInstance::apply()
+    bool MaterialInstance::apply(SceneComponent* component)
     {
         Material* mat = material();
         if (!mat)
@@ -511,7 +529,7 @@ namespace Engine
             return false;
         }
 
-        return mat->apply(this);
+        return mat->apply(this, component);
     }
 
     class Material* MaterialInstance::material()

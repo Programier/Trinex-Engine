@@ -45,8 +45,7 @@ namespace Engine
 
         Vector3D global_location() const;
 
-        Transform& update(class SceneComponent* scene_component, bool is_parent = false);
-        Transform& update();
+        Transform& update(class SceneComponent* parent_component = nullptr);
 
         String as_string() const;
     };

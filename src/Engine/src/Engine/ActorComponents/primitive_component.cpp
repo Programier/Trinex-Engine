@@ -1,11 +1,11 @@
 #include <Core/class.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Actors/actor.hpp>
+#include <Engine/scene.hpp>
+#include <Engine/world.hpp>
 
 namespace Engine
 {
-    PrimitiveDrawingProxy::~PrimitiveDrawingProxy()
-    {}
-
     implement_engine_class_default_init(PrimitiveComponent);
 
     bool PrimitiveComponent::is_visible() const
@@ -20,16 +20,33 @@ namespace Engine
 
     PrimitiveComponent& PrimitiveComponent::spawned()
     {
+        Super::spawned();
+        if (Actor* owner_actor = actor())
+        {
+            if (World* world = owner_actor->world())
+            {
+                if (Scene* scene = world->scene())
+                {
+                    scene->add_primitive(this);
+                }
+            }
+        }
         return *this;
     }
 
     PrimitiveComponent& PrimitiveComponent::destroyed()
     {
+        Super::destroyed();
         return *this;
     }
 
-    PrimitiveDrawingProxy* PrimitiveComponent::drawing_proxy() const
+    PrimitiveComponent& PrimitiveComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
-        return nullptr;
+        return *this;
+    }
+
+    PrimitiveComponent& PrimitiveComponent::render(class SceneRenderer*, class RenderViewport*, class SceneLayer*)
+    {
+        return *this;
     }
 }// namespace Engine

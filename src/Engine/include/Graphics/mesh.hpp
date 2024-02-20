@@ -13,29 +13,29 @@ namespace Engine
     {
         declare_class(StaticMesh, Object);
 
+    private:
+        VertexBuffer* find_position_buffer(Index index) const;
+        VertexBuffer* find_tex_coord_buffer(Index index) const;
+        VertexBuffer* find_color_buffer(Index index) const;
+        VertexBuffer* find_normal_buffer(Index index) const;
+        VertexBuffer* find_tangent_buffer(Index index) const;
+        VertexBuffer* find_binormal_buffer(Index index) const;
+
     public:
-        struct ENGINE_EXPORT LOD {
-            Vector<Pointer<class PositionVertexBuffer>> positions;
-            Vector<Pointer<class TexCoordVertexBuffer>> tex_coords;
-            Vector<Pointer<class ColorVertexBuffer>> color;
-            Vector<Pointer<class NormalVertexBuffer>> normals;
-            Vector<Pointer<class TangentVertexBuffer>> tangents;
-            Vector<Pointer<class BinormalVertexBuffer>> binormal;
-            Pointer<IndexBuffer> indices;
+        MaterialInterface* material = nullptr;
 
-            VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
+        Vector<Pointer<class PositionVertexBuffer>> positions;
+        Vector<Pointer<class TexCoordVertexBuffer>> tex_coords;
+        Vector<Pointer<class ColorVertexBuffer>> colors;
+        Vector<Pointer<class NormalVertexBuffer>> normals;
+        Vector<Pointer<class TangentVertexBuffer>> tangents;
+        Vector<Pointer<class BinormalVertexBuffer>> binormals;
+        Pointer<IndexBuffer> indices;
 
-        private:
-            VertexBuffer* find_position_buffer(Index index) const;
-            VertexBuffer* find_tex_coord_buffer(Index index) const;
-            VertexBuffer* find_color_buffer(Index index) const;
-            VertexBuffer* find_normal_buffer(Index index) const;
-            VertexBuffer* find_tangent_buffer(Index index) const;
-            VertexBuffer* find_binormal_buffer(Index index) const;
-        };
 
-        Pointer<MaterialInterface> material;
-        Vector<LOD> lods;
+        StaticMesh& init_resources();
+        VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
+        StaticMesh& apply_changes() override;
     };
 
     class ENGINE_EXPORT DynamicMesh : public Object

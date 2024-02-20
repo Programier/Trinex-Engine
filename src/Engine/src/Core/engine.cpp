@@ -316,16 +316,15 @@ namespace Engine
         _M_flags(IsShutingDown, true);
         info_log("EngineInstance", "Terminate Engine");
 
-        EngineSystem* engine_system = EngineSystem::instance();
-        if (engine_system)
-            engine_system->shutdown();
-
         if (_M_rhi)
         {
             call_in_render_thread([this]() { _M_rhi->wait_idle(); });
-
             thread(ThreadType::RenderThread)->wait_all();
         }
+
+        EngineSystem* engine_system = EngineSystem::instance();
+        if (engine_system)
+            engine_system->shutdown();
 
         Object::collect_garbage(GCFlag::DestroyAll);
         DestroyController().execute();

@@ -50,6 +50,7 @@ namespace Engine
         System* find_subsystem(const char* name);
         System* find_subsystem(const String& name);
         virtual class Class* depends_on() const;
+        bool is_shutdowned() const;
 
         template<typename SystemType>
         static SystemType* new_system()

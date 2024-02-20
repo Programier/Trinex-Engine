@@ -3,7 +3,7 @@
 
 namespace Engine
 {
-    class SceneInterface;
+    class Scene;
 
     class ENGINE_EXPORT World : public System
     {
@@ -14,7 +14,7 @@ namespace Engine
         Vector<class Actor*> _M_actors_to_destroy;
         bool _M_is_playing;
 
-        SceneInterface* _M_scene = nullptr;
+        Scene* _M_scene = nullptr;
 
         World& destroy_actor(Actor* actor, bool ignore_playing);
 
@@ -30,7 +30,8 @@ namespace Engine
                            const Name& name = {});
 
         World& destroy_actor(Actor* actor);
-        SceneInterface* scene() const;
+        Scene* scene() const;
+        ~World();
 
         static World* global();
     };

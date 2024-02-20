@@ -5,14 +5,16 @@
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
+#include <PropertyRenderers/imgui_class_property.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imfilebrowser.h>
 #include <imgui.h>
-#include <imgui_class_property.hpp>
 
 namespace Engine
 {
     static constexpr float indent = 5.f;
+
+    Map<Struct*, void (*)(Object*, Struct*, bool)> special_class_properties_renderers;
 
     class Object;
 
@@ -246,7 +248,38 @@ namespace Engine
         if (value.has_value())
         {
             object = value.cast<Object*>();
-            render_object_properties(object, can_edit);
+            if (object)
+            {
+                render_object_properties(object, can_edit);
+            }
+            else
+            {
+                ImGui::Text("%s: No Object", prop->name().c_str());
+            }
+        }
+    }
+
+    static void render_object_reference(Object* object, Property* prop, bool can_edit)
+    {
+        render_object_property(object, prop, can_edit);
+        Struct* self = prop->struct_instance();
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContendBrowser->Object");
+            if (payload)
+            {
+                IM_ASSERT(payload->DataSize == sizeof(Object*));
+
+                Object* new_object = *reinterpret_cast<Object**>(payload->Data);
+
+                if (new_object && new_object->class_instance()->is_a(self))
+                {
+                    PropertyValue value = PropertyValue(new_object, PropertyType::ObjectReference);
+                    prop->property_value(object, value);
+                }
+            }
+            ImGui::EndDragDropTarget();
         }
     }
 
@@ -273,7 +306,7 @@ namespace Engine
     {
         ArrayPropertyInterface* interface = reinterpret_cast<ArrayPropertyInterface*>(prop);
         Property* element_property        = interface->element_type();
-        size_t count = interface->elements_count(object);
+        size_t count                      = interface->elements_count(object);
 
         ImGui::PushID(prop->name().c_str());
 
@@ -352,6 +385,9 @@ namespace Engine
             case PropertyType::Object:
                 render_object_property(reinterpret_cast<Object*>(object), prop, can_edit);
                 break;
+            case PropertyType::ObjectReference:
+                render_object_reference(reinterpret_cast<Object*>(object), prop, can_edit);
+                break;
             case PropertyType::Struct:
                 render_struct_property(object, prop, can_edit);
                 break;
@@ -371,10 +407,35 @@ namespace Engine
         ImGui::BeginGroup();
         for (Struct* self = struct_class; self; self = self->parent())
         {
+            bool is_class = self->is_class() && object;
+
+            if(is_class)
+            {
+                auto it = special_class_properties_renderers.find(self);
+                if (it != special_class_properties_renderers.end())
+                {
+                    it->second(reinterpret_cast<Object*>(object), struct_class, editable);
+                }
+            }
+
             if (!self->properties().empty())
             {
                 ImGui::PushID(self->base_name_splitted().c_str());
-                if (ImGui::CollapsingHeader(self->base_name_splitted().c_str()))
+
+                bool is_opened = false;
+
+                if (is_class)
+                {
+                    is_opened = ImGui::TreeNodeEx(object, ImGuiTreeNodeFlags_CollapsingHeader, "%s: %s",
+                                                  self->base_name_splitted().c_str(),
+                                                  reinterpret_cast<Object*>(object)->name().c_str());
+                }
+                else
+                {
+                    is_opened = ImGui::CollapsingHeader(self->base_name_splitted().c_str());
+                }
+
+                if (is_opened)
                 {
                     render_prop_internal(object, self, editable);
                 }

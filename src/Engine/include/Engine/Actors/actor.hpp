@@ -36,13 +36,14 @@ namespace Engine
         virtual Actor& update(float dt);
         virtual Actor& start_play();
         virtual Actor& stop_play();
-        bool is_playing() const;
         virtual Actor& spawned();
-        virtual Actor& destroyed();
+        virtual Actor& destroy();
+
+        bool is_playing() const;
+        const Vector<Pointer<class ActorComponent>>& owned_components() const;
         Actor& destroy_script_object(ScriptObject* object) override;
         Transform* transfrom() const;
         SceneComponent* scene_component() const;
-        const Vector<Pointer<class ActorComponent>>& owned_components() const;
 
         class World* world() const;
         bool archive_process(Archive& archive) override;

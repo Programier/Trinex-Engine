@@ -11,6 +11,7 @@ namespace Engine
 
     public:
         Transform transform;
+        Transform transform_render_thread;
 
     private:
         Pointer<SceneComponent> _M_parent = nullptr;
@@ -20,9 +21,10 @@ namespace Engine
         SceneComponent();
         SceneComponent& attach(SceneComponent* child);
         SceneComponent& detach_from_parent();
-        bool is_attachet_to(SceneComponent* component) const;
+        bool is_attached_to(SceneComponent* component) const;
         SceneComponent* parent() const;
         const Vector<Pointer<SceneComponent>>& childs() const;
+        virtual SceneComponent& on_transform_changed();
 
         SceneComponent& destroyed() override;
     };

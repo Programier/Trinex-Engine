@@ -13,7 +13,7 @@ namespace Engine
     public:
         virtual ActorComponent& begin_play();
         virtual ActorComponent& end_play();
-        virtual ActorComponent& update(float InDeltaTime);
+        virtual ActorComponent& update(float dt);
         virtual ActorComponent& spawned();
         virtual ActorComponent& destroyed();
         class Actor* actor() const;

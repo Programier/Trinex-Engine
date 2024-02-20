@@ -1,12 +1,13 @@
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/package.hpp>
+#include <Engine/ActorComponents/scene_component.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/visual_material.hpp>
+#include <PropertyRenderers/imgui_class_property.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <imfilebrowser.h>
-#include <imgui_class_property.hpp>
 
 namespace Engine
 {
@@ -297,7 +298,7 @@ namespace Engine
         {
             ImGui::Text("editor/Object: %s"_localized, object->name().to_string().c_str());
             ImGui::Text("editor/Class: %s"_localized, object->class_instance()->name().c_str());
-            if(ImGui::Button("editor/Apply changes"_localized))
+            if (ImGui::Button("editor/Apply changes"_localized))
             {
                 object->apply_changes();
             }
@@ -321,7 +322,41 @@ namespace Engine
 
 
     void ImGuiSceneTree::render_scene_tree(class SceneComponent* component)
-    {}
+    {
+        if (!component)
+            return;
+
+        if (component == selected)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
+        }
+
+        bool opened = ImGui::TreeNodeEx(component, ImGuiTreeNodeFlags_CollapsingHeader | ImGuiTreeNodeFlags_OpenOnArrow, "%s",
+                                        component->name().c_str());
+
+        if (component == selected)
+        {
+            ImGui::PopStyleColor();
+        }
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+        {
+            selected = component;
+            on_node_select(component);
+        }
+
+        if (opened)
+        {
+            ImGui::Indent(5.f);
+
+            for (auto& child : component->childs())
+            {
+                render_scene_tree(child);
+            }
+
+            ImGui::Unindent(5.f);
+        }
+    }
 
     bool ImGuiSceneTree::render(RenderViewport* viewport)
     {

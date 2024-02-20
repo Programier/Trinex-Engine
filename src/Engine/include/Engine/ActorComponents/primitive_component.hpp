@@ -4,13 +4,6 @@
 
 namespace Engine
 {
-    class ENGINE_EXPORT PrimitiveDrawingProxy
-    {
-    public:
-        virtual PrimitiveDrawingProxy& render(class PrimitiveComponent* component) = 0;
-        virtual ~PrimitiveDrawingProxy();
-    };
-
     class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
     {
         declare_class(PrimitiveComponent, SceneComponent);
@@ -18,6 +11,7 @@ namespace Engine
     protected:
         bool _M_is_visible;
         AABB_3Df _M_bounding_box;
+        class SceneLayer* _M_layer = nullptr;
 
     public:
         bool is_visible() const;
@@ -25,6 +19,10 @@ namespace Engine
 
         PrimitiveComponent& spawned() override;
         PrimitiveComponent& destroyed() override;
-        virtual PrimitiveDrawingProxy* drawing_proxy() const;
+
+        virtual PrimitiveComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer);
+        virtual PrimitiveComponent& render(class SceneRenderer*, class RenderViewport*, class SceneLayer*);
+
+        friend class SceneLayer;
     };
 }// namespace Engine

@@ -96,10 +96,14 @@ namespace Engine
 
     Actor& Actor::spawned()
     {
+        for (Index index = 0, count = _M_owned_components.size(); index < count; ++index)
+        {
+            _M_owned_components[index]->spawned();
+        }
         return *this;
     }
 
-    Actor& Actor::destroyed()
+    Actor& Actor::destroy()
     {
         return *this;
     }

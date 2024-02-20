@@ -16,6 +16,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <Importer/importer.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/mouse_system.hpp>
@@ -91,9 +92,13 @@ namespace Engine
     {
         _M_scene_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiSceneTree>();
         _M_scene_tree->on_close.push(std::bind(&EditorClient::on_scene_tree_close, this));
+        _M_scene_tree->on_node_select.push(
+                [this](SceneComponent* component) { on_object_select(static_cast<Object*>(component)); });
 
-        World* world                  = World::global();
-        _M_scene_tree->root_component = world->scene()->root_component();
+        if (_M_world)
+        {
+            _M_scene_tree->root_component = _M_world->scene()->root_component();
+        }
         return *this;
     }
 
@@ -145,11 +150,6 @@ namespace Engine
         _M_event_system_listeners.push_back(event_system->add_listener(
                 EventType::KeyUp, std::bind(&EditorClient::on_key_release, this, std::placeholders::_1)));
 
-
-        extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer, const CameraView&);
-        auto layer = _M_renderer.root_layer()->find(SceneLayer::name_post_process);
-        layer->function_callbacks.push_back(render_editor_grid);
-
         return init_world();
     }
 
@@ -161,12 +161,25 @@ namespace Engine
         }
     }
 
-    size_t count = 0;
+    EditorClient& EditorClient::update_drag_and_drop()
+    {
+        if (ImGui::BeginDragDropTarget())
+        {
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContendBrowser->Object");
+            if (payload)
+            {
+                IM_ASSERT(payload->DataSize == sizeof(Object*));
+                on_object_dropped(*reinterpret_cast<Object**>(payload->Data));
+            }
+            ImGui::EndDragDropTarget();
+        }
+        return *this;
+    }
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
         engine_instance->rhi()->push_global_params(*_M_global_shader_params_rt);
-        _M_renderer.render(_M_view, _M_render_viewport);
+        _M_renderer.render(_M_view, _M_render_viewport, _M_viewport_size);
 
         engine_instance->rhi()->pop_global_params();
         viewport->window()->rhi_bind();
@@ -228,6 +241,19 @@ namespace Engine
                     }
 
                     ImGui::EndMenu();
+                }
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("editor/Import"_localized))
+            {
+                bool enable_import = _M_content_browser && _M_content_browser->selected_package() != nullptr;
+                if (ImGui::MenuItem("editor/Import resource"_localized,
+                                    "editor/Import resource from file to selected package"_localized, false, enable_import))
+                {
+                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>(_M_content_browser->selected_package(),
+                                                                                        Importer::import_resource);
                 }
 
                 ImGui::EndMenu();
@@ -319,7 +345,16 @@ namespace Engine
 
     EditorClient& EditorClient::init_world()
     {
-        _M_renderer.scene(World::global()->scene());
+        _M_world     = World::new_system<World>();
+        Scene* scene = _M_world->scene();
+        _M_renderer.scene(scene);
+
+        extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer);
+        auto layer = scene->root_layer()->find(SceneLayer::name_post_process);
+        layer->function_callbacks.push_back(render_editor_grid);
+
+        _M_scene_tree->root_component = _M_world->scene()->root_component();
+        _M_world->start_play();
         return *this;
     }
 
@@ -350,6 +385,8 @@ namespace Engine
                 ImGui::Image(output, size, ImVec2(0, 1), ImVec2(1, 0));
                 _M_viewport_is_hovered = ImGui::IsItemHovered();
             }
+
+            update_drag_and_drop();
         }
 
         ImGui::End();
