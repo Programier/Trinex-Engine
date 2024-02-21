@@ -720,29 +720,39 @@ namespace Engine::MaterialNodes
     declare_render_target_texture(SceneOutput, scene_output);
 
     //////////////////////////// INPUT NODES ////////////////////////////
-    PositionAttribute::PositionAttribute()
-    {
-        outputs.push_back(new Vec3OutputNoDefaultPin(this, "Pos"));
-    }
 
-    size_t PositionAttribute::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
-    {
-        return compiler->vertex_position_attribute(index);
-    }
+#define declare_input_attribute(class_name, func_name, type)                                                                     \
+    struct class_name##Attribute : public MaterialNode {                                                                         \
+        declare_material_node();                                                                                                 \
+        byte index = 0;                                                                                                          \
+                                                                                                                                 \
+        class_name##Attribute()                                                                                                  \
+        {                                                                                                                        \
+            outputs.push_back(new type##OutputNoDefaultPin(this, "Out"));                                                        \
+        }                                                                                                                        \
+                                                                                                                                 \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->vertex_##func_name##_attribute(index);                                                              \
+        }                                                                                                                        \
+                                                                                                                                 \
+        void render() override                                                                                                   \
+        {                                                                                                                        \
+            ImGui::InputScalar("Index", ImGuiDataType_U8, &index);                                                               \
+        }                                                                                                                        \
+                                                                                                                                 \
+        bool archive_process(Archive& ar) override                                                                               \
+        {                                                                                                                        \
+            if (!MaterialNode::archive_process(ar))                                                                              \
+                return false;                                                                                                    \
+            return ar & index;                                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(class_name##Attribute, Inputs);
 
-    void PositionAttribute::render()
-    {
-        ImGui::InputScalar("Index", ImGuiDataType_U8, &index);
-    }
+    declare_input_attribute(Position, position, Vec3);
+    declare_input_attribute(Normal, normal, Vec3);
+    declare_input_attribute(TexCoord, uv, Vec2);
 
-    bool PositionAttribute::archive_process(Archive& ar)
-    {
-        if (!MaterialNode::archive_process(ar))
-            return false;
-        return ar & index;
-    }
-
-
-    implement_material_node(PositionAttribute, Inputs);
 
 }// namespace Engine::MaterialNodes

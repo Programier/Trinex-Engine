@@ -57,7 +57,9 @@ namespace Engine
 
     VertexBuffer& VertexBuffer::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data()));
+        size_t buffer_size = size();
+        if (buffer_size > 0)
+            _M_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data()));
         return *this;
     }
 

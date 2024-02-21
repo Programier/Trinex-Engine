@@ -762,7 +762,6 @@ namespace Engine
             }
         }
 
-
         bool submit_source()
         {
             for (auto& func : on_success_command_list)
@@ -1308,6 +1307,18 @@ namespace Engine
                                            VertexBufferSemantic::Position);
         }
 
+        virtual size_t vertex_normal_attribute(byte index) override
+        {
+            return create_vertex_attribute("normal", index, ColorFormat::R32G32B32Sfloat, MaterialNodeDataType::Vec3,
+                                           VertexBufferSemantic::Normal);
+        }
+
+        virtual size_t vertex_uv_attribute(byte index) override
+        {
+            return create_vertex_attribute("tex_coord", index, ColorFormat::R32G32Sfloat, MaterialNodeDataType::Vec2,
+                                           VertexBufferSemantic::TexCoord);
+        }
+
         size_t vertex_output_screen_space_position(MaterialInputPin* pin) override
         {
             errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
@@ -1816,7 +1827,9 @@ namespace Engine
 
         void submit_vertex_attribute(const GLSL_Attribute& attribute) override
         {
-            vertex_compiler->input_attribute.push_back(attribute);
+            GLSL_Attribute new_attribute = attribute;
+            new_attribute.location       = static_cast<byte>(vertex_compiler->input_attribute.size());
+            vertex_compiler->input_attribute.push_back(new_attribute);
             vertex_compiler->submit_vertex_attribute(attribute);
         }
     };

@@ -12,6 +12,15 @@
 
 namespace Engine::Importer
 {
+    static Vector3D vector_from_assimp_vec(const aiVector3D& vector)
+    {
+        Vector3D result;
+        result.x = vector.x;
+        result.y = vector.y;
+        result.z = vector.z;
+        return result;
+    }
+
 
     static void load_static_meshes(Package* package, const aiScene* scene, const aiMesh* mesh)
     {
@@ -26,19 +35,54 @@ namespace Engine::Importer
 
 
         Vector<Vector3D> positions;
+        Vector<Vector3D> normals;
+        Vector<Vector<Vector2D>> uv;
         Vector<uint> indices;
 
-        // Generate position buffer
+
         {
             positions.resize(mesh->mNumVertices);
+
+            if (mesh->mNormals)
+            {
+                normals.resize(mesh->mNumVertices);
+            }
+
             for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
             {
-                auto vertex = mesh->mVertices[i];
-                auto& out   = positions[i];
+                positions[i] = vector_from_assimp_vec(mesh->mVertices[i]);
 
-                out.x = vertex.x;
-                out.y = vertex.y;
-                out.z = vertex.z;
+                if (mesh->mNormals)
+                {
+                    normals[i] = vector_from_assimp_vec(mesh->mNormals[i]);
+                }
+            }
+
+            int uv_slots = AI_MAX_NUMBER_OF_TEXTURECOORDS - 1;
+
+            while (uv_slots >= 0 && mesh->mTextureCoords[uv_slots] == nullptr) --uv_slots;
+
+            ++uv_slots;
+
+            if (uv_slots > 0)
+            {
+                uv.resize(uv_slots);
+
+                for (int i = 0; i < uv_slots; ++i)
+                {
+                    auto& slot        = uv[i];
+                    auto& assimp_slot = mesh->mTextureCoords[i];
+
+                    if (assimp_slot)
+                    {
+                        slot.resize(mesh->mNumVertices);
+
+                        for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+                        {
+                            slot[j] = vector_from_assimp_vec(assimp_slot[j]);
+                        }
+                    }
+                }
             }
         }
 
@@ -55,12 +99,40 @@ namespace Engine::Importer
             }
         }
 
-
-        PositionVertexBuffer* position_vertex_buffer = Object::new_instance<PositionVertexBuffer>();
-        position_vertex_buffer->buffer               = std::move(positions);
         static_mesh->lods.resize(1);
         auto& lod = static_mesh->lods[0];
-        lod.positions.push_back(position_vertex_buffer);
+
+        if (positions.size() > 0)
+        {
+            PositionVertexBuffer* position_vertex_buffer = Object::new_instance<PositionVertexBuffer>();
+            position_vertex_buffer->buffer               = std::move(positions);
+            lod.positions.push_back(position_vertex_buffer);
+        }
+
+        if (normals.size() > 0)
+        {
+            NormalVertexBuffer* normal_vertex_buffer = Object::new_instance<NormalVertexBuffer>();
+            normal_vertex_buffer->buffer             = std::move(normals);
+            lod.normals.push_back(normal_vertex_buffer);
+        }
+
+        if (uv.size() > 0)
+        {
+            lod.tex_coords.reserve(uv.size());
+            for (auto& uv_slot : uv)
+            {
+                if (uv_slot.size() > 0)
+                {
+                    TexCoordVertexBuffer* uv_vertex_buffer = Object::new_instance<TexCoordVertexBuffer>();
+                    uv_vertex_buffer->buffer               = std::move(uv_slot);
+                    lod.tex_coords.push_back(uv_vertex_buffer);
+                }
+                else
+                {
+                    lod.tex_coords.push_back(nullptr);
+                }
+            }
+        }
 
         if (indices.size() > 0)
         {
@@ -82,7 +154,7 @@ namespace Engine::Importer
         Assimp::Importer importer;
 
         unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-                             aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph;
+                             aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_FlipUVs;
         const aiScene* scene = importer.ReadFile(file.c_str(), flags);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
