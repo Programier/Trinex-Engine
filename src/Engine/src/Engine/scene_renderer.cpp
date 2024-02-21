@@ -3,6 +3,8 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/scene_renderer.hpp>
+#include <Graphics/material.hpp>
+#include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -13,6 +15,37 @@ namespace Engine
     {
         GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearGBuffer));
         SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearSceneOutput));
+    }
+
+    void SceneRenderer::begin_rendering_base_pass(RenderViewport*, SceneLayer*)
+    {
+        GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::GBuffer));
+    }
+
+    void SceneRenderer::begin_lighting_pass(RenderViewport*, SceneLayer*)
+    {
+        SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::SceneOutput));
+
+        Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
+        PositionVertexBuffer* positions =
+                Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
+
+        if (mat)
+        {
+            mat->apply();
+            positions->rhi_bind(0, 0);
+            engine_instance->rhi()->draw(6);
+        }
+    }
+
+    void SceneRenderer::begin_scene_output_pass(RenderViewport*, SceneLayer*)
+    {
+        SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::SceneOutput));
+    }
+
+    void SceneRenderer::begin_postprocess_pass(RenderViewport*, SceneLayer*)
+    {
+        SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::SceneOutput));
     }
 
     SceneRenderer::SceneRenderer() : _M_scene(nullptr)

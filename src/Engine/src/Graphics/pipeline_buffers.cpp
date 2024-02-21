@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
@@ -29,6 +30,13 @@ namespace Engine
     size_t name::element_size() const                                                                                            \
     {                                                                                                                            \
         return sizeof(ElementType);                                                                                              \
+    }                                                                                                                            \
+    bool name::archive_process(Archive& ar)                                                                                      \
+    {                                                                                                                            \
+        if (!Super::archive_process(ar))                                                                                         \
+            return false;                                                                                                        \
+        ar & buffer;                                                                                                             \
+        return ar;                                                                                                               \
     }
 
     implement_vertex_buffer_class(PositionVertexBuffer);

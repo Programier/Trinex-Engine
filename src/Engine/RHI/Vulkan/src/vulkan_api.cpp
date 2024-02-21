@@ -122,7 +122,7 @@ namespace Engine
         }
         else
         {
-            _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count);
+            _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count + 1);
         }
         return *this;
     }

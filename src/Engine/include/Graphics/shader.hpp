@@ -57,12 +57,15 @@ namespace Engine
             Name name;
             ColorFormat format;
             VertexAttributeInputRate rate;
-            byte count = 1;
+            VertexBufferSemantic semantic;
+            byte semantic_index;
+            byte count;
 
             FORCE_INLINE Attribute(ColorFormat format            = ColorFormat::Undefined,
-                                   VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex, byte count = 1,
-                                   const Name& name = Name::none)
-                : name(name), format(format), rate(rate), count(count)
+                                   VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex,
+                                   VertexBufferSemantic semantic = VertexBufferSemantic::Position, byte semantic_index = 0,
+                                   byte count = 1, const Name& name = Name::none)
+                : name(name), format(format), rate(rate), semantic(semantic), semantic_index(semantic_index), count(count)
             {}
         };
 

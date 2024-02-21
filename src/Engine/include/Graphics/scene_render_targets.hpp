@@ -26,10 +26,11 @@ namespace Engine
 
     public:
         struct ENGINE_EXPORT Frame : public RenderTarget::Frame {
-            Texture2D* albedo() const;
+            Texture2D* base_color() const;
             Texture2D* position() const;
             Texture2D* normal() const;
-            Texture2D* specular() const;
+            Texture2D* emissive() const;
+            Texture2D* data_buffer() const;
             Texture2D* depth() const;
         };
 

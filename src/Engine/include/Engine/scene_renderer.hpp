@@ -37,6 +37,10 @@ namespace Engine
         Vector4D world_to_screen(const Vector3D& world_point) const;
 
         void clear_render_targets(RenderViewport*, SceneLayer*);
+        void begin_rendering_base_pass(RenderViewport*, SceneLayer*);
+        void begin_lighting_pass(RenderViewport*, SceneLayer*);
+        void begin_scene_output_pass(RenderViewport*, SceneLayer*);
+        void begin_postprocess_pass(RenderViewport*, SceneLayer*);
 
 
         FORCE_INLINE const Matrix4f& view_matrix() const

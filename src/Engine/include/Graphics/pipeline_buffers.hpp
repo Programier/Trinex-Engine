@@ -42,6 +42,7 @@ namespace Engine
         const byte* data() const override;
         size_t size() const override;
         size_t element_size() const override;
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT TexCoordVertexBuffer : public VertexBuffer
@@ -56,6 +57,7 @@ namespace Engine
         const byte* data() const override;
         size_t size() const override;
         size_t element_size() const override;
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT ColorVertexBuffer : public VertexBuffer
@@ -70,6 +72,7 @@ namespace Engine
         const byte* data() const override;
         size_t size() const override;
         size_t element_size() const override;
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT NormalVertexBuffer : public VertexBuffer
@@ -84,6 +87,7 @@ namespace Engine
         const byte* data() const override;
         size_t size() const override;
         size_t element_size() const override;
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT TangentVertexBuffer : public VertexBuffer
@@ -98,6 +102,7 @@ namespace Engine
         const byte* data() const override;
         size_t size() const override;
         size_t element_size() const override;
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT BinormalVertexBuffer : public VertexBuffer
@@ -112,6 +117,7 @@ namespace Engine
         const byte* data() const override;
         size_t size() const override;
         size_t element_size() const override;
+        bool archive_process(Archive& ar) override;
     };
 
 

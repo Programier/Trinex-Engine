@@ -52,11 +52,11 @@ namespace Engine::MaterialNodes
         bool archive_process(Archive& ar) override;
     };
 
-    struct Vertex : public MaterialNode {
+    struct PositionAttribute : public MaterialNode {
         declare_material_node();
         byte index = 0;
 
-        Vertex();
+        PositionAttribute();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
         void render() override;
         bool archive_process(Archive& ar) override;

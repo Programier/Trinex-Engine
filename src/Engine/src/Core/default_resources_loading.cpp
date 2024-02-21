@@ -2,15 +2,15 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <DefaultResources/default.hpp>
 #include <Core/package.hpp>
+#include <DefaultResources/default.hpp>
 
 namespace Engine
 {
     static void load_package(const Vector<byte>& data, const StringView& name)
     {
         VectorReader reader = &data;
-        Package* package = Object::find_package(name, true);
+        Package* package    = Object::find_package(name, true);
         package->load(&reader);
     }
 
@@ -18,7 +18,7 @@ namespace Engine
     {
         if (default_package_len != 0)
         {
-           // load_package(Vector<byte>(default_package_data, default_package_data + default_package_len), "Default");
+            // load_package(Vector<byte>(default_package_data, default_package_data + default_package_len), "Default");
         }
 
         DefaultResourcesInitializeController().execute();

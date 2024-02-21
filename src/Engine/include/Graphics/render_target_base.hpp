@@ -34,7 +34,7 @@ namespace Engine
         const RenderTargetBase& clear_depth_stencil(const DepthStencilClearValue& value) const;
         RenderTargetBase& rhi_create() override;
         virtual Size2D render_target_size() const = 0;
-
+        byte frame_index() const;
         static RenderTargetBase* current_target();
         static void reset_current_target();
 

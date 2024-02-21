@@ -3,6 +3,7 @@
 #include <Core/struct.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material_nodes.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <icons.hpp>
 #include <imgui.h>
 
@@ -28,7 +29,14 @@ namespace Engine::MaterialNodes
 
     VertexNode::VertexNode()
     {
-        inputs.push_back(new Vec3InputPin(this, "Position"));
+        inputs.push_back(new Vec3InputNoDefaultPin(this, "Screen Space Position"));
+        inputs.push_back(new Vec3InputPin(this, "World Position"));
+        inputs.push_back(new Vec2InputPin(this, "UV0"));
+        inputs.push_back(new Vec2InputPin(this, "UV1"));
+        inputs.push_back(new Vec3InputPin(this, "World Normal"));
+        inputs.push_back(new Vec3InputPin(this, "World Tangent"));
+        inputs.push_back(new Vec3InputPin(this, "World Bitangent"));
+        inputs.push_back(new Vec3InputPin(this, "Vertex Color"));
     }
 
     const char* VertexNode::name() const
@@ -38,7 +46,14 @@ namespace Engine::MaterialNodes
 
     size_t VertexNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
-        compiler->position(inputs[0]);
+        compiler->vertex_output_screen_space_position(inputs[0]);
+        compiler->vertex_output_world_position(inputs[1]);
+        compiler->vertex_output_uv0(inputs[2]);
+        compiler->vertex_output_uv1(inputs[3]);
+        compiler->vertex_output_world_normal(inputs[4]);
+        compiler->vertex_output_world_tangent(inputs[5]);
+        compiler->vertex_output_world_bitangent(inputs[6]);
+        compiler->vertex_output_color(inputs[7]);
         return 0;
     }
 
@@ -49,14 +64,14 @@ namespace Engine::MaterialNodes
 
     FragmentNode::FragmentNode()
     {
-        inputs.push_back(new Color4InputPin(this, "Base Color"));
+        inputs.push_back(new Color3InputPin(this, "Base Color"));
         inputs.push_back(new FloatInputPin(this, "Metalic"));
         inputs.push_back(new FloatInputPin(this, "Specular"));
         inputs.push_back(new FloatInputPin(this, "Roughness"));
-        inputs.push_back(new Color4InputPin(this, "Emmisive"));
+        inputs.push_back(new Color3InputPin(this, "Emmisive"));
         inputs.push_back(new FloatInputPin(this, "Opacity"));
-        inputs.push_back(new FloatInputPin(this, "Opacity Mask"));
-        inputs.push_back(new Vec4InputPin(this, "Normal"));
+        inputs.push_back(new Vec3InputNoDefaultPin(this, "Position"));
+        inputs.push_back(new Vec3InputNoDefaultPin(this, "Normal"));
     }
 
     const char* FragmentNode::name() const
@@ -66,7 +81,14 @@ namespace Engine::MaterialNodes
 
     size_t FragmentNode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
-        compiler->base_color(inputs[0]);
+        compiler->fragment_output_base_color(inputs[0]);
+        compiler->fragment_output_metalic(inputs[1]);
+        compiler->fragment_output_specular(inputs[2]);
+        compiler->fragment_output_roughness(inputs[3]);
+        compiler->fragment_output_emissive(inputs[4]);
+        compiler->fragment_output_opacity(inputs[5]);
+        compiler->fragment_output_position(inputs[6]);
+        compiler->fragment_output_normal(inputs[7]);
         return 0;
     }
 
@@ -74,7 +96,6 @@ namespace Engine::MaterialNodes
     {
         return false;
     }
-
 
     Struct* VertexNode::static_struct_instance = nullptr;
     Struct* VertexNode::struct_instance() const
@@ -107,7 +128,7 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Sin()
         {
-            inputs.push_back(new FloatInputPin(this, "In", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "In", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -126,7 +147,7 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Cos()
         {
-            inputs.push_back(new FloatInputPin(this, "In", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "In", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -145,7 +166,7 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Tan()
         {
-            inputs.push_back(new FloatInputPin(this, "In", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "In", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -293,8 +314,8 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Add()
         {
-            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
-            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "A", 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -313,8 +334,8 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Sub()
         {
-            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
-            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "A", 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -333,8 +354,8 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Mul()
         {
-            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
-            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "A", 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -353,8 +374,8 @@ namespace Engine::MaterialNodes
         declare_material_node();
         Div()
         {
-            inputs.push_back(new FloatInputPin(this, "A", true, 0.f));
-            inputs.push_back(new FloatInputPin(this, "B", true, 0.f));
+            inputs.push_back(new FloatInputPin(this, "A", 0.f));
+            inputs.push_back(new FloatInputPin(this, "B", 0.f));
             outputs.push_back(new MaterialOutputPin(this, "Out"));
         }
 
@@ -375,8 +396,8 @@ namespace Engine::MaterialNodes
 
         ConstructVec2Base()
         {
-            inputs.push_back(new InputType(this, "X", true, typename InputType::NativeType(0)));
-            inputs.push_back(new InputType(this, "Y", true, typename InputType::NativeType(0)));
+            inputs.push_back(new InputType(this, "X", typename InputType::NativeType(0)));
+            inputs.push_back(new InputType(this, "Y", typename InputType::NativeType(0)));
             outputs.push_back(new OutputType(this, "Out"));
         }
 
@@ -391,7 +412,7 @@ namespace Engine::MaterialNodes
         ConstructVec3Base()
         {
             ConstructVec2Base<InputType, OutputType>::inputs.push_back(
-                    new InputType(this, "Z", true, typename InputType::NativeType(0)));
+                    new InputType(this, "Z", typename InputType::NativeType(0)));
         }
     };
 
@@ -401,7 +422,7 @@ namespace Engine::MaterialNodes
         ConstructVec4Base()
         {
             ConstructVec3Base<InputType, OutputType>::inputs.push_back(
-                    new InputType(this, "W", true, typename InputType::NativeType(1)));
+                    new InputType(this, "W", typename InputType::NativeType(1)));
         }
     };
 
@@ -409,7 +430,7 @@ namespace Engine::MaterialNodes
     struct DecomposeVecBase : public MaterialNode {
         DecomposeVecBase()
         {
-            inputs.push_back(new InputType(this, "Vec", true, typename InputType::NativeType(0)));
+            inputs.push_back(new InputType(this, "Vec", typename InputType::NativeType(0)));
             outputs.push_back(new MaterialOutputPin(this, "X"));
             outputs.push_back(new MaterialOutputPin(this, "Y"));
             outputs.push_back(new MaterialOutputPin(this, "Z"));
@@ -624,6 +645,23 @@ namespace Engine::MaterialNodes
 
     //////////////////////////// TEXTURE NODES ////////////////////////////
 
+#define declare_render_target_texture(name, func)                                                                                \
+    struct name##Texture : public MaterialNode {                                                                                 \
+        declare_material_node();                                                                                                 \
+                                                                                                                                 \
+        name##Texture()                                                                                                          \
+        {                                                                                                                        \
+            outputs.push_back(new Color4OutputNoDefaultPin(this, "Color"));                                                      \
+            inputs.push_back(new MaterialInputPin(this, "Sampler"));                                                             \
+            inputs.push_back(new MaterialInputPin(this, "UV"));                                                                  \
+        }                                                                                                                        \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func##_texture(inputs[0], inputs[1]);                                                               \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(name##Texture, Texture);
+
     Sampler::Sampler()
     {
         outputs.push_back(new SamplerOutputNoDefaultPin(this, "Out"));
@@ -651,11 +689,10 @@ namespace Engine::MaterialNodes
 
     void Texture2D::render()
     {
-        if (texture)
+        if (texture && texture->has_object())
         {
             Engine::Sampler* sampler                   = Icons::default_sampler();
-            ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(
-                    reinterpret_cast<class Engine::Texture*>(texture.ptr()), sampler);
+            ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(texture, sampler);
             ImGui::Image(imgui_texture->handle(), {100, 100});
         }
     }
@@ -675,25 +712,30 @@ namespace Engine::MaterialNodes
 
     implement_material_node(Sampler, Texture);
     implement_material_node(Texture2D, Texture);
-
+    declare_render_target_texture(BaseColor, base_color);
+    declare_render_target_texture(Position, position);
+    declare_render_target_texture(Normal, normal);
+    declare_render_target_texture(Emissive, emissive);
+    declare_render_target_texture(DataBuffer, data_buffer);
+    declare_render_target_texture(SceneOutput, scene_output);
 
     //////////////////////////// INPUT NODES ////////////////////////////
-    Vertex::Vertex()
+    PositionAttribute::PositionAttribute()
     {
         outputs.push_back(new Vec3OutputNoDefaultPin(this, "Pos"));
     }
 
-    size_t Vertex::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    size_t PositionAttribute::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
-        return compiler->vertex(index);
+        return compiler->vertex_position_attribute(index);
     }
 
-    void Vertex::render()
+    void PositionAttribute::render()
     {
         ImGui::InputScalar("Index", ImGuiDataType_U8, &index);
     }
 
-    bool Vertex::archive_process(Archive& ar)
+    bool PositionAttribute::archive_process(Archive& ar)
     {
         if (!MaterialNode::archive_process(ar))
             return false;
@@ -701,6 +743,6 @@ namespace Engine::MaterialNodes
     }
 
 
-    implement_material_node(Vertex, Inputs);
+    implement_material_node(PositionAttribute, Inputs);
 
 }// namespace Engine::MaterialNodes

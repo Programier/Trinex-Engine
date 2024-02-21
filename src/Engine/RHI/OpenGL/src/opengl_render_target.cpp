@@ -99,10 +99,14 @@ namespace Engine
         _M_scissor.size = render_target->size;
         _M_scissor.pos  = {0.0f, 0.0f};
 
+        Vector<GLenum> color_attachments;
+        color_attachments.reserve(render_target->frame(0)->color_attachments.size());
+
         for (const Texture2D* color_attachment : render_target->frame(0)->color_attachments)
         {
             info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_attachment, this);
             attach_texture(color_attachment, GL_COLOR_ATTACHMENT0 + index);
+            color_attachments.push_back(GL_COLOR_ATTACHMENT0 + index);
             index++;
         }
 
@@ -113,6 +117,8 @@ namespace Engine
             attach_texture(depth_attachment,
                            get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->_M_format._M_format));
         }
+
+        glDrawBuffers(color_attachments.size(), color_attachments.data());
 
 
         if (OPENGL_API->_M_current_render_target != nullptr)

@@ -95,12 +95,13 @@ namespace Engine
     }
 
 
-    static constexpr inline size_t albedo_index   = 0;
-    static constexpr inline size_t position_index = 1;
-    static constexpr inline size_t normal_index   = 2;
-    static constexpr inline size_t specular_index = 3;
+    static constexpr inline size_t base_color_index  = 0;
+    static constexpr inline size_t position_index    = 1;
+    static constexpr inline size_t normal_index      = 2;
+    static constexpr inline size_t emissive_index    = 3;
+    static constexpr inline size_t data_buffer_index = 4;
 
-    static constexpr inline size_t gbuffer_color_attachments = 4;
+    static constexpr inline size_t gbuffer_color_attachments = 5;
 
     static ColorFormat base_color_format()
     {
@@ -123,9 +124,16 @@ namespace Engine
         return format;
     }
 
-    static ColorFormat specular_format()
+    static ColorFormat emissive_format()
     {
-        ColorFormat format = engine_instance->rhi()->specular_format();
+        ColorFormat format = engine_instance->rhi()->emissive_format();
+        trinex_always_check(format != ColorFormat::Undefined, "Specular format can't be undefined!");
+        return format;
+    }
+
+    static ColorFormat data_buffer_format()
+    {
+        ColorFormat format = engine_instance->rhi()->data_buffer_format();
         trinex_always_check(format != ColorFormat::Undefined, "Specular format can't be undefined!");
         return format;
     }
@@ -147,11 +155,11 @@ namespace Engine
         const char* name                 = nullptr;
     };
 
+
     static AttachmentTextureInfo attachment_texture_info[gbuffer_color_attachments] = {
-            {base_color_format, "Albedo"},
-            {position_format, "Position"},
-            {normal_format, "Normal"},
-            {specular_format, "Specular"},
+            {base_color_format, "Base Color"}, {position_format, "Position"},        {normal_format, "Normal"},
+            {emissive_format, "Emissive"},     {data_buffer_format, "Data Texture"},
+
     };
 
 
@@ -206,9 +214,9 @@ namespace Engine
         return pass;
     }
 
-    Texture2D* GBuffer::Frame::albedo() const
+    Texture2D* GBuffer::Frame::base_color() const
     {
-        return color_attachments[albedo_index].ptr();
+        return color_attachments[base_color_index].ptr();
     }
 
     Texture2D* GBuffer::Frame::position() const
@@ -221,9 +229,14 @@ namespace Engine
         return color_attachments[normal_index].ptr();
     }
 
-    Texture2D* GBuffer::Frame::specular() const
+    Texture2D* GBuffer::Frame::emissive() const
     {
-        return color_attachments[specular_index].ptr();
+        return color_attachments[emissive_index].ptr();
+    }
+
+    Texture2D* GBuffer::Frame::data_buffer() const
+    {
+        return color_attachments[data_buffer_index];
     }
 
     Texture2D* GBuffer::Frame::depth() const

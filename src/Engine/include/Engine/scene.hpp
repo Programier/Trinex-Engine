@@ -19,6 +19,7 @@ namespace Engine
         static ENGINE_EXPORT const Name name_clear_render_targets;
         static ENGINE_EXPORT const Name name_base_pass;
         static ENGINE_EXPORT const Name name_light_pass;
+        static ENGINE_EXPORT const Name name_scene_output_pass;
         static ENGINE_EXPORT const Name name_post_process;
 
         using FunctionCallback = void (*)(SceneRenderer*, RenderViewport*, SceneLayer*);
@@ -69,6 +70,7 @@ namespace Engine
         SceneLayer* _M_clear_layer        = nullptr;
         SceneLayer* _M_base_pass_layer    = nullptr;
         SceneLayer* _M_lighting_layer     = nullptr;
+        SceneLayer* _M_scene_output       = nullptr;
         SceneLayer* _M_post_process_layer = nullptr;
 
         SceneOctree _M_octree;
@@ -103,6 +105,11 @@ namespace Engine
         FORCE_INLINE SceneLayer* lighting_layer() const
         {
             return _M_lighting_layer;
+        }
+
+        FORCE_INLINE SceneLayer* scene_output_layer() const
+        {
+            return _M_scene_output;
         }
 
         FORCE_INLINE SceneLayer* post_process_layer() const

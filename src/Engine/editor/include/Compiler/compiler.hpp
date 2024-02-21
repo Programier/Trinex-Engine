@@ -148,13 +148,34 @@ namespace Engine
         // Texture
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
         virtual size_t sampler(class Engine::Sampler* sampler)                                                       = 0;
-
+        virtual size_t base_color_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                           = 0;
+        virtual size_t position_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                             = 0;
+        virtual size_t normal_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                               = 0;
+        virtual size_t emissive_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                             = 0;
+        virtual size_t data_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                          = 0;
+        virtual size_t scene_output_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                         = 0;
 
         // Shader outputs
-        virtual size_t position(MaterialInputPin*)   = 0;
-        virtual size_t base_color(MaterialInputPin*) = 0;
+        virtual size_t vertex_output_screen_space_position(MaterialInputPin*) = 0;
+        virtual size_t vertex_output_world_position(MaterialInputPin*)        = 0;
+        virtual size_t vertex_output_uv0(MaterialInputPin*)                   = 0;
+        virtual size_t vertex_output_uv1(MaterialInputPin*)                   = 0;
+        virtual size_t vertex_output_world_normal(MaterialInputPin*)          = 0;
+        virtual size_t vertex_output_world_tangent(MaterialInputPin*)         = 0;
+        virtual size_t vertex_output_world_bitangent(MaterialInputPin*)       = 0;
+        virtual size_t vertex_output_color(MaterialInputPin*)                 = 0;
+
+        virtual size_t fragment_output_base_color(MaterialInputPin*) = 0;
+        virtual size_t fragment_output_metalic(MaterialInputPin*)    = 0;
+        virtual size_t fragment_output_specular(MaterialInputPin*)   = 0;
+        virtual size_t fragment_output_roughness(MaterialInputPin*)  = 0;
+        virtual size_t fragment_output_emissive(MaterialInputPin*)   = 0;
+        virtual size_t fragment_output_opacity(MaterialInputPin*)    = 0;
+        virtual size_t fragment_output_position(MaterialInputPin*)   = 0;
+        virtual size_t fragment_output_normal(MaterialInputPin*)     = 0;
+
 
         // Inputs
-        virtual size_t vertex(byte index) = 0;
+        virtual size_t vertex_position_attribute(byte index) = 0;
     };
 }// namespace Engine

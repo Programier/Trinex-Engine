@@ -145,7 +145,8 @@ namespace Engine
         virtual ColorFormat base_color_format()    = 0;
         virtual ColorFormat position_format()      = 0;
         virtual ColorFormat normal_format()        = 0;
-        virtual ColorFormat specular_format()      = 0;
+        virtual ColorFormat emissive_format()      = 0;
+        virtual ColorFormat data_buffer_format()   = 0;
         virtual ColorFormat depth_format()         = 0;
         virtual ColorFormat stencil_format()       = 0;
         virtual ColorFormat depth_stencil_format() = 0;

@@ -101,6 +101,8 @@ namespace Engine
         ar & attrib.name;
         ar & attrib.count;
         ar & attrib.format;
+        ar & attrib.semantic;
+        ar & attrib.semantic_index;
         ar & attrib.rate;
         return ar;
     }

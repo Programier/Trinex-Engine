@@ -2,10 +2,12 @@
 #include <Core/engine.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/shader.hpp>
 
 namespace Engine
 {
@@ -22,18 +24,56 @@ namespace Engine
                 {
                     scene->post_process_layer()->add_component(this);
                 }
+                else if (pipeline->render_pass == RenderPassType::GBuffer)
+                {
+                    scene->base_pass_layer()->add_component(this);
+                }
             }
         }
         return *this;
     }
 
-    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer*, class RenderViewport*, class SceneLayer*)
+    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderViewport*, class SceneLayer*)
     {
-        mesh->material->apply(this);
-        mesh->positions[0]->rhi_bind(0, 0);
-        mesh->indices->rhi_bind(0);
+        auto& camera_view  = renderer->camera_view();
+        float inv_distance = 1.f / glm::min(glm::distance(transform_render_thread.global_location(), camera_view.location),
+                                            camera_view.far_clip_plane);
+        auto& lods         = mesh->lods;
+        Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size());
+        auto& lod          = lods[lod_index];
 
-        engine_instance->rhi()->draw_indexed(mesh->indices->elements_count(), 0);
+        mesh->material->apply(this);
+        VertexShader* shader = mesh->material->material()->pipeline->vertex_shader;
+
+        size_t vertices = Constants::max_size;
+
+        for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
+        {
+            auto& attribute      = shader->attributes[i];
+            VertexBuffer* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
+
+            if (buffer)
+            {
+                buffer->rhi_bind(i, 0);
+
+                if (attribute.rate == VertexAttributeInputRate::Vertex)
+                {
+                    vertices = glm::min(buffer->elements_count(), vertices);
+                }
+            }
+        }
+
+        RHI* rhi = engine_instance->rhi();
+
+        if (lod.indices->elements_count() > 0)
+        {
+            lod.indices->rhi_bind(0);
+            rhi->draw_indexed(lod.indices->elements_count(), 0);
+        }
+        else if (vertices != Constants::max_size)
+        {
+            rhi->draw(vertices);
+        }
         return *this;
     }
 }// namespace Engine

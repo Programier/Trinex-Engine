@@ -8,36 +8,44 @@ namespace Engine
 {
     class Pipeline;
     class SceneComponent;
+    class Texture2D;
+    class Sampler;
 
     class ENGINE_EXPORT MaterialParameter : public SerializableObject
     {
     public:
         enum Type
         {
-            Bool              = 0,
-            Int               = 1,
-            UInt              = 2,
-            Float             = 3,
-            BVec2             = 4,
-            BVec3             = 5,
-            BVec4             = 6,
-            IVec2             = 7,
-            IVec3             = 8,
-            IVec4             = 9,
-            UVec2             = 10,
-            UVec3             = 11,
-            UVec4             = 12,
-            Vec2              = 13,
-            Vec3              = 14,
-            Vec4              = 15,
-            Mat3              = 16,
-            Mat4              = 17,
-            Sampler           = 18,
-            Texture2D         = 19,
-            CombinedSampler2D = 20,
-            ModelMatrix       = 21,
+            Bool               = 0,
+            Int                = 1,
+            UInt               = 2,
+            Float              = 3,
+            BVec2              = 4,
+            BVec3              = 5,
+            BVec4              = 6,
+            IVec2              = 7,
+            IVec3              = 8,
+            IVec4              = 9,
+            UVec2              = 10,
+            UVec3              = 11,
+            UVec4              = 12,
+            Vec2               = 13,
+            Vec3               = 14,
+            Vec4               = 15,
+            Mat3               = 16,
+            Mat4               = 17,
+            Sampler            = 18,
+            Texture2D          = 19,
+            CombinedTexture2D  = 20,
+            ModelMatrix        = 21,
+            BaseColorTexture   = 22,
+            PositionTexture    = 23,
+            NormalTexture      = 24,
+            EmissiveTexture    = 25,
+            DataBufferTexture  = 26,
+            SceneOutputTexture = 27,
 
-            __COUNT__ = 22
+            __COUNT__ = 28
         };
 
         Name name;
@@ -47,6 +55,7 @@ namespace Engine
         virtual byte* data();
         virtual const byte* data() const;
         virtual Type type() const = 0;
+        virtual Type binding_object_type() const;
         virtual MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component);
         virtual bool archive_process(Archive& ar) override;
 
@@ -128,7 +137,9 @@ namespace Engine
     {
     public:
         BindLocation location;
-
+        void bind_texture(class Engine::Texture2D* texture);
+        void bind_sampler(class Engine::Sampler* sampler);
+        void bind_combined(class Engine::Sampler* sampler, class Engine::Texture2D* texture);
         bool archive_process(Archive& ar) override;
     };
 
@@ -142,7 +153,7 @@ namespace Engine
         bool archive_process(Archive& ar) override;
     };
 
-    class CombinedSampler2DMaterialParameter : public BindingMaterialParameter
+    class CombinedTexture2DMaterialParameter : public BindingMaterialParameter
     {
     public:
         Pointer<class Sampler> sampler;
@@ -164,6 +175,43 @@ namespace Engine
     struct ModelMatrixMaterialParameter : public MaterialParameter {
         Type type() const override;
         ModelMatrixMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+
+    struct BaseColorTextureMaterialParameter : SamplerMaterialParameter {
+        Type type() const override;
+        Type binding_object_type() const override;
+        BaseColorTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+    struct PositionTextureMaterialParameter : SamplerMaterialParameter {
+        Type type() const override;
+        Type binding_object_type() const override;
+        PositionTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+    struct NormalTextureMaterialParameter : SamplerMaterialParameter {
+        Type type() const override;
+        Type binding_object_type() const override;
+        NormalTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+    struct EmissiveTextureMaterialParameter : SamplerMaterialParameter {
+        Type type() const override;
+        Type binding_object_type() const override;
+        EmissiveTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+    struct DataBufferTextureMaterialParameter : SamplerMaterialParameter {
+        Type type() const override;
+        Type binding_object_type() const override;
+        DataBufferTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+    struct SceneOutputTextureMaterialParameter : SamplerMaterialParameter {
+        Type type() const override;
+        Type binding_object_type() const override;
+        SceneOutputTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
 

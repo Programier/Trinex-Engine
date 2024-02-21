@@ -10,6 +10,7 @@ namespace Engine
     const Name SceneLayer::name_clear_render_targets = "Clear Render Targets";
     const Name SceneLayer::name_base_pass            = "Base Pass";
     const Name SceneLayer::name_light_pass           = "Light Pass";
+    const Name SceneLayer::name_scene_output_pass    = "Scene Output Pass";
     const Name SceneLayer::name_post_process         = "Post Process";
 
     SceneLayer::SceneLayer(const Name& name) : _M_name(name)
@@ -270,27 +271,35 @@ namespace Engine
         _M_root_layer                       = new SceneLayer("Root Layer");
         _M_root_layer->_M_can_create_parent = false;
 
-        _M_clear_layer        = _M_root_layer->create_next(SceneLayer::name_clear_render_targets);
-        _M_base_pass_layer    = _M_clear_layer->create_next(SceneLayer::name_base_pass);
-        _M_lighting_layer     = _M_base_pass_layer->create_next(SceneLayer::name_light_pass);
-        _M_post_process_layer = _M_lighting_layer->create_next(SceneLayer::name_post_process);
-
+        _M_clear_layer = _M_root_layer->create_next(SceneLayer::name_clear_render_targets);
         _M_clear_layer->methods_callback.push_back(&SceneRenderer::clear_render_targets);
+
+        _M_base_pass_layer = _M_clear_layer->create_next(SceneLayer::name_base_pass);
+        _M_base_pass_layer->methods_callback.push_back(&SceneRenderer::begin_rendering_base_pass);
+
+        _M_lighting_layer = _M_base_pass_layer->create_next(SceneLayer::name_light_pass);
+        _M_lighting_layer->methods_callback.push_back(&SceneRenderer::begin_lighting_pass);
+
+        _M_scene_output = _M_lighting_layer->create_next(SceneLayer::name_scene_output_pass);
+        _M_scene_output->methods_callback.push_back(&SceneRenderer::begin_scene_output_pass);
+
+        _M_post_process_layer = _M_scene_output->create_next(SceneLayer::name_post_process);
+        _M_post_process_layer->methods_callback.push_back(&SceneRenderer::begin_postprocess_pass);
     }
 
 
     Scene& Scene::build_views_internal(SceneRenderer* renderer, SceneOctree::Node* node)
     {
-        for(PrimitiveComponent* component : node->values)
+        for (PrimitiveComponent* component : node->values)
         {
             component->add_to_scene_layer(this, renderer);
         }
 
-        for(byte i = 0; i < 8; i++)
+        for (byte i = 0; i < 8; i++)
         {
             auto child = node->child_at(i);
 
-            if(child)
+            if (child)
             {
                 build_views_internal(renderer, child);
             }

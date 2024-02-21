@@ -45,10 +45,10 @@ namespace Engine::Importer
         // Generate indices
         {
             indices.reserve(mesh->mNumFaces * 3);
-            for(unsigned int i = 0; i < mesh->mNumFaces; ++i)
+            for (unsigned int i = 0; i < mesh->mNumFaces; ++i)
             {
                 auto& face = mesh->mFaces[i];
-                for(unsigned int j = 0; j < face.mNumIndices; ++j)
+                for (unsigned int j = 0; j < face.mNumIndices; ++j)
                 {
                     indices.push_back(face.mIndices[j]);
                 }
@@ -57,15 +57,17 @@ namespace Engine::Importer
 
 
         PositionVertexBuffer* position_vertex_buffer = Object::new_instance<PositionVertexBuffer>();
-        position_vertex_buffer->buffer = std::move(positions);
-        static_mesh->positions.push_back(position_vertex_buffer);
+        position_vertex_buffer->buffer               = std::move(positions);
+        static_mesh->lods.resize(1);
+        auto& lod = static_mesh->lods[0];
+        lod.positions.push_back(position_vertex_buffer);
 
-        if(indices.size() > 0)
+        if (indices.size() > 0)
         {
             IndexBuffer* index_buffer = Object::new_instance<IndexBuffer>();
             index_buffer->setup(IndexBufferComponent::UnsignedInt);
             *index_buffer->int_buffer() = std::move(indices);
-            static_mesh->indices = index_buffer;
+            lod.indices                 = index_buffer;
         }
 
         static_mesh->name(mesh->mName.C_Str());

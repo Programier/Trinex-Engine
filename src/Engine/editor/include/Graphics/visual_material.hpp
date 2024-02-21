@@ -141,31 +141,38 @@ namespace Engine
         virtual ~MaterialNode();
     };
 
-    template<typename Type, MaterialNodeDataType enum_value, bool enable_default = true>
+
+    template<MaterialNodeDataType enum_value>
+    struct TypedInputNoDefaultPin : public MaterialInputPin {
+        static constexpr MaterialNodeDataType data_type = enum_value;
+
+        TypedInputNoDefaultPin(struct MaterialNode* node, Name name = Name::none) : MaterialInputPin(node, name)
+        {}
+
+        MaterialNodeDataType value_type() const override
+        {
+            if (linked_to)
+                return linked_to->value_type();
+            return enum_value;
+        }
+    };
+
+    template<typename Type, MaterialNodeDataType enum_value>
     struct TypedInputPin : public MaterialInputPin {
         Type value;
-        bool has_default;
 
         using NativeType                                = Type;
         static constexpr MaterialNodeDataType data_type = enum_value;
 
-        TypedInputPin(struct MaterialNode* node, Name name = Name::none, bool has_default = true,
-                      const Type& default_value = Type())
-            : MaterialInputPin(node, name), value(default_value), has_default(has_default && enable_default)
+        TypedInputPin(struct MaterialNode* node, Name name = Name::none, const Type& default_value = Type())
+            : MaterialInputPin(node, name), value(default_value)
         {}
 
         void* default_value() override
         {
-            if (has_default)
-            {
-                if (linked_to)
-                    return nullptr;
-                return &value;
-            }
-            else
-            {
+            if (linked_to)
                 return nullptr;
-            }
+            return &value;
         }
 
         MaterialNodeDataType value_type() const override
@@ -253,8 +260,30 @@ namespace Engine
     using Color3InputPin = TypedInputPin<Vector3D, MaterialNodeDataType::Color3>;
     using Color4InputPin = TypedInputPin<Vector4D, MaterialNodeDataType::Color4>;
 
-    using Mat3InputPin = TypedInputPin<Matrix3f, MaterialNodeDataType::Mat3, false>;
-    using Mat4InputPin = TypedInputPin<Matrix4f, MaterialNodeDataType::Mat4, false>;
+    using Mat3InputPin = TypedInputPin<Matrix3f, MaterialNodeDataType::Mat3>;
+    using Mat4InputPin = TypedInputPin<Matrix4f, MaterialNodeDataType::Mat4>;
+
+    using BoolInputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::Bool>;
+    using IntInputNoDefaultPin     = TypedInputNoDefaultPin<MaterialNodeDataType::Int>;
+    using UIntInputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::UInt>;
+    using FloatInputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::Float>;
+    using BVec2InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::BVec2>;
+    using BVec3InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::BVec3>;
+    using BVec4InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::BVec4>;
+    using IVec2InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::IVec2>;
+    using IVec3InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::IVec3>;
+    using IVec4InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::IVec4>;
+    using UVec2InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::UVec2>;
+    using UVec3InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::UVec3>;
+    using UVec4InputNoDefaultPin   = TypedInputNoDefaultPin<MaterialNodeDataType::UVec4>;
+    using Vec2InputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::Vec2>;
+    using Vec3InputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::Vec3>;
+    using Vec4InputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::Vec4>;
+    using Color3InputNoDefaultPin  = TypedInputNoDefaultPin<MaterialNodeDataType::Color3>;
+    using Color4InputNoDefaultPin  = TypedInputNoDefaultPin<MaterialNodeDataType::Color4>;
+    using Mat3InputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::Mat3>;
+    using Mat4InputNoDefaultPin    = TypedInputNoDefaultPin<MaterialNodeDataType::Mat4>;
+    using SamplerInputNoDefaultPin = TypedInputNoDefaultPin<MaterialNodeDataType::Sampler>;
 
     using BoolOutputPin   = TypedOutputPin<bool, MaterialNodeDataType::Bool>;
     using IntOutputPin    = TypedOutputPin<int_t, MaterialNodeDataType::Int>;

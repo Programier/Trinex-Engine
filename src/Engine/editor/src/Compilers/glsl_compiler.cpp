@@ -338,6 +338,10 @@ namespace Engine
         byte location;
         MaterialNodeDataType type;
         ColorFormat format;
+
+        VertexBufferSemantic semantic;
+        byte semantic_index = 0;
+        bool with_prefix    = true;
     };
 
     struct GLSL_LocalParameter {
@@ -349,7 +353,8 @@ namespace Engine
 
     struct GLSL_BindingObject {
         String name;
-        void* object = nullptr;
+        void* texture = nullptr;
+        void* sampler = nullptr;
         StringView type;
         BindingIndex index;
     };
@@ -367,6 +372,12 @@ namespace Engine
         Map<Identifier, GLSL_CompiledSource*> compiled_pins;
         Vector<String> statements;
         byte next_binding_index = 2;
+
+        String text_source;
+        Buffer binary_source;
+        std::vector<unsigned int> spirv;
+
+        List<Function<void()>> on_success_command_list;
 
         ~GLSL_BaseCompiler()
         {
@@ -427,7 +438,7 @@ namespace Engine
             return index;
         }
 
-        Index create_output_attribute(const String& name, bool* created_now = nullptr)
+        Index create_output_attribute(const String& name, bool* created_now = nullptr, bool with_refix = true)
         {
             if (created_now)
                 *created_now = false;
@@ -444,9 +455,10 @@ namespace Engine
                 *created_now = true;
 
             output_attribute.emplace_back();
-            auto& attrib    = output_attribute.back();
-            attrib.param    = name;
-            attrib.location = static_cast<byte>(index);
+            auto& attrib       = output_attribute.back();
+            attrib.param       = name;
+            attrib.with_prefix = with_refix;
+            attrib.location    = static_cast<byte>(index);
 
             return index;
         }
@@ -495,12 +507,12 @@ namespace Engine
             return index;
         }
 
-        GLSL_BindingObject* create_binding_object(void* object, StringView type, bool& created_now)
+        GLSL_BindingObject* create_binding_object(void* texture, void* sampler, StringView type, bool& created_now)
         {
             created_now = false;
             for (GLSL_BindingObject* glsl_object : objects)
             {
-                if (glsl_object->object == object)
+                if (glsl_object->texture == texture && glsl_object->sampler == sampler)
                 {
                     return glsl_object;
                 }
@@ -509,7 +521,8 @@ namespace Engine
             created_now = true;
 
             GLSL_BindingObject* new_object = new GLSL_BindingObject();
-            new_object->object             = object;
+            new_object->texture            = texture;
+            new_object->sampler            = sampler;
             new_object->type               = type;
             new_object->index              = next_binding_index;
             new_object->name               = Strings::format("tnx_object_{}", objects.size());
@@ -561,23 +574,23 @@ namespace Engine
             return nullptr;
         }
 
-        GLSL_CompiledSource* pin_source(MaterialOutputPin* pin, ShaderCompiler* compiler)
+        GLSL_CompiledSource* pin_source(MaterialOutputPin* pin)
         {
             // Try to find it
             GLSL_CompiledSource* source = find_pin_source(pin->id(), false);
             if (source)
                 return source;
 
-            source                   = reinterpret_cast<GLSL_CompiledSource*>(pin->node->compile(compiler, pin));
+            source                   = reinterpret_cast<GLSL_CompiledSource*>(pin->node->compile(this, pin));
             compiled_pins[pin->id()] = source;
             return source;
         }
 
-        GLSL_CompiledSource* pin_source(MaterialInputPin* pin, ShaderCompiler* compiler)
+        GLSL_CompiledSource* pin_source(MaterialInputPin* pin)
         {
             if (pin->linked_to)
             {
-                return pin_source(pin->linked_to, compiler);
+                return pin_source(pin->linked_to);
             }
 
             // Try to find it
@@ -593,6 +606,16 @@ namespace Engine
             source                   = new GLSL_CompiledSource(code);
             compiled_pins[pin->id()] = source;
             return source;
+        }
+
+        GLSL_CompiledSource* sampler_source(MaterialInputPin* pin)
+        {
+            return pin_source(pin);
+        }
+
+        String uv_source(MaterialInputPin* pin)
+        {
+            return get_pin_source(pin, MaterialNodeDataType::Vec2);
         }
 
         String cast_value(const String& in, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
@@ -667,7 +690,7 @@ namespace Engine
         String get_pin_source(MaterialOutputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined,
                               bool force_as_var = false)
         {
-            auto source = pin_source(pin, this);
+            auto source = pin_source(pin);
 
             if (pin->refereces_count() > 1 || source->source.length() > max_sentence_len || force_as_var)
             {
@@ -681,7 +704,7 @@ namespace Engine
         String get_pin_source(MaterialInputPin* pin, MaterialNodeDataType out_type = MaterialNodeDataType::Undefined,
                               bool force_as_var = false)
         {
-            auto source = pin_source(pin, this);
+            auto source = pin_source(pin);
 
             if (source->source.length() > max_sentence_len || force_as_var)
             {
@@ -700,7 +723,7 @@ namespace Engine
             return errors->empty();
         }
 
-        void parse_reflection(const std::vector<unsigned int>& spirv)
+        void parse_reflection()
         {
             spirv_cross::CompilerGLSL compiler(spirv);
             spirv_cross::ShaderResources resources = compiler.get_shader_resources();
@@ -739,7 +762,20 @@ namespace Engine
             }
         }
 
-        bool build_source(bool with_reflection = false)
+
+        bool submit_source()
+        {
+            for (auto& func : on_success_command_list)
+            {
+                func();
+            }
+
+            current_shader()->text_code   = std::move(text_source);
+            current_shader()->binary_code = std::move(binary_source);
+            return true;
+        }
+
+        bool build_source()
         {
             String source = "#version 310 es\n"
                             "precision highp float;\n"
@@ -747,16 +783,32 @@ namespace Engine
 
             for (auto& attribute : input_attribute)
             {
-                source += Strings::format("layout(location = {}) in {} in_{};\n", attribute.location,
-                                          glsl_type_of(attribute.type), attribute.param);
+                if (attribute.with_prefix)
+                {
+                    source += Strings::format("layout(location = {}) in {} in_{};\n", attribute.location,
+                                              glsl_type_of(attribute.type), attribute.param);
+                }
+                else
+                {
+                    source += Strings::format("layout(location = {}) in {} {};\n", attribute.location,
+                                              glsl_type_of(attribute.type), attribute.param);
+                }
             }
 
             source += "\n";
 
             for (auto& attribute : output_attribute)
             {
-                source += Strings::format("layout(location = {}) out {} out_{};\n", attribute.location,
-                                          glsl_type_of(attribute.type), attribute.param);
+                if (attribute.with_prefix)
+                {
+                    source += Strings::format("layout(location = {}) out {} out_{};\n", attribute.location,
+                                              glsl_type_of(attribute.type), attribute.param);
+                }
+                else
+                {
+                    source += Strings::format("layout(location = {}) out {} {};\n", attribute.location,
+                                              glsl_type_of(attribute.type), attribute.param);
+                }
             }
 
             source += "\n";
@@ -794,16 +846,8 @@ namespace Engine
 
             source += "}\n";
 
-
-            std::vector<unsigned int> spirv;
-            compile_shader(source, current_shader()->binary_code, shader_type(), &spirv);
-            current_shader()->text_code = std::move(source);
-
-            if (with_reflection && errors->empty())
-            {
-                parse_reflection(spirv);
-            }
-
+            compile_shader(source, binary_source, shader_type(), &spirv);
+            text_source = std::move(source);
             return errors->empty();
         }
 
@@ -1118,7 +1162,7 @@ namespace Engine
             MaterialNodeDataType vector_type =
                     static_cast<MaterialNodeDataType>(material_type_value(input_type_info.base_type, 4));
 
-            GLSL_CompiledSource* input_source = pin_source(pin, this);
+            GLSL_CompiledSource* input_source = pin_source(pin);
             GLSL_CompiledSource* pin_source   = find_pin_source(pin->id(), true);
 
             if (pin_source != input_source)
@@ -1143,25 +1187,170 @@ namespace Engine
             return 0;
         }
 
+        size_t base_color_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t position_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t normal_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t emissive_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t data_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t scene_output_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+
         virtual size_t sampler(class Engine::Sampler* sampler) override
         {
             errors->push_back(Strings::format("Sampler node doesn't supported in {} shader!", name()));
             return 0;
         }
 
-        size_t base_color(MaterialInputPin* pin) override
+        size_t fragment_output_base_color(MaterialInputPin* pin) override
         {
-            errors->push_back(Strings::format("BaseColor node doesn't supported in {} shader!", name()));
+            errors->push_back(Strings::format("BaseColor pin doesn't supported in {} shader!", name()));
             return 0;
         }
 
-        virtual size_t vertex(byte index) override
+        size_t fragment_output_metalic(MaterialInputPin*) override
         {
-            errors->push_back(Strings::format("Vertex node doesn't supported in {} shader!", name()));
+            errors->push_back(Strings::format("Metalic node doesn't supported in {} shader!", name()));
             return 0;
         }
 
-        size_t position(MaterialInputPin* pin) override
+        size_t fragment_output_specular(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Specular doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_output_roughness(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Roughness pin doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_output_emissive(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Emissive pin doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_output_opacity(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Opacity pin doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_output_position(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position pin doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_output_normal(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Normal pin doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        virtual void submit_vertex_attribute(const GLSL_Attribute& attribute)
+        {}
+
+        virtual size_t create_vertex_attribute(const StringView& name, byte index, ColorFormat format, MaterialNodeDataType type,
+                                               VertexBufferSemantic semantic)
+        {
+            String code = Strings::format("{}_{}", name, index);
+
+            bool created_now;
+            auto& in_attribute = input_attribute[create_input_attribute(code, &created_now)];
+
+            if (created_now)
+            {
+                in_attribute.format         = format;
+                in_attribute.type           = type;
+                in_attribute.semantic       = semantic;
+                in_attribute.semantic_index = index;
+
+                submit_vertex_attribute(in_attribute);
+            }
+
+            return (new GLSL_CompiledSource(Strings::format("in_{}", code)))->id();
+        }
+
+        virtual size_t vertex_position_attribute(byte index) override
+        {
+            return create_vertex_attribute("position", index, ColorFormat::R32G32B32Sfloat, MaterialNodeDataType::Vec3,
+                                           VertexBufferSemantic::Position);
+        }
+
+        size_t vertex_output_screen_space_position(MaterialInputPin* pin) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_world_position(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_uv0(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_uv1(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_world_normal(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_world_tangent(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_world_bitangent(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t vertex_output_color(MaterialInputPin*) override
         {
             errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
             return 0;
@@ -1210,44 +1399,35 @@ namespace Engine
             if (!GLSL_BaseCompiler::compile(material, errors))
                 return false;
 
-            current_shader()->attributes.clear();
+            on_success_command_list.push_back([this]() {
+                current_shader()->attributes.clear();
 
-            for (auto& input : input_attribute)
-            {
-                current_shader()->attributes.push_back(
-                        VertexShader::Attribute(input.format, VertexAttributeInputRate::Vertex, 1, input.param));
-            }
+                for (auto& input : input_attribute)
+                {
+                    current_shader()->attributes.push_back(VertexShader::Attribute(input.format, VertexAttributeInputRate::Vertex,
+                                                                                   input.semantic, input.semantic_index, 1,
+                                                                                   input.param));
+                }
+            });
 
             return true;
         }
 
-
-        virtual size_t vertex(byte index) override
+        void submit_vertex_attribute(const GLSL_Attribute& attribute) override
         {
-            String code = Strings::format("position_{}", index);
-
             bool created_now;
-            auto& in_attribute = input_attribute[create_input_attribute(code, &created_now)];
+            auto& out_attribute = output_attribute[create_output_attribute(attribute.param, &created_now)];
 
             if (created_now)
             {
-                in_attribute.format = ColorFormat::R32G32B32Sfloat;
-                in_attribute.type   = MaterialNodeDataType::Vec3;
+                out_attribute.format = attribute.format;
+                out_attribute.type   = attribute.type;
             }
 
-            auto& out_attribute = output_attribute[create_output_attribute(code, &created_now)];
-
-            if (created_now)
-            {
-                out_attribute.format = ColorFormat::R32G32B32Sfloat;
-                out_attribute.type   = MaterialNodeDataType::Vec3;
-            }
-
-            statements.push_back(Strings::format("out_{} = in_{}", code, code));
-            return (new GLSL_CompiledSource(Strings::format("in_{}", code)))->id();
+            statements.push_back(Strings::format("out_{} = in_{}", attribute.param, attribute.param));
         }
 
-        size_t position(MaterialInputPin* pin) override
+        size_t vertex_output_screen_space_position(MaterialInputPin* pin) override
         {
             String source = "";
 
@@ -1257,26 +1437,130 @@ namespace Engine
             }
             else
             {
-                GLSL_CompiledSource* model_source = reinterpret_cast<GLSL_CompiledSource*>(model());
-
-                auto& attribute      = input_attribute[create_input_attribute("position_0")];
-                auto& out_attribute  = output_attribute[create_output_attribute("position_0")];
-                attribute.format     = ColorFormat::R32G32B32Sfloat;
-                attribute.type       = MaterialNodeDataType::Vec3;
-                out_attribute.format = ColorFormat::R32G32B32Sfloat;
-                out_attribute.type   = MaterialNodeDataType::Vec3;
-                statements.push_back("out_position_0 = in_position_0");
-                source = Strings::format("global.projview * {} * vec4(in_position_0.xyz, 1.0)", model_source->source);
+                GLSL_CompiledSource* model_source       = reinterpret_cast<GLSL_CompiledSource*>(model());
+                GLSL_CompiledSource* compiled_attribute = reinterpret_cast<GLSL_CompiledSource*>(vertex_position_attribute(0));
+                source =
+                        Strings::format("global.projview * {} * vec4({}, 1.0)", model_source->source, compiled_attribute->source);
             }
 
             statements.push_back(Strings::format("gl_Position = {}", source));
+            return 0;
+        }
+
+        size_t vertex_output_world_position(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_world_position", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32B32Sfloat;
+                output.type   = MaterialNodeDataType::Vec3;
+            }
+
+            statements.push_back(Strings::format("vertex_world_position = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            return 0;
+        }
+
+        size_t vertex_output_uv0(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_uv0", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32Sfloat;
+                output.type   = MaterialNodeDataType::Vec2;
+            }
+
+            statements.push_back(Strings::format("vertex_uv0 = {}", get_pin_source(pin, MaterialNodeDataType::Vec2)));
+            return 0;
+        }
+
+        size_t vertex_output_uv1(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_uv1", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32Sfloat;
+                output.type   = MaterialNodeDataType::Vec2;
+            }
+
+            statements.push_back(Strings::format("vertex_uv1 = {}", get_pin_source(pin, MaterialNodeDataType::Vec2)));
+            return 0;
+        }
+
+        size_t vertex_output_world_normal(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_world_normal", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32B32Sfloat;
+                output.type   = MaterialNodeDataType::Vec3;
+            }
+
+            statements.push_back(Strings::format("vertex_world_normal = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            return 0;
+        }
+
+        size_t vertex_output_world_tangent(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_world_tangent", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32B32Sfloat;
+                output.type   = MaterialNodeDataType::Vec3;
+            }
+
+            statements.push_back(Strings::format("vertex_world_tangent = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            return 0;
+        }
+
+        size_t vertex_output_world_bitangent(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_world_bitangent", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32B32Sfloat;
+                output.type   = MaterialNodeDataType::Vec3;
+            }
+
+            statements.push_back(Strings::format("vertex_world_bitangent = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            return 0;
+        }
+
+        size_t vertex_output_color(MaterialInputPin* pin) override
+        {
+            bool created_now;
+            auto& output = output_attribute[create_output_attribute("vertex_color", &created_now, false)];
+
+            if (created_now)
+            {
+                output.format = ColorFormat::R32G32B32Sfloat;
+                output.type   = MaterialNodeDataType::Vec3;
+            }
+
+            statements.push_back(Strings::format("vertex_color = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
             return 0;
         }
     };
 
     class GLSL_FragmentCompiler : public GLSL_BaseCompiler
     {
+        GLSL_VertexCompiler* vertex_compiler = nullptr;
+
     public:
+        GLSL_FragmentCompiler(GLSL_VertexCompiler* vertex_compiler) : vertex_compiler(vertex_compiler)
+        {}
+
         const char* name() const override
         {
             return "Fragment Compiler";
@@ -1324,9 +1608,32 @@ namespace Engine
 
             output_attribute.push_back(attribute);
 
+            if (type == RenderPassType::GBuffer)
+            {
+                attribute.location = 1;
+                attribute.param    = "position";
+                attribute.type     = MaterialNodeDataType::Color4;
+                output_attribute.push_back(attribute);
+
+                attribute.location = 2;
+                attribute.param    = "normal";
+                attribute.type     = MaterialNodeDataType::Color4;
+                output_attribute.push_back(attribute);
+
+                attribute.location = 3;
+                attribute.param    = "emissive";
+                attribute.type     = MaterialNodeDataType::Color4;
+                output_attribute.push_back(attribute);
+
+                attribute.location = 4;
+                attribute.param    = "data_buffer";
+                attribute.type     = MaterialNodeDataType::Color4;
+                output_attribute.push_back(attribute);
+            }
+
+
             return GLSL_BaseCompiler::compile(material, errors);
         }
-
 
         size_t frag_coord() override
         {
@@ -1336,42 +1643,181 @@ namespace Engine
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
         {
             bool created_now;
-            GLSL_BindingObject* glsl_texture = create_binding_object(texture, "sampler2D", created_now);
+            GLSL_CompiledSource* sampler_src = sampler_source(sampler);
+            String uv_src                    = uv_source(uv);
+
+            GLSL_BindingObject* glsl_texture = create_binding_object(texture, sampler_src->data, "sampler2D", created_now);
 
             if (created_now)
             {
-                GLSL_CompiledSource* sampler_source       = pin_source(sampler, this);
-                CombinedSampler2DMaterialParameter* param = reinterpret_cast<CombinedSampler2DMaterialParameter*>(
-                        material->create_parameter(glsl_texture->name, MaterialParameter::Type::CombinedSampler2D));
-
-                param->texture  = texture;
-                param->sampler  = reinterpret_cast<class Sampler*>(sampler_source->data);
-                param->location = {glsl_texture->index, 0};
-                current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+                on_success_command_list.push_back([this, sampler_src, glsl_texture, texture]() {
+                    CombinedTexture2DMaterialParameter* param = reinterpret_cast<CombinedTexture2DMaterialParameter*>(
+                            material->create_parameter(glsl_texture->name, MaterialParameter::Type::CombinedTexture2D));
+                    param->texture  = texture;
+                    param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);
+                    param->location = {glsl_texture->index, 0};
+                    current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+                });
             }
 
-            String uv_source = get_pin_source(uv, MaterialNodeDataType::Vec2);
 
-            String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_source);
+            String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_src);
             return (new GLSL_CompiledSource(result_source))->id();
         }
+
+#define declare_render_target_texture(func_name, type)                                                                           \
+    size_t func_name##_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override                                         \
+    {                                                                                                                            \
+        bool created_now;                                                                                                        \
+        GLSL_CompiledSource* sampler_src = sampler_source(sampler);                                                              \
+        String uv_src                    = uv_source(uv);                                                                        \
+                                                                                                                                 \
+        GLSL_BindingObject* glsl_texture = create_binding_object(nullptr, sampler_src->data, "sampler2D", created_now);          \
+                                                                                                                                 \
+        if (created_now)                                                                                                         \
+        {                                                                                                                        \
+            on_success_command_list.push_back([this, sampler_src, glsl_texture]() {                                              \
+                type##TextureMaterialParameter* param = reinterpret_cast<type##TextureMaterialParameter*>(                       \
+                        material->create_parameter(glsl_texture->name, MaterialParameter::Type::type##Texture));                 \
+                param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);                                           \
+                param->location = {glsl_texture->index, 0};                                                                      \
+                current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});                   \
+            });                                                                                                                  \
+        }                                                                                                                        \
+                                                                                                                                 \
+                                                                                                                                 \
+        String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_src);                                   \
+        return (new GLSL_CompiledSource(result_source))->id();                                                                   \
+    }
+
+        size_t base_color_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        {
+            bool created_now;
+            GLSL_CompiledSource* sampler_src = sampler_source(sampler);
+            String uv_src                    = uv_source(uv);
+
+            GLSL_BindingObject* glsl_texture = create_binding_object(nullptr, sampler_src->data, "sampler2D", created_now);
+
+            if (created_now)
+            {
+                on_success_command_list.push_back([this, sampler_src, glsl_texture]() {
+                    BaseColorTextureMaterialParameter* param = reinterpret_cast<BaseColorTextureMaterialParameter*>(
+                            material->create_parameter(glsl_texture->name, MaterialParameter::Type::BaseColorTexture));
+                    param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);
+                    param->location = {glsl_texture->index, 0};
+                    current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+                });
+            }
+
+
+            String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_src);
+            return (new GLSL_CompiledSource(result_source))->id();
+        }
+
+        //declare_render_target_texture(base_color, BaseColor);
+        declare_render_target_texture(position, Position);
+        declare_render_target_texture(normal, Normal);
+        declare_render_target_texture(emissive, Emissive);
+        declare_render_target_texture(data_buffer, DataBuffer);
+        declare_render_target_texture(scene_output, SceneOutput);
 
         virtual size_t sampler(class Engine::Sampler* sampler) override
         {
             return (new GLSL_CompiledSource("", sampler))->id();
         }
 
-        size_t base_color(MaterialInputPin* pin) override
+        size_t fragment_output_base_color(MaterialInputPin* pin) override
         {
-            String source = get_pin_source(pin, MaterialNodeDataType::Vec4);
-            statements.push_back(Strings::format("out_color = {}", source));
+            String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
+            statements.push_back(Strings::format("out_color.rgb = {}", source));
             return 0;
         }
 
-        virtual size_t vertex(byte index) override
+        size_t fragment_output_metalic(MaterialInputPin* pin) override
         {
-            String code = Strings::format("in_position_{}", index);
-            return (new GLSL_CompiledSource(code))->id();
+            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            {
+                String source = get_pin_source(pin, MaterialNodeDataType::Float);
+                statements.push_back(Strings::format("out_data_buffer.r = {}", source));
+            }
+            return 0;
+        }
+
+        size_t fragment_output_specular(MaterialInputPin* pin) override
+        {
+            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            {
+                String source = get_pin_source(pin, MaterialNodeDataType::Float);
+                statements.push_back(Strings::format("out_data_buffer.g = {}", source));
+            }
+            return 0;
+        }
+
+        size_t fragment_output_roughness(MaterialInputPin* pin) override
+        {
+            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            {
+                String source = get_pin_source(pin, MaterialNodeDataType::Float);
+                statements.push_back(Strings::format("out_data_buffer.b = {}", source));
+            }
+            return 0;
+        }
+
+        size_t fragment_output_emissive(MaterialInputPin* pin) override
+        {
+            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            {
+                String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
+                statements.push_back(Strings::format("out_emissive = vec4({}, 1.0)", source));
+            }
+            return 0;
+        }
+
+        size_t fragment_output_opacity(MaterialInputPin* pin) override
+        {
+            String source = get_pin_source(pin, MaterialNodeDataType::Float);
+            statements.push_back(Strings::format("out_color.a = {}", source));
+            return 0;
+        }
+
+        size_t fragment_output_position(MaterialInputPin* pin) override
+        {
+            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            {
+                if (pin->linked_to)
+                {
+                    String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
+                    statements.push_back(Strings::format("out_position = vec4({}, 1.0)", source));
+                }
+                else
+                {
+                    statements.push_back(Strings::format("out_position = vec4(vertex_world_position, 1.0)"));
+                }
+            }
+            return 0;
+        }
+
+        size_t fragment_output_normal(MaterialInputPin* pin) override
+        {
+            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            {
+                if (pin->linked_to)
+                {
+                    String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
+                    statements.push_back(Strings::format("out_normal = vec4({}, 1.0)", source));
+                }
+                else
+                {
+                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, 1.0)"));
+                }
+            }
+            return 0;
+        }
+
+        void submit_vertex_attribute(const GLSL_Attribute& attribute) override
+        {
+            vertex_compiler->input_attribute.push_back(attribute);
+            vertex_compiler->submit_vertex_attribute(attribute);
         }
     };
 
@@ -1389,11 +1835,8 @@ namespace Engine
         {
             errors = &_errors;
 
-            material->clear_parameters();
-            material->pipeline->has_global_parameters = true;
-
             GLSL_VertexCompiler* vertex_compiler     = new GLSL_VertexCompiler();
-            GLSL_FragmentCompiler* fragment_compiler = new GLSL_FragmentCompiler();
+            GLSL_FragmentCompiler* fragment_compiler = new GLSL_FragmentCompiler(vertex_compiler);
 
             bool execute_next = true;
             exec_step(vertex_compiler->compile(material, _errors));
@@ -1404,7 +1847,18 @@ namespace Engine
 
             vertex_compiler->local_parameters = fragment_compiler->local_parameters;
             exec_step(vertex_compiler->build_source());
-            exec_step(fragment_compiler->build_source(true));
+            exec_step(fragment_compiler->build_source());
+
+
+            if (execute_next)
+            {
+                material->clear_parameters();
+                material->pipeline->has_global_parameters = true;
+                fragment_compiler->parse_reflection();
+            }
+
+            exec_step(vertex_compiler->submit_source());
+            exec_step(fragment_compiler->submit_source());
 
             delete vertex_compiler;
             delete fragment_compiler;

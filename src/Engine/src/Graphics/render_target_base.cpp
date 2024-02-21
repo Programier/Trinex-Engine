@@ -105,4 +105,10 @@ namespace Engine
     {
         return _M_scissor;
     }
+
+    byte RenderTargetBase::frame_index() const
+    {
+        trinex_always_check(is_in_render_thread(), "Frame index must call only in render thread!");
+        return _M_frame_index;
+    }
 }// namespace Engine

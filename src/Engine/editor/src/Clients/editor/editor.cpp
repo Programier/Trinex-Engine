@@ -134,7 +134,8 @@ namespace Engine
         camera                            = Object::new_instance<CameraComponent>();
         camera->transform.rotation_method = Transform::RotationMethod::YXZ;
         camera->transform.location        = {0, 10, 10};
-        camera->near_clip_plane           = 0.001;
+        camera->near_clip_plane           = 0.1;
+        camera->far_clip_plane            = 1000.f;
 
         EventSystem* event_system = EventSystem::new_system<EventSystem>();
         _M_event_system_listeners.push_back(event_system->add_listener(
@@ -350,7 +351,7 @@ namespace Engine
         _M_renderer.scene(scene);
 
         extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer);
-        auto layer = scene->root_layer()->find(SceneLayer::name_post_process);
+        auto layer = scene->scene_output_layer();
         layer->function_callbacks.push_back(render_editor_grid);
 
         _M_scene_tree->root_component = _M_world->scene()->root_component();
@@ -376,7 +377,7 @@ namespace Engine
         if (frame)
         {
             Texture* texture = frame->texture();
-            if (texture)
+            if (texture && texture->has_object())
             {
                 void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
                 auto size        = ImGui::GetContentRegionAvail();
