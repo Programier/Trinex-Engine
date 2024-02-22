@@ -31,12 +31,12 @@ namespace Engine
     Class::Class(const Name& name, const Name& namespace_name, Object* (*constructor)(), Class* parent, BitMask _flags)
         : Struct(name, namespace_name, parent)
     {
-        _M_size = 0;
+        m_size = 0;
         info_log("Class", "Created class instance '%s'", this->name().c_str());
         flags.flags           = _flags;
-        _M_cast_to_this       = nullptr;
-        _M_static_constructor = constructor;
-        _M_singletone_object  = nullptr;
+        m_cast_to_this       = nullptr;
+        m_static_constructor = constructor;
+        m_singletone_object  = nullptr;
 
         if (is_asset())
         {
@@ -58,20 +58,20 @@ namespace Engine
     {
         if (flags(Class::IsSingletone))
         {
-            if (_M_singletone_object == nullptr)
+            if (m_singletone_object == nullptr)
             {
-                _M_singletone_object = _M_static_constructor();
+                m_singletone_object = m_static_constructor();
             }
 
-            return _M_singletone_object;
+            return m_singletone_object;
         }
 
-        return _M_static_constructor();
+        return m_static_constructor();
     }
 
     size_t Class::sizeof_class() const
     {
-        return _M_size;
+        return m_size;
     }
 
     Class* Class::static_find(const StringView& name, bool required)
@@ -92,22 +92,22 @@ namespace Engine
 
     Object* (*Class::cast_to_this() const)(Object*)
     {
-        return _M_cast_to_this;
+        return m_cast_to_this;
     }
 
     Object* (*Class::static_constructor() const)()
     {
-        return _M_static_constructor;
+        return m_static_constructor;
     }
 
     Object* Class::singletone_instance() const
     {
-        return _M_singletone_object;
+        return m_singletone_object;
     }
 
     Class& Class::set_script_registration_callback(const CallBack<void(class ScriptClassRegistrar*, Class*)>& callback)
     {
-        _M_script_register_callback = callback;
+        m_script_register_callback = callback;
         return *this;
     }
 
@@ -128,9 +128,9 @@ namespace Engine
             while (!stack.empty())
             {
                 current = stack.back();
-                if (current->_M_script_register_callback)
+                if (current->m_script_register_callback)
                 {
-                    current->_M_script_register_callback(&registrar, this);
+                    current->m_script_register_callback(&registrar, this);
                 }
 
                 stack.pop_back();

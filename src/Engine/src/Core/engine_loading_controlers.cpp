@@ -16,51 +16,51 @@ namespace Engine
 
     static CallbacksList& terminate_list()
     {
-        static CallbacksList _M_terminate_list;
-        return _M_terminate_list;
+        static CallbacksList m_terminate_list;
+        return m_terminate_list;
     }
 
     static CallbacksList& post_terminate_list()
     {
-        static CallbacksList _M_terminate_list;
-        return _M_terminate_list;
+        static CallbacksList m_terminate_list;
+        return m_terminate_list;
     }
 
 
     static CallbacksList& initialize_list()
     {
-        static CallbacksList _M_init_list;
-        return _M_init_list;
+        static CallbacksList m_init_list;
+        return m_init_list;
     }
 
     static CallbacksList& after_rhi_initialize_list()
     {
-        static CallbacksList _M_init_list;
-        return _M_init_list;
+        static CallbacksList m_init_list;
+        return m_init_list;
     }
 
     static CallbacksList& preinitialize_list()
     {
-        static CallbacksList _M_init_list;
-        return _M_init_list;
+        static CallbacksList m_init_list;
+        return m_init_list;
     }
 
     static CallbacksList& post_initialize_list()
     {
-        static CallbacksList _M_init_list;
-        return _M_init_list;
+        static CallbacksList m_init_list;
+        return m_init_list;
     }
 
     static CallbacksList& class_initialize_list()
     {
-        static CallbacksList _M_init_list;
-        return _M_init_list;
+        static CallbacksList m_init_list;
+        return m_init_list;
     }
 
     static CallbacksList& default_resources_initialize_list()
     {
-        static CallbacksList _M_init_list;
-        return _M_init_list;
+        static CallbacksList m_init_list;
+        return m_init_list;
     }
 
 
@@ -70,7 +70,7 @@ namespace Engine
     }
 
 
-    ControllerBase::ControllerBase(void* function_address, const char* name) : _M_func_address(function_address), _M_name(name)
+    ControllerBase::ControllerBase(void* function_address, const char* name) : m_func_address(function_address), m_name(name)
     {}
 
 
@@ -80,13 +80,13 @@ namespace Engine
         CallbackEntry entry;
         entry.function             = callback;
         entry.require_initializers = require_initializers;
-        convert_function_address(_M_func_address)()[name].push_back(entry);
+        convert_function_address(m_func_address)()[name].push_back(entry);
         return *this;
     }
 
     ControllerBase& ControllerBase::require(const String& name)
     {
-        auto& initializers_list = convert_function_address(_M_func_address)();
+        auto& initializers_list = convert_function_address(m_func_address)();
         auto it                 = initializers_list.find(name);
         if (it == initializers_list.end())
             return *this;
@@ -105,7 +105,7 @@ namespace Engine
 
             if (!name.empty())
             {
-                debug_log(_M_name, "Executing initializer '%s'", name.c_str());
+                debug_log(m_name, "Executing initializer '%s'", name.c_str());
             }
             entry.function();
         }
@@ -116,9 +116,9 @@ namespace Engine
 
     ControllerBase& ControllerBase::execute()
     {
-        info_log(_M_name, "Executing command list!");
+        info_log(m_name, "Executing command list!");
 
-        auto& list = convert_function_address(_M_func_address)();
+        auto& list = convert_function_address(m_func_address)();
 
         while (!list.empty())
         {

@@ -18,20 +18,20 @@ namespace Engine
 
     CB::PackageNodeType CB::PackageTreeNode::type() const
     {
-        if (_M_is_package)
-            return _M_package ? PackageNodeType::Package : PackageNodeType::NotLoadedPackage;
+        if (m_is_package)
+            return m_package ? PackageNodeType::Package : PackageNodeType::NotLoadedPackage;
         return PackageNodeType::Folder;
     }
 
     CB::PackageTreeNode* CB::PackageTreeNode::find(const Path& path)
     {
-        if (_M_path == path)
+        if (m_path == path)
             return this;
 
-        if (!_M_is_builded)
+        if (!m_is_builded)
             rebuild();
 
-        for (auto& [name, child] : _M_childs)
+        for (auto& [name, child] : m_childs)
         {
             auto res = child->find(path);
             if (res)
@@ -45,27 +45,27 @@ namespace Engine
 
     void ContentBrowser::PackageTreeNode::rebuild()
     {
-        if (_M_package)
+        if (m_package)
         {
-            for (auto& [name, object] : _M_package->objects())
+            for (auto& [name, object] : m_package->objects())
             {
                 Package* pkg = Object::instance_cast<Package>(object);
                 if (pkg)
                 {
                     PackageTreeNode* new_node = new PackageTreeNode();
-                    new_node->_M_package      = pkg;
-                    new_node->_M_name         = pkg->string_name();
-                    new_node->_M_path         = _M_path / new_node->_M_name;
-                    new_node->_M_is_package   = true;
+                    new_node->m_package      = pkg;
+                    new_node->m_name         = pkg->string_name();
+                    new_node->m_path         = m_path / new_node->m_name;
+                    new_node->m_is_package   = true;
 
-                    _M_childs.insert({new_node->_M_name, new_node});
+                    m_childs.insert({new_node->m_name, new_node});
                 }
             }
         }
 
-        if (_M_path.extension() != Constants::package_extention && rootfs()->is_dir(_M_path))
+        if (m_path.extension() != Constants::package_extention && rootfs()->is_dir(m_path))
         {
-            for (auto& entry : VFS::DirectoryIterator(_M_path))
+            for (auto& entry : VFS::DirectoryIterator(m_path))
             {
                 bool is_dir     = rootfs()->is_dir(entry);
                 bool is_package = !is_dir && entry.extension() == Constants::package_extention;
@@ -75,40 +75,40 @@ namespace Engine
 
                 String filename = String(entry.stem());
 
-                if ((_M_package && _M_package->contains_object(filename)) || _M_childs.contains(filename))
+                if ((m_package && m_package->contains_object(filename)) || m_childs.contains(filename))
                 {
                     continue;
                 }
 
-                PackageTreeNode*& new_node = _M_childs[filename];
+                PackageTreeNode*& new_node = m_childs[filename];
 
                 if (new_node == nullptr)
                 {
                     new_node = new PackageTreeNode();
 
-                    new_node->_M_package = nullptr;
-                    new_node->_M_path    = _M_path / filename;
-                    new_node->_M_name    = std::move(filename);
+                    new_node->m_package = nullptr;
+                    new_node->m_path    = m_path / filename;
+                    new_node->m_name    = std::move(filename);
                 }
 
-                new_node->_M_is_package = new_node->_M_is_package || is_package;
+                new_node->m_is_package = new_node->m_is_package || is_package;
 
-                _M_childs.insert({new_node->_M_name, new_node});
+                m_childs.insert({new_node->m_name, new_node});
             }
         }
 
 
-        _M_is_builded = true;
+        m_is_builded = true;
     }
 
     void ContentBrowser::PackageTreeNode::clean()
     {
-        for (auto& [name, node] : _M_childs)
+        for (auto& [name, node] : m_childs)
         {
             delete node;
         }
-        _M_childs.clear();
-        _M_is_builded = false;
+        m_childs.clear();
+        m_is_builded = false;
     }
 
     ContentBrowser::PackageTreeNode::~PackageTreeNode()
@@ -118,12 +118,12 @@ namespace Engine
 
     void ContentBrowser::init(RenderViewport* viewport)
     {
-        _M_root                = new PackageTreeNode();
-        _M_root->_M_path       = engine_config.packages_dir;
-        _M_root->_M_package    = Object::root_package();
-        _M_root->_M_name       = _M_root->_M_package->string_name();
-        _M_root->_M_is_package = true;
-        _M_selected_package    = _M_root;
+        m_root                = new PackageTreeNode();
+        m_root->m_path       = engine_config.packages_dir;
+        m_root->m_package    = Object::root_package();
+        m_root->m_name       = m_root->m_package->string_name();
+        m_root->m_is_package = true;
+        m_selected_package    = m_root;
     }
 
 
@@ -161,17 +161,17 @@ namespace Engine
     bool ContentBrowser::not_loaded_package_popup(void* data)
     {
         bool is_editable =
-                (!_M_show_popup_for->_M_package) ||
-                (_M_show_popup_for->_M_package && _M_show_popup_for->_M_package->is_editable() &&
-                 _M_show_popup_for->_M_package->is_serializable() && !_M_show_popup_for->_M_package->is_engine_resource());
+                (!m_show_popup_for->m_package) ||
+                (m_show_popup_for->m_package && m_show_popup_for->m_package->is_editable() &&
+                 m_show_popup_for->m_package->is_serializable() && !m_show_popup_for->m_package->is_engine_resource());
 
         if (is_editable && ImGui::Button("editor/Load"_localized))
         {
-            String path = Strings::replace_all(_M_show_popup_for->_M_path.relative(engine_config.packages_dir).str(),
+            String path = Strings::replace_all(m_show_popup_for->m_path.relative(engine_config.packages_dir).str(),
                                                Path::sv_separator, Constants::name_separator);
 
             Package::load_package(path);
-            Path selected_path = std::move(_M_selected_package->_M_path);
+            Path selected_path = std::move(m_selected_package->m_path);
             rebuild_package_tree(selected_path);
             return false;
         }
@@ -182,7 +182,7 @@ namespace Engine
 
     bool ContentBrowser::folder_package_popup(void* data)
     {
-        auto path = Strings::replace_all(_M_selected_package->_M_path.relative(engine_config.packages_dir).str(),
+        auto path = Strings::replace_all(m_selected_package->m_path.relative(engine_config.packages_dir).str(),
                                          Path::sv_separator, Constants::name_separator);
 
         Package* pkg = Object::root_package();
@@ -195,7 +195,7 @@ namespace Engine
         if (ImGui::Button("editor/Create new package"_localized))
         {
             Function<void(Package*)> callback = [this](Package*) {
-                Path selected_path = std::move(_M_selected_package->_M_path);
+                Path selected_path = std::move(m_selected_package->m_path);
                 rebuild_package_tree(selected_path);
             };
 
@@ -208,7 +208,7 @@ namespace Engine
 
     bool ContentBrowser::render_package_popup(void* data)
     {
-        PackageNodeType type = _M_show_popup_for->type();
+        PackageNodeType type = m_show_popup_for->type();
 
         if (type == PackageNodeType::NotLoadedPackage)
         {
@@ -230,63 +230,63 @@ namespace Engine
 
     void ContentBrowser::render_package_popup()
     {
-        if (_M_show_popup_for == nullptr)
+        if (m_show_popup_for == nullptr)
             return;
 
         ImGui::OpenPopup("##popup");
         if (!ImGuiRenderer::BeginPopup("##popup", 0, &ContentBrowser::render_package_popup, this))
-            _M_show_popup_for = nullptr;
+            m_show_popup_for = nullptr;
     }
 
     void ContentBrowser::render_package_tree(PackageTreeNode* node)
     {
-        if (!node->_M_is_builded)
+        if (!node->m_is_builded)
             node->rebuild();
 
-        if (node == _M_selected_package)
+        if (node == m_selected_package)
         {
             ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
         }
 
         bool opened = false;
 
-        if (node->_M_is_package)
+        if (node->m_is_package)
         {
-            if (node->_M_package == nullptr)
+            if (node->m_package == nullptr)
             {
-                opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "<%s>", node->_M_name.c_str());
+                opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "<%s>", node->m_name.c_str());
             }
             else
             {
-                opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "%s", node->_M_name.c_str());
+                opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "%s", node->m_name.c_str());
             }
         }
         else
         {
-            opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "%s", node->_M_name.c_str());
+            opened = ImGui::TreeNodeEx(node, ImGuiTreeNodeFlags_CollapsingHeader, "%s", node->m_name.c_str());
         }
 
-        if (node == _M_selected_package)
+        if (node == m_selected_package)
         {
             ImGui::PopStyleColor();
         }
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
         {
-            _M_selected_package = node;
+            m_selected_package = node;
         }
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right))
         {
-            _M_selected_package = node;
-            _M_show_popup_for   = node;
+            m_selected_package = node;
+            m_show_popup_for   = node;
         }
 
         if (opened)
         {
             ImGui::Indent(5.f);
 
-            for (auto& [name, child] : node->_M_childs)
+            for (auto& [name, child] : node->m_childs)
             {
                 render_package_tree(child);
             }
@@ -298,7 +298,7 @@ namespace Engine
     void ContentBrowser::render_packages()
     {
         ImGui::Begin("##ContentBrowserPackages"_localized, nullptr, ImGuiWindowFlags_NoTitleBar);
-        render_package_tree(_M_root);
+        render_package_tree(m_root);
         render_package_popup();
         ImGui::End();
     }
@@ -337,7 +337,7 @@ namespace Engine
         const ImVec2 item_size = ImVec2(100, 100) * editor_scale_factor();
 
         ImGui::Begin("##ContentBrowserItems");
-        Package* package = _M_selected_package->_M_package;
+        Package* package = m_selected_package->m_package;
 
         if (package == nullptr)
         {
@@ -348,13 +348,13 @@ namespace Engine
 
         if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
         {
-            _M_show_context_menu = true;
+            m_show_context_menu = true;
         }
 
-        if (_M_show_context_menu)
+        if (m_show_context_menu)
         {
             ImGui::OpenPopup("##NoName1");
-            _M_show_context_menu = ImGuiRenderer::BeginPopup("##NoName1", 0, &ContentBrowser::show_context_menu, this);
+            m_show_context_menu = ImGuiRenderer::BeginPopup("##NoName1", 0, &ContentBrowser::show_context_menu, this);
         }
 
         ImVec2 content_size = ImGui::GetContentRegionAvail();
@@ -520,35 +520,35 @@ namespace Engine
 
     void ContentBrowser::create_dock_space()
     {
-        _M_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
+        m_dock_window_id = ImGui::GetID("##ContentBrowserDockSpace");
 
-        ImGui::DockSpace(_M_dock_window_id, {0, 0},
+        ImGui::DockSpace(m_dock_window_id, {0, 0},
                          ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
 
         if (frame_number == 1)
         {
-            ImGui::DockBuilderRemoveNode(_M_dock_window_id);
-            ImGui::DockBuilderAddNode(_M_dock_window_id, ImGuiDockNodeFlags_DockSpace);
-            ImGui::DockBuilderSetNodeSize(_M_dock_window_id, ImGui::GetWindowSize());
+            ImGui::DockBuilderRemoveNode(m_dock_window_id);
+            ImGui::DockBuilderAddNode(m_dock_window_id, ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(m_dock_window_id, ImGui::GetWindowSize());
 
-            auto dock_id_left = ImGui::DockBuilderSplitNode(_M_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &_M_dock_window_id);
+            auto dock_id_left = ImGui::DockBuilderSplitNode(m_dock_window_id, ImGuiDir_Left, 0.2f, nullptr, &m_dock_window_id);
 
             ImGui::DockBuilderDockWindow("##ContentBrowserPackages", dock_id_left);
-            ImGui::DockBuilderDockWindow("##ContentBrowserItems", _M_dock_window_id);
-            ImGui::DockBuilderFinish(_M_dock_window_id);
+            ImGui::DockBuilderDockWindow("##ContentBrowserItems", m_dock_window_id);
+            ImGui::DockBuilderFinish(m_dock_window_id);
         }
     }
 
 
     void ContentBrowser::rebuild_package_tree(const Path& selected)
     {
-        _M_root->clean();
-        _M_show_popup_for   = nullptr;
-        _M_selected_package = _M_root->find(selected);
+        m_root->clean();
+        m_show_popup_for   = nullptr;
+        m_selected_package = m_root->find(selected);
 
-        if (_M_selected_package == nullptr)
+        if (m_selected_package == nullptr)
         {
-            _M_selected_package = _M_root;
+            m_selected_package = m_root;
         }
     }
 
@@ -567,7 +567,7 @@ namespace Engine
 
     Package* ContentBrowser::selected_package() const
     {
-        return _M_selected_package ? _M_selected_package->_M_package : nullptr;
+        return m_selected_package ? m_selected_package->m_package : nullptr;
     }
 
     const char* ContentBrowser::name()
@@ -577,6 +577,6 @@ namespace Engine
 
     ContentBrowser::~ContentBrowser()
     {
-        delete _M_root;
+        delete m_root;
     }
 }// namespace Engine

@@ -246,49 +246,49 @@ namespace Engine
             return false;
         }
 
-        if (!autorename && contains_object(object->_M_name))
+        if (!autorename && contains_object(object->m_name))
         {
             error_log("Package", "Cannot add object to package. Object with name '%s' already exist in package!",
                       object->string_name().c_str());
             return false;
         }
 
-        if (object->_M_package)
+        if (object->m_package)
         {
-            object->_M_package->remove_object(object);
+            object->m_package->remove_object(object);
         }
 
         {
             static size_t index    = 2;
-            String new_object_name = object->_M_name;
+            String new_object_name = object->m_name;
             while (contains_object(new_object_name))
             {
-                new_object_name = object->_M_name.to_string() + Strings::format(" {}", index++);
+                new_object_name = object->m_name.to_string() + Strings::format(" {}", index++);
             }
-            if (new_object_name != object->_M_name.to_string())
+            if (new_object_name != object->m_name.to_string())
                 object->name(new_object_name);
         }
 
-        object->_M_package = this;
-        _M_objects.insert_or_assign(object->name(), object);
+        object->m_package = this;
+        m_objects.insert_or_assign(object->name(), object);
         return true;
     }
 
     Package& Package::remove_object(Object* object)
     {
-        if (!object || object->_M_package != this)
+        if (!object || object->m_package != this)
             return *this;
 
-        _M_objects.erase(object->name());
-        object->_M_package = nullptr;
+        m_objects.erase(object->name());
+        object->m_package = nullptr;
         return *this;
     }
 
     Object* Package::find_object_private_no_recurse(const StringView& _name) const
     {
         Name object_name = _name;
-        auto it          = _M_objects.find(object_name);
-        if (it == _M_objects.end())
+        auto it          = m_objects.find(object_name);
+        if (it == m_objects.end())
             return nullptr;
         return it->second;
     }
@@ -319,7 +319,7 @@ namespace Engine
 
     const Package::ObjectMap& Package::objects() const
     {
-        return _M_objects;
+        return m_objects;
     }
 
     bool Package::contains_object(const Object* object) const
@@ -544,9 +544,9 @@ namespace Engine
 
     Package::~Package()
     {
-        for (auto& [name, object] : _M_objects)
+        for (auto& [name, object] : m_objects)
         {
-            object->_M_package = nullptr;
+            object->m_package = nullptr;
         }
     }
 

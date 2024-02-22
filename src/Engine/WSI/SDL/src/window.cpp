@@ -32,7 +32,7 @@ namespace Engine
             {WindowAttribute::KeyboardGrabbed, SDL_WINDOW_KEYBOARD_GRABBED}};
 
 
-#define has_flag(flag) static_cast<bool>(SDL_GetWindowFlags(_M_window) & flag)
+#define has_flag(flag) static_cast<bool>(SDL_GetWindowFlags(m_window) & flag)
     static uint32_t to_sdl_attrib(const Vector<WindowAttribute>& attrib)
     {
         uint32_t value = 0;
@@ -75,25 +75,25 @@ namespace Engine
 
     WindowInterface* WindowSDL::initialize(const WindowConfig* info)
     {
-        _M_vsync_status = info->vsync;
+        m_vsync_status = info->vsync;
         uint32_t attrib = to_sdl_attrib(info->attributes);
 #if PLATFORM_LINUX
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 #endif
 
-        _M_api = sdl_api(info->api_name);
+        m_api = sdl_api(info->api_name);
 
-        _M_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
+        m_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
                                      static_cast<int>(info->size.x), static_cast<int>(info->size.y),
-                                     _M_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
+                                     m_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
-        _M_id = static_cast<Identifier>(SDL_GetWindowID(_M_window));
+        m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 
-        if (_M_window == nullptr)
+        if (m_window == nullptr)
             window_initialize_error(SDL_GetError());
         else
         {
-            if (_M_api == SDL_WINDOW_OPENGL)
+            if (m_api == SDL_WINDOW_OPENGL)
             {
 
 #if !PLATFORM_ANDROID
@@ -111,7 +111,7 @@ namespace Engine
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
                 }
             }
-            else if (_M_api == SDL_WINDOW_VULKAN)
+            else if (m_api == SDL_WINDOW_VULKAN)
             {
             }
         }
@@ -145,37 +145,37 @@ namespace Engine
     Size2D WindowSDL::size()
     {
         int w, h;
-        SDL_GetWindowSize(_M_window, &w, &h);
+        SDL_GetWindowSize(m_window, &w, &h);
         return {w, h};
     }
 
     WindowInterface& WindowSDL::size(const Size2D& size)
     {
-        SDL_SetWindowSize(_M_window, size.x, size.y);
+        SDL_SetWindowSize(m_window, size.x, size.y);
         return *this;
     }
 
     String WindowSDL::title()
     {
-        return SDL_GetWindowTitle(_M_window);
+        return SDL_GetWindowTitle(m_window);
     }
 
     WindowInterface& WindowSDL::title(const String& title)
     {
-        SDL_SetWindowTitle(_M_window, title.c_str());
+        SDL_SetWindowTitle(m_window, title.c_str());
         return *this;
     }
 
     Point2D WindowSDL::position()
     {
         int x, y;
-        SDL_GetWindowPosition(_M_window, &x, &y);
+        SDL_GetWindowPosition(m_window, &x, &y);
         return {x, y};
     }
 
     WindowInterface& WindowSDL::position(const Point2D& position)
     {
-        SDL_SetWindowPosition(_M_window, position.x, position.y);
+        SDL_SetWindowPosition(m_window, position.x, position.y);
         return *this;
     }
 
@@ -186,13 +186,13 @@ namespace Engine
 
     WindowInterface& WindowSDL::resizable(bool value)
     {
-        SDL_SetWindowResizable(_M_window, static_cast<SDL_bool>(value));
+        SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(value));
         return *this;
     }
 
     WindowInterface& WindowSDL::focus()
     {
-        SDL_SetWindowInputFocus(_M_window);
+        SDL_SetWindowInputFocus(m_window);
         return *this;
     }
 
@@ -203,13 +203,13 @@ namespace Engine
 
     WindowInterface& WindowSDL::show()
     {
-        SDL_ShowWindow(_M_window);
+        SDL_ShowWindow(m_window);
         return *this;
     }
 
     WindowInterface& WindowSDL::hide()
     {
-        SDL_HideWindow(_M_window);
+        SDL_HideWindow(m_window);
         return *this;
     }
 
@@ -225,7 +225,7 @@ namespace Engine
 
     WindowInterface& WindowSDL::iconify()
     {
-        SDL_MinimizeWindow(_M_window);
+        SDL_MinimizeWindow(m_window);
         return *this;
     }
 
@@ -236,27 +236,27 @@ namespace Engine
 
     WindowInterface& WindowSDL::restore()
     {
-        SDL_RestoreWindow(_M_window);
+        SDL_RestoreWindow(m_window);
         return *this;
     }
 
     WindowInterface& WindowSDL::opacity(float value)
     {
-        SDL_SetWindowOpacity(_M_window, value);
+        SDL_SetWindowOpacity(m_window, value);
         return *this;
     }
 
     float WindowSDL::opacity()
     {
         float o;
-        SDL_GetWindowOpacity(_M_window, &o);
+        SDL_GetWindowOpacity(m_window, &o);
         return o;
     }
 
     WindowInterface& WindowSDL::size_limits(const SizeLimits2D& limits)
     {
-        SDL_SetWindowMaximumSize(_M_window, static_cast<int>(limits.max.x), static_cast<int>(limits.max.y));
-        SDL_SetWindowMinimumSize(_M_window, static_cast<int>(limits.min.x), static_cast<int>(limits.min.y));
+        SDL_SetWindowMaximumSize(m_window, static_cast<int>(limits.max.x), static_cast<int>(limits.max.y));
+        SDL_SetWindowMinimumSize(m_window, static_cast<int>(limits.min.x), static_cast<int>(limits.min.y));
         return *this;
     }
 
@@ -265,10 +265,10 @@ namespace Engine
         SizeLimits2D limits;
         int w, h;
 
-        SDL_GetWindowMaximumSize(_M_window, &w, &h);
+        SDL_GetWindowMaximumSize(m_window, &w, &h);
         limits.max = {w, h};
 
-        SDL_GetWindowMinimumSize(_M_window, &w, &h);
+        SDL_GetWindowMinimumSize(m_window, &w, &h);
         limits.min = {w, h};
 
         return limits;
@@ -276,7 +276,7 @@ namespace Engine
 
     WindowSDL& WindowSDL::vsync(bool flag)
     {
-        if (_M_api == SDL_WINDOW_OPENGL)
+        if (m_api == SDL_WINDOW_OPENGL)
         {
             SDL_GL_SetSwapInterval(static_cast<int>(flag));
         }
@@ -285,7 +285,7 @@ namespace Engine
 
     bool WindowSDL::vsync()
     {
-        if (_M_api == SDL_WINDOW_OPENGL)
+        if (m_api == SDL_WINDOW_OPENGL)
         {
             return SDL_GL_GetSwapInterval() != 0;
         }
@@ -296,7 +296,7 @@ namespace Engine
     int_t WindowSDL::create_message_box(const MessageBoxCreateInfo& info)
     {
         SDL_MessageBoxData data;
-        data.window  = _M_window;
+        data.window  = m_window;
         data.title   = info.title.c_str();
         data.message = info.message.c_str();
 
@@ -370,26 +370,26 @@ namespace Engine
 
     void WindowSDL::destroy_icon()
     {
-        if (_M_icon)
+        if (m_icon)
         {
-            SDL_FreeSurface(_M_icon);
+            SDL_FreeSurface(m_icon);
 
-            _M_icon = nullptr;
+            m_icon = nullptr;
         }
     }
 
     void WindowSDL::destroy_cursor()
     {
-        if (_M_cursor)
+        if (m_cursor)
         {
-            SDL_FreeCursor(_M_cursor);
-            _M_cursor = nullptr;
+            SDL_FreeCursor(m_cursor);
+            m_cursor = nullptr;
         }
 
-        if (_M_cursor_icon)
+        if (m_cursor_icon)
         {
-            SDL_FreeSurface(_M_cursor_icon);
-            _M_cursor_icon = nullptr;
+            SDL_FreeSurface(m_cursor_icon);
+            m_cursor_icon = nullptr;
         }
     }
 
@@ -428,10 +428,10 @@ namespace Engine
         {
             destroy_icon();
 
-            _M_icon_buffer = image.buffer();
-            _M_icon        = create_surface(_M_icon_buffer, image.width(), image.height(), channels);
+            m_icon_buffer = image.buffer();
+            m_icon        = create_surface(m_icon_buffer, image.width(), image.height(), channels);
 
-            SDL_SetWindowIcon(_M_window, _M_icon);
+            SDL_SetWindowIcon(m_window, m_icon);
         }
         else
         {
@@ -448,15 +448,15 @@ namespace Engine
         {
             destroy_cursor();
 
-            _M_cursor_icon_buffer = image.buffer();
-            _M_cursor_icon        = create_surface(_M_cursor_icon_buffer, image.width(), image.height(), channels);
+            m_cursor_icon_buffer = image.buffer();
+            m_cursor_icon        = create_surface(m_cursor_icon_buffer, image.width(), image.height(), channels);
 
-            if (_M_cursor_icon)
+            if (m_cursor_icon)
             {
-                _M_cursor = SDL_CreateColorCursor(_M_cursor_icon, hotspot.x, hotspot.y);
+                m_cursor = SDL_CreateColorCursor(m_cursor_icon, hotspot.x, hotspot.y);
             }
 
-            SDL_SetCursor(_M_cursor);
+            SDL_SetCursor(m_cursor);
         }
         else
         {
@@ -472,28 +472,28 @@ namespace Engine
         {
 
             static struct {
-                bool _M_fullscreen = false;
-                Uint32 _M_flag     = 0;
+                bool m_fullscreen = false;
+                Uint32 m_flag     = 0;
             } fullscreen_mode;
 
-            fullscreen_mode._M_fullscreen = false;
-            fullscreen_mode._M_flag       = 0;
+            fullscreen_mode.m_fullscreen = false;
+            fullscreen_mode.m_flag       = 0;
 
 
             switch (attrib)
             {
                 case WindowAttribute::Resizable:
-                    SDL_SetWindowResizable(_M_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(value));
                     break;
 
                 case WindowAttribute::FullScreen:
-                    fullscreen_mode._M_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
-                    fullscreen_mode._M_fullscreen = true;
+                    fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
+                    fullscreen_mode.m_fullscreen = true;
                     break;
 
                 case WindowAttribute::FullScreenDesktop:
-                    fullscreen_mode._M_flag       = value ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
-                    fullscreen_mode._M_fullscreen = true;
+                    fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
+                    fullscreen_mode.m_fullscreen = true;
                     break;
 
                 case WindowAttribute::Shown:
@@ -507,38 +507,38 @@ namespace Engine
                     break;
                 }
                 case WindowAttribute::BorderLess:
-                    SDL_SetWindowBordered(_M_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowBordered(m_window, static_cast<SDL_bool>(value));
                     break;
 
                 case WindowAttribute::InputFocus:
                 {
                     if (value)
-                        SDL_SetWindowInputFocus(_M_window);
+                        SDL_SetWindowInputFocus(m_window);
                     break;
                 }
 
                 case WindowAttribute::Minimized:
                 {
                     if (value)
-                        SDL_MinimizeWindow(_M_window);
+                        SDL_MinimizeWindow(m_window);
                     break;
                 }
 
                 case WindowAttribute::Maximized:
                 {
                     if (value)
-                        SDL_MaximizeWindow(_M_window);
+                        SDL_MaximizeWindow(m_window);
                     break;
                 }
                 case WindowAttribute::MouseGrabbed:
                 {
-                    SDL_SetWindowMouseGrab(_M_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowMouseGrab(m_window, static_cast<SDL_bool>(value));
                     break;
                 }
 
                 case WindowAttribute::KeyboardGrabbed:
                 {
-                    SDL_SetWindowKeyboardGrab(_M_window, static_cast<SDL_bool>(value));
+                    SDL_SetWindowKeyboardGrab(m_window, static_cast<SDL_bool>(value));
                     break;
                 }
 
@@ -547,8 +547,8 @@ namespace Engine
             }
 
 
-            if (fullscreen_mode._M_fullscreen)
-                SDL_SetWindowFullscreen(_M_window, fullscreen_mode._M_flag);
+            if (fullscreen_mode.m_fullscreen)
+                SDL_SetWindowFullscreen(m_window, fullscreen_mode.m_flag);
         }
         catch (const std::exception& e)
         {}
@@ -564,22 +564,22 @@ namespace Engine
 
     WindowInterface& WindowSDL::cursor_mode(const CursorMode& mode)
     {
-        if (_M_c_mode != mode)
+        if (m_c_mode != mode)
         {
             SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE));
-            _M_c_mode = mode;
+            m_c_mode = mode;
         }
         return *this;
     }
 
     CursorMode WindowSDL::cursor_mode()
     {
-        return _M_c_mode;
+        return m_c_mode;
     }
 
     bool WindowSDL::support_orientation(WindowOrientation orientations)
     {
-        //        static Map<WindowOrientation, const char*> _M_orientation_map = {
+        //        static Map<WindowOrientation, const char*> m_orientation_map = {
         //                {WindowOrientation::Landscape, "LandscapeRight"},
         //                {WindowOrientation::LandscapeFlipped, "LandscapeLeft"},
         //                {WindowOrientation::Portrait, "Portrait"},
@@ -591,7 +591,7 @@ namespace Engine
         //        {
         //            if (!result.empty())
         //                result += " ";
-        //            result += _M_orientation_map.at(ell);
+        //            result += m_orientation_map.at(ell);
         //        }
 
         //        SDL_SetHint(SDL_HINT_ORIENTATIONS, result.c_str());
@@ -620,7 +620,7 @@ namespace Engine
 
     void* WindowSDL::create_api_context(const char* any_text, ...)
     {
-        if (_M_api == SDL_WINDOW_VULKAN)
+        if (m_api == SDL_WINDOW_VULKAN)
         {
             if (!created_context.vulkan_surface)
             {
@@ -629,16 +629,16 @@ namespace Engine
                 VkInstance instance = va_arg(args, VkInstance);
                 va_end(args);
 
-                SDL_Vulkan_CreateSurface(_M_window, instance, &created_context.vulkan_surface);
+                SDL_Vulkan_CreateSurface(m_window, instance, &created_context.vulkan_surface);
             }
             binded_context.vulkan_surface = created_context.vulkan_surface;
             return &created_context.vulkan_surface;
         }
-        else if (_M_api == SDL_WINDOW_OPENGL)
+        else if (m_api == SDL_WINDOW_OPENGL)
         {
             if (!created_context.opengl_context)
             {
-                created_context.opengl_context = SDL_GL_CreateContext(_M_window);
+                created_context.opengl_context = SDL_GL_CreateContext(m_window);
                 if (!created_context.opengl_context)
                 {
                     throw EngineException(SDL_GetError());
@@ -653,11 +653,11 @@ namespace Engine
 
     void WindowSDL::bind_api_context(void* context)
     {
-        if (_M_api == SDL_WINDOW_OPENGL)
+        if (m_api == SDL_WINDOW_OPENGL)
         {
             binded_context.opengl_context = context;
         }
-        else if (_M_api == SDL_WINDOW_VULKAN)
+        else if (m_api == SDL_WINDOW_VULKAN)
         {
             binded_context.vulkan_surface = *reinterpret_cast<VkSurfaceKHR*>(context);
         }
@@ -665,9 +665,9 @@ namespace Engine
 
     WindowInterface& WindowSDL::make_current()
     {
-        if (_M_api == SDL_WINDOW_OPENGL && binded_context.opengl_context)
+        if (m_api == SDL_WINDOW_OPENGL && binded_context.opengl_context)
         {
-            if (SDL_GL_MakeCurrent(_M_window, binded_context.opengl_context) != 0)
+            if (SDL_GL_MakeCurrent(m_window, binded_context.opengl_context) != 0)
             {
                 error_log("SDL", "Cannot set context as current: %s", SDL_GetError());
             }
@@ -678,7 +678,7 @@ namespace Engine
 
     WindowInterface& WindowSDL::destroy_api_context()
     {
-        if (_M_api == SDL_WINDOW_OPENGL && created_context.opengl_context)
+        if (m_api == SDL_WINDOW_OPENGL && created_context.opengl_context)
         {
             SDL_GL_DeleteContext(created_context.opengl_context);
             created_context.opengl_context = nullptr;
@@ -689,22 +689,22 @@ namespace Engine
 
     WindowInterface& WindowSDL::present()
     {
-        if (_M_api == SDL_WINDOW_OPENGL)
+        if (m_api == SDL_WINDOW_OPENGL)
         {
-            SDL_GL_SwapWindow(_M_window);
+            SDL_GL_SwapWindow(m_window);
         }
         return *this;
     }
 
     Vector<const char*> WindowSDL::required_extensions()
     {
-        if (_M_api == SDL_WINDOW_VULKAN)
+        if (m_api == SDL_WINDOW_VULKAN)
         {
             uint32_t count = 0;
 
-            SDL_Vulkan_GetInstanceExtensions(_M_window, &count, nullptr);
+            SDL_Vulkan_GetInstanceExtensions(m_window, &count, nullptr);
             Vector<const char*> extensions(count);
-            SDL_Vulkan_GetInstanceExtensions(_M_window, &count, extensions.data());
+            SDL_Vulkan_GetInstanceExtensions(m_window, &count, extensions.data());
             return extensions;
         }
 
@@ -713,25 +713,25 @@ namespace Engine
 
     Identifier WindowSDL::id()
     {
-        return _M_id;
+        return m_id;
     }
 
 
     void WindowSDL::initialize_imgui_opengl()
     {
-        ImGui_ImplSDL2_InitForOpenGL(_M_window, binded_context.opengl_context);
+        ImGui_ImplSDL2_InitForOpenGL(m_window, binded_context.opengl_context);
     }
 
     void WindowSDL::initialize_imgui_vulkan()
     {
-        ImGui_ImplSDL2_InitForVulkan(_M_window);
+        ImGui_ImplSDL2_InitForVulkan(m_window);
     }
 
     WindowInterface& WindowSDL::initialize_imgui()
     {
-        SDL_SetWindowData(_M_window, "trinex_imgui_context", ImGui::GetCurrentContext());
+        SDL_SetWindowData(m_window, "trinex_imgui_context", ImGui::GetCurrentContext());
 
-        switch (_M_api)
+        switch (m_api)
         {
             case SDL_WINDOW_OPENGL:
                 initialize_imgui_opengl();
@@ -749,7 +749,7 @@ namespace Engine
 
     WindowInterface& WindowSDL::terminate_imgui()
     {
-        SDL_SetWindowData(_M_window, "trinex_imgui_context", nullptr);
+        SDL_SetWindowData(m_window, "trinex_imgui_context", nullptr);
         ImGui_ImplSDL2_Shutdown();
         return *this;
     }
@@ -762,13 +762,13 @@ namespace Engine
 
     WindowSDL::~WindowSDL()
     {
-        if (_M_window)
+        if (m_window)
         {
             destroy_api_context();
             destroy_icon();
             destroy_cursor();
-            SDL_DestroyWindow(_M_window);
-            _M_window = 0;
+            SDL_DestroyWindow(m_window);
+            m_window = 0;
         }
     }
 }// namespace Engine
@@ -789,15 +789,15 @@ void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiVi
     SDL_SetWindowData(window, "trinex_imgui_context", ImGui::GetCurrentContext());
 
     Engine::WindowSDL* new_window = new Engine::WindowSDL();
-    new_window->_M_window         = window;
-    new_window->_M_id             = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
-    new_window->_M_api            = main_window->_M_api;
-    new_window->_M_vsync_status   = main_window->_M_vsync_status;
+    new_window->m_window         = window;
+    new_window->m_id             = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
+    new_window->m_api            = main_window->m_api;
+    new_window->m_vsync_status   = main_window->m_vsync_status;
 
 
     Engine::WindowConfig config;
     config.client = "Engine::ImGuiViewportClient";
-    config.vsync  = new_window->_M_vsync_status;
+    config.vsync  = new_window->m_vsync_status;
     auto* client  = reinterpret_cast<Engine::ImGuiRenderer::ImGuiViewportClient*>(
             Engine::WindowManager::instance()->create_window(config, nullptr, new_window)->render_viewport()->client());
     if (client)

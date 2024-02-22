@@ -75,12 +75,12 @@ namespace JIT
             }
         };
 
-        JitRuntime _M_rt;
+        JitRuntime m_rt;
         void (X86_64_Compiler::*exec[static_cast<size_t>(asBC_MAXBYTECODE)])(CompileInfo*);
         const char* code_names[static_cast<size_t>(asBC_MAXBYTECODE)];
-        bool _M_with_suspend;
+        bool m_with_suspend;
 
-        std::map<std::string, std::set<unsigned int>> _M_skip_instructions;
+        std::map<std::string, std::set<unsigned int>> m_skip_instructions;
 
     public:
         X86_64_Compiler(bool with_suspend = false);

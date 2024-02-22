@@ -39,11 +39,11 @@ namespace Engine
         };
 
     private:
-        Package* _M_package;
-        Object* _M_owner;
-        Counter _M_references;
-        Name _M_name;
-        mutable Index _M_instance_index;
+        Package* m_package;
+        Object* m_owner;
+        Counter m_references;
+        Name m_name;
+        mutable Index m_instance_index;
 
     private:
         static void create_default_package();
@@ -58,7 +58,7 @@ namespace Engine
 
 
     protected:
-        static class Class* _M_static_class;
+        static class Class* m_static_class;
 
 
     public:
@@ -260,7 +260,7 @@ namespace Engine
 
 #define declare_class(class_name, base_name)                                                                                     \
 protected:                                                                                                                       \
-    static class Engine::Class* _M_static_class;                                                                                 \
+    static class Engine::Class* m_static_class;                                                                                 \
                                                                                                                                  \
 public:                                                                                                                          \
     using This  = class_name;                                                                                                    \
@@ -279,7 +279,7 @@ private:
     {}
 
 #define implement_class(class_name, namespace_name, flags)                                                                       \
-    class Engine::Class* class_name::_M_static_class = nullptr;                                                                  \
+    class Engine::Class* class_name::m_static_class = nullptr;                                                                  \
     Engine::Object* class_name::static_constructor()                                                                             \
     {                                                                                                                            \
         if constexpr (std::is_abstract_v<class_name>)                                                                            \
@@ -299,18 +299,18 @@ private:
                                                                                                                                  \
     class Engine::Class* class_name::static_class_instance()                                                                     \
     {                                                                                                                            \
-        if (!_M_static_class)                                                                                                    \
+        if (!m_static_class)                                                                                                    \
         {                                                                                                                        \
             constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-            _M_static_class               = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
+            m_static_class               = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
                                                 has_base_class ? Super::static_class_instance() : nullptr, flags); \
-            _M_static_class->process_type<class_name>();                                                                         \
+            m_static_class->process_type<class_name>();                                                                         \
             Engine::ClassInitializeController controller([]() {                                                                  \
                 class_name::static_initialize_class();                                                                           \
                 class_name::static_class_instance()->post_initialize();                                                          \
             });                                                                                                                  \
         }                                                                                                                        \
-        return _M_static_class;                                                                                                  \
+        return m_static_class;                                                                                                  \
     }                                                                                                                            \
     static Engine::InitializeController initialize_##class_name = Engine::InitializeController(                                  \
             []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name))

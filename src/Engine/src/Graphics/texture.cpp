@@ -34,7 +34,7 @@ namespace Engine
 
     const Texture& Texture::rhi_bind_combined(Sampler* sampler, BindLocation location) const
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             RHI_Sampler* rhi_sampler = reinterpret_cast<RenderResource*>(sampler)->rhi_object<RHI_Sampler>();
             if (rhi_sampler)
@@ -47,7 +47,7 @@ namespace Engine
 
     Texture& Texture::generate_mipmap()
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_Texture>()->generate_mipmap();
         }
@@ -56,13 +56,13 @@ namespace Engine
 
     Texture& Texture::setup_render_target_texture()
     {
-        _M_use_for_render_target = true;
+        m_use_for_render_target = true;
         return *this;
     }
 
     bool Texture::is_render_target_texture() const
     {
-        return _M_use_for_render_target;
+        return m_use_for_render_target;
     }
 
 

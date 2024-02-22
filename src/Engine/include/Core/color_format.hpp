@@ -160,27 +160,27 @@ namespace Engine
     class ENGINE_EXPORT ColorFormatInfo
     {
     private:
-        EnumerateType _M_value;
+        EnumerateType m_value;
 
     public:
         FORCE_INLINE uint_t components() const
         {
-            return static_cast<uint_t>(_M_value & byte(7));
+            return static_cast<uint_t>(m_value & byte(7));
         }
 
         FORCE_INLINE uint_t component_size() const
         {
-            return static_cast<uint_t>((_M_value >> 3) & byte(7));
+            return static_cast<uint_t>((m_value >> 3) & byte(7));
         }
 
         FORCE_INLINE ColorFormatMetaData metadata() const
         {
-            return static_cast<ColorFormatMetaData>((_M_value >> 6) & byte(15));
+            return static_cast<ColorFormatMetaData>((m_value >> 6) & byte(15));
         }
 
         FORCE_INLINE ColorFormatAspect aspect() const
         {
-            return static_cast<ColorFormatAspect>((_M_value >> 10) & byte(7));
+            return static_cast<ColorFormatAspect>((m_value >> 10) & byte(7));
         }
 
         FORCE_INLINE uint_t size() const
@@ -191,7 +191,7 @@ namespace Engine
         static FORCE_INLINE ColorFormatInfo info_of(ColorFormat format)
         {
             ColorFormatInfo info;
-            info._M_value = static_cast<EnumerateType>(format);
+            info.m_value = static_cast<EnumerateType>(format);
             return info;
         }
 

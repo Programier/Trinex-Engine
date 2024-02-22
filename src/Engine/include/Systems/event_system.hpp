@@ -23,8 +23,8 @@ namespace Engine
 
 
     private:
-        ListenerMap _M_listeners;
-        EventSystem& (EventSystem::*_M_process_events)() = nullptr;
+        ListenerMap m_listeners;
+        EventSystem& (EventSystem::*m_process_events)() = nullptr;
 
 
         EventSystem& wait_events();

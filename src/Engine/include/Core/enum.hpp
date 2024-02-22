@@ -26,11 +26,11 @@ namespace Engine
         };
 
     private:
-        Name _M_full_name;
-        Name _M_namespace_name;
-        Name _M_base_name;
+        Name m_full_name;
+        Name m_namespace_name;
+        Name m_base_name;
 
-        Vector<Entry> _M_entries;
+        Vector<Entry> m_entries;
 
     public:
         static ENGINE_EXPORT Enum* create(const String& namespace_name, const String& name, const Vector<Enum::Entry>& entries);

@@ -8,8 +8,8 @@ namespace Engine
     class ENGINE_EXPORT Library final
     {
     private:
-        String _M_libname;
-        void* _M_handle = nullptr;
+        String m_libname;
+        void* m_handle = nullptr;
         void* load_function(void* handle, const String& name);
 
         static void close_all();
@@ -29,7 +29,7 @@ namespace Engine
         template<typename ReturnType = void, typename... Args>
         auto get(const String& function_name)
         {
-            return (ReturnType(*)(Args...))(load_function(_M_handle, function_name));
+            return (ReturnType(*)(Args...))(load_function(m_handle, function_name));
         }
 
         void* resolve(const String& name);

@@ -15,14 +15,14 @@ namespace Engine
         }
 
         glActiveTexture(GL_TEXTURE0 + location.binding);
-        glBindTexture(_M_type, _M_id);
+        glBindTexture(m_type, m_id);
     }
 
     void OpenGL_Texture::generate_mipmap()
     {
-        glBindTexture(_M_type, _M_id);
-        glGenerateMipmap(_M_type);
-        glBindTexture(_M_type, 0);
+        glBindTexture(m_type, m_id);
+        glGenerateMipmap(m_type);
+        glBindTexture(m_type, 0);
     }
 
     void OpenGL_Texture::bind_combined(RHI_Sampler* sampler, BindLocation location)
@@ -33,10 +33,10 @@ namespace Engine
 
     void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
-        glBindTexture(_M_type, _M_id);
-        glTexSubImage2D(_M_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
-                        static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), _M_format._M_format, _M_format._M_type, data);
-        glBindTexture(_M_type, 0);
+        glBindTexture(m_type, m_id);
+        glTexSubImage2D(m_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
+                        static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), m_format.m_format, m_format.m_type, data);
+        glBindTexture(m_type, 0);
     }
 
 
@@ -81,31 +81,31 @@ namespace Engine
 
     void OpenGL_Texture::init(const Texture* texture, const byte* data)
     {
-        _M_format = color_format_from_engine_format(texture->format);
-        _M_type   = texture_type(texture);
-        _M_size   = texture->size;
+        m_format = color_format_from_engine_format(texture->format);
+        m_type   = texture_type(texture);
+        m_size   = texture->size;
 
-        glGenTextures(1, &_M_id);
+        glGenTextures(1, &m_id);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glBindTexture(_M_type, _M_id);
-        glTexParameteri(_M_type, GL_TEXTURE_BASE_LEVEL, texture->base_mip_level);
-        glTexParameteri(_M_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(texture->mipmap_count - 1));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_R, swizzle_value(texture->swizzle_r, GL_RED));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_G, swizzle_value(texture->swizzle_g, GL_GREEN));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle_b, GL_BLUE));
-        glTexParameteri(_M_type, GL_TEXTURE_SWIZZLE_A, swizzle_value(texture->swizzle_a, GL_ALPHA));
+        glBindTexture(m_type, m_id);
+        glTexParameteri(m_type, GL_TEXTURE_BASE_LEVEL, texture->base_mip_level);
+        glTexParameteri(m_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(texture->mipmap_count - 1));
+        glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_R, swizzle_value(texture->swizzle_r, GL_RED));
+        glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_G, swizzle_value(texture->swizzle_g, GL_GREEN));
+        glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle_b, GL_BLUE));
+        glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_A, swizzle_value(texture->swizzle_a, GL_ALPHA));
 
-        glTexImage2D(_M_type, 0, _M_format._M_internal_format, _M_size.x, _M_size.y, GL_FALSE, _M_format._M_format,
-                     _M_format._M_type, data);
+        glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
+                     m_format.m_type, data);
 
-        glBindTexture(_M_type, 0);
+        glBindTexture(m_type, 0);
     }
 
     OpenGL_Texture::~OpenGL_Texture()
     {
-        if (_M_id)
+        if (m_id)
         {
-            glDeleteTextures(1, &_M_id);
+            glDeleteTextures(1, &m_id);
         }
     }
 
@@ -118,20 +118,20 @@ namespace Engine
 
 
     struct OpenGL_ImGuiTexture : RHI_ImGuiTexture {
-        void* _M_handle = nullptr;
+        void* m_handle = nullptr;
 
 
         OpenGL_ImGuiTexture(Texture* texture, Sampler* sampler)
         {
-            uint64_t handle_value = static_cast<uint64_t>(sampler->rhi_object<OpenGL_Sampler>()->_M_id) << 32 |
-                                    static_cast<uint64_t>(texture->rhi_object<OpenGL_Texture>()->_M_id);
-            _M_handle = reinterpret_cast<void*>(handle_value);
+            uint64_t handle_value = static_cast<uint64_t>(sampler->rhi_object<OpenGL_Sampler>()->m_id) << 32 |
+                                    static_cast<uint64_t>(texture->rhi_object<OpenGL_Texture>()->m_id);
+            m_handle = reinterpret_cast<void*>(handle_value);
         }
 
 
         void* handle() override
         {
-            return _M_handle;
+            return m_handle;
         }
     };
 }// namespace Engine

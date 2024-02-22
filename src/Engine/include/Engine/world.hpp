@@ -10,11 +10,11 @@ namespace Engine
         declare_class(World, System);
 
     private:
-        Vector<class Actor*> _M_actors;
-        Vector<class Actor*> _M_actors_to_destroy;
-        bool _M_is_playing;
+        Vector<class Actor*> m_actors;
+        Vector<class Actor*> m_actors_to_destroy;
+        bool m_is_playing;
 
-        Scene* _M_scene = nullptr;
+        Scene* m_scene = nullptr;
 
         World& destroy_actor(Actor* actor, bool ignore_playing);
 

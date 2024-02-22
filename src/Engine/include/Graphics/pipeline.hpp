@@ -15,7 +15,7 @@ namespace Engine
         using OffsetMap = Map<Name, size_t, Name::HashFunction>;
 
     private:
-        OffsetMap _M_parameters_offset;
+        OffsetMap m_parameters_offset;
 
     public:
         static const size_t no_offset;

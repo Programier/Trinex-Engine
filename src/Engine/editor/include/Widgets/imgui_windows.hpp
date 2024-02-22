@@ -15,8 +15,8 @@ namespace Engine
         };
 
     private:
-        String _M_message;
-        Type _M_type;
+        String m_message;
+        Type m_type;
 
     public:
         ImGuiNotificationMessage(const String& msg, Type type = Type::Info);
@@ -26,10 +26,10 @@ namespace Engine
 
     class ImGuiCreateNewPackage : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        class Package* _M_parent = nullptr;
+        class Package* m_parent = nullptr;
         String new_package_name;
         bool allow_rename = false;
-        CallBack<void(Package*)> _M_on_create;
+        CallBack<void(Package*)> m_on_create;
 
     public:
         ImGuiCreateNewPackage(class Package* pkg, const CallBack<void(Package*)>& on_create = {});
@@ -39,12 +39,12 @@ namespace Engine
 
     class ImGuiCreateNewAsset : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        class Package* _M_parent = nullptr;
+        class Package* m_parent = nullptr;
         String new_asset_name;
         bool allow_rename = false;
         int current_index = 0;
 
-        Vector<class Class*> _M_filtered_classes;
+        Vector<class Class*> m_filtered_classes;
 
     public:
         CallBacks<bool(class Class*)> filters;
@@ -56,7 +56,7 @@ namespace Engine
 
     class ImGuiRenameObject : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        class Object* _M_object = nullptr;
+        class Object* m_object = nullptr;
         String new_object_name;
         bool allow_rename = false;
 
@@ -68,9 +68,9 @@ namespace Engine
 
     class ImGuiOpenFile : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        Package* _M_package = nullptr;
-        Function<void(Package*, const Path&)> _M_callback;
-        void* _M_browser = nullptr;
+        Package* m_package = nullptr;
+        Function<void(Package*, const Path&)> m_callback;
+        void* m_browser = nullptr;
 
     public:
         ImGuiOpenFile(Package* pkg, const Function<void(Package*, const Path&)>& callback,

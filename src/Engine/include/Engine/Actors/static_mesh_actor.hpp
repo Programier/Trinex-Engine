@@ -9,7 +9,7 @@ namespace Engine
         declare_class(StaticMeshActor, Actor);
 
     private:
-        class StaticMeshComponent* _M_mesh_component = nullptr;
+        class StaticMeshComponent* m_mesh_component = nullptr;
 
     public:
         StaticMeshComponent* mesh_component() const;

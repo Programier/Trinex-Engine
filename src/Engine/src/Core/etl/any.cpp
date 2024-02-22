@@ -35,20 +35,20 @@ namespace Engine
 
     Any::Any() = default;
 
-    Any::Any(const Any& any) : _M_manager(any._M_manager)
+    Any::Any(const Any& any) : m_manager(any.m_manager)
     {
         if (any.has_value())
         {
-            any._M_manager->copy(any._M_storage, _M_storage);
+            any.m_manager->copy(any.m_storage, m_storage);
         }
     }
 
-    Any::Any(Any&& any) : _M_manager(any._M_manager)
+    Any::Any(Any&& any) : m_manager(any.m_manager)
     {
         if (any.has_value())
         {
-            any._M_manager->move(any._M_storage, _M_storage);
-            any._M_manager = nullptr;
+            any.m_manager->move(any.m_storage, m_storage);
+            any.m_manager = nullptr;
         }
     }
 
@@ -66,29 +66,29 @@ namespace Engine
 
     bool Any::has_value() const
     {
-        return _M_manager && _M_manager->is_valid();
+        return m_manager && m_manager->is_valid();
     }
 
     Any& Any::swap(Any& any)
     {
-        if (this->_M_manager != any._M_manager)
+        if (this->m_manager != any.m_manager)
         {
             Any tmp(std::move(any));
-            any._M_manager = _M_manager;
-            if (_M_manager != nullptr)
-                _M_manager->move(_M_storage, any._M_storage);
+            any.m_manager = m_manager;
+            if (m_manager != nullptr)
+                m_manager->move(m_storage, any.m_storage);
 
-            _M_manager = tmp._M_manager;
-            if (tmp._M_manager != nullptr)
+            m_manager = tmp.m_manager;
+            if (tmp.m_manager != nullptr)
             {
-                tmp._M_manager->move(tmp._M_storage, _M_storage);
-                tmp._M_manager = nullptr;
+                tmp.m_manager->move(tmp.m_storage, m_storage);
+                tmp.m_manager = nullptr;
             }
         }
         else
         {
-            if (this->_M_manager != nullptr)
-                this->_M_manager->swap(_M_storage, any._M_storage);
+            if (this->m_manager != nullptr)
+                this->m_manager->swap(m_storage, any.m_storage);
         }
 
         return *this;
@@ -98,8 +98,8 @@ namespace Engine
     {
         if (has_value())
         {
-            this->_M_manager->destroy(_M_storage);
-            this->_M_manager = nullptr;
+            this->m_manager->destroy(m_storage);
+            this->m_manager = nullptr;
         }
 
         return *this;

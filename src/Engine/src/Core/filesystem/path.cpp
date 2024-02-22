@@ -11,7 +11,7 @@ namespace Engine
     size_t Path::Hash::operator()(const Path& p) const noexcept
     {
         static Engine::Hash<String> hasher;
-        return hasher(p._M_path);
+        return hasher(p.m_path);
     }
 
     static FORCE_INLINE void simplify_path(String& path)
@@ -33,13 +33,13 @@ namespace Engine
             return ch;
         };
 
-        std::transform(_M_path.begin(), _M_path.end(), _M_path.begin(), transform_func);
+        std::transform(m_path.begin(), m_path.end(), m_path.begin(), transform_func);
 #endif
 
-        simplify_path(_M_path);
+        simplify_path(m_path);
 
 
-        StringView view = _M_path;
+        StringView view = m_path;
 
         Index position;
 
@@ -47,28 +47,28 @@ namespace Engine
             position = view.rfind(separator);
             if (position != StringView::npos)
             {
-                _M_filename  = view.substr(position + 1);
-                _M_base_path = view.substr(0, position);
+                m_filename  = view.substr(position + 1);
+                m_base_path = view.substr(0, position);
             }
             else
             {
-                _M_base_path = {};
-                _M_filename  = view;
+                m_base_path = {};
+                m_filename  = view;
             }
         }
 
         {
-            position = _M_filename.rfind('.');
+            position = m_filename.rfind('.');
 
             if (position != StringView::npos)
             {
-                _M_extension = _M_filename.substr(position);
-                _M_stem      = _M_filename.substr(0, position);
+                m_extension = m_filename.substr(position);
+                m_stem      = m_filename.substr(0, position);
             }
             else
             {
-                _M_extension = {};
-                _M_stem      = _M_filename;
+                m_extension = {};
+                m_stem      = m_filename;
             }
         }
 
@@ -78,17 +78,17 @@ namespace Engine
     Path::Path()
     {}
 
-    Path::Path(const Path& path) : _M_path(path._M_path)
+    Path::Path(const Path& path) : m_path(path.m_path)
     {
         on_path_changed();
     }
 
-    Path::Path(const Path&& path) : _M_path(std::move(path._M_path))
+    Path::Path(const Path&& path) : m_path(std::move(path.m_path))
     {
         on_path_changed();
     }
 
-    Path::Path(const StringView& path) : _M_path(path)
+    Path::Path(const StringView& path) : m_path(path)
     {
         on_path_changed();
     }
@@ -104,7 +104,7 @@ namespace Engine
         if (this == &path)
             return *this;
 
-        _M_path = path._M_path;
+        m_path = path.m_path;
         return on_path_changed();
     }
 
@@ -113,13 +113,13 @@ namespace Engine
         if (this == &path)
             return *this;
 
-        _M_path = std::move(path._M_path);
+        m_path = std::move(path.m_path);
         return on_path_changed();
     }
 
     Path& Path::operator=(const StringView& path)
     {
-        _M_path = String(path);
+        m_path = String(path);
         return on_path_changed();
     }
 
@@ -140,12 +140,12 @@ namespace Engine
 
     Path& Path::operator/=(const Path& path)
     {
-        if (!empty() && _M_path.back() != Path::separator)
+        if (!empty() && m_path.back() != Path::separator)
         {
-            _M_path.push_back(separator);
+            m_path.push_back(separator);
         }
 
-        _M_path += path._M_path;
+        m_path += path.m_path;
         return on_path_changed();
     }
 
@@ -154,7 +154,7 @@ namespace Engine
         Index index   = 0;
         Index current = 0;
 
-        StringView view = _M_path;
+        StringView view = m_path;
         Vector<StringView> result;
 
         while ((current = view.find(Path::separator, index)) != StringView::npos)
@@ -176,14 +176,14 @@ namespace Engine
 
         Vector<String> result;
 
-        while ((current = _M_path.find(Path::separator, index)) != String::npos)
+        while ((current = m_path.find(Path::separator, index)) != String::npos)
         {
-            result.push_back(_M_path.substr(index, current - index));
+            result.push_back(m_path.substr(index, current - index));
             index = current + 1;
         }
 
-        if (index != _M_path.length() - 1)
-            result.push_back(_M_path.substr(index));
+        if (index != m_path.length() - 1)
+            result.push_back(m_path.substr(index));
 
         return result;
     }

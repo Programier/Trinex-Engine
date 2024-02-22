@@ -13,33 +13,33 @@
 
 namespace Engine
 {
-    Localization* Localization::_M_instance = nullptr;
+    Localization* Localization::m_instance = nullptr;
 
     const String& Localization::localize(const StringView& line) const
     {
         HashIndex hash = memory_hash_fast(line.data(), line.length());
-        auto it        = _M_translation_map.find(hash);
+        auto it        = m_translation_map.find(hash);
 
-        if (it != _M_translation_map.end())
+        if (it != m_translation_map.end())
             return it->second;
 
 
         for (int i = 0; i < 2; i++)
         {
-            it = _M_default_translation_map.find(hash);
+            it = m_default_translation_map.find(hash);
 
-            if (it != _M_default_translation_map.end())
+            if (it != m_default_translation_map.end())
                 return it->second;
 
             size_t separator_index = line.find_last_of('/');
 
             if (separator_index == StringView::npos)
             {
-                _M_default_translation_map[hash] = line;
+                m_default_translation_map[hash] = line;
             }
             else
             {
-                _M_default_translation_map[hash] = line.substr(separator_index + 1);
+                m_default_translation_map[hash] = line.substr(separator_index + 1);
             }
         }
 
@@ -124,17 +124,17 @@ namespace Engine
         if (with_default)
         {
             if (clear)
-                _M_default_translation_map.clear();
+                m_default_translation_map.clear();
 
             Path path = engine_config.localization_dir / engine_config.default_language;
-            load_localization(_M_default_translation_map, path);
+            load_localization(m_default_translation_map, path);
         }
 
         if (clear)
-            _M_translation_map.clear();
+            m_translation_map.clear();
 
         Path path = engine_config.localization_dir / engine_config.current_language;
-        load_localization(_M_translation_map, path);
+        load_localization(m_translation_map, path);
 
 
         return *this;

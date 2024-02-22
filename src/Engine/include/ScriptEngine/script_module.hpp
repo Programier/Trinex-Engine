@@ -15,7 +15,7 @@ namespace Engine
     class ENGINE_EXPORT ScriptModule
     {
     private:
-        asIScriptModule* _M_module;
+        asIScriptModule* m_module;
 
     public:
         copy_constructors_hpp(ScriptModule);

@@ -8,9 +8,9 @@ namespace Engine
     class ENGINE_EXPORT Localization : public Singletone<Localization, EmptySingletoneParent>
     {
     private:
-        static Localization* _M_instance;
-        Map<HashIndex, String> _M_translation_map;
-        mutable Map<HashIndex, String> _M_default_translation_map;
+        static Localization* m_instance;
+        Map<HashIndex, String> m_translation_map;
+        mutable Map<HashIndex, String> m_default_translation_map;
 
     public:
         CallBacks<void()> on_language_changed;

@@ -25,14 +25,14 @@ namespace Engine
         }
 
         char** symbols = backtrace_symbols(callstack, frames);
-        _M_callstack.resize(frames - skip);
+        m_callstack.resize(frames - skip);
 
         for (uint_t i = skip; i < frames; ++i)
         {
             Dl_info info;
             if (dladdr(callstack[i], &info))
             {
-                FunctionInfo& func_info = _M_callstack[i - skip];
+                FunctionInfo& func_info = m_callstack[i - skip];
                 func_info.filename      = info.dli_fname ? info.dli_fname : "Unknown File";
                 func_info.func_address  = info.dli_saddr;
                 func_info.symbol_name   = info.dli_sname ? Demangle::decode_name(info.dli_sname) : "Unknown Func";
@@ -46,13 +46,13 @@ namespace Engine
 
     const Vector<StackTrace::FunctionInfo>& StackTrace::callstack() const
     {
-        return _M_callstack;
+        return m_callstack;
     }
 
     String StackTrace::to_string(bool with_filename, const char* line_sep) const
     {
         std::stringstream ss;
-        for (auto& info : _M_callstack)
+        for (auto& info : m_callstack)
         {
             if (with_filename)
                 ss << info.filename << ": ";

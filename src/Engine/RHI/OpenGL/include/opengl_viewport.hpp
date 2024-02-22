@@ -4,7 +4,7 @@
 namespace Engine
 {
     struct OpenGL_Viewport : public RHI_Viewport {
-        struct OpenGL_RenderTarget* _M_render_target = nullptr;
+        struct OpenGL_RenderTarget* m_render_target = nullptr;
 
         bool vsync() override;
         void vsync(bool flag) override;
@@ -20,8 +20,8 @@ namespace Engine
     };
 
     struct OpenGL_WindowViewport : OpenGL_Viewport {
-        void* _M_context           = nullptr;
-        WindowInterface* _M_window = nullptr;
+        void* m_context           = nullptr;
+        WindowInterface* m_window = nullptr;
 
         void begin_render() override;
         void end_render() override;

@@ -14,9 +14,9 @@ namespace Engine::VFS
         using FileSystemMap = TreeMap<String, FileSystem*, FileSystemCompare>;
 
     private:
-        FileSystemMap _M_file_systems;
+        FileSystemMap m_file_systems;
 
-        static RootFS* _M_instance;
+        static RootFS* m_instance;
 
         RootFS(const Path& native_path = {});
         ~RootFS();

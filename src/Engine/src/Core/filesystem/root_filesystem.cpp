@@ -22,7 +22,7 @@ namespace Engine::VFS
         return first.length() > second.length();
     }
 
-    RootFS* RootFS::_M_instance = nullptr;
+    RootFS* RootFS::m_instance = nullptr;
 
 
     static void destroy_fs(FileSystem* fs)
@@ -53,9 +53,9 @@ namespace Engine::VFS
 
     RootFS::~RootFS()
     {
-        while (!_M_file_systems.empty())
+        while (!m_file_systems.empty())
         {
-            remove_fs(_M_file_systems.begin());
+            remove_fs(m_file_systems.begin());
         }
     }
 
@@ -82,9 +82,9 @@ namespace Engine::VFS
     FileSystem* RootFS::remove_fs(const FileSystemMap::iterator& it)
     {
         FileSystem* system = it->second;
-        _M_file_systems.erase(it);
-        system->_M_mount_point   = {};
-        UnMountCallback callback = std::move(system->_M_on_unmount);
+        m_file_systems.erase(it);
+        system->m_mount_point   = {};
+        UnMountCallback callback = std::move(system->m_on_unmount);
 
         if (callback)
         {
@@ -101,15 +101,15 @@ namespace Engine::VFS
             vfs_error("Failed to mount nullptr system!");
         }
 
-        if (_M_file_systems.contains(mount_point))
+        if (m_file_systems.contains(mount_point))
         {
             vfs_error("Failed to create mount point '%s'. Mount point already exist!", mount_point.c_str());
             return false;
         }
 
-        _M_file_systems[mount_point] = system;
-        system->_M_mount_point       = mount_point;
-        system->_M_on_unmount        = callback;
+        m_file_systems[mount_point] = system;
+        system->m_mount_point       = mount_point;
+        system->m_on_unmount        = callback;
 
         vfs_log("Mounted '%s' to '%s'", system->path().c_str(), mount_point.c_str());
         return system;
@@ -117,9 +117,9 @@ namespace Engine::VFS
 
     FileSystem* RootFS::unmount(const Path& mount_point)
     {
-        auto it = _M_file_systems.find(mount_point);
+        auto it = m_file_systems.find(mount_point);
 
-        if (it == _M_file_systems.end())
+        if (it == m_file_systems.end())
         {
             return nullptr;
         }
@@ -137,7 +137,7 @@ namespace Engine::VFS
             return path.str()[fs_path.length()];
         };
 
-        for (auto& [fs_path, fs] : _M_file_systems)
+        for (auto& [fs_path, fs] : m_file_systems)
         {
             if (path.path().starts_with(fs_path) && (next_symbol_of(path, fs_path) == Path::separator || fs_path.empty()))
             {

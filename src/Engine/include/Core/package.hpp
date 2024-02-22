@@ -17,7 +17,7 @@ namespace Engine
 
 
     private:
-        ObjectMap _M_objects;
+        ObjectMap m_objects;
 
         Object* find_object_private_no_recurse(const StringView& name) const;
         Object* find_object_private(StringView name) const;

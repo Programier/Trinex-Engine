@@ -88,41 +88,41 @@ namespace Engine
     class VectorWriter : public VectorWriterBase
     {
     private:
-        Vector<T, AllocatorType>* _M_buffer;
-        WritePos _M_write_pos = 0;
+        Vector<T, AllocatorType>* m_buffer;
+        WritePos m_write_pos = 0;
 
     public:
-        VectorWriter(Vector<T, AllocatorType>* buffer) : _M_buffer(buffer)
+        VectorWriter(Vector<T, AllocatorType>* buffer) : m_buffer(buffer)
         {}
 
         using VectorWriterBase::position;
         FORCE_INLINE WritePos position() override
         {
-            return _M_write_pos;
+            return m_write_pos;
         }
 
         FORCE_INLINE VectorWriter& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override
         {
             if (dir == BufferSeekDir::Begin)
-                _M_write_pos = 0;
+                m_write_pos = 0;
             else if (dir == BufferSeekDir::End)
-                _M_write_pos = _M_buffer->size() * sizeof(T);
+                m_write_pos = m_buffer->size() * sizeof(T);
 
-            _M_write_pos += offset;
+            m_write_pos += offset;
             return *this;
         }
 
         bool write(const byte* data, size_t size) override
         {
-            size_t required_size = (_M_write_pos + size + sizeof(T) - 1) / sizeof(T);
-            if (_M_buffer->size() < required_size)
+            size_t required_size = (m_write_pos + size + sizeof(T) - 1) / sizeof(T);
+            if (m_buffer->size() < required_size)
             {
-                _M_buffer->resize(required_size, T());
+                m_buffer->resize(required_size, T());
             }
 
-            byte* write_to = reinterpret_cast<byte*>(_M_buffer->data()) + _M_write_pos;
+            byte* write_to = reinterpret_cast<byte*>(m_buffer->data()) + m_write_pos;
             copy_data(write_to, data, size);
-            _M_write_pos += size;
+            m_write_pos += size;
             return true;
         }
 
@@ -133,7 +133,7 @@ namespace Engine
 
         VectorWriter& clear() override
         {
-            _M_buffer->clear();
+            m_buffer->clear();
             return *this;
         }
     };
@@ -142,41 +142,41 @@ namespace Engine
     class VectorReader : public VectorReaderBase
     {
     private:
-        const Vector<T, AllocatorType>* _M_buffer;
-        ReadPos _M_read_pos = 0;
+        const Vector<T, AllocatorType>* m_buffer;
+        ReadPos m_read_pos = 0;
 
     public:
-        VectorReader(const Vector<T, AllocatorType>* buffer) : _M_buffer(buffer)
+        VectorReader(const Vector<T, AllocatorType>* buffer) : m_buffer(buffer)
         {}
 
         using VectorReaderBase::position;
         FORCE_INLINE ReadPos position() override
         {
-            return _M_read_pos;
+            return m_read_pos;
         }
 
         FORCE_INLINE VectorReader& offset(PosOffset offset, BufferSeekDir dir = BufferSeekDir::Current) override
         {
             if (dir == BufferSeekDir::Begin)
-                _M_read_pos = 0;
+                m_read_pos = 0;
             else if (dir == BufferSeekDir::End)
-                _M_read_pos = _M_buffer->size() * sizeof(T);
+                m_read_pos = m_buffer->size() * sizeof(T);
 
-            _M_read_pos += offset;
+            m_read_pos += offset;
             return *this;
         }
 
         bool read(byte* data, size_t size) override
         {
-            size_t required_size = (_M_read_pos + size + sizeof(T) - 1) / sizeof(T);
-            if (_M_buffer->size() < required_size)
+            size_t required_size = (m_read_pos + size + sizeof(T) - 1) / sizeof(T);
+            if (m_buffer->size() < required_size)
             {
                 return false;
             }
 
-            const byte* read_from = reinterpret_cast<const byte*>(_M_buffer->data()) + _M_read_pos;
+            const byte* read_from = reinterpret_cast<const byte*>(m_buffer->data()) + m_read_pos;
             copy_data(data, read_from, size);
-            _M_read_pos += size;
+            m_read_pos += size;
             return true;
         }
 

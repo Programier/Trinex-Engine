@@ -8,7 +8,7 @@
 #define vulkan_debug_log debug_log
 #define vulkan_info_log info_log
 #define USE_INTEGRATED_GPU 0
-#define API Engine::VulkanAPI::_M_vulkan
+#define API Engine::VulkanAPI::m_vulkan
 #define VIEW_PORT API->window_data.view_port
 
 #define ENABLE_VALIDATION_LAYERS (VULKAN_DEBUG_BUILD && !PLATFORM_ANDROID)
@@ -26,7 +26,7 @@
 #define DESTROY_CALL(func, instance)                                                                                             \
     {                                                                                                                            \
         if (instance)                                                                                                            \
-            API->_M_device.func(instance);                                                                                       \
+            API->m_device.func(instance);                                                                                       \
         instance = nullptr;                                                                                                      \
     }
 

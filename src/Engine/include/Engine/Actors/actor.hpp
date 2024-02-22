@@ -13,12 +13,12 @@ namespace Engine
         declare_class(Actor, Object);
 
     private:
-        Pointer<class SceneComponent> _M_root_component;
-        Vector<Pointer<class ActorComponent>> _M_owned_components;
-        ScriptObject _M_script_object;
+        Pointer<class SceneComponent> m_root_component;
+        Vector<Pointer<class ActorComponent>> m_owned_components;
+        ScriptObject m_script_object;
 
-        class World* _M_world = nullptr;
-        bool _M_is_playing    = false;
+        class World* m_world = nullptr;
+        bool m_is_playing    = false;
 
     protected:
         ActorComponent* create_component(Class* self, const Name& name = {});

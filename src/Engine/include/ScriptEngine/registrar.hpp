@@ -73,13 +73,13 @@ namespace Engine
         }
 
     private:
-        String _M_class_base_name;
-        String _M_class_namespace_name;
-        String _M_class_name;
-        String _M_current_namespace;
-        ClassInfo _M_info;
+        String m_class_base_name;
+        String m_class_namespace_name;
+        String m_class_name;
+        String m_current_namespace;
+        ClassInfo m_info;
 
-        asIScriptEngine* _M_engine;
+        asIScriptEngine* m_engine;
 
         static void declare_as_class(Class* _class);
         static void declare_as_class(Class* _class, const ClassInfo& info);
@@ -280,11 +280,11 @@ namespace Engine
     class ENGINE_EXPORT ScriptEnumRegistrar
     {
     private:
-        String _M_enum_base_name;
-        String _M_enum_namespace_name;
-        String _M_current_namespace;
+        String m_enum_base_name;
+        String m_enum_namespace_name;
+        String m_current_namespace;
 
-        asIScriptEngine* _M_engine;
+        asIScriptEngine* m_engine;
 
     public:
         ScriptEnumRegistrar(const String& full_name);

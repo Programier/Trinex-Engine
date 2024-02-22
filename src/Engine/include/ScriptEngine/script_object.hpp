@@ -21,9 +21,9 @@ namespace Engine
         };
 
     private:
-        asIScriptObject* _M_object = nullptr;
-        ScriptFunction _M_update;
-        ScriptFunction _M_on_create;
+        asIScriptObject* m_object = nullptr;
+        ScriptFunction m_update;
+        ScriptFunction m_on_create;
 
 
         void bind_script_functions();

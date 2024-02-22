@@ -18,26 +18,26 @@ namespace Engine
 
         detach_from_parent();
 
-        child->_M_parent = this;
-        _M_childs.push_back(child);
+        child->m_parent = this;
+        m_childs.push_back(child);
         return *this;
     }
 
     SceneComponent& SceneComponent::detach_from_parent()
     {
-        if (_M_parent)
+        if (m_parent)
         {
-            for (size_t index = 0, count = _M_parent->_M_childs.size(); index < count; ++index)
+            for (size_t index = 0, count = m_parent->m_childs.size(); index < count; ++index)
             {
-                SceneComponent* component = _M_parent->_M_childs[index];
+                SceneComponent* component = m_parent->m_childs[index];
                 if (component == this)
                 {
-                    _M_parent->_M_childs.erase(_M_parent->_M_childs.begin() + index);
+                    m_parent->m_childs.erase(m_parent->m_childs.begin() + index);
                     break;
                 }
             }
 
-            _M_parent = nullptr;
+            m_parent = nullptr;
         }
 
         return *this;
@@ -61,7 +61,7 @@ namespace Engine
 
     const Vector<Pointer<SceneComponent>>& SceneComponent::childs() const
     {
-        return _M_childs;
+        return m_childs;
     }
 
     class UpdateComponentTransform : public ExecutableObject
@@ -86,7 +86,7 @@ namespace Engine
 
         render_thread()->insert_new_task<UpdateComponentTransform>(transform, transform_render_thread);
 
-        for (SceneComponent* child : _M_childs)
+        for (SceneComponent* child : m_childs)
         {
             child->on_transform_changed();
         }
@@ -96,7 +96,7 @@ namespace Engine
 
     SceneComponent* SceneComponent::parent() const
     {
-        return _M_parent.ptr();
+        return m_parent.ptr();
     }
 
     SceneComponent& SceneComponent::destroyed()

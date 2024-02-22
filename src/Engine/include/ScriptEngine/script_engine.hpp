@@ -17,12 +17,12 @@ namespace Engine
     class ENGINE_EXPORT ScriptEngine
     {
     private:
-        struct ScriptContextManager* _M_context_manager;
+        struct ScriptContextManager* m_context_manager;
 
-        Vector<class Script*> _M_scripts;
-        static ScriptEngine* _M_instance;
-        asIScriptEngine* _M_engine;
-        asIJITCompiler* _M_jit_compiler = nullptr;
+        Vector<class Script*> m_scripts;
+        static ScriptEngine* m_instance;
+        asIScriptEngine* m_engine;
+        asIJITCompiler* m_jit_compiler = nullptr;
 
         ScriptEngine();
         ~ScriptEngine();
@@ -38,7 +38,7 @@ namespace Engine
     public:
         class ENGINE_EXPORT NamespaceSaverScoped final
         {
-            String _M_ns;
+            String m_ns;
 
         public:
             NamespaceSaverScoped();

@@ -7,14 +7,14 @@ namespace Engine
 {
     struct VulkanTexture : RHI_Texture {
 
-        const Texture* _M_engine_texture = nullptr;
+        const Texture* m_engine_texture = nullptr;
 
-        vk::Image _M_image;
-        vk::DeviceMemory _M_image_memory;
-        vk::ImageView _M_image_view;
-        vk::Format _M_vulkan_format;
-        vk::ComponentMapping _M_swizzle;
-        VkDescriptorSet _M_imgui_descriptor_set = 0;
+        vk::Image m_image;
+        vk::DeviceMemory m_image_memory;
+        vk::ImageView m_image_view;
+        vk::Format m_vulkan_format;
+        vk::ComponentMapping m_swizzle;
+        VkDescriptorSet m_imgui_descriptor_set = 0;
 
         VulkanTexture& create(const Texture* texture, const byte* data);
         VulkanTexture& destroy();

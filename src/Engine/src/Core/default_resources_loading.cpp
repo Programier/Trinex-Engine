@@ -28,6 +28,6 @@ namespace Engine
         load_package_from_memory(default_package_data, default_package_len, "DefaultPackage");
 
         DefaultResourcesInitializeController().execute();
-        _M_flags(DefaultResourcesInitTriggered, true);
+        m_flags(DefaultResourcesInitTriggered, true);
     }
 }// namespace Engine

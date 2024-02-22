@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 
 namespace Engine::VFS
 {
-#define conv_zip_handle() reinterpret_cast<zip*>(_M_zip_handle)
+#define conv_zip_handle() reinterpret_cast<zip*>(m_zip_handle)
 
     static void collect_entries(zip* archive, Vector<Path>& out, const Path& start_path, bool recurse, const Path& mount)
     {
@@ -43,23 +43,23 @@ namespace Engine::VFS
     }
 
     struct VirtualDirectoryIterator : public DirectoryIteratorInterface {
-        Vector<Path> _M_paths;
-        Index _M_index = 0;
+        Vector<Path> m_paths;
+        Index m_index = 0;
 
 
         void next() override
         {
-            ++_M_index;
+            ++m_index;
         }
 
         const Path& path() override
         {
-            return _M_paths[_M_index];
+            return m_paths[m_index];
         }
 
         bool is_valid() const override
         {
-            return _M_index < _M_paths.size();
+            return m_index < m_paths.size();
         }
 
         DirectoryIteratorInterface* copy() override
@@ -75,29 +75,29 @@ namespace Engine::VFS
         bool is_equal(DirectoryIteratorInterface* interface) override
         {
             VirtualDirectoryIterator* second = reinterpret_cast<VirtualDirectoryIterator*>(interface);
-            return _M_paths[_M_index] == second->_M_paths[second->_M_index];
+            return m_paths[m_index] == second->m_paths[second->m_index];
         }
     };
 
 
-    VirtualFileSystem::VirtualFileSystem(const Path& path) : _M_path(path)
+    VirtualFileSystem::VirtualFileSystem(const Path& path) : m_path(path)
     {
         trinex_always_check(path.extension() != Constants::translation_config_extension || !fs::is_regular_file(path.str()),
                             "Path to native file system must be directory!");
-        _M_zip_handle = zip_open(path.c_str(), ZIP_RDONLY, nullptr);
+        m_zip_handle = zip_open(path.c_str(), ZIP_RDONLY, nullptr);
     }
 
     VirtualFileSystem::~VirtualFileSystem()
     {
-        if (_M_zip_handle)
+        if (m_zip_handle)
         {
             zip_close(conv_zip_handle());
-            _M_zip_handle = nullptr;
+            m_zip_handle = nullptr;
         }
     }
 
 
-    static DirectoryIteratorInterface* create_iterator_interface(void* _M_zip_handle, const Path& path, bool recursive, const Path& mount)
+    static DirectoryIteratorInterface* create_iterator_interface(void* m_zip_handle, const Path& path, bool recursive, const Path& mount)
     {
         Vector<Path> entries;
         collect_entries(conv_zip_handle(), entries, path, false, mount);
@@ -106,19 +106,19 @@ namespace Engine::VFS
             return nullptr;
 
         VirtualDirectoryIterator* iterator = new VirtualDirectoryIterator();
-        iterator->_M_index                 = 0;
-        iterator->_M_paths                 = std::move(entries);
+        iterator->m_index                 = 0;
+        iterator->m_paths                 = std::move(entries);
         return iterator;
     }
 
     DirectoryIteratorInterface* VirtualFileSystem::create_directory_iterator(const Path& path)
     {
-        return create_iterator_interface(_M_zip_handle, path, false, mount_point());
+        return create_iterator_interface(m_zip_handle, path, false, mount_point());
     }
 
     DirectoryIteratorInterface* VirtualFileSystem::create_recursive_directory_iterator(const Path& path)
     {
-        return create_iterator_interface(_M_zip_handle, path, true, mount_point());
+        return create_iterator_interface(m_zip_handle, path, true, mount_point());
     }
 
     char VirtualFileSystem::last_symbol_of_path(const Path& path) const
@@ -136,7 +136,7 @@ namespace Engine::VFS
 
     const Path& VirtualFileSystem::path() const
     {
-        return _M_path;
+        return m_path;
     }
 
     bool VirtualFileSystem::is_read_only() const

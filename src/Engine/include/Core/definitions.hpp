@@ -30,7 +30,7 @@
 #define ARCH_ARM 0
 #endif
 
-#if defined(__x86_64__) || defined(_M_X64)
+#if defined(__x86_64__) || defined(m_X64)
 #define ARCH_X86_64 1
 #else
 #define ARCH_X86_64 0

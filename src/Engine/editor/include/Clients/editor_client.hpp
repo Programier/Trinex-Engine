@@ -15,29 +15,29 @@ namespace Engine
         declare_class(EditorClient, ViewportClient);
 
     private:
-        SceneRenderer _M_renderer;
-        CameraView _M_view;
+        SceneRenderer m_renderer;
+        CameraView m_view;
 
-        RenderViewport* _M_render_viewport = nullptr;
-        Window* _M_window                  = nullptr;
-        size_t _M_frame                    = 0;
+        RenderViewport* m_render_viewport = nullptr;
+        Window* m_window                  = nullptr;
+        size_t m_frame                    = 0;
 
-        class ContentBrowser* _M_content_browser;
-        ImGuiObjectProperties* _M_properties;
-        ImGuiSceneTree* _M_scene_tree;
+        class ContentBrowser* m_content_browser;
+        ImGuiObjectProperties* m_properties;
+        ImGuiSceneTree* m_scene_tree;
 
-        Vector<EventSystemListenerID> _M_event_system_listeners;
+        Vector<EventSystemListenerID> m_event_system_listeners;
 
-        class World* _M_world                                    = nullptr;
-        class GlobalShaderParameters* _M_global_shader_params    = nullptr;
-        class GlobalShaderParameters* _M_global_shader_params_rt = nullptr;
-        Vector2D _M_viewport_size;
-        bool _M_viewport_is_hovered = false;
+        class World* m_world                                    = nullptr;
+        class GlobalShaderParameters* m_global_shader_params    = nullptr;
+        class GlobalShaderParameters* m_global_shader_params_rt = nullptr;
+        Vector2D m_viewport_size;
+        bool m_viewport_is_hovered = false;
 
         class CameraComponent* camera;
-        float _M_camera_speed      = 10.f;
-        Vector3D _M_camera_move    = {0, 0, 0};
-        Index _M_target_view_index = 0;
+        float m_camera_speed      = 10.f;
+        Vector3D m_camera_move    = {0, 0, 0};
+        Index m_target_view_index = 0;
 
     public:
         EditorClient();

@@ -11,7 +11,7 @@ namespace Engine
         if (StaticMesh* mesh = object->instance_cast<StaticMesh>())
         {
             StaticMeshActor* actor =
-                    _M_world->spawn_actor(StaticMeshActor::static_class_instance())->instance_cast<StaticMeshActor>();
+                    m_world->spawn_actor(StaticMeshActor::static_class_instance())->instance_cast<StaticMeshActor>();
             actor->mesh_component()->mesh = mesh;
         }
 

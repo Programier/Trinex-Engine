@@ -9,9 +9,9 @@ namespace Engine
         declare_class(PrimitiveComponent, SceneComponent);
 
     protected:
-        bool _M_is_visible;
-        AABB_3Df _M_bounding_box;
-        class SceneLayer* _M_layer = nullptr;
+        bool m_is_visible;
+        AABB_3Df m_bounding_box;
+        class SceneLayer* m_layer = nullptr;
 
     public:
         bool is_visible() const;

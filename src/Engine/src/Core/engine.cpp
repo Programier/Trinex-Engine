@@ -34,7 +34,7 @@ namespace Engine
 
     EngineInstance::EngineInstance()
     {
-        for (Thread*& thread : _M_threads) thread = nullptr;
+        for (Thread*& thread : m_threads) thread = nullptr;
     }
 
     ENGINE_EXPORT const String& EngineInstance::project_name()
@@ -58,7 +58,7 @@ namespace Engine
 
     bool EngineInstance::is_inited() const
     {
-        return _M_flags(IsInited);
+        return m_flags(IsInited);
     }
 
     bool EngineInstance::init_api()
@@ -82,9 +82,9 @@ namespace Engine
             }
 
             // Initialize API
-            _M_rhi = loader();
+            m_rhi = loader();
 
-            if (!_M_rhi)
+            if (!m_rhi)
             {
                 throw EngineException("Failed to init API");
             }
@@ -95,11 +95,11 @@ namespace Engine
         }
 
 
-        _M_rhi = new NoApi();
+        m_rhi = new NoApi();
         return false;
     }
 
-    EngineInstance* EngineInstance::_M_instance   = nullptr;
+    EngineInstance* EngineInstance::m_instance   = nullptr;
     ENGINE_EXPORT EngineInstance* engine_instance = nullptr;
 
 
@@ -175,18 +175,18 @@ namespace Engine
         info_log("TrinexEngine", "Start engine!");
         start_time = current_time_point();
 
-        _M_args.init(argc, argv);
+        m_args.init(argc, argv);
 
         VFS::RootFS::create_instance(Platform::find_root_directory(argc, argv));
 
         create_threads();
 
         PreInitializeController().execute();
-        _M_flags(PreInitTriggered, true);
+        m_flags(PreInitTriggered, true);
 
         // Load libraries
         {
-            const Arguments::Argument* argument = _M_args.find("libs");
+            const Arguments::Argument* argument = m_args.find("libs");
             if (argument && argument->type == Arguments::Type::Array)
             {
                 for (const String& library : argument->data.cast<const Arguments::ArrayType&>())
@@ -197,9 +197,9 @@ namespace Engine
         }
 
         InitializeController().execute();
-        _M_flags(InitTriggered, true);
+        m_flags(InitTriggered, true);
 
-        EntryPoint* entry_point = find_entry_point(_M_args);
+        EntryPoint* entry_point = find_entry_point(m_args);
         if (!entry_point)
         {
             error_log("Engine", "Failed to load entry point for engine start!");
@@ -219,7 +219,7 @@ namespace Engine
 
         ScriptEngine::initialize();
         ClassInitializeController().execute();
-        _M_flags(ClassInitTriggered, true);
+        m_flags(ClassInitTriggered, true);
         ScriptEngine::instance()->load_scripts();
 
         World::new_system<World>()->name("Global World");
@@ -229,10 +229,10 @@ namespace Engine
         load_default_resources();
 
         PostInitializeController().execute();
-        _M_flags(PostInitTriggered, true);
-        _M_flags(IsInited, true);
+        m_flags(PostInitTriggered, true);
+        m_flags(IsInited, true);
 
-        if (_M_rhi)
+        if (m_rhi)
         {
             WindowManager::instance()->create_client(WindowManager::instance()->main_window(), global_window_config.client);
         }
@@ -253,59 +253,59 @@ namespace Engine
 
     RHI* EngineInstance::rhi() const
     {
-        return _M_rhi;
+        return m_rhi;
     }
 
     bool EngineInstance::is_shuting_down() const
     {
-        return _M_flags(IsShutingDown);
+        return m_flags(IsShutingDown);
     }
 
     bool EngineInstance::is_requesting_exit() const
     {
-        return _M_flags(IsRequestingExit);
+        return m_flags(IsRequestingExit);
     }
 
     EngineInstance& EngineInstance::request_exit()
     {
-        _M_flags(IsRequestingExit, true);
+        m_flags(IsRequestingExit, true);
         return *this;
     }
 
     const Arguments& EngineInstance::args() const
     {
-        return _M_args;
+        return m_args;
     }
 
     Arguments& EngineInstance::args()
     {
-        return _M_args;
+        return m_args;
     }
 
     const Flags<EngineInstance::Flag>& EngineInstance::flags() const
     {
-        return _M_flags;
+        return m_flags;
     }
 
     EngineInstance& EngineInstance::start_garbage_collection()
     {
-        if (_M_current_gc_stage == GCFlag::None)
-            _M_current_gc_stage = GCFlag::DetectGarbage;
+        if (m_current_gc_stage == GCFlag::None)
+            m_current_gc_stage = GCFlag::DetectGarbage;
         return *this;
     }
 
     class DestroyRHI_Task : public ExecutableObject
     {
     private:
-        RHI* _M_rhi;
+        RHI* m_rhi;
 
     public:
-        DestroyRHI_Task(RHI* rhi) : _M_rhi(rhi)
+        DestroyRHI_Task(RHI* rhi) : m_rhi(rhi)
         {}
 
         int_t execute() override
         {
-            delete _M_rhi;
+            delete m_rhi;
             return sizeof(DestroyRHI_Task);
         }
     };
@@ -313,12 +313,12 @@ namespace Engine
     EngineInstance::~EngineInstance()
     {
         request_exit();
-        _M_flags(IsShutingDown, true);
+        m_flags(IsShutingDown, true);
         info_log("EngineInstance", "Terminate Engine");
 
-        if (_M_rhi)
+        if (m_rhi)
         {
-            call_in_render_thread([this]() { _M_rhi->wait_idle(); });
+            call_in_render_thread([this]() { m_rhi->wait_idle(); });
             thread(ThreadType::RenderThread)->wait_all();
         }
 
@@ -329,7 +329,7 @@ namespace Engine
         Object::collect_garbage(GCFlag::DestroyAll);
         DestroyController().execute();
 
-        for (Thread*& thread : _M_threads)
+        for (Thread*& thread : m_threads)
         {
             if (thread)
                 thread->wait_all();
@@ -339,25 +339,25 @@ namespace Engine
         if (WindowManager::instance())
             WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
 
-        if (_M_rhi)
+        if (m_rhi)
         {
             // Cannot delete rhi in logic thread, becouse the gpu resources can be used now
             // So, delete it on render thread
-            render_thread()->insert_new_task<DestroyRHI_Task>(_M_rhi);
+            render_thread()->insert_new_task<DestroyRHI_Task>(m_rhi);
             render_thread()->wait_all();
-            _M_rhi = nullptr;
+            m_rhi = nullptr;
         }
 
         if (WindowManager::instance())
             delete WindowManager::instance();
 
-        _M_rhi = nullptr;
-        _M_flags(IsInited, false);
+        m_rhi = nullptr;
+        m_flags(IsInited, false);
         Library::close_all();
 
         PostDestroyController().execute();
 
-        for (Thread*& thread : _M_threads)
+        for (Thread*& thread : m_threads)
         {
             if (thread && thread->is_destroyable())
             {
@@ -371,7 +371,7 @@ namespace Engine
 
     void EngineInstance::create_window()
     {
-        if (_M_rhi == nullptr)
+        if (m_rhi == nullptr)
         {
             throw EngineException("Cannot create window without API!");
         }
@@ -411,7 +411,7 @@ namespace Engine
     {
         Index index = static_cast<Index>(type);
 
-        Thread*& thread = _M_threads[index];
+        Thread*& thread = m_threads[index];
         if (thread == nullptr)
         {
             thread = new Thread(thread_name(type));
@@ -422,7 +422,7 @@ namespace Engine
     Thread* EngineInstance::thread(ThreadType type) const
     {
         Index index = static_cast<Index>(type);
-        return _M_threads[index];
+        return m_threads[index];
     }
 
     float EngineInstance::time_seconds() const
@@ -432,12 +432,12 @@ namespace Engine
 
     float EngineInstance::delta_time() const
     {
-        return _M_delta_time;
+        return m_delta_time;
     }
 
     Index EngineInstance::frame_index() const
     {
-        return _M_frame_index;
+        return m_frame_index;
     }
 
     ENGINE_EXPORT Thread* render_thread()

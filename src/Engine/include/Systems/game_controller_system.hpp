@@ -14,8 +14,8 @@ namespace Engine
 
 
     private:
-        Map<Identifier, GameController*> _M_controllers;
-        Vector<EventSystemListenerID> _M_callbacks_id;
+        Map<Identifier, GameController*> m_controllers;
+        Vector<EventSystemListenerID> m_callbacks_id;
 
         void on_controller_added(const Event& event);
         void on_controller_removed(const Event& event);

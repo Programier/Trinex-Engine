@@ -20,25 +20,25 @@
 //    SDL_SensorUpdate
 //    */
 
-//    uint_t Sensor::_M_sensor_count              = 0;
-//    Vector<std::string> Sensor::_M_sensor_names = {};
+//    uint_t Sensor::m_sensor_count              = 0;
+//    Vector<std::string> Sensor::m_sensor_names = {};
 
 //    // Static methods implementation
 
 //    uint_t Sensor::sensors_count()
 //    {
-//        return _M_sensor_count;
+//        return m_sensor_count;
 //    }
 
 //    const Vector<std::string>& Sensor::sensor_list()
 //    {
-//        return Sensor::_M_sensor_names;
+//        return Sensor::m_sensor_names;
 //    }
 
 //    uint_t Sensor::id_of(const std::string& sensor_name)
 //    {
-//        for (uint_t id = 0; id < _M_sensor_count; id++)
-//            if (_M_sensor_names[id] == sensor_name)
+//        for (uint_t id = 0; id < m_sensor_count; id++)
+//            if (m_sensor_names[id] == sensor_name)
 //                return id;
 //        throw std::runtime_error("Sensor not found");
 //    }
@@ -46,8 +46,8 @@
 //    void Sensor::update_sensors_info()
 //    {
 //        SDL_SensorUpdate();
-//        _M_sensor_count = SDL_NumSensors();
-//        for (uint_t i = 0; i < _M_sensor_count; i++) _M_sensor_names.push_back(SDL_SensorGetDeviceName(i));
+//        m_sensor_count = SDL_NumSensors();
+//        for (uint_t i = 0; i < m_sensor_count; i++) m_sensor_names.push_back(SDL_SensorGetDeviceName(i));
 //    }
 
 
@@ -82,15 +82,15 @@
 //    Sensor& Sensor::open(uint_t id)
 //    {
 //        close();
-//        _M_sensor = SmartPointer<void>(SDL_SensorOpen(id), close_sensor);
-//        if (!_M_sensor.get())
+//        m_sensor = SmartPointer<void>(SDL_SensorOpen(id), close_sensor);
+//        if (!m_sensor.get())
 //        {
 //            info_log("Sensor", "Failed to load sensor with ID %d\n", id);
 //            return *this;
 //        }
 
-//        info_log("Sensor", "Opened sensor with %p\n", _M_sensor.get());
-//        _M_sensor_name = SDL_SensorGetName(static_cast<SDL_Sensor*>(_M_sensor.get()));
+//        info_log("Sensor", "Opened sensor with %p\n", m_sensor.get());
+//        m_sensor_name = SDL_SensorGetName(static_cast<SDL_Sensor*>(m_sensor.get()));
 //        return *this;
 //    }
 
@@ -110,43 +110,43 @@
 
 //    const std::string& Sensor::name() const
 //    {
-//        return _M_sensor_name;
+//        return m_sensor_name;
 //    }
 
 //    Sensor& Sensor::close()
 //    {
-//        _M_sensor = nullptr;
+//        m_sensor = nullptr;
 //        return *this;
 //    }
 
 //    bool Sensor::is_open() const
 //    {
-//        return _M_sensor.get() != nullptr;
+//        return m_sensor.get() != nullptr;
 //    }
 
 //    Sensor& Sensor::data_size(const std::size_t& size)
 //    {
-//        _M_data.resize(size);
+//        m_data.resize(size);
 //        return *this;
 //    }
 
 //    std::size_t Sensor::data_size() const
 //    {
-//        return _M_data.size();
+//        return m_data.size();
 //    }
 
 //    Sensor& Sensor::update()
 //    {
-//        SDL_Sensor* sensor = static_cast<SDL_Sensor*>(_M_sensor.get());
+//        SDL_Sensor* sensor = static_cast<SDL_Sensor*>(m_sensor.get());
 
 //        if (sensor)
-//            SDL_SensorGetData(sensor, _M_data.data(), _M_data.size());
+//            SDL_SensorGetData(sensor, m_data.data(), m_data.size());
 //        return *this;
 //    }
 
 //    const Vector<float>& Sensor::data() const
 //    {
-//        return _M_data;
+//        return m_data;
 //    }
 
 //    Sensor::~Sensor()

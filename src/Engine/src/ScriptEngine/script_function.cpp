@@ -8,20 +8,20 @@
 namespace Engine
 {
 
-    ScriptFunction::ScriptFunction(asIScriptFunction* function) : _M_context(nullptr), _M_function(function)
+    ScriptFunction::ScriptFunction(asIScriptFunction* function) : m_context(nullptr), m_function(function)
     {}
 
 
     ScriptFunction::ScriptFunction(const ScriptFunction& obj)
     {
-        _M_function = obj._M_function;
+        m_function = obj.m_function;
         bind();
     }
 
     ScriptFunction::ScriptFunction(ScriptFunction&& obj)
     {
-        _M_function     = obj._M_function;
-        obj._M_function = nullptr;
+        m_function     = obj.m_function;
+        obj.m_function = nullptr;
     }
 
     ScriptFunction& ScriptFunction::operator=(ScriptFunction&& obj)
@@ -29,8 +29,8 @@ namespace Engine
         if (this != &obj)
         {
             unbind();
-            _M_function     = obj._M_function;
-            obj._M_function = nullptr;
+            m_function     = obj.m_function;
+            obj.m_function = nullptr;
         }
         return *this;
     }
@@ -40,7 +40,7 @@ namespace Engine
         if (this != &obj)
         {
             unbind();
-            _M_function = obj._M_function;
+            m_function = obj.m_function;
             bind();
         }
         return *this;
@@ -48,146 +48,146 @@ namespace Engine
 
     bool ScriptFunction::operator==(const ScriptFunction& func) const
     {
-        return _M_function == func._M_function;
+        return m_function == func.m_function;
     }
 
     bool ScriptFunction::operator!=(const ScriptFunction& func) const
     {
-        return _M_function != func._M_function;
+        return m_function != func.m_function;
     }
 
     ScriptFunction& ScriptFunction::prepare()
     {
-        if (_M_context == nullptr)
-            _M_context = ScriptEngine::instance()->new_context();
-        _M_context->Prepare(_M_function);
+        if (m_context == nullptr)
+            m_context = ScriptEngine::instance()->new_context();
+        m_context->Prepare(m_function);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_uint8(uint_t arg, uint8_t value)
     {
-        _M_context->SetArgByte(arg, value);
+        m_context->SetArgByte(arg, value);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_uint16(uint_t arg, uint16_t value)
     {
-        _M_context->SetArgWord(arg, value);
+        m_context->SetArgWord(arg, value);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_uint32(uint_t arg, uint32_t value)
     {
-        _M_context->SetArgDWord(arg, value);
+        m_context->SetArgDWord(arg, value);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_uint64(uint_t arg, uint64_t value)
     {
-        _M_context->SetArgQWord(arg, value);
+        m_context->SetArgQWord(arg, value);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_float(uint_t arg, float value)
     {
-        _M_context->SetArgFloat(arg, value);
+        m_context->SetArgFloat(arg, value);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_double(uint_t arg, double value)
     {
-        _M_context->SetArgDouble(arg, value);
+        m_context->SetArgDouble(arg, value);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_address(uint_t arg, void* addr)
     {
-        _M_context->SetArgAddress(arg, addr);
+        m_context->SetArgAddress(arg, addr);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_object(uint_t arg, void* obj)
     {
-        _M_context->SetArgObject(arg, obj);
+        m_context->SetArgObject(arg, obj);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::arg_var_type(uint_t arg, void* ptr, int_t type_id)
     {
-        _M_context->SetArgVarType(arg, ptr, type_id);
+        m_context->SetArgVarType(arg, ptr, type_id);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::object(const ScriptObject& object)
     {
-        _M_context->SetObject(object._M_object);
+        m_context->SetObject(object.m_object);
         return *this;
     }
 
     ScriptFunction& ScriptFunction::call()
     {
-        _M_context->Execute();
+        m_context->Execute();
         return *this;
     }
 
     ScriptFunction& ScriptFunction::unbind_context()
     {
-        if (_M_context)
+        if (m_context)
         {
-            ScriptEngine::instance()->release_context(_M_context);
-            _M_context = nullptr;
+            ScriptEngine::instance()->release_context(m_context);
+            m_context = nullptr;
         }
         return *this;
     }
 
     void* ScriptFunction::result_object_address()
     {
-        return _M_context->GetReturnObject();
+        return m_context->GetReturnObject();
     }
 
     uint8_t ScriptFunction::result_byte()
     {
-        return _M_context->GetReturnByte();
+        return m_context->GetReturnByte();
     }
 
     uint16_t ScriptFunction::result_word()
     {
-        return _M_context->GetReturnWord();
+        return m_context->GetReturnWord();
     }
 
     uint32_t ScriptFunction::result_dword()
     {
-        return _M_context->GetReturnDWord();
+        return m_context->GetReturnDWord();
     }
 
     uint64_t ScriptFunction::result_qword()
     {
-        return _M_context->GetReturnQWord();
+        return m_context->GetReturnQWord();
     }
 
     float ScriptFunction::result_float()
     {
-        return _M_context->GetReturnFloat();
+        return m_context->GetReturnFloat();
     }
 
     double ScriptFunction::result_double()
     {
-        return _M_context->GetReturnDouble();
+        return m_context->GetReturnDouble();
     }
 
     void* ScriptFunction::result_address()
     {
-        return _M_context->GetReturnAddress();
+        return m_context->GetReturnAddress();
     }
 
     int_t ScriptFunction::id() const
     {
-        return _M_function->GetId();
+        return m_function->GetId();
     }
 
     ScriptFunction::Type ScriptFunction::func_type() const
     {
-        asEFuncType type = _M_function->GetFuncType();
+        asEFuncType type = m_function->GetFuncType();
         switch (type)
         {
             case asFUNC_DUMMY:
@@ -213,137 +213,137 @@ namespace Engine
 
     const char* ScriptFunction::module_name() const
     {
-        return _M_function->GetModuleName();
+        return m_function->GetModuleName();
     }
 
     ScriptModule ScriptFunction::module() const
     {
-        return ScriptModule(_M_function->GetModule());
+        return ScriptModule(m_function->GetModule());
     }
 
     const char* ScriptFunction::script_section_name() const
     {
-        return _M_function->GetScriptSectionName();
+        return m_function->GetScriptSectionName();
     }
 
     ScriptTypeInfo ScriptFunction::object_type() const
     {
-        return ScriptTypeInfo(_M_function->GetObjectType()).bind();
+        return ScriptTypeInfo(m_function->GetObjectType()).bind();
     }
 
     const char* ScriptFunction::object_name() const
     {
-        return _M_function->GetObjectName();
+        return m_function->GetObjectName();
     }
 
     const char* ScriptFunction::name() const
     {
-        return _M_function->GetName();
+        return m_function->GetName();
     }
 
     const char* ScriptFunction::namespace_name() const
     {
-        return _M_function->GetNamespace();
+        return m_function->GetNamespace();
     }
 
     const char* ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const
     {
-        return _M_function->GetDeclaration(include_object_name, include_namespace, include_param_names);
+        return m_function->GetDeclaration(include_object_name, include_namespace, include_param_names);
     }
 
     bool ScriptFunction::is_read_only() const
     {
-        return _M_function->IsReadOnly();
+        return m_function->IsReadOnly();
     }
 
     bool ScriptFunction::is_private() const
     {
-        return _M_function->IsPrivate();
+        return m_function->IsPrivate();
     }
 
     bool ScriptFunction::is_protected() const
     {
-        return _M_function->IsProtected();
+        return m_function->IsProtected();
     }
 
     bool ScriptFunction::is_final() const
     {
-        return _M_function->IsFinal();
+        return m_function->IsFinal();
     }
 
     bool ScriptFunction::is_override() const
     {
-        return _M_function->IsOverride();
+        return m_function->IsOverride();
     }
 
     bool ScriptFunction::is_shared() const
     {
-        return _M_function->IsShared();
+        return m_function->IsShared();
     }
 
     bool ScriptFunction::is_explicit() const
     {
-        return _M_function->IsExplicit();
+        return m_function->IsExplicit();
     }
 
     bool ScriptFunction::is_property() const
     {
-        return _M_function->IsProperty();
+        return m_function->IsProperty();
     }
 
     uint_t ScriptFunction::param_count() const
     {
-        return _M_function->GetParamCount();
+        return m_function->GetParamCount();
     }
 
     int_t ScriptFunction::type_id() const
     {
-        return _M_function->GetTypeId();
+        return m_function->GetTypeId();
     }
 
     bool ScriptFunction::is_compatible_with_type_id(int_t type_id) const
     {
-        return _M_function->IsCompatibleWithTypeId(type_id);
+        return m_function->IsCompatibleWithTypeId(type_id);
     }
 
     // Delegates
     void* ScriptFunction::delegate_object() const
     {
-        return _M_function->GetDelegateObject();
+        return m_function->GetDelegateObject();
     }
 
     ScriptTypeInfo ScriptFunction::delegate_object_type() const
     {
-        return ScriptTypeInfo(_M_function->GetDelegateObjectType()).bind();
+        return ScriptTypeInfo(m_function->GetDelegateObjectType()).bind();
     }
 
     ScriptFunction ScriptFunction::delegate_function() const
     {
-        return ScriptFunction(_M_function->GetDelegateFunction()).bind();
+        return ScriptFunction(m_function->GetDelegateFunction()).bind();
     }
 
     ScriptFunction& ScriptFunction::bind()
     {
-        if (_M_function)
+        if (m_function)
         {
-            _M_function->AddRef();
+            m_function->AddRef();
         }
         return *this;
     }
 
     ScriptFunction& ScriptFunction::unbind()
     {
-        if (_M_function)
+        if (m_function)
         {
-            _M_function->Release();
-            _M_function = nullptr;
+            m_function->Release();
+            m_function = nullptr;
         }
         return *this;
     }
 
     bool ScriptFunction::is_valid() const
     {
-        return _M_function != nullptr;
+        return m_function != nullptr;
     }
 
     ScriptFunction::~ScriptFunction()

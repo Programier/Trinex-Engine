@@ -87,17 +87,17 @@ namespace Engine
 
     const EventSystem::ListenerMap& EventSystem::listeners() const
     {
-        return _M_listeners;
+        return m_listeners;
     }
 
     EventSystemListenerID EventSystem::add_listener(EventType type, const Listener& listener)
     {
-        return EventSystemListenerID(type, _M_listeners[static_cast<byte>(type)].push(listener));
+        return EventSystemListenerID(type, m_listeners[static_cast<byte>(type)].push(listener));
     }
 
     EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
     {
-        _M_listeners[static_cast<byte>(id._M_type)].remove(id._M_id);
+        m_listeners[static_cast<byte>(id.m_type)].remove(id.m_id);
         return *this;
     }
 
@@ -128,13 +128,13 @@ namespace Engine
     EventSystem& EventSystem::update(float dt)
     {
         Super::update(dt);
-        return (this->*_M_process_events)();
+        return (this->*m_process_events)();
     }
 
     const EventSystem& EventSystem::push_event(const Event& event) const
     {
-        auto it = _M_listeners.find(static_cast<byte>(event.type()));
-        if (it != _M_listeners.end())
+        auto it = m_listeners.find(static_cast<byte>(event.type()));
+        if (it != m_listeners.end())
         {
             it->second.trigger(event);
         }
@@ -145,7 +145,7 @@ namespace Engine
     EventSystem& EventSystem::shutdown()
     {
         Super::shutdown();
-        _M_listeners.clear();
+        m_listeners.clear();
         return *this;
     }
 
@@ -165,11 +165,11 @@ namespace Engine
     {
         if (method == ProcessEventMethod::PoolEvents)
         {
-            _M_process_events = &EventSystem::pool_events;
+            m_process_events = &EventSystem::pool_events;
         }
         else
         {
-            _M_process_events = &EventSystem::wait_events;
+            m_process_events = &EventSystem::wait_events;
         }
         return *this;
     }

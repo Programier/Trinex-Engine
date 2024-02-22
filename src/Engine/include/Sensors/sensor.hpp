@@ -8,14 +8,14 @@
 //    struct ENGINE_EXPORT Sensor
 //    {
 //        // Static variables
-//        static uint_t _M_sensor_count;
-//        static Vector<std::string> _M_sensor_names;
+//        static uint_t m_sensor_count;
+//        static Vector<std::string> m_sensor_names;
 
 //        // Non static variables
-//        uint_t _M_ID;
-//        std::string _M_sensor_name;
-//        SmartPointer<void> _M_sensor = nullptr;
-//        Vector<float> _M_data = {0.f, 0.f, 0.f};
+//        uint_t m_ID;
+//        std::string m_sensor_name;
+//        SmartPointer<void> m_sensor = nullptr;
+//        Vector<float> m_data = {0.f, 0.f, 0.f};
 
 //    public:
 //        Sensor();

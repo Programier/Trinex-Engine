@@ -33,8 +33,8 @@ namespace Engine
 
     EditorClient::EditorClient()
     {
-        _M_global_shader_params    = new GlobalShaderParameters();
-        _M_global_shader_params_rt = new GlobalShaderParameters();
+        m_global_shader_params    = new GlobalShaderParameters();
+        m_global_shader_params_rt = new GlobalShaderParameters();
     }
 
     EditorClient::~EditorClient()
@@ -43,61 +43,61 @@ namespace Engine
 
         if (event_system)
         {
-            for (auto listener : _M_event_system_listeners)
+            for (auto listener : m_event_system_listeners)
             {
                 event_system->remove_listener(listener);
             }
         }
 
-        delete _M_global_shader_params;
-        delete _M_global_shader_params_rt;
+        delete m_global_shader_params;
+        delete m_global_shader_params_rt;
     }
 
     void EditorClient::on_content_browser_close()
     {
-        _M_content_browser = nullptr;
+        m_content_browser = nullptr;
     }
 
     void EditorClient::on_properties_window_close()
     {
-        _M_properties = nullptr;
+        m_properties = nullptr;
     }
 
     void EditorClient::on_scene_tree_close()
     {
-        _M_scene_tree = nullptr;
+        m_scene_tree = nullptr;
     }
 
     EditorClient& EditorClient::create_content_browser()
     {
-        _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
-        _M_content_browser->on_close.push(std::bind(&EditorClient::on_content_browser_close, this));
-        _M_content_browser->on_object_select.push(std::bind(&EditorClient::on_object_select, this, std::placeholders::_1));
+        m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
+        m_content_browser->on_close.push(std::bind(&EditorClient::on_content_browser_close, this));
+        m_content_browser->on_object_select.push(std::bind(&EditorClient::on_object_select, this, std::placeholders::_1));
         return *this;
     }
 
     EditorClient& EditorClient::create_properties_window()
     {
-        _M_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
-        _M_properties->on_close.push(std::bind(&EditorClient::on_properties_window_close, this));
+        m_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
+        m_properties->on_close.push(std::bind(&EditorClient::on_properties_window_close, this));
 
-        if (_M_content_browser)
+        if (m_content_browser)
         {
-            on_object_select(_M_content_browser->selected_object);
+            on_object_select(m_content_browser->selected_object);
         }
         return *this;
     }
 
     EditorClient& EditorClient::create_scene_tree()
     {
-        _M_scene_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiSceneTree>();
-        _M_scene_tree->on_close.push(std::bind(&EditorClient::on_scene_tree_close, this));
-        _M_scene_tree->on_node_select.push(
+        m_scene_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiSceneTree>();
+        m_scene_tree->on_close.push(std::bind(&EditorClient::on_scene_tree_close, this));
+        m_scene_tree->on_node_select.push(
                 [this](SceneComponent* component) { on_object_select(static_cast<Object*>(component)); });
 
-        if (_M_world)
+        if (m_world)
         {
-            _M_scene_tree->root_component = _M_world->scene()->root_component();
+            m_scene_tree->root_component = m_world->scene()->root_component();
         }
         return *this;
     }
@@ -109,8 +109,8 @@ namespace Engine
         {
             throw EngineException("Cannot bind client to non-window viewport!");
         }
-        _M_window          = window;
-        _M_render_viewport = viewport;
+        m_window          = window;
+        m_render_viewport = viewport;
 
         window->imgui_initialize(initialize_theme);
 
@@ -138,17 +138,17 @@ namespace Engine
         camera->far_clip_plane            = 1000.f;
 
         EventSystem* event_system = EventSystem::new_system<EventSystem>();
-        _M_event_system_listeners.push_back(event_system->add_listener(
+        m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
 
-        _M_event_system_listeners.push_back(event_system->add_listener(
+        m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::MouseButtonDown, std::bind(&EditorClient::on_mouse_press, this, std::placeholders::_1)));
-        _M_event_system_listeners.push_back(event_system->add_listener(
+        m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
 
-        _M_event_system_listeners.push_back(event_system->add_listener(
+        m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::KeyDown, std::bind(&EditorClient::on_key_press, this, std::placeholders::_1)));
-        _M_event_system_listeners.push_back(event_system->add_listener(
+        m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::KeyUp, std::bind(&EditorClient::on_key_release, this, std::placeholders::_1)));
 
         return init_world();
@@ -156,9 +156,9 @@ namespace Engine
 
     void EditorClient::on_object_select(Object* object)
     {
-        if (_M_properties)
+        if (m_properties)
         {
-            _M_properties->object = object;
+            m_properties->object = object;
         }
     }
 
@@ -179,8 +179,8 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        engine_instance->rhi()->push_global_params(*_M_global_shader_params_rt);
-        _M_renderer.render(_M_view, _M_render_viewport, _M_viewport_size);
+        engine_instance->rhi()->push_global_params(*m_global_shader_params_rt);
+        m_renderer.render(m_view, m_render_viewport, m_viewport_size);
 
         engine_instance->rhi()->pop_global_params();
         viewport->window()->rhi_bind();
@@ -204,17 +204,17 @@ namespace Engine
                     open_material_editor();
                 }
 
-                if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, _M_content_browser == nullptr))
+                if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
                 {
                     create_content_browser();
                 }
 
-                if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, _M_properties == nullptr))
+                if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
                 {
                     create_properties_window();
                 }
 
-                if (ImGui::MenuItem("editor/Open Scene Tree"_localized, nullptr, false, _M_scene_tree == nullptr))
+                if (ImGui::MenuItem("editor/Open Scene Tree"_localized, nullptr, false, m_scene_tree == nullptr))
                 {
                     create_scene_tree();
                 }
@@ -249,11 +249,11 @@ namespace Engine
 
             if (ImGui::BeginMenu("editor/Import"_localized))
             {
-                bool enable_import = _M_content_browser && _M_content_browser->selected_package() != nullptr;
+                bool enable_import = m_content_browser && m_content_browser->selected_package() != nullptr;
                 if (ImGui::MenuItem("editor/Import resource"_localized,
                                     "editor/Import resource from file to selected package"_localized, false, enable_import))
                 {
-                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>(_M_content_browser->selected_package(),
+                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>(m_content_browser->selected_package(),
                                                                                         Importer::import_resource);
                 }
 
@@ -264,7 +264,7 @@ namespace Engine
             ImGui::EndMenuBar();
         }
 
-        if (_M_frame == 0)
+        if (m_frame == 0)
         {
             ImGui::DockBuilderRemoveNode(dock_id);
             ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
@@ -305,9 +305,9 @@ namespace Engine
         window->end_frame();
 
         camera->transform.location +=
-                Vector3D((camera->transform.rotation_matrix() * Vector4D(_M_camera_move, 1.0))) * dt * _M_camera_speed;
+                Vector3D((camera->transform.rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt * m_camera_speed;
         camera->transform.update();
-        _M_global_shader_params->update(SceneColorOutput::instance(), camera);
+        m_global_shader_params->update(SceneColorOutput::instance(), camera);
 
         struct UpdateParams : ExecutableObject {
             GlobalShaderParameters params;
@@ -337,24 +337,24 @@ namespace Engine
             }
         };
 
-        render_thread()->insert_new_task<UpdateParams>(_M_global_shader_params, _M_global_shader_params_rt);
-        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), _M_view);
+        render_thread()->insert_new_task<UpdateParams>(m_global_shader_params, m_global_shader_params_rt);
+        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_view);
 
-        ++_M_frame;
+        ++m_frame;
         return *this;
     }
 
     EditorClient& EditorClient::init_world()
     {
-        _M_world     = World::new_system<World>();
-        Scene* scene = _M_world->scene();
-        _M_renderer.scene(scene);
+        m_world     = World::new_system<World>();
+        Scene* scene = m_world->scene();
+        m_renderer.scene(scene);
 
         extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer);
         auto layer = scene->clear_layer()->create_next("Grid Rendering");
         layer->function_callbacks.push_back(render_editor_grid);
-        _M_scene_tree->root_component = _M_world->scene()->root_component();
-        _M_world->start_play();
+        m_scene_tree->root_component = m_world->scene()->root_component();
+        m_world->start_play();
         return *this;
     }
 
@@ -373,7 +373,7 @@ namespace Engine
 
 
         Texture* texture = nullptr;
-        if (_M_target_view_index == 0)
+        if (m_target_view_index == 0)
         {
             auto* frame = SceneColorOutput::instance()->current_frame();
             if (frame)
@@ -387,7 +387,7 @@ namespace Engine
 
             if (frame)
             {
-                switch (_M_target_view_index)
+                switch (m_target_view_index)
                 {
                     case 1:
                         texture = frame->base_color();
@@ -418,10 +418,10 @@ namespace Engine
             {
                 void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
                 auto size        = ImGui::GetContentRegionAvail();
-                _M_viewport_size = ImGuiHelpers::construct_vec2<Vector2D>(size);
-                camera->aspect_ratio = _M_viewport_size.x / _M_viewport_size.y;
+                m_viewport_size = ImGuiHelpers::construct_vec2<Vector2D>(size);
+                camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
                 ImGui::Image(output, size, ImVec2(0, 1), ImVec2(1, 0));
-                _M_viewport_is_hovered = ImGui::IsItemHovered();
+                m_viewport_is_hovered = ImGui::IsItemHovered();
             }
 
             update_drag_and_drop();
@@ -441,9 +441,9 @@ namespace Engine
     {
         const MouseButtonEvent& button = event.get<const MouseButtonEvent&>();
 
-        if (_M_viewport_is_hovered && button.button == Mouse::Button::Right)
+        if (m_viewport_is_hovered && button.button == Mouse::Button::Right)
         {
-            MouseSystem::instance()->relative_mode(true, _M_window);
+            MouseSystem::instance()->relative_mode(true, m_window);
         }
     }
 
@@ -453,7 +453,7 @@ namespace Engine
 
         if (button.button == Mouse::Button::Right)
         {
-            MouseSystem::instance()->relative_mode(false, _M_window);
+            MouseSystem::instance()->relative_mode(false, m_window);
         }
     }
 
@@ -461,12 +461,12 @@ namespace Engine
     {
         const MouseMotionEvent& motion = event.get<const MouseMotionEvent&>();
 
-        if (MouseSystem::instance()->is_relative_mode(_M_window))
+        if (MouseSystem::instance()->is_relative_mode(m_window))
         {
             camera->transform.rotation.y +=
-                    calculate_y_rotatation(static_cast<float>(motion.xrel), _M_viewport_size.x, camera->fov);
+                    calculate_y_rotatation(static_cast<float>(motion.xrel), m_viewport_size.x, camera->fov);
             camera->transform.rotation.x +=
-                    calculate_y_rotatation(static_cast<float>(motion.yrel), _M_viewport_size.y, camera->fov);
+                    calculate_y_rotatation(static_cast<float>(motion.yrel), m_viewport_size.y, camera->fov);
         }
     }
 
@@ -499,21 +499,21 @@ namespace Engine
 
     void EditorClient::on_key_press(const Event& event)
     {
-        if (event.window_id() != _M_window->window_id())
+        if (event.window_id() != m_window->window_id())
             return;
 
         const KeyEvent& key_event = event.get<const KeyEvent&>();
-        move_camera(_M_camera_move, key_event, 1.f);
+        move_camera(m_camera_move, key_event, 1.f);
     }
 
 
     void EditorClient::on_key_release(const Event& event)
     {
-        if (event.window_id() != _M_window->window_id())
+        if (event.window_id() != m_window->window_id())
             return;
 
         const KeyEvent& key_event = event.get<const KeyEvent&>();
-        move_camera(_M_camera_move, key_event, -1.f);
+        move_camera(m_camera_move, key_event, -1.f);
 
         if (static_cast<Identifier>(key_event.key) >= static_cast<Identifier>(Keyboard::Key::Num0) &&
             static_cast<Identifier>(key_event.key) <= static_cast<Identifier>(Keyboard::Key::Num9))
@@ -522,7 +522,7 @@ namespace Engine
             Index new_index = static_cast<Identifier>(key_event.key) - static_cast<Identifier>(Keyboard::Key::Num0);
             if (new_index <= 6)
             {
-                _M_target_view_index = new_index;
+                m_target_view_index = new_index;
             }
         }
     }

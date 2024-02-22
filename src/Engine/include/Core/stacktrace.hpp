@@ -15,7 +15,7 @@ namespace Engine
         };
 
     private:
-        Vector<FunctionInfo> _M_callstack;
+        Vector<FunctionInfo> m_callstack;
 
     public:
         StackTrace(uint_t skip = 1);

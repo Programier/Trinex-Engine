@@ -47,16 +47,16 @@ namespace Engine
     };
 
     struct VulkanAPI : public RHI {
-        static VulkanAPI* _M_vulkan;
+        static VulkanAPI* m_vulkan;
 
-        Vector<VulkanExtention> _M_device_extensions;
-        Vector<vk::DynamicState> _M_dynamic_states;
-        Vector<VulkanUniformBuffer*> _M_uniform_buffer;
-        List<Garbage> _M_garbage;
+        Vector<VulkanExtention> m_device_extensions;
+        Vector<vk::DynamicState> m_dynamic_states;
+        Vector<VulkanUniformBuffer*> m_uniform_buffer;
+        List<Garbage> m_garbage;
 
 
-        WindowInterface* _M_window = nullptr;
-        String _M_renderer         = "";
+        WindowInterface* m_window = nullptr;
+        String m_renderer         = "";
 
         struct {
             PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -65,29 +65,29 @@ namespace Engine
 
 
         // API DATA
-        struct VulkanState* _M_state = nullptr;
-        vkb::Instance _M_instance;
-        vk::SurfaceKHR _M_surface;
-        vk::PhysicalDevice _M_physical_device;
-        vk::Device _M_device;
-        vkb::Device _M_bootstrap_device;
-        QueueFamilyIndices _M_graphics_and_present_index;
-        vk::Queue _M_graphics_queue;
-        vk::Queue _M_present_queue;
+        struct VulkanState* m_state = nullptr;
+        vkb::Instance m_instance;
+        vk::SurfaceKHR m_surface;
+        vk::PhysicalDevice m_physical_device;
+        vk::Device m_device;
+        vkb::Device m_bootstrap_device;
+        QueueFamilyIndices m_graphics_and_present_index;
+        vk::Queue m_graphics_queue;
+        vk::Queue m_present_queue;
 
-        vk::PhysicalDeviceProperties _M_properties;
-        vk::PhysicalDeviceFeatures _M_features;
-        vk::SurfaceCapabilitiesKHR _M_surface_capabilities;
+        vk::PhysicalDeviceProperties m_properties;
+        vk::PhysicalDeviceFeatures m_features;
+        vk::SurfaceCapabilitiesKHR m_surface_capabilities;
 
 
-        vk::DescriptorPool _M_imgui_descriptor_pool;
-        struct VulkanRenderPass* _M_main_render_pass = nullptr;
+        vk::DescriptorPool m_imgui_descriptor_pool;
+        struct VulkanRenderPass* m_main_render_pass = nullptr;
 
-        vk::CommandPool _M_command_pool;
-        uint32_t _M_framebuffers_count = 0;
+        vk::CommandPool m_command_pool;
+        uint32_t m_framebuffers_count = 0;
 
-        size_t _M_current_frame  = 0;
-        size_t _M_current_buffer = 0;
+        size_t m_current_frame  = 0;
+        size_t m_current_buffer = 0;
 
         //////////////////////////////////////////////////////////////
 

@@ -12,8 +12,8 @@ namespace Engine::Strings
 
     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>& convertor()
     {
-        static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> _M_convertor;
-        return _M_convertor;
+        static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> m_convertor;
+        return m_convertor;
     }
 
     ENGINE_EXPORT std::wstring to_wstring(const String& str)

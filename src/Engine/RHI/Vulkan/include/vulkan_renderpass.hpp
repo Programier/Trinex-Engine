@@ -6,14 +6,14 @@
 namespace Engine
 {
     struct VulkanRenderPass : public RHI_RenderPass {
-        vk::RenderPass _M_render_pass;
-        vk::SubpassDescription _M_subpass;
-        vk::SubpassDependency _M_dependency;
+        vk::RenderPass m_render_pass;
+        vk::SubpassDescription m_subpass;
+        vk::SubpassDependency m_dependency;
 
-        Vector<vk::AttachmentDescription> _M_attachment_descriptions;
-        Vector<vk::AttachmentReference> _M_color_attachment_references;
-        vk::AttachmentReference _M_depth_attachment_renference;
-        bool _M_has_depth_attachment = false;
+        Vector<vk::AttachmentDescription> m_attachment_descriptions;
+        Vector<vk::AttachmentReference> m_color_attachment_references;
+        vk::AttachmentReference m_depth_attachment_renference;
+        bool m_has_depth_attachment = false;
 
 
         VulkanRenderPass& init(const RenderPass* render_pass);

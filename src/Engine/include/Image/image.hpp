@@ -17,8 +17,8 @@ namespace Engine
 
     class ENGINE_EXPORT Image : public SerializableObject
     {
-        Buffer _M_data;
-        int_t _M_height = 0, _M_width = 0, _M_channels = 0;
+        Buffer m_data;
+        int_t m_height = 0, m_width = 0, m_channels = 0;
 
         bool write_png(const Path& filename);
         bool write_jpg(const Path& filename);

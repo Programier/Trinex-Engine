@@ -99,9 +99,9 @@ namespace Engine
     class ENGINE_EXPORT Event
     {
     private:
-        Any _M_any;
-        Identifier _M_window_id;
-        EventType _M_type;
+        Any m_any;
+        Identifier m_window_id;
+        EventType m_type;
 
 
     public:
@@ -113,7 +113,7 @@ namespace Engine
         template<typename T>
         Event(Identifier window_id, EventType type, T&& value) : Event(window_id, type)
         {
-            _M_any = std::forward<T>(value);
+            m_any = std::forward<T>(value);
         }
 
         EventType type() const;
@@ -123,13 +123,13 @@ namespace Engine
         template<typename Type>
         Type get()
         {
-            return _M_any.cast<Type>();
+            return m_any.cast<Type>();
         }
 
         template<typename Type>
         const Type get() const
         {
-            return _M_any.cast<const Type>();
+            return m_any.cast<const Type>();
         }
     };
 }// namespace Engine

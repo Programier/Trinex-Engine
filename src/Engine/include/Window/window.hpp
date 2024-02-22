@@ -21,13 +21,13 @@ namespace Engine
         using DestroyCallback = CallBack<void()>;
 
     private:
-        WindowInterface* _M_interface            = nullptr;
-        class RenderViewport* _M_render_viewport = nullptr;
-        Size2D _M_cached_size;
-        Window* _M_parent_window = nullptr;
-        Vector<Window*> _M_childs;
-        ImGuiRenderer::Window* _M_imgui_window = nullptr;
-        CallBacks<void()> _M_destroy_callback;
+        WindowInterface* m_interface            = nullptr;
+        class RenderViewport* m_render_viewport = nullptr;
+        Size2D m_cached_size;
+        Window* m_parent_window = nullptr;
+        Vector<Window*> m_childs;
+        ImGuiRenderer::Window* m_imgui_window = nullptr;
+        CallBacks<void()> m_destroy_callback;
 
     public:
         Size1D width();

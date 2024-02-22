@@ -13,37 +13,37 @@ namespace Engine
 {
     bool Image::empty() const
     {
-        return _M_data.empty() || _M_channels == 0 || _M_width == 0 || _M_height == 0;
+        return m_data.empty() || m_channels == 0 || m_width == 0 || m_height == 0;
     }
 
     byte* Image::data()
     {
-        return _M_data.data();
+        return m_data.data();
     }
 
     const byte* Image::data() const
     {
-        return _M_data.data();
+        return m_data.data();
     }
 
     Buffer& Image::buffer()
     {
-        return _M_data;
+        return m_data;
     }
 
     const Buffer& Image::buffer() const
     {
-        return _M_data;
+        return m_data;
     }
 
     Size1D Image::width() const
     {
-        return static_cast<Size1D>(_M_width);
+        return static_cast<Size1D>(m_width);
     }
 
     Size1D Image::height() const
     {
-        return static_cast<Size1D>(_M_height);
+        return static_cast<Size1D>(m_height);
     }
 
     Size2D Image::size() const
@@ -54,14 +54,14 @@ namespace Engine
 
     uint_t Image::channels() const
     {
-        return _M_channels;
+        return m_channels;
     }
 
 
     Image& Image::load(const Path& image, const bool& invert_horizontal)
     {
-        _M_data.clear();
-        _M_data.shrink_to_fit();
+        m_data.clear();
+        m_data.shrink_to_fit();
 
         Buffer buffer = FileReader(image).read_buffer();
         return load_from_memory(buffer);
@@ -69,12 +69,12 @@ namespace Engine
 
     Image& Image::load_from_memory(const byte* buffer, size_t size)
     {
-        _M_data.clear();
-        _M_data.shrink_to_fit();
+        m_data.clear();
+        m_data.shrink_to_fit();
 
-        stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &_M_width, &_M_height, &_M_channels, 0);
-        _M_data.resize(_M_width * _M_height * _M_channels);
-        std::copy(image_data, image_data + _M_data.size(), _M_data.data());
+        stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &m_width, &m_height, &m_channels, 0);
+        m_data.resize(m_width * m_height * m_channels);
+        std::copy(image_data, image_data + m_data.size(), m_data.data());
         stbi_image_free(image_data);
 
         return *this;
@@ -111,60 +111,60 @@ namespace Engine
     {
         if (this == &img)
             return *this;
-        _M_data     = img._M_data;
-        _M_width    = img._M_width;
-        _M_height   = img._M_height;
-        _M_channels = img._M_channels;
+        m_data     = img.m_data;
+        m_width    = img.m_width;
+        m_height   = img.m_height;
+        m_channels = img.m_channels;
         return *this;
     }
 
     Image& Image::remove_alpha_channel()
     {
-        if (_M_channels == 3)
+        if (m_channels == 3)
             return *this;
-        if (_M_channels != 4)
+        if (m_channels != 4)
         {
             info_log("Image", "Cannot remove alpha channel\n");
             return *this;
         }
 
         Vector<byte> tmp;
-        tmp.reserve(_M_height * _M_width * 3);
-        int_t len = _M_width * _M_height * _M_channels;
+        tmp.reserve(m_height * m_width * 3);
+        int_t len = m_width * m_height * m_channels;
 
         for (int_t i = 0; i < len; i++)
         {
             if (i % 4 != 3)
-                tmp.push_back(_M_data[i]);
+                tmp.push_back(m_data[i]);
         }
 
-        _M_data     = std::move(tmp);
-        _M_channels = 3;
+        m_data     = std::move(tmp);
+        m_channels = 3;
         return *this;
     }
 
     Image& Image::add_alpha_channel()
     {
 
-        if (_M_channels == 4)
+        if (m_channels == 4)
             return *this;
-        if (_M_channels != 3)
+        if (m_channels != 3)
         {
             info_log("Image", "Cannot add alpha channel\n");
             return *this;
         }
 
         Vector<byte> tmp;
-        tmp.reserve(_M_height * _M_width * 4);
-        int_t len = _M_width * _M_height * _M_channels;
+        tmp.reserve(m_height * m_width * 4);
+        int_t len = m_width * m_height * m_channels;
         for (int_t i = 0; i < len; i++)
         {
-            tmp.push_back(_M_data[i]);
+            tmp.push_back(m_data[i]);
             if (i % 3 == 2)
                 tmp.push_back(255);
         }
-        _M_data     = std::move(tmp);
-        _M_channels = 4;
+        m_data     = std::move(tmp);
+        m_channels = 4;
         return *this;
     }
 
@@ -183,12 +183,12 @@ namespace Engine
         if (this == &img)
             return *this;
 
-        _M_data     = std::move(img._M_data);
-        _M_channels = img._M_channels;
-        _M_width    = img._M_width;
-        _M_height   = img._M_height;
+        m_data     = std::move(img.m_data);
+        m_channels = img.m_channels;
+        m_width    = img.m_width;
+        m_height   = img.m_height;
 
-        img._M_channels = img._M_height = img._M_width = 0;
+        img.m_channels = img.m_height = img.m_width = 0;
         return *this;
     }
 
@@ -197,14 +197,14 @@ namespace Engine
         int new_width  = static_cast<int>(new_size.x);
         int new_height = static_cast<int>(new_size.y);
 
-        Vector<byte> resized_image(new_width * new_height * _M_channels, 0);
+        Vector<byte> resized_image(new_width * new_height * m_channels, 0);
 
-        auto status = stbir_resize_uint8(_M_data.data(), _M_width, _M_height, _M_width * _M_channels, resized_image.data(),
-                                         new_width, new_height, new_width * _M_channels, _M_channels);
+        auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(),
+                                         new_width, new_height, new_width * m_channels, m_channels);
 
-        _M_width  = new_width;
-        _M_height = new_height;
-        _M_data   = std::move(resized_image);
+        m_width  = new_width;
+        m_height = new_height;
+        m_data   = std::move(resized_image);
         return status;
     }
 
@@ -228,15 +228,15 @@ namespace Engine
     bool Image::write_png(const Path& filename)
     {
         make_writer();
-        return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, _M_width, _M_height, _M_channels,
-                                                        _M_data.data(), _M_width * _M_channels));
+        return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels,
+                                                        m_data.data(), m_width * m_channels));
     }
 
     bool Image::write_jpg(const Path& filename)
     {
         make_writer();
         return static_cast<bool>(
-                stbi_write_jpg_to_func(image_writer_func, &writer, _M_width, _M_height, _M_channels, _M_data.data(), 100));
+                stbi_write_jpg_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(), 100));
     }
 
     bool Image::write_bmp(const Path& filename)
@@ -262,49 +262,49 @@ namespace Engine
 
     Image& Image::create(const Size2D& size, uint_t channels, const Buffer& buffer)
     {
-        _M_channels = channels;
-        _M_width    = static_cast<int_t>(size.x);
-        _M_height   = static_cast<int_t>(size.y);
+        m_channels = channels;
+        m_width    = static_cast<int_t>(size.x);
+        m_height   = static_cast<int_t>(size.y);
 
-        _M_data.resize(_M_channels * _M_width * _M_height);
-        std::copy(buffer.begin(), buffer.end(), _M_data.begin());
+        m_data.resize(m_channels * m_width * m_height);
+        std::copy(buffer.begin(), buffer.end(), m_data.begin());
 
         return *this;
     }
 
     Image& Image::create(const Size2D& size, uint_t channels, const byte* buffer)
     {
-        _M_channels = channels;
-        _M_width    = static_cast<int_t>(size.x);
-        _M_height   = static_cast<int_t>(size.y);
+        m_channels = channels;
+        m_width    = static_cast<int_t>(size.x);
+        m_height   = static_cast<int_t>(size.y);
 
-        auto buffer_size = _M_width * _M_height * _M_channels;
-        _M_data.reserve(buffer_size);
+        auto buffer_size = m_width * m_height * m_channels;
+        m_data.reserve(buffer_size);
         if (buffer)
-            std::copy(buffer, buffer + buffer_size, _M_data.data());
+            std::copy(buffer, buffer + buffer_size, m_data.data());
         else
-            std::fill(_M_data.begin(), _M_data.end(), 0);
+            std::fill(m_data.begin(), m_data.end(), 0);
         return *this;
     }
 
     ColorFormat Image::format() const
     {
-        if (_M_channels == 1)
+        if (m_channels == 1)
         {
             return ColorFormat::R8Unorm;
         }
 
-        if (_M_channels == 2)
+        if (m_channels == 2)
         {
             return ColorFormat::R8G8Unorm;
         }
 
-        if (_M_channels == 3)
+        if (m_channels == 3)
         {
             return ColorFormat::R8G8B8Unorm;
         }
 
-        if (_M_channels == 4)
+        if (m_channels == 4)
         {
             return ColorFormat::R8G8B8A8Unorm;
         }
@@ -319,15 +319,15 @@ namespace Engine
             return false;
         }
 
-        //        if (archive.is_saving() && _M_data.empty())
+        //        if (archive.is_saving() && m_data.empty())
         //        {
         //            error_log("Image", "Failed to serialize image. Data is empty!");
         //            return false;
         //        }
 
-        archive & _M_width;
-        archive & _M_height;
-        archive & _M_channels;
+        archive & m_width;
+        archive & m_height;
+        archive & m_channels;
 
         if (!archive)
         {
@@ -337,12 +337,12 @@ namespace Engine
 
         if (archive.is_reading())
         {
-            _M_data.clear();
-            size_t size = static_cast<size_t>(_M_width) * static_cast<size_t>(_M_height) * static_cast<size_t>(_M_channels);
+            m_data.clear();
+            size_t size = static_cast<size_t>(m_width) * static_cast<size_t>(m_height) * static_cast<size_t>(m_channels);
 
-            _M_data.resize(size);
+            m_data.resize(size);
 
-            if (!archive.reader()->read(_M_data.data(), _M_data.size()))
+            if (!archive.reader()->read(m_data.data(), m_data.size()))
             {
                 error_log("Image", "Failed to serialize image data!");
                 return false;
@@ -350,7 +350,7 @@ namespace Engine
         }
         else
         {
-            if (!archive.writer()->write(_M_data.data(), _M_data.size()))
+            if (!archive.writer()->write(m_data.data(), m_data.size()))
             {
                 error_log("Image", "Failed to serialize image data!");
                 return false;

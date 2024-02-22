@@ -15,32 +15,32 @@ namespace Engine
         using CallbacksMap = TreeMap<Identifier, CallBack<Signature>>;
 
     private:
-        CallbacksMap _M_callbacks;
-        Identifier _M_id = 0;
+        CallbacksMap m_callbacks;
+        Identifier m_id = 0;
 
     public:
         Identifier push(const Function<Signature>& callback)
         {
-            _M_callbacks[_M_id] = callback;
-            return _M_id++;
+            m_callbacks[m_id] = callback;
+            return m_id++;
         }
 
         Identifier push(Function<Signature>&& callback)
         {
-            _M_callbacks[_M_id] = std::move(callback);
-            return _M_id++;
+            m_callbacks[m_id] = std::move(callback);
+            return m_id++;
         }
 
         CallBacks& remove(Identifier ID)
         {
-            _M_callbacks.erase(ID);
+            m_callbacks.erase(ID);
             return *this;
         }
 
         template<typename... Args>
         const CallBacks& trigger(Args&&... args) const
         {
-            for (auto& ell : _M_callbacks)
+            for (auto& ell : m_callbacks)
             {
                 ell.second(std::forward<Args>(args)...);
             }
@@ -49,12 +49,12 @@ namespace Engine
 
         const CallbacksMap& callbacks() const
         {
-            return _M_callbacks;
+            return m_callbacks;
         }
 
         bool empty() const
         {
-            return _M_callbacks.empty();
+            return m_callbacks.empty();
         }
 
         template<typename... Args>

@@ -11,7 +11,7 @@
 namespace Engine
 {
 
-    OpenGL* OpenGL::_M_instance = nullptr;
+    OpenGL* OpenGL::m_instance = nullptr;
 
     static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
                                const void* userParam)
@@ -24,9 +24,9 @@ namespace Engine
 
     OpenGL::OpenGL()
     {
-        _M_instance         = this;
-        _M_main_render_pass = new OpenGL_MainRenderPass();
-        _M_main_render_pass->_M_clear_color_attachmend_on_bind.push_back(true);
+        m_instance         = this;
+        m_main_render_pass = new OpenGL_MainRenderPass();
+        m_main_render_pass->m_clear_color_attachmend_on_bind.push_back(true);
     }
 
     OpenGL& OpenGL::initialize()
@@ -43,15 +43,15 @@ namespace Engine
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(debug_callback, nullptr);
 
-        _M_renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        m_renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
         return initialize_ubo();
     }
 
     OpenGL::~OpenGL()
     {
-        delete _M_global_ubo;
-        delete _M_local_ubo;
-        delete _M_main_render_pass;
+        delete m_global_ubo;
+        delete m_local_ubo;
+        delete m_main_render_pass;
     }
 
 
@@ -84,15 +84,15 @@ namespace Engine
 
     OpenGL& OpenGL::prepare_render()
     {
-        _M_global_ubo->bind({0, 0});
-        _M_local_ubo->bind();
+        m_global_ubo->bind({0, 0});
+        m_local_ubo->bind();
         return *this;
     }
 
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
     {
         prepare_render();
-        glDrawElements(_M_current_pipeline->_M_topology, indices_count, _M_current_index_buffer->_M_element_type,
+        glDrawElements(m_current_pipeline->m_topology, indices_count, m_current_index_buffer->m_element_type,
                        reinterpret_cast<void*>(indices_offset));
         reset_samplers();
         return *this;
@@ -101,7 +101,7 @@ namespace Engine
     OpenGL& OpenGL::draw(size_t vertex_count)
     {
         prepare_render();
-        glDrawArrays(_M_current_pipeline->_M_topology, 0, vertex_count);
+        glDrawArrays(m_current_pipeline->m_topology, 0, vertex_count);
         reset_samplers();
         return *this;
     }
@@ -115,15 +115,15 @@ namespace Engine
 
     OpenGL& OpenGL::reset_state()
     {
-        _M_current_render_target = nullptr;
-        _M_current_pipeline      = nullptr;
-        _M_current_index_buffer  = nullptr;
+        m_current_render_target = nullptr;
+        m_current_pipeline      = nullptr;
+        m_current_index_buffer  = nullptr;
         return *this;
     }
 
     OpenGL& OpenGL::begin_render()
     {
-        _M_global_parameters_stack.clear();
+        m_global_parameters_stack.clear();
         return *this;
     }
 
@@ -139,7 +139,7 @@ namespace Engine
 
     const String& OpenGL::renderer()
     {
-        return _M_renderer;
+        return m_renderer;
     }
 
     const String& OpenGL::name()
@@ -167,12 +167,12 @@ namespace Engine
 
     void OpenGL::reset_samplers()
     {
-        for (BindingIndex unit : _M_sampler_units)
+        for (BindingIndex unit : m_sampler_units)
         {
             glBindSampler(unit, 0);
         }
 
-        _M_sampler_units.clear();
+        m_sampler_units.clear();
     }
 
     size_t OpenGL::render_target_buffer_count()

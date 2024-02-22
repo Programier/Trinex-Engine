@@ -14,7 +14,7 @@
 #include <dlfcn.h>
 #endif
 
-static Engine::Map<Engine::String, void*> _M_libraries;
+static Engine::Map<Engine::String, void*> m_libraries;
 
 
 namespace Engine
@@ -108,7 +108,7 @@ namespace Engine
     {
         void* func = platform_load_func(handle, name.c_str());
         if (func == nullptr)
-            error_log("Library", "Failed to load function %s from lib %s\n", name.c_str(), _M_libname.c_str());
+            error_log("Library", "Failed to load function %s from lib %s\n", name.c_str(), m_libname.c_str());
         return func;
     }
 
@@ -144,7 +144,7 @@ namespace Engine
         {
             validate_path(path);
 
-            void*& lib = _M_libraries[path.str()];
+            void*& lib = m_libraries[path.str()];
             if (!lib)
             {
                 lib         = platform_load_library(path.str());
@@ -153,17 +153,17 @@ namespace Engine
 
             if (lib)
             {
-                _M_handle  = lib;
-                _M_libname = path.str();
+                m_handle  = lib;
+                m_libname = path.str();
                 break;
             }
             else
             {
-                _M_libraries.erase(path.str());
+                m_libraries.erase(path.str());
             }
         }
 
-        if (!_M_handle)
+        if (!m_handle)
         {
 #ifdef WIN32
             error_log("Library", "Failed to load %s\n", libname.c_str());
@@ -215,37 +215,37 @@ namespace Engine
 
     void Library::close()
     {
-        if (_M_handle)
+        if (m_handle)
         {
-            auto it = _M_libraries.find(_M_libname);
-            if (it == _M_libraries.end())
+            auto it = m_libraries.find(m_libname);
+            if (it == m_libraries.end())
             {
                 throw EngineException("Unexpected error!");
             }
 
-            if (it->second == _M_handle)
+            if (it->second == m_handle)
             {
-                info_log("Library", "Close library: '%s'", _M_libname.c_str());
-                close_lib_ptr(_M_handle);
+                info_log("Library", "Close library: '%s'", m_libname.c_str());
+                close_lib_ptr(m_handle);
             }
             else
             {
                 throw EngineException("Unexpected error!");
             }
 
-            _M_libraries.erase(_M_libname);
+            m_libraries.erase(m_libname);
         }
     }
 
 
     bool Library::has_lib() const
     {
-        return _M_handle != nullptr;
+        return m_handle != nullptr;
     }
 
     const String& Library::libname() const
     {
-        return _M_libname;
+        return m_libname;
     }
 
     ENGINE_EXPORT void close(const String& libname)
@@ -253,18 +253,18 @@ namespace Engine
 
     Library::operator bool() const
     {
-        return _M_handle != nullptr;
+        return m_handle != nullptr;
     }
 
     void* Library::resolve(const String& name)
     {
-        return load_function(_M_handle, name);
+        return load_function(m_handle, name);
     }
 
     void Library::close_all()
     {
         info_log("LibrariesController", "Closing all opened libs\n");
-        for (auto& ell : _M_libraries)
+        for (auto& ell : m_libraries)
         {
             info_log("LibrariesController", "Close library: '%s'", ell.first.c_str());
             close_lib_ptr(ell.second);

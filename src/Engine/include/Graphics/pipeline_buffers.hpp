@@ -133,13 +133,13 @@ namespace Engine
         using IntBuffer   = Vector<Engine::uint_t>;
 
     private:
-        IndexBufferComponent _M_component;
+        IndexBufferComponent m_component;
 
         union
         {
-            ByteBuffer* _M_byte_buffer = nullptr;
-            ShortBuffer* _M_short_buffer;
-            IntBuffer* _M_int_buffer;
+            ByteBuffer* m_byte_buffer = nullptr;
+            ShortBuffer* m_short_buffer;
+            IntBuffer* m_int_buffer;
         };
 
     public:

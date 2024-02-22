@@ -185,13 +185,13 @@ namespace Engine
 
     SDL2_WindowManagerInterface::~SDL2_WindowManagerInterface()
     {
-        for (auto& pair : _M_game_controllers)
+        for (auto& pair : m_game_controllers)
         {
             info_log("WindowSDL", "Force close controller with id %d", pair.first);
             SDL_GameControllerClose(pair.second);
         }
 
-        _M_game_controllers.clear();
+        m_game_controllers.clear();
 
         SDL_Quit();
     }
@@ -264,20 +264,20 @@ namespace Engine
 
     WindowManagerInterface& SDL2_WindowManagerInterface::add_event_callback(Identifier system_id, const EventCallback& callback)
     {
-        _M_event_callbacks[system_id].push_back(callback);
+        m_event_callbacks[system_id].push_back(callback);
         return *this;
     }
 
     WindowManagerInterface& SDL2_WindowManagerInterface::remove_all_callbacks(Identifier system_id)
     {
-        _M_event_callbacks.erase(system_id);
+        m_event_callbacks.erase(system_id);
         return *this;
     }
 
 
     SDL2_WindowManagerInterface& SDL2_WindowManagerInterface::pool_events_loop()
     {
-        while (SDL_PollEvent(&_M_event))
+        while (SDL_PollEvent(&m_event))
         {
             process_event();
         }
@@ -297,7 +297,7 @@ namespace Engine
     WindowManagerInterface& SDL2_WindowManagerInterface::wait_for_events()
     {
         ImGuiContext* ctx = ImGui::GetCurrentContext();
-        SDL_WaitEvent(&_M_event);
+        SDL_WaitEvent(&m_event);
         process_event();
         pool_events_loop();
         ImGui::SetCurrentContext(ctx);
@@ -305,12 +305,12 @@ namespace Engine
     }
 
 
-#define new_event(a, b) send_event(Event(_M_event.window.windowID, EventType::a, b))
-#define new_event_typed(a, b) send_event(Event(_M_event.window.windowID, a, b))
+#define new_event(a, b) send_event(Event(m_event.window.windowID, EventType::a, b))
+#define new_event_typed(a, b) send_event(Event(m_event.window.windowID, a, b))
 
     void SDL2_WindowManagerInterface::send_event(const Event& event)
     {
-        for (auto& system_callbacks : _M_event_callbacks)
+        for (auto& system_callbacks : m_event_callbacks)
         {
             for (auto& callback : system_callbacks.second)
             {
@@ -321,19 +321,19 @@ namespace Engine
 
     class RenderThreadImGuiEvent : public ExecutableObject
     {
-        SDL_Event _M_event;
-        ImGuiContext* _M_ctx;
+        SDL_Event m_event;
+        ImGuiContext* m_ctx;
 
     public:
-        RenderThreadImGuiEvent(const SDL_Event& event, ImGuiContext* ctx) : _M_event(event), _M_ctx(ctx)
+        RenderThreadImGuiEvent(const SDL_Event& event, ImGuiContext* ctx) : m_event(event), m_ctx(ctx)
         {}
 
         int_t execute() override
         {
             ImGuiContext* current_ctx = ImGui::GetCurrentContext();
-            ImGui::SetCurrentContext(_M_ctx);
+            ImGui::SetCurrentContext(m_ctx);
 
-            ImGui_ImplSDL2_ProcessEvent(&_M_event);
+            ImGui_ImplSDL2_ProcessEvent(&m_event);
             ImGui::SetCurrentContext(current_ctx);
 
             return sizeof(RenderThreadImGuiEvent);
@@ -343,7 +343,7 @@ namespace Engine
 
     void SDL2_WindowManagerInterface::process_imgui_event()
     {
-        Window* window = WindowManager::instance()->find(_M_event.window.windowID);
+        Window* window = WindowManager::instance()->find(m_event.window.windowID);
 
         if (!window)
         {
@@ -360,19 +360,19 @@ namespace Engine
         if (imgui_context == nullptr)
         {
             WindowSDL* sdl_window = reinterpret_cast<WindowSDL*>(window->interface());
-            imgui_context = reinterpret_cast<ImGuiContext*>(SDL_GetWindowData(sdl_window->_M_window, "trinex_imgui_context"));
+            imgui_context = reinterpret_cast<ImGuiContext*>(SDL_GetWindowData(sdl_window->m_window, "trinex_imgui_context"));
         }
 
         if (imgui_context)
         {
             ImGui::SetCurrentContext(imgui_context);
-            ImGui_ImplSDL2_ProcessEvent(&_M_event);
+            ImGui_ImplSDL2_ProcessEvent(&m_event);
         }
     }
 
     void SDL2_WindowManagerInterface::process_event()
     {
-        switch (_M_event.type)
+        switch (m_event.type)
         {
             case SDL_QUIT:
                 new_event(Quit, QuitEvent());
@@ -413,13 +413,13 @@ namespace Engine
 
             case SDL_WINDOWEVENT:
             {
-                auto it = window_event_types.find(_M_event.window.event);
+                auto it = window_event_types.find(m_event.window.event);
                 if (it != window_event_types.end())
                 {
                     WindowEvent engine_event;
 
-                    engine_event.x = _M_event.window.data1;
-                    engine_event.y = _M_event.window.data2;
+                    engine_event.x = m_event.window.data1;
+                    engine_event.y = m_event.window.data2;
 
                     new_event_typed(it->second, engine_event);
                 }
@@ -429,16 +429,16 @@ namespace Engine
             case SDL_KEYDOWN:
             {
                 KeyEvent key_event;
-                auto it = keys.find(_M_event.key.keysym.scancode);
+                auto it = keys.find(m_event.key.keysym.scancode);
                 if (it != keys.end())
                 {
                     key_event.key    = it->second;
-                    key_event.repeat = _M_event.key.repeat;
+                    key_event.repeat = m_event.key.repeat;
                     new_event(KeyDown, key_event);
                 }
                 else
                 {
-                    error_log("SDL Window System", "Cannot find scancode '%d'", _M_event.key.keysym.scancode);
+                    error_log("SDL Window System", "Cannot find scancode '%d'", m_event.key.keysym.scancode);
                 }
                 break;
             }
@@ -446,16 +446,16 @@ namespace Engine
             case SDL_KEYUP:
             {
                 KeyEvent key_event;
-                auto it = keys.find(_M_event.key.keysym.scancode);
+                auto it = keys.find(m_event.key.keysym.scancode);
                 if (it != keys.end())
                 {
                     key_event.key    = it->second;
-                    key_event.repeat = _M_event.key.repeat;
+                    key_event.repeat = m_event.key.repeat;
                     new_event(KeyUp, key_event);
                 }
                 else
                 {
-                    error_log("SDL Window System", "Cannot find scancode '%d'", _M_event.key.keysym.scancode);
+                    error_log("SDL Window System", "Cannot find scancode '%d'", m_event.key.keysym.scancode);
                 }
                 break;
             }
@@ -464,13 +464,13 @@ namespace Engine
             case SDL_MOUSEMOTION:
             {
                 int w, h;
-                SDL_GetWindowSize(SDL_GetWindowFromID(_M_event.window.windowID), &w, &h);
+                SDL_GetWindowSize(SDL_GetWindowFromID(m_event.window.windowID), &w, &h);
 
                 MouseMotionEvent mouse_motion;
-                mouse_motion.x    = _M_event.motion.x;
-                mouse_motion.y    = h - _M_event.motion.y;
-                mouse_motion.xrel = _M_event.motion.xrel;
-                mouse_motion.yrel = -_M_event.motion.yrel;
+                mouse_motion.x    = m_event.motion.x;
+                mouse_motion.y    = h - m_event.motion.y;
+                mouse_motion.xrel = m_event.motion.xrel;
+                mouse_motion.yrel = -m_event.motion.yrel;
 
                 new_event(MouseMotion, mouse_motion);
                 break;
@@ -486,28 +486,28 @@ namespace Engine
             case SDL_MOUSEWHEEL:
             {
                 MouseWheelEvent wheel_event;
-                wheel_event.x         = _M_event.wheel.preciseX;
-                wheel_event.y         = _M_event.wheel.preciseY;
-                wheel_event.direction = _M_event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? Mouse::Normal : Mouse::Flipped;
+                wheel_event.x         = m_event.wheel.preciseX;
+                wheel_event.y         = m_event.wheel.preciseY;
+                wheel_event.direction = m_event.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? Mouse::Normal : Mouse::Flipped;
                 new_event(MouseWheel, wheel_event);
                 break;
             }
 
             case SDL_CONTROLLERDEVICEADDED:
             {
-                _M_game_controllers[_M_event.cdevice.which] = SDL_GameControllerOpen(_M_event.cdevice.which);
+                m_game_controllers[m_event.cdevice.which] = SDL_GameControllerOpen(m_event.cdevice.which);
                 ControllerDeviceAddedEvent c_event;
-                c_event.id = static_cast<Identifier>(_M_event.cdevice.which) + 1;
+                c_event.id = static_cast<Identifier>(m_event.cdevice.which) + 1;
                 new_event(ControllerDeviceAdded, c_event);
                 break;
             }
 
             case SDL_CONTROLLERDEVICEREMOVED:
             {
-                SDL_GameControllerClose(_M_game_controllers[_M_event.cdevice.which]);
-                _M_game_controllers.erase(_M_event.cdevice.which);
+                SDL_GameControllerClose(m_game_controllers[m_event.cdevice.which]);
+                m_game_controllers.erase(m_event.cdevice.which);
                 ControllerDeviceAddedEvent c_event;
-                c_event.id = static_cast<Identifier>(_M_event.cdevice.which) + 1;
+                c_event.id = static_cast<Identifier>(m_event.cdevice.which) + 1;
                 new_event(ControllerDeviceRemoved, c_event);
                 break;
             }
@@ -515,17 +515,17 @@ namespace Engine
             case SDL_CONTROLLERAXISMOTION:
             {
                 ControllerAxisMotionEvent motion_event;
-                motion_event.id = static_cast<Identifier>(_M_event.caxis.which) + 1;
+                motion_event.id = static_cast<Identifier>(m_event.caxis.which) + 1;
                 try
                 {
-                    motion_event.axis = axis_type.at(_M_event.caxis.axis);
+                    motion_event.axis = axis_type.at(m_event.caxis.axis);
                 }
                 catch (...)
                 {
                     motion_event.axis = GameController::Axis::None;
                 }
 
-                motion_event.value = _M_event.caxis.value;
+                motion_event.value = m_event.caxis.value;
                 new_event(ControllerAxisMotion, motion_event);
                 break;
             }
@@ -590,17 +590,17 @@ namespace Engine
     void SDL2_WindowManagerInterface::process_mouse_button()
     {
         MouseButtonEvent button_event;
-        button_event.clicks = _M_event.button.clicks;
-        button_event.x      = _M_event.button.x;
-        button_event.y      = _M_event.button.y;
+        button_event.clicks = m_event.button.clicks;
+        button_event.x      = m_event.button.x;
+        button_event.y      = m_event.button.y;
 
-        auto it = mouse_buttons.find(_M_event.button.button);
+        auto it = mouse_buttons.find(m_event.button.button);
         if (it != mouse_buttons.end())
         {
             button_event.button = it->second;
         }
 
-        if (_M_event.type == SDL_MOUSEBUTTONDOWN)
+        if (m_event.type == SDL_MOUSEBUTTONDOWN)
         {
             new_event(MouseButtonDown, button_event);
         }

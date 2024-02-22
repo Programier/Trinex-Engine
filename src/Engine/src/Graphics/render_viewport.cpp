@@ -12,7 +12,7 @@ namespace Engine
     implement_engine_class_default_init(RenderViewport);
     implement_engine_class_default_init(ViewportClient);
 
-    static RenderViewport* _M_current_render_viewport = nullptr;
+    static RenderViewport* m_current_render_viewport = nullptr;
 
     ViewportClient& ViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
@@ -49,65 +49,65 @@ namespace Engine
         return nullptr;
     }
 
-    List<RenderViewport*> RenderViewport::_M_viewports;
+    List<RenderViewport*> RenderViewport::m_viewports;
 
     RenderViewport::RenderViewport()
     {
-        _M_viewports.push_back(this);
+        m_viewports.push_back(this);
     }
 
     RenderViewport::~RenderViewport()
     {
-        _M_viewports.remove(this);
+        m_viewports.remove(this);
     }
 
     RenderViewport& RenderViewport::rhi_create()
     {
         RHI* rhi = engine_instance->rhi();
-        if (_M_type == Type::Window)
+        if (m_type == Type::Window)
         {
-            _M_rhi_object.reset(rhi->create_viewport(_M_window->interface(), _M_vsync));
+            m_rhi_object.reset(rhi->create_viewport(m_window->interface(), m_vsync));
         }
         else
         {
-            _M_rhi_object.reset(rhi->create_viewport(_M_render_target));
+            m_rhi_object.reset(rhi->create_viewport(m_render_target));
         }
         return *this;
     }
 
     Window* RenderViewport::window() const
     {
-        return _M_type == Type::Window ? _M_window : nullptr;
+        return m_type == Type::Window ? m_window : nullptr;
     }
 
     RenderTarget* RenderViewport::render_target() const
     {
-        return _M_type == Type::RenderTarget ? _M_render_target : nullptr;
+        return m_type == Type::RenderTarget ? m_render_target : nullptr;
     }
 
     RenderTargetBase* RenderViewport::base_render_target() const
     {
-        return _M_render_target_base;
+        return m_render_target_base;
     }
 
     RenderViewport& RenderViewport::window(Window* window, bool vsync)
     {
-        _M_vsync  = vsync;
-        _M_type   = Type::Window;
-        _M_window = window;
+        m_vsync  = vsync;
+        m_type   = Type::Window;
+        m_window = window;
         return *this;
     }
 
     RenderViewport& RenderViewport::render_target(RenderTarget* rt)
     {
-        _M_type          = Type::RenderTarget;
-        _M_render_target = rt;
+        m_type          = Type::RenderTarget;
+        m_render_target = rt;
         return *this;
     }
 
     RenderViewport::Type RenderViewport::type() const
     {
-        return _M_type;
+        return m_type;
     }
 
     bool RenderViewport::vsync()
@@ -154,7 +154,7 @@ namespace Engine
 
     Size2D RenderViewport::size() const
     {
-        RenderTargetBase* rt = reinterpret_cast<RenderTargetBase*>(_M_handle);
+        RenderTargetBase* rt = reinterpret_cast<RenderTargetBase*>(m_handle);
         return rt->viewport().size;
     }
 
@@ -162,20 +162,20 @@ namespace Engine
     class StartRenderingViewport : public ExecutableObject
     {
     public:
-        ViewportClient* _M_client;
-        RenderViewport* _M_viewport;
-        RHI_Viewport* _M_rhi_viewport;
+        ViewportClient* m_client;
+        RenderViewport* m_viewport;
+        RHI_Viewport* m_rhi_viewport;
 
         StartRenderingViewport(ViewportClient* client, RenderViewport* viewport, RHI_Viewport* rhi_viewport)
-            : _M_client(client), _M_viewport(viewport), _M_rhi_viewport(rhi_viewport)
+            : m_client(client), m_viewport(viewport), m_rhi_viewport(rhi_viewport)
         {}
 
         int_t execute() override
         {
-            _M_rhi_viewport->begin_render();
-            if (_M_client)
-                _M_client->render(_M_viewport);
-            _M_rhi_viewport->end_render();
+            m_rhi_viewport->begin_render();
+            if (m_client)
+                m_client->render(m_viewport);
+            m_rhi_viewport->end_render();
 
             return sizeof(StartRenderingViewport);
         }
@@ -189,18 +189,18 @@ namespace Engine
             return *this;
 
         engine_instance->thread(ThreadType::RenderThread)
-                ->insert_new_task<StartRenderingViewport>(_M_client.ptr(), this, viewport);
+                ->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport);
         return *this;
     }
 
     ViewportClient* RenderViewport::client() const
     {
-        return _M_client.ptr();
+        return m_client.ptr();
     }
 
     RenderViewport& RenderViewport::client(ViewportClient* new_client)
     {
-        _M_client = new_client;
+        m_client = new_client;
         if (new_client)
         {
             new_client->on_bind_to_viewport(this);
@@ -210,20 +210,20 @@ namespace Engine
 
     RenderViewport& RenderViewport::update(float dt)
     {
-        if (_M_client)
+        if (m_client)
         {
-            _M_current_render_viewport = this;
-            _M_client->update(this, dt);
-            _M_current_render_viewport = nullptr;
+            m_current_render_viewport = this;
+            m_client->update(this, dt);
+            m_current_render_viewport = nullptr;
         }
         return *this;
     }
 
     RenderViewport& RenderViewport::rhi_bind()
     {
-        if (_M_handle)
+        if (m_handle)
         {
-            reinterpret_cast<RenderTargetBase*>(_M_handle)->rhi_bind();
+            reinterpret_cast<RenderTargetBase*>(m_handle)->rhi_bind();
         }
 
         return *this;
@@ -231,11 +231,11 @@ namespace Engine
 
     RenderViewport* RenderViewport::current()
     {
-        return _M_current_render_viewport;
+        return m_current_render_viewport;
     }
 
     const List<RenderViewport*>& RenderViewport::viewports()
     {
-        return _M_viewports;
+        return m_viewports;
     }
 }// namespace Engine

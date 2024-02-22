@@ -7,7 +7,7 @@ namespace Engine
     class ENGINE_EXPORT Script final
     {
     private:
-        Path _M_path;
+        Path m_path;
         Script(const Path& path);
         ~Script();
 

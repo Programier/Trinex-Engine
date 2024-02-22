@@ -12,8 +12,8 @@ namespace Engine
         class UpdateTask : public ExecutableObject
         {
         private:
-            System* _M_system;
-            float _M_dt;
+            System* m_system;
+            float m_dt;
 
         public:
             UpdateTask(System* system, float dt);
@@ -22,15 +22,15 @@ namespace Engine
 
 
     private:
-        bool _M_is_fully_created = false;
+        bool m_is_fully_created = false;
 
         static void on_create_fail();
         static void on_new_system(System* system);
         System* find_system_private_no_recurse(const char* name, size_t len) const;
 
     protected:
-        Vector<System*> _M_subsystems;
-        System* _M_parent_system;
+        Vector<System*> m_subsystems;
+        System* m_parent_system;
 
     public:
         System();

@@ -89,7 +89,7 @@ namespace Engine
     class BasicLogger : public Logger
     {
     private:
-        std::mutex _M_mutex;
+        std::mutex m_mutex;
 
         template<typename T, typename... Args>
         bool or_operator(T first, Args... args)
@@ -100,7 +100,7 @@ namespace Engine
         void write_message(PrioType prio_type, const char* tag, const char* format, va_list& args, FILE* out,
                            ConsoleColor color)
         {
-            _M_mutex.lock();
+            m_mutex.lock();
             static char buffer[512];
 #if PLATFORM_ANDROID
             sprintf(buffer, "%s[%s]", engine_instance->project_name().c_str(), tag);
@@ -123,7 +123,7 @@ namespace Engine
                 fprintf(out, "\n");
             }
 #endif
-            _M_mutex.unlock();
+            m_mutex.unlock();
         }
 
 

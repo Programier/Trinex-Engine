@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : _M_message(msg), _M_type(type)
+    ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : m_message(msg), m_type(type)
     {}
 
     bool ImGuiNotificationMessage::render(RenderViewport* viewport)
@@ -26,7 +26,7 @@ namespace Engine
         {
             ImVec4 text_color;
 
-            switch (_M_type)
+            switch (m_type)
             {
                 case Type::Info:
                     text_color = ImVec4(0.0f, 0.7f, 1.0f, 1.0f);
@@ -39,7 +39,7 @@ namespace Engine
                     break;
             }
 
-            ImGuiRenderer::TextWrappedColored(text_color, "%s", _M_message.c_str());
+            ImGuiRenderer::TextWrappedColored(text_color, "%s", m_message.c_str());
 
             static constexpr float button_width  = 80.0f;
             static constexpr float button_height = 25.0f;
@@ -63,7 +63,7 @@ namespace Engine
     }
 
     ImGuiCreateNewPackage::ImGuiCreateNewPackage(Package* parent, const CallBack<void(Package*)>& on_create)
-        : _M_parent(parent ? parent : Object::root_package()), _M_on_create(on_create)
+        : m_parent(parent ? parent : Object::root_package()), m_on_create(on_create)
     {}
 
     bool ImGuiCreateNewPackage::render(class RenderViewport* viewport)
@@ -74,16 +74,16 @@ namespace Engine
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
         ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
+        ImGui::Text("Parent: %s", m_parent->full_name().c_str());
 
         ImGuiRenderer::InputText("editor/Package Name"_localized, new_package_name);
         ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
-        if (!allow_rename && _M_parent->contains_object(new_package_name))
+        if (!allow_rename && m_parent->contains_object(new_package_name))
         {
             ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0),
                                               "Cannot create package! Object with name '%s' already exists in package '%s'",
-                                              new_package_name.c_str(), _M_parent->string_name().c_str());
+                                              new_package_name.c_str(), m_parent->string_name().c_str());
         }
         else if (new_package_name.find(Constants::name_separator) != String::npos)
         {
@@ -98,10 +98,10 @@ namespace Engine
             {
                 Package* new_package = Object::new_instance<Package>();
                 new_package->name(new_package_name);
-                _M_parent->add_object(new_package, allow_rename);
+                m_parent->add_object(new_package, allow_rename);
                 open = false;
 
-                _M_on_create(new_package);
+                m_on_create(new_package);
             }
         }
 
@@ -115,11 +115,11 @@ namespace Engine
     }
 
     ImGuiCreateNewAsset::ImGuiCreateNewAsset(class Package* pkg, const CallBacks<bool(class Class*)>& filters)
-        : _M_parent(pkg), filters(filters)
+        : m_parent(pkg), filters(filters)
     {
         if (filters.empty())
         {
-            _M_filtered_classes = Class::asset_classes();
+            m_filtered_classes = Class::asset_classes();
         }
         else
         {
@@ -129,7 +129,7 @@ namespace Engine
                 {
                     if (filter(class_instance))
                     {
-                        _M_filtered_classes.push_back(class_instance);
+                        m_filtered_classes.push_back(class_instance);
                         break;
                     }
                 }
@@ -150,19 +150,19 @@ namespace Engine
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
         ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("Parent: %s", _M_parent->full_name().c_str());
+        ImGui::Text("Parent: %s", m_parent->full_name().c_str());
 
-        ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &_M_filtered_classes,
-                     _M_filtered_classes.size());
+        ImGui::Combo("editor/Class"_localized, &current_index, get_asset_class_name_default, &m_filtered_classes,
+                     m_filtered_classes.size());
 
         ImGuiRenderer::InputText("editor/Asset Name"_localized, new_asset_name);
         ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
-        if (!allow_rename && _M_parent->contains_object(new_asset_name))
+        if (!allow_rename && m_parent->contains_object(new_asset_name))
         {
             ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0),
                                               "Cannot create new Asset! Object with name '%s' already exists in package '%s'",
-                                              new_asset_name.c_str(), _M_parent->string_name().c_str());
+                                              new_asset_name.c_str(), m_parent->string_name().c_str());
         }
         else if (new_asset_name.find(Constants::name_separator) != String::npos)
         {
@@ -175,10 +175,10 @@ namespace Engine
 
             if (ImGui::Button("editor/Create"_localized, ImVec2(100, 25)))
             {
-                Class* class_instance  = _M_filtered_classes[current_index];
+                Class* class_instance  = m_filtered_classes[current_index];
                 Object* created_object = class_instance->create_object();
                 created_object->name(new_asset_name);
-                _M_parent->add_object(created_object);
+                m_parent->add_object(created_object);
                 open = false;
             }
         }
@@ -192,7 +192,7 @@ namespace Engine
         return "editor/New Asset Title"_localized;
     }
 
-    ImGuiRenameObject::ImGuiRenameObject(Object* object) : _M_object(object)
+    ImGuiRenameObject::ImGuiRenameObject(Object* object) : m_object(object)
     {
         if (object)
             new_object_name = object->string_name();
@@ -200,7 +200,7 @@ namespace Engine
 
     bool ImGuiRenameObject::render(class RenderViewport* viewport)
     {
-        if (!_M_object)
+        if (!m_object)
             return false;
 
         bool open = true;
@@ -209,12 +209,12 @@ namespace Engine
         ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(viewport->size() / 2.0f) - ImVec2(200, 100), ImGuiCond_Once);
 
         ImGui::Begin(name(), closable ? &open : nullptr, ImGuiWindowFlags_NoCollapse);
-        ImGui::Text("Object: %s", _M_object->full_name().c_str());
+        ImGui::Text("Object: %s", m_object->full_name().c_str());
 
         ImGuiRenderer::InputText("editor/New Name"_localized, new_object_name);
         ImGui::Checkbox("editor/Allow rename"_localized, &allow_rename);
 
-        if (!_M_object->is_editable())
+        if (!m_object->is_editable())
         {
             ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot rename internal object!");
         }
@@ -229,7 +229,7 @@ namespace Engine
 
             if (ImGui::Button("editor/Rename"_localized))
             {
-                if (_M_object->name(new_object_name, allow_rename) == ObjectRenameStatus::Failed)
+                if (m_object->name(new_object_name, allow_rename) == ObjectRenameStatus::Failed)
                 {
                     ImGuiRenderer::Window::current()->window_list.create<ImGuiNotificationMessage>(
                             "Failed to rename object", ImGuiNotificationMessage::Error);
@@ -251,7 +251,7 @@ namespace Engine
 
     ImGuiOpenFile::ImGuiOpenFile(Package* pkg, const Function<void(Package*, const Path&)>& callback,
                                  const Vector<String>& type_filters)
-        : _M_package(pkg), _M_callback(callback)
+        : m_package(pkg), m_callback(callback)
     {
         auto* browser = new ImGui::FileBrowser();
         browser->SetTitle(name());
@@ -259,18 +259,18 @@ namespace Engine
             browser->SetTypeFilters(type_filters);
 
         browser->Open();
-        _M_browser = browser;
+        m_browser = browser;
     }
 
     bool ImGuiOpenFile::render(RenderViewport* viewport)
     {
-        ImGui::FileBrowser* browser = reinterpret_cast<ImGui::FileBrowser*>(_M_browser);
+        ImGui::FileBrowser* browser = reinterpret_cast<ImGui::FileBrowser*>(m_browser);
 
         browser->Display();
 
         if (browser->HasSelected())
         {
-            _M_callback(_M_package, Path(browser->GetSelected().string()));
+            m_callback(m_package, Path(browser->GetSelected().string()));
             return false;
         }
 
@@ -281,7 +281,7 @@ namespace Engine
 
     ImGuiOpenFile::~ImGuiOpenFile()
     {
-        delete reinterpret_cast<ImGui::FileBrowser*>(_M_browser);
+        delete reinterpret_cast<ImGui::FileBrowser*>(m_browser);
     }
 
 

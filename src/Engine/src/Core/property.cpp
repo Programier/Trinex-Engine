@@ -15,24 +15,24 @@ namespace Engine
 
     PropertyValue::PropertyValue() : Any()
     {
-        _M_type = PropertyType::Undefined;
+        m_type = PropertyType::Undefined;
     }
 
 
 #define declare_prop_constructor(type, enum_type)                                                                                \
     PropertyValue::PropertyValue(const type& value) : Any(value)                                                                 \
     {                                                                                                                            \
-        _M_type = PropertyType::enum_type;                                                                                       \
+        m_type = PropertyType::enum_type;                                                                                       \
     }                                                                                                                            \
     PropertyValue& PropertyValue::operator=(const type& value)                                                                   \
     {                                                                                                                            \
         static_cast<Any&>(*this) = value;                                                                                        \
-        _M_type                  = PropertyType::enum_type;                                                                      \
+        m_type                  = PropertyType::enum_type;                                                                      \
         return *this;                                                                                                            \
     }
 
 #define check_prop_type(type)                                                                                                    \
-    if (_M_type != PropertyType::type)                                                                                           \
+    if (m_type != PropertyType::type)                                                                                           \
         return {};
 
     PropertyValue::PropertyValue(const PropertyValue&)            = default;
@@ -60,7 +60,7 @@ namespace Engine
 
     PropertyType PropertyValue::type() const
     {
-        return _M_type;
+        return m_type;
     }
 
     byte PropertyValue::byte_v() const
@@ -196,27 +196,27 @@ namespace Engine
     }
 
     Property::Property(const Name& name, const String& description, const Name& group, BitMask flags)
-        : _M_name(name), _M_group(group), _M_description(description), _M_flags(flags)
+        : m_name(name), m_group(group), m_description(description), m_flags(flags)
     {}
 
     const Name& Property::name() const
     {
-        return _M_name;
+        return m_name;
     }
 
     const Name& Property::group() const
     {
-        return _M_group;
+        return m_group;
     }
 
     const String& Property::description() const
     {
-        return _M_description;
+        return m_description;
     }
 
     const Flags<Property::Flag>& Property::flags() const
     {
-        return _M_flags;
+        return m_flags;
     }
 
     Struct* Property::struct_instance()
@@ -231,12 +231,12 @@ namespace Engine
 
     bool Property::is_const() const
     {
-        return _M_flags.has_any(Flags<Flag>(IsConst) | Flags<Flag>(IsNativeConst));
+        return m_flags.has_any(Flags<Flag>(IsConst) | Flags<Flag>(IsNativeConst));
     }
 
     bool Property::is_private() const
     {
-        return _M_flags(IsPrivate);
+        return m_flags(IsPrivate);
     }
 
     static bool serialize_object_properies(Struct* self, void* object, Archive& ar)
@@ -310,7 +310,7 @@ namespace Engine
 
     bool Property::archive_process(void* object, Archive& ar)
     {
-        if (_M_flags(IsNativeConst))
+        if (m_flags(IsNativeConst))
             return false;
 
         PropertyType prop_type = type();

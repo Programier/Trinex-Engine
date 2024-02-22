@@ -13,11 +13,11 @@ namespace Engine
         declare_class(RenderTargetBase, RenderResource);
 
     protected:
-        static RenderTargetBase* _M_current;
+        static RenderTargetBase* m_current;
 
-        ViewPort _M_viewport;
-        Scissor _M_scissor;
-        byte _M_frame_index = -1;
+        ViewPort m_viewport;
+        Scissor m_scissor;
+        byte m_frame_index = -1;
 
     public:
         RenderPass* render_pass;

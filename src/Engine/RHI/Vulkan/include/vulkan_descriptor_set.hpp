@@ -16,17 +16,17 @@ namespace Engine
     struct VulkanDescriptorSet {
 
         struct CombinedImageSampler {
-            struct VulkanSampler* _M_sampler = nullptr;
-            struct VulkanTexture* _M_texture = nullptr;
+            struct VulkanSampler* m_sampler = nullptr;
+            struct VulkanTexture* m_texture = nullptr;
         };
 
-        vk::DescriptorSet _M_set;
+        vk::DescriptorSet m_set;
 
 
-        BindingVariable<VulkanSSBO*> _M_ssbo                            = {};
-        BindingVariable<VulkanSampler*> _M_sampler                      = {};
-        BindingVariable<VulkanTexture*> _M_texture                      = {};
-        BindingVariable<CombinedImageSampler> _M_combined_image_sampler = {};
+        BindingVariable<VulkanSSBO*> m_ssbo                            = {};
+        BindingVariable<VulkanSampler*> m_sampler                      = {};
+        BindingVariable<VulkanTexture*> m_texture                      = {};
+        BindingVariable<CombinedImageSampler> m_combined_image_sampler = {};
 
         VulkanDescriptorSet(vk::DescriptorPool& pool, vk::DescriptorSetLayout* layout);
         VulkanDescriptorSet& bind(vk::PipelineLayout& layout, BindingIndex set);

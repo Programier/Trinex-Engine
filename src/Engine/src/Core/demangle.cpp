@@ -15,8 +15,8 @@ namespace Engine::Demangle
         {
             return name;
         }
-        std::string _M_name = ptr;
+        std::string m_name = ptr;
         delete ptr;
-        return _M_name;
+        return m_name;
     }
 }// namespace Engine::Demangle

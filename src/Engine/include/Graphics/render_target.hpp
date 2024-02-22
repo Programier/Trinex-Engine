@@ -21,7 +21,7 @@ namespace Engine
         };
 
     protected:
-        Vector<Frame*> _M_frames;
+        Vector<Frame*> m_frames;
 
         RenderTarget& push_frame(Frame* frame);
         RenderTarget& clear_frames(bool with_delete = true);

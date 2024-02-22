@@ -35,14 +35,14 @@ namespace Engine
 
     private:
         struct MouseState {
-            PosInfo _M_pos_info;
-            WheelInfo _M_wheel_info;
-            ButtonInfo _M_button_status[static_cast<EnumerateType>(Mouse::Button::__COUNT__)];
+            PosInfo m_pos_info;
+            WheelInfo m_wheel_info;
+            ButtonInfo m_button_status[static_cast<EnumerateType>(Mouse::Button::__COUNT__)];
         };
 
-        mutable Map<Window*, MouseState> _M_mouse_state;
-        static MouseSystem* _M_instance;
-        Vector<EventSystemListenerID> _M_callbacks_identifier;
+        mutable Map<Window*, MouseState> m_mouse_state;
+        static MouseSystem* m_instance;
+        Vector<EventSystemListenerID> m_callbacks_identifier;
 
         void on_motion_event(const Event& e);
         void on_button_down_event(const Event& e);

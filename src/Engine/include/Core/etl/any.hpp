@@ -117,28 +117,28 @@ namespace Engine
         }
 
 
-        Storage _M_storage;
-        Manager* _M_manager = nullptr;
+        Storage m_storage;
+        Manager* m_manager = nullptr;
 
 
         template<typename Value, typename DecayValue>
         typename std::enable_if<is_stack_type<DecayValue>>::type initialize(Value&& value)
         {
-            new (&_M_storage.stack) DecayValue(std::forward<Value>(value));
+            new (&m_storage.stack) DecayValue(std::forward<Value>(value));
         }
 
 
         template<typename Value, typename DecayValue>
         typename std::enable_if<!is_stack_type<DecayValue>>::type initialize(Value&& value)
         {
-            _M_storage.dynamic = new DecayValue(std::forward<Value>(value));
+            m_storage.dynamic = new DecayValue(std::forward<Value>(value));
         }
 
         template<typename Value>
         void construct(Value&& value)
         {
             using DecayValue = typename std::decay<Value>::type;
-            _M_manager       = find_manager_of<DecayValue>();
+            m_manager       = find_manager_of<DecayValue>();
             initialize<Value, DecayValue>(std::forward<Value>(value));
         }
 
@@ -183,8 +183,8 @@ namespace Engine
             using DecayT = std::decay_t<T>;
             if (has_value())
             {
-                return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&_M_storage.stack)
-                                             : *reinterpret_cast<DecayT*>(_M_storage.dynamic);
+                return is_stack_type<DecayT> ? *reinterpret_cast<DecayT*>(&m_storage.stack)
+                                             : *reinterpret_cast<DecayT*>(m_storage.dynamic);
             }
             throw bad_any_cast();
         }
@@ -195,8 +195,8 @@ namespace Engine
             using DecayT = std::decay_t<T>;
             if (has_value())
             {
-                return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&_M_storage.stack)
-                                             : *reinterpret_cast<const DecayT*>(_M_storage.dynamic);
+                return is_stack_type<DecayT> ? *reinterpret_cast<const DecayT*>(&m_storage.stack)
+                                             : *reinterpret_cast<const DecayT*>(m_storage.dynamic);
             }
             throw bad_any_cast();
         }

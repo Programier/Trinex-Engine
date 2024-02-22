@@ -32,7 +32,7 @@
 
 #define property_hpp(class_name, type, name, _default)                                                                           \
 private:                                                                                                                         \
-    type _M_##name = _default;                                                                                                   \
+    type m_##name = _default;                                                                                                   \
                                                                                                                                  \
 public:                                                                                                                          \
     const type& name() const;                                                                                                    \
@@ -41,11 +41,11 @@ public:                                                                         
 #define property_cpp(_class, type, name)                                                                                         \
     const type& _class::name() const                                                                                             \
     {                                                                                                                            \
-        return _M_##name;                                                                                                        \
+        return m_##name;                                                                                                        \
     }                                                                                                                            \
                                                                                                                                  \
     _class& _class::name(const type& value)                                                                                      \
     {                                                                                                                            \
-        this->_M_##name = value;                                                                                                 \
+        this->m_##name = value;                                                                                                 \
         return *this;                                                                                                            \
     }

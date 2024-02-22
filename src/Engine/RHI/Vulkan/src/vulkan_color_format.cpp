@@ -394,7 +394,7 @@ namespace Engine
             for (size_t i = 0; i < size; ++i)
             {
                 auto v_format = parse_engine_format(formats[i]);
-                auto props    = API->_M_physical_device.getFormatProperties(v_format);
+                auto props    = API->m_physical_device.getFormatProperties(v_format);
                 if ((props.optimalTilingFeatures & flags))
                 {
                     return formats[i];

@@ -17,7 +17,7 @@ namespace Engine
         }
         else
         {
-            _M_last_pressed_keys.push_back(key_event.key);
+            m_last_pressed_keys.push_back(key_event.key);
             set(key_event.key, Keyboard::JustPressed);
         }
     }
@@ -26,13 +26,13 @@ namespace Engine
     {
         const KeyEvent& key_event = event.get<const KeyEvent&>();
 
-        _M_last_released_keys.push_back(key_event.key);
+        m_last_released_keys.push_back(key_event.key);
         set(key_event.key, Keyboard::JustReleased);
     }
 
     KeyboardSystem& KeyboardSystem::set(Keyboard::Key key, Keyboard::Status status)
     {
-        _M_key_status[static_cast<EnumerateType>(key)] = status;
+        m_key_status[static_cast<EnumerateType>(key)] = status;
         return *this;
     }
 
@@ -40,14 +40,14 @@ namespace Engine
     {
         Super::create();
 
-        std::fill(_M_key_status, _M_key_status + Keyboard::__COUNT__, Keyboard::Released);
+        std::fill(m_key_status, m_key_status + Keyboard::__COUNT__, Keyboard::Released);
         EventSystem* event_system = System::new_system<EventSystem>();
         event_system->register_subsystem(this);
 
-        _M_key_press_id = event_system->add_listener(EventType::KeyDown,
+        m_key_press_id = event_system->add_listener(EventType::KeyDown,
                                                      std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
 
-        _M_key_release_id = event_system->add_listener(EventType::KeyUp,
+        m_key_release_id = event_system->add_listener(EventType::KeyUp,
                                                        std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
         return *this;
     }
@@ -63,7 +63,7 @@ namespace Engine
     {
         for (Keyboard::Key key : vector)
         {
-            _M_key_status[static_cast<EnumerateType>(key)] = status;
+            m_key_status[static_cast<EnumerateType>(key)] = status;
         }
 
         if (!vector.empty())
@@ -75,8 +75,8 @@ namespace Engine
     KeyboardSystem& KeyboardSystem::update(float dt)
     {
         Super::update(dt);
-        process_last_keys(_M_last_pressed_keys, Keyboard::Pressed);
-        process_last_keys(_M_last_released_keys, Keyboard::Released);
+        process_last_keys(m_last_pressed_keys, Keyboard::Pressed);
+        process_last_keys(m_last_released_keys, Keyboard::Released);
         return *this;
     }
 
@@ -85,15 +85,15 @@ namespace Engine
         Super::shutdown();
 
         EventSystem* event_system = EventSystem::instance();
-        event_system->remove_listener(_M_key_release_id);
-        event_system->remove_listener(_M_key_press_id);
+        event_system->remove_listener(m_key_release_id);
+        event_system->remove_listener(m_key_press_id);
 
         return *this;
     }
 
     Keyboard::Status KeyboardSystem::status_of(Keyboard::Key key) const
     {
-        return _M_key_status[static_cast<EnumerateType>(key)];
+        return m_key_status[static_cast<EnumerateType>(key)];
     }
 
     bool KeyboardSystem::is_pressed(Keyboard::Key key) const

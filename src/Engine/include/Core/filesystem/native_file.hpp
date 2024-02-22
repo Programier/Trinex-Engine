@@ -8,10 +8,10 @@ namespace Engine::VFS
     class ENGINE_EXPORT NativeFile final : public File
     {
     private:
-        Path _M_path;
-        Path _M_native_path;
-        std::fstream _M_stream;
-        bool _M_is_read_only;
+        Path m_path;
+        Path m_native_path;
+        std::fstream m_stream;
+        bool m_is_read_only;
 
         NativeFile(const Path& path, const Path& native_path, std::fstream&& stream, bool is_read_only);
 

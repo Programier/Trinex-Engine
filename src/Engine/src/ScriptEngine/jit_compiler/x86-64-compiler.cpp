@@ -287,7 +287,7 @@ namespace JIT
         }
     }
 
-    X86_64_Compiler::X86_64_Compiler(bool with_suspend) : _M_with_suspend(with_suspend)
+    X86_64_Compiler::X86_64_Compiler(bool with_suspend) : m_with_suspend(with_suspend)
     {
 #define register_code(name)                                                                                                      \
     exec[static_cast<size_t>(name)]       = &X86_64_Compiler::exec_##name;                                                       \
@@ -511,7 +511,7 @@ namespace JIT
         info.end = info.begin + info.byte_codes;
 
         CodeHolder code;
-        code.init(_M_rt.environment(), _M_rt.cpuFeatures());
+        code.init(m_rt.environment(), m_rt.cpuFeatures());
         new (&info.assembler) Assembler(&code);
 
         init(&info);
@@ -526,7 +526,7 @@ namespace JIT
 
 
         unsigned int index              = 0;
-        std::set<unsigned int>& skip_it = _M_skip_instructions[function->GetName()];
+        std::set<unsigned int>& skip_it = m_skip_instructions[function->GetName()];
 
         while (info.address < info.end)
         {
@@ -548,7 +548,7 @@ namespace JIT
         info.assembler.embedConstPool(const_pool_label, const_pool);
 
         info.assembler.finalize();
-        _M_rt.add(output, &code);
+        m_rt.add(output, &code);
 
         logf("End of compile function '%s'\n=================================================================\n\n",
              function->GetName());
@@ -557,12 +557,12 @@ namespace JIT
 
     void X86_64_Compiler::ReleaseJITFunction(asJITFunction func)
     {
-        _M_rt.release(func);
+        m_rt.release(func);
     }
 
     void X86_64_Compiler::push_instruction_index_for_skip(const std::string& name, unsigned int index)
     {
-        _M_skip_instructions[name].insert(index);
+        m_skip_instructions[name].insert(index);
     }
 
     asUINT X86_64_Compiler::process_instruction(CompileInfo* info)
@@ -1412,7 +1412,7 @@ namespace JIT
 
     void X86_64_Compiler::exec_asBC_SUSPEND(CompileInfo* info)
     {
-        if (_M_with_suspend)
+        if (m_with_suspend)
         {
             RETURN_CONTROL_TO_VM();
         }

@@ -5,10 +5,10 @@
 namespace Engine
 {
 
-    EventSystemListenerID::EventSystemListenerID() : _M_type(EventType::Undefined), _M_id(0)
+    EventSystemListenerID::EventSystemListenerID() : m_type(EventType::Undefined), m_id(0)
     {}
 
-    EventSystemListenerID::EventSystemListenerID(EventType type, Identifier id) : _M_type(type), _M_id(id)
+    EventSystemListenerID::EventSystemListenerID(EventType type, Identifier id) : m_type(type), m_id(id)
     {}
 
     default_copy_constructors_cpp(EventSystemListenerID);

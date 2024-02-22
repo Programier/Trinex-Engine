@@ -28,8 +28,8 @@ namespace Engine::JSON
     class ENGINE_EXPORT Value
     {
     private:
-        ValueType _M_type;
-        Any _M_value;
+        ValueType m_type;
+        Any m_value;
 
     public:
         Value();
@@ -63,13 +63,13 @@ namespace Engine::JSON
         template<typename T>
         T get()
         {
-            return _M_value.cast<T>();
+            return m_value.cast<T>();
         }
 
         template<typename T>
         const T get() const
         {
-            return _M_value.cast<const T>();
+            return m_value.cast<const T>();
         }
 
         template<typename T>
@@ -77,7 +77,7 @@ namespace Engine::JSON
         {
             try
             {
-                return _M_value.cast<const T>();
+                return m_value.cast<const T>();
             }
             catch (...)
             {

@@ -42,20 +42,20 @@ namespace Engine
 
         Vector<Name::Entry>& name_table = name_entries();
 
-        out_name._M_index = name_table.size();
+        out_name.m_index = name_table.size();
 
-        for (Index index = 0; index < out_name._M_index; ++index)
+        for (Index index = 0; index < out_name.m_index; ++index)
         {
             const Name::Entry& entry = name_table[index];
 
             if (entry.hash == hash)
             {
-                out_name._M_index = index;
+                out_name.m_index = index;
                 return out_name;
             }
         }
 
-        out_name._M_index = Constants::index_none;
+        out_name.m_index = Constants::index_none;
         return out_name;
     }
 
@@ -64,7 +64,7 @@ namespace Engine
     {
         if (view.empty())
         {
-            _M_index = Constants::index_none;
+            m_index = Constants::index_none;
             return *this;
         }
 
@@ -72,7 +72,7 @@ namespace Engine
         Vector<Name::Entry>& name_table     = name_entries();
         MultiMap<HashIndex, Index>& indices = name_index_map();
 
-        _M_index = name_table.size();
+        m_index = name_table.size();
 
         auto range = indices.equal_range(hash);
 
@@ -82,7 +82,7 @@ namespace Engine
 
             if (name_table[index].name == view)
             {
-                _M_index = index;
+                m_index = index;
                 return *this;
             }
 
@@ -93,7 +93,7 @@ namespace Engine
         return *this;
     }
 
-    Name::Name() : _M_index(Constants::index_none)
+    Name::Name() : m_index(Constants::index_none)
     {}
 
     Name::Name(const char* name) : Name(StringView(name))
@@ -133,12 +133,12 @@ namespace Engine
 
     bool Name::is_valid() const
     {
-        return _M_index != Constants::index_none;
+        return m_index != Constants::index_none;
     }
 
     HashIndex Name::hash() const
     {
-        return is_valid() ? name_entries()[_M_index].hash : Constants::invalid_hash;
+        return is_valid() ? name_entries()[m_index].hash : Constants::invalid_hash;
     }
 
     bool Name::operator==(const StringView& name) const
@@ -190,7 +190,7 @@ namespace Engine
     {
         if (is_valid())
         {
-            const String& str = name_entries()[_M_index].name;
+            const String& str = name_entries()[m_index].name;
             return str == name;
         }
 
@@ -207,7 +207,7 @@ namespace Engine
     {
         if (is_valid())
         {
-            out += name_entries()[_M_index].name;
+            out += name_entries()[m_index].name;
         }
 
         return *this;
@@ -217,7 +217,7 @@ namespace Engine
     {
         if (is_valid())
         {
-            return name_entries()[_M_index].name;
+            return name_entries()[m_index].name;
         }
 
         return default_string();

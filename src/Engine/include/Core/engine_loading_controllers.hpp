@@ -10,8 +10,8 @@ namespace Engine
     class ENGINE_EXPORT ControllerBase
     {
     private:
-        void* _M_func_address = nullptr;
-        const char* _M_name   = nullptr;
+        void* m_func_address = nullptr;
+        const char* m_name   = nullptr;
 
     protected:
         ControllerBase(void* function_address, const char* name);

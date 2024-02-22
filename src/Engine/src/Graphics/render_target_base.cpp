@@ -11,22 +11,22 @@ namespace Engine
     implement_class(RenderTargetBase, Engine, 0);
     implement_default_initialize_class(RenderTargetBase);
 
-    RenderTargetBase* RenderTargetBase::_M_current = nullptr;
+    RenderTargetBase* RenderTargetBase::m_current = nullptr;
 
     RenderTargetBase::RenderTargetBase()
     {}
 
     RenderTargetBase& RenderTargetBase::rhi_bind(RenderPass* new_render_pass)
     {
-        if (_M_rhi_object != nullptr)
+        if (m_rhi_object != nullptr)
         {
             if (!new_render_pass)
             {
                 new_render_pass = render_pass;
             }
 
-            _M_frame_index = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
-            _M_current     = this;
+            m_frame_index = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
+            m_current     = this;
         }
 
         return *this;
@@ -34,10 +34,10 @@ namespace Engine
 
     const RenderTargetBase& RenderTargetBase::viewport(const ViewPort& viewport)
     {
-        if (&_M_viewport != &viewport)
-            _M_viewport = viewport;
+        if (&m_viewport != &viewport)
+            m_viewport = viewport;
 
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
             call_in_render_thread([rt, viewport]() { rt->viewport(viewport); });
@@ -47,7 +47,7 @@ namespace Engine
 
     const RenderTargetBase& RenderTargetBase::clear_color(const ColorClearValue& color, byte layout) const
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
             call_in_render_thread([rt, color, layout]() { rt->clear_color(color, layout); });
@@ -57,20 +57,20 @@ namespace Engine
 
     const RenderTargetBase& RenderTargetBase::scissor(const Scissor& scissor)
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
             call_in_render_thread([rt, scissor]() { rt->scissor(scissor); });
         }
 
-        if (&scissor != &_M_scissor)
-            _M_scissor = scissor;
+        if (&scissor != &m_scissor)
+            m_scissor = scissor;
         return *this;
     }
 
     const RenderTargetBase& RenderTargetBase::clear_depth_stencil(const DepthStencilClearValue& value) const
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
             call_in_render_thread([rt, value]() { rt->clear_depth_stencil(value); });
@@ -85,12 +85,12 @@ namespace Engine
 
     RenderTargetBase* RenderTargetBase::current_target()
     {
-        return _M_current;
+        return m_current;
     }
 
     void RenderTargetBase::reset_current_target()
     {
-        _M_current = nullptr;
+        m_current = nullptr;
     }
 
     RenderTargetBase::~RenderTargetBase()
@@ -98,17 +98,17 @@ namespace Engine
 
     const ViewPort& RenderTargetBase::viewport()
     {
-        return _M_viewport;
+        return m_viewport;
     }
 
     const Scissor& RenderTargetBase::scissor()
     {
-        return _M_scissor;
+        return m_scissor;
     }
 
     byte RenderTargetBase::frame_index() const
     {
         trinex_always_check(is_in_render_thread(), "Frame index must call only in render thread!");
-        return _M_frame_index;
+        return m_frame_index;
     }
 }// namespace Engine

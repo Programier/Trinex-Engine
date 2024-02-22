@@ -758,11 +758,11 @@ namespace Engine
         outputs.clear();
 
         Index index = 0;
-        for (MaterialNode* node : material->_M_nodes)
+        for (MaterialNode* node : material->m_nodes)
         {
             if (node == this)
             {
-                material->_M_nodes.erase(material->_M_nodes.begin() + index);
+                material->m_nodes.erase(material->m_nodes.begin() + index);
                 break;
             }
             ++index;
@@ -776,17 +776,17 @@ namespace Engine
 
     MaterialNode* VisualMaterial::vertex_node() const
     {
-        return _M_vertex_node;
+        return m_vertex_node;
     }
 
     MaterialNode* VisualMaterial::fragment_node() const
     {
-        return _M_fragment_node;
+        return m_fragment_node;
     }
 
     const Vector<MaterialNode*>& VisualMaterial::nodes() const
     {
-        return _M_nodes;
+        return m_nodes;
     }
 
     Index VisualMaterial::node_index(const MaterialNode* node) const
@@ -794,7 +794,7 @@ namespace Engine
         if (node)
         {
             Index index = 0;
-            for (MaterialNode* material_node : _M_nodes)
+            for (MaterialNode* material_node : m_nodes)
             {
                 if (material_node == node)
                 {
@@ -814,7 +814,7 @@ namespace Engine
         if (node == nullptr)
             return nullptr;
 
-        _M_nodes.push_back(node);
+        m_nodes.push_back(node);
         node->material = this;
         node->position = position;
         return node;
@@ -822,15 +822,15 @@ namespace Engine
 
     VisualMaterial::VisualMaterial()
     {
-        _M_vertex_node           = new MaterialNodes::VertexNode();
-        _M_vertex_node->material = this;
+        m_vertex_node           = new MaterialNodes::VertexNode();
+        m_vertex_node->material = this;
 
-        _M_fragment_node             = new MaterialNodes::FragmentNode();
-        _M_fragment_node->position.y = 150;
-        _M_fragment_node->material   = this;
+        m_fragment_node             = new MaterialNodes::FragmentNode();
+        m_fragment_node->position.y = 150;
+        m_fragment_node->material   = this;
 
-        _M_nodes.push_back(_M_vertex_node);
-        _M_nodes.push_back(_M_fragment_node);
+        m_nodes.push_back(m_vertex_node);
+        m_nodes.push_back(m_fragment_node);
     }
 
     VisualMaterial& VisualMaterial::render_nodes(void* context)
@@ -861,18 +861,18 @@ namespace Engine
             return false;
 
         // Serialize base nodes position
-        _M_vertex_node->archive_process(ar);
-        _M_fragment_node->archive_process(ar);
+        m_vertex_node->archive_process(ar);
+        m_fragment_node->archive_process(ar);
 
 
         if (ar.is_saving())
         {
-            size_t size = _M_nodes.size() - 2;
+            size_t size = m_nodes.size() - 2;
             ar & size;
 
-            for (size_t i = 2, j = _M_nodes.size(); i < j; ++i)
+            for (size_t i = 2, j = m_nodes.size(); i < j; ++i)
             {
-                MaterialNode* node = _M_nodes[i];
+                MaterialNode* node = m_nodes[i];
                 String node_name   = node->struct_instance()->name().to_string();
 
                 ar & node_name;
@@ -881,7 +881,7 @@ namespace Engine
 
             // Serialize links
 
-            for (MaterialNode* node : _M_nodes)
+            for (MaterialNode* node : m_nodes)
             {
                 for (MaterialInputPin* pin : node->inputs)
                 {
@@ -918,7 +918,7 @@ namespace Engine
 
             // Serialize links
 
-            for (MaterialNode* node : _M_nodes)
+            for (MaterialNode* node : m_nodes)
             {
                 for (MaterialInputPin* pin : node->inputs)
                 {
@@ -928,9 +928,9 @@ namespace Engine
                     ar & index;
                     ar & pin_index;
 
-                    if (index < _M_nodes.size())
+                    if (index < m_nodes.size())
                     {
-                        MaterialNode* linked_node = _M_nodes[index];
+                        MaterialNode* linked_node = m_nodes[index];
                         if (pin_index < linked_node->outputs.size())
                         {
                             pin->link_to(linked_node->outputs[pin_index]);
@@ -946,9 +946,9 @@ namespace Engine
 
     VisualMaterial::~VisualMaterial()
     {
-        while (!_M_nodes.empty())
+        while (!m_nodes.empty())
         {
-            delete _M_nodes.front();
+            delete m_nodes.front();
         }
     }
 }// namespace Engine

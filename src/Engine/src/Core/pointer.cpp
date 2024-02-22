@@ -17,7 +17,7 @@ namespace Engine
     {
         if (object && can_update_reference())
         {
-            ++object->_M_references;
+            ++object->m_references;
         }
         return *this;
     }
@@ -26,7 +26,7 @@ namespace Engine
     {
         if (object && can_update_reference())
         {
-            --object->_M_references;
+            --object->m_references;
         }
 
         return *this;

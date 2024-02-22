@@ -11,7 +11,7 @@ namespace Engine
     struct VulkanDescriptorSet;
 
     struct VulkanShaderBase : public RHI_Shader {
-        vk::ShaderModule _M_shader;
+        vk::ShaderModule m_shader;
 
         VulkanShaderBase& create(const Shader* shader);
         VulkanShaderBase& destroy();
@@ -19,8 +19,8 @@ namespace Engine
 
 
     struct VulkanVertexShader : public VulkanShaderBase {
-        Vector<vk::VertexInputBindingDescription> _M_binding_description;
-        Vector<vk::VertexInputAttributeDescription> _M_attribute_description;
+        Vector<vk::VertexInputBindingDescription> m_binding_description;
+        Vector<vk::VertexInputAttributeDescription> m_attribute_description;
 
         VulkanVertexShader& create(const VertexShader* shader);
         VulkanVertexShader& destroy();

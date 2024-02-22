@@ -26,25 +26,25 @@ namespace Engine
 
 
     Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent)
-        : _M_struct_constructor(nullptr), _M_namespace_name(namespace_name), _M_base_name(name), _M_parent(_parent)
+        : m_struct_constructor(nullptr), m_namespace_name(namespace_name), m_base_name(name), m_parent(_parent)
     {
-        _M_full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
-        _M_base_name_splitted = Strings::make_sentence(_M_base_name.to_string());
+        m_full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
+        m_base_name_splitted = Strings::make_sentence(m_base_name.to_string());
 
-        if (_M_parent.is_valid())
+        if (m_parent.is_valid())
         {
             parent();
         }
 
-        internal_struct_map()[Strings::hash_of(_M_full_name)] = this;
+        internal_struct_map()[Strings::hash_of(m_full_name)] = this;
     }
 
     Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent) : Struct(name, namespace_name)
     {
-        _M_parent_struct = parent;
-        if (_M_parent_struct)
+        m_parent_struct = parent;
+        if (m_parent_struct)
         {
-            _M_parent = _M_parent_struct->name();
+            m_parent = m_parent_struct->name();
         }
     }
 
@@ -85,43 +85,43 @@ namespace Engine
 
     const String& Struct::base_name_splitted() const
     {
-        return _M_base_name_splitted;
+        return m_base_name_splitted;
     }
 
     const Name& Struct::name() const
     {
-        return _M_full_name;
+        return m_full_name;
     }
 
     const Name& Struct::namespace_name() const
     {
-        return _M_namespace_name;
+        return m_namespace_name;
     }
 
     const Name& Struct::base_name() const
     {
-        return _M_base_name;
+        return m_base_name;
     }
 
     const Name& Struct::parent_name() const
     {
-        return _M_parent;
+        return m_parent;
     }
 
     Struct* Struct::parent() const
     {
-        if (_M_parent_struct == nullptr)
+        if (m_parent_struct == nullptr)
         {
-            _M_parent_struct = static_find(_M_parent);
+            m_parent_struct = static_find(m_parent);
         }
-        return _M_parent_struct;
+        return m_parent_struct;
     }
 
     void* Struct::create_struct() const
     {
-        if (_M_struct_constructor)
+        if (m_struct_constructor)
         {
-            return _M_struct_constructor();
+            return m_struct_constructor();
         }
 
         return nullptr;
@@ -129,29 +129,29 @@ namespace Engine
 
     Struct& Struct::struct_constructor(void* (*constructor)())
     {
-        _M_struct_constructor = constructor;
+        m_struct_constructor = constructor;
         return *this;
     }
 
     Struct& Struct::group(class Group* group)
     {
-        if (_M_group)
+        if (m_group)
         {
-            _M_group->remove_struct(this);
+            m_group->remove_struct(this);
         }
 
-        _M_group = group;
+        m_group = group;
 
-        if (_M_group)
+        if (m_group)
         {
-            _M_group->add_struct(this);
+            m_group->add_struct(this);
         }
         return *this;
     }
 
     class Group* Struct::group() const
     {
-        return _M_group;
+        return m_group;
     }
 
     size_t Struct::abstraction_level() const
@@ -182,7 +182,7 @@ namespace Engine
         const Struct* current = this;
         while (current && level != 0)
         {
-            result.emplace_back(current->_M_full_name);
+            result.emplace_back(current->m_full_name);
             current = current->parent();
             --level;
         }
@@ -207,14 +207,14 @@ namespace Engine
 
     Struct& Struct::add_property(Property* prop)
     {
-        _M_properties.push_back(prop);
-        _M_grouped_properties[prop->group()].push_back(prop);
+        m_properties.push_back(prop);
+        m_grouped_properties[prop->group()].push_back(prop);
         return *this;
     }
 
     const Vector<class Property*>& Struct::properties() const
     {
-        return _M_properties;
+        return m_properties;
     }
 
 
@@ -254,7 +254,7 @@ namespace Engine
 
     const Struct::GroupedPropertiesMap& Struct::grouped_properties() const
     {
-        return _M_grouped_properties;
+        return m_grouped_properties;
     }
 
     const StructMap& Struct::struct_map()
@@ -264,11 +264,11 @@ namespace Engine
 
     Struct::~Struct()
     {
-        for (auto* prop : _M_properties)
+        for (auto* prop : m_properties)
         {
             delete prop;
         }
 
-        _M_properties.clear();
+        m_properties.clear();
     }
 }// namespace Engine

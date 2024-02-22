@@ -14,7 +14,7 @@ namespace Engine
     class ENGINE_EXPORT SkipThreadCommand : public ExecutableObject
     {
     private:
-        size_t _M_skip_bytes;
+        size_t m_skip_bytes;
 
     public:
         SkipThreadCommand(size_t bytes);
@@ -25,10 +25,10 @@ namespace Engine
     class ENGINE_EXPORT ThreadBase
     {
     protected:
-        Identifier _M_id;
-        String _M_name;
-        std::recursive_mutex _M_edit_mutex;
-        std::thread::native_handle_type _M_native_handle;
+        Identifier m_id;
+        String m_name;
+        std::recursive_mutex m_edit_mutex;
+        std::thread::native_handle_type m_native_handle;
 
         ThreadBase();
 
@@ -51,26 +51,26 @@ namespace Engine
     class ENGINE_EXPORT Thread : public ThreadBase
     {
     private:
-        std::mutex _M_exec_mutex;
-        std::condition_variable _M_exec_cv;
+        std::mutex m_exec_mutex;
+        std::condition_variable m_exec_cv;
 
-        std::mutex _M_wait_mutex;
-        std::condition_variable _M_wait_cv;
+        std::mutex m_wait_mutex;
+        std::condition_variable m_wait_cv;
 
-        RingBuffer _M_command_buffer;
-        std::thread* _M_thread;
+        RingBuffer m_command_buffer;
+        std::thread* m_thread;
 
-        std::atomic<bool> _M_is_shuting_down;
-        std::atomic<bool> _M_is_thread_busy;
+        std::atomic<bool> m_is_shuting_down;
+        std::atomic<bool> m_is_thread_busy;
 
         struct ENGINE_EXPORT NewTaskEvent : public ExecutableObject
         {
         public:
-            Thread* _M_thread;
+            Thread* m_thread;
             int_t execute() override;
         };
 
-        NewTaskEvent _M_event;
+        NewTaskEvent m_event;
 
 
         static void thread_loop(Thread* self);
@@ -89,12 +89,12 @@ namespace Engine
         template<typename CommandType, typename Function, typename... Args>
         FORCE_INLINE Thread& insert_new_task_with_initializer(Function&& initializer, Args&&... args)
         {
-            RingBuffer::AllocationContext context(_M_command_buffer, sizeof(CommandType));
+            RingBuffer::AllocationContext context(m_command_buffer, sizeof(CommandType));
             if (context.size() < sizeof(CommandType))
             {
                 new (context.data()) SkipThreadCommand(context.size());
                 context.submit();
-                RingBuffer::AllocationContext new_context(_M_command_buffer, sizeof(CommandType));
+                RingBuffer::AllocationContext new_context(m_command_buffer, sizeof(CommandType));
                 if (new_context.size() < sizeof(CommandType))
                 {
                     throw EngineException("Cannot push new task to thread");
@@ -114,12 +114,12 @@ namespace Engine
         template<typename CommandType, typename... Args>
         FORCE_INLINE Thread& insert_new_task(Args&&... args)
         {
-            RingBuffer::AllocationContext context(_M_command_buffer, sizeof(CommandType));
+            RingBuffer::AllocationContext context(m_command_buffer, sizeof(CommandType));
             if (context.size() < sizeof(CommandType))
             {
                 new (context.data()) SkipThreadCommand(context.size());
                 context.submit();
-                RingBuffer::AllocationContext new_context(_M_command_buffer, sizeof(CommandType));
+                RingBuffer::AllocationContext new_context(m_command_buffer, sizeof(CommandType));
                 if (new_context.size() < sizeof(CommandType))
                 {
                     throw EngineException("Cannot push new task to thread");

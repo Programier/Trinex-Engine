@@ -15,7 +15,7 @@ namespace Engine
         struct HashFunction {
             FORCE_INLINE HashIndex operator()(const Name& name) const
             {
-                return name._M_index;
+                return name.m_index;
             }
         };
 
@@ -29,7 +29,7 @@ namespace Engine
         static ENGINE_EXPORT Name none;
 
     private:
-        Index _M_index;
+        Index m_index;
         Name& init(const StringView& view);
 
     public:
@@ -76,32 +76,32 @@ namespace Engine
 
         FORCE_INLINE bool operator==(const Name& name) const
         {
-            return name._M_index == _M_index;
+            return name.m_index == m_index;
         }
 
         FORCE_INLINE bool operator!=(const Name& name) const
         {
-            return name._M_index != _M_index;
+            return name.m_index != m_index;
         }
 
         FORCE_INLINE bool operator<(const Name& name) const
         {
-            return _M_index < name._M_index;
+            return m_index < name.m_index;
         }
 
         FORCE_INLINE bool operator<=(const Name& name) const
         {
-            return _M_index <= name._M_index;
+            return m_index <= name.m_index;
         }
 
         FORCE_INLINE bool operator>(const Name& name) const
         {
-            return _M_index > name._M_index;
+            return m_index > name.m_index;
         }
 
         FORCE_INLINE bool operator>=(const Name& name) const
         {
-            return _M_index >= name._M_index;
+            return m_index >= name.m_index;
         }
     };
 

@@ -8,46 +8,46 @@ namespace Engine
     VulkanDescriptorPool::Entry::Entry(VulkanDescriptorPool* pool, BindingIndex set)
     {
         vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
-                                               MAX_BINDLESS_RESOURCES, pool->_M_pool_sizes[set]);
-        _M_pool = API->_M_device.createDescriptorPool(pool_info);
-        pool->_M_entries[set].push_back(this);
+                                               MAX_BINDLESS_RESOURCES, pool->m_pool_sizes[set]);
+        m_pool = API->m_device.createDescriptorPool(pool_info);
+        pool->m_entries[set].push_back(this);
     }
 
     VulkanDescriptorPool::Entry::~Entry()
     {
-        API->_M_device.destroyDescriptorPool(_M_pool);
+        API->m_device.destroyDescriptorPool(m_pool);
     }
 
     VulkanDescriptorSet* VulkanDescriptorPool::allocate_descriptor_set(vk::DescriptorSetLayout* layout,
                                                                        BindingIndex set)
     {
-        Entry* entry = _M_entries[set].empty() ? nullptr : _M_entries[set].back();
+        Entry* entry = m_entries[set].empty() ? nullptr : m_entries[set].back();
 
-        if (entry == nullptr || entry->_M_allocated_instances == MAX_BINDLESS_RESOURCES)
+        if (entry == nullptr || entry->m_allocated_instances == MAX_BINDLESS_RESOURCES)
         {
             entry = new Entry(this, set);
         }
-        VulkanDescriptorSet* descriptor_set = new VulkanDescriptorSet(entry->_M_pool, layout);
-        ++entry->_M_allocated_instances;
+        VulkanDescriptorSet* descriptor_set = new VulkanDescriptorSet(entry->m_pool, layout);
+        ++entry->m_allocated_instances;
         return descriptor_set;
     }
 
     VulkanDescriptorPool& VulkanDescriptorPool::pool_sizes(const Vector<Vector<vk::DescriptorPoolSize>>& sizes)
     {
-        _M_pool_sizes = sizes;
-        _M_entries.resize(sizes.size());
+        m_pool_sizes = sizes;
+        m_entries.resize(sizes.size());
         return *this;
     }
 
     VulkanDescriptorPool::~VulkanDescriptorPool()
     {
-        for (auto& set_entry : _M_entries)
+        for (auto& set_entry : m_entries)
         {
             for (Entry* entry : set_entry)
             {
                 delete entry;
             }
         }
-        _M_entries.clear();
+        m_entries.clear();
     }
 }// namespace Engine

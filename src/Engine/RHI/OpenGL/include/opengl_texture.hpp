@@ -7,10 +7,10 @@
 namespace Engine
 {
     struct OpenGL_Texture : public RHI_Texture {
-        OpenGL_ColorInfo _M_format;
-        GLuint _M_type = 0;
-        GLuint _M_id   = 0;
-        Size2D _M_size;
+        OpenGL_ColorInfo m_format;
+        GLuint m_type = 0;
+        GLuint m_id   = 0;
+        Size2D m_size;
 
         void bind(BindLocation location) override;
         void generate_mipmap() override;

@@ -16,7 +16,7 @@ namespace Engine
 
     RenderPass& RenderPass::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_render_pass(this));
+        m_rhi_object.reset(engine_instance->rhi()->create_render_pass(this));
         return *this;
     }
 

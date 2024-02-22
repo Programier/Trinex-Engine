@@ -7,24 +7,24 @@
 namespace Engine::VFS
 {
 
-#define conv_zip_file_handle() reinterpret_cast<zip_file*>(_M_zip_file_handle)
-    VirtualFile::VirtualFile(void* handle, const Path& path) : _M_zip_file_handle(handle), _M_path(path)
+#define conv_zip_file_handle() reinterpret_cast<zip_file*>(m_zip_file_handle)
+    VirtualFile::VirtualFile(void* handle, const Path& path) : m_zip_file_handle(handle), m_path(path)
     {
         trinex_always_check(zip_file_is_seekable(conv_zip_file_handle()), "File must be seekable!");
     }
 
     void VirtualFile::close()
     {
-        if (_M_zip_file_handle)
+        if (m_zip_file_handle)
         {
             zip_fclose(conv_zip_file_handle());
-            _M_zip_file_handle = nullptr;
+            m_zip_file_handle = nullptr;
         }
     }
 
     bool VirtualFile::is_open() const
     {
-        return _M_zip_file_handle != nullptr;
+        return m_zip_file_handle != nullptr;
     }
 
     bool VirtualFile::is_read_only() const
@@ -72,6 +72,6 @@ namespace Engine::VFS
 
     const Path& VirtualFile::path() const
     {
-        return _M_path;
+        return m_path;
     }
 }// namespace Engine::VFS

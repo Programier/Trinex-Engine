@@ -13,9 +13,9 @@ namespace Engine
     {
         Super::create();
         LogicSystem::new_system<LogicSystem>()->register_subsystem(this);
-        _M_is_playing = false;
+        m_is_playing = false;
 
-        _M_scene = new Scene();
+        m_scene = new Scene();
 
         return *this;
     }
@@ -30,21 +30,21 @@ namespace Engine
     {
         Super::update(dt);
 
-        if (!_M_is_playing)
+        if (!m_is_playing)
             return *this;
 
-        for (size_t index = 0, count = _M_actors.size(); index < count; ++index)
+        for (size_t index = 0, count = m_actors.size(); index < count; ++index)
         {
-            _M_actors[index]->update(dt);
+            m_actors[index]->update(dt);
         }
 
-        if (!_M_actors_to_destroy.empty())
+        if (!m_actors_to_destroy.empty())
         {
-            for (size_t index = 0, count = _M_actors_to_destroy.size(); index < count; ++index)
+            for (size_t index = 0, count = m_actors_to_destroy.size(); index < count; ++index)
             {
-                destroy_actor(_M_actors_to_destroy[index], true);
+                destroy_actor(m_actors_to_destroy[index], true);
             }
-            _M_actors_to_destroy.clear();
+            m_actors_to_destroy.clear();
         }
 
         return *this;
@@ -54,35 +54,35 @@ namespace Engine
     {
         Super::shutdown();
         stop_play();
-        delete _M_scene;
+        delete m_scene;
         return *this;
     }
 
     World& World::start_play()
     {
-        if (_M_is_playing)
+        if (m_is_playing)
             return *this;
 
-        for (size_t index = 0; index < _M_actors.size(); index++)
+        for (size_t index = 0; index < m_actors.size(); index++)
         {
-            _M_actors[index]->start_play();
+            m_actors[index]->start_play();
         }
 
-        _M_is_playing = true;
+        m_is_playing = true;
         return *this;
     }
 
     World& World::stop_play()
     {
-        if (!_M_is_playing)
+        if (!m_is_playing)
             return *this;
 
-        for (size_t index = 0; index < _M_actors.size(); index++)
+        for (size_t index = 0; index < m_actors.size(); index++)
         {
-            _M_actors[index]->stop_play();
+            m_actors[index]->stop_play();
         }
 
-        _M_is_playing = true;
+        m_is_playing = true;
         return *this;
     }
 
@@ -108,19 +108,19 @@ namespace Engine
             {
                 root->transform.location = location;
                 root->transform.rotation = rotation;
-                _M_scene->root_component()->attach(root);
+                m_scene->root_component()->attach(root);
             }
         }
-        actor->_M_world = this;
+        actor->m_world = this;
 
         actor->spawned();
 
-        if (_M_is_playing)
+        if (m_is_playing)
         {
             actor->start_play();
         }
 
-        _M_actors.push_back(actor);
+        m_actors.push_back(actor);
         return actor;
     }
 
@@ -131,17 +131,17 @@ namespace Engine
 
         if (!ignore_playing && actor->is_playing())
         {
-            _M_actors_to_destroy.push_back(actor);
+            m_actors_to_destroy.push_back(actor);
             return *this;
         }
 
         actor->destroy();
 
-        for (size_t index = 0, count = _M_actors.size(); index < count; ++index)
+        for (size_t index = 0, count = m_actors.size(); index < count; ++index)
         {
-            if (_M_actors[index] == actor)
+            if (m_actors[index] == actor)
             {
-                _M_actors.erase(_M_actors.begin() + index);
+                m_actors.erase(m_actors.begin() + index);
                 break;
             }
         }
@@ -156,7 +156,7 @@ namespace Engine
 
     Scene* World::scene() const
     {
-        return _M_scene;
+        return m_scene;
     }
 
     World::~World()

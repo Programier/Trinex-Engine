@@ -5,7 +5,7 @@ namespace Engine
 {
     class ENGINE_EXPORT Renderer
     {
-        Renderer* _M_renderer = nullptr;
+        Renderer* m_renderer = nullptr;
 
     public:
         Renderer& init();

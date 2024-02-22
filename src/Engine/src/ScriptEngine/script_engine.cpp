@@ -51,27 +51,27 @@ namespace Engine
 
 
     struct ScriptContextManager {
-        Set<asIScriptContext*> _M_context_array;
-        Vector<asIScriptContext*> _M_free_context_array;
+        Set<asIScriptContext*> m_context_array;
+        Vector<asIScriptContext*> m_free_context_array;
 
         asIScriptContext* new_context()
         {
-            if (_M_free_context_array.empty())
+            if (m_free_context_array.empty())
             {
                 asIScriptContext* context = ScriptEngine::instance()->as_engine()->CreateContext();
                 debug_log("ScriptContextManager", "Created context '%p'. Count of contexts: %zu", context,
-                          _M_context_array.size() + 1);
-                _M_context_array.insert(context);
+                          m_context_array.size() + 1);
+                m_context_array.insert(context);
                 return context;
             }
-            asIScriptContext* context = _M_free_context_array.back();
-            _M_free_context_array.pop_back();
+            asIScriptContext* context = m_free_context_array.back();
+            m_free_context_array.pop_back();
             return context;
         }
 
         ScriptContextManager& free_context(asIScriptContext* context)
         {
-            _M_free_context_array.push_back(context);
+            m_free_context_array.push_back(context);
             return *this;
         }
 
@@ -79,7 +79,7 @@ namespace Engine
         {
             if (full_remove)
             {
-                _M_context_array.erase(context);
+                m_context_array.erase(context);
             }
 
             debug_log("ScriptContextManager", "Released context '%p'", context);
@@ -89,51 +89,51 @@ namespace Engine
 
         ScriptContextManager& cleanup()
         {
-            for (asIScriptContext* context : _M_free_context_array)
+            for (asIScriptContext* context : m_free_context_array)
             {
                 release_context(context, true);
             }
 
-            _M_free_context_array.clear();
+            m_free_context_array.clear();
 
             return *this;
         }
 
         ~ScriptContextManager()
         {
-            for (asIScriptContext* context : _M_context_array)
+            for (asIScriptContext* context : m_context_array)
             {
                 release_context(context, false);
             }
 
-            _M_context_array.clear();
-            _M_free_context_array.clear();
+            m_context_array.clear();
+            m_free_context_array.clear();
         }
     };
 
 
-    ScriptEngine* ScriptEngine::_M_instance = nullptr;
+    ScriptEngine* ScriptEngine::m_instance = nullptr;
 
     ScriptEngine::ScriptEngine()
     {
-        _M_instance = this;
+        m_instance = this;
 
         logger->log("ScriptEngine", "Created script engine [%p]", this);
-        _M_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
+        m_engine = asCreateScriptEngine(ANGELSCRIPT_VERSION);
 
-        _M_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
-        _M_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
-        _M_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
-        _M_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
+        m_engine->SetEngineProperty(asEP_OPTIMIZE_BYTECODE, 1);
+        m_engine->SetEngineProperty(asEP_ALLOW_UNICODE_IDENTIFIERS, 1);
+        m_engine->SetEngineProperty(asEP_ALLOW_UNSAFE_REFERENCES, true);
+        m_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
 
 #if ARCH_X86_64 || ARCH_ARM
         if (engine_config.enable_jit)
         {
             info_log("ScriptEngine", "Enable JIT compiler!");
             auto compiler   = new PlatformJitCompiler();
-            _M_jit_compiler = compiler;
-            _M_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
-            _M_engine->SetJITCompiler(_M_jit_compiler);
+            m_jit_compiler = compiler;
+            m_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
+            m_engine->SetJITCompiler(m_jit_compiler);
 
 #if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
             for (auto& [func_name, indices] : engine_config.jit_skip_instructions)
@@ -147,28 +147,28 @@ namespace Engine
         }
 #endif
 
-        asInitializeAddons(_M_engine);
-        _M_context_manager = new ScriptContextManager();
+        asInitializeAddons(m_engine);
+        m_context_manager = new ScriptContextManager();
 
 
-        Print::asRegister(_M_engine);
+        Print::asRegister(m_engine);
         Initializers::init_primitive_wrappers();
     }
 
     ScriptEngine::~ScriptEngine()
     {
-        delete _M_context_manager;
-        _M_engine->Release();
+        delete m_context_manager;
+        m_engine->Release();
         release_scripts();
-        if (_M_jit_compiler)
+        if (m_jit_compiler)
         {
-            delete _M_jit_compiler;
+            delete m_jit_compiler;
         }
     }
 
     void ScriptEngine::initialize()
     {
-        if (_M_instance == nullptr)
+        if (m_instance == nullptr)
         {
             new ScriptEngine();
             PostDestroyController controller(ScriptEngine::terminate);
@@ -177,26 +177,26 @@ namespace Engine
 
     void ScriptEngine::terminate()
     {
-        if (_M_instance)
+        if (m_instance)
         {
-            delete _M_instance;
-            _M_instance = nullptr;
+            delete m_instance;
+            m_instance = nullptr;
         }
     }
 
     ScriptEngine* ScriptEngine::instance()
     {
-        return _M_instance;
+        return m_instance;
     }
 
     asIScriptEngine* ScriptEngine::as_engine() const
     {
-        return _M_engine;
+        return m_engine;
     }
 
     asIScriptContext* ScriptEngine::new_context() const
     {
-        return _M_context_manager->new_context();
+        return m_context_manager->new_context();
     }
 
     static asDWORD create_call_conv(ScriptCallConv conv)
@@ -228,19 +228,19 @@ namespace Engine
 
     ScriptEngine& ScriptEngine::private_register_function(const char* declaration, void* func, ScriptCallConv conv)
     {
-        _M_engine->RegisterGlobalFunction(declaration, asFunctionPtr(func), create_call_conv(conv));
+        m_engine->RegisterGlobalFunction(declaration, asFunctionPtr(func), create_call_conv(conv));
         return *this;
     }
 
     const ScriptEngine& ScriptEngine::release_context(asIScriptContext* context) const
     {
-        _M_context_manager->free_context(context);
+        m_context_manager->free_context(context);
         return *this;
     }
 
     const ScriptEngine& ScriptEngine::cleanup_free_contexts() const
     {
-        _M_context_manager->cleanup();
+        m_context_manager->cleanup();
         return *this;
     }
 
@@ -251,18 +251,18 @@ namespace Engine
 
     ScriptEngine& ScriptEngine::default_namespace(const char* ns)
     {
-        _M_engine->SetDefaultNamespace(ns);
+        m_engine->SetDefaultNamespace(ns);
         return *this;
     }
 
     String ScriptEngine::default_namespace() const
     {
-        return _M_engine->GetDefaultNamespace();
+        return m_engine->GetDefaultNamespace();
     }
 
     ScriptEngine& ScriptEngine::register_property(const char* declaration, void* data)
     {
-        _M_engine->RegisterGlobalProperty(declaration, data);
+        m_engine->RegisterGlobalProperty(declaration, data);
         return *this;
     }
 
@@ -274,31 +274,31 @@ namespace Engine
 
     ScriptModule ScriptEngine::global_module() const
     {
-        return _M_engine->GetModule("Global", asGM_CREATE_IF_NOT_EXISTS);
+        return m_engine->GetModule("Global", asGM_CREATE_IF_NOT_EXISTS);
     }
 
     ScriptModule ScriptEngine::module(uint_t index)
     {
-        return _M_engine->GetModuleByIndex(index);
+        return m_engine->GetModuleByIndex(index);
     }
 
     uint_t ScriptEngine::module_count() const
     {
-        return _M_engine->GetModuleCount();
+        return m_engine->GetModuleCount();
     }
 
     ScriptEngine& ScriptEngine::bind_imports()
     {
-        for (Counter i = 0, j = _M_engine->GetModuleCount(); i < j; i++)
+        for (Counter i = 0, j = m_engine->GetModuleCount(); i < j; i++)
         {
-            _M_engine->GetModuleByIndex(i)->BindAllImportedFunctions();
+            m_engine->GetModuleByIndex(i)->BindAllImportedFunctions();
         }
         return *this;
     }
 
     ScriptEngine& ScriptEngine::funcdef(const char* declaration)
     {
-        _M_engine->RegisterFuncdef(declaration);
+        m_engine->RegisterFuncdef(declaration);
         return *this;
     }
 
@@ -309,7 +309,7 @@ namespace Engine
 
     ScriptEngine& ScriptEngine::register_typedef(const char* type, const char* declaration)
     {
-        _M_engine->RegisterTypedef(type, declaration);
+        m_engine->RegisterTypedef(type, declaration);
         return *this;
     }
 
@@ -324,11 +324,11 @@ namespace Engine
         {
             if (uninited)
             {
-                return reinterpret_cast<asIScriptObject*>(_M_engine->CreateUninitializedScriptObject(info._M_info));
+                return reinterpret_cast<asIScriptObject*>(m_engine->CreateUninitializedScriptObject(info.m_info));
             }
             else
             {
-                return reinterpret_cast<asIScriptObject*>(_M_engine->CreateScriptObject(info._M_info));
+                return reinterpret_cast<asIScriptObject*>(m_engine->CreateScriptObject(info.m_info));
             }
         }
 
@@ -337,32 +337,32 @@ namespace Engine
 
     ScriptEngine& ScriptEngine::destroy_script_object(ScriptObjectAddress object, const ScriptTypeInfo& info)
     {
-        _M_engine->ReleaseScriptObject(object, info._M_info);
+        m_engine->ReleaseScriptObject(object, info.m_info);
         return *this;
     }
 
-    ScriptEngine::NamespaceSaverScoped::NamespaceSaverScoped() : _M_ns(ScriptEngine::instance()->default_namespace())
+    ScriptEngine::NamespaceSaverScoped::NamespaceSaverScoped() : m_ns(ScriptEngine::instance()->default_namespace())
     {}
 
     ScriptEngine::NamespaceSaverScoped::~NamespaceSaverScoped()
     {
-        ScriptEngine::instance()->default_namespace(_M_ns);
+        ScriptEngine::instance()->default_namespace(m_ns);
     }
 
 
     uint_t ScriptEngine::global_function_count() const
     {
-        return _M_engine->GetGlobalFunctionCount();
+        return m_engine->GetGlobalFunctionCount();
     }
 
     ScriptFunction ScriptEngine::global_function_by_index(uint_t index) const
     {
-        return ScriptFunction(_M_engine->GetGlobalFunctionByIndex(index)).bind();
+        return ScriptFunction(m_engine->GetGlobalFunctionByIndex(index)).bind();
     }
 
     ScriptFunction ScriptEngine::global_function_by_decl(const char* declaration) const
     {
-        return ScriptFunction(_M_engine->GetGlobalFunctionByDecl(declaration)).bind();
+        return ScriptFunction(m_engine->GetGlobalFunctionByDecl(declaration)).bind();
     }
 
     ScriptFunction ScriptEngine::global_function_by_decl(const String& declaration) const
@@ -372,57 +372,57 @@ namespace Engine
 
     ScriptEngine& ScriptEngine::garbage_collect(BitMask flags, size_t iterations)
     {
-        _M_engine->GarbageCollect(flags, iterations);
+        m_engine->GarbageCollect(flags, iterations);
         return *this;
     }
 
     uint_t ScriptEngine::object_type_count() const
     {
-        return _M_engine->GetObjectTypeCount();
+        return m_engine->GetObjectTypeCount();
     }
 
     ScriptTypeInfo ScriptEngine::object_type_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(_M_engine->GetObjectTypeByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetObjectTypeByIndex(index)).bind();
     }
 
     // Enums
     uint_t ScriptEngine::enum_count() const
     {
-        return _M_engine->GetEnumCount();
+        return m_engine->GetEnumCount();
     }
 
     ScriptTypeInfo ScriptEngine::enum_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(_M_engine->GetEnumByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetEnumByIndex(index)).bind();
     }
 
     // Funcdefs
     uint_t ScriptEngine::funcdef_count() const
     {
-        return _M_engine->GetFuncdefCount();
+        return m_engine->GetFuncdefCount();
     }
 
     ScriptTypeInfo ScriptEngine::funcdef_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(_M_engine->GetFuncdefByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetFuncdefByIndex(index)).bind();
     }
 
     // Typedefs
     uint_t ScriptEngine::typedef_count() const
     {
-        return _M_engine->GetTypedefCount();
+        return m_engine->GetTypedefCount();
     }
 
     ScriptTypeInfo ScriptEngine::typedef_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(_M_engine->GetTypedefByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetTypedefByIndex(index)).bind();
     }
 
     // Script modules
     ScriptEngine& ScriptEngine::discard_module(const char* module_name)
     {
-        _M_engine->DiscardModule(module_name);
+        m_engine->DiscardModule(module_name);
         return *this;
     }
 
@@ -433,49 +433,49 @@ namespace Engine
 
     ScriptModule ScriptEngine::module_by_index(uint_t index) const
     {
-        return ScriptModule(_M_engine->GetModuleByIndex(index));
+        return ScriptModule(m_engine->GetModuleByIndex(index));
     }
 
     // Script functions
     int_t ScriptEngine::last_function_id() const
     {
-        return _M_engine->GetLastFunctionId();
+        return m_engine->GetLastFunctionId();
     }
 
     ScriptFunction ScriptEngine::function_by_id(int func_id) const
     {
-        return ScriptFunction(_M_engine->GetFunctionById(func_id)).bind();
+        return ScriptFunction(m_engine->GetFunctionById(func_id)).bind();
     }
 
     // Type identification
     int_t ScriptEngine::typeid_by_decl(const char* decl) const
     {
-        return _M_engine->GetTypeIdByDecl(decl);
+        return m_engine->GetTypeIdByDecl(decl);
     }
 
     const char* ScriptEngine::type_declaration(int type_id, bool include_namespace) const
     {
-        return _M_engine->GetTypeDeclaration(type_id, include_namespace);
+        return m_engine->GetTypeDeclaration(type_id, include_namespace);
     }
 
     int_t ScriptEngine::sizeof_primitive_type(int type_id) const
     {
-        return _M_engine->GetSizeOfPrimitiveType(type_id);
+        return m_engine->GetSizeOfPrimitiveType(type_id);
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_id(int type_id) const
     {
-        return ScriptTypeInfo(_M_engine->GetTypeInfoById(type_id)).bind();
+        return ScriptTypeInfo(m_engine->GetTypeInfoById(type_id)).bind();
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_name(const char* name) const
     {
-        return ScriptTypeInfo(_M_engine->GetTypeInfoByName(name)).bind();
+        return ScriptTypeInfo(m_engine->GetTypeInfoByName(name)).bind();
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_decl(const char* decl) const
     {
-        return ScriptTypeInfo(_M_engine->GetTypeInfoByDecl(decl)).bind();
+        return ScriptTypeInfo(m_engine->GetTypeInfoByDecl(decl)).bind();
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_name(const String& name) const

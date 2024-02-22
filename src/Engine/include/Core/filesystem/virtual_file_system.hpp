@@ -6,8 +6,8 @@ namespace Engine::VFS
     class ENGINE_EXPORT VirtualFileSystem : public FileSystem
     {
     private:
-        void* _M_zip_handle = nullptr;
-        Path _M_path;
+        void* m_zip_handle = nullptr;
+        Path m_path;
 
 
     protected:

@@ -32,7 +32,7 @@ namespace Engine
     class ImGuiMaterialPreview : public ImGuiRenderer::ImGuiAdditionalWindow
     {
     public:
-        VisualMaterial* _M_material = nullptr;
+        VisualMaterial* m_material = nullptr;
 
         void init(RenderViewport* viewport)
         {}
@@ -53,46 +53,46 @@ namespace Engine
 
     void MaterialEditorClient::on_content_browser_close()
     {
-        _M_content_browser = nullptr;
+        m_content_browser = nullptr;
     }
 
     void MaterialEditorClient::on_properties_window_close()
     {
-        _M_properties = nullptr;
+        m_properties = nullptr;
     }
 
     void MaterialEditorClient::on_preview_close()
     {
-        _M_preview_window = nullptr;
+        m_preview_window = nullptr;
     }
 
 
     MaterialEditorClient& MaterialEditorClient::create_content_browser()
     {
-        _M_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
-        _M_content_browser->on_close.push(std::bind(&MaterialEditorClient::on_content_browser_close, this));
-        _M_content_browser->on_object_double_click.push(
+        m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
+        m_content_browser->on_close.push(std::bind(&MaterialEditorClient::on_content_browser_close, this));
+        m_content_browser->on_object_double_click.push(
                 std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
         return *this;
     }
 
     MaterialEditorClient& MaterialEditorClient::create_properties_window()
     {
-        _M_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
-        _M_properties->on_close.push(std::bind(&MaterialEditorClient::on_properties_window_close, this));
+        m_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
+        m_properties->on_close.push(std::bind(&MaterialEditorClient::on_properties_window_close, this));
 
-        if (_M_content_browser)
+        if (m_content_browser)
         {
-            on_object_select(_M_content_browser->selected_object);
+            on_object_select(m_content_browser->selected_object);
         }
         return *this;
     }
 
     MaterialEditorClient& MaterialEditorClient::create_preview_window()
     {
-        _M_preview_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialPreview>();
-        _M_preview_window->on_close.push(std::bind(&MaterialEditorClient::on_preview_close, this));
-        _M_preview_window->_M_material = _M_current_material;
+        m_preview_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialPreview>();
+        m_preview_window->on_close.push(std::bind(&MaterialEditorClient::on_preview_close, this));
+        m_preview_window->m_material = m_current_material;
         return *this;
     }
 
@@ -110,7 +110,7 @@ namespace Engine
         window->title(new_title);
 
         engine_instance->thread(ThreadType::RenderThread)->wait_all();
-        _M_viewport = viewport;
+        m_viewport = viewport;
 
 
         ImGuiRenderer::Window* imgui_window = window->imgui_window();
@@ -128,7 +128,7 @@ namespace Engine
         imgui_window->on_destroy.push([context]() { ax::NodeEditor::DestroyEditor(context); });
 
 
-        _M_editor_context = context;
+        m_editor_context = context;
 
         ImGuiRenderer::Window::make_current(prev_window);
 
@@ -136,7 +136,7 @@ namespace Engine
         if (instance)
         {
             auto obj    = instance->create_object();
-            _M_compiler = obj->instance_cast<ShaderCompilerBase>();
+            m_compiler = obj->instance_cast<ShaderCompilerBase>();
         }
 
         return *this;
@@ -155,16 +155,16 @@ namespace Engine
         if (!new_material)
             return;
 
-        _M_current_material = new_material;
+        m_current_material = new_material;
 
-        if (_M_preview_window)
+        if (m_preview_window)
         {
-            _M_preview_window->_M_material = _M_current_material;
+            m_preview_window->m_material = m_current_material;
         }
 
-        if (_M_properties)
+        if (m_properties)
         {
-            _M_properties->object = object;
+            m_properties->object = object;
         }
     }
 
@@ -183,17 +183,17 @@ namespace Engine
                     open_editor();
                 }
 
-                if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, _M_content_browser == nullptr))
+                if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
                 {
                     create_content_browser();
                 }
 
-                if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, _M_properties == nullptr))
+                if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
                 {
                     create_properties_window();
                 }
 
-                ImGui::Checkbox("editor/Open Material Code"_localized, &_M_open_material_code_window);
+                ImGui::Checkbox("editor/Open Material Code"_localized, &m_open_material_code_window);
                 ImGui::EndMenu();
             }
 
@@ -225,17 +225,17 @@ namespace Engine
             if (ImGui::BeginMenu("editor/Material"_localized))
             {
                 if (ImGui::MenuItem("editor/Compile"_localized, "editor/Compile current material"_localized, false,
-                                    _M_current_material && _M_compiler))
+                                    m_current_material && m_compiler))
                 {
-                    _M_shader_compile_error_list.clear();
+                    m_shader_compile_error_list.clear();
                     render_thread()->wait_all();
-                    _M_compiler->compile(_M_current_material, _M_shader_compile_error_list);
+                    m_compiler->compile(m_current_material, m_shader_compile_error_list);
                 }
 
                 if (ImGui::MenuItem("editor/Apply"_localized, "editor/Apply changes in current material"_localized, false,
-                                    _M_current_material))
+                                    m_current_material))
                 {
-                    _M_current_material->apply_changes();
+                    m_current_material->apply_changes();
                 }
                 ImGui::EndMenu();
             }
@@ -244,7 +244,7 @@ namespace Engine
             ImGui::EndMenuBar();
         }
 
-        if (_M_frame == 0)
+        if (m_frame == 0)
         {
             ImGui::DockBuilderRemoveNode(dock_id);
             ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
@@ -283,13 +283,13 @@ namespace Engine
 
         ImGui::End();
         viewport->window()->imgui_window()->end_frame();
-        ++_M_frame;
+        ++m_frame;
         return *this;
     }
 
     class VisualMaterial* MaterialEditorClient::current_material() const
     {
-        return _M_current_material;
+        return m_current_material;
     }
 
     static Struct* render_node_types(Group* group)
@@ -340,17 +340,17 @@ namespace Engine
 
         if (!ImGui::IsWindowAppearing())
         {
-            ax::NodeEditor::SetCurrentEditor(reinterpret_cast<ax::NodeEditor::EditorContext*>(_M_editor_context));
+            ax::NodeEditor::SetCurrentEditor(reinterpret_cast<ax::NodeEditor::EditorContext*>(m_editor_context));
 
             ax::NodeEditor::Begin("###Viewport");
-            if (_M_current_material)
+            if (m_current_material)
             {
-                _M_current_material->render_nodes(_M_editor_context);
+                m_current_material->render_nodes(m_editor_context);
             }
             ax::NodeEditor::End();
 
 
-            if (!_M_current_material)
+            if (!m_current_material)
             {
                 ImGui::End();
                 return *this;
@@ -360,11 +360,11 @@ namespace Engine
 
             if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
             {
-                _M_open_select_node_window = true;
+                m_open_select_node_window = true;
             }
 
 
-            if (_M_open_select_node_window)
+            if (m_open_select_node_window)
             {
                 const char* name = "editor/Menu"_localized;
 
@@ -373,11 +373,11 @@ namespace Engine
                 auto pos = ImGui::GetMousePos();
                 ImGui::SetNextWindowPos(pos, ImGuiCond_Appearing);
 
-                ImGui::Begin(name, &_M_open_select_node_window, ImGuiWindowFlags_NoSavedSettings);
+                ImGui::Begin(name, &m_open_select_node_window, ImGuiWindowFlags_NoSavedSettings);
 
                 if (ImGui::IsWindowAppearing())
                 {
-                    _M_next_node_pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(pos));
+                    m_next_node_pos = ImGuiHelpers::construct_vec2<Vector2D>(ax::NodeEditor::ScreenToCanvas(pos));
                 }
 
                 {
@@ -385,8 +385,8 @@ namespace Engine
 
                     if (selected)
                     {
-                        _M_open_select_node_window = false;
-                        _M_current_material->create_node(selected, _M_next_node_pos);
+                        m_open_select_node_window = false;
+                        m_current_material->create_node(selected, m_next_node_pos);
                     }
                 }
 
@@ -402,24 +402,24 @@ namespace Engine
 
     void MaterialEditorClient::render_material_code()
     {
-        if (_M_open_material_code_window)
+        if (m_open_material_code_window)
         {
             ImGui::SetNextWindowSize({400, 500}, ImGuiCond_Appearing);
-            ImGui::Begin("editor/Material Code"_localized, &_M_open_material_code_window);
+            ImGui::Begin("editor/Material Code"_localized, &m_open_material_code_window);
             ImGui::BeginTabBar("TabBar");
 
-            if (_M_current_material)
+            if (m_current_material)
             {
                 if (ImGui::BeginTabItem("editor/Vertex"_localized))
                 {
-                    String& code = _M_current_material->pipeline->vertex_shader->text_code;
+                    String& code = m_current_material->pipeline->vertex_shader->text_code;
                     ImGui::TextWrapped("%s", code.c_str());
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("editor/Fragment"_localized))
                 {
-                    String& code = _M_current_material->pipeline->fragment_shader->text_code;
+                    String& code = m_current_material->pipeline->fragment_shader->text_code;
                     ImGui::TextWrapped("%s", code.c_str());
                     ImGui::EndTabItem();
                 }
@@ -428,7 +428,7 @@ namespace Engine
             if (ImGui::BeginTabItem("editor/Errors"_localized))
             {
                 Index index = 1;
-                for (auto& msg : _M_shader_compile_error_list)
+                for (auto& msg : m_shader_compile_error_list)
                 {
                     ImGui::TextColored(ImColor(255, 0, 0), "%zu: %s", index++, msg.c_str());
                 }
@@ -448,11 +448,11 @@ namespace Engine
 
         if (Texture2D* texture = Object::instance_cast<Texture2D>(object))
         {
-            _M_current_material->create_node<MaterialNodes::Texture2D>(pos)->texture = texture;
+            m_current_material->create_node<MaterialNodes::Texture2D>(pos)->texture = texture;
         }
         else if (Sampler* sampler = Object::instance_cast<Sampler>(object))
         {
-            _M_current_material->create_node<MaterialNodes::Sampler>(pos)->sampler = sampler;
+            m_current_material->create_node<MaterialNodes::Sampler>(pos)->sampler = sampler;
         }
 
         return *this;

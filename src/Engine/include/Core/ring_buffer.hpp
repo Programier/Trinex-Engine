@@ -11,9 +11,9 @@ namespace Engine
         class ENGINE_EXPORT AllocationContext final
         {
         private:
-            RingBuffer& _M_buffer;
-            size_t _M_size;
-            byte* _M_start_pointer;
+            RingBuffer& m_buffer;
+            size_t m_size;
+            byte* m_start_pointer;
 
         public:
             AllocationContext(RingBuffer& buffer, size_t size);
@@ -26,18 +26,18 @@ namespace Engine
 
 
     private:
-        std::mutex _M_mutex;
-        Vector<byte> _M_data;
+        std::mutex m_mutex;
+        Vector<byte> m_data;
 
-        size_t _M_alignment;
-        std::atomic_uint64_t _M_unreaded_size;
-        std::atomic<byte*> _M_write_pointer;
-        std::atomic<byte*> _M_read_pointer;
+        size_t m_alignment;
+        std::atomic_uint64_t m_unreaded_size;
+        std::atomic<byte*> m_write_pointer;
+        std::atomic<byte*> m_read_pointer;
 
-        byte* _M_start_pointer;
-        byte* _M_end_pointer;
+        byte* m_start_pointer;
+        byte* m_end_pointer;
 
-        class ExecutableObject* _M_event;
+        class ExecutableObject* m_event;
 
     public:
         RingBuffer();

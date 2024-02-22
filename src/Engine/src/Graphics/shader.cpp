@@ -53,7 +53,7 @@ namespace Engine
 
     VertexShader& VertexShader::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_vertex_shader(this));
+        m_rhi_object.reset(engine_instance->rhi()->create_vertex_shader(this));
         return *this;
     }
 
@@ -73,7 +73,7 @@ namespace Engine
 
     FragmentShader& FragmentShader::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_fragment_shader(this));
+        m_rhi_object.reset(engine_instance->rhi()->create_fragment_shader(this));
         return *this;
     }
 

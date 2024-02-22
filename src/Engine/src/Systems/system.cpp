@@ -11,12 +11,12 @@
 namespace Engine
 {
 
-    System::UpdateTask::UpdateTask(System* system, float dt) : _M_system(system), _M_dt(dt)
+    System::UpdateTask::UpdateTask(System* system, float dt) : m_system(system), m_dt(dt)
     {}
 
     int_t System::UpdateTask::execute()
     {
-        _M_system->update(_M_dt);
+        m_system->update(m_dt);
         return sizeof(System::UpdateTask);
     }
 
@@ -28,13 +28,13 @@ namespace Engine
     void System::on_new_system(System* system)
     {
         system->create();
-        if (!system->_M_is_fully_created)
+        if (!system->m_is_fully_created)
         {
             on_create_fail();
         }
     }
 
-    System::System() : _M_parent_system(nullptr)
+    System::System() : m_parent_system(nullptr)
     {
         flags(IsSerializable, false);
     }
@@ -51,13 +51,13 @@ namespace Engine
 
         name(Strings::format("Engine::Systems::{}", _class->base_name().c_str()), true);
         debug_log("System", "Created system '%s'", string_name().c_str());
-        _M_is_fully_created = true;
+        m_is_fully_created = true;
         return *this;
     }
 
     System& System::update(float dt)
     {
-        for (System* system : _M_subsystems)
+        for (System* system : m_subsystems)
         {
             system->update(dt);
         }
@@ -66,7 +66,7 @@ namespace Engine
 
     System& System::wait()
     {
-        for (System* subsystem : _M_subsystems)
+        for (System* subsystem : m_subsystems)
         {
             subsystem->wait();
         }
@@ -79,30 +79,30 @@ namespace Engine
         if (system->parent_system() == this)
             return *this;
 
-        if (system->_M_parent_system)
+        if (system->m_parent_system)
         {
-            system->_M_parent_system->remove_subsystem(system);
+            system->m_parent_system->remove_subsystem(system);
         }
 
-        _M_subsystems.push_back(system);
-        system->_M_parent_system = this;
+        m_subsystems.push_back(system);
+        system->m_parent_system = this;
         system->owner(this);
         return *this;
     }
 
     System& System::remove_subsystem(System* system)
     {
-        if (system->_M_parent_system == this)
+        if (system->m_parent_system == this)
         {
-            auto it  = _M_subsystems.begin();
-            auto end = _M_subsystems.end();
+            auto it  = m_subsystems.begin();
+            auto end = m_subsystems.end();
 
             while (it != end)
             {
                 if (*it == system)
                 {
-                    _M_subsystems.erase(it);
-                    system->_M_parent_system = nullptr;
+                    m_subsystems.erase(it);
+                    system->m_parent_system = nullptr;
                     return *this;
                 }
                 ++it;
@@ -113,7 +113,7 @@ namespace Engine
 
     System* System::parent_system() const
     {
-        return _M_parent_system;
+        return m_parent_system;
     }
 
 
@@ -145,14 +145,14 @@ namespace Engine
 
     System& System::sort_subsystems()
     {
-        std::sort(_M_subsystems.begin(), _M_subsystems.end(), sort_systems_predicate);
-        std::for_each(_M_subsystems.begin(), _M_subsystems.end(), [](System* system) { system->sort_subsystems(); });
+        std::sort(m_subsystems.begin(), m_subsystems.end(), sort_systems_predicate);
+        std::for_each(m_subsystems.begin(), m_subsystems.end(), [](System* system) { system->sort_subsystems(); });
         return *this;
     }
 
     System* System::find_system_private_no_recurse(const char* _name, size_t len) const
     {
-        for (System* system : _M_subsystems)
+        for (System* system : m_subsystems)
         {
             const String& system_name = system->string_name();
             if (system_name.length() != len)
@@ -201,26 +201,26 @@ namespace Engine
 
     bool System::is_shutdowned() const
     {
-        return !_M_is_fully_created;
+        return !m_is_fully_created;
     }
 
     System& System::shutdown()
     {
         info_log("System", "Shutting down system %p", this);
-        if (_M_parent_system)
+        if (m_parent_system)
         {
-            _M_parent_system->remove_subsystem(this);
+            m_parent_system->remove_subsystem(this);
         }
 
         // Shutdown child systems
 
-        Vector<System*> subsystems = std::move(_M_subsystems);
+        Vector<System*> subsystems = std::move(m_subsystems);
         for (System* system : subsystems)
         {
             system->shutdown();
         }
 
-        _M_is_fully_created = false;
+        m_is_fully_created = false;
         return *this;
     }
 
@@ -229,7 +229,7 @@ namespace Engine
         if (class_instance && class_instance->is_a(System::static_class_instance()))
         {
             System* system = class_instance->create_object()->instance_cast<System>();
-            if (system && system->_M_is_fully_created == false)
+            if (system && system->m_is_fully_created == false)
             {
                 on_new_system(system);
             }
@@ -246,7 +246,7 @@ namespace Engine
 
     const Vector<System*>& System::subsystems() const
     {
-        return _M_subsystems;
+        return m_subsystems;
     }
 
     Identifier System::id() const
@@ -256,7 +256,7 @@ namespace Engine
 
     System::~System()
     {
-        if (_M_is_fully_created)
+        if (m_is_fully_created)
         {
             error_log("System", "You must call shutdown method before destroy system! System address %p", this);
         }

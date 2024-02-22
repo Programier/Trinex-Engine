@@ -38,9 +38,9 @@ namespace Engine::ImGuiRenderer
 {
     class ENGINE_EXPORT DrawData final
     {
-        ImDrawData _M_draw_data[2];
-        byte _M_logic_index  = 0;
-        byte _M_render_index = 0;
+        ImDrawData m_draw_data[2];
+        byte m_logic_index  = 0;
+        byte m_render_index = 0;
 
     public:
         ImDrawData* draw_data();
@@ -56,9 +56,9 @@ namespace Engine::ImGuiRenderer
     class ENGINE_EXPORT ImGuiTexture final
     {
     private:
-        RHI_ImGuiTexture* _M_handle = nullptr;
-        Texture* _M_texture         = nullptr;
-        Sampler* _M_sampler         = nullptr;
+        RHI_ImGuiTexture* m_handle = nullptr;
+        Texture* m_texture         = nullptr;
+        Sampler* m_sampler         = nullptr;
 
         ImGuiTexture();
         void release_internal(bool force);
@@ -102,7 +102,7 @@ namespace Engine::ImGuiRenderer
             Node* parent                  = nullptr;
         };
 
-        Node* _M_root = nullptr;
+        Node* m_root = nullptr;
 
         ImGuiAdditionalWindowList& push(ImGuiAdditionalWindow* window);
         Node* destroy(Node* node);
@@ -127,11 +127,11 @@ namespace Engine::ImGuiRenderer
     class ENGINE_EXPORT Window final
     {
     private:
-        DrawData _M_draw_data;
-        Set<ImGuiTexture*> _M_textures;
+        DrawData m_draw_data;
+        Set<ImGuiTexture*> m_textures;
 
-        ImGuiContext* _M_context;
-        Engine::Window* _M_window;
+        ImGuiContext* m_context;
+        Engine::Window* m_window;
 
         Window(Engine::Window* window, ImGuiContext* context);
         Window& free_resources();
@@ -165,8 +165,8 @@ namespace Engine::ImGuiRenderer
     {
         declare_class(ImGuiViewportClient, ViewportClient);
 
-        DrawData _M_draw_data;
-        class Window* _M_window;
+        DrawData m_draw_data;
+        class Window* m_window;
 
     public:
         ImGuiViewport* viewport = nullptr;

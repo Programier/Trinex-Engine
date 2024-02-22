@@ -34,16 +34,16 @@ namespace Engine
             _enum                  = new Enum();
             enums_map()[full_name] = _enum;
 
-            _enum->_M_base_name = name;
-            _enum->_M_full_name = full_name;
+            _enum->m_base_name = name;
+            _enum->m_full_name = full_name;
 
             if (!namespace_name.empty())
-                _enum->_M_namespace_name = namespace_name;
-            _enum->_M_entries = entries;
+                _enum->m_namespace_name = namespace_name;
+            _enum->m_entries = entries;
 
             Index index = 0;
 
-            for (auto& entry : _enum->_M_entries)
+            for (auto& entry : _enum->m_entries)
             {
                 entry.index = index;
                 ++index;
@@ -55,7 +55,7 @@ namespace Engine
 
     const Enum::Entry* Enum::entry(EnumerateType value) const
     {
-        for (auto& ell : _M_entries)
+        for (auto& ell : m_entries)
         {
             if (ell.value == value)
                 return &ell;
@@ -66,7 +66,7 @@ namespace Engine
 
     const Enum::Entry* Enum::entry(const Name& name) const
     {
-        for (auto& ell : _M_entries)
+        for (auto& ell : m_entries)
         {
             if (ell.name == name)
                 return &ell;
@@ -77,22 +77,22 @@ namespace Engine
 
     const Name& Enum::name() const
     {
-        return _M_full_name;
+        return m_full_name;
     }
 
     const Name& Enum::namespace_name() const
     {
-        return _M_namespace_name;
+        return m_namespace_name;
     }
 
     const Name& Enum::base_name() const
     {
-        return _M_base_name;
+        return m_base_name;
     }
 
     const Vector<Enum::Entry>& Enum::entries() const
     {
-        return _M_entries;
+        return m_entries;
     }
 
     ENGINE_EXPORT Enum* Enum::find(const String& name, bool required)

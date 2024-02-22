@@ -19,7 +19,7 @@ namespace Engine
 
     RHI_RenderTarget* OpenGL_Viewport::render_target()
     {
-        return _M_render_target;
+        return m_render_target;
     }
 
 
@@ -27,7 +27,7 @@ namespace Engine
 
     void OpenGL_RenderTargetViewport::init(RenderTarget* render_target)
     {
-        _M_render_target = render_target->rhi_object<OpenGL_RenderTarget>();
+        m_render_target = render_target->rhi_object<OpenGL_RenderTarget>();
     }
 
 
@@ -43,53 +43,53 @@ namespace Engine
 
     void OpenGL_WindowViewport::init(WindowInterface* window, bool vsync)
     {
-        if (!(OPENGL_API->_M_context))
+        if (!(OPENGL_API->m_context))
         {
-            _M_context             = window->create_api_context("");
-            OPENGL_API->_M_context = _M_context;
-            window->bind_api_context(_M_context);
+            m_context             = window->create_api_context("");
+            OPENGL_API->m_context = m_context;
+            window->bind_api_context(m_context);
 
             OPENGL_API->initialize();
         }
         else
         {
-            window->bind_api_context(OPENGL_API->_M_context);
+            window->bind_api_context(OPENGL_API->m_context);
         }
 
-        _M_window        = window;
-        _M_render_target = new OpenGL_MainRenderTarget();
+        m_window        = window;
+        m_render_target = new OpenGL_MainRenderTarget();
     }
 
 
     bool OpenGL_WindowViewport::vsync()
     {
-        return _M_window->vsync();
+        return m_window->vsync();
     }
 
     void OpenGL_WindowViewport::vsync(bool flag)
     {
-        _M_window->vsync(flag);
+        m_window->vsync(flag);
     }
 
     void OpenGL_WindowViewport::begin_render()
     {
         OPENGL_API->reset_state();
-        _M_window->make_current();
+        m_window->make_current();
     }
 
     void OpenGL_WindowViewport::end_render()
     {
-        _M_window->present();
+        m_window->present();
     }
 
     OpenGL_WindowViewport::~OpenGL_WindowViewport()
     {
-        if (_M_context)
+        if (m_context)
         {
-            _M_window->destroy_api_context();
-            _M_context = nullptr;
+            m_window->destroy_api_context();
+            m_context = nullptr;
         }
-        delete _M_render_target;
+        delete m_render_target;
     }
 
     RHI_Viewport* OpenGL::create_viewport(WindowInterface* interface, bool vsync)

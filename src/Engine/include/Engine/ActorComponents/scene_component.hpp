@@ -14,8 +14,8 @@ namespace Engine
         Transform transform_render_thread;
 
     private:
-        Pointer<SceneComponent> _M_parent = nullptr;
-        Vector<Pointer<SceneComponent>> _M_childs;
+        Pointer<SceneComponent> m_parent = nullptr;
+        Vector<Pointer<SceneComponent>> m_childs;
 
     public:
         SceneComponent();

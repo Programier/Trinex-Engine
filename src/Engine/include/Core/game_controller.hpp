@@ -19,10 +19,10 @@ namespace Engine
         };
 
     private:
-        short_t _M_axis_values[Axis::__COUNT__];
-        Identifier _M_ID;
+        short_t m_axis_values[Axis::__COUNT__];
+        Identifier m_ID;
 
-        GameController(Identifier _M_id);
+        GameController(Identifier m_id);
 
     public:
         Identifier id() const;

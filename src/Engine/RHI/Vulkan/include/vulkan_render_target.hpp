@@ -8,9 +8,9 @@ namespace Engine
 {
 
     struct VulkanRenderTargetFrame {
-        vk::Framebuffer _M_framebuffer;
-        Vector<vk::ImageView> _M_attachments;
-        struct VulkanRenderTarget* _M_owner = nullptr;
+        vk::Framebuffer m_framebuffer;
+        Vector<vk::ImageView> m_attachments;
+        struct VulkanRenderTarget* m_owner = nullptr;
 
 
         void init(struct VulkanRenderTarget* owner, const RenderTarget* info, struct VulkanRenderPass* render_pass, Index frame);
@@ -37,14 +37,14 @@ namespace Engine
 
 
     struct VulkanRenderTarget : RHI_RenderTarget {
-        Vector<VulkanRenderTargetFrame*> _M_frames;
-        struct VulkanRenderPass* _M_render_pass = nullptr;
+        Vector<VulkanRenderTargetFrame*> m_frames;
+        struct VulkanRenderPass* m_render_pass = nullptr;
 
-        vk::RenderPassBeginInfo _M_render_pass_info;
-        vk::Extent2D _M_size;
-        vk::Rect2D _M_scissor;
-        vk::Viewport _M_viewport;
-        Vector<vk::ClearValue> _M_clear_values = {vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
+        vk::RenderPassBeginInfo m_render_pass_info;
+        vk::Extent2D m_size;
+        vk::Rect2D m_scissor;
+        vk::Viewport m_viewport;
+        Vector<vk::ClearValue> m_clear_values = {vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
 
 
         VulkanRenderTarget& init(const RenderTarget* info, VulkanRenderPass* render_pass);
@@ -69,7 +69,7 @@ namespace Engine
 
     struct VulkanWindowRenderTarget : VulkanRenderTarget {
 
-        struct VulkanWindowViewport* _M_viewport;
+        struct VulkanWindowViewport* m_viewport;
 
 
         VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);

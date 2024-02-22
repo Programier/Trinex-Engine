@@ -9,22 +9,22 @@ namespace Engine
         declare_class(MaterialEditorClient, ViewportClient);
 
     private:
-        MessageList _M_shader_compile_error_list;
-        class ContentBrowser* _M_content_browser      = nullptr;
-        ImGuiObjectProperties* _M_properties          = nullptr;
-        class ImGuiMaterialPreview* _M_preview_window = nullptr;
+        MessageList m_shader_compile_error_list;
+        class ContentBrowser* m_content_browser      = nullptr;
+        ImGuiObjectProperties* m_properties          = nullptr;
+        class ImGuiMaterialPreview* m_preview_window = nullptr;
 
-        void* _M_editor_context = nullptr;
+        void* m_editor_context = nullptr;
 
-        class RenderViewport* _M_viewport         = nullptr;
-        class VisualMaterial* _M_current_material = nullptr;
-        class ShaderCompilerBase* _M_compiler     = nullptr;
+        class RenderViewport* m_viewport         = nullptr;
+        class VisualMaterial* m_current_material = nullptr;
+        class ShaderCompilerBase* m_compiler     = nullptr;
 
-        bool _M_open_select_node_window   = false;
-        bool _M_open_material_code_window = false;
+        bool m_open_select_node_window   = false;
+        bool m_open_material_code_window = false;
 
-        Vector2D _M_next_node_pos;
-        size_t _M_frame = 0;
+        Vector2D m_next_node_pos;
+        size_t m_frame = 0;
 
     public:
         void on_content_browser_close();

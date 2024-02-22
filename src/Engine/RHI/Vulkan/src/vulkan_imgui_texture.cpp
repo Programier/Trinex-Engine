@@ -11,24 +11,24 @@ namespace Engine
 {
     VkDescriptorSet VulkanImGuiTexture::descriptor_set()
     {
-        VulkanTexture* texture = _M_texture->rhi_object<VulkanTexture>();
-        VulkanSampler* sampler = _M_sampler->rhi_object<VulkanSampler>();
+        VulkanTexture* texture = m_texture->rhi_object<VulkanTexture>();
+        VulkanSampler* sampler = m_sampler->rhi_object<VulkanSampler>();
 
         if (texture == nullptr || sampler == nullptr)
         {
             throw EngineException("Cannot initialize imgui texture without sampler or texture");
         }
 
-        if (_M_vk_sampler != sampler || _M_vk_texture != texture)
+        if (m_vk_sampler != sampler || m_vk_texture != texture)
         {
             destroy();
-            _M_set        = ImGui_ImplVulkan_AddTexture(sampler->_M_sampler, texture->_M_image_view,
+            m_set        = ImGui_ImplVulkan_AddTexture(sampler->m_sampler, texture->m_image_view,
                                                         static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal));
-            _M_vk_sampler = sampler;
-            _M_vk_texture = texture;
+            m_vk_sampler = sampler;
+            m_vk_texture = texture;
         }
 
-        return _M_set;
+        return m_set;
     }
 
     void VulkanImGuiTexture::destroy_now()
@@ -38,11 +38,11 @@ namespace Engine
 
     void VulkanImGuiTexture::destroy()
     {
-        if (_M_set != VK_NULL_HANDLE)
+        if (m_set != VK_NULL_HANDLE)
         {
-            ImGui::SetCurrentContext(_M_ctx);
-            ImGui_ImplVulkan_RemoveTexture(_M_set);
-            _M_set = VK_NULL_HANDLE;
+            ImGui::SetCurrentContext(m_ctx);
+            ImGui_ImplVulkan_RemoveTexture(m_set);
+            m_set = VK_NULL_HANDLE;
         }
     }
 

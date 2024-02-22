@@ -114,12 +114,12 @@ namespace Engine
 
 
     ScriptClassRegistrar::ScriptClassRegistrar(class Class* _class)
-        : _M_class_base_name(_class->base_name()), _M_class_namespace_name(_class->namespace_name()),
-          _M_class_name(_class->name()), _M_engine(ScriptEngine::instance()->as_engine())
+        : m_class_base_name(_class->base_name()), m_class_namespace_name(_class->namespace_name()),
+          m_class_name(_class->name()), m_engine(ScriptEngine::instance()->as_engine())
     {
-        _M_info      = {};
-        _M_info.size = _class->sizeof_class();
-        declare_as_class(_class, _M_info);
+        m_info      = {};
+        m_info.size = _class->sizeof_class();
+        declare_as_class(_class, m_info);
     }
 
 
@@ -130,26 +130,26 @@ namespace Engine
     }
 
     ScriptClassRegistrar::ScriptClassRegistrar(const String& full_name, const ClassInfo& info)
-        : _M_class_base_name(Object::object_name_of(full_name)), _M_class_namespace_name(Object::package_name_of(full_name)),
-          _M_class_name(full_name), _M_engine(ScriptEngine::instance()->as_engine())
+        : m_class_base_name(Object::object_name_of(full_name)), m_class_namespace_name(Object::package_name_of(full_name)),
+          m_class_name(full_name), m_engine(ScriptEngine::instance()->as_engine())
     {
-        _M_info = info;
+        m_info = info;
         declare_as_class();
     }
 
     const String& ScriptClassRegistrar::namespace_name() const
     {
-        return _M_class_namespace_name;
+        return m_class_namespace_name;
     }
 
     const String& ScriptClassRegistrar::class_base_name() const
     {
-        return _M_class_base_name;
+        return m_class_base_name;
     }
 
     const String& ScriptClassRegistrar::class_name() const
     {
-        return _M_class_name;
+        return m_class_name;
     }
 
     ENGINE_EXPORT void ScriptClassRegistrar::global_namespace_name(const String& name)
@@ -209,7 +209,7 @@ namespace Engine
     {
 
         prepare_namespace();
-        assert(_M_engine->RegisterObjectMethod(_M_class_base_name.c_str(), declaration, create_function(method, FuncType::Method),
+        assert(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, create_function(method, FuncType::Method),
                                                create_call_conv(conv)) >= 0);
         return release_namespace();
     }
@@ -218,7 +218,7 @@ namespace Engine
                                                                                 ScriptCallConv conv)
     {
         prepare_namespace();
-        assert(_M_engine->RegisterObjectMethod(_M_class_base_name.c_str(), declaration, create_function(method, FuncType::Func),
+        assert(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, create_function(method, FuncType::Func),
                                                create_call_conv(conv)) >= 0);
         return release_namespace();
     }
@@ -227,7 +227,7 @@ namespace Engine
                                                                                ScriptCallConv conv)
     {
         prepare_namespace(true);
-        assert(_M_engine->RegisterGlobalFunction(declaration, create_function(func, FuncType::Func), create_call_conv(conv)) >=
+        assert(m_engine->RegisterGlobalFunction(declaration, create_function(func, FuncType::Func), create_call_conv(conv)) >=
                0);
         return release_namespace();
     }
@@ -235,14 +235,14 @@ namespace Engine
     ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, void* prop)
     {
         prepare_namespace();
-        assert(_M_engine->RegisterObjectProperty(_M_class_base_name.c_str(), declaration, reinterpret_cast<size_t>(prop)) >= 0);
+        assert(m_engine->RegisterObjectProperty(m_class_base_name.c_str(), declaration, reinterpret_cast<size_t>(prop)) >= 0);
         return release_namespace();
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::static_property(const char* declaration, void* prop)
     {
         prepare_namespace(true);
-        assert(_M_engine->RegisterGlobalProperty(declaration, prop) >= 0);
+        assert(m_engine->RegisterGlobalProperty(declaration, prop) >= 0);
         return release_namespace();
     }
 
@@ -258,7 +258,7 @@ namespace Engine
     {
         prepare_namespace();
         asSFuncPtr ptr = create_function(method, is_method ? FuncType::Method : FuncType::Func);
-        assert(_M_engine->RegisterObjectBehaviour(_M_class_base_name.c_str(), create_bahaviour(behave), declaration, ptr,
+        assert(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_bahaviour(behave), declaration, ptr,
                                                   create_call_conv(conv)) >= 0);
         return release_namespace();
     }
@@ -266,58 +266,58 @@ namespace Engine
 
     ScriptClassRegistrar& ScriptClassRegistrar::prepare_namespace(bool static_member)
     {
-        _M_current_namespace = _M_engine->GetDefaultNamespace();
+        m_current_namespace = m_engine->GetDefaultNamespace();
         if (static_member)
         {
-            assert(_M_engine->SetDefaultNamespace(_M_class_name.c_str()) >= 0);
+            assert(m_engine->SetDefaultNamespace(m_class_name.c_str()) >= 0);
         }
         else
         {
-            assert(_M_engine->SetDefaultNamespace(_M_class_namespace_name.c_str()) >= 0);
+            assert(m_engine->SetDefaultNamespace(m_class_namespace_name.c_str()) >= 0);
         }
         return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::release_namespace()
     {
-        assert(_M_engine->SetDefaultNamespace(_M_current_namespace.c_str()) >= 0);
+        assert(m_engine->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
         return *this;
     }
 
     ScriptClassRegistrar& ScriptClassRegistrar::declare_as_class()
     {
-        static_declare_new_class(_M_class_namespace_name, _M_class_base_name, _M_info);
+        static_declare_new_class(m_class_namespace_name, m_class_base_name, m_info);
         return *this;
     }
 
 
     ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name)
-        : _M_enum_base_name(Object::object_name_of(full_name)), _M_enum_namespace_name(Object::package_name_of(full_name)),
-          _M_engine(ScriptEngine::instance()->as_engine())
+        : m_enum_base_name(Object::object_name_of(full_name)), m_enum_namespace_name(Object::package_name_of(full_name)),
+          m_engine(ScriptEngine::instance()->as_engine())
     {
         prepare_namespace();
-        assert(_M_engine->RegisterEnum(_M_enum_base_name.c_str()) >= 0);
+        assert(m_engine->RegisterEnum(m_enum_base_name.c_str()) >= 0);
         release_namespace();
     }
 
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::prepare_namespace()
     {
-        _M_current_namespace = _M_engine->GetDefaultNamespace();
-        assert(_M_engine->SetDefaultNamespace(_M_enum_namespace_name.c_str()) >= 0);
+        m_current_namespace = m_engine->GetDefaultNamespace();
+        assert(m_engine->SetDefaultNamespace(m_enum_namespace_name.c_str()) >= 0);
         return *this;
     }
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::release_namespace()
     {
-        assert(_M_engine->SetDefaultNamespace(_M_current_namespace.c_str()) >= 0);
+        assert(m_engine->SetDefaultNamespace(m_current_namespace.c_str()) >= 0);
         return *this;
     }
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::set(const char* name, int_t value)
     {
         prepare_namespace();
-        assert(_M_engine->RegisterEnumValue(_M_enum_base_name.c_str(), name, value) >= 0);
+        assert(m_engine->RegisterEnumValue(m_enum_base_name.c_str(), name, value) >= 0);
         return release_namespace();
     }
 
@@ -327,7 +327,7 @@ namespace Engine
     {
         asSFuncPtr ptr = create_function(method, is_method ? Method : Func);
         prepare_namespace();
-        assert(_M_engine->RegisterObjectMethod(_M_class_base_name.c_str(), declaration, ptr, create_call_conv(conv)) >= 0);
+        assert(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, ptr, create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 

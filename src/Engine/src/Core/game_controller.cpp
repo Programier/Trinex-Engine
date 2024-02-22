@@ -6,30 +6,30 @@
 
 namespace Engine
 {
-    GameController::GameController(Identifier controller_id) : _M_ID(controller_id)
+    GameController::GameController(Identifier controller_id) : m_ID(controller_id)
     {
         info_log("GameController", "Created game controller %zu", controller_id);
-        std::fill(_M_axis_values, _M_axis_values + Axis::__COUNT__, 0);
+        std::fill(m_axis_values, m_axis_values + Axis::__COUNT__, 0);
     }
 
     Identifier GameController::id() const
     {
-        return _M_ID;
+        return m_ID;
     }
 
     GameController::~GameController()
     {
-        info_log("GameController", "Removed game controller %zu", _M_ID);
+        info_log("GameController", "Removed game controller %zu", m_ID);
     }
 
     short_t GameController::axis_value(Axis axis) const
     {
-        return _M_axis_values[axis];
+        return m_axis_values[axis];
     }
 
     float GameController::axis_value_normalized(Axis axis) const
     {
-        return static_cast<float>(_M_axis_values[axis]) / static_cast<float>(std::numeric_limits<short_t>::max());
+        return static_cast<float>(m_axis_values[axis]) / static_cast<float>(std::numeric_limits<short_t>::max());
     }
 
     static void on_init()

@@ -368,7 +368,7 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
-        return serialize_parameters(_M_material_parameters, archive);
+        return serialize_parameters(m_material_parameters, archive);
     }
 
     Material& Material::preload()
@@ -385,9 +385,9 @@ namespace Engine
 
     MaterialParameter* Material::find_parameter(const Name& name) const
     {
-        auto it = _M_material_parameters.find(name);
+        auto it = m_material_parameters.find(name);
 
-        if (it != _M_material_parameters.end())
+        if (it != m_material_parameters.end())
         {
             return it->second;
         }
@@ -498,7 +498,7 @@ namespace Engine
         {
             param                        = allocator();
             param->name                  = name;
-            _M_material_parameters[name] = param;
+            m_material_parameters[name] = param;
             return param;
         }
 
@@ -512,24 +512,24 @@ namespace Engine
 
     Material& Material::remove_parameter(const Name& name)
     {
-        auto it = _M_material_parameters.find(name);
+        auto it = m_material_parameters.find(name);
 
-        if (it != _M_material_parameters.end())
+        if (it != m_material_parameters.end())
         {
             delete it->second;
-            _M_material_parameters.erase(it);
+            m_material_parameters.erase(it);
         }
         return *this;
     }
 
     Material& Material::clear_parameters()
     {
-        for (auto& [name, param] : _M_material_parameters)
+        for (auto& [name, param] : m_material_parameters)
         {
             delete param;
         }
 
-        _M_material_parameters.clear();
+        m_material_parameters.clear();
         return *this;
     }
 
@@ -624,7 +624,7 @@ namespace Engine
         if (allocator)
         {
             param                        = allocator();
-            _M_material_parameters[name] = param;
+            m_material_parameters[name] = param;
             return param;
         }
         return nullptr;
@@ -634,14 +634,14 @@ namespace Engine
     {
         if (!Super::archive_process(archive))
             return false;
-        return serialize_parameters(_M_material_parameters, archive);
+        return serialize_parameters(m_material_parameters, archive);
     }
 
     MaterialParameter* MaterialInstance::find_parameter(const Name& name) const
     {
-        auto it = _M_material_parameters.find(name);
+        auto it = m_material_parameters.find(name);
 
-        if (it != _M_material_parameters.end())
+        if (it != m_material_parameters.end())
         {
             return it->second;
         }

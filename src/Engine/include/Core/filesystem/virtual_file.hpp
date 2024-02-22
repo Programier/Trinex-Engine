@@ -6,8 +6,8 @@ namespace Engine::VFS
     class ENGINE_EXPORT VirtualFile : public File
     {
     private:
-        void* _M_zip_file_handle = nullptr;
-        Path _M_path;
+        void* m_zip_file_handle = nullptr;
+        Path m_path;
 
         VirtualFile(void* handle, const Path& path);
 

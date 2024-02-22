@@ -9,7 +9,7 @@
 #include <no_api.hpp>
 #endif
 
-#define OPENGL_API Engine::OpenGL::_M_instance
+#define OPENGL_API Engine::OpenGL::m_instance
 
 namespace Engine
 {
@@ -20,20 +20,20 @@ namespace Engine
         public RHI
 #endif
     {
-        static OpenGL* _M_instance;
-        void* _M_context = nullptr;
-        String _M_renderer;
-        struct OpenGL_RenderPass* _M_main_render_pass = nullptr;
+        static OpenGL* m_instance;
+        void* m_context = nullptr;
+        String m_renderer;
+        struct OpenGL_RenderPass* m_main_render_pass = nullptr;
 
         // STATE
-        struct OpenGL_RenderTarget* _M_current_render_target = nullptr;
-        struct OpenGL_Pipeline* _M_current_pipeline          = nullptr;
-        struct OpenGL_IndexBuffer* _M_current_index_buffer   = nullptr;
-        Vector<BindingIndex> _M_sampler_units;
+        struct OpenGL_RenderTarget* m_current_render_target = nullptr;
+        struct OpenGL_Pipeline* m_current_pipeline          = nullptr;
+        struct OpenGL_IndexBuffer* m_current_index_buffer   = nullptr;
+        Vector<BindingIndex> m_sampler_units;
 
-        Vector<GlobalShaderParameters> _M_global_parameters_stack;
-        struct OpenGL_UniformBuffer* _M_global_ubo     = nullptr;
-        struct OpenGL_LocalUniformBuffer* _M_local_ubo = nullptr;
+        Vector<GlobalShaderParameters> m_global_parameters_stack;
+        struct OpenGL_UniformBuffer* m_global_ubo     = nullptr;
+        struct OpenGL_LocalUniformBuffer* m_local_ubo = nullptr;
 
 
         OpenGL();

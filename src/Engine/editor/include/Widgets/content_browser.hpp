@@ -16,13 +16,13 @@ namespace Engine
 
 
         struct PackageTreeNode {
-            Path _M_path;
-            String _M_name;
-            Package* _M_package = nullptr;
-            bool _M_is_builded  = false;
-            bool _M_is_package  = false;
+            Path m_path;
+            String m_name;
+            Package* m_package = nullptr;
+            bool m_is_builded  = false;
+            bool m_is_package  = false;
 
-            TreeMap<String, PackageTreeNode*> _M_childs;
+            TreeMap<String, PackageTreeNode*> m_childs;
             void clean();
             void rebuild();
             PackageNodeType type() const;
@@ -44,13 +44,13 @@ namespace Engine
         void create_dock_space();
         void rebuild_package_tree(const Path& selected);
 
-        PackageTreeNode* _M_show_popup_for   = nullptr;
-        PackageTreeNode* _M_root             = nullptr;
-        PackageTreeNode* _M_selected_package = nullptr;
+        PackageTreeNode* m_show_popup_for   = nullptr;
+        PackageTreeNode* m_root             = nullptr;
+        PackageTreeNode* m_selected_package = nullptr;
 
-        bool _M_show_context_menu = false;
+        bool m_show_context_menu = false;
 
-        ImGuiID _M_dock_window_id;
+        ImGuiID m_dock_window_id;
 
 
     public:

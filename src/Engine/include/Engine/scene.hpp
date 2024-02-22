@@ -29,12 +29,12 @@ namespace Engine
         List<MethodCallback> methods_callback;
 
     private:
-        Set<PrimitiveComponent*> _M_components;
+        Set<PrimitiveComponent*> m_components;
 
-        SceneLayer* _M_parent = nullptr;
-        SceneLayer* _M_next   = nullptr;
-        Name _M_name;
-        bool _M_can_create_parent = true;
+        SceneLayer* m_parent = nullptr;
+        SceneLayer* m_next   = nullptr;
+        Name m_name;
+        bool m_can_create_parent = true;
 
 
         SceneLayer(const Name& name);
@@ -66,15 +66,15 @@ namespace Engine
         using SceneOctree = Octree<PrimitiveComponent*>;
 
     private:
-        SceneLayer* _M_root_layer         = nullptr;
-        SceneLayer* _M_clear_layer        = nullptr;
-        SceneLayer* _M_base_pass_layer    = nullptr;
-        SceneLayer* _M_lighting_layer     = nullptr;
-        SceneLayer* _M_scene_output       = nullptr;
-        SceneLayer* _M_post_process_layer = nullptr;
+        SceneLayer* m_root_layer         = nullptr;
+        SceneLayer* m_clear_layer        = nullptr;
+        SceneLayer* m_base_pass_layer    = nullptr;
+        SceneLayer* m_lighting_layer     = nullptr;
+        SceneLayer* m_scene_output       = nullptr;
+        SceneLayer* m_post_process_layer = nullptr;
 
-        SceneOctree _M_octree;
-        Pointer<SceneComponent> _M_root_component;
+        SceneOctree m_octree;
+        Pointer<SceneComponent> m_root_component;
 
         Scene& build_views_internal(SceneRenderer* renderer, SceneOctree::Node* node);
 
@@ -89,32 +89,32 @@ namespace Engine
 
         FORCE_INLINE SceneLayer* root_layer() const
         {
-            return _M_root_layer;
+            return m_root_layer;
         }
 
         FORCE_INLINE SceneLayer* clear_layer() const
         {
-            return _M_clear_layer;
+            return m_clear_layer;
         }
 
         FORCE_INLINE SceneLayer* base_pass_layer() const
         {
-            return _M_base_pass_layer;
+            return m_base_pass_layer;
         }
 
         FORCE_INLINE SceneLayer* lighting_layer() const
         {
-            return _M_lighting_layer;
+            return m_lighting_layer;
         }
 
         FORCE_INLINE SceneLayer* scene_output_layer() const
         {
-            return _M_scene_output;
+            return m_scene_output;
         }
 
         FORCE_INLINE SceneLayer* post_process_layer() const
         {
-            return _M_post_process_layer;
+            return m_post_process_layer;
         }
     };
 }// namespace Engine

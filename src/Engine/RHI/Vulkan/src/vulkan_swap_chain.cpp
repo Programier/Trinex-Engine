@@ -15,11 +15,11 @@ namespace Engine
     SwapChain::~SwapChain()
     {
         vulkan_info_log("Vulkan API", "Destroy swapchain");
-        for (auto& view : _M_image_views)
+        for (auto& view : m_image_views)
         {
-            API->_M_device.destroyImageView(view);
+            API->m_device.destroyImageView(view);
         }
-        vkb::destroy_swapchain(_M_bootstrap_swapchain);
+        vkb::destroy_swapchain(m_bootstrap_swapchain);
     }
 
 }// namespace Engine

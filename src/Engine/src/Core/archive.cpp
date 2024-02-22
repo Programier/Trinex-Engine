@@ -9,29 +9,29 @@ namespace Engine
         return Object::load_object(name);
     }
 
-    Archive::Archive() : _M_reader(nullptr), _M_is_saving(false), _M_process_status(false)
+    Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false)
     {}
 
-    Archive::Archive(BufferReader* reader) : _M_is_saving(false)
+    Archive::Archive(BufferReader* reader) : m_is_saving(false)
     {
-        _M_reader = reader;
+        m_reader = reader;
         if (reader == nullptr)
         {
             throw EngineException("Archive: Reader can't be nullptr!");
         }
 
-        _M_process_status = _M_reader->is_open();
+        m_process_status = m_reader->is_open();
     }
 
-    Archive::Archive(BufferWriter* writer) : _M_is_saving(true)
+    Archive::Archive(BufferWriter* writer) : m_is_saving(true)
     {
-        _M_writer = writer;
+        m_writer = writer;
         if (writer == nullptr)
         {
             throw EngineException("Archive: Writer can't be nullptr!");
         }
 
-        _M_process_status = _M_writer->is_open();
+        m_process_status = m_writer->is_open();
     }
 
     Archive::Archive(Archive&& other)
@@ -44,42 +44,42 @@ namespace Engine
         if (this == &other)
             return *this;
 
-        _M_reader         = other._M_reader;
-        _M_process_status = other._M_process_status;
-        _M_is_saving      = other._M_is_saving;
+        m_reader         = other.m_reader;
+        m_process_status = other.m_process_status;
+        m_is_saving      = other.m_is_saving;
 
-        other._M_process_status = false;
-        other._M_reader         = nullptr;
-        other._M_is_saving      = false;
+        other.m_process_status = false;
+        other.m_reader         = nullptr;
+        other.m_is_saving      = false;
 
         return *this;
     }
 
     bool Archive::is_saving() const
     {
-        return _M_is_saving && _M_writer;
+        return m_is_saving && m_writer;
     }
 
     bool Archive::is_reading() const
     {
-        return !_M_is_saving && _M_reader;
+        return !m_is_saving && m_reader;
     }
 
     BufferReader* Archive::reader() const
     {
-        return _M_is_saving ? nullptr : _M_reader;
+        return m_is_saving ? nullptr : m_reader;
     }
 
     BufferWriter* Archive::writer() const
     {
-        return _M_is_saving ? _M_writer : nullptr;
+        return m_is_saving ? m_writer : nullptr;
     }
 
     Archive& Archive::write_data(const byte* data, size_t size)
     {
         if (is_saving())
         {
-            _M_writer->write(data, size);
+            m_writer->write(data, size);
         }
 
         return *this;
@@ -89,7 +89,7 @@ namespace Engine
     {
         if (is_reading())
         {
-            _M_reader->read(data, size);
+            m_reader->read(data, size);
         }
 
         return *this;

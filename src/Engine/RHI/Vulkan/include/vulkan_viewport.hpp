@@ -9,19 +9,19 @@ namespace Engine
     struct VulkanViewport : public RHI_Viewport {
 
         struct SyncObject {
-            vk::Semaphore _M_image_present;
-            vk::Semaphore _M_render_finished;
-            vk::Fence _M_fence;
+            vk::Semaphore m_image_present;
+            vk::Semaphore m_render_finished;
+            vk::Fence m_fence;
 
             SyncObject();
             ~SyncObject();
         };
 
-        Vector<vk::CommandBuffer> _M_command_buffers;
-        Vector<SyncObject> _M_sync_objects;
-        std::vector<VkImageView> _M_image_views;
-        struct VulkanRenderTarget* _M_render_target = nullptr;
-        uint32_t _M_buffer_index                    = 0;
+        Vector<vk::CommandBuffer> m_command_buffers;
+        Vector<SyncObject> m_sync_objects;
+        std::vector<VkImageView> m_image_views;
+        struct VulkanRenderTarget* m_render_target = nullptr;
+        uint32_t m_buffer_index                    = 0;
 
 
         void init();
@@ -51,12 +51,12 @@ namespace Engine
 
     struct VulkanWindowViewport : VulkanViewport {
 
-        vk::PresentModeKHR _M_present_mode;
-        WindowInterface* _M_window   = nullptr;
-        vkb::Swapchain* _M_swapchain = nullptr;
-        vk::SurfaceKHR _M_surface;
-        std::vector<VkImage> _M_images;
-        bool _M_need_recreate_swap_chain = false;
+        vk::PresentModeKHR m_present_mode;
+        WindowInterface* m_window   = nullptr;
+        vkb::Swapchain* m_swapchain = nullptr;
+        vk::SurfaceKHR m_surface;
+        std::vector<VkImage> m_images;
+        bool m_need_recreate_swap_chain = false;
 
         VulkanViewport* init(WindowInterface* window, bool vsync, bool need_initialize);
 

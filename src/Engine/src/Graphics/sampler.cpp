@@ -36,7 +36,7 @@ namespace Engine
 
     Sampler& Sampler::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_sampler(this));
+        m_rhi_object.reset(engine_instance->rhi()->create_sampler(this));
         return *this;
     }
 

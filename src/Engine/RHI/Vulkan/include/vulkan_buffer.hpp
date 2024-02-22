@@ -5,11 +5,11 @@
 namespace Engine
 {
     struct VulkanBuffer {
-        vk::Buffer _M_buffer;
-        vk::DeviceMemory _M_memory;
-        vk::DeviceSize _M_size;
-        vk::DeviceSize _M_offset = 0;
-        byte* _M_mapped_data     = nullptr;
+        vk::Buffer m_buffer;
+        vk::DeviceMemory m_memory;
+        vk::DeviceSize m_size;
+        vk::DeviceSize m_offset = 0;
+        byte* m_mapped_data     = nullptr;
 
 
         VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);
@@ -21,7 +21,7 @@ namespace Engine
     };
 
     struct VulkanVertexBuffer : RHI_VertexBuffer {
-        VulkanBuffer _M_buffer;
+        VulkanBuffer m_buffer;
 
         VulkanVertexBuffer& create(const byte* data, size_t size);
 
@@ -30,8 +30,8 @@ namespace Engine
     };
 
     struct VulkanIndexBuffer : public RHI_IndexBuffer {
-        VulkanBuffer _M_buffer;
-        vk::IndexType _M_index_type;
+        VulkanBuffer m_buffer;
+        vk::IndexType m_index_type;
 
         VulkanIndexBuffer& create(const byte* data, size_t size, IndexBufferComponent component);
 
@@ -40,7 +40,7 @@ namespace Engine
     };
 
     struct VulkanSSBO : public RHI_SSBO {
-        VulkanBuffer _M_buffer;
+        VulkanBuffer m_buffer;
 
         VulkanSSBO& create(const byte* data, size_t size);
         void bind(BindLocation location) override;

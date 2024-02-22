@@ -14,14 +14,14 @@ namespace Engine
     class ENGINE_EXPORT SceneRenderer final
     {
     private:
-        class Scene* _M_scene;
+        class Scene* m_scene;
 
-        CameraView _M_camera_view;
-        Matrix4f _M_projection;
-        Matrix4f _M_view;
-        Matrix4f _M_projview;
-        Matrix4f _M_inv_projview;
-        Size2D _M_size;
+        CameraView m_camera_view;
+        Matrix4f m_projection;
+        Matrix4f m_view;
+        Matrix4f m_projview;
+        Matrix4f m_inv_projview;
+        Size2D m_size;
 
 
     public:
@@ -45,32 +45,32 @@ namespace Engine
 
         FORCE_INLINE const Matrix4f& view_matrix() const
         {
-            return _M_view;
+            return m_view;
         }
 
         FORCE_INLINE const Matrix4f& projection_matrix() const
         {
-            return _M_projection;
+            return m_projection;
         }
 
         FORCE_INLINE const Matrix4f& projview_matrix() const
         {
-            return _M_projview;
+            return m_projview;
         }
 
         FORCE_INLINE const Matrix4f& inv_projview_matrix() const
         {
-            return _M_inv_projview;
+            return m_inv_projview;
         }
 
         FORCE_INLINE const CameraView& camera_view() const
         {
-            return _M_camera_view;
+            return m_camera_view;
         }
 
         FORCE_INLINE const Size2D& view_size() const
         {
-            return _M_size;
+            return m_size;
         }
 
         ~SceneRenderer();

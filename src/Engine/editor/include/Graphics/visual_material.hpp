@@ -333,9 +333,9 @@ namespace Engine
         declare_class(VisualMaterial, Material);
 
     private:
-        MaterialNode* _M_vertex_node   = nullptr;
-        MaterialNode* _M_fragment_node = nullptr;
-        Vector<MaterialNode*> _M_nodes;
+        MaterialNode* m_vertex_node   = nullptr;
+        MaterialNode* m_fragment_node = nullptr;
+        Vector<MaterialNode*> m_nodes;
 
 
     public:
@@ -356,7 +356,7 @@ namespace Engine
         Type* create_node(const Vector2D& position = {})
         {
             Type* node = new Type();
-            _M_nodes.push_back(node);
+            m_nodes.push_back(node);
             node->material = this;
             node->position = position;
             return node;

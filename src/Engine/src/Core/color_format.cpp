@@ -31,7 +31,7 @@ namespace Engine
     const ColorFormatFeatures& ColorFormatInfo::features() const
     {
         static ColorFormatFeatures default_features;
-        auto it = static_color_format_features().find(static_cast<ColorFormat>(_M_value));
+        auto it = static_color_format_features().find(static_cast<ColorFormat>(m_value));
 
         if (it != static_color_format_features().end())
         {

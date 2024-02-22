@@ -8,8 +8,8 @@ namespace Engine
     class ENGINE_EXPORT AABB_3Df
     {
     private:
-        Vector3D _M_min;
-        Vector3D _M_max;
+        Vector3D m_min;
+        Vector3D m_max;
 
 
     public:

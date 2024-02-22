@@ -10,27 +10,27 @@ namespace Engine
 {
 
     struct BeginRenderCommand : public ExecutableObject {
-        RHI* _M_rhi;
+        RHI* m_rhi;
 
-        BeginRenderCommand(RHI* rhi) : _M_rhi(rhi)
+        BeginRenderCommand(RHI* rhi) : m_rhi(rhi)
         {}
 
         int_t execute() override
         {
-            _M_rhi->begin_render();
+            m_rhi->begin_render();
             return sizeof(BeginRenderCommand);
         }
     };
 
     struct EndRenderCommand : public ExecutableObject {
-        RHI* _M_rhi;
+        RHI* m_rhi;
 
-        EndRenderCommand(RHI* rhi) : _M_rhi(rhi)
+        EndRenderCommand(RHI* rhi) : m_rhi(rhi)
         {}
 
         int_t execute() override
         {
-            _M_rhi->end_render();
+            m_rhi->end_render();
             return sizeof(EndRenderCommand);
         }
     };
@@ -58,7 +58,7 @@ namespace Engine
 
             float prev_time    = 1.0f / static_cast<float>(engine_config.fps_limit);
             float current_time = 0.0f;
-            _M_delta_time      = 0.0f;
+            m_delta_time      = 0.0f;
 
             while (!is_requesting_exit())
             {
@@ -72,12 +72,12 @@ namespace Engine
                 }
 
                 current_time  = time_seconds();
-                _M_delta_time = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * _M_delta_time;
+                m_delta_time = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * m_delta_time;
                 prev_time     = current_time;
 
-                _M_current_gc_stage = Object::collect_garbage(_M_current_gc_stage);
+                m_current_gc_stage = Object::collect_garbage(m_current_gc_stage);
 
-                engine_system->update(_M_delta_time);
+                engine_system->update(m_delta_time);
                 engine_system->wait();
 
                 // Update Viewports
@@ -86,21 +86,21 @@ namespace Engine
 
                 for (auto& viewport : viewports)
                 {
-                    viewport->update(_M_delta_time);
+                    viewport->update(m_delta_time);
                 }
 
                 render_thread->wait_all();
 
-                render_thread->insert_new_task<BeginRenderCommand>(_M_rhi);
+                render_thread->insert_new_task<BeginRenderCommand>(m_rhi);
 
                 for (auto& viewport : viewports)
                 {
                     viewport->render();
                 }
 
-                render_thread->insert_new_task<EndRenderCommand>(_M_rhi);
+                render_thread->insert_new_task<EndRenderCommand>(m_rhi);
 
-                ++_M_frame_index;
+                ++m_frame_index;
             }
 
             return 0;

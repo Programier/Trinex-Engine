@@ -13,21 +13,21 @@ namespace Engine
         using GroupedPropertiesMap = TreeMap<Name, Vector<class Property*>, Name::Less>;
 
     private:
-        void* (*_M_struct_constructor)() = nullptr;
+        void* (*m_struct_constructor)() = nullptr;
 
     protected:
-        String _M_base_name_splitted;
+        String m_base_name_splitted;
 
-        Name _M_full_name;
-        Name _M_namespace_name;
-        Name _M_base_name;
-        Name _M_parent;
-        class Group* _M_group = nullptr;
+        Name m_full_name;
+        Name m_namespace_name;
+        Name m_base_name;
+        Name m_parent;
+        class Group* m_group = nullptr;
 
-        mutable Struct* _M_parent_struct = nullptr;
+        mutable Struct* m_parent_struct = nullptr;
 
-        Vector<class Property*> _M_properties;
-        GroupedPropertiesMap _M_grouped_properties;
+        Vector<class Property*> m_properties;
+        GroupedPropertiesMap m_grouped_properties;
 
         Struct(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
         Struct(const Name& name, const Name& namespace_name, Struct* parent);

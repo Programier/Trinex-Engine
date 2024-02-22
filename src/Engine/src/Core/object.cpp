@@ -19,7 +19,7 @@
 namespace Engine
 {
 
-    static thread_local bool _M_next_available_for_gc = false;
+    static thread_local bool m_next_available_for_gc = false;
 
     implement_class(Object, Engine, Class::IsScriptable);
 
@@ -105,7 +105,7 @@ namespace Engine
 
     void Object::prepare_next_object_for_gc()
     {
-        _M_next_available_for_gc = true;
+        m_next_available_for_gc = true;
     }
 
     static Vector<Index>& get_free_indexes_array()
@@ -121,16 +121,16 @@ namespace Engine
     }
 
 
-    static Package* _M_root_package = nullptr;
+    static Package* m_root_package = nullptr;
 
     void Object::create_default_package()
     {
-        if (_M_root_package == nullptr)
+        if (m_root_package == nullptr)
         {
-            _M_root_package = new Package();
-            _M_root_package->name("Root Package");
-            _M_root_package->flags(IsSerializable, false);
-            _M_root_package->add_reference();
+            m_root_package = new Package();
+            m_root_package->name("Root Package");
+            m_root_package->flags(IsSerializable, false);
+            m_root_package->add_reference();
         }
     }
 
@@ -145,17 +145,17 @@ namespace Engine
     }
 
 
-    Object::Object() : _M_package(nullptr), _M_references(0), _M_instance_index(Constants::index_none)
+    Object::Object() : m_package(nullptr), m_references(0), m_instance_index(Constants::index_none)
     {
-        _M_owner                   = nullptr;
+        m_owner                   = nullptr;
         ObjectArray& objects_array = get_instances_array();
-        _M_instance_index          = objects_array.size();
+        m_instance_index          = objects_array.size();
 
         if (!get_free_indexes_array().empty())
         {
-            _M_instance_index = get_free_indexes_array().back();
+            m_instance_index = get_free_indexes_array().back();
             get_free_indexes_array().pop_back();
-            objects_array[_M_instance_index] = this;
+            objects_array[m_instance_index] = this;
         }
         else
         {
@@ -165,8 +165,8 @@ namespace Engine
 
         flags(Flag::IsSerializable, true);
         flags(Flag::IsEditable, true);
-        flags(Flag::IsAvailableForGC, _M_next_available_for_gc);
-        _M_next_available_for_gc = false;
+        flags(Flag::IsAvailableForGC, m_next_available_for_gc);
+        m_next_available_for_gc = false;
     }
 
     ENGINE_EXPORT HashIndex Object::hash_of_name(const StringView& name)
@@ -176,7 +176,7 @@ namespace Engine
 
     HashIndex Object::hash_index() const
     {
-        return _M_name.hash();
+        return m_name.hash();
     }
 
     ENGINE_EXPORT String Object::package_name_of(const StringView& name)
@@ -214,14 +214,14 @@ namespace Engine
 
     const Object& Object::remove_from_instances_array() const
     {
-        if (_M_instance_index < get_instances_array().size())
+        if (m_instance_index < get_instances_array().size())
         {
-            get_instances_array()[_M_instance_index] = nullptr;
+            get_instances_array()[m_instance_index] = nullptr;
             if (!engine_instance->is_shuting_down())
             {
-                get_free_indexes_array().push_back(_M_instance_index);
+                get_free_indexes_array().push_back(m_instance_index);
             }
-            _M_instance_index = Constants::max_size;
+            m_instance_index = Constants::max_size;
         }
         return *this;
     }
@@ -236,10 +236,10 @@ namespace Engine
     {
         if (flags(Flag::IsDestructed) == false)
         {
-            if (_M_package)
+            if (m_package)
             {
-                _M_package->remove_object(this);
-                _M_package = nullptr;
+                m_package->remove_object(this);
+                m_package = nullptr;
             }
             remove_from_instances_array();
             flags(Flag::IsDestructed, true);
@@ -248,20 +248,20 @@ namespace Engine
 
     const String& Object::string_name() const
     {
-        return _M_name.to_string();
+        return m_name.to_string();
     }
 
 
     ObjectRenameStatus Object::name(StringView new_name, bool autorename)
     {
-        if (_M_name == new_name)
+        if (m_name == new_name)
             return ObjectRenameStatus::Skipped;
 
-        Package* package_backup = _M_package;
-        Name name_backup        = _M_name;
+        Package* package_backup = m_package;
+        Name name_backup        = m_name;
 
         auto restore_object_name = [&package_backup, &name_backup, this]() {
-            _M_name = name_backup;
+            m_name = name_backup;
             if (package_backup)
             {
                 package_backup->add_object(this);
@@ -269,7 +269,7 @@ namespace Engine
         };
 
 
-        Package* package = _M_package;
+        Package* package = m_package;
         if (package)
         {
             package->remove_object(this);
@@ -307,7 +307,7 @@ namespace Engine
         }
 
         // Apply new object name
-        _M_name = new_name;
+        m_name = new_name;
 
         if (package)
         {
@@ -324,7 +324,7 @@ namespace Engine
 
     const Name& Object::name() const
     {
-        return _M_name;
+        return m_name;
     }
 
     Object* Object::copy()
@@ -349,8 +349,8 @@ namespace Engine
 
     Object& Object::remove_from_package()
     {
-        if (_M_package && _M_package != _M_root_package)
-            _M_package->remove_object(this);
+        if (m_package && m_package != m_root_package)
+            m_package->remove_object(this);
         return *this;
     }
 
@@ -362,17 +362,17 @@ namespace Engine
 
     Package* Object::package() const
     {
-        return _M_package;
+        return m_package;
     }
 
 
     String Object::full_name(bool override_by_owner) const
     {
         static auto object_name_of = [](const Object* object) -> String {
-            if (object->_M_name.is_valid())
-                return object->_M_name.to_string();
+            if (object->m_name.is_valid())
+                return object->m_name.to_string();
 
-            return Strings::format("Noname object {}", object->_M_instance_index);
+            return Strings::format("Noname object {}", object->m_instance_index);
         };
 
         static auto parent_object_of = [](const Object* object, bool override_by_owner) -> Object* {
@@ -396,9 +396,9 @@ namespace Engine
         while (current)
         {
             result  = Strings::format("{}{}{}",
-                                      (current->_M_name.is_valid()
-                                               ? current->_M_name.to_string()
-                                               : Strings::format("Noname object {}", current->_M_instance_index)),
+                                      (current->m_name.is_valid()
+                                               ? current->m_name.to_string()
+                                               : Strings::format("Noname object {}", current->m_instance_index)),
                                       Constants::name_separator, result);
             current = parent_object_of(current, override_by_owner);
         }
@@ -408,33 +408,33 @@ namespace Engine
 
     Counter Object::references() const
     {
-        return _M_references;
+        return m_references;
     }
 
     void Object::add_reference()
     {
-        ++_M_references;
+        ++m_references;
     }
 
     void Object::remove_reference()
     {
-        --_M_references;
+        --m_references;
     }
 
     bool Object::is_noname() const
     {
-        return !_M_name.is_valid();
+        return !m_name.is_valid();
     }
 
 
     ENGINE_EXPORT const Package* root_package()
     {
-        return _M_root_package;
+        return m_root_package;
     }
 
     ENGINE_EXPORT Object* Object::find_object(const StringView& object_name)
     {
-        return _M_root_package->find_object(object_name);
+        return m_root_package->find_object(object_name);
     }
 
     Object& Object::preload()
@@ -454,12 +454,12 @@ namespace Engine
 
     Object* Object::owner() const
     {
-        return _M_owner;
+        return m_owner;
     }
 
     Object& Object::owner(Object* new_owner)
     {
-        _M_owner = new_owner;
+        m_owner = new_owner;
         return *this;
     }
 
@@ -502,12 +502,12 @@ namespace Engine
     String Object::as_string() const
     {
         return Strings::format("{}: {}", class_instance()->name().c_str(),
-                               _M_name.is_valid() ? _M_name.to_string().c_str() : "NoName");
+                               m_name.is_valid() ? m_name.to_string().c_str() : "NoName");
     }
 
     Index Object::instance_index() const
     {
-        return _M_instance_index;
+        return m_instance_index;
     }
 
     bool Object::archive_process(Archive& archive)
@@ -537,7 +537,7 @@ namespace Engine
         const Package* pkg = instance_cast<Package>();
         if (!pkg)
         {
-            pkg = _M_package;
+            pkg = m_package;
         }
 
         if (!pkg || pkg == root_package())
@@ -573,6 +573,6 @@ namespace Engine
     Package* Object::root_package()
     {
         Object::create_default_package();
-        return _M_root_package;
+        return m_root_package;
     }
 }// namespace Engine

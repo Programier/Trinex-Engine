@@ -10,8 +10,8 @@ namespace Engine
 
 
     struct BindedDesriptorSet {
-        VulkanDescriptorSet* _M_current_set = nullptr;
-        Index _M_current_descriptor_index   = 0;
+        VulkanDescriptorSet* m_current_set = nullptr;
+        Index m_current_descriptor_index   = 0;
     };
 
     struct VulkanPipeline : public RHI_Pipeline {
@@ -26,16 +26,16 @@ namespace Engine
             vk::SampleMask sample_mask;
         };
 
-        VulkanUniquePerFrame<VulkanDescriptorPool> _M_descriptor_pool;
-        VulkanUniquePerFrame<Vector<Vector<VulkanDescriptorSet*>>> _M_descriptor_sets;
+        VulkanUniquePerFrame<VulkanDescriptorPool> m_descriptor_pool;
+        VulkanUniquePerFrame<Vector<Vector<VulkanDescriptorSet*>>> m_descriptor_sets;
 
-        Vector<vk::DescriptorSetLayout> _M_descriptor_set_layout;
-        Vector<BindedDesriptorSet> _M_binded_descriptor_sets;
+        Vector<vk::DescriptorSetLayout> m_descriptor_set_layout;
+        Vector<BindedDesriptorSet> m_binded_descriptor_sets;
 
-        vk::Pipeline _M_pipeline;
-        vk::PipelineLayout _M_pipeline_layout;
+        vk::Pipeline m_pipeline;
+        vk::PipelineLayout m_pipeline_layout;
 
-        size_t _M_last_frame = 0;
+        size_t m_last_frame = 0;
 
         VulkanPipeline& create(const Pipeline* pipeline);
         VulkanPipeline& destroy();

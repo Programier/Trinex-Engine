@@ -63,7 +63,7 @@ namespace Engine
     class ENGINE_EXPORT PropertyValue : public Any
     {
     private:
-        PropertyType _M_type = PropertyType::Undefined;
+        PropertyType m_type = PropertyType::Undefined;
 
     public:
         PropertyValue();
@@ -71,7 +71,7 @@ namespace Engine
         template<typename T>
         PropertyValue(T&& value, PropertyType type) : Any(std::move(value))
         {
-            _M_type = type;
+            m_type = type;
         }
 
         PropertyValue(const PropertyValue&);
@@ -137,10 +137,10 @@ namespace Engine
         };
 
     protected:
-        Name _M_name;
-        Name _M_group;
-        String _M_description;
-        Flags<Property::Flag> _M_flags;
+        Name m_name;
+        Name m_group;
+        String m_description;
+        Flags<Property::Flag> m_flags;
 
         bool serialize_properies(class Struct* self, void* object, Archive& ar);
 
@@ -174,7 +174,7 @@ namespace Engine
     class PrimitivePropertyBase : public Property
     {
     protected:
-        DataType InstanceType::*_M_prop = nullptr;
+        DataType InstanceType::*m_prop = nullptr;
 
     public:
         PrimitivePropertyBase(const Name& name, const String& description, const Name& group = Name::none, BitMask flags = 0)
@@ -183,22 +183,22 @@ namespace Engine
 
         void* prop_address(void* object) override
         {
-            if (_M_prop == nullptr)
+            if (m_prop == nullptr)
                 return object;
 
             if (object == nullptr)
                 return nullptr;
-            return &(reinterpret_cast<InstanceType*>(object)->*_M_prop);
+            return &(reinterpret_cast<InstanceType*>(object)->*m_prop);
         }
 
         const void* prop_address(const void* object) const override
         {
-            if (_M_prop == nullptr)
+            if (m_prop == nullptr)
                 return object;
 
             if (object == nullptr)
                 return nullptr;
-            return &(reinterpret_cast<const InstanceType*>(object)->*_M_prop);
+            return &(reinterpret_cast<const InstanceType*>(object)->*m_prop);
         }
     };
 
@@ -215,15 +215,15 @@ namespace Engine
                           const Name& group = Name::none, BitMask flags = 0)
             : PrimitivePropertyBase<InstanceType, DataType>(name, description, group, flags)
         {
-            Super::_M_prop = prop;
+            Super::m_prop = prop;
 
             if constexpr (std::is_const_v<DataType>)
             {
-                Super::_M_flags(Super::IsNativeConst, true);
+                Super::m_flags(Super::IsNativeConst, true);
             }
             else
             {
-                Super::_M_flags(Super::IsNativeConst, false);
+                Super::m_flags(Super::IsNativeConst, false);
             }
         }
 
@@ -474,19 +474,19 @@ namespace Engine
     class EnumProperty : public PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>
     {
     private:
-        class Enum* _M_enum;
+        class Enum* m_enum;
 
     public:
         EnumProperty(const Name& name, const String& description, EnumType InstanceType::*prop, class Enum* _enum,
                      const Name& group = Name::none, BitMask flags = 0)
             : PrimitiveProperty<InstanceType, EnumType, EnumerateType, PropertyType::Enum>(name, description, prop, group, flags)
         {
-            _M_enum = _enum;
+            m_enum = _enum;
         }
 
         class Enum* enum_instance() override
         {
-            return _M_enum;
+            return m_enum;
         }
 
         size_t size() const override
@@ -562,7 +562,7 @@ namespace Engine
     class StructProperty : public PrimitivePropertyBase<InstanceType, StructType>
     {
     private:
-        Struct* _M_struct = nullptr;
+        Struct* m_struct = nullptr;
 
         using Super = PrimitivePropertyBase<InstanceType, StructType>;
 
@@ -571,16 +571,16 @@ namespace Engine
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, group, flags)
         {
-            Super::_M_prop = prop;
-            _M_struct      = _struct;
+            Super::m_prop = prop;
+            m_struct      = _struct;
 
             if constexpr (std::is_const_v<StructType>)
             {
-                Super::_M_flags(Super::IsConst, true);
+                Super::m_flags(Super::IsConst, true);
             }
             else
             {
-                Super::_M_flags(Super::IsNativeConst, true);
+                Super::m_flags(Super::IsNativeConst, true);
             }
         }
 
@@ -590,7 +590,7 @@ namespace Engine
 
             if (instance)
             {
-                return PropertyValue(StructPropertyValue(instance, _M_struct), PropertyType::Struct);
+                return PropertyValue(StructPropertyValue(instance, m_struct), PropertyType::Struct);
             }
 
             return {};
@@ -603,7 +603,7 @@ namespace Engine
                 return false;
 
             StructPropertyValue value = property_value.struct_v();
-            if (value.struct_instance != _M_struct)
+            if (value.struct_instance != m_struct)
                 return false;
 
 
@@ -632,14 +632,14 @@ namespace Engine
             object = Super::prop_address(object);
             if (object)
             {
-                return Super::serialize_properies(_M_struct, object, ar);
+                return Super::serialize_properies(m_struct, object, ar);
             }
             return false;
         }
 
         Struct* struct_instance() override
         {
-            return _M_struct;
+            return m_struct;
         }
     };
 
@@ -664,8 +664,8 @@ namespace Engine
     class ArrayProperty : public ArrayPropertyInterface
     {
     private:
-        ArrayType InstanceType::*_M_prop;
-        Property* _M_element_property;
+        ArrayType InstanceType::*m_prop;
+        Property* m_element_property;
 
         using Super = ArrayPropertyInterface;
 
@@ -674,13 +674,13 @@ namespace Engine
                       class Property* element_property, const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, group, flags)
         {
-            _M_prop             = prop;
-            _M_element_property = element_property;
+            m_prop             = prop;
+            m_element_property = element_property;
         }
 
         Property* element_type() const override
         {
-            return _M_element_property;
+            return m_element_property;
         }
 
         void* at(void* object, Index index) override
@@ -763,22 +763,22 @@ namespace Engine
 
         void* prop_address(void* object) override
         {
-            if (_M_prop == nullptr)
+            if (m_prop == nullptr)
                 return object;
 
             if (object == nullptr)
                 return nullptr;
-            return &(reinterpret_cast<InstanceType*>(object)->*_M_prop);
+            return &(reinterpret_cast<InstanceType*>(object)->*m_prop);
         }
 
         const void* prop_address(const void* object) const override
         {
-            if (_M_prop == nullptr)
+            if (m_prop == nullptr)
                 return object;
 
             if (object == nullptr)
                 return nullptr;
-            return &(reinterpret_cast<const InstanceType*>(object)->*_M_prop);
+            return &(reinterpret_cast<const InstanceType*>(object)->*m_prop);
         }
 
         ArrayType* array_from(void* object)
@@ -796,7 +796,7 @@ namespace Engine
             auto array = prop_address(object);
             if (array)
             {
-                return PropertyValue(ArrayPropertyValue(array, _M_element_property), PropertyType::Array);
+                return PropertyValue(ArrayPropertyValue(array, m_element_property), PropertyType::Array);
             }
 
             return {};
@@ -824,7 +824,7 @@ namespace Engine
 
         ~ArrayProperty()
         {
-            delete _M_element_property;
+            delete m_element_property;
         }
     };
 }// namespace Engine

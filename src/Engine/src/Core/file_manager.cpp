@@ -24,16 +24,16 @@ namespace Engine
             flags(FileOpenMode::Trunc, true);
         }
 
-        _M_file = rootfs()->open(filename, flags);
+        m_file = rootfs()->open(filename, flags);
         return is_open();
     }
 
     FileWriter& FileWriter::close()
     {
-        if (_M_file)
+        if (m_file)
         {
-            delete _M_file;
-            _M_file = nullptr;
+            delete m_file;
+            m_file = nullptr;
         }
         return *this;
     }
@@ -41,7 +41,7 @@ namespace Engine
 
     bool FileWriter::is_open() const
     {
-        return _M_file != nullptr && _M_file->is_open();
+        return m_file != nullptr && m_file->is_open();
     }
 
 
@@ -54,9 +54,9 @@ namespace Engine
     const Path& FileWriter::filename() const
     {
         static const Path path;
-        if (_M_file)
+        if (m_file)
         {
-            return _M_file->path();
+            return m_file->path();
         }
         return path;
     }
@@ -65,7 +65,7 @@ namespace Engine
     bool FileWriter::write(const byte* data, size_t size)
     {
         if (is_open())
-            return static_cast<bool>(_M_file->write(data, size)) == size;
+            return static_cast<bool>(m_file->write(data, size)) == size;
         return false;
     }
 
@@ -74,14 +74,14 @@ namespace Engine
     {
         if (!is_open())
             return 0;
-        return _M_file->write_position();
+        return m_file->write_position();
     }
 
     FileWriter& FileWriter::offset(PosOffset offset, BufferSeekDir dir)
     {
         if (is_open())
         {
-            _M_file->write_position(offset, dir);
+            m_file->write_position(offset, dir);
         }
         return *this;
     }
@@ -106,7 +106,7 @@ namespace Engine
     bool FileReader::open(const Path& path)
     {
         close();
-        _M_file = rootfs()->open(path, Flags<FileOpenMode>(FileOpenMode::In));
+        m_file = rootfs()->open(path, Flags<FileOpenMode>(FileOpenMode::In));
         return is_open();
     }
 
@@ -114,15 +114,15 @@ namespace Engine
     {
         if (is_open())
         {
-            delete _M_file;
-            _M_file = nullptr;
+            delete m_file;
+            m_file = nullptr;
         }
         return *this;
     }
 
     bool FileReader::is_open() const
     {
-        return _M_file != nullptr && _M_file->is_open();
+        return m_file != nullptr && m_file->is_open();
     }
 
     String FileReader::read_string(size_t len)
@@ -144,9 +144,9 @@ namespace Engine
     const Path& FileReader::filename() const
     {
         static const Path p;
-        if (_M_file)
+        if (m_file)
         {
-            return _M_file->path();
+            return m_file->path();
         }
         return p;
     }
@@ -155,7 +155,7 @@ namespace Engine
     bool FileReader::read(byte* data, size_t size)
     {
         if (is_open())
-            return static_cast<bool>(_M_file->read(data, size)) == size;
+            return static_cast<bool>(m_file->read(data, size)) == size;
         return false;
     }
 
@@ -164,7 +164,7 @@ namespace Engine
     {
         if (!is_open())
             return 0;
-        return _M_file->read_position();
+        return m_file->read_position();
     }
 
 
@@ -172,7 +172,7 @@ namespace Engine
     {
         if (is_open())
         {
-            _M_file->read_position(offset, dir);
+            m_file->read_position(offset, dir);
         }
 
         return *this;

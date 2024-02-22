@@ -8,8 +8,8 @@ namespace Engine
     class ENGINE_EXPORT Ray final
     {
     private:
-        Vector3D _M_origin;
-        Vector3D _M_direction;
+        Vector3D m_origin;
+        Vector3D m_direction;
 
     public:
         Ray(const Vector3D& origin = {0.f, 0.f, 0.f}, const Vector3D& direction = {0.0f, 0.0f, 0.0f});

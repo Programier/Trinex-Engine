@@ -24,8 +24,8 @@ namespace Engine
     private:
         union
         {
-            InstanceClass* _M_instance = nullptr;
-            Object* _M_object;
+            InstanceClass* m_instance = nullptr;
+            Object* m_object;
         };
 
 
@@ -33,13 +33,13 @@ namespace Engine
         struct HashStruct : public Hash<InstanceClass*> {
             size_t operator()(const Pointer<InstanceClass>& instance) const
             {
-                return static_cast<Hash<InstanceClass*>>(*this)(instance._M_instance);
+                return static_cast<Hash<InstanceClass*>>(*this)(instance.m_instance);
             }
         };
 
-        Pointer(InstanceClass* instance = nullptr) : _M_instance(instance)
+        Pointer(InstanceClass* instance = nullptr) : m_instance(instance)
         {
-            add_reference(_M_object);
+            add_reference(m_object);
         }
 
         Pointer(const Pointer& pointer)
@@ -49,8 +49,8 @@ namespace Engine
 
         Pointer(Pointer&& pointer)
         {
-            _M_instance         = pointer._M_instance;
-            pointer._M_instance = nullptr;
+            m_instance         = pointer.m_instance;
+            pointer.m_instance = nullptr;
         }
 
         Pointer& operator=(const Pointer& pointer)
@@ -58,9 +58,9 @@ namespace Engine
             if (this == &pointer)
                 return *this;
 
-            remove_reference(_M_object);
-            _M_instance = pointer._M_instance;
-            add_reference(_M_object);
+            remove_reference(m_object);
+            m_instance = pointer.m_instance;
+            add_reference(m_object);
             return *this;
         }
 
@@ -68,8 +68,8 @@ namespace Engine
         {
             if (this != &pointer)
             {
-                _M_instance         = pointer._M_instance;
-                pointer._M_instance = nullptr;
+                m_instance         = pointer.m_instance;
+                pointer.m_instance = nullptr;
             }
 
             return *this;
@@ -77,57 +77,57 @@ namespace Engine
 
         Pointer& operator=(InstanceClass* instance)
         {
-            remove_reference(_M_object);
-            _M_instance = instance;
-            add_reference(_M_object);
+            remove_reference(m_object);
+            m_instance = instance;
+            add_reference(m_object);
             return *this;
         }
 
 
         InstanceClass* operator->() const
         {
-            return _M_instance;
+            return m_instance;
         }
 
         operator InstanceClass*() const
         {
-            return _M_instance;
+            return m_instance;
         }
 
         InstanceClass* ptr() const
         {
-            return _M_instance;
+            return m_instance;
         }
 
         bool operator==(const Pointer<InstanceClass>& instance) const
         {
-            return _M_instance == instance._M_instance;
+            return m_instance == instance.m_instance;
         }
 
         bool operator!=(const Pointer<InstanceClass>& instance) const
         {
-            return _M_instance != instance._M_instance;
+            return m_instance != instance.m_instance;
         }
 
         bool operator==(const InstanceClass* instance) const
         {
-            return _M_instance == instance;
+            return m_instance == instance;
         }
 
         bool operator!=(const InstanceClass* instance) const
         {
-            return _M_instance != instance;
+            return m_instance != instance;
         }
 
         ~Pointer()
         {
-            remove_reference(_M_object);
+            remove_reference(m_object);
         }
 
 
         bool archive_process(class Archive& ar, bool is_reference = true)
         {
-            return PointerBase::archive_process(ar, _M_object, is_reference);
+            return PointerBase::archive_process(ar, m_object, is_reference);
         }
     };
 }// namespace Engine

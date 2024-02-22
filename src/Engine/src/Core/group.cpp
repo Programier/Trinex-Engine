@@ -14,7 +14,7 @@ namespace Engine
         if (root_group == nullptr)
         {
             root_group          = new Group();
-            root_group->_M_name = "Root Group";
+            root_group->m_name = "Root Group";
 
             PostDestroyController([]() {
                 delete root_group;
@@ -37,27 +37,27 @@ namespace Engine
 
     Group* Group::find_subgroup(const char* name, size_t len, bool create)
     {
-        for (Group* child : _M_childs)
+        for (Group* child : m_childs)
         {
-            if (child->_M_name.equals(name, len))
+            if (child->m_name.equals(name, len))
                 return child;
         }
 
         if (create)
         {
             Group* new_group     = new Group();
-            new_group->_M_name   = Name(name, len);
-            new_group->_M_parent = this;
+            new_group->m_name   = Name(name, len);
+            new_group->m_parent = this;
 
             // Find index for insert
             Index index = 0;
             auto& name  = new_group->name().to_string();
 
-            for (Index size = _M_childs.size(); index < size && name > _M_childs[index]->name().to_string(); index++)
+            for (Index size = m_childs.size(); index < size && name > m_childs[index]->name().to_string(); index++)
             {
             }
 
-            _M_childs.insert(_M_childs.begin() + index, new_group);
+            m_childs.insert(m_childs.begin() + index, new_group);
             return new_group;
         }
 
@@ -82,30 +82,30 @@ namespace Engine
 
     Group* Group::parent() const
     {
-        if (_M_parent == root())
+        if (m_parent == root())
             return nullptr;
 
-        return _M_parent;
+        return m_parent;
     }
 
     const Vector<Group*>& Group::childs() const
     {
-        return _M_childs;
+        return m_childs;
     }
 
     const Name& Group::name() const
     {
-        return _M_name;
+        return m_name;
     }
 
     const Vector<class Struct*>& Group::structs() const
     {
-        return _M_structs;
+        return m_structs;
     }
 
     Group& Group::add_struct(class Struct* instance)
     {
-        for (class Struct* element : _M_structs)
+        for (class Struct* element : m_structs)
         {
             if (element == instance)
                 return *this;
@@ -114,18 +114,18 @@ namespace Engine
         // Find index for insert
         Index index = 0;
         auto& name  = instance->base_name().to_string();
-        for (Index size = _M_structs.size(); index < size && name > _M_structs[index]->name().to_string(); index++)
+        for (Index size = m_structs.size(); index < size && name > m_structs[index]->name().to_string(); index++)
         {
         }
 
 
-        _M_structs.insert(_M_structs.begin() + index, instance);
+        m_structs.insert(m_structs.begin() + index, instance);
         return *this;
     }
 
     Group& Group::remove_struct(class Struct* instance)
     {
-        std::erase_if(_M_structs, [instance](Struct* ell) { return ell == instance; });
+        std::erase_if(m_structs, [instance](Struct* ell) { return ell == instance; });
         return *this;
     }
 
@@ -134,22 +134,22 @@ namespace Engine
 
     Group::~Group()
     {
-        while (!_M_childs.empty())
+        while (!m_childs.empty())
         {
-            delete _M_childs.front();
+            delete m_childs.front();
         }
 
-        if (_M_parent)
+        if (m_parent)
         {
-            for (Index i = 0, count = _M_parent->_M_childs.size(); i < count; i++)
+            for (Index i = 0, count = m_parent->m_childs.size(); i < count; i++)
             {
-                if (_M_parent->_M_childs[i] == this)
+                if (m_parent->m_childs[i] == this)
                 {
-                    _M_parent->_M_childs.erase(_M_parent->_M_childs.begin() + i);
+                    m_parent->m_childs.erase(m_parent->m_childs.begin() + i);
                     break;
                 }
             }
-            _M_parent = nullptr;
+            m_parent = nullptr;
         }
     }
 }// namespace Engine

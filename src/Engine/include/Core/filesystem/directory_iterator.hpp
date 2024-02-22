@@ -32,7 +32,7 @@ namespace Engine
         class ENGINE_EXPORT DirectoryIterator final
         {
         private:
-            DirectoryIteratorInterface* _M_interface;
+            DirectoryIteratorInterface* m_interface;
 
 
         public:
@@ -56,7 +56,7 @@ namespace Engine
         class ENGINE_EXPORT RecursiveDirectoryIterator final
         {
         private:
-            DirectoryIteratorInterface* _M_interface;
+            DirectoryIteratorInterface* m_interface;
 
 
         public:

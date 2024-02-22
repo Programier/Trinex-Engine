@@ -7,13 +7,13 @@
 namespace Engine
 {
     struct SwapChain {
-        vk::SwapchainKHR _M_swap_chain;
-        vkb::Swapchain _M_bootstrap_swapchain;
+        vk::SwapchainKHR m_swap_chain;
+        vkb::Swapchain m_bootstrap_swapchain;
 
-        vk::Extent2D _M_extent;
-        Vector<vk::Image> _M_images;
-        Vector<vk::ImageView> _M_image_views;
-        vk::Format _M_format;
+        vk::Extent2D m_extent;
+        Vector<vk::Image> m_images;
+        Vector<vk::ImageView> m_image_views;
+        vk::Format m_format;
 
         SwapChain();
         ~SwapChain();

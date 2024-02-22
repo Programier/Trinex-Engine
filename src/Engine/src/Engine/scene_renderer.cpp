@@ -48,34 +48,34 @@ namespace Engine
         SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::SceneOutput));
     }
 
-    SceneRenderer::SceneRenderer() : _M_scene(nullptr)
+    SceneRenderer::SceneRenderer() : m_scene(nullptr)
     {}
 
     SceneRenderer& SceneRenderer::scene(Scene* scene)
     {
-        _M_scene = scene;
+        m_scene = scene;
         return *this;
     }
 
     Scene* SceneRenderer::scene() const
     {
-        return _M_scene;
+        return m_scene;
     }
 
     SceneRenderer& SceneRenderer::render(const CameraView& view, RenderViewport* viewport, const Size2D& size)
     {
-        if (_M_scene == nullptr)
+        if (m_scene == nullptr)
             return *this;
 
-        _M_size        = size;
-        _M_camera_view = view;
+        m_size        = size;
+        m_camera_view = view;
 
-        _M_scene->build_views(this);
+        m_scene->build_views(this);
 
 #if TRINEX_DEBUG_BUILD
         auto rhi = engine_instance->rhi();
 #endif
-        for (auto layer = _M_scene->root_layer(); layer; layer = layer->next())
+        for (auto layer = m_scene->root_layer(); layer; layer = layer->next())
         {
 #if TRINEX_DEBUG_BUILD
             rhi->push_debug_stage(layer->name().c_str());
@@ -94,11 +94,11 @@ namespace Engine
     {
         int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
 
-        Matrix4f inverse_view       = glm::inverse(_M_view);
-        Matrix4f inverse_projection = glm::inverse(_M_projection);
+        Matrix4f inverse_view       = glm::inverse(m_view);
+        Matrix4f inverse_projection = glm::inverse(m_projection);
 
-        float screen_space_x                = (x - _M_size.x / 2.f) / (_M_size.x / 2.f);
-        float screen_space_y                = (y - _M_size.y / 2.f) / -(_M_size.y / 2.f);
+        float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
+        float screen_space_y                = (y - m_size.y / 2.f) / -(m_size.y / 2.f);
         Vector4D ray_start_projection_space = Vector4D(screen_space_x, screen_space_y, 0.f, 1.0f);
         Vector4D ray_end_projection_space   = Vector4D(screen_space_x, screen_space_y, 0.5f, 1.0f);
 
@@ -130,7 +130,7 @@ namespace Engine
 
     Vector4D SceneRenderer::world_to_screen(const Vector3D& world_point) const
     {
-        return _M_projview * Vector4D(world_point, 1.f);
+        return m_projview * Vector4D(world_point, 1.f);
     }
 
     SceneRenderer::~SceneRenderer()

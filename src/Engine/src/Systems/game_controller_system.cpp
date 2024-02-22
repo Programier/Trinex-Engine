@@ -10,19 +10,19 @@ namespace Engine
     implement_initialize_class(GameControllerSystem)
     {}
 
-#define new_id(x) _M_callbacks_id.push_back(x)
+#define new_id(x) m_callbacks_id.push_back(x)
 
     void GameControllerSystem::on_controller_added(const Event& event)
     {
         const ControllerDeviceAddedEvent& e = event.get<const ControllerDeviceAddedEvent&>();
-        _M_controllers[e.id]                = new GameController(e.id);
+        m_controllers[e.id]                = new GameController(e.id);
     }
 
     void GameControllerSystem::on_controller_removed(const Event& event)
     {
         const ControllerDeviceRemovedEvent& e = event.get<const ControllerDeviceRemovedEvent&>();
-        delete _M_controllers[e.id];
-        _M_controllers.erase(e.id);
+        delete m_controllers[e.id];
+        m_controllers.erase(e.id);
     }
 
     void GameControllerSystem::on_axis_motion(const Event& event)
@@ -30,7 +30,7 @@ namespace Engine
         try
         {
             const ControllerAxisMotionEvent& e              = event.get<const ControllerAxisMotionEvent&>();
-            _M_controllers.at(e.id)->_M_axis_values[e.axis] = e.value;
+            m_controllers.at(e.id)->m_axis_values[e.axis] = e.value;
         }
         catch (...)
         {}
@@ -82,8 +82,8 @@ namespace Engine
 
     GameController* GameControllerSystem::controller(Identifier id) const
     {
-        auto it = _M_controllers.find(id);
-        if (it != _M_controllers.end())
+        auto it = m_controllers.find(id);
+        if (it != m_controllers.end())
         {
             return it->second;
         }

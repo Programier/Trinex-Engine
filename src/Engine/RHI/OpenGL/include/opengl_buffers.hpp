@@ -5,7 +5,7 @@
 namespace Engine
 {
     struct OpenGL_VertexBuffer : public RHI_VertexBuffer {
-        GLuint _M_id;
+        GLuint m_id;
 
 
         OpenGL_VertexBuffer(size_t size, const byte* data);
@@ -16,8 +16,8 @@ namespace Engine
     };
 
     struct OpenGL_IndexBuffer : public RHI_IndexBuffer {
-        GLuint _M_id;
-        GLuint _M_element_type;
+        GLuint m_id;
+        GLuint m_element_type;
 
         OpenGL_IndexBuffer(size_t, const byte* data, IndexBufferComponent);
         void bind(size_t offset) override;
@@ -27,8 +27,8 @@ namespace Engine
     };
 
     struct OpenGL_UniformBuffer {
-        GLuint _M_id;
-        size_t _M_size;
+        GLuint m_id;
+        size_t m_size;
 
         OpenGL_UniformBuffer(size_t size);
         void bind(BindLocation location);
@@ -38,7 +38,7 @@ namespace Engine
     };
 
     struct OpenGL_LocalUniformBuffer {
-        Vector<OpenGL_UniformBuffer*> _M_buffers;
+        Vector<OpenGL_UniformBuffer*> m_buffers;
         Vector<byte> shadow_data;
         size_t shadow_data_size = 0;
         Index index             = 0;
@@ -50,7 +50,7 @@ namespace Engine
     };
 
     struct OpenGL_SSBO : public RHI_SSBO {
-        GLuint _M_id;
+        GLuint m_id;
 
         OpenGL_SSBO(size_t size, const byte* data);
 

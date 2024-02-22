@@ -28,12 +28,12 @@ namespace Engine
                     input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
 
 
-            _M_attachment_descriptions.push_back(description);
+            m_attachment_descriptions.push_back(description);
         }
 
         if (render_pass->has_depth_stancil)
         {
-            _M_has_depth_attachment  = true;
+            m_has_depth_attachment  = true;
             vk::Format format        = parse_engine_format(render_pass->depth_stencil_attachment.format);
             ColorFormatAspect aspect = ColorFormatInfo::info_of(render_pass->depth_stencil_attachment.format).aspect();
             if (aspect != ColorFormatAspect::Depth && aspect != ColorFormatAspect::Stencil &&
@@ -53,7 +53,7 @@ namespace Engine
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
                     input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
 
-            _M_attachment_descriptions.push_back(description);
+            m_attachment_descriptions.push_back(description);
         }
         return *this;
     }
@@ -62,7 +62,7 @@ namespace Engine
     {
         for (int_t index = 0, count = render_pass->color_attachments.size(); index < count; ++index)
         {
-            _M_color_attachment_references.push_back(vk::AttachmentReference(index, vk::ImageLayout::eColorAttachmentOptimal));
+            m_color_attachment_references.push_back(vk::AttachmentReference(index, vk::ImageLayout::eColorAttachmentOptimal));
         }
 
         if (render_pass->has_depth_stancil)
@@ -90,7 +90,7 @@ namespace Engine
                     break;
             }
 
-            _M_depth_attachment_renference = vk::AttachmentReference(render_pass->color_attachments.size(), layout);
+            m_depth_attachment_renference = vk::AttachmentReference(render_pass->color_attachments.size(), layout);
         }
         return *this;
     }
@@ -102,40 +102,40 @@ namespace Engine
 
     VulkanRenderPass& VulkanRenderPass::create()
     {
-        _M_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, {},
-                                            _M_color_attachment_references, {},
-                                            _M_has_depth_attachment ? &_M_depth_attachment_renference : nullptr);
+        m_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, {},
+                                            m_color_attachment_references, {},
+                                            m_has_depth_attachment ? &m_depth_attachment_renference : nullptr);
 
         vk::PipelineStageFlags pipeline_flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         vk::AccessFlags access_flags          = vk::AccessFlagBits::eColorAttachmentWrite;
 
-        if (_M_has_depth_attachment)
+        if (m_has_depth_attachment)
         {
             pipeline_flags |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
             access_flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
 
-        _M_dependency =
+        m_dependency =
                 vk::SubpassDependency(0, 0, pipeline_flags, pipeline_flags, {}, access_flags, vk::DependencyFlagBits::eByRegion);
 
-        _M_render_pass = API->_M_device.createRenderPass(
-                vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), _M_attachment_descriptions, _M_subpass, _M_dependency));
+        m_render_pass = API->m_device.createRenderPass(
+                vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), m_attachment_descriptions, m_subpass, m_dependency));
 
         return *this;
     }
 
     uint_t VulkanRenderPass::attachments_count() const
     {
-        return _M_attachment_descriptions.size();
+        return m_attachment_descriptions.size();
     }
 
     VulkanRenderPass& VulkanRenderPass::destroy()
     {
-        DESTROY_CALL(destroyRenderPass, _M_render_pass);
+        DESTROY_CALL(destroyRenderPass, m_render_pass);
 
-        _M_attachment_descriptions.clear();
-        _M_color_attachment_references.clear();
-        _M_has_depth_attachment = false;
+        m_attachment_descriptions.clear();
+        m_color_attachment_references.clear();
+        m_has_depth_attachment = false;
         return *this;
     }
 
@@ -157,21 +157,21 @@ namespace Engine
 
     void VulkanAPI::create_render_pass(vk::Format format)
     {
-        if (_M_main_render_pass == nullptr)
+        if (m_main_render_pass == nullptr)
         {
-            _M_main_render_pass                          = new VulkanMainRenderPass();
-            _M_main_render_pass->_M_has_depth_attachment = false;
+            m_main_render_pass                          = new VulkanMainRenderPass();
+            m_main_render_pass->m_has_depth_attachment = false;
 
-            _M_main_render_pass->_M_attachment_descriptions.push_back(vk::AttachmentDescription(
+            m_main_render_pass->m_attachment_descriptions.push_back(vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
                     vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR));
 
-            _M_main_render_pass->_M_color_attachment_references = {
+            m_main_render_pass->m_color_attachment_references = {
                     vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),
             };
 
-            _M_main_render_pass->create();
+            m_main_render_pass->create();
         }
     }
 
@@ -181,7 +181,7 @@ namespace Engine
         engine_render_pass->color_attachments.resize(1);
         engine_render_pass->color_attachments[0].clear_on_bind = true;
         engine_render_pass->color_attachments[0].format =
-                to_engine_format(API->_M_main_render_pass->_M_attachment_descriptions[0].format);
-        return API->_M_main_render_pass;
+                to_engine_format(API->m_main_render_pass->m_attachment_descriptions[0].format);
+        return API->m_main_render_pass;
     }
 }// namespace Engine

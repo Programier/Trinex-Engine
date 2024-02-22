@@ -14,62 +14,62 @@ namespace Engine
 
     const Vector3D& AABB_3Df::min() const
     {
-        return _M_min;
+        return m_min;
     }
 
     const Vector3D& AABB_3Df::max() const
     {
-        return _M_max;
+        return m_max;
     }
 
     Vector3D AABB_3Df::center() const
     {
-        return _M_min + (_M_max - _M_min) / 2.0f;
+        return m_min + (m_max - m_min) / 2.0f;
     }
 
     AABB_3Df& AABB_3Df::center(const Vector3D& position)
     {
-        Vector3D half_size = _M_max - center();
-        _M_max             = position + half_size;
-        _M_min             = position - half_size;
+        Vector3D half_size = m_max - center();
+        m_max             = position + half_size;
+        m_min             = position - half_size;
         return *this;
     }
 
     AABB_3Df& AABB_3Df::min(const Vector3D& new_min)
     {
-        return minmax(new_min, _M_max);
+        return minmax(new_min, m_max);
     }
 
     AABB_3Df& AABB_3Df::max(const Vector3D& new_max)
     {
-        return minmax(_M_min, new_max);
+        return minmax(m_min, new_max);
     }
 
     AABB_3Df& AABB_3Df::minmax(const Vector3D& new_min, const Vector3D& new_max)
     {
-        _M_min = glm::min(new_min, new_max);
-        _M_max = glm::max(new_min, new_max);
+        m_min = glm::min(new_min, new_max);
+        m_max = glm::max(new_min, new_max);
 
         return *this;
     }
 
     Vector3D AABB_3Df::size() const
     {
-        return _M_max - _M_min;
+        return m_max - m_min;
     }
 
     bool AABB_3Df::inside(const AABB_3Df& other) const
     {
-        return (_M_min.x >= other._M_min.x && _M_max.x <= other._M_max.x) &&
-               (_M_min.y >= other._M_min.y && _M_max.y <= other._M_max.y) &&
-               (_M_min.z >= other._M_min.z && _M_max.z <= other._M_max.z);
+        return (m_min.x >= other.m_min.x && m_max.x <= other.m_max.x) &&
+               (m_min.y >= other.m_min.y && m_max.y <= other.m_max.y) &&
+               (m_min.z >= other.m_min.z && m_max.z <= other.m_max.z);
     }
 
     bool AABB_3Df::intersect(const AABB_3Df& other) const
     {
-        return (_M_min.x <= other._M_max.x && _M_max.x >= other._M_min.x) &&
-               (_M_min.y <= other._M_max.y && _M_max.y >= other._M_min.y) &&
-               (_M_min.z <= other._M_max.z && _M_max.z >= other._M_min.z);
+        return (m_min.x <= other.m_max.x && m_max.x >= other.m_min.x) &&
+               (m_min.y <= other.m_max.y && m_max.y >= other.m_min.y) &&
+               (m_min.z <= other.m_max.z && m_max.z >= other.m_min.z);
     }
 
     Vector2D AABB_3Df::intersect(const Ray& ray) const
@@ -77,8 +77,8 @@ namespace Engine
         const Vector3D& origin    = ray.origin();
         const Vector3D& direction = ray.direction();
 
-        Vector3D t_min = (_M_min - origin) / direction;
-        Vector3D t_max = (_M_max - origin) / direction;
+        Vector3D t_min = (m_min - origin) / direction;
+        Vector3D t_max = (m_max - origin) / direction;
         Vector3D t1    = glm::min(t_min, t_max);
         Vector3D t2    = glm::max(t_min, t_max);
         float t_near   = glm::max(glm::max(t1.x, t1.y), t1.z);
@@ -93,16 +93,16 @@ namespace Engine
 
     bool AABB_3Df::outside(const AABB_3Df& other) const
     {
-        return (_M_min.x > other._M_max.x || _M_max.x < other._M_min.x) ||
-               (_M_min.y > other._M_max.y || _M_max.y < other._M_min.y) ||
-               (_M_min.z > other._M_max.z || _M_max.z < other._M_min.z);
+        return (m_min.x > other.m_max.x || m_max.x < other.m_min.x) ||
+               (m_min.y > other.m_max.y || m_max.y < other.m_min.y) ||
+               (m_min.z > other.m_max.z || m_max.z < other.m_min.z);
     }
 
     bool AABB_3Df::contains(const Vector3D& point) const
     {
-        return point.x > _M_min.x && point.x < _M_max.x &&//
-               point.y > _M_min.y && point.y < _M_max.y &&//
-               point.z > _M_min.z && point.z < _M_max.z;
+        return point.x > m_min.x && point.x < m_max.x &&//
+               point.y > m_min.y && point.y < m_max.y &&//
+               point.z > m_min.z && point.z < m_max.z;
     }
 
     template<typename T>
@@ -143,15 +143,15 @@ namespace Engine
 
     AABB_3Df& AABB_3Df::operator+=(const Vector3D& offset)
     {
-        _M_max += offset;
-        _M_min += offset;
+        m_max += offset;
+        m_min += offset;
         return *this;
     }
 
     AABB_3Df& AABB_3Df::operator-=(const Vector3D& offset)
     {
-        _M_max -= offset;
-        _M_min -= offset;
+        m_max -= offset;
+        m_min -= offset;
         return *this;
     }
 
@@ -184,9 +184,9 @@ namespace Engine
 
     ENGINE_EXPORT AABB_3Df operator-(const Vector3D& offset, AABB_3Df self)
     {
-        Vector3D tmp = self._M_max;
-        self._M_max  = offset - self._M_min;
-        self._M_min  = offset - tmp;
+        Vector3D tmp = self.m_max;
+        self.m_max  = offset - self.m_min;
+        self.m_min  = offset - tmp;
         return self;
     }
 

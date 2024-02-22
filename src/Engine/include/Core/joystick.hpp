@@ -7,8 +7,8 @@ namespace Engine
     class ENGINE_EXPORT Joystick
     {
     private:
-        static TreeMap<Identifier, Joystick*> _M_joysticks;
-        Identifier _M_ID;
+        static TreeMap<Identifier, Joystick*> m_joysticks;
+        Identifier m_ID;
         Joystick(Identifier ID);
 
     public:

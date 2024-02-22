@@ -5,7 +5,7 @@
 namespace Engine
 {
     struct OpenGL_Sampler : public RHI_Sampler {
-        GLuint _M_id;
+        GLuint m_id;
 
         OpenGL_Sampler(const class Sampler* sampler);
         void bind(BindLocation location) override;

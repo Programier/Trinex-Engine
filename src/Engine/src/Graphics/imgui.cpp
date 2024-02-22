@@ -14,7 +14,7 @@ namespace Engine::ImGuiRenderer
 {
     ImDrawData* DrawData::draw_data()
     {
-        return &_M_draw_data[_M_render_index];
+        return &m_draw_data[m_render_index];
     }
 
     static void release_draw_data(ImDrawData& data)
@@ -36,9 +36,9 @@ namespace Engine::ImGuiRenderer
     DrawData& DrawData::release(bool full)
     {
 
-        release_draw_data(_M_draw_data[_M_logic_index]);
+        release_draw_data(m_draw_data[m_logic_index]);
         if (full)
-            release_draw_data(_M_draw_data[_M_render_index]);
+            release_draw_data(m_draw_data[m_render_index]);
 
         return *this;
     }
@@ -47,13 +47,13 @@ namespace Engine::ImGuiRenderer
     {
         release(false);
 
-        _M_draw_data[_M_logic_index] = *draw_data;
+        m_draw_data[m_logic_index] = *draw_data;
 
-        _M_draw_data[_M_logic_index].CmdLists.resize(draw_data->CmdListsCount);
+        m_draw_data[m_logic_index].CmdLists.resize(draw_data->CmdListsCount);
         for (int index = 0; index < draw_data->CmdListsCount; index++)
         {
             ImDrawList* drawList                         = draw_data->CmdLists[index]->CloneOutput();
-            _M_draw_data[_M_logic_index].CmdLists[index] = drawList;
+            m_draw_data[m_logic_index].CmdLists[index] = drawList;
         }
 
         return *this;
@@ -61,13 +61,13 @@ namespace Engine::ImGuiRenderer
 
     DrawData& DrawData::swap_render_index()
     {
-        _M_render_index = (_M_render_index + 1) % 2;
+        m_render_index = (m_render_index + 1) % 2;
         return *this;
     }
 
     DrawData& DrawData::swap_logic_index()
     {
-        _M_logic_index = (_M_logic_index + 1) % 2;
+        m_logic_index = (m_logic_index + 1) % 2;
         return *this;
     }
 
@@ -77,22 +77,22 @@ namespace Engine::ImGuiRenderer
     }
 
 
-    ImGuiTexture::ImGuiTexture() : _M_handle(nullptr)
+    ImGuiTexture::ImGuiTexture() : m_handle(nullptr)
     {}
 
     struct ImGuiTextureInitTask : public ExecutableObject {
-        ImGuiContext* _M_ctx           = nullptr;
-        ImGuiTexture* _M_imgui_texture = nullptr;
-        Texture* _M_texture            = nullptr;
-        Sampler* _M_sampler            = nullptr;
+        ImGuiContext* m_ctx           = nullptr;
+        ImGuiTexture* m_imgui_texture = nullptr;
+        Texture* m_texture            = nullptr;
+        Sampler* m_sampler            = nullptr;
 
         ImGuiTextureInitTask(ImGuiContext* ctx, ImGuiTexture* imgui_texture, Texture* texture, Sampler* sampler)
-            : _M_ctx(ctx), _M_imgui_texture(imgui_texture), _M_texture(texture), _M_sampler(sampler)
+            : m_ctx(ctx), m_imgui_texture(imgui_texture), m_texture(texture), m_sampler(sampler)
         {}
 
         int_t execute() override
         {
-            _M_imgui_texture->init(_M_ctx, _M_texture, _M_sampler);
+            m_imgui_texture->init(m_ctx, m_texture, m_sampler);
             return sizeof(ImGuiTextureInitTask);
         }
     };
@@ -100,13 +100,13 @@ namespace Engine::ImGuiRenderer
     ImGuiTexture& ImGuiTexture::init(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
     {
         release();
-        _M_texture = texture;
-        _M_sampler = sampler;
+        m_texture = texture;
+        m_sampler = sampler;
 
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         if (Thread::this_thread() == render_thread)
         {
-            _M_handle = engine_instance->rhi()->imgui_create_texture(ctx, texture, sampler);
+            m_handle = engine_instance->rhi()->imgui_create_texture(ctx, texture, sampler);
         }
         else
         {
@@ -118,50 +118,50 @@ namespace Engine::ImGuiRenderer
 
     Texture* ImGuiTexture::texture() const
     {
-        return _M_texture;
+        return m_texture;
     }
 
     Sampler* ImGuiTexture::sampler() const
     {
-        return _M_sampler;
+        return m_sampler;
     }
 
     void* ImGuiTexture::handle() const
     {
-        if (!_M_handle)
+        if (!m_handle)
             return nullptr;
-        return _M_handle->handle();
+        return m_handle->handle();
     }
 
 
     class ForceDestroyImGuiTexture : public ExecutableObject
     {
-        RHI_ImGuiTexture* _M_texture;
+        RHI_ImGuiTexture* m_texture;
 
     public:
-        ForceDestroyImGuiTexture(RHI_ImGuiTexture* texture) : _M_texture(texture)
+        ForceDestroyImGuiTexture(RHI_ImGuiTexture* texture) : m_texture(texture)
         {}
 
         int_t execute() override
         {
-            _M_texture->destroy_now();
+            m_texture->destroy_now();
             return sizeof(ForceDestroyImGuiTexture);
         }
     };
 
     void ImGuiTexture::release_internal(bool force)
     {
-        if (_M_handle)
+        if (m_handle)
         {
             if (force)
             {
-                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<ForceDestroyImGuiTexture>(_M_handle);
+                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<ForceDestroyImGuiTexture>(m_handle);
             }
-            RenderResource::release_render_resouce(_M_handle);
+            RenderResource::release_render_resouce(m_handle);
         }
-        _M_handle  = nullptr;
-        _M_texture = nullptr;
-        _M_sampler = nullptr;
+        m_handle  = nullptr;
+        m_texture = nullptr;
+        m_sampler = nullptr;
     }
 
     ImGuiTexture& ImGuiTexture::release()
@@ -180,7 +180,7 @@ namespace Engine::ImGuiRenderer
 
     ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::render(class RenderViewport* viewport)
     {
-        Node* node = _M_root;
+        Node* node = m_root;
 
         while (node)
         {
@@ -205,9 +205,9 @@ namespace Engine::ImGuiRenderer
 
     ImGuiAdditionalWindowList::Node* ImGuiAdditionalWindowList::destroy(Node* node)
     {
-        if (node == _M_root)
+        if (node == m_root)
         {
-            _M_root = _M_root->next;
+            m_root = m_root->next;
         }
 
         if (node->parent)
@@ -231,7 +231,7 @@ namespace Engine::ImGuiRenderer
     ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::push(ImGuiAdditionalWindow* window)
     {
         window->init(Window::current()->window()->render_viewport());
-        Node* parent_node = _M_root;
+        Node* parent_node = m_root;
         while (parent_node && parent_node->next) parent_node = parent_node->next;
 
         Node* node   = new Node();
@@ -244,9 +244,9 @@ namespace Engine::ImGuiRenderer
             parent_node->next = node;
         }
 
-        if (_M_root == nullptr)
+        if (m_root == nullptr)
         {
-            _M_root = node;
+            m_root = node;
         }
 
         return *this;
@@ -254,15 +254,15 @@ namespace Engine::ImGuiRenderer
 
     ImGuiAdditionalWindowList::~ImGuiAdditionalWindowList()
     {
-        while (_M_root)
+        while (m_root)
         {
-            destroy(_M_root);
+            destroy(m_root);
         }
     }
 
     ViewportClient& ImGuiViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
     {
-        _M_window = Window::current();
+        m_window = Window::current();
         return *this;
     }
 
@@ -270,32 +270,32 @@ namespace Engine::ImGuiRenderer
     {
         viewport->window()->rhi_bind();
         RHI* rhi = engine_instance->rhi();
-        rhi->imgui_render(_M_window->context(), _M_draw_data.draw_data());
-        _M_draw_data.swap_render_index();
+        rhi->imgui_render(m_window->context(), m_draw_data.draw_data());
+        m_draw_data.swap_render_index();
         return *this;
     }
 
     ViewportClient& ImGuiViewportClient::update(class RenderViewport*, float dt)
     {
-        _M_draw_data.copy(viewport->DrawData);
-        _M_draw_data.swap_logic_index();
+        m_draw_data.copy(viewport->DrawData);
+        m_draw_data.swap_logic_index();
         return *this;
     }
 
     implement_engine_class_default_init(ImGuiViewportClient);
 
-    static Window* _M_current_window = nullptr;
+    static Window* m_current_window = nullptr;
 
-    Window::Window(Engine::Window* window, ImGuiContext* ctx) : _M_context(ctx), _M_window(window)
+    Window::Window(Engine::Window* window, ImGuiContext* ctx) : m_context(ctx), m_window(window)
     {}
 
     Window& Window::free_resources()
     {
         on_destroy();
 
-        while (!_M_textures.empty())
+        while (!m_textures.empty())
         {
-            release_texture_internal(*_M_textures.begin(), true);
+            release_texture_internal(*m_textures.begin(), true);
         }
 
         return *this;
@@ -303,9 +303,9 @@ namespace Engine::ImGuiRenderer
 
     Window& Window::release_texture_internal(ImGuiTexture* texture, bool force)
     {
-        if (_M_textures.contains(texture))
+        if (m_textures.contains(texture))
         {
-            _M_textures.erase(texture);
+            m_textures.erase(texture);
             delete texture;
         }
 
@@ -314,22 +314,22 @@ namespace Engine::ImGuiRenderer
 
     ImGuiContext* Window::context() const
     {
-        return _M_context;
+        return m_context;
     }
 
     ImDrawData* Window::draw_data()
     {
-        return _M_draw_data.draw_data();
+        return m_draw_data.draw_data();
     }
 
     void Window::make_current(Window* window)
     {
-        if (_M_current_window == window)
+        if (m_current_window == window)
             return;
 
-        _M_current_window = window;
+        m_current_window = window;
 
-        if (_M_current_window)
+        if (m_current_window)
         {
             ImGui::SetCurrentContext(window->context());
         }
@@ -342,10 +342,10 @@ namespace Engine::ImGuiRenderer
     Window& Window::new_frame()
     {
         make_current(this);
-        _M_window->interface()->new_imgui_frame();
+        m_window->interface()->new_imgui_frame();
 
         RHI* rhi = engine_instance->rhi();
-        rhi->imgui_new_frame(_M_context);
+        rhi->imgui_new_frame(m_context);
         ImGui::NewFrame();
         return *this;
     }
@@ -354,11 +354,11 @@ namespace Engine::ImGuiRenderer
     {
         make_current(this);
 
-        window_list.render(_M_window->render_viewport());
+        window_list.render(m_window->render_viewport());
         ImGui::Render();
 
-        _M_draw_data.copy(ImGui::GetDrawData());
-        _M_draw_data.swap_logic_index();
+        m_draw_data.copy(ImGui::GetDrawData());
+        m_draw_data.swap_logic_index();
 
         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
         {
@@ -373,33 +373,33 @@ namespace Engine::ImGuiRenderer
     Window& Window::render()
     {
         RHI* rhi = engine_instance->rhi();
-        rhi->imgui_render(_M_context, draw_data());
-        _M_draw_data.swap_render_index();
+        rhi->imgui_render(m_context, draw_data());
+        m_draw_data.swap_render_index();
         return *this;
     }
 
     Engine::Window* Window::window() const
     {
-        return _M_window;
+        return m_window;
     }
 
     ImGuiTexture* Window::create_texture()
     {
         ImGuiTexture* texture = new ImGuiTexture();
-        _M_textures.insert(texture);
+        m_textures.insert(texture);
         return texture;
     }
 
     ImGuiTexture* Window::create_texture(Texture* texture, Sampler* sampler)
     {
-        for (ImGuiTexture* imgui_texture : _M_textures)
+        for (ImGuiTexture* imgui_texture : m_textures)
         {
             if (imgui_texture->texture() == texture && imgui_texture->sampler() == sampler)
                 return imgui_texture;
         }
 
         ImGuiTexture* new_texture = create_texture();
-        new_texture->init(_M_context, texture, sampler);
+        new_texture->init(m_context, texture, sampler);
         return new_texture;
     }
 
@@ -410,7 +410,7 @@ namespace Engine::ImGuiRenderer
 
     Window* Window::current()
     {
-        return _M_current_window;
+        return m_current_window;
     }
 
     Window::~Window()

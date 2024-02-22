@@ -5,7 +5,7 @@
 #define declare_primitive(name, type)                                                                                  \
     class name final                                                                                                   \
     {                                                                                                                  \
-        mutable size_t _M_refs = 0;                                                                                    \
+        mutable size_t m_refs = 0;                                                                                    \
                                                                                                                        \
     public:                                                                                                            \
         type value;                                                                                                    \

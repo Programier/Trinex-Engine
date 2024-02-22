@@ -9,13 +9,13 @@ namespace Engine
     class Result
     {
     private:
-        std::optional<Type> _M_result;
-        String _M_msg = "No result!";
+        std::optional<Type> m_result;
+        String m_msg = "No result!";
 
     public:
         Result() = default;
 
-        Result(const Type& value) : _M_result(value)
+        Result(const Type& value) : m_result(value)
         {}
 
         Result(const Result&) = default;
@@ -31,38 +31,38 @@ namespace Engine
 
         Result& reset()
         {
-            _M_result.reset();
-            _M_msg = "No result";
+            m_result.reset();
+            m_msg = "No result";
             return *this;
         }
 
         Result& message(const String& msg)
         {
-            _M_msg = msg;
+            m_msg = msg;
             return *this;
         }
 
         Result& result(const Type& value)
         {
-            _M_result = value;
+            m_result = value;
             return *this;
         }
 
         const Type& result() const
         {
-            if (_M_result.has_value())
-                return _M_result.value();
-            throw std::runtime_error(_M_msg);
+            if (m_result.has_value())
+                return m_result.value();
+            throw std::runtime_error(m_msg);
         }
 
         String message()
         {
-            return _M_msg;
+            return m_msg;
         }
 
         bool has_value() const
         {
-            return _M_result.has_value();
+            return m_result.has_value();
         }
     };
 }

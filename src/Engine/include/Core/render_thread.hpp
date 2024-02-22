@@ -11,14 +11,14 @@ namespace Engine
     FORCE_INLINE void call_in_render_thread(Callable&& callable)
     {
         struct Command : public ExecutableObject {
-            Callable _M_callable;
+            Callable m_callable;
 
-            Command(Callable&& callable) : _M_callable(std::forward<Callable>(callable))
+            Command(Callable&& callable) : m_callable(std::forward<Callable>(callable))
             {}
 
             int_t execute() override
             {
-                _M_callable();
+                m_callable();
                 return sizeof(Command);
             }
         };

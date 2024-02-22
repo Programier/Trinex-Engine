@@ -54,21 +54,21 @@ namespace Engine
                                            vk::BorderColor::eIntOpaqueBlack, info.unnormalized_coordinates);
 
         destroy();
-        _M_sampler = API->_M_device.createSampler(sampler_info);
+        m_sampler = API->m_device.createSampler(sampler_info);
         return *this;
     }
 
     VulkanSampler& VulkanSampler::destroy()
     {
-        DESTROY_CALL(destroySampler, _M_sampler);
+        DESTROY_CALL(destroySampler, m_sampler);
         return *this;
     }
 
     void VulkanSampler::bind(BindLocation location)
     {
-        if (API->_M_state->_M_pipeline)
+        if (API->m_state->m_pipeline)
         {
-            API->_M_state->_M_pipeline->bind_sampler(this, location);
+            API->m_state->m_pipeline->bind_sampler(this, location);
         }
     }
 

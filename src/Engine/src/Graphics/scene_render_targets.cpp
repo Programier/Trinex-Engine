@@ -48,30 +48,30 @@ namespace Engine
         if (is_reinit)
         {
             Size2D scale_factor = new_size / size;
-            _M_viewport.size *= scale_factor;
-            _M_viewport.pos *= scale_factor;
+            m_viewport.size *= scale_factor;
+            m_viewport.pos *= scale_factor;
 
-            _M_scissor.size *= scale_factor;
-            _M_scissor.pos *= scale_factor;
+            m_scissor.size *= scale_factor;
+            m_scissor.pos *= scale_factor;
 
             size = new_size;
         }
         else
         {
             size                  = new_size;
-            _M_viewport.size      = size;
-            _M_viewport.pos       = {0, 0};
-            _M_viewport.min_depth = 0.0f;
-            _M_viewport.max_depth = 1.0f;
+            m_viewport.size      = size;
+            m_viewport.pos       = {0, 0};
+            m_viewport.min_depth = 0.0f;
+            m_viewport.max_depth = 1.0f;
 
-            _M_scissor.pos  = {0, 0};
-            _M_scissor.size = size;
+            m_scissor.pos  = {0, 0};
+            m_scissor.size = size;
 
-            make_textures_non_editable(_M_frames);
+            make_textures_non_editable(m_frames);
         }
 
 
-        for (RenderTarget::Frame* frame : _M_frames)
+        for (RenderTarget::Frame* frame : m_frames)
         {
             for (Texture2D* texture : frame->color_attachments)
             {
@@ -277,7 +277,7 @@ namespace Engine
 
         frame_index = 0;
 
-        for (RenderTarget::Frame* frame : _M_frames)
+        for (RenderTarget::Frame* frame : m_frames)
         {
             frame->depth_stencil_attachment = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
                     Strings::format("Engine::GBuffer::Depth {}", frame_index));
@@ -388,7 +388,7 @@ namespace Engine
 
         frame_index = 0;
 
-        for (RenderTarget::Frame* frame : _M_frames)
+        for (RenderTarget::Frame* frame : m_frames)
         {
             frame->color_attachments.resize(1);
 

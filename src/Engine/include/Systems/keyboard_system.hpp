@@ -11,12 +11,12 @@ namespace Engine
         declare_class(KeyboardSystem, System);
 
     private:
-        Keyboard::Status _M_key_status[Keyboard::__COUNT__];
-        Vector<Keyboard::Key> _M_last_pressed_keys;
-        Vector<Keyboard::Key> _M_last_released_keys;
+        Keyboard::Status m_key_status[Keyboard::__COUNT__];
+        Vector<Keyboard::Key> m_last_pressed_keys;
+        Vector<Keyboard::Key> m_last_released_keys;
 
 
-        EventSystemListenerID _M_key_press_id, _M_key_release_id;
+        EventSystemListenerID m_key_press_id, m_key_release_id;
 
         void on_key_pressed(const Event& event);
         void on_key_released(const Event& event);

@@ -30,7 +30,7 @@ namespace Engine
             void operator()(RHI_Object* object) const;
         };
 
-        ScopedPtr<RHI_Object, DestroyRenderResource> _M_rhi_object;
+        ScopedPtr<RHI_Object, DestroyRenderResource> m_rhi_object;
 
 
     public:
@@ -40,7 +40,7 @@ namespace Engine
         template<typename T>
         T* rhi_object() const
         {
-            return reinterpret_cast<T*>(_M_rhi_object.get());
+            return reinterpret_cast<T*>(m_rhi_object.get());
         }
 
         virtual RenderResource& rhi_create();

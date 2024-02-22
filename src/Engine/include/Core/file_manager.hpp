@@ -20,7 +20,7 @@ namespace Engine
         using Pointer = FileWriter*;
 
     private:
-        VFS::File* _M_file = nullptr;
+        VFS::File* m_file = nullptr;
 
     public:
         FileWriter();
@@ -49,7 +49,7 @@ namespace Engine
         using Pointer = FileReader*;
 
     private:
-        VFS::File* _M_file = nullptr;
+        VFS::File* m_file = nullptr;
 
     public:
         FileReader();

@@ -11,12 +11,12 @@
     name& name::operator=(const name& other) = default;                                                                \
     void name::add_ref() const                                                                                         \
     {                                                                                                                  \
-        ++_M_refs;                                                                                                     \
+        ++m_refs;                                                                                                     \
     }                                                                                                                  \
     void name::release() const                                                                                         \
     {                                                                                                                  \
-        --_M_refs;                                                                                                     \
-        if (_M_refs == 0)                                                                                              \
+        --m_refs;                                                                                                     \
+        if (m_refs == 0)                                                                                              \
         {                                                                                                              \
             delete this;                                                                                               \
         }                                                                                                              \

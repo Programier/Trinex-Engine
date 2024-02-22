@@ -15,7 +15,7 @@ namespace Engine
     RenderTarget& RenderTarget::rhi_create()
     {
         Super::rhi_create();
-        _M_rhi_object.reset(EngineInstance::instance()->rhi()->create_render_target(this));
+        m_rhi_object.reset(EngineInstance::instance()->rhi()->create_render_target(this));
         return *this;
     }
 
@@ -24,7 +24,7 @@ namespace Engine
 
     RenderTarget& RenderTarget::push_frame(Frame* frame)
     {
-        _M_frames.push_back(frame);
+        m_frames.push_back(frame);
         return *this;
     }
 
@@ -32,31 +32,31 @@ namespace Engine
     {
         if (delete_frames)
         {
-            for (Frame* frame : _M_frames)
+            for (Frame* frame : m_frames)
             {
                 delete frame;
             }
         }
 
-        _M_frames.clear();
+        m_frames.clear();
         return *this;
     }
 
     RenderTarget::Frame* RenderTarget::current_frame() const
     {
-        return frame(_M_frame_index);
+        return frame(m_frame_index);
     }
 
     RenderTarget::Frame* RenderTarget::frame(byte index) const
     {
-        if (static_cast<byte>(_M_frames.size()) > index)
-            return _M_frames[index];
+        if (static_cast<byte>(m_frames.size()) > index)
+            return m_frames[index];
         return nullptr;
     }
 
     size_t RenderTarget::frames_count() const
     {
-        return _M_frames.size();
+        return m_frames.size();
     }
 
     Size2D RenderTarget::render_target_size() const

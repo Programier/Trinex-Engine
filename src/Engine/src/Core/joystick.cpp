@@ -5,31 +5,31 @@
 
 namespace Engine
 {
-    TreeMap<Identifier, Joystick*> Joystick::_M_joysticks;
+    TreeMap<Identifier, Joystick*> Joystick::m_joysticks;
 
-    Joystick::Joystick(Identifier ID) : _M_ID(ID)
+    Joystick::Joystick(Identifier ID) : m_ID(ID)
     {
         info_log("Joystick", "Created new joystick instance with ID %zu", ID);
-        _M_joysticks[ID] = this;
+        m_joysticks[ID] = this;
 
         //   SDL_Joystick* sdl_joystick = SDL_JoystickOpen(ID);
-        ///_M_SDL_joystick            = sdl_joystick;
+        ///m_SDL_joystick            = sdl_joystick;
     }
 
     Identifier Joystick::id() const
     {
-        return _M_ID;
+        return m_ID;
     }
 
     TreeMap<Identifier, Joystick*> Joystick::joysticks()
     {
-        return _M_joysticks;
+        return m_joysticks;
     }
 
     Joystick* Joystick::find_joystick(Identifier ID)
     {
-        auto it = _M_joysticks.find(ID);
-        if (it != _M_joysticks.end())
+        auto it = m_joysticks.find(ID);
+        if (it != m_joysticks.end())
         {
             return it->second;
         }
@@ -39,10 +39,10 @@ namespace Engine
 
     Joystick::~Joystick()
     {
-        info_log("Joystick", "Removed joystick instance with ID %zu", _M_ID);
-        _M_joysticks.erase(id());
+        info_log("Joystick", "Removed joystick instance with ID %zu", m_ID);
+        m_joysticks.erase(id());
 
-        //SDL_Joystick* joystick = reinterpret_cast<SDL_Joystick*>(_M_SDL_joystick);
+        //SDL_Joystick* joystick = reinterpret_cast<SDL_Joystick*>(m_SDL_joystick);
         //SDL_JoystickClose(joystick);
     }
 

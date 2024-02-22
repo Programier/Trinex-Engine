@@ -11,7 +11,7 @@
 namespace Engine
 {
 
-    Script::Script(const Path& path) : _M_path(path)
+    Script::Script(const Path& path) : m_path(path)
     {}
 
     Script::~Script()
@@ -19,24 +19,24 @@ namespace Engine
 
     const Path& Script::path() const
     {
-        return _M_path;
+        return m_path;
     }
 
     Script& Script::replace_code(const char* new_code, size_t len, size_t offset)
     {
-        ScriptModule::global().add_script_section(_M_path.str().c_str(), new_code, len, offset);
+        ScriptModule::global().add_script_section(m_path.str().c_str(), new_code, len, offset);
         return *this;
     }
 
     Script& Script::load()
     {
-        FileReader reader(engine_config.scripts_dir / _M_path);
+        FileReader reader(engine_config.scripts_dir / m_path);
         if (reader.is_open())
         {
             Buffer buffer(reader.size(), 0);
             reader.read(buffer.data(), buffer.size());
 
-            if (_M_path.str().ends_with(Constants::script_extension))
+            if (m_path.str().ends_with(Constants::script_extension))
             {
                 replace_code(reinterpret_cast<const char*>(buffer.data()), buffer.size(), 0);
             }
@@ -51,7 +51,7 @@ namespace Engine
 
     class Script* ScriptEngine::new_script(const Path& path)
     {
-        for (Script* script : _M_scripts)
+        for (Script* script : m_scripts)
         {
             if (script->path() == path)
                 return script;
@@ -60,7 +60,7 @@ namespace Engine
         if (path.extension() == Constants::script_extension || path.extension() == Constants::script_byte_code_extension)
         {
             Script* script = new Script(path);
-            _M_scripts.push_back(script);
+            m_scripts.push_back(script);
             return script;
         }
         else
@@ -72,7 +72,7 @@ namespace Engine
 
     const Vector<class Script*>& ScriptEngine::scripts() const
     {
-        return _M_scripts;
+        return m_scripts;
     }
 
 
@@ -99,12 +99,12 @@ namespace Engine
 
     void ScriptEngine::release_scripts()
     {
-        for (Script* script : _M_scripts)
+        for (Script* script : m_scripts)
         {
             delete script;
         }
 
-        _M_scripts.clear();
+        m_scripts.clear();
     }
 
     ScriptEngine& ScriptEngine::load_scripts()

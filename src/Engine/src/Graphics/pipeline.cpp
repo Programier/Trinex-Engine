@@ -21,8 +21,8 @@ namespace Engine
 
     const size_t LocalMaterialParametersInfo::offset_of(const Name& name) const
     {
-        auto it = _M_parameters_offset.find(name);
-        if (it != _M_parameters_offset.end())
+        auto it = m_parameters_offset.find(name);
+        if (it != m_parameters_offset.end())
             return it->second;
 
         return no_offset;
@@ -32,41 +32,41 @@ namespace Engine
     {
         if (name.is_valid())
         {
-            _M_parameters_offset[name] = new_offset;
+            m_parameters_offset[name] = new_offset;
         }
         return *this;
     }
 
     LocalMaterialParametersInfo& LocalMaterialParametersInfo::remove(const Name& name)
     {
-        _M_parameters_offset.erase(name);
+        m_parameters_offset.erase(name);
         return *this;
     }
 
     const LocalMaterialParametersInfo::OffsetMap& LocalMaterialParametersInfo::offset_map() const
     {
-        return _M_parameters_offset;
+        return m_parameters_offset;
     }
 
     bool LocalMaterialParametersInfo::empty() const
     {
-        return _M_parameters_offset.empty();
+        return m_parameters_offset.empty();
     }
 
     size_t LocalMaterialParametersInfo::size() const
     {
-        return _M_parameters_offset.size();
+        return m_parameters_offset.size();
     }
 
     ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info)
     {
-        size_t count = info._M_parameters_offset.size();
+        size_t count = info.m_parameters_offset.size();
         ar & count;
 
         if (ar.is_saving())
         {
             Name name;
-            for (auto& ell : info._M_parameters_offset)
+            for (auto& ell : info.m_parameters_offset)
             {
                 name = ell.first;
                 ar & name;
@@ -219,7 +219,7 @@ namespace Engine
     {
         vertex_shader->rhi_create();
         fragment_shader->rhi_create();
-        _M_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
+        m_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
         return *this;
     }
 
@@ -233,7 +233,7 @@ namespace Engine
 
     const Pipeline& Pipeline::rhi_bind() const
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_Pipeline>()->bind();
         }

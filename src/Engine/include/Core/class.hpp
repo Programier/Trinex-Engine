@@ -24,15 +24,15 @@ namespace Engine
         Flags<Class::Flag> flags;
 
     private:
-        mutable Object* _M_singletone_object;
+        mutable Object* m_singletone_object;
 
-        Object* (*_M_static_constructor)();
-        Object* (*_M_cast_to_this)(Object* object);
-        size_t _M_size;
+        Object* (*m_static_constructor)();
+        Object* (*m_cast_to_this)(Object* object);
+        size_t m_size;
 
 
         /// SCRIPT PART
-        CallBack<void(class ScriptClassRegistrar*, Class*)> _M_script_register_callback;
+        CallBack<void(class ScriptClassRegistrar*, Class*)> m_script_register_callback;
 
         static Object* internal_cast(Class* required_class, Object* object);
 
@@ -75,9 +75,9 @@ namespace Engine
         template<typename ObjectClass>
         void process_type()
         {
-            if (_M_size == 0)
+            if (m_size == 0)
             {
-                _M_size = sizeof(ObjectClass);
+                m_size = sizeof(ObjectClass);
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {
@@ -94,7 +94,7 @@ namespace Engine
                     flags(Flag::IsSingletone, true);
                 }
 
-                _M_cast_to_this = private_cast_func<ObjectClass>;
+                m_cast_to_this = private_cast_func<ObjectClass>;
             }
         }
 

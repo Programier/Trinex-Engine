@@ -24,10 +24,10 @@ namespace Engine
 
     Index OpenGL_RenderTarget::bind(RenderPass* render_pass)
     {
-        if (OPENGL_API->_M_current_render_target != this)
+        if (OPENGL_API->m_current_render_target != this)
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, _M_framebuffer);
-            OPENGL_API->_M_current_render_target = this;
+            glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+            OPENGL_API->m_current_render_target = this;
 
             update_viewport();
             update_scissors();
@@ -40,7 +40,7 @@ namespace Engine
 
     void OpenGL_RenderTarget::viewport(const ViewPort& viewport)
     {
-        _M_viewport = viewport;
+        m_viewport = viewport;
         if (is_active())
         {
             update_viewport();
@@ -49,7 +49,7 @@ namespace Engine
 
     void OpenGL_RenderTarget::scissor(const Scissor& scissor)
     {
-        _M_scissor = scissor;
+        m_scissor = scissor;
         if (is_active())
         {
             update_scissors();
@@ -64,40 +64,40 @@ namespace Engine
 
     bool OpenGL_RenderTarget::is_active() const
     {
-        return OPENGL_API->_M_current_render_target == this;
+        return OPENGL_API->m_current_render_target == this;
     }
 
     void OpenGL_RenderTarget::update_viewport()
     {
-        glViewport(_M_viewport.pos.x, _M_viewport.pos.y, _M_viewport.size.x, _M_viewport.size.y);
+        glViewport(m_viewport.pos.x, m_viewport.pos.y, m_viewport.size.x, m_viewport.size.y);
 #if USING_OPENGL_CORE
-        glDepthRange(_M_viewport.min_depth, _M_viewport.max_depth);
+        glDepthRange(m_viewport.min_depth, m_viewport.max_depth);
 #else
-        glDepthRangef(_M_viewport.min_depth, _M_viewport.max_depth);
+        glDepthRangef(m_viewport.min_depth, m_viewport.max_depth);
 #endif
     }
 
     void OpenGL_RenderTarget::update_scissors()
     {
-        glScissor(_M_scissor.pos.x, _M_scissor.pos.y, _M_scissor.size.x, _M_scissor.size.y);
+        glScissor(m_scissor.pos.x, m_scissor.pos.y, m_scissor.size.x, m_scissor.size.y);
     }
 
     OpenGL_RenderTarget& OpenGL_RenderTarget::init(const RenderTarget* render_target)
     {
-        glGenFramebuffers(1, &_M_framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, _M_framebuffer);
+        glGenFramebuffers(1, &m_framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
         size_t index           = 0;
-        _M_clear_color         = render_target->color_clear;
-        _M_depth_stencil_clear = render_target->depth_stencil_clear;
+        m_clear_color         = render_target->color_clear;
+        m_depth_stencil_clear = render_target->depth_stencil_clear;
 
-        _M_viewport.size      = render_target->size;
-        _M_viewport.pos       = {0.0f, 0.0f};
-        _M_viewport.min_depth = 0.0f;
-        _M_viewport.max_depth = 1.0f;
+        m_viewport.size      = render_target->size;
+        m_viewport.pos       = {0.0f, 0.0f};
+        m_viewport.min_depth = 0.0f;
+        m_viewport.max_depth = 1.0f;
 
-        _M_scissor.size = render_target->size;
-        _M_scissor.pos  = {0.0f, 0.0f};
+        m_scissor.size = render_target->size;
+        m_scissor.pos  = {0.0f, 0.0f};
 
         Vector<GLenum> color_attachments;
         color_attachments.reserve(render_target->frame(0)->color_attachments.size());
@@ -115,15 +115,15 @@ namespace Engine
         if (depth_attachment)
         {
             attach_texture(depth_attachment,
-                           get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->_M_format._M_format));
+                           get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->m_format.m_format));
         }
 
         glDrawBuffers(color_attachments.size(), color_attachments.data());
 
 
-        if (OPENGL_API->_M_current_render_target != nullptr)
+        if (OPENGL_API->m_current_render_target != nullptr)
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, OPENGL_API->_M_current_render_target->_M_framebuffer);
+            glBindFramebuffer(GL_FRAMEBUFFER, OPENGL_API->m_current_render_target->m_framebuffer);
         }
 
         return *this;
@@ -133,7 +133,7 @@ namespace Engine
     {
         OpenGL_Texture* texture = texture_attachment->rhi_object<OpenGL_Texture>();
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->_M_type, texture->_M_id, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->m_type, texture->m_id, 0);
 
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -165,15 +165,15 @@ namespace Engine
 
     OpenGL_RenderTarget::~OpenGL_RenderTarget()
     {
-        if (_M_framebuffer != 0)
+        if (m_framebuffer != 0)
         {
-            glDeleteFramebuffers(1, &_M_framebuffer);
+            glDeleteFramebuffers(1, &m_framebuffer);
         }
     }
 
     OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
     {
-        _M_clear_color.push_back(Colors::Black);
+        m_clear_color.push_back(Colors::Black);
     }
 
     OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()

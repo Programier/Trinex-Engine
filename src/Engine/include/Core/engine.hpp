@@ -37,16 +37,16 @@ namespace Engine
         };
 
     private:
-        static EngineInstance* _M_instance;
+        static EngineInstance* m_instance;
 
-        Arguments _M_args;
-        Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> _M_threads;
-        RHI* _M_rhi = nullptr;
-        Flags<EngineInstance::Flag> _M_flags;
-        Index _M_frame_index       = 0;
-        GCFlag _M_current_gc_stage = GCFlag::None;
+        Arguments m_args;
+        Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> m_threads;
+        RHI* m_rhi = nullptr;
+        Flags<EngineInstance::Flag> m_flags;
+        Index m_frame_index       = 0;
+        GCFlag m_current_gc_stage = GCFlag::None;
 
-        float _M_delta_time;
+        float m_delta_time;
 
 
         EngineInstance();

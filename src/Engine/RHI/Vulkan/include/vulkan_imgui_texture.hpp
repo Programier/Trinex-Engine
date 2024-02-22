@@ -17,14 +17,14 @@ namespace Engine
     };
 
     struct VulkanImGuiTextureBasic : public VulkanImGuiTextureInterface {
-        VkDescriptorSet _M_set;
+        VkDescriptorSet m_set;
 
-        FORCE_INLINE VulkanImGuiTextureBasic(VkDescriptorSet set) : _M_set(set)
+        FORCE_INLINE VulkanImGuiTextureBasic(VkDescriptorSet set) : m_set(set)
         {}
 
         FORCE_INLINE VkDescriptorSet descriptor_set() override
         {
-            return _M_set;
+            return m_set;
         }
 
         FORCE_INLINE void destroy_now() override
@@ -32,16 +32,16 @@ namespace Engine
     };
 
     struct VulkanImGuiTexture : public VulkanImGuiTextureInterface {
-        ImGuiContext* _M_ctx                = nullptr;
-        class Texture* _M_texture           = nullptr;
-        class Sampler* _M_sampler           = nullptr;
-        struct VulkanTexture* _M_vk_texture = nullptr;
-        struct VulkanSampler* _M_vk_sampler = nullptr;
+        ImGuiContext* m_ctx                = nullptr;
+        class Texture* m_texture           = nullptr;
+        class Sampler* m_sampler           = nullptr;
+        struct VulkanTexture* m_vk_texture = nullptr;
+        struct VulkanSampler* m_vk_sampler = nullptr;
 
-        VkDescriptorSet _M_set = VK_NULL_HANDLE;
+        VkDescriptorSet m_set = VK_NULL_HANDLE;
 
         FORCE_INLINE VulkanImGuiTexture(ImGuiContext* ctx, class Texture* texture, class Sampler* sampler)
-            : _M_ctx(ctx), _M_texture(texture), _M_sampler(sampler)
+            : m_ctx(ctx), m_texture(texture), m_sampler(sampler)
         {}
 
         VkDescriptorSet descriptor_set() override;

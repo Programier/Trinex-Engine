@@ -13,7 +13,7 @@ namespace Engine
     class ENGINE_EXPORT ScriptTypeInfo
     {
     private:
-        asITypeInfo* _M_info = nullptr;
+        asITypeInfo* m_info = nullptr;
 
         ScriptTypeInfo& bind();
 

@@ -6,93 +6,93 @@
 
 namespace Engine::JSON
 {
-    Value::Value() : _M_type(ValueType::Undefined), _M_value({})
+    Value::Value() : m_type(ValueType::Undefined), m_value({})
     {}
 
-    Value::Value(const Value& obj) : _M_type(obj._M_type), _M_value(obj._M_value)
+    Value::Value(const Value& obj) : m_type(obj.m_type), m_value(obj.m_value)
     {}
 
-    Value::Value(Value&& obj) : _M_type(obj._M_type), _M_value(std::move(obj._M_value))
+    Value::Value(Value&& obj) : m_type(obj.m_type), m_value(std::move(obj.m_value))
     {
-        obj._M_type = ValueType::Undefined;
+        obj.m_type = ValueType::Undefined;
     }
 
-    Value::Value(JsonBool value) : _M_type(ValueType::Bool), _M_value(value)
+    Value::Value(JsonBool value) : m_type(ValueType::Bool), m_value(value)
     {}
 
-    Value::Value(JsonInt value) : _M_type(ValueType::Integer), _M_value(value)
+    Value::Value(JsonInt value) : m_type(ValueType::Integer), m_value(value)
     {}
 
-    Value::Value(JsonFloat value) : _M_type(ValueType::Float), _M_value(value)
+    Value::Value(JsonFloat value) : m_type(ValueType::Float), m_value(value)
     {}
 
-    Value::Value(const JsonString& str) : _M_type(ValueType::String), _M_value(str)
+    Value::Value(const JsonString& str) : m_type(ValueType::String), m_value(str)
     {}
 
-    Value::Value(const JsonArray& array) : _M_type(ValueType::Array), _M_value(array)
+    Value::Value(const JsonArray& array) : m_type(ValueType::Array), m_value(array)
     {}
 
-    Value::Value(const JsonObject& obj) : _M_type(ValueType::Object), _M_value(obj)
+    Value::Value(const JsonObject& obj) : m_type(ValueType::Object), m_value(obj)
     {}
 
-    Value::Value(JsonString&& str) : _M_type(ValueType::String), _M_value(std::move(str))
+    Value::Value(JsonString&& str) : m_type(ValueType::String), m_value(std::move(str))
     {}
 
-    Value::Value(JsonArray&& array) : _M_type(ValueType::Array), _M_value(std::move(array))
+    Value::Value(JsonArray&& array) : m_type(ValueType::Array), m_value(std::move(array))
     {}
 
-    Value::Value(JsonObject&& object) : _M_type(ValueType::Object), _M_value(std::move(object))
+    Value::Value(JsonObject&& object) : m_type(ValueType::Object), m_value(std::move(object))
     {}
 
     Value& Value::operator=(const Value& value)
     {
         if (this != &value)
         {
-            _M_type  = value._M_type;
-            _M_value = value._M_value;
+            m_type  = value.m_type;
+            m_value = value.m_value;
         }
         return *this;
     }
 
     Value& Value::operator=(JsonBool value)
     {
-        _M_type  = ValueType::Bool;
-        _M_value = value;
+        m_type  = ValueType::Bool;
+        m_value = value;
         return *this;
     }
 
     Value& Value::operator=(JsonInt value)
     {
-        _M_type  = ValueType::Integer;
-        _M_value = value;
+        m_type  = ValueType::Integer;
+        m_value = value;
         return *this;
     }
 
     Value& Value::operator=(JsonFloat value)
     {
-        _M_type  = ValueType::Float;
-        _M_value = value;
+        m_type  = ValueType::Float;
+        m_value = value;
         return *this;
     }
 
     Value& Value::operator=(const JsonString& str)
     {
-        _M_type  = ValueType::String;
-        _M_value = str;
+        m_type  = ValueType::String;
+        m_value = str;
         return *this;
     }
 
     Value& Value::operator=(const JsonArray& array)
     {
-        _M_type  = ValueType::Array;
-        _M_value = array;
+        m_type  = ValueType::Array;
+        m_value = array;
         return *this;
     }
 
     Value& Value::operator=(const JsonObject& object)
     {
-        _M_type  = ValueType::Object;
-        _M_value = object;
+        m_type  = ValueType::Object;
+        m_value = object;
         return *this;
     }
 
@@ -101,9 +101,9 @@ namespace Engine::JSON
     {
         if (this != &value)
         {
-            _M_type       = value._M_type;
-            _M_value      = std::move(value._M_value);
-            value._M_type = ValueType::Undefined;
+            m_type       = value.m_type;
+            m_value      = std::move(value.m_value);
+            value.m_type = ValueType::Undefined;
         }
 
         return *this;
@@ -111,28 +111,28 @@ namespace Engine::JSON
 
     Value& Value::operator=(JsonString&& str)
     {
-        _M_type  = ValueType::String;
-        _M_value = std::move(str);
+        m_type  = ValueType::String;
+        m_value = std::move(str);
         return *this;
     }
 
     Value& Value::operator=(JsonArray&& array)
     {
-        _M_type  = ValueType::Array;
-        _M_value = std::move(array);
+        m_type  = ValueType::Array;
+        m_value = std::move(array);
         return *this;
     }
 
     Value& Value::operator=(JsonObject&& object)
     {
-        _M_type  = ValueType::Object;
-        _M_value = std::move(object);
+        m_type  = ValueType::Object;
+        m_value = std::move(object);
         return *this;
     }
 
     ValueType Value::type() const
     {
-        return _M_type;
+        return m_type;
     }
 
     Object& Object::load(const Path& file, bool mix_objects)

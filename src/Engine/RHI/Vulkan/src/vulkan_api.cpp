@@ -29,13 +29,13 @@ namespace Engine
     };
 #endif
 
-    VulkanAPI* VulkanAPI::_M_vulkan = nullptr;
+    VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
     TRINEX_EXTERNAL_LIB_INIT_FUNC(RHI*)
     {
-        if (VulkanAPI::_M_vulkan == nullptr)
-            VulkanAPI::_M_vulkan = new VulkanAPI();
-        return VulkanAPI::_M_vulkan;
+        if (VulkanAPI::m_vulkan == nullptr)
+            VulkanAPI::m_vulkan = new VulkanAPI();
+        return VulkanAPI::m_vulkan;
     }
 
 
@@ -48,33 +48,33 @@ namespace Engine
 
     VulkanAPI::VulkanAPI()
     {
-        _M_device_extensions.resize(ext_count);
+        m_device_extensions.resize(ext_count);
 
-        _M_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
-        _M_device_extensions[ext_swapchain_index]        = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false};
-        _M_device_extensions[ext_index_type_uint8_index] = {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false};
+        m_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
+        m_device_extensions[ext_swapchain_index]        = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false};
+        m_device_extensions[ext_index_type_uint8_index] = {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false};
 
-        _M_state = new VulkanState();
+        m_state = new VulkanState();
     }
 
     VulkanAPI::~VulkanAPI()
     {
         wait_idle();
-        for (VulkanUniformBuffer* buffer : _M_uniform_buffer)
+        for (VulkanUniformBuffer* buffer : m_uniform_buffer)
         {
             delete buffer;
         }
 
-        _M_uniform_buffer.clear();
+        m_uniform_buffer.clear();
 
         delete_garbage(true);
-        delete _M_main_render_pass;
+        delete m_main_render_pass;
 
-        DESTROY_CALL(destroyDescriptorPool, _M_imgui_descriptor_pool);
-        _M_device.destroyCommandPool(_M_command_pool);
-        _M_device.destroy();
-        vkb::destroy_instance(_M_instance);
-        delete _M_state;
+        DESTROY_CALL(destroyDescriptorPool, m_imgui_descriptor_pool);
+        m_device.destroyCommandPool(m_command_pool);
+        m_device.destroy();
+        vkb::destroy_instance(m_instance);
+        delete m_state;
     }
 
     vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync)
@@ -91,23 +91,23 @@ namespace Engine
     {
         if (force)
         {
-            for (auto& ell : _M_garbage)
+            for (auto& ell : m_garbage)
             {
                 delete ell.object;
             }
 
-            _M_garbage.clear();
+            m_garbage.clear();
         }
         else
         {
-            while (!_M_garbage.empty())
+            while (!m_garbage.empty())
             {
-                Garbage* garbage = &_M_garbage.front();
-                if (garbage->frame != _M_current_frame)
+                Garbage* garbage = &m_garbage.front();
+                if (garbage->frame != m_current_frame)
                     break;
 
                 delete garbage->object;
-                _M_garbage.pop_front();
+                m_garbage.pop_front();
             }
         }
 
@@ -122,7 +122,7 @@ namespace Engine
         }
         else
         {
-            _M_garbage.emplace_back(object, _M_current_frame + _M_framebuffers_count + 1);
+            m_garbage.emplace_back(object, m_current_frame + m_framebuffers_count + 1);
         }
         return *this;
     }
@@ -131,13 +131,13 @@ namespace Engine
     {
         ImGui::SetCurrentContext(ctx);
         ImGui_ImplVulkan_InitInfo init_info{};
-        init_info.Instance       = _M_instance;
-        init_info.PhysicalDevice = _M_physical_device;
-        init_info.Device         = _M_device;
-        init_info.QueueFamily    = _M_graphics_and_present_index.graphics_family.value();
-        init_info.Queue          = _M_graphics_queue;
+        init_info.Instance       = m_instance;
+        init_info.PhysicalDevice = m_physical_device;
+        init_info.Device         = m_device;
+        init_info.QueueFamily    = m_graphics_and_present_index.graphics_family.value();
+        init_info.Queue          = m_graphics_queue;
 
-        if (!_M_imgui_descriptor_pool)
+        if (!m_imgui_descriptor_pool)
         {
             VkDescriptorPoolSize pool_sizes[] = {
                     {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
@@ -160,15 +160,15 @@ namespace Engine
             descriptor_pool_create_info.pPoolSizes                 = pool_sizes;
             descriptor_pool_create_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
-            _M_imgui_descriptor_pool = _M_device.createDescriptorPool(descriptor_pool_create_info);
+            m_imgui_descriptor_pool = m_device.createDescriptorPool(descriptor_pool_create_info);
         }
 
-        init_info.DescriptorPool = _M_imgui_descriptor_pool;
+        init_info.DescriptorPool = m_imgui_descriptor_pool;
 
-        init_info.MinImageCount = _M_framebuffers_count;
-        init_info.ImageCount    = _M_framebuffers_count;
+        init_info.MinImageCount = m_framebuffers_count;
+        init_info.ImageCount    = m_framebuffers_count;
 
-        ImGui_ImplVulkan_Init(&init_info, _M_main_render_pass->_M_render_pass);
+        ImGui_ImplVulkan_Init(&init_info, m_main_render_pass->m_render_pass);
 
 
         ImGui_ImplVulkan_NewFrame();
@@ -197,12 +197,12 @@ namespace Engine
 
     vk::Device* vulkan_device()
     {
-        return &API->_M_device;
+        return &API->m_device;
     }
 
     vk::CommandPool* vulkan_command_pool()
     {
-        return &API->_M_command_pool;
+        return &API->m_command_pool;
     }
 
     ///////////////////////////////// INITIALIZATION /////////////////////////////////
@@ -219,19 +219,19 @@ namespace Engine
 
     static bool is_available_swapchain_images_count(uint32_t count)
     {
-        auto& _M_surface_capabilities = API->_M_surface_capabilities;
-        return (_M_surface_capabilities.maxImageCount == 0 || _M_surface_capabilities.maxImageCount >= count) &&
-               _M_surface_capabilities.minImageCount <= count;
+        auto& m_surface_capabilities = API->m_surface_capabilities;
+        return (m_surface_capabilities.maxImageCount == 0 || m_surface_capabilities.maxImageCount >= count) &&
+               m_surface_capabilities.minImageCount <= count;
     }
 
     void VulkanAPI::initialize(WindowInterface* window)
     {
-        _M_window = window;
+        m_window = window;
 
         vkb::InstanceBuilder instance_builder;
         instance_builder.require_api_version(VK_API_VERSION_1_3);
 
-        auto extentions = _M_window->required_extensions();
+        auto extentions = m_window->required_extensions();
         for (auto& extension : extentions)
         {
             vulkan_info_log("VulkanAPI", "Enable extention %s", extension);
@@ -252,9 +252,9 @@ namespace Engine
             throw std::runtime_error(instance_ret.error().message());
         }
 
-        _M_instance = instance_ret.value();
+        m_instance = instance_ret.value();
 
-        _M_surface = create_surface(window);
+        m_surface = create_surface(window);
 
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
         vk::PhysicalDeviceFeatures features;
@@ -265,7 +265,7 @@ namespace Engine
         phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
 
 
-        for (VulkanExtention& extension : _M_device_extensions)
+        for (VulkanExtention& extension : m_device_extensions)
         {
             if (extension.required)
                 phys_device_selector.add_required_extension(extension.name);
@@ -280,7 +280,7 @@ namespace Engine
 #else
         phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
 #endif
-        phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(_M_surface));
+        phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(m_surface));
 
         auto selected_device = phys_device_selector.select();
         if (!selected_device.has_value())
@@ -288,13 +288,13 @@ namespace Engine
             throw std::runtime_error(selected_device.error().message());
         }
 
-        _M_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
+        m_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
         check_extentions();
 
-        _M_properties           = _M_physical_device.getProperties();
-        _M_features             = _M_physical_device.getFeatures();
-        _M_surface_capabilities = _M_physical_device.getSurfaceCapabilitiesKHR(_M_surface);
-        _M_renderer             = _M_properties.deviceName.data();
+        m_properties           = m_physical_device.getProperties();
+        m_features             = m_physical_device.getFeatures();
+        m_surface_capabilities = m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
+        m_renderer             = m_properties.deviceName.data();
 
         vkb::DeviceBuilder device_builder(selected_device.value());
 
@@ -310,24 +310,24 @@ namespace Engine
             throw std::runtime_error(device_ret.error().message());
         }
 
-        _M_bootstrap_device = device_ret.value();
-        _M_device           = vk::Device(device_ret.value().device);
+        m_bootstrap_device = device_ret.value();
+        m_device           = vk::Device(device_ret.value().device);
 
-        auto index_1        = _M_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
-        auto index_2        = _M_bootstrap_device.get_queue_index(vkb::QueueType::present);
-        auto graphics_queue = _M_bootstrap_device.get_queue(vkb::QueueType::graphics);
-        auto present_queue  = _M_bootstrap_device.get_queue(vkb::QueueType::present);
+        auto index_1        = m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
+        auto index_2        = m_bootstrap_device.get_queue_index(vkb::QueueType::present);
+        auto graphics_queue = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
+        auto present_queue  = m_bootstrap_device.get_queue(vkb::QueueType::present);
 
         if (!index_1 || !index_2 || !graphics_queue || !present_queue)
         {
             throw std::runtime_error("Failed to init queues");
         }
 
-        _M_graphics_and_present_index.graphics_family = index_1.value();
-        _M_graphics_and_present_index.present_family  = index_2.value();
+        m_graphics_and_present_index.graphics_family = index_1.value();
+        m_graphics_and_present_index.present_family  = index_2.value();
 
-        _M_graphics_queue = vk::Queue(graphics_queue.value());
-        _M_present_queue  = vk::Queue(present_queue.value());
+        m_graphics_queue = vk::Queue(graphics_queue.value());
+        m_present_queue  = vk::Queue(present_queue.value());
 
 
         initialize_pfn();
@@ -336,24 +336,24 @@ namespace Engine
 
         if (is_available_swapchain_images_count(VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT))
         {
-            _M_framebuffers_count = VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT;
+            m_framebuffers_count = VULKAN_DESIRED_SWAPCHAIN_IMAGES_COUNT;
         }
         else if (is_available_swapchain_images_count(VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT))
         {
-            _M_framebuffers_count = VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT;
+            m_framebuffers_count = VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT;
         }
-        else if (_M_surface_capabilities.minImageCount >= VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT)
+        else if (m_surface_capabilities.minImageCount >= VULKAN_MIN_SWAPCHAIN_IMAGES_COUNT)
         {
-            _M_framebuffers_count = _M_surface_capabilities.minImageCount;
+            m_framebuffers_count = m_surface_capabilities.minImageCount;
         }
         else
         {
             throw EngineException("Vulkan requires a minimum of 2 images for Swapchain");
         }
 
-        _M_uniform_buffer.resize(_M_framebuffers_count);
+        m_uniform_buffer.resize(m_framebuffers_count);
 
-        for (VulkanUniformBuffer*& buffer : _M_uniform_buffer)
+        for (VulkanUniformBuffer*& buffer : m_uniform_buffer)
         {
             buffer = new VulkanUniformBuffer();
         }
@@ -363,8 +363,8 @@ namespace Engine
 
     void VulkanAPI::check_extentions()
     {
-        auto properties = _M_physical_device.enumerateDeviceExtensionProperties();
-        for (VulkanExtention& extension : _M_device_extensions)
+        auto properties = m_physical_device.enumerateDeviceExtensionProperties();
+        for (VulkanExtention& extension : m_device_extensions)
         {
             for (auto& prop : properties)
             {
@@ -379,7 +379,7 @@ namespace Engine
 
     void VulkanAPI::enable_dynamic_states()
     {
-        _M_dynamic_states = {
+        m_dynamic_states = {
                 vk::DynamicState::eViewport,
                 vk::DynamicState::eScissor,
         };
@@ -388,27 +388,27 @@ namespace Engine
     void VulkanAPI::initialize_pfn()
     {
         pfn.vkCmdBeginDebugUtilsLabelEXT =
-                (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdBeginDebugUtilsLabelEXT");
+                (PFN_vkCmdBeginDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdBeginDebugUtilsLabelEXT");
         pfn.vkCmdEndDebugUtilsLabelEXT =
-                (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(_M_device, "vkCmdEndDebugUtilsLabelEXT");
+                (PFN_vkCmdEndDebugUtilsLabelEXT) vkGetDeviceProcAddr(m_device, "vkCmdEndDebugUtilsLabelEXT");
     }
 
 
     vk::SurfaceKHR VulkanAPI::create_surface(WindowInterface* interface)
     {
-        void* _surface = interface->create_api_context("", static_cast<VkInstance>(_M_instance));
+        void* _surface = interface->create_api_context("", static_cast<VkInstance>(m_instance));
         interface->bind_api_context(_surface);
         return vk::SurfaceKHR(*reinterpret_cast<VkSurfaceKHR*>(_surface));
     }
 
     vk::Extent2D VulkanAPI::surface_size() const
     {
-        return surface_size(_M_surface);
+        return surface_size(m_surface);
     }
 
     vk::Extent2D VulkanAPI::surface_size(const vk::SurfaceKHR& surface) const
     {
-        return _M_physical_device.getSurfaceCapabilitiesKHR(surface).currentExtent;
+        return m_physical_device.getSurfaceCapabilitiesKHR(surface).currentExtent;
     }
 
     bool VulkanAPI::has_stencil_component(vk::Format format)
@@ -421,24 +421,24 @@ namespace Engine
                                        vk::DeviceMemory& image_memory, uint32_t layers)
     {
 
-        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->_M_vulkan_format,
-                                       vk::Extent3D(texture->_M_engine_texture->size.x, texture->_M_engine_texture->size.y, 1),
-                                       texture->_M_engine_texture->mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling,
+        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->m_vulkan_format,
+                                       vk::Extent3D(texture->m_engine_texture->size.x, texture->m_engine_texture->size.y, 1),
+                                       texture->m_engine_texture->mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling,
                                        usage, vk::SharingMode::eExclusive);
 
-        image                                      = API->_M_device.createImage(image_info);
-        vk::MemoryRequirements memory_requirements = API->_M_device.getImageMemoryRequirements(image);
+        image                                      = API->m_device.createImage(image_info);
+        vk::MemoryRequirements memory_requirements = API->m_device.getImageMemoryRequirements(image);
         auto memory_type = API->find_memory_type(memory_requirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
         vk::MemoryAllocateInfo alloc_info(memory_requirements.size, memory_type);
-        image_memory = API->_M_device.allocateMemory(alloc_info);
-        API->_M_device.bindImageMemory(image, image_memory, 0);
+        image_memory = API->m_device.allocateMemory(alloc_info);
+        API->m_device.bindImageMemory(image, image_memory, 0);
         return *this;
     }
 
     void VulkanAPI::create_command_pool()
     {
-        _M_command_pool = _M_device.createCommandPool(vk::CommandPoolCreateInfo(
-                vk::CommandPoolCreateFlagBits::eResetCommandBuffer, _M_graphics_and_present_index.graphics_family.value()));
+        m_command_pool = m_device.createCommandPool(vk::CommandPoolCreateInfo(
+                vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_graphics_and_present_index.graphics_family.value()));
     }
 
 
@@ -451,18 +451,18 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        if (_M_state->_M_current_viewport)
+        if (m_state->m_current_viewport)
         {
-            _M_state->_M_current_viewport->end_render();
+            m_state->m_current_viewport->end_render();
         }
-        ++_M_current_frame;
-        _M_current_buffer = _M_current_frame % _M_framebuffers_count;
+        ++m_current_frame;
+        m_current_buffer = m_current_frame % m_framebuffers_count;
         return *this;
     }
 
     uint32_t VulkanAPI::find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties)
     {
-        vk::PhysicalDeviceMemoryProperties mem_properties = _M_physical_device.getMemoryProperties();
+        vk::PhysicalDeviceMemoryProperties mem_properties = m_physical_device.getMemoryProperties();
 
         for (uint32_t i = 0; (1u << i) <= type_filter && i < mem_properties.memoryTypeCount; i++)
         {
@@ -479,21 +479,21 @@ namespace Engine
                                         vk::Buffer& buffer, vk::DeviceMemory& buffer_memory)
     {
         vk::BufferCreateInfo buffer_info({}, size, usage, vk::SharingMode::eExclusive);
-        buffer = _M_device.createBuffer(buffer_info);
+        buffer = m_device.createBuffer(buffer_info);
 
-        vk::MemoryRequirements mem_requirements = _M_device.getBufferMemoryRequirements(buffer);
+        vk::MemoryRequirements mem_requirements = m_device.getBufferMemoryRequirements(buffer);
         vk::MemoryAllocateInfo alloc_info(mem_requirements.size, find_memory_type(mem_requirements.memoryTypeBits, properties));
 
 
-        buffer_memory = _M_device.allocateMemory(alloc_info);
-        _M_device.bindBufferMemory(buffer, buffer_memory, 0);
+        buffer_memory = m_device.allocateMemory(alloc_info);
+        m_device.bindBufferMemory(buffer, buffer_memory, 0);
         return *this;
     }
 
     vk::CommandBuffer VulkanAPI::begin_single_time_command_buffer()
     {
-        vk::CommandBufferAllocateInfo alloc_info(_M_command_pool, vk::CommandBufferLevel::ePrimary, 1);
-        vk::CommandBuffer command_buffer = _M_device.allocateCommandBuffers(alloc_info).front();
+        vk::CommandBufferAllocateInfo alloc_info(m_command_pool, vk::CommandBufferLevel::ePrimary, 1);
+        vk::CommandBuffer command_buffer = m_device.allocateCommandBuffers(alloc_info).front();
         vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         command_buffer.begin(begin_info);
         return command_buffer;
@@ -503,9 +503,9 @@ namespace Engine
     {
         command_buffer.end();
         vk::SubmitInfo submit_info({}, {}, command_buffer);
-        _M_graphics_queue.submit(submit_info, {});
-        _M_graphics_queue.waitIdle();
-        _M_device.freeCommandBuffers(_M_command_pool, command_buffer);
+        m_graphics_queue.submit(submit_info, {});
+        m_graphics_queue.waitIdle();
+        m_device.freeCommandBuffers(m_command_pool, command_buffer);
         return *this;
     }
 
@@ -520,9 +520,9 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::wait_idle()
     {
-        _M_device.waitIdle();
-        _M_graphics_queue.waitIdle();
-        _M_present_queue.waitIdle();
+        m_device.waitIdle();
+        m_graphics_queue.waitIdle();
+        m_present_queue.waitIdle();
 
         return *this;
     }
@@ -536,20 +536,20 @@ namespace Engine
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         prepare_draw().current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
-        _M_state->_M_pipeline->increment_set_index();
+        m_state->m_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
         prepare_draw().current_command_buffer().draw(vertex_count, 1, 0, 0);
-        _M_state->_M_pipeline->increment_set_index();
+        m_state->m_pipeline->increment_set_index();
         return *this;
     }
 
     const String& VulkanAPI::renderer()
     {
-        return _M_renderer;
+        return m_renderer;
     }
 
     const String& VulkanAPI::name()
@@ -560,7 +560,7 @@ namespace Engine
 
     VulkanUniformBuffer* VulkanAPI::uniform_buffer() const
     {
-        return _M_uniform_buffer[_M_current_buffer];
+        return m_uniform_buffer[m_current_buffer];
     }
 
     void VulkanAPI::push_debug_stage(const char* stage, const Color& color)
@@ -589,6 +589,6 @@ namespace Engine
 
     size_t VulkanAPI::render_target_buffer_count()
     {
-        return _M_framebuffers_count;
+        return m_framebuffers_count;
     }
 }// namespace Engine

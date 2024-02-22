@@ -7,7 +7,7 @@ namespace Engine::VFS
     class ENGINE_EXPORT NativeFileSystem : public FileSystem
     {
     private:
-        Path _M_path;
+        Path m_path;
 
     protected:
         DirectoryIteratorInterface* create_directory_iterator(const Path& path) override;

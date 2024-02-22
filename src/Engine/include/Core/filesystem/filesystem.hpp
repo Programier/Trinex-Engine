@@ -23,8 +23,8 @@ namespace Engine::VFS
         using UnMountCallback = Function<void(FileSystem*)>;
 
     protected:
-        Path _M_mount_point;
-        UnMountCallback _M_on_unmount;
+        Path m_mount_point;
+        UnMountCallback m_on_unmount;
         virtual DirectoryIteratorInterface* create_directory_iterator(const Path& path)           = 0;
         virtual DirectoryIteratorInterface* create_recursive_directory_iterator(const Path& path) = 0;
 
@@ -35,7 +35,7 @@ namespace Engine::VFS
 
         FORCE_INLINE const Path& mount_point() const
         {
-            return _M_mount_point;
+            return m_mount_point;
         }
 
         virtual const Path& path() const                               = 0;

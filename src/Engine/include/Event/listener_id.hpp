@@ -7,8 +7,8 @@ namespace Engine
     class ENGINE_EXPORT EventSystemListenerID
     {
     private:
-        EventType _M_type;
-        Identifier _M_id;
+        EventType m_type;
+        Identifier m_id;
 
 
     public:

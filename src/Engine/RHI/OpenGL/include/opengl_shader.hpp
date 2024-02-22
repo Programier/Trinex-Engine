@@ -7,7 +7,7 @@
 namespace Engine
 {
     struct OpenGL_Shader : public RHI_Shader {
-        GLuint _M_id = 0;
+        GLuint m_id = 0;
 
         ~OpenGL_Shader();
         virtual GLuint type() = 0;
@@ -24,14 +24,14 @@ namespace Engine
 
     template<typename Func>
     struct OpenGL_StateCommand : public ExecutableObject {
-        Func _M_func;
+        Func m_func;
 
-        OpenGL_StateCommand(Func func) : _M_func(func)
+        OpenGL_StateCommand(Func func) : m_func(func)
         {}
 
         int_t execute() override
         {
-            _M_func();
+            m_func();
             return 0;
         }
     };
@@ -45,12 +45,12 @@ namespace Engine
             GLboolean normalize;
         };
 
-        Vector<VertexInput> _M_vertex_input;
-        Vector<ExecutableObject*> _M_apply_state;
+        Vector<VertexInput> m_vertex_input;
+        Vector<ExecutableObject*> m_apply_state;
 
-        GLuint _M_pipeline = 0;
-        GLuint _M_topology = 0;
-        GLuint _M_vao      = 0;
+        GLuint m_pipeline = 0;
+        GLuint m_topology = 0;
+        GLuint m_vao      = 0;
 
         void init(const Pipeline* pipeline);
         void bind() override;

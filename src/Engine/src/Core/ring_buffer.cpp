@@ -4,11 +4,11 @@
 
 namespace Engine
 {
-    RingBuffer::AllocationContext::AllocationContext(RingBuffer& buffer, size_t size) : _M_buffer(buffer)
+    RingBuffer::AllocationContext::AllocationContext(RingBuffer& buffer, size_t size) : m_buffer(buffer)
     {
-        _M_buffer._M_mutex.lock();
+        m_buffer.m_mutex.lock();
 
-        size = align_memory(size, _M_buffer._M_alignment);
+        size = align_memory(size, m_buffer.m_alignment);
 
         if (buffer.size() < size)
             throw EngineException("Cannot allocate new memory in ring buffer");
@@ -18,33 +18,33 @@ namespace Engine
             ThreadBase::sleep_for(0.03);
         }
 
-        _M_start_pointer = buffer._M_write_pointer;
-        _M_size          = glm::min<size_t>(size, (buffer._M_end_pointer - buffer._M_write_pointer));
+        m_start_pointer = buffer.m_write_pointer;
+        m_size          = glm::min<size_t>(size, (buffer.m_end_pointer - buffer.m_write_pointer));
     }
 
     void* RingBuffer::AllocationContext::data() const
     {
-        return _M_start_pointer;
+        return m_start_pointer;
     }
 
     RingBuffer::AllocationContext& RingBuffer::AllocationContext::submit()
     {
-        if (_M_start_pointer)
+        if (m_start_pointer)
         {
-            _M_buffer._M_write_pointer += _M_size;
-            if (_M_buffer._M_write_pointer >= _M_buffer._M_end_pointer)
-                _M_buffer._M_write_pointer = _M_buffer._M_start_pointer;
+            m_buffer.m_write_pointer += m_size;
+            if (m_buffer.m_write_pointer >= m_buffer.m_end_pointer)
+                m_buffer.m_write_pointer = m_buffer.m_start_pointer;
 
-            _M_start_pointer = nullptr;
-            _M_buffer._M_unreaded_size += _M_size;
-            _M_size = 0;
+            m_start_pointer = nullptr;
+            m_buffer.m_unreaded_size += m_size;
+            m_size = 0;
 
-            if (_M_buffer._M_event)
+            if (m_buffer.m_event)
             {
-                _M_buffer._M_event->execute();
+                m_buffer.m_event->execute();
             }
 
-            _M_buffer._M_mutex.unlock();
+            m_buffer.m_mutex.unlock();
         }
         return *this;
     }
@@ -56,7 +56,7 @@ namespace Engine
 
     size_t RingBuffer::AllocationContext::size() const
     {
-        return _M_size;
+        return m_size;
     }
 
     RingBuffer::RingBuffer()
@@ -73,15 +73,15 @@ namespace Engine
         if (!is_inited())
         {
             size         = align_memory(size, alignment);
-            _M_alignment = alignment;
-            _M_event     = event;
+            m_alignment = alignment;
+            m_event     = event;
 
-            _M_data.resize(size, 0);
-            _M_read_pointer  = _M_data.data();
-            _M_write_pointer = _M_read_pointer.load();
-            _M_start_pointer = _M_read_pointer;
-            _M_end_pointer   = _M_read_pointer + size;
-            _M_unreaded_size = 0;
+            m_data.resize(size, 0);
+            m_read_pointer  = m_data.data();
+            m_write_pointer = m_read_pointer.load();
+            m_start_pointer = m_read_pointer;
+            m_end_pointer   = m_read_pointer + size;
+            m_unreaded_size = 0;
         }
 
         return *this;
@@ -89,12 +89,12 @@ namespace Engine
 
     bool RingBuffer::is_inited() const
     {
-        return !_M_data.empty();
+        return !m_data.empty();
     }
 
     size_t RingBuffer::unreaded_buffer_size() const
     {
-        return _M_unreaded_size;
+        return m_unreaded_size;
     }
 
     size_t RingBuffer::free_size() const
@@ -104,25 +104,25 @@ namespace Engine
 
     size_t RingBuffer::size() const
     {
-        return _M_data.size();
+        return m_data.size();
     }
 
     void* RingBuffer::reading_pointer()
     {
         if (unreaded_buffer_size() == 0)
             return nullptr;
-        return _M_read_pointer;
+        return m_read_pointer;
     }
 
     RingBuffer& RingBuffer::finish_read(size_t size)
     {
-        size = glm::min(align_memory(size, _M_alignment), _M_unreaded_size.load());
-        _M_read_pointer += size;
+        size = glm::min(align_memory(size, m_alignment), m_unreaded_size.load());
+        m_read_pointer += size;
 
-        if (_M_read_pointer >= _M_end_pointer)
-            _M_read_pointer = _M_start_pointer;
+        if (m_read_pointer >= m_end_pointer)
+            m_read_pointer = m_start_pointer;
 
-        _M_unreaded_size -= size;
+        m_unreaded_size -= size;
         return *this;
     }
 }// namespace Engine

@@ -26,6 +26,6 @@ namespace Engine
 
     void SingletoneBase::remove_object_from_class(const Class* class_instance)
     {
-        class_instance->_M_singletone_object = nullptr;
+        class_instance->m_singletone_object = nullptr;
     }
 }// namespace Engine

@@ -14,12 +14,12 @@ namespace Engine
     private:
         union
         {
-            BufferReader* _M_reader;
-            BufferWriter* _M_writer;
+            BufferReader* m_reader;
+            BufferWriter* m_writer;
         };
 
-        bool _M_is_saving      = false;
-        bool _M_process_status = true;
+        bool m_is_saving      = false;
+        bool m_process_status = true;
 
 
         template<typename Type>
@@ -86,7 +86,7 @@ namespace Engine
 
         inline operator bool()
         {
-            return _M_process_status;
+            return m_process_status;
         }
 
         template<typename Type>

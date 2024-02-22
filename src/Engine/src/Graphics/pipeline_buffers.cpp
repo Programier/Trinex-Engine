@@ -48,7 +48,7 @@ namespace Engine
 
     PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_Buffer>()->update(offset, size, data);
         }
@@ -59,13 +59,13 @@ namespace Engine
     {
         size_t buffer_size = size();
         if (buffer_size > 0)
-            _M_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data()));
+            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data()));
         return *this;
     }
 
     VertexBuffer& VertexBuffer::rhi_bind(byte stream_index, size_t offset)
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_VertexBuffer>()->bind(stream_index, offset);
         }
@@ -84,7 +84,7 @@ namespace Engine
 
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_index_buffer(size(), data(), component()));
+        m_rhi_object.reset(engine_instance->rhi()->create_index_buffer(size(), data(), component()));
         return *this;
     }
 
@@ -92,81 +92,81 @@ namespace Engine
     {
         cleanup();
 
-        _M_component = component;
+        m_component = component;
 
-        if (_M_component == IndexBufferComponent::UnsignedByte)
-            _M_byte_buffer = new ByteBuffer();
-        else if (_M_component == IndexBufferComponent::UnsignedShort)
-            _M_short_buffer = new ShortBuffer();
-        else if (_M_component == IndexBufferComponent::UnsignedInt)
-            _M_int_buffer = new IntBuffer();
+        if (m_component == IndexBufferComponent::UnsignedByte)
+            m_byte_buffer = new ByteBuffer();
+        else if (m_component == IndexBufferComponent::UnsignedShort)
+            m_short_buffer = new ShortBuffer();
+        else if (m_component == IndexBufferComponent::UnsignedInt)
+            m_int_buffer = new IntBuffer();
         return *this;
     }
 
     const byte* IndexBuffer::data() const
     {
-        if (_M_byte_buffer == nullptr)
+        if (m_byte_buffer == nullptr)
             return nullptr;
 
-        if (_M_component == IndexBufferComponent::UnsignedByte)
-            return _M_byte_buffer->data();
-        else if (_M_component == IndexBufferComponent::UnsignedShort)
-            return reinterpret_cast<const byte*>(_M_short_buffer->data());
-        else if (_M_component == IndexBufferComponent::UnsignedInt)
-            return reinterpret_cast<const byte*>(_M_int_buffer->data());
+        if (m_component == IndexBufferComponent::UnsignedByte)
+            return m_byte_buffer->data();
+        else if (m_component == IndexBufferComponent::UnsignedShort)
+            return reinterpret_cast<const byte*>(m_short_buffer->data());
+        else if (m_component == IndexBufferComponent::UnsignedInt)
+            return reinterpret_cast<const byte*>(m_int_buffer->data());
 
         return nullptr;
     }
 
     size_t IndexBuffer::size() const
     {
-        if (_M_byte_buffer == nullptr)
+        if (m_byte_buffer == nullptr)
             return 0;
 
-        if (_M_component == IndexBufferComponent::UnsignedByte)
-            return _M_byte_buffer->size();
-        else if (_M_component == IndexBufferComponent::UnsignedShort)
-            return _M_short_buffer->size() * sizeof(ushort_t);
-        else if (_M_component == IndexBufferComponent::UnsignedInt)
-            return _M_int_buffer->size() * sizeof(uint_t);
+        if (m_component == IndexBufferComponent::UnsignedByte)
+            return m_byte_buffer->size();
+        else if (m_component == IndexBufferComponent::UnsignedShort)
+            return m_short_buffer->size() * sizeof(ushort_t);
+        else if (m_component == IndexBufferComponent::UnsignedInt)
+            return m_int_buffer->size() * sizeof(uint_t);
 
         return 0;
     }
 
     IndexBuffer::ByteBuffer* IndexBuffer::byte_buffer() const
     {
-        return _M_component == IndexBufferComponent::UnsignedByte ? _M_byte_buffer : nullptr;
+        return m_component == IndexBufferComponent::UnsignedByte ? m_byte_buffer : nullptr;
     }
 
     IndexBuffer::ShortBuffer* IndexBuffer::short_buffer() const
     {
-        return _M_component == IndexBufferComponent::UnsignedShort ? _M_short_buffer : nullptr;
+        return m_component == IndexBufferComponent::UnsignedShort ? m_short_buffer : nullptr;
     }
 
     IndexBuffer::IntBuffer* IndexBuffer::int_buffer() const
     {
-        return _M_component == IndexBufferComponent::UnsignedInt ? _M_int_buffer : nullptr;
+        return m_component == IndexBufferComponent::UnsignedInt ? m_int_buffer : nullptr;
     }
 
     IndexBuffer& IndexBuffer::cleanup()
     {
-        if (_M_byte_buffer == nullptr)
+        if (m_byte_buffer == nullptr)
             return *this;
 
-        if (_M_component == IndexBufferComponent::UnsignedByte)
-            delete _M_byte_buffer;
-        else if (_M_component == IndexBufferComponent::UnsignedShort)
-            delete _M_short_buffer;
-        else if (_M_component == IndexBufferComponent::UnsignedInt)
-            delete _M_int_buffer;
+        if (m_component == IndexBufferComponent::UnsignedByte)
+            delete m_byte_buffer;
+        else if (m_component == IndexBufferComponent::UnsignedShort)
+            delete m_short_buffer;
+        else if (m_component == IndexBufferComponent::UnsignedInt)
+            delete m_int_buffer;
 
-        _M_byte_buffer = nullptr;
+        m_byte_buffer = nullptr;
         return *this;
     }
 
     IndexBuffer& IndexBuffer::rhi_bind(size_t offset)
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_IndexBuffer>()->bind(offset);
         }
@@ -175,7 +175,7 @@ namespace Engine
 
     IndexBufferComponent IndexBuffer::component() const
     {
-        return _M_component;
+        return m_component;
     }
 
     size_t IndexBuffer::component_size(IndexBufferComponent component)
@@ -196,7 +196,7 @@ namespace Engine
 
     size_t IndexBuffer::component_size() const
     {
-        return component_size(_M_component);
+        return component_size(m_component);
     }
 
     size_t IndexBuffer::elements_count() const
@@ -206,13 +206,13 @@ namespace Engine
 
     SSBO& SSBO::rhi_create()
     {
-        _M_rhi_object.reset(engine_instance->rhi()->create_ssbo(init_size, init_data));
+        m_rhi_object.reset(engine_instance->rhi()->create_ssbo(init_size, init_data));
         return *this;
     }
 
     SSBO& SSBO::rhi_bind(BindLocation location)
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_SSBO>()->bind(location);
         }

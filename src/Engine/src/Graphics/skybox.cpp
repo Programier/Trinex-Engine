@@ -44,30 +44,30 @@ namespace Engine
             rhi_create();
         }
 
-        Image _M_images[6];
+        Image m_images[6];
 
-//        _M_images[(byte) TextureCubeMapFace::Up] =
+//        m_images[(byte) TextureCubeMapFace::Up] =
 //                invert ? img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3})
 //                       : img.sub_image({block_width, 0}, {block_width * 2, block_height});
 
 
-//        _M_images[(byte) TextureCubeMapFace::Down] =
+//        m_images[(byte) TextureCubeMapFace::Down] =
 //                invert ? img.sub_image({block_width, 0}, {block_width * 2, block_height})
 //                       : img.sub_image({block_width, block_height * 2}, {block_width * 2, block_height * 3});
 
-//        _M_images[(byte) TextureCubeMapFace::Left] = img.sub_image({0, block_height}, {block_width, block_height * 2});
-//        _M_images[(byte) TextureCubeMapFace::Right] =
+//        m_images[(byte) TextureCubeMapFace::Left] = img.sub_image({0, block_height}, {block_width, block_height * 2});
+//        m_images[(byte) TextureCubeMapFace::Right] =
 //                img.sub_image({block_width * 2, block_height}, {block_width * 3, block_height * 2});
-//        _M_images[(byte) TextureCubeMapFace::Back] =
+//        m_images[(byte) TextureCubeMapFace::Back] =
 //                img.sub_image({block_width * 1, block_height}, {block_width * 2, block_height * 2});
-//        _M_images[(byte) TextureCubeMapFace::Front] =
+//        m_images[(byte) TextureCubeMapFace::Front] =
 //                img.sub_image({block_width * 3, block_height}, {block_width * 4, block_height * 2});
 
 
         for (byte i = 0; i < 6; i++)
         {
-            TextureCubeMap::update_data((TextureCubeMapFace) i, _M_images[i].size(), {0, 0},
-                                        (void*) _M_images[i].data(), 0);
+            TextureCubeMap::update_data((TextureCubeMapFace) i, m_images[i].size(), {0, 0},
+                                        (void*) m_images[i].data(), 0);
         }
 
         return *this;

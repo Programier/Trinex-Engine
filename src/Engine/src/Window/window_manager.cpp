@@ -31,7 +31,7 @@ namespace Engine
         return image;
     }
 
-    WindowManager* WindowManager::_M_instance = nullptr;
+    WindowManager* WindowManager::m_instance = nullptr;
 
     WindowManager::WindowManager()
     {
@@ -49,9 +49,9 @@ namespace Engine
             throw EngineException("Cannot create window manager loader");
         }
 
-        _M_interface = loader();
+        m_interface = loader();
 
-        if (_M_interface == nullptr)
+        if (m_interface == nullptr)
         {
             throw EngineException("Cannot create window manager");
         }
@@ -68,18 +68,18 @@ namespace Engine
                 engine_instance->thread(ThreadType::RenderThread)->wait_all();
             }
 
-            if (window == _M_main_window)
-                _M_main_window = nullptr;
-            _M_windows.erase(window->window_id());
+            if (window == m_main_window)
+                m_main_window = nullptr;
+            m_windows.erase(window->window_id());
 
-            while (!window->_M_childs.empty())
+            while (!window->m_childs.empty())
             {
-                destroy_window(window->_M_childs.back());
+                destroy_window(window->m_childs.back());
             }
 
-            if (window->_M_parent_window)
+            if (window->m_parent_window)
             {
-                auto& childs = window->_M_parent_window->_M_childs;
+                auto& childs = window->m_parent_window->m_childs;
                 for (size_t i = 0, count = childs.size(); i < count; i++)
                 {
                     if (childs[i] == window)
@@ -97,39 +97,39 @@ namespace Engine
 
     WindowManager::~WindowManager()
     {
-        while (!_M_windows.empty())
+        while (!m_windows.empty())
         {
-            Window* window = _M_windows.begin()->second;
+            Window* window = m_windows.begin()->second;
             destroy_window(window);
         }
 
-        delete _M_interface;
+        delete m_interface;
     }
 
 
     Window* WindowManager::create_window(const WindowConfig& config, Window* parent, WindowInterface* window_interface)
     {
         if (window_interface == nullptr)
-            window_interface = _M_interface->create_window(&config);
+            window_interface = m_interface->create_window(&config);
 
         if (window_interface == nullptr)
             return nullptr;
 
         Window* window = new Window(window_interface, config.vsync);
 
-        parent = parent ? parent : _M_main_window;
+        parent = parent ? parent : m_main_window;
         if (parent)
         {
-            parent->_M_childs.push_back(window);
-            window->_M_parent_window = parent;
+            parent->m_childs.push_back(window);
+            window->m_parent_window = parent;
         }
 
-        if (_M_windows.empty())
+        if (m_windows.empty())
         {
-            _M_main_window = window;
+            m_main_window = window;
         }
 
-        _M_windows[window->window_id()] = window;
+        m_windows[window->window_id()] = window;
 
         // Initialize client
         create_client(window, config.client);
@@ -141,77 +141,77 @@ namespace Engine
 
     WindowManager& WindowManager::create_notify(const NotifyCreateInfo& info)
     {
-        _M_interface->create_notify(info);
+        m_interface->create_notify(info);
         return *this;
     }
 
     String WindowManager::error() const
     {
-        return _M_interface->error();
+        return m_interface->error();
     }
 
     bool WindowManager::has_error() const
     {
-        return _M_interface->has_error();
+        return m_interface->has_error();
     }
 
     bool WindowManager::mouse_relative_mode() const
     {
-        return _M_interface->mouse_relative_mode();
+        return m_interface->mouse_relative_mode();
     }
 
     WindowManager& WindowManager::mouse_relative_mode(bool flag)
     {
-        _M_interface->mouse_relative_mode(flag);
+        m_interface->mouse_relative_mode(flag);
         return *this;
     }
 
     WindowManager& WindowManager::update_monitor_info(MonitorInfo& info)
     {
-        _M_interface->update_monitor_info(info);
+        m_interface->update_monitor_info(info);
         return *this;
     }
 
     WindowManager& WindowManager::add_event_callback(Identifier system_id, const EventCallback& callback)
     {
-        _M_interface->add_event_callback(system_id, callback);
+        m_interface->add_event_callback(system_id, callback);
         return *this;
     }
 
     WindowManager& WindowManager::remove_all_callbacks(Identifier system_id)
     {
-        _M_interface->remove_all_callbacks(system_id);
+        m_interface->remove_all_callbacks(system_id);
         return *this;
     }
 
     WindowManager& WindowManager::start_text_input()
     {
-        _M_interface->start_text_input();
+        m_interface->start_text_input();
         return *this;
     }
 
     WindowManager& WindowManager::stop_text_input()
     {
-        _M_interface->stop_text_input();
+        m_interface->stop_text_input();
         return *this;
     }
 
     WindowManager& WindowManager::pool_events()
     {
-        _M_interface->pool_events();
+        m_interface->pool_events();
         return *this;
     }
 
     WindowManager& WindowManager::wait_for_events()
     {
-        _M_interface->wait_for_events();
+        m_interface->wait_for_events();
         return *this;
     }
 
     Window* WindowManager::find(Identifier id) const
     {
-        auto it = _M_windows.find(id);
-        if (it == _M_windows.end())
+        auto it = m_windows.find(id);
+        if (it == m_windows.end())
             return nullptr;
         return it->second;
     }
@@ -230,7 +230,7 @@ namespace Engine
     {
         Size2D size = {0, 0};
 
-        for (auto& [id, window] : _M_windows)
+        for (auto& [id, window] : m_windows)
         {
             size = glm::max(size, window->cached_size());
         }
@@ -240,11 +240,11 @@ namespace Engine
 
     Window* WindowManager::main_window() const
     {
-        return _M_main_window;
+        return m_main_window;
     }
 
     const TreeMap<Identifier, Window*>& WindowManager::windows() const
     {
-        return _M_windows;
+        return m_windows;
     }
 }// namespace Engine

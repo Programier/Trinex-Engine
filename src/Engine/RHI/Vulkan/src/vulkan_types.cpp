@@ -16,13 +16,13 @@ namespace Engine
         return out_array;
     }
 
-    const Array<vk::IndexType, 3> _M_index_types = generate_array<vk::IndexType, 3, IndexBufferComponent>({
+    const Array<vk::IndexType, 3> m_index_types = generate_array<vk::IndexType, 3, IndexBufferComponent>({
             {IndexBufferComponent::UnsignedInt, vk::IndexType::eUint32},
             {IndexBufferComponent::UnsignedShort, vk::IndexType::eUint16},
             {IndexBufferComponent::UnsignedByte, vk::IndexType::eUint8EXT},
     });
 
-    const Array<vk::ComponentSwizzle, 7> _M_swizzle_components = {
+    const Array<vk::ComponentSwizzle, 7> m_swizzle_components = {
             vk::ComponentSwizzle::eIdentity,// Identity = 0
             vk::ComponentSwizzle::eZero,    // Zero = 1
             vk::ComponentSwizzle::eOne,     // One = 2
@@ -32,7 +32,7 @@ namespace Engine
             vk::ComponentSwizzle::eA,       // A = 6
     };
 
-    const Array<vk::SamplerAddressMode, 5> _M_wrap_values = {
+    const Array<vk::SamplerAddressMode, 5> m_wrap_values = {
             vk::SamplerAddressMode::eRepeat,           // Repeat = 0
             vk::SamplerAddressMode::eClampToEdge,      // ClampToEdge = 1
             vk::SamplerAddressMode::eClampToBorder,    // ClampToBorder = 2
@@ -41,7 +41,7 @@ namespace Engine
     };
 
 
-    const Array<vk::CompareOp, 8> _M_compare_funcs = generate_array<vk::CompareOp, 8, CompareFunc>({
+    const Array<vk::CompareOp, 8> m_compare_funcs = generate_array<vk::CompareOp, 8, CompareFunc>({
             {CompareFunc::Always, vk::CompareOp::eAlways},
             {CompareFunc::Lequal, vk::CompareOp::eLessOrEqual},
             {CompareFunc::Gequal, vk::CompareOp::eGreaterOrEqual},
@@ -54,7 +54,7 @@ namespace Engine
     });
 
 
-    const Array<vk::StencilOp, 8> _M_stencil_ops = generate_array<vk::StencilOp, 8, StencilOp>({
+    const Array<vk::StencilOp, 8> m_stencil_ops = generate_array<vk::StencilOp, 8, StencilOp>({
             {StencilOp::Keep, vk::StencilOp::eKeep},
             {StencilOp::Zero, vk::StencilOp::eZero},
             {StencilOp::Replace, vk::StencilOp::eReplace},
@@ -65,7 +65,7 @@ namespace Engine
             {StencilOp::Invert, vk::StencilOp::eInvert},
     });
 
-    const Array<vk::BlendFactor, 14> _M_blend_factors = generate_array<vk::BlendFactor, 14, BlendFunc>({
+    const Array<vk::BlendFactor, 14> m_blend_factors = generate_array<vk::BlendFactor, 14, BlendFunc>({
             {BlendFunc::Zero, vk::BlendFactor::eZero},
             {BlendFunc::One, vk::BlendFactor::eOne},
             {BlendFunc::SrcColor, vk::BlendFactor::eSrcColor},
@@ -82,7 +82,7 @@ namespace Engine
             {BlendFunc::OneMinusConstantAlpha, vk::BlendFactor::eOneMinusConstantAlpha},
     });
 
-    const Array<vk::BlendOp, 5> _M_blend_ops = generate_array<vk::BlendOp, 5, BlendOp>({
+    const Array<vk::BlendOp, 5> m_blend_ops = generate_array<vk::BlendOp, 5, BlendOp>({
             {BlendOp::Add, vk::BlendOp::eAdd},
             {BlendOp::Subtract, vk::BlendOp::eSubtract},
             {BlendOp::ReverseSubtract, vk::BlendOp::eReverseSubtract},
@@ -91,7 +91,7 @@ namespace Engine
     });
 
 
-    const Array<vk::PrimitiveTopology, 11> _M_primitive_topologies =
+    const Array<vk::PrimitiveTopology, 11> m_primitive_topologies =
             generate_array<vk::PrimitiveTopology, 11, PrimitiveTopology>({
                     {PrimitiveTopology::TriangleList, vk::PrimitiveTopology::eTriangleList},
                     {PrimitiveTopology::PointList, vk::PrimitiveTopology::ePointList},
@@ -106,26 +106,26 @@ namespace Engine
                     {PrimitiveTopology::PatchList, vk::PrimitiveTopology::ePatchList},
             });
 
-    const Array<vk::PolygonMode, 3> _M_poligon_modes = generate_array<vk::PolygonMode, 3, PolygonMode>({
+    const Array<vk::PolygonMode, 3> m_poligon_modes = generate_array<vk::PolygonMode, 3, PolygonMode>({
             {PolygonMode::Fill, vk::PolygonMode::eFill},
             {PolygonMode::Line, vk::PolygonMode::eLine},
             {PolygonMode::Point, vk::PolygonMode::ePoint},
     });
 
-    const Array<vk::CullModeFlagBits, 4> _M_cull_modes = generate_array<vk::CullModeFlagBits, 4, CullMode>({
+    const Array<vk::CullModeFlagBits, 4> m_cull_modes = generate_array<vk::CullModeFlagBits, 4, CullMode>({
             {CullMode::None, vk::CullModeFlagBits::eNone},
             {CullMode::Back, vk::CullModeFlagBits::eBack},
             {CullMode::Front, vk::CullModeFlagBits::eFront},
             {CullMode::FrontAndBack, vk::CullModeFlagBits::eFrontAndBack},
     });
 
-    const Array<vk::FrontFace, 2> _M_front_faces = generate_array<vk::FrontFace, 2, FrontFace>({
+    const Array<vk::FrontFace, 2> m_front_faces = generate_array<vk::FrontFace, 2, FrontFace>({
             // So as viewport is flipped, inverse FrontFace values
             {FrontFace::ClockWise, vk::FrontFace::eCounterClockwise},
             {FrontFace::CounterClockWise, vk::FrontFace::eClockwise},
     });
 
-    const Array<vk::LogicOp, 17> _M_logic_ops = generate_array<vk::LogicOp, 17, LogicOp>({
+    const Array<vk::LogicOp, 17> m_logic_ops = generate_array<vk::LogicOp, 17, LogicOp>({
             {LogicOp::Clear, vk::LogicOp::eClear},
             {LogicOp::And, vk::LogicOp::eAnd},
             {LogicOp::AndReverse, vk::LogicOp::eAndReverse},
@@ -144,7 +144,7 @@ namespace Engine
             {LogicOp::Set, vk::LogicOp::eSet},
     });
 
-    const Array<vk::ImageAspectFlags, 5> _M_image_aspects = generate_array<vk::ImageAspectFlags, 5, ColorFormatAspect>({
+    const Array<vk::ImageAspectFlags, 5> m_image_aspects = generate_array<vk::ImageAspectFlags, 5, ColorFormatAspect>({
             {ColorFormatAspect::Color, vk::ImageAspectFlagBits::eColor},
             {ColorFormatAspect::Depth, vk::ImageAspectFlagBits::eDepth},
             {ColorFormatAspect::Stencil, vk::ImageAspectFlagBits::eStencil},

@@ -28,8 +28,8 @@ namespace Engine
         };
 
     private:
-        asIScriptContext* _M_context   = nullptr;
-        asIScriptFunction* _M_function = nullptr;
+        asIScriptContext* m_context   = nullptr;
+        asIScriptFunction* m_function = nullptr;
 
         ScriptFunction& bind();
 

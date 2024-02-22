@@ -32,13 +32,13 @@ namespace Engine
     Texture2D& Texture2D::rhi_create(const byte* data)
     {
         if (size.x >= 1.0f && size.y >= 1.f)
-            _M_rhi_object.reset(engine_instance->rhi()->create_texture(this, data));
+            m_rhi_object.reset(engine_instance->rhi()->create_texture(this, data));
         return *this;
     }
 
     Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_Texture>()->update_texture_2D(size, offset, mipmap, data);
         }
@@ -55,10 +55,10 @@ namespace Engine
     Texture2D& Texture2D::read_image(Image& image, MipMapLevel level)
     {
         auto texture_mip_size = mip_size(level);
-        image._M_width        = static_cast<int_t>(texture_mip_size.x);
-        image._M_height       = static_cast<int_t>(texture_mip_size.y);
-        read_data(image._M_data, level);
-        image._M_channels = image._M_data.size() / static_cast<std::size_t>(image._M_width * image._M_height);
+        image.m_width        = static_cast<int_t>(texture_mip_size.x);
+        image.m_height       = static_cast<int_t>(texture_mip_size.y);
+        read_data(image.m_data, level);
+        image.m_channels = image.m_data.size() / static_cast<std::size_t>(image.m_width * image.m_height);
         return *this;
     }
 

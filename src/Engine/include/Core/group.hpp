@@ -6,11 +6,11 @@ namespace Engine
 {
     class ENGINE_EXPORT Group final
     {
-        Vector<class Struct*> _M_structs;
+        Vector<class Struct*> m_structs;
 
-        Vector<Group*> _M_childs;
-        Group* _M_parent = nullptr;
-        Name _M_name;
+        Vector<Group*> m_childs;
+        Group* m_parent = nullptr;
+        Name m_name;
 
 
         Group* find_subgroup(const char* name, size_t len, bool create);

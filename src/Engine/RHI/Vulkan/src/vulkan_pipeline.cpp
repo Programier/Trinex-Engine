@@ -87,7 +87,7 @@ namespace Engine
         create_vertex_descriptor_layout(pipeline, layout_bindings);
         create_fragment_descriptor_layout(pipeline, layout_bindings);
 
-        _M_descriptor_set_layout.resize(layout_bindings.size());
+        m_descriptor_set_layout.resize(layout_bindings.size());
 
         Index set = 0;
         for (auto& layout : layout_bindings)
@@ -95,7 +95,7 @@ namespace Engine
             if (!layout_bindings.empty())
             {
                 vk::DescriptorSetLayoutCreateInfo layout_info({}, layout);
-                _M_descriptor_set_layout[set] = API->_M_device.createDescriptorSetLayout(layout_info);
+                m_descriptor_set_layout[set] = API->m_device.createDescriptorSetLayout(layout_info);
             }
             ++set;
         }
@@ -106,33 +106,33 @@ namespace Engine
     VulkanDescriptorSet* VulkanPipeline::current_descriptor_set(BindingIndex set)
     {
         // I have no idea, what i writing :D
-        if (_M_last_frame != API->_M_current_frame)
+        if (m_last_frame != API->m_current_frame)
         {
-            _M_last_frame = API->_M_current_frame;
+            m_last_frame = API->m_current_frame;
 
-            for (auto& binded_set : _M_binded_descriptor_sets)
+            for (auto& binded_set : m_binded_descriptor_sets)
             {
-                binded_set._M_current_set              = nullptr;
-                binded_set._M_current_descriptor_index = 0;
+                binded_set.m_current_set              = nullptr;
+                binded_set.m_current_descriptor_index = 0;
             }
         }
 
-        auto& descriptor_array         = _M_descriptor_sets.current()[set];
-        BindedDesriptorSet& binded_set = _M_binded_descriptor_sets[set];
+        auto& descriptor_array         = m_descriptor_sets.current()[set];
+        BindedDesriptorSet& binded_set = m_binded_descriptor_sets[set];
 
-        if (descriptor_array.size() <= binded_set._M_current_descriptor_index)
+        if (descriptor_array.size() <= binded_set.m_current_descriptor_index)
         {
-            descriptor_array.push_back(_M_descriptor_pool.current().allocate_descriptor_set(&_M_descriptor_set_layout[set], set));
+            descriptor_array.push_back(m_descriptor_pool.current().allocate_descriptor_set(&m_descriptor_set_layout[set], set));
         }
 
-        VulkanDescriptorSet* new_set = descriptor_array[binded_set._M_current_descriptor_index];
+        VulkanDescriptorSet* new_set = descriptor_array[binded_set.m_current_descriptor_index];
 
-        if (binded_set._M_current_set != new_set)
+        if (binded_set.m_current_set != new_set)
         {
-            binded_set._M_current_set = &new_set->bind(_M_pipeline_layout, set);
+            binded_set.m_current_set = &new_set->bind(m_pipeline_layout, set);
         }
 
-        return descriptor_array[binded_set._M_current_descriptor_index];
+        return descriptor_array[binded_set.m_current_descriptor_index];
     }
 
 
@@ -144,10 +144,10 @@ namespace Engine
         out_state.setReference(in_state.reference)
                 .setWriteMask(in_state.write_mask)
                 .setCompareMask(in_state.compare_mask)
-                .setCompareOp(_M_compare_funcs[static_cast<EnumerateType>(in_state.compare)])
-                .setFailOp(_M_stencil_ops[static_cast<EnumerateType>(in_state.fail)])
-                .setPassOp(_M_stencil_ops[static_cast<EnumerateType>(in_state.depth_pass)])
-                .setDepthFailOp(_M_stencil_ops[static_cast<EnumerateType>(in_state.depth_fail)]);
+                .setCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.compare)])
+                .setFailOp(m_stencil_ops[static_cast<EnumerateType>(in_state.fail)])
+                .setPassOp(m_stencil_ops[static_cast<EnumerateType>(in_state.depth_pass)])
+                .setDepthFailOp(m_stencil_ops[static_cast<EnumerateType>(in_state.depth_fail)]);
         return out_state;
     }
 
@@ -155,11 +155,11 @@ namespace Engine
     {
         out_state.input_assembly.primitiveRestartEnable = in_state.input_assembly.primitive_restart_enable;
         out_state.input_assembly.topology =
-                _M_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
+                m_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
 
-        out_state.rasterizer.setCullMode(_M_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
-                .setFrontFace(_M_front_faces[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
-                .setPolygonMode(_M_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)])
+        out_state.rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
+                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
+                .setPolygonMode(m_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)])
                 .setDepthBiasSlopeFactor(in_state.rasterizer.depth_bias_slope_factor)
                 .setDepthBiasClamp(in_state.rasterizer.depth_bias_clamp)
                 .setDepthBiasConstantFactor(in_state.rasterizer.depth_bias_const_factor)
@@ -177,7 +177,7 @@ namespace Engine
         out_state.depth_stencil.setDepthTestEnable(in_state.depth_test.enable)
                 .setDepthWriteEnable(in_state.depth_test.write_enable)
                 .setDepthBoundsTestEnable(in_state.depth_test.bound_test_enable)
-                .setDepthCompareOp(_M_compare_funcs[static_cast<EnumerateType>(in_state.depth_test.func)])
+                .setDepthCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.depth_test.func)])
                 .setMinDepthBounds(in_state.depth_test.min_depth_bound)
                 .setMaxDepthBounds(in_state.depth_test.max_depth_bound)
                 .setStencilTestEnable(in_state.stencil_test.enable)
@@ -191,18 +191,18 @@ namespace Engine
         for (auto& attachment : out_state.color_blend_attachment)
         {
             attachment.setBlendEnable(in_state.color_blending.blend_attachment[index].enable)
-                    .setSrcColorBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
+                    .setSrcColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].src_color_func)])
-                    .setDstColorBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
+                    .setDstColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].dst_color_func)])
                     .setColorBlendOp(
-                            _M_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].color_op)])
-                    .setSrcAlphaBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
+                            m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].color_op)])
+                    .setSrcAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].src_alpha_func)])
-                    .setDstAlphaBlendFactor(_M_blend_factors[static_cast<EnumerateType>(
+                    .setDstAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(
                             in_state.color_blending.blend_attachment[index].dst_alpha_func)])
                     .setAlphaBlendOp(
-                            _M_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].alpha_op)]);
+                            m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].alpha_op)]);
 
             vk::ColorComponentFlags color_mask;
 
@@ -241,7 +241,7 @@ namespace Engine
                                     in_state.color_blending.blend_constants.z, in_state.color_blending.blend_constants.w})
                 .setAttachments(out_state.color_blend_attachment)
                 .setLogicOpEnable(in_state.color_blending.logic_op_enable)
-                .setLogicOp(_M_logic_ops[static_cast<EnumerateType>(in_state.color_blending.logic_op)]);
+                .setLogicOp(m_logic_ops[static_cast<EnumerateType>(in_state.color_blending.logic_op)]);
     }
 
 
@@ -266,14 +266,14 @@ namespace Engine
         if (pipeline->vertex_shader)
         {
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-                                                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->_M_shader,
+                                                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_shader,
                                                      "main");
         }
 
         if (pipeline->fragment_shader)
         {
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
-                                                     pipeline->fragment_shader->rhi_object<VulkanFragmentShader>()->_M_shader,
+                                                     pipeline->fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader,
                                                      "main");
         }
 
@@ -288,9 +288,9 @@ namespace Engine
         if (pipeline->vertex_shader)
         {
             vertex_input_info.setVertexBindingDescriptions(
-                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->_M_binding_description);
+                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
             vertex_input_info.setVertexAttributeDescriptions(
-                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->_M_attribute_description);
+                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
         }
 
         vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
@@ -298,46 +298,46 @@ namespace Engine
 
         vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
-        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, _M_descriptor_set_layout);
+        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, m_descriptor_set_layout);
 
-        _M_pipeline_layout = API->_M_device.createPipelineLayout(pipeline_layout_info);
+        m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
 
         State out_state;
         init_pipeline_state(out_state, *pipeline);
 
-        vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->_M_dynamic_states);
+        vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->m_dynamic_states);
 
         RenderPass* render_pass = RenderPass::load_render_pass(pipeline->render_pass);
 
         vk::GraphicsPipelineCreateInfo pipeline_info(
                 {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
                 &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
-                &dynamic_state_info, _M_pipeline_layout, render_pass->rhi_object<VulkanRenderPass>()->_M_render_pass, 0, {});
+                &dynamic_state_info, m_pipeline_layout, render_pass->rhi_object<VulkanRenderPass>()->m_render_pass, 0, {});
 
-        auto pipeline_result = API->_M_device.createGraphicsPipeline({}, pipeline_info);
+        auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 
         if (pipeline_result.result != vk::Result::eSuccess)
         {
-            API->_M_device.destroyPipeline(_M_pipeline);
+            API->m_device.destroyPipeline(m_pipeline);
             throw EngineException("Failed to create pipeline");
         }
 
-        _M_pipeline = pipeline_result.value;
+        m_pipeline = pipeline_result.value;
 
-        if (!_M_descriptor_set_layout.empty())
+        if (!m_descriptor_set_layout.empty())
         {
             auto sizes = create_pool_sizes(pipeline);
-            for (VulkanDescriptorPool* instance : _M_descriptor_pool._M_instances)
+            for (VulkanDescriptorPool* instance : m_descriptor_pool.m_instances)
             {
                 instance->pool_sizes(sizes);
             }
 
-            for (auto& descriptor_set : _M_descriptor_sets._M_instances)
+            for (auto& descriptor_set : m_descriptor_sets.m_instances)
             {
                 descriptor_set->resize(sizes.size());
             }
 
-            _M_binded_descriptor_sets.resize(sizes.size());
+            m_binded_descriptor_sets.resize(sizes.size());
         }
 
         return *this;
@@ -346,15 +346,15 @@ namespace Engine
     VulkanPipeline& VulkanPipeline::destroy()
     {
         API->wait_idle();
-        DESTROY_CALL(destroyPipeline, _M_pipeline);
-        DESTROY_CALL(destroyPipelineLayout, _M_pipeline_layout);
+        DESTROY_CALL(destroyPipeline, m_pipeline);
+        DESTROY_CALL(destroyPipelineLayout, m_pipeline_layout);
 
-        for (auto& layout : _M_descriptor_set_layout)
+        for (auto& layout : m_descriptor_set_layout)
         {
             DESTROY_CALL(destroyDescriptorSetLayout, layout);
         }
 
-        _M_descriptor_set_layout.clear();
+        m_descriptor_set_layout.clear();
         return *this;
     }
 
@@ -401,7 +401,7 @@ namespace Engine
 
     Vector<Vector<vk::DescriptorPoolSize>> VulkanPipeline::create_pool_sizes(const Pipeline* pipeline)
     {
-        Vector<PoolSizeInfo> pool_size_info(_M_descriptor_set_layout.size(), PoolSizeInfo{});
+        Vector<PoolSizeInfo> pool_size_info(m_descriptor_set_layout.size(), PoolSizeInfo{});
 
         process_pool_sizes(pipeline, pipeline->vertex_shader, pool_size_info);
         process_pool_sizes(pipeline, pipeline->fragment_shader, pool_size_info);
@@ -443,26 +443,26 @@ namespace Engine
 
     void VulkanPipeline::bind()
     {
-        if (API->_M_state->_M_pipeline != this)
+        if (API->m_state->m_pipeline != this)
         {
-            API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, _M_pipeline);
-            API->_M_state->_M_pipeline = this;
+            API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
+            API->m_state->m_pipeline = this;
         }
     }
 
     VulkanPipeline& VulkanPipeline::bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location)
     {
-        if (!_M_descriptor_set_layout.empty())
+        if (!m_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanSSBO*& current_ssbo = current_set->_M_ssbo[location.binding];
+            VulkanSSBO*& current_ssbo = current_set->m_ssbo[location.binding];
             if (current_ssbo != ssbo)
             {
-                vk::DescriptorBufferInfo buffer_info(ssbo->_M_buffer._M_buffer, 0, ssbo->_M_buffer._M_size);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
+                vk::DescriptorBufferInfo buffer_info(ssbo->m_buffer.m_buffer, 0, ssbo->m_buffer.m_size);
+                vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
                                                         vk::DescriptorType::eStorageBuffer, {}, buffer_info);
-                API->_M_device.updateDescriptorSets(write_descriptor, {});
+                API->m_device.updateDescriptorSets(write_descriptor, {});
                 current_ssbo = ssbo;
             }
         }
@@ -472,14 +472,14 @@ namespace Engine
     VulkanPipeline& VulkanPipeline::bind_uniform_buffer(const vk::Buffer& buffer, size_t offset, size_t size,
                                                         BindLocation location)
     {
-        if (!_M_descriptor_set_layout.empty())
+        if (!m_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
             {
                 vk::DescriptorBufferInfo buffer_info(buffer, offset, size);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
                                                         vk::DescriptorType::eUniformBuffer, {}, buffer_info);
-                API->_M_device.updateDescriptorSets(write_descriptor, {});
+                API->m_device.updateDescriptorSets(write_descriptor, {});
             }
         }
         return *this;
@@ -488,21 +488,21 @@ namespace Engine
     VulkanPipeline& VulkanPipeline::bind_combined_sampler(struct VulkanSampler* sampler, struct VulkanTexture* texture,
                                                           BindLocation location)
     {
-        if (!_M_descriptor_set_layout.empty())
+        if (!m_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanDescriptorSet::CombinedImageSampler& info = current_set->_M_combined_image_sampler[location.binding];
-            if (info._M_sampler != sampler || info._M_texture != texture)
+            VulkanDescriptorSet::CombinedImageSampler& info = current_set->m_combined_image_sampler[location.binding];
+            if (info.m_sampler != sampler || info.m_texture != texture)
             {
-                vk::DescriptorImageInfo image_info(sampler->_M_sampler, texture->_M_image_view,
+                vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->m_image_view,
                                                    vk::ImageLayout::eShaderReadOnlyOptimal);
 
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
+                vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
                                                         vk::DescriptorType::eCombinedImageSampler, image_info);
-                API->_M_device.updateDescriptorSets(write_descriptor, {});
-                info._M_sampler = sampler;
-                info._M_texture = texture;
+                API->m_device.updateDescriptorSets(write_descriptor, {});
+                info.m_sampler = sampler;
+                info.m_texture = texture;
             }
         }
 
@@ -511,17 +511,17 @@ namespace Engine
 
     VulkanPipeline& VulkanPipeline::bind_sampler(VulkanSampler* sampler, BindLocation location)
     {
-        if (!_M_descriptor_set_layout.empty())
+        if (!m_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanSampler*& current_sampler = current_set->_M_sampler[location.binding];
+            VulkanSampler*& current_sampler = current_set->m_sampler[location.binding];
             if (current_sampler != sampler)
             {
-                vk::DescriptorImageInfo image_info(sampler->_M_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0, vk::DescriptorType::eSampler,
+                vk::DescriptorImageInfo image_info(sampler->m_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
+                vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0, vk::DescriptorType::eSampler,
                                                         image_info);
-                API->_M_device.updateDescriptorSets(write_descriptor, {});
+                API->m_device.updateDescriptorSets(write_descriptor, {});
                 current_sampler = sampler;
             }
         }
@@ -530,17 +530,17 @@ namespace Engine
 
     VulkanPipeline& VulkanPipeline::bind_texture(VulkanTexture* texture, BindLocation location)
     {
-        if (!_M_descriptor_set_layout.empty())
+        if (!m_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
 
-            VulkanTexture*& current_texture = current_set->_M_texture[location.binding];
+            VulkanTexture*& current_texture = current_set->m_texture[location.binding];
             if (current_texture != texture)
             {
-                vk::DescriptorImageInfo image_info({}, texture->_M_image_view, vk::ImageLayout::eShaderReadOnlyOptimal);
-                vk::WriteDescriptorSet write_descriptor(current_set->_M_set, location.binding, 0,
+                vk::DescriptorImageInfo image_info({}, texture->m_image_view, vk::ImageLayout::eShaderReadOnlyOptimal);
+                vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
                                                         vk::DescriptorType::eSampledImage, image_info);
-                API->_M_device.updateDescriptorSets(write_descriptor, {});
+                API->m_device.updateDescriptorSets(write_descriptor, {});
                 current_texture = texture;
             }
         }
@@ -551,9 +551,9 @@ namespace Engine
     // Must be called after draw call
     VulkanPipeline& VulkanPipeline::increment_set_index()
     {
-        for (auto& set : _M_binded_descriptor_sets)
+        for (auto& set : m_binded_descriptor_sets)
         {
-            ++set._M_current_descriptor_index;
+            ++set.m_current_descriptor_index;
         }
         return *this;
     }

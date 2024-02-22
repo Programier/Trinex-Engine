@@ -33,14 +33,14 @@ namespace Engine
     {
         vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->binary_code.size(),
                                         reinterpret_cast<const uint32_t*>(shader->binary_code.data()));
-        _M_shader = API->_M_device.createShaderModule(info);
+        m_shader = API->m_device.createShaderModule(info);
 
         return *this;
     }
 
     VulkanShaderBase& VulkanShaderBase::destroy()
     {
-        DESTROY_CALL(destroyShaderModule, _M_shader)
+        DESTROY_CALL(destroyShaderModule, m_shader)
         return *this;
     }
 
@@ -50,16 +50,16 @@ namespace Engine
         destroy();
         VulkanShaderBase::create(shader);
 
-        _M_binding_description.reserve(shader->attributes.size());
-        _M_attribute_description.reserve(shader->attributes.size());
+        m_binding_description.reserve(shader->attributes.size());
+        m_attribute_description.reserve(shader->attributes.size());
 
 
         Index index = 0;
         for (auto& attribute : shader->attributes)
         {
             {
-                _M_binding_description.emplace_back();
-                vk::VertexInputBindingDescription& description = _M_binding_description.back();
+                m_binding_description.emplace_back();
+                vk::VertexInputBindingDescription& description = m_binding_description.back();
                 ColorFormatInfo format_info                    = ColorFormatInfo::info_of(attribute.format);
 
                 description.binding = static_cast<decltype(description.binding)>(index);
@@ -81,8 +81,8 @@ namespace Engine
             }
 
             {
-                _M_attribute_description.emplace_back();
-                vk::VertexInputAttributeDescription& description = _M_attribute_description.back();
+                m_attribute_description.emplace_back();
+                vk::VertexInputAttributeDescription& description = m_attribute_description.back();
                 description.binding                              = static_cast<decltype(description.binding)>(index);
                 description.location                             = static_cast<decltype(description.location)>(index);
                 description.offset                               = 0;// Each attribute has its own buffer
@@ -98,8 +98,8 @@ namespace Engine
     VulkanVertexShader& VulkanVertexShader::destroy()
     {
         VulkanShaderBase::destroy();
-        _M_attribute_description.clear();
-        _M_binding_description.clear();
+        m_attribute_description.clear();
+        m_binding_description.clear();
 
         return *this;
     }

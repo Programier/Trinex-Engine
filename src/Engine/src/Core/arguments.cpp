@@ -87,7 +87,7 @@ namespace Engine
             ++iter;
         }
 
-        auto& arg = _M_arguments[name];
+        auto& arg = m_arguments[name];
         arg.name  = std::move(name);
         arg.type  = Type::Array;
         arg.data  = data;
@@ -110,7 +110,7 @@ namespace Engine
 
         if (pos >= len - 1 && arg_pos >= len)
         {
-            auto& argument = _M_arguments[arg_name];
+            auto& argument = m_arguments[arg_name];
             argument.name  = std::move(arg_name);
             argument.type  = Type::Define;
             return;
@@ -118,7 +118,7 @@ namespace Engine
 
         if (name[arg_pos] != '{')
         {
-            auto& argument = _M_arguments[arg_name];
+            auto& argument = m_arguments[arg_name];
             argument.name  = std::move(arg_name);
             argument.type  = Type::String;
             argument.data  = parse_string_argument(name + arg_pos);
@@ -132,27 +132,27 @@ namespace Engine
 
     Arguments& Arguments::clear()
     {
-        _M_arguments.clear();
+        m_arguments.clear();
         return *this;
     }
 
     const Map<String, Arguments::Argument>& Arguments::args() const
     {
-        return _M_arguments;
+        return m_arguments;
     }
 
     const Arguments::Argument* Arguments::find(const String& name) const
     {
-        auto it = _M_arguments.find(name);
-        if (it == _M_arguments.end())
+        auto it = m_arguments.find(name);
+        if (it == m_arguments.end())
             return nullptr;
         return &it->second;
     }
 
     Arguments::Argument* Arguments::find(const String& name)
     {
-        auto it = _M_arguments.find(name);
-        if (it == _M_arguments.end())
+        auto it = m_arguments.find(name);
+        if (it == m_arguments.end())
             return nullptr;
         return &it->second;
     }
@@ -170,7 +170,7 @@ namespace Engine
             return *this;
         }
 
-        _M_arguments[argument.name] = argument;
+        m_arguments[argument.name] = argument;
         return *this;
     }
 }// namespace Engine

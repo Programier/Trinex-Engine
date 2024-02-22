@@ -23,7 +23,7 @@ namespace Engine
         Swizzle swizzle_a          = Swizzle::Identity;
 
     protected:
-        bool _M_use_for_render_target = false;
+        bool m_use_for_render_target = false;
 
     public:
         Texture();

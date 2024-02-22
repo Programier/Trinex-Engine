@@ -46,7 +46,7 @@ namespace Engine
         void push_argument(const char* name);
         void push_array_argument(const String& name, const String& argument);
         String parse_string_argument(const char* argument, size_t* out_pos = nullptr);
-        Map<String, Argument> _M_arguments;
+        Map<String, Argument> m_arguments;
 
     public:
         Arguments& init(int argc, char** argv);

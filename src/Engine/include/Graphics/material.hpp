@@ -236,7 +236,7 @@ namespace Engine
         declare_class(Material, MaterialInterface);
 
     private:
-        Map<Name, MaterialParameter*, Name::HashFunction> _M_material_parameters;
+        Map<Name, MaterialParameter*, Name::HashFunction> m_material_parameters;
 
     protected:
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;
@@ -271,7 +271,7 @@ namespace Engine
         declare_class(MaterialInstance, MaterialInterface);
 
     private:
-        Map<Name, MaterialParameter*, Name::HashFunction> _M_material_parameters;
+        Map<Name, MaterialParameter*, Name::HashFunction> m_material_parameters;
 
     protected:
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;

@@ -10,12 +10,12 @@ namespace Engine
 {
     GLuint OpenGL_ImGuiTexture::texture_id()
     {
-        if (_M_texture)
+        if (m_texture)
         {
-            OpenGL_Texture* texture = _M_texture->rhi_object<OpenGL_Texture>();
+            OpenGL_Texture* texture = m_texture->rhi_object<OpenGL_Texture>();
             if (texture)
             {
-                return texture->_M_id;
+                return texture->m_id;
             }
         }
 
@@ -24,12 +24,12 @@ namespace Engine
 
     GLuint OpenGL_ImGuiTexture::sampler_id()
     {
-        if (_M_sampler)
+        if (m_sampler)
         {
-            OpenGL_Sampler* sampler = _M_sampler->rhi_object<OpenGL_Sampler>();
+            OpenGL_Sampler* sampler = m_sampler->rhi_object<OpenGL_Sampler>();
             if (sampler)
             {
-                return sampler->_M_id;
+                return sampler->m_id;
             }
         }
         return 0;

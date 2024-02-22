@@ -30,7 +30,7 @@ namespace Engine
 
 
     struct VulkanSampler : RHI_Sampler {
-        vk::Sampler _M_sampler;
+        vk::Sampler m_sampler;
 
         VulkanSampler& create(const VulkanSamplerCreateInfo&);
         void bind(BindLocation location) override;

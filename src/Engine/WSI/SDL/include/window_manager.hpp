@@ -7,9 +7,9 @@ namespace Engine
     class SDL2_WindowManagerInterface : public WindowManagerInterface
     {
     private:
-        SDL_Event _M_event;
-        Map<Sint32, SDL_GameController*> _M_game_controllers;
-        Map<Identifier, Vector<EventCallback>> _M_event_callbacks;
+        SDL_Event m_event;
+        Map<Sint32, SDL_GameController*> m_game_controllers;
+        Map<Identifier, Vector<EventCallback>> m_event_callbacks;
 
     public:
         SDL2_WindowManagerInterface();

@@ -15,26 +15,26 @@ namespace Engine
     };
 
     struct WindowSDL : public WindowInterface {
-        Set<void (*)(SDL_Event*)> _M_on_event;
+        Set<void (*)(SDL_Event*)> m_on_event;
 
-        Buffer _M_icon_buffer;
-        Buffer _M_cursor_icon_buffer;
+        Buffer m_icon_buffer;
+        Buffer m_cursor_icon_buffer;
 
-        SDL_Window* _M_window       = nullptr;
-        SDL_Surface* _M_icon        = nullptr;
-        SDL_Surface* _M_cursor_icon = nullptr;
-        SDL_Cursor* _M_cursor       = nullptr;
+        SDL_Window* m_window       = nullptr;
+        SDL_Surface* m_icon        = nullptr;
+        SDL_Surface* m_cursor_icon = nullptr;
+        SDL_Cursor* m_cursor       = nullptr;
 
         SDL_ApiContext created_context;
         SDL_ApiContext binded_context;
 
-        SDL_WindowFlags _M_api;
-        CursorMode _M_c_mode;
-        SDL_Event _M_event;
+        SDL_WindowFlags m_api;
+        CursorMode m_c_mode;
+        SDL_Event m_event;
 
-        Identifier _M_id;
+        Identifier m_id;
 
-        bool _M_vsync_status;
+        bool m_vsync_status;
 
         WindowInterface* initialize(const WindowConfig* config);
         Size1D width() override;

@@ -35,35 +35,35 @@ namespace Engine
 
         {
             SceneComponent* scene_component = component->instance_cast<SceneComponent>();
-            if (!_M_root_component && scene_component)
+            if (!m_root_component && scene_component)
             {
-                _M_root_component = scene_component;
+                m_root_component = scene_component;
             }
-            else if (_M_root_component && scene_component)
+            else if (m_root_component && scene_component)
             {
-                _M_root_component->attach(scene_component);
+                m_root_component->attach(scene_component);
             }
         }
 
-        _M_owned_components.push_back(component);
+        m_owned_components.push_back(component);
         return *this;
     }
 
     Actor& Actor::remove_component(ActorComponent* component)
     {
-        for (size_t i = 0, count = _M_owned_components.size(); i < count; i++)
+        for (size_t i = 0, count = m_owned_components.size(); i < count; i++)
         {
-            ActorComponent* actor_component = _M_owned_components[i].ptr();
+            ActorComponent* actor_component = m_owned_components[i].ptr();
             if (actor_component == component)
             {
-                if (_M_root_component == component)
+                if (m_root_component == component)
                 {
-                    _M_root_component = nullptr;
+                    m_root_component = nullptr;
                 }
 
 
                 component->owner(nullptr);
-                _M_owned_components.erase(_M_owned_components.begin() + i);
+                m_owned_components.erase(m_owned_components.begin() + i);
                 break;
             }
         }
@@ -73,32 +73,32 @@ namespace Engine
 
     Actor& Actor::update(float dt)
     {
-        _M_script_object.update(dt);
+        m_script_object.update(dt);
         return *this;
     }
 
     Actor& Actor::start_play()
     {
-        _M_is_playing = true;
+        m_is_playing = true;
         return *this;
     }
 
     Actor& Actor::stop_play()
     {
-        _M_is_playing = false;
+        m_is_playing = false;
         return *this;
     }
 
     bool Actor::is_playing() const
     {
-        return _M_is_playing;
+        return m_is_playing;
     }
 
     Actor& Actor::spawned()
     {
-        for (Index index = 0, count = _M_owned_components.size(); index < count; ++index)
+        for (Index index = 0, count = m_owned_components.size(); index < count; ++index)
         {
-            _M_owned_components[index]->spawned();
+            m_owned_components[index]->spawned();
         }
         return *this;
     }
@@ -110,9 +110,9 @@ namespace Engine
 
     Actor& Actor::destroy_script_object(ScriptObject* object)
     {
-        if (*object == _M_script_object)
+        if (*object == m_script_object)
         {
-            _M_script_object.remove_reference();
+            m_script_object.remove_reference();
         }
 
         return *this;
@@ -120,22 +120,22 @@ namespace Engine
 
     Transform* Actor::transfrom() const
     {
-        return _M_root_component ? &_M_root_component->transform : nullptr;
+        return m_root_component ? &m_root_component->transform : nullptr;
     }
 
     SceneComponent* Actor::scene_component() const
     {
-        return _M_root_component.ptr();
+        return m_root_component.ptr();
     }
 
     const Vector<Pointer<class ActorComponent>>& Actor::owned_components() const
     {
-        return _M_owned_components;
+        return m_owned_components;
     }
 
     class World* Actor::world() const
     {
-        return _M_world;
+        return m_world;
     }
 
     bool Actor::archive_process(Archive& archive)

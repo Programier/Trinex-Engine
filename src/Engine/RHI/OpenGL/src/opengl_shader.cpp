@@ -88,9 +88,9 @@ namespace Engine
 
     OpenGL_Shader::~OpenGL_Shader()
     {
-        if (_M_id)
+        if (m_id)
         {
-            glDeleteProgram(_M_id);
+            glDeleteProgram(m_id);
         }
     }
 
@@ -112,7 +112,7 @@ namespace Engine
         if (id)
         {
             OpenGL_Shader* vertex = new OpenGL_VertexShader();
-            vertex->_M_id         = id;
+            vertex->m_id         = id;
             return vertex;
         }
 
@@ -126,7 +126,7 @@ namespace Engine
         if (id)
         {
             OpenGL_Shader* fragment = new OpenGL_FragmentShader();
-            fragment->_M_id         = id;
+            fragment->m_id         = id;
             return fragment;
         }
 
@@ -157,41 +157,41 @@ namespace Engine
         return new OpenGL_StateCommand([=]() { func(args...); });
     }
 
-#define new_command(...) _M_apply_state.push_back(wrap_command(__VA_ARGS__))
-#define new_command_nowrap(...) _M_apply_state.push_back(__VA_ARGS__)
+#define new_command(...) m_apply_state.push_back(wrap_command(__VA_ARGS__))
+#define new_command_nowrap(...) m_apply_state.push_back(__VA_ARGS__)
 
     void OpenGL_Pipeline::init(const Pipeline* pipeline)
     {
-        _M_topology = convert_topology(pipeline->input_assembly.primitive_topology);
+        m_topology = convert_topology(pipeline->input_assembly.primitive_topology);
 
-        glGenVertexArrays(1, &_M_vao);
-        glGenProgramPipelines(1, &_M_pipeline);
+        glGenVertexArrays(1, &m_vao);
+        glGenProgramPipelines(1, &m_pipeline);
 
         if (pipeline->vertex_shader && pipeline->vertex_shader->rhi_object<OpenGL_Shader>())
         {
-            glUseProgramStages(_M_pipeline, GL_VERTEX_SHADER_BIT, pipeline->vertex_shader->rhi_object<OpenGL_Shader>()->_M_id);
+            glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, pipeline->vertex_shader->rhi_object<OpenGL_Shader>()->m_id);
 
-            _M_vertex_input.reserve(pipeline->vertex_shader->attributes.size());
+            m_vertex_input.reserve(pipeline->vertex_shader->attributes.size());
 
             for (auto& attribute : pipeline->vertex_shader->attributes)
             {
                 VertexInput input;
                 input.count = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).components();
                 input.size  = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).size();
-                input.type  = color_format_from_engine_format(attribute.format)._M_type;
+                input.type  = color_format_from_engine_format(attribute.format).m_type;
 
                 auto metadata       = ColorFormatInfo::info_of(attribute.format).metadata();
                 bool need_normalize = metadata == ColorFormatMetaData::Snorm || metadata == ColorFormatMetaData::Unorm;
                 input.normalize     = need_normalize ? GL_TRUE : GL_FALSE;
 
-                _M_vertex_input.push_back(input);
+                m_vertex_input.push_back(input);
             }
         }
 
         if (pipeline->fragment_shader && pipeline->fragment_shader->rhi_object<OpenGL_Shader>())
         {
-            glUseProgramStages(_M_pipeline, GL_FRAGMENT_SHADER_BIT,
-                               pipeline->fragment_shader->rhi_object<OpenGL_Shader>()->_M_id);
+            glUseProgramStages(m_pipeline, GL_FRAGMENT_SHADER_BIT,
+                               pipeline->fragment_shader->rhi_object<OpenGL_Shader>()->m_id);
         }
 
 
@@ -304,18 +304,18 @@ namespace Engine
                 new_command(glDisablei, static_cast<GLenum>(GL_BLEND), static_cast<GLuint>(i));
         }
 
-        info_log("OpenGL", "Writed %zu commands for pipeline '%s'", _M_apply_state.size(), pipeline->full_name().c_str());
+        info_log("OpenGL", "Writed %zu commands for pipeline '%s'", m_apply_state.size(), pipeline->full_name().c_str());
     }
 
     void OpenGL_Pipeline::bind()
     {
-        if (OPENGL_API->_M_current_pipeline != this)
+        if (OPENGL_API->m_current_pipeline != this)
         {
-            OPENGL_API->_M_current_pipeline = this;
-            glBindProgramPipeline(_M_pipeline);
-            glBindVertexArray(_M_vao);
+            OPENGL_API->m_current_pipeline = this;
+            glBindProgramPipeline(m_pipeline);
+            glBindVertexArray(m_vao);
 
-            for (ExecutableObject* object : _M_apply_state)
+            for (ExecutableObject* object : m_apply_state)
             {
                 object->execute();
             }
@@ -324,17 +324,17 @@ namespace Engine
 
     OpenGL_Pipeline::~OpenGL_Pipeline()
     {
-        if (_M_pipeline)
+        if (m_pipeline)
         {
-            glDeleteProgramPipelines(1, &_M_pipeline);
+            glDeleteProgramPipelines(1, &m_pipeline);
         }
 
-        if (_M_vao)
+        if (m_vao)
         {
-            glDeleteVertexArrays(1, &_M_vao);
+            glDeleteVertexArrays(1, &m_vao);
         }
 
-        for (ExecutableObject* object : _M_apply_state)
+        for (ExecutableObject* object : m_apply_state)
         {
             delete object;
         }

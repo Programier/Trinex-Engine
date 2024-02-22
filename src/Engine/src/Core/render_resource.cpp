@@ -49,7 +49,7 @@ namespace Engine
 
     RenderResource::RenderResource()
     {
-        _M_rhi_object = nullptr;
+        m_rhi_object = nullptr;
     }
 
     RenderResource& RenderResource::rhi_create()
@@ -66,7 +66,7 @@ namespace Engine
         }
         else
         {
-            render_thread->insert_new_task<InitRenderResourceTask>(this, _M_rhi_object.get() != nullptr);
+            render_thread->insert_new_task<InitRenderResourceTask>(this, m_rhi_object.get() != nullptr);
 
             if (wait_initialize)
             {
@@ -79,7 +79,7 @@ namespace Engine
 
     RenderResource& RenderResource::rhi_destroy()
     {
-        _M_rhi_object = nullptr;
+        m_rhi_object = nullptr;
         return *this;
     }
 
@@ -90,7 +90,7 @@ namespace Engine
 
     bool RenderResource::has_object() const
     {
-        return _M_rhi_object != nullptr;
+        return m_rhi_object != nullptr;
     }
 
     RenderResource::~RenderResource()
@@ -100,7 +100,7 @@ namespace Engine
 
     const BindedRenderResource& BindedRenderResource::rhi_bind(BindLocation location) const
     {
-        if (_M_rhi_object)
+        if (m_rhi_object)
         {
             rhi_object<RHI_BindingObject>()->bind(location);
         }

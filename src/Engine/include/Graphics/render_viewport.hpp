@@ -34,20 +34,20 @@ namespace Engine
         };
 
     private:
-        static List<RenderViewport*> _M_viewports;
+        static List<RenderViewport*> m_viewports;
 
-        Type _M_type  = Type::Undefined;
-        bool _M_vsync = true;
+        Type m_type  = Type::Undefined;
+        bool m_vsync = true;
 
         union
         {
-            void* _M_handle = nullptr;
-            class Window* _M_window;
-            class RenderTarget* _M_render_target;
-            class RenderTargetBase* _M_render_target_base;
+            void* m_handle = nullptr;
+            class Window* m_window;
+            class RenderTarget* m_render_target;
+            class RenderTargetBase* m_render_target_base;
         };
 
-        Pointer<ViewportClient> _M_client;
+        Pointer<ViewportClient> m_client;
 
     public:
         RenderViewport();

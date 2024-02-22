@@ -7,25 +7,25 @@ namespace Engine
 {
     Event::Event() = default;
     default_copy_constructors_cpp(Event);
-    Event::Event(Identifier window_id, EventType type) : _M_window_id(window_id), _M_type(type)
+    Event::Event(Identifier window_id, EventType type) : m_window_id(window_id), m_type(type)
     {}
 
-    Event::Event(Identifier window_id, EventType type, const Any& any) : _M_any(any), _M_window_id(window_id), _M_type(type)
+    Event::Event(Identifier window_id, EventType type, const Any& any) : m_any(any), m_window_id(window_id), m_type(type)
     {}
 
     EventType Event::type() const
     {
-        return _M_type;
+        return m_type;
     }
 
     Identifier Event::window_id() const
     {
-        return _M_window_id;
+        return m_window_id;
     }
 
     const Any& Event::any() const
     {
-        return _M_any;
+        return m_any;
     }
 
 
