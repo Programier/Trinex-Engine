@@ -16,7 +16,7 @@ namespace Engine
 
     StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
-        if (mesh && mesh->material)
+        if (mesh && mesh->material && !mesh->lods.empty())
         {
             if (Pipeline* pipeline = mesh->material->material()->pipeline)
             {
@@ -39,8 +39,9 @@ namespace Engine
         float inv_distance = 1.f / glm::min(glm::distance(transform_render_thread.global_location(), camera_view.location),
                                             camera_view.far_clip_plane);
         auto& lods         = mesh->lods;
-        Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size());
-        auto& lod          = lods[lod_index];
+        Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
+
+        auto& lod = lods[lod_index];
 
         mesh->material->apply(this);
         VertexShader* shader = mesh->material->material()->pipeline->vertex_shader;

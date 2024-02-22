@@ -36,6 +36,8 @@ namespace Engine::Importer
 
         Vector<Vector3D> positions;
         Vector<Vector3D> normals;
+        Vector<Vector3D> tangents;
+        Vector<Vector3D> bitangents;
         Vector<Vector<Vector2D>> uv;
         Vector<uint> indices;
 
@@ -48,6 +50,16 @@ namespace Engine::Importer
                 normals.resize(mesh->mNumVertices);
             }
 
+            if (mesh->mTangents)
+            {
+                tangents.resize(mesh->mNumVertices);
+            }
+
+            if (mesh->mBitangents)
+            {
+                bitangents.resize(mesh->mNumVertices);
+            }
+
             for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
             {
                 positions[i] = vector_from_assimp_vec(mesh->mVertices[i]);
@@ -55,6 +67,16 @@ namespace Engine::Importer
                 if (mesh->mNormals)
                 {
                     normals[i] = vector_from_assimp_vec(mesh->mNormals[i]);
+                }
+
+                if (mesh->mTangents)
+                {
+                    tangents[i] = vector_from_assimp_vec(mesh->mTangents[i]);
+                }
+
+                if (mesh->mBitangents)
+                {
+                    bitangents[i] = vector_from_assimp_vec(mesh->mBitangents[i]);
                 }
             }
 
@@ -116,6 +138,20 @@ namespace Engine::Importer
             lod.normals.push_back(normal_vertex_buffer);
         }
 
+        if (tangents.size() > 0)
+        {
+            TangentVertexBuffer* tangent_vertex_buffer = Object::new_instance<TangentVertexBuffer>();
+            tangent_vertex_buffer->buffer              = std::move(normals);
+            lod.tangents.push_back(tangent_vertex_buffer);
+        }
+
+        if (bitangents.size() > 0)
+        {
+            BinormalVertexBuffer* binormal_vertex_buffer = Object::new_instance<BinormalVertexBuffer>();
+            binormal_vertex_buffer->buffer               = std::move(normals);
+            lod.binormals.push_back(binormal_vertex_buffer);
+        }
+
         if (uv.size() > 0)
         {
             lod.tex_coords.reserve(uv.size());
@@ -154,7 +190,7 @@ namespace Engine::Importer
         Assimp::Importer importer;
 
         unsigned int flags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals |
-                             aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_FlipUVs;
+                             aiProcess_OptimizeMeshes | aiProcess_OptimizeGraph | aiProcess_FlipUVs | aiProcess_GenBoundingBoxes;
         const aiScene* scene = importer.ReadFile(file.c_str(), flags);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

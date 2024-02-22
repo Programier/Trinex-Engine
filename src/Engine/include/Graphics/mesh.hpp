@@ -2,6 +2,7 @@
 #include <Core/enums.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
+#include <Engine/aabb.hpp>
 
 namespace Engine
 {
@@ -39,6 +40,7 @@ namespace Engine
             VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
         };
 
+        AABB_3Df bounds;
         Vector<LOD> lods;
 
         StaticMesh& init_resources();

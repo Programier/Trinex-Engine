@@ -47,7 +47,7 @@ namespace Engine
             _M_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
         }
 
-        vk::ImageTiling tiling = texture->is_render_target_texture() ? vk::ImageTiling::eOptimal : vk::ImageTiling::eLinear;
+        vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
 
         API->create_image(this, tiling,
                           _M_engine_texture->type() == TextureType::Texture2D ? default_flags

@@ -57,7 +57,7 @@ namespace Engine
         static Name name_scale  = "scale";
         static Name name_offset = "offset";
 
-        SceneColorOutput::instance()->rhi_bind();
+        GBuffer::instance()->rhi_bind();
 
         auto rhi = engine_instance->rhi();
 

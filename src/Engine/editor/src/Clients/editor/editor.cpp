@@ -351,9 +351,8 @@ namespace Engine
         _M_renderer.scene(scene);
 
         extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer);
-        auto layer = scene->scene_output_layer();
+        auto layer = scene->clear_layer()->create_next("Grid Rendering");
         layer->function_callbacks.push_back(render_editor_grid);
-
         _M_scene_tree->root_component = _M_world->scene()->root_component();
         _M_world->start_play();
         return *this;
@@ -372,12 +371,50 @@ namespace Engine
             return *this;
         };
 
-        auto* frame = SceneColorOutput::instance()->current_frame();
 
-        if (frame)
+        Texture* texture = nullptr;
+        if (_M_target_view_index == 0)
         {
-            Texture* texture = frame->texture();
-            if (texture && texture->has_object())
+            auto* frame = SceneColorOutput::instance()->current_frame();
+            if (frame)
+            {
+                texture = frame->texture();
+            }
+        }
+        else
+        {
+            auto* frame = GBuffer::instance()->current_frame();
+
+            if (frame)
+            {
+                switch (_M_target_view_index)
+                {
+                    case 1:
+                        texture = frame->base_color();
+                        break;
+                    case 2:
+                        texture = frame->position();
+                        break;
+                    case 3:
+                        texture = frame->normal();
+                        break;
+                    case 4:
+                        texture = frame->emissive();
+                        break;
+                    case 5:
+                        texture = frame->data_buffer();
+                        break;
+                    case 6:
+                        texture = frame->depth();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        if (texture && texture->has_object())
+        {
             {
                 void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
                 auto size        = ImGui::GetContentRegionAvail();
@@ -462,6 +499,9 @@ namespace Engine
 
     void EditorClient::on_key_press(const Event& event)
     {
+        if (event.window_id() != _M_window->window_id())
+            return;
+
         const KeyEvent& key_event = event.get<const KeyEvent&>();
         move_camera(_M_camera_move, key_event, 1.f);
     }
@@ -469,7 +509,21 @@ namespace Engine
 
     void EditorClient::on_key_release(const Event& event)
     {
+        if (event.window_id() != _M_window->window_id())
+            return;
+
         const KeyEvent& key_event = event.get<const KeyEvent&>();
         move_camera(_M_camera_move, key_event, -1.f);
+
+        if (static_cast<Identifier>(key_event.key) >= static_cast<Identifier>(Keyboard::Key::Num0) &&
+            static_cast<Identifier>(key_event.key) <= static_cast<Identifier>(Keyboard::Key::Num9))
+        {
+
+            Index new_index = static_cast<Identifier>(key_event.key) - static_cast<Identifier>(Keyboard::Key::Num0);
+            if (new_index <= 6)
+            {
+                _M_target_view_index = new_index;
+            }
+        }
     }
 }// namespace Engine

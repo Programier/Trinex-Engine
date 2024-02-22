@@ -31,6 +31,12 @@ namespace Engine
         }
     }
 
+
+    bool EngineRenderTarget::is_scene_output() const
+    {
+        return false;
+    }
+
     void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
     {
         if (size.x >= new_size.x && size.y >= new_size.y)
@@ -73,7 +79,7 @@ namespace Engine
                 texture->init_resource();
             }
 
-            if (frame->depth_stencil_attachment)
+            if (frame->depth_stencil_attachment && !is_scene_output())
             {
                 frame->depth_stencil_attachment->size = size;
                 frame->depth_stencil_attachment->init_resource();
@@ -324,12 +330,15 @@ namespace Engine
     public:
         SceneColorOutputRenderPass()
         {
-            has_depth_stancil = false;
+            has_depth_stancil = true;
 
             // Initialize color attachments
             color_attachments.resize(1);
             color_attachments[0].clear_on_bind = true;
             color_attachments[0].format        = base_color_format();
+
+            depth_stencil_attachment.format        = depth_format();
+            depth_stencil_attachment.clear_on_bind = false;
         }
 
         RenderPassType type() const override
@@ -389,10 +398,17 @@ namespace Engine
             texture->format = render_pass->color_attachments[0].format;
             texture->setup_render_target_texture();
             frame->color_attachments[0] = texture;
+
+            frame->depth_stencil_attachment = GBuffer::instance()->frame(frame_index)->depth_stencil_attachment;
             frame_index++;
         }
 
         init(WindowManager::instance()->calculate_gbuffer_size());
+    }
+
+    bool SceneColorOutput::is_scene_output() const
+    {
+        return true;
     }
 
     SceneColorOutput::~SceneColorOutput()

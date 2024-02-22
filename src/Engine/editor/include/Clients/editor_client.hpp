@@ -35,8 +35,9 @@ namespace Engine
         bool _M_viewport_is_hovered = false;
 
         class CameraComponent* camera;
-        float _M_camera_speed   = 10.f;
-        Vector3D _M_camera_move = {0, 0, 0};
+        float _M_camera_speed      = 10.f;
+        Vector3D _M_camera_move    = {0, 0, 0};
+        Index _M_target_view_index = 0;
 
     public:
         EditorClient();

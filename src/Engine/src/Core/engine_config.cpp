@@ -41,7 +41,7 @@ namespace Engine
         }
 #endif
 
-        lz4_compression_level  = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level", 9);
+        lz4_compression_level  = engine_json.checked_get_value<JSON::JsonInt>("lz4_compression_level", 1);
         gc_max_object_per_tick = engine_json.checked_get_value<JSON::JsonInt>("gc_max_object_per_tick", 200);
         fps_limit              = engine_json.checked_get_value<JSON::JsonInt>("fps_limit", 60);
         gamma                  = engine_json.checked_get_value<JSON::JsonFloat>("gamma", 1.f);

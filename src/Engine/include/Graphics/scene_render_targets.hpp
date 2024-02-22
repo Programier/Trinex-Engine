@@ -14,6 +14,7 @@ namespace Engine
 
     protected:
         void init(const Size2D& size, bool is_reinit = false);
+        virtual bool is_scene_output() const;
 
     public:
         EngineRenderTarget& resize(const Size2D& new_size);
@@ -57,6 +58,9 @@ namespace Engine
     private:
         SceneColorOutput();
         ~SceneColorOutput();
+
+    protected:
+        bool is_scene_output() const override;
 
     public:
         Frame* current_frame() const;

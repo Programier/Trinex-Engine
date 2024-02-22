@@ -2,7 +2,7 @@
     "Engine": {
         "enable_jit": false,
         "api": "OpenGL",
-        "lz4_compression_level": 10,
+        "lz4_compression_level": 3,
         "gc_max_object_per_tick": 200,
 
         "scripts_dir": "resources/scripts",

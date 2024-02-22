@@ -20,7 +20,6 @@ namespace Engine
         public RHI
 #endif
     {
-
         static OpenGL* _M_instance;
         void* _M_context = nullptr;
         String _M_renderer;
