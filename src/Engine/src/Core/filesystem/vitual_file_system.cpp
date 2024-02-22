@@ -218,10 +218,10 @@ namespace Engine::VFS
             }
             else
             {
-                zip_source_t* source = zip_source_file(archive, file_path.c_str(), 0, 0);
+                zip_source_t* source = zip_source_file(archive, file_path.string().c_str(), 0, 0);
                 if (source)
                 {
-                    zip_int64_t file_index = zip_file_add(archive, zip_path.c_str(), source, ZIP_FL_OVERWRITE);
+                    zip_int64_t file_index = zip_file_add(archive, zip_path.string().c_str(), source, ZIP_FL_OVERWRITE);
                     zip_set_file_compression(archive, file_index, ZIP_CM_STORE, 0);
                 }
                 else

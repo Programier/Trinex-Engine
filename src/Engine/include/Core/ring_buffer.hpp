@@ -8,7 +8,7 @@ namespace Engine
     class ENGINE_EXPORT RingBuffer final
     {
     public:
-        class AllocationContext final
+        class ENGINE_EXPORT AllocationContext final
         {
         private:
             RingBuffer& _M_buffer;

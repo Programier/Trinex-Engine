@@ -39,7 +39,7 @@ namespace Engine::Importer
         Vector<Vector3D> tangents;
         Vector<Vector3D> bitangents;
         Vector<Vector<Vector2D>> uv;
-        Vector<uint> indices;
+        Vector<uint_t> indices;
 
 
         {

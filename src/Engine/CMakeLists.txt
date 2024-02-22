@@ -6,7 +6,7 @@ option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
 option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
 option(TRINEX_WITH_SDL "Build SDL2 WindowSystem shared library" ON)
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
-option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" ON)
+option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" OFF)
 
 
 set(CMAKE_CXX_STANDARD 20)
@@ -44,7 +44,8 @@ set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     lz4_static
                                     stb_image
                                     tinygltf
-                                    asmjit)
+                                    asmjit
+                                    zlib_library)
 
 set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser zip)
 
@@ -101,17 +102,18 @@ file(GLOB TRINEX_TINYGLTF_SRC "${TRINEX_TINYGLTF_DIR}*.cpp")
 set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_SRC})
 
 
+if(TRINEX_REBUILD_HEADERS)
+    add_executable(header_generator header_generator/main.cpp)
 
-add_executable(header_generator header_generator/main.cpp)
+    set(TRINEX_PRECOMPILED_HEADERS include-internal/DefaultResources/default.hpp)
 
-set(TRINEX_PRECOMPILED_HEADERS include-internal/DefaultResources/default.hpp)
-
-if (TRINEX_REBUILD_HEADERS)
-    add_custom_command(
-        OUTPUT include-internal/DefaultResources/default.hpp
-        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Default.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
-        COMMENT "Generating default package header"
-    )
+    if (TRINEX_REBUILD_HEADERS)
+        add_custom_command(
+            OUTPUT include-internal/DefaultResources/default.hpp
+            COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Default.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
+            COMMENT "Generating default package header"
+        )
+    endif()
 endif()
 
 # Compile Trinex Engine library

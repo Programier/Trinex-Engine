@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) { }" HAVE_NULLABLE)
 
 test_big_endian(WORDS_BIGENDIAN)
 
-find_package(ZLIB 1.1.2 REQUIRED)
+set(ZLIB_LINK_LIBRARY_NAME "zlib_library")
 # so developers on systems where zlib is named differently (Windows, sometimes)
 # can override the name used in the pkg-config file
 if (NOT ZLIB_LINK_LIBRARY_NAME)
@@ -351,14 +351,12 @@ foreach(LIB ${LIBS_PRIVATE})
   endif()
   set(LIBS "${LIBS} -l${LIB}")
 endforeach()
-STRING(CONCAT zlib_link_name "-l" ${ZLIB_LINK_LIBRARY_NAME})
 string(REGEX REPLACE "-lBZip2::BZip2" "-lbz2" LIBS ${LIBS})
 string(REGEX REPLACE "-lLibLZMA::LibLZMA" "-llzma" LIBS ${LIBS})
 if(zstd_TARGET)
   string(REGEX REPLACE "-l${zstd_TARGET}" "-lzstd" LIBS ${LIBS})
 endif()
 string(REGEX REPLACE "-lOpenSSL::Crypto" "-lssl -lcrypto" LIBS ${LIBS})
-string(REGEX REPLACE "-lZLIB::ZLIB" ${zlib_link_name} LIBS ${LIBS})
 string(REGEX REPLACE "-lGnuTLS::GnuTLS" "-lgnutls" LIBS ${LIBS})
 string(REGEX REPLACE "-lNettle::Nettle" "-lnettle" LIBS ${LIBS})
 configure_file(libzip.pc.in libzip.pc @ONLY)
@@ -483,19 +481,4 @@ install(FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindMbedTLS.cmake
   DESTINATION
     ${CMAKE_INSTALL_LIBDIR}/cmake/libzip/modules
-  )  
-
-if(LIBZIP_DO_INSTALL)
-  # Add targets to the build-tree export set
-  export(TARGETS zip
-    FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake")
-
-  # installation
-  install(FILES ${PROJECT_BINARY_DIR}/zipconf.h DESTINATION include)
-  install(FILES ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-    )
-  install(EXPORT ${PROJECT_NAME}-targets NAMESPACE libzip:: FILE ${PROJECT_NAME}-targets.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-    )
-endif()
+  )
