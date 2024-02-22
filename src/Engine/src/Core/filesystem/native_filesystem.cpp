@@ -124,7 +124,7 @@ namespace Engine::VFS
     {
         Path full_path = _M_path / path;
 
-        std::ios_base::openmode open_mode = static_cast<std::ios_base::openmode>(0);
+        std::ios_base::openmode open_mode = std::ios_base::binary;
         bool is_read_only                 = !mode.has_any(Flags(FlagsOperator::Or, FileOpenMode::Out, FileOpenMode::Append));
 
 
