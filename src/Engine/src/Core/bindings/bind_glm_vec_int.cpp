@@ -70,7 +70,7 @@ namespace Engine
             bind_glm_operators<RegistryType4>(registrar, prop_type);
             bind_index_op<RegistryType4, ConstType, RefType>(registrar, const_type, ref_type);
         }
-       // bind_functions();
+        bind_functions();
     }
 
     static ScriptEngineInitializeController controller(on_init, "Bind Engine::IntVector");
