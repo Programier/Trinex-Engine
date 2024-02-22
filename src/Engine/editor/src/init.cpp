@@ -5,7 +5,6 @@
 
 namespace Engine
 {
-
     static void resource_loading()
     {
         load_package_from_memory(editor_package_data, editor_package_len, "Editor");

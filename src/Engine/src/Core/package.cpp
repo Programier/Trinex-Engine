@@ -43,16 +43,12 @@ namespace Engine
             return instance;
         }
 
-        Object* load(HeaderEntry* entry, Package* pkg, Archive& ar)
+
+        Object* preload_object(Package* pkg, HeaderEntry* entry)
         {
-            Vector<byte> compressed_buffer;
-            Vector<byte> uncompressed_buffer;
-
-            VectorReader uncompressed_reader = &uncompressed_buffer;
-            Archive uncompressed_ar          = &uncompressed_reader;
-
             Class* object_class = find_class(entry);
             Object* object      = nullptr;
+
             if (object_class)
             {
                 if (!(object = pkg->find_object(names[entry->object_name], false)))
@@ -63,7 +59,31 @@ namespace Engine
                     pkg->add_object(object);
                     object->preload();
                 }
+            }
 
+            return object;
+        }
+
+        void preload(Package* pkg, Archive& ar)
+        {
+            for (auto& entry : entries)
+            {
+                preload_object(pkg, &entry);
+            }
+        }
+
+        Object* load(HeaderEntry* entry, Package* pkg, Archive& ar)
+        {
+            Vector<byte> compressed_buffer;
+            Vector<byte> uncompressed_buffer;
+
+            VectorReader uncompressed_reader = &uncompressed_buffer;
+            Archive uncompressed_ar          = &uncompressed_reader;
+
+            Object* object      = preload_object(pkg, entry);
+
+            if (object)
+            {
                 ar.reader()->position(header_begin_offset + header_size + entry->offset);
                 ar & compressed_buffer;
 
@@ -425,6 +445,7 @@ namespace Engine
         {
             Header header;
             header.archive_process(ar);
+            header.preload(this, ar);
 
             for (auto& entry : header.entries)
             {
