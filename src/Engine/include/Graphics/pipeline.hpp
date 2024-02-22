@@ -103,6 +103,9 @@ namespace Engine
         LocalMaterialParametersInfo local_parameters;
         bool has_global_parameters;
 
+    private:
+        bool serialize_shaders(Archive& ar);
+
     public:
         RenderPassType render_pass      = RenderPassType::Undefined;
         VertexShader* vertex_shader     = nullptr;

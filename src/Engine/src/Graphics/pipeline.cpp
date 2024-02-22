@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -244,8 +245,23 @@ namespace Engine
         return Object::instance_cast<Material>(owner());
     }
 
+
+    bool Pipeline::serialize_shaders(Archive& ar)
+    {
+        if (ar.is_open())
+        {
+            ar & local_parameters;
+            vertex_shader->archive_process(ar);
+            fragment_shader->archive_process(ar);
+        }
+
+        return static_cast<bool>(ar);
+    }
+
     bool Pipeline::archive_process(class Archive& archive)
     {
+
+
         Material* material_object = material();
         if (material_object == nullptr)
         {
@@ -258,47 +274,79 @@ namespace Engine
 
         archive & has_global_parameters;
 
-        Path path = Strings::format(
-                "ShaderCache{}{}{}", Path::separator,
-                Strings::replace_all(material_object->full_name(true), Constants::name_separator, Path::sv_separator),
-                Constants::shader_extention);
+        String shader_lang = engine_config.shading_language;
+        archive & shader_lang;
 
-        union
+        size_t shader_code_size_start = archive.position();
+
+        size_t shader_code_size = 0;
+        archive & shader_code_size;
+
+        bool status = false;
+
+        size_t shader_code_start = archive.position();
+
+        if (archive.is_saving())
         {
-            BufferReader* reader = nullptr;
-            BufferWriter* writer;
-        };
+            serialize_shaders(archive);
 
-        Archive second_archive;
+            auto end_position = archive.position();
+            shader_code_size = end_position - shader_code_start;
 
-        if (archive.is_reading())
-        {
-            reader         = new FileReader(path);
-            second_archive = reader;
+            archive.position(shader_code_size_start);
+            archive & shader_code_size;
+            archive.position(end_position);
         }
-        else if (archive.is_saving())
+        else if (archive.is_reading())
         {
-            rootfs()->create_dir(path.base_path());
-            writer         = new FileWriter(path);
-            second_archive = writer;
+            if (shader_lang == engine_config.shading_language)
+            {
+                serialize_shaders(archive);
+            }
+            else
+            {
+                archive.position(shader_code_start + shader_code_size);
+            }
         }
 
-        if (second_archive.is_open())
+        if (archive.is_saving() || shader_lang != engine_config.shading_language)
         {
-            second_archive & local_parameters;
-            vertex_shader->archive_process(second_archive);
-            fragment_shader->archive_process(second_archive);
-        }
+            // Loading shaders from shader cache
+            Path path = Strings::format(
+                    "ShaderCache{}{}{}", Path::separator,
+                    Strings::replace_all(material_object->full_name(true), Constants::name_separator, Path::sv_separator),
+                    Constants::shader_extention);
 
-        bool status = static_cast<bool>(second_archive);
+            union
+            {
+                BufferReader* reader = nullptr;
+                BufferWriter* writer;
+            };
 
-        if (second_archive.is_reading())
-        {
-            delete reader;
-        }
-        else
-        {
-            delete writer;
+            Archive second_archive;
+
+            if (archive.is_reading())
+            {
+                reader         = new FileReader(path);
+                second_archive = reader;
+            }
+            else if (archive.is_saving())
+            {
+                rootfs()->create_dir(path.base_path());
+                writer         = new FileWriter(path);
+                second_archive = writer;
+            }
+
+            serialize_shaders(second_archive);
+
+            if (second_archive.is_reading())
+            {
+                delete reader;
+            }
+            else
+            {
+                delete writer;
+            }
         }
 
         return archive && status;

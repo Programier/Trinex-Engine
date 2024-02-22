@@ -107,13 +107,11 @@ if(TRINEX_REBUILD_HEADERS)
 
     set(TRINEX_PRECOMPILED_HEADERS include-internal/DefaultResources/default.hpp)
 
-    if (TRINEX_REBUILD_HEADERS)
-        add_custom_command(
-            OUTPUT include-internal/DefaultResources/default.hpp
-            COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/Default.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
-            COMMENT "Generating default package header"
-        )
-    endif()
+    add_custom_command(
+        OUTPUT include-internal/DefaultResources/default.hpp
+        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultPackage.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
+        COMMENT "Generating default package header"
+    )
 endif()
 
 # Compile Trinex Engine library

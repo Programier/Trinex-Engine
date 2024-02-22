@@ -37,10 +37,4 @@ static void on_init()
     Engine::engine_instance->args().push_argument(Engine::Arguments::Argument("entry", "Editor"), false);
 }
 
-namespace Engine
-{
-    extern void on_post_init();
-}// namespace Engine
-
 static Engine::InitializeController initializer(on_init);
-static Engine::PostInitializeController post_init(Engine::on_post_init);
