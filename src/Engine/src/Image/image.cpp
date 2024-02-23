@@ -4,6 +4,7 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Image/image.hpp>
+#include <stb_dxt.h>
 #include <stb_image.h>
 #include <stb_image_resize.h>
 #include <stb_image_write.h>
@@ -199,8 +200,8 @@ namespace Engine
 
         Vector<byte> resized_image(new_width * new_height * m_channels, 0);
 
-        auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(),
-                                         new_width, new_height, new_width * m_channels, m_channels);
+        auto status = stbir_resize_uint8(m_data.data(), m_width, m_height, m_width * m_channels, resized_image.data(), new_width,
+                                         new_height, new_width * m_channels, m_channels);
 
         m_width  = new_width;
         m_height = new_height;
@@ -228,8 +229,8 @@ namespace Engine
     bool Image::write_png(const Path& filename)
     {
         make_writer();
-        return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels,
-                                                        m_data.data(), m_width * m_channels));
+        return static_cast<bool>(stbi_write_png_to_func(image_writer_func, &writer, m_width, m_height, m_channels, m_data.data(),
+                                                        m_width * m_channels));
     }
 
     bool Image::write_jpg(const Path& filename)
