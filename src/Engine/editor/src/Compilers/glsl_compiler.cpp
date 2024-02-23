@@ -1,6 +1,7 @@
 #include <Compiler/compiler.hpp>
 #include <Core/class.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_parameters.hpp>
 #include <Graphics/visual_material.hpp>
@@ -620,12 +621,19 @@ namespace Engine
 
         GLSL_CompiledSource* sampler_source(MaterialInputPin* pin)
         {
-            return pin_source(pin);
+            if (pin->linked_to)
+                return pin_source(pin);
+
+            Sampler* sampler_object = Object::find_object("DefaultPackage::DefaultSampler")->instance_cast<Sampler>();
+            trinex_always_check(sampler_object, "Default sampler object is not valid!");
+            return reinterpret_cast<GLSL_CompiledSource*>(sampler(sampler_object));
         }
 
         String uv_source(MaterialInputPin* pin)
         {
-            return get_pin_source(pin, MaterialNodeDataType::Vec2);
+            if (pin->linked_to)
+                return get_pin_source(pin, MaterialNodeDataType::Vec2);
+            return reinterpret_cast<GLSL_CompiledSource*>(vertex_uv_attribute(0))->source;
         }
 
         String cast_value(const String& in, MaterialNodeDataType in_type, MaterialNodeDataType out_type)
