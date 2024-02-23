@@ -5,6 +5,7 @@ namespace Engine
 {
     OpenGL_ColorInfo color_format_from_engine_format(ColorFormat format)
     {
+
         switch (format)
         {
             case ColorFormat::R8Unorm:
@@ -194,6 +195,8 @@ namespace Engine
                 return OpenGL_ColorInfo(GL_RGBA32I, GL_RGBA_INTEGER, GL_INT);
             case ColorFormat::R32G32B32A32Sfloat:
                 return OpenGL_ColorInfo(GL_RGBA32F, GL_RGBA, GL_FLOAT);
+            case ColorFormat::BC7Unorm:
+                return OpenGL_ColorInfo(0x8E8C, 0, 0);
 
             default:
                 return OpenGL_ColorInfo(0, 0, 0);

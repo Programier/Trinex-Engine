@@ -15,10 +15,20 @@ namespace Engine
         TGA = 3,
     };
 
+    enum class ImageCompression : EnumerateType
+    {
+        None = 0,
+        BC1  = 1,
+        BC2  = 2,
+        BC3  = 3,
+        BC7  = 4,
+    };
+
     class ENGINE_EXPORT Image : public SerializableObject
     {
         Buffer m_data;
         int_t m_height = 0, m_width = 0, m_channels = 0;
+        ImageCompression m_compression = ImageCompression::None;
 
         bool write_png(const Path& filename);
         bool write_jpg(const Path& filename);
@@ -44,8 +54,6 @@ namespace Engine
         Size1D width() const;
         Size1D height() const;
         uint_t channels() const;
-        Image& remove_alpha_channel();
-        Image& add_alpha_channel();
         bool resize(const Size2D& new_size);
         bool empty() const;
         ColorFormat format() const;
@@ -57,6 +65,8 @@ namespace Engine
 
         Image& create(const Size2D& size, uint_t channels, const Buffer& buffer = {});
         Image& create(const Size2D& size, uint_t channels, const byte* buffer = nullptr);
+        ImageCompression compression() const;
+        void recompress(ImageCompression new_compression);
         ~Image();
 
         bool archive_process(Archive& archive) override;

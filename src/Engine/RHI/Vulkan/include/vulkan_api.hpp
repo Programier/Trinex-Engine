@@ -151,7 +151,7 @@ namespace Engine
         VulkanAPI& draw(size_t vertex_count) override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
-        RHI_Texture* create_texture(const Texture*, const byte* data) override;
+        RHI_Texture* create_texture(const Texture*, const byte* data, size_t size) override;
         RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;

@@ -77,6 +77,7 @@ namespace Engine
         m_data.resize(m_width * m_height * m_channels);
         std::copy(image_data, image_data + m_data.size(), m_data.data());
         stbi_image_free(image_data);
+        m_compression = ImageCompression::None;
 
         return *this;
     }
@@ -118,57 +119,6 @@ namespace Engine
         m_channels = img.m_channels;
         return *this;
     }
-
-    Image& Image::remove_alpha_channel()
-    {
-        if (m_channels == 3)
-            return *this;
-        if (m_channels != 4)
-        {
-            info_log("Image", "Cannot remove alpha channel\n");
-            return *this;
-        }
-
-        Vector<byte> tmp;
-        tmp.reserve(m_height * m_width * 3);
-        int_t len = m_width * m_height * m_channels;
-
-        for (int_t i = 0; i < len; i++)
-        {
-            if (i % 4 != 3)
-                tmp.push_back(m_data[i]);
-        }
-
-        m_data     = std::move(tmp);
-        m_channels = 3;
-        return *this;
-    }
-
-    Image& Image::add_alpha_channel()
-    {
-
-        if (m_channels == 4)
-            return *this;
-        if (m_channels != 3)
-        {
-            info_log("Image", "Cannot add alpha channel\n");
-            return *this;
-        }
-
-        Vector<byte> tmp;
-        tmp.reserve(m_height * m_width * 4);
-        int_t len = m_width * m_height * m_channels;
-        for (int_t i = 0; i < len; i++)
-        {
-            tmp.push_back(m_data[i]);
-            if (i % 3 == 2)
-                tmp.push_back(255);
-        }
-        m_data     = std::move(tmp);
-        m_channels = 4;
-        return *this;
-    }
-
 
     Image::~Image()
     {}
@@ -288,8 +238,21 @@ namespace Engine
         return *this;
     }
 
+    ImageCompression Image::compression() const
+    {
+        return m_compression;
+    }
+
+    void Image::recompress(ImageCompression new_compression)
+    {
+        m_compression = new_compression;
+    }
+
     ColorFormat Image::format() const
     {
+        if(m_compression == ImageCompression::BC7)
+            return ColorFormat::BC7Unorm;
+
         if (m_channels == 1)
         {
             return ColorFormat::R8Unorm;

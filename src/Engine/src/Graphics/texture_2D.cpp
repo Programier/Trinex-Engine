@@ -26,13 +26,13 @@ namespace Engine
     Texture2D& Texture2D::rhi_create()
     {
         const byte* data = image.empty() ? nullptr : image.data();
-        return rhi_create(data);
+        return rhi_create(data, image.buffer().size());
     }
 
-    Texture2D& Texture2D::rhi_create(const byte* data)
+    Texture2D& Texture2D::rhi_create(const byte* data, size_t data_size)
     {
         if (size.x >= 1.0f && size.y >= 1.f)
-            m_rhi_object.reset(engine_instance->rhi()->create_texture(this, data));
+            m_rhi_object.reset(engine_instance->rhi()->create_texture(this, data, data_size));
         return *this;
     }
 
@@ -55,8 +55,8 @@ namespace Engine
     Texture2D& Texture2D::read_image(Image& image, MipMapLevel level)
     {
         auto texture_mip_size = mip_size(level);
-        image.m_width        = static_cast<int_t>(texture_mip_size.x);
-        image.m_height       = static_cast<int_t>(texture_mip_size.y);
+        image.m_width         = static_cast<int_t>(texture_mip_size.x);
+        image.m_height        = static_cast<int_t>(texture_mip_size.y);
         read_data(image.m_data, level);
         image.m_channels = image.m_data.size() / static_cast<std::size_t>(image.m_width * image.m_height);
         return *this;
@@ -69,7 +69,7 @@ namespace Engine
             return false;
         }
 
-        archive& image;
+        archive & image;
         return static_cast<bool>(archive);
     }
 

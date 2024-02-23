@@ -79,7 +79,7 @@ namespace Engine
         return _default;
     }
 
-    void OpenGL_Texture::init(const Texture* texture, const byte* data)
+    void OpenGL_Texture::init(const Texture* texture, const byte* data, size_t size)
     {
         m_format = color_format_from_engine_format(texture->format);
         m_type   = texture_type(texture);
@@ -95,8 +95,15 @@ namespace Engine
         glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle_b, GL_BLUE));
         glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_A, swizzle_value(texture->swizzle_a, GL_ALPHA));
 
-        glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
-                     m_format.m_type, data);
+        if (m_format.m_format == 0)
+        {
+            glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, size, data);
+        }
+        else
+        {
+            glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format, m_format.m_type,
+                         data);
+        }
 
         glBindTexture(m_type, 0);
     }
@@ -109,10 +116,10 @@ namespace Engine
         }
     }
 
-    RHI_Texture* OpenGL::create_texture(const Texture* texture, const byte* data)
+    RHI_Texture* OpenGL::create_texture(const Texture* texture, const byte* data, size_t size)
     {
         OpenGL_Texture* opengl_texture = new OpenGL_Texture();
-        opengl_texture->init(texture, data);
+        opengl_texture->init(texture, data, size);
         return opengl_texture;
     }
 

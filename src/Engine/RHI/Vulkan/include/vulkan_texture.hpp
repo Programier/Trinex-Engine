@@ -16,7 +16,7 @@ namespace Engine
         vk::ComponentMapping m_swizzle;
         VkDescriptorSet m_imgui_descriptor_set = 0;
 
-        VulkanTexture& create(const Texture* texture, const byte* data);
+        VulkanTexture& create(const Texture* texture, const byte* data, size_t size);
         VulkanTexture& destroy();
 
         vk::ImageSubresourceRange subresource_range(MipMapLevel base);

@@ -28,8 +28,8 @@ namespace Engine
     };
 
 #define color_shift(a, b) (static_cast<EnumerateType>(a) << b)
-#define make_color_format(count, size, metadata, aspect, padding)                                                      \
-    (color_shift(count, 0) | color_shift(size / 8, 3) | color_shift(ColorFormatMetaData::metadata, 6) |                \
+#define make_color_format(count, size, metadata, aspect, padding)                                                                \
+    (color_shift(count, 0) | color_shift(size / 8, 3) | color_shift(ColorFormatMetaData::metadata, 6) |                          \
      color_shift(ColorFormatAspect::aspect, 10) | color_shift(padding, 13))
 
     enum class ColorFormat : EnumerateType
@@ -123,6 +123,8 @@ namespace Engine
         B8G8R8A8Sint    = make_color_format(4, 8, Sint, Color, 1),
         R8G8B8A8Srgb    = make_color_format(4, 8, Srgb, Color, 0),
         B8G8R8A8Srgb    = make_color_format(4, 8, Srgb, Color, 1),
+
+        BC7Unorm = make_color_format(4, 0, Unorm, Color, 0),
 
         R16G16B16A16Unorm   = make_color_format(4, 16, Unorm, Color, 0),
         R16G16B16A16Snorm   = make_color_format(4, 16, Snorm, Color, 0),

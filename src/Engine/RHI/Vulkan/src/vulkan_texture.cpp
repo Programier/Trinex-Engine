@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-    VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data)
+    VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data, size_t size)
     {
         destroy();
 
@@ -31,13 +31,13 @@ namespace Engine
             format_aspect == ColorFormatAspect::DepthStencil)
         {
             m_usage_flags = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc |
-                             vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+                            vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
             m_memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal;
         }
         else
         {
             m_usage_flags = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
-                             vk::ImageUsageFlagBits::eSampled;
+                            vk::ImageUsageFlagBits::eSampled;
 
             if (texture->is_render_target_texture() && can_use_color_as_color_attachment())
             {
@@ -51,13 +51,13 @@ namespace Engine
 
         API->create_image(this, tiling,
                           m_engine_texture->type() == TextureType::Texture2D ? default_flags
-                                                                              : vk::ImageCreateFlagBits::eCubeCompatible,
+                                                                             : vk::ImageCreateFlagBits::eCubeCompatible,
                           m_usage_flags, m_memory_flags, m_image, m_image_memory, layer_count());
 
 
         // Creating image view
-        m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g),
-                                          get_type(texture->swizzle_b), get_type(texture->swizzle_a));
+        m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
+                                         get_type(texture->swizzle_a));
         vk::ImageViewCreateInfo view_info({}, m_image, view_type(), m_vulkan_format, m_swizzle,
                                           subresource_range(texture->base_mip_level));
         m_image_view = API->m_device.createImageView(view_info);
@@ -321,9 +321,9 @@ namespace Engine
         destroy();
     }
 
-    RHI_Texture* VulkanAPI::create_texture(const Texture* texture, const byte* data)
+    RHI_Texture* VulkanAPI::create_texture(const Texture* texture, const byte* data, size_t size)
     {
-        return &(new VulkanTexture())->create(texture, data);
+        return &(new VulkanTexture())->create(texture, data, size);
     }
 
     ColorFormatFeatures VulkanAPI::color_format_features(ColorFormat format)

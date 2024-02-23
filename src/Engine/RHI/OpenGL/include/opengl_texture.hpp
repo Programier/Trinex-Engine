@@ -18,7 +18,7 @@ namespace Engine
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap,
                                const byte* data) override;
 
-        void init(const Texture* texture, const byte* data);
+        void init(const Texture* texture, const byte* data, size_t size);
 
         ~OpenGL_Texture();
     };
