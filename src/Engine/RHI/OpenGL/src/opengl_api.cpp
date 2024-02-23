@@ -92,8 +92,7 @@ namespace Engine
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
     {
         prepare_render();
-        glDrawElements(m_current_pipeline->m_topology, indices_count, m_current_index_buffer->m_element_type,
-                       reinterpret_cast<void*>(indices_offset));
+        glDrawElements(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT, reinterpret_cast<void*>(indices_offset));
         reset_samplers();
         return *this;
     }

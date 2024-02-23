@@ -109,6 +109,7 @@ namespace Engine
                 root->transform.location = location;
                 root->transform.rotation = rotation;
                 m_scene->root_component()->attach(root);
+                actor->scene_component()->on_transform_changed();
             }
         }
         actor->m_world = this;

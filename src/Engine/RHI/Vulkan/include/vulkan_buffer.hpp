@@ -31,9 +31,8 @@ namespace Engine
 
     struct VulkanIndexBuffer : public RHI_IndexBuffer {
         VulkanBuffer m_buffer;
-        vk::IndexType m_index_type;
 
-        VulkanIndexBuffer& create(const byte* data, size_t size, IndexBufferComponent component);
+        VulkanIndexBuffer& create(const byte* data, size_t size);
 
         void bind(size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;

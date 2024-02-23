@@ -42,7 +42,6 @@ namespace Engine
         return array[static_cast<EnumerateType>(in_type)];                                                                       \
     }
 
-    DECLARE_GETTER(vk::IndexType, IndexBufferComponent, m_index_types);
     DECLARE_GETTER(vk::LogicOp, LogicOp, m_logic_ops);
     DECLARE_GETTER(vk::FrontFace, FrontFace, m_front_faces);
     DECLARE_GETTER(vk::ComponentSwizzle, Swizzle, m_swizzle_components);

@@ -1,12 +1,16 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
+#include <Core/class.hpp>
 #include <Core/object.hpp>
 
 namespace Engine
 {
-    class Object* Archive::load_object(const StringView& name)
+    class Object* Archive::load_object(const StringView& name, class Class* self)
     {
-        return Object::load_object(name);
+        Object* object = Object::load_object(name);
+        if (object->class_instance()->is_a(self))
+            return object;
+        return nullptr;
     }
 
     Archive::Archive() : m_reader(nullptr), m_is_saving(false), m_process_status(false)

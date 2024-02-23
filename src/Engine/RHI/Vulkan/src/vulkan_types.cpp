@@ -16,12 +16,6 @@ namespace Engine
         return out_array;
     }
 
-    const Array<vk::IndexType, 3> m_index_types = generate_array<vk::IndexType, 3, IndexBufferComponent>({
-            {IndexBufferComponent::UnsignedInt, vk::IndexType::eUint32},
-            {IndexBufferComponent::UnsignedShort, vk::IndexType::eUint16},
-            {IndexBufferComponent::UnsignedByte, vk::IndexType::eUint8EXT},
-    });
-
     const Array<vk::ComponentSwizzle, 7> m_swizzle_components = {
             vk::ComponentSwizzle::eIdentity,// Identity = 0
             vk::ComponentSwizzle::eZero,    // Zero = 1

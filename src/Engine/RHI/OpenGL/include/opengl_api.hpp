@@ -66,7 +66,7 @@ namespace Engine
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
-        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferComponent) override;
+        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;

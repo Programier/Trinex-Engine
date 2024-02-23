@@ -18,9 +18,6 @@ namespace Engine
                    {"Up", TextureCubeMapFace::Up}, {"Down", TextureCubeMapFace::Down}, {"Left", TextureCubeMapFace::Left},
                    {"Right", TextureCubeMapFace::Right});
 
-    implement_enum(IndexBufferComponent, Engine, {"UnsignedByte", IndexBufferComponent::UnsignedByte},
-                   {"UnsignedInt", IndexBufferComponent::UnsignedInt}, {"UnsignedShort", IndexBufferComponent::UnsignedShort});
-
     implement_enum(VertexBufferSemantic, Engine, {"Position", VertexBufferSemantic::Position},
                    {"TexCoord", VertexBufferSemantic::TexCoord}, {"Color", VertexBufferSemantic::Color},
                    {"Normal", VertexBufferSemantic::Normal}, {"Tangent", VertexBufferSemantic::Tangent},

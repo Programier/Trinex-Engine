@@ -45,7 +45,11 @@ namespace Engine
 
         StaticMesh& init_resources();
         StaticMesh& apply_changes() override;
+        bool archive_process(Archive& ar) override;
+        StaticMesh& postload() override;
     };
+
+    ENGINE_EXPORT bool operator& (Archive& ar, StaticMesh::LOD& lod);
 
     class ENGINE_EXPORT DynamicMesh : public Object
     {

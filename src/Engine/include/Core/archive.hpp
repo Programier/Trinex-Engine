@@ -35,7 +35,7 @@ namespace Engine
             }
         }
 
-        class Object* load_object(const StringView& name);
+        class Object* load_object(const StringView& name, class Class* self);
 
     public:
         Archive();
@@ -90,7 +90,7 @@ namespace Engine
         }
 
         template<typename Type>
-        typename std::enable_if<std::is_base_of_v<Type, class Engine::Object>, bool>::type serialize_reference(Type*& object)
+        typename std::enable_if<std::is_base_of_v<class Engine::Object, Type>, bool>::type serialize_reference(Type*& object)
         {
             if (is_saving())
             {
@@ -113,7 +113,7 @@ namespace Engine
                 }
                 else
                 {
-                    object = load_object(name);
+                    object = reinterpret_cast<Type*>(load_object(name, Type::static_class_instance()));
                 }
             }
 

@@ -173,9 +173,8 @@ namespace Engine::Importer
         if (indices.size() > 0)
         {
             IndexBuffer* index_buffer = Object::new_instance<IndexBuffer>();
-            index_buffer->setup(IndexBufferComponent::UnsignedInt);
-            *index_buffer->int_buffer() = std::move(indices);
-            lod.indices                 = index_buffer;
+            index_buffer->buffer      = std::move(indices);
+            lod.indices               = index_buffer;
         }
 
         static_mesh->name(mesh->mName.C_Str());

@@ -50,22 +50,7 @@ namespace Engine
     }
 
 
-    static GLuint convert_index_buffer_component(IndexBufferComponent component)
-    {
-        switch (component)
-        {
-            case IndexBufferComponent::UnsignedByte:
-                return GL_UNSIGNED_BYTE;
-            case IndexBufferComponent::UnsignedShort:
-                return GL_UNSIGNED_SHORT;
-            case IndexBufferComponent::UnsignedInt:
-                return GL_UNSIGNED_INT;
-            default:
-                throw EngineException("Unsupported index component type");
-        }
-    }
-
-    OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data, IndexBufferComponent component)
+    OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data)
     {
         glGenBuffers(1, &m_id);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
@@ -75,8 +60,6 @@ namespace Engine
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_current_index_buffer->m_id);
         }
-
-        m_element_type = convert_index_buffer_component(component);
     }
 
     void OpenGL_IndexBuffer::bind(size_t offset)
@@ -107,9 +90,9 @@ namespace Engine
         }
     }
 
-    RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, IndexBufferComponent component)
+    RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data)
     {
-        return new OpenGL_IndexBuffer(size, data, component);
+        return new OpenGL_IndexBuffer(size, data);
     }
 
 
@@ -149,11 +132,11 @@ namespace Engine
             return;
         }
 
-        while(m_buffers[index]->m_size < shadow_data_size)
+        while (m_buffers[index]->m_size < shadow_data_size)
         {
             ++index;
 
-            if(m_buffers.size() <= index)
+            if (m_buffers.size() <= index)
             {
                 m_buffers.push_back(new OpenGL_UniformBuffer(shadow_data_size));
             }

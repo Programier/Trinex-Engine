@@ -52,13 +52,6 @@ namespace Engine
         Right = 5
     };
 
-    enum class IndexBufferComponent : EnumerateType
-    {
-        UnsignedByte  = 0,
-        UnsignedInt   = 1,
-        UnsignedShort = 2,
-    };
-
     enum class VertexBufferSemantic : EnumerateType
     {
         Position     = 0,

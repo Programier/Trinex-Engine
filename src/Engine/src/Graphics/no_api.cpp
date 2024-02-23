@@ -125,7 +125,7 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_IndexBuffer* NoApi::create_index_buffer(size_t, const byte* data, IndexBufferComponent)
+    RHI_IndexBuffer* NoApi::create_index_buffer(size_t, const byte* data)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

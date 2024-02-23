@@ -17,9 +17,8 @@ namespace Engine
 
     struct OpenGL_IndexBuffer : public RHI_IndexBuffer {
         GLuint m_id;
-        GLuint m_element_type;
 
-        OpenGL_IndexBuffer(size_t, const byte* data, IndexBufferComponent);
+        OpenGL_IndexBuffer(size_t, const byte* data);
         void bind(size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
 

@@ -128,37 +128,22 @@ namespace Engine
         declare_class(IndexBuffer, PipelineBuffer);
 
     public:
-        using ByteBuffer  = Vector<Engine::byte>;
-        using ShortBuffer = Vector<Engine::ushort_t>;
-        using IntBuffer   = Vector<Engine::uint_t>;
-
-    private:
-        IndexBufferComponent m_component;
-
-        union
-        {
-            ByteBuffer* m_byte_buffer = nullptr;
-            ShortBuffer* m_short_buffer;
-            IntBuffer* m_int_buffer;
-        };
+        using ElementType = uint32_t;
+        using BufferType  = Vector<ElementType>;
 
     public:
+        BufferType buffer;
+
         IndexBuffer& rhi_create() override;
         IndexBuffer& rhi_bind(size_t offset = 0);
 
-        IndexBuffer& setup(IndexBufferComponent component);
-        IndexBufferComponent component() const;
-        static size_t component_size(IndexBufferComponent component);
         size_t component_size() const;
         size_t elements_count() const;
-
-        IndexBuffer& cleanup();
         const byte* data() const;
         size_t size() const;
 
-        ByteBuffer* byte_buffer() const;
-        ShortBuffer* short_buffer() const;
-        IntBuffer* int_buffer() const;
+        ~IndexBuffer();
+        bool archive_process(Archive& ar) override;
     };
 
     class ENGINE_EXPORT SSBO : public PipelineBuffer

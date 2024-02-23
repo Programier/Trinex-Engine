@@ -89,10 +89,8 @@ namespace Engine
         m_buffer.update(offset, data, size);
     }
 
-
-    VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size, IndexBufferComponent component)
+    VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size)
     {
-        m_index_type = get_type(component);
         m_buffer.create(size, data, vk::BufferUsageFlagBits::eIndexBuffer);
         return *this;
     }
@@ -102,7 +100,7 @@ namespace Engine
         VulkanIndexBuffer*& current = API->m_state->m_current_index_buffer;
         if (current != this)
         {
-            API->current_command_buffer().bindIndexBuffer(m_buffer.m_buffer, offset, m_index_type);
+            API->current_command_buffer().bindIndexBuffer(m_buffer.m_buffer, offset, vk::IndexType::eUint32);
             current = this;
         }
     }
@@ -136,9 +134,9 @@ namespace Engine
         return &(new VulkanVertexBuffer())->create(data, size);
     }
 
-    RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, IndexBufferComponent component)
+    RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data)
     {
-        return &(new VulkanIndexBuffer())->create(data, size, component);
+        return &(new VulkanIndexBuffer())->create(data, size);
     }
 
 

@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
@@ -106,6 +107,73 @@ namespace Engine
     StaticMesh& StaticMesh::apply_changes()
     {
         return init_resources();
+    }
+
+    StaticMesh& StaticMesh::postload()
+    {
+        return init_resources();
+    }
+
+
+    template<typename Type>
+    static void serialize_buffer(Archive& ar, Pointer<Type>& buffer)
+    {
+        bool is_valid = buffer;
+        ar & is_valid;
+
+        if (is_valid)
+        {
+            if (ar.is_reading())
+            {
+                buffer = Object::new_instance<Type>();
+            }
+
+            buffer.ptr()->archive_process(ar);
+        }
+    }
+
+    template<typename Type>
+    static void serialize_buffers(Archive& ar, Vector<Pointer<Type>>& buffers)
+    {
+        size_t size = buffers.size();
+        ar & size;
+
+        if (size > 0)
+        {
+            if (ar.is_reading())
+            {
+                buffers.resize(size);
+            }
+
+            for (auto& buffer : buffers)
+            {
+                serialize_buffer(ar, buffer);
+            }
+        }
+    }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, StaticMesh::LOD& lod)
+    {
+        serialize_buffers(ar, lod.positions);
+        serialize_buffers(ar, lod.tex_coords);
+        serialize_buffers(ar, lod.colors);
+        serialize_buffers(ar, lod.normals);
+        serialize_buffers(ar, lod.tangents);
+        serialize_buffers(ar, lod.binormals);
+        serialize_buffer(ar, lod.indices);
+        return ar;
+    }
+
+    bool StaticMesh::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+
+        ar.serialize_reference(material);
+        ar & bounds;
+        ar & lods;
+
+        return ar;
     }
 
     VertexBuffer* StaticMesh::LOD::find_vertex_buffer(VertexBufferSemantic semantic, Index index) const
