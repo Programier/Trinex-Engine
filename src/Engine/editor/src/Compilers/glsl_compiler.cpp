@@ -1187,6 +1187,27 @@ namespace Engine
             return (new GLSL_CompiledSource(out_source))->id();
         }
 
+        size_t construct_mat3(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3) override
+        {
+            auto source_1 = get_pin_source(pin1, MaterialNodeDataType::Vec3);
+            auto source_2 = get_pin_source(pin2, MaterialNodeDataType::Vec3);
+            auto source_3 = get_pin_source(pin3, MaterialNodeDataType::Vec3);
+
+            String source = Strings::format("mat3({}, {}, {})", source_1, source_2, source_3);
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t construct_mat4(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3, MaterialInputPin* pin4) override
+        {
+            auto source_1 = get_pin_source(pin1, MaterialNodeDataType::Vec3);
+            auto source_2 = get_pin_source(pin2, MaterialNodeDataType::Vec3);
+            auto source_3 = get_pin_source(pin3, MaterialNodeDataType::Vec3);
+            auto source_4 = get_pin_source(pin4, MaterialNodeDataType::Vec3);
+
+            String source = Strings::format("mat4({}, {}, {}, {})", source_1, source_2, source_3, source_4);
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
 
         // TEXTURES
         virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override

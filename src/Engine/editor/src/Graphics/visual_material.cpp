@@ -822,11 +822,12 @@ namespace Engine
 
     VisualMaterial::VisualMaterial()
     {
-        m_vertex_node           = new MaterialNodes::VertexNode();
-        m_vertex_node->material = this;
+        m_vertex_node             = new MaterialNodes::VertexNode();
+        m_vertex_node->position.y = -200;
+        m_vertex_node->material   = this;
 
         m_fragment_node             = new MaterialNodes::FragmentNode();
-        m_fragment_node->position.y = 150;
+        m_fragment_node->position.y = 200;
         m_fragment_node->material   = this;
 
         m_nodes.push_back(m_vertex_node);

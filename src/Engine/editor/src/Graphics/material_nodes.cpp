@@ -392,9 +392,9 @@ namespace Engine::MaterialNodes
 
 
     template<typename InputType, typename OutputType>
-    struct ConstructVec2Base : public MaterialNode {
+    struct Construct2Components : public MaterialNode {
 
-        ConstructVec2Base()
+        Construct2Components()
         {
             inputs.push_back(new InputType(this, "X", typename InputType::NativeType(0)));
             inputs.push_back(new InputType(this, "Y", typename InputType::NativeType(0)));
@@ -408,20 +408,20 @@ namespace Engine::MaterialNodes
     };
 
     template<typename InputType, typename OutputType>
-    struct ConstructVec3Base : public ConstructVec2Base<InputType, OutputType> {
-        ConstructVec3Base()
+    struct Construct3Components : public Construct2Components<InputType, OutputType> {
+        Construct3Components()
         {
-            ConstructVec2Base<InputType, OutputType>::inputs.push_back(
+            Construct2Components<InputType, OutputType>::inputs.push_back(
                     new InputType(this, "Z", typename InputType::NativeType(0)));
         }
     };
 
     template<typename InputType, typename OutputType>
-    struct ConstructVec4Base : public ConstructVec3Base<InputType, OutputType> {
+    struct Construct4Components : public Construct3Components<InputType, OutputType> {
 
-        ConstructVec4Base()
+        Construct4Components()
         {
-            ConstructVec3Base<InputType, OutputType>::inputs.push_back(
+            Construct3Components<InputType, OutputType>::inputs.push_back(
                     new InputType(this, "W", typename InputType::NativeType(1)));
         }
     };
@@ -462,7 +462,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec2 : public ConstructVec2Base<FloatInputPin, Vec2OutputNoDefaultPin> {
+    struct ConstructVec2 : public Construct2Components<FloatInputPin, Vec2OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -471,7 +471,7 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec3 : public ConstructVec3Base<FloatInputPin, Vec3OutputNoDefaultPin> {
+    struct ConstructVec3 : public Construct3Components<FloatInputPin, Vec3OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
@@ -480,12 +480,30 @@ namespace Engine::MaterialNodes
         }
     };
 
-    struct ConstructVec4 : public ConstructVec4Base<FloatInputPin, Vec4OutputNoDefaultPin> {
+    struct ConstructVec4 : public Construct4Components<FloatInputPin, Vec4OutputNoDefaultPin> {
         declare_material_node();
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
         {
             return compiler->construct_vec4(inputs[0], inputs[1], inputs[2], inputs[3]);
+        }
+    };
+
+    struct ConstructMat3 : public Construct3Components<Vec3InputPin, Mat3OutputNoDefaultPin> {
+        declare_material_node();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->construct_mat3(inputs[0], inputs[1], inputs[2]);
+        }
+    };
+
+    struct ConstructMat4 : public Construct4Components<Vec4InputPin, Mat4OutputNoDefaultPin> {
+        declare_material_node();
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->construct_mat4(inputs[0], inputs[1], inputs[2], inputs[3]);
         }
     };
 
@@ -501,6 +519,8 @@ namespace Engine::MaterialNodes
     implement_material_node(ConstructVec2, Operators);
     implement_material_node(ConstructVec3, Operators);
     implement_material_node(ConstructVec4, Operators);
+    implement_material_node(ConstructMat3, Operators);
+    implement_material_node(ConstructMat4, Operators);
     implement_material_node(DecomposeVec, Operators);
 
 

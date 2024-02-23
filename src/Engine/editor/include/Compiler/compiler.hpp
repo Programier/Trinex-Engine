@@ -69,6 +69,8 @@ namespace Engine
         virtual size_t construct_vec3(MaterialInputPin*, MaterialInputPin*, MaterialInputPin*)                    = 0;
         virtual size_t construct_vec4(MaterialInputPin*, MaterialInputPin*, MaterialInputPin*, MaterialInputPin*) = 0;
         virtual size_t decompose_vec(MaterialInputPin*, DecomposeVectorComponent component)                       = 0;
+        virtual size_t construct_mat3(MaterialInputPin*, MaterialInputPin*, MaterialInputPin*)                    = 0;
+        virtual size_t construct_mat4(MaterialInputPin*, MaterialInputPin*, MaterialInputPin*, MaterialInputPin*) = 0;
 
 
         // GLOBALS
