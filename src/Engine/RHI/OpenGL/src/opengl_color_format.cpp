@@ -219,11 +219,11 @@ namespace Engine
 
 
     static struct OpenGLColorFormats {
-        ColorFormat base_color           = ColorFormat::R32G32B32A32Sfloat;
-        ColorFormat position_format      = ColorFormat::R32G32B32A32Sfloat;
-        ColorFormat normal_format        = ColorFormat::R32G32B32A32Sfloat;
-        ColorFormat emissive_format      = ColorFormat::R32G32B32A32Sfloat;
-        ColorFormat data_format          = ColorFormat::R32G32B32A32Sfloat;
+        ColorFormat base_color           = ColorFormat::R8G8B8A8Unorm;
+        ColorFormat position_format      = ColorFormat::R16G16B16A16Sfloat;
+        ColorFormat normal_format        = ColorFormat::R16G16B16A16Sfloat;
+        ColorFormat emissive_format      = ColorFormat::R8G8B8A8Unorm;
+        ColorFormat data_format          = ColorFormat::R8G8B8A8Unorm;
         ColorFormat depth_format         = ColorFormat::D32Sfloat;
         ColorFormat stencil_format       = ColorFormat::S8Uint;
         ColorFormat depth_stencil_format = ColorFormat::D32SfloatS8Uint;

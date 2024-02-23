@@ -1197,7 +1197,8 @@ namespace Engine
             return (new GLSL_CompiledSource(source))->id();
         }
 
-        size_t construct_mat4(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3, MaterialInputPin* pin4) override
+        size_t construct_mat4(MaterialInputPin* pin1, MaterialInputPin* pin2, MaterialInputPin* pin3,
+                              MaterialInputPin* pin4) override
         {
             auto source_1 = get_pin_source(pin1, MaterialNodeDataType::Vec3);
             auto source_2 = get_pin_source(pin2, MaterialNodeDataType::Vec3);
@@ -1348,6 +1349,25 @@ namespace Engine
             return create_vertex_attribute("tex_coord", index, ColorFormat::R32G32Sfloat, MaterialNodeDataType::Vec2,
                                            VertexBufferSemantic::TexCoord);
         }
+
+        virtual size_t vertex_binormal_attribute(byte index) override
+        {
+            return create_vertex_attribute("binormal", index, ColorFormat::R32G32B32Sfloat, MaterialNodeDataType::Vec3,
+                                           VertexBufferSemantic::Binormal);
+        }
+
+        virtual size_t vertex_tangent_attribute(byte index) override
+        {
+            return create_vertex_attribute("tangent", index, ColorFormat::R32G32B32Sfloat, MaterialNodeDataType::Vec3,
+                                           VertexBufferSemantic::Tangent);
+        }
+
+        virtual size_t vertex_color_attribute(byte index) override
+        {
+            return create_vertex_attribute("color", index, ColorFormat::R8G8B8A8Unorm, MaterialNodeDataType::Vec4,
+                                           VertexBufferSemantic::Color);
+        }
+
 
         size_t vertex_output_screen_space_position(MaterialInputPin* pin) override
         {
@@ -1502,7 +1522,20 @@ namespace Engine
                 output.type   = MaterialNodeDataType::Vec3;
             }
 
-            statements.push_back(Strings::format("vertex_world_position = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            if (pin->linked_to)
+            {
+                statements.push_back(
+                        Strings::format("vertex_world_position = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            }
+            else
+            {
+                const String& model_source  = reinterpret_cast<GLSL_CompiledSource*>(model())->source;
+                const String& vertex_source = reinterpret_cast<GLSL_CompiledSource*>(vertex_position_attribute(0))->source;
+                statements.push_back(
+                        Strings::format("vertex_world_position = vec3({} * vec4({}, 1.0))", model_source, vertex_source));
+            }
+
+
             return 0;
         }
 
@@ -1684,6 +1717,8 @@ namespace Engine
                 attribute.param    = "data_buffer";
                 attribute.type     = MaterialNodeDataType::Color4;
                 output_attribute.push_back(attribute);
+
+                statements.push_back("out_data_buffer.a = 1.0");
             }
 
 
@@ -1863,7 +1898,7 @@ namespace Engine
                 }
                 else
                 {
-                    statements.push_back(Strings::format("out_normal = vec4((vertex_world_normal + vec3(1.0)) / 2.0 , 1.0)"));
+                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, 1.0)"));
                 }
             }
             return 0;

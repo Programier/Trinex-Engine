@@ -69,7 +69,7 @@ namespace Engine::MaterialNodes
         inputs.push_back(new FloatInputPin(this, "Specular"));
         inputs.push_back(new FloatInputPin(this, "Roughness"));
         inputs.push_back(new Color3InputPin(this, "Emmisive"));
-        inputs.push_back(new FloatInputPin(this, "Opacity"));
+        inputs.push_back(new FloatInputPin(this, "Opacity", 1.f));
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Position"));
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Normal"));
     }
@@ -773,6 +773,9 @@ namespace Engine::MaterialNodes
     declare_input_attribute(Position, position, Vec3);
     declare_input_attribute(Normal, normal, Vec3);
     declare_input_attribute(TexCoord, uv, Vec2);
+    declare_input_attribute(Binormal, binormal, Vec3);
+    declare_input_attribute(Tangent, tangent, Vec3);
+    declare_input_attribute(Color, color, Vec4);
 
 
 }// namespace Engine::MaterialNodes

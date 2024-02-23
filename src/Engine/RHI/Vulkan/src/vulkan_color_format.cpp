@@ -382,7 +382,7 @@ namespace Engine
     static struct VulkanColorFormats {
         ColorFormat base_color           = ColorFormat::Undefined;
         ColorFormat position_format      = ColorFormat::Undefined;
-        ColorFormat normat_format        = ColorFormat::Undefined;
+        ColorFormat normal_format        = ColorFormat::Undefined;
         ColorFormat emissive_format      = ColorFormat::Undefined;
         ColorFormat data_format          = ColorFormat::Undefined;
         ColorFormat depth_format         = ColorFormat::Undefined;
@@ -407,8 +407,8 @@ namespace Engine
         void init()
         {
             {
-                ColorFormat formats[] = {ColorFormat::R32G32B32A32Sfloat, ColorFormat::R16G16B16A16Sfloat,
-                                         ColorFormat::R8G8B8A8Unorm};
+                ColorFormat formats[] = {ColorFormat::R8G8B8A8Unorm, ColorFormat::R32G32B32A32Sfloat,
+                                         ColorFormat::R16G16B16A16Sfloat};
 
                 base_color = find_format(formats, sizeof(formats) / sizeof(ColorFormat),
                                          vk::FormatFeatureFlagBits::eColorAttachmentBlend);
@@ -420,17 +420,17 @@ namespace Engine
             }
 
             {
-                ColorFormat formats[] = {ColorFormat::R32G32B32A32Sfloat, ColorFormat::R16G16B16A16Sfloat};
+                ColorFormat formats[] = {ColorFormat::R16G16B16A16Sfloat, ColorFormat::R32G32B32A32Sfloat};
                 position_format =
                         find_format(formats, sizeof(formats) / sizeof(ColorFormat), vk::FormatFeatureFlagBits::eColorAttachment);
             }
 
-            normat_format   = position_format;
+            normal_format   = position_format;
             emissive_format = base_color;
             data_format     = base_color;
 
             {
-                ColorFormat formats[] = {ColorFormat::D32Sfloat, ColorFormat::D16Unorm};
+                ColorFormat formats[] = {ColorFormat::D16Unorm, ColorFormat::D32Sfloat};
                 depth_format          = find_format(formats, sizeof(formats) / sizeof(ColorFormat),
                                                     vk::FormatFeatureFlagBits::eDepthStencilAttachment);
             }
@@ -442,7 +442,7 @@ namespace Engine
             }
 
             {
-                ColorFormat formats[] = {ColorFormat::D32SfloatS8Uint, ColorFormat::D24UnormS8Uint, ColorFormat::D16UnormS8Uint};
+                ColorFormat formats[] = {ColorFormat::D16UnormS8Uint, ColorFormat::D24UnormS8Uint, ColorFormat::D32SfloatS8Uint};
                 depth_stencil_format  = find_format(formats, sizeof(formats) / sizeof(ColorFormat),
                                                     vk::FormatFeatureFlagBits::eDepthStencilAttachment);
             }
@@ -466,7 +466,7 @@ namespace Engine
 
     ColorFormat VulkanAPI::normal_format()
     {
-        return formats.normat_format;
+        return formats.normal_format;
     }
 
     ColorFormat VulkanAPI::emissive_format()
