@@ -379,6 +379,10 @@ namespace Engine
 
         List<Function<void()>> on_success_command_list;
 
+
+        GLSL_BaseCompiler(VisualMaterial* material) : material(material)
+        {}
+
         ~GLSL_BaseCompiler()
         {
             for (auto& ell : objects)
@@ -393,6 +397,12 @@ namespace Engine
         }
 
         // Helpers
+
+        bool is_gbuffer_pipeline() const
+        {
+            return material->pipeline->render_pass == RenderPassType::GBuffer ||
+                   material->pipeline->render_pass == RenderPassType::ClearGBuffer;
+        }
 
         GLSL_Attribute* find_input_attribute(const StringView& name)
         {
@@ -718,7 +728,6 @@ namespace Engine
 
         bool compile(VisualMaterial* material, MessageList& list) override
         {
-            this->material = material;
             root_node()->compile(this, nullptr);
             return errors->empty();
         }
@@ -1376,6 +1385,9 @@ namespace Engine
     class GLSL_VertexCompiler : public GLSL_BaseCompiler
     {
     public:
+        GLSL_VertexCompiler(VisualMaterial* material) : GLSL_BaseCompiler(material)
+        {}
+
         const char* name() const override
         {
             return "Vertex Compiler";
@@ -1505,16 +1517,28 @@ namespace Engine
 
         size_t vertex_output_world_normal(MaterialInputPin* pin) override
         {
-            bool created_now;
-            auto& output = output_attribute[create_output_attribute("vertex_world_normal", &created_now, false)];
-
-            if (created_now)
+            if (is_gbuffer_pipeline())
             {
-                output.format = ColorFormat::R32G32B32Sfloat;
-                output.type   = MaterialNodeDataType::Vec3;
-            }
+                bool created_now;
+                auto& output = output_attribute[create_output_attribute("vertex_world_normal", &created_now, false)];
 
-            statements.push_back(Strings::format("vertex_world_normal = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+                if (created_now)
+                {
+                    output.format = ColorFormat::R32G32B32Sfloat;
+                    output.type   = MaterialNodeDataType::Vec3;
+                }
+
+                if (pin->linked_to)
+                {
+                    statements.push_back(
+                            Strings::format("vertex_world_normal = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+                }
+                else
+                {
+                    String normal = reinterpret_cast<GLSL_CompiledSource*>(vertex_normal_attribute(0))->source;
+                    statements.push_back(Strings::format("vertex_world_normal = {}", normal));
+                }
+            }
             return 0;
         }
 
@@ -1569,7 +1593,8 @@ namespace Engine
         GLSL_VertexCompiler* vertex_compiler = nullptr;
 
     public:
-        GLSL_FragmentCompiler(GLSL_VertexCompiler* vertex_compiler) : vertex_compiler(vertex_compiler)
+        GLSL_FragmentCompiler(GLSL_VertexCompiler* vertex_compiler, VisualMaterial* material)
+            : GLSL_BaseCompiler(material), vertex_compiler(vertex_compiler)
         {}
 
         const char* name() const override
@@ -1604,9 +1629,7 @@ namespace Engine
 
         bool compile(VisualMaterial* material, MessageList& errors) override
         {
-            RenderPassType type = material->pipeline->render_pass;
-
-            if (type == RenderPassType::Undefined)
+            if (material->pipeline->render_pass == RenderPassType::Undefined)
             {
                 errors.push_back("Undefined render pass type! Please, select render pass type!");
                 return false;
@@ -1619,7 +1642,7 @@ namespace Engine
 
             output_attribute.push_back(attribute);
 
-            if (type == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 attribute.location = 1;
                 attribute.param    = "position";
@@ -1746,7 +1769,7 @@ namespace Engine
 
         size_t fragment_output_metalic(MaterialInputPin* pin) override
         {
-            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
                 statements.push_back(Strings::format("out_data_buffer.r = {}", source));
@@ -1756,7 +1779,7 @@ namespace Engine
 
         size_t fragment_output_specular(MaterialInputPin* pin) override
         {
-            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
                 statements.push_back(Strings::format("out_data_buffer.g = {}", source));
@@ -1766,7 +1789,7 @@ namespace Engine
 
         size_t fragment_output_roughness(MaterialInputPin* pin) override
         {
-            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
                 statements.push_back(Strings::format("out_data_buffer.b = {}", source));
@@ -1776,7 +1799,7 @@ namespace Engine
 
         size_t fragment_output_emissive(MaterialInputPin* pin) override
         {
-            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
                 statements.push_back(Strings::format("out_emissive = vec4({}, 1.0)", source));
@@ -1793,7 +1816,7 @@ namespace Engine
 
         size_t fragment_output_position(MaterialInputPin* pin) override
         {
-            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 if (pin->linked_to)
                 {
@@ -1810,7 +1833,7 @@ namespace Engine
 
         size_t fragment_output_normal(MaterialInputPin* pin) override
         {
-            if (material->pipeline->render_pass == RenderPassType::GBuffer)
+            if (is_gbuffer_pipeline())
             {
                 if (pin->linked_to)
                 {
@@ -1819,7 +1842,7 @@ namespace Engine
                 }
                 else
                 {
-                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, 1.0)"));
+                    statements.push_back(Strings::format("out_normal = vec4((vertex_world_normal + vec3(1.0)) / 2.0 , 1.0)"));
                 }
             }
             return 0;
@@ -1848,8 +1871,8 @@ namespace Engine
         {
             errors = &_errors;
 
-            GLSL_VertexCompiler* vertex_compiler     = new GLSL_VertexCompiler();
-            GLSL_FragmentCompiler* fragment_compiler = new GLSL_FragmentCompiler(vertex_compiler);
+            GLSL_VertexCompiler* vertex_compiler     = new GLSL_VertexCompiler(material);
+            GLSL_FragmentCompiler* fragment_compiler = new GLSL_FragmentCompiler(vertex_compiler, material);
 
             bool execute_next = true;
             exec_step(vertex_compiler->compile(material, _errors));
