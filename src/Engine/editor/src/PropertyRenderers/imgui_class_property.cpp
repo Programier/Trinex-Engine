@@ -408,13 +408,19 @@ namespace Engine
         for (Struct* self = struct_class; self; self = self->parent())
         {
             bool is_class = self->is_class() && object;
+            void (*renderer)(Object*, Struct*, bool) = nullptr;
 
             if(is_class)
             {
                 auto it = special_class_properties_renderers.find(self);
                 if (it != special_class_properties_renderers.end())
                 {
-                    it->second(reinterpret_cast<Object*>(object), struct_class, editable);
+                    renderer = it->second;
+
+                    if(self->properties().empty())
+                    {
+                        renderer(reinterpret_cast<Object*>(object), self, editable);
+                    }
                 }
             }
 
@@ -437,6 +443,14 @@ namespace Engine
 
                 if (is_opened)
                 {
+                    if(renderer)
+                    {
+                        ImGui::Indent(indent);
+                        renderer(reinterpret_cast<Object*>(object), self, editable);
+                        ImGui::Separator();
+                        ImGui::Unindent(indent);
+                    }
+
                     render_prop_internal(object, self, editable);
                 }
                 ImGui::PopID();

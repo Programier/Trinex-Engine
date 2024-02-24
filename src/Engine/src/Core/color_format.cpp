@@ -123,6 +123,8 @@ namespace Engine
                 ColorFormat::B8G8R8A8Sint,
                 ColorFormat::R8G8B8A8Srgb,
                 ColorFormat::B8G8R8A8Srgb,
+                ColorFormat::BC1Unorm,
+                ColorFormat::BC3Unorm,
                 ColorFormat::R16G16B16A16Unorm,
                 ColorFormat::R16G16B16A16Snorm,
                 ColorFormat::R16G16B16A16Uscaled,
