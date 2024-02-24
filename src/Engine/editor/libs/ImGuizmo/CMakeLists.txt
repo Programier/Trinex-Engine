@@ -5,11 +5,8 @@ project(IMGUI_GUIZMO LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(IMGUI_GUIZMO_SOURCES src/GraphEditor.cpp
-                        src/ImCurveEdit.cpp
-                        src/ImGradient.cpp
-                        src/ImGuizmo.cpp
-                        src/ImSequencer.cpp)
+set(IMGUI_GUIZMO_SOURCES    src/ImGuizmo.cpp
+                            src/ImSequencer.cpp)
 
 add_library(imgui_guizmo STATIC ${IMGUI_GUIZMO_SOURCES})
 target_link_libraries(imgui_guizmo TrinexEngine)

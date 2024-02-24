@@ -1,6 +1,7 @@
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
+#include <Engine/camera_types.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/shader_parameters.hpp>
 
@@ -51,7 +52,7 @@ layout(binding = 0, std140) uniform _Global
 })";
     }
 
-    GlobalShaderParameters& GlobalShaderParameters::update(class RenderTargetBase* render_target, class CameraComponent* camera)
+    GlobalShaderParameters& GlobalShaderParameters::update(class RenderTargetBase* render_target, struct CameraView* camera)
     {
         if (render_target)
         {
@@ -65,11 +66,10 @@ layout(binding = 0, std140) uniform _Global
 
         if (camera)
         {
-            const Transform& transform = camera->transform;
-            camera_location            = transform.global_location();
-            camera_forward             = transform.forward_vector(true);
-            camera_right               = transform.right_vector(true);
-            camera_up                  = transform.up_vector(true);
+            camera_location = camera->location;
+            camera_forward  = camera->forward_vector;
+            camera_right    = camera->right_vector;
+            camera_up       = camera->up_vector;
 
             projection = camera->projection_matrix();
             view       = camera->view_matrix();

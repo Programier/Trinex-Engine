@@ -10,6 +10,36 @@
 
 namespace Engine
 {
+    Matrix4f CameraView::projection_matrix() const
+    {
+        if (projection_mode == CameraProjectionMode::Perspective)
+        {
+            return glm::perspective(glm::radians(fov), aspect_ratio, near_clip_plane, far_clip_plane);
+        }
+        else if (projection_mode == CameraProjectionMode::Orthographic)
+        {
+            return glm::ortho(-ortho_width / 2.0f, // Left
+                              ortho_width / 2.0f,  // Right
+                              -ortho_height / 2.0f,// Bottom
+                              ortho_height / 2.0f, // Top
+                              near_clip_plane,     // Near clipping plane
+                              far_clip_plane       // Far clipping plane
+            );
+        }
+
+        return Matrix4f(1.f);
+    }
+
+    Matrix4f CameraView::view_matrix() const
+    {
+        return view_matrix(location, forward_vector, up_vector);
+    }
+
+    Matrix4f CameraView::view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector)
+    {
+        return glm::lookAt(position, position + direction, up_vector);
+    }
+
     implement_class(CameraComponent, Engine, 0);
     implement_initialize_class(CameraComponent)
     {}
@@ -48,7 +78,7 @@ namespace Engine
             );
         }
 
-        return glm::mat4(1.0);
+        return Matrix4f(1.0);
     }
 
     Matrix4f CameraComponent::view_matrix()
@@ -63,8 +93,11 @@ namespace Engine
 
     const CameraComponent& CameraComponent::camera_view(CameraView& out) const
     {
-        out.location        = transform.location;
+        out.location        = transform.global_location();
         out.rotation        = transform.rotation;
+        out.up_vector       = transform.up_vector(true);
+        out.right_vector    = transform.right_vector(true);
+        out.forward_vector  = transform.forward_vector(true);
         out.projection_mode = projection_mode;
         out.fov             = fov;
         out.ortho_width     = ortho_width;

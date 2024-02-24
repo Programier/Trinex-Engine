@@ -28,11 +28,10 @@ namespace Engine
 
         Vector<EventSystemListenerID> m_event_system_listeners;
 
-        class World* m_world                                    = nullptr;
-        class GlobalShaderParameters* m_global_shader_params    = nullptr;
-        class GlobalShaderParameters* m_global_shader_params_rt = nullptr;
-        Vector2D m_viewport_size;
-        bool m_viewport_is_hovered = false;
+        class World* m_world                             = nullptr;
+        class SceneComponent* m_selected_scene_component = nullptr;
+        Vector2D m_viewport_size                         = {100, 100};
+        bool m_viewport_is_hovered                       = false;
 
         class CameraComponent* camera;
         float m_camera_speed      = 10.f;
@@ -57,7 +56,8 @@ namespace Engine
 
         EditorClient& init_world();
         EditorClient& create_log_window(float dt);
-        EditorClient& create_viewport_window(float dt);
+        EditorClient& render_viewport_window(float dt);
+        EditorClient& render_guizmo(float dt);
         void render_dock_window(float dt);
 
         void on_object_select(Object* object);

@@ -14,7 +14,7 @@ namespace Engine
             changed      = ImGui::InputFloat3("Rotation", &component->transform.rotation.x) || changed;
             changed      = ImGui::InputFloat3("Scale", &component->transform.scale.x) || changed;
 
-            if(changed)
+            if (changed)
             {
                 component->on_transform_changed();
             }

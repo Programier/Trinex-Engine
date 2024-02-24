@@ -3,6 +3,7 @@
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
 #include <Engine/camera_types.hpp>
+#include <Graphics/shader_parameters.hpp>
 
 namespace Engine
 {
@@ -16,6 +17,7 @@ namespace Engine
     private:
         class Scene* m_scene;
 
+        GlobalShaderParameters m_global_shader_params;
         CameraView m_camera_view;
         Matrix4f m_projection;
         Matrix4f m_view;
@@ -23,6 +25,8 @@ namespace Engine
         Matrix4f m_inv_projview;
         Size2D m_size;
 
+
+        SceneRenderer& setup_viewport(RenderViewport* viewport);
 
     public:
         SceneRenderer();
@@ -42,6 +46,10 @@ namespace Engine
         void begin_scene_output_pass(RenderViewport*, SceneLayer*);
         void begin_postprocess_pass(RenderViewport*, SceneLayer*);
 
+        FORCE_INLINE const GlobalShaderParameters& shader_params() const
+        {
+            return m_global_shader_params;
+        }
 
         FORCE_INLINE const Matrix4f& view_matrix() const
         {

@@ -134,7 +134,7 @@ namespace Engine
 
             if (color_param)
             {
-                (*color_param->get<Vector3D>()) = {0, 1, 0};
+                (*color_param->get<Vector3D>()) = {0, 0, 1};
             }
 
             if (offset_param)

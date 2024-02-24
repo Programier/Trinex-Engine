@@ -39,8 +39,15 @@ namespace Engine
 
         if (m_rhi_object)
         {
-            RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
-            call_in_render_thread([rt, viewport]() { rt->viewport(viewport); });
+            if (is_in_render_thread())
+            {
+                rhi_object<RHI_RenderTarget>()->viewport(viewport);
+            }
+            else
+            {
+                RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
+                call_in_render_thread([rt, viewport]() { rt->viewport(viewport); });
+            }
         }
         return *this;
     }
@@ -49,8 +56,15 @@ namespace Engine
     {
         if (m_rhi_object)
         {
-            RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
-            call_in_render_thread([rt, color, layout]() { rt->clear_color(color, layout); });
+            if (is_in_render_thread())
+            {
+                rhi_object<RHI_RenderTarget>()->clear_color(color, layout);
+            }
+            else
+            {
+                RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
+                call_in_render_thread([rt, color, layout]() { rt->clear_color(color, layout); });
+            }
         }
         return *this;
     }
@@ -59,8 +73,15 @@ namespace Engine
     {
         if (m_rhi_object)
         {
-            RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
-            call_in_render_thread([rt, scissor]() { rt->scissor(scissor); });
+            if (is_in_render_thread())
+            {
+                rhi_object<RHI_RenderTarget>()->scissor(scissor);
+            }
+            else
+            {
+                RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
+                call_in_render_thread([rt, scissor]() { rt->scissor(scissor); });
+            }
         }
 
         if (&scissor != &m_scissor)
@@ -72,8 +93,15 @@ namespace Engine
     {
         if (m_rhi_object)
         {
-            RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
-            call_in_render_thread([rt, value]() { rt->clear_depth_stencil(value); });
+            if (is_in_render_thread())
+            {
+                rhi_object<RHI_RenderTarget>()->clear_depth_stencil(value);
+            }
+            else
+            {
+                RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
+                call_in_render_thread([rt, value]() { rt->clear_depth_stencil(value); });
+            }
         }
         return *this;
     }

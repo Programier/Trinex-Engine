@@ -10,73 +10,6 @@
 
 namespace Engine
 {
-    static void rotate_x(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        transformation = glm::rotate(transformation, glm::radians(rotation.x), Constants::OX);
-    }
-
-    static void rotate_y(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        transformation = glm::rotate(transformation, glm::radians(rotation.y), Constants::OY);
-    }
-
-    static void rotate_z(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        transformation = glm::rotate(transformation, glm::radians(rotation.z), Constants::OZ);
-    }
-
-    static void rotate_xyz(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        rotate_x(transformation, rotation);
-        rotate_y(transformation, rotation);
-        rotate_z(transformation, rotation);
-    }
-
-    static void rotate_xzy(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        rotate_x(transformation, rotation);
-        rotate_z(transformation, rotation);
-        rotate_y(transformation, rotation);
-    }
-
-    static void rotate_yxz(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        rotate_y(transformation, rotation);
-        rotate_x(transformation, rotation);
-        rotate_z(transformation, rotation);
-    }
-
-    static void rotate_yzx(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        rotate_y(transformation, rotation);
-        rotate_z(transformation, rotation);
-        rotate_x(transformation, rotation);
-    }
-
-    static void rotate_zxy(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        rotate_z(transformation, rotation);
-        rotate_x(transformation, rotation);
-        rotate_y(transformation, rotation);
-    }
-
-    static void rotate_zyx(Matrix4f& transformation, const Vector3D& rotation)
-    {
-        rotate_z(transformation, rotation);
-        rotate_y(transformation, rotation);
-        rotate_x(transformation, rotation);
-    }
-
-
-    static const Array<void (*)(Matrix4f&, const Vector3D&), 6>& rotation_methods()
-    {
-        static const Array<void (*)(Matrix4f&, const Vector3D&), 6> methods = {rotate_xyz, rotate_xzy, rotate_yxz,
-                                                                               rotate_yzx, rotate_zxy, rotate_zyx};
-
-        return methods;
-    }
-
-
     Matrix4f Transform::translation_matrix() const
     {
         return glm::translate(Matrix4f(1.f), location);
@@ -84,9 +17,7 @@ namespace Engine
 
     Matrix4f Transform::rotation_matrix() const
     {
-        Matrix4f result(1.f);
-        rotation_methods()[static_cast<int>(rotation_method)](result, rotation);
-        return result;
+        return glm::mat4_cast(Quaternion(glm::radians(rotation)));
     }
 
     Matrix4f Transform::scale_matrix() const
@@ -98,8 +29,7 @@ namespace Engine
     {
         Matrix4f transformation = Matrix4f(1.0f);
         transformation          = glm::translate(transformation, location);
-
-        rotation_methods()[static_cast<int>(rotation_method)](transformation, rotation);
+        transformation *= glm::mat4_cast(Quaternion(glm::radians(rotation)));
         transformation = glm::scale(transformation, scale);
         return transformation;
     }
@@ -127,10 +57,7 @@ namespace Engine
     {
         if (is_global)
             return glm::normalize(Matrix3f(local_to_world) * dir);
-
-        Matrix4f rotation_matrix(1.f);
-        rotation_methods()[static_cast<int>(rotation_method)](rotation_matrix, rotation);
-        return glm::normalize(Matrix3f(rotation_matrix) * dir);
+        return glm::normalize(glm::mat3_cast(Quaternion(glm::radians(rotation))) * dir);
     }
 
     Vector3D Transform::forward_vector(bool global) const

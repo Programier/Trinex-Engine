@@ -99,9 +99,6 @@ namespace Engine
                                        std::bind(&GameViewportClient::on_mouse_move, this, std::placeholders::_1));
 
             MouseSystem::new_system<MouseSystem>()->relative_mode(true);
-
-            camera->transform.rotation_method = Transform::RotationMethod::YXZ;
-
             return *this;
         }
 
@@ -109,7 +106,8 @@ namespace Engine
         {
             static GlobalShaderParameters params;
 
-            params.update(viewport->base_render_target(), camera);
+            auto view = camera->camera_view();
+            params.update(viewport->base_render_target(), &view);
             engine_instance->rhi()->push_global_params(params);
 
             viewport->rhi_bind();

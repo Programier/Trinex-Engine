@@ -36,6 +36,6 @@ namespace Engine
         alignas(4) int camera_projection_mode;
 
         static StringView shader_code();
-        GlobalShaderParameters& update(class RenderTargetBase* render_target, class CameraComponent* camera);
+        GlobalShaderParameters& update(class RenderTargetBase* render_target, struct CameraView* camera);
     };
 }// namespace Engine

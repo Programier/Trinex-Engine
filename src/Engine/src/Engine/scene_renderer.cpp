@@ -6,6 +6,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_pass.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 
@@ -62,6 +63,43 @@ namespace Engine
         return m_scene;
     }
 
+
+    SceneRenderer& SceneRenderer::setup_viewport(RenderViewport* render_viewport)
+    {
+        m_global_shader_params.update(render_viewport->base_render_target(), &m_camera_view);
+
+
+        ViewPort viewport;
+        viewport.size      = m_size;
+        viewport.pos       = {0, 0};
+        viewport.min_depth = 0.f;
+        viewport.max_depth = 1.f;
+
+        Scissor scissor;
+        scissor.size = m_size;
+        scissor.pos  = {0, 0};
+
+
+        GBuffer* gbuffer                     = GBuffer::instance();
+        SceneColorOutput* scene_color_output = SceneColorOutput::instance();
+
+        gbuffer->viewport(viewport);
+        gbuffer->scissor(scissor);
+
+        scene_color_output->viewport(viewport);
+        scene_color_output->scissor(scissor);
+
+        RenderTargetBase* base_render_target = render_viewport->base_render_target();
+
+        if (base_render_target != gbuffer && base_render_target != scene_color_output)
+        {
+            base_render_target->viewport(viewport);
+            base_render_target->scissor(scissor);
+        }
+
+        return *this;
+    }
+
     SceneRenderer& SceneRenderer::render(const CameraView& view, RenderViewport* viewport, const Size2D& size)
     {
         if (m_scene == nullptr)
@@ -69,12 +107,14 @@ namespace Engine
 
         m_size        = size;
         m_camera_view = view;
+        setup_viewport(viewport);
 
         m_scene->build_views(this);
 
-#if TRINEX_DEBUG_BUILD
         auto rhi = engine_instance->rhi();
-#endif
+
+        rhi->push_global_params(m_global_shader_params);
+
         for (auto layer = m_scene->root_layer(); layer; layer = layer->next())
         {
 #if TRINEX_DEBUG_BUILD
@@ -86,6 +126,9 @@ namespace Engine
             rhi->pop_debug_stage();
 #endif
         }
+
+        rhi->pop_global_params();
+
         return *this;
     }
 

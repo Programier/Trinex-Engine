@@ -7,7 +7,6 @@
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/scene.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <Engine/world.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
@@ -25,6 +24,7 @@
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <icons.hpp>
 #include <imgui_internal.h>
 #include <theme.hpp>
@@ -34,10 +34,7 @@ namespace Engine
     implement_engine_class_default_init(EditorClient);
 
     EditorClient::EditorClient()
-    {
-        m_global_shader_params    = new GlobalShaderParameters();
-        m_global_shader_params_rt = new GlobalShaderParameters();
-    }
+    {}
 
     EditorClient::~EditorClient()
     {
@@ -50,9 +47,6 @@ namespace Engine
                 event_system->remove_listener(listener);
             }
         }
-
-        delete m_global_shader_params;
-        delete m_global_shader_params_rt;
     }
 
     void EditorClient::on_content_browser_close()
@@ -133,11 +127,10 @@ namespace Engine
 
         ImGuiRenderer::Window::make_current(prev_window);
 
-        camera                            = Object::new_instance<CameraComponent>();
-        camera->transform.rotation_method = Transform::RotationMethod::YXZ;
-        camera->transform.location        = {0, 10, 10};
-        camera->near_clip_plane           = 0.1;
-        camera->far_clip_plane            = 1000.f;
+        camera                     = Object::new_instance<CameraComponent>();
+        camera->transform.location = {0, 10, 10};
+        camera->near_clip_plane    = 0.1;
+        camera->far_clip_plane     = 1000.f;
 
         EventSystem* event_system = EventSystem::new_system<EventSystem>();
         m_event_system_listeners.push_back(event_system->add_listener(
@@ -162,6 +155,8 @@ namespace Engine
         {
             m_properties->object = object;
         }
+
+        m_selected_scene_component = Object::instance_cast<SceneComponent>(object);
     }
 
     EditorClient& EditorClient::update_drag_and_drop()
@@ -181,10 +176,8 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        engine_instance->rhi()->push_global_params(*m_global_shader_params_rt);
-        m_renderer.render(m_view, m_render_viewport, m_viewport_size);
+        m_renderer.render(m_view, m_render_viewport, SceneColorOutput::instance()->size);
 
-        engine_instance->rhi()->pop_global_params();
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;
@@ -301,7 +294,7 @@ namespace Engine
         render_dock_window(dt);
 
         create_log_window(dt);
-        create_viewport_window(dt);
+        render_viewport_window(dt);
 
         ImGui::End();
         window->end_frame();
@@ -309,21 +302,7 @@ namespace Engine
         camera->transform.location +=
                 Vector3D((camera->transform.rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt * m_camera_speed;
         camera->transform.update();
-        m_global_shader_params->update(SceneColorOutput::instance(), camera);
 
-        struct UpdateParams : ExecutableObject {
-            GlobalShaderParameters params;
-            GlobalShaderParameters* out = nullptr;
-
-            UpdateParams(GlobalShaderParameters* in, GlobalShaderParameters* out) : params(*in), out(out)
-            {}
-
-            int_t execute() override
-            {
-                *out = params;
-                return sizeof(UpdateParams);
-            }
-        };
 
         struct UpdateView : ExecutableObject {
             CameraView view;
@@ -339,7 +318,6 @@ namespace Engine
             }
         };
 
-        render_thread()->insert_new_task<UpdateParams>(m_global_shader_params, m_global_shader_params_rt);
         render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_view);
 
         ++m_frame;
@@ -365,7 +343,41 @@ namespace Engine
         return *this;
     }
 
-    EditorClient& EditorClient::create_viewport_window(float dt)
+    EditorClient& EditorClient::render_guizmo(float dt)
+    {
+        if (m_selected_scene_component == nullptr || m_selected_scene_component == m_world->scene()->root_component())
+            return *this;
+
+        ImGuizmo::BeginFrame();
+        ImGuizmo::AllowAxisFlip(false);
+        ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
+        ImGuizmo::SetDrawlist();
+        ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_viewport_size.x, m_viewport_size.y);
+
+        auto view       = camera->view_matrix();
+        auto projection = camera->projection_matrix();
+        auto& transform = m_selected_scene_component->transform;
+
+        {
+            Matrix4f model = transform.matrix();
+            if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::OPERATION::UNIVERSAL,
+                                     ImGuizmo::MODE::WORLD, glm::value_ptr(model), nullptr, nullptr))
+            {
+                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), glm::value_ptr(transform.location),
+                                                      glm::value_ptr(transform.rotation), glm::value_ptr(transform.scale));
+
+                transform.rotation =
+                        glm::degrees(glm::eulerAngles(glm::angleAxis(glm::radians(transform.rotation.z), Constants::OZ) *
+                                                      glm::angleAxis(glm::radians(transform.rotation.y), Constants::OY) *
+                                                      glm::angleAxis(glm::radians(transform.rotation.x), Constants::OX)));
+
+                m_selected_scene_component->on_transform_changed();
+            }
+        }
+        return *this;
+    }
+
+    EditorClient& EditorClient::render_viewport_window(float dt)
     {
         if (!ImGui::Begin(Object::localize("editor/Viewport Title").c_str(), nullptr))
         {
@@ -417,12 +429,18 @@ namespace Engine
         if (texture && texture->has_object())
         {
             {
+                auto current_pos = ImGui::GetCursorPos();
+
                 void* output    = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
                 auto size       = ImGui::GetContentRegionAvail();
                 m_viewport_size = ImGuiHelpers::construct_vec2<Vector2D>(size);
                 camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
-                ImGui::Image(output, size, ImVec2(0, 1), ImVec2(1, 0));
+
+                ImGui::Image(output, size, ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
                 m_viewport_is_hovered = ImGui::IsItemHovered();
+
+                ImGui::SetCursorPos(current_pos);
+                render_guizmo(dt);
             }
 
             update_drag_and_drop();
@@ -466,7 +484,7 @@ namespace Engine
         {
             camera->transform.rotation.y +=
                     calculate_y_rotatation(static_cast<float>(motion.xrel), m_viewport_size.x, camera->fov);
-            camera->transform.rotation.x +=
+            camera->transform.rotation.x -=
                     calculate_y_rotatation(static_cast<float>(motion.yrel), m_viewport_size.y, camera->fov);
         }
     }
