@@ -7,6 +7,7 @@
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/scene.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <Engine/world.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
@@ -16,6 +17,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader_parameters.hpp>
+#include <ImGuizmo.h>
 #include <Importer/importer.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/event_system.hpp>
@@ -346,7 +348,7 @@ namespace Engine
 
     EditorClient& EditorClient::init_world()
     {
-        m_world     = World::new_system<World>();
+        m_world      = World::new_system<World>();
         Scene* scene = m_world->scene();
         m_renderer.scene(scene);
 
@@ -370,7 +372,6 @@ namespace Engine
             ImGui::End();
             return *this;
         };
-
 
         Texture* texture = nullptr;
         if (m_target_view_index == 0)
@@ -416,8 +417,8 @@ namespace Engine
         if (texture && texture->has_object())
         {
             {
-                void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
-                auto size        = ImGui::GetContentRegionAvail();
+                void* output    = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
+                auto size       = ImGui::GetContentRegionAvail();
                 m_viewport_size = ImGuiHelpers::construct_vec2<Vector2D>(size);
                 camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
                 ImGui::Image(output, size, ImVec2(0, 1), ImVec2(1, 0));
