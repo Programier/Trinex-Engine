@@ -195,8 +195,10 @@ namespace Engine
                 return OpenGL_ColorInfo(GL_RGBA32I, GL_RGBA_INTEGER, GL_INT);
             case ColorFormat::R32G32B32A32Sfloat:
                 return OpenGL_ColorInfo(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-            case ColorFormat::BC7Unorm:
-                return OpenGL_ColorInfo(0x8E8C, 0, 0);
+            case ColorFormat::BC3Unorm:
+                return OpenGL_ColorInfo(0x8C4F, 0, 0);
+            case ColorFormat::BC1Unorm:
+                return OpenGL_ColorInfo(0x83F1, 0, 0);
 
             default:
                 return OpenGL_ColorInfo(0, 0, 0);

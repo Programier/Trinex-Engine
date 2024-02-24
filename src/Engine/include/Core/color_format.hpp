@@ -45,7 +45,7 @@ namespace Engine
         R8Srgb    = make_color_format(1, 8, Srgb, Color, 0),
 
         R16Unorm   = make_color_format(1, 16, Unorm, Color, 0),
-        D16Unorm   = make_color_format(1, 16, Unorm, Color, 1),
+        D16Unorm   = make_color_format(1, 16, Unorm, Depth, 1),
         R16Snorm   = make_color_format(1, 16, Snorm, Color, 0),
         R16Uscaled = make_color_format(1, 16, Uscaled, Color, 0),
         R16Sscaled = make_color_format(1, 16, Sscaled, Color, 0),
@@ -124,7 +124,8 @@ namespace Engine
         R8G8B8A8Srgb    = make_color_format(4, 8, Srgb, Color, 0),
         B8G8R8A8Srgb    = make_color_format(4, 8, Srgb, Color, 1),
 
-        BC7Unorm = make_color_format(4, 0, Unorm, Color, 0),
+        BC1Unorm = make_color_format(3, 0, Unorm, Color, 0),
+        BC3Unorm = make_color_format(4, 0, Unorm, Color, 0),
 
         R16G16B16A16Unorm   = make_color_format(4, 16, Unorm, Color, 0),
         R16G16B16A16Snorm   = make_color_format(4, 16, Snorm, Color, 0),

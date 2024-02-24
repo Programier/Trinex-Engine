@@ -184,6 +184,10 @@ namespace Engine
                 return vk::Format::eD24UnormS8Uint;
             case ColorFormat::D32SfloatS8Uint:
                 return vk::Format::eD32SfloatS8Uint;
+            case ColorFormat::BC1Unorm:
+                return vk::Format::eBc1RgbUnormBlock;
+            case ColorFormat::BC3Unorm:
+                return vk::Format::eBc3UnormBlock;
 
             default:
                 return vk::Format::eUndefined;

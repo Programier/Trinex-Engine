@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-    VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data, size_t size)
+    VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data, size_t data_size)
     {
         destroy();
 
@@ -86,21 +86,19 @@ namespace Engine
         {
             if (texture->type() == TextureType::Texture2D)
             {
-                update_texture_2D(texture->size, {0, 0}, 0, data);
+                update_texture_2D(texture->size, {0, 0}, 0, data, data_size);
             }
         }
         return *this;
     }
 
     void VulkanTexture::update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel level, uint_t layer,
-                                       const byte* data)
+                                       const byte* data, size_t data_size)
     {
         vk::Buffer staging_buffer;
         vk::DeviceMemory staging_buffer_memory;
 
-        vk::DeviceSize buffer_size =
-                static_cast<vk::DeviceSize>(size.x) * static_cast<vk::DeviceSize>(size.y) * pixel_type_size();
-
+        vk::DeviceSize buffer_size = data_size;
 
         API->create_buffer(buffer_size, vk::BufferUsageFlagBits::eTransferSrc,
                            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, staging_buffer,
@@ -141,9 +139,9 @@ namespace Engine
                            vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
     }
 
-    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
+    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data, size_t data_size)
     {
-        update_texture(size, offset, mipmap, 0, data);
+        update_texture(size, offset, mipmap, 0, data, data_size);
     }
 
 

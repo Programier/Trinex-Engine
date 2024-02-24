@@ -28,8 +28,10 @@ namespace Engine
         void generate_mipmap() override;
         void bind(BindLocation location) override;
         void bind_combined(RHI_Sampler* sampler, BindLocation location) override;
-        void update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, uint_t layer, const byte* data);
-        void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data) override;
+        void update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, uint_t layer, const byte* data,
+                            size_t data_size);
+        void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
+                               size_t data_size) override;
         bool can_use_color_as_color_attachment() const;
         bool is_depth_stencil_image() const;
         vk::Offset2D get_mip_size(MipMapLevel level) const;

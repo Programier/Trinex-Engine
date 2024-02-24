@@ -31,11 +31,21 @@ namespace Engine
         sampler->bind(location);
     }
 
-    void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
+    void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
+                                           size_t data_size)
     {
         glBindTexture(m_type, m_id);
-        glTexSubImage2D(m_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
-                        static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), m_format.m_format, m_format.m_type, data);
+        if (m_format.m_format == 0)
+        {
+            glCompressedTexSubImage2D(m_type, 0, static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
+                                      static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), m_format.m_internal_format,
+                                      data_size, data);
+        }
+        else
+        {
+            glTexSubImage2D(m_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
+                            static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), m_format.m_format, m_format.m_type, data);
+        }
         glBindTexture(m_type, 0);
     }
 

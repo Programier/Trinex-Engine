@@ -36,11 +36,11 @@ namespace Engine
         return *this;
     }
 
-    Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data)
+    Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, const byte* data, size_t data_size, MipMapLevel mipmap)
     {
         if (m_rhi_object)
         {
-            rhi_object<RHI_Texture>()->update_texture_2D(size, offset, mipmap, data);
+            rhi_object<RHI_Texture>()->update_texture_2D(size, offset, mipmap, data, data_size);
         }
         return *this;
     }

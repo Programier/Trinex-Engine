@@ -16,7 +16,7 @@ namespace Engine
         delete_copy_constructors(Texture2D);
         Texture2D& rhi_create() override;
         Texture2D& rhi_create(const byte* data, size_t size);
-        Texture2D& update(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap = 0, const byte* data = nullptr);
+        Texture2D& update(const Size2D& size, const Offset2D& offset, const byte* data, size_t data_size, MipMapLevel mipmap = 0);
         Texture2D& read_data(Buffer& data, MipMapLevel level = 0);
         Texture2D& read_image(Image& image, MipMapLevel level = 0);
         TextureType type() const override;

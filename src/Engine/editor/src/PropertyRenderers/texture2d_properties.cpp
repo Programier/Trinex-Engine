@@ -7,22 +7,20 @@ namespace Engine
     static void renderer(Object* object, Struct* self, bool editable)
     {
         Texture2D* texture = object->instance_cast<Texture2D>();
+        bool is_compressed = texture->image.is_compressed();
 
-
-        static const char* names[] = {
-                "None", "BC1", "BC2", "BC3", "BC7",
-        };
-
-        int compression = static_cast<int>(texture->image.compression());
-
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.3f);
-        bool changed = ImGui::Combo("editor/Compression"_localized, &compression, names, 5);
-
-        if (changed)
+        if (is_compressed)
         {
-            texture->image.recompress(static_cast<ImageCompression>(compression));
-            texture->format = texture->image.format();
-            texture->postload();
+            ImGui::Text("Texture is compressed!");
+        }
+        else
+        {
+            if (ImGui::Button("Compress"))
+            {
+                texture->image.compress();
+                texture->format = texture->image.format();
+                texture->postload();
+            }
         }
     }
 

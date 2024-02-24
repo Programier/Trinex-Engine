@@ -77,7 +77,7 @@ namespace Engine
         m_data.resize(m_width * m_height * m_channels);
         std::copy(image_data, image_data + m_data.size(), m_data.data());
         stbi_image_free(image_data);
-        m_compression = ImageCompression::None;
+        m_is_compressed = false;
 
         return *this;
     }
@@ -238,20 +238,87 @@ namespace Engine
         return *this;
     }
 
-    ImageCompression Image::compression() const
+    bool Image::is_compressed() const
     {
-        return m_compression;
+        return m_is_compressed;
     }
 
-    void Image::recompress(ImageCompression new_compression)
+    static void dxt_texture_compress(uint8_t const* const data, Buffer& comp_data, int_t width, int_t height, int_t ncolors)
     {
-        m_compression = new_compression;
+        assert(width > 0 && height > 0);
+        assert(ncolors == 3 || ncolors == 4);
+        assert(data != nullptr);
+        // RGB=DXT1/BC1, RGBA=DXT5/BC3
+        bool const has_alpha  = ncolors == 4;
+        const uint_t block_sz = has_alpha ? 16 : 8;
+        const uint_t x_blocks = (width + 3) / 4;
+        const uint_t y_blocks = (height + 3) / 4;
+
+        comp_data.resize(x_blocks * y_blocks * block_sz);
+
+        for (int_t y = 0; y < height; y += 4)
+        {
+            uint8_t block[4 * 4 * 4] = {};
+
+            for (int_t x = 0; x < width; x += 4)
+            {
+                for (int_t yy = 0; yy < 4; ++yy)
+                {
+                    for (int_t xx = 0; xx < 4; ++xx)
+                    {
+                        const uint_t bix = 4 * (4 * yy + xx);
+                        const uint_t dix = ncolors * (width * glm::min(y + yy, height - 1) + glm::min(x + xx, width - 1));
+                        for (int_t c = 0; c < ncolors; ++c)
+                        {
+                            block[bix + c] = data[dix + c];
+                        }
+
+                        if (!has_alpha)
+                        {
+                            block[bix + 3] = 255;
+                        }
+                    }
+                }
+
+                unsigned const comp_offset(((y / 4) * x_blocks + (x / 4)) * block_sz);
+                assert(comp_offset < comp_data.size());
+                stb_compress_dxt_block(&comp_data[comp_offset], block, has_alpha, /*STB_DXT_NORMAL*/ STB_DXT_HIGHQUAL);
+            }
+        }
+    }
+
+    void Image::compress()
+    {
+        if (is_compressed())
+        {
+            error_log("Image", "Cannot recompress image, because image is already compressed!");
+            return;
+        }
+
+        if (m_channels == 3 || m_channels == 4)
+        {
+            Buffer compressed_data;
+            dxt_texture_compress(m_data.data(), compressed_data, m_width, m_height, m_channels);
+            m_data = compressed_data;
+        }
+
+        m_is_compressed = true;
     }
 
     ColorFormat Image::format() const
     {
-        if(m_compression == ImageCompression::BC7)
-            return ColorFormat::BC7Unorm;
+        if (is_compressed())
+        {
+            if (m_channels == 3)
+            {
+                return ColorFormat::BC1Unorm;
+            }
+
+            if (m_channels == 4)
+            {
+                return ColorFormat::BC3Unorm;
+            }
+        }
 
         if (m_channels == 1)
         {
@@ -292,6 +359,7 @@ namespace Engine
         archive & m_width;
         archive & m_height;
         archive & m_channels;
+        archive & m_is_compressed;
 
         if (!archive)
         {
@@ -299,28 +367,7 @@ namespace Engine
             return false;
         }
 
-        if (archive.is_reading())
-        {
-            m_data.clear();
-            size_t size = static_cast<size_t>(m_width) * static_cast<size_t>(m_height) * static_cast<size_t>(m_channels);
-
-            m_data.resize(size);
-
-            if (!archive.reader()->read(m_data.data(), m_data.size()))
-            {
-                error_log("Image", "Failed to serialize image data!");
-                return false;
-            }
-        }
-        else
-        {
-            if (!archive.writer()->write(m_data.data(), m_data.size()))
-            {
-                error_log("Image", "Failed to serialize image data!");
-                return false;
-            }
-        }
-
+        archive & m_data;
         return static_cast<bool>(archive);
     }
 }// namespace Engine
