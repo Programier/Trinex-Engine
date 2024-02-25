@@ -102,6 +102,8 @@ namespace Engine
             actor->name(actor_name);
         }
 
+        actor->m_world = this;
+
         {
             SceneComponent* root = actor->scene_component();
             if (root)
@@ -112,7 +114,6 @@ namespace Engine
                 actor->scene_component()->on_transform_changed();
             }
         }
-        actor->m_world = this;
 
         actor->spawned();
 

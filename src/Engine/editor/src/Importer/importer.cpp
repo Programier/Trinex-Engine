@@ -177,6 +177,7 @@ namespace Engine::Importer
             lod.indices               = index_buffer;
         }
 
+        static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax));
         static_mesh->name(mesh->mName.C_Str());
         static_mesh->init_resources();
         package->add_object(static_mesh);

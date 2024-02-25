@@ -1,5 +1,6 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 
 namespace Engine
 {
@@ -32,6 +33,7 @@ namespace Engine
             component->m_layer = nullptr;
         }
         m_components.clear();
+        lines.clear();
         return *this;
     }
 
@@ -51,6 +53,8 @@ namespace Engine
         {
             component->render(renderer, render_target, this);
         }
+
+        lines.render(renderer->scene_view());
 
         for (auto& func : end_render_function_callbacks)
         {

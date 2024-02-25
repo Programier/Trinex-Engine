@@ -1,6 +1,8 @@
 #pragma once
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
+#include <Engine/Render/batched_lines.hpp>
+
 
 namespace Engine
 {
@@ -20,6 +22,7 @@ namespace Engine
         using FunctionCallback = void (*)(SceneRenderer*, RenderTargetBase*, SceneLayer*);
         using MethodCallback   = void (SceneRenderer::*)(RenderTargetBase*, SceneLayer*);
 
+        BatchedLines lines;
         List<FunctionCallback> begin_render_function_callbacks;
         List<MethodCallback> begin_render_methods_callbacks;
         List<FunctionCallback> end_render_function_callbacks;

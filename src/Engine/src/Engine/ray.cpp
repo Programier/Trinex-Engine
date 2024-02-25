@@ -3,8 +3,7 @@
 
 namespace Engine
 {
-    Ray::Ray(const Vector3D& origin, const Vector3D& direction)
-        : m_origin(origin), m_direction(glm::normalize(direction))
+    Ray::Ray(const Vector3D& origin, const Vector3D& direction) : m_origin(origin), m_direction(glm::normalize(direction))
     {}
 
     const Vector3D& Ray::origin() const

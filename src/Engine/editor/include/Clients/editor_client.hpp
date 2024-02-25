@@ -32,6 +32,7 @@ namespace Engine
         class SceneComponent* m_selected_scene_component = nullptr;
         Vector2D m_viewport_size                         = {100, 100};
         bool m_viewport_is_hovered                       = false;
+        bool m_guizmo_is_in_use                          = false;
 
         class CameraComponent* camera;
         float m_camera_speed      = 10.f;

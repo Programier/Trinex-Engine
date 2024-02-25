@@ -360,6 +360,8 @@ namespace Engine
                 m_selected_scene_component->on_transform_changed();
             }
         }
+
+        m_guizmo_is_in_use = ImGuizmo::IsOver();
         return *this;
     }
 
@@ -371,7 +373,7 @@ namespace Engine
             return *this;
         };
 
-        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        if (!m_guizmo_is_in_use && m_viewport_is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
             auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
             relative_mouse_pos.y    = m_viewport_size.y - relative_mouse_pos.y;
@@ -533,6 +535,33 @@ namespace Engine
         if (node == nullptr)
             return result;
 
+        auto intersect = node->box().intersect(ray);
+
+        if (intersect.x > intersect.y)
+            return result;
+
+        if (result.first && intersect.x > result.second)
+            return result;
+
+        for (PrimitiveComponent* component : node->values)
+        {
+            intersect = component->bounding_box().intersect(ray);
+
+            if (intersect.x < intersect.y)
+            {
+                if ((result.first == nullptr) || (intersect.x < result.second))
+                {
+                    result.first  = component;
+                    result.second = intersect.y;
+                }
+            }
+        }
+
+        for (byte index = 0; index < 8; ++index)
+        {
+            result = raycast_primitive(node->child_at(index), ray, result);
+        }
+
         return result;
     }
 
@@ -544,8 +573,12 @@ namespace Engine
 
         view.screen_to_world(coords, origin, direction);
         Ray ray(origin, direction);
-
         m_selected_scene_component = raycast_primitive(m_world->scene()->octree().root_node(), ray).first;
+
+        if (m_scene_tree)
+        {
+            m_scene_tree->selected = m_selected_scene_component;
+        }
         return *this;
     }
 
