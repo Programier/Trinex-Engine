@@ -553,6 +553,12 @@ namespace Engine::MaterialNodes
     declare_global_node(ProjView, projview, Mat4);
     declare_global_node(InvProjView, inv_projview, Mat4);
     declare_global_node(ModelMatrix, model, Mat4);
+    declare_global_node(Viewport, viewport, Vec4);
+    declare_global_node(Scissor, scissor, Vec4);
+    declare_global_node(CameraForward, camera_forward, Vec3);
+    declare_global_node(CameraRight, camera_right, Vec3);
+    declare_global_node(CameraUp, camera_up, Vec3);
+    declare_global_node(DepthRange, depth_range, Vec2);
     declare_global_node(CameraLocation, camera_location, Vec3);
     declare_global_node(Time, time, Float);
     declare_global_node(Gamma, gamma, Float);

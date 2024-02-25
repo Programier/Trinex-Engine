@@ -74,14 +74,12 @@ namespace Engine
 
 
         // GLOBALS
-        //        vec4 viewport;
-        //        vec4 scissor;
-        //        vec3 camera_location;
-        //        vec3 camera_forward;
-        //        vec3 camera_right;
-        //        vec3 camera_up;
-        //        vec2 depth_range;
-
+        virtual size_t viewport()       = 0;
+        virtual size_t scissor()        = 0;
+        virtual size_t camera_forward() = 0;
+        virtual size_t camera_right()   = 0;
+        virtual size_t camera_up()      = 0;
+        virtual size_t depth_range()    = 0;
 
         virtual size_t projection()   = 0;
         virtual size_t view()         = 0;

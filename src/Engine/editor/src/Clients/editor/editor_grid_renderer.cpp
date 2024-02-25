@@ -1,7 +1,7 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
-#include <Engine/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -51,13 +51,13 @@ namespace Engine
 
     static DefaultResourcesInitializeController on_init(initialize_resources);
 
-    void render_editor_grid(SceneRenderer* renderer, RenderViewport* viewport, SceneLayer* layer)
+    void render_editor_grid(SceneRenderer* renderer, RenderTargetBase*, SceneLayer* layer)
     {
         static Name name_color  = "color";
         static Name name_scale  = "scale";
         static Name name_offset = "offset";
 
-        GBuffer::instance()->rhi_bind();
+        renderer->begin_rendering_target(GBuffer::instance());
 
         auto rhi = engine_instance->rhi();
 
@@ -100,7 +100,7 @@ namespace Engine
                 grid_vertex_buffer->rhi_bind(0);
                 rhi->draw(grid_vertex_buffer->buffer.size());
 
-                alpha = 1.f - alpha;
+                alpha       = 1.f - alpha;
                 local_scale = next_scale;
             }
         }
@@ -111,9 +111,9 @@ namespace Engine
 
             MaterialParameter* color_param  = axis_material->find_parameter(name_color);
             MaterialParameter* offset_param = axis_material->find_parameter(name_offset);
-            MaterialParameter* scale_param = axis_material->find_parameter(name_scale);
+            MaterialParameter* scale_param  = axis_material->find_parameter(name_scale);
 
-            if(scale_param)
+            if (scale_param)
             {
                 (*scale_param->get<float>()) = scale;
             }
@@ -146,5 +146,7 @@ namespace Engine
             y_axis_vertex_buffer->rhi_bind(0);
             rhi->draw(x_axis_vertex_buffer->buffer.size());
         }
+
+        renderer->end_rendering_target();
     }
 }// namespace Engine

@@ -107,7 +107,7 @@ namespace Engine
             static GlobalShaderParameters params;
 
             auto view = camera->camera_view();
-            params.update(viewport->base_render_target(), &view);
+            params.update(viewport->base_render_target(), nullptr);
             engine_instance->rhi()->push_global_params(params);
 
             viewport->rhi_bind();

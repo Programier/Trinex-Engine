@@ -872,6 +872,37 @@ namespace Engine
 
         /// GLOBALS
 
+
+        size_t viewport() override
+        {
+            return (new GLSL_CompiledSource("global.viewport"))->id();
+        }
+
+        size_t scissor() override
+        {
+            return (new GLSL_CompiledSource("global.scissor"))->id();
+        }
+
+        size_t camera_forward() override
+        {
+            return (new GLSL_CompiledSource("global.camera_forward"))->id();
+        }
+
+        size_t camera_right() override
+        {
+            return (new GLSL_CompiledSource("global.camera_right"))->id();
+        }
+
+        size_t camera_up() override
+        {
+            return (new GLSL_CompiledSource("global.camera_up"))->id();
+        }
+
+        size_t depth_range() override
+        {
+            return (new GLSL_CompiledSource("global.depth_range"))->id();
+        }
+
         size_t projection() override
         {
             return (new GLSL_CompiledSource("global.projection"))->id();

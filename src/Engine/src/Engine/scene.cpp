@@ -1,233 +1,12 @@
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/scene_renderer.hpp>
+#include <Engine/Render/scene_layer.hpp>
 #include <Engine/scene.hpp>
-#include <Engine/scene_renderer.hpp>
 
 
 namespace Engine
 {
-
-    const Name SceneLayer::name_clear_render_targets = "Clear Render Targets";
-    const Name SceneLayer::name_base_pass            = "Base Pass";
-    const Name SceneLayer::name_light_pass           = "Light Pass";
-    const Name SceneLayer::name_scene_output_pass    = "Scene Output Pass";
-    const Name SceneLayer::name_post_process         = "Post Process";
-
-    SceneLayer::SceneLayer(const Name& name) : m_name(name)
-    {}
-
-    SceneLayer::~SceneLayer()
-    {
-        if (m_next)
-            delete m_next;
-        m_next = nullptr;
-
-        if (m_parent)
-        {
-            m_parent->m_next = nullptr;
-            m_parent         = nullptr;
-        }
-    }
-
-    SceneLayer& SceneLayer::clear()
-    {
-        for (PrimitiveComponent* component : m_components)
-        {
-            component->m_layer = nullptr;
-        }
-        m_components.clear();
-        return *this;
-    }
-
-    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderViewport* viewport)
-    {
-        for (auto& method : methods_callback)
-        {
-            (renderer->*method)(viewport, this);
-        }
-
-        for (PrimitiveComponent* component : m_components)
-        {
-            component->render(renderer, viewport, this);
-        }
-
-        for (auto& func : function_callbacks)
-        {
-            func(renderer, viewport, this);
-        }
-        return *this;
-    }
-
-    SceneLayer* SceneLayer::parent() const
-    {
-        return m_parent;
-    }
-
-    SceneLayer* SceneLayer::next() const
-    {
-        return m_next;
-    }
-
-    const Name& SceneLayer::name() const
-    {
-        return m_name;
-    }
-
-    void SceneLayer::destroy()
-    {
-        if (m_parent)
-        {
-            m_parent->m_next = m_next;
-        }
-
-        if (m_next)
-        {
-            m_next->m_parent = m_parent;
-        }
-
-        delete this;
-    }
-
-    SceneLayer* SceneLayer::find(const Name& name)
-    {
-        SceneLayer* current = this;
-
-        while (current)
-        {
-            if (current->m_name == name)
-                return current;
-            current = current->m_next;
-        }
-
-        current = this->m_parent;
-
-        while (current)
-        {
-            if (current->m_name == name)
-                return current;
-            current = current->m_parent;
-        }
-
-        return nullptr;
-    }
-
-    SceneLayer* SceneLayer::create_next(const Name& name)
-    {
-        SceneLayer* new_layer = find(name);
-
-        if (new_layer)
-            return new_layer;
-
-        new_layer           = new SceneLayer(name);
-        new_layer->m_parent = this;
-        new_layer->m_next   = m_next;
-        m_next              = new_layer;
-        return new_layer;
-    }
-
-    SceneLayer* SceneLayer::create_parent(const Name& name)
-    {
-        if (!m_can_create_parent)
-            return nullptr;
-
-        SceneLayer* new_layer = find(name);
-
-        if (new_layer)
-            return new_layer;
-
-        new_layer           = new SceneLayer(name);
-        new_layer->m_parent = m_parent;
-        new_layer->m_next   = this;
-        m_parent            = new_layer;
-        return new_layer;
-    }
-
-
-    static void add_component_render_thread(PrimitiveComponent* component, Vector<PrimitiveComponent*>* components,
-                                            Vector<Index>* free_indices)
-    {
-        if (!free_indices->empty())
-        {
-            components->at(free_indices->back()) = component;
-            free_indices->pop_back();
-        }
-        else
-        {
-            components->push_back(component);
-        }
-    }
-
-    static void remove_component_render_thread(PrimitiveComponent* component, Vector<PrimitiveComponent*>* components,
-                                               Vector<Index>* free_indices)
-    {
-        for (size_t i = 0, j = components->size(); i < j; ++i)
-        {
-            if (components->at(i) == component)
-            {
-                free_indices->push_back(i);
-                components->at(i) = nullptr;
-            }
-        }
-    }
-
-    struct SceneLayerAddComponent : public ExecutableObject {
-        PrimitiveComponent* component;
-        Vector<PrimitiveComponent*>* components;
-        Vector<Index>* free_indices;
-
-        SceneLayerAddComponent(PrimitiveComponent* component, Vector<PrimitiveComponent*>* components,
-                               Vector<Index>* free_indices)
-            : component(component), components(components), free_indices(free_indices)
-        {}
-
-        int_t execute()
-        {
-            add_component_render_thread(component, components, free_indices);
-            return sizeof(SceneLayerAddComponent);
-        }
-    };
-
-    struct SceneLayerRemoveComponent : public ExecutableObject {
-        PrimitiveComponent* component;
-        Vector<PrimitiveComponent*>* components;
-        Vector<Index>* free_indices;
-
-        SceneLayerRemoveComponent(PrimitiveComponent* component, Vector<PrimitiveComponent*>* components,
-                                  Vector<Index>* free_indices)
-            : component(component), components(components), free_indices(free_indices)
-        {}
-
-        int_t execute()
-        {
-            remove_component_render_thread(component, components, free_indices);
-            return sizeof(SceneLayerAddComponent);
-        }
-    };
-
-
-    SceneLayer& SceneLayer::add_component(PrimitiveComponent* component)
-    {
-        if (!component || component->m_layer == this)
-            return *this;
-
-        if (component->m_layer != nullptr)
-        {
-            component->m_layer->remove_component(component);
-        }
-
-        m_components.insert(component);
-        return *this;
-    }
-
-    SceneLayer& SceneLayer::remove_component(PrimitiveComponent* component)
-    {
-        if (!component || component->m_layer != this)
-            return *this;
-
-        m_components.erase(component);
-        component->m_layer = nullptr;
-        return *this;
-    }
     class AddPrimitiveTask : public ExecutableObject
     {
         Scene::SceneOctree* m_octree;
@@ -272,19 +51,23 @@ namespace Engine
         m_root_layer->m_can_create_parent = false;
 
         m_clear_layer = m_root_layer->create_next(SceneLayer::name_clear_render_targets);
-        m_clear_layer->methods_callback.push_back(&SceneRenderer::clear_render_targets);
+        m_clear_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::clear_render_targets);
 
         m_base_pass_layer = m_clear_layer->create_next(SceneLayer::name_base_pass);
-        m_base_pass_layer->methods_callback.push_back(&SceneRenderer::begin_rendering_base_pass);
+        m_base_pass_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_rendering_base_pass);
+        m_base_pass_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
 
         m_lighting_layer = m_base_pass_layer->create_next(SceneLayer::name_light_pass);
-        m_lighting_layer->methods_callback.push_back(&SceneRenderer::begin_lighting_pass);
+        m_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_lighting_pass);
+        m_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
 
         m_scene_output = m_lighting_layer->create_next(SceneLayer::name_scene_output_pass);
-        m_scene_output->methods_callback.push_back(&SceneRenderer::begin_scene_output_pass);
+        m_scene_output->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_scene_output_pass);
+        m_scene_output->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
 
         m_post_process_layer = m_scene_output->create_next(SceneLayer::name_post_process);
-        m_post_process_layer->methods_callback.push_back(&SceneRenderer::begin_postprocess_pass);
+        m_post_process_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_postprocess_pass);
+        m_post_process_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
     }
 
 

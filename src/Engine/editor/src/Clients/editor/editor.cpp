@@ -7,6 +7,7 @@
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/scene_layer.hpp>
 #include <Engine/ray.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
@@ -179,7 +180,7 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        m_renderer.render(m_scene_view, m_render_viewport);
+        m_renderer.render(m_scene_view, SceneColorOutput::instance());
 
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
@@ -315,9 +316,9 @@ namespace Engine
         Scene* scene = m_world->scene();
         m_renderer.scene(scene);
 
-        extern void render_editor_grid(SceneRenderer * renderer, RenderViewport * viewport, SceneLayer * layer);
+        extern void render_editor_grid(SceneRenderer * renderer, RenderTargetBase * render_target, SceneLayer * layer);
         auto layer = scene->clear_layer()->create_next("Grid Rendering");
-        layer->function_callbacks.push_back(render_editor_grid);
+        layer->begin_render_function_callbacks.push_back(render_editor_grid);
         m_scene_tree->root_component = m_world->scene()->root_component();
         m_world->start_play();
         return *this;

@@ -1,16 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
-#include <Core/name.hpp>
 #include <Engine/camera_types.hpp>
-#include <Graphics/shader_parameters.hpp>
 
 namespace Engine
 {
-    class SceneRenderer;
-    class RenderViewport;
-    class SceneLayer;
-
 
     class ENGINE_EXPORT SceneView
     {
@@ -63,44 +57,4 @@ namespace Engine
             return m_size;
         }
     };
-
-    class ENGINE_EXPORT SceneRenderer final
-    {
-    private:
-        class Scene* m_scene;
-
-        GlobalShaderParameters m_global_shader_params;
-        SceneView m_scene_view;
-
-
-        SceneRenderer& setup_viewport(RenderViewport* viewport);
-
-    public:
-        SceneRenderer();
-        delete_copy_constructors(SceneRenderer);
-
-        SceneRenderer& scene(Scene* scene);
-        Scene* scene() const;
-        SceneRenderer& render(const SceneView& view, RenderViewport* viewport);
-
-        void clear_render_targets(RenderViewport*, SceneLayer*);
-        void begin_rendering_base_pass(RenderViewport*, SceneLayer*);
-        void begin_lighting_pass(RenderViewport*, SceneLayer*);
-        void begin_scene_output_pass(RenderViewport*, SceneLayer*);
-        void begin_postprocess_pass(RenderViewport*, SceneLayer*);
-
-        FORCE_INLINE const GlobalShaderParameters& shader_params() const
-        {
-            return m_global_shader_params;
-        }
-
-        FORCE_INLINE const SceneView& scene_view() const
-        {
-            return m_scene_view;
-        }
-
-
-        ~SceneRenderer();
-    };
-
 }// namespace Engine

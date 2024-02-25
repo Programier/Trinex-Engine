@@ -76,7 +76,7 @@ namespace Engine
         return *this;
     }
 
-    PrimitiveComponent& PrimitiveComponent::render(class SceneRenderer*, class RenderViewport*, class SceneLayer*)
+    PrimitiveComponent& PrimitiveComponent::render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*)
     {
         return *this;
     }

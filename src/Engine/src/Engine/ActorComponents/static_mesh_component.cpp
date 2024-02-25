@@ -1,8 +1,9 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
+#include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
-#include <Engine/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline.hpp>
@@ -33,7 +34,7 @@ namespace Engine
         return *this;
     }
 
-    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderViewport*, class SceneLayer*)
+    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderTargetBase*, class SceneLayer*)
     {
         auto& camera_view  = renderer->scene_view().camera_view();
         float inv_distance = 1.f / glm::min(glm::distance(transform_render_thread.global_location(), camera_view.location),
@@ -82,10 +83,10 @@ namespace Engine
     {
         Super::update_bounding_box();
 
-        if(mesh)
+        if (mesh)
         {
-            auto min = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.min(), 1.f));
-            auto max = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.max(), 1.f));
+            auto min       = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.min(), 1.f));
+            auto max       = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.max(), 1.f));
             m_bounding_box = AABB_3Df(min, max);
         }
         return *this;

@@ -2,7 +2,7 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
-#include <Engine/scene_renderer.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
