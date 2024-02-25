@@ -345,9 +345,14 @@ namespace Engine
         auto& transform = m_selected_scene_component->transform;
 
         {
+            if (m_guizmo_operation == 0)
+            {
+                m_guizmo_operation = ImGuizmo::OPERATION::UNIVERSAL;
+            }
             Matrix4f model = transform.matrix();
-            if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::OPERATION::UNIVERSAL,
-                                     ImGuizmo::MODE::WORLD, glm::value_ptr(model), nullptr, nullptr))
+            if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
+                                     static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
+                                     glm::value_ptr(model), nullptr, nullptr))
             {
                 ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), glm::value_ptr(transform.location),
                                                       glm::value_ptr(transform.rotation), glm::value_ptr(transform.scale));
@@ -362,6 +367,42 @@ namespace Engine
         }
 
         m_guizmo_is_in_use = ImGuizmo::IsOver();
+        return *this;
+    }
+
+    EditorClient& EditorClient::render_viewport_menu()
+    {
+        static const float height                                          = 32.f;
+        static const Pair<ImGuizmo::OPERATION, Icons::IconType> controls[] = {
+                {ImGuizmo::OPERATION::UNIVERSAL, Icons::IconType::Select},
+                {ImGuizmo::OPERATION::TRANSLATE, Icons::IconType::Move},
+                {ImGuizmo::OPERATION::ROTATE, Icons::IconType::Rotate},
+                {ImGuizmo::OPERATION::SCALE, Icons::IconType::Scale},
+        };
+
+        for (auto& control : controls)
+        {
+            if (ImGuiRenderer::ImGuiTexture* imgui_texture = Icons::icon(control.second))
+            {
+                if (void* handle = imgui_texture->handle())
+                {
+                    ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
+
+                    if (ImGui::ImageButton(handle, {height, height}, {0, 0}, {1, 1}, -1, color))
+                    {
+                        m_guizmo_operation = control.first;
+                    }
+
+                    if (ImGui::IsItemHovered())
+                    {
+                        m_viewport_is_hovered = false;
+                    }
+
+                    ImGui::SameLine();
+                }
+            }
+        }
+
         return *this;
     }
 
@@ -431,13 +472,16 @@ namespace Engine
                 camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
 
                 ImGui::Image(output, size, ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
-                m_viewport_is_hovered = ImGui::IsItemHovered();
+                m_viewport_is_hovered = ImGui::IsWindowHovered();
 
                 ImGui::SetCursorPos(current_pos);
                 render_guizmo(dt);
-            }
 
-            update_drag_and_drop();
+                update_drag_and_drop();
+
+                ImGui::SetCursorPos(current_pos);
+                render_viewport_menu();
+            }
         }
 
         ImGui::End();

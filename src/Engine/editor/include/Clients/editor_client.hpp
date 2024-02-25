@@ -38,6 +38,7 @@ namespace Engine
         float m_camera_speed      = 10.f;
         Vector3D m_camera_move    = {0, 0, 0};
         Index m_target_view_index = 0;
+        int_t m_guizmo_operation  = 0;
 
     public:
         EditorClient();
@@ -59,6 +60,7 @@ namespace Engine
         EditorClient& create_log_window(float dt);
         EditorClient& render_viewport_window(float dt);
         EditorClient& render_guizmo(float dt);
+        EditorClient& render_viewport_menu();
         void render_dock_window(float dt);
 
         void on_object_select(Object* object);

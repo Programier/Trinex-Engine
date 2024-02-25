@@ -12,9 +12,22 @@ namespace Engine
 
     namespace Icons
     {
+        enum IconType
+        {
+            Default,
+            Add,
+            Remove,
+            Select,
+            Move,
+            Rotate,
+            Scale,
+            __COUNT__
+        };
+
+        ImGuiRenderer::ImGuiTexture* icon(IconType type);
         Sampler* default_sampler();
         Texture2D* default_texture();
+
         ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object);
-        ImGuiRenderer::ImGuiTexture* find_output_icon();
     }// namespace Icons
 }// namespace Engine

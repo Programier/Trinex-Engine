@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/package.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/sampler.hpp>
@@ -8,46 +9,26 @@
 
 namespace Engine::Icons
 {
-
-    static Package* editor_package()
-    {
-        static Package* package = nullptr;
-        if (package == nullptr)
-        {
-            package = Package::find_package("Editor", true);
-        }
-        return package;
-    }
+    static Sampler* m_default_sampler              = nullptr;
+    static Texture2D* m_icons[IconType::__COUNT__] = {0};
 
     Sampler* default_sampler()
     {
-        static Sampler* sampler = nullptr;
-        if (sampler == nullptr)
-        {
-            Package* pkg = editor_package();
-            if (pkg)
-            {
-                sampler = pkg->find_object_checked<Sampler>("DefaultSampler");
-            }
-        }
-
-        return sampler;
+        return m_default_sampler;
     }
 
     Texture2D* default_texture()
     {
-        static Texture2D* texture = nullptr;
-        if (texture == nullptr)
-        {
-            Package* pkg = editor_package();
-            if (pkg)
-            {
-                texture = pkg->find_object_checked<Texture2D>("DefaultIcon");
-            }
-        }
-        return texture;
+        return m_icons[IconType::Default];
     }
 
+    ImGuiRenderer::ImGuiTexture* icon(IconType type)
+    {
+        Texture2D* texture = m_icons[type];
+        if (texture && texture->has_object())
+            return ImGuiRenderer::Window::current()->create_texture(texture, m_default_sampler);
+        return nullptr;
+    }
 
     ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object)
     {
@@ -75,32 +56,25 @@ namespace Engine::Icons
         return nullptr;
     }
 
-    ImGuiRenderer::ImGuiTexture* find_output_icon()
+
+    void on_editor_package_loaded()
     {
-        ImGuiRenderer::Window* window = ImGuiRenderer::Window::current();
-        if (!window)
-            return nullptr;
+        auto editor = Package::find_package("Editor");
+        trinex_always_check(editor, "Editor package can't be null!");
 
-        Sampler* sampler = default_sampler();
-        if (!sampler)
-            return nullptr;
+        m_default_sampler = editor->find_object_checked<Sampler>("DefaultSampler");
+        trinex_always_check(m_default_sampler, "Editor default sampler can't be null!");
+        m_icons[IconType::Default] = editor->find_object_checked<Texture2D>("DefaultIcon");
+        m_icons[IconType::Add]     = editor->find_object_checked<Texture2D>("AddIcon");
+        m_icons[IconType::Remove]  = editor->find_object_checked<Texture2D>("RemoveIcon");
+        m_icons[IconType::Select]  = editor->find_object_checked<Texture2D>("SelectIcon");
+        m_icons[IconType::Move]    = editor->find_object_checked<Texture2D>("MoveIcon");
+        m_icons[IconType::Rotate]  = editor->find_object_checked<Texture2D>("RotateIcon");
+        m_icons[IconType::Scale]   = editor->find_object_checked<Texture2D>("ScaleIcon");
 
-        static Texture2D* texture = nullptr;
-
-        if (texture == nullptr)
+        for (Texture2D* icon : m_icons)
         {
-            Package* package = editor_package();
-            if (package)
-            {
-                texture = package->find_object_checked<Texture2D>("GreenTriangle");
-            }
+            trinex_always_check(icon, "Icon can't be null!");
         }
-
-        if (texture && texture->has_object())
-        {
-            return window->create_texture(texture, sampler);
-        }
-
-        return nullptr;
     }
 }// namespace Engine::Icons
