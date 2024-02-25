@@ -26,9 +26,9 @@ namespace Engine
         {
             if (Pipeline* pipeline = mesh->material->material()->pipeline)
             {
-                if (pipeline->render_pass == RenderPassType::SceneOutput)
+                if (pipeline->render_pass == RenderPassType::OneAttachentOutput)
                 {
-                    scene->post_process_layer()->add_component(this);
+                    scene->scene_output_layer()->add_component(this);
                 }
                 else if (pipeline->render_pass == RenderPassType::GBuffer)
                 {
@@ -38,7 +38,7 @@ namespace Engine
         }
         else if (engine_instance->is_editor())
         {
-            scene->scene_output_layer()->add_component(this);
+            scene->base_pass_layer()->add_component(this);
         }
         return *this;
     }

@@ -50,9 +50,8 @@ namespace Engine
     void VulkanRenderTargetFrame::post_init()
     {
         // Initialize framebuffer
-        vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(),
-                                                          m_owner->m_render_pass->m_render_pass, m_attachments,
-                                                          m_owner->m_size.width, m_owner->m_size.height, 1);
+        vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_owner->m_render_pass->m_render_pass,
+                                                          m_attachments, m_owner->m_size.width, m_owner->m_size.height, 1);
         m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
     }
 
@@ -84,22 +83,28 @@ namespace Engine
 
     void VulkanRenderTargetFrame::bind(RenderPass* render_pass)
     {
-        if (API->m_state->m_framebuffer == this)
-            return;
+        VulkanRenderPass* vulkan_render_pass = render_pass->rhi_object<VulkanRenderPass>();
 
-
-        if (API->m_state->m_framebuffer)
+        if (API->m_state->m_render_target.m_framebuffer == this &&
+            API->m_state->m_render_target.m_render_pass == vulkan_render_pass)
         {
-            size_t count = API->m_state->m_framebuffer->m_attachments.size();
-            API->m_state->m_framebuffer->unbind();
-            push_barriers(count);
+            return;
         }
 
 
-        API->m_state->m_framebuffer = this;
+        if (API->m_state->m_render_target.m_framebuffer)
+        {
+            size_t count = API->m_state->m_render_target.m_framebuffer->m_attachments.size();
+            API->m_state->m_render_target.m_framebuffer->unbind();
+            push_barriers(count);
+        }
+
+        API->m_state->m_render_target.m_framebuffer = this;
+        API->m_state->m_render_target.m_render_pass = vulkan_render_pass;
+
         m_owner->m_render_pass_info.setFramebuffer(m_framebuffer);
 
-        VulkanRenderPass* vulkan_render_pass = render_pass->rhi_object<VulkanRenderPass>();
+
         if (vulkan_render_pass == m_owner->m_render_pass)
         {
             API->current_command_buffer().beginRenderPass(m_owner->m_render_pass_info, vk::SubpassContents::eInline);
@@ -121,10 +126,11 @@ namespace Engine
 
     void VulkanRenderTargetFrame::unbind()
     {
-        if (API->m_state->m_framebuffer == this)
+        if (API->m_state->m_render_target.m_framebuffer == this)
         {
             API->current_command_buffer().endRenderPass();
-            API->m_state->m_framebuffer = nullptr;
+            API->m_state->m_render_target.m_framebuffer = nullptr;
+            API->m_state->m_render_target.m_render_pass = nullptr;
         }
     }
 
@@ -193,7 +199,7 @@ namespace Engine
         if (render_pass->m_has_depth_attachment)
         {
             m_clear_values.back().depthStencil = vk::ClearDepthStencilValue(render_target->depth_stencil_clear.depth,
-                                                                             render_target->depth_stencil_clear.stencil);
+                                                                            render_target->depth_stencil_clear.stencil);
         }
 
 
@@ -273,8 +279,8 @@ namespace Engine
             m_viewport.height = viewport.size.y;
         }
 
-        if (API->m_state->m_framebuffer == m_frames[buffer_index()])
-            API->m_state->m_framebuffer->update_viewport();
+        if (API->m_state->m_render_target.m_framebuffer == m_frames[buffer_index()])
+            API->m_state->m_render_target.m_framebuffer->update_viewport();
     }
 
     void VulkanRenderTarget::scissor(const Scissor& scissor)
@@ -285,8 +291,8 @@ namespace Engine
 
         m_scissor.offset.y = scissor.pos.y;
 
-        if (API->m_state->m_framebuffer == m_frames[buffer_index()])
-            API->m_state->m_framebuffer->update_scissors();
+        if (API->m_state->m_render_target.m_framebuffer == m_frames[buffer_index()])
+            API->m_state->m_render_target.m_framebuffer->update_scissors();
     }
 
 
@@ -299,8 +305,7 @@ namespace Engine
 
     void VulkanRenderTarget::clear_color(const ColorClearValue& color, byte layout)
     {
-        byte layouts_count =
-                static_cast<byte>(m_clear_values.size()) - static_cast<byte>(m_render_pass->m_has_depth_attachment);
+        byte layouts_count = static_cast<byte>(m_clear_values.size()) - static_cast<byte>(m_render_pass->m_has_depth_attachment);
 
         if (layout < layouts_count)
         {
@@ -377,7 +382,7 @@ namespace Engine
     {
         m_viewport = viewport;
 
-        uint_t index   = 0;
+        uint_t index  = 0;
         m_size.height = viewport->m_swapchain->extent.height;
         m_size.width  = viewport->m_swapchain->extent.width;
         m_render_pass = API->m_main_render_pass;

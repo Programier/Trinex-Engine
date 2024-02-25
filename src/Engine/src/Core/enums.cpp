@@ -116,5 +116,5 @@ namespace Engine
                    {"A", ColorComponentMask::A});
 
     implement_enum(RenderPassType, Engine, {"Undefined", RenderPassType::Undefined}, {"Window", RenderPassType::Window},
-                   {"SceneOutput", RenderPassType::SceneOutput}, {"GBuffer", RenderPassType::GBuffer});
+                   {"OneAttachentOutput", RenderPassType::OneAttachentOutput}, {"GBuffer", RenderPassType::GBuffer});
 }// namespace Engine

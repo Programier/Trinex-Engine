@@ -11,7 +11,8 @@ namespace Engine
     implement_class(RenderTargetBase, Engine, 0);
     implement_default_initialize_class(RenderTargetBase);
 
-    RenderTargetBase* RenderTargetBase::m_current = nullptr;
+    RenderTargetBase* RenderTargetBase::m_current_target = nullptr;
+    RenderPass* RenderTargetBase::m_current_pass         = nullptr;
 
     RenderTargetBase::RenderTargetBase()
     {}
@@ -25,8 +26,12 @@ namespace Engine
                 new_render_pass = render_pass;
             }
 
-            m_frame_index = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
-            m_current     = this;
+            if (new_render_pass != m_current_pass || m_current_target != this)
+            {
+                m_frame_index    = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
+                m_current_target = this;
+                m_current_pass   = new_render_pass;
+            }
         }
 
         return *this;
@@ -113,12 +118,17 @@ namespace Engine
 
     RenderTargetBase* RenderTargetBase::current_target()
     {
-        return m_current;
+        return m_current_target;
     }
 
     void RenderTargetBase::reset_current_target()
     {
-        m_current = nullptr;
+        m_current_target = nullptr;
+    }
+
+    RenderPass* RenderTargetBase::current_render_pass()
+    {
+        return m_current_pass;
     }
 
     RenderTargetBase::~RenderTargetBase()

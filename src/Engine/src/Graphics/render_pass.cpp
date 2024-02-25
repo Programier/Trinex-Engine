@@ -35,8 +35,8 @@ namespace Engine
                 pass = load_window_render_pass();
                 break;
 
-            case RenderPassType::SceneOutput:
-                pass = load_scene_color_render_pass();
+            case RenderPassType::OneAttachentOutput:
+                pass = load_one_attachement_render_pass();
                 break;
             case RenderPassType::GBuffer:
                 pass = load_gbuffer_render_pass();
@@ -46,8 +46,8 @@ namespace Engine
                 pass = load_clear_gbuffer_render_pass();
                 break;
 
-            case RenderPassType::ClearSceneOutput:
-                pass = load_clear_scene_color_render_pass();
+            case RenderPassType::ClearOneAttachentOutput:
+                pass = load_clear_one_attachement_render_pass();
                 break;
 
             default:

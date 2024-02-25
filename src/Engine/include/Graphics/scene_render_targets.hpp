@@ -13,8 +13,10 @@ namespace Engine
         declare_class(EngineRenderTarget, RenderTarget);
 
     protected:
+        bool m_enable_color_initialize         = true;
+        bool m_enable_depth_stencil_initialize = true;
+
         void init(const Size2D& size, bool is_reinit = false);
-        virtual bool is_scene_output() const;
 
     public:
         EngineRenderTarget& resize(const Size2D& new_size);
@@ -46,6 +48,27 @@ namespace Engine
         friend class Object;
     };
 
+    class ENGINE_EXPORT GBufferBaseColorOutput : public Singletone<GBufferBaseColorOutput, EngineRenderTarget>
+    {
+        declare_class(GBufferBaseColorOutput, EngineRenderTarget);
+
+    public:
+        struct ENGINE_EXPORT Frame : public RenderTarget::Frame {
+            Texture2D* texture() const;
+        };
+
+    private:
+        GBufferBaseColorOutput();
+        ~GBufferBaseColorOutput();
+
+    public:
+        Frame* current_frame() const;
+        Frame* frame(byte index) const;
+
+        friend class Singletone<GBufferBaseColorOutput, EngineRenderTarget>;
+        friend class Object;
+    };
+
     class ENGINE_EXPORT SceneColorOutput : public Singletone<SceneColorOutput, EngineRenderTarget>
     {
         declare_class(SceneColorOutput, EngineRenderTarget);
@@ -58,9 +81,6 @@ namespace Engine
     private:
         SceneColorOutput();
         ~SceneColorOutput();
-
-    protected:
-        bool is_scene_output() const override;
 
     public:
         Frame* current_frame() const;

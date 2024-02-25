@@ -13,7 +13,8 @@ namespace Engine
         declare_class(RenderTargetBase, RenderResource);
 
     protected:
-        static RenderTargetBase* m_current;
+        static RenderTargetBase* m_current_target;
+        static RenderPass* m_current_pass;
 
         ViewPort m_viewport;
         Scissor m_scissor;
@@ -36,6 +37,7 @@ namespace Engine
         virtual Size2D render_target_size() const = 0;
         byte frame_index() const;
         static RenderTargetBase* current_target();
+        static RenderPass* current_render_pass();
         static void reset_current_target();
 
         ~RenderTargetBase();

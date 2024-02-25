@@ -117,6 +117,7 @@ namespace Engine
         m_current_render_target = nullptr;
         m_current_pipeline      = nullptr;
         m_current_index_buffer  = nullptr;
+        m_current_render_pass   = nullptr;
         return *this;
     }
 

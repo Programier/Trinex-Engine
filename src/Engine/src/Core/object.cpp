@@ -147,9 +147,9 @@ namespace Engine
 
     Object::Object() : m_package(nullptr), m_references(0), m_instance_index(Constants::index_none)
     {
-        m_owner                   = nullptr;
+        m_owner                    = nullptr;
         ObjectArray& objects_array = get_instances_array();
-        m_instance_index          = objects_array.size();
+        m_instance_index           = objects_array.size();
 
         if (!get_free_indexes_array().empty())
         {
@@ -395,11 +395,11 @@ namespace Engine
 
         while (current)
         {
-            result  = Strings::format("{}{}{}",
-                                      (current->m_name.is_valid()
-                                               ? current->m_name.to_string()
-                                               : Strings::format("Noname object {}", current->m_instance_index)),
-                                      Constants::name_separator, result);
+            result =
+                    Strings::format("{}{}{}",
+                                    (current->m_name.is_valid() ? current->m_name.to_string()
+                                                                : Strings::format("Noname object {}", current->m_instance_index)),
+                                    Constants::name_separator, result);
             current = parent_object_of(current, override_by_owner);
         }
 
@@ -557,7 +557,7 @@ namespace Engine
 
     bool Object::is_editable() const
     {
-        return flags(IsEditable);
+        return flags(IsEditable) && !is_engine_resource();
     }
 
     bool Object::is_engine_resource() const
@@ -567,7 +567,7 @@ namespace Engine
 
     bool Object::is_serializable() const
     {
-        return flags(IsSerializable);
+        return flags(IsSerializable) && !is_engine_resource();
     }
 
     Package* Object::root_package()

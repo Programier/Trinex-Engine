@@ -410,6 +410,7 @@ namespace Engine
     {
         GBuffer::create_instance();
         SceneColorOutput::create_instance();
+        GBufferBaseColorOutput::create_instance();
         thread(ThreadType::RenderThread)->wait_all();
     }
 

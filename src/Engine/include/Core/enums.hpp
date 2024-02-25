@@ -328,13 +328,13 @@ namespace Engine
 
     enum class RenderPassType : EnumerateType
     {
-        Undefined   = 0,
-        Window      = 1,
-        SceneOutput = 2,
-        GBuffer     = 3,
+        Undefined          = 0,
+        Window             = 1,
+        OneAttachentOutput = 2,
+        GBuffer            = 3,
 
-        ClearSceneOutput = 4,
-        ClearGBuffer     = 5,
+        ClearOneAttachentOutput = 4,
+        ClearGBuffer            = 5,
         __COUNT__,
     };
 }// namespace Engine

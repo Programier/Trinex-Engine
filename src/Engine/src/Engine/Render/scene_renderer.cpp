@@ -17,7 +17,7 @@ namespace Engine
     void SceneRenderer::clear_render_targets(RenderTargetBase*, SceneLayer*)
     {
         GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearGBuffer));
-        SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearSceneOutput));
+        SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearOneAttachentOutput));
     }
 
     void SceneRenderer::begin_rendering_base_pass(RenderTargetBase*, SceneLayer*)

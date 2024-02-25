@@ -90,7 +90,7 @@ namespace Engine
         {
             material = gbuffer_line_render_material();
         }
-        else if (pass == RenderPassType::SceneOutput)
+        else if (pass == RenderPassType::OneAttachentOutput)
         {
             material = scene_output_line_render_material();
         }

@@ -31,12 +31,6 @@ namespace Engine
         }
     }
 
-
-    bool EngineRenderTarget::is_scene_output() const
-    {
-        return false;
-    }
-
     void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
     {
         if (size.x >= new_size.x && size.y >= new_size.y)
@@ -58,7 +52,7 @@ namespace Engine
         }
         else
         {
-            size                  = new_size;
+            size                 = new_size;
             m_viewport.size      = size;
             m_viewport.pos       = {0, 0};
             m_viewport.min_depth = 0.0f;
@@ -73,13 +67,16 @@ namespace Engine
 
         for (RenderTarget::Frame* frame : m_frames)
         {
-            for (Texture2D* texture : frame->color_attachments)
+            if (m_enable_color_initialize)
             {
-                texture->size = size;
-                texture->init_resource();
+                for (Texture2D* texture : frame->color_attachments)
+                {
+                    texture->size = size;
+                    texture->init_resource();
+                }
             }
 
-            if (frame->depth_stencil_attachment && !is_scene_output())
+            if (frame->depth_stencil_attachment && m_enable_depth_stencil_initialize)
             {
                 frame->depth_stencil_attachment->size = size;
                 frame->depth_stencil_attachment->init_resource();
@@ -318,17 +315,74 @@ namespace Engine
         return reinterpret_cast<Frame*>(Super::frame(index));
     }
 
+
+    implement_engine_class_default_init(GBufferBaseColorOutput);
+
+    Texture2D* GBufferBaseColorOutput::Frame::texture() const
+    {
+        return color_attachments[0].ptr();
+    }
+
+    GBufferBaseColorOutput::GBufferBaseColorOutput()
+    {
+        info_log("GBufferBaseColorOutput", "Creating GBufferBaseColorOutput");
+
+        m_enable_color_initialize         = false;
+        m_enable_depth_stencil_initialize = false;
+
+        render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
+        color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
+
+        // Initialize render target frames
+        size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
+        Index frame_index   = 0;
+
+        while (frame_index < frames_count)
+        {
+            push_frame(new GBufferBaseColorOutput::Frame());
+            frame_index++;
+        }
+
+        frame_index = 0;
+
+        for (RenderTarget::Frame* frame : m_frames)
+        {
+            frame->color_attachments.resize(1);
+            frame->color_attachments[0]     = GBuffer::instance()->frame(frame_index)->base_color();
+            frame->depth_stencil_attachment = GBuffer::instance()->frame(frame_index)->depth_stencil_attachment;
+
+            frame_index++;
+        }
+
+        init(WindowManager::instance()->calculate_gbuffer_size());
+    }
+
+    GBufferBaseColorOutput::~GBufferBaseColorOutput()
+    {
+        debug_log("GBufferBaseColorOutput", "Destroy GBufferBaseColorOutput");
+    }
+
+    GBufferBaseColorOutput::Frame* GBufferBaseColorOutput::current_frame() const
+    {
+        return reinterpret_cast<Frame*>(Super::current_frame());
+    }
+
+    GBufferBaseColorOutput::Frame* GBufferBaseColorOutput::frame(byte index) const
+    {
+        return reinterpret_cast<Frame*>(Super::frame(index));
+    }
+
+    implement_engine_class_default_init(SceneColorOutput);
+
     Texture2D* SceneColorOutput::Frame::texture() const
     {
         return color_attachments[0].ptr();
     }
 
-    implement_engine_class_default_init(SceneColorOutput);
-
-    class SceneColorOutputRenderPass : public EngineResource<RenderPass>
+    class OneAttachmentOutputRenderPass : public EngineResource<RenderPass>
     {
     public:
-        SceneColorOutputRenderPass()
+        OneAttachmentOutputRenderPass()
         {
             has_depth_stancil = true;
 
@@ -343,14 +397,13 @@ namespace Engine
 
         RenderPassType type() const override
         {
-            return RenderPassType::SceneOutput;
+            return RenderPassType::OneAttachentOutput;
         }
     };
 
-
-    RenderPass* RenderPass::load_scene_color_render_pass()
+    RenderPass* RenderPass::load_one_attachement_render_pass()
     {
-        RenderPass* pass = Object::new_non_serializable_instance<SceneColorOutputRenderPass>();
+        RenderPass* pass = Object::new_non_serializable_instance<OneAttachmentOutputRenderPass>();
 
         for (auto& ell : pass->color_attachments)
         {
@@ -361,9 +414,9 @@ namespace Engine
         return pass;
     }
 
-    RenderPass* RenderPass::load_clear_scene_color_render_pass()
+    RenderPass* RenderPass::load_clear_one_attachement_render_pass()
     {
-        RenderPass* pass = Object::new_non_serializable_instance<SceneColorOutputRenderPass>();
+        RenderPass* pass = Object::new_non_serializable_instance<OneAttachmentOutputRenderPass>();
         pass->init_resource(true);
         return pass;
     }
@@ -372,7 +425,9 @@ namespace Engine
     {
         info_log("SceneColorOutput", "Creating SceneColorOutput");
 
-        render_pass = RenderPass::load_render_pass(RenderPassType::SceneOutput);
+        m_enable_depth_stencil_initialize = false;
+
+        render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
         color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
 
 
@@ -406,11 +461,6 @@ namespace Engine
         init(WindowManager::instance()->calculate_gbuffer_size());
     }
 
-    bool SceneColorOutput::is_scene_output() const
-    {
-        return true;
-    }
-
     SceneColorOutput::~SceneColorOutput()
     {
         debug_log("SceneColorOutput", "Destroy SceneColorOutput");
@@ -426,10 +476,11 @@ namespace Engine
         return reinterpret_cast<Frame*>(Super::frame(index));
     }
 
-    void ENGINE_EXPORT update_render_targets_size()
+    ENGINE_EXPORT void update_render_targets_size()
     {
         Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
         GBuffer::instance()->resize(new_size);
         SceneColorOutput::instance()->resize(new_size);
+        GBufferBaseColorOutput::instance()->resize(new_size);
     }
 }// namespace Engine

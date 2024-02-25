@@ -53,9 +53,9 @@ namespace Engine
 
     void VulkanViewport::end_render()
     {
-        if (API->m_state->m_framebuffer)
+        if (API->m_state->m_render_target.m_framebuffer)
         {
-            API->m_state->m_framebuffer->unbind();
+            API->m_state->m_render_target.m_framebuffer->unbind();
         }
 
         API->current_command_buffer().end();

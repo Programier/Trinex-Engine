@@ -24,15 +24,18 @@ namespace Engine
 
     Index OpenGL_RenderTarget::bind(RenderPass* render_pass)
     {
-        if (OPENGL_API->m_current_render_target != this)
+        OpenGL_RenderPass* opengl_render_pass = render_pass->rhi_object<OpenGL_RenderPass>();
+
+        if (OPENGL_API->m_current_render_target != this || OPENGL_API->m_current_render_pass != opengl_render_pass)
         {
             glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
             OPENGL_API->m_current_render_target = this;
+            OPENGL_API->m_current_render_pass   = opengl_render_pass;
 
             update_viewport();
             update_scissors();
 
-            render_pass->rhi_object<OpenGL_RenderPass>()->apply(this);
+            opengl_render_pass->apply(this);
         }
 
         return 0;
@@ -87,7 +90,7 @@ namespace Engine
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
-        size_t index           = 0;
+        size_t index          = 0;
         m_clear_color         = render_target->color_clear;
         m_depth_stencil_clear = render_target->depth_stencil_clear;
 
