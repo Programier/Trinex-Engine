@@ -12,6 +12,102 @@
 
 namespace Engine
 {
+
+    SceneView::SceneView() = default;
+
+    SceneView::SceneView(const CameraView& view, const Size2D& size)
+        : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_size(size)
+    {
+        m_projview     = m_projection * m_view;
+        m_inv_projview = glm::inverse(m_projview);
+    }
+
+    default_copy_constructors_cpp(SceneView);
+
+    SceneView& SceneView::camera_view(const CameraView& view)
+    {
+        m_camera_view  = view;
+        m_projection   = view.projection_matrix();
+        m_view         = view.view_matrix();
+        m_projview     = m_projview * m_view;
+        m_inv_projview = glm::inverse(m_projview);
+        return *this;
+    }
+
+    SceneView& SceneView::view_size(const Size2D& size)
+    {
+        m_size = size;
+        return *this;
+    }
+
+    glm::vec3 screenToWorldDirection(float normalizedX, float normalizedY, int screenWidth, int screenHeight,
+                                     const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix)
+    {
+        // Convert screen coordinates to clip space
+        float clipX = normalizedX;
+        float clipY = normalizedY;
+
+        // Create inverse projection matrix
+        glm::mat4 inverseProjection = glm::inverse(projectionMatrix);
+
+        // Create inverse view matrix
+        glm::mat4 inverseView = glm::inverse(viewMatrix);
+
+        // Transform clip space coordinates to view space
+        glm::vec4 viewCoords = inverseProjection * glm::vec4(clipX, clipY, -1.0f, 1.0f);
+        viewCoords.z         = -1.0f;// Point towards the near plane
+        viewCoords.w         = 0.0f;
+
+        // Transform to world space
+        glm::vec4 worldCoords    = inverseView * viewCoords;
+        glm::vec3 worldDirection = glm::normalize(glm::vec3(worldCoords));
+
+        return worldDirection;
+    }
+    const SceneView& SceneView::screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
+                                                Vector3D& world_direction) const
+    {
+        int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
+
+        Matrix4f inverse_view       = glm::inverse(m_view);
+        Matrix4f inverse_projection = glm::inverse(m_projection);
+
+        float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
+        float screen_space_y                = (y - m_size.y / 2.f) / (m_size.y / 2.f);
+        Vector4D ray_start_projection_space = Vector4D(screen_space_x, screen_space_y, 0.f, 1.0f);
+        Vector4D ray_end_projection_space   = Vector4D(screen_space_x, screen_space_y, 0.5f, 1.0f);
+
+        Vector4D hg_ray_start_view_space = inverse_projection * ray_start_projection_space;
+        Vector4D hg_ray_end_view_space   = inverse_projection * ray_end_projection_space;
+
+        Vector3D ray_start_view_space(hg_ray_start_view_space.x, hg_ray_start_view_space.y, hg_ray_start_view_space.z);
+        Vector3D ray_end_view_space(hg_ray_end_view_space.x, hg_ray_end_view_space.y, hg_ray_end_view_space.z);
+
+        if (hg_ray_start_view_space.w != 0.0f)
+        {
+            ray_start_view_space /= hg_ray_start_view_space.w;
+        }
+        if (hg_ray_end_view_space.w != 0.0f)
+        {
+            ray_end_view_space /= hg_ray_end_view_space.w;
+        }
+
+        Vector3D ray_dir_view_space = ray_end_view_space - ray_start_view_space;
+        ray_dir_view_space          = glm::normalize(ray_dir_view_space);
+
+        Vector3D ray_dir_world_space   = inverse_view * Vector4D(ray_dir_view_space, 0.f);
+
+        world_origin    = m_camera_view.location;
+        world_direction = glm::normalize(ray_dir_world_space);
+        return *this;
+    }
+
+    Vector4D SceneView::world_to_screen(const Vector3D& world_point) const
+    {
+        return m_projview * Vector4D(world_point, 1.f);
+    }
+
+
     void SceneRenderer::clear_render_targets(RenderViewport*, SceneLayer*)
     {
         GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearGBuffer));
@@ -66,17 +162,17 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::setup_viewport(RenderViewport* render_viewport)
     {
-        m_global_shader_params.update(render_viewport->base_render_target(), &m_camera_view);
+        m_global_shader_params.update(render_viewport->base_render_target(), &m_scene_view.camera_view());
 
 
         ViewPort viewport;
-        viewport.size      = m_size;
+        viewport.size      = m_scene_view.view_size();
         viewport.pos       = {0, 0};
         viewport.min_depth = 0.f;
         viewport.max_depth = 1.f;
 
         Scissor scissor;
-        scissor.size = m_size;
+        scissor.size = m_scene_view.view_size();
         scissor.pos  = {0, 0};
 
 
@@ -100,13 +196,12 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::render(const CameraView& view, RenderViewport* viewport, const Size2D& size)
+    SceneRenderer& SceneRenderer::render(const SceneView& view, RenderViewport* viewport)
     {
         if (m_scene == nullptr)
             return *this;
 
-        m_size        = size;
-        m_camera_view = view;
+        m_scene_view = view;
         setup_viewport(viewport);
 
         m_scene->build_views(this);
@@ -130,50 +225,6 @@ namespace Engine
         rhi->pop_global_params();
 
         return *this;
-    }
-
-    const SceneRenderer& SceneRenderer::screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
-                                                        Vector3D& world_direction) const
-    {
-        int32_t x = glm::trunc(screen_point.x), y = glm::trunc(screen_point.y);
-
-        Matrix4f inverse_view       = glm::inverse(m_view);
-        Matrix4f inverse_projection = glm::inverse(m_projection);
-
-        float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
-        float screen_space_y                = (y - m_size.y / 2.f) / -(m_size.y / 2.f);
-        Vector4D ray_start_projection_space = Vector4D(screen_space_x, screen_space_y, 0.f, 1.0f);
-        Vector4D ray_end_projection_space   = Vector4D(screen_space_x, screen_space_y, 0.5f, 1.0f);
-
-        Vector4D hg_ray_start_view_space = inverse_projection * ray_start_projection_space;
-        Vector4D hg_ray_end_view_space   = inverse_projection * ray_end_projection_space;
-
-        Vector3D ray_start_view_space(hg_ray_start_view_space.x, hg_ray_start_view_space.y, hg_ray_start_view_space.z);
-        Vector3D ray_end_view_space(hg_ray_end_view_space.x, hg_ray_end_view_space.y, hg_ray_end_view_space.z);
-
-        if (hg_ray_start_view_space.w != 0.0f)
-        {
-            ray_start_view_space /= hg_ray_start_view_space.w;
-        }
-        if (hg_ray_end_view_space.w != 0.0f)
-        {
-            ray_end_view_space /= hg_ray_end_view_space.w;
-        }
-
-        Vector3D ray_dir_view_space = ray_end_view_space - ray_start_view_space;
-        ray_dir_view_space          = glm::normalize(ray_dir_view_space);
-
-        Vector3D ray_start_world_space = inverse_view * Vector4D(ray_start_view_space, 1.f);
-        Vector3D ray_dir_world_space   = inverse_view * Vector4D(ray_dir_view_space, 0.f);
-
-        world_origin    = ray_start_world_space;
-        world_direction = glm::normalize(ray_dir_world_space);
-        return *this;
-    }
-
-    Vector4D SceneRenderer::world_to_screen(const Vector3D& world_point) const
-    {
-        return m_projview * Vector4D(world_point, 1.f);
     }
 
     SceneRenderer::~SceneRenderer()

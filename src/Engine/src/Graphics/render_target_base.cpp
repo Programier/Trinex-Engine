@@ -124,12 +124,12 @@ namespace Engine
     RenderTargetBase::~RenderTargetBase()
     {}
 
-    const ViewPort& RenderTargetBase::viewport()
+    const ViewPort& RenderTargetBase::viewport() const
     {
         return m_viewport;
     }
 
-    const Scissor& RenderTargetBase::scissor()
+    const Scissor& RenderTargetBase::scissor() const
     {
         return m_scissor;
     }

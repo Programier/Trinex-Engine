@@ -35,7 +35,7 @@ namespace Engine
 
     StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderViewport*, class SceneLayer*)
     {
-        auto& camera_view  = renderer->camera_view();
+        auto& camera_view  = renderer->scene_view().camera_view();
         float inv_distance = 1.f / glm::min(glm::distance(transform_render_thread.global_location(), camera_view.location),
                                             camera_view.far_clip_plane);
         auto& lods         = mesh->lods;
@@ -74,6 +74,19 @@ namespace Engine
         else if (vertices != Constants::max_size)
         {
             rhi->draw(vertices);
+        }
+        return *this;
+    }
+
+    StaticMeshComponent& StaticMeshComponent::update_bounding_box()
+    {
+        Super::update_bounding_box();
+
+        if(mesh)
+        {
+            auto min = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.min(), 1.f));
+            auto max = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.max(), 1.f));
+            m_bounding_box = AABB_3Df(min, max);
         }
         return *this;
     }

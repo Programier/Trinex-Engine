@@ -25,7 +25,7 @@ namespace Engine
         if (m_parent)
         {
             m_parent->m_next = nullptr;
-            m_parent          = nullptr;
+            m_parent         = nullptr;
         }
     }
 
@@ -118,7 +118,7 @@ namespace Engine
         if (new_layer)
             return new_layer;
 
-        new_layer            = new SceneLayer(name);
+        new_layer           = new SceneLayer(name);
         new_layer->m_parent = this;
         new_layer->m_next   = m_next;
         m_next              = new_layer;
@@ -135,7 +135,7 @@ namespace Engine
         if (new_layer)
             return new_layer;
 
-        new_layer            = new SceneLayer(name);
+        new_layer           = new SceneLayer(name);
         new_layer->m_parent = m_parent;
         new_layer->m_next   = this;
         m_parent            = new_layer;
@@ -268,7 +268,7 @@ namespace Engine
     {
         m_root_component = Object::new_instance_named<SceneComponent>("Root");
 
-        m_root_layer                       = new SceneLayer("Root Layer");
+        m_root_layer                      = new SceneLayer("Root Layer");
         m_root_layer->m_can_create_parent = false;
 
         m_clear_layer = m_root_layer->create_next(SceneLayer::name_clear_render_targets);
@@ -314,18 +314,20 @@ namespace Engine
             layer->clear();
         }
 
-        return build_views_internal(renderer, m_octree.root_node());
+        return build_views_internal(renderer, m_octree_render_thread.root_node());
     }
 
     Scene& Scene::add_primitive(PrimitiveComponent* primitive)
     {
-        render_thread()->insert_new_task<AddPrimitiveTask>(&m_octree, primitive, primitive->bounding_box());
+        render_thread()->insert_new_task<AddPrimitiveTask>(&m_octree_render_thread, primitive, primitive->bounding_box());
+        m_octree.push(primitive->bounding_box(), primitive);
         return *this;
     }
 
     Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
     {
-        render_thread()->insert_new_task<RemovePrimitiveTask>(&m_octree, primitive, primitive->bounding_box());
+        render_thread()->insert_new_task<RemovePrimitiveTask>(&m_octree_render_thread, primitive, primitive->bounding_box());
+        m_octree.remove(primitive->bounding_box(), primitive);
         return *this;
     }
 
@@ -333,6 +335,18 @@ namespace Engine
     SceneComponent* Scene::root_component() const
     {
         return m_root_component.ptr();
+    }
+
+    const Scene::SceneOctree& Scene::octree() const
+    {
+        if (is_in_render_thread())
+        {
+            return m_octree_render_thread;
+        }
+        else
+        {
+            return m_octree;
+        }
     }
 
     Scene::~Scene()

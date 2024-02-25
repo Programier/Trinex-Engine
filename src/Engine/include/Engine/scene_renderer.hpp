@@ -12,12 +12,9 @@ namespace Engine
     class SceneLayer;
 
 
-    class ENGINE_EXPORT SceneRenderer final
+    class ENGINE_EXPORT SceneView
     {
     private:
-        class Scene* m_scene;
-
-        GlobalShaderParameters m_global_shader_params;
         CameraView m_camera_view;
         Matrix4f m_projection;
         Matrix4f m_view;
@@ -25,31 +22,16 @@ namespace Engine
         Matrix4f m_inv_projview;
         Size2D m_size;
 
-
-        SceneRenderer& setup_viewport(RenderViewport* viewport);
+    public:
+        SceneView();
+        SceneView(const CameraView& view, const Size2D& size);
+        copy_constructors_hpp(SceneView);
 
     public:
-        SceneRenderer();
-        delete_copy_constructors(SceneRenderer);
-
-        SceneRenderer& scene(Scene* scene);
-        Scene* scene() const;
-        SceneRenderer& render(const CameraView& view, RenderViewport* viewport, const Size2D& size);
-
-        const SceneRenderer& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
-                                             Vector3D& world_direction) const;
+        SceneView& camera_view(const CameraView& view);
+        SceneView& view_size(const Size2D& size);
+        const SceneView& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin, Vector3D& world_direction) const;
         Vector4D world_to_screen(const Vector3D& world_point) const;
-
-        void clear_render_targets(RenderViewport*, SceneLayer*);
-        void begin_rendering_base_pass(RenderViewport*, SceneLayer*);
-        void begin_lighting_pass(RenderViewport*, SceneLayer*);
-        void begin_scene_output_pass(RenderViewport*, SceneLayer*);
-        void begin_postprocess_pass(RenderViewport*, SceneLayer*);
-
-        FORCE_INLINE const GlobalShaderParameters& shader_params() const
-        {
-            return m_global_shader_params;
-        }
 
         FORCE_INLINE const Matrix4f& view_matrix() const
         {
@@ -80,6 +62,43 @@ namespace Engine
         {
             return m_size;
         }
+    };
+
+    class ENGINE_EXPORT SceneRenderer final
+    {
+    private:
+        class Scene* m_scene;
+
+        GlobalShaderParameters m_global_shader_params;
+        SceneView m_scene_view;
+
+
+        SceneRenderer& setup_viewport(RenderViewport* viewport);
+
+    public:
+        SceneRenderer();
+        delete_copy_constructors(SceneRenderer);
+
+        SceneRenderer& scene(Scene* scene);
+        Scene* scene() const;
+        SceneRenderer& render(const SceneView& view, RenderViewport* viewport);
+
+        void clear_render_targets(RenderViewport*, SceneLayer*);
+        void begin_rendering_base_pass(RenderViewport*, SceneLayer*);
+        void begin_lighting_pass(RenderViewport*, SceneLayer*);
+        void begin_scene_output_pass(RenderViewport*, SceneLayer*);
+        void begin_postprocess_pass(RenderViewport*, SceneLayer*);
+
+        FORCE_INLINE const GlobalShaderParameters& shader_params() const
+        {
+            return m_global_shader_params;
+        }
+
+        FORCE_INLINE const SceneView& scene_view() const
+        {
+            return m_scene_view;
+        }
+
 
         ~SceneRenderer();
     };

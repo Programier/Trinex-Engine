@@ -6,6 +6,8 @@
 #include <Core/localization.hpp>
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
+#include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/ray.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 #include <Event/event_data.hpp>
@@ -20,6 +22,7 @@
 #include <Importer/importer.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
@@ -176,7 +179,7 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        m_renderer.render(m_view, m_render_viewport, SceneColorOutput::instance()->size);
+        m_renderer.render(m_scene_view, m_render_viewport);
 
         viewport->window()->rhi_bind();
         viewport->window()->imgui_window()->render();
@@ -294,31 +297,13 @@ namespace Engine
         render_dock_window(dt);
 
         create_log_window(dt);
+
+        update_camera(dt);
+        update_viewport(dt);
         render_viewport_window(dt);
 
         ImGui::End();
         window->end_frame();
-
-        camera->transform.location +=
-                Vector3D((camera->transform.rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt * m_camera_speed;
-        camera->transform.update();
-
-
-        struct UpdateView : ExecutableObject {
-            CameraView view;
-            CameraView& out;
-
-            UpdateView(const CameraView& in, CameraView& out) : view(in), out(out)
-            {}
-
-            int_t execute() override
-            {
-                out = view;
-                return sizeof(UpdateView);
-            }
-        };
-
-        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_view);
 
         ++m_frame;
         return *this;
@@ -385,6 +370,13 @@ namespace Engine
             return *this;
         };
 
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+            auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
+            relative_mouse_pos.y    = m_viewport_size.y - relative_mouse_pos.y;
+            raycast_objects(ImGuiHelpers::construct_vec2<Vector2D>(relative_mouse_pos));
+        }
+
         Texture* texture = nullptr;
         if (m_target_view_index == 0)
         {
@@ -430,10 +422,9 @@ namespace Engine
         {
             {
                 auto current_pos = ImGui::GetCursorPos();
-
-                void* output    = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
-                auto size       = ImGui::GetContentRegionAvail();
-                m_viewport_size = ImGuiHelpers::construct_vec2<Vector2D>(size);
+                void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
+                auto size        = ImGui::GetContentRegionAvail();
+                m_viewport_size  = ImGuiHelpers::construct_vec2<Vector2D>(size);
                 camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
 
                 ImGui::Image(output, size, ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
@@ -473,6 +464,7 @@ namespace Engine
         if (button.button == Mouse::Button::Right)
         {
             MouseSystem::instance()->relative_mode(false, m_window);
+            m_camera_move = {0, 0, 0};
         }
     }
 
@@ -489,31 +481,76 @@ namespace Engine
         }
     }
 
-    static FORCE_INLINE void move_camera(Vector3D& move, const KeyEvent& key_event, float factor)
+    static FORCE_INLINE void move_camera(Vector3D& move, Window* window)
     {
-        if (key_event.repeat)
+        move = {0, 0, 0};
+
+        if (!MouseSystem::instance()->is_relative_mode(window))
             return;
+        KeyboardSystem* keyboard = KeyboardSystem::instance();
 
-        float value = 1.f * factor;
-        if (key_event.key == Keyboard::W)
-        {
-            move.z -= value;
-        }
+        move.z += keyboard->is_pressed(Keyboard::W) ? -1.f : 0.f;
+        move.x += keyboard->is_pressed(Keyboard::A) ? -1.f : 0.f;
+        move.z += keyboard->is_pressed(Keyboard::S) ? 1.f : 0.f;
+        move.x += keyboard->is_pressed(Keyboard::D) ? 1.f : 0.f;
+    }
 
-        if (key_event.key == Keyboard::A)
-        {
-            move.x -= value;
-        }
 
-        if (key_event.key == Keyboard::S)
-        {
-            move.z += value;
-        }
+    EditorClient& EditorClient::update_camera(float dt)
+    {
+        move_camera(m_camera_move, m_window);
 
-        if (key_event.key == Keyboard::D)
-        {
-            move.x += value;
-        }
+        camera->transform.location +=
+                Vector3D((camera->transform.rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt * m_camera_speed;
+        camera->transform.update();
+
+        struct UpdateView : ExecutableObject {
+            CameraView view;
+            SceneView& out;
+            Size2D size;
+
+            UpdateView(const CameraView& in, SceneView& out, const Size2D& size) : view(in), out(out), size(size)
+            {}
+
+            int_t execute() override
+            {
+                out.view_size(size);
+                out.camera_view(view);
+                return sizeof(UpdateView);
+            }
+        };
+
+        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, SceneColorOutput::instance()->size);
+        return *this;
+    }
+
+
+    using RaycastPrimitiveResult = Pair<PrimitiveComponent*, float>;
+    static RaycastPrimitiveResult raycast_primitive(Scene::SceneOctree::Node* node, const Ray& ray,
+                                                    RaycastPrimitiveResult result = {nullptr, -1.f})
+    {
+        if (node == nullptr)
+            return result;
+
+        return result;
+    }
+
+    EditorClient& EditorClient::raycast_objects(const Vector2D& coords)
+    {
+        SceneView view(camera->camera_view(), m_viewport_size);
+        Vector3D origin;
+        Vector3D direction;
+
+        view.screen_to_world(coords, origin, direction);
+        Ray ray(origin, direction);
+
+        m_selected_scene_component = raycast_primitive(m_world->scene()->octree().root_node(), ray).first;
+        return *this;
+    }
+
+    EditorClient& EditorClient::update_viewport(float dt)
+    {
+        return *this;
     }
 
     void EditorClient::on_key_press(const Event& event)
@@ -522,7 +559,20 @@ namespace Engine
             return;
 
         const KeyEvent& key_event = event.get<const KeyEvent&>();
-        move_camera(m_camera_move, key_event, 1.f);
+
+        if (m_viewport_is_hovered)
+        {
+            if (static_cast<Identifier>(key_event.key) >= static_cast<Identifier>(Keyboard::Key::Num0) &&
+                static_cast<Identifier>(key_event.key) <= static_cast<Identifier>(Keyboard::Key::Num9))
+            {
+
+                Index new_index = static_cast<Identifier>(key_event.key) - static_cast<Identifier>(Keyboard::Key::Num0);
+                if (new_index <= 6)
+                {
+                    m_target_view_index = new_index;
+                }
+            }
+        }
     }
 
 
@@ -531,18 +581,6 @@ namespace Engine
         if (event.window_id() != m_window->window_id())
             return;
 
-        const KeyEvent& key_event = event.get<const KeyEvent&>();
-        move_camera(m_camera_move, key_event, -1.f);
-
-        if (static_cast<Identifier>(key_event.key) >= static_cast<Identifier>(Keyboard::Key::Num0) &&
-            static_cast<Identifier>(key_event.key) <= static_cast<Identifier>(Keyboard::Key::Num9))
-        {
-
-            Index new_index = static_cast<Identifier>(key_event.key) - static_cast<Identifier>(Keyboard::Key::Num0);
-            if (new_index <= 6)
-            {
-                m_target_view_index = new_index;
-            }
-        }
+        //const KeyEvent& key_event = event.get<const KeyEvent&>();
     }
 }// namespace Engine

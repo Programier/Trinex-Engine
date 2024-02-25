@@ -73,6 +73,7 @@ namespace Engine
         SceneLayer* m_scene_output       = nullptr;
         SceneLayer* m_post_process_layer = nullptr;
 
+        SceneOctree m_octree_render_thread;
         SceneOctree m_octree;
         Pointer<SceneComponent> m_root_component;
 
@@ -84,6 +85,7 @@ namespace Engine
         Scene& add_primitive(PrimitiveComponent* primitive);
         Scene& remove_primitive(PrimitiveComponent* primitive);
         SceneComponent* root_component() const;
+        const SceneOctree& octree() const;
         ~Scene();
 
 

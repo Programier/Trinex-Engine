@@ -44,12 +44,12 @@ namespace Engine
         auto min = mesh->bounds.min();
         auto max = mesh->bounds.max();
 
-        if (ImGui::InputFloat2("Min bounds", &min.x, "%.3f"))
+        if (ImGui::InputFloat3("Min bounds", &min.x, "%.3f"))
         {
             mesh->bounds.min(min);
         }
 
-        if (ImGui::InputFloat2("Max bounds", &max.x, "%.3f"))
+        if (ImGui::InputFloat3("Max bounds", &max.x, "%.3f"))
         {
             mesh->bounds.max(max);
         }

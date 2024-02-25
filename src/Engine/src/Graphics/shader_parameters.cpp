@@ -52,7 +52,8 @@ layout(binding = 0, std140) uniform _Global
 })";
     }
 
-    GlobalShaderParameters& GlobalShaderParameters::update(class RenderTargetBase* render_target, struct CameraView* camera)
+    GlobalShaderParameters& GlobalShaderParameters::update(const class RenderTargetBase* render_target,
+                                                           const struct CameraView* camera)
     {
         if (render_target)
         {

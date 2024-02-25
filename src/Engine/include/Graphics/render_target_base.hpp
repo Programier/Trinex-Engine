@@ -28,8 +28,8 @@ namespace Engine
         RenderTargetBase& rhi_bind(RenderPass* render_pass = nullptr);
         const RenderTargetBase& viewport(const ViewPort& viewport);
         const RenderTargetBase& scissor(const Scissor& scissor);
-        const ViewPort& viewport();
-        const Scissor& scissor();
+        const ViewPort& viewport() const;
+        const Scissor& scissor() const;
         const RenderTargetBase& clear_color(const ColorClearValue& color, byte layout = 0) const;
         const RenderTargetBase& clear_depth_stencil(const DepthStencilClearValue& value) const;
         RenderTargetBase& rhi_create() override;

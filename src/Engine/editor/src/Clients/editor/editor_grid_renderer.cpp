@@ -61,7 +61,7 @@ namespace Engine
 
         auto rhi = engine_instance->rhi();
 
-        const CameraView& view = renderer->camera_view();
+        const CameraView& view = renderer->scene_view().camera_view();
 
         float camera_height = glm::abs(view.location.y);
         float scale         = 1.f;

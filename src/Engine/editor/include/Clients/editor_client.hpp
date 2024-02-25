@@ -16,7 +16,7 @@ namespace Engine
 
     private:
         SceneRenderer m_renderer;
-        CameraView m_view;
+        SceneView m_scene_view;
 
         RenderViewport* m_render_viewport = nullptr;
         Window* m_window                  = nullptr;
@@ -65,6 +65,10 @@ namespace Engine
         EditorClient& update_drag_and_drop();
 
         ~EditorClient();
+
+        EditorClient& update_camera(float dt);
+        EditorClient& raycast_objects(const Vector2D& coords);
+        EditorClient& update_viewport(float dt);
 
         // Inputs
         void on_mouse_press(const Event& event);

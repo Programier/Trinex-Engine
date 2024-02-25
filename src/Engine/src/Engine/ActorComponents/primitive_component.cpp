@@ -37,6 +37,37 @@ namespace Engine
     PrimitiveComponent& PrimitiveComponent::destroyed()
     {
         Super::destroyed();
+
+        if (Actor* owner_actor = actor())
+        {
+            if (World* world = owner_actor->world())
+            {
+                if (Scene* scene = world->scene())
+                {
+                    scene->remove_primitive(this);
+                }
+            }
+        }
+        return *this;
+    }
+
+    PrimitiveComponent& PrimitiveComponent::on_transform_changed()
+    {
+        Super::on_transform_changed();
+
+        if (Actor* owner_actor = actor())
+        {
+            if (World* world = owner_actor->world())
+            {
+                if (Scene* scene = world->scene())
+                {
+                    scene->remove_primitive(this);
+                    update_bounding_box();
+                    scene->add_primitive(this);
+                }
+            }
+        }
+
         return *this;
     }
 
@@ -46,6 +77,11 @@ namespace Engine
     }
 
     PrimitiveComponent& PrimitiveComponent::render(class SceneRenderer*, class RenderViewport*, class SceneLayer*)
+    {
+        return *this;
+    }
+
+    PrimitiveComponent& PrimitiveComponent::update_bounding_box()
     {
         return *this;
     }
