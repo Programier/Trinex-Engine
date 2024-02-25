@@ -13,6 +13,7 @@ class Editor : public Engine::EngineBaseEntryPoint
 public:
     Engine::int_t execute(Engine::int_t argc, char** argv) override
     {
+        Engine::engine_instance->enable_editor_mode();
         Engine::engine_instance->launch();
         return 0;
     }

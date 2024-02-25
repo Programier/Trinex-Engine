@@ -96,8 +96,8 @@ namespace Engine
         void render_scene_tree(class SceneComponent* component);
 
     public:
-        class SceneComponent* root_component = nullptr;
-        class SceneComponent* selected       = nullptr;
+        class World* world             = nullptr;
+        class SceneComponent* selected = nullptr;
 
         CallBacks<void(SceneComponent*)> on_node_select;
 

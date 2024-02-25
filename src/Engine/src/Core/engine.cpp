@@ -99,7 +99,7 @@ namespace Engine
         return false;
     }
 
-    EngineInstance* EngineInstance::m_instance   = nullptr;
+    EngineInstance* EngineInstance::m_instance    = nullptr;
     ENGINE_EXPORT EngineInstance* engine_instance = nullptr;
 
 
@@ -264,6 +264,23 @@ namespace Engine
     bool EngineInstance::is_requesting_exit() const
     {
         return m_flags(IsRequestingExit);
+    }
+
+    bool EngineInstance::is_editor() const
+    {
+        return m_flags(IsEditor);
+    }
+
+    EngineInstance& EngineInstance::enable_editor_mode()
+    {
+        m_flags(IsEditor, true);
+        return *this;
+    }
+
+    EngineInstance& EngineInstance::disable_editor_mode()
+    {
+        m_flags(IsEditor, false);
+        return *this;
     }
 
     EngineInstance& EngineInstance::request_exit()

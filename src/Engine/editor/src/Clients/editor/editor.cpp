@@ -97,7 +97,7 @@ namespace Engine
 
         if (m_world)
         {
-            m_scene_tree->root_component = m_world->scene()->root_component();
+            m_scene_tree->world = m_world;
         }
         return *this;
     }
@@ -319,7 +319,7 @@ namespace Engine
         extern void render_editor_grid(SceneRenderer * renderer, RenderTargetBase * render_target, SceneLayer * layer);
         auto layer = scene->clear_layer()->create_next("Grid Rendering");
         layer->begin_render_function_callbacks.push_back(render_editor_grid);
-        m_scene_tree->root_component = m_world->scene()->root_component();
+        m_scene_tree->world = m_world;
         m_world->start_play();
         return *this;
     }
@@ -529,6 +529,7 @@ namespace Engine
 
 
     using RaycastPrimitiveResult = Pair<PrimitiveComponent*, float>;
+
     static RaycastPrimitiveResult raycast_primitive(Scene::SceneOctree::Node* node, const Ray& ray,
                                                     RaycastPrimitiveResult result = {nullptr, -1.f})
     {
@@ -573,11 +574,12 @@ namespace Engine
 
         view.screen_to_world(coords, origin, direction);
         Ray ray(origin, direction);
-        m_selected_scene_component = raycast_primitive(m_world->scene()->octree().root_node(), ray).first;
+        auto component = raycast_primitive(m_world->scene()->octree().root_node(), ray).first;
+        on_object_select(component);
 
         if (m_scene_tree)
         {
-            m_scene_tree->selected = m_selected_scene_component;
+            m_scene_tree->selected = component;
         }
         return *this;
     }

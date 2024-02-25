@@ -169,7 +169,6 @@ namespace Engine
         if (!Super::archive_process(ar))
             return false;
 
-        ar.serialize_reference(material);
         ar & bounds;
         ar & lods;
 

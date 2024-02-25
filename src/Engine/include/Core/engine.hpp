@@ -34,6 +34,7 @@ namespace Engine
             IsInited                      = BIT(5),
             IsShutingDown                 = BIT(6),
             IsRequestingExit              = BIT(7),
+            IsEditor                      = BIT(8),
         };
 
     private:
@@ -47,7 +48,6 @@ namespace Engine
         GCFlag m_current_gc_stage = GCFlag::None;
 
         float m_delta_time;
-
 
         EngineInstance();
         bool init_api();
@@ -69,6 +69,9 @@ namespace Engine
         RHI* rhi() const;
         bool is_shuting_down() const;
         bool is_requesting_exit() const;
+        bool is_editor() const;
+        EngineInstance& enable_editor_mode();
+        EngineInstance& disable_editor_mode();
         EngineInstance& request_exit();
         const Arguments& args() const;
         Arguments& args();

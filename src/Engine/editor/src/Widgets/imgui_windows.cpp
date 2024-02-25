@@ -2,6 +2,8 @@
 #include <Core/constants.hpp>
 #include <Core/package.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
+#include <Engine/scene.hpp>
+#include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/visual_material.hpp>
@@ -317,7 +319,7 @@ namespace Engine
     }
 
 
-    ImGuiSceneTree::ImGuiSceneTree(SceneComponent* root_component) : root_component(root_component)
+    ImGuiSceneTree::ImGuiSceneTree(SceneComponent* root_component) : world(nullptr)
     {}
 
 
@@ -362,7 +364,7 @@ namespace Engine
     {
         bool open = true;
         ImGui::Begin(name(), closable ? &open : nullptr);
-        render_scene_tree(root_component);
+        render_scene_tree(world->scene()->root_component());
         ImGui::End();
 
         return open;

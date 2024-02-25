@@ -9,6 +9,7 @@
 namespace Engine
 {
     class PrimitiveComponent;
+    class LightComponent;
     class SceneComponent;
     class SceneRenderer;
     class RenderViewport;
@@ -40,6 +41,8 @@ namespace Engine
         Scene& build_views(SceneRenderer* renderer);
         Scene& add_primitive(PrimitiveComponent* primitive);
         Scene& remove_primitive(PrimitiveComponent* primitive);
+        Scene& add_light(LightComponent* light);
+        Scene& remove_light(LightComponent* light);
         SceneComponent* root_component() const;
         const SceneOctree& octree() const;
         ~Scene();

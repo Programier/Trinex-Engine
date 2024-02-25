@@ -114,6 +114,15 @@ namespace Engine
         return *this;
     }
 
+    Scene& Scene::add_light(LightComponent* light)
+    {
+        return *this;
+    }
+
+    Scene& Scene::remove_light(LightComponent* light)
+    {
+        return *this;
+    }
 
     SceneComponent* Scene::root_component() const
     {

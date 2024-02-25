@@ -14,6 +14,7 @@ namespace Engine
         class SceneLayer* m_layer = nullptr;
 
     public:
+        PrimitiveComponent();
         bool is_visible() const;
         const AABB_3Df& bounding_box() const;
 
