@@ -38,7 +38,7 @@ namespace Engine
         }
         else if (engine_instance->is_editor())
         {
-            scene->base_pass_layer()->add_component(this);
+            scene->scene_output_layer()->add_component(this);
         }
         return *this;
     }

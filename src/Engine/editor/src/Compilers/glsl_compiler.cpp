@@ -101,7 +101,7 @@ namespace Engine
     static bool is_variable(const StringView& code)
     {
         return code.starts_with(variable_prefix) || code.starts_with(global_variable_prefix) ||
-               code.starts_with(local_variable_prefix);
+               code.starts_with(local_variable_prefix) || code.starts_with("in_") || code.starts_with("vertex_");
     }
 
     static const char* default_value_of_base_type(MaterialBaseDataType type, bool is_zero = true)
@@ -1456,6 +1456,49 @@ namespace Engine
             return 0;
         }
 
+        size_t fragment_world_position() override
+        {
+            errors->push_back(Strings::format("World position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_uv0() override
+        {
+            errors->push_back(Strings::format("UV0 node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_uv1() override
+        {
+            errors->push_back(Strings::format("UV1 node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_world_normal() override
+        {
+            errors->push_back(Strings::format("World normal node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_world_tangent() override
+        {
+            errors->push_back(Strings::format("World tangent node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_world_bitangent() override
+        {
+            errors->push_back(Strings::format("World bitangent node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+        size_t fragment_color() override
+        {
+            errors->push_back(Strings::format("Position node doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
+
         virtual const char* name() const        = 0;
         virtual Shader* current_shader() const  = 0;
         virtual MaterialNode* root_node() const = 0;
@@ -1949,6 +1992,41 @@ namespace Engine
             new_attribute.location       = static_cast<byte>(vertex_compiler->input_attribute.size());
             vertex_compiler->input_attribute.push_back(new_attribute);
             vertex_compiler->submit_vertex_attribute(attribute);
+        }
+
+        size_t fragment_world_position() override
+        {
+            return (new GLSL_CompiledSource("vertex_world_position"))->id();
+        }
+
+        size_t fragment_uv0() override
+        {
+            return (new GLSL_CompiledSource("vertex_uv0"))->id();
+        }
+
+        size_t fragment_uv1() override
+        {
+            return (new GLSL_CompiledSource("vertex_uv1"))->id();
+        }
+
+        size_t fragment_world_normal() override
+        {
+            return (new GLSL_CompiledSource("vertex_world_normal"))->id();
+        }
+
+        size_t fragment_world_tangent() override
+        {
+            return (new GLSL_CompiledSource("vertex_world_tangent"))->id();
+        }
+
+        size_t fragment_world_bitangent() override
+        {
+            return (new GLSL_CompiledSource("vertex_world_bitangent"))->id();
+        }
+
+        size_t fragment_color() override
+        {
+            return (new GLSL_CompiledSource("vertex_color"))->id();
         }
     };
 

@@ -165,6 +165,15 @@ namespace Engine
         virtual size_t vertex_output_world_bitangent(MaterialInputPin*)       = 0;
         virtual size_t vertex_output_color(MaterialInputPin*)                 = 0;
 
+        // Fragment inputs
+        virtual size_t fragment_world_position()  = 0;
+        virtual size_t fragment_uv0()             = 0;
+        virtual size_t fragment_uv1()             = 0;
+        virtual size_t fragment_world_normal()    = 0;
+        virtual size_t fragment_world_tangent()   = 0;
+        virtual size_t fragment_world_bitangent() = 0;
+        virtual size_t fragment_color()           = 0;
+
         virtual size_t fragment_output_base_color(MaterialInputPin*) = 0;
         virtual size_t fragment_output_metalic(MaterialInputPin*)    = 0;
         virtual size_t fragment_output_specular(MaterialInputPin*)   = 0;

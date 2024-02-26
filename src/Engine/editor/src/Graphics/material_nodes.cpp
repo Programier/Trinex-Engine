@@ -784,4 +784,32 @@ namespace Engine::MaterialNodes
     declare_input_attribute(Color, color, Vec4);
 
 
+#define declare_vertex_output_node(name, func, type)                                                                             \
+    struct name : public MaterialNode {                                                                                          \
+        declare_material_node();                                                                                                 \
+                                                                                                                                 \
+        name()                                                                                                                   \
+        {                                                                                                                        \
+            outputs.push_back(new type##OutputNoDefaultPin(this, "Out"));                                                        \
+        }                                                                                                                        \
+                                                                                                                                 \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func();                                                                                             \
+        }                                                                                                                        \
+                                                                                                                                 \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::type;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(name, VertexOutput);
+
+    declare_vertex_output_node(WorldPosition, fragment_world_position, Vec3);
+    declare_vertex_output_node(WorldNormal, fragment_world_normal, Vec3);
+    declare_vertex_output_node(WorldTangent, fragment_world_tangent, Vec3);
+    declare_vertex_output_node(WorldBitangent, fragment_world_bitangent, Vec3);
+    declare_vertex_output_node(VertexColor, fragment_color, Vec4);
+
+
 }// namespace Engine::MaterialNodes

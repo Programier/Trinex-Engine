@@ -344,6 +344,8 @@ namespace Engine
         auto projection = camera->projection_matrix();
         auto& transform = m_selected_scene_component->transform;
 
+
+
         {
             if (m_guizmo_operation == 0)
             {
@@ -366,7 +368,7 @@ namespace Engine
             }
         }
 
-        m_guizmo_is_in_use = ImGuizmo::IsOver();
+        m_guizmo_is_in_use = ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
         return *this;
     }
 
