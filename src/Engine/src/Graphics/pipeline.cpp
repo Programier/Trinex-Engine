@@ -232,9 +232,31 @@ namespace Engine
         return Object::instance_cast<Material>(owner());
     }
 
-    RenderPass* Pipeline::render_pass_instance() const
+    RenderPassType Pipeline::render_pass_type() const
     {
-        return RenderPass::load_render_pass(render_pass);
+        Flags<MaterialUsage> flags = usage;
+
+        if ((flags & MaterialUsage::GBufferRendering) == Flags(MaterialUsage::GBufferRendering) && !color_blending.enable)
+        {
+            return RenderPassType::GBuffer;
+        }
+
+        if ((flags & MaterialUsage::WindowRendering) == Flags(MaterialUsage::WindowRendering))
+        {
+            return RenderPassType::Window;
+        }
+
+        if ((flags & MaterialUsage::SceneOutputRendering) == Flags(MaterialUsage::SceneOutputRendering) || color_blending.enable)
+        {
+            return RenderPassType::OneAttachentOutput;
+        }
+
+        return RenderPassType::GBuffer;
+    }
+
+    RenderPass* Pipeline::render_pass() const
+    {
+        return RenderPass::load_render_pass(render_pass_type());
     }
 
     bool Pipeline::serialize_shaders(Archive& ar)
@@ -348,10 +370,10 @@ namespace Engine
     {
         Class* self = static_class_instance();
 
-        Enum* render_pass_type_enum = Enum::find("Engine::RenderPassType", true);
+        Enum* material_usage_enum = Enum::find("Engine::MaterialUsage", true);
 
-        auto render_pass_prop = new EnumProperty("Render pass", "Type of render pass for this pipeline", &Pipeline::render_pass,
-                                                 render_pass_type_enum);
+        auto render_pass_prop =
+                new EnumProperty("Usage", "Type of usage of this pipeline", &Pipeline::usage, material_usage_enum);
 
         self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
                                                 Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),

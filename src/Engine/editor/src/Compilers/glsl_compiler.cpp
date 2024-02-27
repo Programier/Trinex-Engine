@@ -401,8 +401,8 @@ namespace Engine
 
         bool is_gbuffer_pipeline() const
         {
-            return material->pipeline->render_pass == RenderPassType::GBuffer ||
-                   material->pipeline->render_pass == RenderPassType::ClearGBuffer;
+            auto type = material->pipeline->render_pass_type();
+            return type == RenderPassType::GBuffer || type == RenderPassType::ClearGBuffer;
         }
 
         GLSL_Attribute* find_input_attribute(const StringView& name)
@@ -1533,7 +1533,7 @@ namespace Engine
 
         bool compile(VisualMaterial* material, MessageList& errors) override
         {
-            RenderPassType type = material->pipeline->render_pass;
+            RenderPassType type = material->pipeline->render_pass_type();
 
             if (type == RenderPassType::Undefined)
             {
@@ -1765,7 +1765,7 @@ namespace Engine
 
         bool compile(VisualMaterial* material, MessageList& errors) override
         {
-            if (material->pipeline->render_pass == RenderPassType::Undefined)
+            if (material->pipeline->render_pass_type() == RenderPassType::Undefined)
             {
                 errors.push_back("Undefined render pass type! Please, select render pass type!");
                 return false;

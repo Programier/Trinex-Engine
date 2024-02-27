@@ -97,7 +97,7 @@ namespace Engine
     }
 
 
-    MaterialEditorClient& MaterialEditorClient::on_bind_to_viewport(class RenderViewport* viewport)
+    MaterialEditorClient& MaterialEditorClient::on_bind_viewport(class RenderViewport* viewport)
     {
         Window* window = viewport->window();
         if (window == nullptr)
@@ -135,7 +135,7 @@ namespace Engine
         Class* instance = Class::static_find(editor_config.material_compiler);
         if (instance)
         {
-            auto obj    = instance->create_object();
+            auto obj   = instance->create_object();
             m_compiler = obj->instance_cast<ShaderCompilerBase>();
         }
 

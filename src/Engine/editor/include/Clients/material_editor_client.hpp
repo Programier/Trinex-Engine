@@ -37,7 +37,7 @@ namespace Engine
         class VisualMaterial* current_material() const;
         void on_object_select(Object* object);
 
-        MaterialEditorClient& on_bind_to_viewport(class RenderViewport* viewport) override;
+        MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
         MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
 
 

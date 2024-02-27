@@ -51,7 +51,8 @@ namespace Engine
         EditorClient& create_properties_window();
         EditorClient& create_scene_tree();
 
-        ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override;
+        ViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
+        ViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;
         ViewportClient& render(class RenderViewport* viewport) override;
         ViewportClient& update(class RenderViewport* viewport, float dt) override;
 
@@ -79,5 +80,7 @@ namespace Engine
         void on_mouse_move(const Event& event);
         void on_key_press(const Event& event);
         void on_key_release(const Event& event);
+        void unbind_window(bool destroying);
+        void on_window_close(const Event& event);
     };
 }// namespace Engine

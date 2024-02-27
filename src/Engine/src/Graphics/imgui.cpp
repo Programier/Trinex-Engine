@@ -52,7 +52,7 @@ namespace Engine::ImGuiRenderer
         m_draw_data[m_logic_index].CmdLists.resize(draw_data->CmdListsCount);
         for (int index = 0; index < draw_data->CmdListsCount; index++)
         {
-            ImDrawList* drawList                         = draw_data->CmdLists[index]->CloneOutput();
+            ImDrawList* drawList                       = draw_data->CmdLists[index]->CloneOutput();
             m_draw_data[m_logic_index].CmdLists[index] = drawList;
         }
 
@@ -260,7 +260,7 @@ namespace Engine::ImGuiRenderer
         }
     }
 
-    ViewportClient& ImGuiViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
+    ViewportClient& ImGuiViewportClient::on_bind_viewport(class RenderViewport* viewport)
     {
         m_window = Window::current();
         return *this;

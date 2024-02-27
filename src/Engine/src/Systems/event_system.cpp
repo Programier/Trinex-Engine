@@ -26,7 +26,7 @@ namespace Engine
 {
     // Basic callbacks
 
-    static void on_window_close(const Event& event)
+    void EventSystem::on_window_close(const Event& event)
     {
         WindowManager* manager = WindowManager::instance();
         Window* window         = manager->find(event.window_id());
@@ -35,9 +35,9 @@ namespace Engine
         {
             engine_instance->request_exit();
         }
-        else
+        else if (window)
         {
-            manager->destroy_window(window);
+            m_windows_to_destroy.push_back(window);
         }
     }
 
@@ -97,7 +97,7 @@ namespace Engine
 
     EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
     {
-        m_listeners[static_cast<byte>(id.m_type)].remove(id.m_id);
+        m_listeners_to_remove.push_back(id);
         return *this;
     }
 
@@ -107,8 +107,8 @@ namespace Engine
         Super::create();
 
         System::new_system<EngineSystem>()->register_subsystem(this);
-        add_listener(EventType::Quit, on_window_close);
-        add_listener(EventType::WindowClose, on_window_close);
+        add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1));
+        add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1));
 
         WindowManager::instance()->add_event_callback(id(), [this](const Event& e) { push_event(e); });
 
@@ -128,7 +128,35 @@ namespace Engine
     EventSystem& EventSystem::update(float dt)
     {
         Super::update(dt);
-        return (this->*m_process_events)();
+
+        if (!m_listeners_to_remove.empty())
+        {
+            for (auto& id : m_listeners_to_remove)
+            {
+                m_listeners[static_cast<byte>(id.m_type)].remove(id.m_id);
+            }
+            m_listeners_to_remove.clear();
+        }
+
+
+        (this->*m_process_events)();
+
+        if (!m_windows_to_destroy.empty())
+        {
+            WindowManager* manager = WindowManager::instance();
+
+            if (manager)
+            {
+                for (Window* window : m_windows_to_destroy)
+                {
+                    manager->destroy_window(window);
+                }
+            }
+
+            m_windows_to_destroy.clear();
+        }
+
+        return *this;
     }
 
     const EventSystem& EventSystem::push_event(const Event& event) const

@@ -118,5 +118,8 @@ namespace Engine
     implement_enum(RenderPassType, Engine, {"Undefined", RenderPassType::Undefined}, {"Window", RenderPassType::Window},
                    {"OneAttachentOutput", RenderPassType::OneAttachentOutput}, {"GBuffer", RenderPassType::GBuffer});
 
-    implement_enum(MaterialUsage, Engine, {"StaticMesh", MaterialUsage::StaticMesh}, {"Lighting", MaterialUsage::Lighting});
+    implement_enum(MaterialUsage, Engine, {"StaticMeshRendering", MaterialUsage::StaticMeshRendering},
+                   {"LightingRendering", MaterialUsage::LightingRendering}, {"InWindowRendering", MaterialUsage::WindowRendering},
+                   {"SceneOutputRendering", MaterialUsage::SceneOutputRendering},
+                   {"GBufferRendering", MaterialUsage::GBufferRendering});
 }// namespace Engine

@@ -40,7 +40,8 @@ namespace Engine
     EditorClient::EditorClient()
     {}
 
-    EditorClient::~EditorClient()
+
+    void EditorClient::unbind_window(bool destroying)
     {
         EventSystem* event_system = EventSystem::instance();
 
@@ -50,7 +51,24 @@ namespace Engine
             {
                 event_system->remove_listener(listener);
             }
+            m_event_system_listeners.clear();
         }
+
+        m_window = nullptr;
+    }
+
+    void EditorClient::on_window_close(const Event& event)
+    {
+        if (event.window_id() == m_window->window_id())
+        {
+            unbind_window(false);
+        }
+    }
+
+
+    EditorClient::~EditorClient()
+    {
+        unbind_window(true);
     }
 
     void EditorClient::on_content_browser_close()
@@ -102,7 +120,7 @@ namespace Engine
         return *this;
     }
 
-    ViewportClient& EditorClient::on_bind_to_viewport(class RenderViewport* viewport)
+    ViewportClient& EditorClient::on_bind_viewport(class RenderViewport* viewport)
     {
         Window* window = viewport->window();
         if (window == nullptr)
@@ -149,8 +167,16 @@ namespace Engine
                 EventType::KeyDown, std::bind(&EditorClient::on_key_press, this, std::placeholders::_1)));
         m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::KeyUp, std::bind(&EditorClient::on_key_release, this, std::placeholders::_1)));
+        m_event_system_listeners.push_back(event_system->add_listener(
+                EventType::WindowClose, std::bind(&EditorClient::on_window_close, this, std::placeholders::_1)));
 
         return init_world();
+    }
+
+    ViewportClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
+    {
+        unbind_window(false);
+        return *this;
     }
 
     void EditorClient::on_object_select(Object* object)
@@ -343,7 +369,6 @@ namespace Engine
         auto view       = camera->view_matrix();
         auto projection = camera->projection_matrix();
         auto& transform = m_selected_scene_component->transform;
-
 
 
         {

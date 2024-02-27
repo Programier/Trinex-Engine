@@ -340,7 +340,11 @@ namespace Engine
 
     enum class MaterialUsage : EnumerateType
     {
-        StaticMesh = 0,
-        Lighting   = 1,
+        WindowRendering      = BIT(0),
+        SceneOutputRendering = BIT(1),
+        GBufferRendering     = BIT(2),
+
+        StaticMeshRendering = 1 << 3,
+        LightingRendering   = (2 << 3) | SceneOutputRendering,
     };
 }// namespace Engine

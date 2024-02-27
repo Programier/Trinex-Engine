@@ -14,7 +14,8 @@ namespace Engine
         declare_class(ViewportClient, Object);
 
     public:
-        virtual ViewportClient& on_bind_to_viewport(class RenderViewport* viewport);
+        virtual ViewportClient& on_bind_viewport(class RenderViewport* viewport);
+        virtual ViewportClient& on_unbind_viewport(class RenderViewport* viewport);
         virtual ViewportClient& render(class RenderViewport* viewport);
         virtual ViewportClient& update(class RenderViewport* viewport, float dt);
 

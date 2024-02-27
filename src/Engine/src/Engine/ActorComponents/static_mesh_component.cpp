@@ -26,11 +26,12 @@ namespace Engine
         {
             if (Pipeline* pipeline = mesh->material->material()->pipeline)
             {
-                if (pipeline->render_pass == RenderPassType::OneAttachentOutput)
+                RenderPassType type = pipeline->render_pass_type();
+                if (type == RenderPassType::OneAttachentOutput)
                 {
                     scene->scene_output_layer()->add_component(this);
                 }
-                else if (pipeline->render_pass == RenderPassType::GBuffer)
+                else if (type == RenderPassType::GBuffer)
                 {
                     scene->base_pass_layer()->add_component(this);
                 }

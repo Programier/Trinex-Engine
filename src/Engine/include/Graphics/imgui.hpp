@@ -171,7 +171,7 @@ namespace Engine::ImGuiRenderer
     public:
         ImGuiViewport* viewport = nullptr;
 
-        ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override;
+        ViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
         ViewportClient& render(class RenderViewport* viewport) override;
         ViewportClient& update(class RenderViewport* viewport, float dt) override;
     };

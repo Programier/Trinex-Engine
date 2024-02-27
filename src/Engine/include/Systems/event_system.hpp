@@ -25,11 +25,15 @@ namespace Engine
     private:
         ListenerMap m_listeners;
         EventSystem& (EventSystem::*m_process_events)() = nullptr;
+        List<class Window*> m_windows_to_destroy;
+        List<EventSystemListenerID> m_listeners_to_remove;
 
 
         EventSystem& wait_events();
         EventSystem& pool_events();
         EventSystem();
+
+        void on_window_close(const Event& event);
 
     public:
         const ListenerMap& listeners() const;

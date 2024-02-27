@@ -275,7 +275,7 @@ namespace Engine
         new_command(glBlendColor, pipeline->color_blending.blend_constants.r, pipeline->color_blending.blend_constants.g,
                     pipeline->color_blending.blend_constants.b, pipeline->color_blending.blend_constants.a);
 
-        RenderPass* render_pass = pipeline->render_pass_instance();
+        RenderPass* render_pass = pipeline->render_pass();
         trinex_always_check(render_pass, "Render pass can't be nullptr!");
 
         for (GLuint i = 0, size = static_cast<GLuint>(render_pass->color_attachments.size()); i < size; i++)

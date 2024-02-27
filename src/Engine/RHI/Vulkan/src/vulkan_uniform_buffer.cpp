@@ -27,7 +27,8 @@ namespace Engine
             return *this;
 
         size = glm::min(size, buffer.size - offset);
-        std::memcpy(buffer.mapped, data, size);
+        std::memcpy(buffer.mapped + offset, data, size);
+
         return *this;
     }
 
@@ -61,7 +62,7 @@ namespace Engine
         if (index >= 0)
         {
             API->m_state->m_pipeline->bind_uniform_buffer(buffers[index].buffer, 0, sizeof(GlobalShaderParameters),
-                                                            BindLocation(0, 0));
+                                                          BindLocation(0, 0));
         }
     }
 
@@ -94,9 +95,8 @@ namespace Engine
         auto& current_buffer = buffers[index];
         std::memcpy(current_buffer.mapped + used_data, shadow_data.data(), shadow_data_size);
         static BindLocation local_params_location = {1, 0};
-        API->m_state->m_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
-                                                        local_params_location);
-        used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
+        API->m_state->m_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size, local_params_location);
+        used_data        = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
         shadow_data_size = 0;
     }
 

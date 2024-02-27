@@ -14,7 +14,12 @@ namespace Engine
 
     static RenderViewport* m_current_render_viewport = nullptr;
 
-    ViewportClient& ViewportClient::on_bind_to_viewport(class RenderViewport* viewport)
+    ViewportClient& ViewportClient::on_bind_viewport(class RenderViewport* viewport)
+    {
+        return *this;
+    }
+
+    ViewportClient& ViewportClient::on_unbind_viewport(class RenderViewport* viewport)
     {
         return *this;
     }
@@ -200,10 +205,18 @@ namespace Engine
 
     RenderViewport& RenderViewport::client(ViewportClient* new_client)
     {
+        if (m_client)
+        {
+            ViewportClient* tmp = m_client;
+            m_client            = nullptr;
+            tmp->on_unbind_viewport(this);
+        }
+
         m_client = new_client;
+
         if (new_client)
         {
-            new_client->on_bind_to_viewport(this);
+            new_client->on_bind_viewport(this);
         }
         return *this;
     }

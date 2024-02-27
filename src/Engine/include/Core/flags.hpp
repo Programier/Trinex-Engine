@@ -6,7 +6,7 @@
 namespace Engine
 {
     template<typename T, typename EnumType>
-    concept FlagsConcept = std::is_same_v<T, EnumType> || (!std::is_enum_v<T> && std::is_integral_v<T>);
+    concept FlagsConcept = !std::is_enum_v<T> && std::is_integral_v<T>;
 
 
     enum class FlagsOperator
@@ -19,6 +19,9 @@ namespace Engine
     template<typename FlagsType = BitMask>
     struct Flags {
         BitMask flags;
+
+        FORCE_INLINE Flags(FlagsType flags) : flags(static_cast<BitMask>(flags))
+        {}
 
         template<typename T = BitMask>
             requires FlagsConcept<T, FlagsType>

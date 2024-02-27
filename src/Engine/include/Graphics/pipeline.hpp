@@ -105,7 +105,7 @@ namespace Engine
         bool serialize_shaders(Archive& ar);
 
     public:
-        RenderPassType render_pass      = RenderPassType::Undefined;
+        MaterialUsage usage             = MaterialUsage::StaticMeshRendering;
         VertexShader* vertex_shader     = nullptr;
         FragmentShader* fragment_shader = nullptr;
 
@@ -115,7 +115,8 @@ namespace Engine
         Pipeline& postload() override;
         const Pipeline& rhi_bind() const;
         class Material* material() const;
-        RenderPass* render_pass_instance() const;
+        RenderPassType render_pass_type() const;
+        RenderPass* render_pass() const;
 
         bool archive_process(class Archive& archive) override;
     };

@@ -60,7 +60,7 @@ namespace Engine
             move_offset                  = {float(data.xrel), float(data.yrel)};
         }
 
-        ViewportClient& on_bind_to_viewport(class RenderViewport* viewport) override
+        ViewportClient& on_bind_viewport(class RenderViewport* viewport) override
         {
             vertex_buffer         = Object::new_instance<TexCoordVertexBuffer>();
             vertex_buffer->buffer = {{-1, -1}, {-1, 1}, {1, 1}, {-1, -1}, {1, 1}, {1, -1}};
@@ -80,7 +80,7 @@ namespace Engine
 
             pipeline->depth_test.enable    = false;
             pipeline->rasterizer.cull_mode = CullMode::None;
-            pipeline->render_pass = RenderPassType::Window;
+            pipeline->usage                = MaterialUsage::WindowRendering;
             material->postload();
 
 

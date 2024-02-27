@@ -57,7 +57,7 @@ namespace Engine
         static Name name_scale  = "scale";
         static Name name_offset = "offset";
 
-        renderer->begin_rendering_target(GBuffer::instance());
+        renderer->begin_rendering_target(GBufferBaseColorOutput::instance());
 
         auto rhi = engine_instance->rhi();
 

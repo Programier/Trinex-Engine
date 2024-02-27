@@ -185,7 +185,7 @@ namespace Engine
                 .setBack(get_stencil_op_state(in_state.stencil_test.back));
 
 
-        RenderPass* render_pass = in_state.render_pass_instance();
+        RenderPass* render_pass = in_state.render_pass();
         trinex_always_check(render_pass, "Render pass can't be nullptr!");
 
         out_state.color_blend_attachment.resize(render_pass->color_attachments.size());
@@ -246,7 +246,7 @@ namespace Engine
         if (!pipeline)
             throw EngineException("Cannot create Vulkan Pipeline from nullptr engine pipeline");
 
-        if (pipeline->render_pass == RenderPassType::Undefined)
+        if (pipeline->render_pass() == nullptr)
             throw EngineException("Cannot create Vulkan Pipeline without render_pass");
     }
 
@@ -302,7 +302,7 @@ namespace Engine
 
         vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->m_dynamic_states);
 
-        RenderPass* render_pass = RenderPass::load_render_pass(pipeline->render_pass);
+        RenderPass* render_pass = pipeline->render_pass();
 
         vk::GraphicsPipelineCreateInfo pipeline_info(
                 {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,

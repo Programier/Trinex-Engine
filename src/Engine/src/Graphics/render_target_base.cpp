@@ -25,8 +25,6 @@ namespace Engine
             {
                 new_render_pass = render_pass;
             }
-
-            if (new_render_pass != m_current_pass || m_current_target != this)
             {
                 m_frame_index    = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
                 m_current_target = this;
