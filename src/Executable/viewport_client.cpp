@@ -80,8 +80,6 @@ namespace Engine
 
             pipeline->depth_test.enable    = false;
             pipeline->rasterizer.cull_mode = CullMode::None;
-
-            pipeline->color_blending.blend_attachment.resize(1);
             pipeline->render_pass = RenderPassType::Window;
             material->postload();
 

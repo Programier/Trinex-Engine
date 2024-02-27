@@ -81,7 +81,7 @@ namespace Engine
             FrontFace front_face     = FrontFace::CounterClockWise;
         } rasterizer;
 
-        struct ALIGNED(4) ColorBlendAttachmentState {
+        struct ALIGNED(4) ColorBlendingInfo {
             bool enable                   = false;
             BlendFunc src_color_func      = BlendFunc::SrcColor;
             BlendFunc dst_color_func      = BlendFunc::OneMinusSrcColor;
@@ -90,10 +90,8 @@ namespace Engine
             BlendFunc dst_alpha_func      = BlendFunc::OneMinusSrcAlpha;
             BlendOp alpha_op              = BlendOp::Add;
             ColorComponentMask color_mask = ColorComponentMask::RGBA;
-        };
 
-        struct ALIGNED(4) ColorBlendingInfo {
-            Vector<ColorBlendAttachmentState> blend_attachment;
+
             LogicOp logic_op         = LogicOp::And;
             Vector4D blend_constants = {0.f, 0.f, 0.f, 0.f};
             bool logic_op_enable     = false;
@@ -117,6 +115,7 @@ namespace Engine
         Pipeline& postload() override;
         const Pipeline& rhi_bind() const;
         class Material* material() const;
+        RenderPass* render_pass_instance() const;
 
         bool archive_process(class Archive& archive) override;
     };

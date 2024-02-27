@@ -17,7 +17,7 @@ namespace Engine
 
         inline void reset()
         {
-            std::memset(this, 0, sizeof(VulkanState));
+            std::memset(reinterpret_cast<void*>(this), 0, sizeof(VulkanState));
         }
     };
 }// namespace Engine

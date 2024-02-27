@@ -337,4 +337,10 @@ namespace Engine
         ClearGBuffer            = 5,
         __COUNT__,
     };
+
+    enum class MaterialUsage : EnumerateType
+    {
+        StaticMesh = 0,
+        Lighting   = 1,
+    };
 }// namespace Engine

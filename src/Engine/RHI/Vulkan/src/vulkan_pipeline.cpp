@@ -184,25 +184,22 @@ namespace Engine
                 .setFront(get_stencil_op_state(in_state.stencil_test.front))
                 .setBack(get_stencil_op_state(in_state.stencil_test.back));
 
-        out_state.color_blend_attachment.resize(in_state.color_blending.blend_attachment.size());
 
-        Index index = 0;
+        RenderPass* render_pass = in_state.render_pass_instance();
+        trinex_always_check(render_pass, "Render pass can't be nullptr!");
+
+        out_state.color_blend_attachment.resize(render_pass->color_attachments.size());
+
 
         for (auto& attachment : out_state.color_blend_attachment)
         {
-            attachment.setBlendEnable(in_state.color_blending.blend_attachment[index].enable)
-                    .setSrcColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(
-                            in_state.color_blending.blend_attachment[index].src_color_func)])
-                    .setDstColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(
-                            in_state.color_blending.blend_attachment[index].dst_color_func)])
-                    .setColorBlendOp(
-                            m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].color_op)])
-                    .setSrcAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(
-                            in_state.color_blending.blend_attachment[index].src_alpha_func)])
-                    .setDstAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(
-                            in_state.color_blending.blend_attachment[index].dst_alpha_func)])
-                    .setAlphaBlendOp(
-                            m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.blend_attachment[index].alpha_op)]);
+            attachment.setBlendEnable(in_state.color_blending.enable)
+                    .setSrcColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.src_color_func)])
+                    .setDstColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.dst_color_func)])
+                    .setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.color_op)])
+                    .setSrcAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.src_alpha_func)])
+                    .setDstAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.dst_alpha_func)])
+                    .setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.alpha_op)]);
 
             vk::ColorComponentFlags color_mask;
 
@@ -212,7 +209,7 @@ namespace Engine
                 EnumerateType B = enum_value_of(ColorComponent::B);
                 EnumerateType A = enum_value_of(ColorComponent::A);
 
-                auto mask = enum_value_of(in_state.color_blending.blend_attachment[index].color_mask);
+                auto mask = enum_value_of(in_state.color_blending.color_mask);
 
                 if ((mask & R) == R)
                 {
@@ -233,7 +230,6 @@ namespace Engine
 
                 attachment.setColorWriteMask(color_mask);
             }
-            ++index;
         }
 
         out_state.color_blending
@@ -266,8 +262,7 @@ namespace Engine
         if (pipeline->vertex_shader)
         {
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-                                                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_shader,
-                                                     "main");
+                                                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
         }
 
         if (pipeline->fragment_shader)

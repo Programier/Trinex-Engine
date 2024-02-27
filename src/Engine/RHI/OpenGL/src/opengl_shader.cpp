@@ -1,10 +1,10 @@
 #include <Graphics/pipeline.hpp>
+#include <Graphics/render_pass.hpp>
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>
 #include <opengl_color_format.hpp>
 #include <opengl_enums_convertor.hpp>
 #include <opengl_shader.hpp>
-
 
 namespace Engine
 {
@@ -112,7 +112,7 @@ namespace Engine
         if (id)
         {
             OpenGL_Shader* vertex = new OpenGL_VertexShader();
-            vertex->m_id         = id;
+            vertex->m_id          = id;
             return vertex;
         }
 
@@ -126,7 +126,7 @@ namespace Engine
         if (id)
         {
             OpenGL_Shader* fragment = new OpenGL_FragmentShader();
-            fragment->m_id         = id;
+            fragment->m_id          = id;
             return fragment;
         }
 
@@ -190,8 +190,7 @@ namespace Engine
 
         if (pipeline->fragment_shader && pipeline->fragment_shader->rhi_object<OpenGL_Shader>())
         {
-            glUseProgramStages(m_pipeline, GL_FRAGMENT_SHADER_BIT,
-                               pipeline->fragment_shader->rhi_object<OpenGL_Shader>()->m_id);
+            glUseProgramStages(m_pipeline, GL_FRAGMENT_SHADER_BIT, pipeline->fragment_shader->rhi_object<OpenGL_Shader>()->m_id);
         }
 
 
@@ -276,9 +275,12 @@ namespace Engine
         new_command(glBlendColor, pipeline->color_blending.blend_constants.r, pipeline->color_blending.blend_constants.g,
                     pipeline->color_blending.blend_constants.b, pipeline->color_blending.blend_constants.a);
 
-        for (GLuint i = 0, size = static_cast<GLuint>(pipeline->color_blending.blend_attachment.size()); i < size; i++)
+        RenderPass* render_pass = pipeline->render_pass_instance();
+        trinex_always_check(render_pass, "Render pass can't be nullptr!");
+
+        for (GLuint i = 0, size = static_cast<GLuint>(render_pass->color_attachments.size()); i < size; i++)
         {
-            auto& attachment = pipeline->color_blending.blend_attachment[i];
+            auto& attachment = pipeline->color_blending;
             if (attachment.enable)
             {
                 new_command(glEnablei, GL_BLEND, i);

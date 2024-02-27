@@ -160,38 +160,25 @@ namespace Engine
                 new EnumProperty("Front face", "Front face", &RI::front_face, Enum::find("Engine::FrontFace", true)));
     });
 
+    implement_struct(ColorBlendingInfo, Engine::Pipeline, ).push([]() {
+        using CBI    = Pipeline::ColorBlendingInfo;
+        Struct* self = Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true);
 
-    implement_struct(ColorBlendAttachmentState, Engine::Pipeline, ).push([]() {
-        using CBAS = Pipeline::ColorBlendAttachmentState;
-
-        Struct* self     = Struct::static_find("Engine::Pipeline::ColorBlendAttachmentState", true);
         Enum* blend_func = Enum::find("Engine::BlendFunc", true);
         Enum* blend_op   = Enum::find("Engine::BlendOp", true);
 
         self->add_properties(
-                new BoolProperty("Enable", "Enable blending", &CBAS::enable),
-                new EnumProperty("Src color func", "Src color func", &CBAS::src_color_func, blend_func),
-                new EnumProperty("Dst color func", "Dst color func", &CBAS::dst_color_func, blend_func),
-                new EnumProperty("Color operator", "Color operator", &CBAS::color_op, blend_op),
+                new BoolProperty("Enable", "Enable blending", &CBI::enable),
+                new EnumProperty("Src color func", "Src color func", &CBI::src_color_func, blend_func),
+                new EnumProperty("Dst color func", "Dst color func", &CBI::dst_color_func, blend_func),
+                new EnumProperty("Color operator", "Color operator", &CBI::color_op, blend_op),
 
-                new EnumProperty("Src alpha func", "Src alpha func", &CBAS::src_alpha_func, blend_func),
-                new EnumProperty("Dst alpha func", "Dst alpha func", &CBAS::dst_alpha_func, blend_func),
-                new EnumProperty("Alpha operator", "Alpha operator", &CBAS::alpha_op, blend_op),
-
-                new EnumProperty("Color mask", "Color mask", &CBAS::color_mask, Enum::find("Engine::ColorComponentMask", true)));
-    });
-
-    implement_struct(ColorBlendingInfo, Engine::Pipeline, ).push([]() {
-        using CBI = Pipeline::ColorBlendingInfo;
-
-        Struct* self = Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true);
-
-        Struct* attachment_state = Struct::static_find("Engine::Pipeline::ColorBlendAttachmentState", true);
+                new EnumProperty("Src alpha func", "Src alpha func", &CBI::src_alpha_func, blend_func),
+                new EnumProperty("Dst alpha func", "Dst alpha func", &CBI::dst_alpha_func, blend_func),
+                new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
+                new EnumProperty("Color mask", "Color mask", &CBI::color_mask, Enum::find("Engine::ColorComponentMask", true)));
 
         self->add_properties(
-                new ArrayProperty(
-                        "Blend attachments", "Blend attachments", &CBI::blend_attachment,
-                        new StructProperty<Object, Pipeline::ColorBlendAttachmentState>("", "", nullptr, attachment_state)),
                 new EnumProperty("Logic operator", "Logic operator", &CBI::logic_op, Enum::find("Engine::LogicOp", true)),
                 new Vec4Property("Blend constants", "Blend constant values", &CBI::blend_constants),
                 new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));
@@ -245,6 +232,10 @@ namespace Engine
         return Object::instance_cast<Material>(owner());
     }
 
+    RenderPass* Pipeline::render_pass_instance() const
+    {
+        return RenderPass::load_render_pass(render_pass);
+    }
 
     bool Pipeline::serialize_shaders(Archive& ar)
     {
@@ -291,7 +282,7 @@ namespace Engine
             serialize_shaders(archive);
 
             auto end_position = archive.position();
-            shader_code_size = end_position - shader_code_start;
+            shader_code_size  = end_position - shader_code_start;
 
             archive.position(shader_code_size_start);
             archive & shader_code_size;
@@ -361,15 +352,6 @@ namespace Engine
 
         auto render_pass_prop = new EnumProperty("Render pass", "Type of render pass for this pipeline", &Pipeline::render_pass,
                                                  render_pass_type_enum);
-
-        render_pass_prop->on_prop_changed.push([](void* address) -> void {
-            Pipeline* pipeline      = reinterpret_cast<Pipeline*>(address);
-            RenderPass* render_pass = RenderPass::load_render_pass(pipeline->render_pass);
-
-            size_t count = render_pass ? render_pass->color_attachments.size() : 0;
-            pipeline->color_blending.blend_attachment.resize(count);
-            pipeline->color_blending.blend_attachment.shrink_to_fit();
-        });
 
         self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
                                                 Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
