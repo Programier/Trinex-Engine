@@ -45,6 +45,7 @@ namespace Engine
         if (m_parent_struct)
         {
             m_parent = m_parent_struct->name();
+            m_parent_struct->m_childs.push_back(this);
         }
     }
 
@@ -113,6 +114,10 @@ namespace Engine
         if (m_parent_struct == nullptr)
         {
             m_parent_struct = static_find(m_parent);
+            if (m_parent_struct)
+            {
+                m_parent_struct->m_childs.push_back(const_cast<Struct*>(this));
+            }
         }
         return m_parent_struct;
     }
@@ -188,6 +193,11 @@ namespace Engine
         }
 
         return result;
+    }
+
+    const Vector<Struct*>& Struct::childs() const
+    {
+        return m_childs;
     }
 
     bool Struct::is_a(const Struct* other) const

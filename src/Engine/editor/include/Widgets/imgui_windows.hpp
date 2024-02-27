@@ -91,6 +91,47 @@ namespace Engine
         static const char* name();
     };
 
+
+    class ImGuiSpawnNewActor : public ImGuiRenderer::ImGuiAdditionalWindow
+    {
+        struct Node {
+            class Class* self = nullptr;
+
+            struct Compare {
+                bool operator()(const Node* a, const Node* b) const;
+            };
+
+            TreeSet<Node*> childs;
+
+            ~Node();
+        };
+
+        Node* m_root     = nullptr;
+        Node* m_selected = nullptr;
+        ImGuiID m_dock_id;
+
+        Vector3D m_location = {0, 0, 0};
+        Vector3D m_rotation = {0, 0, 0};
+        Vector3D m_scale    = {1, 1, 1};
+        String m_name;
+        bool m_is_open = false;
+
+        void build_tree(Node* node, class Class* self);
+        void render_tree(Node* node);
+        void render_parameters();
+        void begin_dock_space();
+
+    public:
+        class World* world = nullptr;
+
+        ImGuiSpawnNewActor(class World* world);
+
+        bool render(RenderViewport* viewport) override;
+        static const char* name();
+
+        ~ImGuiSpawnNewActor();
+    };
+
     class ImGuiSceneTree : public ImGuiRenderer::ImGuiAdditionalWindow
     {
         void render_scene_tree(class SceneComponent* component);

@@ -14,6 +14,7 @@
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
+#include <Window/monitor.hpp>
 
 
 namespace Engine
@@ -127,6 +128,7 @@ namespace Engine
         if (m_windows.empty())
         {
             m_main_window = window;
+            Monitor::update();
         }
 
         m_windows[window->window_id()] = window;

@@ -9,7 +9,11 @@
 #include <Graphics/visual_material.hpp>
 #include <PropertyRenderers/imgui_class_property.hpp>
 #include <Widgets/imgui_windows.hpp>
+#include <Window/monitor.hpp>
+#include <icons.hpp>
 #include <imfilebrowser.h>
+#include <imgui_internal.h>
+#include <theme.hpp>
 
 namespace Engine
 {
@@ -318,6 +322,130 @@ namespace Engine
         return "editor/Properties Title"_localized;
     }
 
+    bool ImGuiSpawnNewActor::Node::Compare::operator()(const Node* a, const Node* b) const
+    {
+        return a->self->base_name_splitted() < b->self->base_name_splitted();
+    }
+
+    ImGuiSpawnNewActor::Node::~Node()
+    {
+        for (auto& child : childs)
+        {
+            delete child;
+        }
+    }
+
+    void ImGuiSpawnNewActor::build_tree(Node* node, class Class* self)
+    {
+        node->self = self;
+
+        for (Struct* child : self->childs())
+        {
+            if (child->is_class())
+            {
+                Node* child_node = new Node();
+                build_tree(child_node, reinterpret_cast<Class*>(child));
+                node->childs.insert(child_node);
+            }
+        }
+    }
+
+    ImGuiSpawnNewActor::ImGuiSpawnNewActor(class World* world) : world(world)
+    {
+        Class* actor_class = Class::static_find("Engine::Actor", true);
+        m_root             = new Node();
+        build_tree(m_root, actor_class);
+    }
+
+    ImGuiSpawnNewActor::~ImGuiSpawnNewActor()
+    {
+        delete m_root;
+    }
+
+    void ImGuiSpawnNewActor::render_tree(Node* node)
+    {
+        bool state = ImGui::TreeNodeEx(node->self->base_name_splitted().c_str(),
+                                       (node == m_selected ? ImGuiTreeNodeFlags_Selected : 0));
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+        {
+            m_selected = node;
+        }
+
+        if (state)
+        {
+            for (Node* child : node->childs)
+            {
+                render_tree(child);
+            }
+
+            ImGui::TreePop();
+        }
+    }
+
+    void ImGuiSpawnNewActor::begin_dock_space()
+    {
+        m_dock_id = ImGui::GetID("##SpawnActorDock");
+
+        ImGui::DockSpace(m_dock_id, {0, 0},
+                         ImGuiDockNodeFlags_PassthruCentralNode | ImGuiDockNodeFlags_NoUndocking | ImGuiDockNodeFlags_NoTabBar);
+
+        if (frame_number == 1)
+        {
+            ImGui::DockBuilderRemoveNode(m_dock_id);
+            ImGui::DockBuilderAddNode(m_dock_id, ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(m_dock_id, ImGui::GetWindowSize());
+
+            auto dock_id_left = ImGui::DockBuilderSplitNode(m_dock_id, ImGuiDir_Left, 0.35f, nullptr, &m_dock_id);
+
+            ImGui::DockBuilderDockWindow("##ActorSpawner->ActorParameters", dock_id_left);
+            ImGui::DockBuilderDockWindow("##ActorSpawner->ActorSelector", m_dock_id);
+            ImGui::DockBuilderFinish(m_dock_id);
+        }
+    }
+
+    void ImGuiSpawnNewActor::render_parameters()
+    {
+        ImGui::Text("editor/Class: %s"_localized, m_selected ? m_selected->self->base_name_splitted().c_str() : "None");
+        ImGuiRenderer::InputText("editor/Name"_localized, m_name);
+        ImGui::InputFloat3("editor/Location"_localized, &m_location.x);
+        ImGui::InputFloat3("editor/Rotation"_localized, &m_rotation.x);
+        ImGui::InputFloat3("editor/Scale"_localized, &m_scale.x);
+
+        if (m_selected && ImGui::Button("editor/Spawn"_localized))
+        {
+            world->spawn_actor(m_selected->self, m_location, m_rotation, m_scale, m_name);
+            m_is_open = false;
+        }
+    }
+
+    bool ImGuiSpawnNewActor::render(RenderViewport* viewport)
+    {
+        m_is_open = true;
+        ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(Monitor::size() / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
+        ImGui::SetNextWindowSize({900, 450}, ImGuiCond_Appearing);
+        ImGui::Begin(name(), &m_is_open);
+
+        begin_dock_space();
+
+        ImGui::Begin("##ActorSpawner->ActorSelector");
+        render_tree(m_root);
+        ImGui::End();
+
+
+        ImGui::Begin("##ActorSpawner->ActorParameters");
+        render_parameters();
+        ImGui::End();
+
+
+        ImGui::End();
+        return m_is_open;
+    }
+
+    const char* ImGuiSpawnNewActor::name()
+    {
+        return "editor/Spawn Actor"_localized;
+    }
 
     ImGuiSceneTree::ImGuiSceneTree(SceneComponent* root_component) : world(nullptr)
     {}
@@ -364,6 +492,20 @@ namespace Engine
     {
         bool open = true;
         ImGui::Begin(name(), closable ? &open : nullptr);
+
+        auto add_icon = Icons::icon(Icons::IconType::Add)->handle();
+
+        const float icon_size = 24.f * editor_scale_factor();
+
+        if (add_icon)
+        {
+            if (ImGui::ImageButton(add_icon, {icon_size, icon_size}))
+            {
+                ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiSpawnNewActor>(this, world);
+            }
+        }
+
+        ImGui::Separator();
         render_scene_tree(world->scene()->root_component());
         ImGui::End();
 

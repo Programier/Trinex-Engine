@@ -55,6 +55,11 @@ namespace Engine
     }
 
 
+    StaticMesh::StaticMesh()
+    {
+        material = Object::find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
+    }
+
     StaticMesh& StaticMesh::init_resources()
     {
         for (auto& lod : lods)

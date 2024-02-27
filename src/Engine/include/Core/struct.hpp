@@ -25,7 +25,7 @@ namespace Engine
         class Group* m_group = nullptr;
 
         mutable Struct* m_parent_struct = nullptr;
-
+        Vector<Struct*> m_childs;
         Vector<class Property*> m_properties;
         GroupedPropertiesMap m_grouped_properties;
 
@@ -48,6 +48,7 @@ namespace Engine
         class Group* group() const;
         size_t abstraction_level() const;
         Vector<Name> hierarchy(size_t offset = 0) const;
+        const Vector<Struct*>& childs() const;
 
         bool is_a(const Struct* other) const;
         virtual bool is_class() const;

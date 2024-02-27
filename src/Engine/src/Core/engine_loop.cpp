@@ -54,26 +54,17 @@ namespace Engine
 
         try
         {
-            static constexpr float smoothing_factor = 0.05;
+            static constexpr float smoothing_factor = 0.3;
 
             float prev_time    = 1.0f / static_cast<float>(engine_config.fps_limit);
             float current_time = 0.0f;
-            m_delta_time      = 0.0f;
+            m_delta_time       = 0.0f;
 
             while (!is_requesting_exit())
             {
-                {
-                    float wait_time = (1.0f / static_cast<float>(engine_config.fps_limit)) - (time_seconds() - prev_time);
-
-                    if (wait_time > 0)
-                    {
-                        Thread::sleep_for(wait_time);
-                    }
-                }
-
-                current_time  = time_seconds();
-                m_delta_time = smoothing_factor * (current_time - prev_time) + (1 - smoothing_factor) * m_delta_time;
-                prev_time     = current_time;
+                current_time = time_seconds();
+                m_delta_time = glm::mix(m_delta_time, current_time - prev_time, smoothing_factor);
+                prev_time    = current_time;
 
                 m_current_gc_stage = Object::collect_garbage(m_current_gc_stage);
 

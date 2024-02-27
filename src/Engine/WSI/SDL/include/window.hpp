@@ -34,8 +34,6 @@ namespace Engine
 
         Identifier m_id;
 
-        bool m_vsync_status;
-
         WindowInterface* initialize(const WindowConfig* config);
         Size1D width() override;
         WindowInterface& width(const Size1D& width) override;

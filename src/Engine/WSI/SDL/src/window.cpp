@@ -75,7 +75,7 @@ namespace Engine
 
     WindowInterface* WindowSDL::initialize(const WindowConfig* info)
     {
-        m_vsync_status = info->vsync;
+        //m_vsync_status = info->vsync;
         uint32_t attrib = to_sdl_attrib(info->attributes);
 #if PLATFORM_LINUX
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
@@ -110,6 +110,8 @@ namespace Engine
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
                 }
+
+                vsync(info->vsync);
             }
             else if (m_api == SDL_WINDOW_VULKAN)
             {
@@ -792,12 +794,11 @@ void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiVi
     new_window->m_window         = window;
     new_window->m_id             = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
     new_window->m_api            = main_window->m_api;
-    new_window->m_vsync_status   = main_window->m_vsync_status;
 
 
     Engine::WindowConfig config;
     config.client = "Engine::ImGuiViewportClient";
-    config.vsync  = new_window->m_vsync_status;
+    config.vsync  = main_window->vsync();
     auto* client  = reinterpret_cast<Engine::ImGuiRenderer::ImGuiViewportClient*>(
             Engine::WindowManager::instance()->create_window(config, nullptr, new_window)->render_viewport()->client());
     if (client)

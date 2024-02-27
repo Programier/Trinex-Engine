@@ -86,7 +86,8 @@ namespace Engine
         return *this;
     }
 
-    Actor* World::spawn_actor(class Class* self, const Vector3D& location, const Vector3D& rotation, const Name& actor_name)
+    Actor* World::spawn_actor(class Class* self, const Vector3D& location, const Vector3D& rotation, const Vector3D& scale,
+                              const Name& actor_name)
     {
         if (!self)
             return nullptr;
@@ -110,6 +111,7 @@ namespace Engine
             {
                 root->transform.location = location;
                 root->transform.rotation = rotation;
+                root->transform.scale    = scale;
                 m_scene->root_component()->attach(root);
                 actor->scene_component()->on_transform_changed();
             }

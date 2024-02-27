@@ -43,6 +43,7 @@ namespace Engine
         AABB_3Df bounds;
         Vector<LOD> lods;
 
+        StaticMesh();
         StaticMesh& init_resources();
         StaticMesh& apply_changes() override;
         bool archive_process(Archive& ar) override;

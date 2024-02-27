@@ -311,6 +311,8 @@ namespace Engine
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
+        m_world->update(dt);
+
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
 
@@ -399,7 +401,8 @@ namespace Engine
 
     EditorClient& EditorClient::render_viewport_menu()
     {
-        static const float height                                          = 32.f;
+        const float height = 24.f * editor_scale_factor();
+
         static const Pair<ImGuizmo::OPERATION, Icons::IconType> controls[] = {
                 {ImGuizmo::OPERATION::UNIVERSAL, Icons::IconType::Select},
                 {ImGuizmo::OPERATION::TRANSLATE, Icons::IconType::Move},
