@@ -1,4 +1,5 @@
 #include "Core/struct.hpp"
+#include <Clients/material_editor_client.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/flags.hpp>
@@ -392,7 +393,7 @@ namespace Engine
                     int max_len = 0.f;
                     for (MaterialInputPin* pin : node->inputs)
                     {
-                        max_len = glm::max(max_len, static_cast<int>(pin->name.to_string().length()));
+                        max_len = glm::max(max_len, static_cast<int>(pin->name.length()));
                         offset  = glm::max(glm::min(offset - max_len, offset), 0);
                     }
 
@@ -412,7 +413,7 @@ namespace Engine
                     float max_item_len = 0.f;
                     for (MaterialOutputPin* pin : node->outputs)
                     {
-                        max_len      = glm::max(max_len, static_cast<int>(pin->name.to_string().length()));
+                        max_len      = glm::max(max_len, static_cast<int>(pin->name.length()));
                         max_item_len = glm::max(max_item_len, pin_item_len(pin));
                     }
 
@@ -525,7 +526,10 @@ namespace Engine
     static void delete_selected_items()
     {
         size_t objects = ed::GetSelectedObjectCount();
-        byte* _data    = new byte[objects * glm::max(sizeof(ed::NodeId), sizeof(ed::PinId))];
+        if (objects == 0)
+            return;
+
+        byte* _data = new byte[objects * glm::max(sizeof(ed::NodeId), sizeof(ed::PinId))];
 
         {
             ed::NodeId* nodes = reinterpret_cast<ed::NodeId*>(_data);
@@ -550,6 +554,7 @@ namespace Engine
                     }
 
                     delete node;
+                    ed::DeleteNode(nodes[i]);
                 }
             }
         }
@@ -570,7 +575,30 @@ namespace Engine
         delete[] _data;
     }
 
-    MaterialPin::MaterialPin(MaterialNode* node, Name name) : name(name), node(node)
+    static void process_new_selected_node(MaterialEditorClient* client)
+    {
+        ImGuiObjectProperties* properties = client->properties_window();
+        if (!properties)
+            return;
+
+        size_t nodes = ed::GetSelectedObjectCount();
+        if (nodes != 1)
+            return;
+
+        ed::NodeId node_id;
+        nodes = ed::GetSelectedNodes(&node_id, 1);
+
+        if (nodes == 1)
+        {
+            MaterialNode* node = node_id.AsPointer<MaterialNode>();
+            if (node == properties->instance())
+                return;
+
+            node->bind_to_properties_window(properties);
+        }
+    }
+
+    MaterialPin::MaterialPin(MaterialNode* node, const String& name) : name(name), node(node)
     {}
 
     Identifier MaterialPin::id() const
@@ -677,6 +705,14 @@ namespace Engine
         return MaterialNodeDataType::Undefined;
     }
 
+    void MaterialNode::bind_to_properties_window(ImGuiObjectProperties*)
+    {}
+
+    bool MaterialNode::serialize_pins() const
+    {
+        return true;
+    }
+
     bool MaterialNode::archive_process(Archive& ar)
     {
         if (!SerializableObject::archive_process(ar))
@@ -684,14 +720,17 @@ namespace Engine
 
         ar & position;
 
-        for (MaterialInputPin* pin : inputs)
+        if (serialize_pins())
         {
-            pin->archive_process(ar);
-        }
+            for (MaterialInputPin* pin : inputs)
+            {
+                pin->archive_process(ar);
+            }
 
-        for (MaterialOutputPin* pin : outputs)
-        {
-            pin->archive_process(ar);
+            for (MaterialOutputPin* pin : outputs)
+            {
+                pin->archive_process(ar);
+            }
         }
         return true;
     }
@@ -834,7 +873,7 @@ namespace Engine
         m_nodes.push_back(m_fragment_node);
     }
 
-    VisualMaterial& VisualMaterial::render_nodes(void* context)
+    VisualMaterial& VisualMaterial::render_nodes(MaterialEditorClient* client)
     {
         for (MaterialNode* node : nodes())
         {
@@ -852,6 +891,8 @@ namespace Engine
         {
             delete_selected_items();
         }
+
+        process_new_selected_node(client);
 
         return *this;
     }

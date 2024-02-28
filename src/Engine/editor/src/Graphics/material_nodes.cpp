@@ -1,12 +1,15 @@
 #include <Compiler/compiler.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/group.hpp>
 #include <Core/struct.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/material_nodes.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <PropertyRenderers/special_renderers.hpp>
+#include <Widgets/imgui_windows.hpp>
 #include <icons.hpp>
 #include <imgui.h>
-
+#include <theme.hpp>
 
 namespace Engine::MaterialNodes
 {
@@ -62,6 +65,11 @@ namespace Engine::MaterialNodes
         return false;
     }
 
+    void VertexNode::bind_to_properties_window(ImGuiObjectProperties* props)
+    {
+        props->update(material);
+    }
+
     FragmentNode::FragmentNode()
     {
         inputs.push_back(new Color3InputPin(this, "Base Color"));
@@ -95,6 +103,11 @@ namespace Engine::MaterialNodes
     bool FragmentNode::is_removable() const
     {
         return false;
+    }
+
+    void FragmentNode::bind_to_properties_window(ImGuiObjectProperties* props)
+    {
+        props->update(material);
     }
 
     Struct* VertexNode::static_struct_instance = nullptr;
@@ -812,4 +825,277 @@ namespace Engine::MaterialNodes
     declare_vertex_output_node(VertexColor, fragment_color, Vec4);
 
 
+    void CustomCode::bind_to_properties_window(ImGuiObjectProperties* props)
+    {
+        props->update(this, struct_instance());
+    }
+
+    MaterialNodeDataType CustomCode::output_type(const MaterialOutputPin* pin) const
+    {
+        for (Index index = 0, count = outputs.size(); index < count; ++index)
+        {
+            if (outputs[index] == pin)
+            {
+                return output_types[index];
+            }
+        }
+
+        return MaterialNodeDataType::Undefined;
+    }
+
+    size_t CustomCode::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
+    {
+        return compiler->custom_node_pin_source(this, pin);
+    }
+
+
+    template<typename T, typename Container>
+    static void create_pins_array(CustomCode* code, Container& container, size_t size)
+    {
+        container.reserve(size);
+        for (size_t i = 0; i < size; i++)
+        {
+            container.push_back(new T(code, ""));
+        }
+    }
+
+    bool CustomCode::serialize_pins() const
+    {
+        return false;
+    }
+
+    bool CustomCode::archive_process(Archive& ar)
+    {
+        if (!MaterialNode::archive_process(ar))
+        {
+            return false;
+        }
+
+        ar & shader_path;
+
+        size_t size = inputs.size();
+        ar & size;
+
+        if (ar.is_reading())
+        {
+            create_pins_array<MaterialInputPin>(this, inputs, size);
+        }
+
+        for (MaterialInputPin* pin : inputs)
+        {
+            ar & pin->name;
+            pin->archive_process(ar);
+        }
+
+        size = outputs.size();
+        ar & size;
+
+        if (ar.is_reading())
+        {
+            create_pins_array<MaterialOutputPin>(this, outputs, size);
+            output_types.resize(size);
+        }
+
+        for (MaterialOutputPin* pin : outputs)
+        {
+            ar & pin->name;
+            pin->archive_process(ar);
+        }
+
+        if (ar.is_reading())
+        {
+            ar.read_data(reinterpret_cast<byte*>(output_types.data()), sizeof(MaterialNodeDataType) * size);
+        }
+        else
+        {
+            ar.write_data(reinterpret_cast<byte*>(output_types.data()), sizeof(MaterialNodeDataType) * size);
+        }
+
+        return ar;
+    }
+
+    implement_material_node(CustomCode, Custom);
+
+
+    static const char* material_node_data_type_to_str(MaterialNodeDataType type)
+    {
+        switch (type)
+        {
+            case MaterialNodeDataType::Bool:
+                return "Bool";
+            case MaterialNodeDataType::Int:
+                return "Int";
+            case MaterialNodeDataType::UInt:
+                return "UInt";
+            case MaterialNodeDataType::Float:
+                return "Float";
+            case MaterialNodeDataType::BVec2:
+                return "BVec2";
+            case MaterialNodeDataType::BVec3:
+                return "BVec3";
+            case MaterialNodeDataType::BVec4:
+                return "BVec4";
+            case MaterialNodeDataType::IVec2:
+                return "IVec2";
+            case MaterialNodeDataType::IVec3:
+                return "IVec3";
+            case MaterialNodeDataType::IVec4:
+                return "IVec4";
+            case MaterialNodeDataType::UVec2:
+                return "UVec2";
+            case MaterialNodeDataType::UVec3:
+                return "UVec3";
+            case MaterialNodeDataType::UVec4:
+                return "UVec4";
+            case MaterialNodeDataType::Vec2:
+                return "Vec2";
+            case MaterialNodeDataType::Vec3:
+                return "Vec3";
+            case MaterialNodeDataType::Vec4:
+                return "Vec4";
+            case MaterialNodeDataType::Color3:
+                return "Color3";
+            case MaterialNodeDataType::Color4:
+                return "Color4";
+            case MaterialNodeDataType::Mat3:
+                return "Mat3";
+            case MaterialNodeDataType::Mat4:
+                return "Mat4";
+            case MaterialNodeDataType::Sampler:
+                return "Sampler";
+            default:
+                return "Undefined";
+        }
+    }
+
+    static void render_pin_type(MaterialNodeDataType& type)
+    {
+        static const MaterialNodeDataType types[] = {
+                MaterialNodeDataType::Undefined, MaterialNodeDataType::Bool,  MaterialNodeDataType::Int,
+                MaterialNodeDataType::UInt,      MaterialNodeDataType::Float, MaterialNodeDataType::BVec2,
+                MaterialNodeDataType::BVec3,     MaterialNodeDataType::BVec4, MaterialNodeDataType::IVec2,
+                MaterialNodeDataType::IVec3,     MaterialNodeDataType::IVec4, MaterialNodeDataType::UVec2,
+                MaterialNodeDataType::UVec3,     MaterialNodeDataType::UVec4, MaterialNodeDataType::Vec2,
+                MaterialNodeDataType::Vec3,      MaterialNodeDataType::Vec4,  MaterialNodeDataType::Color3,
+                MaterialNodeDataType::Color4,    MaterialNodeDataType::Mat3,  MaterialNodeDataType::Mat4,
+                MaterialNodeDataType::Sampler};
+        static constexpr size_t types_count = sizeof(types) / sizeof(MaterialNodeDataType);
+
+        const char* current_item = material_node_data_type_to_str(type);
+
+        if (ImGui::BeginCombo("##combo", current_item))
+        {
+            for (size_t index = 0; index < types_count; ++index)
+            {
+                bool is_selected = type == types[index];
+                if (ImGui::Selectable(material_node_data_type_to_str(types[index]), is_selected))
+                    type = types[index];
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+    }
+
+    static void custom_code_node_renderer(void* object, Struct* self, bool is_editable)
+    {
+        CustomCode* custom_code = reinterpret_cast<CustomCode*>(object);
+        ImGui::Text("Custom Node");
+
+        const float button_size = 15.f * editor_scale_factor();
+
+        if (ImGui::CollapsingHeader("editor/Inputs"_localized))
+        {
+            ImGui::Indent(5.f);
+
+            ImGui::PushID("##inputs");
+            if (ImGui::ImageButton(Icons::icon(Icons::Add)->handle(), {button_size, button_size}))
+            {
+                custom_code->inputs.push_back(new MaterialInputPin(custom_code, ""));
+            }
+
+            if (!custom_code->inputs.empty())
+            {
+                ImGui::SameLine();
+
+                if (ImGui::ImageButton(Icons::icon(Icons::Remove)->handle(), {button_size, button_size}))
+                {
+                    delete custom_code->inputs.back();
+                    custom_code->inputs.pop_back();
+                }
+            }
+
+            for (MaterialInputPin* pin : custom_code->inputs)
+            {
+                ImGuiRenderer::InputText("editor/Name"_localized, pin->name);
+            }
+            ImGui::PopID();
+
+            ImGui::Unindent(5.f);
+        }
+
+        if (ImGui::CollapsingHeader("editor/Outputs"_localized))
+        {
+            ImGui::Indent(5.f);
+            ImGui::PushID("##outputs");
+            if (ImGui::ImageButton(Icons::icon(Icons::Add)->handle(), {button_size, button_size}))
+            {
+                custom_code->outputs.push_back(new MaterialOutputPin(custom_code, ""));
+                custom_code->output_types.emplace_back();
+            }
+
+            if (!custom_code->outputs.empty())
+            {
+                ImGui::SameLine();
+
+                if (ImGui::ImageButton(Icons::icon(Icons::Remove)->handle(), {button_size, button_size}))
+                {
+                    delete custom_code->outputs.back();
+                    custom_code->outputs.pop_back();
+                    custom_code->output_types.pop_back();
+                }
+            }
+
+            Index index = 0;
+            for (MaterialOutputPin* pin : custom_code->outputs)
+            {
+                ImGui::PushID(pin);
+                render_pin_type(custom_code->output_types[index]);
+                ImGuiRenderer::InputText("editor/Name"_localized, pin->name);
+                ImGui::NewLine();
+                ImGui::PopID();
+                ++index;
+            }
+            ImGui::PopID();
+
+            ImGui::Unindent(5.f);
+        }
+
+        Path& path = custom_code->shader_path;
+
+        if (ImGui::CollapsingHeader("editor/Path"_localized))
+        {
+            ImGui::Indent(5.f);
+            if (ImGui::Selectable(path.empty() ? "editor/Select Path"_localized : path.c_str()))
+            {
+                Function<void(Package*, const Path&)> callback = [custom_code](Package*, const Path& path) {
+                    custom_code->shader_path = path.relative(engine_config.shaders_dir);
+                };
+
+                ImGuiRenderer::Window::current()
+                        ->window_list.create<ImGuiOpenFile>(nullptr, callback)
+                        ->pwd(engine_config.shaders_dir);
+            }
+
+            ImGui::Unindent(5.f);
+        }
+    }
+
+    static void initialize_special_class_properties_renderers()
+    {
+        special_class_properties_renderers[reinterpret_cast<Struct*>(
+                Struct::static_find("Engine::MaterialNodes::CustomCode", true))] = custom_code_node_renderer;
+    }
+
+    static PostInitializeController on_post_init(initialize_special_class_properties_renderers);
 }// namespace Engine::MaterialNodes

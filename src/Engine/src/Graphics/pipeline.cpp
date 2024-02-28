@@ -326,7 +326,7 @@ namespace Engine
         {
             // Loading shaders from shader cache
             Path path = Strings::format(
-                    "ShaderCache{}{}{}", Path::separator,
+                    "{}{}{}{}", engine_config.shader_cache_dir.str(), Path::separator,
                     Strings::replace_all(material_object->full_name(true), Constants::name_separator, Path::sv_separator),
                     Constants::shader_extention);
 

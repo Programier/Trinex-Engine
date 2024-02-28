@@ -149,6 +149,11 @@ namespace Engine
         return *this;
     }
 
+    ImGuiObjectProperties* MaterialEditorClient::properties_window() const
+    {
+        return m_properties;
+    }
+
     void MaterialEditorClient::on_object_select(Object* object)
     {
         VisualMaterial* new_material = Object::instance_cast<VisualMaterial>(object);
@@ -164,7 +169,7 @@ namespace Engine
 
         if (m_properties)
         {
-            m_properties->object = object;
+            m_properties->update(object);
         }
     }
 
@@ -345,7 +350,7 @@ namespace Engine
             ax::NodeEditor::Begin("###Viewport");
             if (m_current_material)
             {
-                m_current_material->render_nodes(m_editor_context);
+                m_current_material->render_nodes(this);
             }
             ax::NodeEditor::End();
 
@@ -413,14 +418,16 @@ namespace Engine
                 if (ImGui::BeginTabItem("editor/Vertex"_localized))
                 {
                     String& code = m_current_material->pipeline->vertex_shader->text_code;
-                    ImGui::TextWrapped("%s", code.c_str());
+                    ImGui::InputTextMultiline("##vertex", code.data(), code.size(), ImGui::GetContentRegionAvail(),
+                                              static_cast<ImGuiInputTextFlags>(ImGuiInputTextFlags_ReadOnly));
                     ImGui::EndTabItem();
                 }
 
                 if (ImGui::BeginTabItem("editor/Fragment"_localized))
                 {
                     String& code = m_current_material->pipeline->fragment_shader->text_code;
-                    ImGui::TextWrapped("%s", code.c_str());
+                    ImGui::InputTextMultiline("##fragment", code.data(), code.size(), ImGui::GetContentRegionAvail(),
+                                              static_cast<ImGuiInputTextFlags>(ImGuiInputTextFlags_ReadOnly));
                     ImGui::EndTabItem();
                 }
             }
@@ -439,6 +446,11 @@ namespace Engine
 
             ImGui::End();
         }
+    }
+
+    void* MaterialEditorClient::editor_context() const
+    {
+        return m_editor_context;
     }
 
     MaterialEditorClient& MaterialEditorClient::on_object_dropped(Object* object)

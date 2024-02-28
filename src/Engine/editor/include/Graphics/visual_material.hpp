@@ -84,10 +84,10 @@ namespace Engine
     };
 
     struct MaterialPin : public SerializableObject {
-        Name name;
+        String name;
         struct MaterialNode* node = nullptr;
 
-        MaterialPin(MaterialNode* node, Name name = Name::none);
+        MaterialPin(MaterialNode* node, const String& name = "");
 
         Identifier id() const;
         bool is_input_pin() const;
@@ -131,7 +131,10 @@ namespace Engine
         virtual size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin);
         virtual const char* name() const;
         virtual MaterialNodeDataType output_type(const MaterialOutputPin* pin) const;
+        virtual void bind_to_properties_window(class ImGuiObjectProperties*);
+        virtual bool serialize_pins() const;
         bool archive_process(Archive& ar) override;
+
 
         Index pin_index(MaterialOutputPin* pin) const;
         Index pin_index(MaterialInputPin* pin) const;
@@ -146,7 +149,7 @@ namespace Engine
     struct TypedInputNoDefaultPin : public MaterialInputPin {
         static constexpr MaterialNodeDataType data_type = enum_value;
 
-        TypedInputNoDefaultPin(struct MaterialNode* node, Name name = Name::none) : MaterialInputPin(node, name)
+        TypedInputNoDefaultPin(struct MaterialNode* node, const String& name = "") : MaterialInputPin(node, name)
         {}
 
         MaterialNodeDataType value_type() const override
@@ -164,7 +167,7 @@ namespace Engine
         using NativeType                                = Type;
         static constexpr MaterialNodeDataType data_type = enum_value;
 
-        TypedInputPin(struct MaterialNode* node, Name name = Name::none, const Type& default_value = Type())
+        TypedInputPin(struct MaterialNode* node, const String& name = "", const Type& default_value = Type())
             : MaterialInputPin(node, name), value(default_value)
         {}
 
@@ -198,7 +201,7 @@ namespace Engine
     struct TypedOutputNoDefaultPin : public MaterialOutputPin {
         static constexpr MaterialNodeDataType data_type = enum_value;
 
-        TypedOutputNoDefaultPin(struct MaterialNode* node, Name name = Name::none) : MaterialOutputPin(node, name)
+        TypedOutputNoDefaultPin(struct MaterialNode* node, const String& name = "") : MaterialOutputPin(node, name)
         {}
 
         MaterialNodeDataType value_type() const override
@@ -215,7 +218,7 @@ namespace Engine
         using NativeType                                = Type;
         static constexpr MaterialNodeDataType data_type = enum_value;
 
-        TypedOutputPin(struct MaterialNode* node, Name name = Name::none, const Type& default_value = Type())
+        TypedOutputPin(struct MaterialNode* node, const String& name = "", const Type& default_value = Type())
             : MaterialOutputPin(node, name), value(default_value)
         {}
 
@@ -347,7 +350,7 @@ namespace Engine
 
 
         VisualMaterial();
-        VisualMaterial& render_nodes(void* context);
+        VisualMaterial& render_nodes(class MaterialEditorClient* client);
         ~VisualMaterial();
         bool archive_process(Archive& ar) override;
 

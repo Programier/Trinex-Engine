@@ -43,11 +43,11 @@ namespace Engine
 
         void render_dock_window();
         void render_material_code();
-
-
+        void* editor_context() const;
         MaterialEditorClient& on_object_dropped(Object* object);
         MaterialEditorClient& update_drag_and_drop();
         MaterialEditorClient& render_viewport(float dt);
         MaterialEditorClient& render(class RenderViewport* viewport) override;
+        ImGuiObjectProperties* properties_window() const;
     };
 }// namespace Engine

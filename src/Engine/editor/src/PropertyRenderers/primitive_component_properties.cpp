@@ -4,9 +4,9 @@
 
 namespace Engine
 {
-    static void renderer(Object* object, Struct* self, bool editable)
+    static void renderer(void* object, Struct* self, bool editable)
     {
-        PrimitiveComponent* component = object->instance_cast<PrimitiveComponent>();
+        PrimitiveComponent* component = reinterpret_cast<PrimitiveComponent*>(object);
 
         if (component && ImGui::CollapsingHeader("editor/Bounds"_localized))
         {

@@ -37,9 +37,9 @@ namespace Engine
         }
     }
 
-    static void renderer(Object* object, Struct* self, bool editable)
+    static void renderer(void* object, Struct* self, bool editable)
     {
-        StaticMesh* mesh = object->instance_cast<StaticMesh>();
+        StaticMesh* mesh = reinterpret_cast<StaticMesh*>(object);
 
         auto min = mesh->bounds.min();
         auto max = mesh->bounds.max();

@@ -26,9 +26,9 @@ namespace Engine
         }
     }
 
-    static void renderer(Object* object, Struct* self, bool editable)
+    static void renderer(void* object, Struct* self, bool editable)
     {
-        Texture2D* texture  = object->instance_cast<Texture2D>();
+        Texture2D* texture  = reinterpret_cast<Texture2D*>(object);
         bool image_is_empty = texture->image.empty();
 
         bool is_compressed = image_is_empty ? false : texture->image.is_compressed();

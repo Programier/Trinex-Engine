@@ -1,5 +1,8 @@
 #include <Compiler/compiler.hpp>
 #include <Core/class.hpp>
+#include <Core/engine_config.hpp>
+#include <Core/file_manager.hpp>
+#include <Graphics/material_nodes.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
@@ -26,7 +29,8 @@ namespace Engine
 
     static constexpr inline size_t max_sentence_len = 80;
 
-    static bool compile_shader(const String& text, Buffer& out, EShLanguage lang, std::vector<unsigned int>* uint_out = nullptr)
+    static bool compile_shader(const char* compiler_type, const String& text, Buffer& out, EShLanguage lang,
+                               std::vector<unsigned int>* uint_out = nullptr)
     {
         glslang::InitializeProcess();
 
@@ -55,8 +59,8 @@ namespace Engine
         // Preprocess the shader
         if (!shader.parse(GetDefaultResources(), client_input_semantics_version, false, EShMsgDefault))
         {
-            errors->push_back(Strings::format("Compiler: {}", shader.getInfoLog()));
-            errors->push_back(Strings::format("Compiler: {}", shader.getInfoDebugLog()));
+            errors->push_back(Strings::format("{}: {}", compiler_type, shader.getInfoLog()));
+            errors->push_back(Strings::format("{}: {}", compiler_type, shader.getInfoDebugLog()));
             glslang::FinalizeProcess();
             return false;
         }
@@ -66,8 +70,8 @@ namespace Engine
         program.addShader(&shader);
         if (!program.link(EShMsgDefault))
         {
-            errors->push_back(Strings::format("Compiler: {}", shader.getInfoLog()));
-            errors->push_back(Strings::format("Compiler: {}", shader.getInfoDebugLog()));
+            errors->push_back(Strings::format("{}: {}", compiler_type, shader.getInfoLog()));
+            errors->push_back(Strings::format("{}: {}", compiler_type, shader.getInfoDebugLog()));
             glslang::FinalizeProcess();
             return false;
         }
@@ -548,7 +552,7 @@ namespace Engine
             if (!is_variable(source->source))
             {
                 String variable_name = Strings::format("{}{}", variable_prefix, statements.size());
-                String new_source    = Strings::format("{} {} = {}", glsl_type_of(type), variable_name, source->source);
+                String new_source    = Strings::format("{} {} = {};", glsl_type_of(type), variable_name, source->source);
                 statements.push_back(new_source);
                 source->source = std::move(variable_name);
             }
@@ -560,7 +564,7 @@ namespace Engine
             {
                 String variable_name  = Strings::format("{}{}", variable_prefix, statements.size());
                 const char* type_name = glsl_type_of(type);
-                String new_source     = Strings::format("{} {} = {}", type_name, variable_name, code);
+                String new_source     = Strings::format("{} {} = {};", type_name, variable_name, code);
                 statements.push_back(new_source);
 
                 const char* var_start = statements.back().c_str() + std::strlen(type_name) + 1;
@@ -857,12 +861,12 @@ namespace Engine
             {
                 source += "\t";
                 source += statement;
-                source += ";\n";
+                source += "\n";
             }
 
             source += "}\n";
 
-            compile_shader(source, binary_source, shader_type(), &spirv);
+            compile_shader(name(), source, binary_source, shader_type(), &spirv);
             text_source = std::move(source);
             return errors->empty();
         }
@@ -1498,6 +1502,50 @@ namespace Engine
             return 0;
         }
 
+        size_t custom_node_pin_source(MaterialNode* custom_source_node, MaterialOutputPin* pin) override
+        {
+            GLSL_CompiledSource* source = find_pin_source(reinterpret_cast<Identifier>(custom_source_node), true);
+
+            if (source->data == nullptr)
+            {
+                source->data = custom_source_node;
+
+                for (MaterialInputPin* pin : custom_source_node->inputs)
+                {
+                    MaterialNodeDataType type = pin->value_type();
+                    const char* type_str      = glsl_type_of(type);
+                    statements.push_back(Strings::format("{} {} = {};", type_str, pin->name, get_pin_source(pin, type)));
+                }
+
+                FileReader reader(engine_config.shaders_dir /
+                                  reinterpret_cast<MaterialNodes::CustomCode*>(custom_source_node)->shader_path);
+
+                if (reader.is_open())
+                {
+                    String line = reader.read_string();
+                    auto lines  = Strings::split(line, '\n');
+
+                    static auto is_spec_symbol = [](char ch) -> bool {
+                        return ch == '\n' || ch == '\0' || ch == '\t' || ch == EOF;
+                    };
+
+                    for (auto& line : lines)
+                    {
+                        while (!line.empty() && is_spec_symbol(line.back()))
+                        {
+                            line.pop_back();
+                        }
+
+                        if (!line.empty())
+                        {
+                            statements.push_back(line);
+                        }
+                    }
+                }
+            }
+
+            return (new GLSL_CompiledSource(pin->name))->id();
+        }
 
         virtual const char* name() const        = 0;
         virtual Shader* current_shader() const  = 0;
@@ -1570,7 +1618,7 @@ namespace Engine
                 out_attribute.type   = attribute.type;
             }
 
-            statements.push_back(Strings::format("out_{} = in_{}", attribute.param, attribute.param));
+            statements.push_back(Strings::format("out_{} = in_{};", attribute.param, attribute.param));
         }
 
         size_t vertex_output_screen_space_position(MaterialInputPin* pin) override
@@ -1589,7 +1637,7 @@ namespace Engine
                         Strings::format("global.projview * {} * vec4({}, 1.0)", model_source->source, compiled_attribute->source);
             }
 
-            statements.push_back(Strings::format("gl_Position = {}", source));
+            statements.push_back(Strings::format("gl_Position = {};", source));
             return 0;
         }
 
@@ -1607,14 +1655,14 @@ namespace Engine
             if (pin->linked_to)
             {
                 statements.push_back(
-                        Strings::format("vertex_world_position = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+                        Strings::format("vertex_world_position = {};", get_pin_source(pin, MaterialNodeDataType::Vec3)));
             }
             else
             {
                 const String& model_source  = reinterpret_cast<GLSL_CompiledSource*>(model())->source;
                 const String& vertex_source = reinterpret_cast<GLSL_CompiledSource*>(vertex_position_attribute(0))->source;
                 statements.push_back(
-                        Strings::format("vertex_world_position = vec3({} * vec4({}, 1.0))", model_source, vertex_source));
+                        Strings::format("vertex_world_position = vec3({} * vec4({}, 1.0));", model_source, vertex_source));
             }
 
 
@@ -1632,7 +1680,7 @@ namespace Engine
                 output.type   = MaterialNodeDataType::Vec2;
             }
 
-            statements.push_back(Strings::format("vertex_uv0 = {}", get_pin_source(pin, MaterialNodeDataType::Vec2)));
+            statements.push_back(Strings::format("vertex_uv0 = {};", get_pin_source(pin, MaterialNodeDataType::Vec2)));
             return 0;
         }
 
@@ -1647,7 +1695,7 @@ namespace Engine
                 output.type   = MaterialNodeDataType::Vec2;
             }
 
-            statements.push_back(Strings::format("vertex_uv1 = {}", get_pin_source(pin, MaterialNodeDataType::Vec2)));
+            statements.push_back(Strings::format("vertex_uv1 = {};", get_pin_source(pin, MaterialNodeDataType::Vec2)));
             return 0;
         }
 
@@ -1667,12 +1715,12 @@ namespace Engine
                 if (pin->linked_to)
                 {
                     statements.push_back(
-                            Strings::format("vertex_world_normal = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+                            Strings::format("vertex_world_normal = {};", get_pin_source(pin, MaterialNodeDataType::Vec3)));
                 }
                 else
                 {
                     String normal = reinterpret_cast<GLSL_CompiledSource*>(vertex_normal_attribute(0))->source;
-                    statements.push_back(Strings::format("vertex_world_normal = {}", normal));
+                    statements.push_back(Strings::format("vertex_world_normal = {};", normal));
                 }
             }
             return 0;
@@ -1689,7 +1737,7 @@ namespace Engine
                 output.type   = MaterialNodeDataType::Vec3;
             }
 
-            statements.push_back(Strings::format("vertex_world_tangent = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            statements.push_back(Strings::format("vertex_world_tangent = {};", get_pin_source(pin, MaterialNodeDataType::Vec3)));
             return 0;
         }
 
@@ -1704,7 +1752,8 @@ namespace Engine
                 output.type   = MaterialNodeDataType::Vec3;
             }
 
-            statements.push_back(Strings::format("vertex_world_bitangent = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            statements.push_back(
+                    Strings::format("vertex_world_bitangent = {};", get_pin_source(pin, MaterialNodeDataType::Vec3)));
             return 0;
         }
 
@@ -1719,7 +1768,7 @@ namespace Engine
                 output.type   = MaterialNodeDataType::Vec3;
             }
 
-            statements.push_back(Strings::format("vertex_color = {}", get_pin_source(pin, MaterialNodeDataType::Vec3)));
+            statements.push_back(Strings::format("vertex_color = {};", get_pin_source(pin, MaterialNodeDataType::Vec3)));
             return 0;
         }
     };
@@ -1800,7 +1849,7 @@ namespace Engine
                 attribute.type     = MaterialNodeDataType::Color4;
                 output_attribute.push_back(attribute);
 
-                statements.push_back("out_data_buffer.a = 1.0");
+                statements.push_back("out_data_buffer.a = 1.0;");
             }
 
 
@@ -1901,7 +1950,7 @@ namespace Engine
         size_t fragment_output_base_color(MaterialInputPin* pin) override
         {
             String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
-            statements.push_back(Strings::format("out_color.rgb = {}", source));
+            statements.push_back(Strings::format("out_color.rgb = {};", source));
             return 0;
         }
 
@@ -1910,7 +1959,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
-                statements.push_back(Strings::format("out_data_buffer.r = {}", source));
+                statements.push_back(Strings::format("out_data_buffer.r = {};", source));
             }
             return 0;
         }
@@ -1920,7 +1969,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
-                statements.push_back(Strings::format("out_data_buffer.g = {}", source));
+                statements.push_back(Strings::format("out_data_buffer.g = {};", source));
             }
             return 0;
         }
@@ -1930,7 +1979,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
-                statements.push_back(Strings::format("out_data_buffer.b = {}", source));
+                statements.push_back(Strings::format("out_data_buffer.b = {};", source));
             }
             return 0;
         }
@@ -1940,7 +1989,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
-                statements.push_back(Strings::format("out_emissive = vec4({}, 1.0)", source));
+                statements.push_back(Strings::format("out_emissive = vec4({}, 1.0);", source));
             }
             return 0;
         }
@@ -1948,7 +1997,7 @@ namespace Engine
         size_t fragment_output_opacity(MaterialInputPin* pin) override
         {
             String source = get_pin_source(pin, MaterialNodeDataType::Float);
-            statements.push_back(Strings::format("out_color.a = {}", source));
+            statements.push_back(Strings::format("out_color.a = {};", source));
             return 0;
         }
 
@@ -1959,11 +2008,11 @@ namespace Engine
                 if (pin->linked_to)
                 {
                     String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
-                    statements.push_back(Strings::format("out_position = vec4({}, 1.0)", source));
+                    statements.push_back(Strings::format("out_position = vec4({}, 1.0);", source));
                 }
                 else
                 {
-                    statements.push_back(Strings::format("out_position = vec4(vertex_world_position, 1.0)"));
+                    statements.push_back(Strings::format("out_position = vec4(vertex_world_position, 1.0);"));
                 }
             }
             return 0;
@@ -1976,11 +2025,11 @@ namespace Engine
                 if (pin->linked_to)
                 {
                     String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
-                    statements.push_back(Strings::format("out_normal = vec4({}, 1.0)", source));
+                    statements.push_back(Strings::format("out_normal = vec4({}, 1.0);", source));
                 }
                 else
                 {
-                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, 1.0)"));
+                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, 1.0);"));
                 }
             }
             return 0;

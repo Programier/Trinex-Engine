@@ -22,6 +22,7 @@ namespace Engine::MaterialNodes
         VertexNode();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
         bool is_removable() const override;
+        void bind_to_properties_window(ImGuiObjectProperties*) override;
     };
 
     struct FragmentNode : public MaterialNode {
@@ -30,6 +31,7 @@ namespace Engine::MaterialNodes
         FragmentNode();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
         bool is_removable() const override;
+        void bind_to_properties_window(ImGuiObjectProperties*) override;
     };
 
 
@@ -56,6 +58,18 @@ namespace Engine::MaterialNodes
         String node_name;
 
         void render() override;
+        bool archive_process(Archive& ar) override;
+    };
+
+    struct CustomCode : public MaterialNode {
+        declare_material_node();
+        Vector<MaterialNodeDataType> output_types;
+        Path shader_path;
+
+        void bind_to_properties_window(ImGuiObjectProperties* props) override;
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override;
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
+        bool serialize_pins() const override;
         bool archive_process(Archive& ar) override;
     };
 }// namespace Engine::MaterialNodes

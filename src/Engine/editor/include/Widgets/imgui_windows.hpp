@@ -75,6 +75,7 @@ namespace Engine
     public:
         ImGuiOpenFile(Package* pkg, const Function<void(Package*, const Path&)>& callback,
                       const Vector<String>& type_filters = {});
+        ImGuiOpenFile& pwd(const Path& path);
         bool render(RenderViewport* viewport) override;
         static const char* name();
 
@@ -83,11 +84,23 @@ namespace Engine
 
     class ImGuiObjectProperties : public ImGuiRenderer::ImGuiAdditionalWindow
     {
+        union
+        {
+            void* m_instance = nullptr;
+            Object* m_object;
+        };
+
+        class Struct* m_self = nullptr;
+
 
     public:
-        Object* object = nullptr;
-
         bool render(RenderViewport* viewport) override;
+        Struct* struct_instance() const;
+        void* instance() const;
+        Object* object() const;
+
+        ImGuiObjectProperties& update(void* instance, Struct* self);
+        ImGuiObjectProperties& update(Object* object);
         static const char* name();
     };
 

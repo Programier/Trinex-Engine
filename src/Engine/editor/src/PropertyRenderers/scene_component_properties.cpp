@@ -4,9 +4,9 @@
 
 namespace Engine
 {
-    static void renderer(Object* object, Struct* self, bool editable)
+    static void renderer(void* object, Struct* self, bool editable)
     {
-        SceneComponent* component = object->instance_cast<SceneComponent>();
+        SceneComponent* component = reinterpret_cast<SceneComponent*>(object);
 
         if (ImGui::CollapsingHeader("editor/Transform"_localized))
         {

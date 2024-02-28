@@ -14,7 +14,7 @@ namespace Engine
 {
     static constexpr float indent = 5.f;
 
-    Map<Struct*, void (*)(Object*, Struct*, bool)> special_class_properties_renderers;
+    Map<Struct*, void (*)(void*, Struct*, bool)> special_class_properties_renderers;
 
     class Object;
 
@@ -407,20 +407,18 @@ namespace Engine
         ImGui::BeginGroup();
         for (Struct* self = struct_class; self; self = self->parent())
         {
-            bool is_class = self->is_class() && object;
-            void (*renderer)(Object*, Struct*, bool) = nullptr;
+            bool is_class                          = self->is_class() && object;
+            void (*renderer)(void*, Struct*, bool) = nullptr;
 
-            if(is_class)
+
+            auto it = special_class_properties_renderers.find(self);
+            if (it != special_class_properties_renderers.end())
             {
-                auto it = special_class_properties_renderers.find(self);
-                if (it != special_class_properties_renderers.end())
-                {
-                    renderer = it->second;
+                renderer = it->second;
 
-                    if(self->properties().empty())
-                    {
-                        renderer(reinterpret_cast<Object*>(object), self, editable);
-                    }
+                if (self->properties().empty())
+                {
+                    renderer(object, self, editable);
                 }
             }
 
@@ -443,10 +441,10 @@ namespace Engine
 
                 if (is_opened)
                 {
-                    if(renderer)
+                    if (renderer)
                     {
                         ImGui::Indent(indent);
-                        renderer(reinterpret_cast<Object*>(object), self, editable);
+                        renderer(object, self, editable);
                         ImGui::Separator();
                         ImGui::Unindent(indent);
                     }

@@ -183,7 +183,7 @@ namespace Engine
     {
         if (m_properties)
         {
-            m_properties->object = object;
+            m_properties->update(object);
         }
 
         m_selected_scene_component = Object::instance_cast<SceneComponent>(object);

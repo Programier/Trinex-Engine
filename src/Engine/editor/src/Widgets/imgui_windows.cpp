@@ -1,3 +1,4 @@
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
 #include <Core/package.hpp>
@@ -268,6 +269,13 @@ namespace Engine
         m_browser = browser;
     }
 
+    ImGuiOpenFile& ImGuiOpenFile::pwd(const Path& path)
+    {
+        ImGui::FileBrowser* browser = reinterpret_cast<ImGui::FileBrowser*>(m_browser);
+        browser->SetPwd(rootfs()->native_path(path).str());
+        return *this;
+    }
+
     bool ImGuiOpenFile::render(RenderViewport* viewport)
     {
         ImGui::FileBrowser* browser = reinterpret_cast<ImGui::FileBrowser*>(m_browser);
@@ -276,7 +284,7 @@ namespace Engine
 
         if (browser->HasSelected())
         {
-            m_callback(m_package, Path(browser->GetSelected().string()));
+            m_callback(m_package, Path(std::filesystem::relative(browser->GetSelected()).string()));
             return false;
         }
 
@@ -300,22 +308,64 @@ namespace Engine
     {
         bool open = true;
         ImGui::Begin(name(), closable ? &open : nullptr);
-        if (object)
+        if (m_instance && m_self)
         {
-            ImGui::Text("editor/Object: %s"_localized, object->name().to_string().c_str());
-            ImGui::Text("editor/Class: %s"_localized, object->class_instance()->name().c_str());
-            if (ImGui::Button("editor/Apply changes"_localized))
+            if (m_self->is_class())
             {
-                object->apply_changes();
+                ImGui::Text("editor/Object: %s"_localized, m_object->name().to_string().c_str());
+                ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->name().c_str());
+                if (ImGui::Button("editor/Apply changes"_localized))
+                {
+                    m_object->apply_changes();
+                }
+                ImGui::Separator();
+                render_object_properties(m_object);
             }
-            ImGui::Separator();
-
-            render_object_properties(object);
+            else
+            {
+                render_struct_properties(m_instance, m_self);
+            }
         }
         ImGui::End();
 
         return open;
     }
+
+    Struct* ImGuiObjectProperties::struct_instance() const
+    {
+        return m_self;
+    }
+
+    void* ImGuiObjectProperties::instance() const
+    {
+        return m_instance;
+    }
+
+    Object* ImGuiObjectProperties::object() const
+    {
+        return m_self && m_self->is_class() ? m_object : nullptr;
+    }
+
+    ImGuiObjectProperties& ImGuiObjectProperties::update(void* instance, Struct* self)
+    {
+        m_instance = instance;
+        m_self     = self;
+        return *this;
+    }
+
+    ImGuiObjectProperties& ImGuiObjectProperties::update(Object* object)
+    {
+        if (object)
+        {
+            update(object, object->class_instance());
+        }
+        else
+        {
+            update(nullptr, nullptr);
+        }
+        return *this;
+    }
+
 
     const char* ImGuiObjectProperties::name()
     {

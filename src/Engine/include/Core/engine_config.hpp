@@ -19,6 +19,8 @@ namespace Engine
         Path libraries_dir;
         Path config_dir;
         Path localization_dir;
+        Path shader_cache_dir;
+        Path shaders_dir;
 
         String api;
         String window_system;

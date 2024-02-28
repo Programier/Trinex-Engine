@@ -185,12 +185,14 @@ namespace Engine
 
 
         // Inputs
-
         virtual size_t vertex_position_attribute(byte index) = 0;
         virtual size_t vertex_uv_attribute(byte index)       = 0;
         virtual size_t vertex_normal_attribute(byte index)   = 0;
         virtual size_t vertex_binormal_attribute(byte index) = 0;
         virtual size_t vertex_tangent_attribute(byte index)  = 0;
         virtual size_t vertex_color_attribute(byte index)    = 0;
+
+        // Custom
+        virtual size_t custom_node_pin_source(MaterialNode* custom_source_node, MaterialOutputPin* pin) = 0;
     };
 }// namespace Engine

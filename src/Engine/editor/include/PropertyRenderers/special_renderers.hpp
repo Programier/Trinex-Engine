@@ -7,5 +7,5 @@ namespace Engine
     class Struct;
     class Object;
 
-    extern Map<Struct*, void (*)(Object*, Struct*, bool)> special_class_properties_renderers;
+    extern Map<Struct*, void (*)(void*, Struct*, bool)> special_class_properties_renderers;
 }// namespace Engine

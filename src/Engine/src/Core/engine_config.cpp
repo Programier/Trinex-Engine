@@ -28,6 +28,8 @@ namespace Engine
         current_language = engine_json.checked_get_value<JSON::JsonString>("current_language", "eng");
         window_system    = engine_json.checked_get_value<JSON::JsonString>("window_system", "SDL2");
         shading_language = engine_json.checked_get_value<JSON::JsonString>("shading_language", "GLSL");
+        shader_cache_dir = engine_json.checked_get_value<JSON::JsonString>("shader_cache_dir", "ShaderCache");
+        shaders_dir      = engine_json.checked_get_value<JSON::JsonString>("shaders_dir", "resources/shaders/");
 
 #if TRINEX_WITH_SKIP_JIT_INSTRUCTIONS
         {
