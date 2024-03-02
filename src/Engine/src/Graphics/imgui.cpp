@@ -228,7 +228,7 @@ namespace Engine::ImGuiRenderer
         return next;
     }
 
-    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::push(ImGuiAdditionalWindow* window, void* id)
+    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::push(ImGuiAdditionalWindow* window, const void* id)
     {
         window->init(Window::current()->window()->render_viewport());
         Node* parent_node = m_root;

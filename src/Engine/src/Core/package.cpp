@@ -80,7 +80,7 @@ namespace Engine
             VectorReader uncompressed_reader = &uncompressed_buffer;
             Archive uncompressed_ar          = &uncompressed_reader;
 
-            Object* object      = preload_object(pkg, entry);
+            Object* object = preload_object(pkg, entry);
 
             if (object)
             {
@@ -364,7 +364,7 @@ namespace Engine
         return nullptr;
     }
 
-    bool Package::save(BufferWriter* writer) const
+    bool Package::save(BufferWriter* writer, Flags<SerializationFlags> serialization_flags)
     {
         if (!flags(Object::IsSerializable))
         {
@@ -372,175 +372,15 @@ namespace Engine
             return false;
         }
 
-        Header current_header;
-        current_header.build(this);
-
-        if (current_header.entries.empty())
+        for (auto& [name, object] : m_objects)
         {
-            error_log("Package", "Cannot save package '%s', because header is empty!", full_name().c_str());
-            return false;
-        }
-
-        bool need_destroy_writer = (writer == nullptr);
-
-        if (need_destroy_writer)
-        {
-            writer = open_package_file<FileWriter>(this, true);
-        }
-
-        if (!writer)
-            return false;
-
-        Archive ar(writer);
-
-        FileFlag flag = FileFlag::package_flag();
-        ar & flag;
-        current_header.archive_process(ar);
-
-        for (auto& entry : current_header.entries)
-        {
-            ar & entry.compressed_data;
-        }
-
-        if (need_destroy_writer)
-        {
-            delete writer;
-        }
-
-        return false;
-    }
-
-    bool Package::save(const Path& path) const
-    {
-        FileWriter writer = path;
-        return save(&writer);
-    }
-
-    bool Package::load(BufferReader* reader, Flags<LoadingFlags> flags)
-    {
-        bool need_destroy_reader = reader == nullptr;
-
-        if (need_destroy_reader)
-        {
-            reader = open_package_file<FileReader>(this, false);
-        }
-
-        if (!reader)
-            return false;
-
-        Archive ar(reader);
-
-        bool is_valid = true;
-
-        FileFlag flag;
-        ar & flag;
-
-        is_valid = flag == FileFlag::package_flag();
-        if (!is_valid)
-        {
-            error_log("Package", "Invalid package flag in file");
-        }
-
-        if (is_valid)
-        {
-            Header header;
-            header.archive_process(ar);
-            header.preload(this, ar);
-
-            for (auto& entry : header.entries)
+            if (!object->is_instance_of<Package>())
             {
-                header.load(&entry, this, ar);
+                object->save(writer, serialization_flags);
             }
         }
-
-        if (need_destroy_reader)
-        {
-            delete reader;
-        }
-
-        return true;
+        return false;
     }
-
-    bool Package::load(const Path& path, Flags<LoadingFlags> flags)
-    {
-        FileReader reader = path;
-        return load(&reader, flags);
-    }
-
-    struct HeaderLoadingUserData {
-        Object* object   = nullptr;
-        Package* package = nullptr;
-        Archive* ar;
-        Header* header;
-        StringView name;
-    };
-
-    static bool header_loading_callback(HeaderEntry& entry, void* _data)
-    {
-        HeaderLoadingUserData* data = reinterpret_cast<HeaderLoadingUserData*>(_data);
-        if (data->header->names[entry.object_name] == data->name)
-        {
-            data->object = data->header->load(&entry, data->package, *data->ar);
-            return false;
-        }
-        return true;
-    }
-
-    Object* Package::load_object(const StringView& name, Flags<LoadingFlags> flags, BufferReader* reader)
-    {
-        Object* object = find_object(name);
-
-        if (object)
-            return object;
-
-        bool need_delete_reader = reader == nullptr;
-
-        if (need_delete_reader)
-        {
-            reader = open_package_file<FileReader>(this, false);
-
-            if (!reader)
-                return nullptr;
-        }
-
-
-        Archive ar(reader);
-
-        if (need_delete_reader)
-        {
-            FileFlag flag;
-            ar & flag;
-
-            trinex_always_check(flag == FileFlag::package_flag(), "Invalid package flag in file");
-        }
-
-        Header header;
-        HeaderLoadingUserData result;
-        result.name    = name;
-        result.package = this;
-        result.ar      = &ar;
-        result.header  = &header;
-
-        header.archive_process(ar, header_loading_callback, &result);
-
-        if (need_delete_reader)
-        {
-            delete reader;
-        }
-
-        return result.object;
-    }
-
-    Object* Package::load_object(const Path& file_path, const StringView& name, Flags<LoadingFlags> flags)
-    {
-        FileReader reader = file_path;
-        if (reader.is_open())
-        {
-            return load_object(name, flags, &reader);
-        }
-        return nullptr;
-    }
-
 
     Package::~Package()
     {
@@ -567,45 +407,5 @@ namespace Engine
     implement_initialize_class(Package)
     {
         static_class_instance()->set_script_registration_callback(bind_to_script);
-    }
-
-
-    ENGINE_EXPORT Package* Object::load_package(const StringView& name, Flags<LoadingFlags> flags,
-                                                class BufferReader* package_reader)
-    {
-        // Try to find package
-        Package* package = Object::find_object_checked<Package>(name);
-
-        if (package != nullptr)
-            return package;
-
-        package = find_package(name, true);
-
-        if (package != nullptr && !package->load(package_reader, flags))
-        {
-            delete package;
-            return nullptr;
-        }
-
-        return package;
-    }
-
-    ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags<LoadingFlags> flags,
-                                              class BufferReader* package_reader)
-    {
-        StringView object_name  = Object::object_name_sv_of(name);
-        StringView package_name = Object::package_name_sv_of(name);
-
-        Package* package = Package::find_package(package_name, true);
-        return package->load_object(object_name, flags, package_reader);
-    }
-
-    ENGINE_EXPORT Object* Object::load_object(const Path& path, const StringView& name, Flags<LoadingFlags> flags)
-    {
-        StringView object_name  = Object::object_name_sv_of(name);
-        StringView package_name = Object::package_name_sv_of(name);
-
-        Package* package = Package::find_package(package_name, true);
-        return package->load_object(path, object_name, flags);
     }
 }// namespace Engine

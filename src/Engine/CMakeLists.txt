@@ -105,11 +105,17 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_S
 if(TRINEX_REBUILD_HEADERS)
     add_executable(header_generator header_generator/main.cpp)
 
-    set(TRINEX_PRECOMPILED_HEADERS include-internal/DefaultResources/default.hpp)
+    set(TRINEX_PRECOMPILED_HEADERS  include-internal/DefaultResources/default.hpp)
 
+    set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BaseColorToScreenMat.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultMaterial.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultSampler.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/GBufferLinesMat.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SceneOutputLinesMat.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenPositionBuffer.tasset)
     add_custom_command(
         OUTPUT include-internal/DefaultResources/default.hpp
-        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultPackage.tpk" "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" "default_package"
+        COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" ${TRINEX_INTERNAL_ASSETS}
         COMMENT "Generating default package header"
     )
 endif()

@@ -278,8 +278,9 @@ namespace Engine
                 if (ImGui::MenuItem("editor/Import resource"_localized,
                                     "editor/Import resource from file to selected package"_localized, false, enable_import))
                 {
-                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>(m_content_browser->selected_package(),
-                                                                                        Importer::import_resource);
+                    Package* package = m_content_browser->selected_package();
+                    ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>()->on_select.push(
+                            [package](const Path& path) { Importer::import_resource(package, path); });
                 }
 
                 ImGui::EndMenu();

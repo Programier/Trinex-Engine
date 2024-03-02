@@ -73,11 +73,6 @@ namespace Engine
         virtual class Class* class_instance() const;
 
         delete_copy_constructors(Object);
-        ENGINE_EXPORT static Package* load_package(const StringView& name, Flags<LoadingFlags> flags = {},
-                                                   class BufferReader* package_reader = nullptr);
-        ENGINE_EXPORT static Object* load_object(const StringView& name, Flags<LoadingFlags> flags = {},
-                                                 class BufferReader* package_reader = nullptr);
-        ENGINE_EXPORT static Object* load_object(const Path& path, const StringView& name, Flags<LoadingFlags> flags = {});
         ENGINE_EXPORT static String package_name_of(const StringView& name);
         ENGINE_EXPORT static String object_name_of(const StringView& name);
         ENGINE_EXPORT static StringView package_name_sv_of(const StringView& name);
@@ -113,6 +108,10 @@ namespace Engine
         bool is_serializable() const;
         virtual bool is_engine_resource() const;
 
+        virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});
+        ENGINE_EXPORT static Object* load_object(class BufferReader* reader, Flags<SerializationFlags> flags = {});
+        ENGINE_EXPORT static Object* load_object(const StringView& name, Flags<SerializationFlags> flags = {});
+        ENGINE_EXPORT static Object* load_object_from_file(const Path& path, Flags<SerializationFlags> flags = {});
 
         static Package* find_package(StringView name, bool create = false);
 
@@ -260,7 +259,7 @@ namespace Engine
 
 #define declare_class(class_name, base_name)                                                                                     \
 protected:                                                                                                                       \
-    static class Engine::Class* m_static_class;                                                                                 \
+    static class Engine::Class* m_static_class;                                                                                  \
                                                                                                                                  \
 public:                                                                                                                          \
     using This  = class_name;                                                                                                    \
@@ -279,7 +278,7 @@ private:
     {}
 
 #define implement_class(class_name, namespace_name, flags)                                                                       \
-    class Engine::Class* class_name::m_static_class = nullptr;                                                                  \
+    class Engine::Class* class_name::m_static_class = nullptr;                                                                   \
     Engine::Object* class_name::static_constructor()                                                                             \
     {                                                                                                                            \
         if constexpr (std::is_abstract_v<class_name>)                                                                            \
@@ -299,18 +298,18 @@ private:
                                                                                                                                  \
     class Engine::Class* class_name::static_class_instance()                                                                     \
     {                                                                                                                            \
-        if (!m_static_class)                                                                                                    \
+        if (!m_static_class)                                                                                                     \
         {                                                                                                                        \
             constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-            m_static_class               = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
-                                                has_base_class ? Super::static_class_instance() : nullptr, flags); \
-            m_static_class->process_type<class_name>();                                                                         \
+            m_static_class                = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
+                                               has_base_class ? Super::static_class_instance() : nullptr, flags); \
+            m_static_class->process_type<class_name>();                                                                          \
             Engine::ClassInitializeController controller([]() {                                                                  \
                 class_name::static_initialize_class();                                                                           \
                 class_name::static_class_instance()->post_initialize();                                                          \
             });                                                                                                                  \
         }                                                                                                                        \
-        return m_static_class;                                                                                                  \
+        return m_static_class;                                                                                                   \
     }                                                                                                                            \
     static Engine::InitializeController initialize_##class_name = Engine::InitializeController(                                  \
             []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name))

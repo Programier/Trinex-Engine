@@ -100,12 +100,12 @@ namespace Engine::ImGuiRenderer
             ImGuiAdditionalWindow* window = nullptr;
             Node* next                    = nullptr;
             Node* parent                  = nullptr;
-            void* id                      = nullptr;
+            const void* id                = nullptr;
         };
 
         Node* m_root = nullptr;
 
-        ImGuiAdditionalWindowList& push(ImGuiAdditionalWindow* window, void* id = nullptr);
+        ImGuiAdditionalWindowList& push(ImGuiAdditionalWindow* window, const void* id = nullptr);
         Node* destroy(Node* node);
 
     public:
@@ -121,7 +121,7 @@ namespace Engine::ImGuiRenderer
         }
 
         template<typename Type, typename... Args>
-        Type* create_identified(void* id, Args&&... args)
+        Type* create_identified(const void* id, Args&&... args)
         {
             if (id == nullptr)
                 return create<Type>(std::forward<Args>(args)...);

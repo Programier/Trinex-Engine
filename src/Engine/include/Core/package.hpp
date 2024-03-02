@@ -35,13 +35,7 @@ namespace Engine
         bool contains_object(const Object* object) const;
         bool contains_object(const StringView& name) const;
 
-        bool save(BufferWriter* writer = nullptr) const;
-        bool save(const Path& path) const;
-
-        bool load(BufferReader* reader = nullptr, Flags<LoadingFlags> flags = {});
-        bool load(const Path& path, Flags<LoadingFlags> flags = {});
-        Object* load_object(const StringView& name, Flags<LoadingFlags> flags = {}, BufferReader* reader = nullptr);
-        Object* load_object(const Path& file_path, const StringView& name, Flags<LoadingFlags> flags = {});
+        bool save(BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {}) override;
 
         template<typename Type>
         FORCE_INLINE Type* find_object_checked(const StringView& object_name, bool recursive = true) const

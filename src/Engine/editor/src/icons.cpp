@@ -32,9 +32,6 @@ namespace Engine::Icons
 
     ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object)
     {
-        if (!object)
-            return nullptr;
-
         ImGuiRenderer::Window* window = ImGuiRenderer::Window::current();
         if (!window)
             return nullptr;
@@ -42,11 +39,13 @@ namespace Engine::Icons
         Sampler* sampler = default_sampler();
         if (!sampler)
             return nullptr;
-
+        if (object)
         {
-            Texture2D* texture = object->instance_cast<Texture2D>();
-            if (texture && texture->has_object())
-                return window->create_texture(texture, sampler);
+            {
+                Texture2D* texture = object->instance_cast<Texture2D>();
+                if (texture && texture->has_object())
+                    return window->create_texture(texture, sampler);
+            }
         }
 
         Texture2D* texture = default_texture();

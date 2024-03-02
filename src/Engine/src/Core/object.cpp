@@ -1,9 +1,14 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
+#include <Core/compressor.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/file_flag.hpp>
+#include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
@@ -534,19 +539,12 @@ namespace Engine
 
     Path Object::filepath() const
     {
-        const Package* pkg = instance_cast<Package>();
-        if (!pkg)
-        {
-            pkg = m_package;
-        }
+        Path path = m_name.to_string() + Constants::asset_extention;
 
-        if (!pkg || pkg == root_package())
-            return {};
+        const Package* pkg  = m_package;
+        const Package* root = root_package();
 
-        Path path = pkg->string_name() + Constants::package_extention;
-        pkg       = pkg->package();
-
-        while (pkg && pkg != root_package())
+        while (pkg && pkg != root)
         {
             path = Path(pkg->string_name()) / path;
             pkg  = pkg->package();
@@ -563,6 +561,212 @@ namespace Engine
     bool Object::is_engine_resource() const
     {
         return false;
+    }
+
+    template<typename Type>
+    static Type* open_asset_file(const Object* object, bool create_dir = false)
+    {
+        Path path = engine_config.assets_dir / object->filepath();
+
+        if (create_dir)
+        {
+            rootfs()->create_dir(path.base_path());
+        }
+
+        Type* value = new Type(path);
+        if (value->is_open())
+        {
+            return value;
+        }
+
+        delete value;
+
+        if constexpr (std::is_base_of_v<BufferReader, Type>)
+        {
+            error_log("Object", "Failed to load object '%s': File '%s' not found!", object->full_name().c_str(), path.c_str());
+        }
+        else
+        {
+            error_log("Object", "Failed to save object'%s': Failed to create file '%s'!", object->full_name().c_str(),
+                      path.c_str());
+        }
+
+        return nullptr;
+    }
+
+    bool Object::save(class BufferWriter* writer, Flags<SerializationFlags> serialization_flags)
+    {
+        if (!flags(Object::IsSerializable))
+        {
+            error_log("Object", "Cannot save non-serializable package!");
+            return false;
+        }
+
+        bool status;
+        Vector<byte> raw_buffer;
+        VectorWriter raw_writer = &raw_buffer;
+        Archive raw_ar          = &raw_writer;
+        raw_ar.flags            = serialization_flags;
+
+        auto hierarchy = class_instance()->hierarchy(1);
+        raw_ar & hierarchy;
+
+        status = archive_process(raw_ar);
+
+        if (!status)
+        {
+            return false;
+        }
+
+        Vector<byte> compressed_buffer;
+        Compressor::compress(raw_buffer, compressed_buffer);
+
+        bool need_destroy_writer = (writer == nullptr);
+
+        if (need_destroy_writer)
+        {
+            writer = open_asset_file<FileWriter>(this, true);
+        }
+
+        if (!writer)
+            return false;
+
+        Archive ar(writer);
+        FileFlag flag = FileFlag::asset_flag();
+        ar & flag;
+        ar & compressed_buffer;
+
+        if (need_destroy_writer)
+        {
+            delete writer;
+        }
+
+        return ar;
+    }
+
+
+    static FORCE_INLINE Class* find_class(const Vector<Name>& hierarchy)
+    {
+        Class* instance = nullptr;
+
+        for (Name name : hierarchy)
+        {
+            if ((instance = Class::static_find(name, false)))
+            {
+                return instance;
+            }
+        }
+
+        return instance;
+    }
+
+    ENGINE_EXPORT Object* Object::load_object(class BufferReader* reader, Flags<SerializationFlags> serialization_flags)
+    {
+        if (reader == nullptr)
+        {
+            error_log("Object", "Cannot load object from nullptr buffer reader!");
+            return nullptr;
+        }
+
+        Archive ar(reader);
+        FileFlag flag = FileFlag::asset_flag();
+        ar & flag;
+        if (flag != FileFlag::asset_flag())
+        {
+            error_log("Object", "Cannot load object. Asset flag mismatch!");
+            return nullptr;
+        }
+
+        Vector<byte> compressed_buffer;
+        if (!(ar & compressed_buffer))
+        {
+            error_log("Object", "Failed to read compressed buffer!");
+            return nullptr;
+        }
+
+        Vector<byte> raw_data;
+        Compressor::decompress(compressed_buffer, raw_data);
+        VectorReader raw_reader = &raw_data;
+        Archive raw_ar          = &raw_reader;
+
+        Vector<Name> hierarchy;
+        raw_ar & hierarchy;
+
+        Class* self = find_class(hierarchy);
+
+        if (self == nullptr)
+        {
+            error_log("Object", "Cannot load object. Class '%s' not found!", hierarchy.front().c_str());
+            return nullptr;
+        }
+
+        Object* object = self->create_object();
+
+        object->preload();
+        bool valid = object->archive_process(raw_ar);
+
+        if (!valid)
+        {
+            error_log("Object", "Failed to load object");
+            delete object;
+            object = nullptr;
+        }
+        else
+        {
+            object->postload();
+        }
+        return object;
+    }
+
+    static Object* load_from_file_internal(const Path& path, StringView name, StringView package, Flags<SerializationFlags> flags)
+    {
+        FileReader reader(path);
+        if (reader.is_open())
+        {
+            Object* object = Object::load_object(&reader, flags);
+
+            if (object)
+            {
+                if (!name.empty())
+                {
+                    object->name(name);
+                }
+
+                if (!package.empty())
+                {
+                    if (Package* pkg = Package::find_package(package, true))
+                    {
+                        pkg->add_object(object);
+                    }
+                }
+            }
+
+            return object;
+        }
+
+        return nullptr;
+    }
+
+    ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags<SerializationFlags> flags)
+    {
+        if (Object* object = find_object(name))
+            return object;
+
+        Path path = engine_config.assets_dir /
+                    Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
+        return load_from_file_internal(path, object_name_sv_of(name), package_name_sv_of(name), flags);
+    }
+
+    ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, Flags<SerializationFlags> flags)
+    {
+        String package_name = Strings::replace_all(path.base_path(), Path::sv_separator, Constants::name_separator);
+        StringView name     = path.stem();
+        String full_name    = package_name + Constants::name_separator + String(name);
+
+        if (Object* object = find_object(full_name))
+            return object;
+
+        return load_from_file_internal(engine_config.assets_dir / path, name, package_name, flags);
     }
 
     bool Object::is_serializable() const

@@ -2,6 +2,12 @@
 #include <Core/callback.hpp>
 #include <Graphics/imgui.hpp>
 
+
+namespace ImGui
+{
+    class FileBrowser;
+}
+
 namespace Engine
 {
     class ImGuiNotificationMessage : public ImGuiRenderer::ImGuiAdditionalWindow
@@ -68,13 +74,38 @@ namespace Engine
 
     class ImGuiOpenFile : public ImGuiRenderer::ImGuiAdditionalWindow
     {
-        Package* m_package = nullptr;
-        Function<void(Package*, const Path&)> m_callback;
-        void* m_browser = nullptr;
+        ImGui::FileBrowser* m_browser = nullptr;
+
 
     public:
-        ImGuiOpenFile(Package* pkg, const Function<void(Package*, const Path&)>& callback,
-                      const Vector<String>& type_filters = {});
+        enum Flag
+        {
+            None              = 0,
+            SelectDirectory   = 1 << 0,
+            EnterNewFilename  = 1 << 1,
+            NoModal           = 1 << 2,
+            NoTitleBar        = 1 << 3,
+            NoStatusBar       = 1 << 4,
+            CloseOnEsc        = 1 << 5,
+            CreateNewDir      = 1 << 6,
+            MultipleSelection = 1 << 7,
+        };
+
+    private:
+        Flags<Flag> m_flags;
+
+    public:
+        CallBacks<void(const Path&)> on_select;
+
+        ImGuiOpenFile(Flags<Flag> flags = 0);
+        ImGuiOpenFile& window_pos(int_t posx, int_t posy) noexcept;
+        ImGuiOpenFile& window_size(int_t width, int_t height) noexcept;
+        ImGuiOpenFile& title(StringView title);
+        bool has_selected() const noexcept;
+        ImGuiOpenFile& clear_selected();
+        ImGuiOpenFile& current_type_filter_index(int_t index);
+        ImGuiOpenFile& input_name(StringView input);
+        ImGuiOpenFile& type_filters(const Vector<String>& type_filters);
         ImGuiOpenFile& pwd(const Path& path);
         bool render(RenderViewport* viewport) override;
         static const char* name();

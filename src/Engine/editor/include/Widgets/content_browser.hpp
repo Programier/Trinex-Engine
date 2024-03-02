@@ -7,46 +7,20 @@ namespace Engine
     class ContentBrowser : public ImGuiRenderer::ImGuiAdditionalWindow
     {
     private:
-        enum class PackageNodeType
-        {
-            Folder,
-            Package,
-            NotLoadedPackage
-        };
-
-
-        struct PackageTreeNode {
-            Path m_path;
-            String m_name;
-            Package* m_package = nullptr;
-            bool m_is_builded  = false;
-            bool m_is_package  = false;
-
-            TreeMap<String, PackageTreeNode*> m_childs;
-            void clean();
-            void rebuild();
-            PackageNodeType type() const;
-            PackageTreeNode* find(const Path& path);
-            ~PackageTreeNode();
-        };
-
-
-        bool loaded_package_popup(void* data);
-        bool not_loaded_package_popup(void* data);
-        bool folder_package_popup(void* data);
         bool render_package_popup(void* data);
-        void render_package_tree(PackageTreeNode* node);
+        void render_package_tree(Package* node);
         void render_package_popup();
         void render_packages();
         bool show_context_menu(void* userdata);
+
+        bool render_content_item(Object* object, const StringView& name, const ImVec2& item_size, const ImVec2& content_size,
+                                 bool& not_first_item);
         void render_content_window();
 
         void create_dock_space();
-        void rebuild_package_tree(const Path& selected);
 
-        PackageTreeNode* m_show_popup_for   = nullptr;
-        PackageTreeNode* m_root             = nullptr;
-        PackageTreeNode* m_selected_package = nullptr;
+        Package* m_show_popup_for   = nullptr;
+        Package* m_selected_package = nullptr;
 
         bool m_show_context_menu = false;
 

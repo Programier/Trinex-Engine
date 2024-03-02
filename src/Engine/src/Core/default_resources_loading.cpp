@@ -8,24 +8,41 @@
 
 namespace Engine
 {
-    static void load_package(const Vector<byte>& data, const StringView& name)
-    {
-        VectorReader reader = &data;
-        Package* package    = Object::find_package(name, true);
-        package->load(&reader);
-    }
-
-    ENGINE_EXPORT void load_package_from_memory(const byte* data, size_t size, const StringView& name)
+    ENGINE_EXPORT Object*  load_object_from_memory(const byte* data, size_t size, const StringView& name, class Package* package)
     {
         if (size > 0)
         {
-            load_package(Vector<byte>(data, data + size), name);
+            Vector<byte> tmp(data, data + size);
+            VectorReader reader = &tmp;
+            if(Object* object = Object::load_object(&reader))
+            {
+                if(!name.empty())
+                {
+                    object->name(name);
+                }
+
+                if(package)
+                {
+                    package->add_object(object);
+                }
+
+                return object;
+            }
         }
+
+        return nullptr;
     }
 
     void EngineInstance::load_default_resources()
     {
-        load_package_from_memory(default_package_data, default_package_len, "DefaultPackage");
+        Package* package = Package::find_package("DefaultPackage", true);
+        load_object_from_memory(DefaultSampler_data, DefaultSampler_len, "DefaultSampler", package);
+        load_object_from_memory(ScreenPositionBuffer_data, ScreenPositionBuffer_len, "ScreenPositionBuffer", package);
+
+        load_object_from_memory(BaseColorToScreenMat_data, BaseColorToScreenMat_len, "BaseColorToScreenMat", package);
+        load_object_from_memory(DefaultMaterial_data, DefaultMaterial_len, "DefaultMaterial", package);
+        load_object_from_memory(GBufferLinesMat_data, GBufferLinesMat_len, "GBufferLinesMat", package);
+        load_object_from_memory(SceneOutputLinesMat_data, SceneOutputLinesMat_len, "SceneOutputLinesMat", package);
 
         DefaultResourcesInitializeController().execute();
         m_flags(DefaultResourcesInitTriggered, true);

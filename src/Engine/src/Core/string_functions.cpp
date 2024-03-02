@@ -101,9 +101,9 @@ namespace Engine::Strings
     };
 
 
-    ENGINE_EXPORT String make_sentence(const String& line)
+    ENGINE_EXPORT String make_sentence(const StringView& line)
     {
-        std::string result;
+        String result;
         result.reserve(line.size());
         char prev_char = '\0';
 

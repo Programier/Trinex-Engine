@@ -304,7 +304,7 @@ namespace Engine
         DestroyAll     = 3,
     };
 
-    enum class LoadingFlags : EnumerateType
+    enum class SerializationFlags : EnumerateType
     {
         // Reserved for future
     };

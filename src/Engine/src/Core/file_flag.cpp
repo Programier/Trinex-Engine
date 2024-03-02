@@ -47,6 +47,12 @@ namespace Engine
         return flag;
     }
 
+    const FileFlag& FileFlag::asset_flag()
+    {
+        static FileFlag flag(make_flag_from_string("TRINEX"), make_flag_from_string("ASSET"));
+        return flag;
+    }
+
     ENGINE_EXPORT bool operator&(Archive& ar, FileFlag& flag)
     {
         ar& flag.data[0];

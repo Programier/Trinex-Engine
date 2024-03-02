@@ -1078,13 +1078,14 @@ namespace Engine::MaterialNodes
             ImGui::Indent(5.f);
             if (ImGui::Selectable(path.empty() ? "editor/Select Path"_localized : path.c_str()))
             {
-                Function<void(Package*, const Path&)> callback = [custom_code](Package*, const Path& path) {
+                Function<void(const Path&)> callback = [custom_code](const Path& path) {
                     custom_code->shader_path = path.relative(engine_config.shaders_dir);
                 };
 
                 ImGuiRenderer::Window::current()
-                        ->window_list.create<ImGuiOpenFile>(nullptr, callback)
-                        ->pwd(engine_config.shaders_dir);
+                        ->window_list.create<ImGuiOpenFile>()
+                        ->pwd(engine_config.shaders_dir)
+                        .on_select.push(callback);
             }
 
             ImGui::Unindent(5.f);

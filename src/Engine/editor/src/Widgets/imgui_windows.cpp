@@ -1,6 +1,6 @@
-#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/package.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/scene.hpp>
@@ -256,52 +256,101 @@ namespace Engine
     }
 
 
-    ImGuiOpenFile::ImGuiOpenFile(Package* pkg, const Function<void(Package*, const Path&)>& callback,
-                                 const Vector<String>& type_filters)
-        : m_package(pkg), m_callback(callback)
+    ImGuiOpenFile::ImGuiOpenFile(Flags<Flag> flags) : m_flags(flags)
     {
-        auto* browser = new ImGui::FileBrowser();
-        browser->SetTitle(name());
-        if (!type_filters.empty())
-            browser->SetTypeFilters(type_filters);
+        m_browser = new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags.flags));
+        m_browser->SetTitle(name());
+        m_browser->Open();
+    }
 
-        browser->Open();
-        m_browser = browser;
+    ImGuiOpenFile& ImGuiOpenFile::window_pos(int_t posx, int_t posy) noexcept
+    {
+        m_browser->SetWindowPos(posx, posy);
+        return *this;
+    }
+
+    ImGuiOpenFile& ImGuiOpenFile::window_size(int_t width, int_t height) noexcept
+    {
+        m_browser->SetWindowSize(width, height);
+        return *this;
+    }
+
+    ImGuiOpenFile& ImGuiOpenFile::title(StringView title)
+    {
+        m_browser->SetTitle(String(title));
+        return *this;
+    }
+
+    bool ImGuiOpenFile::has_selected() const noexcept
+    {
+        return m_browser->HasSelected();
+    }
+
+    ImGuiOpenFile& ImGuiOpenFile::clear_selected()
+    {
+        m_browser->ClearSelected();
+        return *this;
+    }
+
+    ImGuiOpenFile& ImGuiOpenFile::current_type_filter_index(int_t index)
+    {
+        m_browser->SetCurrentTypeFilterIndex(index);
+        return *this;
+    }
+
+    ImGuiOpenFile& ImGuiOpenFile::input_name(StringView input)
+    {
+        m_browser->SetInputName(input);
+        return *this;
+    }
+
+    ImGuiOpenFile& ImGuiOpenFile::type_filters(const Vector<String>& type_filters)
+    {
+        m_browser->SetTypeFilters(type_filters);
+        return *this;
     }
 
     ImGuiOpenFile& ImGuiOpenFile::pwd(const Path& path)
     {
-        ImGui::FileBrowser* browser = reinterpret_cast<ImGui::FileBrowser*>(m_browser);
-        browser->SetPwd(rootfs()->native_path(path).str());
+        m_browser->SetPwd(rootfs()->native_path(path).str());
         return *this;
     }
 
     bool ImGuiOpenFile::render(RenderViewport* viewport)
     {
-        ImGui::FileBrowser* browser = reinterpret_cast<ImGui::FileBrowser*>(m_browser);
+        m_browser->Display();
 
-        browser->Display();
-
-        if (browser->HasSelected())
+        if (m_browser->HasSelected())
         {
-            m_callback(m_package, Path(std::filesystem::relative(browser->GetSelected()).string()));
+            if ((m_flags & Flags(Flag::MultipleSelection)) == Flag::MultipleSelection)
+            {
+                for (auto& path : m_browser->GetMultiSelected())
+                {
+                    on_select(Path(std::filesystem::relative(path).string()));
+                }
+            }
+            else
+            {
+                on_select(Path(std::filesystem::relative(m_browser->GetSelected()).string()));
+            }
+
             return false;
         }
 
-        if (!browser->IsOpened())
+        if (!m_browser->IsOpened())
             return false;
         return true;
     }
 
     ImGuiOpenFile::~ImGuiOpenFile()
     {
-        delete reinterpret_cast<ImGui::FileBrowser*>(m_browser);
+        delete m_browser;
     }
 
 
     const char* ImGuiOpenFile::name()
     {
-        return "editor/Open File Title"_localized;
+        return "editor/Open File"_localized;
     }
 
     bool ImGuiObjectProperties::render(RenderViewport* viewport)

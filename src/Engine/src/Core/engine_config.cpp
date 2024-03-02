@@ -20,6 +20,7 @@ namespace Engine
         engine_json.checked_get("languages").copy_to_array(languages, JSON::ValueType::String);
 
         packages_dir     = engine_json.checked_get_value<JSON::JsonString>("packages_dir", "resources/resources");
+        assets_dir       = engine_json.checked_get_value<JSON::JsonString>("assets_dir", "resources/assets");
         api              = engine_json.checked_get_value<JSON::JsonString>("api", "OpenGLES");
         scripts_dir      = engine_json.checked_get_value<JSON::JsonString>("scripts_dir", "resources/scripts");
         libraries_dir    = engine_json.checked_get_value<JSON::JsonString>("libraries_dir", "libs");

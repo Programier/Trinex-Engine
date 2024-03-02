@@ -194,11 +194,8 @@ namespace Engine
 
         if (ImGui::Selectable(Strings::format("{}: {}", prop->name().c_str(), path.str().c_str()).c_str()))
         {
-            Function<void(Package*, const Path&)> callback = [object, prop](Package*, const Path& path) {
-                prop->property_value(object, path);
-            };
-
-            window->window_list.create<ImGuiOpenFile>(nullptr, callback);
+            Function<void(const Path&)> callback = [object, prop](const Path& path) { prop->property_value(object, path); };
+            window->window_list.create<ImGuiOpenFile>()->on_select.push(callback);
         }
     }
 

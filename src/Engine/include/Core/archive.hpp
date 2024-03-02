@@ -1,8 +1,8 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
 #include <Core/etl/type_traits.hpp>
+#include <Core/flags.hpp>
 #include <Core/serializable_object.hpp>
-
 
 namespace Engine
 {
@@ -38,6 +38,8 @@ namespace Engine
         class Object* load_object(const StringView& name, class Class* self);
 
     public:
+        Flags<SerializationFlags> flags;
+
         Archive();
         Archive(BufferReader* reader);
         Archive(BufferWriter* writer);
