@@ -26,7 +26,7 @@ namespace Engine
 
         if (image.empty())
         {
-            image.load_from_memory(logo_png, logo_png_len);
+            image.load_from_memory(logo_png, logo_png_len, false);
         }
 
         return image;

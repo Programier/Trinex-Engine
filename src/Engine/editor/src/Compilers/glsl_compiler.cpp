@@ -358,6 +358,7 @@ namespace Engine
 
     struct GLSL_BindingObject {
         String name;
+        String short_name;
         void* texture = nullptr;
         void* sampler = nullptr;
         StringView type;
@@ -522,7 +523,8 @@ namespace Engine
             return index;
         }
 
-        GLSL_BindingObject* create_binding_object(void* texture, void* sampler, StringView type, bool& created_now)
+        GLSL_BindingObject* create_binding_object(const StringView& name, void* texture, void* sampler, StringView type,
+                                                  bool& created_now)
         {
             created_now = false;
             for (GLSL_BindingObject* glsl_object : objects)
@@ -540,7 +542,9 @@ namespace Engine
             new_object->sampler            = sampler;
             new_object->type               = type;
             new_object->index              = next_binding_index;
-            new_object->name               = Strings::format("tnx_object_{}", objects.size());
+            new_object->name               = Strings::format("tnx_object_{}_{}", name, objects.size());
+            new_object->short_name         = String(name);
+
             objects.push_back(new_object);
 
             ++next_binding_index;
@@ -1896,19 +1900,19 @@ namespace Engine
             String uv_src                    = uv_source(uv);
 
             GLSL_BindingObject* glsl_texture =
-                    create_binding_object(texture, sampler_src->data, "sampler2D", created_now);
+                    create_binding_object(texture_name, texture, sampler_src->data, "sampler2D", created_now);
 
             if (created_now)
             {
-                on_success_command_list.push_back([this, sampler_src, glsl_texture, texture, texture_name]() {
+                on_success_command_list.push_back([this, sampler_src, glsl_texture, texture]() {
                     CombinedTexture2DMaterialParameter* param = reinterpret_cast<CombinedTexture2DMaterialParameter*>(
-                            material->create_parameter(texture_name, MaterialParameter::Type::CombinedTexture2D));
+                            material->create_parameter(glsl_texture->short_name, MaterialParameter::Type::CombinedTexture2D));
                     if (param)
                     {
                         param->texture  = texture;
                         param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);
                         param->location = {glsl_texture->index, 0};
-                        current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+                        current_shader()->combined_samplers.push_back({glsl_texture->short_name, {glsl_texture->index, 0}});
                     }
                 });
             }
@@ -1918,23 +1922,24 @@ namespace Engine
             return (new GLSL_CompiledSource(result_source))->id();
         }
 
-#define declare_render_target_texture(func_name, type)                                                                           \
+#define declare_render_target_texture(func_name, type, param_name)                                                               \
     size_t func_name##_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override                                         \
     {                                                                                                                            \
         bool created_now;                                                                                                        \
         GLSL_CompiledSource* sampler_src = sampler_source(sampler);                                                              \
         String uv_src                    = uv_source(uv);                                                                        \
                                                                                                                                  \
-        GLSL_BindingObject* glsl_texture = create_binding_object(nullptr, sampler_src->data, "sampler2D", created_now);          \
+        GLSL_BindingObject* glsl_texture =                                                                                       \
+                create_binding_object(#param_name, nullptr, sampler_src->data, "sampler2D", created_now);                        \
                                                                                                                                  \
         if (created_now)                                                                                                         \
         {                                                                                                                        \
             on_success_command_list.push_back([this, sampler_src, glsl_texture]() {                                              \
                 type##TextureMaterialParameter* param = reinterpret_cast<type##TextureMaterialParameter*>(                       \
-                        material->create_parameter(glsl_texture->name, MaterialParameter::Type::type##Texture));                 \
+                        material->create_parameter(glsl_texture->short_name, MaterialParameter::Type::type##Texture));           \
                 param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);                                           \
                 param->location = {glsl_texture->index, 0};                                                                      \
-                current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});                   \
+                current_shader()->combined_samplers.push_back({glsl_texture->short_name, {glsl_texture->index, 0}});             \
             });                                                                                                                  \
         }                                                                                                                        \
                                                                                                                                  \
@@ -1943,36 +1948,12 @@ namespace Engine
         return (new GLSL_CompiledSource(result_source))->id();                                                                   \
     }
 
-        size_t base_color_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
-        {
-            bool created_now;
-            GLSL_CompiledSource* sampler_src = sampler_source(sampler);
-            String uv_src                    = uv_source(uv);
-
-            GLSL_BindingObject* glsl_texture = create_binding_object(nullptr, sampler_src->data, "sampler2D", created_now);
-
-            if (created_now)
-            {
-                on_success_command_list.push_back([this, sampler_src, glsl_texture]() {
-                    BaseColorTextureMaterialParameter* param = reinterpret_cast<BaseColorTextureMaterialParameter*>(
-                            material->create_parameter(glsl_texture->name, MaterialParameter::Type::BaseColorTexture));
-                    param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);
-                    param->location = {glsl_texture->index, 0};
-                    current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
-                });
-            }
-
-
-            String result_source = Strings::format("texture({}, {})", glsl_texture->name, uv_src);
-            return (new GLSL_CompiledSource(result_source))->id();
-        }
-
-        //declare_render_target_texture(base_color, BaseColor);
-        declare_render_target_texture(position, Position);
-        declare_render_target_texture(normal, Normal);
-        declare_render_target_texture(emissive, Emissive);
-        declare_render_target_texture(data_buffer, DataBuffer);
-        declare_render_target_texture(scene_output, SceneOutput);
+        declare_render_target_texture(base_color, BaseColor, gbuffer_base_color);
+        declare_render_target_texture(position, Position, gbuffer_position);
+        declare_render_target_texture(normal, Normal, gbuffer_normal);
+        declare_render_target_texture(emissive, Emissive, gbuffer_emissive);
+        declare_render_target_texture(data_buffer, DataBuffer, gbuffer_data_buffer);
+        declare_render_target_texture(scene_output, SceneOutput, scene_output);
 
         virtual size_t sampler(const String& sampler_name, class Engine::Sampler* sampler) override
         {

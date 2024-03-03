@@ -420,7 +420,7 @@ namespace Engine
                 {
                     ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 
-                    if (ImGui::ImageButton(handle, {height, height}, {0, 0}, {1, 1}, -1, color))
+                    if (ImGui::ImageButton(handle, {height, height}, {0, 1}, {1, 0}, -1, color))
                     {
                         m_guizmo_operation = control.first;
                     }
@@ -503,7 +503,7 @@ namespace Engine
                 m_viewport_size  = ImGuiHelpers::construct_vec2<Vector2D>(size);
                 camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
 
-                ImGui::Image(output, size, ImVec2(0.f, 1.f), ImVec2(1.f, 0.f));
+                ImGui::Image(output, size);
                 m_viewport_is_hovered = ImGui::IsWindowHovered();
 
                 ImGui::SetCursorPos(current_pos);
@@ -654,7 +654,7 @@ namespace Engine
         auto component1 = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
         auto component2 = raycast_primitive(m_world->scene()->light_octree().root_node(), ray);
 
-        if(component1.first == nullptr || (component2.first && component1.first > component2.first))
+        if (component1.first == nullptr || (component2.first && component1.first > component2.first))
         {
             component1 = component2;
         }

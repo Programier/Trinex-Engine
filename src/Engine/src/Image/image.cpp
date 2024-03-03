@@ -59,20 +59,21 @@ namespace Engine
     }
 
 
-    Image& Image::load(const Path& image, const bool& invert_horizontal)
+    Image& Image::load(const Path& image, bool invert_horizontal)
     {
         m_data.clear();
         m_data.shrink_to_fit();
 
         Buffer buffer = FileReader(image).read_buffer();
-        return load_from_memory(buffer);
+        return load_from_memory(buffer, invert_horizontal);
     }
 
-    Image& Image::load_from_memory(const byte* buffer, size_t size)
+    Image& Image::load_from_memory(const byte* buffer, size_t size, bool invert)
     {
         m_data.clear();
         m_data.shrink_to_fit();
 
+        stbi_set_flip_vertically_on_load(static_cast<int>(invert));
         stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &m_width, &m_height, &m_channels, 0);
         m_data.resize(m_width * m_height * m_channels);
         std::copy(image_data, image_data + m_data.size(), m_data.data());
@@ -82,9 +83,9 @@ namespace Engine
         return *this;
     }
 
-    Image& Image::load_from_memory(const Buffer& buffer)
+    Image& Image::load_from_memory(const Buffer& buffer, bool invert)
     {
-        return load_from_memory(buffer.data(), buffer.size());
+        return load_from_memory(buffer.data(), buffer.size(), invert);
     }
 
     Image::Image() = default;
@@ -200,7 +201,7 @@ namespace Engine
         return false;
     }
 
-    bool Image::save(Path path, ImageType type)
+    bool Image::save(Path path, ImageType type, bool invert)
     {
         path += extension_of_type(type);
 
@@ -208,6 +209,7 @@ namespace Engine
                                                                         &Image::write_tga};
 
         auto method = write_methods[static_cast<EnumerateType>(type)];
+        stbi_flip_vertically_on_write(static_cast<int>(invert));
         return ((*this).*method)(path);
     }
 

@@ -49,10 +49,10 @@ namespace Engine
         bool empty() const;
         ColorFormat format() const;
 
-        Image& load(const Path& image, const bool& invert = false);
-        Image& load_from_memory(const byte* buffer, size_t size);
-        Image& load_from_memory(const Buffer& buffer);
-        bool save(Path path, ImageType type = ImageType::PNG);
+        Image& load(const Path& image, bool invert = true);
+        Image& load_from_memory(const byte* buffer, size_t size, bool invert = true);
+        Image& load_from_memory(const Buffer& buffer, bool invert = true);
+        bool save(Path path, ImageType type = ImageType::PNG, bool invert = true);
 
         Image& create(const Size2D& size, uint_t channels, const Buffer& buffer = {});
         Image& create(const Size2D& size, uint_t channels, const byte* buffer = nullptr);

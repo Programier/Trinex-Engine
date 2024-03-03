@@ -94,9 +94,6 @@ namespace Engine
             if (!is_root_package)
                 ImGui::Unindent(10.f);
         }
-
-
-
     }
 
     void ContentBrowser::render_packages()
