@@ -88,6 +88,8 @@ namespace Engine
     public:
         TypeData param;
         static constexpr inline MaterialParameter::Type parameter_type = _parameter_type;
+        TypedMaterialParameter(TypeData value = TypeData()) : param(value)
+        {}
 
         MaterialParameter::Type type() const override
         {
@@ -110,6 +112,14 @@ namespace Engine
         }
     };
 
+    template<typename TypeData, MaterialParameter::Type _parameter_type>
+    class TypedMatrixMaterialParameter : public TypedMaterialParameter<TypeData, _parameter_type>
+    {
+    public:
+        TypedMatrixMaterialParameter(TypeData value = TypeData(1.f)) : TypedMaterialParameter<TypeData, _parameter_type>(value)
+        {}
+    };
+
     using BoolMaterialParameter  = TypedMaterialParameter<bool, MaterialParameter::Type::Bool>;
     using IntMaterialParameter   = TypedMaterialParameter<int32_t, MaterialParameter::Type::Int>;
     using UIntMaterialParameter  = TypedMaterialParameter<uint32_t, MaterialParameter::Type::UInt>;
@@ -130,17 +140,25 @@ namespace Engine
     using Vec2MaterialParameter = TypedMaterialParameter<Vector2D, MaterialParameter::Type::Vec2>;
     using Vec3MaterialParameter = TypedMaterialParameter<Vector3D, MaterialParameter::Type::Vec3>;
     using Vec4MaterialParameter = TypedMaterialParameter<Vector4D, MaterialParameter::Type::Vec4>;
-    using Mat3MaterialParameter = TypedMaterialParameter<Matrix3f, MaterialParameter::Type::Mat3>;
-    using Mat4MaterialParameter = TypedMaterialParameter<Matrix4f, MaterialParameter::Type::Mat4>;
+    using Mat3MaterialParameter = TypedMatrixMaterialParameter<Matrix3f, MaterialParameter::Type::Mat3>;
+    using Mat4MaterialParameter = TypedMatrixMaterialParameter<Matrix4f, MaterialParameter::Type::Mat4>;
 
     class ENGINE_EXPORT BindingMaterialParameter : public MaterialParameter
     {
     public:
         BindLocation location;
+
+    protected:
         void bind_texture(class Engine::Texture2D* texture);
         void bind_sampler(class Engine::Sampler* sampler);
         void bind_combined(class Engine::Sampler* sampler, class Engine::Texture2D* texture);
         bool archive_process(Archive& ar) override;
+
+    public:
+        virtual class Texture* texture_param() const;
+        virtual class Sampler* sampler_param() const;
+        virtual BindingMaterialParameter& texture_param(class Texture* texture);
+        virtual BindingMaterialParameter& sampler_param(class Sampler* sampler);
     };
 
     class SamplerMaterialParameter : public BindingMaterialParameter
@@ -151,6 +169,8 @@ namespace Engine
         Type type() const override;
         MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
+        class Sampler* sampler_param() const override;
+        SamplerMaterialParameter& sampler_param(class Sampler* sampler) override;
     };
 
     class CombinedTexture2DMaterialParameter : public BindingMaterialParameter
@@ -162,6 +182,11 @@ namespace Engine
         Type type() const override;
         MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
+
+        class Texture* texture_param() const override;
+        class Sampler* sampler_param() const override;
+        CombinedTexture2DMaterialParameter& texture_param(class Texture* texture) override;
+        CombinedTexture2DMaterialParameter& sampler_param(class Sampler* sampler) override;
     };
 
     struct Texture2DMaterialParameter : public BindingMaterialParameter {
@@ -170,6 +195,8 @@ namespace Engine
         Type type() const override;
         MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
+        class Texture* texture_param() const override;
+        Texture2DMaterialParameter& texture_param(class Texture* texture) override;
     };
 
     struct ModelMatrixMaterialParameter : public MaterialParameter {

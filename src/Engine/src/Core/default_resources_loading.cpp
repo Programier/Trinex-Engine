@@ -35,8 +35,12 @@ namespace Engine
 
     void EngineInstance::load_default_resources()
     {
+
+
         Package* package = Package::find_package("DefaultPackage", true);
         load_object_from_memory(DefaultSampler_data, DefaultSampler_len, "DefaultSampler", package);
+        load_object_from_memory(DefaultTexture_data, DefaultTexture_len, "DefaultTexture", package);
+        load_object_from_memory(SpriteMaterial_data, SpriteMaterial_len, "SpriteMaterial", package);
         load_object_from_memory(ScreenPositionBuffer_data, ScreenPositionBuffer_len, "ScreenPositionBuffer", package);
 
         load_object_from_memory(BaseColorToScreenMat_data, BaseColorToScreenMat_len, "BaseColorToScreenMat", package);

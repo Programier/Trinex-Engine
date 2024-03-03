@@ -36,6 +36,18 @@ namespace Engine
         return Super::owner()->instance_cast<Actor>();
     }
 
+    class World* ActorComponent::world() const
+    {
+        Actor* owner_actor = actor();
+        return owner_actor ? owner_actor->world() : nullptr;
+    }
+
+    class Scene* ActorComponent::scene() const
+    {
+        Actor* owner_actor = actor();
+        return owner_actor ? owner_actor->scene() : nullptr;
+    }
+
     class ActorComponent& ActorComponent::actor(Actor* actor)
     {
         owner(actor);

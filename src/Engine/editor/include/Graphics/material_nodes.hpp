@@ -38,6 +38,7 @@ namespace Engine::MaterialNodes
     struct Sampler : public MaterialNode {
         declare_material_node();
         Pointer<Engine::Sampler> sampler;
+        String sampler_name;
 
         Sampler();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;
@@ -47,6 +48,7 @@ namespace Engine::MaterialNodes
     struct Texture2D : public MaterialNode {
         declare_material_node();
         Pointer<Engine::Texture2D> texture;
+        String texture_name;
 
         Texture2D();
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override;

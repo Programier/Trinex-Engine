@@ -61,17 +61,11 @@ namespace Engine
     {
         Super::on_transform_changed();
 
-        if (Actor* owner_actor = actor())
+        if (Scene* world_scene = scene())
         {
-            if (World* world = owner_actor->world())
-            {
-                if (Scene* scene = world->scene())
-                {
-                    scene->remove_primitive(this);
-                    update_bounding_box();
-                    scene->add_primitive(this);
-                }
-            }
+            world_scene->remove_primitive(this);
+            update_bounding_box();
+            world_scene->add_primitive(this);
         }
 
         return *this;
@@ -86,24 +80,8 @@ namespace Engine
     {
         if (engine_instance->is_editor())
         {
-            const auto& min = m_bounding_box.min();
-            const auto& max = m_bounding_box.max();
             static const ByteColor red = {255, 0, 0, 255};
-
-            layer->lines.add_line({min.x, min.y, min.z}, {max.x, min.y, min.z}, red, red);
-            layer->lines.add_line({min.x, max.y, min.z}, {max.x, max.y, min.z}, red, red);
-            layer->lines.add_line({min.x, min.y, max.z}, {max.x, min.y, max.z}, red, red);
-            layer->lines.add_line({min.x, max.y, max.z}, {max.x, max.y, max.z}, red, red);
-
-            layer->lines.add_line({min.x, min.y, min.z}, {min.x, max.y, min.z}, red, red);
-            layer->lines.add_line({max.x, min.y, min.z}, {max.x, max.y, min.z}, red, red);
-            layer->lines.add_line({min.x, min.y, max.z}, {min.x, max.y, max.z}, red, red);
-            layer->lines.add_line({max.x, min.y, max.z}, {max.x, max.y, max.z}, red, red);
-
-            layer->lines.add_line({min.x, min.y, min.z}, {min.x, min.y, max.z}, red, red);
-            layer->lines.add_line({max.x, min.y, min.z}, {max.x, min.y, max.z}, red, red);
-            layer->lines.add_line({min.x, max.y, min.z}, {min.x, max.y, max.z}, red, red);
-            layer->lines.add_line({max.x, max.y, min.z}, {max.x, max.y, max.z}, red, red);
+            m_bounding_box.write_to_batcher(layer->lines, red);
         }
         return *this;
     }

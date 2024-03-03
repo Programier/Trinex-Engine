@@ -33,13 +33,15 @@ namespace Engine
         Vec3            = 14,
         Vec4            = 15,
         Enum            = 16,
-        LastPrimitive   = Enum,
-        String          = 17,
-        Path            = 18,
-        Object          = 19,
-        ObjectReference = 20,
-        Struct          = 21,
-        Array           = 22,
+        Color3          = 17,
+        Color4          = 18,
+        LastPrimitive   = Color4,
+        String          = 19,
+        Path            = 20,
+        Object          = 21,
+        ObjectReference = 22,
+        Struct          = 23,
+        Array           = 24,
     };
 
     struct ENGINE_EXPORT ArrayPropertyValue final {
@@ -498,6 +500,30 @@ namespace Engine
         {
             return alignof(EnumerateType);
         }
+    };
+
+    template<typename InstanceType>
+    class Color3Property : public PrimitiveProperty<InstanceType, Color3, Color3, PropertyType::Color3>
+    {
+    public:
+        using Super = PrimitiveProperty<InstanceType, Color3, Color3, PropertyType::Color3>;
+
+        Color3Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+                       const Name& group = Name::none, BitMask flags = 0)
+            : Super(name, description, prop, group, flags)
+        {}
+    };
+
+    template<typename InstanceType>
+    class Color4Property : public PrimitiveProperty<InstanceType, Color4, Color4, PropertyType::Color4>
+    {
+    public:
+        using Super = PrimitiveProperty<InstanceType, Color4, Color4, PropertyType::Color4>;
+
+        Color4Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+                       const Name& group = Name::none, BitMask flags = 0)
+            : Super(name, description, prop, group, flags)
+        {}
     };
 
     template<typename InstanceType>

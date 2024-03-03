@@ -155,6 +155,27 @@ namespace Engine
         return ar;
     }
 
+    class Texture* BindingMaterialParameter::texture_param() const
+    {
+        return nullptr;
+    }
+
+    class Sampler* BindingMaterialParameter::sampler_param() const
+    {
+        return nullptr;
+    }
+
+    BindingMaterialParameter& BindingMaterialParameter::texture_param(class Texture* texture)
+    {
+        return *this;
+    }
+
+    BindingMaterialParameter& BindingMaterialParameter::sampler_param(class Sampler* sampler)
+    {
+        return *this;
+    }
+
+
     MaterialParameter::Type SamplerMaterialParameter::type() const
     {
         return MaterialParameter::Type::Sampler;
@@ -174,6 +195,17 @@ namespace Engine
 
         sampler.archive_process(ar, true);
         return ar;
+    }
+
+    class Sampler* SamplerMaterialParameter::sampler_param() const
+    {
+        return sampler.ptr();
+    }
+
+    SamplerMaterialParameter& SamplerMaterialParameter::sampler_param(class Sampler* new_sampler)
+    {
+        sampler = new_sampler;
+        return *this;
     }
 
     MaterialParameter::Type CombinedTexture2DMaterialParameter::type() const
@@ -197,6 +229,36 @@ namespace Engine
         return ar;
     }
 
+    Texture* CombinedTexture2DMaterialParameter::texture_param() const
+    {
+        return texture.ptr();
+    }
+
+    Sampler* CombinedTexture2DMaterialParameter::sampler_param() const
+    {
+        return sampler.ptr();
+    }
+
+    CombinedTexture2DMaterialParameter& CombinedTexture2DMaterialParameter::texture_param(class Texture* new_texture)
+    {
+        if (new_texture == nullptr)
+        {
+            texture = nullptr;
+        }
+        else if (class Texture2D* new_texture_2d = Object::instance_cast<class Texture2D>(new_texture))
+        {
+            texture = new_texture_2d;
+        }
+        return *this;
+    }
+
+    CombinedTexture2DMaterialParameter& CombinedTexture2DMaterialParameter::sampler_param(class Sampler* new_sampler)
+    {
+        sampler = new_sampler;
+        return *this;
+    }
+
+
     MaterialParameter::Type Texture2DMaterialParameter::type() const
     {
         return MaterialParameter::Type::Texture2D;
@@ -218,6 +280,25 @@ namespace Engine
 
         texture.archive_process(ar, true);
         return ar;
+    }
+
+    class Texture* Texture2DMaterialParameter::texture_param() const
+    {
+        return texture.ptr();
+    }
+
+    Texture2DMaterialParameter& Texture2DMaterialParameter::texture_param(class Texture* new_texture)
+    {
+        if (new_texture == nullptr)
+        {
+            texture = nullptr;
+        }
+        else if (class Texture2D* new_texture_2d = Object::instance_cast<class Texture2D>(new_texture))
+        {
+            texture = new_texture_2d;
+        }
+
+        return *this;
     }
 
     ModelMatrixMaterialParameter::Type ModelMatrixMaterialParameter::type() const
@@ -496,8 +577,8 @@ namespace Engine
 
         if (allocator)
         {
-            param                        = allocator();
-            param->name                  = name;
+            param                       = allocator();
+            param->name                 = name;
             m_material_parameters[name] = param;
             return param;
         }
@@ -623,7 +704,7 @@ namespace Engine
         auto allocator = find_param_allocator(type);
         if (allocator)
         {
-            param                        = allocator();
+            param                       = allocator();
             m_material_parameters[name] = param;
             return param;
         }

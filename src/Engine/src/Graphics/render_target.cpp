@@ -19,7 +19,6 @@ namespace Engine
         return *this;
     }
 
-
     RenderTarget::Frame::~Frame() = default;
 
     RenderTarget& RenderTarget::push_frame(Frame* frame)

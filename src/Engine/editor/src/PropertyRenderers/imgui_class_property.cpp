@@ -54,7 +54,7 @@ namespace Engine
         ImGui::Text(format, args...);
     }
 
-    template<typename Type>
+    template<typename Type, PropertyType property_type = PropertyType::Undefined>
     static void render_prop_internal(void* object, Property* prop, bool can_edit, void (*show_only)(Property*, const Type&),
                                      bool (*edit)(Property*, Type&))
     {
@@ -75,7 +75,14 @@ namespace Engine
                 Type value = result.cast<Type>();
                 if (edit(prop, value))
                 {
-                    result = value;
+                    if constexpr (property_type == PropertyType::Undefined)
+                    {
+                        result = value;
+                    }
+                    else
+                    {
+                        result = PropertyValue(value, property_type);
+                    }
                     prop->property_value(object, result);
                 }
             }
@@ -180,6 +187,26 @@ namespace Engine
                     prop_text("%s: {%.2f, %.2f, %.2f, %.2f}", prop->name().c_str(), value.x, value.y, value.z, value.w);
                 },
                 edit_f(Vector4D) { return ImGui::InputFloat4(prop->name().c_str(), &value.x, "%.2f"); });
+    }
+
+    static void render_color3_prop(void* object, Property* prop, bool can_edit)
+    {
+        render_prop_internal<Color3, PropertyType::Color3>(
+                object, prop, can_edit,
+                view_f(Color3) {
+                    ImGui::ColorEdit3(prop->name().c_str(), const_cast<float*>(&value.x), ImGuiColorEditFlags_NoInputs);
+                },
+                edit_f(Color3) { return ImGui::ColorEdit3(prop->name().c_str(), const_cast<float*>(&value.x)); });
+    }
+
+    static void render_color4_prop(void* object, Property* prop, bool can_edit)
+    {
+        render_prop_internal<Color4, PropertyType::Color4>(
+                object, prop, can_edit,
+                view_f(Color4) {
+                    ImGui::ColorEdit4(prop->name().c_str(), const_cast<float*>(&value.x), ImGuiColorEditFlags_NoInputs);
+                },
+                edit_f(Color4) { return ImGui::ColorEdit4(prop->name().c_str(), const_cast<float*>(&value.x)); });
     }
 
     static void render_path_property(void* object, Property* prop, bool can_edit)
@@ -372,6 +399,12 @@ namespace Engine
                 break;
             case PropertyType::Vec4:
                 render_vec4_prop(object, prop, can_edit);
+                break;
+            case PropertyType::Color3:
+                render_color3_prop(object, prop, can_edit);
+                break;
+            case PropertyType::Color4:
+                render_color4_prop(object, prop, can_edit);
                 break;
             case PropertyType::Path:
                 render_path_property(object, prop, can_edit);

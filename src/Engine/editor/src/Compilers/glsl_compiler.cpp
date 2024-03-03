@@ -630,7 +630,7 @@ namespace Engine
 
             Sampler* sampler_object = Object::find_object("DefaultPackage::DefaultSampler")->instance_cast<Sampler>();
             trinex_always_check(sampler_object, "Default sampler object is not valid!");
-            return reinterpret_cast<GLSL_CompiledSource*>(sampler(sampler_object));
+            return reinterpret_cast<GLSL_CompiledSource*>(sampler("", sampler_object));
         }
 
         String uv_source(MaterialInputPin* pin)
@@ -1062,6 +1062,8 @@ namespace Engine
         declare_dynamic_parameter(vec4, Vec4);
         declare_dynamic_parameter(color3, Vec3);
         declare_dynamic_parameter(color4, Vec4);
+        declare_dynamic_parameter(mat3, Mat3);
+        declare_dynamic_parameter(mat4, Mat4);
 
 
         /// MATH
@@ -1084,6 +1086,30 @@ namespace Engine
         {
             String source = Strings::format("dot({}, {})", get_pin_source(pin1, MaterialNodeDataType::Vec3),
                                             get_pin_source(pin2, MaterialNodeDataType::Vec3));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t cross(MaterialInputPin* pin1, MaterialInputPin* pin2) override
+        {
+            String source = Strings::format("cross({}, {})", get_pin_source(pin1, MaterialNodeDataType::Vec3),
+                                            get_pin_source(pin2, MaterialNodeDataType::Vec3));
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
+        size_t transpose(MaterialInputPin* pin1) override
+        {
+            String source = "";
+
+            if (pin1->linked_to)
+            {
+                MaterialNodeDataType out_type = pin1->node->output_type(pin1->node->outputs[0]);
+                source                        = Strings::format("transpose({})", get_pin_source(pin1, out_type));
+            }
+            else
+            {
+                errors->push_back("Transpose node doesn't have input node!");
+            }
+
             return (new GLSL_CompiledSource(source))->id();
         }
 
@@ -1254,7 +1280,8 @@ namespace Engine
 
 
         // TEXTURES
-        virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
+        virtual size_t texture_2d(const String& texture_name, class Engine::Texture2D* texture, MaterialInputPin* sampler,
+                                  MaterialInputPin* uv) override
         {
             errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
             return 0;
@@ -1297,7 +1324,7 @@ namespace Engine
         }
 
 
-        virtual size_t sampler(class Engine::Sampler* sampler) override
+        virtual size_t sampler(const String& sampler_name, class Engine::Sampler* sampler) override
         {
             errors->push_back(Strings::format("Sampler node doesn't supported in {} shader!", name()));
             return 0;
@@ -1861,23 +1888,28 @@ namespace Engine
             return (new GLSL_CompiledSource("gl_FragCoord.xy"))->id();
         }
 
-        virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) override
+        virtual size_t texture_2d(const String& texture_name, class Engine::Texture2D* texture, MaterialInputPin* sampler,
+                                  MaterialInputPin* uv) override
         {
             bool created_now;
             GLSL_CompiledSource* sampler_src = sampler_source(sampler);
             String uv_src                    = uv_source(uv);
 
-            GLSL_BindingObject* glsl_texture = create_binding_object(texture, sampler_src->data, "sampler2D", created_now);
+            GLSL_BindingObject* glsl_texture =
+                    create_binding_object(texture, sampler_src->data, "sampler2D", created_now);
 
             if (created_now)
             {
-                on_success_command_list.push_back([this, sampler_src, glsl_texture, texture]() {
+                on_success_command_list.push_back([this, sampler_src, glsl_texture, texture, texture_name]() {
                     CombinedTexture2DMaterialParameter* param = reinterpret_cast<CombinedTexture2DMaterialParameter*>(
-                            material->create_parameter(glsl_texture->name, MaterialParameter::Type::CombinedTexture2D));
-                    param->texture  = texture;
-                    param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);
-                    param->location = {glsl_texture->index, 0};
-                    current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+                            material->create_parameter(texture_name, MaterialParameter::Type::CombinedTexture2D));
+                    if (param)
+                    {
+                        param->texture  = texture;
+                        param->sampler  = reinterpret_cast<class Sampler*>(sampler_src->data);
+                        param->location = {glsl_texture->index, 0};
+                        current_shader()->combined_samplers.push_back({glsl_texture->name, {glsl_texture->index, 0}});
+                    }
                 });
             }
 
@@ -1942,7 +1974,7 @@ namespace Engine
         declare_render_target_texture(data_buffer, DataBuffer);
         declare_render_target_texture(scene_output, SceneOutput);
 
-        virtual size_t sampler(class Engine::Sampler* sampler) override
+        virtual size_t sampler(const String& sampler_name, class Engine::Sampler* sampler) override
         {
             return (new GLSL_CompiledSource("", sampler))->id();
         }

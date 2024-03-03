@@ -1,20 +1,22 @@
 #include <Core/render_thread.hpp>
+#include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 
 
 namespace Engine
 {
+    template<typename OctreeType>
     class AddPrimitiveTask : public ExecutableObject
     {
-        Scene::SceneOctree* m_octree;
-        PrimitiveComponent* m_primitive;
+        OctreeType* m_octree;
+        OctreeType::ValueType m_primitive;
         AABB_3Df m_box;
 
     public:
-        AddPrimitiveTask(Scene::SceneOctree* octree, PrimitiveComponent* primitive, const AABB_3Df& box)
+        AddPrimitiveTask(OctreeType* octree, OctreeType::ValueType primitive, const AABB_3Df& box)
             : m_octree(octree), m_primitive(primitive), m_box(box)
         {}
 
@@ -25,21 +27,22 @@ namespace Engine
         }
     };
 
+    template<typename OctreeType>
     class RemovePrimitiveTask : public ExecutableObject
     {
-        Scene::SceneOctree* m_octree;
-        PrimitiveComponent* m_primitive;
+        OctreeType* m_octree;
+        OctreeType::ValueType m_primitive;
         AABB_3Df m_box;
 
     public:
-        RemovePrimitiveTask(Scene::SceneOctree* octree, PrimitiveComponent* primitive, const AABB_3Df& box)
+        RemovePrimitiveTask(OctreeType* octree, OctreeType::ValueType primitive, const AABB_3Df& box)
             : m_octree(octree), m_primitive(primitive), m_box(box)
         {}
 
         int_t execute() override
         {
             m_octree->remove(m_box, m_primitive);
-            return sizeof(AddPrimitiveTask);
+            return sizeof(RemovePrimitiveTask);
         }
     };
 
@@ -71,11 +74,12 @@ namespace Engine
     }
 
 
-    Scene& Scene::build_views_internal(SceneRenderer* renderer, SceneOctree::Node* node)
+    template<typename Node>
+    static void build_views_internal(Scene* scene, SceneRenderer* renderer, Node* node)
     {
-        for (PrimitiveComponent* component : node->values)
+        for (auto component : node->values)
         {
-            component->add_to_scene_layer(this, renderer);
+            component->add_to_scene_layer(scene, renderer);
         }
 
         for (byte i = 0; i < 8; i++)
@@ -84,10 +88,9 @@ namespace Engine
 
             if (child)
             {
-                build_views_internal(renderer, child);
+                build_views_internal(scene, renderer, child);
             }
         }
-        return *this;
     }
 
     Scene& Scene::build_views(SceneRenderer* renderer)
@@ -97,30 +100,40 @@ namespace Engine
             layer->clear();
         }
 
-        return build_views_internal(renderer, m_octree_render_thread.root_node());
+        build_views_internal(this, renderer, m_octree_render_thread.root_node());
+        build_views_internal(this, renderer, m_light_octree_render_thread.root_node());
+        return *this;
     }
 
     Scene& Scene::add_primitive(PrimitiveComponent* primitive)
     {
-        render_thread()->insert_new_task<AddPrimitiveTask>(&m_octree_render_thread, primitive, primitive->bounding_box());
+        render_thread()->insert_new_task<AddPrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+                                                                                   primitive->bounding_box());
         m_octree.push(primitive->bounding_box(), primitive);
         return *this;
     }
 
     Scene& Scene::remove_primitive(PrimitiveComponent* primitive)
     {
-        render_thread()->insert_new_task<RemovePrimitiveTask>(&m_octree_render_thread, primitive, primitive->bounding_box());
+        render_thread()->insert_new_task<RemovePrimitiveTask<Scene::PrimitiveOctree>>(&m_octree_render_thread, primitive,
+                                                                                      primitive->bounding_box());
         m_octree.remove(primitive->bounding_box(), primitive);
         return *this;
     }
 
     Scene& Scene::add_light(LightComponent* light)
     {
+        render_thread()->insert_new_task<AddPrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
+                                                                               light->bounding_box());
+        m_light_octree.push(light->bounding_box(), light);
         return *this;
     }
 
     Scene& Scene::remove_light(LightComponent* light)
     {
+        render_thread()->insert_new_task<RemovePrimitiveTask<Scene::LightOctree>>(&m_light_octree_render_thread, light,
+                                                                                  light->bounding_box());
+        m_light_octree.remove(light->bounding_box(), light);
         return *this;
     }
 
@@ -129,7 +142,7 @@ namespace Engine
         return m_root_component.ptr();
     }
 
-    const Scene::SceneOctree& Scene::octree() const
+    const Scene::PrimitiveOctree& Scene::primitive_octree() const
     {
         if (is_in_render_thread())
         {
@@ -138,6 +151,18 @@ namespace Engine
         else
         {
             return m_octree;
+        }
+    }
+
+    const Scene::LightOctree& Scene::light_octree() const
+    {
+        if (is_in_render_thread())
+        {
+            return m_light_octree_render_thread;
+        }
+        else
+        {
+            return m_light_octree;
         }
     }
 

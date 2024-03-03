@@ -46,6 +46,7 @@ namespace Engine
         SceneComponent* scene_component() const;
 
         class World* world() const;
+        class Scene* scene() const;
         bool archive_process(Archive& archive) override;
 
         friend class World;

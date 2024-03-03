@@ -214,6 +214,58 @@ namespace Engine::MaterialNodes
         }
     };
 
+    struct Cross : public MaterialNode {
+        declare_material_node();
+        Cross()
+        {
+            inputs.push_back(new Vec3InputPin(this, "A"));
+            inputs.push_back(new Vec3InputPin(this, "B"));
+            outputs.push_back(new Vec3OutputNoDefaultPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->cross(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            return MaterialNodeDataType::Vec3;
+        }
+    };
+
+    struct Transpose : public MaterialNode {
+        declare_material_node();
+        Transpose()
+        {
+            inputs.push_back(new MaterialInputPin(this, "In"));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->cross(inputs[0], inputs[1]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            if (inputs[0]->linked_to)
+            {
+                auto type = inputs[0]->value_type();
+                auto info = MaterialDataTypeInfo::from(type);
+
+                if (info.is_matrix())
+                {
+                    return type;
+                }
+
+                return static_cast<MaterialNodeDataType>(material_type_value(info.base_type, 3, true));
+            }
+
+            return MaterialNodeDataType::Undefined;
+        }
+    };
+
 
     struct Normalize : public MaterialNode {
         declare_material_node();
@@ -279,6 +331,7 @@ namespace Engine::MaterialNodes
     implement_material_node(Cos, Math);
     implement_material_node(Tan, Math);
     implement_material_node(Dot, Math);
+    implement_material_node(Cross, Math);
     implement_material_node(Normalize, Math);
     implement_material_node(Pow, Math);
     implement_material_node(Floor, Math);
@@ -663,6 +716,25 @@ namespace Engine::MaterialNodes
     };                                                                                                                           \
     implement_material_node(name##Parameter, Parameters);
 
+
+#define declare_dynamic_matrix_node(name, func_name)                                                                             \
+    struct name##Parameter : public MaterialDynamicParameter {                                                                   \
+        declare_material_node();                                                                                                 \
+        name##Parameter()                                                                                                        \
+        {                                                                                                                        \
+            outputs.push_back(new name##OutputNoDefaultPin(this, "Out"));                                                        \
+        }                                                                                                                        \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func_name##_parameter(node_name, pin->default_value());                                             \
+        }                                                                                                                        \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::name;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(name##Parameter, Parameters);
+
     declare_dynamic_node(Bool, bool);
     declare_dynamic_node(Int, int);
     declare_dynamic_node(UInt, uint);
@@ -681,6 +753,8 @@ namespace Engine::MaterialNodes
     declare_dynamic_node(Vec4, vec4);
     declare_dynamic_node(Color3, color3);
     declare_dynamic_node(Color4, color4);
+    declare_dynamic_matrix_node(Mat3, mat3);
+    declare_dynamic_matrix_node(Mat4, mat4);
 
     //////////////////////////// TEXTURE NODES ////////////////////////////
 
@@ -708,14 +782,14 @@ namespace Engine::MaterialNodes
 
     size_t Sampler::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
-        return compiler->sampler(sampler);
+        return compiler->sampler(sampler_name, sampler);
     }
 
     bool Sampler::archive_process(Archive& ar)
     {
         if (!MaterialNode::archive_process(ar))
             return false;
-
+        ar & sampler_name;
         return sampler.archive_process(ar, true);
     }
 
@@ -728,6 +802,7 @@ namespace Engine::MaterialNodes
 
     void Texture2D::render()
     {
+        ImGuiRenderer::InputText("editor/Name"_localized, texture_name);
         if (texture && texture->has_object())
         {
             Engine::Sampler* sampler                   = Icons::default_sampler();
@@ -740,13 +815,13 @@ namespace Engine::MaterialNodes
     {
         if (!MaterialNode::archive_process(ar))
             return false;
-
+        ar & texture_name;
         return texture.archive_process(ar, true);
     }
 
     size_t Texture2D::compile(ShaderCompiler* compiler, MaterialOutputPin* pin)
     {
-        return compiler->texture_2d(texture, inputs[0], inputs[1]);
+        return compiler->texture_2d(texture_name, texture, inputs[0], inputs[1]);
     }
 
     implement_material_node(Sampler, Texture);

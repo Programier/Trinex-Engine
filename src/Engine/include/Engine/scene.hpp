@@ -20,7 +20,8 @@ namespace Engine
     class ENGINE_EXPORT Scene final
     {
     public:
-        using SceneOctree = Octree<PrimitiveComponent*>;
+        using PrimitiveOctree = Octree<PrimitiveComponent*>;
+        using LightOctree     = Octree<LightComponent*>;
 
     private:
         SceneLayer* m_root_layer         = nullptr;
@@ -30,11 +31,11 @@ namespace Engine
         SceneLayer* m_scene_output       = nullptr;
         SceneLayer* m_post_process_layer = nullptr;
 
-        SceneOctree m_octree_render_thread;
-        SceneOctree m_octree;
+        PrimitiveOctree m_octree_render_thread;
+        PrimitiveOctree m_octree;
+        LightOctree m_light_octree_render_thread;
+        LightOctree m_light_octree;
         Pointer<SceneComponent> m_root_component;
-
-        Scene& build_views_internal(SceneRenderer* renderer, SceneOctree::Node* node);
 
     public:
         Scene();
@@ -44,7 +45,8 @@ namespace Engine
         Scene& add_light(LightComponent* light);
         Scene& remove_light(LightComponent* light);
         SceneComponent* root_component() const;
-        const SceneOctree& octree() const;
+        const PrimitiveOctree& primitive_octree() const;
+        const LightOctree& light_octree() const;
         ~Scene();
 
 

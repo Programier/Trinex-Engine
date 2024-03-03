@@ -3,6 +3,7 @@
 #include <Core/class.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
+#include <Engine/world.hpp>
 
 namespace Engine
 {
@@ -136,6 +137,11 @@ namespace Engine
     class World* Actor::world() const
     {
         return m_world;
+    }
+
+    class Scene* Actor::scene() const
+    {
+        return m_world ? m_world->scene() : nullptr;
     }
 
     bool Actor::archive_process(Archive& archive)

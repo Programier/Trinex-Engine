@@ -33,13 +33,15 @@ namespace Engine
 
     public:
         // MATH
-        virtual size_t sin(MaterialInputPin*)                              = 0;
-        virtual size_t cos(MaterialInputPin*)                              = 0;
-        virtual size_t tan(MaterialInputPin*)                              = 0;
-        virtual size_t normalize(MaterialInputPin*)                        = 0;
-        virtual size_t dot(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
-        virtual size_t pow(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
-        virtual size_t floor(MaterialInputPin*)                            = 0;
+        virtual size_t sin(MaterialInputPin*)                                = 0;
+        virtual size_t cos(MaterialInputPin*)                                = 0;
+        virtual size_t tan(MaterialInputPin*)                                = 0;
+        virtual size_t normalize(MaterialInputPin*)                          = 0;
+        virtual size_t dot(MaterialInputPin* pin1, MaterialInputPin* pin2)   = 0;
+        virtual size_t pow(MaterialInputPin* pin1, MaterialInputPin* pin2)   = 0;
+        virtual size_t cross(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
+        virtual size_t transpose(MaterialInputPin* pin1)                     = 0;
+        virtual size_t floor(MaterialInputPin*)                              = 0;
 
         // OPERATORS
         virtual size_t bool_op(MaterialInputPin* pin)   = 0;
@@ -144,16 +146,19 @@ namespace Engine
         virtual size_t vec4_parameter(const String& name, void* data)   = 0;
         virtual size_t color3_parameter(const String& name, void* data) = 0;
         virtual size_t color4_parameter(const String& name, void* data) = 0;
+        virtual size_t mat3_parameter(const String& name, void* data)   = 0;
+        virtual size_t mat4_parameter(const String& name, void* data)   = 0;
 
         // Texture
-        virtual size_t texture_2d(class Engine::Texture2D* texture, MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
-        virtual size_t sampler(class Engine::Sampler* sampler)                                                       = 0;
-        virtual size_t base_color_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                           = 0;
-        virtual size_t position_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                             = 0;
-        virtual size_t normal_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                               = 0;
-        virtual size_t emissive_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                             = 0;
-        virtual size_t data_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                          = 0;
-        virtual size_t scene_output_texture(MaterialInputPin* sampler, MaterialInputPin* uv)                         = 0;
+        virtual size_t texture_2d(const String& name, class Engine::Texture2D* texture, MaterialInputPin* sampler,
+                                  MaterialInputPin* uv)                                      = 0;
+        virtual size_t sampler(const String& name, class Engine::Sampler* sampler)           = 0;
+        virtual size_t base_color_texture(MaterialInputPin* sampler, MaterialInputPin* uv)   = 0;
+        virtual size_t position_texture(MaterialInputPin* sampler, MaterialInputPin* uv)     = 0;
+        virtual size_t normal_texture(MaterialInputPin* sampler, MaterialInputPin* uv)       = 0;
+        virtual size_t emissive_texture(MaterialInputPin* sampler, MaterialInputPin* uv)     = 0;
+        virtual size_t data_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv)  = 0;
+        virtual size_t scene_output_texture(MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
 
         // Shader outputs
         virtual size_t vertex_output_screen_space_position(MaterialInputPin*) = 0;

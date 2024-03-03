@@ -1,3 +1,4 @@
+#include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -33,6 +34,7 @@ namespace Engine
             component->m_layer = nullptr;
         }
         m_components.clear();
+        m_light_components.clear();
         lines.clear();
         return *this;
     }
@@ -50,6 +52,11 @@ namespace Engine
         }
 
         for (PrimitiveComponent* component : m_components)
+        {
+            component->render(renderer, render_target, this);
+        }
+
+        for(LightComponent* component : m_light_components)
         {
             component->render(renderer, render_target, this);
         }
@@ -172,6 +179,30 @@ namespace Engine
             return *this;
 
         m_components.erase(component);
+        component->m_layer = nullptr;
+        return *this;
+    }
+
+    SceneLayer& SceneLayer::add_light(LightComponent* component)
+    {
+        if (!component || component->m_layer == this)
+            return *this;
+
+        if (component->m_layer != nullptr)
+        {
+            component->m_layer->remove_light(component);
+        }
+
+        m_light_components.insert(component);
+        return *this;
+    }
+
+    SceneLayer& SceneLayer::remove_light(LightComponent* component)
+    {
+        if (!component || component->m_layer != this)
+            return *this;
+
+        m_light_components.erase(component);
         component->m_layer = nullptr;
         return *this;
     }

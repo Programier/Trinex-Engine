@@ -525,6 +525,7 @@ namespace Engine
 
     static void delete_selected_items()
     {
+
         size_t objects = ed::GetSelectedObjectCount();
         if (objects == 0)
             return;
@@ -573,6 +574,7 @@ namespace Engine
         }
 
         delete[] _data;
+        ed::ClearSelection();
     }
 
     static void process_new_selected_node(MaterialEditorClient* client)
@@ -891,8 +893,10 @@ namespace Engine
         {
             delete_selected_items();
         }
-
-        process_new_selected_node(client);
+        else
+        {
+            process_new_selected_node(client);
+        }
 
         return *this;
     }

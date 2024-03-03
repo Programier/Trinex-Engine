@@ -26,6 +26,8 @@ namespace Engine
         AABB_3Df& max(const Vector3D& new_max);
         AABB_3Df& minmax(const Vector3D& new_min, const Vector3D& new_max);
         Vector3D size() const;
+        AABB_3Df apply_transform(const Matrix4f& matrix) const;
+        const AABB_3Df& write_to_batcher(class BatchedLines& batcher, const ByteColor& color = {255, 255, 255, 255}) const;
 
         bool inside(const AABB_3Df& other) const;
         bool intersect(const AABB_3Df& other) const;

@@ -8,6 +8,7 @@ namespace Engine
     class Octree
     {
     public:
+        using ValueType = ElementType;
         struct Index {
             byte x : 1 = 0;
             byte y : 1 = 0;
@@ -68,7 +69,7 @@ namespace Engine
                 if (this == &other)
                     return *this;
 
-                m_box = other.m_box;
+                m_box  = other.m_box;
                 values = other.values;
 
                 for (int i = 0; i < 8; i++)

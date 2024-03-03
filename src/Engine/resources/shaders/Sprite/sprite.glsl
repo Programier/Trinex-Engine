@@ -1,0 +1,1 @@
+vec3 output_position = input_position;

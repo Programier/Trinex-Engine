@@ -1,6 +1,6 @@
+#include <Engine/Render/batched_lines.hpp>
 #include <Engine/aabb.hpp>
 #include <Engine/ray.hpp>
-
 
 namespace Engine
 {
@@ -30,8 +30,8 @@ namespace Engine
     AABB_3Df& AABB_3Df::center(const Vector3D& position)
     {
         Vector3D half_size = m_max - center();
-        m_max             = position + half_size;
-        m_min             = position - half_size;
+        m_max              = position + half_size;
+        m_min              = position - half_size;
         return *this;
     }
 
@@ -58,17 +58,52 @@ namespace Engine
         return m_max - m_min;
     }
 
+    AABB_3Df AABB_3Df::apply_transform(const Matrix4f& matrix) const
+    {
+        Vector3D points[7] = {{m_min.x, m_min.y, m_max.z}, {m_max.x, m_min.y, m_max.z}, {m_max.x, m_min.y, m_min.z}, m_max,
+                              {m_max.x, m_max.y, m_min.z}, {m_min.x, m_max.y, m_min.z}, {m_min.x, m_max.y, m_max.z}};
+
+        Vector3D r_min, r_max;
+        r_min = r_max = matrix * Vector4D(m_min, 1.f);
+
+        for (auto& ell : points)
+        {
+            ell   = matrix * Vector4D(ell, 1.f);
+            r_min = glm::min(r_min, ell);
+            r_max = glm::max(r_max, ell);
+        }
+
+        return AABB_3Df(r_min, r_max);
+    }
+
+    const AABB_3Df& AABB_3Df::write_to_batcher(BatchedLines& batcher, const ByteColor& color) const
+    {
+        batcher.add_line({m_min.x, m_min.y, m_min.z}, {m_max.x, m_min.y, m_min.z}, color, color);
+        batcher.add_line({m_min.x, m_max.y, m_min.z}, {m_max.x, m_max.y, m_min.z}, color, color);
+        batcher.add_line({m_min.x, m_min.y, m_max.z}, {m_max.x, m_min.y, m_max.z}, color, color);
+        batcher.add_line({m_min.x, m_max.y, m_max.z}, {m_max.x, m_max.y, m_max.z}, color, color);
+
+        batcher.add_line({m_min.x, m_min.y, m_min.z}, {m_min.x, m_max.y, m_min.z}, color, color);
+        batcher.add_line({m_max.x, m_min.y, m_min.z}, {m_max.x, m_max.y, m_min.z}, color, color);
+        batcher.add_line({m_min.x, m_min.y, m_max.z}, {m_min.x, m_max.y, m_max.z}, color, color);
+        batcher.add_line({m_max.x, m_min.y, m_max.z}, {m_max.x, m_max.y, m_max.z}, color, color);
+
+        batcher.add_line({m_min.x, m_min.y, m_min.z}, {m_min.x, m_min.y, m_max.z}, color, color);
+        batcher.add_line({m_max.x, m_min.y, m_min.z}, {m_max.x, m_min.y, m_max.z}, color, color);
+        batcher.add_line({m_min.x, m_max.y, m_min.z}, {m_min.x, m_max.y, m_max.z}, color, color);
+        batcher.add_line({m_max.x, m_max.y, m_min.z}, {m_max.x, m_max.y, m_max.z}, color, color);
+        return *this;
+    }
+
     bool AABB_3Df::inside(const AABB_3Df& other) const
     {
-        return (m_min.x >= other.m_min.x && m_max.x <= other.m_max.x) &&
-               (m_min.y >= other.m_min.y && m_max.y <= other.m_max.y) &&
+        return (m_min.x >= other.m_min.x && m_max.x <= other.m_max.x) && (m_min.y >= other.m_min.y && m_max.y <= other.m_max.y) &&
                (m_min.z >= other.m_min.z && m_max.z <= other.m_max.z);
     }
 
     bool AABB_3Df::intersect(const AABB_3Df& other) const
     {
-        return (m_min.x <= other.m_max.x && m_max.x >= other.m_min.x) &&
-               (m_min.y <= other.m_max.y && m_max.y >= other.m_min.y) &&
+        return (m_min.x <= other.m_max.x && m_max.x >= other.m_min.x) && (m_min.y <= other.m_max.y && m_max.y >= other.m_min.y) &&
                (m_min.z <= other.m_max.z && m_max.z >= other.m_min.z);
     }
 
@@ -93,8 +128,7 @@ namespace Engine
 
     bool AABB_3Df::outside(const AABB_3Df& other) const
     {
-        return (m_min.x > other.m_max.x || m_max.x < other.m_min.x) ||
-               (m_min.y > other.m_max.y || m_max.y < other.m_min.y) ||
+        return (m_min.x > other.m_max.x || m_max.x < other.m_min.x) || (m_min.y > other.m_max.y || m_max.y < other.m_min.y) ||
                (m_min.z > other.m_max.z || m_max.z < other.m_min.z);
     }
 
@@ -185,8 +219,8 @@ namespace Engine
     ENGINE_EXPORT AABB_3Df operator-(const Vector3D& offset, AABB_3Df self)
     {
         Vector3D tmp = self.m_max;
-        self.m_max  = offset - self.m_min;
-        self.m_min  = offset - tmp;
+        self.m_max   = offset - self.m_min;
+        self.m_min   = offset - tmp;
         return self;
     }
 

@@ -9,6 +9,7 @@ namespace Engine
     class SceneRenderer;
     class RenderTargetBase;
     class PrimitiveComponent;
+    class LightComponent;
 
     class ENGINE_EXPORT SceneLayer final
     {
@@ -30,6 +31,7 @@ namespace Engine
 
     private:
         Set<PrimitiveComponent*> m_components;
+        Set<LightComponent*> m_light_components;
 
         SceneLayer* m_parent = nullptr;
         SceneLayer* m_next   = nullptr;
@@ -56,6 +58,8 @@ namespace Engine
 
         SceneLayer& add_component(PrimitiveComponent* component);
         SceneLayer& remove_component(PrimitiveComponent* component);
+        SceneLayer& add_light(LightComponent* component);
+        SceneLayer& remove_light(LightComponent* component);
 
         friend class Scene;
     };

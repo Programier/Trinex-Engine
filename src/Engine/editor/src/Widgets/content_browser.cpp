@@ -94,6 +94,9 @@ namespace Engine
             if (!is_root_package)
                 ImGui::Unindent(10.f);
         }
+
+
+
     }
 
     void ContentBrowser::render_packages()
@@ -110,6 +113,7 @@ namespace Engine
                 Path relative = path.relative(engine_config.assets_dir);
                 Object::load_object_from_file(relative);
             });
+            window->type_filters({Constants::asset_extention});
             window->pwd(engine_config.assets_dir);
         }
 

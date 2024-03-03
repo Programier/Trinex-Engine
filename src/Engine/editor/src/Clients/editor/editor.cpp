@@ -6,6 +6,7 @@
 #include <Core/localization.hpp>
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
+#include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/ray.hpp>
@@ -603,9 +604,10 @@ namespace Engine
     }
 
 
-    using RaycastPrimitiveResult = Pair<PrimitiveComponent*, float>;
+    using RaycastPrimitiveResult = Pair<SceneComponent*, float>;
 
-    static RaycastPrimitiveResult raycast_primitive(Scene::SceneOctree::Node* node, const Ray& ray,
+    template<typename NodeType>
+    static RaycastPrimitiveResult raycast_primitive(NodeType* node, const Ray& ray,
                                                     RaycastPrimitiveResult result = {nullptr, -1.f})
     {
         if (node == nullptr)
@@ -619,7 +621,7 @@ namespace Engine
         if (result.first && intersect.x > result.second)
             return result;
 
-        for (PrimitiveComponent* component : node->values)
+        for (auto* component : node->values)
         {
             intersect = component->bounding_box().intersect(ray);
 
@@ -649,12 +651,18 @@ namespace Engine
 
         view.screen_to_world(coords, origin, direction);
         Ray ray(origin, direction);
-        auto component = raycast_primitive(m_world->scene()->octree().root_node(), ray).first;
-        on_object_select(component);
+        auto component1 = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
+        auto component2 = raycast_primitive(m_world->scene()->light_octree().root_node(), ray);
 
+        if(component1.first == nullptr || (component2.first && component1.first > component2.first))
+        {
+            component1 = component2;
+        }
+
+        on_object_select(component1.first);
         if (m_scene_tree)
         {
-            m_scene_tree->selected = component;
+            m_scene_tree->selected = component1.first;
         }
         return *this;
     }
