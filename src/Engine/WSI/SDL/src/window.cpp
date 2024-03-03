@@ -84,8 +84,8 @@ namespace Engine
         m_api = sdl_api(info->api_name);
 
         m_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
-                                     static_cast<int>(info->size.x), static_cast<int>(info->size.y),
-                                     m_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
+                                    static_cast<int>(info->size.x), static_cast<int>(info->size.y),
+                                    m_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
         m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 
@@ -292,7 +292,7 @@ namespace Engine
             return SDL_GL_GetSwapInterval() != 0;
         }
 
-        throw EngineException("Cannot use vsync method from window interface, when API is not OpenGL");
+        return false;
     }
 
     int_t WindowSDL::create_message_box(const MessageBoxCreateInfo& info)
@@ -778,9 +778,10 @@ namespace Engine
 
 void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiViewport* viewport)
 {
-    Engine::WindowSDL* main_window = nullptr;
+    Engine::WindowSDL* main_window     = nullptr;
+    Engine::Window* main_window_handle = nullptr;
     {
-        Engine::Window* main_window_handle = Engine::WindowManager::instance()->find(SDL_GetWindowID(_main_window));
+        main_window_handle = Engine::WindowManager::instance()->find(SDL_GetWindowID(_main_window));
         if (!main_window_handle)
             return nullptr;
         main_window = reinterpret_cast<Engine::WindowSDL*>(main_window_handle->interface());
@@ -791,14 +792,14 @@ void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiVi
     SDL_SetWindowData(window, "trinex_imgui_context", ImGui::GetCurrentContext());
 
     Engine::WindowSDL* new_window = new Engine::WindowSDL();
-    new_window->m_window         = window;
-    new_window->m_id             = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
-    new_window->m_api            = main_window->m_api;
+    new_window->m_window          = window;
+    new_window->m_id              = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
+    new_window->m_api             = main_window->m_api;
 
 
     Engine::WindowConfig config;
     config.client = "Engine::ImGuiViewportClient";
-    config.vsync  = main_window->vsync();
+    config.vsync  = main_window_handle->render_viewport()->vsync();
     auto* client  = reinterpret_cast<Engine::ImGuiRenderer::ImGuiViewportClient*>(
             Engine::WindowManager::instance()->create_window(config, nullptr, new_window)->render_viewport()->client());
     if (client)
