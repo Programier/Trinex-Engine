@@ -77,8 +77,8 @@ namespace Engine
             bool depth_clamp_enable = false;
 
             PolygonMode polygon_mode = PolygonMode::Fill;
-            CullMode cull_mode       = CullMode::Front;
-            FrontFace front_face     = FrontFace::CounterClockWise;
+            CullMode cull_mode       = CullMode::Back;
+            FrontFace front_face     = FrontFace::ClockWise;
         } rasterizer;
 
         struct ALIGNED(4) ColorBlendingInfo {

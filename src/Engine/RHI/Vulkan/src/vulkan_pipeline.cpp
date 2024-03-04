@@ -158,7 +158,7 @@ namespace Engine
                 m_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
 
         out_state.rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
-                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
+                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.front_face)])
                 .setPolygonMode(m_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)])
                 .setDepthBiasSlopeFactor(in_state.rasterizer.depth_bias_slope_factor)
                 .setDepthBiasClamp(in_state.rasterizer.depth_bias_clamp)
