@@ -17,6 +17,7 @@ namespace Engine
 
     SpriteComponent& SpriteComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
+        bounding_box().write_to_batcher(scene->scene_output_layer()->lines, {255, 255, 0, 255});
         scene->scene_output_layer()->add_component(this);
         return *this;
     }

@@ -23,6 +23,11 @@ namespace Engine
         Matrix4f translation_matrix() const;
         Matrix4f rotation_matrix() const;
         Matrix4f scale_matrix() const;
+        Transform& add_location(const Vector3D& delta);
+        Transform& add_rotation(const Vector3D& delta);
+        Transform& add_rotation(const Quaternion& delta);
+        Transform& add_scale(const Vector3D& delta);
+        Quaternion quaternion_rotation() const;
 
         Matrix4f matrix() const;
         Matrix4f world_to_local();

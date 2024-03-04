@@ -88,9 +88,7 @@ namespace Engine
 
     PrimitiveComponent& PrimitiveComponent::update_bounding_box()
     {
-        static auto min = Vector3D(transform.local_to_world * Vector4D(default_bounds.min(), 1.f));
-        auto max        = Vector3D(transform.local_to_world * Vector4D(default_bounds.max(), 1.f));
-        m_bounding_box  = AABB_3Df(min, max);
+        m_bounding_box = default_bounds.apply_transform(transform.local_to_world);
         return *this;
     }
 }// namespace Engine

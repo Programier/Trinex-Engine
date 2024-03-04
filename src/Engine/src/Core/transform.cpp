@@ -25,6 +25,35 @@ namespace Engine
         return glm::scale(Matrix4f(1.f), scale);
     }
 
+    Transform& Transform::add_location(const Vector3D& delta)
+    {
+        location += delta;
+        return *this;
+    }
+
+    Transform& Transform::add_rotation(const Vector3D& delta)
+    {
+        return add_rotation(Quaternion(glm::radians(delta)));
+    }
+
+    Quaternion Transform::quaternion_rotation() const
+    {
+        return Quaternion(glm::radians(rotation));
+    }
+
+    Transform& Transform::add_rotation(const Quaternion& delta)
+    {
+        rotation = glm::degrees(glm::eulerAngles(delta * quaternion_rotation()));
+        return *this;
+    }
+
+    Transform& Transform::add_scale(const Vector3D& delta)
+    {
+        scale += delta;
+        return *this;
+    }
+
+
     Matrix4f Transform::matrix() const
     {
         Matrix4f transformation = Matrix4f(1.0f);

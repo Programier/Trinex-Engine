@@ -101,9 +101,7 @@ namespace Engine
     {
         if (mesh)
         {
-            auto min       = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.min(), 1.f));
-            auto max       = Vector3D(transform.local_to_world * Vector4D(mesh->bounds.max(), 1.f));
-            m_bounding_box = AABB_3Df(min, max);
+            m_bounding_box = mesh->bounds.apply_transform(transform.local_to_world);
         }
         else
         {
