@@ -44,6 +44,16 @@ namespace Engine
         }
     }
 
+    void Class::on_create_call(Object* object) const
+    {
+        if(Class* parent_class = parent())
+        {
+            parent_class->on_create_call(object);
+        }
+
+        on_create(object);
+    }
+
     Class* Class::parent() const
     {
         return reinterpret_cast<Class*>(Struct::parent());
@@ -61,12 +71,15 @@ namespace Engine
             if (m_singletone_object == nullptr)
             {
                 m_singletone_object = m_static_constructor();
+                on_create_call(m_singletone_object);
             }
 
             return m_singletone_object;
         }
 
-        return m_static_constructor();
+        Object* object = m_static_constructor();
+        on_create_call(object);
+        return object;
     }
 
     size_t Class::sizeof_class() const

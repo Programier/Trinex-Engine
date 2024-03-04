@@ -42,7 +42,11 @@ namespace Engine
             return internal_cast(T::static_class_instance(), o);
         }
 
+        void on_create_call(Object* object) const;
+
     public:
+        CallBacks<void(Object*)> on_create;
+
         Class(const Name& name, const Name& namespace_name, Object* (*) (), Class* parent = nullptr, BitMask flags = 0);
 
         Class* parent() const;

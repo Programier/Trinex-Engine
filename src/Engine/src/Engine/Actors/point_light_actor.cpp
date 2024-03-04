@@ -11,7 +11,6 @@ namespace Engine
     PointLightActor::PointLightActor()
     {
         m_point_light_component = create_component<PointLightComponent>(("PointLightComponent0"));
-        create_component<SpriteComponent>(("SpriteComponent0"))->texture = Object::find_object_checked<Texture2D>("Editor::PointLightSprite");
     }
 
     PointLightComponent* PointLightActor::point_light_component() const
