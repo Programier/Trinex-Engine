@@ -49,25 +49,11 @@ namespace Engine
 
     LightComponent& LightComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
-        if (engine_instance->is_editor())
-        {
-            bounding_box().write_to_batcher(scene->scene_output_layer()->lines);
-        }
         return *this;
     }
 
     LightComponent& LightComponent::render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*)
     {
-//        if (Material* material = Object::find_object_checked<Material>("DefaultPackage::SpriteMaterial"))
-//        {
-//            if (PositionVertexBuffer* vertex_bufer =
-//                        Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer"))
-//            {
-//                material->apply(this);
-//                vertex_bufer->rhi_bind(0, 0);
-//                engine_instance->rhi()->draw(6);
-//            }
-//        }
         return *this;
     }
 

@@ -17,8 +17,9 @@ namespace Engine
         Vector<Pointer<class ActorComponent>> m_owned_components;
         ScriptObject m_script_object;
 
-        class World* m_world = nullptr;
-        bool m_is_playing    = false;
+        class World* m_world      = nullptr;
+        bool m_is_playing         = false;
+        bool m_is_being_destroyed = false;
 
     protected:
         ActorComponent* create_component(Class* self, const Name& name = {});
@@ -37,7 +38,8 @@ namespace Engine
         virtual Actor& start_play();
         virtual Actor& stop_play();
         virtual Actor& spawned();
-        virtual Actor& destroy();
+        virtual Actor& destroyed();
+        Actor& destroy();
 
         bool is_playing() const;
         const Vector<Pointer<class ActorComponent>>& owned_components() const;

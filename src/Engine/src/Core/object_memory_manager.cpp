@@ -50,7 +50,7 @@ namespace Engine
         allocator().deallocate(memory, size);
     }
 
-    void Object::delete_object(Object* object)
+    static void delete_object(Object* object)
     {
         if (!object->is_noname())
         {
@@ -64,13 +64,6 @@ namespace Engine
         delete object;
     }
 
-    Object& Object::deferred_destroy()
-    {
-        deferred_destroy_list().insert(this);
-        flags(IsWaitDestroy, true);
-        return *this;
-    }
-
 
     static void force_destroy_all()
     {
@@ -78,7 +71,7 @@ namespace Engine
         for (Object* object : objects)
         {
             if (object && object->flags.has_any(Object::IsAvailableForGC))
-                Object::delete_object(object);
+                delete_object(object);
         }
     }
 

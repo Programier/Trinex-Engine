@@ -12,6 +12,7 @@ namespace Engine
     private:
         Vector<class Actor*> m_actors;
         Vector<class Actor*> m_actors_to_destroy;
+        TreeSet<class Actor*> m_selected_actors;
         bool m_is_playing;
 
         Scene* m_scene = nullptr;
@@ -31,6 +32,13 @@ namespace Engine
 
         World& destroy_actor(Actor* actor);
         Scene* scene() const;
+        World& select_actor(Actor* actor);
+        World& unselect_actor(Actor* actor);
+        World& select_actors(const Vector<Actor*>& actors);
+        World& unselect_actors(const Vector<Actor*>& actors);
+        World& unselect_actors();
+        const TreeSet<Actor*>& selected_actors() const;
+        bool is_selected(Actor* actor) const;
         ~World();
 
         static World* global();

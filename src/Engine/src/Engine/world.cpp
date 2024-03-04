@@ -139,7 +139,8 @@ namespace Engine
             return *this;
         }
 
-        actor->destroy();
+        unselect_actor(actor);
+        actor->destroyed();
 
         for (size_t index = 0, count = m_actors.size(); index < count; ++index)
         {
@@ -162,6 +163,56 @@ namespace Engine
     {
         return m_scene;
     }
+
+    World& World::select_actor(Actor* actor)
+    {
+        if (actor->world() == this)
+        {
+            m_selected_actors.insert(actor);
+        }
+        return *this;
+    }
+
+    World& World::unselect_actor(Actor* actor)
+    {
+        m_selected_actors.erase(actor);
+        return *this;
+    }
+
+    World& World::select_actors(const Vector<Actor*>& actors)
+    {
+        for (Actor* actor : actors)
+        {
+            select_actor(actor);
+        }
+        return *this;
+    }
+
+    World& World::unselect_actors(const Vector<Actor*>& actors)
+    {
+        for (Actor* actor : actors)
+        {
+            unselect_actor(actor);
+        }
+        return *this;
+    }
+
+    World& World::unselect_actors()
+    {
+        m_selected_actors.clear();
+        return *this;
+    }
+
+    const TreeSet<Actor*>& World::selected_actors() const
+    {
+        return m_selected_actors;
+    }
+
+    bool World::is_selected(Actor* actor) const
+    {
+        return m_selected_actors.contains(actor);
+    }
+
 
     World::~World()
     {

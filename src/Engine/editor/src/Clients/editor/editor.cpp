@@ -8,6 +8,7 @@
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Actors/actor.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/ray.hpp>
 #include <Engine/scene.hpp>
@@ -328,13 +329,23 @@ namespace Engine
         render_dock_window(dt);
 
         create_log_window(dt);
-
         update_camera(dt);
         update_viewport(dt);
         render_viewport_window(dt);
 
         ImGui::End();
         window->end_frame();
+
+
+        if(KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
+        {
+            auto& selected = m_world->selected_actors();
+            for(auto& ell : selected)
+            {
+                m_world->destroy_actor(ell);
+            }
+        }
+
 
         ++m_frame;
         return *this;
@@ -361,7 +372,9 @@ namespace Engine
 
     EditorClient& EditorClient::render_guizmo(float dt)
     {
-        if (m_selected_scene_component == nullptr || m_selected_scene_component == m_world->scene()->root_component())
+        const auto& selected = m_world->selected_actors();
+
+        if (selected.empty())
             return *this;
 
         ImGuizmo::BeginFrame();
@@ -370,28 +383,35 @@ namespace Engine
         ImGuizmo::SetDrawlist();
         ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_viewport_size.x, m_viewport_size.y);
 
-        auto view             = camera->view_matrix();
-        auto projection       = camera->projection_matrix();
-        const auto& transform = m_selected_scene_component->world_transform();
+        auto view       = camera->view_matrix();
+        auto projection = camera->projection_matrix();
 
-
+        for (Actor* actor : selected)
         {
-            if (m_guizmo_operation == 0)
-            {
-                m_guizmo_operation = ImGuizmo::OPERATION::UNIVERSAL;
-            }
-            Matrix4f model = transform.matrix();
-            if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
-                                     static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
-                                     glm::value_ptr(model), nullptr, nullptr))
-            {
+            SceneComponent* component = actor->scene_component();
+            if (!component)
+                continue;
 
-                Transform new_transform = model;
-                new_transform /= m_selected_scene_component->parent()->world_transform();
-                m_selected_scene_component->local_transform(new_transform);
-                m_selected_scene_component->on_transform_changed();
+            const auto& transform = component->world_transform();
+            {
+                if (m_guizmo_operation == 0)
+                {
+                    m_guizmo_operation = ImGuizmo::OPERATION::UNIVERSAL;
+                }
+                Matrix4f model = transform.matrix();
+                if (ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection),
+                                         static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
+                                         glm::value_ptr(model), nullptr, nullptr))
+                {
+
+                    Transform new_transform = model;
+                    new_transform /= component->parent()->world_transform();
+                    component->local_transform(new_transform);
+                    component->on_transform_changed();
+                }
             }
         }
+
 
         m_guizmo_is_in_use = ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
         return *this;
@@ -617,6 +637,11 @@ namespace Engine
 
         for (auto* component : node->values)
         {
+            Actor* actor = static_cast<SceneComponent*>(component)->actor();
+
+            if(!actor || actor->scene_component() != component)
+                continue;
+
             intersect = component->bounding_box().intersect(ray);
 
             if (intersect.x < intersect.y)
@@ -645,19 +670,28 @@ namespace Engine
 
         view.screen_to_world(coords, origin, direction);
         Ray ray(origin, direction);
-        auto component1 = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
-        auto component2 = raycast_primitive(m_world->scene()->light_octree().root_node(), ray);
+        auto component = raycast_primitive(m_world->scene()->light_octree().root_node(), ray,
+                                           raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray));
 
-        if (component1.first == nullptr || (component2.first && component1.first > component2.first))
+        if (component.first)
         {
-            component1 = component2;
+            if (Actor* actor = component.first->actor())
+            {
+                m_world->unselect_actors();
+                m_world->select_actor(actor);
+                on_object_select(actor);
+            }
+
+            if (m_scene_tree)
+            {
+                m_scene_tree->selected = component.first;
+            }
+        }
+        else
+        {
+            m_world->unselect_actors();
         }
 
-        on_object_select(component1.first);
-        if (m_scene_tree)
-        {
-            m_scene_tree->selected = component1.first;
-        }
         return *this;
     }
 

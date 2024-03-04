@@ -34,8 +34,7 @@ namespace Engine
             IsPackage              = (1 << 3),
             IsUnreachable          = (1 << 4),
             IsDefinetlyUnreachable = (1 << 5),
-            IsWaitDestroy          = (1 << 6),
-            IsEditable             = (1 << 7),
+            IsEditable             = (1 << 6),
         };
 
     private:
@@ -128,10 +127,6 @@ namespace Engine
         // Override new and delete operators
         static ENGINE_EXPORT void* operator new(size_t size) noexcept;
         static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;
-
-        // Deletion controls
-        static ENGINE_EXPORT void delete_object(Object* object);
-        Object& deferred_destroy();
 
         // NOTE! You will manually push object to package, if you use this method!
         template<typename Type, typename... Args>

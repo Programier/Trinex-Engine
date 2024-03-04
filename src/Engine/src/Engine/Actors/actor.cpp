@@ -106,6 +106,27 @@ namespace Engine
 
     Actor& Actor::destroy()
     {
+        if (!m_is_being_destroyed)
+        {
+            world()->destroy_actor(this);
+            m_is_being_destroyed = true;
+        }
+        return *this;
+    }
+
+    Actor& Actor::destroyed()
+    {
+        if (is_playing())
+        {
+            stop_play();
+        }
+
+        // Call destroy for each component
+        for (size_t index = 0, count = m_owned_components.size(); index < count; ++index)
+        {
+            m_owned_components[index]->destroyed();
+        }
+
         return *this;
     }
 
