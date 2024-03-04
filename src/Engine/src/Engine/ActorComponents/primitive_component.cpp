@@ -88,7 +88,7 @@ namespace Engine
 
     PrimitiveComponent& PrimitiveComponent::update_bounding_box()
     {
-        m_bounding_box = default_bounds.apply_transform(transform.local_to_world);
+        m_bounding_box = default_bounds.apply_transform(world_transform().matrix());
         return *this;
     }
 }// namespace Engine

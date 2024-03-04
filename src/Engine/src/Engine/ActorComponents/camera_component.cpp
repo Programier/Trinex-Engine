@@ -83,7 +83,8 @@ namespace Engine
 
     Matrix4f CameraComponent::view_matrix()
     {
-        return view_matrix(transform.global_location(), transform.forward_vector(true), transform.up_vector(true));
+        auto& global_transfrom = world_transform();
+        return view_matrix(global_transfrom.location(), global_transfrom.forward_vector(), global_transfrom.up_vector());
     }
 
     Matrix4f CameraComponent::view_matrix(const Vector3D& position, const Vector3D& direction, const Vector3D& up_vector)
@@ -93,18 +94,19 @@ namespace Engine
 
     const CameraComponent& CameraComponent::camera_view(CameraView& out) const
     {
-        out.location        = transform.global_location();
-        out.rotation        = transform.rotation;
-        out.up_vector       = transform.up_vector(true);
-        out.right_vector    = transform.right_vector(true);
-        out.forward_vector  = transform.forward_vector(true);
-        out.projection_mode = projection_mode;
-        out.fov             = fov;
-        out.ortho_width     = ortho_width;
-        out.ortho_height    = ortho_height;
-        out.near_clip_plane = near_clip_plane;
-        out.far_clip_plane  = far_clip_plane;
-        out.aspect_ratio    = aspect_ratio;
+        auto& global_transform = world_transform();
+        out.location           = global_transform.location();
+        out.rotation           = global_transform.rotation();
+        out.up_vector          = global_transform.up_vector();
+        out.right_vector       = global_transform.right_vector();
+        out.forward_vector     = global_transform.forward_vector();
+        out.projection_mode    = projection_mode;
+        out.fov                = fov;
+        out.ortho_width        = ortho_width;
+        out.ortho_height       = ortho_height;
+        out.near_clip_plane    = near_clip_plane;
+        out.far_clip_plane     = far_clip_plane;
+        out.aspect_ratio       = aspect_ratio;
 
         return *this;
     }

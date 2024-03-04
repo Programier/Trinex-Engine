@@ -165,8 +165,12 @@ namespace Engine
         engine_instance->create_thread(ThreadType::RenderThread);
     }
 
+    static ThreadBase* m_logic_thread = nullptr;
+
     int EngineInstance::start(int argc, char** argv)
     {
+        m_logic_thread = Thread::this_thread();
+
         if (is_inited())
         {
             return -1;
@@ -469,6 +473,11 @@ namespace Engine
     ENGINE_EXPORT bool is_in_render_thread()
     {
         return Thread::this_thread() == render_thread();
+    }
+
+    ENGINE_EXPORT bool is_in_logic_thread()
+    {
+        return Thread::this_thread() == m_logic_thread;
     }
 
     ENGINE_EXPORT int EngineInstance::initialize(int argc, char** argv)

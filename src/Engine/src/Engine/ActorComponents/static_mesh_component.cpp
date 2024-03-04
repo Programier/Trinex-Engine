@@ -50,7 +50,7 @@ namespace Engine
         if (mesh && mesh->material)
         {
             auto& camera_view  = renderer->scene_view().camera_view();
-            float inv_distance = 1.f / glm::min(glm::distance(transform_render_thread.global_location(), camera_view.location),
+            float inv_distance = 1.f / glm::min(glm::distance(world_transform().location(), camera_view.location),
                                                 camera_view.far_clip_plane);
             auto& lods         = mesh->lods;
             Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
@@ -101,7 +101,7 @@ namespace Engine
     {
         if (mesh)
         {
-            m_bounding_box = mesh->bounds.apply_transform(transform.local_to_world);
+            m_bounding_box = mesh->bounds.apply_transform(world_transform().matrix());
         }
         else
         {

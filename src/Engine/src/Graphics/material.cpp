@@ -311,7 +311,7 @@ namespace Engine
         size_t offset = pipeline->local_parameters.offset_of(name);
         if (offset != LocalMaterialParametersInfo::no_offset)
         {
-            Matrix4f model = component ? component->transform_render_thread.local_to_world : Matrix4f(1.f);
+            Matrix4f model = component ? component->world_transform().matrix() : Matrix4f(1.f);
             engine_instance->rhi()->update_local_parameter(reinterpret_cast<const byte*>(&model), sizeof(model), offset);
         }
         return *this;

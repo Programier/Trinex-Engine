@@ -8,6 +8,7 @@ namespace Engine
         static const Vector3D OX;
         static const Vector3D OY;
         static const Vector3D OZ;
+        static const Quaternion zero_rotation;
         static const Vector3D right_vector;
         static const Vector3D up_vector;
         static const Vector3D forward_vector;
@@ -36,5 +37,6 @@ namespace Engine
         static const String script_byte_code_extension;
         static const String virtual_file_system_extension;
         static const String translation_config_extension;
+
     };
 }// namespace Engine

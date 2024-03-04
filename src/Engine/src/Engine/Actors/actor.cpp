@@ -119,9 +119,9 @@ namespace Engine
         return *this;
     }
 
-    Transform* Actor::transfrom() const
+    const Transform* Actor::transfrom() const
     {
-        return m_root_component ? &m_root_component->transform : nullptr;
+        return m_root_component ? &m_root_component->world_transform() : nullptr;
     }
 
     SceneComponent* Actor::scene_component() const

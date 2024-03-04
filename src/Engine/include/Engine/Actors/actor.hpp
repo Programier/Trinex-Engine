@@ -42,7 +42,7 @@ namespace Engine
         bool is_playing() const;
         const Vector<Pointer<class ActorComponent>>& owned_components() const;
         Actor& destroy_script_object(ScriptObject* object) override;
-        Transform* transfrom() const;
+        const Transform* transfrom() const;
         SceneComponent* scene_component() const;
 
         class World* world() const;

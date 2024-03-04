@@ -9,6 +9,7 @@ namespace Engine
     const Vector3D Constants::OX(1.f, 0.f, 0.f);
     const Vector3D Constants::OY(0.f, 1.f, 0.f);
     const Vector3D Constants::OZ(0.f, 0.f, 1.f);
+    const Quaternion Constants::zero_rotation({0.f, 0.f, 0.f});
     const Vector3D Constants::right_vector(1.f, 0.f, 0.f);
     const Vector3D Constants::up_vector(0.f, 1.f, 0.f);
     const Vector3D Constants::forward_vector(0.f, 0.f, -1.f);

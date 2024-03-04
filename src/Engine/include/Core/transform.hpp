@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
 #include <Core/constants.hpp>
+#include <Core/implement.hpp>
 
 namespace Engine
 {
@@ -9,36 +10,67 @@ namespace Engine
 
     class ENGINE_EXPORT Transform
     {
-    public:
-        Matrix4f local_to_world = Matrix4f(1.f);
-
-        Vector3D rotation = Vector3D(0.f);
-        Vector3D location = Vector3D(0.0f);
-        Vector3D scale    = Vector3D(1.0f);
+    private:
+        mutable Matrix4f m_matrix;
+        Vector3D m_location;
+        Vector3D m_rotation;
+        Vector3D m_scale;
+        mutable bool m_is_dirty;
 
     private:
-        Vector3D vector_of(const Vector3D& dir, bool is_global) const;
+        Vector3D vector_of(const Vector3D& dir) const;
 
     public:
+        Transform(const Vector3D& location = Vector3D(0.0f), const Vector3D& rotation = Vector3D(0.f),
+                  const Vector3D& scale = Vector3D(1.0f));
+        Transform(const Vector3D& location, const Quaternion& rotation, const Vector3D& scale = Vector3D(1.0f));
+        Transform(const Matrix4f& matrix);
+
+        copy_constructors_hpp(Transform);
+        Transform& operator=(const Matrix4f& matrix);
+
+        const Matrix4f& matrix() const;
         Matrix4f translation_matrix() const;
         Matrix4f rotation_matrix() const;
         Matrix4f scale_matrix() const;
+
+        const Vector3D& location() const;
+        const Vector3D& rotation() const;
+        const Vector3D& scale() const;
+        Quaternion quaternion() const;
+
+        static Quaternion angles_to_quaternion(const Vector3D& angles);
+        static Vector3D quaternion_to_angles(const Quaternion& quat);
+
+        Transform& location(const Vector3D&);
+        Transform& rotation(const Quaternion&);
+        Transform& rotation(const Vector3D&);
+        Transform& scale(const Vector3D&);
+
         Transform& add_location(const Vector3D& delta);
         Transform& add_rotation(const Vector3D& delta);
         Transform& add_rotation(const Quaternion& delta);
         Transform& add_scale(const Vector3D& delta);
-        Quaternion quaternion_rotation() const;
 
-        Matrix4f matrix() const;
-        Matrix4f world_to_local();
-        Vector3D forward_vector(bool global = false) const;
-        Vector3D right_vector(bool global = false) const;
-        Vector3D up_vector(bool global = false) const;
-        Vector3D global_location() const;
 
-        Transform& update(class SceneComponent* parent_component = nullptr);
+        Transform& operator+=(const Transform&);
+        Transform& operator-=(const Transform&);
+        Transform operator+(const Transform&) const;
+        Transform operator-(const Transform&) const;
+
+        Transform& operator*=(const Transform&);
+        Transform& operator/=(const Transform&);
+        Transform operator*(const Transform&) const;
+        Transform operator/(const Transform&) const;
+
+        Vector3D forward_vector() const;
+        Vector3D right_vector() const;
+        Vector3D up_vector() const;
 
         String as_string() const;
+        bool is_dirty() const;
+        const Transform& mark_dirty() const;
+        friend bool operator&(Archive& ar, Transform& t);
     };
 
     bool operator&(Archive& ar, Transform& t);

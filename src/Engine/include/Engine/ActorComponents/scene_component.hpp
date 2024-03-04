@@ -9,13 +9,18 @@ namespace Engine
     {
         declare_class(SceneComponent, ActorComponent);
 
-    public:
-        Transform transform;
-        Transform transform_render_thread;
-
     private:
+        mutable Transform m_local;
+        mutable Transform m_world;
+        mutable Transform m_local_render_thread;
+        mutable Transform m_world_render_thread;
+        mutable bool m_is_dirty = false;
+
+
         Pointer<SceneComponent> m_parent = nullptr;
         Vector<Pointer<SceneComponent>> m_childs;
+
+        void mark_transfrom_dirty() const;
 
     public:
         SceneComponent();
@@ -25,7 +30,22 @@ namespace Engine
         SceneComponent* parent() const;
         const Vector<Pointer<SceneComponent>>& childs() const;
         virtual SceneComponent& on_transform_changed();
-
         SceneComponent& destroyed() override;
+
+        bool is_dirty_transform() const;
+        const Transform& local_transform() const;
+        const Transform& world_transform() const;
+
+        SceneComponent& local_transform(const Transform&);
+        SceneComponent& add_local_transform(const Transform&);
+        SceneComponent& remove_local_transform(const Transform&);
+        SceneComponent& location(const Vector3D&);
+        SceneComponent& rotation(const Quaternion&);
+        SceneComponent& rotation(const Vector3D&);
+        SceneComponent& scale(const Vector3D&);
+        SceneComponent& add_location(const Vector3D& delta);
+        SceneComponent& add_rotation(const Vector3D& delta);
+        SceneComponent& add_rotation(const Quaternion& delta);
+        SceneComponent& add_scale(const Vector3D& delta);
     };
 }// namespace Engine

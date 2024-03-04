@@ -8,6 +8,9 @@
 
 namespace Engine
 {
+    ENGINE_EXPORT bool is_in_render_thread();
+    ENGINE_EXPORT bool is_in_logic_thread();
+
     static constexpr inline size_t default_thread_command_buffer_size = 1024 * 1024 * 1;// 1 MB
 
 

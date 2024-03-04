@@ -30,7 +30,7 @@ namespace Engine
         Quaternion quat;
         Vector3D skew;
         Vector4D perspective;
-        glm::decompose(input_transform.local_to_world, scale, quat, location, skew, perspective);
+        glm::decompose(input_transform.matrix(), scale, quat, location, skew, perspective);
 
         Matrix4f transform = glm::inverse(glm::lookAt(location, view.camera_view().location, Constants::OY));
         return glm::scale(transform, scale);
@@ -46,7 +46,7 @@ namespace Engine
                 if (Mat4MaterialParameter* parameter =
                             reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter("model")))
                 {
-                    Matrix4f model   = rotate_sprite(transform_render_thread, renderer->scene_view());
+                    Matrix4f model   = rotate_sprite(world_transform(), renderer->scene_view());
                     parameter->param = model;
                 }
 

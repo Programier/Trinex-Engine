@@ -5,7 +5,6 @@
 namespace Engine
 {
     ENGINE_EXPORT Thread* render_thread();
-    ENGINE_EXPORT bool is_in_render_thread();
 
     template<typename Callable>
     FORCE_INLINE void call_in_render_thread(Callable&& callable)

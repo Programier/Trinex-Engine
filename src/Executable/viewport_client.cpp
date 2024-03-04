@@ -126,15 +126,15 @@ namespace Engine
 
         ViewportClient& update(class RenderViewport* viewport, float dt) override
         {
-            camera->transform.location += Matrix3f(camera->transform.rotation_matrix()) * move_direction * speed * dt;
-            camera->transform.rotation.y -= move_offset.x * dt * 5.f;
-            camera->transform.rotation.x += move_offset.y * dt * 5.f;
+//            camera->transform.location += Matrix3f(camera->transform.rotation_matrix()) * move_direction * speed * dt;
+//            camera->transform.rotation.y -= move_offset.x * dt * 5.f;
+//            camera->transform.rotation.x += move_offset.y * dt * 5.f;
 
-            move_offset = {0, 0};
+//            move_offset = {0, 0};
 
-            auto size            = viewport->size();
-            camera->aspect_ratio = size.x / size.y;
-            camera->transform.update(camera);
+//            auto size            = viewport->size();
+//            camera->aspect_ratio = size.x / size.y;
+//            camera->transform.update(camera);
             return *this;
         }
     };

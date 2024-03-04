@@ -150,10 +150,10 @@ namespace Engine
 
         ImGuiRenderer::Window::make_current(prev_window);
 
-        camera                     = Object::new_instance<CameraComponent>();
-        camera->transform.location = {0, 10, 10};
-        camera->near_clip_plane    = 0.1;
-        camera->far_clip_plane     = 1000.f;
+        camera = Object::new_instance<CameraComponent>();
+        camera->location({0, 10, 10});
+        camera->near_clip_plane = 0.1;
+        camera->far_clip_plane  = 1000.f;
 
         EventSystem* event_system = EventSystem::new_system<EventSystem>();
         m_event_system_listeners.push_back(event_system->add_listener(
@@ -370,9 +370,9 @@ namespace Engine
         ImGuizmo::SetDrawlist();
         ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_viewport_size.x, m_viewport_size.y);
 
-        auto view       = camera->view_matrix();
-        auto projection = camera->projection_matrix();
-        auto& transform = m_selected_scene_component->transform;
+        auto view             = camera->view_matrix();
+        auto projection       = camera->projection_matrix();
+        const auto& transform = m_selected_scene_component->world_transform();
 
 
         {
@@ -385,14 +385,10 @@ namespace Engine
                                      static_cast<ImGuizmo::OPERATION>(m_guizmo_operation), ImGuizmo::MODE::WORLD,
                                      glm::value_ptr(model), nullptr, nullptr))
             {
-                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), glm::value_ptr(transform.location),
-                                                      glm::value_ptr(transform.rotation), glm::value_ptr(transform.scale));
 
-                transform.rotation =
-                        glm::degrees(glm::eulerAngles(glm::angleAxis(glm::radians(transform.rotation.z), Constants::OZ) *
-                                                      glm::angleAxis(glm::radians(transform.rotation.y), Constants::OY) *
-                                                      glm::angleAxis(glm::radians(transform.rotation.x), Constants::OX)));
-
+                Transform new_transform = model;
+                new_transform /= m_selected_scene_component->parent()->world_transform();
+                m_selected_scene_component->local_transform(new_transform);
                 m_selected_scene_component->on_transform_changed();
             }
         }
@@ -553,10 +549,8 @@ namespace Engine
 
         if (MouseSystem::instance()->is_relative_mode(m_window))
         {
-            camera->transform.rotation.y +=
-                    calculate_y_rotatation(static_cast<float>(motion.xrel), m_viewport_size.x, camera->fov);
-            camera->transform.rotation.x -=
-                    calculate_y_rotatation(static_cast<float>(motion.yrel), m_viewport_size.y, camera->fov);
+            camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_viewport_size.y, camera->fov),
+                                  calculate_y_rotatation(static_cast<float>(motion.xrel), m_viewport_size.x, camera->fov), 0.f});
         }
     }
 
@@ -579,10 +573,10 @@ namespace Engine
     {
         move_camera(m_camera_move, m_window);
 
-        camera->transform.location +=
-                Vector3D((camera->transform.rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt * m_camera_speed;
-        camera->transform.update();
+        camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
+                             m_camera_speed);
 
+        camera->on_transform_changed();
         struct UpdateView : ExecutableObject {
             CameraView view;
             SceneView& out;

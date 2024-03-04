@@ -109,9 +109,9 @@ namespace Engine
             SceneComponent* root = actor->scene_component();
             if (root)
             {
-                root->transform.location = location;
-                root->transform.rotation = rotation;
-                root->transform.scale    = scale;
+                root->location(location);
+                root->rotation(rotation);
+                root->scale(scale);
                 m_scene->root_component()->attach(root);
                 actor->scene_component()->on_transform_changed();
             }

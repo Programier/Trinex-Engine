@@ -30,7 +30,7 @@ namespace Engine
         {
             world_scene->remove_light(this);
             static const AABB_3Df box({-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5});
-            m_aabb = box.apply_transform(transform.local_to_world);
+            m_aabb = box.apply_transform(world_transform().matrix());
             world_scene->add_light(this);
         }
 
