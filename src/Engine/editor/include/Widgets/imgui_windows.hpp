@@ -175,19 +175,4 @@ namespace Engine
 
         ~ImGuiSpawnNewActor();
     };
-
-    class ImGuiSceneTree : public ImGuiRenderer::ImGuiAdditionalWindow
-    {
-        void render_scene_tree(class SceneComponent* component);
-
-    public:
-        class World* world             = nullptr;
-        class SceneComponent* selected = nullptr;
-
-        CallBacks<void(SceneComponent*)> on_node_select;
-
-        ImGuiSceneTree(SceneComponent* root_component = nullptr);
-        bool render(RenderViewport* viewport) override;
-        static const char* name();
-    };
 }// namespace Engine

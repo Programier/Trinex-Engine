@@ -24,7 +24,6 @@ namespace Engine
 
         class ContentBrowser* m_content_browser;
         ImGuiObjectProperties* m_properties;
-        ImGuiSceneTree* m_scene_tree;
 
         Vector<EventSystemListenerID> m_event_system_listeners;
 
@@ -45,11 +44,9 @@ namespace Engine
 
         void on_content_browser_close();
         void on_properties_window_close();
-        void on_scene_tree_close();
 
         EditorClient& create_content_browser();
         EditorClient& create_properties_window();
-        EditorClient& create_scene_tree();
 
         ViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
         ViewportClient& on_unbind_viewport(class RenderViewport* viewport) override;

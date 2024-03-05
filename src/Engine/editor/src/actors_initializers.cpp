@@ -46,9 +46,16 @@ namespace Engine
             {
                 if (actor_world->is_selected(self_actor))
                 {
-                    reinterpret_cast<LightComponent*>(self_actor->scene_component())
-                            ->bounding_box()
-                            .write_to_batcher(scene->scene_output_layer()->lines, {255, 0, 0, 255});
+                    for (ActorComponent* component : self_actor->owned_components())
+                    {
+                        static Name name_sprite = "SpriteComponent0";
+                        if (component->name() == name_sprite)
+                        {
+                            reinterpret_cast<PrimitiveComponent*>(component)->bounding_box().write_to_batcher(
+                                    scene->scene_output_layer()->lines, {255, 0, 0, 255});
+                            break;
+                        }
+                    }
                 }
             }
             return *this;
@@ -63,15 +70,17 @@ namespace Engine
 
         self->on_create.push([](Object* object) {
             Actor* actor = object->instance_cast<Actor>();
-            actor->create_component<SpriteComponent>(("SpriteComponent0"))->texture =
-                    Object::find_object_checked<Texture2D>("Editor::PointLightSprite");
-            actor->create_component<LightHitboxRenderingComponent>("HitboxRendering0");
+            actor->create_component<SpriteComponent>(("SpriteComponent0"))
+                    ->texture(Object::find_object_checked<Texture2D>("Editor::PointLightSprite"));
+            actor->create_component<LightHitboxRenderingComponent>("HitboxRendering0")
+                    ->component_flags(ActorComponent::DisableRaycast, true);
         });
 
         self = Class::static_find("Engine::StaticMeshActor", true);
         self->on_create.push([](Object* object) {
             Actor* actor = object->instance_cast<Actor>();
-            actor->create_component<PrimitiveHitboxRenderingComponent>("HitboxRendering0");
+            actor->create_component<PrimitiveHitboxRenderingComponent>("HitboxRendering0")
+                    ->component_flags(ActorComponent::DisableRaycast, true);
         });
     }
 

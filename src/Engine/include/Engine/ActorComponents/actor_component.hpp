@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/flags.hpp>
 #include <Core/object.hpp>
 
 
@@ -11,6 +12,13 @@ namespace Engine
         declare_class(ActorComponent, Object);
 
     public:
+        enum Flag
+        {
+            DisableRaycast = BIT(0),
+        };
+
+        Flags<Flag> component_flags;
+
         virtual ActorComponent& begin_play();
         virtual ActorComponent& end_play();
         virtual ActorComponent& update(float dt);

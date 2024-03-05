@@ -83,10 +83,6 @@ namespace Engine
         m_properties = nullptr;
     }
 
-    void EditorClient::on_scene_tree_close()
-    {
-        m_scene_tree = nullptr;
-    }
 
     EditorClient& EditorClient::create_content_browser()
     {
@@ -104,20 +100,6 @@ namespace Engine
         if (m_content_browser)
         {
             on_object_select(m_content_browser->selected_object);
-        }
-        return *this;
-    }
-
-    EditorClient& EditorClient::create_scene_tree()
-    {
-        m_scene_tree = ImGuiRenderer::Window::current()->window_list.create<ImGuiSceneTree>();
-        m_scene_tree->on_close.push(std::bind(&EditorClient::on_scene_tree_close, this));
-        m_scene_tree->on_node_select.push(
-                [this](SceneComponent* component) { on_object_select(static_cast<Object*>(component)); });
-
-        if (m_world)
-        {
-            m_scene_tree->world = m_world;
         }
         return *this;
     }
@@ -146,8 +128,6 @@ namespace Engine
 
         create_content_browser();
         create_properties_window();
-        create_scene_tree();
-
 
         ImGuiRenderer::Window::make_current(prev_window);
 
@@ -241,11 +221,6 @@ namespace Engine
                     create_properties_window();
                 }
 
-                if (ImGui::MenuItem("editor/Open Scene Tree"_localized, nullptr, false, m_scene_tree == nullptr))
-                {
-                    create_scene_tree();
-                }
-
                 ImGui::EndMenu();
             }
 
@@ -299,10 +274,8 @@ namespace Engine
             ImGui::DockBuilderSetNodeSize(dock_id, ImGui::GetMainViewport()->WorkSize);
 
             auto dock_id_down  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Down, 0.25f, nullptr, &dock_id);
-            auto dock_id_left  = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Left, 0.2f, nullptr, &dock_id);
             auto dock_id_right = ImGui::DockBuilderSplitNode(dock_id, ImGuiDir_Right, 0.25f, nullptr, &dock_id);
 
-            ImGui::DockBuilderDockWindow(ImGuiSceneTree::name(), dock_id_left);
             ImGui::DockBuilderDockWindow(ContentBrowser::name(), dock_id_down);
             ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
             ImGui::DockBuilderDockWindow(Object::localize("editor/Viewport Title").c_str(), dock_id);
@@ -337,10 +310,10 @@ namespace Engine
         window->end_frame();
 
 
-        if(KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
+        if (KeyboardSystem::instance()->is_just_released(Keyboard::Key::Delete))
         {
             auto& selected = m_world->selected_actors();
-            for(auto& ell : selected)
+            for (auto& ell : selected)
             {
                 m_world->destroy_actor(ell);
             }
@@ -360,7 +333,6 @@ namespace Engine
         extern void render_editor_grid(SceneRenderer * renderer, RenderTargetBase * render_target, SceneLayer * layer);
         auto layer = scene->clear_layer()->create_next("Grid Rendering");
         layer->begin_render_function_callbacks.push_back(render_editor_grid);
-        m_scene_tree->world = m_world;
         m_world->start_play();
         return *this;
     }
@@ -448,6 +420,49 @@ namespace Engine
 
                     ImGui::SameLine();
                 }
+            }
+        }
+
+        static auto render_separator = []() {
+            ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));
+            ImGui::PushStyleColor(ImGuiCol_Separator, color);
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, 3.f);
+            ImGui::PopStyleColor();
+
+            ImGui::SameLine();
+        };
+
+        auto add_icon = Icons::icon(Icons::IconType::Add)->handle();
+
+        if (add_icon)
+        {
+            render_separator();
+            if (ImGui::ImageButton(add_icon, {height, height}))
+            {
+                ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiSpawnNewActor>(this, m_world);
+            }
+        }
+
+        {
+            ImGui::SameLine();
+            render_separator();
+            const auto& transfom = camera->local_transform();
+            Vector3D location    = transfom.location();
+            Vector3D rotation    = transfom.rotation();
+
+            ImGui::BeginGroup();
+            ImGui::PushItemWidth(height * 10.f);
+            bool changed = ImGui::InputFloat3("editor/Loc"_localized, &location.x);
+            ImGui::SameLine();
+            changed = ImGui::InputFloat3("editor/Rot"_localized, &rotation.x) || changed;
+            ImGui::PopItemWidth();
+            ImGui::EndGroup();
+
+            if(changed)
+            {
+                camera->location(location);
+                camera->rotation(rotation);
+                camera->on_transform_changed();
             }
         }
 
@@ -637,9 +652,7 @@ namespace Engine
 
         for (auto* component : node->values)
         {
-            Actor* actor = static_cast<SceneComponent*>(component)->actor();
-
-            if(!actor || actor->scene_component() != component)
+            if (component->component_flags(ActorComponent::DisableRaycast))
                 continue;
 
             intersect = component->bounding_box().intersect(ray);
@@ -670,8 +683,7 @@ namespace Engine
 
         view.screen_to_world(coords, origin, direction);
         Ray ray(origin, direction);
-        auto component = raycast_primitive(m_world->scene()->light_octree().root_node(), ray,
-                                           raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray));
+        auto component = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
 
         if (component.first)
         {
@@ -680,11 +692,6 @@ namespace Engine
                 m_world->unselect_actors();
                 m_world->select_actor(actor);
                 on_object_select(actor);
-            }
-
-            if (m_scene_tree)
-            {
-                m_scene_tree->selected = component.first;
             }
         }
         else

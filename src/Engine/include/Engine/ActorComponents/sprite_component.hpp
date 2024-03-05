@@ -8,8 +8,12 @@ namespace Engine
     {
         declare_class(SpriteComponent, PrimitiveComponent);
 
+        class Texture2D* m_texture = nullptr;
+
     public:
-        class Texture2D* texture = nullptr;
+        Texture2D* texture() const;
+        SpriteComponent& texture(Texture2D* texture);
+        SpriteComponent& update_bounding_box() override;
 
         SpriteComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
         SpriteComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
