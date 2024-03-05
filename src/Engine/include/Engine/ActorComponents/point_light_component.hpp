@@ -14,6 +14,9 @@ namespace Engine
 
         PointLightComponent();
         Type light_type() const override;
+
+        PointLightComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
+        PointLightComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
     };
 
 }// namespace Engine

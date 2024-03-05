@@ -41,6 +41,7 @@ namespace Engine
         virtual size_t pow(MaterialInputPin* pin1, MaterialInputPin* pin2)   = 0;
         virtual size_t cross(MaterialInputPin* pin1, MaterialInputPin* pin2) = 0;
         virtual size_t transpose(MaterialInputPin* pin1)                     = 0;
+        virtual size_t inverse(MaterialInputPin* pin1)                       = 0;
         virtual size_t floor(MaterialInputPin*)                              = 0;
 
         // OPERATORS
@@ -62,6 +63,8 @@ namespace Engine
         virtual size_t vec4_op(MaterialInputPin* pin)   = 0;
         virtual size_t color3_op(MaterialInputPin* pin) = 0;
         virtual size_t color4_op(MaterialInputPin* pin) = 0;
+        virtual size_t mat3_op(MaterialInputPin* pin)   = 0;
+        virtual size_t mat4_op(MaterialInputPin* pin)   = 0;
 
         virtual size_t add(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
         virtual size_t sub(MaterialInputPin*, MaterialInputPin*)                                                  = 0;
@@ -157,7 +160,7 @@ namespace Engine
         virtual size_t position_texture(MaterialInputPin* sampler, MaterialInputPin* uv)     = 0;
         virtual size_t normal_texture(MaterialInputPin* sampler, MaterialInputPin* uv)       = 0;
         virtual size_t emissive_texture(MaterialInputPin* sampler, MaterialInputPin* uv)     = 0;
-        virtual size_t data_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv)  = 0;
+        virtual size_t msra_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv)  = 0;
         virtual size_t scene_output_texture(MaterialInputPin* sampler, MaterialInputPin* uv) = 0;
 
         // Shader outputs

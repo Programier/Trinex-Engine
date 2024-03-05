@@ -1,5 +1,5 @@
 #include "DefaultResources/editor.hpp"
-#include <Core/default_resources_loading.hpp>
+#include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/package.hpp>
 

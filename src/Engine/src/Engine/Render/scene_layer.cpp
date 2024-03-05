@@ -5,11 +5,13 @@
 
 namespace Engine
 {
-    const Name SceneLayer::name_clear_render_targets = "Clear Render Targets";
-    const Name SceneLayer::name_base_pass            = "Base Pass";
-    const Name SceneLayer::name_light_pass           = "Light Pass";
-    const Name SceneLayer::name_scene_output_pass    = "Scene Output Pass";
-    const Name SceneLayer::name_post_process         = "Post Process";
+    const Name SceneLayer::name_clear_render_targets    = "Clear Render Targets";
+    const Name SceneLayer::name_base_pass               = "Base Pass";
+    const Name SceneLayer::name_gbuffer_to_scene_output = "GBuffer to SceneOutput Pass";
+    const Name SceneLayer::name_deferred_light_pass     = "Deferred Lighting Pass";
+    const Name SceneLayer::name_light_pass              = "Light Pass";
+    const Name SceneLayer::name_scene_output_pass       = "Scene Output Pass";
+    const Name SceneLayer::name_post_process            = "Post Process";
 
     SceneLayer::SceneLayer(const Name& name) : m_name(name)
     {}
@@ -52,11 +54,6 @@ namespace Engine
         }
 
         for (PrimitiveComponent* component : m_components)
-        {
-            component->render(renderer, render_target, this);
-        }
-
-        for(LightComponent* component : m_light_components)
         {
             component->render(renderer, render_target, this);
         }
@@ -205,5 +202,15 @@ namespace Engine
         m_light_components.erase(component);
         component->m_layer = nullptr;
         return *this;
+    }
+
+    const Set<PrimitiveComponent*>& SceneLayer::primitive_components() const
+    {
+        return m_components;
+    }
+
+    const Set<LightComponent*>& SceneLayer::light_components() const
+    {
+        return m_light_components;
     }
 }// namespace Engine

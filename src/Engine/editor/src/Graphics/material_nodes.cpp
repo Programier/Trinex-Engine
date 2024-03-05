@@ -244,7 +244,39 @@ namespace Engine::MaterialNodes
 
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
         {
-            return compiler->cross(inputs[0], inputs[1]);
+            return compiler->transpose(inputs[0]);
+        }
+
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
+        {
+            if (inputs[0]->linked_to)
+            {
+                auto type = inputs[0]->value_type();
+                auto info = MaterialDataTypeInfo::from(type);
+
+                if (info.is_matrix())
+                {
+                    return type;
+                }
+
+                return static_cast<MaterialNodeDataType>(material_type_value(info.base_type, 3, true));
+            }
+
+            return MaterialNodeDataType::Undefined;
+        }
+    };
+
+    struct Inverse : public MaterialNode {
+        declare_material_node();
+        Inverse()
+        {
+            inputs.push_back(new MaterialInputPin(this, "In"));
+            outputs.push_back(new MaterialOutputPin(this, "Out"));
+        }
+
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override
+        {
+            return compiler->inverse(inputs[0]);
         }
 
         MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override
@@ -335,6 +367,8 @@ namespace Engine::MaterialNodes
     implement_material_node(Normalize, Math);
     implement_material_node(Pow, Math);
     implement_material_node(Floor, Math);
+    implement_material_node(Transpose, Math);
+    implement_material_node(Inverse, Math);
 
     //////////////////////////// OPERATOR NODES ////////////////////////////
 
@@ -344,6 +378,25 @@ namespace Engine::MaterialNodes
         CastTo##type()                                                                                                           \
         {                                                                                                                        \
             inputs.push_back(new type##InputPin(this, "In"));                                                                    \
+            outputs.push_back(new type##OutputNoDefaultPin(this, "Out"));                                                        \
+        }                                                                                                                        \
+        size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
+        {                                                                                                                        \
+            return compiler->func_name##_op(inputs[0]);                                                                          \
+        }                                                                                                                        \
+        MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override                                            \
+        {                                                                                                                        \
+            return MaterialNodeDataType::type;                                                                                   \
+        }                                                                                                                        \
+    };                                                                                                                           \
+    implement_material_node(CastTo##type, Operators);
+
+#define declare_untyped_type_operator(type, func_name)                                                                           \
+    struct CastTo##type : public MaterialNode {                                                                                  \
+        declare_material_node();                                                                                                 \
+        CastTo##type()                                                                                                           \
+        {                                                                                                                        \
+            inputs.push_back(new type##InputNoDefaultPin(this, "In"));                                                           \
             outputs.push_back(new type##OutputNoDefaultPin(this, "Out"));                                                        \
         }                                                                                                                        \
         size_t compile(ShaderCompiler* compiler, MaterialOutputPin* pin) override                                                \
@@ -375,6 +428,8 @@ namespace Engine::MaterialNodes
     declare_type_operator(Vec4, vec4);
     declare_type_operator(Color3, color3);
     declare_type_operator(Color4, color4);
+    declare_untyped_type_operator(Mat3, mat3);
+    declare_untyped_type_operator(Mat4, mat4);
 
     struct Add : public MaterialNode {
         declare_material_node();
@@ -507,7 +562,7 @@ namespace Engine::MaterialNodes
         {
             MaterialNodeDataType input_type = reinterpret_cast<MaterialInputPin*>(inputs[0])->value_type();
             MaterialDataTypeInfo info       = MaterialDataTypeInfo::from(input_type);
-            if(info.base_type == MaterialBaseDataType::Color)
+            if (info.base_type == MaterialBaseDataType::Color)
                 info.base_type = MaterialBaseDataType::Float;
             return static_cast<MaterialNodeDataType>(material_type_value(info.base_type, 1));
         }
@@ -832,7 +887,7 @@ namespace Engine::MaterialNodes
     declare_render_target_texture(Position, position);
     declare_render_target_texture(Normal, normal);
     declare_render_target_texture(Emissive, emissive);
-    declare_render_target_texture(DataBuffer, data_buffer);
+    declare_render_target_texture(MSRABuffer, msra_buffer);
     declare_render_target_texture(SceneOutput, scene_output);
 
     //////////////////////////// INPUT NODES ////////////////////////////
@@ -899,6 +954,8 @@ namespace Engine::MaterialNodes
     declare_vertex_output_node(WorldNormal, fragment_world_normal, Vec3);
     declare_vertex_output_node(WorldTangent, fragment_world_tangent, Vec3);
     declare_vertex_output_node(WorldBitangent, fragment_world_bitangent, Vec3);
+    declare_vertex_output_node(UV0, fragment_uv0, Vec2);
+    declare_vertex_output_node(UV1, fragment_uv1, Vec2);
     declare_vertex_output_node(VertexColor, fragment_color, Vec4);
 
 
@@ -956,12 +1013,22 @@ namespace Engine::MaterialNodes
         if (ar.is_reading())
         {
             create_pins_array<MaterialInputPin>(this, inputs, size);
+            input_types.resize(size);
         }
 
         for (MaterialInputPin* pin : inputs)
         {
             ar & pin->name;
             pin->archive_process(ar);
+        }
+
+        if (ar.is_reading())
+        {
+            ar.read_data(reinterpret_cast<byte*>(input_types.data()), sizeof(MaterialNodeDataType) * size);
+        }
+        else
+        {
+            ar.write_data(reinterpret_cast<byte*>(input_types.data()), sizeof(MaterialNodeDataType) * size);
         }
 
         size = outputs.size();
@@ -988,6 +1055,7 @@ namespace Engine::MaterialNodes
             ar.write_data(reinterpret_cast<byte*>(output_types.data()), sizeof(MaterialNodeDataType) * size);
         }
 
+        ar & entry_point;
         return ar;
     }
 
@@ -1081,6 +1149,7 @@ namespace Engine::MaterialNodes
 
         const float button_size = 15.f * editor_scale_factor();
 
+
         if (ImGui::CollapsingHeader("editor/Inputs"_localized))
         {
             ImGui::Indent(5.f);
@@ -1089,6 +1158,7 @@ namespace Engine::MaterialNodes
             if (ImGui::ImageButton(Icons::icon(Icons::Add)->handle(), {button_size, button_size}))
             {
                 custom_code->inputs.push_back(new MaterialInputPin(custom_code, ""));
+                custom_code->input_types.emplace_back();
             }
 
             if (!custom_code->inputs.empty())
@@ -1099,12 +1169,19 @@ namespace Engine::MaterialNodes
                 {
                     delete custom_code->inputs.back();
                     custom_code->inputs.pop_back();
+                    custom_code->input_types.pop_back();
                 }
             }
 
+            Index index = 0;
             for (MaterialInputPin* pin : custom_code->inputs)
             {
+                ImGui::PushID(pin);
+                render_pin_type(custom_code->input_types[index]);
                 ImGuiRenderer::InputText("editor/Name"_localized, pin->name);
+                ImGui::NewLine();
+                ImGui::PopID();
+                ++index;
             }
             ImGui::PopID();
 
@@ -1167,6 +1244,8 @@ namespace Engine::MaterialNodes
 
             ImGui::Unindent(5.f);
         }
+
+        ImGuiRenderer::InputText("editor/Entry Point"_localized, custom_code->entry_point);
     }
 
     static void initialize_special_class_properties_renderers()

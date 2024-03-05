@@ -1,3 +1,4 @@
+#include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/render_thread.hpp>
@@ -48,22 +49,6 @@ namespace Engine
         return *this;
     }
 
-    static Material* gbuffer_line_render_material()
-    {
-        static Material* material = nullptr;
-        if (material == nullptr)
-            material = Object::find_object_checked<Material>("DefaultPackage::GBufferLinesMat");
-        return material;
-    }
-
-    static Material* scene_output_line_render_material()
-    {
-        static Material* material = nullptr;
-        if (material == nullptr)
-            material = Object::find_object_checked<Material>("DefaultPackage::SceneOutputLinesMat");
-        return material;
-    }
-
     BatchedLines& BatchedLines::render(const class SceneView& view)
     {
         if (m_allocated_size < m_position_buffer->buffer.size())
@@ -88,11 +73,11 @@ namespace Engine
 
         if (pass == RenderPassType::GBuffer)
         {
-            material = gbuffer_line_render_material();
+            material = DefaultResources::gbuffer_lines_material;
         }
         else if (pass == RenderPassType::OneAttachentOutput)
         {
-            material = scene_output_line_render_material();
+            material = DefaultResources::scene_output_lines_material;
         }
 
         if (material)

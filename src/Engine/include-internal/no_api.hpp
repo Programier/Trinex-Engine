@@ -49,7 +49,7 @@ namespace Engine
         ColorFormat position_format() override;
         ColorFormat normal_format() override;
         ColorFormat emissive_format() override;
-        ColorFormat data_buffer_format() override;
+        ColorFormat msra_buffer_format() override;
         ColorFormat depth_format() override;
         ColorFormat stencil_format() override;
         ColorFormat depth_stencil_format() override;

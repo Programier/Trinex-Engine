@@ -24,6 +24,12 @@ namespace Engine
                             !m_show_popup_for->is_engine_resource());
 
 
+        if (ImGui::Button("editor/Create Package"_localized))
+        {
+            ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiCreateNewPackage>(this, m_show_popup_for);
+            return false;
+        }
+
         if (is_editable && ImGui::Button("editor/Rename"_localized))
         {
             ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiRenameObject>("RenameObject",
@@ -37,7 +43,7 @@ namespace Engine
             return false;
         }
 
-        return is_editable;
+        return true;
     }
 
     void ContentBrowser::render_package_popup()

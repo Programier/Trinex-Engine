@@ -41,8 +41,8 @@ namespace Engine
 
     using Color      = glm::vec4;
     using ByteColor  = glm::vec<4, byte, glm::defaultp>;
-    using Color4     = glm::vec3;
-    using ByteColor4 = glm::vec<3, byte, glm::defaultp>;
+    using Color4     = glm::vec4;
+    using ByteColor4 = glm::vec<4, byte, glm::defaultp>;
     using Color3     = glm::vec3;
     using ByteColor3 = glm::vec<3, byte, glm::defaultp>;
 

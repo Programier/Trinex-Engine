@@ -225,7 +225,7 @@ namespace Engine
         return ColorFormat::Undefined;
     }
 
-    ColorFormat NoApi::data_buffer_format()
+    ColorFormat NoApi::msra_buffer_format()
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return ColorFormat::Undefined;

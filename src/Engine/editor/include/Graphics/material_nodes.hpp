@@ -65,8 +65,10 @@ namespace Engine::MaterialNodes
 
     struct CustomCode : public MaterialNode {
         declare_material_node();
+        Vector<MaterialNodeDataType> input_types;
         Vector<MaterialNodeDataType> output_types;
         Path shader_path;
+        String entry_point;
 
         void bind_to_properties_window(ImGuiObjectProperties* props) override;
         MaterialNodeDataType output_type(const MaterialOutputPin* pin) const override;

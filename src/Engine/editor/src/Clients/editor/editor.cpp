@@ -514,7 +514,7 @@ namespace Engine
                         texture = frame->emissive();
                         break;
                     case 5:
-                        texture = frame->data_buffer();
+                        texture = frame->msra_buffer();
                         break;
                     case 6:
                         texture = frame->depth();

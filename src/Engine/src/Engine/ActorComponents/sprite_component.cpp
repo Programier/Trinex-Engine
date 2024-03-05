@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
@@ -44,7 +45,7 @@ namespace Engine
     {
         if (m_texture)
         {
-            static AABB_3Df default_aabb ({-.5, -.5, -.5}, {.5f, .5f, .5f});
+            static AABB_3Df default_aabb({-.5, -.5, -.5}, {.5f, .5f, .5f});
             m_bounding_box = default_aabb.apply_transform(world_transform().matrix());
         }
         else
@@ -71,39 +72,34 @@ namespace Engine
 
     SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer, class RenderTargetBase*, class SceneLayer*)
     {
-        if (Material* material = Object::find_object_checked<Material>("DefaultPackage::SpriteMaterial"))
+        Material* material                 = DefaultResources::sprite_material;
+        PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
+        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter("model")))
         {
-            if (PositionVertexBuffer* vertex_bufer =
-                        Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer"))
-            {
-                if (Mat4MaterialParameter* parameter =
-                            reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter("model")))
-                {
-                    Matrix4f model   = rotate_sprite(world_transform(), renderer->scene_view());
-                    parameter->param = model;
-                }
-
-                BindingMaterialParameter* texture_parameter =
-                        reinterpret_cast<BindingMaterialParameter*>(material->find_parameter("texture"));
-                Texture* tmp     = nullptr;
-                Texture* current = reinterpret_cast<Texture*>(texture());
-
-                if (texture_parameter && current)
-                {
-                    tmp = texture_parameter->texture_param();
-                    texture_parameter->texture_param(current);
-                }
-
-                material->apply(this);
-                vertex_bufer->rhi_bind(0, 0);
-                engine_instance->rhi()->draw(6);
-
-                if (texture_parameter && current)
-                {
-                    texture_parameter->texture_param(tmp);
-                }
-            }
+            Matrix4f model   = rotate_sprite(world_transform(), renderer->scene_view());
+            parameter->param = model;
         }
+
+        BindingMaterialParameter* texture_parameter =
+                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter("texture"));
+        Texture* tmp     = nullptr;
+        Texture* current = reinterpret_cast<Texture*>(texture());
+
+        if (texture_parameter && current)
+        {
+            tmp = texture_parameter->texture_param();
+            texture_parameter->texture_param(current);
+        }
+
+        material->apply(this);
+        vertex_bufer->rhi_bind(0, 0);
+        engine_instance->rhi()->draw(6);
+
+        if (texture_parameter && current)
+        {
+            texture_parameter->texture_param(tmp);
+        }
+
         return *this;
     }
 

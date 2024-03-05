@@ -228,7 +228,7 @@ namespace Engine
         ColorFormat position_format      = ColorFormat::R16G16B16A16Sfloat;
         ColorFormat normal_format        = ColorFormat::R16G16B16A16Sfloat;
         ColorFormat emissive_format      = ColorFormat::R8G8B8A8Unorm;
-        ColorFormat data_format          = ColorFormat::R8G8B8A8Unorm;
+        ColorFormat msra_format          = ColorFormat::R8G8B8A8Unorm;
         ColorFormat depth_format         = ColorFormat::D32Sfloat;
         ColorFormat stencil_format       = ColorFormat::S8Uint;
         ColorFormat depth_stencil_format = ColorFormat::D32SfloatS8Uint;
@@ -254,9 +254,9 @@ namespace Engine
         return formats.emissive_format;
     }
 
-    ColorFormat OpenGL::data_buffer_format()
+    ColorFormat OpenGL::msra_buffer_format()
     {
-        return formats.data_format;
+        return formats.msra_format;
     }
 
     ColorFormat OpenGL::depth_format()

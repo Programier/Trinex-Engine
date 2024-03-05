@@ -456,19 +456,27 @@ namespace Engine
             }
         };
 
-        static Vector<StructInfo> infos;
+        static Vector<Vector<StructInfo>> infos_stack;
+        static Index stack_index = 0;
+
+        if (stack_index >= infos_stack.size())
+        {
+            infos_stack.emplace_back();
+        }
+
+        Index current_stack_index = stack_index++;
 
         Index count         = 0;
         Index visible_count = 0;
 
         for (Struct* self = struct_class; self; self = self->parent())
         {
-            if (infos.size() <= count)
+            if (infos_stack[current_stack_index].size() <= count)
             {
-                infos.emplace_back();
+                infos_stack[current_stack_index].emplace_back();
             }
 
-            auto& info          = infos[count];
+            auto& info          = infos_stack[current_stack_index][count];
             info.self           = self;
             info.has_properties = !self->properties().empty();
 
@@ -483,46 +491,44 @@ namespace Engine
         }
 
         ImGui::BeginGroup();
-        size_t rendered_count = 0;
         for (Index i = 0; i < count; ++i)
         {
-            StructInfo& info = infos[i];
+            StructInfo info = infos_stack[current_stack_index][i];
 
             if (info.is_visible())
             {
                 ImGui::PushID(info.self->base_name_splitted().c_str());
-
-                if (rendered_count > 0)
-                {
-                    ImGui::NewLine();
-                }
+                bool is_open = true;
 
                 if (visible_count > 1)
                 {
-                    ImGui::SeparatorText(info.self->base_name_splitted().c_str());
+                    is_open = ImGui::CollapsingHeader(info.self->base_name_splitted().c_str());
                 }
 
-                if (info.has_properties)
+                if (is_open)
                 {
-                    render_prop_internal(object, info.self, editable);
-                }
+                    if (info.has_properties)
+                    {
+                        render_prop_internal(object, info.self, editable);
+                    }
 
-                if (info.renderer)
-                {
-                    ImGui::Indent(indent);
-                    info.renderer(object, info.self, editable);
-                    ImGui::Separator();
-                    ImGui::Unindent(indent);
+                    if (info.renderer)
+                    {
+                        ImGui::Indent(indent);
+                        info.renderer(object, info.self, editable);
+                        ImGui::Separator();
+                        ImGui::Unindent(indent);
+                    }
                 }
 
 
                 ImGui::PopID();
-
-                ++rendered_count;
             }
         }
 
         ImGui::EndGroup();
+
+        --stack_index;
     }
 
     void render_object_properties(class Object* object, bool editable)

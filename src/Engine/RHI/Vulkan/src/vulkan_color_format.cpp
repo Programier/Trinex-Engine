@@ -388,7 +388,7 @@ namespace Engine
         ColorFormat position_format      = ColorFormat::Undefined;
         ColorFormat normal_format        = ColorFormat::Undefined;
         ColorFormat emissive_format      = ColorFormat::Undefined;
-        ColorFormat data_format          = ColorFormat::Undefined;
+        ColorFormat msra_format          = ColorFormat::Undefined;
         ColorFormat depth_format         = ColorFormat::Undefined;
         ColorFormat stencil_format       = ColorFormat::Undefined;
         ColorFormat depth_stencil_format = ColorFormat::Undefined;
@@ -431,7 +431,7 @@ namespace Engine
 
             normal_format   = position_format;
             emissive_format = base_color;
-            data_format     = base_color;
+            msra_format     = base_color;
 
             {
                 ColorFormat formats[] = {ColorFormat::D16Unorm, ColorFormat::D32Sfloat};
@@ -478,9 +478,9 @@ namespace Engine
         return formats.emissive_format;
     }
 
-    ColorFormat VulkanAPI::data_buffer_format()
+    ColorFormat VulkanAPI::msra_buffer_format()
     {
-        return formats.data_format;
+        return formats.msra_format;
     }
 
     ColorFormat VulkanAPI::depth_format()

@@ -383,20 +383,20 @@ namespace Engine
         return *this;
     }
 
-    DataBufferTextureMaterialParameter::Type DataBufferTextureMaterialParameter::type() const
+    MSRABufferTextureMaterialParameter::Type MSRABufferTextureMaterialParameter::type() const
     {
-        return Type::DataBufferTexture;
+        return Type::MSRABufferTexture;
     }
 
-    MaterialParameter::Type DataBufferTextureMaterialParameter::binding_object_type() const
+    MaterialParameter::Type MSRABufferTextureMaterialParameter::binding_object_type() const
     {
         return Type::CombinedTexture2D;
     }
 
-    DataBufferTextureMaterialParameter& DataBufferTextureMaterialParameter::apply(const Pipeline* pipeline,
+    MSRABufferTextureMaterialParameter& MSRABufferTextureMaterialParameter::apply(const Pipeline* pipeline,
                                                                                   SceneComponent* component)
     {
-        bind_combined(sampler, GBuffer::instance()->current_frame()->data_buffer());
+        bind_combined(sampler, GBuffer::instance()->current_frame()->msra_buffer());
         return *this;
     }
 
@@ -510,7 +510,7 @@ namespace Engine
     declare_allocator(PositionTexture);
     declare_allocator(NormalTexture);
     declare_allocator(EmissiveTexture);
-    declare_allocator(DataBufferTexture);
+    declare_allocator(MSRABufferTexture);
     declare_allocator(SceneOutputTexture);
 
 
@@ -549,7 +549,7 @@ namespace Engine
             new_param_allocator(PositionTexture);
             new_param_allocator(NormalTexture);
             new_param_allocator(EmissiveTexture);
-            new_param_allocator(DataBufferTexture);
+            new_param_allocator(MSRABufferTexture);
             new_param_allocator(SceneOutputTexture);
 
             default:

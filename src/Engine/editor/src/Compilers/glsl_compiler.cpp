@@ -374,6 +374,7 @@ namespace Engine
         Vector<GLSL_Variable> variables;
 
         Vector<GLSL_BindingObject*> objects;
+        Vector<String> global_functions;
         Map<Identifier, GLSL_CompiledSource*> compiled_pins;
         Vector<String> statements;
         byte next_binding_index = 2;
@@ -561,13 +562,15 @@ namespace Engine
                                                   bool& created_now)
         {
             created_now = false;
+
             for (GLSL_BindingObject* glsl_object : objects)
             {
-                if (glsl_object->texture == texture && glsl_object->sampler == sampler)
+                if (glsl_object->short_name == name)
                 {
                     return glsl_object;
                 }
             }
+
 
             created_now = true;
 
@@ -914,6 +917,13 @@ namespace Engine
                 source += Strings::format("layout(binding = {}) uniform {} {};\n", object->index, object->type, object->name);
             }
 
+            source += "\n";
+
+            for (auto& func : global_functions)
+            {
+                source += "\n" + func + "\n";
+            }
+
             source += "\n\nvoid main()\n{\n";
 
             for (auto& statement : statements)
@@ -1172,6 +1182,22 @@ namespace Engine
             return (new GLSL_CompiledSource(source))->id();
         }
 
+        size_t inverse(MaterialInputPin* pin1) override
+        {
+            String source = "";
+
+            if (pin1->linked_to)
+            {
+                MaterialNodeDataType out_type = pin1->node->output_type(pin1->node->outputs[0]);
+                source                        = Strings::format("inverse({})", get_pin_source(pin1, out_type));
+            }
+            else
+            {
+                errors->push_back("Inverse node doesn't have input node!");
+            }
+            return (new GLSL_CompiledSource(source))->id();
+        }
+
         size_t normalize(MaterialInputPin* pin) override
         {
             String source = Strings::format("normalize({})", get_pin_source(pin));
@@ -1217,6 +1243,8 @@ namespace Engine
         declare_type_operator(vec4, Vec4);
         declare_type_operator(color3, Color3);
         declare_type_operator(color4, Color4);
+        declare_type_operator(mat3, Mat3);
+        declare_type_operator(mat4, Mat4);
 
         size_t add(MaterialInputPin* pin1, MaterialInputPin* pin2) override
         {
@@ -1371,7 +1399,7 @@ namespace Engine
             return 0;
         }
 
-        size_t data_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
+        size_t msra_buffer_texture(MaterialInputPin* sampler, MaterialInputPin* uv) override
         {
             errors->push_back(Strings::format("Texture2D node doesn't supported in {} shader!", name()));
             return 0;
@@ -1596,39 +1624,45 @@ namespace Engine
 
             if (source->data == nullptr)
             {
-                source->data = custom_source_node;
-
-                for (MaterialInputPin* pin : custom_source_node->inputs)
-                {
-                    MaterialNodeDataType type = pin->value_type();
-                    const char* type_str      = glsl_type_of(type);
-                    statements.push_back(Strings::format("{} {} = {};", type_str, pin->name, get_pin_source(pin, type)));
-                }
-
-                FileReader reader(engine_config.shaders_dir /
-                                  reinterpret_cast<MaterialNodes::CustomCode*>(custom_source_node)->shader_path);
+                source->data                           = custom_source_node;
+                MaterialNodes::CustomCode* custom_code = reinterpret_cast<MaterialNodes::CustomCode*>(custom_source_node);
+                FileReader reader(engine_config.shaders_dir / custom_code->shader_path);
 
                 if (reader.is_open())
                 {
-                    String line = reader.read_string();
-                    auto lines  = Strings::split(line, '\n');
+                    global_functions.push_back(reader.read_string());
 
-                    static auto is_spec_symbol = [](char ch) -> bool {
-                        return ch == '\n' || ch == '\0' || ch == '\t' || ch == EOF;
-                    };
-
-                    for (auto& line : lines)
+                    for (Index i = 0, count = custom_code->outputs.size(); i < count; ++i)
                     {
-                        while (!line.empty() && is_spec_symbol(line.back()))
-                        {
-                            line.pop_back();
-                        }
+                        statements.push_back(Strings::format("{} {};", glsl_type_of(custom_code->output_types[i]),
+                                                             custom_code->outputs[i]->name));
+                    }
 
-                        if (!line.empty())
+                    String func_exec = custom_code->entry_point + "(";
+
+                    for (Index i = 0, count = custom_code->inputs.size(); i < count; ++i)
+                    {
+                        func_exec += get_pin_source(custom_code->inputs[i], custom_code->input_types[i]);
+
+                        if(i + 1 < count || !custom_code->outputs.empty())
                         {
-                            statements.push_back(line);
+                            func_exec += ", ";
                         }
                     }
+
+                    for (Index i = 0, count = custom_code->outputs.size(); i < count; ++i)
+                    {
+                        func_exec += custom_code->outputs[i]->name;
+
+                        if(i + 1 < count)
+                        {
+                            func_exec += ", ";
+                        }
+                    }
+
+                    func_exec += ");";
+
+                    statements.push_back(func_exec);
                 }
             }
 
@@ -1950,11 +1984,11 @@ namespace Engine
                 output_attribute.push_back(attribute);
 
                 attribute.location = 4;
-                attribute.param    = "data_buffer";
+                attribute.param    = "msra_buffer";
                 attribute.type     = MaterialNodeDataType::Color4;
                 output_attribute.push_back(attribute);
 
-                statements.push_back("out_data_buffer.a = 1.0;");
+                statements.push_back("out_msra_buffer.a = 1.0;");
             }
 
 
@@ -2026,7 +2060,7 @@ namespace Engine
         declare_render_target_texture(position, Position, gbuffer_position);
         declare_render_target_texture(normal, Normal, gbuffer_normal);
         declare_render_target_texture(emissive, Emissive, gbuffer_emissive);
-        declare_render_target_texture(data_buffer, DataBuffer, gbuffer_data_buffer);
+        declare_render_target_texture(msra_buffer, MSRABuffer, gbuffer_msra_buffer);
         declare_render_target_texture(scene_output, SceneOutput, scene_output);
 
         virtual size_t sampler(const String& sampler_name, class Engine::Sampler* sampler) override
@@ -2046,7 +2080,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
-                statements.push_back(Strings::format("out_data_buffer.r = {};", source));
+                statements.push_back(Strings::format("out_msra_buffer.r = {};", source));
             }
             return 0;
         }
@@ -2056,7 +2090,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
-                statements.push_back(Strings::format("out_data_buffer.g = {};", source));
+                statements.push_back(Strings::format("out_msra_buffer.g = {};", source));
             }
             return 0;
         }
@@ -2066,7 +2100,7 @@ namespace Engine
             if (is_gbuffer_pipeline())
             {
                 String source = get_pin_source(pin, MaterialNodeDataType::Float);
-                statements.push_back(Strings::format("out_data_buffer.b = {};", source));
+                statements.push_back(Strings::format("out_msra_buffer.b = {};", source));
             }
             return 0;
         }

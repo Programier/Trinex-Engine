@@ -10,6 +10,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
+#include <Engine/ActorComponents/light_component.hpp>
 
 
 namespace Engine
@@ -25,21 +26,34 @@ namespace Engine
         begin_rendering_target(GBuffer::instance());
     }
 
-    void SceneRenderer::begin_lighting_pass(RenderTargetBase*, SceneLayer*)
+    void SceneRenderer::begin_gbuffer_to_scene_output(RenderTargetBase*, SceneLayer*)
+    {
+//        begin_rendering_target(SceneColorOutput::instance());
+
+//        static Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
+//        static PositionVertexBuffer* positions =
+//                Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
+
+//        if (mat)
+//        {
+//            mat->apply();
+//            positions->rhi_bind(0, 0);
+//            engine_instance->rhi()->draw(6);
+//        }
+    }
+
+    void SceneRenderer::begin_deferred_lighting_pass(RenderTargetBase* rt, SceneLayer* layer)
     {
         begin_rendering_target(SceneColorOutput::instance());
 
-        Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
-        PositionVertexBuffer* positions =
-                Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
-
-        if (mat)
+        for(LightComponent* component : layer->light_components())
         {
-            mat->apply();
-            positions->rhi_bind(0, 0);
-            engine_instance->rhi()->draw(6);
+            component->render(this, rt, layer);
         }
     }
+
+    void SceneRenderer::begin_lighting_pass(RenderTargetBase*, SceneLayer*)
+    {}
 
     void SceneRenderer::begin_scene_output_pass(RenderTargetBase*, SceneLayer*)
     {

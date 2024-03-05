@@ -42,7 +42,7 @@ namespace Engine
             PositionTexture    = 23,
             NormalTexture      = 24,
             EmissiveTexture    = 25,
-            DataBufferTexture  = 26,
+            MSRABufferTexture  = 26,
             SceneOutputTexture = 27,
 
             __COUNT__ = 28
@@ -229,10 +229,10 @@ namespace Engine
         EmissiveTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
-    struct DataBufferTextureMaterialParameter : SamplerMaterialParameter {
+    struct MSRABufferTextureMaterialParameter : SamplerMaterialParameter {
         Type type() const override;
         Type binding_object_type() const override;
-        DataBufferTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+        MSRABufferTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
     struct SceneOutputTextureMaterialParameter : SamplerMaterialParameter {

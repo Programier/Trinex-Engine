@@ -35,6 +35,8 @@ namespace Engine
 
         SceneRenderer& begin_rendering_target(RenderTargetBase* render_target, class RenderPass* render_pass = nullptr);
         void begin_rendering_base_pass(RenderTargetBase*, SceneLayer*);
+        void begin_gbuffer_to_scene_output(RenderTargetBase*, SceneLayer*);
+        void begin_deferred_lighting_pass(RenderTargetBase*, SceneLayer*);
         void begin_lighting_pass(RenderTargetBase*, SceneLayer*);
         void begin_scene_output_pass(RenderTargetBase*, SceneLayer*);
         void begin_postprocess_pass(RenderTargetBase*, SceneLayer*);

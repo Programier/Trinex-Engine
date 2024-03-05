@@ -33,7 +33,7 @@ namespace Engine
             Texture2D* position() const;
             Texture2D* normal() const;
             Texture2D* emissive() const;
-            Texture2D* data_buffer() const;
+            Texture2D* msra_buffer() const;
             Texture2D* depth() const;
         };
 

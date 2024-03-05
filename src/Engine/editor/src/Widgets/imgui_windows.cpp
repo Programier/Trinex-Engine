@@ -108,7 +108,8 @@ namespace Engine
                 m_parent->add_object(new_package, allow_rename);
                 open = false;
 
-                m_on_create(new_package);
+                if (m_on_create)
+                    m_on_create(new_package);
             }
         }
 

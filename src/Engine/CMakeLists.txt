@@ -114,7 +114,8 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SceneOutputLinesMat.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenPositionBuffer.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpriteMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultTexture.tasset)
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultTexture.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/PointLightMaterial.tasset)
     add_custom_command(
         OUTPUT include-internal/DefaultResources/default.hpp
         COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" ${TRINEX_INTERNAL_ASSETS}
