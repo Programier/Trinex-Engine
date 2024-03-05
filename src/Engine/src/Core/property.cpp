@@ -22,17 +22,17 @@ namespace Engine
 #define declare_prop_constructor(type, enum_type)                                                                                \
     PropertyValue::PropertyValue(const type& value) : Any(value)                                                                 \
     {                                                                                                                            \
-        m_type = PropertyType::enum_type;                                                                                       \
+        m_type = PropertyType::enum_type;                                                                                        \
     }                                                                                                                            \
     PropertyValue& PropertyValue::operator=(const type& value)                                                                   \
     {                                                                                                                            \
         static_cast<Any&>(*this) = value;                                                                                        \
-        m_type                  = PropertyType::enum_type;                                                                      \
+        m_type                   = PropertyType::enum_type;                                                                      \
         return *this;                                                                                                            \
     }
 
 #define check_prop_type(type)                                                                                                    \
-    if (m_type != PropertyType::type)                                                                                           \
+    if (m_type != PropertyType::type)                                                                                            \
         return {};
 
     PropertyValue::PropertyValue(const PropertyValue&)            = default;
