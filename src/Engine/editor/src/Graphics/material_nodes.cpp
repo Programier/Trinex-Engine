@@ -507,6 +507,8 @@ namespace Engine::MaterialNodes
         {
             MaterialNodeDataType input_type = reinterpret_cast<MaterialInputPin*>(inputs[0])->value_type();
             MaterialDataTypeInfo info       = MaterialDataTypeInfo::from(input_type);
+            if(info.base_type == MaterialBaseDataType::Color)
+                info.base_type = MaterialBaseDataType::Float;
             return static_cast<MaterialNodeDataType>(material_type_value(info.base_type, 1));
         }
 

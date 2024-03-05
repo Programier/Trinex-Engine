@@ -719,7 +719,6 @@ namespace Engine
             if (static_cast<Identifier>(key_event.key) >= static_cast<Identifier>(Keyboard::Key::Num0) &&
                 static_cast<Identifier>(key_event.key) <= static_cast<Identifier>(Keyboard::Key::Num9))
             {
-
                 Index new_index = static_cast<Identifier>(key_event.key) - static_cast<Identifier>(Keyboard::Key::Num0);
                 if (new_index <= 6)
                 {

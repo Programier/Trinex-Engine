@@ -22,10 +22,9 @@ namespace Engine
 {
     static thread_local MessageList* errors = nullptr;
 
-    static const StringView variable_prefix        = "tnx_var_";
-    static const StringView global_ubo_name        = "global";
-    static const StringView global_variable_prefix = "global.";
-    static const StringView local_variable_prefix  = "local.";
+    static const StringView variable_prefix          = "tnx_var_";
+    static const StringView internal_variable_prefix = "prv_tnx_var_";
+    static const StringView local_variable_prefix    = "local.";
 
     static constexpr inline size_t max_sentence_len = 80;
 
@@ -100,12 +99,6 @@ namespace Engine
             *uint_out = std::move(spirv);
         }
         return true;
-    }
-
-    static bool is_variable(const StringView& code)
-    {
-        return code.starts_with(variable_prefix) || code.starts_with(global_variable_prefix) ||
-               code.starts_with(local_variable_prefix) || code.starts_with("in_") || code.starts_with("vertex_");
     }
 
     static const char* default_value_of_base_type(MaterialBaseDataType type, bool is_zero = true)
@@ -365,6 +358,11 @@ namespace Engine
         BindingIndex index;
     };
 
+    struct GLSL_Variable {
+        MaterialNodeDataType type;
+        String name;
+    };
+
     class GLSL_BaseCompiler : public ShaderCompiler
     {
     public:
@@ -373,6 +371,7 @@ namespace Engine
         Vector<GLSL_Attribute> output_attribute;
 
         Vector<GLSL_LocalParameter> local_parameters;
+        Vector<GLSL_Variable> variables;
 
         Vector<GLSL_BindingObject*> objects;
         Map<Identifier, GLSL_CompiledSource*> compiled_pins;
@@ -387,7 +386,30 @@ namespace Engine
 
 
         GLSL_BaseCompiler(VisualMaterial* material) : material(material)
-        {}
+        {
+            variables.push_back({MaterialNodeDataType::Mat4, "global.projection"});
+            variables.push_back({MaterialNodeDataType::Mat4, "global.view"});
+            variables.push_back({MaterialNodeDataType::Mat4, "global.projview"});
+            variables.push_back({MaterialNodeDataType::Mat4, "global.inv_projview"});
+            variables.push_back({MaterialNodeDataType::Vec4, "global.viewport"});
+            variables.push_back({MaterialNodeDataType::Vec4, "global.scissor"});
+            variables.push_back({MaterialNodeDataType::Vec3, "global.camera_location"});
+            variables.push_back({MaterialNodeDataType::Vec3, "global.camera_forward"});
+            variables.push_back({MaterialNodeDataType::Vec3, "global.camera_right"});
+            variables.push_back({MaterialNodeDataType::Vec3, "global.camera_up"});
+            variables.push_back({MaterialNodeDataType::Vec2, "global.size"});
+            variables.push_back({MaterialNodeDataType::Vec2, "global.depth_range"});
+            variables.push_back({MaterialNodeDataType::Float, "global.gamma"});
+            variables.push_back({MaterialNodeDataType::Float, "global.time"});
+            variables.push_back({MaterialNodeDataType::Float, "global.delta_time"});
+            variables.push_back({MaterialNodeDataType::Float, "global.fov"});
+            variables.push_back({MaterialNodeDataType::Float, "global.ortho_width"});
+            variables.push_back({MaterialNodeDataType::Float, "global.ortho_height"});
+            variables.push_back({MaterialNodeDataType::Float, "global.near_clip_plane"});
+            variables.push_back({MaterialNodeDataType::Float, "global.far_clip_plane"});
+            variables.push_back({MaterialNodeDataType::Float, "global.aspect_ratio"});
+            variables.push_back({MaterialNodeDataType::Int, "global.camera_projection_mode"});
+        }
 
         ~GLSL_BaseCompiler()
         {
@@ -403,6 +425,17 @@ namespace Engine
         }
 
         // Helpers
+
+        bool is_variable(const StringView& code)
+        {
+            for (auto& var : variables)
+            {
+                if (var.name == code)
+                    return true;
+            }
+
+            return false;
+        }
 
         bool is_gbuffer_pipeline() const
         {
@@ -520,6 +553,7 @@ namespace Engine
             param.param = name;
             param.type  = type;
 
+            variables.push_back({type, Strings::format("{}{}", local_variable_prefix, name)});
             return index;
         }
 
@@ -559,19 +593,41 @@ namespace Engine
                 String new_source    = Strings::format("{} {} = {};", glsl_type_of(type), variable_name, source->source);
                 statements.push_back(new_source);
                 source->source = std::move(variable_name);
+
+                GLSL_Variable var;
+                var.name = source->source;
+                var.type = type;
+                variables.push_back(var);
             }
         }
 
-        StringView create_variable(const StringView& code, MaterialNodeDataType type)
+        StringView create_variable(const StringView& code, MaterialNodeDataType type, const StringView& name = "")
         {
+            if (!name.empty())
+            {
+                for (auto& var : variables)
+                {
+                    if (var.name == name)
+                    {
+                        return var.name;
+                    }
+                }
+            }
+
             if (!is_variable(code))
             {
-                String variable_name  = Strings::format("{}{}", variable_prefix, statements.size());
+                String variable_name  = name.empty() ? Strings::format("{}{}", variable_prefix, statements.size()) : String(name);
                 const char* type_name = glsl_type_of(type);
                 String new_source     = Strings::format("{} {} = {};", type_name, variable_name, code);
                 statements.push_back(new_source);
 
                 const char* var_start = statements.back().c_str() + std::strlen(type_name) + 1;
+
+                GLSL_Variable var;
+                var.name = variable_name;
+                var.type = type;
+                variables.push_back(var);
+
                 return StringView(var_start, variable_name.length());
             }
 
@@ -838,8 +894,7 @@ namespace Engine
             source += "\n";
             source += GlobalShaderParameters::shader_code();
             source.push_back(' ');
-            source += global_ubo_name;
-            source += ";\n\n";
+            source += "global;\n\n";
 
             if (!local_parameters.empty())
             {
@@ -1251,6 +1306,7 @@ namespace Engine
                 pin_source->source = input_source->source;
             }
 
+            create_variable(pin_source, input_type);
             pin_source->source = cast_value(pin_source->source, input_type, vector_type);
             create_variable(pin_source, vector_type);
 
@@ -1400,6 +1456,7 @@ namespace Engine
                 in_attribute.semantic       = semantic;
                 in_attribute.semantic_index = index;
 
+                variables.push_back({in_attribute.type, Strings::format("in_{}", in_attribute.param)});
                 submit_vertex_attribute(in_attribute);
             }
 
@@ -1649,6 +1706,7 @@ namespace Engine
                 out_attribute.type   = attribute.type;
             }
 
+            variables.push_back({attribute.type, Strings::format("out_{}", attribute.param)});
             statements.push_back(Strings::format("out_{} = in_{};", attribute.param, attribute.param));
         }
 
@@ -1662,10 +1720,13 @@ namespace Engine
             }
             else
             {
-                GLSL_CompiledSource* model_source       = reinterpret_cast<GLSL_CompiledSource*>(model());
-                GLSL_CompiledSource* compiled_attribute = reinterpret_cast<GLSL_CompiledSource*>(vertex_position_attribute(0));
-                source =
-                        Strings::format("global.projview * {} * vec4({}, 1.0)", model_source->source, compiled_attribute->source);
+                const String& model_source  = reinterpret_cast<GLSL_CompiledSource*>(model())->source;
+                const String& vertex_source = reinterpret_cast<GLSL_CompiledSource*>(vertex_position_attribute(0))->source;
+
+                String var_name = Strings::format("{}{}", internal_variable_prefix, "world_position");
+                StringView var  = create_variable(Strings::format("{} * vec4({}, 1.f)", model_source, vertex_source),
+                                                  MaterialNodeDataType::Vec4, var_name);
+                source          = Strings::format("global.projview * {}", String(var));
             }
 
             statements.push_back(Strings::format("gl_Position = {};", source));
@@ -1692,10 +1753,12 @@ namespace Engine
             {
                 const String& model_source  = reinterpret_cast<GLSL_CompiledSource*>(model())->source;
                 const String& vertex_source = reinterpret_cast<GLSL_CompiledSource*>(vertex_position_attribute(0))->source;
-                statements.push_back(
-                        Strings::format("vertex_world_position = vec3({} * vec4({}, 1.0));", model_source, vertex_source));
-            }
 
+                String var_name = Strings::format("{}{}", internal_variable_prefix, "world_position");
+                StringView var  = create_variable(Strings::format("{} * vec4({}, 1.f)", model_source, vertex_source),
+                                                  MaterialNodeDataType::Vec4, var_name);
+                statements.push_back(Strings::format("vertex_world_position = {}.xyz;", var));
+            }
 
             return 0;
         }
@@ -1750,8 +1813,13 @@ namespace Engine
                 }
                 else
                 {
+                    GLSL_CompiledSource* model_source = reinterpret_cast<GLSL_CompiledSource*>(model());
+                    String var_name                   = Strings::format("{}{}", internal_variable_prefix, "rotation_matrix");
+                    String code                       = Strings::format("transpose(inverse(mat3({})))", model_source->source);
+
+                    auto var      = create_variable(code, MaterialNodeDataType::Mat3, var_name);
                     String normal = reinterpret_cast<GLSL_CompiledSource*>(vertex_normal_attribute(0))->source;
-                    statements.push_back(Strings::format("vertex_world_normal = {};", normal));
+                    statements.push_back(Strings::format("vertex_world_normal = {} * {};", var, normal));
                 }
             }
             return 0;
@@ -1840,6 +1908,12 @@ namespace Engine
             for (auto& output : vertex_compiler->output_attribute)
             {
                 input_attribute.push_back(output);
+                variables.push_back({output.type, Strings::format("{}{}", output.with_prefix ? "in_" : "", output.param)});
+            }
+
+            for (auto& local : vertex_compiler->local_parameters)
+            {
+                variables.push_back({local.type, local.param});
             }
         }
 
