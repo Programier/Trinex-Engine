@@ -33,10 +33,10 @@ namespace Engine::MaterialNodes
     VertexNode::VertexNode()
     {
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Screen Space Position"));
-        inputs.push_back(new Vec3InputPin(this, "World Position"));
+        inputs.push_back(new Vec3InputNoDefaultPin(this, "World Position"));
         inputs.push_back(new Vec2InputPin(this, "UV0"));
         inputs.push_back(new Vec2InputPin(this, "UV1"));
-        inputs.push_back(new Vec3InputPin(this, "World Normal"));
+        inputs.push_back(new Vec3InputNoDefaultPin(this, "World Normal"));
         inputs.push_back(new Vec3InputPin(this, "World Tangent"));
         inputs.push_back(new Vec3InputPin(this, "World Bitangent"));
         inputs.push_back(new Vec3InputPin(this, "Vertex Color"));

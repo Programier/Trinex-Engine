@@ -229,7 +229,6 @@ namespace Engine
         World::new_system<World>()->name("Global World");
 
         init_api();
-
         load_default_resources();
 
         PostInitializeController().execute();

@@ -28,18 +28,18 @@ namespace Engine
 
     void SceneRenderer::begin_gbuffer_to_scene_output(RenderTargetBase*, SceneLayer*)
     {
-//        begin_rendering_target(SceneColorOutput::instance());
+        begin_rendering_target(SceneColorOutput::instance());
 
-//        static Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
-//        static PositionVertexBuffer* positions =
-//                Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
+        static Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
+        static PositionVertexBuffer* positions =
+                Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
 
-//        if (mat)
-//        {
-//            mat->apply();
-//            positions->rhi_bind(0, 0);
-//            engine_instance->rhi()->draw(6);
-//        }
+        if (mat)
+        {
+            mat->apply();
+            positions->rhi_bind(0, 0);
+            engine_instance->rhi()->draw(6);
+        }
     }
 
     void SceneRenderer::begin_deferred_lighting_pass(RenderTargetBase* rt, SceneLayer* layer)
