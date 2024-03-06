@@ -80,6 +80,7 @@ namespace Engine::MaterialNodes
         inputs.push_back(new FloatInputPin(this, "Opacity", 1.f));
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Position"));
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Normal"));
+        inputs.push_back(new FloatInputPin(this, "AO"));
     }
 
     const char* FragmentNode::name() const
@@ -97,6 +98,7 @@ namespace Engine::MaterialNodes
         compiler->fragment_output_opacity(inputs[5]);
         compiler->fragment_output_position(inputs[6]);
         compiler->fragment_output_normal(inputs[7]);
+        compiler->fragment_output_ao(inputs[8]);
         return 0;
     }
 

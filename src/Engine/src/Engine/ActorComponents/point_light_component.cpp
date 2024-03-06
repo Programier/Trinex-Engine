@@ -4,6 +4,7 @@
 #include <Core/property.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -33,18 +34,20 @@ namespace Engine
     }
 
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(name_##param_name));
-    PointLightComponent& PointLightComponent::render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*)
+    PointLightComponent& PointLightComponent::render(class SceneRenderer* renderer, class RenderTargetBase*, class SceneLayer*)
     {
         Material* material                 = DefaultResources::point_light_material;
         static Name name_light_color       = "light_color";
         static Name name_light_radius      = "light_radius";
         static Name name_light_intensivity = "light_intensivity";
         static Name name_light_location    = "light_location";
+        static Name name_ambient_color     = "ambient_color";
 
-        Vec3MaterialParameter* color_parameter        = get_param(light_color, Vec3MaterialParameter);
-        Vec3MaterialParameter* location_parameter     = get_param(light_location, Vec3MaterialParameter);
-        FloatMaterialParameter* radius_parameter      = get_param(light_radius, FloatMaterialParameter);
-        FloatMaterialParameter* intensivity_parameter = get_param(light_intensivity, FloatMaterialParameter);
+        Vec3MaterialParameter* color_parameter         = get_param(light_color, Vec3MaterialParameter);
+        Vec3MaterialParameter* location_parameter      = get_param(light_location, Vec3MaterialParameter);
+        Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
+        FloatMaterialParameter* radius_parameter       = get_param(light_radius, FloatMaterialParameter);
+        FloatMaterialParameter* intensivity_parameter  = get_param(light_intensivity, FloatMaterialParameter);
 
         if (color_parameter)
         {
@@ -64,6 +67,11 @@ namespace Engine
         if (intensivity_parameter)
         {
             intensivity_parameter->param = intensivity;
+        }
+
+        if (ambient_color_parameter)
+        {
+            ambient_color_parameter->param = renderer->ambient_light();
         }
 
         material->apply();

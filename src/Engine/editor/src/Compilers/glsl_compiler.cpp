@@ -1466,6 +1466,12 @@ namespace Engine
             return 0;
         }
 
+        size_t fragment_output_ao(MaterialInputPin*) override
+        {
+            errors->push_back(Strings::format("AO pin doesn't supported in {} shader!", name()));
+            return 0;
+        }
+
         virtual void submit_vertex_attribute(const GLSL_Attribute& attribute)
         {}
 
@@ -1644,7 +1650,7 @@ namespace Engine
                     {
                         func_exec += get_pin_source(custom_code->inputs[i], custom_code->input_types[i]);
 
-                        if(i + 1 < count || !custom_code->outputs.empty())
+                        if (i + 1 < count || !custom_code->outputs.empty())
                         {
                             func_exec += ", ";
                         }
@@ -1654,7 +1660,7 @@ namespace Engine
                     {
                         func_exec += custom_code->outputs[i]->name;
 
-                        if(i + 1 < count)
+                        if (i + 1 < count)
                         {
                             func_exec += ", ";
                         }
@@ -2150,8 +2156,19 @@ namespace Engine
                 }
                 else
                 {
-                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, float(gl_FrontFacing ? 1.0 : -1.0));"));
+                    statements.push_back(
+                            Strings::format("out_normal = vec4(vertex_world_normal, float(gl_FrontFacing ? 1.0 : -1.0));"));
                 }
+            }
+            return 0;
+        }
+
+        size_t fragment_output_ao(MaterialInputPin* pin) override
+        {
+            if (is_gbuffer_pipeline())
+            {
+                statements.push_back(
+                        Strings::format("out_msra_buffer.a = {};", get_pin_source(pin, MaterialNodeDataType::Float)));
             }
             return 0;
         }

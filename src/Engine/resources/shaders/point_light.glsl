@@ -33,13 +33,15 @@ vec3 fresnel_schlick(in float cos_theta, in vec3 F0)
 }
 
 
+
 void get_point_light(in vec4 base_color, in vec4 position, in vec4 normal, in vec4 emissive, in vec4 msra, in vec3 light_color,
                      in float light_radius, in float light_intensivity, in vec3 light_location, in vec3 ambient_color,
                      out vec3 light_out_color, out float light_out_alpha)
 {
+
     if (length(normal.xyz) < 0.1)
     {
-        light_out_color = base_color.rgb * ambient_color;
+        light_out_color = ambient_color * base_color.rgb * vec3(msra.a); // Only ambient lighting
     }
     else
     {
@@ -70,7 +72,8 @@ void get_point_light(in vec4 base_color, in vec4 position, in vec4 normal, in ve
         float normal_dot_l = max(dot(surface_normal, light_direction), 0.0);
         vec3 reflectance = (k_d * base_color.xyz / M_PI + specular) * radiance * normal_dot_l;
 
-        light_out_color = reflectance;
+        vec3 ambient = ambient_color * base_color.rgb * vec3(msra.a);
+        light_out_color = ambient + reflectance;
     }
 
     light_out_alpha = 1.0;

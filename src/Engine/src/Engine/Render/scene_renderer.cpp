@@ -1,3 +1,4 @@
+#include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
@@ -15,7 +16,7 @@
 
 namespace Engine
 {
-    SceneRenderer::SceneRenderer() : m_scene(nullptr), m_ambient_light({0.1, 0.1, 0.1})
+    SceneRenderer::SceneRenderer() : m_scene(nullptr), m_ambient_light({0.1, 0.1, 0.1}), m_view_mode(ViewMode::Lit)
     {}
 
     void SceneRenderer::clear_render_targets(RenderTargetBase*, SceneLayer*)
@@ -54,9 +55,31 @@ namespace Engine
         }
         else if (m_view_mode == ViewMode::Lit)
         {
-            for (LightComponent* component : layer->light_components())
+            auto& components = layer->light_components();
+
+            if (components.empty())
             {
-                component->render(this, rt, layer);
+                // Render only ambient light
+                static Name name_ambient_color = "ambient_color";
+                Material* material             = DefaultResources::ambient_only_material;
+
+                auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
+
+                if (ambient_param)
+                {
+                    ambient_param->param = m_ambient_light;
+                }
+
+                material->apply();
+                DefaultResources::screen_position_buffer->rhi_bind(0, 0);
+                engine_instance->rhi()->draw(6);
+            }
+            else
+            {
+                for (LightComponent* component : components)
+                {
+                    component->render(this, rt, layer);
+                }
             }
         }
     }

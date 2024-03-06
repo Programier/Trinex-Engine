@@ -190,6 +190,7 @@ namespace Engine
         virtual size_t fragment_output_opacity(MaterialInputPin*)    = 0;
         virtual size_t fragment_output_position(MaterialInputPin*)   = 0;
         virtual size_t fragment_output_normal(MaterialInputPin*)     = 0;
+        virtual size_t fragment_output_ao(MaterialInputPin*)         = 0;
 
 
         // Inputs
