@@ -1,10 +1,10 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
-#include <opengl_imgui_texture.hpp>
+#include <imgui.h>
 #include <opengl_api.hpp>
+#include <opengl_imgui_texture.hpp>
 #include <opengl_sampler.hpp>
 #include <opengl_texture.hpp>
-#include <imgui.h>
 
 namespace Engine
 {
@@ -22,22 +22,9 @@ namespace Engine
         return 0;
     }
 
-    GLuint OpenGL_ImGuiTexture::sampler_id()
-    {
-        if (m_sampler)
-        {
-            OpenGL_Sampler* sampler = m_sampler->rhi_object<OpenGL_Sampler>();
-            if (sampler)
-            {
-                return sampler->m_id;
-            }
-        }
-        return 0;
-    }
-
-    RHI_ImGuiTexture* OpenGL::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
+    RHI_ImGuiTexture* OpenGL::imgui_create_texture(ImGuiContext* ctx, Texture* texture)
     {
         ImGui::SetCurrentContext(ctx);
-        return new OpenGL_ImGuiTexture(texture, sampler);
+        return new OpenGL_ImGuiTexture(texture);
     }
 }// namespace Engine

@@ -58,7 +58,6 @@ namespace Engine::ImGuiRenderer
     private:
         RHI_ImGuiTexture* m_handle = nullptr;
         Texture* m_texture         = nullptr;
-        Sampler* m_sampler         = nullptr;
 
         ImGuiTexture();
         void release_internal(bool force);
@@ -68,10 +67,8 @@ namespace Engine::ImGuiRenderer
         delete_copy_constructors(ImGuiTexture);
         ImGuiTexture& release();
         void* handle() const;
-        ImGuiTexture& init(ImGuiContext* ctx, Texture* texture, Sampler* sampler);
+        ImGuiTexture& init(ImGuiContext* ctx, Texture* texture);
         Texture* texture() const;
-        Sampler* sampler() const;
-
         friend class Window;
     };
 
@@ -173,7 +170,7 @@ namespace Engine::ImGuiRenderer
         Engine::Window* window() const;
 
         ImGuiTexture* create_texture();
-        ImGuiTexture* create_texture(Texture* texture, Sampler* sampler);
+        ImGuiTexture* create_texture(Texture* texture);
         Window& release_texture(ImGuiTexture*);
         static Window* current();
         static void make_current(Window*);

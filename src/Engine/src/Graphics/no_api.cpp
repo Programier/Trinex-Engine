@@ -27,7 +27,7 @@ namespace Engine
         return *this;
     }
 
-    RHI_ImGuiTexture* NoApi::imgui_create_texture(ImGuiContext*, Texture* texture, Sampler* sampler)
+    RHI_ImGuiTexture* NoApi::imgui_create_texture(ImGuiContext*, Texture* texture)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

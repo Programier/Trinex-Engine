@@ -574,10 +574,10 @@ namespace Engine
         if (texture && texture->has_object())
         {
             {
-                auto current_pos = ImGui::GetCursorPos();
-                void* output     = ImGuiRenderer::Window::current()->create_texture(texture, Icons::default_sampler())->handle();
-                auto size        = ImGui::GetContentRegionAvail();
-                m_viewport_size  = ImGuiHelpers::construct_vec2<Vector2D>(size);
+                auto current_pos     = ImGui::GetCursorPos();
+                void* output         = ImGuiRenderer::Window::current()->create_texture(texture)->handle();
+                auto size            = ImGui::GetContentRegionAvail();
+                m_viewport_size      = ImGuiHelpers::construct_vec2<Vector2D>(size);
                 camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
 
                 ImGui::Image(output, size);

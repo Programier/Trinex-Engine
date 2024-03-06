@@ -34,14 +34,11 @@ namespace Engine
     struct VulkanImGuiTexture : public VulkanImGuiTextureInterface {
         ImGuiContext* m_ctx                = nullptr;
         class Texture* m_texture           = nullptr;
-        class Sampler* m_sampler           = nullptr;
         struct VulkanTexture* m_vk_texture = nullptr;
-        struct VulkanSampler* m_vk_sampler = nullptr;
 
         VkDescriptorSet m_set = VK_NULL_HANDLE;
 
-        FORCE_INLINE VulkanImGuiTexture(ImGuiContext* ctx, class Texture* texture, class Sampler* sampler)
-            : m_ctx(ctx), m_texture(texture), m_sampler(sampler)
+        FORCE_INLINE VulkanImGuiTexture(ImGuiContext* ctx, class Texture* texture) : m_ctx(ctx), m_texture(texture)
         {}
 
         VkDescriptorSet descriptor_set() override;

@@ -611,7 +611,10 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 GL_CALL(glBindTexture(GL_TEXTURE_2D, texture_interface->texture_id()));
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
                 if (bd->GlVersion >= 330 || bd->GlProfileIsES3)
-                    GL_CALL(glBindSampler(0, texture_interface->sampler_id()));
+                {
+                    extern GLuint trinex_engine_default_opengl_sampler();
+                    GL_CALL(glBindSampler(0, trinex_engine_default_opengl_sampler()));
+                }
 #endif
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
                 if (bd->GlVersion >= 320)
@@ -700,7 +703,7 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
 #endif
     GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
-    bd->FontTexture = new Engine::OpenGL_ImGuiTextureBasic(current_texture, 0);
+    bd->FontTexture = new Engine::OpenGL_ImGuiTextureBasic(current_texture);
     // Store our identifier
     io.Fonts->SetTexID((ImTextureID)bd->FontTexture);
 

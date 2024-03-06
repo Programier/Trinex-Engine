@@ -80,7 +80,7 @@ namespace Engine::MaterialNodes
         inputs.push_back(new FloatInputPin(this, "Opacity", 1.f));
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Position"));
         inputs.push_back(new Vec3InputNoDefaultPin(this, "Normal"));
-        inputs.push_back(new FloatInputPin(this, "AO"));
+        inputs.push_back(new FloatInputPin(this, "AO", 1.f));
     }
 
     const char* FragmentNode::name() const
@@ -864,8 +864,7 @@ namespace Engine::MaterialNodes
         ImGuiRenderer::InputText("editor/Name"_localized, texture_name);
         if (texture && texture->has_object())
         {
-            Engine::Sampler* sampler                   = Icons::default_sampler();
-            ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(texture, sampler);
+            ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(texture);
             ImGui::Image(imgui_texture->handle(), {100, 100});
         }
     }

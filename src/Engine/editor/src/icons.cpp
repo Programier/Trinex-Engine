@@ -26,7 +26,7 @@ namespace Engine::Icons
     {
         Texture2D* texture = m_icons[type];
         if (texture && texture->has_object())
-            return ImGuiRenderer::Window::current()->create_texture(texture, m_default_sampler);
+            return ImGuiRenderer::Window::current()->create_texture(texture);
         return nullptr;
     }
 
@@ -36,21 +36,18 @@ namespace Engine::Icons
         if (!window)
             return nullptr;
 
-        Sampler* sampler = default_sampler();
-        if (!sampler)
-            return nullptr;
         if (object)
         {
             {
                 Texture2D* texture = object->instance_cast<Texture2D>();
                 if (texture && texture->has_object())
-                    return window->create_texture(texture, sampler);
+                    return window->create_texture(texture);
             }
         }
 
         Texture2D* texture = default_texture();
         if (texture && texture->has_object())
-            return window->create_texture(texture, sampler);
+            return window->create_texture(texture);
 
         return nullptr;
     }

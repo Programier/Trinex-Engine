@@ -104,11 +104,11 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT RHI {
-        virtual RHI& imgui_init(ImGuiContext*)                                                                = 0;
-        virtual RHI& imgui_terminate(ImGuiContext*)                                                           = 0;
-        virtual RHI& imgui_new_frame(ImGuiContext*)                                                           = 0;
-        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*)                                                 = 0;
-        virtual RHI_ImGuiTexture* imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler) = 0;
+        virtual RHI& imgui_init(ImGuiContext*)                                              = 0;
+        virtual RHI& imgui_terminate(ImGuiContext*)                                         = 0;
+        virtual RHI& imgui_new_frame(ImGuiContext*)                                         = 0;
+        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*)                               = 0;
+        virtual RHI_ImGuiTexture* imgui_create_texture(ImGuiContext* ctx, Texture* texture) = 0;
 
 
         virtual RHI& destroy_object(RHI_Object* object) = 0;

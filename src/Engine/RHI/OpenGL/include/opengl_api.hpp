@@ -45,7 +45,7 @@ namespace Engine
         OpenGL& imgui_terminate(ImGuiContext*) override;
         OpenGL& imgui_new_frame(ImGuiContext*) override;
         OpenGL& imgui_render(ImGuiContext*, ImDrawData*) override;
-        RHI_ImGuiTexture* imgui_create_texture(ImGuiContext*, Texture* texture, Sampler* sampler) override;
+        RHI_ImGuiTexture* imgui_create_texture(ImGuiContext*, Texture* texture) override;
 
         //        ///////////////// TEXTURE PART /////////////////
         OpenGL& prepare_render();

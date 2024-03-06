@@ -1,3 +1,4 @@
+#include <Core/default_resources.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
 #include <imgui_impl_vulkan.h>
@@ -12,19 +13,18 @@ namespace Engine
     VkDescriptorSet VulkanImGuiTexture::descriptor_set()
     {
         VulkanTexture* texture = m_texture->rhi_object<VulkanTexture>();
-        VulkanSampler* sampler = m_sampler->rhi_object<VulkanSampler>();
+        VulkanSampler* sampler = DefaultResources::default_sampler->rhi_object<VulkanSampler>();
 
         if (texture == nullptr || sampler == nullptr)
         {
             throw EngineException("Cannot initialize imgui texture without sampler or texture");
         }
 
-        if (m_vk_sampler != sampler || m_vk_texture != texture)
+        if (m_vk_texture != texture)
         {
             destroy();
             m_set        = ImGui_ImplVulkan_AddTexture(sampler->m_sampler, texture->m_image_view,
-                                                        static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal));
-            m_vk_sampler = sampler;
+                                                       static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal));
             m_vk_texture = texture;
         }
 
@@ -51,10 +51,10 @@ namespace Engine
         destroy();
     }
 
-    RHI_ImGuiTexture* VulkanAPI::imgui_create_texture(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
+    RHI_ImGuiTexture* VulkanAPI::imgui_create_texture(ImGuiContext* ctx, Texture* texture)
     {
         ImGui::SetCurrentContext(ctx);
-        trinex_check(ctx && texture && sampler, "Cannot create ImGui Texture from invalid data!");
-        return new VulkanImGuiTexture(ctx, texture, sampler);
+        trinex_check(ctx && texture, "Cannot create ImGui Texture from invalid data!");
+        return new VulkanImGuiTexture(ctx, texture);
     }
 }// namespace Engine

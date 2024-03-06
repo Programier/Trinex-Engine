@@ -84,33 +84,31 @@ namespace Engine::ImGuiRenderer
         ImGuiContext* m_ctx           = nullptr;
         ImGuiTexture* m_imgui_texture = nullptr;
         Texture* m_texture            = nullptr;
-        Sampler* m_sampler            = nullptr;
 
-        ImGuiTextureInitTask(ImGuiContext* ctx, ImGuiTexture* imgui_texture, Texture* texture, Sampler* sampler)
-            : m_ctx(ctx), m_imgui_texture(imgui_texture), m_texture(texture), m_sampler(sampler)
+        ImGuiTextureInitTask(ImGuiContext* ctx, ImGuiTexture* imgui_texture, Texture* texture)
+            : m_ctx(ctx), m_imgui_texture(imgui_texture), m_texture(texture)
         {}
 
         int_t execute() override
         {
-            m_imgui_texture->init(m_ctx, m_texture, m_sampler);
+            m_imgui_texture->init(m_ctx, m_texture);
             return sizeof(ImGuiTextureInitTask);
         }
     };
 
-    ImGuiTexture& ImGuiTexture::init(ImGuiContext* ctx, Texture* texture, Sampler* sampler)
+    ImGuiTexture& ImGuiTexture::init(ImGuiContext* ctx, Texture* texture)
     {
         release();
         m_texture = texture;
-        m_sampler = sampler;
 
         Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
         if (Thread::this_thread() == render_thread)
         {
-            m_handle = engine_instance->rhi()->imgui_create_texture(ctx, texture, sampler);
+            m_handle = engine_instance->rhi()->imgui_create_texture(ctx, texture);
         }
         else
         {
-            render_thread->insert_new_task<ImGuiTextureInitTask>(ctx, this, texture, sampler);
+            render_thread->insert_new_task<ImGuiTextureInitTask>(ctx, this, texture);
             render_thread->wait_all();
         }
         return *this;
@@ -121,18 +119,12 @@ namespace Engine::ImGuiRenderer
         return m_texture;
     }
 
-    Sampler* ImGuiTexture::sampler() const
-    {
-        return m_sampler;
-    }
-
     void* ImGuiTexture::handle() const
     {
         if (!m_handle)
             return nullptr;
         return m_handle->handle();
     }
-
 
     class ForceDestroyImGuiTexture : public ExecutableObject
     {
@@ -161,7 +153,6 @@ namespace Engine::ImGuiRenderer
         }
         m_handle  = nullptr;
         m_texture = nullptr;
-        m_sampler = nullptr;
     }
 
     ImGuiTexture& ImGuiTexture::release()
@@ -391,16 +382,16 @@ namespace Engine::ImGuiRenderer
         return texture;
     }
 
-    ImGuiTexture* Window::create_texture(Texture* texture, Sampler* sampler)
+    ImGuiTexture* Window::create_texture(Texture* texture)
     {
         for (ImGuiTexture* imgui_texture : m_textures)
         {
-            if (imgui_texture->texture() == texture && imgui_texture->sampler() == sampler)
+            if (imgui_texture->texture() == texture)
                 return imgui_texture;
         }
 
         ImGuiTexture* new_texture = create_texture();
-        new_texture->init(m_context, texture, sampler);
+        new_texture->init(m_context, texture);
         return new_texture;
     }
 

@@ -1,3 +1,4 @@
+#include <Core/default_resources.hpp>
 #include <Graphics/sampler.hpp>
 #include <opengl_api.hpp>
 #include <opengl_enums_convertor.hpp>
@@ -64,3 +65,8 @@ namespace Engine
         return new OpenGL_Sampler(sampler);
     }
 }// namespace Engine
+
+GLuint trinex_engine_default_sampler()
+{
+    return Engine::DefaultResources::default_sampler->rhi_object<Engine::OpenGL_Sampler>()->m_id;
+}
