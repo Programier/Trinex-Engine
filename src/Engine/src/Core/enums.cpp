@@ -122,4 +122,6 @@ namespace Engine
                    {"LightingRendering", MaterialUsage::LightingRendering}, {"InWindowRendering", MaterialUsage::WindowRendering},
                    {"SceneOutputRendering", MaterialUsage::SceneOutputRendering},
                    {"GBufferRendering", MaterialUsage::GBufferRendering});
+
+    implement_enum(ViewMode, Engine, {"Lit", ViewMode::Lit}, {"Unlit", ViewMode::Unlit});
 }// namespace Engine

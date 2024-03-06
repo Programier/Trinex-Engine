@@ -37,6 +37,11 @@
 
 namespace Engine
 {
+    EditorState::EditorState()
+    {
+        viewport.view_mode_entry = Enum::find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
+    }
+
     implement_engine_class_default_init(EditorClient);
 
     EditorClient::EditorClient()
@@ -391,7 +396,29 @@ namespace Engine
 
     EditorClient& EditorClient::render_viewport_menu()
     {
-        const float height = 24.f * editor_scale_factor();
+        const float height           = 24.f * editor_scale_factor();
+        ImVec2 screen_pos            = ImGui::GetCursorScreenPos();
+        static auto render_separator = []() {
+            ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));
+            ImGui::PushStyleColor(ImGuiCol_Separator, color);
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, 3.f);
+            ImGui::PopStyleColor();
+
+            ImGui::SameLine();
+        };
+
+        if (void* handle = Icons::icon(Icons::More)->handle())
+        {
+            if (ImGui::ImageButton(handle, {height, height}, {0, 1}, {1, 0}))
+            {
+                m_state.viewport.show_additional_menu = true;
+                ImGui::OpenPopup("##addition_menu");
+                ImGui::SetNextWindowPos(screen_pos + ImVec2(0, height + ImGui::GetStyle().ItemSpacing.y * 2.f),
+                                        ImGuiCond_Appearing);
+            }
+
+            ImGui::SameLine();
+        }
 
         static const Pair<ImGuizmo::OPERATION, Icons::IconType> controls[] = {
                 {ImGuizmo::OPERATION::UNIVERSAL, Icons::IconType::Select},
@@ -423,15 +450,6 @@ namespace Engine
             }
         }
 
-        static auto render_separator = []() {
-            ImU32 color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_SeparatorActive));
-            ImGui::PushStyleColor(ImGuiCol_Separator, color);
-            ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical, 3.f);
-            ImGui::PopStyleColor();
-
-            ImGui::SameLine();
-        };
-
         auto add_icon = Icons::icon(Icons::IconType::Add)->handle();
 
         if (add_icon)
@@ -458,11 +476,37 @@ namespace Engine
             ImGui::PopItemWidth();
             ImGui::EndGroup();
 
-            if(changed)
+            if (changed)
             {
                 camera->location(location);
                 camera->rotation(rotation);
                 camera->on_transform_changed();
+            }
+        }
+
+
+        if (m_state.viewport.show_additional_menu)
+        {
+            if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
+            {
+                {
+                    static Enum* self = Enum::find("Engine::ViewMode", true);
+
+                    if (ImGui::BeginCombo("editor/View Mode"_localized, m_state.viewport.view_mode_entry->name.c_str()))
+                    {
+                        for (auto& entry : self->entries())
+                        {
+                            if (ImGui::Selectable(entry.name.c_str(), &entry == m_state.viewport.view_mode_entry))
+                            {
+                                m_state.viewport.view_mode_entry = &entry;
+                                m_renderer.view_mode(static_cast<ViewMode>(entry.value));
+                            }
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+
+                ImGui::EndPopup();
             }
         }
 

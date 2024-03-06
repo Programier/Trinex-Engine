@@ -15,7 +15,8 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/RotateIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/ScaleIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/SelectIcon.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/PointLightSprite.tasset)
+                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/PointLightSprite.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/MoreIcon.tasset)
     add_custom_command(
         OUTPUT DefaultResources/editor.hpp
         COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/DefaultResources/editor.hpp" ${EDITOR_INTERNAL_ASSETS}

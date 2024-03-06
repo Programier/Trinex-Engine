@@ -21,6 +21,7 @@ namespace Engine
             Move,
             Rotate,
             Scale,
+            More,
             __COUNT__
         };
 

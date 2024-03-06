@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/enum.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
@@ -9,6 +10,16 @@
 
 namespace Engine
 {
+    struct EditorState {
+        struct {
+            const Enum::Entry* view_mode_entry = nullptr;
+            bool show_additional_menu          = false;
+        } viewport;
+
+
+        EditorState();
+    };
+
     class EditorClient : public ViewportClient
     {
 
@@ -38,6 +49,8 @@ namespace Engine
         Vector3D m_camera_move    = {0, 0, 0};
         Index m_target_view_index = 0;
         int_t m_guizmo_operation  = 0;
+
+        EditorState m_state;
 
     public:
         EditorClient();

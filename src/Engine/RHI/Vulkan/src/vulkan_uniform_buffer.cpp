@@ -54,7 +54,14 @@ namespace Engine
 
     void GlobalUniformBufferPool::pop()
     {
-        --index;
+        if (index > -1)
+        {
+            --index;
+        }
+        else
+        {
+            error_log("VulkanAPI", "Cannot pop global variables, because stack is already empty!");
+        }
     }
 
     void GlobalUniformBufferPool::bind()

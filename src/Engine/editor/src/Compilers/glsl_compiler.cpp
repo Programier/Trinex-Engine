@@ -2146,11 +2146,11 @@ namespace Engine
                 if (pin->linked_to)
                 {
                     String source = get_pin_source(pin, MaterialNodeDataType::Vec3);
-                    statements.push_back(Strings::format("out_normal = vec4({}, 1.0);", source));
+                    statements.push_back(Strings::format("out_normal = vec4({}, float(gl_FrontFacing ? 1.0 : -1.0));", source));
                 }
                 else
                 {
-                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, 1.0);"));
+                    statements.push_back(Strings::format("out_normal = vec4(vertex_world_normal, float(gl_FrontFacing ? 1.0 : -1.0));"));
                 }
             }
             return 0;

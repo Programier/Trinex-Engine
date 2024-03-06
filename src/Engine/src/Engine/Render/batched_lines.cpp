@@ -57,7 +57,7 @@ namespace Engine
             m_color_buffer->rhi_create();
             m_allocated_size = m_position_buffer->buffer.size();
         }
-        else
+        else if(m_position_buffer->buffer.size() > 0)
         {
             m_position_buffer->rhi_update(0, m_allocated_size * sizeof(PositionVertexBuffer::ElementType),
                                           reinterpret_cast<const byte*>(m_position_buffer->data()));
@@ -65,7 +65,7 @@ namespace Engine
                                        reinterpret_cast<const byte*>(m_color_buffer->data()));
         }
 
-        if (m_allocated_size == 0)
+        if (m_position_buffer->buffer.size() == 0)
             return *this;
 
         auto pass          = RenderTargetBase::current_target()->render_pass->type();

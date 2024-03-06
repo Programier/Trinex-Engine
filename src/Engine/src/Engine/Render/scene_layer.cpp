@@ -7,7 +7,6 @@ namespace Engine
 {
     const Name SceneLayer::name_clear_render_targets    = "Clear Render Targets";
     const Name SceneLayer::name_base_pass               = "Base Pass";
-    const Name SceneLayer::name_gbuffer_to_scene_output = "GBuffer to SceneOutput Pass";
     const Name SceneLayer::name_deferred_light_pass     = "Deferred Lighting Pass";
     const Name SceneLayer::name_light_pass              = "Light Pass";
     const Name SceneLayer::name_scene_output_pass       = "Scene Output Pass";

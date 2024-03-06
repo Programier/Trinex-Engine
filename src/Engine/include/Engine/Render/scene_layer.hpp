@@ -16,7 +16,6 @@ namespace Engine
     public:
         static ENGINE_EXPORT const Name name_clear_render_targets;
         static ENGINE_EXPORT const Name name_base_pass;
-        static ENGINE_EXPORT const Name name_gbuffer_to_scene_output;
         static ENGINE_EXPORT const Name name_deferred_light_pass;
         static ENGINE_EXPORT const Name name_light_pass;
         static ENGINE_EXPORT const Name name_scene_output_pass;

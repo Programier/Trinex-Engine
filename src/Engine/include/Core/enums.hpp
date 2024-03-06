@@ -347,4 +347,10 @@ namespace Engine
         StaticMeshRendering = 1 << 3,
         LightingRendering   = (2 << 3) | SceneOutputRendering,
     };
+
+    enum class ViewMode : EnumerateType
+    {
+        Lit   = 0,
+        Unlit = 1
+    };
 }// namespace Engine

@@ -1,5 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/render_thread.hpp>
+#include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -10,11 +11,13 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
-#include <Engine/ActorComponents/light_component.hpp>
 
 
 namespace Engine
 {
+    SceneRenderer::SceneRenderer() : m_scene(nullptr), m_ambient_light({0.1, 0.1, 0.1})
+    {}
+
     void SceneRenderer::clear_render_targets(RenderTargetBase*, SceneLayer*)
     {
         GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearGBuffer));
@@ -26,10 +29,8 @@ namespace Engine
         begin_rendering_target(GBuffer::instance());
     }
 
-    void SceneRenderer::begin_gbuffer_to_scene_output(RenderTargetBase*, SceneLayer*)
+    void SceneRenderer::copy_gbuffer_to_scene_output()
     {
-        begin_rendering_target(SceneColorOutput::instance());
-
         static Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
         static PositionVertexBuffer* positions =
                 Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
@@ -42,18 +43,28 @@ namespace Engine
         }
     }
 
+
     void SceneRenderer::begin_deferred_lighting_pass(RenderTargetBase* rt, SceneLayer* layer)
     {
         begin_rendering_target(SceneColorOutput::instance());
 
-        for(LightComponent* component : layer->light_components())
+        if (m_view_mode == ViewMode::Unlit)
         {
-            component->render(this, rt, layer);
+            copy_gbuffer_to_scene_output();
+        }
+        else if (m_view_mode == ViewMode::Lit)
+        {
+            for (LightComponent* component : layer->light_components())
+            {
+                component->render(this, rt, layer);
+            }
         }
     }
 
     void SceneRenderer::begin_lighting_pass(RenderTargetBase*, SceneLayer*)
-    {}
+    {
+        begin_rendering_target(SceneColorOutput::instance());
+    }
 
     void SceneRenderer::begin_scene_output_pass(RenderTargetBase*, SceneLayer*)
     {
@@ -76,8 +87,31 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer::SceneRenderer() : m_scene(nullptr)
-    {}
+    SceneRenderer& SceneRenderer::view_mode(ViewMode new_mode)
+    {
+        if (is_in_render_thread())
+        {
+            m_view_mode = new_mode;
+        }
+        else
+        {
+            call_in_render_thread([this, new_mode]() { m_view_mode = new_mode; });
+        }
+        return *this;
+    }
+
+    SceneRenderer& SceneRenderer::ambient_light(const Color3& new_color)
+    {
+        if (is_in_render_thread())
+        {
+            m_ambient_light = new_color;
+        }
+        else
+        {
+            call_in_render_thread([this, new_color]() { m_ambient_light = new_color; });
+        }
+        return *this;
+    }
 
     SceneRenderer& SceneRenderer::scene(Scene* scene)
     {

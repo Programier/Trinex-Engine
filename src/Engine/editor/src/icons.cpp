@@ -70,6 +70,7 @@ namespace Engine::Icons
         m_icons[IconType::Move]    = editor->find_object_checked<Texture2D>("MoveIcon");
         m_icons[IconType::Rotate]  = editor->find_object_checked<Texture2D>("RotateIcon");
         m_icons[IconType::Scale]   = editor->find_object_checked<Texture2D>("ScaleIcon");
+        m_icons[IconType::More]    = editor->find_object_checked<Texture2D>("MoreIcon");
 
         for (Texture2D* icon : m_icons)
         {

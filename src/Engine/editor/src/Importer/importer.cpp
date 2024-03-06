@@ -22,7 +22,7 @@ namespace Engine::Importer
     }
 
 
-    static void load_static_meshes(Package* package, const aiScene* scene, const aiMesh* mesh)
+    static void load_static_meshes(Package* package, const aiScene* scene, const aiMesh* mesh, const Transform& transform)
     {
         if (package->contains_object(mesh->mName.C_Str()))
         {
@@ -40,6 +40,10 @@ namespace Engine::Importer
         Vector<Vector3D> bitangents;
         Vector<Vector<Vector2D>> uv;
         Vector<uint_t> indices;
+
+
+        Matrix4f model          = transform.matrix();
+        Matrix3f rotation_model = glm::transpose(glm::inverse(model));
 
 
         {
@@ -62,21 +66,21 @@ namespace Engine::Importer
 
             for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
             {
-                positions[i] = vector_from_assimp_vec(mesh->mVertices[i]);
+                positions[i] = model * Vector4D(vector_from_assimp_vec(mesh->mVertices[i]), 1.f);
 
                 if (mesh->mNormals)
                 {
-                    normals[i] = vector_from_assimp_vec(mesh->mNormals[i]);
+                    normals[i] = glm::normalize(rotation_model * vector_from_assimp_vec(mesh->mNormals[i]));
                 }
 
                 if (mesh->mTangents)
                 {
-                    tangents[i] = vector_from_assimp_vec(mesh->mTangents[i]);
+                    tangents[i] = glm::normalize(rotation_model * vector_from_assimp_vec(mesh->mTangents[i]));
                 }
 
                 if (mesh->mBitangents)
                 {
-                    bitangents[i] = vector_from_assimp_vec(mesh->mBitangents[i]);
+                    bitangents[i] = glm::normalize(rotation_model * vector_from_assimp_vec(mesh->mBitangents[i]));
                 }
             }
 
@@ -177,13 +181,14 @@ namespace Engine::Importer
             lod.indices               = index_buffer;
         }
 
-        static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax));
+        static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))
+                                      .apply_transform(model);
         static_mesh->name(mesh->mName.C_Str());
         static_mesh->init_resources();
         package->add_object(static_mesh);
     }
 
-    void import_resource(Package* package, const Path& file)
+    void import_resource(Package* package, const Path& file, const Transform& transform)
     {
         info_log("Importer", "Loading resources from file '%s'", file.c_str());
 
@@ -205,7 +210,7 @@ namespace Engine::Importer
 
             if (mesh->mNumBones == 0)
             {
-                load_static_meshes(package, scene, mesh);
+                load_static_meshes(package, scene, mesh, transform);
             }
         }
 

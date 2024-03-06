@@ -20,6 +20,7 @@ namespace Engine
         load_object_from_memory(RotateIcon_data, RotateIcon_len, "RotateIcon", editor);
         load_object_from_memory(ScaleIcon_data, ScaleIcon_len, "ScaleIcon", editor);
         load_object_from_memory(SelectIcon_data, SelectIcon_len, "SelectIcon", editor);
+        load_object_from_memory(MoreIcon_data, MoreIcon_len, "MoreIcon", editor);
         load_object_from_memory(PointLightSprite_data, PointLightSprite_len, "PointLightSprite", editor);
 
         load_object_from_memory(DefaultSampler_data, DefaultSampler_len, "DefaultSampler", editor);

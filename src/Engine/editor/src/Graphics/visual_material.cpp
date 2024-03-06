@@ -985,8 +985,6 @@ namespace Engine
                 }
             }
         }
-
-
         return ar;
     }
 

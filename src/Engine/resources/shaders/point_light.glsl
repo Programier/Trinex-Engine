@@ -54,18 +54,20 @@ void get_point_light(in vec4 base_color, in vec4 position, in vec4 normal, in ve
         float attenuation = calc_attenuation(light_radius, light_distance);
         vec3 radiance     = light_color.rgb * light_intensivity * attenuation;
 
-        float ggx      = distribution_ggx(normal.xyz, view_light_direction, msra.b);
-        float geometry = geometry_smith(normal.xyz, view_light_direction, light_direction, msra.b);
+        vec3 surface_normal = normalize(normal.xyz) * normal.w;
+
+        float ggx      = distribution_ggx(surface_normal, view_light_direction, msra.b);
+        float geometry = geometry_smith(surface_normal, view_light_direction, light_direction, msra.b);
         vec3 fresnel   = fresnel_schlick(max(dot(view_light_direction, view_direction), 0.0), f0);
         vec3 specular =
                 (ggx * geometry * fresnel) /
-                (4.0 * max(dot(normal.xyz, view_direction), 0.0) * max(dot(normal.xyz, light_direction), 0.0) + 0.0001);
+                (4.0 * max(dot(surface_normal, view_direction), 0.0) * max(dot(surface_normal, light_direction), 0.0) + 0.0001);
 
         vec3 k_s = fresnel;
         vec3 k_d = vec3(1.0, 1.0, 1.0) - k_s;
         k_d *= 1.0 - msra.r;
 
-        float normal_dot_l = max(dot(normal.xyz, light_direction), 0.0);
+        float normal_dot_l = max(dot(surface_normal, light_direction), 0.0);
         vec3 reflectance = (k_d * base_color.xyz / M_PI + specular) * radiance * normal_dot_l;
 
         light_out_color = reflectance;
