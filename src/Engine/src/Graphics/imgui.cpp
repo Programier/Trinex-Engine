@@ -76,96 +76,6 @@ namespace Engine::ImGuiRenderer
         release(true);
     }
 
-
-    ImGuiTexture::ImGuiTexture() : m_handle(nullptr)
-    {}
-
-    struct ImGuiTextureInitTask : public ExecutableObject {
-        ImGuiContext* m_ctx           = nullptr;
-        ImGuiTexture* m_imgui_texture = nullptr;
-        Texture* m_texture            = nullptr;
-
-        ImGuiTextureInitTask(ImGuiContext* ctx, ImGuiTexture* imgui_texture, Texture* texture)
-            : m_ctx(ctx), m_imgui_texture(imgui_texture), m_texture(texture)
-        {}
-
-        int_t execute() override
-        {
-            m_imgui_texture->init(m_ctx, m_texture);
-            return sizeof(ImGuiTextureInitTask);
-        }
-    };
-
-    ImGuiTexture& ImGuiTexture::init(ImGuiContext* ctx, Texture* texture)
-    {
-        release();
-        m_texture = texture;
-
-        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
-        if (Thread::this_thread() == render_thread)
-        {
-            m_handle = engine_instance->rhi()->imgui_create_texture(ctx, texture);
-        }
-        else
-        {
-            render_thread->insert_new_task<ImGuiTextureInitTask>(ctx, this, texture);
-            render_thread->wait_all();
-        }
-        return *this;
-    }
-
-    Texture* ImGuiTexture::texture() const
-    {
-        return m_texture;
-    }
-
-    void* ImGuiTexture::handle() const
-    {
-        if (!m_handle)
-            return nullptr;
-        return m_handle->handle();
-    }
-
-    class ForceDestroyImGuiTexture : public ExecutableObject
-    {
-        RHI_ImGuiTexture* m_texture;
-
-    public:
-        ForceDestroyImGuiTexture(RHI_ImGuiTexture* texture) : m_texture(texture)
-        {}
-
-        int_t execute() override
-        {
-            m_texture->destroy_now();
-            return sizeof(ForceDestroyImGuiTexture);
-        }
-    };
-
-    void ImGuiTexture::release_internal(bool force)
-    {
-        if (m_handle)
-        {
-            if (force)
-            {
-                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<ForceDestroyImGuiTexture>(m_handle);
-            }
-            RenderResource::release_render_resouce(m_handle);
-        }
-        m_handle  = nullptr;
-        m_texture = nullptr;
-    }
-
-    ImGuiTexture& ImGuiTexture::release()
-    {
-        release_internal(false);
-        return *this;
-    }
-
-    ImGuiTexture::~ImGuiTexture()
-    {
-        release_internal(true);
-    }
-
     ImGuiAdditionalWindow::ImGuiAdditionalWindow()
     {}
 
@@ -284,23 +194,6 @@ namespace Engine::ImGuiRenderer
     Window& Window::free_resources()
     {
         on_destroy();
-
-        while (!m_textures.empty())
-        {
-            release_texture_internal(*m_textures.begin(), true);
-        }
-
-        return *this;
-    }
-
-    Window& Window::release_texture_internal(ImGuiTexture* texture, bool force)
-    {
-        if (m_textures.contains(texture))
-        {
-            m_textures.erase(texture);
-            delete texture;
-        }
-
         return *this;
     }
 
@@ -373,31 +266,6 @@ namespace Engine::ImGuiRenderer
     Engine::Window* Window::window() const
     {
         return m_window;
-    }
-
-    ImGuiTexture* Window::create_texture()
-    {
-        ImGuiTexture* texture = new ImGuiTexture();
-        m_textures.insert(texture);
-        return texture;
-    }
-
-    ImGuiTexture* Window::create_texture(Texture* texture)
-    {
-        for (ImGuiTexture* imgui_texture : m_textures)
-        {
-            if (imgui_texture->texture() == texture)
-                return imgui_texture;
-        }
-
-        ImGuiTexture* new_texture = create_texture();
-        new_texture->init(m_context, texture);
-        return new_texture;
-    }
-
-    Window& Window::release_texture(ImGuiTexture* texture)
-    {
-        return release_texture_internal(texture, false);
     }
 
     Window* Window::current()

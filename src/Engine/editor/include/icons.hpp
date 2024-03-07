@@ -25,10 +25,10 @@ namespace Engine
             __COUNT__
         };
 
-        ImGuiRenderer::ImGuiTexture* icon(IconType type);
+        Texture2D* icon(IconType type);
         Sampler* default_sampler();
         Texture2D* default_texture();
 
-        ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object);
+        Texture2D* find_imgui_icon(class Object* object);
     }// namespace Icons
 }// namespace Engine

@@ -306,6 +306,7 @@ namespace Engine
         interface->initialize_imgui();
 
         render_thread->insert_new_task<InitContext>(rhi, context);
+        engine_instance->thread(ThreadType::RenderThread)->wait_all();
         return context;
     }
 
@@ -329,7 +330,6 @@ namespace Engine
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
             m_imgui_window               = new ImGuiRenderer::Window(this, imgui_create_context(m_interface, callback));
-            engine_instance->thread(ThreadType::RenderThread)->wait_all();
             ImGui::SetCurrentContext(current_context);
         }
 

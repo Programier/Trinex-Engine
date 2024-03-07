@@ -106,7 +106,9 @@
 //  ES 3.0    300       "#version 300 es"   = WebGL 2.0
 //----------------------------------------
 
-#include <opengl_imgui_texture.hpp>
+#include <Core/etl/engine_resource.hpp>
+#include <Graphics/texture_2D.hpp>
+#include <Core/package.hpp>
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
@@ -222,7 +224,7 @@ struct ImGui_ImplOpenGL3_Data
     bool            GlProfileIsES3;
     bool            GlProfileIsCompat;
     GLint           GlProfileMask;
-    Engine::OpenGL_ImGuiTextureInterface*          FontTexture;
+    ImTextureID     FontTexture;
     GLuint          ShaderHandle;
     GLint           AttribLocationTex;       // Uniforms location
     GLint           AttribLocationProjMtx;
@@ -545,6 +547,8 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
     ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 
+    ImTextureID next_texture = nullptr;
+
     // Render command lists
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
@@ -592,6 +596,9 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                     ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object);
                 else
                     pcmd->UserCallback(cmd_list, pcmd);
+            }else if(pcmd->UpdateImageCallback)
+            {
+                next_texture = pcmd->UpdateImageCallback(pcmd->UserCallbackData);
             }
             else
             {
@@ -605,10 +612,14 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 GL_CALL(glScissor((int)clip_min.x, (int)((float)fb_height - clip_max.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y)));
 
                 // Bind texture, Draw
-                Engine::OpenGL_ImGuiTextureInterface* texture_interface =
-                        reinterpret_cast<Engine::OpenGL_ImGuiTextureInterface*>(pcmd->GetTexID());
+                extern GLuint get_opengl_texture_2d_id(Engine::Texture2D* texture);
 
-                GL_CALL(glBindTexture(GL_TEXTURE_2D, texture_interface->texture_id()));
+                if(!next_texture)
+                {
+                    next_texture = pcmd->TextureId;
+                }
+
+                GL_CALL(glBindTexture(GL_TEXTURE_2D, get_opengl_texture_2d_id(next_texture)));
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
                 if (bd->GlVersion >= 330 || bd->GlProfileIsES3)
                 {
@@ -622,6 +633,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 else
 #endif
                 GL_CALL(glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
+                next_texture = nullptr;
             }
         }
     }
@@ -689,23 +701,21 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bit (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
 
-    // Upload texture to graphics system
-    // (Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling)
     GLint last_texture;
-    GLuint current_texture = 0;
     GL_CALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GL_CALL(glGenTextures(1, &current_texture));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, current_texture));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-#ifdef GL_UNPACK_ROW_LENGTH // Not on WebGL/ES
-    GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-#endif
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
-    bd->FontTexture = new Engine::OpenGL_ImGuiTextureBasic(current_texture);
+    // We can do it, because logic thread waiting now
+    bd->FontTexture = Engine::Object::new_instance_named<Engine::Texture2D>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+
+    bd->FontTexture->flags(Engine::Object::IsAvailableForGC, false);
+    bd->FontTexture->size = {static_cast<float>(width), static_cast<float>(height)};
+    bd->FontTexture->rhi_create(pixels, width * height * 4);
+    auto package = Engine::Package::find_package("Engine::ImGui", true);
+    package->add_object(bd->FontTexture);
+
+
     // Store our identifier
-    io.Fonts->SetTexID((ImTextureID)bd->FontTexture);
+    io.Fonts->SetTexID(bd->FontTexture);
 
     // Restore state
     GL_CALL(glBindTexture(GL_TEXTURE_2D, last_texture));
@@ -717,10 +727,9 @@ void ImGui_ImplOpenGL3_DestroyFontsTexture()
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
+
     if (bd->FontTexture)
     {
-        GLuint id = bd->FontTexture->texture_id();
-        glDeleteTextures(1, &id);
         delete bd->FontTexture;
         io.Fonts->SetTexID(0);
         bd->FontTexture = 0;

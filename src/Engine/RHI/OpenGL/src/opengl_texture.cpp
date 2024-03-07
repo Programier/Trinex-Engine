@@ -1,5 +1,5 @@
 #include <Graphics/sampler.hpp>
-#include <Graphics/texture.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <imgui.h>
 #include <opengl_api.hpp>
 #include <opengl_sampler.hpp>
@@ -132,23 +132,18 @@ namespace Engine
         opengl_texture->init(texture, data, size);
         return opengl_texture;
     }
-
-
-    struct OpenGL_ImGuiTexture : RHI_ImGuiTexture {
-        void* m_handle = nullptr;
-
-
-        OpenGL_ImGuiTexture(Texture* texture, Sampler* sampler)
-        {
-            uint64_t handle_value = static_cast<uint64_t>(sampler->rhi_object<OpenGL_Sampler>()->m_id) << 32 |
-                                    static_cast<uint64_t>(texture->rhi_object<OpenGL_Texture>()->m_id);
-            m_handle = reinterpret_cast<void*>(handle_value);
-        }
-
-
-        void* handle() override
-        {
-            return m_handle;
-        }
-    };
 }// namespace Engine
+
+
+GLuint get_opengl_texture_2d_id(Engine::Texture2D* texture)
+{
+    if(texture == nullptr)
+        return 0;
+
+    if(Engine::OpenGL_Texture* opengl_texture = texture->rhi_object<Engine::OpenGL_Texture>())
+    {
+        return opengl_texture->m_id;
+    }
+
+    return 0;
+}

@@ -53,25 +53,6 @@ namespace Engine::ImGuiRenderer
         ~DrawData();
     };
 
-    class ENGINE_EXPORT ImGuiTexture final
-    {
-    private:
-        RHI_ImGuiTexture* m_handle = nullptr;
-        Texture* m_texture         = nullptr;
-
-        ImGuiTexture();
-        void release_internal(bool force);
-        ~ImGuiTexture();
-
-    public:
-        delete_copy_constructors(ImGuiTexture);
-        ImGuiTexture& release();
-        void* handle() const;
-        ImGuiTexture& init(ImGuiContext* ctx, Texture* texture);
-        Texture* texture() const;
-        friend class Window;
-    };
-
 
     class ENGINE_EXPORT ImGuiAdditionalWindowList;
 
@@ -145,14 +126,12 @@ namespace Engine::ImGuiRenderer
     {
     private:
         DrawData m_draw_data;
-        Set<ImGuiTexture*> m_textures;
 
         ImGuiContext* m_context;
         Engine::Window* m_window;
 
         Window(Engine::Window* window, ImGuiContext* context);
         Window& free_resources();
-        Window& release_texture_internal(ImGuiTexture* texture, bool force);
         ~Window();
 
     public:
@@ -168,10 +147,6 @@ namespace Engine::ImGuiRenderer
         Window& end_frame();
         Window& render();
         Engine::Window* window() const;
-
-        ImGuiTexture* create_texture();
-        ImGuiTexture* create_texture(Texture* texture);
-        Window& release_texture(ImGuiTexture*);
         static Window* current();
         static void make_current(Window*);
 

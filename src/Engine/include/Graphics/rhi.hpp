@@ -46,11 +46,6 @@ namespace Engine
     struct RHI_Sampler : RHI_BindingObject {
     };
 
-    struct RHI_ImGuiTexture : RHI_Object {
-        virtual void* handle()     = 0;
-        virtual void destroy_now() = 0;
-    };
-
     struct RHI_Texture : RHI_BindingObject {
         virtual void generate_mipmap()                                          = 0;
         virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
@@ -108,8 +103,6 @@ namespace Engine
         virtual RHI& imgui_terminate(ImGuiContext*)                                         = 0;
         virtual RHI& imgui_new_frame(ImGuiContext*)                                         = 0;
         virtual RHI& imgui_render(ImGuiContext*, ImDrawData*)                               = 0;
-        virtual RHI_ImGuiTexture* imgui_create_texture(ImGuiContext* ctx, Texture* texture) = 0;
-
 
         virtual RHI& destroy_object(RHI_Object* object) = 0;
 

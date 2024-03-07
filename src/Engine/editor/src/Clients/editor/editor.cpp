@@ -409,9 +409,9 @@ namespace Engine
             ImGui::SameLine();
         };
 
-        if (void* handle = Icons::icon(Icons::More)->handle())
+        if (Texture2D* icon = Icons::icon(Icons::More))
         {
-            if (ImGui::ImageButton(handle, {height, height}, {0, 1}, {1, 0}))
+            if (ImGui::ImageButton(icon, {height, height}, {0, 1}, {1, 0}))
             {
                 m_state.viewport.show_additional_menu = true;
                 ImGui::OpenPopup("##addition_menu");
@@ -431,28 +431,25 @@ namespace Engine
 
         for (auto& control : controls)
         {
-            if (ImGuiRenderer::ImGuiTexture* imgui_texture = Icons::icon(control.second))
+            if (Texture2D* imgui_texture = Icons::icon(control.second))
             {
-                if (void* handle = imgui_texture->handle())
+                ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
+
+                if (ImGui::ImageButton(imgui_texture, {height, height}, {0, 1}, {1, 0}, -1, color))
                 {
-                    ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
-
-                    if (ImGui::ImageButton(handle, {height, height}, {0, 1}, {1, 0}, -1, color))
-                    {
-                        m_guizmo_operation = control.first;
-                    }
-
-                    if (ImGui::IsItemHovered())
-                    {
-                        m_viewport_is_hovered = false;
-                    }
-
-                    ImGui::SameLine();
+                    m_guizmo_operation = control.first;
                 }
+
+                if (ImGui::IsItemHovered())
+                {
+                    m_viewport_is_hovered = false;
+                }
+
+                ImGui::SameLine();
             }
         }
 
-        auto add_icon = Icons::icon(Icons::IconType::Add)->handle();
+        auto add_icon = Icons::icon(Icons::IconType::Add);
 
         if (add_icon)
         {
@@ -515,6 +512,51 @@ namespace Engine
         return *this;
     }
 
+
+    static FORCE_INLINE Texture2D* find_output_texture_by_index(Index index)
+    {
+
+        if (index > 0)
+        {
+            auto* frame = GBuffer::instance()->current_frame();
+
+            if (frame)
+            {
+                switch (index)
+                {
+                    case 1:
+                        return frame->base_color();
+                    case 2:
+                        return frame->position();
+
+                    case 3:
+                        return frame->normal();
+
+                    case 4:
+                        return frame->emissive();
+
+                    case 5:
+                        return frame->msra_buffer();
+
+                    case 6:
+                        return frame->depth();
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+        auto* frame = SceneColorOutput::instance()->current_frame();
+
+        if (frame)
+        {
+            return frame->texture();
+        }
+
+        throw EngineException("Failed to find output texture!");
+    }
+
     EditorClient& EditorClient::render_viewport_window(float dt)
     {
         if (!ImGui::Begin(Object::localize("editor/Viewport Title").c_str(), nullptr))
@@ -530,67 +572,27 @@ namespace Engine
             raycast_objects(ImGuiHelpers::construct_vec2<Vector2D>(relative_mouse_pos));
         }
 
-        Texture* texture = nullptr;
-        if (m_target_view_index == 0)
         {
-            auto* frame = SceneColorOutput::instance()->current_frame();
-            if (frame)
-            {
-                texture = frame->texture();
-            }
-        }
-        else
-        {
-            auto* frame = GBuffer::instance()->current_frame();
+            auto current_pos     = ImGui::GetCursorPos();
+            auto size            = ImGui::GetContentRegionAvail();
+            m_viewport_size      = ImGuiHelpers::construct_vec2<Vector2D>(size);
+            camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
 
-            if (frame)
-            {
-                switch (m_target_view_index)
-                {
-                    case 1:
-                        texture = frame->base_color();
-                        break;
-                    case 2:
-                        texture = frame->position();
-                        break;
-                    case 3:
-                        texture = frame->normal();
-                        break;
-                    case 4:
-                        texture = frame->emissive();
-                        break;
-                    case 5:
-                        texture = frame->msra_buffer();
-                        break;
-                    case 6:
-                        texture = frame->depth();
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+            static auto update_callback = [](void* data) -> ImTextureID {
+                return find_output_texture_by_index(reinterpret_cast<Index>(data));
+            };
 
-        if (texture && texture->has_object())
-        {
-            {
-                auto current_pos     = ImGui::GetCursorPos();
-                void* output         = ImGuiRenderer::Window::current()->create_texture(texture)->handle();
-                auto size            = ImGui::GetContentRegionAvail();
-                m_viewport_size      = ImGuiHelpers::construct_vec2<Vector2D>(size);
-                camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
+            ImGui::GetWindowDrawList()->AddNextImageUpdateCallback(update_callback, reinterpret_cast<void*>(m_target_view_index));
+            ImGui::Image(SceneColorOutput::instance()->frame(0)->texture(), size);
+            m_viewport_is_hovered = ImGui::IsWindowHovered();
 
-                ImGui::Image(output, size);
-                m_viewport_is_hovered = ImGui::IsWindowHovered();
+            ImGui::SetCursorPos(current_pos);
+            render_guizmo(dt);
 
-                ImGui::SetCursorPos(current_pos);
-                render_guizmo(dt);
+            update_drag_and_drop();
 
-                update_drag_and_drop();
-
-                ImGui::SetCursorPos(current_pos);
-                render_viewport_menu();
-            }
+            ImGui::SetCursorPos(current_pos);
+            render_viewport_menu();
         }
 
         ImGui::End();

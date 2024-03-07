@@ -66,7 +66,8 @@ namespace Engine
     }
 }// namespace Engine
 
-GLuint trinex_engine_default_sampler()
+GLuint trinex_engine_default_opengl_sampler()
 {
-    return Engine::DefaultResources::default_sampler->rhi_object<Engine::OpenGL_Sampler>()->m_id;
+    GLuint sampler = Engine::DefaultResources::default_sampler->rhi_object<Engine::OpenGL_Sampler>()->m_id;
+    return sampler;
 }

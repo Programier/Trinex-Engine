@@ -864,8 +864,7 @@ namespace Engine::MaterialNodes
         ImGuiRenderer::InputText("editor/Name"_localized, texture_name);
         if (texture && texture->has_object())
         {
-            ImGuiRenderer::ImGuiTexture* imgui_texture = ImGuiRenderer::Window::current()->create_texture(texture);
-            ImGui::Image(imgui_texture->handle(), {100, 100});
+            ImGui::Image(texture, {100, 100});
         }
     }
 
@@ -1156,7 +1155,7 @@ namespace Engine::MaterialNodes
             ImGui::Indent(5.f);
 
             ImGui::PushID("##inputs");
-            if (ImGui::ImageButton(Icons::icon(Icons::Add)->handle(), {button_size, button_size}))
+            if (ImGui::ImageButton(Icons::icon(Icons::Add), {button_size, button_size}))
             {
                 custom_code->inputs.push_back(new MaterialInputPin(custom_code, ""));
                 custom_code->input_types.emplace_back();
@@ -1166,7 +1165,7 @@ namespace Engine::MaterialNodes
             {
                 ImGui::SameLine();
 
-                if (ImGui::ImageButton(Icons::icon(Icons::Remove)->handle(), {button_size, button_size}))
+                if (ImGui::ImageButton(Icons::icon(Icons::Remove), {button_size, button_size}))
                 {
                     delete custom_code->inputs.back();
                     custom_code->inputs.pop_back();
@@ -1193,7 +1192,7 @@ namespace Engine::MaterialNodes
         {
             ImGui::Indent(5.f);
             ImGui::PushID("##outputs");
-            if (ImGui::ImageButton(Icons::icon(Icons::Add)->handle(), {button_size, button_size}))
+            if (ImGui::ImageButton(Icons::icon(Icons::Add), {button_size, button_size}))
             {
                 custom_code->outputs.push_back(new MaterialOutputPin(custom_code, ""));
                 custom_code->output_types.emplace_back();
@@ -1203,7 +1202,7 @@ namespace Engine::MaterialNodes
             {
                 ImGui::SameLine();
 
-                if (ImGui::ImageButton(Icons::icon(Icons::Remove)->handle(), {button_size, button_size}))
+                if (ImGui::ImageButton(Icons::icon(Icons::Remove), {button_size, button_size}))
                 {
                     delete custom_code->outputs.back();
                     custom_code->outputs.pop_back();

@@ -1,5 +1,5 @@
 #include <Graphics/sampler.hpp>
-#include <Graphics/texture.hpp>
+#include <Graphics/texture_2D.hpp>
 #include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_pipeline.hpp>
@@ -139,7 +139,8 @@ namespace Engine
                            vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
     }
 
-    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data, size_t data_size)
+    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
+                                          size_t data_size)
     {
         update_texture(size, offset, mipmap, 0, data, data_size);
     }
@@ -349,3 +350,8 @@ namespace Engine
         return out_features;
     }
 }// namespace Engine
+
+VkImageView trinex_vulkan_image_view(Engine::Texture2D* texture)
+{
+    return texture->rhi_object<Engine::VulkanTexture>()->m_image_view;
+}

@@ -138,7 +138,6 @@ namespace Engine
         VulkanAPI& imgui_terminate(ImGuiContext*) override;
         VulkanAPI& imgui_new_frame(ImGuiContext*) override;
         VulkanAPI& imgui_render(ImGuiContext*, ImDrawData* draw_data) override;
-        RHI_ImGuiTexture* imgui_create_texture(ImGuiContext*, Texture* texture) override;
 
         vk::PresentModeKHR present_mode_of(bool vsync);
         bool vsync_from_present_mode(vk::PresentModeKHR);

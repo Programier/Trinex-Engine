@@ -11,7 +11,6 @@ namespace Engine
         NoApi& imgui_terminate(ImGuiContext*) override;
         NoApi& imgui_new_frame(ImGuiContext*) override;
         NoApi& imgui_render(ImGuiContext*, ImDrawData*) override;
-        RHI_ImGuiTexture* imgui_create_texture(ImGuiContext*, Texture* texture) override;
 
         NoApi& destroy_object(RHI_Object*) override;
 

@@ -22,34 +22,20 @@ namespace Engine::Icons
         return m_icons[IconType::Default];
     }
 
-    ImGuiRenderer::ImGuiTexture* icon(IconType type)
+    Texture2D* icon(IconType type)
     {
-        Texture2D* texture = m_icons[type];
-        if (texture && texture->has_object())
-            return ImGuiRenderer::Window::current()->create_texture(texture);
-        return nullptr;
+        return m_icons[type];
     }
 
-    ImGuiRenderer::ImGuiTexture* find_imgui_icon(class Object* object)
+    Texture2D* find_imgui_icon(class Object* object)
     {
-        ImGuiRenderer::Window* window = ImGuiRenderer::Window::current();
-        if (!window)
-            return nullptr;
-
         if (object)
         {
-            {
-                Texture2D* texture = object->instance_cast<Texture2D>();
-                if (texture && texture->has_object())
-                    return window->create_texture(texture);
-            }
+            if (Texture2D* texture = object->instance_cast<Texture2D>())
+                return texture;
         }
 
-        Texture2D* texture = default_texture();
-        if (texture && texture->has_object())
-            return window->create_texture(texture);
-
-        return nullptr;
+        return default_texture();
     }
 
 

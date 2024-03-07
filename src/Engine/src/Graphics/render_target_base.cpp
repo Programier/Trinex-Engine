@@ -144,7 +144,7 @@ namespace Engine
 
     byte RenderTargetBase::frame_index() const
     {
-        trinex_always_check(is_in_render_thread(), "Frame index must call only in render thread!");
+        trinex_always_check(is_in_render_thread(), "frame_index should only be called in the rendering thread!");
         return m_frame_index;
     }
 }// namespace Engine

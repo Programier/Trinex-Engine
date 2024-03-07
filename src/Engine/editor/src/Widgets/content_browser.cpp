@@ -106,7 +106,7 @@ namespace Engine
     {
         ImGui::Begin("##ContentBrowserPackages"_localized, nullptr, ImGuiWindowFlags_NoTitleBar);
 
-        auto icon = Icons::icon(Icons::IconType::Add)->handle();
+        auto icon = Icons::icon(Icons::IconType::Add);
 
         if (ImGui::ImageButton(icon, {18, 18}))
         {
@@ -193,9 +193,9 @@ namespace Engine
 
         ImGui::BeginGroup();
 
-        ImGuiRenderer::ImGuiTexture* imgui_texture = Icons::find_imgui_icon(object);
+        Texture2D* imgui_texture = Icons::find_imgui_icon(object);
 
-        if (imgui_texture && imgui_texture->handle())
+        if (imgui_texture)
         {
             ImGui::PushID(name.data());
 
@@ -212,7 +212,7 @@ namespace Engine
 
             ImVec2 item_start = ImGui::GetCursorPos();
 
-            bool is_single_press = ImGui::ImageButton(imgui_texture->handle(), item_size);
+            bool is_single_press = ImGui::ImageButton(imgui_texture, item_size);
             bool is_double_press = false;
 
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
@@ -236,9 +236,9 @@ namespace Engine
             {
                 ImGui::SetDragDropPayload("ContendBrowser->Object", &object, sizeof(Object**));
                 ImVec2 item_start = ImGui::GetCursorPos();
-                ImGui::Image(imgui_texture->handle(), item_size);
+                ImGui::Image(imgui_texture, item_size);
 
-                if (imgui_texture->texture() == Icons::default_texture())
+                if (imgui_texture == Icons::default_texture())
                 {
                     const char* class_name = object->class_instance()->base_name_splitted().c_str();
                     ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);
@@ -263,7 +263,7 @@ namespace Engine
 
             ImVec2 current_pos = ImGui::GetCursorPos();
 
-            if (imgui_texture->texture() == Icons::default_texture())
+            if (imgui_texture == Icons::default_texture())
             {
                 const char* class_name = object->class_instance()->base_name_splitted().c_str();
                 ImVec2 text_size       = ImGui::CalcTextSize(class_name, nullptr, false, item_size.x);

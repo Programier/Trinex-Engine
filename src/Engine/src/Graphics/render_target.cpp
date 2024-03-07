@@ -2,6 +2,7 @@
 #include <Core/engine.hpp>
 #include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
+#include <Core/render_thread.hpp>
 
 namespace Engine
 {
@@ -43,6 +44,7 @@ namespace Engine
 
     RenderTarget::Frame* RenderTarget::current_frame() const
     {
+        trinex_check(is_in_render_thread(), "current_frame should only be called in the rendering thread!");
         return frame(m_frame_index);
     }
 

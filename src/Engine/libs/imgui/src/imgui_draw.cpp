@@ -480,6 +480,22 @@ void ImDrawList::AddCallback(ImDrawCallback callback, void* callback_data)
     AddDrawCmd(); // Force a new command after us (see comment below)
 }
 
+void ImDrawList::AddNextImageUpdateCallback(ImTextureID (*callback)(void*), void* callback_data)
+{
+    IM_ASSERT_PARANOID(CmdBuffer.Size > 0);
+    ImDrawCmd* curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
+    IM_ASSERT(curr_cmd->UserCallback == NULL);
+    if (curr_cmd->ElemCount != 0)
+    {
+        AddDrawCmd();
+        curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
+    }
+    curr_cmd->UpdateImageCallback = callback;
+    curr_cmd->UserCallbackData = callback_data;
+
+    AddDrawCmd(); // Force a new command after us (see comment below)
+}
+
 // Compare ClipRect, TextureId and VtxOffset with a single memcmp()
 #define ImDrawCmd_HeaderSize                            (offsetof(ImDrawCmd, VtxOffset) + sizeof(unsigned int))
 #define ImDrawCmd_HeaderCompare(CMD_LHS, CMD_RHS)       (memcmp(CMD_LHS, CMD_RHS, ImDrawCmd_HeaderSize))    // Compare ClipRect, TextureId, VtxOffset
