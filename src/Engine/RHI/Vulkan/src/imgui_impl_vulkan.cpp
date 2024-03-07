@@ -78,6 +78,7 @@
 //  2016-08-27: Vulkan: Fix Vulkan example for use when a depth buffer is active.
 
 #include <Graphics/texture_2D.hpp>
+#include <Graphics/sampler.hpp>
 #include <Core/package.hpp>
 
 #include "imgui.h"
@@ -143,7 +144,7 @@ struct ImGui_ImplVulkan_Data
     VkShaderModule              ShaderModuleFrag;
 
     // Font data
-    Engine::Texture2D*          FontTexture;
+    ImTextureID                 FontTexture;
 
     // Render buffers for main window
     ImGui_ImplVulkanH_WindowRenderBuffers MainWindowRenderBuffers;
@@ -604,17 +605,16 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                 vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
                 // Bind DescriptorSet with font or user texture
-                extern VkSampler trinex_default_vulkan_sampler();
+                extern VkSampler trinex_default_vulkan_sampler(Engine::Sampler* sampler);
                 extern VkImageView trinex_vulkan_image_view(Engine::Texture2D* texture);
 
-                VkSampler sampler = trinex_default_vulkan_sampler();
-
-                if(!next_texture)
+                if(!next_texture.texture)
                 {
                     next_texture = pcmd->TextureId;
                 }
 
-                VkImageView view = trinex_vulkan_image_view(next_texture);
+                VkSampler sampler = trinex_default_vulkan_sampler(next_texture.sampler);
+                VkImageView view = trinex_vulkan_image_view(next_texture.texture);
 
                 if(rb->UsedDescritorSetsCount == rb->TextureDescriptorSets.size())
                 {
@@ -642,7 +642,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 
                 // Draw
                 vkCmdDrawIndexed(command_buffer, pcmd->ElemCount, 1, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset, 0);
-                next_texture = nullptr;
+                next_texture.texture = nullptr;
             }
         }
         global_idx_offset += cmd_list->IdxBuffer.Size;
@@ -672,11 +672,17 @@ bool ImGui_ImplVulkan_CreateFontsTexture()
     // We can do it, because logic thread waiting now
     bd->FontTexture = Engine::Object::new_instance_named<Engine::Texture2D>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 
-    bd->FontTexture->flags(Engine::Object::IsAvailableForGC, false);
-    bd->FontTexture->size = {static_cast<float>(width), static_cast<float>(height)};
-    bd->FontTexture->rhi_create(pixels, width * height * 4);
+    bd->FontTexture.texture->flags(Engine::Object::IsAvailableForGC, false);
+    bd->FontTexture.texture->size = {static_cast<float>(width), static_cast<float>(height)};
+    bd->FontTexture.texture->rhi_create(pixels, width * height * 4);
     auto package = Engine::Package::find_package("Engine::ImGui", true);
-    package->add_object(bd->FontTexture);
+    package->add_object(bd->FontTexture.texture);
+
+    bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::Sampler>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+    bd->FontTexture.sampler->filter = Engine::SamplerFilter::Trilinear;
+    bd->FontTexture.sampler->rhi_create();
+    bd->FontTexture.sampler->flags(Engine::Object::IsAvailableForGC, false);
+    package->add_object(bd->FontTexture.sampler);
 
     io.Fonts->SetTexID(bd->FontTexture);
     return true;
@@ -690,9 +696,10 @@ void ImGui_ImplVulkan_DestroyFontsTexture()
 
     if (bd->FontTexture)
     {
-        delete bd->FontTexture;
-        bd->FontTexture = nullptr;
-        io.Fonts->SetTexID(0);
+        delete bd->FontTexture.texture;
+        delete bd->FontTexture.sampler;
+        bd->FontTexture = {};
+        io.Fonts->SetTexID({});
     }
 }
 

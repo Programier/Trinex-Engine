@@ -54,6 +54,7 @@ Index of this file:
 namespace Engine
 {
     class Texture2D;
+    class Sampler;
 }
 
 #ifndef IMGUI_EXPORT
@@ -244,7 +245,17 @@ typedef int ImGuiWindowFlags;       // -> enum ImGuiWindowFlags_     // Flags: f
 // - To use something else than an opaque void* pointer: override with e.g. '#define ImTextureID MyTextureType*' in your imconfig.h file.
 // - This can be whatever to you want it to be! read the FAQ about ImTextureID for details.
 #ifndef ImTextureID
-typedef Engine::Texture2D* ImTextureID;          // Default: store a pointer or an integer fitting in a pointer (most renderer backends are ok with that)
+struct ImTextureID
+{
+    Engine::Texture2D* texture;
+    Engine::Sampler* sampler;
+
+    constexpr ImTextureID(Engine::Texture2D* texture = nullptr, Engine::Sampler* sampler = nullptr) : texture(texture), sampler(sampler) {}
+    inline bool operator ==(const ImTextureID& other) const { return other.texture == texture && other.sampler == sampler; }
+    inline bool operator !=(const ImTextureID& other) const { return other.texture != texture || other.sampler != sampler; }
+    inline void* id() const { return texture; }
+    inline operator bool() const { return texture != nullptr; }
+};
 #endif
 
 // ImDrawIdx: vertex index. [Compile-time configurable type]

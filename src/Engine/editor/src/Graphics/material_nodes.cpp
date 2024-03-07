@@ -864,7 +864,7 @@ namespace Engine::MaterialNodes
         ImGuiRenderer::InputText("editor/Name"_localized, texture_name);
         if (texture && texture->has_object())
         {
-            ImGui::Image(texture, {100, 100});
+            ImGui::Image(texture.ptr(), {100, 100});
         }
     }
 

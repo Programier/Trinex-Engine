@@ -1,3 +1,4 @@
+#include <Core/default_resources.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <imgui.h>
@@ -137,13 +138,5 @@ namespace Engine
 
 GLuint get_opengl_texture_2d_id(Engine::Texture2D* texture)
 {
-    if(texture == nullptr)
-        return 0;
-
-    if(Engine::OpenGL_Texture* opengl_texture = texture->rhi_object<Engine::OpenGL_Texture>())
-    {
-        return opengl_texture->m_id;
-    }
-
-    return 0;
+    return (texture ? texture : Engine::DefaultResources::default_texture)->rhi_object<Engine::OpenGL_Texture>()->m_id;
 }

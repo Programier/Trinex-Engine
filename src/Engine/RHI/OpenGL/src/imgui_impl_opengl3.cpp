@@ -108,6 +108,7 @@
 
 #include <Core/etl/engine_resource.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <Graphics/sampler.hpp>
 #include <Core/package.hpp>
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -619,12 +620,12 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                     next_texture = pcmd->TextureId;
                 }
 
-                GL_CALL(glBindTexture(GL_TEXTURE_2D, get_opengl_texture_2d_id(next_texture)));
+                GL_CALL(glBindTexture(GL_TEXTURE_2D, get_opengl_texture_2d_id(next_texture.texture)));
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
                 if (bd->GlVersion >= 330 || bd->GlProfileIsES3)
                 {
-                    extern GLuint trinex_engine_default_opengl_sampler();
-                    GL_CALL(glBindSampler(0, trinex_engine_default_opengl_sampler()));
+                    extern GLuint trinex_engine_default_opengl_sampler(Engine::Sampler* sampler);
+                    GL_CALL(glBindSampler(0, trinex_engine_default_opengl_sampler(next_texture.sampler)));
                 }
 #endif
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
@@ -633,7 +634,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 else
 #endif
                 GL_CALL(glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx))));
-                next_texture = nullptr;
+                next_texture.texture = nullptr;
             }
         }
     }
@@ -704,14 +705,20 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     GLint last_texture;
     GL_CALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
 
-    // We can do it, because logic thread waiting now
-    bd->FontTexture = Engine::Object::new_instance_named<Engine::Texture2D>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+    // We can do it, because logic thread is waiting now
+    bd->FontTexture.texture = Engine::Object::new_instance_named<Engine::Texture2D>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 
-    bd->FontTexture->flags(Engine::Object::IsAvailableForGC, false);
-    bd->FontTexture->size = {static_cast<float>(width), static_cast<float>(height)};
-    bd->FontTexture->rhi_create(pixels, width * height * 4);
+    bd->FontTexture.texture->flags(Engine::Object::IsAvailableForGC, false);
+    bd->FontTexture.texture->size = {static_cast<float>(width), static_cast<float>(height)};
+    bd->FontTexture.texture->rhi_create(pixels, width * height * 4);
     auto package = Engine::Package::find_package("Engine::ImGui", true);
-    package->add_object(bd->FontTexture);
+    package->add_object(bd->FontTexture.texture);
+
+    bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::Sampler>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+    bd->FontTexture.sampler->filter = Engine::SamplerFilter::Trilinear;
+    bd->FontTexture.sampler->rhi_create();
+    bd->FontTexture.sampler->flags(Engine::Object::IsAvailableForGC, false);
+    package->add_object(bd->FontTexture.sampler);
 
 
     // Store our identifier
@@ -730,9 +737,10 @@ void ImGui_ImplOpenGL3_DestroyFontsTexture()
 
     if (bd->FontTexture)
     {
-        delete bd->FontTexture;
-        io.Fonts->SetTexID(0);
-        bd->FontTexture = 0;
+        delete bd->FontTexture.texture;
+        delete bd->FontTexture.sampler;
+        io.Fonts->SetTexID({});
+        bd->FontTexture = {};
     }
 }
 

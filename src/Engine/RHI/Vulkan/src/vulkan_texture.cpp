@@ -1,3 +1,4 @@
+#include <Core/default_resources.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <imgui_impl_vulkan.h>
@@ -353,5 +354,5 @@ namespace Engine
 
 VkImageView trinex_vulkan_image_view(Engine::Texture2D* texture)
 {
-    return texture->rhi_object<Engine::VulkanTexture>()->m_image_view;
+    return (texture ? texture : Engine::DefaultResources::default_texture)->rhi_object<Engine::VulkanTexture>()->m_image_view;
 }
