@@ -32,6 +32,8 @@ target_link_libraries(TrinexEngineEditor PUBLIC TrinexEngine    glslang
                                                                 spirv-cross-core
                                                                 spirv-cross-glsl
                                                                 assimp
-                                                                imgui_guizmo)
+                                                                imgui_guizmo
+                                                                ShaderWriter
+                                                                CompilerGlsl)
 
 install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})

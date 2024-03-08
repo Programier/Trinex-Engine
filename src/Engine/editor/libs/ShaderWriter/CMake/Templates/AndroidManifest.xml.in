@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Changes made to Package Name should also be reflected in the Debugging - Package Name property, in the Property Pages -->
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.${PROJECT_NAME}"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+${PROJECT_FEATURES}
+
+  <!-- This is the platform API where NativeActivity was introduced. -->
+  <uses-sdk
+    android:minSdkVersion="${PROJECT_MIN_SDK_VERSION}"
+    android:targetSdkVersion="${PROJECT_TARGET_SDK_VERSION}"/>
+
+  <!-- This .apk has no Java code itself, so set hasCode to false. -->
+  <application
+      android:label="${${PROJECT_NAME}_DESCRIPTION}"
+      android:hasCode="false"${PROJECT_APPLICATION_OPTIONS}>
+
+    <!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. -->
+    <activity
+        android:name="com.${PROJECT_NATIVE_NAME}"
+        android:configChanges="orientation|keyboardHidden"
+        android:screenOrientation="landscape"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        android:windowSoftInputMode="adjustResize"${PROJECT_ACTIVITY_OPTIONS}>
+      <!-- Tell NativeActivity the name of our .so -->
+      <meta-data
+          android:name="android.app.lib_name"
+          android:value="${PROJECT_NATIVE_NAME}"/>
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

@@ -1,0 +1,1202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+	<Type Name="ast::EntityName">
+		<DisplayString>{id}_{name,s8b}</DisplayString>
+		<Expand>
+			<Item Name="name">name</Item>
+			<Item Name="id">id</Item>
+		</Expand>
+	</Type>
+	
+	<Type Name="ast::type::Type">
+		<DisplayString>{m_kind}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="parent">m_parent</Item>
+			<Item Name="index">m_index</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Array">
+		<DisplayString Condition="m_arraySize==4294967295">{*m_type}[runtime]</DisplayString>
+		<DisplayString Condition="m_arraySize!=4294967295">{*m_type}[{m_arraySize}]</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="parent">m_parent</Item>
+			<Item Name="index">m_index</Item>
+			<Item Name="size">m_arraySize</Item>
+			<Item Name="type">m_type</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Function">
+		<DisplayString>{*m_returnType}(*)({m_parameters})</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="return">m_returnType</Item>
+			<Item Name="params">m_parameters</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Image">
+		<DisplayString>image {m_config}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="config">m_config</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Pointer">
+		<DisplayString Condition="m_isForward==true">[fwd]{*m_pointerType}*</DisplayString>
+		<DisplayString Condition="m_isForward==false">{*m_pointerType}*</DisplayString>
+		<DisplayString>{*m_pointerType}*</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="parent">m_parent</Item>
+			<Item Name="index">m_index</Item>
+			<Item Name="pointerType">*m_pointerType</Item>
+			<Item Name="storage">m_storage</Item>
+			<Item Name="isForward">m_isForward</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::RayPayload">
+		<DisplayString>RayPayload&lt;{*m_dataType}&gt;</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="parent">m_parent</Item>
+			<Item Name="index">m_index</Item>
+			<Item Name="dataType">*m_dataType</Item>
+			<Item Name="location">m_location</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::CallableData">
+		<DisplayString>CallableData&lt;{*m_dataType}&gt;</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="parent">m_parent</Item>
+			<Item Name="index">m_index</Item>
+			<Item Name="dataType">*m_dataType</Item>
+			<Item Name="location">m_location</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::HitAttribute">
+		<DisplayString>HitAttribute&lt;{*m_dataType}&gt;</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="parent">m_parent</Item>
+			<Item Name="index">m_index</Item>
+			<Item Name="dataType">*m_dataType</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::CombinedImage">
+		<DisplayString>combined [{*m_imageType}, {*m_samplerType}]</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="image">*m_imageType</Item>
+			<Item Name="sampler">*m_samplerType</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Sampler">
+		<DisplayString>sampler {m_comparison}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="comparison">m_comparison</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Struct::Member">
+		<DisplayString Condition="builtin==0 &amp;&amp; location==0xFFFFFFFF">[{offset}, {size}] {*type} {name}</DisplayString>
+		<DisplayString Condition="builtin==0 &amp;&amp; location!=0xFFFFFFFF">[location={location}] {*type} {name}</DisplayString>
+		<DisplayString Condition="builtin!=0 &amp;&amp; builtinIndex==0xFFFFFFFF">{*type} {builtin}</DisplayString>
+		<DisplayString Condition="builtin!=0 &amp;&amp; builtinIndex!=0xFFFFFFFF">{*type} {builtin}[{builtinIndex}]</DisplayString>
+		<Expand>
+			<Item Name="type">*type</Item>
+			<Item Name="name">name</Item>
+			<Item Name="offset">offset</Item>
+			<Item Name="size">size</Item>
+			<Item Name="arrayStride">arrayStride</Item>
+			<Item Name="builtin">builtin</Item>
+			<Item Name="location">location</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::Struct">
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eStd140">{m_name,s8b}[std140] {m_members}</DisplayString>
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eStd430">{m_name,s8b}[std430] {m_members}</DisplayString>
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eScalar">{m_name,s8b}[scalar] {m_members}</DisplayString>
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eC">{m_name,s8b} {m_members}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="name">m_name</Item>
+			<Item Name="layout">m_layout</Item>
+			<Item Name="members">m_members</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::IOStruct">
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eStd140">{m_name,s8b}[std140] {m_members}</DisplayString>
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eStd430">{m_name,s8b}[std430] {m_members}</DisplayString>
+		<DisplayString Condition="m_layout==ast::type::MemoryLayout::eC">{m_name,s8b} {m_members}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="name">m_name</Item>
+			<Item Name="layout">m_layout</Item>
+			<Item Name="members">m_members</Item>
+			<Item Name="flag">m_flag</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::GeometryInput">
+		<DisplayString Condition="layout==ast::type::InputLayout::ePointList">points {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eLineList">lines {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eLineStrip">lineStrip {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eTriangleList">triangles {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eTriangleStrip">triangleStrip {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eTriangleFan">triangleFan {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eLineListWithAdjacency">linesWithAdj {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eLineStripWithAdjacency">lineStripWithAdj {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eTriangleListWithAdjacency">trianglesWithAdj {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::InputLayout::eTriangleStripWithAdjacency">triangleStripWithAdj {*type}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="layout">layout</Item>
+			<Item Name="type">type</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::type::GeometryOutput">
+		<DisplayString Condition="layout==ast::type::OutputLayout::ePointList">points[{count}] {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::OutputLayout::eLineStrip">lines[{count}] {*type}</DisplayString>
+		<DisplayString Condition="layout==ast::type::OutputLayout::eTriangleStrip">triangles[{count}] {*type}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="layout">layout</Item>
+			<Item Name="count">count</Item>
+			<Item Name="type">type</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="ast::var::Variable">
+		<DisplayString Condition="m_outer==nullptr">{m_nameId}</DisplayString>
+		<DisplayString Condition="m_outer!=nullptr">{*m_outer}::{m_nameId}</DisplayString>
+		<Expand>
+			<Item Name="nameId">m_nameId</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="builtin">m_builtin</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="outer">m_outer</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="ast::expr::Expr">
+		<DisplayString>{m_kind} {*m_type}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Binary">
+		<DisplayString>{*m_lhs} BinOp {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Unary">
+		<DisplayString>UnOp {*m_operand}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="operand">m_operand</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Alias">
+		<DisplayString>{*m_lhs} -> {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="identifier">m_lhs</Item>
+			<Item Name="expr">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Add">
+		<DisplayString>{*m_lhs} + {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::AggrInit">
+		<DisplayString Condition="m_identifier!=nullptr">{*m_identifier}({m_initialisers})</DisplayString>
+		<DisplayString Condition="m_identifier==nullptr">({m_initialisers})</DisplayString>
+		<Expand>
+			<Item Name="type">m_type</Item>
+			<Item Name="identifier">m_identifier</Item>
+			<Item Name="initialisers">m_initialisers</Item>
+			<Item Name="flags">m_flags</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::BitAnd">
+		<DisplayString>{*m_lhs} &amp; {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::BitNot">
+		<DisplayString>~{*m_operand}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::BitOr">
+		<DisplayString>{*m_lhs} | {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::BitXor">
+		<DisplayString>{*m_lhs} ^ {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Divide">
+		<DisplayString>{*m_lhs} / {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::LogAnd">
+		<DisplayString>{*m_lhs} &amp;&amp; {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::LogNot">
+		<DisplayString>!{*m_operand}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::LogOr">
+		<DisplayString>{*m_lhs} || {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::LShift">
+		<DisplayString>{*m_lhs} &lt;&lt; {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Minus">
+		<DisplayString>{*m_lhs} - {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Modulo">
+		<DisplayString>{*m_lhs} % {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::RShift">
+		<DisplayString>{*m_lhs} &gt;&gt; {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Times">
+		<DisplayString>{*m_lhs} * {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Assign">
+		<DisplayString>{*m_lhs} = {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">*m_lhs</Item>
+			<Item Name="rhs">*m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::AddAssign">
+		<DisplayString>{*m_lhs} += {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::AndAssign">
+		<DisplayString>{*m_lhs} &amp;= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::OrAssign">
+		<DisplayString>{*m_lhs} |= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::XorAssign">
+		<DisplayString>{*m_lhs} ^= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::DivideAssign">
+		<DisplayString>{*m_lhs} /= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::LShiftAssign">
+		<DisplayString>{*m_lhs} &lt;&lt;= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::MinusAssign">
+		<DisplayString>{*m_lhs} -= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::ModuloAssign">
+		<DisplayString>{*m_lhs} %= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::RShiftAssign">
+		<DisplayString>{*m_lhs} &gt;&gt;= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::TimesAssign">
+		<DisplayString>{*m_lhs} *= {*m_rhs}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="lhs">m_lhs</Item>
+			<Item Name="rhs">m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::ArrayAccess">
+		<DisplayString>{*m_lhs}[{*m_rhs}]</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="array">*m_lhs</Item>
+			<Item Name="index">*m_rhs</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::CompositeConstruct">
+		<DisplayString>{*m_type}( {m_composite} {m_component} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="composite">m_composite</Item>
+			<Item Name="component">m_component</Item>
+			<Item Name="args">m_argList</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::FnCall">
+		<DisplayString>{*m_type} {*m_fn}( {m_argList} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="fn">m_fn</Item>
+			<Item Name="args">m_argList</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Identifier">
+		<DisplayString>{*m_var}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="var">m_var</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::StorageImageAccessCall">
+		<DisplayString>{*m_type} {m_imageAccess}( {m_argList} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="access">m_imageAccess</Item>
+			<Item Name="args">m_argList</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Init">
+		<DisplayString>{*m_type} {*m_identifier} = ( {*m_initialiser} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="ident">m_identifier</Item>
+			<Item Name="init">m_initialiser</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::IntrinsicCall">
+		<DisplayString>{*m_type} {m_intrinsic}( {m_argList} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="intrinsic">m_intrinsic</Item>
+			<Item Name="args">m_argList</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Literal">
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eBool">{m_value.boolv}</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eInt8">{m_value.int8v}s</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eInt16">{m_value.int16v}s</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eInt32">{m_value.int32v}s</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eInt64">{m_value.int64v}s</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eUInt8">{m_value.uint8v}ull</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eUInt16">{m_value.uint16v}ull</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eUInt32">{m_value.uint32v}ull</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eUInt64">{m_value.uint64v}ull</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eFloat">{m_value.floatv}f</DisplayString>
+		<DisplayString Condition="m_valueType==ast::expr::LiteralType::eDouble">{m_value.doublev}d</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="valueType">m_valueType</Item>
+			<Item Name="value">m_value</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eBool">m_value.boolv</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eInt8">m_value.int8v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eInt16">m_value.int16v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eInt32">m_value.int32v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eInt64">m_value.int64v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eUInt8">m_value.uint8v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eUInt16">m_value.uint16v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eUInt32">m_value.uint32v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eUInt64">m_value.uint64v</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eFloat">m_value.floatv</Item>
+			<Item Name="value" Condition="m_valueType==ast::expr::LiteralType::eDouble">m_value.doublev</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::MbrSelect">
+		<DisplayString>{*m_type} {*m_outer}.{m_memberIndex}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="outer">m_outer</Item>
+			<Item Name="index">m_memberIndex</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::PostDecrement">
+		<DisplayString>{*m_operand}--</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="operand">*m_operand</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::PostIncrement">
+		<DisplayString>{*m_operand}++</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="operand">*m_operand</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::PreDecrement">
+		<DisplayString>--{*m_operand}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="operand">*m_operand</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::PreIncrement">
+		<DisplayString>++{*m_operand}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="operand">*m_operand</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Question">
+		<DisplayString>( {m_ctrlExpr} ) ? ( {m_trueExpr} ) : ( {m_falseExpr} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="ctrl">m_ctrlExpr</Item>
+			<Item Name="true">m_trueExpr</Item>
+			<Item Name="false">m_falseExpr</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::SwizzleKind">
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0">x</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1">y</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2">z</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3">w</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e00">xx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e01">xy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e02">xz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e03">xw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e10">yx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e11">yy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e12">yz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e13">yw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e20">zx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e21">zy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e22">zz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e23">zw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e30">wx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e31">wy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e32">wz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e33">ww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e000">xxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e001">xxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e002">xxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e003">xxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e010">xyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e011">xyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e012">xyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e013">xyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e020">xzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e021">xzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e022">xzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e023">xzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e030">xwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e031">xwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e032">xwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e033">xww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e100">yxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e101">yxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e102">yxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e103">yxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e110">yyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e111">yyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e112">yyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e113">yyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e120">yzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e121">yzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e122">yzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e123">yzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e130">ywx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e131">ywy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e132">ywz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e133">yww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e200">zxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e201">zxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e202">zxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e203">zxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e210">zyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e211">zyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e212">zyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e213">zyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e220">zzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e221">zzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e222">zzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e223">zzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e230">zwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e231">zwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e232">zwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e233">zww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e300">wxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e301">wxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e302">wxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e303">wxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e310">wyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e311">wyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e312">wyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e313">wyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e320">wzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e321">wzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e322">wzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e323">wzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e330">wwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e331">wwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e332">wwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e333">www</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0000">xxxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0001">xxxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0002">xxxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0003">xxxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0010">xxyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0011">xxyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0012">xxyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0013">xxyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0020">xxzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0021">xxzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0022">xxzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0023">xxzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0030">xxwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0031">xxwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0032">xxwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0033">xxww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0100">xyxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0101">xyxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0102">xyxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0103">xyxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0110">xyyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0111">xyyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0112">xyyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0113">xyyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0120">xyzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0121">xyzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0122">xyzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0123">xyzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0130">xywx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0131">xywy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0132">xywz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0133">xyww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0200">xzxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0201">xzxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0202">xzxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0203">xzxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0210">xzyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0211">xzyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0212">xzyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0213">xzyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0220">xzzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0221">xzzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0222">xzzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0223">xzzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0230">xzwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0231">xzwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0232">xzwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0233">xzww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0300">xwxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0301">xwxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0302">xwxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0303">xwxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0310">xwyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0311">xwyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0312">xwyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0313">xwyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0320">xwzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0321">xwzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0322">xwzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0323">xwzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0330">xwwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0331">xwwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0332">xwwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e0333">xwww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1000">yxxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1001">yxxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1002">yxxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1003">yxxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1010">yxyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1011">yxyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1012">yxyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1013">yxyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1020">yxzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1021">yxzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1022">yxzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1023">yxzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1030">yxwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1031">yxwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1032">yxwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1033">yxww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1100">yyxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1101">yyxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1102">yyxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1103">yyxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1110">yyyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1111">yyyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1112">yyyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1113">yyyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1120">yyzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1121">yyzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1122">yyzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1123">yyzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1130">yywx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1131">yywy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1132">yywz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1133">yyww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1200">yzxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1201">yzxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1202">yzxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1203">yzxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1210">yzyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1211">yzyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1212">yzyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1213">yzyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1220">yzzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1221">yzzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1222">yzzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1223">yzzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1230">yzwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1231">yzwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1232">yzwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1233">yzww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1300">ywxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1301">ywxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1302">ywxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1303">ywxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1310">ywyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1311">ywyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1312">ywyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1313">ywyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1320">ywzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1321">ywzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1322">ywzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1323">ywzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1330">ywwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1331">ywwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1332">ywwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e1333">ywww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2000">zxxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2001">zxxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2002">zxxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2003">zxxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2010">zxyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2011">zxyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2012">zxyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2013">zxyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2020">zxzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2021">zxzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2022">zxzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2023">zxzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2030">zxwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2031">zxwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2032">zxwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2033">zxww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2100">zyxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2101">zyxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2102">zyxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2103">zyxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2110">zyyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2111">zyyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2112">zyyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2113">zyyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2120">zyzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2121">zyzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2122">zyzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2123">zyzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2130">zywx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2131">zywy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2132">zywz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2133">zyww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2200">zzxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2201">zzxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2202">zzxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2203">zzxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2210">zzyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2211">zzyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2212">zzyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2213">zzyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2220">zzzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2221">zzzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2222">zzzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2223">zzzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2230">zzwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2231">zzwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2232">zzwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2233">zzww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2300">zwxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2301">zwxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2302">zwxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2303">zwxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2310">zwyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2311">zwyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2312">zwyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2313">zwyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2320">zwzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2321">zwzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2322">zwzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2323">zwzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2330">zwwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2331">zwwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2332">zwwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e2333">zwww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3000">wxxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3001">wxxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3002">wxxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3003">wxxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3010">wxyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3011">wxyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3012">wxyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3013">wxyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3020">wxzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3021">wxzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3022">wxzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3023">wxzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3030">wxwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3031">wxwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3032">wxwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3033">wxww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3100">wyxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3101">wyxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3102">wyxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3103">wyxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3110">wyyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3111">wyyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3112">wyyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3113">wyyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3120">wyzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3121">wyzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3122">wyzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3123">wyzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3130">wywx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3131">wywy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3132">wywz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3133">wyww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3200">wzxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3201">wzxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3202">wzxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3203">wzxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3210">wzyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3211">wzyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3212">wzyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3213">wzyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3220">wzzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3221">wzzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3222">wzzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3223">wzzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3230">wzwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3231">wzwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3232">wzwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3233">wzww</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3300">wwxx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3301">wwxy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3302">wwxz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3303">wwxw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3310">wwyx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3311">wwyy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3312">wwyz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3313">wwyw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3320">wwzx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3321">wwzy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3322">wwzz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3323">wwzw</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3330">wwwx</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3331">wwwy</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3332">wwwz</DisplayString>
+		<DisplayString Condition="m_value==ast::expr::SwizzleKind::e3333">wwww</DisplayString>
+		<Expand>
+			<Item Name="value">m_value</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::Swizzle">
+		<DisplayString>{*m_outer}.{m_swizzle}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="swizzle">m_swizzle</Item>
+			<Item Name="outer">m_outer</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::expr::CombinedImageAccessCall">
+		<DisplayString>{*m_type} {m_textureAccess}( {m_argList} )</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="flags">m_flags</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="access">m_textureAccess</Item>
+			<Item Name="args">m_argList</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="ast::stmt::Stmt">
+		<DisplayString>{{kind={m_kind}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::Container">
+		<DisplayString>{{kind={m_kind}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::Compound">
+		<DisplayString>{{kind={m_kind}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::ConstantBufferDecl">
+		<DisplayString>{{kind={m_kind} name={m_name,s8b}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="name">m_name</Item>
+			<Item Name="layout">m_layout</Item>
+			<Item Name="set">m_bindingSet</Item>
+			<Item Name="binding">m_bindingPoint</Item>
+			<Item Name="variables">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::DoWhile">
+		<DisplayString>DoWhile {m_ctrlExpr}</DisplayString>
+		<Expand>
+			<Item Name="ctrl">m_ctrlExpr</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::Else">
+		<DisplayString>Else</DisplayString>
+		<Expand>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::ElseIf">
+		<DisplayString>ElseIf {m_ctrlExpr}</DisplayString>
+		<Expand>
+			<Item Name="ctrl">m_ctrlExpr</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::For">
+		<DisplayString>For ({m_initExpr}; {m_ctrlExpr}; {m_incrExpr})</DisplayString>
+		<Expand>
+			<Item Name="init">m_initExpr</Item>
+			<Item Name="ctrl">m_ctrlExpr</Item>
+			<Item Name="incr">m_incrExpr</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::FunctionDecl">
+		<DisplayString>{{kind={m_kind} name={m_name,s8b}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="name">m_name</Item>
+			<Item Name="type">m_type</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::If">
+		<DisplayString>If {m_ctrlExpr}</DisplayString>
+		<Expand>
+			<Item Name="ctrl">m_ctrlExpr</Item>
+			<Item Name="content">m_statements</Item>
+			<Item Name="elseIfs">m_elseIfs</Item>
+			<Item Name="else">m_else</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::ImageDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+			<Item Name="set">m_bindingSet</Item>
+			<Item Name="binding">m_bindingPoint</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::InOutVariableDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+			<Item Name="location">m_location</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::InputComputeLayout">
+		<DisplayString>{{kind={m_kind} x={m_workGroupsX} y={m_workGroupsY} z={m_workGroupsZ}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="x">m_workGroupsX</Item>
+			<Item Name="y">m_workGroupsY</Item>
+			<Item Name="z">m_workGroupsZ</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::InputGeometryLayout">
+		<DisplayString>{{kind={m_kind} layt={m_layout}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="layout">m_layout</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::OutputGeometryLayout">
+		<DisplayString>{{kind={m_kind} layt={m_layout} cnt={m_primCount}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="layout">m_layout</Item>
+			<Item Name="count">m_primCount</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::PushConstantsBufferDecl">
+		<DisplayString>{{kind={m_kind} name={m_name,s8b}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="name">m_name</Item>
+			<Item Name="count">m_layout</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::SampledImageDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+			<Item Name="set">m_bindingSet</Item>
+			<Item Name="binding">m_bindingPoint</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::SamplerDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+			<Item Name="set">m_bindingSet</Item>
+			<Item Name="binding">m_bindingPoint</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::ShaderBufferDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+			<Item Name="set">m_bindingSet</Item>
+			<Item Name="binding">m_bindingPoint</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::ShaderStructBufferDecl">
+		<DisplayString>{{kind={m_kind} ssbo={m_ssboName} inst={m_instance}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="ssbo">m_ssboName</Item>
+			<Item Name="instance">m_instance</Item>
+			<Item Name="data">m_data</Item>
+			<Item Name="set">m_bindingSet</Item>
+			<Item Name="binding">m_bindingPoint</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::Simple">
+		<DisplayString>{{kind={m_kind} expr={m_expr}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="expr">m_expr</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::SpecialisationConstantDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+			<Item Name="location">m_location</Item>
+			<Item Name="value">m_value</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::StructureDecl">
+		<DisplayString>{{kind={m_kind} type={*m_type}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="type">m_type</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::VariableDecl">
+		<DisplayString>{{kind={m_kind} var={m_variable}}}</DisplayString>
+		<Expand>
+			<Item Name="kind">m_kind</Item>
+			<Item Name="var">m_variable</Item>
+		</Expand>
+	</Type>
+	<Type Name="ast::stmt::While">
+		<DisplayString>While {m_ctrlExpr}</DisplayString>
+		<Expand>
+			<Item Name="ctrl">m_ctrlExpr</Item>
+			<Item Name="statements">m_statements</Item>
+		</Expand>
+	</Type>
+
+</AutoVisualizer>
