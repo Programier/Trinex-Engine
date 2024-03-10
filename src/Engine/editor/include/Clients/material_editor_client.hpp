@@ -17,13 +17,15 @@ namespace Engine
         void* m_editor_context = nullptr;
 
         class RenderViewport* m_viewport = nullptr;
-        class ShaderCompiler* m_compiler = nullptr;
 
         bool m_open_select_node_window   = false;
         bool m_open_material_code_window = false;
 
         Vector2D m_next_node_pos;
         size_t m_frame = 0;
+
+        String vertex;
+        String fragment;
 
     public:
         void on_content_browser_close();

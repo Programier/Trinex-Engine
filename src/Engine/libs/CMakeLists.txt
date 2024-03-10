@@ -4,7 +4,7 @@ set(BUILD_SHARED_LIBS off)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/angelscript/")
 
 # Compile LZ4 library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lz4/build/cmake/")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lz4/build/cmake/" EXCLUDE_FROM_ALL)
 
 # Compile freetype library
 set(FT_DISABLE_HARFBUZZ on)
