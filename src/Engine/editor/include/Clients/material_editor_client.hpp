@@ -16,9 +16,8 @@ namespace Engine
 
         void* m_editor_context = nullptr;
 
-        class RenderViewport* m_viewport         = nullptr;
-        class VisualMaterial* m_current_material = nullptr;
-        class ShaderCompilerBase* m_compiler     = nullptr;
+        class RenderViewport* m_viewport = nullptr;
+        class ShaderCompiler* m_compiler = nullptr;
 
         bool m_open_select_node_window   = false;
         bool m_open_material_code_window = false;
@@ -34,7 +33,6 @@ namespace Engine
         MaterialEditorClient& create_content_browser();
         MaterialEditorClient& create_properties_window();
         MaterialEditorClient& create_preview_window();
-        class VisualMaterial* current_material() const;
         void on_object_select(Object* object);
 
         MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;

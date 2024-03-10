@@ -7,7 +7,6 @@
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/visual_material.hpp>
 #include <PropertyRenderers/imgui_class_property.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/monitor.hpp>

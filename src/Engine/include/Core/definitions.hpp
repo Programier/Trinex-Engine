@@ -88,4 +88,6 @@
 #define CONCAT_TYPE_AND_NAMESPACE(object_type, ...) __VA_ARGS__ __VA_OPT__(::) object_type
 #define HAS_INCLUDE(include_name) __has_include(<include_name>)
 
+#define TRINEX_WRAP_CODE(code) code
 // USER SPECIFIC DEFINITIONS!
+
