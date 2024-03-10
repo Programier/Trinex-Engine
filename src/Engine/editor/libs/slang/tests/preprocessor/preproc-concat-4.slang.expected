@@ -1,0 +1,6 @@
+result code = 0
+standard error = {
+}
+standard output = {
+CONCAT ( a , b ) A2B2 CONCAT ( a , b ) 
+}

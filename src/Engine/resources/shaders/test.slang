@@ -1,21 +1,33 @@
 struct VertexInput
 {
-    float3	position : POSITION0;
-    float3	color    : COLOR0;
-    float3	color2   : COLOR1;
+    float3 position: POSITION0;
 };
 
 struct VertexOutput
 {
-    float4          position     : SV_Position;
+    float3 position: SV_Position;
 };
 
-uniform float4x4 mpv;
+struct FragmentOutput
+{
+    float4 color;
+    float4 position;
+};
+
 
 [shader("vertex")]
 VertexOutput vertex_main(VertexInput input)
 {
     VertexOutput output;
-    output.position = mul(mpv, float4(0.0));
+    output.position = input.position;
+    return output;
+}
+
+[shader("fragment")]
+FragmentOutput fragment_main(VertexOutput input) : SV_Target
+{
+    FragmentOutput output;
+    output.color = float4(0.0);
+    output.position = float4(0.0);
     return output;
 }

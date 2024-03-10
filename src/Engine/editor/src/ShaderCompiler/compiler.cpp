@@ -1,9 +1,13 @@
+#include <Core/engine_config.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
+#include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <ShaderCompiler/compiler.hpp>
 #include <cstring>
+#include <slang-com-helper.h>
 #include <slang-com-ptr.h>
+#include <slang-file-system.h>
 #include <slang-list.h>
 #include <slang.h>
 
@@ -23,6 +27,7 @@ ConstantBuffer<GlobalParameters> globals;
 #define RETURN_ON_FAIL(code)                                                                                                     \
     if (SLANG_FAILED(code))                                                                                                      \
     return
+
 
     static slang::IGlobalSession* global_session()
     {
@@ -82,21 +87,26 @@ ConstantBuffer<GlobalParameters> globals;
     }
 
 
-    static void compile_shader(const String& code, const Function<void(SlangCompileRequest*)>& setup_request,
-                               ShaderReflection& out_reflection, const Function<void(const byte*, size_t)>& on_vertex_success,
+    static void host_setup_request(SlangCompileRequest* request, const Vector<ShaderDefinition>& definitions)
+    {
+        Path shaders_dir = rootfs()->native_path(engine_config.shaders_dir);
+        request->addSearchPath(shaders_dir.c_str());
+
+        for (const auto& definition : definitions)
+        {
+            request->addPreprocessorDefine(definition.key.c_str(), definition.value.c_str());
+        }
+    }
+
+    static void compile_shader(const String& source, const Vector<ShaderDefinition>& definitions,
+                               const Function<void(SlangCompileRequest*)>& setup_request, ShaderReflection& out_reflection,
+                               const Function<void(const byte*, size_t)>& on_vertex_success,
                                const Function<void(const byte*, size_t)>& on_fragment_success)
     {
-
-        static slang::CompilerOptionEntry compile_options[] = {
-                {slang::CompilerOptionName::MatrixLayoutRow, {slang::CompilerOptionValueKind::Int, 1, 1}}};
-
         using Slang::ComPtr;
-        slang::SessionDesc session_desc       = {};
-        session_desc.defaultMatrixLayoutMode  = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-        session_desc.allowGLSLSyntax          = false;
-        session_desc.compilerOptionEntries    = compile_options;
-        session_desc.compilerOptionEntryCount = 1;
-
+        slang::SessionDesc session_desc      = {};
+        session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+        session_desc.allowGLSLSyntax         = false;
 
         ComPtr<slang::ISession> session;
         RETURN_ON_FAIL(global_session()->createSession(session_desc, session.writeRef()));
@@ -108,8 +118,6 @@ ConstantBuffer<GlobalParameters> globals;
         int_t fragment_entry_index = -1;
 
         {
-            String full_source = trinex_shader_globals + code;
-
             ComPtr<SlangCompileRequest> request;
             session->createCompileRequest(request.writeRef());
 
@@ -119,13 +127,16 @@ ConstantBuffer<GlobalParameters> globals;
                 return;
             }
 
+            host_setup_request(request, definitions);
             if (setup_request)
             {
                 setup_request(request);
             }
 
-            auto unit = spAddTranslationUnit(request, SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
+            String full_source = trinex_shader_globals + source;
+            auto unit          = spAddTranslationUnit(request, SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
             spAddTranslationUnitSourceString(request, unit, "main_unit_source", full_source.c_str());
+
             auto compile_result = spCompile(request);
 
             if (auto diagnostics = spGetDiagnosticOutput(request))
@@ -243,24 +254,27 @@ ConstantBuffer<GlobalParameters> globals;
         request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
     }
 
-    GLSL_Source to_glsl_source(const String& slang)
+    GLSL_Source create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions)
     {
-        GLSL_Source source;
-        auto vertex_callback   = [&](const byte* data, size_t size) { source.vertex_code = reinterpret_cast<const char*>(data); };
+        GLSL_Source out_source;
+        auto vertex_callback = [&](const byte* data, size_t size) {
+            out_source.vertex_code = reinterpret_cast<const char*>(data);
+        };
         auto fragment_callback = [&](const byte* data, size_t size) {
-            source.fragment_code = reinterpret_cast<const char*>(data);
+            out_source.fragment_code = reinterpret_cast<const char*>(data);
         };
 
-        compile_shader(slang, setup_glsl_compile_request, source.reflection, vertex_callback, fragment_callback);
-        return source;
+        compile_shader(source, definitions, setup_glsl_compile_request, out_source.reflection, vertex_callback,
+                       fragment_callback);
+        return out_source;
     }
 
-    GLSL_Source file_to_glsl(const Path& slang)
+    GLSL_Source create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions)
     {
-        FileReader file(slang);
+        FileReader file(engine_config.shaders_dir / relative);
         if (file.is_open())
         {
-            return to_glsl_source(file.read_string());
+            return create_glsl_shader(file.read_string(), definitions);
         }
 
         return {};

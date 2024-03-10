@@ -48,6 +48,22 @@ namespace Engine
         return m_parameters_offset;
     }
 
+    bool LocalMaterialParametersInfo::has_parameters() const
+    {
+        return !m_parameters_offset.empty();
+    }
+
+    BindingIndex LocalMaterialParametersInfo::bind_index() const
+    {
+        return m_bind_index;
+    }
+
+    LocalMaterialParametersInfo& LocalMaterialParametersInfo::bind_index(BindingIndex index)
+    {
+        m_bind_index = index;
+        return *this;
+    }
+
     bool LocalMaterialParametersInfo::empty() const
     {
         return m_parameters_offset.empty();
@@ -87,6 +103,7 @@ namespace Engine
             }
         }
 
+        ar & info.m_bind_index;
         return ar;
     }
 
@@ -273,8 +290,6 @@ namespace Engine
 
     bool Pipeline::archive_process(class Archive& archive)
     {
-
-
         Material* material_object = material();
         if (material_object == nullptr)
         {
@@ -284,8 +299,6 @@ namespace Engine
 
         if (!Super::archive_process(archive))
             return false;
-
-        archive & has_global_parameters;
 
         String shader_lang = engine_config.shading_language;
         archive & shader_lang;

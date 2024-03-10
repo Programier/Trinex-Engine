@@ -220,10 +220,9 @@ namespace Engine
             {
                 if (ImGui::MenuItem("Compiler"))
                 {
-                    auto result = ShaderCompiler::file_to_glsl(
-                            "/home/programier/Projects/Trinex-Engine/src/Engine/resources/shaders/test.slang");
-                    vertex   = result.vertex_code;
-                    fragment = result.fragment_code;
+                    auto result = ShaderCompiler::create_glsl_shader_from_file("test.slang");
+                    vertex      = result.vertex_code;
+                    fragment    = result.fragment_code;
                 }
                 ImGui::EndMenu();
             }
@@ -273,48 +272,6 @@ namespace Engine
         viewport->window()->imgui_window()->end_frame();
         ++m_frame;
         return *this;
-    }
-
-    static Struct* render_node_types(Group* group)
-    {
-        if (!group)
-            return nullptr;
-
-
-        Struct* current = nullptr;
-
-        for (Group* child : group->childs())
-        {
-            if (ImGui::CollapsingHeader(child->name().c_str()))
-            {
-                ImGui::Indent(10.f);
-                Struct* new_struct = render_node_types(child);
-                if (!current && new_struct)
-                    current = new_struct;
-
-                ImGui::Unindent(10.f);
-            }
-        }
-
-
-        for (Struct* instance : group->structs())
-        {
-            if (ImGui::Selectable(instance->base_name().c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
-            {
-                if (!current && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                {
-                    current = instance;
-                }
-            }
-        }
-
-        return current;
-    }
-
-    static Struct* render_nodes_window()
-    {
-        static Group* root_group = Group::find("Engine::VisualMaterialNodes");
-        return render_node_types(root_group);
     }
 
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)

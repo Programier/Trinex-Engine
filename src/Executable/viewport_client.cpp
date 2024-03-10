@@ -73,7 +73,6 @@ namespace Engine
             pipeline->vertex_shader->binary_code = FileReader("shaders/gradient/vertex.vm").read_buffer();
             pipeline->vertex_shader->text_code   = FileReader("shaders/gradient/vertex.vert").read_string();
             pipeline->local_parameters.update("offset", 0);
-            pipeline->has_global_parameters = true;
 
             pipeline->fragment_shader->binary_code = FileReader("shaders/gradient/fragment.fm").read_buffer();
             pipeline->fragment_shader->text_code   = FileReader("shaders/gradient/fragment.frag").read_string();
@@ -104,7 +103,6 @@ namespace Engine
         {
             static GlobalShaderParameters params;
 
-            auto view = camera->camera_view();
             params.update(viewport->base_render_target(), nullptr);
             engine_instance->rhi()->push_global_params(params);
 

@@ -15,6 +15,11 @@ namespace Engine::ShaderCompiler
         size_t local_buffer_size;
     };
 
+    struct ShaderDefinition {
+        String key;
+        String value;
+    };
+
     struct GLSL_Source {
         String vertex_code;
         String fragment_code;
@@ -24,6 +29,6 @@ namespace Engine::ShaderCompiler
         ShaderReflection reflection;
     };
 
-    GLSL_Source string_to_glsl(const String& slang);
-    GLSL_Source file_to_glsl(const Path& slang);
+    GLSL_Source create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions = {});
+    GLSL_Source create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {});
 }// namespace Engine::ShaderCompiler

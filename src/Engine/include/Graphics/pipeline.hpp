@@ -16,6 +16,7 @@ namespace Engine
 
     private:
         OffsetMap m_parameters_offset;
+        BindingIndex m_bind_index = 1;
 
     public:
         static const size_t no_offset;
@@ -27,6 +28,9 @@ namespace Engine
         LocalMaterialParametersInfo& update(const Name& name, size_t new_offset);
         LocalMaterialParametersInfo& remove(const Name& name);
         const OffsetMap& offset_map() const;
+        bool has_parameters() const;
+        BindingIndex bind_index() const;
+        LocalMaterialParametersInfo& bind_index(BindingIndex index);
 
         friend bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
     };
@@ -99,7 +103,6 @@ namespace Engine
 
 
         LocalMaterialParametersInfo local_parameters;
-        bool has_global_parameters;
 
     private:
         bool serialize_shaders(Archive& ar);
