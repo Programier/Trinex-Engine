@@ -6,38 +6,7 @@
 
 namespace Engine
 {
-
-    struct VulkanRenderTargetFrame {
-        vk::Framebuffer m_framebuffer;
-        Vector<vk::ImageView> m_attachments;
-        struct VulkanRenderTarget* m_owner = nullptr;
-
-
-        void init(struct VulkanRenderTarget* owner, const RenderTarget* info, struct VulkanRenderPass* render_pass, Index frame);
-        void post_init();
-        void destroy();
-
-        static void push_barriers(size_t count);
-        void bind(RenderPass* render_pass);
-        void unbind();
-        VulkanRenderTargetFrame& update_viewport();
-        VulkanRenderTargetFrame& update_scissors();
-
-
-        virtual bool is_main_frame();
-        virtual ~VulkanRenderTargetFrame();
-    };
-
-    struct VulkanWindowRenderTargetFrame : public VulkanRenderTargetFrame {
-        VulkanWindowRenderTargetFrame();
-        ~VulkanWindowRenderTargetFrame();
-
-        bool is_main_frame() override;
-    };
-
-
-    struct VulkanRenderTarget : RHI_RenderTarget {
-        Vector<VulkanRenderTargetFrame*> m_frames;
+    struct VulkanRenderTargetState {
         struct VulkanRenderPass* m_render_pass = nullptr;
         vk::RenderPassBeginInfo m_render_pass_info;
         vk::Extent2D m_size;
@@ -45,40 +14,74 @@ namespace Engine
         vk::Viewport m_viewport;
         Vector<vk::ClearValue> m_clear_values = {vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
 
+        void init(const RenderTarget* render_target, VulkanRenderPass* render_pass);
+        void post_init();
 
-        VulkanRenderTarget& init(const RenderTarget* info, VulkanRenderPass* render_pass);
-        VulkanRenderTarget& post_init();
-        VulkanRenderTarget& destroy();
-        VulkanRenderTarget& size(uint32_t width, uint32_t height);
+        virtual bool is_main_render_target_state();
+    };
 
-        Index bind(RenderPass* render_pass) override;
+    struct VulkanMainRenderTargetState : public VulkanRenderTargetState {
+        bool is_main_render_target_state() override;
+    };
+
+
+    struct VulkanRenderTargetBase : RHI_RenderTarget {
+        vk::Framebuffer m_framebuffer;
+        Vector<vk::ImageView> m_attachments;
+        VulkanRenderTargetState* m_state = nullptr;
+
+        virtual VulkanRenderTargetBase& init(const RenderTarget* info, VulkanRenderPass* render_pass);
+        virtual bool is_main_render_target();
+        virtual VulkanRenderTargetBase& destroy(bool called_by_destructor = false);
+
+        VulkanRenderTargetBase& post_init();
+        VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
+
+        void bind(RenderPass* render_pass) override;
+        VulkanRenderTargetBase& unbind(VulkanRenderPass* next_render_pass = nullptr);
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
+        VulkanRenderTargetBase& update_viewport();
+        VulkanRenderTargetBase& update_scissors();
+
         void clear_color(const ColorClearValue& color, byte layout) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;
+        ~VulkanRenderTargetBase();
+    };
 
-        virtual size_t buffer_index() const;
 
+    struct VulkanWindowRenderTargetFrame : VulkanRenderTargetBase {
+        bool is_main_render_target() override;
+    };
 
-        virtual bool is_main_render_target();
+    struct VulkanRenderTarget : VulkanRenderTargetBase {
+        VulkanRenderTargetState state;
 
+        VulkanRenderTarget();
+        VulkanRenderTarget& init(const RenderTarget* info, VulkanRenderPass* render_pass) override;
+        VulkanRenderTarget& destroy(bool called_by_destructor = false) override;
         ~VulkanRenderTarget();
     };
 
 
-    struct VulkanWindowRenderTarget : VulkanRenderTarget {
-
+    struct VulkanWindowRenderTarget : RHI_RenderTarget {
+        VulkanMainRenderTargetState state;
+        Vector<VulkanWindowRenderTargetFrame*> m_frames;
         struct VulkanWindowViewport* m_viewport;
-
 
         VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);
         VulkanWindowRenderTarget& destroy();
 
-        size_t buffer_index() const override;
-
         void resize_count(size_t new_count);
         bool is_destroyable() const override;
+        VulkanWindowRenderTargetFrame* frame();
 
-        bool is_main_render_target() override;
+        void bind(RenderPass* render_pass) override;
+        void viewport(const ViewPort& viewport) override;
+        void scissor(const Scissor& scissor) override;
+        void clear_depth_stencil(const DepthStencilClearValue& value) override;
+        void clear_color(const ColorClearValue& color, byte layout) override;
+
+        ~VulkanWindowRenderTarget();
     };
 }// namespace Engine

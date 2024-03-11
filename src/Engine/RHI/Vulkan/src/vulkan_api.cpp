@@ -586,9 +586,4 @@ namespace Engine
             pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer());
         }
     }
-
-    size_t VulkanAPI::render_target_buffer_count()
-    {
-        return m_framebuffers_count;
-    }
 }// namespace Engine

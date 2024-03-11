@@ -15,7 +15,7 @@ namespace Engine
 
         bool m_has_depth_stencil_buffer = false;
 
-        Index bind(RenderPass* render_pass) override;
+        void bind(RenderPass* render_pass) override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;

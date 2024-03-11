@@ -23,7 +23,7 @@ namespace Engine
         }
     }
 
-    Index OpenGL_RenderTarget::bind(RenderPass* render_pass)
+    void OpenGL_RenderTarget::bind(RenderPass* render_pass)
     {
         OpenGL_RenderPass* opengl_render_pass = render_pass->rhi_object<OpenGL_RenderPass>();
 
@@ -38,8 +38,6 @@ namespace Engine
 
             opengl_render_pass->apply(this);
         }
-
-        return 0;
     }
 
     void OpenGL_RenderTarget::viewport(const ViewPort& viewport)
@@ -113,22 +111,19 @@ namespace Engine
 
         for (const auto& color_attachment : render_target->color_attachments)
         {
-            auto color_texture = color_attachment.texture.ptr()->texture_at(0);
+            auto color_texture = color_attachment.texture.ptr();
             info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_texture, this);
             attach_texture(color_texture, GL_COLOR_ATTACHMENT0 + index);
             color_attachments.push_back(GL_COLOR_ATTACHMENT0 + index);
             index++;
         }
 
-        auto* depth_color_attachment = render_target->depth_stencil_attachment.texture.ptr();
+        auto* depth_attachment = render_target->depth_stencil_attachment.texture.ptr();
 
-        if (depth_color_attachment)
+        if (depth_attachment)
         {
-            if (auto depth_attachment = depth_color_attachment->texture_at(0))
-            {
-                attach_texture(depth_attachment,
-                               get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->m_format.m_format));
-            }
+            attach_texture(depth_attachment,
+                           get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->m_format.m_format));
         }
 
         glDrawBuffers(color_attachments.size(), color_attachments.data());

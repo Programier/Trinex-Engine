@@ -53,9 +53,9 @@ namespace Engine
 
     void VulkanViewport::end_render()
     {
-        if (API->m_state->m_render_target.m_framebuffer)
+        if (API->m_state->m_render_target.m_render_target)
         {
-            API->m_state->m_render_target.m_framebuffer->unbind();
+            API->m_state->m_render_target.m_render_target->unbind();
         }
 
         API->current_command_buffer().end();
@@ -170,7 +170,7 @@ namespace Engine
             size.height != static_cast<uint32_t>(m_swapchain->extent.height))
         {
             m_need_recreate_swap_chain = true;
-            m_render_target->size(size.width, size.height);
+            reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target)->frame()->size(size.width, size.height);
         }
     }
 

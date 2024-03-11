@@ -20,8 +20,8 @@ namespace Engine
         Vector<vk::CommandBuffer> m_command_buffers;
         Vector<SyncObject> m_sync_objects;
         std::vector<VkImageView> m_image_views;
-        struct VulkanRenderTarget* m_render_target = nullptr;
-        uint32_t m_buffer_index                    = 0;
+        struct RHI_RenderTarget* m_render_target = nullptr;
+        uint32_t m_buffer_index                  = 0;
 
 
         void init();

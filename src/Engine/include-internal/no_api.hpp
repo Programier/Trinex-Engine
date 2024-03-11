@@ -35,7 +35,6 @@ namespace Engine
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;
         ColorFormatFeatures color_format_features(ColorFormat) override;
-        size_t render_target_buffer_count() override;
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
 

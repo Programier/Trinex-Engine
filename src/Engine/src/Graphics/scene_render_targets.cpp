@@ -209,14 +209,14 @@ namespace Engine
         depth_stencil_attachment.depth_stencil_clear.stencil = 0.0;
 
         depth_stencil_attachment.texture =
-                Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>("Engine::GBuffer::Depth", this);
+                Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>("Engine::GBuffer::Depth");
         depth_stencil_attachment.texture->format = render_pass->depth_stencil_attachment.format;
 
         for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
             auto& info                   = attachment_texture_info[i];
             RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
-                    Strings::format("Engine::GBuffer::{}", info.name), this);
+                    Strings::format("Engine::GBuffer::{}", info.name));
             texture->format                  = render_pass->color_attachments[i].format;
             color_attachments[i].texture     = texture;
             color_attachments[i].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
@@ -347,7 +347,7 @@ namespace Engine
         color_attachments[0].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
 
         RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
-                "Engine::SceneColorOutput::Color", this);
+                "Engine::SceneColorOutput::Color");
         texture->format = render_pass->color_attachments[0].format;
 
         color_attachments[0].texture     = texture;

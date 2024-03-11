@@ -26,7 +26,7 @@ namespace Engine
                 new_render_pass = render_pass;
             }
             {
-                m_frame_index    = static_cast<byte>(rhi_object<RHI_RenderTarget>()->bind(new_render_pass));
+                rhi_object<RHI_RenderTarget>()->bind(new_render_pass);
                 m_current_target = this;
                 m_current_pass   = new_render_pass;
             }

@@ -6,8 +6,8 @@ namespace Engine
 
     struct VulkanState {
         struct {
-            struct VulkanRenderTargetFrame* m_framebuffer = nullptr;
-            struct VulkanRenderPass* m_render_pass        = nullptr;
+            struct VulkanRenderTargetBase* m_render_target = nullptr;
+            struct VulkanRenderPass* m_render_pass         = nullptr;
         } m_render_target;
         struct VulkanPipeline* m_pipeline = nullptr;
         struct VulkanVertexBuffer* m_current_vertex_buffer[15];

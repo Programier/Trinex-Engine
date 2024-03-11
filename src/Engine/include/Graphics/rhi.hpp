@@ -53,7 +53,7 @@ namespace Engine
     };
 
     struct RHI_RenderTarget : RHI_Object {
-        virtual Index bind(RenderPass* render_pass)                           = 0;
+        virtual void bind(RenderPass* render_pass)                            = 0;
         virtual void viewport(const ViewPort& viewport)                       = 0;
         virtual void scissor(const Scissor& scissor)                          = 0;
         virtual void clear_depth_stencil(const DepthStencilClearValue& value) = 0;
@@ -126,7 +126,6 @@ namespace Engine
         virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)          = 0;
         virtual RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass)         = 0;
         virtual ColorFormatFeatures color_format_features(ColorFormat format)              = 0;
-        virtual size_t render_target_buffer_count()                                        = 0;
 
         virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
         virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;
