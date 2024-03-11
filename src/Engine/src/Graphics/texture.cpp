@@ -32,19 +32,6 @@ namespace Engine
 
     Texture::Texture() = default;
 
-    const Texture& Texture::rhi_bind_combined(Sampler* sampler, BindLocation location) const
-    {
-        if (m_rhi_object)
-        {
-            RHI_Sampler* rhi_sampler = reinterpret_cast<RenderResource*>(sampler)->rhi_object<RHI_Sampler>();
-            if (rhi_sampler)
-            {
-                rhi_object<RHI_Texture>()->bind_combined(rhi_sampler, location);
-            }
-        }
-        return *this;
-    }
-
     Texture& Texture::generate_mipmap()
     {
         if (m_rhi_object)
@@ -54,17 +41,10 @@ namespace Engine
         return *this;
     }
 
-    Texture& Texture::setup_render_target_texture()
-    {
-        m_use_for_render_target = true;
-        return *this;
-    }
-
     bool Texture::is_render_target_texture() const
     {
-        return m_use_for_render_target;
+        return false;
     }
-
 
     Size2D Texture::mip_size(MipMapLevel level) const
     {

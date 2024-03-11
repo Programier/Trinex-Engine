@@ -1,8 +1,8 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/render_thread.hpp>
 #include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
-#include <Core/render_thread.hpp>
 
 namespace Engine
 {
@@ -20,54 +20,11 @@ namespace Engine
         return *this;
     }
 
-    RenderTarget::Frame::~Frame() = default;
-
-    RenderTarget& RenderTarget::push_frame(Frame* frame)
-    {
-        m_frames.push_back(frame);
-        return *this;
-    }
-
-    RenderTarget& RenderTarget::clear_frames(bool delete_frames)
-    {
-        if (delete_frames)
-        {
-            for (Frame* frame : m_frames)
-            {
-                delete frame;
-            }
-        }
-
-        m_frames.clear();
-        return *this;
-    }
-
-    RenderTarget::Frame* RenderTarget::current_frame() const
-    {
-        trinex_check(is_in_render_thread(), "current_frame should only be called in the rendering thread!");
-        return frame(m_frame_index);
-    }
-
-    RenderTarget::Frame* RenderTarget::frame(byte index) const
-    {
-        if (static_cast<byte>(m_frames.size()) > index)
-            return m_frames[index];
-        return nullptr;
-    }
-
-    size_t RenderTarget::frames_count() const
-    {
-        return m_frames.size();
-    }
-
     Size2D RenderTarget::render_target_size() const
     {
         return size;
     }
 
-
     RenderTarget::~RenderTarget()
-    {
-        clear_frames(true);
-    }
+    {}
 }// namespace Engine

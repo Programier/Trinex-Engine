@@ -15,6 +15,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <PropertyRenderers/imgui_class_property.hpp>
 
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
@@ -55,16 +56,10 @@ namespace Engine
         m_content_browser = nullptr;
     }
 
-    void MaterialEditorClient::on_properties_window_close()
-    {
-        m_properties = nullptr;
-    }
-
     void MaterialEditorClient::on_preview_close()
     {
         m_preview_window = nullptr;
     }
-
 
     MaterialEditorClient& MaterialEditorClient::create_content_browser()
     {
@@ -75,25 +70,12 @@ namespace Engine
         return *this;
     }
 
-    MaterialEditorClient& MaterialEditorClient::create_properties_window()
-    {
-        m_properties = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
-        m_properties->on_close.push(std::bind(&MaterialEditorClient::on_properties_window_close, this));
-
-        if (m_content_browser)
-        {
-            on_object_select(m_content_browser->selected_object);
-        }
-        return *this;
-    }
-
     MaterialEditorClient& MaterialEditorClient::create_preview_window()
     {
         m_preview_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialPreview>();
         m_preview_window->on_close.push(std::bind(&MaterialEditorClient::on_preview_close, this));
         return *this;
     }
-
 
     MaterialEditorClient& MaterialEditorClient::on_bind_viewport(class RenderViewport* viewport)
     {
@@ -115,7 +97,7 @@ namespace Engine
         ImGuiRenderer::Window* prev_window  = ImGuiRenderer::Window::current();
         ImGuiRenderer::Window::make_current(imgui_window);
 
-        create_properties_window().create_content_browser().create_preview_window();
+        create_content_browser().create_preview_window();
 
         ImGuiRenderer::Window::make_current(prev_window);
         Class* instance = Class::static_find(editor_config.material_compiler);
@@ -135,9 +117,21 @@ namespace Engine
         return *this;
     }
 
-    ImGuiObjectProperties* MaterialEditorClient::properties_window() const
+    MaterialEditorClient& MaterialEditorClient::render_properties()
     {
-        return m_properties;
+        ImGui::Begin("editor/Properties Title"_localized);
+
+        if (m_material == nullptr)
+        {
+            ImGui::End();
+            return *this;
+        }
+
+        ImGui::SeparatorText("Pipeline");
+        render_object_properties(m_material->pipeline, true);
+
+        ImGui::End();
+        return *this;
     }
 
     MaterialEditorClient& MaterialEditorClient::submit_compiled_source(const ShaderCompiler::ShaderSource& source)
@@ -181,11 +175,6 @@ namespace Engine
         if (m_preview_window)
         {
         }
-
-        if (m_properties)
-        {
-            m_properties->update(object);
-        }
     }
 
     void MaterialEditorClient::render_dock_window()
@@ -206,11 +195,6 @@ namespace Engine
                 if (ImGui::MenuItem("editor/Open Content Browser"_localized, nullptr, false, m_content_browser == nullptr))
                 {
                     create_content_browser();
-                }
-
-                if (ImGui::MenuItem("editor/Open Properties Window"_localized, nullptr, false, m_properties == nullptr))
-                {
-                    create_properties_window();
                 }
 
                 ImGui::Checkbox("editor/Open Material Code"_localized, &m_open_material_code_window);
@@ -273,7 +257,7 @@ namespace Engine
 
             ImGui::DockBuilderDockWindow(ContentBrowser::name(), dock_id_down);
             ImGui::DockBuilderDockWindow(ImGuiMaterialPreview::name(), dock_id_left);
-            ImGui::DockBuilderDockWindow(ImGuiObjectProperties::name(), dock_id_right);
+            ImGui::DockBuilderDockWindow("editor/Properties Title"_localized, dock_id_right);
 
             ImGui::DockBuilderDockWindow("###Material Source", dock_id);
 
@@ -295,7 +279,7 @@ namespace Engine
         render_dock_window();
 
         render_viewport(dt);
-        render_material_code();
+        render_properties();
 
         ImGui::End();
         viewport->window()->imgui_window()->end_frame();
@@ -352,10 +336,6 @@ namespace Engine
         ImGui::End();
         return *this;
     }
-
-    void MaterialEditorClient::render_material_code()
-    {}
-
 
     MaterialEditorClient& MaterialEditorClient::on_object_dropped(Object* object)
     {

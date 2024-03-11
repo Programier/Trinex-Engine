@@ -4,28 +4,18 @@
 
 namespace Engine
 {
-
-    void SingletoneBase::allocate_instance(const Class* class_instance)
+    void SingletoneBase::register_singletone(const Class* class_instance, Object* object)
     {
-        class_instance->create_object();
+        class_instance->m_singletone_object = object;
     }
 
-    void SingletoneBase::begin_destroy_instance(const Class* class_instance)
+    void SingletoneBase::unlink_instance(const Class* class_instance)
     {
-        Object* object = class_instance->singletone_instance();
-        if (object)
-        {
-            delete object;
-        }
+        class_instance->m_singletone_object = nullptr;
     }
 
     Object* SingletoneBase::extract_object_from_class(const Class* class_instance)
     {
         return class_instance->singletone_instance();
-    }
-
-    void SingletoneBase::remove_object_from_class(const Class* class_instance)
-    {
-        class_instance->m_singletone_object = nullptr;
     }
 }// namespace Engine

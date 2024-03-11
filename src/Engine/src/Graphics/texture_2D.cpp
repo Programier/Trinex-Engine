@@ -36,29 +36,13 @@ namespace Engine
         return *this;
     }
 
-    Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, const byte* data, size_t data_size, MipMapLevel mipmap)
+    Texture2D& Texture2D::update(const Size2D& size, const Offset2D& offset, const byte* data, size_t data_size,
+                                 MipMapLevel mipmap)
     {
         if (m_rhi_object)
         {
             rhi_object<RHI_Texture>()->update_texture_2D(size, offset, mipmap, data, data_size);
         }
-        return *this;
-    }
-
-    Texture2D& Texture2D::read_data(Buffer& data, MipMapLevel level)
-    {
-        throw EngineException("Unimplemented method");
-        return *this;
-    }
-
-
-    Texture2D& Texture2D::read_image(Image& image, MipMapLevel level)
-    {
-        auto texture_mip_size = mip_size(level);
-        image.m_width         = static_cast<int_t>(texture_mip_size.x);
-        image.m_height        = static_cast<int_t>(texture_mip_size.y);
-        read_data(image.m_data, level);
-        image.m_channels = image.m_data.size() / static_cast<std::size_t>(image.m_width * image.m_height);
         return *this;
     }
 
@@ -72,7 +56,6 @@ namespace Engine
         archive & image;
         return static_cast<bool>(archive);
     }
-
 
     TextureType Texture2D::type() const
     {

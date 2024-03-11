@@ -186,7 +186,6 @@ namespace Engine
         }
     };
 
-
     RenderViewport& RenderViewport::render()
     {
         RHI_Viewport* viewport = rhi_object<RHI_Viewport>();

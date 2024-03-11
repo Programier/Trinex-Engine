@@ -60,6 +60,6 @@ namespace Engine
 
 #undef implement_variadic_template
 
-        friend class Object;
+        friend class Singletone<KeyboardSystem, System>;
     };
 }// namespace Engine

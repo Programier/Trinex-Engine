@@ -5,6 +5,7 @@
 #include <Core/thread.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
+#include <Graphics/render_target_texture.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Window/window_manager.hpp>
@@ -15,21 +16,6 @@ namespace Engine
 
     implement_engine_class_default_init(EngineRenderTarget);
 
-    static void make_textures_non_editable(Vector<RenderTarget::Frame*>& frames)
-    {
-        for (auto& frame : frames)
-        {
-            if (frame->depth_stencil_attachment)
-            {
-                frame->depth_stencil_attachment->flags(Object::IsEditable, false);
-            }
-
-            for (auto& texture : frame->color_attachments)
-            {
-                texture->flags(Object::IsSerializable, false);
-            }
-        }
-    }
 
     void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
     {
@@ -60,27 +46,21 @@ namespace Engine
 
             m_scissor.pos  = {0, 0};
             m_scissor.size = size;
-
-            make_textures_non_editable(m_frames);
         }
 
-
-        for (RenderTarget::Frame* frame : m_frames)
+        if (m_enable_color_initialize)
         {
-            if (m_enable_color_initialize)
+            for (auto& attachment : color_attachments)
             {
-                for (Texture2D* texture : frame->color_attachments)
-                {
-                    texture->size = size;
-                    texture->init_resource();
-                }
+                attachment.texture->size = size;
+                attachment.texture->init_resource();
             }
+        }
 
-            if (frame->depth_stencil_attachment && m_enable_depth_stencil_initialize)
-            {
-                frame->depth_stencil_attachment->size = size;
-                frame->depth_stencil_attachment->init_resource();
-            }
+        if (depth_stencil_attachment.texture && m_enable_depth_stencil_initialize)
+        {
+            depth_stencil_attachment.texture->size = size;
+            depth_stencil_attachment.texture->init_resource();
         }
 
         init_resource();
@@ -217,87 +197,62 @@ namespace Engine
         return pass;
     }
 
-    Texture2D* GBuffer::Frame::base_color() const
-    {
-        return color_attachments[base_color_index].ptr();
-    }
-
-    Texture2D* GBuffer::Frame::position() const
-    {
-        return color_attachments[position_index].ptr();
-    }
-
-    Texture2D* GBuffer::Frame::normal() const
-    {
-        return color_attachments[normal_index].ptr();
-    }
-
-    Texture2D* GBuffer::Frame::emissive() const
-    {
-        return color_attachments[emissive_index].ptr();
-    }
-
-    Texture2D* GBuffer::Frame::msra_buffer() const
-    {
-        return color_attachments[msra_buffer_index];
-    }
-
-    Texture2D* GBuffer::Frame::depth() const
-    {
-        return depth_stencil_attachment.ptr();
-    }
-
 
     GBuffer::GBuffer()
     {
         info_log("GBuffer", "Creating GBuffer");
 
         render_pass = RenderPass::load_render_pass(RenderPassType::GBuffer);
+        color_attachments.resize(gbuffer_color_attachments);
+
+        depth_stencil_attachment.depth_stencil_clear.depth   = 1.f;
+        depth_stencil_attachment.depth_stencil_clear.stencil = 0.0;
+
+        depth_stencil_attachment.texture =
+                Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>("Engine::GBuffer::Depth", this);
+        depth_stencil_attachment.texture->format = render_pass->depth_stencil_attachment.format;
 
         for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
-            color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
-        }
-
-        depth_stencil_clear.depth   = 1.f;
-        depth_stencil_clear.stencil = 0.0f;
-
-        // Initialize render target frames
-        size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
-        Index frame_index   = 0;
-
-        while (frame_index < frames_count)
-        {
-            push_frame(new GBuffer::Frame());
-            frame_index++;
-        }
-
-        frame_index = 0;
-
-        for (RenderTarget::Frame* frame : m_frames)
-        {
-            frame->depth_stencil_attachment = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
-                    Strings::format("Engine::GBuffer::Depth {}", frame_index));
-            frame->depth_stencil_attachment->format = render_pass->depth_stencil_attachment.format;
-            frame->depth_stencil_attachment->setup_render_target_texture();
-
-
-            frame->color_attachments.resize(gbuffer_color_attachments);
-            for (size_t i = 0; i < gbuffer_color_attachments; i++)
-            {
-                auto& info         = attachment_texture_info[i];
-                Texture2D* texture = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
-                        Strings::format("Engine::GBuffer::{} {}", info.name, frame_index));
-
-                texture->format = render_pass->color_attachments[i].format;
-                texture->setup_render_target_texture();
-                frame->color_attachments[i] = texture;
-            }
-
-            frame_index++;
+            auto& info                   = attachment_texture_info[i];
+            RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
+                    Strings::format("Engine::GBuffer::{}", info.name), this);
+            texture->format                  = render_pass->color_attachments[i].format;
+            color_attachments[i].texture     = texture;
+            color_attachments[i].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
         init(WindowManager::instance()->calculate_gbuffer_size());
+    }
+
+    RenderTargetTexture* GBuffer::base_color() const
+    {
+        return color_attachments[base_color_index].texture.ptr();
+    }
+
+    RenderTargetTexture* GBuffer::position() const
+    {
+        return color_attachments[position_index].texture.ptr();
+    }
+
+    RenderTargetTexture* GBuffer::normal() const
+    {
+        return color_attachments[normal_index].texture.ptr();
+    }
+
+    RenderTargetTexture* GBuffer::emissive() const
+    {
+        return color_attachments[emissive_index].texture.ptr();
+    }
+
+    RenderTargetTexture* GBuffer::msra_buffer() const
+    {
+        return color_attachments[msra_buffer_index].texture.ptr();
+    }
+
+    RenderTargetTexture* GBuffer::depth() const
+    {
+        return depth_stencil_attachment.texture.ptr();
     }
 
     GBuffer::~GBuffer()
@@ -305,23 +260,8 @@ namespace Engine
         info_log("GBuffer", "Destroy GBuffer");
     }
 
-    GBuffer::Frame* GBuffer::current_frame() const
-    {
-        return reinterpret_cast<Frame*>(Super::current_frame());
-    }
-
-    GBuffer::Frame* GBuffer::frame(byte index) const
-    {
-        return reinterpret_cast<Frame*>(Super::frame(index));
-    }
-
-
     implement_engine_class_default_init(GBufferBaseColorOutput);
 
-    Texture2D* GBufferBaseColorOutput::Frame::texture() const
-    {
-        return color_attachments[0].ptr();
-    }
 
     GBufferBaseColorOutput::GBufferBaseColorOutput()
     {
@@ -331,30 +271,18 @@ namespace Engine
         m_enable_depth_stencil_initialize = false;
 
         render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
-        color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
+        color_attachments.resize(1);
+        color_attachments[0].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
+        color_attachments[0].texture     = GBuffer::instance()->base_color();
 
-        // Initialize render target frames
-        size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
-        Index frame_index   = 0;
-
-        while (frame_index < frames_count)
-        {
-            push_frame(new GBufferBaseColorOutput::Frame());
-            frame_index++;
-        }
-
-        frame_index = 0;
-
-        for (RenderTarget::Frame* frame : m_frames)
-        {
-            frame->color_attachments.resize(1);
-            frame->color_attachments[0]     = GBuffer::instance()->frame(frame_index)->base_color();
-            frame->depth_stencil_attachment = GBuffer::instance()->frame(frame_index)->depth_stencil_attachment;
-
-            frame_index++;
-        }
+        depth_stencil_attachment.texture = GBuffer::instance()->depth();
 
         init(WindowManager::instance()->calculate_gbuffer_size());
+    }
+
+    RenderTargetTexture* GBufferBaseColorOutput::texture() const
+    {
+        return color_attachments[0].texture.ptr();
     }
 
     GBufferBaseColorOutput::~GBufferBaseColorOutput()
@@ -362,22 +290,7 @@ namespace Engine
         debug_log("GBufferBaseColorOutput", "Destroy GBufferBaseColorOutput");
     }
 
-    GBufferBaseColorOutput::Frame* GBufferBaseColorOutput::current_frame() const
-    {
-        return reinterpret_cast<Frame*>(Super::current_frame());
-    }
-
-    GBufferBaseColorOutput::Frame* GBufferBaseColorOutput::frame(byte index) const
-    {
-        return reinterpret_cast<Frame*>(Super::frame(index));
-    }
-
     implement_engine_class_default_init(SceneColorOutput);
-
-    Texture2D* SceneColorOutput::Frame::texture() const
-    {
-        return color_attachments[0].ptr();
-    }
 
     class OneAttachmentOutputRenderPass : public EngineResource<RenderPass>
     {
@@ -425,55 +338,32 @@ namespace Engine
     {
         info_log("SceneColorOutput", "Creating SceneColorOutput");
 
+        m_enable_color_initialize         = true;
         m_enable_depth_stencil_initialize = false;
 
         render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
-        color_clear.push_back(ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f));
+        color_attachments.resize(1);
 
+        color_attachments[0].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
 
-        // Initialize render target frames
-        size_t frames_count = engine_instance->rhi()->render_target_buffer_count();
-        Index frame_index   = 0;
+        RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
+                "Engine::SceneColorOutput::Color", this);
+        texture->format = render_pass->color_attachments[0].format;
 
-        while (frame_index < frames_count)
-        {
-            push_frame(new SceneColorOutput::Frame());
-            frame_index++;
-        }
-
-        frame_index = 0;
-
-        for (RenderTarget::Frame* frame : m_frames)
-        {
-            frame->color_attachments.resize(1);
-
-            Texture2D* texture = Object::new_non_serializable_instance_named<EngineResource<Texture2D>>(
-                    Strings::format("Engine::SceneColorOutput::Color {}", frame_index));
-
-            texture->format = render_pass->color_attachments[0].format;
-            texture->setup_render_target_texture();
-            frame->color_attachments[0] = texture;
-
-            frame->depth_stencil_attachment = GBuffer::instance()->frame(frame_index)->depth_stencil_attachment;
-            frame_index++;
-        }
+        color_attachments[0].texture     = texture;
+        depth_stencil_attachment.texture = GBuffer::instance()->depth();
 
         init(WindowManager::instance()->calculate_gbuffer_size());
+    }
+
+    RenderTargetTexture* SceneColorOutput::texture() const
+    {
+        return color_attachments[0].texture.ptr();
     }
 
     SceneColorOutput::~SceneColorOutput()
     {
         debug_log("SceneColorOutput", "Destroy SceneColorOutput");
-    }
-
-    SceneColorOutput::Frame* SceneColorOutput::current_frame() const
-    {
-        return reinterpret_cast<Frame*>(Super::current_frame());
-    }
-
-    SceneColorOutput::Frame* SceneColorOutput::frame(byte index) const
-    {
-        return reinterpret_cast<Frame*>(Super::frame(index));
     }
 
     ENGINE_EXPORT void update_render_targets_size()

@@ -26,12 +26,6 @@ namespace Engine
         glBindTexture(m_type, 0);
     }
 
-    void OpenGL_Texture::bind_combined(RHI_Sampler* sampler, BindLocation location)
-    {
-        bind(location);
-        sampler->bind(location);
-    }
-
     void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
                                            size_t data_size)
     {

@@ -1,5 +1,6 @@
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
+#include <Graphics/render_target_texture.hpp>
 #include <opengl_api.hpp>
 #include <opengl_render_pass.hpp>
 #include <opengl_render_target.hpp>
@@ -90,9 +91,14 @@ namespace Engine
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
-        size_t index          = 0;
-        m_clear_color         = render_target->color_clear;
-        m_depth_stencil_clear = render_target->depth_stencil_clear;
+        size_t index = 0;
+
+        for (auto& attachment : render_target->color_attachments)
+        {
+            m_clear_color.push_back(attachment.color_clear);
+        }
+
+        m_depth_stencil_clear = render_target->depth_stencil_attachment.depth_stencil_clear;
 
         m_viewport.size      = render_target->size;
         m_viewport.pos       = {0.0f, 0.0f};
@@ -103,22 +109,26 @@ namespace Engine
         m_scissor.pos  = {0.0f, 0.0f};
 
         Vector<GLenum> color_attachments;
-        color_attachments.reserve(render_target->frame(0)->color_attachments.size());
+        color_attachments.reserve(render_target->color_attachments.size());
 
-        for (const Texture2D* color_attachment : render_target->frame(0)->color_attachments)
+        for (const auto& color_attachment : render_target->color_attachments)
         {
-            info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_attachment, this);
-            attach_texture(color_attachment, GL_COLOR_ATTACHMENT0 + index);
+            auto color_texture = color_attachment.texture.ptr()->texture_at(0);
+            info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_texture, this);
+            attach_texture(color_texture, GL_COLOR_ATTACHMENT0 + index);
             color_attachments.push_back(GL_COLOR_ATTACHMENT0 + index);
             index++;
         }
 
-        const Texture2D* depth_attachment = render_target->frame(0)->depth_stencil_attachment.ptr();
+        auto* depth_color_attachment = render_target->depth_stencil_attachment.texture.ptr();
 
-        if (depth_attachment)
+        if (depth_color_attachment)
         {
-            attach_texture(depth_attachment,
-                           get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->m_format.m_format));
+            if (auto depth_attachment = depth_color_attachment->texture_at(0))
+            {
+                attach_texture(depth_attachment,
+                               get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->m_format.m_format));
+            }
         }
 
         glDrawBuffers(color_attachments.size(), color_attachments.data());
@@ -184,8 +194,6 @@ namespace Engine
 
     RHI_RenderTarget* OpenGL::create_render_target(const RenderTarget* target)
     {
-        if (target->frames_count() != render_target_buffer_count())
-            throw EngineException("Frames count is mismatch with API requirements");
         return &((new OpenGL_RenderTarget())->init(target));
     }
 }// namespace Engine

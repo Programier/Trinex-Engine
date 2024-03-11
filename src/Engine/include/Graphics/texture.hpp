@@ -22,17 +22,11 @@ namespace Engine
         Swizzle swizzle_b          = Swizzle::Identity;
         Swizzle swizzle_a          = Swizzle::Identity;
 
-    protected:
-        bool m_use_for_render_target = false;
-
     public:
         Texture();
         delete_copy_constructors(Texture);
-        const Texture& rhi_bind_combined(Sampler* sampler, BindLocation location) const;
         Texture& generate_mipmap();
-        Texture& setup_render_target_texture();
-        bool is_render_target_texture() const;
-
+        virtual bool is_render_target_texture() const;
 
         Size2D mip_size(MipMapLevel level = 0) const;
         bool archive_process(Archive& archive) override;

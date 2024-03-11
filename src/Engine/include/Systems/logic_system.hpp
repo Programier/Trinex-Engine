@@ -15,6 +15,6 @@ namespace Engine
         LogicSystem& shutdown() override;
         LogicSystem& wait() override;
         class Class* depends_on() const override;
-        friend class Object;
+        friend class Singletone<LogicSystem, System>;
     };
 }// namespace Engine

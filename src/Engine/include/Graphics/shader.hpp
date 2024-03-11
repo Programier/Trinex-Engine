@@ -36,7 +36,6 @@ namespace Engine
 
         Vector<Sampler> samplers;
         Vector<Texture> textures;
-        Vector<SamplerCombined> combined_samplers;
         Vector<SSBO> ssbo;
         Buffer source_code;
 

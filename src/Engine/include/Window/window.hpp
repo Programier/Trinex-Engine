@@ -85,7 +85,6 @@ namespace Engine
         Window(WindowInterface* interface = nullptr, bool vsync = true);
         ~Window();
 
-        friend class Object;
         friend class WindowManager;
     };
 }// namespace Engine

@@ -7,7 +7,9 @@ namespace Engine
     class EngineResource : public Parent
     {
     public:
-        bool is_engine_resource() const
+        using Parent::Parent;
+
+        bool is_engine_resource() const override
         {
             return true;
         }

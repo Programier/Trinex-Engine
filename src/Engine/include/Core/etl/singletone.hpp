@@ -11,17 +11,16 @@ namespace Engine
     class ENGINE_EXPORT SingletoneBase
     {
     protected:
-        static void allocate_instance(const Class* class_instance);
-        static void begin_destroy_instance(const Class* class_instance);
+        static void register_singletone(const Class* class_instance, Object* object);
+        static void unlink_instance(const Class* class_instance);
         static Object* extract_object_from_class(const Class* class_instance);
-        static void remove_object_from_class(const Class* class_instance);
     };
 
     struct EmptySingletoneParent {
     };
 
     template<typename Type, typename Parent = Object, bool with_destroy_controller = true>
-    class Singletone : public Parent, private SingletoneBase
+    class Singletone : public Parent, public SingletoneBase
     {
     public:
         static constexpr inline bool singletone_based_on_object = std::is_base_of_v<Object, Type>;
@@ -33,7 +32,7 @@ namespace Engine
             {
                 if constexpr (singletone_based_on_object)
                 {
-                    allocate_instance(Type::static_class_instance());
+                    register_singletone(Type::static_class_instance(), new Type(std::forward<Args>(args)...));
                 }
                 else
                 {
@@ -60,6 +59,7 @@ namespace Engine
             if constexpr (singletone_based_on_object)
             {
                 Object* object = extract_object_from_class(Type::static_class_instance());
+
                 if (object)
                 {
                     return object->instance_cast<Type>();
@@ -73,7 +73,6 @@ namespace Engine
             }
         }
 
-
         ~Singletone()
         {
             if constexpr (!singletone_based_on_object)
@@ -82,7 +81,7 @@ namespace Engine
             }
             else
             {
-                remove_object_from_class(Type::static_class_instance());
+                unlink_instance(Type::static_class_instance());
             }
         }
     };

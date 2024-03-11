@@ -47,6 +47,5 @@ namespace Engine
 
         friend class Window;
         friend class Singletone<WindowManager, EmptyClass>;
-        friend class Object;
     };
 }// namespace Engine

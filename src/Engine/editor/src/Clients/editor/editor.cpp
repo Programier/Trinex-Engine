@@ -518,43 +518,31 @@ namespace Engine
 
         if (index > 0)
         {
-            auto* frame = GBuffer::instance()->current_frame();
+            auto* target = GBuffer::instance();
 
-            if (frame)
+            if (target)
             {
                 switch (index)
                 {
                     case 1:
-                        return frame->base_color();
+                        return reinterpret_cast<Texture2D*>(target->base_color());
                     case 2:
-                        return frame->position();
-
+                        return reinterpret_cast<Texture2D*>(target->position());
                     case 3:
-                        return frame->normal();
-
+                        return reinterpret_cast<Texture2D*>(target->normal());
                     case 4:
-                        return frame->emissive();
-
+                        return reinterpret_cast<Texture2D*>(target->emissive());
                     case 5:
-                        return frame->msra_buffer();
-
+                        return reinterpret_cast<Texture2D*>(target->msra_buffer());
                     case 6:
-                        return frame->depth();
-
+                        return reinterpret_cast<Texture2D*>(target->depth());
                     default:
                         break;
                 }
             }
         }
 
-        auto* frame = SceneColorOutput::instance()->current_frame();
-
-        if (frame)
-        {
-            return frame->texture();
-        }
-
-        throw EngineException("Failed to find output texture!");
+        return reinterpret_cast<Texture2D*>(SceneColorOutput::instance()->texture());
     }
 
     EditorClient& EditorClient::render_viewport_window(float dt)
@@ -583,7 +571,7 @@ namespace Engine
             };
 
             ImGui::GetWindowDrawList()->AddNextImageUpdateCallback(update_callback, reinterpret_cast<void*>(m_target_view_index));
-            ImGui::Image(SceneColorOutput::instance()->frame(0)->texture(), size);
+            ImGui::Image(reinterpret_cast<Texture2D*>(SceneColorOutput::instance()->texture()), size);
             m_viewport_is_hovered = ImGui::IsWindowHovered();
 
             ImGui::SetCursorPos(current_pos);

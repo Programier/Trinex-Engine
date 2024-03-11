@@ -27,7 +27,6 @@ namespace Engine
 
         void generate_mipmap() override;
         void bind(BindLocation location) override;
-        void bind_combined(RHI_Sampler* sampler, BindLocation location) override;
         void update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, uint_t layer, const byte* data,
                             size_t data_size);
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,

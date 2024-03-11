@@ -39,7 +39,6 @@ namespace Engine
     struct VulkanRenderTarget : RHI_RenderTarget {
         Vector<VulkanRenderTargetFrame*> m_frames;
         struct VulkanRenderPass* m_render_pass = nullptr;
-
         vk::RenderPassBeginInfo m_render_pass_info;
         vk::Extent2D m_size;
         vk::Rect2D m_scissor;

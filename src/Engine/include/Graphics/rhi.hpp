@@ -47,10 +47,9 @@ namespace Engine
     };
 
     struct RHI_Texture : RHI_BindingObject {
-        virtual void generate_mipmap()                                          = 0;
-        virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
+        virtual void generate_mipmap()                   = 0;
         virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
-                                       size_t data_size)                        = 0;
+                                       size_t data_size) = 0;
     };
 
     struct RHI_RenderTarget : RHI_Object {
@@ -99,10 +98,10 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT RHI {
-        virtual RHI& imgui_init(ImGuiContext*)                                              = 0;
-        virtual RHI& imgui_terminate(ImGuiContext*)                                         = 0;
-        virtual RHI& imgui_new_frame(ImGuiContext*)                                         = 0;
-        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*)                               = 0;
+        virtual RHI& imgui_init(ImGuiContext*)                = 0;
+        virtual RHI& imgui_terminate(ImGuiContext*)           = 0;
+        virtual RHI& imgui_new_frame(ImGuiContext*)           = 0;
+        virtual RHI& imgui_render(ImGuiContext*, ImDrawData*) = 0;
 
         virtual RHI& destroy_object(RHI_Object* object) = 0;
 

@@ -46,6 +46,6 @@ namespace Engine
 
         EventSystem& process_event_method(ProcessEventMethod method);
 
-        friend class Object;
+        friend class Singletone<EventSystem, Engine::System>;
     };
 }// namespace Engine

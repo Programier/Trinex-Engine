@@ -31,6 +31,6 @@ namespace Engine
         virtual GameControllerSystem& shutdown() override;
         GameController* controller(Identifier id) const;
 
-        friend class Object;
+        friend class Singletone<GameControllerSystem, System>;
     };
 }// namespace Engine

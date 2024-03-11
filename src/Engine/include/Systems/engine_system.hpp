@@ -15,6 +15,6 @@ namespace Engine
         EngineSystem& update(float dt) override;
         EngineSystem& create_systems_from_config();
 
-        friend class Object;
+        friend class Singletone<EngineSystem, System>;
     };
 }// namespace Engine

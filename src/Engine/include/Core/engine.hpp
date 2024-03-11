@@ -87,7 +87,6 @@ namespace Engine
         Index frame_index() const;
 
         friend class Singletone;
-        friend class Object;
         friend class EngineSystem;
     };
 

@@ -140,15 +140,6 @@ namespace Engine
         }
     }
 
-    void BindingMaterialParameter::bind_combined(class Engine::Sampler* sampler, class Engine::Texture2D* texture)
-    {
-        if (texture && sampler)
-        {
-            texture->rhi_bind_combined(sampler, location);
-        }
-    }
-
-
     bool BindingMaterialParameter::archive_process(Archive& ar)
     {
         ar & location;
@@ -208,57 +199,6 @@ namespace Engine
         return *this;
     }
 
-    MaterialParameter::Type CombinedTexture2DMaterialParameter::type() const
-    {
-        return MaterialParameter::Type::CombinedTexture2D;
-    }
-
-    MaterialParameter& CombinedTexture2DMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-    {
-        bind_combined(sampler, texture);
-        return *this;
-    }
-
-    bool CombinedTexture2DMaterialParameter::archive_process(Archive& ar)
-    {
-        if (!BindingMaterialParameter::archive_process(ar))
-            return false;
-
-        texture.archive_process(ar, true);
-        sampler.archive_process(ar, true);
-        return ar;
-    }
-
-    Texture* CombinedTexture2DMaterialParameter::texture_param() const
-    {
-        return texture.ptr();
-    }
-
-    Sampler* CombinedTexture2DMaterialParameter::sampler_param() const
-    {
-        return sampler.ptr();
-    }
-
-    CombinedTexture2DMaterialParameter& CombinedTexture2DMaterialParameter::texture_param(class Texture* new_texture)
-    {
-        if (new_texture == nullptr)
-        {
-            texture = nullptr;
-        }
-        else if (class Texture2D* new_texture_2d = Object::instance_cast<class Texture2D>(new_texture))
-        {
-            texture = new_texture_2d;
-        }
-        return *this;
-    }
-
-    CombinedTexture2DMaterialParameter& CombinedTexture2DMaterialParameter::sampler_param(class Sampler* new_sampler)
-    {
-        sampler = new_sampler;
-        return *this;
-    }
-
-
     MaterialParameter::Type Texture2DMaterialParameter::type() const
     {
         return MaterialParameter::Type::Texture2D;
@@ -314,106 +254,6 @@ namespace Engine
             Matrix4f model = component ? component->world_transform().matrix() : Matrix4f(1.f);
             engine_instance->rhi()->update_local_parameter(reinterpret_cast<const byte*>(&model), sizeof(model), offset);
         }
-        return *this;
-    }
-
-    BaseColorTextureMaterialParameter::Type BaseColorTextureMaterialParameter::type() const
-    {
-        return Type::BaseColorTexture;
-    }
-
-    MaterialParameter::Type BaseColorTextureMaterialParameter::binding_object_type() const
-    {
-        return Type::CombinedTexture2D;
-    }
-
-    BaseColorTextureMaterialParameter& BaseColorTextureMaterialParameter::apply(const Pipeline* pipeline,
-                                                                                SceneComponent* component)
-    {
-        bind_combined(sampler, GBuffer::instance()->current_frame()->base_color());
-        return *this;
-    }
-
-    PositionTextureMaterialParameter::Type PositionTextureMaterialParameter::type() const
-    {
-        return Type::PositionTexture;
-    }
-
-    MaterialParameter::Type PositionTextureMaterialParameter::binding_object_type() const
-    {
-        return Type::CombinedTexture2D;
-    }
-
-    PositionTextureMaterialParameter& PositionTextureMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-    {
-        bind_combined(sampler, GBuffer::instance()->current_frame()->position());
-        return *this;
-    }
-
-    NormalTextureMaterialParameter::Type NormalTextureMaterialParameter::type() const
-    {
-        return Type::NormalTexture;
-    }
-
-    MaterialParameter::Type NormalTextureMaterialParameter::binding_object_type() const
-    {
-        return Type::CombinedTexture2D;
-    }
-
-
-    NormalTextureMaterialParameter& NormalTextureMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-    {
-        bind_combined(sampler, GBuffer::instance()->current_frame()->normal());
-        return *this;
-    }
-
-    EmissiveTextureMaterialParameter::Type EmissiveTextureMaterialParameter::type() const
-    {
-        return Type::EmissiveTexture;
-    }
-
-    MaterialParameter::Type EmissiveTextureMaterialParameter::binding_object_type() const
-    {
-        return Type::CombinedTexture2D;
-    }
-
-    EmissiveTextureMaterialParameter& EmissiveTextureMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-    {
-        bind_combined(sampler, GBuffer::instance()->current_frame()->emissive());
-        return *this;
-    }
-
-    MSRABufferTextureMaterialParameter::Type MSRABufferTextureMaterialParameter::type() const
-    {
-        return Type::MSRABufferTexture;
-    }
-
-    MaterialParameter::Type MSRABufferTextureMaterialParameter::binding_object_type() const
-    {
-        return Type::CombinedTexture2D;
-    }
-
-    MSRABufferTextureMaterialParameter& MSRABufferTextureMaterialParameter::apply(const Pipeline* pipeline,
-                                                                                  SceneComponent* component)
-    {
-        bind_combined(sampler, GBuffer::instance()->current_frame()->msra_buffer());
-        return *this;
-    }
-
-    SceneOutputTextureMaterialParameter::Type SceneOutputTextureMaterialParameter::type() const
-    {
-        return Type::SceneOutputTexture;
-    }
-
-    MaterialParameter::Type SceneOutputTextureMaterialParameter::binding_object_type() const
-    {
-        return Type::CombinedTexture2D;
-    }
-
-    SceneOutputTextureMaterialParameter& SceneOutputTextureMaterialParameter::apply(const Pipeline* pipeline,
-                                                                                    SceneComponent* component)
-    {
-        bind_combined(sampler, SceneColorOutput::instance()->current_frame()->texture());
         return *this;
     }
 
@@ -505,14 +345,13 @@ namespace Engine
     declare_allocator(Mat4);
     declare_allocator(Sampler);
     declare_allocator(Texture2D);
-    declare_allocator(CombinedTexture2D);
     declare_allocator(ModelMatrix);
-    declare_allocator(BaseColorTexture);
-    declare_allocator(PositionTexture);
-    declare_allocator(NormalTexture);
-    declare_allocator(EmissiveTexture);
-    declare_allocator(MSRABufferTexture);
-    declare_allocator(SceneOutputTexture);
+    //    declare_allocator(BaseColorTexture);
+    //    declare_allocator(PositionTexture);
+    //    declare_allocator(NormalTexture);
+    //    declare_allocator(EmissiveTexture);
+    //    declare_allocator(MSRABufferTexture);
+    //    declare_allocator(SceneOutputTexture);
 
 
 #define new_param_allocator(type)                                                                                                \
@@ -544,14 +383,7 @@ namespace Engine
             new_param_allocator(Mat4);
             new_param_allocator(Sampler);
             new_param_allocator(Texture2D);
-            new_param_allocator(CombinedTexture2D);
             new_param_allocator(ModelMatrix);
-            new_param_allocator(BaseColorTexture);
-            new_param_allocator(PositionTexture);
-            new_param_allocator(NormalTexture);
-            new_param_allocator(EmissiveTexture);
-            new_param_allocator(MSRABufferTexture);
-            new_param_allocator(SceneOutputTexture);
 
             default:
                 return nullptr;
@@ -636,15 +468,6 @@ namespace Engine
         {
             MaterialParameter* parameter = head->find_parameter(sampler.name);
             if (parameter && parameter->binding_object_type() == MaterialParameter::Type::Sampler)
-            {
-                parameter->apply(pipeline, component);
-            }
-        }
-
-        for (auto& texture : shader->combined_samplers)
-        {
-            MaterialParameter* parameter = head->find_parameter(texture.name);
-            if (parameter && parameter->binding_object_type() == MaterialParameter::Type::CombinedTexture2D)
             {
                 parameter->apply(pipeline, component);
             }

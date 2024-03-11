@@ -36,15 +36,7 @@ namespace Engine
             Mat4               = 17,
             Sampler            = 18,
             Texture2D          = 19,
-            CombinedTexture2D  = 20,
             ModelMatrix        = 21,
-            BaseColorTexture   = 22,
-            PositionTexture    = 23,
-            NormalTexture      = 24,
-            EmissiveTexture    = 25,
-            MSRABufferTexture  = 26,
-            SceneOutputTexture = 27,
-
             __COUNT__ = 28
         };
 
@@ -151,7 +143,6 @@ namespace Engine
     protected:
         void bind_texture(class Engine::Texture2D* texture);
         void bind_sampler(class Engine::Sampler* sampler);
-        void bind_combined(class Engine::Sampler* sampler, class Engine::Texture2D* texture);
         bool archive_process(Archive& ar) override;
 
     public:
@@ -173,22 +164,6 @@ namespace Engine
         SamplerMaterialParameter& sampler_param(class Sampler* sampler) override;
     };
 
-    class CombinedTexture2DMaterialParameter : public BindingMaterialParameter
-    {
-    public:
-        Pointer<class Sampler> sampler;
-        Pointer<class Texture2D> texture;
-
-        Type type() const override;
-        MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-        bool archive_process(Archive& ar) override;
-
-        class Texture* texture_param() const override;
-        class Sampler* sampler_param() const override;
-        CombinedTexture2DMaterialParameter& texture_param(class Texture* texture) override;
-        CombinedTexture2DMaterialParameter& sampler_param(class Sampler* sampler) override;
-    };
-
     struct Texture2DMaterialParameter : public BindingMaterialParameter {
         Pointer<class Texture2D> texture;
 
@@ -202,43 +177,6 @@ namespace Engine
     struct ModelMatrixMaterialParameter : public MaterialParameter {
         Type type() const override;
         ModelMatrixMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
-
-    struct BaseColorTextureMaterialParameter : SamplerMaterialParameter {
-        Type type() const override;
-        Type binding_object_type() const override;
-        BaseColorTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
-    struct PositionTextureMaterialParameter : SamplerMaterialParameter {
-        Type type() const override;
-        Type binding_object_type() const override;
-        PositionTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
-    struct NormalTextureMaterialParameter : SamplerMaterialParameter {
-        Type type() const override;
-        Type binding_object_type() const override;
-        NormalTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
-    struct EmissiveTextureMaterialParameter : SamplerMaterialParameter {
-        Type type() const override;
-        Type binding_object_type() const override;
-        EmissiveTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
-    struct MSRABufferTextureMaterialParameter : SamplerMaterialParameter {
-        Type type() const override;
-        Type binding_object_type() const override;
-        MSRABufferTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
-    struct SceneOutputTextureMaterialParameter : SamplerMaterialParameter {
-        Type type() const override;
-        Type binding_object_type() const override;
-        SceneOutputTextureMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
 

@@ -155,14 +155,6 @@ namespace Engine
         }
     }
 
-    void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindLocation location)
-    {
-        if (API->m_state->m_pipeline)
-        {
-            API->m_state->m_pipeline->bind_combined_sampler(reinterpret_cast<VulkanSampler*>(sampler), this, location);
-        }
-    }
-
     VulkanTexture& VulkanTexture::destroy()
     {
         DESTROY_CALL(destroyImage, m_image);

@@ -37,16 +37,18 @@ namespace Engine
         RenderResource();
 
         bool has_object() const;
+        virtual RHI_Object* rhi_object_pointer() const;
+
         template<typename T>
         T* rhi_object() const
         {
-            return reinterpret_cast<T*>(m_rhi_object.get());
+            return reinterpret_cast<T*>(rhi_object_pointer());
         }
 
         virtual RenderResource& rhi_create();
-        RenderResource& init_resource(bool wait_initialize = false);
-        RenderResource& rhi_destroy();
+        virtual RenderResource& rhi_destroy();
 
+        RenderResource& init_resource(bool wait_initialize = false);
         RenderResource& postload() override;
 
         static void release_render_resouce(RHI_Object* object);

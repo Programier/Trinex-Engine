@@ -33,7 +33,6 @@ namespace Engine
 
         ar & samplers;
         ar & textures;
-        ar & combined_samplers;
         ar & ssbo;
         ar & source_code;
 
@@ -44,7 +43,6 @@ namespace Engine
     {
         samplers.clear();
         textures.clear();
-        combined_samplers.clear();
         ssbo.clear();
         return *this;
     }

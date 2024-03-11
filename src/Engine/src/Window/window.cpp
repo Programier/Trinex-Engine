@@ -38,7 +38,6 @@ namespace Engine
         }
     };
 
-
     RenderPass* RenderPass::load_window_render_pass()
     {
         RenderPass* render_pass = Object::new_instance<WindowRenderPass>();

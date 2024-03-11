@@ -69,7 +69,7 @@ namespace Engine
         const ButtonInfo& button_info(Mouse::Button button, Window* window = nullptr) const;
         const WheelInfo& wheel_info(Window* window = nullptr) const;
 
-        friend class Object;
+        friend class Singletone<MouseSystem, System>;
     };
 
 }// namespace Engine

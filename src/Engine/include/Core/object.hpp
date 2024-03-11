@@ -138,23 +138,20 @@ namespace Engine
                 {
                     return Type::instance();
                 }
-            }
 
-            return new Type(std::forward<Args>(args)...);
+                return Type::create_instance(std::forward<Args>(args)...);
+            }
+            else
+            {
+                return new Type(std::forward<Args>(args)...);
+            }
         }
 
         template<typename Type, typename... Args>
         static Type* new_non_serializable_instance(Args&&... args)
         {
-            if constexpr (is_singletone_v<Type>)
-            {
-                if (Type::instance() != nullptr)
-                {
-                    return Type::instance();
-                }
-            }
+            Type* instance = new_instance<Type>(std::forward<Args>(args)...);
 
-            Type* instance = new Type(std::forward<Args>(args)...);
             if constexpr (is_object_based_v<Type>)
             {
                 instance->flags(IsSerializable, false);
@@ -276,7 +273,8 @@ private:
     class Engine::Class* class_name::m_static_class = nullptr;                                                                   \
     Engine::Object* class_name::static_constructor()                                                                             \
     {                                                                                                                            \
-        if constexpr (std::is_abstract_v<class_name>)                                                                            \
+        if constexpr (std::is_abstract_v<class_name> ||                                                                          \
+                      (!std::is_default_constructible_v<class_name> && !Engine::is_singletone_v<class_name>) )                   \
         {                                                                                                                        \
             return nullptr;                                                                                                      \
         }                                                                                                                        \

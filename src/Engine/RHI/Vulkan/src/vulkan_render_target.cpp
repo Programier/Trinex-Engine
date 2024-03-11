@@ -1,5 +1,6 @@
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
+#include <Graphics/render_target_texture.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
@@ -20,9 +21,10 @@ namespace Engine
         m_attachments.resize(render_pass->attachments_count());
 
         Index index = 0;
-        for (const Texture2D* color_binding : render_target->frame(frame)->color_attachments)
+        for (auto& attachment : render_target->color_attachments)
         {
-            VulkanTexture* texture = color_binding->rhi_object<VulkanTexture>();
+            const Texture2D* color_binding = attachment.texture.ptr()->texture_at(frame);
+            VulkanTexture* texture         = color_binding->rhi_object<VulkanTexture>();
 
             trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
             bool usage_check = texture->can_use_color_as_color_attachment();
@@ -35,7 +37,7 @@ namespace Engine
 
         if (render_pass->m_has_depth_attachment)
         {
-            const Texture2D* binding = render_target->frame(frame)->depth_stencil_attachment;
+            const Texture2D* binding = render_target->depth_stencil_attachment.texture.ptr()->texture_at(frame);
             VulkanTexture* texture   = binding->rhi_object<VulkanTexture>();
             trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
@@ -90,7 +92,6 @@ namespace Engine
         {
             return;
         }
-
 
         if (API->m_state->m_render_target.m_framebuffer)
         {
@@ -191,15 +192,17 @@ namespace Engine
 
         for (Index index = 0, count = render_pass->attachments_count(); index < count; index++)
         {
-            m_clear_values[index].color = vk::ClearColorValue(
-                    Array<float, 4>({render_target->color_clear[index].x, render_target->color_clear[index].y,
-                                     render_target->color_clear[index].z, render_target->color_clear[index].a}));
+            m_clear_values[index].color = vk::ClearColorValue(Array<float, 4>(
+                    {render_target->color_attachments[index].color_clear.x, render_target->color_attachments[index].color_clear.y,
+                     render_target->color_attachments[index].color_clear.z,
+                     render_target->color_attachments[index].color_clear.a}));
         }
 
         if (render_pass->m_has_depth_attachment)
         {
-            m_clear_values.back().depthStencil = vk::ClearDepthStencilValue(render_target->depth_stencil_clear.depth,
-                                                                            render_target->depth_stencil_clear.stencil);
+            m_clear_values.back().depthStencil =
+                    vk::ClearDepthStencilValue(render_target->depth_stencil_attachment.depth_stencil_clear.depth,
+                                               render_target->depth_stencil_attachment.depth_stencil_clear.stencil);
         }
 
 
@@ -410,8 +413,6 @@ namespace Engine
 
     RHI_RenderTarget* VulkanAPI::create_render_target(const RenderTarget* render_target)
     {
-        if (render_target->frames_count() != render_target_buffer_count())
-            throw EngineException("Frames count is mismatch with API requirements");
         return &(new VulkanRenderTarget())->init(render_target, render_target->render_pass->rhi_object<VulkanRenderPass>());
     }
 }// namespace Engine
