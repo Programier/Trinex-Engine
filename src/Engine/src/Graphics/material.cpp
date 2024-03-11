@@ -449,6 +449,7 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
+        archive & compile_definitions;
         return serialize_parameters(m_material_parameters, archive);
     }
 

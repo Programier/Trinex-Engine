@@ -24,8 +24,8 @@ namespace Engine
         load_object_from_memory(PointLightSprite_data, PointLightSprite_len, "PointLightSprite", editor);
 
         load_object_from_memory(DefaultSampler_data, DefaultSampler_len, "DefaultSampler", editor);
-        load_object_from_memory(AxisMaterial_data, AxisMaterial_len, "AxisMaterial", editor);
-        load_object_from_memory(GridMaterial_data, GridMaterial_len, "GridMaterial", editor);
+//        load_object_from_memory(AxisMaterial_data, AxisMaterial_len, "AxisMaterial", editor);
+//        load_object_from_memory(GridMaterial_data, GridMaterial_len, "GridMaterial", editor);
         Icons::on_editor_package_loaded();
     }
 

@@ -57,6 +57,14 @@ namespace Engine
         static Name name_scale  = "scale";
         static Name name_offset = "offset";
 
+        if (axis_material == nullptr)
+            axis_material = Object::find_object_checked<Material>("Editor::AxisMaterial");
+
+        if (grid_material == nullptr)
+        {
+            grid_material = Object::find_object_checked<Material>("Editor::GridMaterial");
+        }
+
         renderer->begin_rendering_target(GBufferBaseColorOutput::instance());
 
         auto rhi = engine_instance->rhi();

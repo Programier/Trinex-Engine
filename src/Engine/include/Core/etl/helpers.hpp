@@ -60,4 +60,16 @@ namespace Engine
     {
         return new Type(std::forward<Args>(args)...);
     }
+
+    template<auto... values, typename ValueType>
+    inline constexpr bool is_in(ValueType&& value)
+    {
+        return ((value == values) || ...);
+    }
+
+    template<auto... values, typename ValueType>
+    inline constexpr bool is_not_in(ValueType&& value)
+    {
+        return ((value != values) && ...);
+    }
 }// namespace Engine

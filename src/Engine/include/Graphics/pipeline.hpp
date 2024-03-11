@@ -10,7 +10,7 @@ namespace Engine
     class FragmentShader;
     class RenderPass;
 
-    struct ENGINE_EXPORT LocalMaterialParametersInfo {
+    struct ENGINE_EXPORT LocalMaterialParametersInfo final {
     public:
         using OffsetMap = Map<Name, size_t, Name::HashFunction>;
 
@@ -35,7 +35,38 @@ namespace Engine
         friend bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
     };
 
+    class ENGINE_EXPORT GlobalMaterialParametersInfo final
+    {
+        BindingIndex m_binding_index = 255;
+
+    public:
+        FORCE_INLINE bool has_parameters() const
+        {
+            return m_binding_index < 255;
+        }
+
+        FORCE_INLINE BindingIndex bind_index()
+        {
+            return m_binding_index;
+        }
+
+        FORCE_INLINE GlobalMaterialParametersInfo& bind_index(BindingIndex index)
+        {
+            m_binding_index = index;
+            return *this;
+        }
+
+        FORCE_INLINE GlobalMaterialParametersInfo& remove_parameters()
+        {
+            m_binding_index = 255;
+            return *this;
+        }
+
+        friend bool operator&(Archive& ar, GlobalMaterialParametersInfo& info);
+    };
+
     ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
+    ENGINE_EXPORT bool operator&(Archive& ar, GlobalMaterialParametersInfo& info);
 
     class ENGINE_EXPORT Pipeline : public RenderResource
     {
@@ -103,6 +134,8 @@ namespace Engine
 
 
         LocalMaterialParametersInfo local_parameters;
+        GlobalMaterialParametersInfo global_parameters;
+        Path shader_path;
 
     private:
         bool serialize_shaders(Archive& ar);

@@ -9,6 +9,7 @@
 #include <Core/localization.hpp>
 #include <Core/render_thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
@@ -20,7 +21,6 @@
 #include <Window/window.hpp>
 #include <editor_config.hpp>
 #include <imgui_internal.h>
-#include <imgui_node_editor.h>
 #include <theme.hpp>
 
 #define MATERIAL_EDITOR_DEBUG 1
@@ -117,22 +117,12 @@ namespace Engine
 
         create_properties_window().create_content_browser().create_preview_window();
 
-        // Create imgui node editor context
-        ax::NodeEditor::Config config;
-        config.NavigateButtonIndex = ImGuiMouseButton_Middle;
-        config.SettingsFile        = nullptr;
-
-        auto context = ax::NodeEditor::CreateEditor(&config);
-        imgui_window->on_destroy.push([context]() { ax::NodeEditor::DestroyEditor(context); });
-
-
-        m_editor_context = context;
-
         ImGuiRenderer::Window::make_current(prev_window);
-
         Class* instance = Class::static_find(editor_config.material_compiler);
+
         if (instance)
         {
+            m_compiler = instance->create_object()->instance_cast<ShaderCompiler::ShaderCompiler>();
         }
 
         return *this;
@@ -150,8 +140,44 @@ namespace Engine
         return m_properties;
     }
 
+    MaterialEditorClient& MaterialEditorClient::submit_compiled_source(const ShaderCompiler::ShaderSource& source)
+    {
+        if (!m_material)
+            return *this;
+
+        auto vertex_shader   = m_material->pipeline->vertex_shader;
+        auto fragment_shader = m_material->pipeline->fragment_shader;
+        vertex_shader->attributes.clear();
+        vertex_shader->attributes.reserve(source.reflection.attributes.size());
+
+
+        for (auto& attribute : source.reflection.attributes)
+        {
+            VertexShader::Attribute out_attribute;
+            out_attribute.name           = attribute.name;
+            out_attribute.format         = attribute.format;
+            out_attribute.rate           = attribute.rate;
+            out_attribute.semantic       = attribute.semantic;
+            out_attribute.semantic_index = attribute.semantic_index;
+            out_attribute.count          = attribute.count;
+
+            vertex_shader->attributes.push_back(out_attribute);
+        }
+
+        vertex_shader->source_code   = source.vertex_code;
+        fragment_shader->source_code = source.fragment_code;
+
+        m_material->apply_changes();
+        return *this;
+    }
+
     void MaterialEditorClient::on_object_select(Object* object)
     {
+        if (Material* material = object->instance_cast<Material>())
+        {
+            m_material = material;
+        }
+
         if (m_preview_window)
         {
         }
@@ -218,11 +244,14 @@ namespace Engine
 
             if (ImGui::BeginMenu("editor/Material"_localized))
             {
-                if (ImGui::MenuItem("Compiler"))
+                if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr && m_compiler != 0))
                 {
-                    auto result = ShaderCompiler::create_glsl_shader_from_file("test.slang");
-                    vertex      = result.vertex_code;
-                    fragment    = result.fragment_code;
+                    ShaderCompiler::ShaderSource source;
+
+                    if (m_compiler->compile(m_material, source, m_shader_compile_error_list))
+                    {
+                        submit_compiled_source(source);
+                    }
                 }
                 ImGui::EndMenu();
             }
@@ -231,7 +260,7 @@ namespace Engine
             ImGui::EndMenuBar();
         }
 
-        if (m_frame == 0)
+        if (ImGui::IsWindowAppearing())
         {
             ImGui::DockBuilderRemoveNode(dock_id);
             ImGui::DockBuilderAddNode(dock_id, dockspace_flags | ImGuiDockNodeFlags_DockSpace);
@@ -270,7 +299,6 @@ namespace Engine
 
         ImGui::End();
         viewport->window()->imgui_window()->end_frame();
-        ++m_frame;
         return *this;
     }
 
@@ -282,18 +310,38 @@ namespace Engine
         {
             if (ImGui::BeginTabItem("Vertex"))
             {
-                ImGui::BeginChild(ImGui::GetID(&vertex), ImGui::GetContentRegionAvail());
-                ImGui::InputTextMultiline("##source", vertex.data(), vertex.size(), ImGui::GetContentRegionAvail(),
-                                          ImGuiInputTextFlags_ReadOnly);
-                ImGui::EndChild();
+                if (m_material && !m_material->pipeline->vertex_shader->source_code.empty())
+                {
+                    ImGui::BeginChild(ImGui::GetID(m_material->pipeline->vertex_shader), ImGui::GetContentRegionAvail());
+                    ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->vertex_shader->source_code.data(),
+                                              m_material->pipeline->vertex_shader->source_code.size(),
+                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_ReadOnly);
+                    ImGui::EndChild();
+                }
+
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Fragment"))
             {
-                ImGui::BeginChild(ImGui::GetID(&fragment), ImGui::GetContentRegionAvail());
-                ImGui::InputTextMultiline("##source", fragment.data(), fragment.size(), ImGui::GetContentRegionAvail(),
-                                          ImGuiInputTextFlags_ReadOnly);
+                if (m_material && !m_material->pipeline->fragment_shader->source_code.empty())
+                {
+                    ImGui::BeginChild(ImGui::GetID(m_material->pipeline->fragment_shader), ImGui::GetContentRegionAvail());
+                    ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->fragment_shader->source_code.data(),
+                                              m_material->pipeline->fragment_shader->source_code.size(),
+                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_ReadOnly);
+                    ImGui::EndChild();
+                }
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Errors"))
+            {
+                ImGui::BeginChild(ImGui::GetID(&m_shader_compile_error_list), ImGui::GetContentRegionAvail());
+                for (auto& entry : m_shader_compile_error_list)
+                {
+                    ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0), "%s", entry.c_str());
+                }
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
@@ -308,10 +356,6 @@ namespace Engine
     void MaterialEditorClient::render_material_code()
     {}
 
-    void* MaterialEditorClient::editor_context() const
-    {
-        return m_editor_context;
-    }
 
     MaterialEditorClient& MaterialEditorClient::on_object_dropped(Object* object)
     {

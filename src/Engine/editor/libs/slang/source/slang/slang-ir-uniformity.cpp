@@ -97,7 +97,7 @@ namespace Slang
             // will use the fallback behavior (result is non-uniform if any of its arguments are non-uniform).
             for (auto block : key.func->getBlocks())
             {
-                if (auto genAsm = as<IRGenericAsm>(block->getTerminator()))
+                if (as<IRGenericAsm>(block->getTerminator()))
                 {
                     return nullptr;
                 }
@@ -219,6 +219,8 @@ namespace Slang
                         }
                         break;
                     }
+                    default:
+                        break;
                     }
                 }
             }
@@ -251,6 +253,8 @@ namespace Slang
                                             addToWorkList(call->getArg(i));
                                     }
                                 }
+                                break;
+                            default:
                                 break;
                             }
                         }
@@ -387,7 +391,7 @@ namespace Slang
                                 addToWorkList(callInst);
                                 for (UInt argi = 0; argi < callInst->getArgCount(); argi++)
                                 {
-                                    if (auto ptrType = as<IRPtrTypeBase>(callInst->getArg(argi)->getDataType()))
+                                    if (as<IRPtrTypeBase>(callInst->getArg(argi)->getDataType()))
                                     {
                                         addToWorkList(callInst->getArg(argi));
                                         // Conservatively treat the entire composite at root addr as non-uniform.
@@ -422,7 +426,7 @@ namespace Slang
                         nonUniformInsts.add(code);
                     }
                 }
-                if (auto entryPointDecor = globalInst->findDecoration<IREntryPointDecoration>())
+                if (globalInst->findDecoration<IREntryPointDecoration>())
                 {
                     auto func = as<IRFunc>(globalInst);
                     if (!func)

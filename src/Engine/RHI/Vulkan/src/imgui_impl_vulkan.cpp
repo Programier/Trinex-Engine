@@ -106,6 +106,18 @@ struct ImGui_ImplVulkanH_FrameRenderBuffers
     // Array for textures descriptor sets
     Engine::Vector<VkDescriptorSet> TextureDescriptorSets;
     uint32_t UsedDescritorSetsCount;
+
+    ImGui_ImplVulkanH_FrameRenderBuffers() :    VertexBufferMemory(0),
+                                                IndexBufferMemory(),
+                                                VertexBufferSize(0),
+                                                IndexBufferSize(0),
+                                                VertexBuffer(0),
+                                                IndexBuffer(0),
+                                                TextureDescriptorSets({}),
+                                                UsedDescritorSetsCount(0)
+    {
+
+    }
 };
 
 // Each viewport will hold 1 ImGui_ImplVulkanH_WindowRenderBuffers
@@ -506,7 +518,11 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         wrb->Index = 0;
         wrb->Count = v->ImageCount;
         wrb->FrameRenderBuffers = (ImGui_ImplVulkanH_FrameRenderBuffers*)IM_ALLOC(sizeof(ImGui_ImplVulkanH_FrameRenderBuffers) * wrb->Count);
-        memset(wrb->FrameRenderBuffers, 0, sizeof(ImGui_ImplVulkanH_FrameRenderBuffers) * wrb->Count);
+
+        for(uint32_t i = 0; i < wrb->Count; ++i)
+        {
+            new (wrb->FrameRenderBuffers + i) ImGui_ImplVulkanH_FrameRenderBuffers();
+        }
     }
     IM_ASSERT(wrb->Count == v->ImageCount);
     wrb->Index = (wrb->Index + 1) % wrb->Count;

@@ -35,9 +35,7 @@ namespace Engine
         ar & textures;
         ar & combined_samplers;
         ar & ssbo;
-
-        ar & text_code;
-        ar & binary_code;
+        ar & source_code;
 
         return ar;
     }

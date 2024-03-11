@@ -107,6 +107,12 @@ namespace Engine
         return ar;
     }
 
+    ENGINE_EXPORT bool operator&(Archive& ar, GlobalMaterialParametersInfo& info)
+    {
+        ar & info.m_binding_index;
+        return ar;
+    }
+
 
     implement_struct(DepthTestInfo, Engine::Pipeline, ).push([]() {
         using DTI    = Pipeline::DepthTestInfo;
@@ -280,7 +286,6 @@ namespace Engine
     {
         if (ar.is_open())
         {
-            ar & local_parameters;
             vertex_shader->archive_process(ar);
             fragment_shader->archive_process(ar);
         }
@@ -300,8 +305,12 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
-        String shader_lang = engine_config.shading_language;
-        archive & shader_lang;
+        archive & global_parameters;
+        archive & local_parameters;
+
+
+        String api_name = engine_config.api;
+        archive & api_name;
 
         size_t shader_code_size_start = archive.position();
 
@@ -325,7 +334,7 @@ namespace Engine
         }
         else if (archive.is_reading())
         {
-            if (shader_lang == engine_config.shading_language)
+            if (api_name == engine_config.api)
             {
                 serialize_shaders(archive);
             }
@@ -335,11 +344,11 @@ namespace Engine
             }
         }
 
-        if (archive.is_saving() || shader_lang != engine_config.shading_language)
+        if (archive.is_saving() || api_name != engine_config.api)
         {
             // Loading shaders from shader cache
             Path path = Strings::format(
-                    "{}{}{}{}", engine_config.shader_cache_dir.str(), Path::separator,
+                    "{}{}{}{}{}{}", engine_config.shader_cache_dir.str(), Path::separator, engine_config.api, Path::separator,
                     Strings::replace_all(material_object->full_name(true), Constants::name_separator, Path::sv_separator),
                     Constants::shader_extention);
 
@@ -388,6 +397,13 @@ namespace Engine
         auto render_pass_prop =
                 new EnumProperty("Usage", "Type of usage of this pipeline", &Pipeline::usage, material_usage_enum);
 
+        auto path_prop = new PathProperty("Shader Path", "Path to slang file", &This::shader_path);
+
+        path_prop->on_prop_changed.push([](void* object) {
+            Pipeline* pipeline    = reinterpret_cast<Pipeline*>(object);
+            pipeline->shader_path = pipeline->shader_path.relative(engine_config.shaders_dir);
+        });
+
         self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
                                                 Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
                              new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
@@ -398,6 +414,6 @@ namespace Engine
                                                 Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
                              new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
                                                 Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)),
-                             render_pass_prop);
+                             render_pass_prop, path_prop);
     }
 }// namespace Engine

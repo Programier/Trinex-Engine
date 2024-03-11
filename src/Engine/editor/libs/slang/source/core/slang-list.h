@@ -585,8 +585,8 @@ namespace Slang
         }
     private:
         T*       m_buffer;           ///< A new T[N] allocated buffer. NOTE! All elements up to capacity are in some valid form for T.
-        Index    m_capacity;         ///< The total capacity of elements
         Index    m_count;            ///< The amount of elements
+        Index    m_capacity;         ///< The total capacity of elements
 
         void _deallocateBuffer()
         {

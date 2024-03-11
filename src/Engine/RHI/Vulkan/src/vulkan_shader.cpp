@@ -31,8 +31,8 @@ namespace Engine
 
     VulkanShaderBase& VulkanShaderBase::create(const Shader* shader)
     {
-        vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->binary_code.size(),
-                                        reinterpret_cast<const uint32_t*>(shader->binary_code.data()));
+        vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->source_code.size(),
+                                        reinterpret_cast<const uint32_t*>(shader->source_code.data()));
         m_shader = API->m_device.createShaderModule(info);
 
         return *this;

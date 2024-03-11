@@ -38,7 +38,10 @@ namespace Engine
     static void create_base_descriptor_layout(const Pipeline* pipeline, const Shader* shader,
                                               Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage)
     {
-        push_layout_binding(out, stage, {0, 0}, vk::DescriptorType::eUniformBuffer);
+        if (pipeline->global_parameters.has_parameters())
+        {
+            push_layout_binding(out, stage, {0, 0}, vk::DescriptorType::eUniformBuffer);
+        }
 
         if (pipeline->local_parameters.has_parameters())
         {
@@ -375,7 +378,10 @@ namespace Engine
             ++(out[combined_sampler.location.set].combined_samplers);
         }
 
-        ++(out[0].ubos);
+        if (pipeline->global_parameters.has_parameters())
+        {
+            ++(out[0].ubos);
+        }
 
         if (!pipeline->local_parameters.empty())
         {

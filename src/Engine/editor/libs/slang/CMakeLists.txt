@@ -81,8 +81,8 @@ auto_option(
 option(SLANG_ENABLE_DX_ON_VK "Use dxvk and vkd3d-proton for DirectX support")
 mark_as_advanced(SLANG_ENABLE_DX_ON_VK)
 
-option(SLANG_EMBED_STDLIB_SOURCE "Embed stdlib source in the binary" ON)
-option(SLANG_EMBED_STDLIB "Build slang with an embedded version of the stdlib")
+option(SLANG_EMBED_STDLIB_SOURCE "Embed stdlib source in the binary" OFF)
+option(SLANG_EMBED_STDLIB "Build slang with an embedded version of the stdlib" ON)
 
 option(SLANG_ENABLE_FULL_IR_VALIDATION "Enable full IR validation (SLOW!)")
 option(SLANG_ENABLE_ASAN "Enable ASAN (address sanitizer)")

@@ -1,34 +1,67 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/color_format.hpp>
+#include <Core/object.hpp>
+#include <Core/structures.hpp>
 
-namespace Engine::ShaderCompiler
+
+namespace Engine
 {
-    struct ShaderReflection {
-        struct UniformMemberInfo {
-            String name;
-            size_t size;
-            size_t offset;
+    class Material;
+
+    namespace ShaderCompiler
+    {
+        struct ShaderReflection {
+
+            struct VertexAttribute {
+                String name;
+                ColorFormat format;
+                VertexAttributeInputRate rate;
+                VertexBufferSemantic semantic;
+                byte semantic_index;
+                byte count;
+            };
+
+            struct UniformMemberInfo {
+                String name;
+                size_t size;
+                size_t offset;
+            };
+
+            Vector<VertexAttribute> attributes;
+            Vector<UniformMemberInfo> uniform_member_infos;
+            BindingIndex local_buffer_binding;
+            size_t local_buffer_size;
+
+
+            ShaderReflection& clear();
         };
 
-        Vector<UniformMemberInfo> uniform_member_infos;
-        BindingIndex local_buffer_binding;
-        size_t local_buffer_size;
-    };
+        struct ShaderSource {
+            Buffer vertex_code;
+            Buffer fragment_code;
+            ShaderReflection reflection;
+        };
 
-    struct ShaderDefinition {
-        String key;
-        String value;
-    };
+        ShaderSource create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions = {},
+                                        MessageList* errors = nullptr);
+        ShaderSource create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
+                                                  MessageList* errors = nullptr);
 
-    struct GLSL_Source {
-        String vertex_code;
-        String fragment_code;
-        Buffer vertex_spirv;
-        Buffer fragment_spirv;
 
-        ShaderReflection reflection;
-    };
+        class ShaderCompiler : public Object
+        {
+            declare_class(ShaderCompiler, Object);
 
-    GLSL_Source create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions = {});
-    GLSL_Source create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {});
-}// namespace Engine::ShaderCompiler
+        public:
+            virtual bool compile(Material* material, ShaderSource& out_source, MessageList& errors) = 0;
+        };
+
+        class OpenGL_ShaderCompiler : public ShaderCompiler
+        {
+            declare_class(OpenGL_ShaderCompiler, ShaderCompiler);
+
+        public:
+            bool compile(Material* material, ShaderSource& out_source, MessageList& errors) override;
+        };
+    }// namespace ShaderCompiler
+}// namespace Engine

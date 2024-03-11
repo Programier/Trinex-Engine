@@ -1,17 +1,17 @@
 // slang-emit-glsl.cpp
 #include "slang-emit-glsl.h"
 
-#include "../core/slang-writer.h"
-
 #include "slang-emit-source-writer.h"
 #include "slang-ir-util.h"
-#include "slang-mangled-lexer.h"
 
 #include "slang-legalize-types.h"
 #include "slang-ir-layout.h"
 #include "slang/slang-ir.h"
 
 #include <assert.h>
+
+
+#define USE_FORCED_SHADER_VERSION 1
 
 namespace Slang {
 
@@ -259,6 +259,8 @@ void GLSLSourceEmitter::emitSSBOHeader(IRGlobalParam* varDecl, IRType* bufferTyp
         case kIROp_ScalarBufferLayoutType:
             _requireGLSLExtension(toSlice("GL_EXT_scalar_block_layout"));
             m_writer->emit("scalar");
+            break;
+        default:
             break;
         }
     }
@@ -704,6 +706,8 @@ bool GLSLSourceEmitter::_emitGLSLLayoutQualifierWithBindingKinds(LayoutResourceK
             break;
         case LayoutResourceKind::ShaderRecord:
             m_writer->emit("layout(shaderRecordEXT)\n");
+            break;
+        default:
             break;
 
     }
@@ -2122,6 +2126,7 @@ void GLSLSourceEmitter::handleRequiredCapabilitiesImpl(IRInst* inst)
     }
 }
 
+#if !USE_FORCED_SHADER_VERSION
 static Index _getGLSLVersion(ProfileVersion profile)
 {
     switch (profile)
@@ -2143,6 +2148,7 @@ static Index _getGLSLVersion(ProfileVersion profile)
     }
     return -1;
 }
+#endif
 
 void GLSLSourceEmitter::emitFrontMatterImpl(TargetRequest* targetReq)
 {
@@ -2161,7 +2167,7 @@ void GLSLSourceEmitter::emitFrontMatterImpl(TargetRequest* targetReq)
     //
     // TODO: Either correctly compute a minimum required version, or require
     // the user to specify a version as part of the target.
-#if 0
+#if !USE_FORCED_SHADER_VERSION
     m_glslExtensionTracker->requireVersion(ProfileVersion::GLSL_450);
 
     Index glslVersion = _getGLSLVersion(m_glslExtensionTracker->getRequiredProfileVersion());
@@ -2182,7 +2188,7 @@ void GLSLSourceEmitter::emitFrontMatterImpl(TargetRequest* targetReq)
     m_writer->emit(glslVersion);
     m_writer->emit("\n");
 #else
-    m_writer->emit("#version 310 es\n");
+    m_writer->emit("#version 440 core\n#extension GL_ARB_sampler_objects : enable\n\n");
 #endif
 
     // Output the extensions

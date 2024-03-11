@@ -4,28 +4,29 @@
 
 namespace Engine
 {
+    namespace ShaderCompiler
+    {
+        class ShaderCompiler;
+        class ShaderSource;
+    };
+
     class MaterialEditorClient : public ViewportClient
     {
         declare_class(MaterialEditorClient, ViewportClient);
 
     private:
         MessageList m_shader_compile_error_list;
+
         class ContentBrowser* m_content_browser      = nullptr;
         ImGuiObjectProperties* m_properties          = nullptr;
         class ImGuiMaterialPreview* m_preview_window = nullptr;
 
-        void* m_editor_context = nullptr;
-
-        class RenderViewport* m_viewport = nullptr;
+        class RenderViewport* m_viewport           = nullptr;
+        class Material* m_material                 = nullptr;
+        ShaderCompiler::ShaderCompiler* m_compiler = nullptr;
 
         bool m_open_select_node_window   = false;
         bool m_open_material_code_window = false;
-
-        Vector2D m_next_node_pos;
-        size_t m_frame = 0;
-
-        String vertex;
-        String fragment;
 
     public:
         void on_content_browser_close();
@@ -49,5 +50,7 @@ namespace Engine
         MaterialEditorClient& render_viewport(float dt);
         MaterialEditorClient& render(class RenderViewport* viewport) override;
         ImGuiObjectProperties* properties_window() const;
+
+        MaterialEditorClient& submit_compiled_source(const ShaderCompiler::ShaderSource& source);
     };
 }// namespace Engine

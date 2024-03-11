@@ -2187,7 +2187,7 @@ void addVarDecorations(
         {
             builder->addSemanticDecoration(inst, hlslSemantic->name.getContent());
         }
-        else if (auto dynamicUniform = as<DynamicUniformModifier>(mod))
+        else if (as<DynamicUniformModifier>(mod))
         {
             builder->addDynamicUniformDecoration(inst);
         }
@@ -3793,12 +3793,20 @@ struct ExprLoweringVisitorBase : public ExprVisitor<Derived, LoweredValInfo>
         else
         {
             if (auto callInst = as<IRCall>(baseVal.val))
+            {
                 if (expr->flavor == TreatAsDifferentiableExpr::Flavor::NoDiff)
+                {
                     getBuilder()->addDecoration(callInst, kIROp_TreatCallAsDifferentiableDecoration);
+                }
                 else if (expr->flavor == TreatAsDifferentiableExpr::Flavor::Differentiable)
+                {
                     getBuilder()->addDecoration(callInst, kIROp_DifferentiableCallDecoration);
+                }
                 else
+                {
                     SLANG_UNEXPECTED("Unknown TreatAsDifferentiableExpr::Flavor");
+                }
+            }
 
             innerInst = baseVal.val;
         }
@@ -8386,7 +8394,7 @@ struct DeclLoweringVisitor : DeclVisitor<DeclLoweringVisitor, LoweredValInfo>
                 {
                     lowerPackOffsetModifier(fieldKey, packOffsetModifier);
                 }
-                else if (auto dynamicUniformModifer = as<DynamicUniformModifier>(mod))
+                else if (as<DynamicUniformModifier>(mod))
                 {
                     subBuilder->addDynamicUniformDecoration(fieldKey);
                 }
@@ -9680,7 +9688,7 @@ struct DeclLoweringVisitor : DeclVisitor<DeclLoweringVisitor, LoweredValInfo>
                 getBuilder()->addRequireSPIRVVersionDecoration(irFunc, spvVersion->version);
             else if (auto cudasmVersion = as<RequiredCUDASMVersionModifier>(modifier))
                 getBuilder()->addRequireCUDASMVersionDecoration(irFunc, cudasmVersion->version);
-            else if (auto nonUniform= as<NonDynamicUniformAttribute>(modifier))
+            else if (as<NonDynamicUniformAttribute>(modifier))
                 getBuilder()->addDecoration(irFunc, kIROp_NonDynamicUniformReturnDecoration);
         }
 

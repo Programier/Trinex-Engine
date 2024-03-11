@@ -137,4 +137,11 @@ namespace Engine
         bool operator>=(const BindLocation& location) const;
         bool is_valid() const;
     };
+
+    struct ENGINE_EXPORT ShaderDefinition {
+        String key;
+        String value;
+    };
+
+    ENGINE_EXPORT bool operator&(class Archive& ar, ShaderDefinition& definition);
 }// namespace Engine

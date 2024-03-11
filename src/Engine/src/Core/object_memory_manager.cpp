@@ -31,12 +31,6 @@ namespace Engine
         return object_allocator;
     }
 
-    static FORCE_INLINE Set<Object*>& deferred_destroy_list()
-    {
-        static Set<Object*> deferred_destroy_list;
-        return deferred_destroy_list;
-    }
-
     void* Object::operator new(size_t size) noexcept
     {
         byte* memory = allocator().allocate(size);
@@ -74,7 +68,7 @@ namespace Engine
                 delete_object(object);
         }
     }
-
+#if !DISABLE_GC
     static size_t find_unreachable(Object* object)
     {
         size_t count = 1;
@@ -131,6 +125,7 @@ namespace Engine
 
         return count;
     }
+
 
     static GCFlag collect_unreachable_objects()
     {
@@ -199,6 +194,7 @@ namespace Engine
 
         return GCFlag::DestroyGargabe;
     }
+#endif
 
     GCFlag Object::collect_garbage(GCFlag flag)
     {

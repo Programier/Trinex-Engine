@@ -267,12 +267,11 @@ namespace Engine
 
     protected:
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameter::Type type) override;
-
-
         void apply_shader_global_params(class Shader* shader, MaterialInterface* head, SceneComponent* component);
 
     public:
         Pipeline* pipeline;
+        Vector<ShaderDefinition> compile_definitions;
 
         Material();
         bool archive_process(Archive& archive) override;

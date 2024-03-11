@@ -62,17 +62,19 @@ namespace Engine
                 // Render only ambient light
                 static Name name_ambient_color = "ambient_color";
                 Material* material             = DefaultResources::ambient_only_material;
-
-                auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
-
-                if (ambient_param)
+                if (material)
                 {
-                    ambient_param->param = m_ambient_light;
-                }
+                    auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
 
-                material->apply();
-                DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-                engine_instance->rhi()->draw(6);
+                    if (ambient_param)
+                    {
+                        ambient_param->param = m_ambient_light;
+                    }
+
+                    material->apply();
+                    DefaultResources::screen_position_buffer->rhi_bind(0, 0);
+                    engine_instance->rhi()->draw(6);
+                }
             }
             else
             {

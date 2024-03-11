@@ -353,8 +353,8 @@ protected:
         blob->queryInterface(SLANG_IID_PPV_ARGS(m_castable.writeRef()));
     }
 
-    ComPtr<ISlangUnknown> m_scope;
     ComPtr<ISlangBlob> m_blob;
+    ComPtr<ISlangUnknown> m_scope;
     ComPtr<ICastable> m_castable;              ///< Set if the blob has this interface. Set to nullptr if does not.
 };
 

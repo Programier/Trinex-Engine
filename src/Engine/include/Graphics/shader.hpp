@@ -38,9 +38,7 @@ namespace Engine
         Vector<Texture> textures;
         Vector<SamplerCombined> combined_samplers;
         Vector<SSBO> ssbo;
-
-        String text_code;
-        Buffer binary_code;
+        Buffer source_code;
 
         bool archive_process(Archive& ar) override;
         Shader& clean();

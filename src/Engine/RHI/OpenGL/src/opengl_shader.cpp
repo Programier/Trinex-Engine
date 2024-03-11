@@ -23,7 +23,7 @@ namespace Engine
         }
     }
 
-    static GLuint compile_shader_module(const String& shader_code, GLenum type, const String& name)
+    static GLuint compile_shader_module(const Buffer& shader_code, GLenum type, const String& name)
     {
         GLint shader_id = 0;
         GLuint program  = 0;
@@ -49,7 +49,7 @@ namespace Engine
         static GLchar log[1024];
         shader_id = glCreateShader(type);
 
-        const GLchar* code = reinterpret_cast<const GLchar*>(shader_code.c_str());
+        const GLchar* code = reinterpret_cast<const GLchar*>(shader_code.data());
 
         glShaderSource(shader_id, 1, &code, nullptr);
         glCompileShader(shader_id);
@@ -107,7 +107,7 @@ namespace Engine
 
     RHI_Shader* OpenGL::create_vertex_shader(const VertexShader* shader)
     {
-        GLuint id = compile_shader_module(shader->text_code, GL_VERTEX_SHADER, shader->full_name());
+        GLuint id = compile_shader_module(shader->source_code, GL_VERTEX_SHADER, shader->full_name());
 
         if (id)
         {
@@ -121,7 +121,7 @@ namespace Engine
 
     RHI_Shader* OpenGL::create_fragment_shader(const FragmentShader* shader)
     {
-        GLuint id = compile_shader_module(shader->text_code, GL_FRAGMENT_SHADER, shader->full_name());
+        GLuint id = compile_shader_module(shader->source_code, GL_FRAGMENT_SHADER, shader->full_name());
 
         if (id)
         {

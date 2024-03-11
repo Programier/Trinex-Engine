@@ -1,3 +1,4 @@
+#include <Core/archive.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
@@ -43,5 +44,12 @@ namespace Engine
     bool BindLocation::is_valid() const
     {
         return (*this) != undefined;
+    }
+
+    ENGINE_EXPORT bool operator&(class Archive& ar, ShaderDefinition& definition)
+    {
+        ar & definition.key;
+        ar & definition.value;
+        return ar;
     }
 }// namespace Engine
