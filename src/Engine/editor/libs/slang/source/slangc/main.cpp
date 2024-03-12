@@ -11,7 +11,7 @@ using namespace Slang;
 
 #include <assert.h>
 
-#ifdef _WIN32
+#if 0
 #define MAIN slangc_main
 #else
 #define MAIN main
@@ -115,8 +115,8 @@ int MAIN(int argc, char** argv)
     return (int)TestToolUtil::getReturnCode(res);
 }
 
-#ifdef _WIN32
-int wmain(int argc, wchar_t** argv)
+#if 0
+int main(int argc, wchar_t** argv)
 {
     int result = 0;
 

@@ -952,7 +952,7 @@ namespace IMGUIZMO_NAMESPACE
       gContext.mIsOrthographic = isOrthographic;
    }
 
-   void SetDrawlist(ImDrawList* drawlist)
+   IMGUI_GUIZMO_API void SetDrawlist(ImDrawList* drawlist)
    {
       gContext.mDrawList = drawlist ? drawlist : ImGui::GetWindowDrawList();
    }
@@ -962,7 +962,7 @@ namespace IMGUIZMO_NAMESPACE
       ImGui::SetCurrentContext(ctx);
    }
 
-   void BeginFrame()
+   IMGUI_GUIZMO_API void BeginFrame()
    {
       const ImU32 flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
 

@@ -147,7 +147,7 @@ SLANG_COMPILE_TIME_ASSERT(E_OUTOFMEMORY == SLANG_E_OUT_OF_MEMORY);
 /* static */ void* SharedLibrary::findSymbolAddressByName(Handle handle, char const* name)
 {
     SLANG_ASSERT(handle);
-    return GetProcAddress((HMODULE)handle, name);
+    return (void*)GetProcAddress((HMODULE)handle, name);
 }
 
 /* static */void SharedLibrary::appendPlatformFileName(const UnownedStringSlice& name, StringBuilder& dst)

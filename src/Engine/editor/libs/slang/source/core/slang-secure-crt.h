@@ -10,7 +10,7 @@
 
 #include <wchar.h>
 
-inline void memcpy_s(void *dest, [[maybe_unused]] size_t destSize, const void * src, size_t count)
+inline void slang_memcpy_s(void *dest, [[maybe_unused]] size_t destSize, const void * src, size_t count)
 {
     assert(destSize >= count);
     memcpy(dest, src, count);
@@ -19,23 +19,23 @@ inline void memcpy_s(void *dest, [[maybe_unused]] size_t destSize, const void * 
 #define _TRUNCATE ((size_t)-1)
 #define _stricmp strcasecmp
 
-inline void fopen_s(FILE**f, const char * fileName, const char * mode)
+inline void slang_fopen_s(FILE**f, const char * fileName, const char * mode)
 {
 	*f = fopen(fileName, mode);
 }
 
-inline size_t fread_s(void * buffer, [[maybe_unused]] size_t bufferSize, size_t elementSize, size_t count, FILE * stream)
+inline size_t slang_fread_s(void * buffer, [[maybe_unused]] size_t bufferSize, size_t elementSize, size_t count, FILE * stream)
 {
     assert(bufferSize >= elementSize * count);
     return fread(buffer, elementSize, count, stream);
 }
 
-inline size_t wcsnlen_s(const wchar_t * str, size_t /*numberofElements*/)
+inline size_t slang_wcsnlen_s(const wchar_t * str, size_t /*numberofElements*/)
 {
 	return wcslen(str);
 }
 
-inline size_t strnlen_s(const char * str, size_t numberOfElements)
+inline size_t slang_strnlen_s(const char * str, size_t numberOfElements)
 {
 #if defined( __CYGWIN__ )
     const char* cur = str;
@@ -51,7 +51,7 @@ inline size_t strnlen_s(const char * str, size_t numberOfElements)
 }
 
 __attribute__((format(printf, 3, 4)))
-inline int sprintf_s(char * buffer, size_t sizeOfBuffer, const char * format, ...)
+inline int slang_sprintf_s(char * buffer, size_t sizeOfBuffer, const char * format, ...)
 {
 	va_list argptr;
 	va_start(argptr, format);
@@ -63,7 +63,7 @@ inline int sprintf_s(char * buffer, size_t sizeOfBuffer, const char * format, ..
 // A patch was submitted to GCC wchar_t support in 2001, so I'm sure we can
 // enable this any day now...
 // __attribute__((format(wprintf, 3, 4)))
-inline int swprintf_s(wchar_t * buffer, size_t sizeOfBuffer, const wchar_t * format, ...)
+inline int slang_swprintf_s(wchar_t * buffer, size_t sizeOfBuffer, const wchar_t * format, ...)
 {
 	va_list argptr;
 	va_start(argptr, format);
@@ -72,22 +72,35 @@ inline int swprintf_s(wchar_t * buffer, size_t sizeOfBuffer, const wchar_t * for
 	return rs;
 }
 
-inline void wcscpy_s(wchar_t * strDestination, size_t /*numberOfElements*/, const wchar_t * strSource)
+inline void slang_wcscpy_s(wchar_t * strDestination, size_t /*numberOfElements*/, const wchar_t * strSource)
 {
 	wcscpy(strDestination, strSource);
 }
-inline void strcpy_s(char * strDestination, size_t /*numberOfElements*/, const char * strSource)
+inline void slang_strcpy_s(char * strDestination, size_t /*numberOfElements*/, const char * strSource)
 {
 	strcpy(strDestination, strSource);
 }
 
-inline void wcsncpy_s(wchar_t * strDestination, size_t /*numberOfElements*/, const wchar_t * strSource, size_t count)
+inline void slang_wcsncpy_s(wchar_t * strDestination, size_t /*numberOfElements*/, const wchar_t * strSource, size_t count)
 {
 	wcsncpy(strDestination, strSource, count);
 }
-inline void strncpy_s(char * strDestination, size_t /*numberOfElements*/, const char * strSource, size_t count)
+inline void slang_strncpy_s(char * strDestination, size_t /*numberOfElements*/, const char * strSource, size_t count)
 {
 	strncpy(strDestination, strSource, count);
 }
+
+#define memcpy_s slang_memcpy_s
+#define fopen_s slang_fopen_s
+#define fread_s slang_fread_s
+#define wcsnlen_s slang_wcsnlen_s
+#define strnlen_s slang_strnlen_s
+#define swprintf_s slang_swprintf_s
+#define wcscpy_s slang_wcscpy_s
+#define strcpy_s slang_strcpy_s
+#define wcsncpy_s slang_wcsncpy_s
+#define strncpy_s slang_strncpy_s
+#define sprintf_s slang_sprintf_s
+
 #endif
 #endif

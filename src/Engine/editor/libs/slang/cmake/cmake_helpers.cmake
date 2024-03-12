@@ -1,3 +1,387 @@
+function(auto_option name package description)
+    set(${name} "AUTO" CACHE STRING ${description})
+    set_property(CACHE ${name} PROPERTY STRINGS AUTO ON OFF)
+
+    if(${${name}} OR ${${name}} STREQUAL "AUTO")
+        if(${${name}} STREQUAL "AUTO")
+            set(req)
+        else()
+            set(req REQUIRED)
+        endif()
+        find_package(${package} ${req})
+
+        if(${${package}_FOUND})
+            set(${name} TRUE CACHE STRING ${description} FORCE)
+        else()
+            set(${name} FALSE CACHE STRING ${description} FORCE)
+        endif()
+    endif()
+endfunction()
+
+function(enum_option name init description)
+    set(enums)
+    set(is_enum TRUE)
+    foreach(enum_or_desc ${ARGN})
+        if(is_enum)
+            list(APPEND enums ${enum_or_desc})
+            string(APPEND description "\n" "${enum_or_desc}" ": ")
+            set(is_enum FALSE)
+        else()
+            string(APPEND description "${enum_or_desc}")
+            set(is_enum TRUE)
+        endif()
+    endforeach()
+
+    set(${name} ${init} CACHE STRING ${description})
+    set_property(CACHE ${name} PROPERTY STRINGS ${enums})
+
+    foreach(enum ${enums})
+        if(${${name}} STREQUAL ${enum})
+            return()
+        endif()
+    endforeach()
+    message(FATAL_ERROR "${name} must be one of ${enums}")
+endfunction()
+
+
+# Make sure that shared debug info doesn't intefere with caching
+# See the sccache readme
+if(
+    MSVC
+    AND (NOT DEFINED CMAKE_MSVC_DEBUG_INFORMATION_FORMAT)
+    AND (
+        CMAKE_C_COMPILER_LAUNCHER MATCHES "ccache"
+        OR CMAKE_CXX_COMPILER_LAUNCHER MATCHES "ccache"
+    )
+)
+    message(
+        NOTICE
+        "Setting embedded debug info for MSVC to work around (s)ccache's inability to cache shared debug info files, Note that this requires CMake 3.25 or greater"
+    )
+    cmake_minimum_required(VERSION 3.25)
+    cmake_policy(GET CMP0141 cmp0141)
+    if(NOT cmp0141 STREQUAL "NEW")
+        message(WARNING "Need CMake policy 0141 enabled")
+    endif()
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT
+        "$<$<CONFIG:Debug,RelWithDebInfo>:Embedded>"
+    )
+endif()
+
+#
+# Given a list of flags, add those which the C++ compiler supports to the target
+#
+include(CheckCXXCompilerFlag)
+function(add_supported_cxx_flags target)
+    cmake_parse_arguments(ARG "PRIVATE;PUBLIC;INTERFACE" "" "" ${ARGN})
+    set(flags ${ARG_UNPARSED_ARGUMENTS})
+    if(ARG_PRIVATE)
+        set(private PRIVATE)
+    endif()
+    if(ARG_PUBLIC)
+        set(public PUBLIC)
+    endif()
+    if(ARG_INTERFACE)
+        set(interface INTERFACE)
+    endif()
+
+    foreach(flag ${flags})
+        # remove the `no-` prefix from warnings because gcc doesn't treat it as an
+        # error on its own
+        string(REGEX REPLACE "\\-Wno\\-(.+)" "-W\\1" flag_to_test "${flag}")
+        string(
+            REGEX REPLACE
+            "[^a-zA-Z0-9]+"
+            "_"
+            test_name
+            "CXXFLAG_${flag_to_test}"
+        )
+        check_cxx_compiler_flag("${flag_to_test}" ${test_name})
+        if(${test_name})
+            target_compile_options(
+                ${target}
+                ${private}
+                ${public}
+                ${interface}
+                ${flag}
+            )
+        endif()
+    endforeach()
+endfunction()
+
+#
+# Given a list of linker flags, add those which the compiler supports to the
+# target
+#
+include(CheckLinkerFlag)
+function(add_supported_cxx_linker_flags target)
+    cmake_parse_arguments(ARG "PRIVATE;PUBLIC;INTERFACE;BEFORE" "" "" ${ARGN})
+    set(flags ${ARG_UNPARSED_ARGUMENTS})
+    if(ARG_BEFORE)
+        set(before BEFORE)
+    endif()
+    if(ARG_PRIVATE)
+        set(private PRIVATE)
+    endif()
+    if(ARG_PUBLIC)
+        set(public PUBLIC)
+    endif()
+    if(ARG_INTERFACE)
+        set(interface INTERFACE)
+    endif()
+
+    foreach(flag ${flags})
+        string(
+            REGEX REPLACE
+            "[^a-zA-Z0-9]+"
+            "_"
+            test_name
+            "CXXLINKFLAG_${flag}"
+        )
+        check_linker_flag(CXX "${flag}" ${test_name})
+        if(${test_name})
+            target_link_options(
+                ${target}
+                ${before}
+                ${private}
+                ${public}
+                ${interface}
+                ${flag}
+            )
+        endif()
+    endforeach()
+endfunction()
+
+#
+# Add our default compiler flags to a target
+#
+# Pass USE_EXTRA_WARNINGS to enable -WExtra or /W3
+#
+function(set_default_compile_options target)
+    cmake_parse_arguments(
+        ARG
+        "USE_EXTRA_WARNINGS;USE_FEWER_WARNINGS"
+        ""
+        ""
+        ${ARGN}
+    )
+
+    set(warning_flags)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        list(
+            APPEND
+            warning_flags
+            -Wall
+            # Disabled warnings:
+            -Wno-switch
+            -Wno-parentheses
+            -Wno-unused-local-typedefs
+            -Wno-class-memaccess
+            -Wno-assume
+            -Wno-reorder
+            -Wno-invalid-offsetof
+            -Wno-newline-eof
+            -Wno-return-std-move
+            # Enabled warnings:
+            # If a function returns an address/reference to a local, we want it to
+            # produce an error, because it probably means something very bad.
+            -Werror=return-local-addr
+            # Some warnings which are on by default in MSVC
+            -Wnarrowing
+        )
+        if(ARG_USE_EXTRA_WARNINGS)
+            list(APPEND warning_flags -Wextra)
+        endif()
+        if(ARG_USE_FEWER_WARNINGS)
+            list(
+                APPEND
+                warning_flags
+                -Wno-class-memaccess
+                -Wno-unused-variable
+                -Wno-unused-parameter
+                -Wno-sign-compare
+                -Wno-unused-function
+                -Wno-unused-value
+                -Wno-unused-but-set-variable
+                -Wno-implicit-fallthrough
+                -Wno-missing-field-initializers
+                -Wno-strict-aliasing
+                -Wno-maybe-uninitialized
+            )
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        list(APPEND warning_flags)
+        if(ARG_USE_EXTRA_WARNINGS)
+            list(APPEND warning_flags /W4)
+        elseif(ARG_USE_FEWER_WARNINGS)
+            list(APPEND warning_flags /W0)
+        else()
+            list(APPEND warning_flags /W2)
+        endif()
+    endif()
+
+    add_supported_cxx_flags(${target} PRIVATE ${warning_flags})
+
+    # Don't assume that symbols will be resolved at runtime
+    add_supported_cxx_linker_flags(${target} PRIVATE "-Wl,--no-undefined")
+
+    set_target_properties(
+        ${target}
+        PROPERTIES # -fvisibility=hidden
+            CXX_VISIBILITY_PRESET
+            hidden
+            # C++ standard
+            CXX_STANDARD
+            17
+            # pic
+            POSITION_INDEPENDENT_CODE
+            ON
+    )
+
+    target_compile_definitions(
+        ${target}
+        PRIVATE # Add _DEBUG depending on the build configuration
+            $<$<CONFIG:Debug>:_DEBUG>
+            # For including windows.h in a way that minimized namespace
+            # pollution. Although we define these here, we still set them
+            # manually in any header files which may be included by another
+            # project
+            WIN32_LEAN_AND_MEAN
+            VC_EXTRALEAN
+            NOMINMAX
+            # Use multi-byte character set on Windows
+            UNICODE
+            _UNICODE
+    )
+
+    #
+    # Settings dependent on config options
+    #
+
+    if(SLANG_ENABLE_FULL_DEBUG_VALIDATION)
+        target_compile_definitions(
+            ${target}
+            PRIVATE SLANG_ENABLE_FULL_IR_VALIDATION
+        )
+    endif()
+
+    if(SLANG_ENABLE_DX_ON_VK)
+        target_compile_definitions(${target} PRIVATE SLANG_CONFIG_DX_ON_VK)
+    endif()
+
+    if(SLANG_ENABLE_ASAN)
+        add_supported_cxx_flags(
+            ${target}
+            PRIVATE
+            /fsanitize=address
+            -fsanitize=address
+        )
+        add_supported_cxx_linker_flags(
+            ${target}
+            BEFORE
+            PUBLIC
+            /INCREMENTAL:NO
+            -fsanitize=address
+        )
+    endif()
+endfunction()
+
+#
+# glob_append(MY_VAR my_glob) will append the results of file(GLOB
+# CONFIGURE_DEPENDS my_glob) to MY_VAR
+#
+# Any number of globs may be specified
+#
+function(glob_append dest)
+    file(GLOB files CONFIGURE_DEPENDS ${ARGN})
+    list(APPEND ${dest} ${files})
+    set(${dest} ${${dest}} PARENT_SCOPE)
+endfunction()
+
+#
+# Perform a recursive glob, and exclude any files appropriately according to
+# the host system and build options
+#
+function(slang_glob_sources var dir)
+    set(patterns
+        "*.cpp"
+        "*.h"
+        "*.natvis"
+        "*.natstepfilter"
+        "*.natjmc"
+    )
+    if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
+        list(APPEND patterns "*.mm")
+    endif()        
+    list(TRANSFORM patterns PREPEND "${dir}/")
+
+    file(GLOB_RECURSE files CONFIGURE_DEPENDS ${patterns})
+
+    if(NOT WIN32)
+        list(FILTER files EXCLUDE REGEX "(^|/)windows/.*")
+    endif()
+
+    if(NOT UNIX)
+        list(FILTER files EXCLUDE REGEX "(^|/)unix/.*")
+    endif()
+
+    if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows" AND NOT SLANG_ENABLE_DX_ON_VK)
+        list(FILTER files EXCLUDE REGEX "(^|/)d3d.*/.*")
+    endif()
+
+    if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows|Linux|Darwin")
+        list(FILTER files EXCLUDE REGEX "(^|/)vulkan/.*")
+    endif()
+
+    if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+        list(FILTER files EXCLUDE REGEX "(^|/)open-gl/.*")
+    endif()
+
+    list(APPEND ${var} ${files})
+    set(${var} ${${var}} PARENT_SCOPE)
+endfunction()
+
+# A convenience on top of the llvm package's cmake files, this creates a target
+# to pass to target_link_libraries which correctly pulls in the llvm include
+# dir and other compile dependencies
+function(llvm_target_from_components target_name)
+    set(components ${ARGN})
+    llvm_map_components_to_libnames(llvm_libs
+        ${components}
+    )
+    add_library(${target_name} INTERFACE)
+    target_link_libraries(${target_name} INTERFACE ${llvm_libs})
+    target_include_directories(
+        ${target_name}
+        SYSTEM
+        INTERFACE ${LLVM_INCLUDE_DIRS}
+    )
+    target_compile_definitions(${target_name} INTERFACE ${LLVM_DEFINITIONS})
+    if(NOT LLVM_ENABLE_RTTI)
+        # Make sure that we don't disable rtti if this library wasn't compiled with
+        # support
+        add_supported_cxx_flags(${target_name} INTERFACE -fno-rtti /GR-)
+    endif()
+endfunction()
+
+# The same for clang
+function(clang_target_from_libs target_name)
+    set(clang_libs ${ARGN})
+    add_library(${target_name} INTERFACE)
+    target_link_libraries(${target_name} INTERFACE ${clang_libs})
+    target_include_directories(
+        ${target_name}
+        SYSTEM
+        INTERFACE ${CLANG_INCLUDE_DIRS}
+    )
+    target_compile_definitions(${target_name} INTERFACE ${CLANG_DEFINITIONS})
+    if(NOT LLVM_ENABLE_RTTI)
+        # Make sure that we don't disable rtti if this library wasn't compiled with
+        # support
+        add_supported_cxx_flags(${target_name} INTERFACE -fno-rtti /GR-)
+    endif()
+endfunction()
+
 #
 # A function to make target creation a little more declarative
 #

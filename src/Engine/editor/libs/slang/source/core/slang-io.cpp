@@ -177,7 +177,7 @@ namespace Slang
 
     bool File::exists(const String& fileName)
     {
-#ifdef _WIN32
+#if SLANG_MICROSOFT_FAMILY
         struct _stat32 statVar;
         return ::_wstat32(((String)fileName).toWString(), &statVar) != -1;
 #else
@@ -564,7 +564,7 @@ namespace Slang
 
     /* static */SlangResult Path::getPathType(const String& path, SlangPathType* pathTypeOut)
     {
-#ifdef _WIN32
+#if SLANG_MICROSOFT_FAMILY
         // https://msdn.microsoft.com/en-us/library/14h5k7ff.aspx
         struct _stat32 statVar;
         if (::_wstat32(String(path).toWString(), &statVar) == 0)

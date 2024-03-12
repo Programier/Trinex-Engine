@@ -1,3 +1,4 @@
+#if SLANG_MICROSOFT_FAMILY
 #include "slang-win-visual-studio-util.h"
 
 #include "../../core/slang-common.h"
@@ -506,3 +507,4 @@ static SlangResult _findVersionsWithRegistery(List<WinVisualStudioUtil::VersionP
 }
 
 } // namespace Slang
+#endif

@@ -10,5 +10,6 @@ set(IMGUI_GUIZMO_SOURCES    src/ImGuizmo.cpp
 
 add_library(imgui_guizmo STATIC ${IMGUI_GUIZMO_SOURCES})
 target_link_libraries(imgui_guizmo TrinexEngine)
+target_compile_definitions(imgui_guizmo PRIVATE -DENABLE_GUIZMO_EXPORT)
 target_include_directories(imgui_guizmo PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 

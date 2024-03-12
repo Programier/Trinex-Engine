@@ -1,3 +1,4 @@
+#if SLANG_MICROSOFT_FAMILY
 #ifndef SLANG_WIN_VISUAL_STUDIO_UTIL_H
 #define SLANG_WIN_VISUAL_STUDIO_UTIL_H
 
@@ -36,4 +37,5 @@ struct WinVisualStudioUtil
 
 } // namespace Slang
 
-#endif 
+#endif
+#endif

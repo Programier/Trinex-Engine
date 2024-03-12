@@ -14,7 +14,7 @@ namespace Slang
 {
 	inline void* alignedAllocate(size_t size, size_t alignment)
 	{
-#ifdef _MSC_VER
+#if SLANG_WINDOWS_FAMILY
 		return _aligned_malloc(size, alignment);
 #elif defined(__CYGWIN__)
         return aligned_alloc(alignment, size);

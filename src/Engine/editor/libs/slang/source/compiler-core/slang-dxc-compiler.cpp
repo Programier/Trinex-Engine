@@ -29,7 +29,7 @@
 #if SLANG_APPLE_FAMILY
 #   define SLANG_ENABLE_DXIL_SUPPORT 0
 #else
-#   define SLANG_ENABLE_DXIL_SUPPORT 1
+#   define SLANG_ENABLE_DXIL_SUPPORT 0
 #endif
 #endif
 

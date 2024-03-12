@@ -38,32 +38,33 @@ include(CMakeDependentOption)
 include(FetchContent)
 include(GNUInstallDirs)
 
-include(CCacheDebugInfoWorkaround)
-include(CompilerFlags)
-include(Glob)
-include(LLVM)
-include(SlangTarget)
-include(AutoOption)
+include(cmake_helpers)
 
 #
 # Options
 #
 
-auto_option(
-    SLANG_ENABLE_CUDA
-    CUDAToolkit
-    "Enable CUDA tests using CUDA found in CUDA_PATH"
-)
-auto_option(
-    SLANG_ENABLE_OPTIX
-    OptiX
-    "Enable OptiX build/tests, requires SLANG_ENABLE_CUDA"
-)
-auto_option(
-    SLANG_ENABLE_NVAPI
-    NVAPI
-    "Enable NVAPI usage (Only available for builds targeting Windows)"
-)
+#auto_option(
+#    SLANG_ENABLE_CUDA
+#    CUDAToolkit
+#    "Enable CUDA tests using CUDA found in CUDA_PATH"
+#)
+
+#auto_option(
+#    SLANG_ENABLE_OPTIX
+#    OptiX
+#    "Enable OptiX build/tests, requires SLANG_ENABLE_CUDA"
+#)
+#auto_option(
+#    SLANG_ENABLE_NVAPI
+#    NVAPI
+#    "Enable NVAPI usage (Only available for builds targeting Windows)"
+#)
+
+set(SLANG_ENABLE_CUDA OFF)
+set(SLANG_ENABLE_OPTIX OFF)
+set(SLANG_ENABLE_NVAPI OFF)
+
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     auto_option(
         SLANG_ENABLE_XLIB
@@ -73,11 +74,12 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 else()
     set(SLANG_ENABLE_XLIB OFF)
 endif()
-auto_option(
-    SLANG_ENABLE_AFTERMATH
-    Aftermath
-    "Enable Aftermath in GFX, and add aftermath crash example to project"
-)
+#auto_option(
+#    SLANG_ENABLE_AFTERMATH
+#    Aftermath
+#    "Enable Aftermath in GFX, and add aftermath crash example to project"
+#)
+set(SLANG_ENABLE_AFTERMATH OFF)
 option(SLANG_ENABLE_DX_ON_VK "Use dxvk and vkd3d-proton for DirectX support")
 mark_as_advanced(SLANG_ENABLE_DX_ON_VK)
 
