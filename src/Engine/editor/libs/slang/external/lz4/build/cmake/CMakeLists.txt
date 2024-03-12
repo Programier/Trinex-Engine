@@ -97,38 +97,38 @@ option(LZ4_POSITION_INDEPENDENT_LIB "Use position independent code for static li
 include(GNUInstallDirs)
 set(LZ4_LIBRARIES_BUILT)
 if(BUILD_SHARED_LIBS)
-  add_library(lz4_shared SHARED ${LZ4_SOURCES})
-  target_include_directories(lz4_shared
+  add_library(slang_lz4_shared SHARED ${LZ4_SOURCES})
+  target_include_directories(slang_lz4_shared
     PUBLIC $<BUILD_INTERFACE:${LZ4_LIB_SOURCE_DIR}>
     INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-  set_target_properties(lz4_shared PROPERTIES
+  set_target_properties(slang_lz4_shared PROPERTIES
     OUTPUT_NAME lz4
     SOVERSION "${LZ4_VERSION_MAJOR}"
     VERSION "${LZ4_VERSION_STRING}")
   if(MSVC)
-    target_compile_definitions(lz4_shared PRIVATE
+    target_compile_definitions(slang_lz4_shared PRIVATE
       LZ4_DLL_EXPORT=1)
   endif()
-  list(APPEND LZ4_LIBRARIES_BUILT lz4_shared)
+  list(APPEND LZ4_LIBRARIES_BUILT slang_lz4_shared)
 endif()
 if(BUILD_STATIC_LIBS)
   set(STATIC_LIB_NAME lz4)
   if (MSVC AND BUILD_SHARED_LIBS)
-    set(STATIC_LIB_NAME lz4_static)
+    set(STATIC_LIB_NAME slang_lz4_static)
   endif()
   add_library(slang_lz4_static STATIC ${LZ4_SOURCES})
-  target_include_directories(lz4_static
+  target_include_directories(slang_lz4_static
     PUBLIC $<BUILD_INTERFACE:${LZ4_LIB_SOURCE_DIR}>
     INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
   set_target_properties(slang_lz4_static PROPERTIES
     OUTPUT_NAME ${STATIC_LIB_NAME}
     POSITION_INDEPENDENT_CODE ${LZ4_POSITION_INDEPENDENT_LIB})
-  list(APPEND LZ4_LIBRARIES_BUILT lz4_static)
+  list(APPEND LZ4_LIBRARIES_BUILT slang_lz4_static)
 endif()
 
 # xxhash namesapce
 if(BUILD_SHARED_LIBS)
-  target_compile_definitions(lz4_shared PRIVATE 
+  target_compile_definitions(slang_lz4_shared PRIVATE
     XXH_NAMESPACE=LZ4_)
 endif()
 if(BUILD_STATIC_LIBS)

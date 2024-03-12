@@ -440,6 +440,37 @@ namespace Engine::ShaderCompiler
         request->setTargetFlags(0, global_session()->findProfile("glsl_440"));
     }
 
+    static void setup_spriv_compile_request(SlangCompileRequest* request)
+    {
+        request->setCodeGenTarget(SLANG_SPIRV);
+        request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
+        request->setTargetMatrixLayoutMode(0, SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
+        request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
+        request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
+        request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
+        request->setTargetFlags(0, SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY);
+        request->setTargetFlags(0, global_session()->findProfile("glsl_440"));
+    }
+
+
+    using CompileFunction = ShaderSource (*)(const String&, const Vector<ShaderDefinition>&, MessageList*);
+
+    static ShaderSource compile_shader_source_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+                                                        MessageList* errors, CompileFunction func)
+    {
+        auto path = engine_config.shaders_dir / relative;
+        FileReader file(path);
+        if (file.is_open())
+        {
+            return func(file.read_string(), definitions, errors);
+        }
+        else if (errors)
+        {
+            errors->push_back(Strings::format("Failed to open file '{}'", path.str()));
+        }
+        return {};
+    }
+
     ShaderSource create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
     {
         ShaderSource out_source;
@@ -460,21 +491,34 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
+    ShaderSource create_spirv_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    {
+        ShaderSource out_source;
+        auto vertex_callback = [&](const byte* data, size_t size) {
+            std::destroy_at(&out_source.vertex_code);
+            new (&out_source.vertex_code) Buffer(data, data + size);
+        };
+
+        auto fragment_callback = [&](const byte* data, size_t size) {
+            std::destroy_at(&out_source.fragment_code);
+            new (&out_source.fragment_code) Buffer(data, data + size);
+        };
+
+        compile_shader(source, definitions, errors, setup_spriv_compile_request, out_source.reflection, vertex_callback,
+                       fragment_callback);
+        return out_source;
+    }
+
+    ShaderSource create_spirv_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+                                               MessageList* errors)
+    {
+        return compile_shader_source_from_file(relative, definitions, errors, create_spirv_shader);
+    }
+
     ShaderSource create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                               MessageList* errors)
     {
-        auto path = engine_config.shaders_dir / relative;
-        FileReader file(path);
-        if (file.is_open())
-        {
-            return create_glsl_shader(file.read_string(), definitions, errors);
-        }
-        else if (errors)
-        {
-            errors->push_back(Strings::format("Failed to open file '{}'", path.str()));
-        }
-
-        return {};
+        return compile_shader_source_from_file(relative, definitions, errors, create_glsl_shader);
     }
 
 
@@ -484,9 +528,25 @@ namespace Engine::ShaderCompiler
     implement_class(OpenGL_ShaderCompiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(OpenGL_ShaderCompiler);
 
+    implement_class(Vulkan_ShaderCompiler, Engine::ShaderCompiler, 0);
+    implement_default_initialize_class(Vulkan_ShaderCompiler);
+
     bool OpenGL_ShaderCompiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
         auto source = create_glsl_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+
+        if (errors.empty())
+        {
+            out_source = source;
+            return true;
+        }
+        return false;
+    }
+
+    bool Vulkan_ShaderCompiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    {
+        auto source =
+                create_spirv_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
 
         if (errors.empty())
         {

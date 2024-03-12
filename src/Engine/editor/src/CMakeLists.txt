@@ -27,7 +27,7 @@ endif()
 include_directories(../libs/slang/source/core/)
 add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
 
-target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine    assimp
+target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
                                                                 imgui_guizmo
                                                                 core
                                                                 slang)

@@ -100,7 +100,7 @@ namespace Engine
         create_content_browser().create_preview_window();
 
         ImGuiRenderer::Window::make_current(prev_window);
-        Class* instance = Class::static_find(editor_config.material_compiler);
+        Class* instance = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_ShaderCompiler", engine_config.api));
 
         if (instance)
         {
@@ -161,7 +161,7 @@ namespace Engine
         vertex_shader->source_code   = source.vertex_code;
         fragment_shader->source_code = source.fragment_code;
 
-        m_material->apply_changes();
+        //m_material->apply_changes();
         return *this;
     }
 
@@ -288,6 +288,7 @@ namespace Engine
 
     MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
     {
+
         ImGui::Begin("editor/Material Source###Material Source"_localized);
 
         if (ImGui::BeginTabBar("Source"))

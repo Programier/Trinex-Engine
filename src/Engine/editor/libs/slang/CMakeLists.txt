@@ -91,7 +91,7 @@ option(SLANG_ENABLE_GFX "Enable gfx targets" OFF)
 option(SLANG_ENABLE_SLANGD "Enable language server target" OFF)
 option(SLANG_ENABLE_SLANGC "Enable standalone compiler target" OFF)
 option(SLANG_ENABLE_SLANGRT "Enable runtime target" OFF)
-option(SLANG_ENABLE_SLANG_GLSLANG "Enable glslang dependency and slang-glslang wrapper target" ON)
+option(SLANG_ENABLE_SLANG_GLSLANG "Enable glslang dependency and slang-glslang wrapper target" OFF)
 option(SLANG_ENABLE_TESTS "Enable test targets, requires SLANG_ENABLE_GFX, SLANG_ENABLE_SLANGD and SLANG_ENABLE_SLANGRT" OFF)
 option(SLANG_ENABLE_EXAMPLES "Enable example targets, requires SLANG_ENABLE_GFX" OFF)
 
@@ -116,7 +116,7 @@ set(SLANG_GENERATORS_PATH
 enum_option(
     SLANG_SLANG_LLVM_FLAVOR
     # Default
-    FETCH_BINARY
+    DISABLE
     "How to get or build slang-llvm:"
     # Options
     FETCH_BINARY

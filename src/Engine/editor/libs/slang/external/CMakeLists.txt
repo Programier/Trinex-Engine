@@ -23,7 +23,7 @@ set(LZ4_BUNDLED_MODE ON)
 add_subdirectory(lz4/build/cmake EXCLUDE_FROM_ALL)
 if(MSVC)
     target_compile_options(
-        lz4_static
+        slang_lz4_static
         PRIVATE /wd5045 /wd4820 /wd4711 /wd6385 /wd6262
     )
 endif()

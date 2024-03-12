@@ -46,6 +46,10 @@ namespace Engine
                                         MessageList* errors = nullptr);
         ShaderSource create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
                                                   MessageList* errors = nullptr);
+        ShaderSource create_spirv_shader(const String& source, const Vector<ShaderDefinition>& definitions = {},
+                                         MessageList* errors = nullptr);
+        ShaderSource create_spirv_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
+                                                   MessageList* errors = nullptr);
 
 
         class ShaderCompiler : public Object
@@ -59,6 +63,14 @@ namespace Engine
         class OpenGL_ShaderCompiler : public ShaderCompiler
         {
             declare_class(OpenGL_ShaderCompiler, ShaderCompiler);
+
+        public:
+            bool compile(Material* material, ShaderSource& out_source, MessageList& errors) override;
+        };
+
+        class Vulkan_ShaderCompiler : public ShaderCompiler
+        {
+            declare_class(Vulkan_ShaderCompiler, ShaderCompiler);
 
         public:
             bool compile(Material* material, ShaderSource& out_source, MessageList& errors) override;
