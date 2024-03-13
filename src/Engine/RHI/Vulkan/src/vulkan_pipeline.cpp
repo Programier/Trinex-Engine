@@ -58,6 +58,11 @@ namespace Engine
             push_layout_binding(out, stage, sampler.location, vk::DescriptorType::eSampler);
         }
 
+        for (auto& combined_image_sampler : shader->combined_image_samplers)
+        {
+            push_layout_binding(out, stage, combined_image_sampler.location, vk::DescriptorType::eCombinedImageSampler);
+        }
+
         for (auto& shared_buffer : shader->ssbo)
         {
             push_layout_binding(out, stage, shared_buffer.location, vk::DescriptorType::eStorageBuffer);
@@ -368,6 +373,11 @@ namespace Engine
             ++(out[sampler.location.set].samplers);
         }
 
+        for (auto& combined_image_sampler : shader->combined_image_samplers)
+        {
+            ++(out[combined_image_sampler.location.set].combined_samplers);
+        }
+
         if (pipeline->global_parameters.has_parameters())
         {
             ++(out[0].ubos);
@@ -506,6 +516,27 @@ namespace Engine
             }
         }
 
+        return *this;
+    }
+
+    VulkanPipeline& VulkanPipeline::bind_texture_combined(VulkanTexture* texture, VulkanSampler* sampler, BindLocation location)
+    {
+        if (!m_descriptor_set_layout.empty())
+        {
+            VulkanDescriptorSet* current_set           = current_descriptor_set(location.set);
+            VulkanCombinedImageSampler& current_object = current_set->m_combined_image_sampler[location.binding];
+
+            if (current_object.texture != texture || current_object.sampler != sampler)
+            {
+                vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->m_image_view,
+                                                   vk::ImageLayout::eShaderReadOnlyOptimal);
+                vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
+                                                        vk::DescriptorType::eCombinedImageSampler, image_info);
+                API->m_device.updateDescriptorSets(write_descriptor, {});
+                current_object.texture = texture;
+                current_object.sampler = sampler;
+            }
+        }
         return *this;
     }
 

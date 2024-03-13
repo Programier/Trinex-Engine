@@ -472,8 +472,11 @@ namespace Engine::ShaderCompiler
         return {};
     }
 
-    ShaderSource create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
     {
+        auto new_definitions = definitions;
+        new_definitions.push_back({"TRINEX_OPENGL_API", ""});
+
         ShaderSource out_source;
         auto vertex_callback = [&](const byte* data, size_t size) {
             std::destroy_at(&out_source.vertex_code);
@@ -487,13 +490,16 @@ namespace Engine::ShaderCompiler
             out_source.fragment_code.push_back(0);
         };
 
-        compile_shader(source, definitions, errors, setup_glsl_compile_request, out_source.reflection, vertex_callback,
+        compile_shader(source, new_definitions, errors, setup_glsl_compile_request, out_source.reflection, vertex_callback,
                        fragment_callback);
         return out_source;
     }
 
-    ShaderSource create_spirv_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
     {
+        auto new_definitions = definitions;
+        new_definitions.push_back({"TRINEX_VULKAN_API", ""});
+
         ShaderSource out_source;
         auto vertex_callback = [&](const byte* data, size_t size) {
             std::destroy_at(&out_source.vertex_code);
@@ -505,21 +511,21 @@ namespace Engine::ShaderCompiler
             new (&out_source.fragment_code) Buffer(data, data + size);
         };
 
-        compile_shader(source, definitions, errors, setup_spriv_compile_request, out_source.reflection, vertex_callback,
+        compile_shader(source, new_definitions, errors, setup_spriv_compile_request, out_source.reflection, vertex_callback,
                        fragment_callback);
         return out_source;
     }
 
-    ShaderSource create_spirv_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                               MessageList* errors)
+    ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+                                                MessageList* errors)
     {
-        return compile_shader_source_from_file(relative, definitions, errors, create_spirv_shader);
+        return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
     }
 
-    ShaderSource create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                              MessageList* errors)
+    ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+                                                MessageList* errors)
     {
-        return compile_shader_source_from_file(relative, definitions, errors, create_glsl_shader);
+        return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
     }
 
 
@@ -534,7 +540,8 @@ namespace Engine::ShaderCompiler
 
     bool OpenGL_ShaderCompiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
-        auto source = create_glsl_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+        auto source =
+                create_opengl_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
 
         if (errors.empty())
         {
@@ -547,7 +554,7 @@ namespace Engine::ShaderCompiler
     bool Vulkan_ShaderCompiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
         auto source =
-                create_spirv_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+                create_vulkan_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
 
         if (errors.empty())
         {

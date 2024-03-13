@@ -43,14 +43,14 @@ namespace Engine
             ShaderReflection reflection;
         };
 
-        ShaderSource create_glsl_shader(const String& source, const Vector<ShaderDefinition>& definitions = {},
-                                        MessageList* errors = nullptr);
-        ShaderSource create_glsl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
-                                                  MessageList* errors = nullptr);
-        ShaderSource create_spirv_shader(const String& source, const Vector<ShaderDefinition>& definitions = {},
-                                         MessageList* errors = nullptr);
-        ShaderSource create_spirv_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
-                                                   MessageList* errors = nullptr);
+        ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions = {},
+                                          MessageList* errors = nullptr);
+        ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
+                                                    MessageList* errors = nullptr);
+        ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions = {},
+                                          MessageList* errors = nullptr);
+        ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions = {},
+                                                    MessageList* errors = nullptr);
 
 
         class ShaderCompiler : public Object

@@ -37,12 +37,11 @@ namespace Engine
         RenderResource();
 
         bool has_object() const;
-        virtual RHI_Object* rhi_object_pointer() const;
 
         template<typename T>
         T* rhi_object() const
         {
-            return reinterpret_cast<T*>(rhi_object_pointer());
+            return reinterpret_cast<T*>(m_rhi_object.get());
         }
 
         virtual RenderResource& rhi_create();

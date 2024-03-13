@@ -19,6 +19,15 @@ namespace Engine
         glBindTexture(m_type, m_id);
     }
 
+    void OpenGL_Texture::bind_combined(RHI_Sampler* sampler, BindLocation location)
+    {
+        bind(location);
+        if (sampler)
+        {
+            reinterpret_cast<OpenGL_Sampler*>(sampler)->bind(location);
+        }
+    }
+
     void OpenGL_Texture::generate_mipmap()
     {
         glBindTexture(m_type, m_id);

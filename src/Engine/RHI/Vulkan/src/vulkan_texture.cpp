@@ -155,6 +155,15 @@ namespace Engine
         }
     }
 
+    void VulkanTexture::bind_combined(RHI_Sampler* sampler, BindLocation location)
+    {
+        if (API->m_state->m_pipeline)
+        {
+            trinex_always_check(sampler, "Sampler can't be null!");
+            API->m_state->m_pipeline->bind_texture_combined(this, reinterpret_cast<VulkanSampler*>(sampler), location);
+        }
+    }
+
     VulkanTexture& VulkanTexture::destroy()
     {
         DESTROY_CALL(destroyImage, m_image);

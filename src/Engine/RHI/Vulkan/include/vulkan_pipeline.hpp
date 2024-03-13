@@ -50,6 +50,7 @@ namespace Engine
         VulkanPipeline& bind_uniform_buffer(const vk::Buffer& buffer, size_t offset, size_t size, BindLocation location);
         VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);
         VulkanPipeline& bind_texture(VulkanTexture* texture, BindLocation location);
+        VulkanPipeline& bind_texture_combined(VulkanTexture*, VulkanSampler*, BindLocation);
         VulkanPipeline& increment_set_index();
 
         ~VulkanPipeline();

@@ -91,12 +91,7 @@ namespace Engine
 
     bool RenderResource::has_object() const
     {
-        return rhi_object_pointer() != nullptr;
-    }
-
-    RHI_Object* RenderResource::rhi_object_pointer() const
-    {
-        return m_rhi_object.get();
+        return m_rhi_object != nullptr;
     }
 
     RenderResource::~RenderResource()

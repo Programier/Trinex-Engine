@@ -31,10 +31,19 @@ namespace Engine
             BindLocation location;
         };
 
-        using Sampler         = Texture;
-        using SamplerCombined = Texture;
+        struct Sampler {
+            Name name;
+            BindLocation location;
+        };
+
+        struct CombinedImageSampler {
+            Name name;
+            BindLocation location;
+        };
+
 
         Vector<Sampler> samplers;
+        Vector<CombinedImageSampler> combined_image_samplers;
         Vector<Texture> textures;
         Vector<SSBO> ssbo;
         Buffer source_code;
@@ -85,5 +94,7 @@ namespace Engine
 
     ENGINE_EXPORT bool operator&(Archive&, Shader::SSBO&);
     ENGINE_EXPORT bool operator&(Archive&, Shader::Texture&);
+    ENGINE_EXPORT bool operator&(Archive&, Shader::Sampler&);
+    ENGINE_EXPORT bool operator&(Archive&, Shader::CombinedImageSampler&);
     ENGINE_EXPORT bool operator&(Archive&, VertexShader::Attribute&);
 }// namespace Engine

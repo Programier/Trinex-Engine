@@ -32,6 +32,7 @@ namespace Engine
             return false;
 
         ar & samplers;
+        ar & combined_image_samplers;
         ar & textures;
         ar & ssbo;
         ar & source_code;
@@ -91,6 +92,21 @@ namespace Engine
         ar & texture.location.id;
         return ar;
     }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, Shader::Sampler& object)
+    {
+        ar & object.name;
+        ar & object.location.id;
+        return ar;
+    }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, Shader::CombinedImageSampler& object)
+    {
+        ar & object.name;
+        ar & object.location.id;
+        return ar;
+    }
+
 
     ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
     {

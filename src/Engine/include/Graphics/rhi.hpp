@@ -47,9 +47,10 @@ namespace Engine
     };
 
     struct RHI_Texture : RHI_BindingObject {
-        virtual void generate_mipmap()                   = 0;
+        virtual void generate_mipmap()                                          = 0;
         virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
-                                       size_t data_size) = 0;
+                                       size_t data_size)                        = 0;
+        virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
     };
 
     struct RHI_RenderTarget : RHI_Object {

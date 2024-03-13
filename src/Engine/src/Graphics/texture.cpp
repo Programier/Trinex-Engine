@@ -10,6 +10,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
+#include <Graphics/sampler.hpp>
 
 namespace Engine
 {
@@ -37,6 +38,15 @@ namespace Engine
         if (m_rhi_object)
         {
             rhi_object<RHI_Texture>()->generate_mipmap();
+        }
+        return *this;
+    }
+
+    Texture& Texture::rhi_bind_combined(Sampler* sampler, BindLocation location)
+    {
+        if (m_rhi_object && sampler)
+        {
+            rhi_object<RHI_Texture>()->bind_combined(sampler->rhi_object<RHI_Sampler>(), location);
         }
         return *this;
     }
