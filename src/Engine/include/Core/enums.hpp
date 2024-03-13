@@ -353,4 +353,30 @@ namespace Engine
         Lit   = 0,
         Unlit = 1
     };
+
+    enum class MaterialParameterType
+    {
+        Bool        = 0,
+        Int         = 1,
+        UInt        = 2,
+        Float       = 3,
+        BVec2       = 4,
+        BVec3       = 5,
+        BVec4       = 6,
+        IVec2       = 7,
+        IVec3       = 8,
+        IVec4       = 9,
+        UVec2       = 10,
+        UVec3       = 11,
+        UVec4       = 12,
+        Vec2        = 13,
+        Vec3        = 14,
+        Vec4        = 15,
+        Mat3        = 16,
+        Mat4        = 17,
+        Sampler     = 18,
+        Texture2D   = 19,
+        ModelMatrix = 21,
+        __COUNT__   = 28
+    };
 }// namespace Engine

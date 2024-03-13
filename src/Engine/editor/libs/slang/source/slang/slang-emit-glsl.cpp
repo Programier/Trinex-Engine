@@ -11,7 +11,6 @@
 #include <assert.h>
 
 
-#define USE_FORCED_SHADER_VERSION 1
 
 namespace Slang {
 
@@ -2134,13 +2133,18 @@ void GLSLSourceEmitter::handleRequiredCapabilitiesImpl(IRInst* inst)
     }
 }
 
-#if !USE_FORCED_SHADER_VERSION
+static bool _isEsVersion(ProfileVersion profile)
+{
+    return profile == ProfileVersion::GLSL_310_ES;
+}
+
 static Index _getGLSLVersion(ProfileVersion profile)
 {
     switch (profile)
     {
 #define CASE(TAG, VALUE) case ProfileVersion::TAG: return VALUE;
         CASE(GLSL_150, 150);
+        CASE(GLSL_310_ES, 310);
         CASE(GLSL_330, 330);
         CASE(GLSL_400, 400);
         CASE(GLSL_410, 410);
@@ -2156,7 +2160,7 @@ static Index _getGLSLVersion(ProfileVersion profile)
     }
     return -1;
 }
-#endif
+
 
 void GLSLSourceEmitter::emitFrontMatterImpl(TargetRequest* targetReq)
 {
@@ -2175,10 +2179,11 @@ void GLSLSourceEmitter::emitFrontMatterImpl(TargetRequest* targetReq)
     //
     // TODO: Either correctly compute a minimum required version, or require
     // the user to specify a version as part of the target.
-#if !USE_FORCED_SHADER_VERSION
-    m_glslExtensionTracker->requireVersion(ProfileVersion::GLSL_450);
+
+    //m_glslExtensionTracker->requireVersion(ProfileVersion::GLSL_330);
 
     Index glslVersion = _getGLSLVersion(m_glslExtensionTracker->getRequiredProfileVersion());
+    bool isEsVersion = _isEsVersion(m_glslExtensionTracker->getRequiredProfileVersion());
     if (glslVersion < 0)
     {
         // No information is available for us to guess a profile,
@@ -2190,14 +2195,18 @@ void GLSLSourceEmitter::emitFrontMatterImpl(TargetRequest* targetReq)
         // For now we just fall back to a reasonably recent version.
 
         glslVersion = 420;
+        isEsVersion = false;
     }
 
     m_writer->emit("#version ");
     m_writer->emit(glslVersion);
+    if(isEsVersion)
+    {
+        m_writer->emit(" es\n");
+        m_writer->emit("precision highp float;");
+
+    }
     m_writer->emit("\n");
-#else
-    m_writer->emit("#version 440 core\n#extension GL_ARB_sampler_objects : enable\n\n");
-#endif
 
     // Output the extensions
     if (m_glslExtensionTracker)

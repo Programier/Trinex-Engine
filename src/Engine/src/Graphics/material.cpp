@@ -21,6 +21,16 @@ namespace Engine
         return 0;
     }
 
+    size_t MaterialParameter::offset() const
+    {
+        return no_offset;
+    }
+
+    MaterialParameter& MaterialParameter::offset(size_t)
+    {
+        return *this;
+    }
+
     byte* MaterialParameter::data()
     {
         return nullptr;
@@ -31,19 +41,20 @@ namespace Engine
         return nullptr;
     }
 
-    MaterialParameter::Type MaterialParameter::binding_object_type() const
+    MaterialParameterType MaterialParameter::binding_object_type() const
     {
         return type();
     }
 
     MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline, class SceneComponent* component)
     {
-        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(Type::Mat4))
+        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(MaterialParameterType::Mat4))
         {
-            size_t offset = pipeline->local_parameters.offset_of(name);
-            if (offset != LocalMaterialParametersInfo::no_offset)
+            size_t parameter_offset = offset();
+
+            if (parameter_offset != no_offset)
             {
-                engine_instance->rhi()->update_local_parameter(data(), size(), offset);
+                engine_instance->rhi()->update_local_parameter(data(), size(), parameter_offset);
             }
         }
 
@@ -52,7 +63,7 @@ namespace Engine
 
     bool MaterialParameter::archive_process(Archive& ar)
     {
-        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(Type::Mat4))
+        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(MaterialParameterType::Mat4))
         {
             if (ar.is_reading())
             {
@@ -93,7 +104,7 @@ namespace Engine
         {
             for (auto& [_name, param] : map)
             {
-                MaterialParameter::Type type = param->type();
+                MaterialParameterType type = param->type();
                 Name name                    = _name;
                 ar & name;
                 ar & type;
@@ -104,7 +115,7 @@ namespace Engine
         else if (ar.is_reading())
         {
             Name name;
-            MaterialParameter::Type type;
+            MaterialParameterType type;
 
             while (count > 0)
             {
@@ -167,9 +178,9 @@ namespace Engine
     }
 
 
-    MaterialParameter::Type SamplerMaterialParameter::type() const
+    MaterialParameterType SamplerMaterialParameter::type() const
     {
-        return MaterialParameter::Type::Sampler;
+        return MaterialParameterType::Sampler;
     }
 
 
@@ -199,9 +210,9 @@ namespace Engine
         return *this;
     }
 
-    MaterialParameter::Type Texture2DMaterialParameter::type() const
+    MaterialParameterType Texture2DMaterialParameter::type() const
     {
-        return MaterialParameter::Type::Texture2D;
+        return MaterialParameterType::Texture2D;
     }
 
     MaterialParameter& Texture2DMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
@@ -241,18 +252,19 @@ namespace Engine
         return *this;
     }
 
-    ModelMatrixMaterialParameter::Type ModelMatrixMaterialParameter::type() const
+    MaterialParameterType ModelMatrixMaterialParameter::type() const
     {
-        return Type::ModelMatrix;
+        return MaterialParameterType::ModelMatrix;
     }
 
     ModelMatrixMaterialParameter& ModelMatrixMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
-        size_t offset = pipeline->local_parameters.offset_of(name);
-        if (offset != LocalMaterialParametersInfo::no_offset)
+        size_t parameter_offset = offset();
+        if (parameter_offset != no_offset)
         {
             Matrix4f model = component ? component->world_transform().matrix() : Matrix4f(1.f);
-            engine_instance->rhi()->update_local_parameter(reinterpret_cast<const byte*>(&model), sizeof(model), offset);
+            engine_instance->rhi()->update_local_parameter(reinterpret_cast<const byte*>(&model), sizeof(model),
+                                                           parameter_offset);
         }
         return *this;
     }
@@ -355,11 +367,11 @@ namespace Engine
 
 
 #define new_param_allocator(type)                                                                                                \
-    case MaterialParameter::Type::type:                                                                                          \
+    case MaterialParameterType::type:                                                                                          \
         return type##_material_param_allocator;
 
 
-    static MaterialParameter* (*find_param_allocator(MaterialParameter::Type type))()
+    static MaterialParameter* (*find_param_allocator(MaterialParameterType type))()
     {
         switch (type)
         {
@@ -391,7 +403,7 @@ namespace Engine
     }
 
 
-    MaterialParameter* Material::create_parameter_internal(const Name& name, MaterialParameter::Type type)
+    MaterialParameter* Material::create_parameter_internal(const Name& name, MaterialParameterType type)
     {
         MaterialParameter* param = find_parameter(name);
         if (param)
@@ -419,7 +431,7 @@ namespace Engine
         return nullptr;
     }
 
-    MaterialParameter* Material::create_parameter(const Name& name, MaterialParameter::Type type)
+    MaterialParameter* Material::create_parameter(const Name& name, MaterialParameterType type)
     {
         return create_parameter_internal(name, type);
     }
@@ -458,7 +470,7 @@ namespace Engine
         for (auto& texture : shader->textures)
         {
             MaterialParameter* parameter = head->find_parameter(texture.name);
-            if (parameter && parameter->binding_object_type() == MaterialParameter::Type::Texture2D)
+            if (parameter && parameter->binding_object_type() == MaterialParameterType::Texture2D)
             {
                 parameter->apply(pipeline, component);
             }
@@ -467,7 +479,7 @@ namespace Engine
         for (auto& sampler : shader->samplers)
         {
             MaterialParameter* parameter = head->find_parameter(sampler.name);
-            if (parameter && parameter->binding_object_type() == MaterialParameter::Type::Sampler)
+            if (parameter && parameter->binding_object_type() == MaterialParameterType::Sampler)
             {
                 parameter->apply(pipeline, component);
             }
@@ -479,7 +491,7 @@ namespace Engine
         trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
         pipeline->rhi_bind();
 
-        for (auto& [name, offset] : pipeline->local_parameters.offset_map())
+        for (auto& [name, material_parameter] : m_material_parameters)
         {
             MaterialParameter* parameter = head->find_parameter(name);
             if (parameter)
@@ -509,7 +521,7 @@ namespace Engine
         delete pipeline;
     }
 
-    MaterialParameter* MaterialInstance::create_parameter_internal(const Name& name, MaterialParameter::Type type)
+    MaterialParameter* MaterialInstance::create_parameter_internal(const Name& name, MaterialParameterType type)
     {
         MaterialParameter* param = find_parameter(name);
         if (param)

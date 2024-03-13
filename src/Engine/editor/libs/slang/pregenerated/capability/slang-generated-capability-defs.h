@@ -323,6 +323,7 @@ enum class CapabilityName
     sm_6_7,
     all,
     GLSL_150,
+    GLSL_310_ES,
     GLSL_330,
     GLSL_400,
     GLSL_410,

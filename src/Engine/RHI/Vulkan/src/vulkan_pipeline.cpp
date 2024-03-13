@@ -40,7 +40,7 @@ namespace Engine
     {
         if (pipeline->global_parameters.has_parameters())
         {
-            push_layout_binding(out, stage, {0, 0}, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stage, {pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
         }
 
         if (pipeline->local_parameters.has_parameters())
@@ -373,7 +373,7 @@ namespace Engine
             ++(out[0].ubos);
         }
 
-        if (!pipeline->local_parameters.empty())
+        if (pipeline->local_parameters.has_parameters())
         {
             ++(out[0].ubos);
         }

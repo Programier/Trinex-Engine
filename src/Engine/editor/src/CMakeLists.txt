@@ -34,7 +34,7 @@ target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
 
 set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
 set_property(TARGET imgui_guizmo PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
-set_property(TARGET slang PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os")
+#set_property(TARGET slang PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os")
 
 
 install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})

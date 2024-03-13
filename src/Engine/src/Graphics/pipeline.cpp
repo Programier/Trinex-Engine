@@ -17,102 +17,11 @@
 
 namespace Engine
 {
-    const size_t LocalMaterialParametersInfo::no_offset = ~static_cast<size_t>(0);
-
-    const size_t LocalMaterialParametersInfo::offset_of(const Name& name) const
-    {
-        auto it = m_parameters_offset.find(name);
-        if (it != m_parameters_offset.end())
-            return it->second;
-
-        return no_offset;
-    }
-
-    LocalMaterialParametersInfo& LocalMaterialParametersInfo::update(const Name& name, size_t new_offset)
-    {
-        if (name.is_valid())
-        {
-            m_parameters_offset[name] = new_offset;
-        }
-        return *this;
-    }
-
-    LocalMaterialParametersInfo& LocalMaterialParametersInfo::remove(const Name& name)
-    {
-        m_parameters_offset.erase(name);
-        return *this;
-    }
-
-    const LocalMaterialParametersInfo::OffsetMap& LocalMaterialParametersInfo::offset_map() const
-    {
-        return m_parameters_offset;
-    }
-
-    bool LocalMaterialParametersInfo::has_parameters() const
-    {
-        return !m_parameters_offset.empty();
-    }
-
-    BindingIndex LocalMaterialParametersInfo::bind_index() const
-    {
-        return m_bind_index;
-    }
-
-    LocalMaterialParametersInfo& LocalMaterialParametersInfo::bind_index(BindingIndex index)
-    {
-        m_bind_index = index;
-        return *this;
-    }
-
-    bool LocalMaterialParametersInfo::empty() const
-    {
-        return m_parameters_offset.empty();
-    }
-
-    size_t LocalMaterialParametersInfo::size() const
-    {
-        return m_parameters_offset.size();
-    }
-
-    ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info)
-    {
-        size_t count = info.m_parameters_offset.size();
-        ar & count;
-
-        if (ar.is_saving())
-        {
-            Name name;
-            for (auto& ell : info.m_parameters_offset)
-            {
-                name = ell.first;
-                ar & name;
-                ar & ell.second;
-            }
-        }
-        else
-        {
-            Name name;
-            size_t offset = 0;
-            while (count > 0)
-            {
-                ar & name;
-                ar & offset;
-
-                info.update(name, offset);
-                --count;
-            }
-        }
-
-        ar & info.m_bind_index;
-        return ar;
-    }
-
-    ENGINE_EXPORT bool operator&(Archive& ar, GlobalMaterialParametersInfo& info)
+    ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info)
     {
         ar & info.m_binding_index;
         return ar;
     }
-
 
     implement_struct(DepthTestInfo, Engine::Pipeline, ).push([]() {
         using DTI    = Pipeline::DepthTestInfo;

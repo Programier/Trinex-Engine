@@ -161,7 +161,8 @@ namespace Engine
         vertex_shader->source_code   = source.vertex_code;
         fragment_shader->source_code = source.fragment_code;
 
-        //m_material->apply_changes();
+
+        m_material->apply_changes();
         return *this;
     }
 
@@ -237,6 +238,11 @@ namespace Engine
                         submit_compiled_source(source);
                     }
                 }
+
+                if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))
+                {
+                    m_material->apply_changes();
+                }
                 ImGui::EndMenu();
             }
 
@@ -286,9 +292,22 @@ namespace Engine
         return *this;
     }
 
-    MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
+    static int input_text_callback(ImGuiInputTextCallbackData* data)
     {
 
+        if (data->EventFlag == ImGuiInputTextFlags_CallbackResize)
+        {
+            Buffer* buffer     = reinterpret_cast<Buffer*>(data->UserData);
+            const int new_size = data->BufTextLen;
+            buffer->resize(new_size+3);
+            data->Buf = (char*) buffer->data();
+        }
+
+        return 0;
+    }
+
+    MaterialEditorClient& MaterialEditorClient::render_viewport(float dt)
+    {
         ImGui::Begin("editor/Material Source###Material Source"_localized);
 
         if (ImGui::BeginTabBar("Source"))
@@ -300,7 +319,8 @@ namespace Engine
                     ImGui::BeginChild(ImGui::GetID(m_material->pipeline->vertex_shader), ImGui::GetContentRegionAvail());
                     ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->vertex_shader->source_code.data(),
                                               m_material->pipeline->vertex_shader->source_code.size(),
-                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_ReadOnly);
+                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize, input_text_callback,
+                                              &m_material->pipeline->vertex_shader->source_code);
                     ImGui::EndChild();
                 }
 
@@ -314,7 +334,8 @@ namespace Engine
                     ImGui::BeginChild(ImGui::GetID(m_material->pipeline->fragment_shader), ImGui::GetContentRegionAvail());
                     ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->fragment_shader->source_code.data(),
                                               m_material->pipeline->fragment_shader->source_code.size(),
-                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_ReadOnly);
+                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize, input_text_callback,
+                                              &m_material->pipeline->fragment_shader->source_code);
                     ImGui::EndChild();
                 }
                 ImGui::EndTabItem();

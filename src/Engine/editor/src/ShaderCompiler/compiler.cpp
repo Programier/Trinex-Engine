@@ -437,7 +437,8 @@ namespace Engine::ShaderCompiler
         request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
         request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
         request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
-        request->setTargetFlags(0, global_session()->findProfile("glsl_440"));
+        auto profile = global_session()->findProfile("glsl_310_es");
+        request->setTargetProfile(0, profile);
     }
 
     static void setup_spriv_compile_request(SlangCompileRequest* request)
@@ -449,7 +450,7 @@ namespace Engine::ShaderCompiler
         request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
         request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
         request->setTargetFlags(0, SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY);
-        request->setTargetFlags(0, global_session()->findProfile("glsl_440"));
+        request->setTargetProfile(0, global_session()->findProfile("glsl_440"));
     }
 
 

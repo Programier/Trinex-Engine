@@ -22,6 +22,7 @@ namespace Engine
             };
 
             struct UniformMemberInfo {
+                MaterialParameterType type;
                 String name;
                 size_t size;
                 size_t offset;

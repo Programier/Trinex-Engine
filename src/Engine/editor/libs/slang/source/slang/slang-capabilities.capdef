@@ -353,6 +353,7 @@ alias all = _sm_6_7 + hlsl_nvapi
 // Profiles
 
 alias GLSL_150 = glsl + sm_5_1 | spirv_1_0;
+alias GLSL_310_ES = GLSL_150 | spirv_1_0 + sm_5_1;
 alias GLSL_330 = GLSL_150 | spirv_1_0 + sm_5_1;
 alias GLSL_400 = GLSL_150 | spirv_1_0 + sm_5_1;
 alias GLSL_410 = glsl + sm_5_1 | spirv_1_5 + sm_5_1;

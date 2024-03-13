@@ -10,32 +10,7 @@ namespace Engine
     class FragmentShader;
     class RenderPass;
 
-    struct ENGINE_EXPORT LocalMaterialParametersInfo final {
-    public:
-        using OffsetMap = Map<Name, size_t, Name::HashFunction>;
-
-    private:
-        OffsetMap m_parameters_offset;
-        BindingIndex m_bind_index = 1;
-
-    public:
-        static const size_t no_offset;
-
-        bool empty() const;
-        size_t size() const;
-
-        const size_t offset_of(const Name& name) const;
-        LocalMaterialParametersInfo& update(const Name& name, size_t new_offset);
-        LocalMaterialParametersInfo& remove(const Name& name);
-        const OffsetMap& offset_map() const;
-        bool has_parameters() const;
-        BindingIndex bind_index() const;
-        LocalMaterialParametersInfo& bind_index(BindingIndex index);
-
-        friend bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
-    };
-
-    class ENGINE_EXPORT GlobalMaterialParametersInfo final
+    class ENGINE_EXPORT MaterialScalarParametersInfo final
     {
         BindingIndex m_binding_index = 255;
 
@@ -45,28 +20,27 @@ namespace Engine
             return m_binding_index < 255;
         }
 
-        FORCE_INLINE BindingIndex bind_index()
+        FORCE_INLINE BindingIndex bind_index() const
         {
             return m_binding_index;
         }
 
-        FORCE_INLINE GlobalMaterialParametersInfo& bind_index(BindingIndex index)
+        FORCE_INLINE MaterialScalarParametersInfo& bind_index(BindingIndex index)
         {
             m_binding_index = index;
             return *this;
         }
 
-        FORCE_INLINE GlobalMaterialParametersInfo& remove_parameters()
+        FORCE_INLINE MaterialScalarParametersInfo& remove_parameters()
         {
             m_binding_index = 255;
             return *this;
         }
 
-        friend bool operator&(Archive& ar, GlobalMaterialParametersInfo& info);
+        friend bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
     };
 
-    ENGINE_EXPORT bool operator&(Archive& ar, LocalMaterialParametersInfo& info);
-    ENGINE_EXPORT bool operator&(Archive& ar, GlobalMaterialParametersInfo& info);
+    ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
 
     class ENGINE_EXPORT Pipeline : public RenderResource
     {
@@ -133,8 +107,9 @@ namespace Engine
         } ALIGNED(4) color_blending;
 
 
-        LocalMaterialParametersInfo local_parameters;
-        GlobalMaterialParametersInfo global_parameters;
+        MaterialScalarParametersInfo local_parameters;
+        MaterialScalarParametersInfo global_parameters;
+
         Path shader_path;
 
     private:
