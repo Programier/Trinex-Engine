@@ -96,6 +96,7 @@ option(SLANG_ENABLE_SLANGRT "Enable runtime target" OFF)
 option(SLANG_ENABLE_SLANG_GLSLANG "Enable glslang dependency and slang-glslang wrapper target" OFF)
 option(SLANG_ENABLE_TESTS "Enable test targets, requires SLANG_ENABLE_GFX, SLANG_ENABLE_SLANGD and SLANG_ENABLE_SLANGRT" OFF)
 option(SLANG_ENABLE_EXAMPLES "Enable example targets, requires SLANG_ENABLE_GFX" OFF)
+option(SLANG_USE_PREGENERATED_HEADERS "Using pregenerated headers" OFF)
 
 enum_option(
     SLANG_LIB_TYPE 
@@ -277,18 +278,27 @@ function(generator dir)
         )
     endif()
 endfunction()
-generator(tools/slang-cpp-extractor USE_FEWER_WARNINGS LINK_WITH_PRIVATE compiler-core)
-generator(tools/slang-embed)
-generator(tools/slang-generate USE_FEWER_WARNINGS)
-generator(tools/slang-lookup-generator LINK_WITH_PRIVATE compiler-core)
-generator(tools/slang-capability-generator LINK_WITH_PRIVATE compiler-core)
-generator(tools/slang-spirv-embed-generator LINK_WITH_PRIVATE compiler-core)
-generator(
-    source/slangc
-    TARGET_NAME slang-bootstrap
-    USE_FEWER_WARNINGS
-    LINK_WITH_PRIVATE prelude slang-no-embedded-stdlib slang-capability-lookup slang-lookup-tables Threads::Threads
-)
+
+if (NOT SLANG_USE_PREGENERATED_HEADERS)
+    generator(tools/slang-cpp-extractor USE_FEWER_WARNINGS LINK_WITH_PRIVATE compiler-core)
+    generator(tools/slang-embed)
+    generator(tools/slang-generate USE_FEWER_WARNINGS)
+    generator(tools/slang-lookup-generator LINK_WITH_PRIVATE compiler-core)
+    generator(tools/slang-capability-generator LINK_WITH_PRIVATE compiler-core)
+    generator(tools/slang-spirv-embed-generator LINK_WITH_PRIVATE compiler-core)
+
+    generator(
+        source/slangc
+        TARGET_NAME slang-bootstrap
+        USE_FEWER_WARNINGS
+        LINK_WITH_PRIVATE prelude slang-no-embedded-stdlib slang-capability-lookup slang-lookup-tables Threads::Threads
+    )
+endif()
+
+
+
+
+
 
 #
 # The compiler itself
