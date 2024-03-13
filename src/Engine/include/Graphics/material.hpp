@@ -1,7 +1,9 @@
 #pragma once
+#include <Core/default_resources.hpp>
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
+#include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
 
 namespace Engine
@@ -122,6 +124,7 @@ namespace Engine
         void bind_texture(class Engine::Texture2D* texture);
         void bind_sampler(class Engine::Sampler* sampler);
         bool archive_process(Archive& ar) override;
+        static bool archive_status(Archive& ar);
 
     public:
         virtual class Texture* texture_param() const;
@@ -130,11 +133,12 @@ namespace Engine
         virtual BindingMaterialParameter& sampler_param(class Sampler* sampler);
     };
 
-    class SamplerMaterialParameter : public BindingMaterialParameter
+    class ENGINE_EXPORT SamplerMaterialParameter : public BindingMaterialParameter
     {
     public:
         Pointer<class Sampler> sampler;
 
+        SamplerMaterialParameter();
         MaterialParameterType type() const override;
         MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
@@ -142,17 +146,113 @@ namespace Engine
         SamplerMaterialParameter& sampler_param(class Sampler* sampler) override;
     };
 
-    struct Texture2DMaterialParameter : public BindingMaterialParameter {
-        Pointer<class Texture2D> texture;
-
-        MaterialParameterType type() const override;
-        MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-        bool archive_process(Archive& ar) override;
-        class Texture* texture_param() const override;
-        Texture2DMaterialParameter& texture_param(class Texture* texture) override;
+    struct ENGINE_EXPORT TextureMaterialParameterBase : public BindingMaterialParameter {
+    public:
+        TextureMaterialParameterBase& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
-    struct ModelMatrixMaterialParameter : public MaterialParameter {
+    struct ENGINE_EXPORT CombinedImageSamplerMaterialParameterBase : public BindingMaterialParameter {
+    public:
+        CombinedImageSamplerMaterialParameterBase& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
+    };
+
+    template<typename ClassType, MaterialParameterType parameter_type>
+    class TextureMaterialParameter : public TextureMaterialParameterBase
+    {
+        Pointer<ClassType> texture;
+
+        inline MaterialParameterType type() const override
+        {
+            return parameter_type;
+        }
+
+        inline class Texture* texture_param() const override
+        {
+            return texture.ptr();
+        }
+
+        inline TextureMaterialParameter& texture_param(class Texture* in_texture) override
+        {
+            if (in_texture == nullptr)
+            {
+                texture = nullptr;
+            }
+            else if (ClassType* new_texture = Object::instance_cast<ClassType>(in_texture))
+            {
+                texture = new_texture;
+            }
+            return *this;
+        }
+
+        inline bool archive_process(Archive& ar) override
+        {
+            if (!BindingMaterialParameter::archive_process(ar))
+                return false;
+
+            texture.archive_process(ar, true);
+            return archive_status(ar);
+        }
+    };
+
+    using Texture2DMaterialParameter = TextureMaterialParameter<class Texture2D, MaterialParameterType::Texture2D>;
+
+    template<typename ClassType, MaterialParameterType parameter_type>
+    struct CombinedImageSamplerMaterialParameter : public CombinedImageSamplerMaterialParameterBase {
+        Pointer<ClassType> texture;
+        Pointer<class Sampler> sampler;
+
+        CombinedImageSamplerMaterialParameter() : texture(nullptr), sampler(DefaultResources::default_sampler)
+        {}
+
+        inline MaterialParameterType type() const override
+        {
+            return parameter_type;
+        }
+
+        inline class Texture* texture_param() const override
+        {
+            return texture.ptr();
+        }
+
+        inline CombinedImageSamplerMaterialParameter& texture_param(class Texture* in_texture) override
+        {
+            if (in_texture == nullptr)
+            {
+                texture = nullptr;
+            }
+            else if (ClassType* new_texture = Object::instance_cast<ClassType>(in_texture))
+            {
+                texture = new_texture;
+            }
+            return *this;
+        }
+
+        inline class Sampler* sampler_param() const override
+        {
+            return sampler.ptr();
+        }
+
+        inline CombinedImageSamplerMaterialParameter& sampler_param(class Sampler* in_sampler) override
+        {
+            sampler = in_sampler;
+            return *this;
+        }
+
+        inline bool archive_process(Archive& ar) override
+        {
+            if (!BindingMaterialParameter::archive_process(ar))
+                return false;
+
+            texture.archive_process(ar, true);
+            sampler.archive_process(ar, true);
+            return archive_status(ar);
+        }
+    };
+
+    using CombinedImageSampler2DMaterialParameter =
+            CombinedImageSamplerMaterialParameter<class Texture2D, MaterialParameterType::CombinedImageSampler2D>;
+
+    struct ENGINE_EXPORT ModelMatrixMaterialParameter : public MaterialParameter {
         MaterialParameterType type() const override;
         ModelMatrixMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };

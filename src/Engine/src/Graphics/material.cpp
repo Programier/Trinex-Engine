@@ -9,7 +9,6 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
-#include <Graphics/sampler.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -105,7 +104,7 @@ namespace Engine
             for (auto& [_name, param] : map)
             {
                 MaterialParameterType type = param->type();
-                Name name                    = _name;
+                Name name                  = _name;
                 ar & name;
                 ar & type;
 
@@ -151,6 +150,11 @@ namespace Engine
         }
     }
 
+    bool BindingMaterialParameter::archive_status(Archive& ar)
+    {
+        return static_cast<bool>(ar);
+    }
+
     bool BindingMaterialParameter::archive_process(Archive& ar)
     {
         ar & location;
@@ -177,6 +181,8 @@ namespace Engine
         return *this;
     }
 
+    SamplerMaterialParameter::SamplerMaterialParameter() : sampler(DefaultResources::default_sampler)
+    {}
 
     MaterialParameterType SamplerMaterialParameter::type() const
     {
@@ -210,45 +216,25 @@ namespace Engine
         return *this;
     }
 
-    MaterialParameterType Texture2DMaterialParameter::type() const
+    TextureMaterialParameterBase& TextureMaterialParameterBase::apply(const Pipeline* pipeline, SceneComponent*)
     {
-        return MaterialParameterType::Texture2D;
-    }
-
-    MaterialParameter& Texture2DMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-    {
-        if (texture)
+        if (Texture* texture = texture_param())
         {
             texture->rhi_bind(location);
         }
         return *this;
     }
 
-    bool Texture2DMaterialParameter::archive_process(Archive& ar)
+    CombinedImageSamplerMaterialParameterBase& CombinedImageSamplerMaterialParameterBase::apply(const Pipeline* pipeline,
+                                                                                                SceneComponent* component)
     {
-        if (!BindingMaterialParameter::archive_process(ar))
-            return false;
+        auto texture = texture_param();
+        auto sampler = sampler_param();
 
-        texture.archive_process(ar, true);
-        return ar;
-    }
-
-    class Texture* Texture2DMaterialParameter::texture_param() const
-    {
-        return texture.ptr();
-    }
-
-    Texture2DMaterialParameter& Texture2DMaterialParameter::texture_param(class Texture* new_texture)
-    {
-        if (new_texture == nullptr)
+        if (texture && sampler)
         {
-            texture = nullptr;
+            texture->rhi_bind_combined(sampler, location);
         }
-        else if (class Texture2D* new_texture_2d = Object::instance_cast<class Texture2D>(new_texture))
-        {
-            texture = new_texture_2d;
-        }
-
         return *this;
     }
 
@@ -357,17 +343,12 @@ namespace Engine
     declare_allocator(Mat4);
     declare_allocator(Sampler);
     declare_allocator(Texture2D);
+    declare_allocator(CombinedImageSampler2D);
     declare_allocator(ModelMatrix);
-    //    declare_allocator(BaseColorTexture);
-    //    declare_allocator(PositionTexture);
-    //    declare_allocator(NormalTexture);
-    //    declare_allocator(EmissiveTexture);
-    //    declare_allocator(MSRABufferTexture);
-    //    declare_allocator(SceneOutputTexture);
 
 
 #define new_param_allocator(type)                                                                                                \
-    case MaterialParameterType::type:                                                                                          \
+    case MaterialParameterType::type:                                                                                            \
         return type##_material_param_allocator;
 
 
@@ -394,6 +375,7 @@ namespace Engine
             new_param_allocator(Mat3);
             new_param_allocator(Mat4);
             new_param_allocator(Sampler);
+            new_param_allocator(CombinedImageSampler2D);
             new_param_allocator(Texture2D);
             new_param_allocator(ModelMatrix);
 
