@@ -547,7 +547,7 @@ namespace Engine::ShaderCompiler
         return {};
     }
 
-    ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    static ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
     {
         auto new_definitions = definitions;
         new_definitions.push_back({"TRINEX_OPENGL_API", ""});
@@ -570,7 +570,7 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
-    ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    static ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
     {
         auto new_definitions = definitions;
         new_definitions.push_back({"TRINEX_VULKAN_API", ""});
@@ -591,29 +591,25 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
-    ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+    static ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                                 MessageList* errors)
     {
         return compile_shader_source_from_file(relative, definitions, errors, create_opengl_shader);
     }
 
-    ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+    static ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                                 MessageList* errors)
     {
         return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
     }
 
+    implement_class(OpenGL_Compiler, Engine::ShaderCompiler, 0);
+    implement_default_initialize_class(OpenGL_Compiler);
 
-    implement_class(ShaderCompiler, Engine::ShaderCompiler, 0);
-    implement_default_initialize_class(ShaderCompiler);
+    implement_class(Vulkan_Compiler, Engine::Compiler, 0);
+    implement_default_initialize_class(Vulkan_Compiler);
 
-    implement_class(OpenGL_ShaderCompiler, Engine::ShaderCompiler, 0);
-    implement_default_initialize_class(OpenGL_ShaderCompiler);
-
-    implement_class(Vulkan_ShaderCompiler, Engine::ShaderCompiler, 0);
-    implement_default_initialize_class(Vulkan_ShaderCompiler);
-
-    bool OpenGL_ShaderCompiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    bool OpenGL_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
         auto source =
                 create_opengl_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
@@ -626,7 +622,7 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool Vulkan_ShaderCompiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    bool Vulkan_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
         auto source =
                 create_vulkan_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);

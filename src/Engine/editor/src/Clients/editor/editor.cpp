@@ -412,7 +412,7 @@ namespace Engine
 
         if (Texture2D* icon = Icons::icon(Icons::More))
         {
-            if (ImGui::ImageButton(icon, {height, height}, {0, 1}, {1, 0}))
+            if (ImGui::ImageButton({icon, EditorResources::default_sampler}, {height, height}, {0, 1}, {1, 0}))
             {
                 m_state.viewport.show_additional_menu = true;
                 ImGui::OpenPopup("##addition_menu");
@@ -436,7 +436,8 @@ namespace Engine
             {
                 ImVec4 color = control.first == m_guizmo_operation ? ImVec4(0, 0.5f, 0, 1.f) : ImVec4(0, 0, 0, 0);
 
-                if (ImGui::ImageButton(imgui_texture, {height, height}, {0, 1}, {1, 0}, -1, color))
+                if (ImGui::ImageButton({imgui_texture, EditorResources::default_sampler}, {height, height}, {0, 1}, {1, 0}, -1,
+                                       color))
                 {
                     m_guizmo_operation = control.first;
                 }
@@ -455,7 +456,7 @@ namespace Engine
         if (add_icon)
         {
             render_separator();
-            if (ImGui::ImageButton(add_icon, {height, height}))
+            if (ImGui::ImageButton({add_icon, EditorResources::default_sampler}, {height, height}))
             {
                 ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiSpawnNewActor>(this, m_world);
             }

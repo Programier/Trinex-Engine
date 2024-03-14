@@ -8,6 +8,11 @@
 
 namespace Engine
 {
+    namespace ShaderCompiler
+    {
+        class Compiler;
+    }
+
     class Pipeline;
     class SceneComponent;
     class Texture2D;
@@ -329,6 +334,7 @@ namespace Engine
         bool apply(SceneComponent* component = nullptr) override;
         bool apply(MaterialInterface* head, SceneComponent* component = nullptr);
         class Material* material() override;
+        bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
         Material& apply_changes() override;
 
 

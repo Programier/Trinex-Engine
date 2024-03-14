@@ -100,11 +100,11 @@ namespace Engine
         create_content_browser().create_preview_window();
 
         ImGuiRenderer::Window::make_current(prev_window);
-        Class* instance = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_ShaderCompiler", engine_config.api));
+        Class* instance = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_Compiler", engine_config.api));
 
         if (instance)
         {
-            m_compiler = instance->create_object()->instance_cast<ShaderCompiler::ShaderCompiler>();
+            m_compiler = instance->create_object()->instance_cast<ShaderCompiler::Compiler>();
         }
 
         return *this;
@@ -235,48 +235,6 @@ namespace Engine
         return *this;
     }
 
-    MaterialEditorClient& MaterialEditorClient::submit_compiled_source(const ShaderCompiler::ShaderSource& source)
-    {
-        if (!m_material)
-            return *this;
-
-        render_thread()->wait_all();
-
-        auto vertex_shader   = m_material->pipeline->vertex_shader;
-        auto fragment_shader = m_material->pipeline->fragment_shader;
-        vertex_shader->attributes.clear();
-        vertex_shader->attributes.reserve(source.reflection.attributes.size());
-
-
-        for (auto& attribute : source.reflection.attributes)
-        {
-            VertexShader::Attribute out_attribute;
-            out_attribute.name           = attribute.name;
-            out_attribute.format         = attribute.format;
-            out_attribute.rate           = attribute.rate;
-            out_attribute.semantic       = attribute.semantic;
-            out_attribute.semantic_index = attribute.semantic_index;
-            out_attribute.count          = attribute.count;
-
-            vertex_shader->attributes.push_back(out_attribute);
-        }
-
-        vertex_shader->source_code   = source.vertex_code;
-        fragment_shader->source_code = source.fragment_code;
-
-        m_material->clear_parameters();
-
-        for (auto& parameter : source.reflection.uniform_member_infos)
-        {
-            m_material->create_parameter(parameter.name, parameter.type)->offset(parameter.offset);
-        }
-
-        m_material->pipeline->global_parameters = source.reflection.global_parameters_info;
-        m_material->pipeline->local_parameters  = source.reflection.local_parameters_info;
-        m_material->apply_changes();
-        return *this;
-    }
-
     void MaterialEditorClient::on_object_select(Object* object)
     {
         if (Material* material = object->instance_cast<Material>())
@@ -342,12 +300,7 @@ namespace Engine
             {
                 if (ImGui::MenuItem("Compile source", nullptr, false, m_material != nullptr && m_compiler != 0))
                 {
-                    ShaderCompiler::ShaderSource source;
-
-                    if (m_compiler->compile(m_material, source, m_shader_compile_error_list))
-                    {
-                        submit_compiled_source(source);
-                    }
+                    m_material->compile(m_compiler, &m_shader_compile_error_list);
                 }
 
                 if (ImGui::MenuItem("Just apply", nullptr, false, m_material != nullptr))

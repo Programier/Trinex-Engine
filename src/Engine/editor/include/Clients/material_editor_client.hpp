@@ -6,9 +6,9 @@ namespace Engine
 {
     namespace ShaderCompiler
     {
-        class ShaderCompiler;
+        class Compiler;
         class ShaderSource;
-    };
+    };// namespace ShaderCompiler
 
     class MaterialEditorClient : public ViewportClient
     {
@@ -20,9 +20,9 @@ namespace Engine
         class ContentBrowser* m_content_browser      = nullptr;
         class ImGuiMaterialPreview* m_preview_window = nullptr;
 
-        class RenderViewport* m_viewport           = nullptr;
-        class Material* m_material                 = nullptr;
-        ShaderCompiler::ShaderCompiler* m_compiler = nullptr;
+        class RenderViewport* m_viewport     = nullptr;
+        class Material* m_material           = nullptr;
+        ShaderCompiler::Compiler* m_compiler = nullptr;
 
         bool m_open_select_node_window   = false;
         bool m_open_material_code_window = false;
@@ -46,6 +46,5 @@ namespace Engine
         MaterialEditorClient& render_viewport(float dt);
         MaterialEditorClient& render(class RenderViewport* viewport) override;
         MaterialEditorClient& render_properties();
-        MaterialEditorClient& submit_compiled_source(const ShaderCompiler::ShaderSource& source);
     };
 }// namespace Engine

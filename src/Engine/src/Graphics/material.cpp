@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/engine_config.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
 #include <Core/render_thread.hpp>
@@ -11,6 +12,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_compiler.hpp>
 #include <Graphics/texture_2D.hpp>
 
 namespace Engine
@@ -493,6 +495,95 @@ namespace Engine
     class Material* Material::material()
     {
         return this;
+    }
+
+    static void submit_compiled_source(Material* material, const ShaderCompiler::ShaderSource& source)
+    {
+        render_thread()->wait_all();
+
+        auto vertex_shader   = material->pipeline->vertex_shader;
+        auto fragment_shader = material->pipeline->fragment_shader;
+        vertex_shader->attributes.clear();
+        vertex_shader->attributes.reserve(source.reflection.attributes.size());
+
+
+        for (auto& attribute : source.reflection.attributes)
+        {
+            VertexShader::Attribute out_attribute;
+            out_attribute.name           = attribute.name;
+            out_attribute.format         = attribute.format;
+            out_attribute.rate           = attribute.rate;
+            out_attribute.semantic       = attribute.semantic;
+            out_attribute.semantic_index = attribute.semantic_index;
+            out_attribute.count          = attribute.count;
+
+            vertex_shader->attributes.push_back(out_attribute);
+        }
+
+        vertex_shader->source_code   = source.vertex_code;
+        fragment_shader->source_code = source.fragment_code;
+
+        material->clear_parameters();
+
+        for (auto& parameter : source.reflection.uniform_member_infos)
+        {
+            material->create_parameter(parameter.name, parameter.type)->offset(parameter.offset);
+        }
+
+        material->pipeline->global_parameters = source.reflection.global_parameters_info;
+        material->pipeline->local_parameters  = source.reflection.local_parameters_info;
+        material->apply_changes();
+    }
+
+    bool Material::compile(ShaderCompiler::Compiler* compiler, MessageList* errors)
+    {
+        static MessageList dummy_message_list;
+
+        if (errors == nullptr)
+        {
+            errors = &dummy_message_list;
+        }
+
+        bool need_delete_compiler = compiler == nullptr;
+
+        if (need_delete_compiler)
+        {
+            Class* compiler_class = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_Compiler", engine_config.api));
+            if (compiler_class)
+            {
+                error_log("Material", "Failed to find shader compiler!");
+                return false;
+            }
+
+            auto compiler_instance = compiler_class->create_object();
+
+            if (compiler_instance)
+            {
+                compiler = Object::instance_cast<ShaderCompiler::Compiler>(compiler_instance);
+            }
+
+            if (!compiler)
+            {
+                error_log("Material", "Failed to create material compiler!");
+
+                if (compiler_instance)
+                {
+                    delete compiler_instance;
+                }
+            }
+        }
+
+        ShaderCompiler::ShaderSource source;
+        auto status = compiler->compile(this, source, *errors);
+
+        submit_compiled_source(this, source);
+
+        if (need_delete_compiler)
+        {
+            delete compiler;
+        }
+
+        return status;
     }
 
     Material& Material::apply_changes()
