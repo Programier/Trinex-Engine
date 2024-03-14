@@ -35,9 +35,12 @@ namespace Engine
         ar & combined_image_samplers;
         ar & textures;
         ar & ssbo;
-        ar & source_code;
-
         return ar;
+    }
+
+    bool Shader::archive_process_source_code(Archive& ar)
+    {
+        return ar & source_code;
     }
 
     Shader& Shader::clean()

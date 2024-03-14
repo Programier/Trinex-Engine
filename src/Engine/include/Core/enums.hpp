@@ -306,7 +306,8 @@ namespace Engine
 
     enum class SerializationFlags : EnumerateType
     {
-        // Reserved for future
+        None             = 0,
+        SkipObjectSearch = BIT(0)
     };
 
     enum class BufferSeekDir : EnumerateType

@@ -660,12 +660,21 @@ namespace Engine
         return instance;
     }
 
-    ENGINE_EXPORT Object* Object::load_object(class BufferReader* reader, Flags<SerializationFlags> serialization_flags)
+    ENGINE_EXPORT Object* Object::load_object(const StringView& fullname, class BufferReader* reader,
+                                              Flags<SerializationFlags> serialization_flags)
     {
         if (reader == nullptr)
         {
             error_log("Object", "Cannot load object from nullptr buffer reader!");
             return nullptr;
+        }
+
+        if (!serialization_flags(SerializationFlags::SkipObjectSearch))
+        {
+            if (Object* object = find_object(fullname))
+            {
+                return object;
+            }
         }
 
         Archive ar(reader);
@@ -702,6 +711,19 @@ namespace Engine
 
         Object* object = self->create_object();
 
+        if (!fullname.empty())
+        {
+            StringView package_name = package_name_sv_of(fullname);
+            StringView object_name  = object_name_sv_of(fullname);
+
+            object->name(object_name);
+
+            if (!package_name.empty())
+            {
+                Package::find_package(package_name, true)->add_object(object);
+            }
+        }
+
         object->preload();
         bool valid = object->archive_process(raw_ar);
 
@@ -718,29 +740,12 @@ namespace Engine
         return object;
     }
 
-    static Object* load_from_file_internal(const Path& path, StringView name, StringView package, Flags<SerializationFlags> flags)
+    static Object* load_from_file_internal(const Path& path, StringView fullname, Flags<SerializationFlags> flags)
     {
         FileReader reader(path);
         if (reader.is_open())
         {
-            Object* object = Object::load_object(&reader, flags);
-
-            if (object)
-            {
-                if (!name.empty())
-                {
-                    object->name(name);
-                }
-
-                if (!package.empty())
-                {
-                    if (Package* pkg = Package::find_package(package, true))
-                    {
-                        pkg->add_object(object);
-                    }
-                }
-            }
-
+            Object* object = Object::load_object(fullname, &reader, flags);
             return object;
         }
 
@@ -749,12 +754,15 @@ namespace Engine
 
     ENGINE_EXPORT Object* Object::load_object(const StringView& name, Flags<SerializationFlags> flags)
     {
-        if (Object* object = find_object(name))
-            return object;
+        if (!flags(SerializationFlags::SkipObjectSearch))
+        {
+            if (Object* object = find_object(name))
+                return object;
+        }
 
         Path path = engine_config.assets_dir /
                     Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
-        return load_from_file_internal(path, object_name_sv_of(name), package_name_sv_of(name), flags);
+        return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
     }
 
     ENGINE_EXPORT Object* Object::load_object_from_file(const Path& path, Flags<SerializationFlags> flags)
@@ -763,10 +771,13 @@ namespace Engine
         StringView name     = path.stem();
         String full_name    = package_name + Constants::name_separator + String(name);
 
-        if (Object* object = find_object(full_name))
-            return object;
+        if (!flags(SerializationFlags::SkipObjectSearch))
+        {
+            if (Object* object = find_object(full_name))
+                return object;
+        }
 
-        return load_from_file_internal(engine_config.assets_dir / path, name, package_name, flags);
+        return load_from_file_internal(engine_config.assets_dir / path, full_name, flags | SerializationFlags::SkipObjectSearch);
     }
 
     bool Object::is_serializable() const

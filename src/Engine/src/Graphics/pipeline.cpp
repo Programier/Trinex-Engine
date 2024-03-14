@@ -185,15 +185,60 @@ namespace Engine
         return RenderPass::load_render_pass(render_pass_type());
     }
 
-    bool Pipeline::serialize_shaders(Archive& ar)
+
+    static bool serialize_shader_sources(const Path& path, Pipeline* pipeline, bool is_reading)
     {
-        if (ar.is_open())
+        union
         {
-            vertex_shader->archive_process(ar);
-            fragment_shader->archive_process(ar);
+            BufferReader* reader = nullptr;
+            BufferWriter* writer;
+        };
+
+        bool status = true;
+
+        Archive archive;
+
+        if (is_reading)
+        {
+            reader = new FileReader(path);
+
+            if (!reader->is_open())
+            {
+                delete reader;
+                return false;
+            }
+
+            archive = reader;
+        }
+        else
+        {
+            rootfs()->create_dir(path.base_path());
+            writer = new FileWriter(path);
+
+            if (!writer->is_open())
+            {
+                delete writer;
+                return false;
+            }
+
+            archive = writer;
         }
 
-        return static_cast<bool>(ar);
+        status = status && pipeline->vertex_shader->archive_process_source_code(archive);
+        status = status && pipeline->fragment_shader->archive_process_source_code(archive);
+
+
+        if (is_reading)
+        {
+            delete reader;
+        }
+        else
+        {
+            delete writer;
+        }
+
+
+        return status;
     }
 
     bool Pipeline::archive_process(class Archive& archive)
@@ -210,80 +255,34 @@ namespace Engine
 
         archive & global_parameters;
         archive & local_parameters;
+        vertex_shader->archive_process(archive);
+        fragment_shader->archive_process(archive);
 
 
-        String api_name = engine_config.api;
-        archive & api_name;
+        // Loading shaders from shader cache
+        String material_name = material_object->full_name(true);
 
-        size_t shader_code_size_start = archive.position();
+        Path path = Strings::format(
+                "{}{}{}{}{}{}", engine_config.shader_cache_dir.str(), Path::separator, engine_config.api, Path::separator,
+                Strings::replace_all(material_name, Constants::name_separator, Path::sv_separator), Constants::shader_extention);
 
-        size_t shader_code_size = 0;
-        archive & shader_code_size;
 
-        bool status = false;
+        bool status = serialize_shader_sources(path, this, archive.is_reading());
 
-        size_t shader_code_start = archive.position();
-
-        if (archive.is_saving())
+        if (!status && archive.is_reading())
         {
-            serialize_shaders(archive);
+            warn_log("Pipeline", "Missing shader cache for material '%s'. Recompiling...", material_name.c_str());
 
-            auto end_position = archive.position();
-            shader_code_size  = end_position - shader_code_start;
-
-            archive.position(shader_code_size_start);
-            archive & shader_code_size;
-            archive.position(end_position);
-        }
-        else if (archive.is_reading())
-        {
-            if (api_name == engine_config.api)
+            if ((status = material_object->compile()))
             {
-                serialize_shaders(archive);
+                info_log("Pipeline", "Compile success!");
+
+                // If compile is success, serialize source to file
+                serialize_shader_sources(path, this, false);
             }
             else
             {
-                archive.position(shader_code_start + shader_code_size);
-            }
-        }
-
-        if (archive.is_saving() || api_name != engine_config.api)
-        {
-            // Loading shaders from shader cache
-            Path path = Strings::format(
-                    "{}{}{}{}{}{}", engine_config.shader_cache_dir.str(), Path::separator, engine_config.api, Path::separator,
-                    Strings::replace_all(material_object->full_name(true), Constants::name_separator, Path::sv_separator),
-                    Constants::shader_extention);
-
-            union
-            {
-                BufferReader* reader = nullptr;
-                BufferWriter* writer;
-            };
-
-            Archive second_archive;
-
-            if (archive.is_reading())
-            {
-                reader         = new FileReader(path);
-                second_archive = reader;
-            }
-            else if (archive.is_saving())
-            {
-                rootfs()->create_dir(path.base_path());
-                writer         = new FileWriter(path);
-                second_archive = writer;
-            }
-
-            serialize_shaders(second_archive);
-
-            if (second_archive.is_reading())
-            {
-                delete reader;
-            }
-            else
-            {
-                delete writer;
+                error_log("Pipeline", "Compile fail!");
             }
         }
 

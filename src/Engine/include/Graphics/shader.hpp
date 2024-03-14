@@ -49,6 +49,7 @@ namespace Engine
         Buffer source_code;
 
         bool archive_process(Archive& ar) override;
+        bool archive_process_source_code(Archive& ar);
         Shader& clean();
         virtual Type type() const = 0;
     };

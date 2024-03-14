@@ -7,8 +7,11 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
+#include <SPIRV/GlslangToSpv.h>
 #include <ShaderCompiler/compiler.hpp>
 #include <cstring>
+#include <glslang/Public/ResourceLimits.h>
+#include <glslang/Public/ShaderLang.h>
 #include <slang-com-helper.h>
 #include <slang-com-ptr.h>
 #include <slang-file-system.h>
@@ -518,7 +521,7 @@ namespace Engine::ShaderCompiler
 
     static void setup_spriv_compile_request(SlangCompileRequest* request)
     {
-        request->setCodeGenTarget(SLANG_SPIRV);
+        request->setCodeGenTarget(SLANG_GLSL);
         request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
         request->setTargetMatrixLayoutMode(0, SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
         request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
@@ -547,7 +550,8 @@ namespace Engine::ShaderCompiler
         return {};
     }
 
-    static ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    static ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions,
+                                             MessageList* errors)
     {
         auto new_definitions = definitions;
         new_definitions.push_back({"TRINEX_OPENGL_API", ""});
@@ -570,7 +574,8 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
-    static ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors)
+    static ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions,
+                                             MessageList* errors)
     {
         auto new_definitions = definitions;
         new_definitions.push_back({"TRINEX_VULKAN_API", ""});
@@ -579,11 +584,13 @@ namespace Engine::ShaderCompiler
         auto vertex_callback = [&](const byte* data, size_t size) {
             std::destroy_at(&out_source.vertex_code);
             new (&out_source.vertex_code) Buffer(data, data + size);
+            out_source.vertex_code.push_back(0);
         };
 
         auto fragment_callback = [&](const byte* data, size_t size) {
             std::destroy_at(&out_source.fragment_code);
             new (&out_source.fragment_code) Buffer(data, data + size);
+            out_source.fragment_code.push_back(0);
         };
 
         compile_shader(source, new_definitions, errors, setup_spriv_compile_request, out_source.reflection, vertex_callback,
@@ -592,13 +599,13 @@ namespace Engine::ShaderCompiler
     }
 
     static ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                MessageList* errors)
+                                                       MessageList* errors)
     {
         return compile_shader_source_from_file(relative, definitions, errors, create_opengl_shader);
     }
 
     static ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                MessageList* errors)
+                                                       MessageList* errors)
     {
         return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
     }
@@ -606,7 +613,7 @@ namespace Engine::ShaderCompiler
     implement_class(OpenGL_Compiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(OpenGL_Compiler);
 
-    implement_class(Vulkan_Compiler, Engine::Compiler, 0);
+    implement_class(Vulkan_Compiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(Vulkan_Compiler);
 
     bool OpenGL_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
@@ -616,10 +623,73 @@ namespace Engine::ShaderCompiler
 
         if (errors.empty())
         {
-            out_source = source;
+            out_source = std::move(source);
             return true;
         }
         return false;
+    }
+
+    static bool compile_shader_to_spirv(const char* compiler_type, const Buffer& text, Buffer& out, EShLanguage lang,
+                                        MessageList& errors)
+    {
+        glslang::InitializeProcess();
+
+        glslang::TShader shader(lang);
+        const char* shader_strings[1];
+        shader_strings[0] = reinterpret_cast<const char*>(text.data());
+
+        shader.setStrings(shader_strings, sizeof(shader_strings) / sizeof(const char*));
+
+        // Set up shader options
+        int client_input_semantics_version               = 100;// default for Vulkan
+        glslang::EShTargetClientVersion client_version   = glslang::EShTargetVulkan_1_0;
+        glslang::EShTargetLanguageVersion target_version = glslang::EShTargetSpv_1_0;
+
+        // Set up shader environment
+        shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, client_input_semantics_version);
+        shader.setEnvClient(glslang::EShClientVulkan, client_version);
+        shader.setEnvTarget(glslang::EShTargetSpv, target_version);
+
+
+        // Preprocess the shader
+        if (!shader.parse(GetDefaultResources(), client_input_semantics_version, false, EShMsgDefault))
+        {
+            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoLog()));
+            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoDebugLog()));
+            glslang::FinalizeProcess();
+            return false;
+        }
+
+        // Create and link shader program
+        glslang::TProgram program;
+        program.addShader(&shader);
+        if (!program.link(EShMsgDefault))
+        {
+            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoLog()));
+            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoDebugLog()));
+            glslang::FinalizeProcess();
+            return false;
+        }
+
+
+        // Translate to SPIR-V
+        glslang::SpvOptions spv_options;
+        spv_options.generateDebugInfo = true;
+        spv_options.disableOptimizer  = false;
+        spv_options.optimizeSize      = true;
+        spv_options.stripDebugInfo    = false;
+        spv_options.validate          = true;
+        std::vector<unsigned int> spirv;
+
+        glslang::GlslangToSpv(*program.getIntermediate(lang), spirv, &spv_options);
+
+
+        out.resize(spirv.size() * sizeof(unsigned int));
+        std::memcpy(out.data(), spirv.data(), out.size());
+
+        // Clean up
+        glslang::FinalizeProcess();
+        return true;
     }
 
     bool Vulkan_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
@@ -627,11 +697,24 @@ namespace Engine::ShaderCompiler
         auto source =
                 create_vulkan_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
 
-        if (errors.empty())
+        if (!errors.empty())
+            return false;
+
+        ShaderSource tmp;
+        if (!compile_shader_to_spirv("Vertex Compiler", source.vertex_code, tmp.vertex_code, EShLangVertex, errors))
         {
-            out_source = source;
-            return true;
+            return false;
         }
-        return false;
+
+        if (!compile_shader_to_spirv("Fragment Compiler", source.fragment_code, tmp.fragment_code, EShLangFragment, errors))
+        {
+            return false;
+        }
+
+        out_source               = std::move(source);
+        out_source.vertex_code   = std::move(tmp.vertex_code);
+        out_source.fragment_code = std::move(tmp.fragment_code);
+
+        return errors.empty();
     }
 }// namespace Engine::ShaderCompiler

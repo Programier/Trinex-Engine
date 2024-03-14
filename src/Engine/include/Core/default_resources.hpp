@@ -23,6 +23,5 @@ namespace Engine
         ENGINE_EXPORT extern Material* ambient_only_material;
     }// namespace DefaultResources
 
-    ENGINE_EXPORT class Object* load_object_from_memory(const byte* data, size_t size, const StringView& name,
-                                                        class Package* package = nullptr);
+    ENGINE_EXPORT class Object* load_object_from_memory(const byte* data, size_t size, const StringView& fullname);
 }// namespace Engine

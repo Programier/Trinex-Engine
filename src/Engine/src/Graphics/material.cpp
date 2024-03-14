@@ -549,7 +549,7 @@ namespace Engine
         if (need_delete_compiler)
         {
             Class* compiler_class = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_Compiler", engine_config.api));
-            if (compiler_class)
+            if (!compiler_class)
             {
                 error_log("Material", "Failed to find shader compiler!");
                 return false;

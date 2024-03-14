@@ -81,9 +81,6 @@ namespace Engine
 
         Path shader_path;
 
-    private:
-        bool serialize_shaders(Archive& ar);
-
     public:
         MaterialUsage usage             = MaterialUsage::StaticMeshRendering;
         VertexShader* vertex_shader     = nullptr;

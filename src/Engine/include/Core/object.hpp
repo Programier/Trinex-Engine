@@ -108,8 +108,9 @@ namespace Engine
         virtual bool is_engine_resource() const;
 
         virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});
-        ENGINE_EXPORT static Object* load_object(class BufferReader* reader, Flags<SerializationFlags> flags = {});
-        ENGINE_EXPORT static Object* load_object(const StringView& name, Flags<SerializationFlags> flags = {});
+        ENGINE_EXPORT static Object* load_object(const StringView& fullname, class BufferReader* reader,
+                                                 Flags<SerializationFlags> flags = {});
+        ENGINE_EXPORT static Object* load_object(const StringView& fullname, Flags<SerializationFlags> flags = {});
         ENGINE_EXPORT static Object* load_object_from_file(const Path& path, Flags<SerializationFlags> flags = {});
 
         static Package* find_package(StringView name, bool create = false);
