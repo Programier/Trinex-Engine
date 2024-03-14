@@ -108,6 +108,11 @@ namespace Engine
         glBindBufferBase(GL_UNIFORM_BUFFER, location.binding, m_id);
     }
 
+    void OpenGL_UniformBuffer::bind(BindingIndex index)
+    {
+        glBindBufferBase(GL_UNIFORM_BUFFER, index, m_id);
+    }
+
     void OpenGL_UniformBuffer::update(size_t offset, size_t size, const byte* data)
     {
         glBindBuffer(GL_UNIFORM_BUFFER, m_id);
@@ -124,11 +129,11 @@ namespace Engine
         m_buffers.push_back(new OpenGL_UniformBuffer(MAX_LOCAL_UBO_SIZE));
     }
 
-    void OpenGL_LocalUniformBuffer::bind()
+    void OpenGL_LocalUniformBuffer::bind(BindingIndex index)
     {
         if (shadow_data_size == 0)
         {
-            glBindBufferBase(GL_UNIFORM_BUFFER, 1, 0);
+            glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
             return;
         }
 

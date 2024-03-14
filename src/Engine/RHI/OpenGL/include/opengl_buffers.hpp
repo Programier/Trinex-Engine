@@ -31,6 +31,7 @@ namespace Engine
 
         OpenGL_UniformBuffer(size_t size);
         void bind(BindLocation location);
+        void bind(BindingIndex index);
         void update(size_t offset, size_t size, const byte* data);
 
         ~OpenGL_UniformBuffer();
@@ -43,7 +44,7 @@ namespace Engine
         Index index             = 0;
 
         OpenGL_LocalUniformBuffer();
-        void bind();
+        void bind(BindingIndex index);
         void update(const void* data, size_t size, size_t offset);
         ~OpenGL_LocalUniformBuffer();
     };

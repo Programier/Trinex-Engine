@@ -441,6 +441,11 @@ namespace Engine
         return *this;
     }
 
+    const Material::ParametersMap& Material::parameters() const
+    {
+        return m_material_parameters;
+    }
+
     bool Material::apply(SceneComponent* component)
     {
         return apply(this, component);

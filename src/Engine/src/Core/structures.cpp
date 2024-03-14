@@ -52,4 +52,10 @@ namespace Engine
         ar & definition.value;
         return ar;
     }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info)
+    {
+        ar & info.m_binding_index;
+        return ar;
+    }
 }// namespace Engine

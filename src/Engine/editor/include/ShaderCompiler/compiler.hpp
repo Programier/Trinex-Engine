@@ -30,9 +30,9 @@ namespace Engine
 
             Vector<VertexAttribute> attributes;
             Vector<UniformMemberInfo> uniform_member_infos;
-            BindingIndex local_buffer_binding;
-            size_t local_buffer_size;
 
+            MaterialScalarParametersInfo global_parameters_info;
+            MaterialScalarParametersInfo local_parameters_info;
 
             ShaderReflection& clear();
         };

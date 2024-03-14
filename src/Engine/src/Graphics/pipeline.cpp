@@ -17,12 +17,6 @@
 
 namespace Engine
 {
-    ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info)
-    {
-        ar & info.m_binding_index;
-        return ar;
-    }
-
     implement_struct(DepthTestInfo, Engine::Pipeline, ).push([]() {
         using DTI    = Pipeline::DepthTestInfo;
         Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);

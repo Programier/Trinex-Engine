@@ -47,6 +47,8 @@ namespace Engine
 
         Vector<VertexInput> m_vertex_input;
         Vector<ExecutableObject*> m_apply_state;
+        MaterialScalarParametersInfo m_global_parameters;
+        MaterialScalarParametersInfo m_local_parameters;
 
         GLuint m_pipeline = 0;
         GLuint m_topology = 0;

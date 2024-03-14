@@ -59,9 +59,22 @@ namespace Engine
     {
     public:
         TypeData param;
+        size_t param_offset;
+
         static constexpr inline MaterialParameterType parameter_type = _parameter_type;
-        TypedMaterialParameter(TypeData value = TypeData()) : param(value)
+        TypedMaterialParameter(TypeData value = TypeData()) : param(value), param_offset(MaterialParameter::no_offset)
         {}
+
+        size_t offset() const override
+        {
+            return param_offset;
+        }
+
+        MaterialParameter& offset(size_t new_offset) override
+        {
+            param_offset = new_offset;
+            return *this;
+        }
 
         MaterialParameterType type() const override
         {
@@ -278,8 +291,11 @@ namespace Engine
     {
         declare_class(Material, MaterialInterface);
 
+    public:
+        using ParametersMap = Map<Name, MaterialParameter*, Name::HashFunction>;
+
     private:
-        Map<Name, MaterialParameter*, Name::HashFunction> m_material_parameters;
+        ParametersMap m_material_parameters;
 
     protected:
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameterType type) override;
@@ -298,6 +314,7 @@ namespace Engine
         MaterialParameter* create_parameter(const Name& name, MaterialParameterType type);
         Material& remove_parameter(const Name& name);
         Material& clear_parameters();
+        const ParametersMap& parameters() const;
 
         bool apply(SceneComponent* component = nullptr) override;
         bool apply(MaterialInterface* head, SceneComponent* component = nullptr);

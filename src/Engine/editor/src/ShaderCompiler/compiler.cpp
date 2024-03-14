@@ -42,8 +42,8 @@ namespace Engine::ShaderCompiler
 
     ShaderReflection& ShaderReflection::clear()
     {
-        local_buffer_binding = 255;
-        local_buffer_size    = 0;
+        global_parameters_info.remove_parameters();
+        local_parameters_info.remove_parameters();
         uniform_member_infos.clear();
         attributes.clear();
         return *this;
@@ -194,14 +194,78 @@ namespace Engine::ShaderCompiler
         return true;
     }
 
+    static MaterialParameterType find_scalar_parameter_type(slang::TypeReflection* reflection)
+    {
+        auto rows     = reflection->getRowCount();
+        auto colums   = reflection->getColumnCount();
+        auto elements = reflection->getElementCount();
+        auto scalar   = reflection->getScalarType();
+
+        if (rows > 1 && colums > 1)
+        {
+            if (rows == colums && scalar == slang::TypeReflection::ScalarType::Float32)
+            {
+                if (rows == 4)
+                {
+                    return MaterialParameterType::Mat4;
+                }
+                else if (rows == 3)
+                {
+                    return MaterialParameterType::Mat3;
+                }
+            }
+            return MaterialParameterType::Undefined;
+        }
+        else if (rows == colums && rows == 1)
+        {
+            switch (scalar)
+            {
+                case slang::TypeReflection::ScalarType::Bool:
+                    return MaterialParameterType::Bool;
+                case slang::TypeReflection::ScalarType::Int32:
+                    return MaterialParameterType::Int;
+                case slang::TypeReflection::ScalarType::UInt32:
+                    return MaterialParameterType::UInt;
+                case slang::TypeReflection::ScalarType::Float32:
+                    return MaterialParameterType::Float;
+                default:
+                    return MaterialParameterType::Undefined;
+            }
+        }
+
+        MaterialParameterType type = MaterialParameterType::Undefined;
+
+        switch (scalar)
+        {
+            case slang::TypeReflection::ScalarType::Bool:
+                type = MaterialParameterType::BVec2;
+                break;
+            case slang::TypeReflection::ScalarType::Int32:
+                type = MaterialParameterType::IVec2;
+                break;
+            case slang::TypeReflection::ScalarType::UInt32:
+                type = MaterialParameterType::UVec2;
+                break;
+            case slang::TypeReflection::ScalarType::Float32:
+                type = MaterialParameterType::Vec2;
+                break;
+            default:
+                return MaterialParameterType::Undefined;
+        }
+
+        return static_cast<MaterialParameterType>(static_cast<size_t>(type) + elements - 2);
+    }
 
     static void create_reflection(slang::ShaderReflection* reflection, ShaderReflection& out_reflection,
                                   const Function<void(const char*)>& print_error)
     {
         out_reflection.clear();
 
-        out_reflection.local_buffer_size    = reflection->getGlobalConstantBufferSize();
-        out_reflection.local_buffer_binding = reflection->getGlobalConstantBufferBinding();
+        out_reflection.global_parameters_info.bind_index(0);
+        if (reflection->getGlobalConstantBufferSize() > 0)
+        {
+            out_reflection.local_parameters_info.bind_index(reflection->getGlobalConstantBufferBinding());
+        }
 
         // Parse vertex attributes
         if (auto entry_point = reflection->getEntryPointByIndex(0))
@@ -224,18 +288,30 @@ namespace Engine::ShaderCompiler
         for (int i = 0; i < count; i++)
         {
             auto param = reflection->getParameterByIndex(i);
+            auto kind  = param->getTypeLayout()->getKind();
 
-            if (param->getCategory() == slang::ParameterCategory::Uniform)
+            if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
+                      slang::TypeReflection::Kind::Matrix>(kind))
             {
                 auto name = param->getName();
                 trinex_always_check(name, "Failed to get parameter name!");
+
                 ShaderReflection::UniformMemberInfo info;
+                info.type = find_scalar_parameter_type(param->getType());
+
+                if (info.type == MaterialParameterType::Undefined)
+                {
+                    print_error("Failed to get parameter type!");
+                    out_reflection.clear();
+                    return;
+                }
+
                 info.name   = name;
                 info.offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
 
                 if (auto layout = param->getTypeLayout())
                 {
-                    info.size = layout->getSize(SLANG_PARAMETER_CATEGORY_UNIFORM);
+                    info.size = layout->getSize();
                 }
                 else
                 {
@@ -516,13 +592,13 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
-    ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+    ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                                 MessageList* errors)
     {
-        return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
+        return compile_shader_source_from_file(relative, definitions, errors, create_opengl_shader);
     }
 
-    ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+    ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                                 MessageList* errors)
     {
         return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);

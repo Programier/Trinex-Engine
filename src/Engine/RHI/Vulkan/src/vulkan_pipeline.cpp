@@ -256,6 +256,8 @@ namespace Engine
         destroy();
         create_descriptor_layout(pipeline);
 
+        m_global_parameters = pipeline->global_parameters;
+        m_local_parameters  = pipeline->local_parameters;
 
         Vector<vk::PipelineShaderStageCreateInfo> pipeline_stage_create_infos;
 

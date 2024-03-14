@@ -117,6 +117,92 @@ namespace Engine
         return *this;
     }
 
+
+    /*
+        Mat3                   = 16,
+        Mat4                   = 17,
+    */
+
+    static Array<void (*)(MaterialParameter*), 18> m_parameter_renderers = {
+            [](MaterialParameter* parameter) {
+                BoolMaterialParameter* boolean = reinterpret_cast<BoolMaterialParameter*>(parameter);
+                ImGui::Checkbox(boolean->name.c_str(), &boolean->param);
+            },
+            [](MaterialParameter* parameter) {
+                IntMaterialParameter* integer = reinterpret_cast<IntMaterialParameter*>(parameter);
+                ImGui::DragInt(integer->name.c_str(), &integer->param);
+            },
+            [](MaterialParameter* parameter) {
+                UIntMaterialParameter* integer = reinterpret_cast<UIntMaterialParameter*>(parameter);
+                ImGui::DragScalar(integer->name.c_str(), ImGuiDataType_U32, &integer->param);
+            },
+            [](MaterialParameter* parameter) {
+                UIntMaterialParameter* integer = reinterpret_cast<UIntMaterialParameter*>(parameter);
+                ImGui::DragScalar(integer->name.c_str(), ImGuiDataType_Float, &integer->param);
+            },
+            [](MaterialParameter* parameter) {
+                BVec2MaterialParameter* vec = reinterpret_cast<BVec2MaterialParameter*>(parameter);
+                ImGui::Checkbox("##1", &vec->param.r);
+                ImGui::SameLine();
+                ImGui::Checkbox(vec->name.c_str(), &vec->param.g);
+            },
+            [](MaterialParameter* parameter) {
+                BVec3MaterialParameter* vec = reinterpret_cast<BVec3MaterialParameter*>(parameter);
+                ImGui::Checkbox("##1", &vec->param.r);
+                ImGui::SameLine();
+                ImGui::Checkbox("##2", &vec->param.g);
+                ImGui::SameLine();
+                ImGui::Checkbox(vec->name.c_str(), &vec->param.b);
+            },
+            [](MaterialParameter* parameter) {
+                BVec4MaterialParameter* vec = reinterpret_cast<BVec4MaterialParameter*>(parameter);
+                ImGui::Checkbox("##1", &vec->param.r);
+                ImGui::SameLine();
+                ImGui::Checkbox("##2", &vec->param.g);
+                ImGui::SameLine();
+                ImGui::Checkbox("##3", &vec->param.b);
+                ImGui::SameLine();
+                ImGui::Checkbox(vec->name.c_str(), &vec->param.a);
+            },
+            [](MaterialParameter* parameter) {
+                IVec2MaterialParameter* vec = reinterpret_cast<IVec2MaterialParameter*>(parameter);
+                ImGui::DragInt2(vec->name.c_str(), &vec->param.r);
+            },
+            [](MaterialParameter* parameter) {
+                IVec3MaterialParameter* vec = reinterpret_cast<IVec3MaterialParameter*>(parameter);
+                ImGui::DragInt3(vec->name.c_str(), &vec->param.r);
+            },
+            [](MaterialParameter* parameter) {
+                IVec4MaterialParameter* vec = reinterpret_cast<IVec4MaterialParameter*>(parameter);
+                ImGui::DragInt4(vec->name.c_str(), &vec->param.r);
+            },
+            [](MaterialParameter* parameter) {
+                UVec2MaterialParameter* vec = reinterpret_cast<UVec2MaterialParameter*>(parameter);
+                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_U32, &vec->param.r, 2);
+            },
+            [](MaterialParameter* parameter) {
+                UVec3MaterialParameter* vec = reinterpret_cast<UVec3MaterialParameter*>(parameter);
+                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_U32, &vec->param.r, 3);
+            },
+            [](MaterialParameter* parameter) {
+                UVec4MaterialParameter* vec = reinterpret_cast<UVec4MaterialParameter*>(parameter);
+                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_U32, &vec->param.r, 4);
+            },
+            [](MaterialParameter* parameter) {
+                Vec2MaterialParameter* vec = reinterpret_cast<Vec2MaterialParameter*>(parameter);
+                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_Float, &vec->param.r, 2);
+            },
+            [](MaterialParameter* parameter) {
+                Vec3MaterialParameter* vec = reinterpret_cast<Vec3MaterialParameter*>(parameter);
+                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_Float, &vec->param.r, 3);
+            },
+            [](MaterialParameter* parameter) {
+                Vec4MaterialParameter* vec = reinterpret_cast<Vec4MaterialParameter*>(parameter);
+                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_Float, &vec->param.r, 4);
+            }
+
+    };
+
     MaterialEditorClient& MaterialEditorClient::render_properties()
     {
         ImGui::Begin("editor/Properties Title"_localized);
@@ -125,6 +211,21 @@ namespace Engine
         {
             ImGui::End();
             return *this;
+        }
+
+        if (ImGui::CollapsingHeader("editor/Parameters"_localized))
+        {
+            for (auto& param : m_material->material()->parameters())
+            {
+                if (param.second->type() <= MaterialParameterType::Mat4)
+                {
+                    auto renderer = m_parameter_renderers[static_cast<size_t>(param.second->type())];
+                    if (renderer)
+                    {
+                        renderer(param.second);
+                    }
+                }
+            }
         }
 
         ImGui::SeparatorText("Pipeline");
@@ -138,6 +239,8 @@ namespace Engine
     {
         if (!m_material)
             return *this;
+
+        render_thread()->wait_all();
 
         auto vertex_shader   = m_material->pipeline->vertex_shader;
         auto fragment_shader = m_material->pipeline->fragment_shader;
@@ -161,7 +264,15 @@ namespace Engine
         vertex_shader->source_code   = source.vertex_code;
         fragment_shader->source_code = source.fragment_code;
 
+        m_material->clear_parameters();
 
+        for (auto& parameter : source.reflection.uniform_member_infos)
+        {
+            m_material->create_parameter(parameter.name, parameter.type)->offset(parameter.offset);
+        }
+
+        m_material->pipeline->global_parameters = source.reflection.global_parameters_info;
+        m_material->pipeline->local_parameters  = source.reflection.local_parameters_info;
         m_material->apply_changes();
         return *this;
     }
@@ -299,7 +410,7 @@ namespace Engine
         {
             Buffer* buffer     = reinterpret_cast<Buffer*>(data->UserData);
             const int new_size = data->BufTextLen;
-            buffer->resize(new_size+3);
+            buffer->resize(new_size + 3);
             data->Buf = (char*) buffer->data();
         }
 
@@ -319,8 +430,8 @@ namespace Engine
                     ImGui::BeginChild(ImGui::GetID(m_material->pipeline->vertex_shader), ImGui::GetContentRegionAvail());
                     ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->vertex_shader->source_code.data(),
                                               m_material->pipeline->vertex_shader->source_code.size(),
-                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize, input_text_callback,
-                                              &m_material->pipeline->vertex_shader->source_code);
+                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize,
+                                              input_text_callback, &m_material->pipeline->vertex_shader->source_code);
                     ImGui::EndChild();
                 }
 
@@ -334,8 +445,8 @@ namespace Engine
                     ImGui::BeginChild(ImGui::GetID(m_material->pipeline->fragment_shader), ImGui::GetContentRegionAvail());
                     ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->fragment_shader->source_code.data(),
                                               m_material->pipeline->fragment_shader->source_code.size(),
-                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize, input_text_callback,
-                                              &m_material->pipeline->fragment_shader->source_code);
+                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize,
+                                              input_text_callback, &m_material->pipeline->fragment_shader->source_code);
                     ImGui::EndChild();
                 }
                 ImGui::EndTabItem();

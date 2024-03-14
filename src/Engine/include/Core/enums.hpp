@@ -356,6 +356,7 @@ namespace Engine
 
     enum class MaterialParameterType
     {
+        Undefined              = -1,
         Bool                   = 0,
         Int                    = 1,
         UInt                   = 2,

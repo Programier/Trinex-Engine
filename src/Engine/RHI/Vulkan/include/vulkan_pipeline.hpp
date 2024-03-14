@@ -37,6 +37,9 @@ namespace Engine
 
         size_t m_last_frame = 0;
 
+        MaterialScalarParametersInfo m_global_parameters;
+        MaterialScalarParametersInfo m_local_parameters;
+
         VulkanPipeline& create(const Pipeline* pipeline);
         VulkanPipeline& destroy();
         Vector<Vector<vk::DescriptorPoolSize>> create_pool_sizes(const Pipeline* pipeline);

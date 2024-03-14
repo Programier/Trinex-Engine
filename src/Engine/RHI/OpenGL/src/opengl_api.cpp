@@ -84,8 +84,18 @@ namespace Engine
 
     OpenGL& OpenGL::prepare_render()
     {
-        m_global_ubo->bind({0, 0});
-        m_local_ubo->bind();
+        if (m_current_pipeline)
+        {
+            if (m_current_pipeline->m_global_parameters.has_parameters())
+            {
+                m_global_ubo->bind(m_current_pipeline->m_global_parameters.bind_index());
+            }
+
+            if (m_current_pipeline->m_local_parameters.has_parameters())
+            {
+                m_local_ubo->bind(m_current_pipeline->m_local_parameters.bind_index());
+            }
+        }
         return *this;
     }
 

@@ -144,4 +144,36 @@ namespace Engine
     };
 
     ENGINE_EXPORT bool operator&(class Archive& ar, ShaderDefinition& definition);
+
+    class ENGINE_EXPORT MaterialScalarParametersInfo final
+    {
+        BindingIndex m_binding_index = 255;
+
+    public:
+        FORCE_INLINE bool has_parameters() const
+        {
+            return m_binding_index < 255;
+        }
+
+        FORCE_INLINE BindingIndex bind_index() const
+        {
+            return m_binding_index;
+        }
+
+        FORCE_INLINE MaterialScalarParametersInfo& bind_index(BindingIndex index)
+        {
+            m_binding_index = index;
+            return *this;
+        }
+
+        FORCE_INLINE MaterialScalarParametersInfo& remove_parameters()
+        {
+            m_binding_index = 255;
+            return *this;
+        }
+
+        friend bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
+    };
+
+    ENGINE_EXPORT bool operator&(Archive& ar, MaterialScalarParametersInfo& info);
 }// namespace Engine
