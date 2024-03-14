@@ -129,7 +129,7 @@ namespace Engine
         m_buffers.push_back(new OpenGL_UniformBuffer(MAX_LOCAL_UBO_SIZE));
     }
 
-    void OpenGL_LocalUniformBuffer::bind(BindingIndex index)
+    void OpenGL_LocalUniformBuffer::bind(BindingIndex binding_index)
     {
         if (shadow_data_size == 0)
         {
@@ -149,7 +149,7 @@ namespace Engine
 
         OpenGL_UniformBuffer* buffer = m_buffers[index];
         buffer->update(0, shadow_data_size, shadow_data.data());
-        buffer->bind({1, 0});
+        buffer->bind({binding_index, 0});
 
         shadow_data_size = 0;
         index            = 0;

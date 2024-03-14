@@ -20,6 +20,9 @@ namespace Engine
 
         Name name;
 
+    protected:
+        static bool serialize_data(Archive& ar, void* data, size_t size);
+
     public:
         virtual size_t size() const;
         virtual size_t offset() const;
@@ -29,7 +32,6 @@ namespace Engine
         virtual MaterialParameterType type() const = 0;
         virtual MaterialParameterType binding_object_type() const;
         virtual MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component);
-        virtual bool archive_process(Archive& ar) override;
 
         template<typename T>
         T* get()
@@ -94,6 +96,14 @@ namespace Engine
         const byte* data() const override
         {
             return reinterpret_cast<const byte*>(&param);
+        }
+
+        bool archive_process(Archive& ar) override
+        {
+            if (!MaterialParameter::archive_process(ar))
+                return false;
+            serialize_data(ar, &param_offset, sizeof(param_offset));
+            return serialize_data(ar, &param, sizeof(param));
         }
     };
 

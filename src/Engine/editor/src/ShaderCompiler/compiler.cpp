@@ -264,7 +264,7 @@ namespace Engine::ShaderCompiler
         out_reflection.global_parameters_info.bind_index(0);
         if (reflection->getGlobalConstantBufferSize() > 0)
         {
-            out_reflection.local_parameters_info.bind_index(reflection->getGlobalConstantBufferBinding());
+            out_reflection.local_parameters_info.bind_index(reflection->getGlobalParamsVarLayout()->getBindingIndex());
         }
 
         // Parse vertex attributes
@@ -295,7 +295,6 @@ namespace Engine::ShaderCompiler
             {
                 auto name = param->getName();
                 trinex_always_check(name, "Failed to get parameter name!");
-
                 ShaderReflection::UniformMemberInfo info;
                 info.type = find_scalar_parameter_type(param->getType());
 

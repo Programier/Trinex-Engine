@@ -15,6 +15,19 @@
 
 namespace Engine
 {
+    bool MaterialParameter::serialize_data(Archive& ar, void* data, size_t size)
+    {
+        if (ar.is_reading())
+        {
+            return ar.read_data(reinterpret_cast<byte*>(data), size);
+        }
+        else if (ar.is_saving())
+        {
+            ar.write_data(reinterpret_cast<const byte*>(data), size);
+        }
+        return false;
+    }
+
     size_t MaterialParameter::size() const
     {
         return 0;
@@ -58,22 +71,6 @@ namespace Engine
         }
 
         return *this;
-    }
-
-    bool MaterialParameter::archive_process(Archive& ar)
-    {
-        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(MaterialParameterType::Mat4))
-        {
-            if (ar.is_reading())
-            {
-                ar.read_data(data(), size());
-            }
-            else if (ar.is_saving())
-            {
-                ar.write_data(data(), size());
-            }
-        }
-        return ar;
     }
 
     implement_engine_class_default_init(MaterialInterface);

@@ -30,6 +30,7 @@
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/window.hpp>
+#include <editor_resources.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <icons.hpp>
 #include <imgui_internal.h>
@@ -567,7 +568,7 @@ namespace Engine
             camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
 
             static auto update_callback = [](void* data) -> ImTextureID {
-                return find_output_texture_by_index(reinterpret_cast<Index>(data));
+                return {find_output_texture_by_index(reinterpret_cast<Index>(data)), EditorResources::default_sampler};
             };
 
             ImGui::GetWindowDrawList()->AddNextImageUpdateCallback(update_callback, reinterpret_cast<void*>(m_target_view_index));
