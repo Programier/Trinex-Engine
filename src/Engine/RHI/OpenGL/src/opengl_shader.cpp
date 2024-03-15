@@ -169,13 +169,16 @@ namespace Engine
         glGenVertexArrays(1, &m_vao);
         glGenProgramPipelines(1, &m_pipeline);
 
-        if (pipeline->vertex_shader && pipeline->vertex_shader->rhi_object<OpenGL_Shader>())
+        auto vertex_shader   = pipeline->vertex_shader();
+        auto fragment_shader = pipeline->fragment_shader();
+
+        if (vertex_shader->rhi_object<OpenGL_Shader>())
         {
-            glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, pipeline->vertex_shader->rhi_object<OpenGL_Shader>()->m_id);
+            glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, vertex_shader->rhi_object<OpenGL_Shader>()->m_id);
 
-            m_vertex_input.reserve(pipeline->vertex_shader->attributes.size());
+            m_vertex_input.reserve(vertex_shader->attributes.size());
 
-            for (auto& attribute : pipeline->vertex_shader->attributes)
+            for (auto& attribute : vertex_shader->attributes)
             {
                 VertexInput input;
                 input.count = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).components();
@@ -190,9 +193,9 @@ namespace Engine
             }
         }
 
-        if (pipeline->fragment_shader && pipeline->fragment_shader->rhi_object<OpenGL_Shader>())
+        if (fragment_shader && fragment_shader->rhi_object<OpenGL_Shader>())
         {
-            glUseProgramStages(m_pipeline, GL_FRAGMENT_SHADER_BIT, pipeline->fragment_shader->rhi_object<OpenGL_Shader>()->m_id);
+            glUseProgramStages(m_pipeline, GL_FRAGMENT_SHADER_BIT, fragment_shader->rhi_object<OpenGL_Shader>()->m_id);
         }
 
 

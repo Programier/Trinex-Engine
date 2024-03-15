@@ -71,12 +71,12 @@ namespace Engine
 
     static void create_vertex_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
-        create_base_descriptor_layout(pipeline, pipeline->vertex_shader, out, vk::ShaderStageFlagBits::eVertex);
+        create_base_descriptor_layout(pipeline, pipeline->vertex_shader(), out, vk::ShaderStageFlagBits::eVertex);
     }
 
     static void create_fragment_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
-        create_base_descriptor_layout(pipeline, pipeline->fragment_shader, out, vk::ShaderStageFlagBits::eFragment);
+        create_base_descriptor_layout(pipeline, pipeline->fragment_shader(), out, vk::ShaderStageFlagBits::eFragment);
     }
 
 
@@ -260,34 +260,27 @@ namespace Engine
         m_local_parameters  = pipeline->local_parameters;
 
         Vector<vk::PipelineShaderStageCreateInfo> pipeline_stage_create_infos;
+        vk::PipelineVertexInputStateCreateInfo vertex_input_info;
 
-        if (pipeline->vertex_shader)
+        if (VertexShader* vertex_shader = pipeline->vertex_shader())
         {
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-                                                     pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
+                                                     vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
+            vertex_input_info.setVertexBindingDescriptions(
+                    vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
+            vertex_input_info.setVertexAttributeDescriptions(
+                    vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
         }
 
-        if (pipeline->fragment_shader)
+        if (FragmentShader* fragment_shader = pipeline->fragment_shader())
         {
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
-                                                     pipeline->fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader,
-                                                     "main");
+                                                     fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader, "main");
         }
 
         if (pipeline_stage_create_infos.empty())
         {
             throw EngineException("Failed to create pipeline without stages");
-        }
-
-
-        vk::PipelineVertexInputStateCreateInfo vertex_input_info;
-
-        if (pipeline->vertex_shader)
-        {
-            vertex_input_info.setVertexBindingDescriptions(
-                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
-            vertex_input_info.setVertexAttributeDescriptions(
-                    pipeline->vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
         }
 
         vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
@@ -400,8 +393,8 @@ namespace Engine
     {
         Vector<PoolSizeInfo> pool_size_info(m_descriptor_set_layout.size(), PoolSizeInfo{});
 
-        process_pool_sizes(pipeline, pipeline->vertex_shader, pool_size_info);
-        process_pool_sizes(pipeline, pipeline->fragment_shader, pool_size_info);
+        process_pool_sizes(pipeline, pipeline->vertex_shader(), pool_size_info);
+        process_pool_sizes(pipeline, pipeline->fragment_shader(), pool_size_info);
 
 
         Vector<Vector<vk::DescriptorPoolSize>> pool_sizes(pool_size_info.size());

@@ -81,10 +81,11 @@ namespace Engine
 
         Path shader_path;
 
+        VertexShader* m_vertex_shader     = nullptr;
+        FragmentShader* m_fragment_shader = nullptr;
+
     public:
-        MaterialUsage usage             = MaterialUsage::StaticMeshRendering;
-        VertexShader* vertex_shader     = nullptr;
-        FragmentShader* fragment_shader = nullptr;
+        MaterialUsage usage = MaterialUsage::StaticMeshRendering;
 
         Pipeline();
         ~Pipeline();
@@ -94,6 +95,8 @@ namespace Engine
         class Material* material() const;
         RenderPassType render_pass_type() const;
         RenderPass* render_pass() const;
+        VertexShader* vertex_shader() const;
+        FragmentShader* fragment_shader() const;
 
         bool archive_process(class Archive& archive) override;
     };

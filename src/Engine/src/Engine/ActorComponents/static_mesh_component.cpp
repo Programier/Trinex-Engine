@@ -58,7 +58,7 @@ namespace Engine
             auto& lod = lods[lod_index];
 
             mesh->material->apply(this);
-            VertexShader* shader = mesh->material->material()->pipeline->vertex_shader;
+            VertexShader* shader = mesh->material->material()->pipeline->vertex_shader();
 
             size_t vertices = Constants::max_size;
 

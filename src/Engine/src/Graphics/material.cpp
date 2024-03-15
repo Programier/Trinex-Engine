@@ -486,8 +486,8 @@ namespace Engine
             }
         }
 
-        apply_shader_global_params(pipeline->vertex_shader, head, component);
-        apply_shader_global_params(pipeline->fragment_shader, head, component);
+        apply_shader_global_params(pipeline->vertex_shader(), head, component);
+        apply_shader_global_params(pipeline->fragment_shader(), head, component);
 
         return true;
     }
@@ -501,8 +501,8 @@ namespace Engine
     {
         render_thread()->wait_all();
 
-        auto vertex_shader   = material->pipeline->vertex_shader;
-        auto fragment_shader = material->pipeline->fragment_shader;
+        auto vertex_shader   = material->pipeline->vertex_shader();
+        auto fragment_shader = material->pipeline->fragment_shader();
         vertex_shader->attributes.clear();
         vertex_shader->attributes.reserve(source.reflection.attributes.size());
 

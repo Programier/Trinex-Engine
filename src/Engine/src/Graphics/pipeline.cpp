@@ -113,25 +113,25 @@ namespace Engine
 
     Pipeline::Pipeline()
     {
-        vertex_shader = Object::new_instance_named<VertexShader>("Vertex Shader");
-        vertex_shader->flags(Object::IsAvailableForGC, false);
-        vertex_shader->owner(this);
+        m_vertex_shader = Object::new_instance_named<VertexShader>("Vertex Shader");
+        m_vertex_shader->flags(Object::IsAvailableForGC, false);
+        m_vertex_shader->owner(this);
 
-        fragment_shader = Object::new_instance_named<FragmentShader>("Fragment Shader");
-        fragment_shader->flags(Object::IsAvailableForGC, false);
-        fragment_shader->owner(this);
+        m_fragment_shader = Object::new_instance_named<FragmentShader>("Fragment Shader");
+        m_fragment_shader->flags(Object::IsAvailableForGC, false);
+        m_fragment_shader->owner(this);
     }
 
     Pipeline::~Pipeline()
     {
-        delete vertex_shader;
-        delete fragment_shader;
+        delete m_vertex_shader;
+        delete m_fragment_shader;
     }
 
     Pipeline& Pipeline::rhi_create()
     {
-        vertex_shader->rhi_create();
-        fragment_shader->rhi_create();
+        m_vertex_shader->rhi_create();
+        m_fragment_shader->rhi_create();
         m_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
         return *this;
     }
@@ -185,6 +185,15 @@ namespace Engine
         return RenderPass::load_render_pass(render_pass_type());
     }
 
+    VertexShader* Pipeline::vertex_shader() const
+    {
+        return m_vertex_shader;
+    }
+
+    FragmentShader* Pipeline::fragment_shader() const
+    {
+        return m_fragment_shader;
+    }
 
     static bool serialize_shader_sources(const Path& path, Pipeline* pipeline, bool is_reading)
     {
@@ -224,8 +233,8 @@ namespace Engine
             archive = writer;
         }
 
-        status = status && pipeline->vertex_shader->archive_process_source_code(archive);
-        status = status && pipeline->fragment_shader->archive_process_source_code(archive);
+        status = status && pipeline->m_vertex_shader->archive_process_source_code(archive);
+        status = status && pipeline->m_fragment_shader->archive_process_source_code(archive);
 
 
         if (is_reading)
@@ -255,8 +264,8 @@ namespace Engine
 
         archive & global_parameters;
         archive & local_parameters;
-        vertex_shader->archive_process(archive);
-        fragment_shader->archive_process(archive);
+        m_vertex_shader->archive_process(archive);
+        m_fragment_shader->archive_process(archive);
 
 
         // Loading shaders from shader cache

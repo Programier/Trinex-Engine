@@ -378,13 +378,14 @@ namespace Engine
         {
             if (ImGui::BeginTabItem("Vertex"))
             {
-                if (m_material && !m_material->pipeline->vertex_shader->source_code.empty())
+                auto vertex_shader = m_material->pipeline->vertex_shader();
+                if (m_material && !vertex_shader->source_code.empty())
                 {
-                    ImGui::BeginChild(ImGui::GetID(m_material->pipeline->vertex_shader), ImGui::GetContentRegionAvail());
-                    ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->vertex_shader->source_code.data(),
-                                              m_material->pipeline->vertex_shader->source_code.size(),
-                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize,
-                                              input_text_callback, &m_material->pipeline->vertex_shader->source_code);
+                    ImGui::BeginChild(ImGui::GetID(vertex_shader), ImGui::GetContentRegionAvail());
+                    ImGui::InputTextMultiline("##source", (char*) vertex_shader->source_code.data(),
+                                              vertex_shader->source_code.size(), ImGui::GetContentRegionAvail(),
+                                              ImGuiInputTextFlags_CallbackResize, input_text_callback,
+                                              &vertex_shader->source_code);
                     ImGui::EndChild();
                 }
 
@@ -393,13 +394,14 @@ namespace Engine
 
             if (ImGui::BeginTabItem("Fragment"))
             {
-                if (m_material && !m_material->pipeline->fragment_shader->source_code.empty())
+                auto fragment_shader = m_material->pipeline->fragment_shader();
+                if (m_material && !fragment_shader->source_code.empty())
                 {
-                    ImGui::BeginChild(ImGui::GetID(m_material->pipeline->fragment_shader), ImGui::GetContentRegionAvail());
-                    ImGui::InputTextMultiline("##source", (char*) m_material->pipeline->fragment_shader->source_code.data(),
-                                              m_material->pipeline->fragment_shader->source_code.size(),
-                                              ImGui::GetContentRegionAvail(), ImGuiInputTextFlags_CallbackResize,
-                                              input_text_callback, &m_material->pipeline->fragment_shader->source_code);
+                    ImGui::BeginChild(ImGui::GetID(fragment_shader), ImGui::GetContentRegionAvail());
+                    ImGui::InputTextMultiline("##source", (char*) fragment_shader->source_code.data(),
+                                              fragment_shader->source_code.size(), ImGui::GetContentRegionAvail(),
+                                              ImGuiInputTextFlags_CallbackResize, input_text_callback,
+                                              &fragment_shader->source_code);
                     ImGui::EndChild();
                 }
                 ImGui::EndTabItem();
