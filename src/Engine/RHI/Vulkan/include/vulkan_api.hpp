@@ -153,6 +153,9 @@ namespace Engine
         RHI_Texture* create_texture(const Texture*, const byte* data, size_t size) override;
         RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
+        RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
+        RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
+        RHI_Shader* create_geometry_shader(const GeometryShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;

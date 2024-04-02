@@ -22,7 +22,7 @@ uniform float4 color;
 uniform float scale;
 
 [shader("vertex")]
-VertexOutput vertex_main(VertexInput input)
+VertexOutput vs_main(VertexInput input)
 {
     VertexOutput output;
     float3 camera_xz = float3(globals.camera_location.x, 0, globals.camera_location.z);
@@ -36,7 +36,7 @@ VertexOutput vertex_main(VertexInput input)
 }
 
 [shader("fragment")]
-FragmentOutput fragment_main(VertexOutput input) : SV_Target
+FragmentOutput fs_main(VertexOutput input) : SV_Target
 {
     FragmentOutput output;
     float3 view_direction = normalize(globals.camera_location - input.world_position);

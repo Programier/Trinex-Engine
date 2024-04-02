@@ -38,6 +38,9 @@ namespace Engine
     static void create_base_descriptor_layout(const Pipeline* pipeline, const Shader* shader,
                                               Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage)
     {
+        if(!shader || !pipeline)
+            return;
+
         if (pipeline->global_parameters.has_parameters())
         {
             push_layout_binding(out, stage, {pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
@@ -74,6 +77,25 @@ namespace Engine
         create_base_descriptor_layout(pipeline, pipeline->vertex_shader(), out, vk::ShaderStageFlagBits::eVertex);
     }
 
+    static void create_tesselation_control_descriptor_layout(const Pipeline* pipeline,
+                                                             Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
+    {
+        create_base_descriptor_layout(pipeline, pipeline->tessellation_control_shader(), out,
+                                      vk::ShaderStageFlagBits::eTessellationControl);
+    }
+
+    static void create_tesselation_descriptor_layout(const Pipeline* pipeline,
+                                                     Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
+    {
+        create_base_descriptor_layout(pipeline, pipeline->tessellation_shader(), out,
+                                      vk::ShaderStageFlagBits::eTessellationEvaluation);
+    }
+
+    static void create_geomeetry_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
+    {
+        create_base_descriptor_layout(pipeline, pipeline->geometry_shader(), out, vk::ShaderStageFlagBits::eGeometry);
+    }
+
     static void create_fragment_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
     {
         create_base_descriptor_layout(pipeline, pipeline->fragment_shader(), out, vk::ShaderStageFlagBits::eFragment);
@@ -85,6 +107,9 @@ namespace Engine
         Vector<Vector<vk::DescriptorSetLayoutBinding>> layout_bindings;
 
         create_vertex_descriptor_layout(pipeline, layout_bindings);
+        create_tesselation_control_descriptor_layout(pipeline, layout_bindings);
+        create_tesselation_descriptor_layout(pipeline, layout_bindings);
+        create_geomeetry_descriptor_layout(pipeline, layout_bindings);
         create_fragment_descriptor_layout(pipeline, layout_bindings);
 
         m_descriptor_set_layout.resize(layout_bindings.size());
@@ -270,6 +295,27 @@ namespace Engine
                     vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
             vertex_input_info.setVertexAttributeDescriptions(
                     vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
+        }
+
+        if (TessellationControlShader* tsc_shader = pipeline->tessellation_control_shader())
+        {
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
+                                                     vk::ShaderStageFlagBits::eTessellationControl,
+                                                     tsc_shader->rhi_object<VulkanTessellationControlShader>()->m_shader, "main");
+        }
+
+        if (TessellationShader* ts_shader = pipeline->tessellation_shader())
+        {
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
+                                                     vk::ShaderStageFlagBits::eTessellationEvaluation,
+                                                     ts_shader->rhi_object<VulkanTessellationShader>()->m_shader, "main");
+        }
+
+        if (GeometryShader* geo_shader = pipeline->geometry_shader())
+        {
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
+                                                     vk::ShaderStageFlagBits::eGeometry,
+                                                     geo_shader->rhi_object<VulkanGeometryShader>()->m_shader, "main");
         }
 
         if (FragmentShader* fragment_shader = pipeline->fragment_shader())

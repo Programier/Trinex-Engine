@@ -378,8 +378,8 @@ namespace Engine
         {
             if (ImGui::BeginTabItem("Vertex"))
             {
-                auto vertex_shader = m_material->pipeline->vertex_shader();
-                if (m_material && !vertex_shader->source_code.empty())
+                auto vertex_shader = m_material ? m_material->pipeline->vertex_shader() : nullptr;
+                if (vertex_shader && !vertex_shader->source_code.empty())
                 {
                     ImGui::BeginChild(ImGui::GetID(vertex_shader), ImGui::GetContentRegionAvail());
                     ImGui::InputTextMultiline("##source", (char*) vertex_shader->source_code.data(),
@@ -394,8 +394,8 @@ namespace Engine
 
             if (ImGui::BeginTabItem("Fragment"))
             {
-                auto fragment_shader = m_material->pipeline->fragment_shader();
-                if (m_material && !fragment_shader->source_code.empty())
+                auto fragment_shader = m_material ? m_material->pipeline->fragment_shader() : nullptr;
+                if (fragment_shader && !fragment_shader->source_code.empty())
                 {
                     ImGui::BeginChild(ImGui::GetID(fragment_shader), ImGui::GetContentRegionAvail());
                     ImGui::InputTextMultiline("##source", (char*) fragment_shader->source_code.data(),

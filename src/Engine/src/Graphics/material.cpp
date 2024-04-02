@@ -497,12 +497,27 @@ namespace Engine
         return this;
     }
 
-    static void submit_compiled_source(Material* material, const ShaderCompiler::ShaderSource& source)
+    static bool submit_compiled_source(Material* material, const ShaderCompiler::ShaderSource& source, MessageList* errors)
     {
+        if (!source.has_vertex_shader())
+        {
+            errors->push_back(Strings::format("Material: Cannot compile material. Pipeline doesn't have vertex shader!"));
+            return false;
+        }
+
+        if (!source.has_fragment_shader())
+        {
+            errors->push_back(Strings::format("Material: Cannot compile material. Pipeline doesn't have fragment shader!"));
+            return false;
+        }
+
         render_thread()->wait_all();
 
-        auto vertex_shader   = material->pipeline->vertex_shader();
-        auto fragment_shader = material->pipeline->fragment_shader();
+
+        Pipeline* pipeline   = material->pipeline;
+        auto vertex_shader   = pipeline->vertex_shader();
+        auto fragment_shader = pipeline->fragment_shader();
+
         vertex_shader->attributes.clear();
         vertex_shader->attributes.reserve(source.reflection.attributes.size());
 
@@ -523,6 +538,33 @@ namespace Engine
         vertex_shader->source_code   = source.vertex_code;
         fragment_shader->source_code = source.fragment_code;
 
+        if (source.has_tessellation_control_shader())
+        {
+            pipeline->tessellation_control_shader(true)->source_code = source.tessellation_control_code;
+        }
+        else
+        {
+            pipeline->remove_tessellation_control_shader();
+        }
+
+        if (source.has_tessellation_shader())
+        {
+            pipeline->tessellation_shader(true)->source_code = source.tessellation_code;
+        }
+        else
+        {
+            pipeline->remove_tessellation_shader();
+        }
+
+        if (source.has_geometry_shader())
+        {
+            pipeline->geometry_shader(true)->source_code = source.geometry_code;
+        }
+        else
+        {
+            pipeline->remove_geometry_shader();
+        }
+
         material->clear_parameters();
 
         for (auto& parameter : source.reflection.uniform_member_infos)
@@ -533,6 +575,7 @@ namespace Engine
         material->pipeline->global_parameters = source.reflection.global_parameters_info;
         material->pipeline->local_parameters  = source.reflection.local_parameters_info;
         material->apply_changes();
+        return true;
     }
 
     bool Material::compile(ShaderCompiler::Compiler* compiler, MessageList* errors)
@@ -543,6 +586,8 @@ namespace Engine
         {
             errors = &dummy_message_list;
         }
+
+        errors->clear();
 
         bool need_delete_compiler = compiler == nullptr;
 
@@ -576,7 +621,10 @@ namespace Engine
         ShaderCompiler::ShaderSource source;
         auto status = compiler->compile(this, source, *errors);
 
-        submit_compiled_source(this, source);
+        if (status)
+        {
+            status = submit_compiled_source(this, source, errors);
+        }
 
         if (need_delete_compiler)
         {

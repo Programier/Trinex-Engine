@@ -258,12 +258,13 @@ namespace Engine
 
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
         vk::PhysicalDeviceFeatures features;
-        features.samplerAnisotropy = VK_TRUE;
-        features.fillModeNonSolid  = VK_TRUE;
-        features.wideLines         = VK_TRUE;
+        features.samplerAnisotropy  = true;
+        features.fillModeNonSolid   = true;
+        features.wideLines          = true;
+        features.tessellationShader = true;
+        features.geometryShader     = true;
 
         phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
-
 
         for (VulkanExtention& extension : m_device_extensions)
         {
@@ -303,6 +304,7 @@ namespace Engine
         device_builder.add_pNext(&idx_byte_feature);
         vk::PhysicalDeviceSeparateDepthStencilLayoutsFeatures separate_depth_stencil(VK_TRUE);
         device_builder.add_pNext(&separate_depth_stencil);
+
 
         auto device_ret = device_builder.build();
         if (!device_ret)

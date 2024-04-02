@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Core/color_format.hpp>
-#include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
 #include <Core/implement.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/rhi_initializers.hpp>
@@ -15,12 +15,6 @@ namespace Engine
         declare_class(Shader, RenderResource);
 
     public:
-        enum class Type
-        {
-            Vertex,
-            Fragment,
-        };
-
         struct SSBO {
             Name name;
             BindLocation location;
@@ -51,7 +45,7 @@ namespace Engine
         bool archive_process(Archive& ar) override;
         bool archive_process_source_code(Archive& ar);
         Shader& clean();
-        virtual Type type() const = 0;
+        virtual ShaderType type() const = 0;
     };
 
 
@@ -81,7 +75,7 @@ namespace Engine
     public:
         VertexShader& rhi_create() override;
         bool archive_process(Archive& ar) override;
-        Type type() const override;
+        ShaderType type() const override;
     };
 
     class ENGINE_EXPORT FragmentShader : public Shader
@@ -90,7 +84,34 @@ namespace Engine
 
     public:
         FragmentShader& rhi_create() override;
-        Type type() const override;
+        ShaderType type() const override;
+    };
+
+    class ENGINE_EXPORT TessellationControlShader : public Shader
+    {
+        declare_class(TessellationControlShader, Shader);
+
+    public:
+        TessellationControlShader& rhi_create() override;
+        ShaderType type() const override;
+    };
+
+    class ENGINE_EXPORT TessellationShader : public Shader
+    {
+        declare_class(TessellationShader, Shader);
+
+    public:
+        TessellationShader& rhi_create() override;
+        ShaderType type() const override;
+    };
+
+    class ENGINE_EXPORT GeometryShader : public Shader
+    {
+        declare_class(GeometryShader, Shader);
+
+    public:
+        GeometryShader& rhi_create() override;
+        ShaderType type() const override;
     };
 
     ENGINE_EXPORT bool operator&(Archive&, Shader::SSBO&);

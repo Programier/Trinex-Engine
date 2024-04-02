@@ -382,4 +382,14 @@ namespace Engine
         ModelMatrix            = 21,
         __COUNT__              = 22
     };
+
+    enum class ShaderType : EnumerateType
+    {
+        Undefined           = 0,
+        Vertex              = BIT(0),
+        TessellationControl = BIT(1),
+        Tessellation        = BIT(2),
+        Geometry            = BIT(3),
+        Fragment            = BIT(4),
+    };
 }// namespace Engine

@@ -38,8 +38,36 @@ namespace Engine
 
         struct ENGINE_EXPORT ShaderSource {
             Buffer vertex_code;
+            Buffer tessellation_control_code;
+            Buffer tessellation_code;
+            Buffer geometry_code;
             Buffer fragment_code;
             ShaderReflection reflection;
+
+            FORCE_INLINE bool has_vertex_shader() const
+            {
+                return !vertex_code.empty();
+            }
+
+            FORCE_INLINE bool has_tessellation_control_shader() const
+            {
+                return !tessellation_control_code.empty();
+            }
+
+            FORCE_INLINE bool has_tessellation_shader() const
+            {
+                return !tessellation_code.empty();
+            }
+
+            FORCE_INLINE bool has_geometry_shader() const
+            {
+                return !geometry_code.empty();
+            }
+
+            FORCE_INLINE bool has_fragment_shader() const
+            {
+                return !fragment_code.empty();
+            }
         };
 
         class ENGINE_EXPORT Compiler : public Object

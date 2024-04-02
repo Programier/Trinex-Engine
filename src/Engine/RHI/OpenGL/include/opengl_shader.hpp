@@ -17,6 +17,18 @@ namespace Engine
         virtual GLuint type() override;
     };
 
+    struct OpenGL_TesselationControlShader : public OpenGL_Shader {
+        virtual GLuint type() override;
+    };
+
+    struct OpenGL_TesselationShader : public OpenGL_Shader {
+        virtual GLuint type() override;
+    };
+
+    struct OpenGL_GeometryShader : public OpenGL_Shader {
+        virtual GLuint type() override;
+    };
+
     struct OpenGL_FragmentShader : public OpenGL_Shader {
         virtual GLuint type() override;
     };
@@ -54,6 +66,7 @@ namespace Engine
         GLuint m_topology = 0;
         GLuint m_vao      = 0;
 
+        void init_pipeline_shader(Shader* shader, GLbitfield stage);
         void init(const Pipeline* pipeline);
         void bind() override;
         ~OpenGL_Pipeline();

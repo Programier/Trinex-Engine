@@ -113,24 +113,26 @@ namespace Engine
 
     Pipeline::Pipeline()
     {
-        m_vertex_shader = Object::new_instance_named<VertexShader>("Vertex Shader");
-        m_vertex_shader->flags(Object::IsAvailableForGC, false);
-        m_vertex_shader->owner(this);
-
-        m_fragment_shader = Object::new_instance_named<FragmentShader>("Fragment Shader");
-        m_fragment_shader->flags(Object::IsAvailableForGC, false);
-        m_fragment_shader->owner(this);
+        m_vertex_shader   = create_new_shader<VertexShader>("Vertex Shader");
+        m_fragment_shader = create_new_shader<FragmentShader>("Fragment Shader");
     }
 
     Pipeline::~Pipeline()
     {
         delete m_vertex_shader;
         delete m_fragment_shader;
+
+        remove_tessellation_control_shader().remove_tessellation_shader().remove_geometry_shader();
     }
+
+#define init_shader(sdr) if(sdr) sdr->rhi_create()
 
     Pipeline& Pipeline::rhi_create()
     {
         m_vertex_shader->rhi_create();
+        init_shader(m_tessellation_control_shader);
+        init_shader(m_tessellation_shader);
+        init_shader(m_geometry_shader);
         m_fragment_shader->rhi_create();
         m_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
         return *this;
@@ -193,6 +195,96 @@ namespace Engine
     FragmentShader* Pipeline::fragment_shader() const
     {
         return m_fragment_shader;
+    }
+
+    TessellationControlShader* Pipeline::tessellation_control_shader() const
+    {
+        return m_tessellation_control_shader;
+    }
+
+    TessellationShader* Pipeline::tessellation_shader() const
+    {
+        return m_tessellation_shader;
+    }
+
+    GeometryShader* Pipeline::geometry_shader() const
+    {
+        return m_geometry_shader;
+    }
+
+
+    TessellationControlShader* Pipeline::tessellation_control_shader(bool create)
+    {
+        if (!m_tessellation_control_shader && create)
+        {
+            m_tessellation_control_shader = create_new_shader<TessellationControlShader>("Tessellation Control Shader");
+        }
+
+        return m_tessellation_control_shader;
+    }
+
+    TessellationShader* Pipeline::tessellation_shader(bool create)
+    {
+        if (!m_tessellation_shader && create)
+        {
+            m_tessellation_shader = create_new_shader<TessellationShader>("Tessellation Shader");
+        }
+
+        return m_tessellation_shader;
+    }
+
+    GeometryShader* Pipeline::geometry_shader(bool create)
+    {
+        if (!m_geometry_shader && create)
+        {
+            m_geometry_shader = create_new_shader<GeometryShader>("Geometry Shader");
+        }
+
+        return m_geometry_shader;
+    }
+
+    Pipeline& Pipeline::remove_tessellation_control_shader()
+    {
+        if (m_tessellation_control_shader)
+        {
+            delete m_tessellation_control_shader;
+            m_tessellation_control_shader = nullptr;
+        }
+        return *this;
+    }
+
+    Pipeline& Pipeline::remove_tessellation_shader()
+    {
+        if (m_tessellation_shader)
+        {
+            delete m_tessellation_shader;
+            m_tessellation_shader = nullptr;
+        }
+        return *this;
+    }
+
+    Pipeline& Pipeline::remove_geometry_shader()
+    {
+        if (m_geometry_shader)
+        {
+            delete m_geometry_shader;
+            m_geometry_shader = nullptr;
+        }
+        return *this;
+    }
+
+    Flags<ShaderType> Pipeline::shader_type_flags() const
+    {
+        Flags<ShaderType> result = Flags(ShaderType::Vertex) | Flags(ShaderType::Fragment);
+
+        if (m_tessellation_control_shader)
+            result(ShaderType::TessellationControl, true);
+        if (m_tessellation_shader)
+            result(ShaderType::Tessellation, true);
+        if (m_geometry_shader)
+            result(ShaderType::Geometry, true);
+
+        return result;
     }
 
     static bool serialize_shader_sources(const Path& path, Pipeline* pipeline, bool is_reading)

@@ -7,6 +7,9 @@ namespace Engine
 {
 
     class VertexShader;
+    class TessellationControlShader;
+    class TessellationShader;
+    class GeometryShader;
     class FragmentShader;
     class RenderPass;
 
@@ -81,8 +84,22 @@ namespace Engine
 
         Path shader_path;
 
-        VertexShader* m_vertex_shader     = nullptr;
-        FragmentShader* m_fragment_shader = nullptr;
+        VertexShader* m_vertex_shader                            = nullptr;
+        TessellationControlShader* m_tessellation_control_shader = nullptr;
+        TessellationShader* m_tessellation_shader                = nullptr;
+        GeometryShader* m_geometry_shader                        = nullptr;
+        FragmentShader* m_fragment_shader                        = nullptr;
+
+
+    private:
+        template<typename Type>
+        Type* create_new_shader(const char* name)
+        {
+            auto shader = Object::new_instance_named<Type>(name);
+            shader->flags(Object::IsAvailableForGC, false);
+            shader->owner(this);
+            return shader;
+        }
 
     public:
         MaterialUsage usage = MaterialUsage::StaticMeshRendering;
@@ -97,6 +114,20 @@ namespace Engine
         RenderPass* render_pass() const;
         VertexShader* vertex_shader() const;
         FragmentShader* fragment_shader() const;
+
+        TessellationControlShader* tessellation_control_shader() const;
+        TessellationShader* tessellation_shader() const;
+        GeometryShader* geometry_shader() const;
+
+        TessellationControlShader* tessellation_control_shader(bool create = false);
+        TessellationShader* tessellation_shader(bool create = false);
+        GeometryShader* geometry_shader(bool create = false);
+
+        Pipeline& remove_tessellation_control_shader();
+        Pipeline& remove_tessellation_shader();
+        Pipeline& remove_geometry_shader();
+
+        Flags<ShaderType> shader_type_flags() const;
 
         bool archive_process(class Archive& archive) override;
     };

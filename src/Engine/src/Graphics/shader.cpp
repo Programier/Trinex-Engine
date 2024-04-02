@@ -23,6 +23,15 @@ namespace Engine
     implement_class(VertexShader, Engine, 0);
     implement_default_initialize_class(VertexShader);
 
+    implement_class(TessellationControlShader, Engine, 0);
+    implement_default_initialize_class(TessellationControlShader);
+
+    implement_class(TessellationShader, Engine, 0);
+    implement_default_initialize_class(TessellationShader);
+
+    implement_class(GeometryShader, Engine, 0);
+    implement_default_initialize_class(GeometryShader);
+
     implement_class(FragmentShader, Engine, 0);
     implement_default_initialize_class(FragmentShader);
 
@@ -66,9 +75,9 @@ namespace Engine
         return ar;
     }
 
-    Shader::Type VertexShader::type() const
+    ShaderType VertexShader::type() const
     {
-        return Type::Vertex;
+        return ShaderType::Vertex;
     }
 
     FragmentShader& FragmentShader::rhi_create()
@@ -77,9 +86,42 @@ namespace Engine
         return *this;
     }
 
-    Shader::Type FragmentShader::type() const
+    ShaderType FragmentShader::type() const
     {
-        return Type::Fragment;
+        return ShaderType::Fragment;
+    }
+
+    TessellationControlShader& TessellationControlShader::rhi_create()
+    {
+        m_rhi_object.reset(engine_instance->rhi()->create_tesselation_control_shader(this));
+        return *this;
+    }
+
+    ShaderType TessellationControlShader::type() const
+    {
+        return ShaderType::TessellationControl;
+    }
+
+    TessellationShader& TessellationShader::rhi_create()
+    {
+        m_rhi_object.reset(engine_instance->rhi()->create_tesselation_shader(this));
+        return *this;
+    }
+
+    ShaderType TessellationShader::type() const
+    {
+        return ShaderType::Tessellation;
+    }
+
+    GeometryShader& GeometryShader::rhi_create()
+    {
+        m_rhi_object.reset(engine_instance->rhi()->create_geometry_shader(this));
+        return *this;
+    }
+
+    ShaderType GeometryShader::type() const
+    {
+        return ShaderType::Geometry;
     }
 
     ENGINE_EXPORT bool operator&(Archive& ar, Shader::SSBO& buffer)

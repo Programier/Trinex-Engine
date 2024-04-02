@@ -28,6 +28,27 @@ namespace Engine
         ~VulkanVertexShader();
     };
 
+    struct VulkanTessellationControlShader : public VulkanShaderBase {
+        VulkanTessellationControlShader& create(const TessellationControlShader* shader);
+        VulkanTessellationControlShader& destroy();
+
+        ~VulkanTessellationControlShader();
+    };
+
+    struct VulkanTessellationShader : public VulkanShaderBase {
+        VulkanTessellationShader& create(const TessellationShader* shader);
+        VulkanTessellationShader& destroy();
+
+        ~VulkanTessellationShader();
+    };
+
+    struct VulkanGeometryShader : public VulkanShaderBase {
+        VulkanGeometryShader& create(const GeometryShader* shader);
+        VulkanGeometryShader& destroy();
+
+        ~VulkanGeometryShader();
+    };
+
     struct VulkanFragmentShader : public VulkanShaderBase {
         VulkanFragmentShader& create(const FragmentShader* shader);
         VulkanFragmentShader& destroy();

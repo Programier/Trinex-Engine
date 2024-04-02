@@ -101,6 +101,24 @@ namespace Engine
         return nullptr;
     }
 
+    RHI_Shader* NoApi::create_tesselation_control_shader(const TessellationControlShader* shader)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_Shader* NoApi::create_tesselation_shader(const TessellationShader* shader)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
+    RHI_Shader* NoApi::create_geometry_shader(const GeometryShader* shader)
+    {
+        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
+        return nullptr;
+    }
+
     RHI_Shader* NoApi::create_fragment_shader(const FragmentShader* shader)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);

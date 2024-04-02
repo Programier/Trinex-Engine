@@ -297,8 +297,9 @@ namespace Engine
         before_begin_render();
         recreate_swapchain();
 
-        auto current_buffer_index = swapchain_image_index();
+        VulkanViewport::begin_render();
 
+        auto current_buffer_index = swapchain_image_index();
 
         if (current_buffer_index.result == vk::Result::eErrorOutOfDateKHR)
         {
@@ -313,8 +314,6 @@ namespace Engine
         }
 
         m_buffer_index = current_buffer_index.value;
-
-        VulkanViewport::begin_render();
     }
 
     void VulkanWindowViewport::end_render()

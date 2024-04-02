@@ -17,6 +17,9 @@ namespace Engine
 
     class VertexShader;
     class FragmentShader;
+    class TessellationControlShader;
+    class TessellationShader;
+    class GeometryShader;
     class Shader;
     class Pipeline;
     class Sampler;
@@ -24,6 +27,7 @@ namespace Engine
     class RenderPass;
     class Texture;
     struct GlobalShaderParameters;
+
 
     struct RHI_Object {
         FORCE_INLINE virtual Identifier internal_type()// For internal usage
@@ -115,18 +119,21 @@ namespace Engine
         virtual const String& renderer() = 0;
         virtual const String& name()     = 0;
 
-        virtual RHI_Sampler* create_sampler(const Sampler*)                                = 0;
-        virtual RHI_Texture* create_texture(const Texture*, const byte* data, size_t size) = 0;
-        virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)  = 0;
-        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)               = 0;
-        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)           = 0;
-        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                    = 0;
-        virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data)      = 0;
-        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data)             = 0;
-        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                       = 0;
-        virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)          = 0;
-        virtual RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass)         = 0;
-        virtual ColorFormatFeatures color_format_features(ColorFormat format)              = 0;
+        virtual RHI_Sampler* create_sampler(const Sampler*)                                            = 0;
+        virtual RHI_Texture* create_texture(const Texture*, const byte* data, size_t size)             = 0;
+        virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)              = 0;
+        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                           = 0;
+        virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) = 0;
+        virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                = 0;
+        virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                       = 0;
+        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                       = 0;
+        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                = 0;
+        virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data)                  = 0;
+        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data)                         = 0;
+        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                   = 0;
+        virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                      = 0;
+        virtual RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass)                     = 0;
+        virtual ColorFormatFeatures color_format_features(ColorFormat format)                          = 0;
 
         virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
         virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;

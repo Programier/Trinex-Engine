@@ -99,38 +99,65 @@ namespace Engine
         return GL_VERTEX_SHADER;
     }
 
+    GLuint OpenGL_TesselationControlShader::type()
+    {
+        return GL_TESS_CONTROL_SHADER;
+    }
+
+    GLuint OpenGL_TesselationShader::type()
+    {
+        return GL_TESS_EVALUATION_SHADER;
+    }
+
+    GLuint OpenGL_GeometryShader::type()
+    {
+        return GL_GEOMETRY_SHADER;
+    }
+
     GLuint OpenGL_FragmentShader::type()
     {
         return GL_FRAGMENT_SHADER;
     }
 
 
-    RHI_Shader* OpenGL::create_vertex_shader(const VertexShader* shader)
+    template<typename ShaderType, GLenum type>
+    static RHI_Shader* create_opengl_shader(const Shader* shader)
     {
-        GLuint id = compile_shader_module(shader->source_code, GL_VERTEX_SHADER, shader->full_name());
+        GLuint id = compile_shader_module(shader->source_code, type, shader->full_name());
 
         if (id)
         {
-            OpenGL_Shader* vertex = new OpenGL_VertexShader();
-            vertex->m_id          = id;
-            return vertex;
+            ShaderType* opengl_shader = new ShaderType();
+            opengl_shader->m_id       = id;
+            return opengl_shader;
         }
 
         return nullptr;
     }
 
+    RHI_Shader* OpenGL::create_vertex_shader(const VertexShader* shader)
+    {
+        return create_opengl_shader<OpenGL_VertexShader, GL_VERTEX_SHADER>(shader);
+    }
+
     RHI_Shader* OpenGL::create_fragment_shader(const FragmentShader* shader)
     {
-        GLuint id = compile_shader_module(shader->source_code, GL_FRAGMENT_SHADER, shader->full_name());
+        return create_opengl_shader<OpenGL_FragmentShader, GL_FRAGMENT_SHADER>(shader);
+    }
 
-        if (id)
-        {
-            OpenGL_Shader* fragment = new OpenGL_FragmentShader();
-            fragment->m_id          = id;
-            return fragment;
-        }
+    RHI_Shader* OpenGL::create_tesselation_control_shader(const TessellationControlShader* shader)
+    {
+        return create_opengl_shader<OpenGL_TesselationControlShader, GL_TESS_CONTROL_SHADER>(shader);
+    }
 
-        return nullptr;
+    RHI_Shader* OpenGL::create_tesselation_shader(const TessellationShader* shader)
+    {
+        return create_opengl_shader<OpenGL_TesselationShader, GL_TESS_EVALUATION_SHADER>(shader);
+    }
+
+    RHI_Shader* OpenGL::create_geometry_shader(const GeometryShader* shader)
+    {
+        return create_opengl_shader<OpenGL_GeometryShader, GL_GEOMETRY_SHADER>(shader);
     }
 
 
@@ -159,6 +186,14 @@ namespace Engine
 
 #define new_command(...) m_apply_state.push_back(wrap_command(__VA_ARGS__))
 #define new_command_nowrap(...) m_apply_state.push_back(__VA_ARGS__)
+
+    void OpenGL_Pipeline::init_pipeline_shader(Shader* shader, GLbitfield stage)
+    {
+        if (shader && shader->rhi_object<OpenGL_Shader>())
+        {
+            glUseProgramStages(m_pipeline, stage, shader->rhi_object<OpenGL_Shader>()->m_id);
+        }
+    }
 
     void OpenGL_Pipeline::init(const Pipeline* pipeline)
     {
@@ -193,10 +228,11 @@ namespace Engine
             }
         }
 
-        if (fragment_shader && fragment_shader->rhi_object<OpenGL_Shader>())
-        {
-            glUseProgramStages(m_pipeline, GL_FRAGMENT_SHADER_BIT, fragment_shader->rhi_object<OpenGL_Shader>()->m_id);
-        }
+
+        init_pipeline_shader(pipeline->tessellation_control_shader(), GL_TESS_CONTROL_SHADER_BIT);
+        init_pipeline_shader(pipeline->tessellation_shader(), GL_TESS_EVALUATION_SHADER_BIT);
+        init_pipeline_shader(pipeline->geometry_shader(), GL_GEOMETRY_SHADER_BIT);
+        init_pipeline_shader(fragment_shader, GL_FRAGMENT_SHADER_BIT);
 
 
         /// Initialize pipeline state

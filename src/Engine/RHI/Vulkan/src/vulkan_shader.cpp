@@ -127,9 +127,79 @@ namespace Engine
         destroy();
     }
 
+
+    VulkanTessellationControlShader& VulkanTessellationControlShader::create(const TessellationControlShader* shader)
+    {
+        destroy();
+        VulkanShaderBase::create(shader);
+        return *this;
+    }
+
+    VulkanTessellationControlShader& VulkanTessellationControlShader::destroy()
+    {
+        VulkanShaderBase::destroy();
+        return *this;
+    }
+
+    VulkanTessellationControlShader::~VulkanTessellationControlShader()
+    {
+        destroy();
+    }
+
+    VulkanTessellationShader& VulkanTessellationShader::create(const TessellationShader* shader)
+    {
+        destroy();
+        VulkanShaderBase::create(shader);
+        return *this;
+    }
+
+    VulkanTessellationShader& VulkanTessellationShader::destroy()
+    {
+        VulkanShaderBase::destroy();
+        return *this;
+    }
+
+    VulkanTessellationShader::~VulkanTessellationShader()
+    {
+        destroy();
+    }
+
+    VulkanGeometryShader& VulkanGeometryShader::create(const GeometryShader* shader)
+    {
+        destroy();
+        VulkanShaderBase::create(shader);
+        return *this;
+    }
+
+    VulkanGeometryShader& VulkanGeometryShader::destroy()
+    {
+        VulkanShaderBase::destroy();
+        return *this;
+    }
+
+    VulkanGeometryShader::~VulkanGeometryShader()
+    {
+        destroy();
+    }
+
     RHI_Shader* VulkanAPI::create_vertex_shader(const VertexShader* shader)
     {
         return &(new VulkanVertexShader())->create(shader);
+    }
+
+    RHI_Shader* VulkanAPI::create_tesselation_control_shader(const TessellationControlShader* shader)
+    {
+        return &(new VulkanTessellationControlShader())->create(shader);
+    }
+
+    RHI_Shader* VulkanAPI::create_tesselation_shader(const TessellationShader* shader)
+    {
+        return &(new VulkanTessellationShader())->create(shader);
+    }
+
+    RHI_Shader* VulkanAPI::create_geometry_shader(const GeometryShader* shader)
+    {
+        return &(new VulkanGeometryShader())->create(shader);
     }
 
     RHI_Shader* VulkanAPI::create_fragment_shader(const FragmentShader* shader)
