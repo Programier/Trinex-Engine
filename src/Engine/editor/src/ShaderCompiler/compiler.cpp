@@ -603,7 +603,7 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
-    static void setup_glsl_compile_request(SlangCompileRequest* request)
+    static void setup_glsl_base_compile_request(SlangCompileRequest* request)
     {
         request->setCodeGenTarget(SLANG_GLSL);
         request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
@@ -611,6 +611,18 @@ namespace Engine::ShaderCompiler
         request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
         request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
         request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
+    }
+
+    static void setup_glsles_compile_request(SlangCompileRequest* request)
+    {
+        setup_glsl_base_compile_request(request);
+        auto profile = global_session()->findProfile("glsl_310_es");
+        request->setTargetProfile(0, profile);
+    }
+
+    static void setup_glsl_compile_request(SlangCompileRequest* request)
+    {
+        setup_glsl_base_compile_request(request);
         auto profile = global_session()->findProfile("glsl_440");
         request->setTargetProfile(0, profile);
     }
@@ -646,11 +658,19 @@ namespace Engine::ShaderCompiler
         return {};
     }
 
+    static ShaderSource create_opengles_shader(const String& source, const Vector<ShaderDefinition>& definitions,
+                                               MessageList* errors)
+    {
+        auto new_definitions = definitions;
+        new_definitions.push_back({"TRINEX_OPENGLES_API", "1"});
+        return compile_shader(source, new_definitions, errors, setup_glsles_compile_request);
+    }
+
     static ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions,
                                              MessageList* errors)
     {
         auto new_definitions = definitions;
-        new_definitions.push_back({"TRINEX_OPENGL_API", ""});
+        new_definitions.push_back({"TRINEX_OPENGL_API", "1"});
         return compile_shader(source, new_definitions, errors, setup_glsl_compile_request);
     }
 
@@ -658,8 +678,14 @@ namespace Engine::ShaderCompiler
                                              MessageList* errors)
     {
         auto new_definitions = definitions;
-        new_definitions.push_back({"TRINEX_VULKAN_API", ""});
+        new_definitions.push_back({"TRINEX_VULKAN_API", "1"});
         return compile_shader(source, new_definitions, errors, setup_spriv_compile_request);
+    }
+
+    static ShaderSource create_opengles_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+                                                         MessageList* errors)
+    {
+        return compile_shader_source_from_file(relative, definitions, errors, create_opengles_shader);
     }
 
     static ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
@@ -674,11 +700,27 @@ namespace Engine::ShaderCompiler
         return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
     }
 
+    implement_class(OpenGLES_Compiler, Engine::ShaderCompiler, 0);
+    implement_default_initialize_class(OpenGLES_Compiler);
+
     implement_class(OpenGL_Compiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(OpenGL_Compiler);
 
     implement_class(Vulkan_Compiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(Vulkan_Compiler);
+
+    bool OpenGLES_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    {
+        auto source =
+                create_opengles_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+
+        if (errors.empty())
+        {
+            out_source = std::move(source);
+            return true;
+        }
+        return false;
+    }
 
     bool OpenGL_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
