@@ -24,6 +24,8 @@ namespace Engine
         class Material* m_material           = nullptr;
         ShaderCompiler::Compiler* m_compiler = nullptr;
 
+        uint_t m_definition_index = 0;
+
         bool m_open_select_node_window   = false;
         bool m_open_material_code_window = false;
 

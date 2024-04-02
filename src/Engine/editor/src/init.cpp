@@ -30,7 +30,7 @@ namespace Engine
 
         EditorResources::default_sampler = load_resource(DefaultSampler, Sampler);
         //        load_object_from_memory(AxisMaterial_data, AxisMaterial_len, "Editor::AxisMaterial");
-        //        load_object_from_memory(GridMaterial_data, GridMaterial_len, "Editor::GridMaterial");
+        load_object_from_memory(GridMaterial_data, GridMaterial_len, "Editor::GridMaterial");
         Icons::on_editor_package_loaded();
     }
 

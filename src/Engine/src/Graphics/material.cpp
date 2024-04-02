@@ -499,83 +499,115 @@ namespace Engine
 
     static bool submit_compiled_source(Material* material, const ShaderCompiler::ShaderSource& source, MessageList* errors)
     {
-        if (!source.has_vertex_shader())
+        bool status = false;
+
+        bool has_valid_graphical_pipeline = source.has_valid_graphical_pipeline();
+        bool has_valid_compute_pipiline   = source.has_valid_compute_pipeline();
+
+        if (has_valid_graphical_pipeline || has_valid_compute_pipiline)
         {
-            errors->push_back(Strings::format("Material: Cannot compile material. Pipeline doesn't have vertex shader!"));
-            return false;
+            material->pipeline->remove_all_shaders();
         }
 
-        if (!source.has_fragment_shader())
+        if (source.has_valid_graphical_pipeline())
         {
-            errors->push_back(Strings::format("Material: Cannot compile material. Pipeline doesn't have fragment shader!"));
-            return false;
+            render_thread()->wait_all();
+
+
+            Pipeline* pipeline   = material->pipeline;
+            auto vertex_shader   = pipeline->vertex_shader(true);
+            auto fragment_shader = pipeline->fragment_shader(true);
+
+            vertex_shader->attributes.clear();
+            vertex_shader->attributes.reserve(source.reflection.attributes.size());
+
+
+            for (auto& attribute : source.reflection.attributes)
+            {
+                VertexShader::Attribute out_attribute;
+                out_attribute.name           = attribute.name;
+                out_attribute.format         = attribute.format;
+                out_attribute.rate           = attribute.rate;
+                out_attribute.semantic       = attribute.semantic;
+                out_attribute.semantic_index = attribute.semantic_index;
+                out_attribute.count          = attribute.count;
+
+                vertex_shader->attributes.push_back(out_attribute);
+            }
+
+            vertex_shader->source_code   = source.vertex_code;
+            fragment_shader->source_code = source.fragment_code;
+
+            if (source.has_tessellation_control_shader())
+            {
+                pipeline->tessellation_control_shader(true)->source_code = source.tessellation_control_code;
+            }
+            else
+            {
+                pipeline->remove_tessellation_control_shader();
+            }
+
+            if (source.has_tessellation_shader())
+            {
+                pipeline->tessellation_shader(true)->source_code = source.tessellation_code;
+            }
+            else
+            {
+                pipeline->remove_tessellation_shader();
+            }
+
+            if (source.has_geometry_shader())
+            {
+                pipeline->geometry_shader(true)->source_code = source.geometry_code;
+            }
+            else
+            {
+                pipeline->remove_geometry_shader();
+            }
+
+            TreeSet<Name> names_to_remove;
+
+            for (auto& entry : material->parameters())
+            {
+                names_to_remove.insert(entry.first);
+            }
+
+            for (auto& parameter : source.reflection.uniform_member_infos)
+            {
+                Name name = parameter.name;
+                names_to_remove.erase(name);
+                MaterialParameter* material_parameter = material->find_parameter(name);
+
+                if(material_parameter && material_parameter->type() != parameter.type)
+                {
+                    material->remove_parameter(name);
+                    material_parameter = nullptr;
+                }
+
+                if(!material_parameter)
+                {
+                    if(!(material_parameter = material->create_parameter(name, parameter.type)))
+                    {
+                        error_log("Material", "Failed to create material parameter '%s'", name.c_str());
+                        continue;
+                    }
+                }
+
+                material_parameter->offset(parameter.offset);
+            }
+
+            for(auto& name : names_to_remove)
+            {
+                material->remove_parameter(name);
+            }
+
+            material->pipeline->global_parameters = source.reflection.global_parameters_info;
+            material->pipeline->local_parameters  = source.reflection.local_parameters_info;
+            material->apply_changes();
+            status = true;
         }
 
-        render_thread()->wait_all();
-
-
-        Pipeline* pipeline   = material->pipeline;
-        auto vertex_shader   = pipeline->vertex_shader();
-        auto fragment_shader = pipeline->fragment_shader();
-
-        vertex_shader->attributes.clear();
-        vertex_shader->attributes.reserve(source.reflection.attributes.size());
-
-
-        for (auto& attribute : source.reflection.attributes)
-        {
-            VertexShader::Attribute out_attribute;
-            out_attribute.name           = attribute.name;
-            out_attribute.format         = attribute.format;
-            out_attribute.rate           = attribute.rate;
-            out_attribute.semantic       = attribute.semantic;
-            out_attribute.semantic_index = attribute.semantic_index;
-            out_attribute.count          = attribute.count;
-
-            vertex_shader->attributes.push_back(out_attribute);
-        }
-
-        vertex_shader->source_code   = source.vertex_code;
-        fragment_shader->source_code = source.fragment_code;
-
-        if (source.has_tessellation_control_shader())
-        {
-            pipeline->tessellation_control_shader(true)->source_code = source.tessellation_control_code;
-        }
-        else
-        {
-            pipeline->remove_tessellation_control_shader();
-        }
-
-        if (source.has_tessellation_shader())
-        {
-            pipeline->tessellation_shader(true)->source_code = source.tessellation_code;
-        }
-        else
-        {
-            pipeline->remove_tessellation_shader();
-        }
-
-        if (source.has_geometry_shader())
-        {
-            pipeline->geometry_shader(true)->source_code = source.geometry_code;
-        }
-        else
-        {
-            pipeline->remove_geometry_shader();
-        }
-
-        material->clear_parameters();
-
-        for (auto& parameter : source.reflection.uniform_member_infos)
-        {
-            material->create_parameter(parameter.name, parameter.type)->offset(parameter.offset);
-        }
-
-        material->pipeline->global_parameters = source.reflection.global_parameters_info;
-        material->pipeline->local_parameters  = source.reflection.local_parameters_info;
-        material->apply_changes();
-        return true;
+        return status;
     }
 
     bool Material::compile(ShaderCompiler::Compiler* compiler, MessageList* errors)

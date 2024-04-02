@@ -42,7 +42,18 @@ namespace Engine
             Buffer tessellation_code;
             Buffer geometry_code;
             Buffer fragment_code;
+            Buffer compute_code;
             ShaderReflection reflection;
+
+            FORCE_INLINE bool has_valid_graphical_pipeline() const
+            {
+                return has_vertex_shader() && has_fragment_shader();
+            }
+
+            FORCE_INLINE bool has_valid_compute_pipeline() const
+            {
+                return has_compute_shader();
+            }
 
             FORCE_INLINE bool has_vertex_shader() const
             {
@@ -67,6 +78,11 @@ namespace Engine
             FORCE_INLINE bool has_fragment_shader() const
             {
                 return !fragment_code.empty();
+            }
+
+            FORCE_INLINE bool has_compute_shader() const
+            {
+                return !compute_code.empty();
             }
         };
 

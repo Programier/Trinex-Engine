@@ -391,5 +391,6 @@ namespace Engine
         Tessellation        = BIT(2),
         Geometry            = BIT(3),
         Fragment            = BIT(4),
+        Compute             = BIT(5),
     };
 }// namespace Engine

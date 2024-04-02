@@ -203,14 +203,65 @@ namespace Engine
 
     };
 
+
     MaterialEditorClient& MaterialEditorClient::render_properties()
     {
+
         ImGui::Begin("editor/Properties Title"_localized);
 
         if (m_material == nullptr)
         {
             ImGui::End();
             return *this;
+        }
+
+        const ImVec2 window_size      = ImGui::GetContentRegionAvail();
+        const ImVec2 window_half_size = window_size / 2.f;
+
+        if (ImGui::CollapsingHeader("editor/Definitions"_localized))
+        {
+            auto& definitions = m_material->compile_definitions;
+
+            static auto update_index = [](decltype(definitions)& definitions, uint_t& index) {
+                index = glm::min<uint_t>(index, definitions.size() - 1);
+            };
+
+            {
+                const float button_size_x = ImGui::GetFrameHeight();
+                const ImVec2 button_size  = ImVec2(button_size_x, button_size_x);
+
+                ImGui::SetNextItemWidth(window_size.x - (button_size_x + ImGui::GetStyle().ItemSpacing.x) * 2);
+                if (ImGui::InputScalar("##Index", ImGuiDataType_U32, &m_definition_index))
+                {
+                    update_index(definitions, m_definition_index);
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("+", button_size))
+                {
+                    definitions.emplace(definitions.begin() + m_definition_index);
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("-", button_size))
+                {
+                    definitions.erase(definitions.begin() + m_definition_index);
+                    update_index(definitions, m_definition_index);
+                }
+            }
+
+            for (auto& definition : definitions)
+            {
+                ImGui::PushID(&definition);
+                ImGui::SetNextItemWidth(window_half_size.x);
+                ImGuiRenderer::InputText("##Key"_localized, definition.key);
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(window_half_size.x);
+                ImGuiRenderer::InputText("##Value"_localized, definition.value);
+                ImGui::PopID();
+            }
         }
 
         if (ImGui::CollapsingHeader("editor/Parameters"_localized))

@@ -112,28 +112,24 @@ namespace Engine
 
 
     Pipeline::Pipeline()
-    {
-        m_vertex_shader   = create_new_shader<VertexShader>("Vertex Shader");
-        m_fragment_shader = create_new_shader<FragmentShader>("Fragment Shader");
-    }
+    {}
 
     Pipeline::~Pipeline()
     {
-        delete m_vertex_shader;
-        delete m_fragment_shader;
-
-        remove_tessellation_control_shader().remove_tessellation_shader().remove_geometry_shader();
+        remove_all_shaders();
     }
 
-#define init_shader(sdr) if(sdr) sdr->rhi_create()
+#define init_shader(sdr)                                                                                                         \
+    if (sdr)                                                                                                                     \
+    sdr->rhi_create()
 
     Pipeline& Pipeline::rhi_create()
     {
-        m_vertex_shader->rhi_create();
+        init_shader(m_vertex_shader);
         init_shader(m_tessellation_control_shader);
         init_shader(m_tessellation_shader);
         init_shader(m_geometry_shader);
-        m_fragment_shader->rhi_create();
+        init_shader(m_fragment_shader);
         m_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
         return *this;
     }
@@ -213,11 +209,31 @@ namespace Engine
     }
 
 
+    VertexShader* Pipeline::vertex_shader(bool create)
+    {
+        if (!m_vertex_shader && create)
+        {
+            allocate_shaders(ShaderType::Vertex);
+        }
+
+        return m_vertex_shader;
+    }
+
+    FragmentShader* Pipeline::fragment_shader(bool create)
+    {
+        if (!m_fragment_shader && create)
+        {
+            allocate_shaders(ShaderType::Fragment);
+        }
+
+        return m_fragment_shader;
+    }
+
     TessellationControlShader* Pipeline::tessellation_control_shader(bool create)
     {
         if (!m_tessellation_control_shader && create)
         {
-            m_tessellation_control_shader = create_new_shader<TessellationControlShader>("Tessellation Control Shader");
+            allocate_shaders(ShaderType::TessellationControl);
         }
 
         return m_tessellation_control_shader;
@@ -227,7 +243,7 @@ namespace Engine
     {
         if (!m_tessellation_shader && create)
         {
-            m_tessellation_shader = create_new_shader<TessellationShader>("Tessellation Shader");
+            allocate_shaders(ShaderType::Tessellation);
         }
 
         return m_tessellation_shader;
@@ -237,10 +253,30 @@ namespace Engine
     {
         if (!m_geometry_shader && create)
         {
-            m_geometry_shader = create_new_shader<GeometryShader>("Geometry Shader");
+            allocate_shaders(ShaderType::Geometry);
         }
 
         return m_geometry_shader;
+    }
+
+    Pipeline& Pipeline::remove_vertex_shader()
+    {
+        if (m_vertex_shader)
+        {
+            delete m_vertex_shader;
+            m_vertex_shader = nullptr;
+        }
+        return *this;
+    }
+
+    Pipeline& Pipeline::remove_fragment_shader()
+    {
+        if (m_fragment_shader)
+        {
+            delete m_fragment_shader;
+            m_fragment_shader = nullptr;
+        }
+        return *this;
     }
 
     Pipeline& Pipeline::remove_tessellation_control_shader()
@@ -287,6 +323,78 @@ namespace Engine
         return result;
     }
 
+    Pipeline& Pipeline::allocate_shaders(Flags<ShaderType> flags)
+    {
+        auto res = flags & ShaderType::Vertex;
+        if (flags & ShaderType::Vertex)
+        {
+            create_new_shader<VertexShader>("Vertex Shader", m_vertex_shader);
+        }
+
+        if (flags & ShaderType::Fragment)
+        {
+            create_new_shader<FragmentShader>("Fragment Shader", m_fragment_shader);
+        }
+
+        if (flags & ShaderType::TessellationControl)
+        {
+            create_new_shader<TessellationControlShader>("Tessellation Control Shader", m_tessellation_control_shader);
+        }
+
+        if (flags & ShaderType::Tessellation)
+        {
+            create_new_shader<TessellationShader>("Tessellation Shader", m_tessellation_shader);
+        }
+
+        if (flags & ShaderType::Geometry)
+        {
+            create_new_shader<GeometryShader>("Geometry Shader", m_geometry_shader);
+        }
+
+        return *this;
+    }
+
+    Pipeline& Pipeline::remove_shaders(Flags<ShaderType> flags)
+    {
+        if (flags & ShaderType::Vertex)
+        {
+            remove_vertex_shader();
+        }
+
+        if (flags & ShaderType::Fragment)
+        {
+            remove_fragment_shader();
+        }
+
+        if (flags & ShaderType::TessellationControl)
+        {
+            remove_tessellation_control_shader();
+        }
+
+        if (flags & ShaderType::Tessellation)
+        {
+            remove_tessellation_shader();
+        }
+
+        if (flags & ShaderType::Geometry)
+        {
+            remove_geometry_shader();
+        }
+        return *this;
+    }
+
+    Pipeline::ShadersArray Pipeline::shader_array() const
+    {
+        return {
+                m_vertex_shader,              //
+                m_tessellation_control_shader,//
+                m_tessellation_shader,        //
+                m_geometry_shader,            //
+                m_fragment_shader,            //
+                nullptr                       //
+        };
+    }
+
     static bool serialize_shader_sources(const Path& path, Pipeline* pipeline, bool is_reading)
     {
         union
@@ -325,9 +433,13 @@ namespace Engine
             archive = writer;
         }
 
-        status = status && pipeline->m_vertex_shader->archive_process_source_code(archive);
-        status = status && pipeline->m_fragment_shader->archive_process_source_code(archive);
-
+        for (Shader* shader : pipeline->shader_array())
+        {
+            if (shader)
+            {
+                status = status && shader->archive_process_source_code(archive);
+            }
+        }
 
         if (is_reading)
         {
@@ -344,6 +456,13 @@ namespace Engine
 
     bool Pipeline::archive_process(class Archive& archive)
     {
+        static auto serialize_shader_internal = [](Shader* shader, Archive& archive) {
+            if (shader)
+            {
+                shader->archive_process(archive);
+            }
+        };
+
         Material* material_object = material();
         if (material_object == nullptr)
         {
@@ -354,11 +473,19 @@ namespace Engine
         if (!Super::archive_process(archive))
             return false;
 
+        auto flags = shader_type_flags();
+
+        archive & flags;
         archive & global_parameters;
         archive & local_parameters;
-        m_vertex_shader->archive_process(archive);
-        m_fragment_shader->archive_process(archive);
 
+        allocate_shaders(flags);
+
+        serialize_shader_internal(m_vertex_shader, archive);
+        serialize_shader_internal(m_tessellation_control_shader, archive);
+        serialize_shader_internal(m_tessellation_shader, archive);
+        serialize_shader_internal(m_geometry_shader, archive);
+        serialize_shader_internal(m_fragment_shader, archive);
 
         // Loading shaders from shader cache
         String material_name = material_object->full_name(true);

@@ -19,6 +19,8 @@ namespace Engine
         declare_class(Pipeline, RenderResource);
 
     public:
+        using ShadersArray = Array<class Shader*, 6>;
+
         struct ALIGNED(4) DepthTestInfo {
             DepthFunc func         = DepthFunc::Less;
             float min_depth_bound  = 0.0;
@@ -93,16 +95,20 @@ namespace Engine
 
     private:
         template<typename Type>
-        Type* create_new_shader(const char* name)
+        Type* create_new_shader(const char* name, Type*& out)
         {
-            auto shader = Object::new_instance_named<Type>(name);
-            shader->flags(Object::IsAvailableForGC, false);
-            shader->owner(this);
-            return shader;
+            if (out)
+                return out;
+
+            out = Object::new_instance_named<Type>(name);
+            out->flags(Object::IsAvailableForGC, false);
+            out->owner(this);
+            return out;
         }
 
     public:
         MaterialUsage usage = MaterialUsage::StaticMeshRendering;
+
 
         Pipeline();
         ~Pipeline();
@@ -112,22 +118,35 @@ namespace Engine
         class Material* material() const;
         RenderPassType render_pass_type() const;
         RenderPass* render_pass() const;
+
         VertexShader* vertex_shader() const;
         FragmentShader* fragment_shader() const;
-
         TessellationControlShader* tessellation_control_shader() const;
         TessellationShader* tessellation_shader() const;
         GeometryShader* geometry_shader() const;
 
+        VertexShader* vertex_shader(bool create = false);
+        FragmentShader* fragment_shader(bool create = false);
         TessellationControlShader* tessellation_control_shader(bool create = false);
         TessellationShader* tessellation_shader(bool create = false);
         GeometryShader* geometry_shader(bool create = false);
 
+        Pipeline& remove_vertex_shader();
+        Pipeline& remove_fragment_shader();
         Pipeline& remove_tessellation_control_shader();
         Pipeline& remove_tessellation_shader();
         Pipeline& remove_geometry_shader();
 
         Flags<ShaderType> shader_type_flags() const;
+        Pipeline& allocate_shaders(Flags<ShaderType> flags = 0);
+        Pipeline& remove_shaders(Flags<ShaderType> flags = 0);
+
+        FORCE_INLINE Pipeline& remove_all_shaders()
+        {
+            return remove_shaders(Flags<ShaderType>(~static_cast<BitMask>(0)));
+        }
+
+        ShadersArray shader_array() const;
 
         bool archive_process(class Archive& archive) override;
     };
