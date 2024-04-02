@@ -29,13 +29,15 @@ namespace Engine
         vk::SampleMask sample_mask;
     };
 
-    VulkanShaderBase& VulkanShaderBase::create(const Shader* shader)
+    bool VulkanShaderBase::create(const Shader* shader)
     {
+        if(shader->source_code.empty())
+            return false;
         vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->source_code.size(),
                                         reinterpret_cast<const uint32_t*>(shader->source_code.data()));
         m_shader = API->m_device.createShaderModule(info);
 
-        return *this;
+        return true;
     }
 
     VulkanShaderBase& VulkanShaderBase::destroy()
@@ -45,10 +47,12 @@ namespace Engine
     }
 
 
-    VulkanVertexShader& VulkanVertexShader::create(const VertexShader* shader)
+    bool VulkanVertexShader::create(const VertexShader* shader)
     {
         destroy();
-        VulkanShaderBase::create(shader);
+        bool status = VulkanShaderBase::create(shader);
+        if(status == false)
+            return false;
 
         m_binding_description.reserve(shader->attributes.size());
         m_attribute_description.reserve(shader->attributes.size());
@@ -92,7 +96,7 @@ namespace Engine
             ++index;
         }
 
-        return *this;
+        return status;
     }
 
     VulkanVertexShader& VulkanVertexShader::destroy()
@@ -109,11 +113,10 @@ namespace Engine
         destroy();
     }
 
-    VulkanFragmentShader& VulkanFragmentShader::create(const FragmentShader* shader)
+    bool VulkanFragmentShader::create(const FragmentShader* shader)
     {
         destroy();
-        VulkanShaderBase::create(shader);
-        return *this;
+        return VulkanShaderBase::create(shader);
     }
 
     VulkanFragmentShader& VulkanFragmentShader::destroy()
@@ -128,11 +131,10 @@ namespace Engine
     }
 
 
-    VulkanTessellationControlShader& VulkanTessellationControlShader::create(const TessellationControlShader* shader)
+    bool VulkanTessellationControlShader::create(const TessellationControlShader* shader)
     {
         destroy();
-        VulkanShaderBase::create(shader);
-        return *this;
+        return VulkanShaderBase::create(shader);
     }
 
     VulkanTessellationControlShader& VulkanTessellationControlShader::destroy()
@@ -146,11 +148,10 @@ namespace Engine
         destroy();
     }
 
-    VulkanTessellationShader& VulkanTessellationShader::create(const TessellationShader* shader)
+    bool VulkanTessellationShader::create(const TessellationShader* shader)
     {
         destroy();
-        VulkanShaderBase::create(shader);
-        return *this;
+        return VulkanShaderBase::create(shader);
     }
 
     VulkanTessellationShader& VulkanTessellationShader::destroy()
@@ -164,11 +165,10 @@ namespace Engine
         destroy();
     }
 
-    VulkanGeometryShader& VulkanGeometryShader::create(const GeometryShader* shader)
+    bool VulkanGeometryShader::create(const GeometryShader* shader)
     {
         destroy();
-        VulkanShaderBase::create(shader);
-        return *this;
+        return VulkanShaderBase::create(shader);
     }
 
     VulkanGeometryShader& VulkanGeometryShader::destroy()
@@ -182,28 +182,42 @@ namespace Engine
         destroy();
     }
 
+
+    template<typename Out, typename In>
+    static Out* create_shader(In* in)
+    {
+        Out* out = new Out();
+        if(out->create(in))
+        {
+            return out;
+        }
+
+        delete out;
+        return nullptr;
+    }
+
     RHI_Shader* VulkanAPI::create_vertex_shader(const VertexShader* shader)
     {
-        return &(new VulkanVertexShader())->create(shader);
+        return create_shader<VulkanVertexShader>(shader);
     }
 
     RHI_Shader* VulkanAPI::create_tesselation_control_shader(const TessellationControlShader* shader)
     {
-        return &(new VulkanTessellationControlShader())->create(shader);
+        return create_shader<VulkanTessellationControlShader>(shader);
     }
 
     RHI_Shader* VulkanAPI::create_tesselation_shader(const TessellationShader* shader)
     {
-        return &(new VulkanTessellationShader())->create(shader);
+        return create_shader<VulkanTessellationShader>(shader);
     }
 
     RHI_Shader* VulkanAPI::create_geometry_shader(const GeometryShader* shader)
     {
-        return &(new VulkanGeometryShader())->create(shader);
+        return create_shader<VulkanGeometryShader>(shader);
     }
 
     RHI_Shader* VulkanAPI::create_fragment_shader(const FragmentShader* shader)
     {
-        return &(new VulkanFragmentShader())->create(shader);
+        return create_shader<VulkanFragmentShader>(shader);
     }
 }// namespace Engine

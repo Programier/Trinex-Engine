@@ -13,7 +13,7 @@ namespace Engine
     struct VulkanShaderBase : public RHI_Shader {
         vk::ShaderModule m_shader;
 
-        VulkanShaderBase& create(const Shader* shader);
+        bool create(const Shader* shader);
         VulkanShaderBase& destroy();
     };
 
@@ -22,35 +22,35 @@ namespace Engine
         Vector<vk::VertexInputBindingDescription> m_binding_description;
         Vector<vk::VertexInputAttributeDescription> m_attribute_description;
 
-        VulkanVertexShader& create(const VertexShader* shader);
+        bool create(const VertexShader* shader);
         VulkanVertexShader& destroy();
 
         ~VulkanVertexShader();
     };
 
     struct VulkanTessellationControlShader : public VulkanShaderBase {
-        VulkanTessellationControlShader& create(const TessellationControlShader* shader);
+        bool create(const TessellationControlShader* shader);
         VulkanTessellationControlShader& destroy();
 
         ~VulkanTessellationControlShader();
     };
 
     struct VulkanTessellationShader : public VulkanShaderBase {
-        VulkanTessellationShader& create(const TessellationShader* shader);
+        bool create(const TessellationShader* shader);
         VulkanTessellationShader& destroy();
 
         ~VulkanTessellationShader();
     };
 
     struct VulkanGeometryShader : public VulkanShaderBase {
-        VulkanGeometryShader& create(const GeometryShader* shader);
+        bool create(const GeometryShader* shader);
         VulkanGeometryShader& destroy();
 
         ~VulkanGeometryShader();
     };
 
     struct VulkanFragmentShader : public VulkanShaderBase {
-        VulkanFragmentShader& create(const FragmentShader* shader);
+        bool create(const FragmentShader* shader);
         VulkanFragmentShader& destroy();
 
         ~VulkanFragmentShader();

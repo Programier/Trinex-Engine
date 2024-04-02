@@ -133,9 +133,10 @@ namespace Engine
     public:
         enum Flag
         {
-            IsPrivate     = (1 << 0),
-            IsConst       = (1 << 1),
-            IsNativeConst = (1 << 2),
+            IsPrivate         = BIT(0),
+            IsConst           = BIT(1),
+            IsNativeConst     = BIT(2),
+            IsNotSerializable = BIT(3)
         };
 
     protected:
@@ -167,6 +168,7 @@ namespace Engine
         virtual class Enum* enum_instance();
         bool is_const() const;
         bool is_private() const;
+        bool is_serializable() const;
         virtual bool archive_process(void* object, Archive& ar);
 
         virtual ~Property();
@@ -218,15 +220,7 @@ namespace Engine
             : PrimitivePropertyBase<InstanceType, DataType>(name, description, group, flags)
         {
             Super::m_prop = prop;
-
-            if constexpr (std::is_const_v<DataType>)
-            {
-                Super::m_flags(Super::IsNativeConst, true);
-            }
-            else
-            {
-                Super::m_flags(Super::IsNativeConst, false);
-            }
+            Super::m_flags(Super::IsNativeConst, std::is_const_v<DataType>);
         }
 
         PropertyValue property_value(const void* object) const override
@@ -600,14 +594,7 @@ namespace Engine
             Super::m_prop = prop;
             m_struct      = _struct;
 
-            if constexpr (std::is_const_v<StructType>)
-            {
-                Super::m_flags(Super::IsConst, true);
-            }
-            else
-            {
-                Super::m_flags(Super::IsNativeConst, true);
-            }
+            Super::m_flags(Super::IsNativeConst, std::is_const_v<StructType>);
         }
 
         PropertyValue property_value(const void* object) const override

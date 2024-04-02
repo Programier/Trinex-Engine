@@ -325,7 +325,6 @@ namespace Engine
 
     Pipeline& Pipeline::allocate_shaders(Flags<ShaderType> flags)
     {
-        auto res = flags & ShaderType::Vertex;
         if (flags & ShaderType::Vertex)
         {
             create_new_shader<VertexShader>("Vertex Shader", m_vertex_shader);

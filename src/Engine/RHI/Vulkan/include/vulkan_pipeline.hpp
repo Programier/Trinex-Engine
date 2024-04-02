@@ -40,7 +40,7 @@ namespace Engine
         MaterialScalarParametersInfo m_global_parameters;
         MaterialScalarParametersInfo m_local_parameters;
 
-        VulkanPipeline& create(const Pipeline* pipeline);
+        bool create(const Pipeline* pipeline);
         VulkanPipeline& destroy();
         Vector<Vector<vk::DescriptorPoolSize>> create_pool_sizes(const Pipeline* pipeline);
 

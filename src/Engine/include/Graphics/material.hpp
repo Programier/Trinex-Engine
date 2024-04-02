@@ -336,8 +336,6 @@ namespace Engine
         class Material* material() override;
         bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
         Material& apply_changes() override;
-
-
         ~Material();
     };
 

@@ -239,11 +239,32 @@ namespace Engine
         return m_flags(IsPrivate);
     }
 
+    bool Property::is_serializable() const
+    {
+        return !m_flags(IsNativeConst) && !m_flags(IsNotSerializable);
+    }
+
+    static FORCE_INLINE List<Property*> collect_serializable_properties(Struct* self)
+    {
+        List<Property*> result;
+
+        for (auto& prop : self->properties())
+        {
+            if(prop->is_serializable())
+            {
+                result.push_back(prop);
+            }
+        }
+        return result;
+    }
+
     static bool serialize_object_properies(Struct* self, void* object, Archive& ar)
     {
         if (ar.is_saving())
         {
-            size_t count = self->properties().size();
+            auto properties = collect_serializable_properties(self);
+
+            size_t count = properties.size();
             ar & count;
 
             Vector<size_t> offsets(count + 1, 0);
@@ -251,7 +272,7 @@ namespace Engine
             ar.write_data(reinterpret_cast<const byte*>(offsets.data()), offsets.size() * sizeof(size_t));
 
             count = 0;
-            for (auto& prop : self->properties())
+            for (auto& prop : properties)
             {
                 Name name      = prop->name();
                 offsets[count] = ar.position() - start_pos;
@@ -284,7 +305,8 @@ namespace Engine
 
                 ar & name;
                 Property* prop = self->find_property(name);
-                if (prop)
+
+                if (prop && prop->is_serializable())
                 {
                     prop->archive_process(object, ar);
                 }
@@ -310,7 +332,7 @@ namespace Engine
 
     bool Property::archive_process(void* object, Archive& ar)
     {
-        if (m_flags(IsNativeConst))
+        if (!is_serializable())
             return false;
 
         PropertyType prop_type = type();
@@ -353,6 +375,9 @@ namespace Engine
 
     bool ArrayPropertyInterface::archive_process(void* object, Archive& ar)
     {
+        if(!is_serializable())
+            return false;
+
         Property* e_type = element_type();
         if (e_type == nullptr)
             return false;

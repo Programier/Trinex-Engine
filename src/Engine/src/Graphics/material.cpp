@@ -81,8 +81,8 @@ namespace Engine
     implement_initialize_class(Material)
     {
         Class* self = static_class_instance();
-
-        self->add_properties(new ObjectProperty("Pipeline", "Pipeline settings for this material", &Material::pipeline));
+        self->add_properties(new ObjectProperty("Pipeline", "Pipeline settings for this material", &Material::pipeline,
+                                                Name::none, Property::IsNotSerializable));
     }
 
     implement_engine_class(MaterialInstance, Class::IsAsset);
@@ -287,7 +287,8 @@ namespace Engine
             return false;
 
         archive & compile_definitions;
-        return serialize_parameters(m_material_parameters, archive);
+        serialize_parameters(m_material_parameters, archive);
+        return pipeline->archive_process(archive);
     }
 
     Material& Material::preload()
@@ -578,15 +579,15 @@ namespace Engine
                 names_to_remove.erase(name);
                 MaterialParameter* material_parameter = material->find_parameter(name);
 
-                if(material_parameter && material_parameter->type() != parameter.type)
+                if (material_parameter && material_parameter->type() != parameter.type)
                 {
                     material->remove_parameter(name);
                     material_parameter = nullptr;
                 }
 
-                if(!material_parameter)
+                if (!material_parameter)
                 {
-                    if(!(material_parameter = material->create_parameter(name, parameter.type)))
+                    if (!(material_parameter = material->create_parameter(name, parameter.type)))
                     {
                         error_log("Material", "Failed to create material parameter '%s'", name.c_str());
                         continue;
@@ -596,7 +597,7 @@ namespace Engine
                 material_parameter->offset(parameter.offset);
             }
 
-            for(auto& name : names_to_remove)
+            for (auto& name : names_to_remove)
             {
                 material->remove_parameter(name);
             }

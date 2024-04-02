@@ -38,7 +38,7 @@ namespace Engine
     static void create_base_descriptor_layout(const Pipeline* pipeline, const Shader* shader,
                                               Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage)
     {
-        if(!shader || !pipeline)
+        if (!shader || !pipeline)
             return;
 
         if (pipeline->global_parameters.has_parameters())
@@ -275,7 +275,14 @@ namespace Engine
             throw EngineException("Cannot create Vulkan Pipeline without render_pass");
     }
 
-    VulkanPipeline& VulkanPipeline::create(const Pipeline* pipeline)
+#define check_shader(var, name)                                                                                                  \
+    if (!var->has_object())                                                                                                      \
+    {                                                                                                                            \
+        error_log("VulkanAPI", "Cannot init pipeline, because " #name " shader is not valid");                                   \
+        return false;                                                                                                            \
+    }
+
+    bool VulkanPipeline::create(const Pipeline* pipeline)
     {
         check_pipeline(pipeline);
         destroy();
@@ -289,6 +296,7 @@ namespace Engine
 
         if (VertexShader* vertex_shader = pipeline->vertex_shader())
         {
+            check_shader(vertex_shader, vertex);
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
                                                      vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
             vertex_input_info.setVertexBindingDescriptions(
@@ -299,6 +307,7 @@ namespace Engine
 
         if (TessellationControlShader* tsc_shader = pipeline->tessellation_control_shader())
         {
+            check_shader(tsc_shader, tessellation control);
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
                                                      vk::ShaderStageFlagBits::eTessellationControl,
                                                      tsc_shader->rhi_object<VulkanTessellationControlShader>()->m_shader, "main");
@@ -306,6 +315,7 @@ namespace Engine
 
         if (TessellationShader* ts_shader = pipeline->tessellation_shader())
         {
+            check_shader(ts_shader, tessellation);
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
                                                      vk::ShaderStageFlagBits::eTessellationEvaluation,
                                                      ts_shader->rhi_object<VulkanTessellationShader>()->m_shader, "main");
@@ -313,20 +323,22 @@ namespace Engine
 
         if (GeometryShader* geo_shader = pipeline->geometry_shader())
         {
-            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
-                                                     vk::ShaderStageFlagBits::eGeometry,
+            check_shader(geo_shader, geometry);
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eGeometry,
                                                      geo_shader->rhi_object<VulkanGeometryShader>()->m_shader, "main");
         }
 
         if (FragmentShader* fragment_shader = pipeline->fragment_shader())
         {
+            check_shader(fragment_shader, fragment);
             pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
                                                      fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader, "main");
         }
 
         if (pipeline_stage_create_infos.empty())
         {
-            throw EngineException("Failed to create pipeline without stages");
+            error_log("VulkanAPI", "Cannot to create pipeline without stages");
+            return false;
         }
 
         vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
@@ -355,7 +367,8 @@ namespace Engine
         if (pipeline_result.result != vk::Result::eSuccess)
         {
             API->m_device.destroyPipeline(m_pipeline);
-            throw EngineException("Failed to create pipeline");
+            error_log("VulkanAPI", "Failed to create pipeline");
+            return false;
         }
 
         m_pipeline = pipeline_result.value;
@@ -376,7 +389,7 @@ namespace Engine
             m_binded_descriptor_sets.resize(sizes.size());
         }
 
-        return *this;
+        return true;
     }
 
     VulkanPipeline& VulkanPipeline::destroy()
@@ -593,6 +606,12 @@ namespace Engine
 
     RHI_Pipeline* VulkanAPI::create_pipeline(const Pipeline* pipeline)
     {
-        return &(new VulkanPipeline())->create(pipeline);
+        auto vulkan_pipeline = new VulkanPipeline();
+        if (vulkan_pipeline->create(pipeline))
+        {
+            return vulkan_pipeline;
+        }
+        delete vulkan_pipeline;
+        return nullptr;
     }
 }// namespace Engine
