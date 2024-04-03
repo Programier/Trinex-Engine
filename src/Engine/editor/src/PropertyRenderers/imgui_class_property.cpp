@@ -7,16 +7,15 @@
 #include <Graphics/imgui.hpp>
 #include <PropertyRenderers/imgui_class_property.hpp>
 #include <Widgets/imgui_windows.hpp>
+#include <editor_config.hpp>
 #include <imfilebrowser.h>
 #include <imgui.h>
 
 namespace Engine
 {
-    static constexpr float indent = 5.f;
-
     Map<Struct*, void (*)(void*, Struct*, bool)> special_class_properties_renderers;
 
-    class Object;
+    void render_property(void* object, Property* prop, bool can_edit);
 
     static void render_prop_internal(void* object, Struct* self, bool editable)
     {
@@ -36,22 +35,22 @@ namespace Engine
             if (!is_empty_group)
             {
                 ImGui::PushID(name.c_str());
-                ImGui::Indent(indent);
+                ImGui::Indent(editor_config.collapsing_indent);
             }
 
             if (is_empty_group || ImGui::CollapsingHeader(name.c_str()))
             {
-                ImGui::Indent(indent);
+                ImGui::Indent(editor_config.collapsing_indent);
                 for (Property* prop : properties)
                 {
                     render_property(object, prop, editable);
                 }
-                ImGui::Unindent(indent);
+                ImGui::Unindent(editor_config.collapsing_indent);
             }
 
             if (!is_empty_group)
             {
-                ImGui::Unindent(indent);
+                ImGui::Unindent(editor_config.collapsing_indent);
                 ImGui::PopID();
             }
         }
@@ -328,9 +327,9 @@ namespace Engine
             ImGui::PushID(prop->name().c_str());
             if (ImGui::CollapsingHeader(prop->name().c_str()))
             {
-                ImGui::Indent(indent);
+                ImGui::Indent(editor_config.collapsing_indent);
                 render_prop_internal(struct_object, struct_class, can_edit);
-                ImGui::Unindent(indent);
+                ImGui::Unindent(editor_config.collapsing_indent);
             }
             ImGui::PopID();
         }
@@ -346,7 +345,7 @@ namespace Engine
 
         if (ImGui::CollapsingHeader(prop->name().c_str()))
         {
-            ImGui::Indent(indent);
+            ImGui::Indent(editor_config.collapsing_indent);
             for (size_t i = 0; i < count; i++)
             {
                 void* array_object = interface->at(object, i);
@@ -360,7 +359,7 @@ namespace Engine
 
                 ImGui::PopID();
             }
-            ImGui::Unindent(indent);
+            ImGui::Unindent(editor_config.collapsing_indent);
         }
 
         ImGui::PopID();
@@ -503,6 +502,7 @@ namespace Engine
                 if (visible_count > 1)
                 {
                     is_open = ImGui::CollapsingHeader(info.self->base_name_splitted().c_str());
+                    ImGui::Indent(editor_config.collapsing_indent);
                 }
 
                 if (is_open)
@@ -514,11 +514,16 @@ namespace Engine
 
                     if (info.renderer)
                     {
-                        ImGui::Indent(indent);
+                        ImGui::Indent(editor_config.collapsing_indent);
                         info.renderer(object, info.self, editable);
                         ImGui::Separator();
-                        ImGui::Unindent(indent);
+                        ImGui::Unindent(editor_config.collapsing_indent);
                     }
+                }
+
+                if (visible_count > 1)
+                {
+                    ImGui::Unindent(editor_config.collapsing_indent);
                 }
 
 

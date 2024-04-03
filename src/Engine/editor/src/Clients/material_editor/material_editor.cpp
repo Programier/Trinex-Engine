@@ -250,6 +250,7 @@ namespace Engine
 
         if (ImGui::CollapsingHeader("editor/Definitions"_localized))
         {
+            ImGui::Indent(editor_config.collapsing_indent);
             auto& definitions = m_material->compile_definitions;
 
             static auto update_index = [](decltype(definitions)& definitions, uint_t& index) {
@@ -292,10 +293,13 @@ namespace Engine
                 ImGuiRenderer::InputText("##Value"_localized, definition.value);
                 ImGui::PopID();
             }
+
+            ImGui::Unindent(editor_config.collapsing_indent);
         }
 
         if (ImGui::CollapsingHeader("editor/Parameters"_localized))
         {
+            ImGui::Indent(editor_config.collapsing_indent);
             ImGui::BeginTable("##Params", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders);
 
             for (auto& param : m_material->material()->parameters())
@@ -315,6 +319,7 @@ namespace Engine
                 ImGui::PopID();
             }
             ImGui::EndTable();
+            ImGui::Unindent(editor_config.collapsing_indent);
         }
 
 
