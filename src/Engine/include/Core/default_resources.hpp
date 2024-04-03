@@ -15,12 +15,12 @@ namespace Engine
         ENGINE_EXPORT extern Texture2D* default_texture;
         ENGINE_EXPORT extern Material* sprite_material;
         ENGINE_EXPORT extern PositionVertexBuffer* screen_position_buffer;
-        ENGINE_EXPORT extern Material* base_color_to_screen_mat;
+        ENGINE_EXPORT extern Material* screen_material;
         ENGINE_EXPORT extern Material* default_material;
         ENGINE_EXPORT extern Material* gbuffer_lines_material;
         ENGINE_EXPORT extern Material* scene_output_lines_material;
         ENGINE_EXPORT extern Material* point_light_material;
-        ENGINE_EXPORT extern Material* ambient_only_material;
+        ENGINE_EXPORT extern Material* ambient_light_material;
     }// namespace DefaultResources
 
     ENGINE_EXPORT class Object* load_object_from_memory(const byte* data, size_t size, const StringView& fullname);

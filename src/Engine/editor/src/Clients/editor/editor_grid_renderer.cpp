@@ -65,7 +65,7 @@ namespace Engine
             grid_material = Object::find_object_checked<Material>("Editor::GridMaterial");
         }
 
-        renderer->begin_rendering_target(GBufferBaseColorOutput::instance());
+        renderer->begin_rendering_target(GBuffer::instance());
 
         auto rhi = engine_instance->rhi();
 

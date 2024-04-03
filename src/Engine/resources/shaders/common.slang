@@ -1,3 +1,6 @@
+#ifndef COMMON_SLANG
+#define COMMON_SLANG
+
 struct GlobalParameters
 {
     float4x4 projection;
@@ -31,3 +34,14 @@ struct GlobalParameters
 
 [vk::binding(0, 0)]
 ConstantBuffer<GlobalParameters> globals; 
+
+struct GBufferFragmentOutput
+{
+    float4 base_color   : SV_TARGET0;
+    float4 position     : SV_TARGET1;
+    float4 normal       : SV_TARGET2;
+    float4 emissive     : SV_TARGET3;
+    float4 msra         : SV_TARGET4;
+};
+
+#endif

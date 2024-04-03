@@ -4,6 +4,7 @@
 #include <Core/name.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
+#include <Engine/enviroment.hpp>
 #include <Engine/octree.hpp>
 
 namespace Engine
@@ -39,6 +40,8 @@ namespace Engine
         Pointer<SceneComponent> m_root_component;
 
     public:
+        WorldEnvironment environment;
+
         Scene();
         Scene& build_views(SceneRenderer* renderer);
         Scene& add_primitive(PrimitiveComponent* primitive);

@@ -2015,6 +2015,7 @@ struct ImVector
     inline const T*     end() const                         { return Data + Size; }
     inline T&           front()                             { IM_ASSERT(Size > 0); return Data[0]; }
     inline const T&     front() const                       { IM_ASSERT(Size > 0); return Data[0]; }
+
     inline T&           back()                              { IM_ASSERT(Size > 0); return Data[Size - 1]; }
     inline const T&     back() const                        { IM_ASSERT(Size > 0); return Data[Size - 1]; }
     inline void         swap(ImVector<T>& rhs)              { int rhs_size = rhs.Size; rhs.Size = Size; Size = rhs_size; int rhs_cap = rhs.Capacity; rhs.Capacity = Capacity; Capacity = rhs_cap; T* rhs_data = rhs.Data; rhs.Data = Data; Data = rhs_data; }

@@ -12,11 +12,12 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
+#include <Graphics/texture_2D.hpp>
 
 
 namespace Engine
 {
-    SceneRenderer::SceneRenderer() : m_scene(nullptr), m_ambient_light({0.1, 0.1, 0.1}), m_view_mode(ViewMode::Lit)
+    SceneRenderer::SceneRenderer() : m_scene(nullptr), m_view_mode(ViewMode::Lit)
     {}
 
     void SceneRenderer::clear_render_targets(RenderTargetBase*, SceneLayer*)
@@ -32,15 +33,22 @@ namespace Engine
 
     void SceneRenderer::copy_gbuffer_to_scene_output()
     {
-        static Material* mat = Object::find_object_checked<Material>("DefaultPackage::BaseColorToScreenMat");
-        static PositionVertexBuffer* positions =
-                Object::find_object_checked<PositionVertexBuffer>("DefaultPackage::ScreenPositionBuffer");
+        static Name screen_texture      = "screen_texture";
+        Material* material              = DefaultResources::screen_material;
+        PositionVertexBuffer* positions = DefaultResources::screen_position_buffer;
 
-        if (mat)
+        if (material && positions)
         {
-            mat->apply();
-            positions->rhi_bind(0, 0);
-            engine_instance->rhi()->draw(6);
+            using TextureParam = CombinedImageSampler2DMaterialParameter;
+
+            if (TextureParam* texture = reinterpret_cast<TextureParam*>(material->find_parameter(screen_texture)))
+            {
+                Texture* base_color = reinterpret_cast<class Texture*>(GBuffer::instance()->base_color());
+                texture->texture_param(base_color);
+                material->apply();
+                positions->rhi_bind(0, 0);
+                engine_instance->rhi()->draw(6);
+            }
         }
     }
 
@@ -61,14 +69,15 @@ namespace Engine
             {
                 // Render only ambient light
                 static Name name_ambient_color = "ambient_color";
-                Material* material             = DefaultResources::ambient_only_material;
+                Material* material             = DefaultResources::ambient_light_material;
+
                 if (material)
                 {
                     auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
 
                     if (ambient_param)
                     {
-                        ambient_param->param = m_ambient_light;
+                        ambient_param->param = m_scene->environment.ambient_color;
                     }
 
                     material->apply();
@@ -125,18 +134,6 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::ambient_light(const Color3& new_color)
-    {
-        if (is_in_render_thread())
-        {
-            m_ambient_light = new_color;
-        }
-        else
-        {
-            call_in_render_thread([this, new_color]() { m_ambient_light = new_color; });
-        }
-        return *this;
-    }
 
     SceneRenderer& SceneRenderer::scene(Scene* scene)
     {

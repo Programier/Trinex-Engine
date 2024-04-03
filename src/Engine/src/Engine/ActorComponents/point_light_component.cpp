@@ -71,7 +71,7 @@ namespace Engine
 
         if (ambient_color_parameter)
         {
-            ambient_color_parameter->param = renderer->ambient_light();
+            ambient_color_parameter->param = renderer->scene()->environment.ambient_color;
         }
 
         material->apply();

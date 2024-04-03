@@ -573,13 +573,11 @@ namespace Engine
                 names_to_remove.insert(entry.first);
             }
 
-            for (auto& parameter : source.reflection.uniform_member_infos)
-            {
-                Name name = parameter.name;
+            auto create_material_parameter = [&](Name name, MaterialParameterType type) -> MaterialParameter* {
                 names_to_remove.erase(name);
                 MaterialParameter* material_parameter = material->find_parameter(name);
 
-                if (material_parameter && material_parameter->type() != parameter.type)
+                if (material_parameter && material_parameter->type() != type)
                 {
                     material->remove_parameter(name);
                     material_parameter = nullptr;
@@ -587,14 +585,33 @@ namespace Engine
 
                 if (!material_parameter)
                 {
-                    if (!(material_parameter = material->create_parameter(name, parameter.type)))
+                    if (!(material_parameter = material->create_parameter(name, type)))
                     {
                         error_log("Material", "Failed to create material parameter '%s'", name.c_str());
-                        continue;
+                        return nullptr;
                     }
                 }
 
-                material_parameter->offset(parameter.offset);
+                return material_parameter;
+            };
+
+            for (auto& parameter : source.reflection.uniform_member_infos)
+            {
+                Name name = parameter.name;
+                if (MaterialParameter* material_parameter = create_material_parameter(name, parameter.type))
+                {
+                    material_parameter->offset(parameter.offset);
+                }
+            }
+
+            for (auto& parameter : source.reflection.binding_objects)
+            {
+                Name name = parameter.name;
+                if (BindingMaterialParameter* material_parameter =
+                            reinterpret_cast<BindingMaterialParameter*>(create_material_parameter(name, parameter.type)))
+                {
+                    material_parameter->location = parameter.location;
+                }
             }
 
             for (auto& name : names_to_remove)

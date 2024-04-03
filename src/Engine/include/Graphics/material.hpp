@@ -5,6 +5,7 @@
 #include <Core/structures.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
+#include <Graphics/texture_2D.hpp>
 
 namespace Engine
 {
@@ -185,8 +186,7 @@ namespace Engine
     };
 
     template<typename ClassType, MaterialParameterType parameter_type>
-    class TextureMaterialParameter : public TextureMaterialParameterBase
-    {
+    struct TextureMaterialParameter : public TextureMaterialParameterBase {
         Pointer<ClassType> texture;
 
         inline MaterialParameterType type() const override
@@ -239,7 +239,8 @@ namespace Engine
 
         inline class Texture* texture_param() const override
         {
-            return texture.ptr();
+            Texture* result = reinterpret_cast<Texture*>(texture.ptr());
+            return result;
         }
 
         inline CombinedImageSamplerMaterialParameter& texture_param(class Texture* in_texture) override
@@ -277,8 +278,13 @@ namespace Engine
         }
     };
 
-    using CombinedImageSampler2DMaterialParameter =
-            CombinedImageSamplerMaterialParameter<class Texture2D, MaterialParameterType::CombinedImageSampler2D>;
+    struct CombinedImageSampler2DMaterialParameter
+        : public CombinedImageSamplerMaterialParameter<class Texture2D, MaterialParameterType::CombinedImageSampler2D> {
+        CombinedImageSampler2DMaterialParameter()
+        {
+            texture = DefaultResources::default_texture;
+        }
+    };
 
     struct ENGINE_EXPORT ModelMatrixMaterialParameter : public MaterialParameter {
         MaterialParameterType type() const override;

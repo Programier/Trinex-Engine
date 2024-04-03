@@ -118,33 +118,28 @@ namespace Engine
     }
 
 
-    /*
-        Mat3                   = 16,
-        Mat4                   = 17,
-    */
-
-    static Array<void (*)(MaterialParameter*), 18> m_parameter_renderers = {
+    static Array<void (*)(MaterialParameter*), static_cast<size_t>(MaterialParameterType::__COUNT__)> m_parameter_renderers = {
             [](MaterialParameter* parameter) {
                 BoolMaterialParameter* boolean = reinterpret_cast<BoolMaterialParameter*>(parameter);
-                ImGui::Checkbox(boolean->name.c_str(), &boolean->param);
+                ImGui::Checkbox("##Val", &boolean->param);
             },
             [](MaterialParameter* parameter) {
                 IntMaterialParameter* integer = reinterpret_cast<IntMaterialParameter*>(parameter);
-                ImGui::DragInt(integer->name.c_str(), &integer->param);
+                ImGui::DragInt("##Val", &integer->param);
             },
             [](MaterialParameter* parameter) {
                 UIntMaterialParameter* integer = reinterpret_cast<UIntMaterialParameter*>(parameter);
-                ImGui::DragScalar(integer->name.c_str(), ImGuiDataType_U32, &integer->param);
+                ImGui::DragScalar("##Val", ImGuiDataType_U32, &integer->param);
             },
             [](MaterialParameter* parameter) {
                 UIntMaterialParameter* integer = reinterpret_cast<UIntMaterialParameter*>(parameter);
-                ImGui::DragScalar(integer->name.c_str(), ImGuiDataType_Float, &integer->param);
+                ImGui::DragScalar("##Val", ImGuiDataType_Float, &integer->param);
             },
             [](MaterialParameter* parameter) {
                 BVec2MaterialParameter* vec = reinterpret_cast<BVec2MaterialParameter*>(parameter);
                 ImGui::Checkbox("##1", &vec->param.r);
                 ImGui::SameLine();
-                ImGui::Checkbox(vec->name.c_str(), &vec->param.g);
+                ImGui::Checkbox("##2", &vec->param.g);
             },
             [](MaterialParameter* parameter) {
                 BVec3MaterialParameter* vec = reinterpret_cast<BVec3MaterialParameter*>(parameter);
@@ -152,7 +147,7 @@ namespace Engine
                 ImGui::SameLine();
                 ImGui::Checkbox("##2", &vec->param.g);
                 ImGui::SameLine();
-                ImGui::Checkbox(vec->name.c_str(), &vec->param.b);
+                ImGui::Checkbox("##3", &vec->param.b);
             },
             [](MaterialParameter* parameter) {
                 BVec4MaterialParameter* vec = reinterpret_cast<BVec4MaterialParameter*>(parameter);
@@ -162,51 +157,86 @@ namespace Engine
                 ImGui::SameLine();
                 ImGui::Checkbox("##3", &vec->param.b);
                 ImGui::SameLine();
-                ImGui::Checkbox(vec->name.c_str(), &vec->param.a);
+                ImGui::Checkbox("##4", &vec->param.a);
             },
             [](MaterialParameter* parameter) {
                 IVec2MaterialParameter* vec = reinterpret_cast<IVec2MaterialParameter*>(parameter);
-                ImGui::DragInt2(vec->name.c_str(), &vec->param.r);
+                ImGui::DragInt2("##Val", &vec->param.r);
             },
             [](MaterialParameter* parameter) {
                 IVec3MaterialParameter* vec = reinterpret_cast<IVec3MaterialParameter*>(parameter);
-                ImGui::DragInt3(vec->name.c_str(), &vec->param.r);
+                ImGui::DragInt3("##Val", &vec->param.r);
             },
             [](MaterialParameter* parameter) {
                 IVec4MaterialParameter* vec = reinterpret_cast<IVec4MaterialParameter*>(parameter);
-                ImGui::DragInt4(vec->name.c_str(), &vec->param.r);
+                ImGui::DragInt4("##Val", &vec->param.r);
             },
             [](MaterialParameter* parameter) {
                 UVec2MaterialParameter* vec = reinterpret_cast<UVec2MaterialParameter*>(parameter);
-                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_U32, &vec->param.r, 2);
+                ImGui::DragScalarN("##Val", ImGuiDataType_U32, &vec->param.r, 2);
             },
             [](MaterialParameter* parameter) {
                 UVec3MaterialParameter* vec = reinterpret_cast<UVec3MaterialParameter*>(parameter);
-                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_U32, &vec->param.r, 3);
+                ImGui::DragScalarN("##Val", ImGuiDataType_U32, &vec->param.r, 3);
             },
             [](MaterialParameter* parameter) {
                 UVec4MaterialParameter* vec = reinterpret_cast<UVec4MaterialParameter*>(parameter);
-                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_U32, &vec->param.r, 4);
+                ImGui::DragScalarN("##Val", ImGuiDataType_U32, &vec->param.r, 4);
             },
             [](MaterialParameter* parameter) {
                 Vec2MaterialParameter* vec = reinterpret_cast<Vec2MaterialParameter*>(parameter);
-                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_Float, &vec->param.r, 2);
+                ImGui::DragScalarN("##Val", ImGuiDataType_Float, &vec->param.r, 2, 1.0);
             },
             [](MaterialParameter* parameter) {
                 Vec3MaterialParameter* vec = reinterpret_cast<Vec3MaterialParameter*>(parameter);
-                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_Float, &vec->param.r, 3);
+                ImGui::DragScalarN("##Val", ImGuiDataType_Float, &vec->param.r, 3);
             },
             [](MaterialParameter* parameter) {
                 Vec4MaterialParameter* vec = reinterpret_cast<Vec4MaterialParameter*>(parameter);
-                ImGui::DragScalarN(vec->name.c_str(), ImGuiDataType_Float, &vec->param.r, 4);
-            }
+                ImGui::DragScalarN("##Val", ImGuiDataType_Float, &vec->param.r, 4);
+            },
+            [](MaterialParameter* parameter) {
+                // Mat3
+            },
+            [](MaterialParameter* parameter) {
+                // Mat4
+            },
+            [](MaterialParameter* parameter) {
+                // Sampler
+            },
+            [](MaterialParameter* parameter) {
+                m_parameter_renderers[static_cast<size_t>(MaterialParameterType::Texture2D)](parameter);
+            },
+            [](MaterialParameter* parameter) {
+                ImGui::PushID(parameter);
+                Texture2D* texture =
+                        reinterpret_cast<Texture2D*>(reinterpret_cast<BindingMaterialParameter*>(parameter)->texture_param());
+                ImGui::Image(texture, ImVec2(100, 100));
 
+                if (ImGui::BeginDragDropTarget())
+                {
+                    const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContendBrowser->Object");
+                    if (payload)
+                    {
+                        IM_ASSERT(payload->DataSize == sizeof(Object*));
+                        Object* new_object = *reinterpret_cast<Object**>(payload->Data);
+                        if (Texture2D* new_texture = Object::instance_cast<Texture2D>(new_object))
+                        {
+                            reinterpret_cast<BindingMaterialParameter*>(parameter)->texture_param(new_texture);
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                ImGui::PopID();
+            },
+            [](MaterialParameter* parameter) {
+                // ModelMatrix
+            },
     };
 
 
     MaterialEditorClient& MaterialEditorClient::render_properties()
     {
-
         ImGui::Begin("editor/Properties Title"_localized);
 
         if (m_material == nullptr)
@@ -266,18 +296,27 @@ namespace Engine
 
         if (ImGui::CollapsingHeader("editor/Parameters"_localized))
         {
+            ImGui::BeginTable("##Params", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders);
+
             for (auto& param : m_material->material()->parameters())
             {
-                if (param.second->type() <= MaterialParameterType::Mat4)
+                ImGui::PushID(param.second);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", param.first.c_str());
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+
+                auto renderer = m_parameter_renderers[static_cast<size_t>(param.second->type())];
+                if (renderer)
                 {
-                    auto renderer = m_parameter_renderers[static_cast<size_t>(param.second->type())];
-                    if (renderer)
-                    {
-                        renderer(param.second);
-                    }
+                    renderer(param.second);
                 }
+                ImGui::PopID();
             }
+            ImGui::EndTable();
         }
+
 
         ImGui::SeparatorText("Pipeline");
         render_object_properties(m_material->pipeline, true);

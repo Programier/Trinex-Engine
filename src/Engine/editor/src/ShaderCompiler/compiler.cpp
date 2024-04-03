@@ -133,7 +133,10 @@ namespace Engine::ShaderCompiler
     static bool parse_vertex_semantic(slang::VariableLayoutReflection* var, ShaderReflection& out_reflection,
                                       const Function<void(const char*)>& print_error)
     {
-        auto kind = var->getType()->getKind();
+        auto kind     = var->getType()->getKind();
+        auto category = var->getCategory();
+        if (category != slang::ParameterCategory::VaryingInput)
+            return true;
 
         if (kind == slang::TypeReflection::Kind::Struct)
         {
@@ -155,6 +158,12 @@ namespace Engine::ShaderCompiler
         {
             ShaderReflection::VertexAttribute attribute;
 
+            const char* semantic_name = var->getSemanticName();
+            if (semantic_name == nullptr)
+            {
+                print_error(Strings::format("Cannot find semantic for vertex input '{}'", var->getName()).c_str());
+                return false;
+            }
             if (!find_semantic(var->getSemanticName(), attribute.semantic, print_error))
             {
                 return false;
@@ -325,6 +334,27 @@ namespace Engine::ShaderCompiler
 
                 out_reflection.uniform_member_infos.push_back(info);
             }
+            else if (is_in<slang::TypeReflection::Kind::Resource>(kind))
+            {
+                if (auto type_layout = param->getTypeLayout())
+                {
+                    SlangResourceShape shape = type_layout->getResourceShape();
+                    if (shape == SLANG_TEXTURE_2D)
+                    {
+                        auto binding_type = type_layout->getBindingRangeType(0);
+
+                        ShaderCompiler::ShaderReflection::BindingObject object;
+
+                        object.name             = param->getName();
+                        object.location.binding = param->getBindingIndex();
+                        object.location.set     = 0;
+                        object.type             = binding_type == slang::BindingType::CombinedTextureSampler
+                                                          ? MaterialParameterType::CombinedImageSampler2D
+                                                          : MaterialParameterType::Texture2D;
+                        out_reflection.binding_objects.push_back(object);
+                    }
+                }
+            }
         }
     }
 
@@ -442,7 +472,7 @@ namespace Engine::ShaderCompiler
 
             if (!vertex_entry_point)
             {
-                print_error("Failed to find vertex_main. Skipping!");
+                print_error("Failed to find vs_main. Skipping!");
             }
             else
             {
@@ -459,7 +489,7 @@ namespace Engine::ShaderCompiler
 
             if (!fragment_entry_point)
             {
-                print_error("Failed to find fragment_main. Skipping compiling fragment code");
+                print_error("Failed to find fs_main. Skipping compiling fragment code");
             }
             else
             {

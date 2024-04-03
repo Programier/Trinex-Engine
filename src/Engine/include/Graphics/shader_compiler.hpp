@@ -27,11 +27,20 @@ namespace Engine
                 size_t offset;
             };
 
+            struct ENGINE_EXPORT BindingObject
+            {
+                String name;
+                BindLocation location;
+                MaterialParameterType type;
+            };
+
             Vector<VertexAttribute> attributes;
             Vector<UniformMemberInfo> uniform_member_infos;
 
             MaterialScalarParametersInfo global_parameters_info;
             MaterialScalarParametersInfo local_parameters_info;
+
+            Vector<BindingObject> binding_objects;
 
             ShaderReflection& clear();
         };

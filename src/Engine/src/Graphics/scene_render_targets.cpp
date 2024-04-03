@@ -141,7 +141,7 @@ namespace Engine
 
     static AttachmentTextureInfo attachment_texture_info[gbuffer_color_attachments] = {
             {base_color_format, "Base Color"}, {position_format, "Position"},        {normal_format, "Normal"},
-            {emissive_format, "Emissive"},     {msra_buffer_format, "Data Texture"},
+            {emissive_format, "Emissive"},     {msra_buffer_format, "MSRA Texture"},
 
     };
 

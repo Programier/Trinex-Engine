@@ -111,7 +111,7 @@ if(TRINEX_REBUILD_HEADERS)
 
     set(TRINEX_PRECOMPILED_HEADERS  include-internal/DefaultResources/default.hpp)
 
-    set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BaseColorToScreenMat.tasset
+    set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultSampler.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/GBufferLinesMat.tasset
@@ -120,7 +120,7 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpriteMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultTexture.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/PointLightMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/AmbientOnlyMaterial.tasset)
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/AmbientLightMaterial.tasset)
     add_custom_command(
         OUTPUT include-internal/DefaultResources/default.hpp
         COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" ${TRINEX_INTERNAL_ASSETS}

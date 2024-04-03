@@ -18,10 +18,6 @@ struct VertexOutput
     float3 camera_xz : POSITION1;
 };
 
-struct FragmentOutput
-{
-    float4 color = float4(1.0);
-};
 
 
 uniform GRID_AXIS_CODE(float4, float3) color;
@@ -43,13 +39,17 @@ VertexOutput vs_main(VertexInput input)
 }
 
 [shader("fragment")]
-FragmentOutput fs_main(VertexOutput input) : SV_Target
+GBufferFragmentOutput fs_main(VertexOutput input) : SV_Target
 {
-    FragmentOutput output;
+    GBufferFragmentOutput output;
     float3 view_direction = normalize(globals.camera_location - input.world_position);
     float3 view_direction_xz = normalize(input.camera_xz - input.world_position);
 
     float factor = 1.0 - pow(dot(view_direction, view_direction_xz), 18);
-    output.color = float4(color.rgb * float3(factor GRID_AXIS_CODE(* color.w, )), 1.0);
+    output.base_color = float4(color.rgb * float3(factor GRID_AXIS_CODE(* color.w, )), 1.0);
+    output.position = float4(input.world_position, 0.0);
+    output.normal   = float4(0.0);
+    output.emissive = float4(0.0);
+    output.msra     = float4(0.0, 0.0, 0.0, 1.0);
     return output;
 }

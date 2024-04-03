@@ -20,7 +20,6 @@ namespace Engine
 
         GlobalShaderParameters m_global_shader_params;
         SceneView m_scene_view;
-        Color3 m_ambient_light;
         ViewMode m_view_mode;
 
         SceneRenderer& setup_parameters(RenderTargetBase* render_target = nullptr, SceneView* scene_view = nullptr);
@@ -61,14 +60,7 @@ namespace Engine
             return m_view_mode;
         }
 
-        FORCE_INLINE const Color3& ambient_light() const
-        {
-            return m_ambient_light;
-        }
-
         SceneRenderer& view_mode(ViewMode new_mode);
-        SceneRenderer& ambient_light(const Color3& new_mode);
-
         ~SceneRenderer();
     };
 

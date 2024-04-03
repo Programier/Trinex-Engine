@@ -14,12 +14,12 @@ namespace Engine
         ENGINE_EXPORT Texture2D* default_texture                   = nullptr;
         ENGINE_EXPORT Material* sprite_material                    = nullptr;
         ENGINE_EXPORT PositionVertexBuffer* screen_position_buffer = nullptr;
-        ENGINE_EXPORT Material* base_color_to_screen_mat           = nullptr;
+        ENGINE_EXPORT Material* screen_material                    = nullptr;
         ENGINE_EXPORT Material* default_material                   = nullptr;
         ENGINE_EXPORT Material* gbuffer_lines_material             = nullptr;
         ENGINE_EXPORT Material* scene_output_lines_material        = nullptr;
         ENGINE_EXPORT Material* point_light_material               = nullptr;
-        ENGINE_EXPORT Material* ambient_only_material              = nullptr;
+        ENGINE_EXPORT Material* ambient_light_material             = nullptr;
     }// namespace DefaultResources
 
     ENGINE_EXPORT Object* load_object_from_memory(const byte* data, size_t size, const StringView& name)
@@ -45,12 +45,12 @@ namespace Engine
         load_default_asset(ScreenPositionBuffer, screen_position_buffer, PositionVertexBuffer);
 
         //        load_default_asset(SpriteMaterial, sprite_material, Material);
-        //        load_default_asset(BaseColorToScreenMat, base_color_to_screen_mat, Material);
+        load_default_asset(ScreenMaterial, screen_material, Material);
         //        load_default_asset(DefaultMaterial, default_material, Material);
         //        load_default_asset(GBufferLinesMat, gbuffer_lines_material, Material);
         //        load_default_asset(SceneOutputLinesMat, scene_output_lines_material, Material);
         //        load_default_asset(PointLightMaterial, point_light_material, Material);
-        //        load_default_asset(AmbientOnlyMaterial, ambient_only_material, Material);
+        load_default_asset(AmbientLightMaterial, ambient_light_material, Material);
 
         DefaultResourcesInitializeController().execute();
         m_flags(DefaultResourcesInitTriggered, true);
