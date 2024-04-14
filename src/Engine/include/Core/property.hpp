@@ -21,27 +21,27 @@ namespace Engine
         UnsignedInt8    = Byte,
         Int16           = 3,
         UnsignedInt16   = 4,
-        Int             = 5,
-        UnsignedInt     = 6,
-        Int32           = 7,
-        UnsignedInt32   = 8,
-        Int64           = 9,
-        UnsignedInt64   = 10,
-        Bool            = 11,
-        Float           = 12,
-        Vec2            = 13,
-        Vec3            = 14,
-        Vec4            = 15,
-        Enum            = 16,
-        Color3          = 17,
-        Color4          = 18,
+        Int32           = 5,
+        Int             = Int32,
+        UnsignedInt32   = 6,
+        UnsignedInt     = UnsignedInt32,
+        Int64           = 7,
+        UnsignedInt64   = 8,
+        Bool            = 9,
+        Float           = 10,
+        Vec2            = 11,
+        Vec3            = 12,
+        Vec4            = 13,
+        Enum            = 14,
+        Color3          = 15,
+        Color4          = 16,
         LastPrimitive   = Color4,
-        String          = 19,
-        Path            = 20,
-        Object          = 21,
-        ObjectReference = 22,
-        Struct          = 23,
-        Array           = 24,
+        String          = 17,
+        Path            = 18,
+        Object          = 19,
+        ObjectReference = 20,
+        Struct          = 21,
+        Array           = 22,
     };
 
     struct ENGINE_EXPORT ArrayPropertyValue final {
@@ -124,6 +124,8 @@ namespace Engine
         ArrayPropertyValue array_v() const;
 
         PropertyType type() const;
+
+        operator bool() const;
     };
 
 #undef declare_prop_constructor
@@ -152,6 +154,7 @@ namespace Engine
 
         Property(const Name& name, const String& description, const Name& group = Name::none, BitMask flags = 0);
 
+        Property& name(const Name& new_name);
         const Name& name() const;
         const Name& group() const;
         const String& description() const;

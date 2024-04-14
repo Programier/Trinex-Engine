@@ -1,7 +1,0 @@
-#pragma once
-
-namespace Engine
-{
-    void render_object_properties(class Object* object, bool editable = true);
-    void render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
-}// namespace Engine

@@ -26,7 +26,7 @@ namespace Engine
         }
     }
 
-    static void renderer(void* object, Struct* self, bool editable)
+    static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
     {
         Texture2D* texture  = reinterpret_cast<Texture2D*>(object);
         bool image_is_empty = texture->image.empty();
@@ -36,11 +36,11 @@ namespace Engine
 
         ImGui::Text("editor/Format: %s"_localized, format_to_string(format));
 
-        if(!is_compressed && !image_is_empty)
+        if (!is_compressed && !image_is_empty)
         {
             ImGui::SameLine();
 
-            if(ImGui::SmallButton("editor/Compress"_localized))
+            if (ImGui::SmallButton("editor/Compress"_localized))
             {
                 texture->image.compress();
                 texture->format = texture->image.format();

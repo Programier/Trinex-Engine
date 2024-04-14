@@ -4,9 +4,9 @@
 
 namespace Engine
 {
-    static void renderer(void* object, Struct* self, bool editable)
+    static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
     {
-        SceneComponent* component = reinterpret_cast<SceneComponent*>(object);
+        SceneComponent* component  = reinterpret_cast<SceneComponent*>(object);
         const Transform& transform = component->local_transform();
         Vector3D location          = transform.location();
         Vector3D rotation          = transform.rotation();

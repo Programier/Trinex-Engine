@@ -83,7 +83,6 @@ namespace Engine
 
         MaterialScalarParametersInfo local_parameters;
         MaterialScalarParametersInfo global_parameters;
-
         Path shader_path;
 
         VertexShader* m_vertex_shader                            = nullptr;

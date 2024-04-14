@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    static void renderer(void* object, Struct* self, bool editable)
+    static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
     {
         PrimitiveComponent* component = reinterpret_cast<PrimitiveComponent*>(object);
 

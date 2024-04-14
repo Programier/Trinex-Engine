@@ -5,8 +5,8 @@
 #include <Core/etl/type_traits.hpp>
 #include <Core/flags.hpp>
 #include <Core/implement.hpp>
-#include <Core/name.hpp>
 #include <Core/serializable_object.hpp>
+#include <Core/userdata.hpp>
 #include <ScriptEngine/registrar.hpp>
 
 namespace Engine
@@ -17,7 +17,6 @@ namespace Engine
 
 
     ENGINE_EXPORT const char* operator""_localized(const char* line, size_t len);
-
 
     // Head of all classes in the Engine
     class ENGINE_EXPORT Object : public SerializableObject
@@ -44,6 +43,14 @@ namespace Engine
         Name m_name;
         mutable Index m_instance_index;
 
+    protected:
+        static class Class* m_static_class;
+
+    public:
+        mutable Flags<Object::Flag> flags;
+        UserData userdata;
+
+
     private:
         static void create_default_package();
         const Object& remove_from_instances_array() const;
@@ -56,13 +63,7 @@ namespace Engine
         static Object* noname_object();
 
 
-    protected:
-        static class Class* m_static_class;
-
-
     public:
-        mutable Flags<Object::Flag> flags;
-
         using This  = Object;
         using Super = Object;
         static Object* static_constructor();
@@ -123,7 +124,6 @@ namespace Engine
         Object& owner(Object* new_owner);
 
         virtual Object& destroy_script_object(class ScriptObject* object);
-
 
         // Override new and delete operators
         static ENGINE_EXPORT void* operator new(size_t size) noexcept;

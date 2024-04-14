@@ -16,7 +16,7 @@ namespace Engine
                                                                             "Engine::ShaderCompiler::OpenGL_ShaderCompiler");
         font_path               = editor_json.checked_get_value<JSON::JsonString>("font_path", editor_default_font);
         font_size               = editor_json.checked_get_value<JSON::JsonFloat>("font_size", 18.f);
-        collapsing_indent       = editor_json.checked_get_value<JSON::JsonFloat>("collapsing_indent", 5.f);
+        collapsing_indent       = editor_json.checked_get_value<JSON::JsonFloat>("collapsing_indent", 10.f);
 
         return *this;
     }

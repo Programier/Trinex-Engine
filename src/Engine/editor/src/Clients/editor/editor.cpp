@@ -181,7 +181,7 @@ namespace Engine
     {
         if (ImGui::BeginDragDropTarget())
         {
-            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContendBrowser->Object");
+            const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
             if (payload)
             {
                 IM_ASSERT(payload->DataSize == sizeof(Object*));

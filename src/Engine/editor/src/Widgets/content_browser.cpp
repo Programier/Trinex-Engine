@@ -234,7 +234,7 @@ namespace Engine
 
             if (ImGui::BeginDragDropSource())
             {
-                ImGui::SetDragDropPayload("ContendBrowser->Object", &object, sizeof(Object**));
+                ImGui::SetDragDropPayload("ContentBrowser->Object", &object, sizeof(Object**));
                 ImVec2 item_start = ImGui::GetCursorPos();
                 ImGui::Image(imgui_texture, item_size);
 

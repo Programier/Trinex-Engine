@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/callback.hpp>
+#include <Core/userdata.hpp>
 #include <Graphics/imgui.hpp>
-
 
 namespace ImGui
 {
@@ -115,6 +115,10 @@ namespace Engine
 
     class ImGuiObjectProperties : public ImGuiRenderer::ImGuiAdditionalWindow
     {
+    public:
+        using PropertiesMap = TreeMap<Name, Vector<class Property*>>;
+
+    private:
         union
         {
             void* m_instance = nullptr;
@@ -123,8 +127,15 @@ namespace Engine
 
         class Struct* m_self = nullptr;
 
+        TreeMap<class Struct*, PropertiesMap> m_properties;
+
+
+        PropertiesMap& build_props_map(Struct* self);
 
     public:
+        UserData userdata;
+        CallBacks<void(void*, Struct*)> on_begin_render;
+
         bool render(RenderViewport* viewport) override;
         Struct* struct_instance() const;
         void* instance() const;
@@ -132,6 +143,7 @@ namespace Engine
 
         ImGuiObjectProperties& update(void* instance, Struct* self);
         ImGuiObjectProperties& update(Object* object);
+        const PropertiesMap& properties_map(Struct* self);
         static const char* name();
     };
 

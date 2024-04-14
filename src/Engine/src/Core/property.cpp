@@ -195,9 +195,20 @@ namespace Engine
         return cast<ArrayPropertyValue>();
     }
 
+    PropertyValue::operator bool() const
+    {
+        return has_value();
+    }
+
     Property::Property(const Name& name, const String& description, const Name& group, BitMask flags)
         : m_name(name), m_group(group), m_description(description), m_flags(flags)
     {}
+
+    Property& Property::name(const Name& new_name)
+    {
+        m_name = new_name;
+        return *this;
+    }
 
     const Name& Property::name() const
     {
@@ -250,7 +261,7 @@ namespace Engine
 
         for (auto& prop : self->properties())
         {
-            if(prop->is_serializable())
+            if (prop->is_serializable())
             {
                 result.push_back(prop);
             }
@@ -375,7 +386,7 @@ namespace Engine
 
     bool ArrayPropertyInterface::archive_process(void* object, Archive& ar)
     {
-        if(!is_serializable())
+        if (!is_serializable())
             return false;
 
         Property* e_type = element_type();

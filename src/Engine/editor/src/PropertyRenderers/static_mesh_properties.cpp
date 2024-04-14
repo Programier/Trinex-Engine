@@ -37,7 +37,7 @@ namespace Engine
         }
     }
 
-    static void renderer(void* object, Struct* self, bool editable)
+    static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
     {
         StaticMesh* mesh = reinterpret_cast<StaticMesh*>(object);
 

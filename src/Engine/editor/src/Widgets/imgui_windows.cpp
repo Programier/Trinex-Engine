@@ -7,7 +7,6 @@
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <PropertyRenderers/imgui_class_property.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Window/monitor.hpp>
 #include <icons.hpp>
@@ -353,73 +352,6 @@ namespace Engine
         return "editor/Open File"_localized;
     }
 
-    bool ImGuiObjectProperties::render(RenderViewport* viewport)
-    {
-        bool open = true;
-        ImGui::Begin(name(), closable ? &open : nullptr);
-        if (m_instance && m_self)
-        {
-            if (m_self->is_class())
-            {
-                ImGui::Text("editor/Object: %s"_localized, m_object->name().to_string().c_str());
-                ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->name().c_str());
-                if (ImGui::Button("editor/Apply changes"_localized))
-                {
-                    m_object->apply_changes();
-                }
-                ImGui::Separator();
-                render_object_properties(m_object);
-            }
-            else
-            {
-                render_struct_properties(m_instance, m_self);
-            }
-        }
-        ImGui::End();
-
-        return open;
-    }
-
-    Struct* ImGuiObjectProperties::struct_instance() const
-    {
-        return m_self;
-    }
-
-    void* ImGuiObjectProperties::instance() const
-    {
-        return m_instance;
-    }
-
-    Object* ImGuiObjectProperties::object() const
-    {
-        return m_self && m_self->is_class() ? m_object : nullptr;
-    }
-
-    ImGuiObjectProperties& ImGuiObjectProperties::update(void* instance, Struct* self)
-    {
-        m_instance = instance;
-        m_self     = self;
-        return *this;
-    }
-
-    ImGuiObjectProperties& ImGuiObjectProperties::update(Object* object)
-    {
-        if (object)
-        {
-            update(object, object->class_instance());
-        }
-        else
-        {
-            update(nullptr, nullptr);
-        }
-        return *this;
-    }
-
-
-    const char* ImGuiObjectProperties::name()
-    {
-        return "editor/Properties Title"_localized;
-    }
 
     bool ImGuiSpawnNewActor::Node::Compare::operator()(const Node* a, const Node* b) const
     {
