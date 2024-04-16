@@ -13,6 +13,10 @@ namespace Engine
     class FragmentShader;
     class RenderPass;
 
+    namespace ShaderCompiler
+    {
+        struct ShaderSource;
+    }
 
     class ENGINE_EXPORT Pipeline : public RenderResource
     {
@@ -80,19 +84,18 @@ namespace Engine
             bool logic_op_enable     = false;
         } ALIGNED(4) color_blending;
 
-
-        MaterialScalarParametersInfo local_parameters;
+        TreeMap<Name, MaterialParameterInfo> parameters;
         MaterialScalarParametersInfo global_parameters;
+        MaterialScalarParametersInfo local_parameters;
         Path shader_path;
 
+    private:
         VertexShader* m_vertex_shader                            = nullptr;
         TessellationControlShader* m_tessellation_control_shader = nullptr;
         TessellationShader* m_tessellation_shader                = nullptr;
         GeometryShader* m_geometry_shader                        = nullptr;
         FragmentShader* m_fragment_shader                        = nullptr;
 
-
-    private:
         template<typename Type>
         Type* create_new_shader(const char* name, Type*& out)
         {
@@ -139,6 +142,9 @@ namespace Engine
         Flags<ShaderType> shader_type_flags() const;
         Pipeline& allocate_shaders(Flags<ShaderType> flags = 0);
         Pipeline& remove_shaders(Flags<ShaderType> flags = 0);
+        const MaterialParameterInfo* find_param_info(const Name& name) const;
+        bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors);
+        size_t stages_count() const;
 
         FORCE_INLINE Pipeline& remove_all_shaders()
         {

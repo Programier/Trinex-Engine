@@ -106,7 +106,7 @@ namespace Engine
 
             auto& current_buffer = buffers[index];
             std::memcpy(current_buffer.mapped + used_data, shadow_data.data(), shadow_data_size);
-            static BindLocation local_params_location = {pipeline->m_local_parameters.bind_index(), 0};
+            BindLocation local_params_location = {pipeline->m_local_parameters.bind_index(), 0};
             API->m_state->m_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
                                                           local_params_location);
             used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);

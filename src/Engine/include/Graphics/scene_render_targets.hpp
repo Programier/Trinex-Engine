@@ -32,11 +32,17 @@ namespace Engine
         ~GBuffer();
 
     public:
+        // [float3(color), opacity]
         RenderTargetTexture* base_color() const;
+        // [float3(position), w]
         RenderTargetTexture* position() const;
+        // [float3(normal), facing_sigh);
         RenderTargetTexture* normal() const;
+        // [float4(emissive));
         RenderTargetTexture* emissive() const;
+        // [float4(metalic, specular, roughness, AO));
         RenderTargetTexture* msra_buffer() const;
+
         RenderTargetTexture* depth() const;
 
         friend class Singletone<GBuffer, EngineRenderTarget>;

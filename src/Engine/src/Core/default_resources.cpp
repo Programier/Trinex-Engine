@@ -44,12 +44,12 @@ namespace Engine
         load_default_asset(DefaultTexture, default_texture, Texture2D);
         load_default_asset(ScreenPositionBuffer, screen_position_buffer, PositionVertexBuffer);
 
-        //        load_default_asset(SpriteMaterial, sprite_material, Material);
+        load_default_asset(SpriteMaterial, sprite_material, Material);
         load_default_asset(ScreenMaterial, screen_material, Material);
-        //        load_default_asset(DefaultMaterial, default_material, Material);
+        load_default_asset(DefaultMaterial, default_material, Material);
         load_default_asset(GBufferLinesMat, gbuffer_lines_material, Material);
         load_default_asset(SceneOutputLinesMat, scene_output_lines_material, Material);
-        //        load_default_asset(PointLightMaterial, point_light_material, Material);
+        load_default_asset(PointLightMaterial, point_light_material, Material);
         load_default_asset(AmbientLightMaterial, ambient_light_material, Material);
 
         DefaultResourcesInitializeController().execute();

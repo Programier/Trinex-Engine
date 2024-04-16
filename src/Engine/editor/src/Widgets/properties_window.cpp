@@ -600,11 +600,11 @@ namespace Engine
                     m_object->apply_changes();
                 }
                 ImGui::Separator();
-                render_struct_properties(this, m_object, m_object->class_instance(), true, false);
+                ::Engine::render_struct_properties(this, m_object, m_object->class_instance(), true, false);
             }
             else
             {
-                render_struct_properties(this, m_instance, m_self);
+                ::Engine::render_struct_properties(this, m_instance, m_self);
             }
         }
         ImGui::End();
@@ -677,6 +677,11 @@ namespace Engine
         }
 
         return map;
+    }
+
+    void ImGuiObjectProperties::render_struct_properties(void* object, class Struct* struct_class, bool editable)
+    {
+        ::Engine::render_struct_properties(this, object, struct_class, editable, false);
     }
 
 

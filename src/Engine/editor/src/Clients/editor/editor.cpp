@@ -263,9 +263,7 @@ namespace Engine
                 {
                     Package* package = m_content_browser->selected_package();
                     ImGuiRenderer::Window::current()->window_list.create<ImGuiOpenFile>()->on_select.push(
-                            [package](const Path& path) {
-                                Importer::import_resource(package, path, Transform({0, 0, 0}, {0, 0, 0}, {0.01, 0.01, 0.01}));
-                            });
+                            [package](const Path& path) { Importer::import_resource(package, path); });
                 }
 
                 ImGui::EndMenu();

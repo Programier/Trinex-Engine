@@ -1,6 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
+#include <Core/names.hpp>
 #include <Core/property.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -74,14 +75,14 @@ namespace Engine
     {
         Material* material                 = DefaultResources::sprite_material;
         PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
-        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter("model")))
+        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Names::model)))
         {
             Matrix4f model   = rotate_sprite(world_transform(), renderer->scene_view());
             parameter->param = model;
         }
 
         BindingMaterialParameter* texture_parameter =
-                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter("texture"));
+                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Names::texture));
         Texture* tmp     = nullptr;
         Texture* current = reinterpret_cast<Texture*>(texture());
 

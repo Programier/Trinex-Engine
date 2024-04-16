@@ -144,6 +144,7 @@ namespace Engine
         ImGuiObjectProperties& update(void* instance, Struct* self);
         ImGuiObjectProperties& update(Object* object);
         const PropertiesMap& properties_map(Struct* self);
+        void render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
         static const char* name();
     };
 

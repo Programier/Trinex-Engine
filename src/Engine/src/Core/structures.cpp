@@ -1,4 +1,5 @@
 #include <Core/archive.hpp>
+#include <Core/constants.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
@@ -58,4 +59,19 @@ namespace Engine
         ar & info.m_binding_index;
         return ar;
     }
+
+    ENGINE_EXPORT bool operator&(Archive& ar, MaterialParameterInfo& info)
+    {
+        ar & info.type;
+        ar & info.name;
+        ar & info.size;
+        ar & info.offset;
+        ar & info.location;
+        return ar;
+    }
+
+    MaterialParameterInfo::MaterialParameterInfo()
+        : type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none),
+          location(BindLocation(255, 255))
+    {}
 }// namespace Engine

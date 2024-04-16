@@ -7,6 +7,7 @@
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
+#include <Core/render_thread.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -14,6 +15,7 @@
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_compiler.hpp>
 
 namespace Engine
 {
@@ -110,7 +112,6 @@ namespace Engine
                 new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));
     });
 
-
     Pipeline::Pipeline()
     {}
 
@@ -160,7 +161,7 @@ namespace Engine
     {
         Flags<MaterialUsage> flags = usage;
 
-        if ((flags & MaterialUsage::GBufferRendering) == Flags(MaterialUsage::GBufferRendering) && !color_blending.enable)
+        if ((flags & MaterialUsage::GBufferRendering) == Flags(MaterialUsage::GBufferRendering))
         {
             return RenderPassType::GBuffer;
         }
@@ -170,7 +171,7 @@ namespace Engine
             return RenderPassType::Window;
         }
 
-        if ((flags & MaterialUsage::SceneOutputRendering) == Flags(MaterialUsage::SceneOutputRendering) || color_blending.enable)
+        if ((flags & MaterialUsage::SceneOutputRendering) == Flags(MaterialUsage::SceneOutputRendering))
         {
             return RenderPassType::OneAttachentOutput;
         }
@@ -394,6 +395,113 @@ namespace Engine
         };
     }
 
+    const MaterialParameterInfo* Pipeline::find_param_info(const Name& name) const
+    {
+        auto it = parameters.find(name);
+        if (it == parameters.end())
+            return nullptr;
+        return &it->second;
+    }
+
+    bool Pipeline::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
+    {
+        bool status = false;
+
+        bool has_valid_graphical_pipeline = source.has_valid_graphical_pipeline();
+        bool has_valid_compute_pipiline   = source.has_valid_compute_pipeline();
+
+        if (has_valid_graphical_pipeline || has_valid_compute_pipiline)
+        {
+            remove_all_shaders();
+            parameters.clear();
+            global_parameters.remove_parameters();
+            local_parameters.remove_parameters();
+        }
+        else
+        {
+            return false;
+        }
+
+        if (has_valid_graphical_pipeline)
+        {
+            render_thread()->wait_all();
+
+            auto v_shader = vertex_shader(true);
+            auto f_shader = fragment_shader(true);
+
+            v_shader->attributes.clear();
+            v_shader->attributes.reserve(source.reflection.attributes.size());
+
+            for (auto& attribute : source.reflection.attributes)
+            {
+                VertexShader::Attribute out_attribute;
+                out_attribute.name           = attribute.name;
+                out_attribute.format         = attribute.format;
+                out_attribute.rate           = attribute.rate;
+                out_attribute.semantic       = attribute.semantic;
+                out_attribute.semantic_index = attribute.semantic_index;
+                out_attribute.count          = attribute.count;
+
+                v_shader->attributes.push_back(out_attribute);
+            }
+
+            v_shader->source_code = source.vertex_code;
+            f_shader->source_code = source.fragment_code;
+
+            if (source.has_tessellation_control_shader())
+            {
+                tessellation_control_shader(true)->source_code = source.tessellation_control_code;
+            }
+            else
+            {
+                remove_tessellation_control_shader();
+            }
+
+            if (source.has_tessellation_shader())
+            {
+                tessellation_shader(true)->source_code = source.tessellation_code;
+            }
+            else
+            {
+                remove_tessellation_shader();
+            }
+
+            if (source.has_geometry_shader())
+            {
+                geometry_shader(true)->source_code = source.geometry_code;
+            }
+            else
+            {
+                remove_geometry_shader();
+            }
+
+            for (auto& parameter : source.reflection.uniform_member_infos)
+            {
+                parameters[parameter.name] = parameter;
+            }
+
+            global_parameters = source.reflection.global_parameters_info;
+            local_parameters  = source.reflection.local_parameters_info;
+            status            = true;
+        }
+
+        return status;
+    }
+
+    size_t Pipeline::stages_count() const
+    {
+        size_t count = 0;
+
+        for (auto& ell : shader_array())
+        {
+            if (ell)
+            {
+                ++count;
+            }
+        }
+        return count;
+    }
+
     static bool serialize_shader_sources(const Path& path, Pipeline* pipeline, bool is_reading)
     {
         union
@@ -477,6 +585,31 @@ namespace Engine
         archive & flags;
         archive & global_parameters;
         archive & local_parameters;
+
+        {
+            size_t size = parameters.size();
+            archive & size;
+
+            if (archive.is_reading())
+            {
+                parameters.clear();
+                MaterialParameterInfo info;
+
+                while (size > 0)
+                {
+                    archive & info;
+                    parameters[info.name] = info;
+                    --size;
+                }
+            }
+            else
+            {
+                for (auto& [name, param] : parameters)
+                {
+                    archive & param;
+                }
+            }
+        }
 
         allocate_shaders(flags);
 

@@ -21,6 +21,7 @@ namespace Engine
         static const float min_positive_float;
         static const Vector3D min_positive_vector;
         static const ArrayIndex index_none;
+        static const ArrayOffset offset_none;
         static const HashIndex invalid_hash;
         static const size_t max_size;
         static const IntVector4D int_zero_vector;
@@ -37,6 +38,5 @@ namespace Engine
         static const String script_byte_code_extension;
         static const String virtual_file_system_extension;
         static const String translation_config_extension;
-
     };
 }// namespace Engine

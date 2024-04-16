@@ -1,5 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Graphics/material.hpp>
@@ -68,7 +69,6 @@ namespace Engine
         renderer->begin_rendering_target(GBuffer::instance());
 
         auto rhi = engine_instance->rhi();
-
         const CameraView& view = renderer->scene_view().camera_view();
 
         float camera_height = glm::abs(view.location.y);

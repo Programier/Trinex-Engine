@@ -15,36 +15,10 @@ namespace Engine
         declare_class(Shader, RenderResource);
 
     public:
-        struct SSBO {
-            Name name;
-            BindLocation location;
-        };
-
-        struct Texture {
-            Name name;
-            BindLocation location;
-        };
-
-        struct Sampler {
-            Name name;
-            BindLocation location;
-        };
-
-        struct CombinedImageSampler {
-            Name name;
-            BindLocation location;
-        };
-
-
-        Vector<Sampler> samplers;
-        Vector<CombinedImageSampler> combined_image_samplers;
-        Vector<Texture> textures;
-        Vector<SSBO> ssbo;
         Buffer source_code;
 
         bool archive_process(Archive& ar) override;
         bool archive_process_source_code(Archive& ar);
-        Shader& clean();
         virtual ShaderType type() const = 0;
     };
 
@@ -114,9 +88,5 @@ namespace Engine
         ShaderType type() const override;
     };
 
-    ENGINE_EXPORT bool operator&(Archive&, Shader::SSBO&);
-    ENGINE_EXPORT bool operator&(Archive&, Shader::Texture&);
-    ENGINE_EXPORT bool operator&(Archive&, Shader::Sampler&);
-    ENGINE_EXPORT bool operator&(Archive&, Shader::CombinedImageSampler&);
     ENGINE_EXPORT bool operator&(Archive&, VertexShader::Attribute&);
 }// namespace Engine

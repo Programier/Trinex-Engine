@@ -72,4 +72,22 @@ namespace Engine
     {
         return ((value != values) && ...);
     }
+
+    template<typename OutType = size_t>
+    inline constexpr OutType fill_bits(byte count)
+    {
+        if (count == 0)
+            return 0;
+
+        size_t result = 0;
+
+        while (count > 0)
+        {
+            result <<= 1;
+            result += 1;
+            --count;
+        }
+
+        return static_cast<OutType>(result);
+    }
 }// namespace Engine

@@ -15,7 +15,7 @@
 
 namespace Engine
 {
-    static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage,
+    static void push_layout_binding(Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stages,
                                     BindLocation location, vk::DescriptorType type)
     {
         if (location.set >= out.size())
@@ -27,90 +27,98 @@ namespace Engine
         {
             if (entry.binding == location.binding && entry.descriptorType == type)
             {
-                entry.stageFlags |= stage;
+                entry.stageFlags |= stages;
                 return;
             }
         }
 
-        out[location.set].push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stage, nullptr));
+        out[location.set].push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stages, nullptr));
     }
 
-    static void create_base_descriptor_layout(const Pipeline* pipeline, const Shader* shader,
-                                              Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stage)
+    static void create_descriptor_layout_internal(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
+                                                  vk::ShaderStageFlags stages)
     {
-        if (!shader || !pipeline)
+        if (!pipeline || stages == vk::ShaderStageFlags(0))
             return;
 
         if (pipeline->global_parameters.has_parameters())
         {
-            push_layout_binding(out, stage, {pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stages, {pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
         }
 
         if (pipeline->local_parameters.has_parameters())
         {
-            push_layout_binding(out, stage, {pipeline->local_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding(out, stages, {pipeline->local_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
         }
 
-        for (auto& texture : shader->textures)
+
+        for (auto& [name, param] : pipeline->parameters)
         {
-            push_layout_binding(out, stage, texture.location, vk::DescriptorType::eSampledImage);
+            switch (param.type)
+            {
+                case MaterialParameterType::Texture2D:
+                    push_layout_binding(out, stages, param.location, vk::DescriptorType::eSampledImage);
+                case MaterialParameterType::Sampler:
+                    push_layout_binding(out, stages, param.location, vk::DescriptorType::eSampler);
+                case MaterialParameterType::CombinedImageSampler2D:
+                    push_layout_binding(out, stages, param.location, vk::DescriptorType::eCombinedImageSampler);
+                    break;
+                default:
+                    break;
+            }
         }
 
-        for (auto& sampler : shader->samplers)
-        {
-            push_layout_binding(out, stage, sampler.location, vk::DescriptorType::eSampler);
-        }
-
-        for (auto& combined_image_sampler : shader->combined_image_samplers)
-        {
-            push_layout_binding(out, stage, combined_image_sampler.location, vk::DescriptorType::eCombinedImageSampler);
-        }
-
-        for (auto& shared_buffer : shader->ssbo)
-        {
-            push_layout_binding(out, stage, shared_buffer.location, vk::DescriptorType::eStorageBuffer);
-        }
+        //        for (auto& shared_buffer : shader->ssbo)
+        //        {
+        //            push_layout_binding(out, stage, shared_buffer.location, vk::DescriptorType::eStorageBuffer);
+        //        }
     }
-
-    static void create_vertex_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
-    {
-        create_base_descriptor_layout(pipeline, pipeline->vertex_shader(), out, vk::ShaderStageFlagBits::eVertex);
-    }
-
-    static void create_tesselation_control_descriptor_layout(const Pipeline* pipeline,
-                                                             Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
-    {
-        create_base_descriptor_layout(pipeline, pipeline->tessellation_control_shader(), out,
-                                      vk::ShaderStageFlagBits::eTessellationControl);
-    }
-
-    static void create_tesselation_descriptor_layout(const Pipeline* pipeline,
-                                                     Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
-    {
-        create_base_descriptor_layout(pipeline, pipeline->tessellation_shader(), out,
-                                      vk::ShaderStageFlagBits::eTessellationEvaluation);
-    }
-
-    static void create_geomeetry_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
-    {
-        create_base_descriptor_layout(pipeline, pipeline->geometry_shader(), out, vk::ShaderStageFlagBits::eGeometry);
-    }
-
-    static void create_fragment_descriptor_layout(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out)
-    {
-        create_base_descriptor_layout(pipeline, pipeline->fragment_shader(), out, vk::ShaderStageFlagBits::eFragment);
-    }
-
 
     VulkanPipeline& VulkanPipeline::create_descriptor_layout(const Pipeline* pipeline)
     {
         Vector<Vector<vk::DescriptorSetLayoutBinding>> layout_bindings;
+        vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
 
-        create_vertex_descriptor_layout(pipeline, layout_bindings);
-        create_tesselation_control_descriptor_layout(pipeline, layout_bindings);
-        create_tesselation_descriptor_layout(pipeline, layout_bindings);
-        create_geomeetry_descriptor_layout(pipeline, layout_bindings);
-        create_fragment_descriptor_layout(pipeline, layout_bindings);
+        for (auto& shader : pipeline->shader_array())
+        {
+            if (shader)
+            {
+                auto type = shader->type();
+
+                if (type != ShaderType::Undefined)
+                {
+                    switch (type)
+                    {
+                        case ShaderType::Vertex:
+                            stages |= vk::ShaderStageFlagBits::eVertex;
+                            break;
+                        case ShaderType::TessellationControl:
+                            stages |= vk::ShaderStageFlagBits::eTessellationControl;
+                            break;
+                        case ShaderType::Tessellation:
+                            stages |= vk::ShaderStageFlagBits::eTessellationEvaluation;
+                            break;
+                        case ShaderType::Geometry:
+                            stages |= vk::ShaderStageFlagBits::eGeometry;
+                            break;
+                        case ShaderType::Fragment:
+                            stages |= vk::ShaderStageFlagBits::eFragment;
+                            break;
+                        case ShaderType::Compute:
+                            stages |= vk::ShaderStageFlagBits::eCompute;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        create_descriptor_layout_internal(pipeline, layout_bindings, stages);
+        //        create_tesselation_control_descriptor_layout(pipeline, layout_bindings);
+        //        create_tesselation_descriptor_layout(pipeline, layout_bindings);
+        //        create_geomeetry_descriptor_layout(pipeline, layout_bindings);
+        //        create_fragment_descriptor_layout(pipeline, layout_bindings);
 
         m_descriptor_set_layout.resize(layout_bindings.size());
 
@@ -415,21 +423,29 @@ namespace Engine
         uint_t ssbos             = 0;
     };
 
-    static void process_pool_sizes(const Pipeline* pipeline, const Shader* shader, Vector<PoolSizeInfo>& out)
+    static void process_pool_sizes(const Pipeline* pipeline, Vector<PoolSizeInfo>& out)
     {
-        for (auto& texture : shader->textures)
-        {
-            ++(out[texture.location.set].textures);
-        }
+        uint_t stages_count = pipeline->stages_count();
 
-        for (auto& sampler : shader->samplers)
+        for (auto& param : pipeline->parameters)
         {
-            ++(out[sampler.location.set].samplers);
-        }
+            uint_t* value = nullptr;
+            switch (param.second.type)
+            {
+                case MaterialParameterType::Texture2D:
+                    value = &(out[param.second.location.set].textures);
+                case MaterialParameterType::Sampler:
+                    value = &(out[param.second.location.set].samplers);
+                case MaterialParameterType::CombinedImageSampler2D:
+                    value = &(out[param.second.location.set].combined_samplers);
+                default:
+                    break;
+            }
 
-        for (auto& combined_image_sampler : shader->combined_image_samplers)
-        {
-            ++(out[combined_image_sampler.location.set].combined_samplers);
+            if (value)
+            {
+                (*value) += stages_count;
+            }
         }
 
         if (pipeline->global_parameters.has_parameters())
@@ -441,20 +457,12 @@ namespace Engine
         {
             ++(out[0].ubos);
         }
-
-        for (auto& ssbo : shader->ssbo)
-        {
-            ++(out[ssbo.location.set].ssbos);
-        }
     }
 
     Vector<Vector<vk::DescriptorPoolSize>> VulkanPipeline::create_pool_sizes(const Pipeline* pipeline)
     {
         Vector<PoolSizeInfo> pool_size_info(m_descriptor_set_layout.size(), PoolSizeInfo{});
-
-        process_pool_sizes(pipeline, pipeline->vertex_shader(), pool_size_info);
-        process_pool_sizes(pipeline, pipeline->fragment_shader(), pool_size_info);
-
+        process_pool_sizes(pipeline, pool_size_info);
 
         Vector<Vector<vk::DescriptorPoolSize>> pool_sizes(pool_size_info.size());
 

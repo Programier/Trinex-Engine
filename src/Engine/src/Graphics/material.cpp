@@ -25,7 +25,7 @@ namespace Engine
         }
         else if (ar.is_saving())
         {
-            ar.write_data(reinterpret_cast<const byte*>(data), size);
+            return ar.write_data(reinterpret_cast<const byte*>(data), size);
         }
         return false;
     }
@@ -33,16 +33,6 @@ namespace Engine
     size_t MaterialParameter::size() const
     {
         return 0;
-    }
-
-    size_t MaterialParameter::offset() const
-    {
-        return no_offset;
-    }
-
-    MaterialParameter& MaterialParameter::offset(size_t)
-    {
-        return *this;
     }
 
     byte* MaterialParameter::data()
@@ -62,13 +52,13 @@ namespace Engine
 
     MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline, class SceneComponent* component)
     {
-        if (static_cast<EnumerateType>(type()) <= static_cast<EnumerateType>(MaterialParameterType::Mat4))
+        if (MaterialParameterTypeLayout::from(static_cast<EnumerateType>(type())).is_scalar)
         {
-            size_t parameter_offset = offset();
+            auto* info = pipeline->find_param_info(name);
 
-            if (parameter_offset != no_offset)
+            if (info && info->offset != Constants::offset_none)
             {
-                engine_instance->rhi()->update_local_parameter(data(), size(), parameter_offset);
+                engine_instance->rhi()->update_local_parameter(data(), size(), info->offset);
             }
         }
 
@@ -137,15 +127,46 @@ namespace Engine
         return ar;
     }
 
-
-    void BindingMaterialParameter::bind_texture(class Engine::Texture2D* texture)
-    {}
-
-    void BindingMaterialParameter::bind_sampler(class Engine::Sampler* sampler)
+    Mat4MaterialParameter& Mat4MaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
-        if (sampler)
+        if (bind_model_matrix)
         {
-            sampler->rhi_bind(location);
+            param = component ? component->world_transform().matrix() : Matrix4f(1.f);
+        }
+        Super::apply(pipeline, component);
+        return *this;
+    }
+
+    bool Mat4MaterialParameter::archive_process(Archive& archive)
+    {
+        if (!Super::archive_process(archive))
+            return false;
+
+        archive & bind_model_matrix;
+        return archive;
+    }
+
+    void BindingMaterialParameter::bind_texture(class Engine::Texture* texture, const Pipeline* pipeline)
+    {
+        if (texture && pipeline)
+        {
+            auto info = pipeline->find_param_info(name);
+            if (info && info->type == type())
+            {
+                texture->rhi_bind(info->location);
+            }
+        }
+    }
+
+    void BindingMaterialParameter::bind_sampler(class Engine::Sampler* sampler, const Pipeline* pipeline)
+    {
+        if (sampler && pipeline)
+        {
+            auto info = pipeline->find_param_info(name);
+            if (info && info->type == type())
+            {
+                sampler->rhi_bind(info->location);
+            }
         }
     }
 
@@ -156,7 +177,7 @@ namespace Engine
 
     bool BindingMaterialParameter::archive_process(Archive& ar)
     {
-        ar & location;
+        MaterialParameter::archive_process(ar);
         return ar;
     }
 
@@ -191,7 +212,7 @@ namespace Engine
 
     MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
-        bind_sampler(sampler);
+        bind_sampler(sampler, pipeline);
         return *this;
     }
 
@@ -219,7 +240,7 @@ namespace Engine
     {
         if (Texture* texture = texture_param())
         {
-            texture->rhi_bind(location);
+            bind_texture(texture, pipeline);
         }
         return *this;
     }
@@ -230,29 +251,17 @@ namespace Engine
         auto texture = texture_param();
         auto sampler = sampler_param();
 
-        if (texture && sampler)
+        if (texture && sampler && pipeline)
         {
-            texture->rhi_bind_combined(sampler, location);
+            auto info = pipeline->find_param_info(name);
+            if (info && info->type == type())
+            {
+                texture->rhi_bind_combined(sampler, info->location);
+            }
         }
         return *this;
     }
 
-    MaterialParameterType ModelMatrixMaterialParameter::type() const
-    {
-        return MaterialParameterType::ModelMatrix;
-    }
-
-    ModelMatrixMaterialParameter& ModelMatrixMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
-    {
-        size_t parameter_offset = offset();
-        if (parameter_offset != no_offset)
-        {
-            Matrix4f model = component ? component->world_transform().matrix() : Matrix4f(1.f);
-            engine_instance->rhi()->update_local_parameter(reinterpret_cast<const byte*>(&model), sizeof(model),
-                                                           parameter_offset);
-        }
-        return *this;
-    }
 
     MaterialParameter* MaterialInterface::find_parameter(const Name& name) const
     {
@@ -344,7 +353,6 @@ namespace Engine
     declare_allocator(Sampler);
     declare_allocator(Texture2D);
     declare_allocator(CombinedImageSampler2D);
-    declare_allocator(ModelMatrix);
 
 
 #define new_param_allocator(type)                                                                                                \
@@ -377,7 +385,6 @@ namespace Engine
             new_param_allocator(Sampler);
             new_param_allocator(CombinedImageSampler2D);
             new_param_allocator(Texture2D);
-            new_param_allocator(ModelMatrix);
 
             default:
                 return nullptr;
@@ -451,28 +458,6 @@ namespace Engine
         return apply(this, component);
     }
 
-
-    void Material::apply_shader_global_params(class Shader* shader, MaterialInterface* head, SceneComponent* component)
-    {
-        for (auto& texture : shader->textures)
-        {
-            MaterialParameter* parameter = head->find_parameter(texture.name);
-            if (parameter && parameter->binding_object_type() == MaterialParameterType::Texture2D)
-            {
-                parameter->apply(pipeline, component);
-            }
-        }
-
-        for (auto& sampler : shader->samplers)
-        {
-            MaterialParameter* parameter = head->find_parameter(sampler.name);
-            if (parameter && parameter->binding_object_type() == MaterialParameterType::Sampler)
-            {
-                parameter->apply(pipeline, component);
-            }
-        }
-    }
-
     bool Material::apply(MaterialInterface* head, SceneComponent* component)
     {
         trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
@@ -486,10 +471,6 @@ namespace Engine
                 parameter->apply(pipeline, component);
             }
         }
-
-        apply_shader_global_params(pipeline->vertex_shader(), head, component);
-        apply_shader_global_params(pipeline->fragment_shader(), head, component);
-
         return true;
     }
 
@@ -498,132 +479,55 @@ namespace Engine
         return this;
     }
 
-    static bool submit_compiled_source(Material* material, const ShaderCompiler::ShaderSource& source, MessageList* errors)
+    bool Material::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
     {
-        bool status = false;
+        bool status = pipeline->submit_compiled_source(source, errors);
+        if (!status)
+            return status;
 
-        bool has_valid_graphical_pipeline = source.has_valid_graphical_pipeline();
-        bool has_valid_compute_pipiline   = source.has_valid_compute_pipeline();
 
-        if (has_valid_graphical_pipeline || has_valid_compute_pipiline)
+        TreeSet<Name> names_to_remove;
+
+        for (auto& entry : parameters())
         {
-            material->pipeline->remove_all_shaders();
+            names_to_remove.insert(entry.first);
         }
 
-        if (source.has_valid_graphical_pipeline())
+        auto create_material_parameter = [&](Name name, MaterialParameterType type) -> MaterialParameter* {
+            names_to_remove.erase(name);
+            MaterialParameter* material_parameter = find_parameter(name);
+
+            if (material_parameter && material_parameter->type() != type)
+            {
+                remove_parameter(name);
+                material_parameter = nullptr;
+            }
+
+            if (!material_parameter)
+            {
+                if (!(material_parameter = create_parameter(name, type)))
+                {
+                    error_log("Material", "Failed to create material parameter '%s'", name.c_str());
+                    return nullptr;
+                }
+            }
+
+            return material_parameter;
+        };
+
+        for (auto& [name, parameter] : pipeline->parameters)
         {
-            render_thread()->wait_all();
-
-
-            Pipeline* pipeline   = material->pipeline;
-            auto vertex_shader   = pipeline->vertex_shader(true);
-            auto fragment_shader = pipeline->fragment_shader(true);
-
-            vertex_shader->attributes.clear();
-            vertex_shader->attributes.reserve(source.reflection.attributes.size());
-
-
-            for (auto& attribute : source.reflection.attributes)
-            {
-                VertexShader::Attribute out_attribute;
-                out_attribute.name           = attribute.name;
-                out_attribute.format         = attribute.format;
-                out_attribute.rate           = attribute.rate;
-                out_attribute.semantic       = attribute.semantic;
-                out_attribute.semantic_index = attribute.semantic_index;
-                out_attribute.count          = attribute.count;
-
-                vertex_shader->attributes.push_back(out_attribute);
-            }
-
-            vertex_shader->source_code   = source.vertex_code;
-            fragment_shader->source_code = source.fragment_code;
-
-            if (source.has_tessellation_control_shader())
-            {
-                pipeline->tessellation_control_shader(true)->source_code = source.tessellation_control_code;
-            }
-            else
-            {
-                pipeline->remove_tessellation_control_shader();
-            }
-
-            if (source.has_tessellation_shader())
-            {
-                pipeline->tessellation_shader(true)->source_code = source.tessellation_code;
-            }
-            else
-            {
-                pipeline->remove_tessellation_shader();
-            }
-
-            if (source.has_geometry_shader())
-            {
-                pipeline->geometry_shader(true)->source_code = source.geometry_code;
-            }
-            else
-            {
-                pipeline->remove_geometry_shader();
-            }
-
-            TreeSet<Name> names_to_remove;
-
-            for (auto& entry : material->parameters())
-            {
-                names_to_remove.insert(entry.first);
-            }
-
-            auto create_material_parameter = [&](Name name, MaterialParameterType type) -> MaterialParameter* {
-                names_to_remove.erase(name);
-                MaterialParameter* material_parameter = material->find_parameter(name);
-
-                if (material_parameter && material_parameter->type() != type)
-                {
-                    material->remove_parameter(name);
-                    material_parameter = nullptr;
-                }
-
-                if (!material_parameter)
-                {
-                    if (!(material_parameter = material->create_parameter(name, type)))
-                    {
-                        error_log("Material", "Failed to create material parameter '%s'", name.c_str());
-                        return nullptr;
-                    }
-                }
-
-                return material_parameter;
-            };
-
-            for (auto& parameter : source.reflection.uniform_member_infos)
-            {
-                Name name = parameter.name;
-                if (MaterialParameter* material_parameter = create_material_parameter(name, parameter.type))
-                {
-                    material_parameter->offset(parameter.offset);
-                }
-            }
-
-            for (auto& parameter : source.reflection.binding_objects)
-            {
-                Name name = parameter.name;
-                if (BindingMaterialParameter* material_parameter =
-                            reinterpret_cast<BindingMaterialParameter*>(create_material_parameter(name, parameter.type)))
-                {
-                    material_parameter->location = parameter.location;
-                }
-            }
-
-            for (auto& name : names_to_remove)
-            {
-                material->remove_parameter(name);
-            }
-
-            material->pipeline->global_parameters = source.reflection.global_parameters_info;
-            material->pipeline->local_parameters  = source.reflection.local_parameters_info;
-            material->apply_changes();
-            status = true;
+            create_material_parameter(name, parameter.type);
         }
+
+        for (auto& name : names_to_remove)
+        {
+            remove_parameter(name);
+        }
+
+        apply_changes();
+        status = true;
+
 
         return status;
     }
@@ -673,7 +577,7 @@ namespace Engine
 
         if (status)
         {
-            status = submit_compiled_source(this, source, errors);
+            status = submit_compiled_source(source, *errors);
         }
 
         if (need_delete_compiler)

@@ -39,25 +39,12 @@ namespace Engine
     {
         if (!Super::archive_process(ar))
             return false;
-
-        ar & samplers;
-        ar & combined_image_samplers;
-        ar & textures;
-        ar & ssbo;
         return ar;
     }
 
     bool Shader::archive_process_source_code(Archive& ar)
     {
         return ar & source_code;
-    }
-
-    Shader& Shader::clean()
-    {
-        samplers.clear();
-        textures.clear();
-        ssbo.clear();
-        return *this;
     }
 
     VertexShader& VertexShader::rhi_create()
@@ -123,35 +110,6 @@ namespace Engine
     {
         return ShaderType::Geometry;
     }
-
-    ENGINE_EXPORT bool operator&(Archive& ar, Shader::SSBO& buffer)
-    {
-        ar & buffer.name;
-        ar & buffer.location.id;
-        return ar;
-    }
-
-    ENGINE_EXPORT bool operator&(Archive& ar, Shader::Texture& texture)
-    {
-        ar & texture.name;
-        ar & texture.location.id;
-        return ar;
-    }
-
-    ENGINE_EXPORT bool operator&(Archive& ar, Shader::Sampler& object)
-    {
-        ar & object.name;
-        ar & object.location.id;
-        return ar;
-    }
-
-    ENGINE_EXPORT bool operator&(Archive& ar, Shader::CombinedImageSampler& object)
-    {
-        ar & object.name;
-        ar & object.location.id;
-        return ar;
-    }
-
 
     ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
     {

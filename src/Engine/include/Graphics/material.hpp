@@ -12,7 +12,8 @@ namespace Engine
     namespace ShaderCompiler
     {
         class Compiler;
-    }
+        struct ShaderSource;
+    }// namespace ShaderCompiler
 
     class Pipeline;
     class SceneComponent;
@@ -22,8 +23,6 @@ namespace Engine
     class ENGINE_EXPORT MaterialParameter : public SerializableObject
     {
     public:
-        static inline constexpr size_t no_offset = ~static_cast<size_t>(0);
-
         Name name;
 
     protected:
@@ -31,8 +30,6 @@ namespace Engine
 
     public:
         virtual size_t size() const;
-        virtual size_t offset() const;
-        virtual MaterialParameter& offset(size_t new_offset);
         virtual byte* data();
         virtual const byte* data() const;
         virtual MaterialParameterType type() const = 0;
@@ -67,22 +64,11 @@ namespace Engine
     {
     public:
         TypeData param;
-        size_t param_offset;
 
         static constexpr inline MaterialParameterType parameter_type = _parameter_type;
-        TypedMaterialParameter(TypeData value = TypeData()) : param(value), param_offset(MaterialParameter::no_offset)
+        TypedMaterialParameter(TypeData value = TypeData()) : param(value)
         {}
 
-        size_t offset() const override
-        {
-            return param_offset;
-        }
-
-        MaterialParameter& offset(size_t new_offset) override
-        {
-            param_offset = new_offset;
-            return *this;
-        }
 
         MaterialParameterType type() const override
         {
@@ -108,7 +94,6 @@ namespace Engine
         {
             if (!MaterialParameter::archive_process(ar))
                 return false;
-            serialize_data(ar, &param_offset, sizeof(param_offset));
             return serialize_data(ar, &param, sizeof(param));
         }
     };
@@ -142,16 +127,21 @@ namespace Engine
     using Vec3MaterialParameter = TypedMaterialParameter<Vector3D, MaterialParameterType::Vec3>;
     using Vec4MaterialParameter = TypedMaterialParameter<Vector4D, MaterialParameterType::Vec4>;
     using Mat3MaterialParameter = TypedMatrixMaterialParameter<Matrix3f, MaterialParameterType::Mat3>;
-    using Mat4MaterialParameter = TypedMatrixMaterialParameter<Matrix4f, MaterialParameterType::Mat4>;
+
+    struct ENGINE_EXPORT Mat4MaterialParameter : public TypedMatrixMaterialParameter<Matrix4f, MaterialParameterType::Mat4> {
+        using Super = TypedMatrixMaterialParameter<Matrix4f, MaterialParameterType::Mat4>;
+
+        bool bind_model_matrix = false;
+
+        Mat4MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component) override;
+        bool archive_process(Archive& archive) override;
+    };
 
     class ENGINE_EXPORT BindingMaterialParameter : public MaterialParameter
     {
-    public:
-        BindLocation location;
-
     protected:
-        void bind_texture(class Engine::Texture2D* texture);
-        void bind_sampler(class Engine::Sampler* sampler);
+        void bind_texture(class Engine::Texture* texture, const Pipeline* pipeline);
+        void bind_sampler(class Engine::Sampler* sampler, const Pipeline* pipeline);
         bool archive_process(Archive& ar) override;
         static bool archive_status(Archive& ar);
 
@@ -286,11 +276,6 @@ namespace Engine
         }
     };
 
-    struct ENGINE_EXPORT ModelMatrixMaterialParameter : public MaterialParameter {
-        MaterialParameterType type() const override;
-        ModelMatrixMaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
-    };
-
 
     class ENGINE_EXPORT MaterialInterface : public Object
     {
@@ -320,7 +305,6 @@ namespace Engine
 
     protected:
         MaterialParameter* create_parameter_internal(const Name& name, MaterialParameterType type) override;
-        void apply_shader_global_params(class Shader* shader, MaterialInterface* head, SceneComponent* component);
 
     public:
         Pipeline* pipeline;
@@ -342,6 +326,7 @@ namespace Engine
         class Material* material() override;
         bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
         Material& apply_changes() override;
+        bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors);
         ~Material();
     };
 

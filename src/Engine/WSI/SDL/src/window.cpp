@@ -640,6 +640,8 @@ namespace Engine
         {
             if (!created_context.opengl_context)
             {
+                SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 0);
+                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
                 created_context.opengl_context = SDL_GL_CreateContext(m_window);
                 if (!created_context.opengl_context)
                 {

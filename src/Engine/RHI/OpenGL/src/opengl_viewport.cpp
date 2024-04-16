@@ -41,7 +41,7 @@ namespace Engine
 
     // Window Viewport
 
-    void OpenGL_WindowViewport::init(WindowInterface* window, bool vsync)
+    void OpenGL_WindowViewport::init(WindowInterface* window, bool vsync_value)
     {
         if (!(OPENGL_API->m_context))
         {
@@ -58,6 +58,8 @@ namespace Engine
 
         m_window        = window;
         m_render_target = new OpenGL_MainRenderTarget();
+        m_window->make_current();
+        vsync(vsync_value);
     }
 
 
