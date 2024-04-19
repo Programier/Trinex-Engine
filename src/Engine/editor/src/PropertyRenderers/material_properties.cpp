@@ -2,7 +2,7 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
-#include <Widgets/imgui_windows.hpp>
+#include <Widgets/properties_window.hpp>
 #include <editor_config.hpp>
 
 
@@ -199,81 +199,24 @@ namespace Engine
     {
         Material* material = reinterpret_cast<Material*>(object);
 
-        static Name userdata_name = "TrinexEngine::Editor::MaterialPropertiesRenderer::definition_index";
-        uint& m_definition_index =
-                window->userdata.find_or_create_userdata<MaterialPropertiesUserData>(userdata_name)->definition_index;
-
         if (material == nullptr)
         {
             return;
         }
 
-        const ImVec2 window_size      = ImGui::GetContentRegionAvail();
-        const ImVec2 window_half_size = window_size / 2.f;
-
-        if (ImGui::CollapsingHeader("editor/Definitions"_localized))
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        if (window->collapsing_header("editor/Parameters"_localized))
         {
             ImGui::Indent(editor_config.collapsing_indent);
-            auto& definitions = material->compile_definitions;
-
-            static auto update_index = [](decltype(definitions)& definitions, uint_t& index) {
-                index = glm::min<uint_t>(index, definitions.size() - 1);
-            };
-
-            update_index(definitions, m_definition_index);
-
-            {
-                const float button_size_x = ImGui::GetFrameHeight();
-                const ImVec2 button_size  = ImVec2(button_size_x, button_size_x);
-
-                ImGui::SetNextItemWidth(window_size.x - (button_size_x + ImGui::GetStyle().ItemSpacing.x) * 2);
-                if (ImGui::InputScalar("##Index", ImGuiDataType_U32, &m_definition_index))
-                {
-                    update_index(definitions, m_definition_index);
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("+", button_size))
-                {
-                    definitions.emplace(definitions.begin() + m_definition_index);
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("-", button_size))
-                {
-                    definitions.erase(definitions.begin() + m_definition_index);
-                    update_index(definitions, m_definition_index);
-                }
-            }
-
-            for (auto& definition : definitions)
-            {
-                ImGui::PushID(&definition);
-                ImGui::SetNextItemWidth(window_half_size.x);
-                ImGuiRenderer::InputText("##Key"_localized, definition.key);
-                ImGui::SameLine();
-                ImGui::SetNextItemWidth(window_half_size.x);
-                ImGuiRenderer::InputText("##Value"_localized, definition.value);
-                ImGui::PopID();
-            }
-
-            ImGui::Unindent(editor_config.collapsing_indent);
-        }
-
-        if (ImGui::CollapsingHeader("editor/Parameters"_localized))
-        {
-            ImGui::Indent(editor_config.collapsing_indent);
-            ImGui::BeginTable("##Params", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
 
             for (auto& param : material->material()->parameters())
             {
                 ImGui::PushID(param.second);
                 ImGui::TableNextRow();
-                ImGui::TableNextColumn();
+                ImGui::TableSetColumnIndex(0);
                 ImGui::Text("%s", param.first.c_str());
-                ImGui::TableNextColumn();
+                ImGui::TableSetColumnIndex(1);
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
                 auto renderer = m_parameter_renderers[param.second->type()];
@@ -283,12 +226,8 @@ namespace Engine
                 }
                 ImGui::PopID();
             }
-            ImGui::EndTable();
             ImGui::Unindent(editor_config.collapsing_indent);
         }
-
-
-        //    ImGui::SeparatorText("Pipeline");
     }
 
     static void initialize_special_class_properties_renderers()

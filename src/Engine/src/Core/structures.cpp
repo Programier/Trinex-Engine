@@ -1,5 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/constants.hpp>
+#include <Core/property.hpp>
+#include <Core/struct.hpp>
 #include <Core/structures.hpp>
 
 namespace Engine
@@ -74,4 +76,10 @@ namespace Engine
         : type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none),
           location(BindLocation(255, 255))
     {}
+
+    implement_struct(ShaderDefinition, Engine, ).push([]() {
+        Struct* self = Struct::static_find("Engine::ShaderDefinition", true);
+        self->add_property(new StringProperty("Key", "Key of definition", &ShaderDefinition::key));
+        self->add_property(new StringProperty("Value", "Value of definition", &ShaderDefinition::value));
+    });
 }// namespace Engine

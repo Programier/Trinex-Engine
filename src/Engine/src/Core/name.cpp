@@ -8,6 +8,12 @@
 
 namespace Engine
 {
+#define declare_name(name) const Name Name::name = #name
+    declare_name(undefined);
+    declare_name(out_of_range);
+    declare_name(model);
+    declare_name(texture);
+
     static Vector<Name::Entry>& name_entries()
     {
         static Vector<Name::Entry> entries;

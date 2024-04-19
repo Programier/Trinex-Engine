@@ -1,6 +1,8 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Graphics/imgui.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
+#include <Widgets/properties_window.hpp>
+#include <editor_config.hpp>
 
 namespace Engine
 {
@@ -8,13 +10,31 @@ namespace Engine
     {
         PrimitiveComponent* component = reinterpret_cast<PrimitiveComponent*>(object);
 
-        if (component && ImGui::CollapsingHeader("editor/Bounds"_localized))
+        ImGui::TableNextRow();
+        if (component && window->collapsing_header("editor/Bounds"_localized))
         {
             AABB_3Df bounds = component->bounding_box();
-            ImGui::Indent(5.f);
-            ImGui::InputFloat3("Min", const_cast<float*>(&bounds.min().x), "%.3f", ImGuiInputTextFlags_ReadOnly);
-            ImGui::InputFloat3("Max", const_cast<float*>(&bounds.max().x), "%.3f", ImGuiInputTextFlags_ReadOnly);
-            ImGui::Unindent(5.f);
+            ImGui::Indent(editor_config.collapsing_indent);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Min");
+
+            ImGui::TableSetColumnIndex(1);
+            float item_width = ImGui::GetContentRegionAvail().x;
+
+            ImGui::SetNextItemWidth(item_width);
+            ImGui::InputFloat3("##MinValue", const_cast<float*>(&bounds.min().x), "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("Max");
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::SetNextItemWidth(item_width);
+            ImGui::InputFloat3("##MaxValue", const_cast<float*>(&bounds.max().x), "%.3f", ImGuiInputTextFlags_ReadOnly);
+
+            ImGui::Unindent(editor_config.collapsing_indent);
         }
     }
 

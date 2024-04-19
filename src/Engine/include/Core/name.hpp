@@ -5,6 +5,12 @@ namespace Engine
 {
     class ENGINE_EXPORT Name
     {
+    public:
+        static const Name undefined;
+        static const Name out_of_range;
+        static const Name model;
+        static const Name texture;
+
 
     public:
         struct Entry {

@@ -418,4 +418,72 @@ namespace Engine
 
         return serialize_object_properies(self, this, ar);
     }
+
+    ENGINE_EXPORT Name default_array_element_name(ArrayPropertyInterface* interface, void* object, size_t index)
+    {
+        static thread_local Vector<String> elements;
+
+        if (index >= interface->elements_count(object))
+        {
+            return Name::out_of_range;
+        }
+
+        while (index >= elements.size())
+        {
+            elements.push_back(Strings::format("{}", elements.size()));
+        }
+
+        return elements[index].c_str();
+    }
+
+    ENGINE_EXPORT Name default_array_object_element_name(class ArrayPropertyInterface* interface, void* object, size_t index)
+    {
+        if (index >= interface->elements_count(object))
+        {
+            return Name::out_of_range;
+        }
+
+        auto element_prop = interface->element_type();
+
+        if (element_prop && is_in<PropertyType::Object, PropertyType::ObjectReference>(element_prop->type()))
+        {
+            if(void* element = reinterpret_cast<Object*>(interface->at(object, index)))
+            {
+                Object* element_object = interface->element_type()->property_value(element).cast<Object*>();
+                return element_object->name();
+            }
+        }
+
+        return default_array_element_name(interface, object, index);
+    }
+
+    ArrayPropertyInterface::ArrayPropertyInterface(const Name& name, const String& description, const Name& group, BitMask flags)
+        : Property(name, description, group, flags)
+    {
+        m_element_name_callback = default_array_element_name;
+    }
+
+    ArrayPropertyElementNameCallback ArrayPropertyInterface::element_name_callback() const
+    {
+        return m_element_name_callback;
+    }
+
+    ArrayPropertyInterface& ArrayPropertyInterface::element_name_callback(ArrayPropertyElementNameCallback callback)
+    {
+        if (callback)
+        {
+            m_element_name_callback = callback;
+        }
+        return *this;
+    }
+
+    Name ArrayPropertyInterface::element_name(void* object, size_t index)
+    {
+        if (index >= elements_count(object))
+        {
+            return Name::out_of_range;
+        }
+
+        return m_element_name_callback(this, object, index);
+    }
 }// namespace Engine

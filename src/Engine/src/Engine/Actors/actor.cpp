@@ -1,6 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
+#include <Core/property.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/world.hpp>
@@ -54,7 +55,7 @@ namespace Engine
     {
         for (size_t i = 0, count = m_owned_components.size(); i < count; i++)
         {
-            ActorComponent* actor_component = m_owned_components[i].ptr();
+            ActorComponent* actor_component = m_owned_components[i];
             if (actor_component == component)
             {
                 if (m_root_component == component)
@@ -150,7 +151,7 @@ namespace Engine
         return m_root_component.ptr();
     }
 
-    const Vector<Pointer<class ActorComponent>>& Actor::owned_components() const
+    const Vector<class ActorComponent*>& Actor::owned_components() const
     {
         return m_owned_components;
     }
@@ -174,5 +175,13 @@ namespace Engine
 
     implement_class(Actor, Engine, 0);
     implement_initialize_class(Actor)
-    {}
+    {
+        Class* self = This::static_class_instance();
+        auto components =
+                new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
+                                  new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none),
+                                  Name::none, Property::Flag::IsConst);
+        components->element_name_callback(default_array_object_element_name);
+        self->add_property(components);
+    }
 }// namespace Engine

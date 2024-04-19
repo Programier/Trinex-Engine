@@ -7,6 +7,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
+#include <Widgets/properties_window.hpp>
 
 namespace Engine
 {

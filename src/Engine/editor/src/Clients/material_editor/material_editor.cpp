@@ -15,6 +15,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <Widgets/properties_window.hpp>
 
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>

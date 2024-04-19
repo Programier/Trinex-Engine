@@ -70,7 +70,12 @@ namespace Engine
     implement_engine_class(Material, Class::IsAsset);
     implement_initialize_class(Material)
     {
-        Class* self = static_class_instance();
+        Class* self               = static_class_instance();
+        Struct* definition_struct = Struct::static_find("Engine::ShaderDefinition", true);
+
+        auto definitions_prop = new ArrayProperty("Definitions", "Compile definitions", &This::compile_definitions,
+                                                  new StructProperty<This, ShaderDefinition>("", "", nullptr, definition_struct));
+        self->add_property(definitions_prop);
         self->add_properties(new ObjectProperty("Pipeline", "Pipeline settings for this material", &Material::pipeline,
                                                 Name::none, Property::IsNotSerializable));
     }

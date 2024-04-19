@@ -14,7 +14,7 @@ namespace Engine
 
     private:
         Pointer<class SceneComponent> m_root_component;
-        Vector<Pointer<class ActorComponent>> m_owned_components;
+        Vector<class ActorComponent*> m_owned_components;
         ScriptObject m_script_object;
 
         class World* m_world      = nullptr;
@@ -42,7 +42,7 @@ namespace Engine
         Actor& destroy();
 
         bool is_playing() const;
-        const Vector<Pointer<class ActorComponent>>& owned_components() const;
+        const Vector<class ActorComponent*>& owned_components() const;
         Actor& destroy_script_object(ScriptObject* object) override;
         const Transform* transfrom() const;
         SceneComponent* scene_component() const;

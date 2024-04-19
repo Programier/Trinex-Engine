@@ -659,22 +659,34 @@ namespace Engine
         }
     };
 
+    ENGINE_EXPORT Name default_array_element_name(class ArrayPropertyInterface* interface, void* object, size_t index);
+    ENGINE_EXPORT Name default_array_object_element_name(class ArrayPropertyInterface* interface, void* object, size_t index);
+    using ArrayPropertyElementNameCallback = Name (*)(class ArrayPropertyInterface*, void*, size_t);
+
     class ENGINE_EXPORT ArrayPropertyInterface : public Property
     {
-    public:
-        using Property::Property;
+    private:
+        ArrayPropertyElementNameCallback m_element_name_callback;
 
-        virtual Property* element_type() const             = 0;
-        virtual void* at(void* object, Index index)        = 0;
-        virtual size_t elements_count(void* object)        = 0;
-        virtual bool emplace_back(void* object)            = 0;
-        virtual bool pop_back(void* object)                = 0;
-        virtual bool insert(void* object, Index index)     = 0;
-        virtual bool erase(void* object, Index index)      = 0;
-        virtual void resize(void* object, size_t new_size) = 0;
+    public:
+        ArrayPropertyInterface(const Name& name, const String& description, const Name& group = Name::none, BitMask flags = 0);
+
+        virtual Property* element_type() const                  = 0;
+        virtual void* at(void* object, Index index)             = 0;
+        virtual size_t elements_count(const void* object) const = 0;
+        virtual bool emplace_back(void* object)                 = 0;
+        virtual bool pop_back(void* object)                     = 0;
+        virtual bool insert(void* object, Index index)          = 0;
+        virtual bool erase(void* object, Index index)           = 0;
+        virtual void resize(void* object, size_t new_size)      = 0;
 
         bool archive_process(void* object, Archive& ar) override;
+
+        ArrayPropertyElementNameCallback element_name_callback() const;
+        ArrayPropertyInterface& element_name_callback(ArrayPropertyElementNameCallback callback);
+        Name element_name(void* object, size_t index);
     };
+
 
     template<typename InstanceType, typename ArrayType>
     class ArrayProperty : public ArrayPropertyInterface
@@ -682,6 +694,7 @@ namespace Engine
     private:
         ArrayType InstanceType::*m_prop;
         Property* m_element_property;
+        ;
 
         using Super = ArrayPropertyInterface;
 
@@ -710,9 +723,9 @@ namespace Engine
             return nullptr;
         }
 
-        size_t elements_count(void* object) override
+        size_t elements_count(const void* object) const override
         {
-            ArrayType* array = array_from(object);
+            const ArrayType* array = array_from(object);
             if (array)
             {
                 return array->size();
@@ -802,9 +815,9 @@ namespace Engine
             return reinterpret_cast<ArrayType*>(prop_address(object));
         }
 
-        const ArrayType* array_from(void* object) const
+        const ArrayType* array_from(const void* object) const
         {
-            return reinterpret_cast<ArrayType*>(prop_address(object));
+            return reinterpret_cast<const ArrayType*>(prop_address(object));
         }
 
         PropertyValue property_value(const void* object) const override

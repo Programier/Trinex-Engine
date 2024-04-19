@@ -6,6 +6,7 @@
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
 #include <Widgets/imgui_windows.hpp>
+#include <Widgets/properties_window.hpp>
 #include <editor_config.hpp>
 #include <editor_resources.hpp>
 #include <icons.hpp>
@@ -21,9 +22,19 @@ namespace Engine
     static void render_struct_properties(ImGuiObjectProperties*, void* object, class Struct* struct_class, bool editable = true,
                                          bool is_in_table = false);
 
+    static FORCE_INLINE float get_column_width(ImGuiTableColumn& column)
+    {
+        return column.WorkMaxX - column.WorkMinX;
+    }
+
+    static inline bool props_collapsing_header(const char* header_text)
+    {
+        return ImGuiObjectProperties::collapsing_header("%s", header_text);
+    }
+
     static FORCE_INLINE void begin_prop_table()
     {
-        ImGui::BeginTable("##PropTable", 3, ImGuiTableFlags_Resizable);
+        ImGui::BeginTable("##PropTable", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInner);
         auto width = ImGui::GetContentRegionAvail().x;
         ImGui::TableSetupColumn("##Column1", ImGuiTableColumnFlags_WidthStretch, width * 0.45);
         ImGui::TableSetupColumn("##Column2", ImGuiTableColumnFlags_WidthStretch, width * 0.45);
@@ -217,6 +228,14 @@ namespace Engine
                 });
     }
 
+    static void render_string_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
+    {
+        render_prop_internal<String, PropertyType::String>(
+                window, object, prop, can_edit, edit_f(String) {
+                    return ImGuiRenderer::InputText("##Value", value, editable ? 0 : ImGuiInputTextFlags_ReadOnly);
+                });
+    }
+
     static void render_path_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<Path, PropertyType::Path>(
@@ -224,7 +243,7 @@ namespace Engine
                     ImGuiRenderer::Window* imgui_window = ImGuiRenderer::Window::current();
 
                     const char* text = value.empty() ? "None" : value.c_str();
-                    if (ImGui::Selectable(text))
+                    if (ImGui::Selectable(text) && editable)
                     {
                         Function<void(const Path&)> callback = [object, prop](const Path& path) {
                             prop->property_value(object, path);
@@ -273,33 +292,24 @@ namespace Engine
         }
     }
 
-
-    static bool render_object_property_internal(ImGuiObjectProperties* window, void* object, Property* prop, Object*& value,
-                                                bool can_edit)
-    {
-        if (value)
-        {
-            if (ImGui::CollapsingHeader(value->class_instance()->base_name_splitted().c_str()))
-            {
-                ImGui::Indent(editor_config.collapsing_indent);
-                render_struct_properties(window, value, value->class_instance(), can_edit, true);
-                ImGui::Unindent(editor_config.collapsing_indent);
-            }
-        }
-        else
-        {
-            ImGui::Text("%s: No Object", prop->name().c_str());
-        }
-
-        return false;
-    }
-
     static void render_object_property(ImGuiObjectProperties* window, Object* object, Property* prop, bool can_edit)
     {
-        return render_prop_internal<Object*, PropertyType::Object>(window, object, prop, can_edit,
-                                                                   render_object_property_internal);
-    }
+        PropertyValue value = prop->property_value(object);
 
+        if (value.has_value())
+        {
+            object               = value.cast<Object*>();
+            Struct* struct_class = prop->struct_instance();
+            if (props_collapsing_header(prop->name().c_str()))
+            {
+                push_props_id(object, prop);
+                ImGui::Indent(editor_config.collapsing_indent);
+                render_struct_properties(window, object, struct_class, can_edit, true);
+                ImGui::Unindent(editor_config.collapsing_indent);
+                pop_props_id();
+            }
+        }
+    }
 
     static bool render_object_reference_internal(ImGuiObjectProperties* window, void* object, Property* prop, Object*& value,
                                                  bool can_edit)
@@ -309,19 +319,13 @@ namespace Engine
 
         bool changed = false;
 
-        if (ImGui::CollapsingHeader(self->base_name_splitted().c_str()))
         {
-            ImGui::Indent(editor_config.collapsing_indent);
-            ImGui::TableNextRow();
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%s", value ? value->name().c_str() : "None");
-
             ImGui::TableSetColumnIndex(1);
 
             ImGui::PushID("##Image");
             ImGui::Image(Icons::find_imgui_icon(value), {100, 100});
 
-            if (ImGui::BeginDragDropTarget())
+            if (can_edit && ImGui::BeginDragDropTarget())
             {
                 const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ContentBrowser->Object");
                 if (payload)
@@ -340,15 +344,16 @@ namespace Engine
             }
             ImGui::PopID();
 
-            ImGui::TableSetColumnIndex(2);
-            if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
-                                   {size, size}))
+            if (can_edit)
             {
-                value   = nullptr;
-                changed = true;
+                ImGui::TableSetColumnIndex(2);
+                if (ImGui::ImageButton(ImTextureID(Icons::icon(Icons::IconType::Rotate), EditorResources::default_sampler),
+                                       {size, size}))
+                {
+                    value   = nullptr;
+                    changed = true;
+                }
             }
-
-            ImGui::Unindent(editor_config.collapsing_indent);
         }
         return changed;
     }
@@ -359,18 +364,16 @@ namespace Engine
                                                                             render_object_reference_internal);
     }
 
+
     static void render_struct_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
     {
-        render_prop_name(prop);
-
         PropertyValue value = prop->property_value(object);
 
         if (value.has_value())
         {
             void* struct_object  = value.cast<void*>();
             Struct* struct_class = prop->struct_instance();
-
-            if (ImGui::CollapsingHeader(struct_class->base_name_splitted().c_str()))
+            if (props_collapsing_header(prop->name().c_str()))
             {
                 push_props_id(object, prop);
                 ImGui::Indent(editor_config.collapsing_indent);
@@ -381,10 +384,12 @@ namespace Engine
         }
     }
 
-
-    static bool render_array_internal(ImGuiObjectProperties* window, void* object, Property* prop, ArrayPropertyValue& value,
-                                      bool can_edit)
+    static void render_array_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
     {
+        PropertyValue value = prop->property_value(object);
+        if (!value.has_value())
+            return;
+
         ImGui::TableSetColumnIndex(2);
         ArrayPropertyInterface* interface = reinterpret_cast<ArrayPropertyInterface*>(prop);
         const float size                  = ImGui::GetFrameHeight();
@@ -394,9 +399,7 @@ namespace Engine
             interface->emplace_back(object);
         }
 
-        ImGui::TableSetColumnIndex(1);
-
-        if (ImGui::CollapsingHeader(prop->name().c_str()))
+        if (props_collapsing_header(prop->name().c_str()))
         {
             ImGui::Indent(editor_config.collapsing_indent);
             Property* element_property = interface->element_type();
@@ -413,7 +416,7 @@ namespace Engine
 
                 ImGui::PushID(i);
 
-                if (ImGui::Button("-", {size, size}))
+                if (can_edit && ImGui::Button("-", {size, size}))
                 {
                     interface->erase(object, i);
                     --count;
@@ -421,14 +424,9 @@ namespace Engine
                     continue;
                 }
 
-                if (names.size() <= i)
-                {
-                    names.emplace_back(Strings::format("{}", i));
-                }
-
                 void* array_object = interface->at(object, i);
-                element_property->name(names[i]);
-                render_property(window, array_object, element_property, can_edit);
+                element_property->name(interface->element_name(object, i));
+                render_property(window, array_object, element_property, true);
 
                 ++i;
                 ImGui::PopID();
@@ -437,13 +435,6 @@ namespace Engine
             element_property->name(name);
             ImGui::Unindent(editor_config.collapsing_indent);
         }
-        return false;
-    }
-
-    static void render_array_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
-    {
-        return render_prop_internal<ArrayPropertyValue, PropertyType::Array>(window, object, prop, can_edit,
-                                                                             render_array_internal);
     }
 
     static void render_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
@@ -498,6 +489,9 @@ namespace Engine
             case PropertyType::Color4:
                 render_color4_prop(window, object, prop, can_edit);
                 break;
+            case PropertyType::String:
+                render_string_property(window, object, prop, can_edit);
+                break;
             case PropertyType::Path:
                 render_path_property(window, object, prop, can_edit);
                 break;
@@ -527,6 +521,10 @@ namespace Engine
     static void render_struct_properties(ImGuiObjectProperties* window, void* object, class Struct* struct_class, bool editable,
                                          bool is_in_table)
     {
+        if (!is_in_table)
+            begin_prop_table();
+
+
         for (Struct* self = struct_class; self; self = self->parent())
         {
             auto it = special_class_properties_renderers.find(self);
@@ -543,36 +541,17 @@ namespace Engine
 
             if (group != Name::none)
             {
-                const char* separator_name = group.c_str();
-
-                if (is_in_table)
-                {
-                    ImGui::TableNextRow();
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0), "%s", group.c_str());
-                    separator_name = "editor/Group"_localized;
-                    ImGui::TableSetColumnIndex(1);
-                }
-
-                open = ImGui::CollapsingHeader(separator_name);
+                open = props_collapsing_header(group.c_str());
                 ImGui::Indent(editor_config.collapsing_indent);
             }
 
             if (open)
             {
-                ImGui::PushID("PropTable");
-                if (!is_in_table)
-                    begin_prop_table();
-
                 for (auto& prop : props)
                 {
                     ImGui::TableNextRow();
                     render_property(window, object, prop, editable);
                 }
-
-                if (!is_in_table)
-                    end_prop_table();
-                ImGui::PopID();
             }
 
             if (group != Name::none)
@@ -580,6 +559,9 @@ namespace Engine
                 ImGui::Unindent(editor_config.collapsing_indent);
             }
         }
+
+        if (!is_in_table)
+            end_prop_table();
     }
 
     bool ImGuiObjectProperties::render(RenderViewport* viewport)
@@ -681,7 +663,43 @@ namespace Engine
 
     void ImGuiObjectProperties::render_struct_properties(void* object, class Struct* struct_class, bool editable)
     {
-        ::Engine::render_struct_properties(this, object, struct_class, editable, false);
+        ::Engine::render_struct_properties(this, object, struct_class, editable, true);
+    }
+
+    bool ImGuiObjectProperties::collapsing_header(const char* format, ...)
+    {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        ImGuiTable* table   = ImGui::GetCurrentContext()->CurrentTable;
+
+        ImGui::TableSetColumnIndex(0);
+        ImVec4 color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+        color.w      = 1.0f;
+        auto padding = ImGui::GetStyle().CellPadding;
+        float indent = window->DC.Indent.x;
+
+        auto min_pos = ImGui::GetCursorScreenPos() - padding - ImVec2(indent, 0.f);
+        auto max_pos = min_pos + ImVec2(window->ParentWorkRect.GetWidth() + indent, ImGui::GetFrameHeight()) + padding * 2.f;
+
+        ImGui::TablePushBackgroundChannel();
+        ImGui::GetWindowDrawList()->AddRectFilled(min_pos, max_pos, ImGui::ColorConvertFloat4ToU32(color));
+        ImGui::TablePopBackgroundChannel();
+
+        auto clip_rect        = window->ClipRect;
+        auto parent_work_rect = window->ParentWorkRect;
+
+        max_pos.x -= get_column_width(table->Columns[2]) + (padding.x * 1.f) + indent;
+        window->ClipRect.Max.x += (max_pos.x - min_pos.x) - clip_rect.GetWidth();
+        window->ParentWorkRect.Max = max_pos;
+
+        va_list args;
+        va_start(args, format);
+        bool result = ImGui::TreeNodeExV("##NodeId", ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader,
+                                         format, args);
+        va_end(args);
+
+        window->ClipRect       = clip_rect;
+        window->ParentWorkRect = parent_work_rect;
+        return result;
     }
 
 
