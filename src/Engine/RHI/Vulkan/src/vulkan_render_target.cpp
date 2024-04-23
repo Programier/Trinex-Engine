@@ -6,7 +6,6 @@
 #include <vulkan_renderpass.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
-#include <vulkan_transition_image_layout.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -19,20 +18,17 @@ namespace Engine
                                vk::PipelineStageFlagBits::eTransfer;
 
 
-        std::vector<vk::MemoryBarrier> barriers(count);
+        vk::MemoryBarrier barrier;
 
         auto src_access_mask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         auto dst_access_mask = vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eVertexAttributeRead |
                                vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
                                vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
 
-        for (auto& barrier : barriers)
-        {
-            barrier.setSrcAccessMask(src_access_mask);
-            barrier.setDstAccessMask(dst_access_mask);
-        }
 
-        API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barriers, {}, {});
+        barrier.setSrcAccessMask(src_access_mask);
+        barrier.setDstAccessMask(dst_access_mask);
+        API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barrier, {}, {});
     }
 
     void VulkanRenderTargetState::init(const RenderTarget* render_target, VulkanRenderPass* render_pass)
@@ -110,7 +106,7 @@ namespace Engine
             trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
 
             vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-            m_attachments[index] = texture->get_image_view(range);
+            m_attachments[index] = texture->create_image_view(range);
             ++index;
         }
 
@@ -124,7 +120,7 @@ namespace Engine
             trinex_check(check_status, "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
 
             vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
-            m_attachments[index] = texture->get_image_view(range);
+            m_attachments[index] = texture->create_image_view(range);
         }
 
 

@@ -6,22 +6,33 @@
 namespace Engine
 {
     struct VulkanTexture : RHI_Texture {
-
-        const Texture* m_engine_texture = nullptr;
+    private:
+        const Engine::Texture* m_engine_texture;
+        vk::DeviceMemory m_image_memory;
 
         vk::Image m_image;
-        vk::DeviceMemory m_image_memory;
         vk::ImageView m_image_view;
+        vk::ImageLayout m_layout;
         vk::Format m_vulkan_format;
         vk::ComponentMapping m_swizzle;
-        VkDescriptorSet m_imgui_descriptor_set = 0;
+
+    public:
+        vk::DeviceMemory memory() const;
+        vk::Image image() const;
+        vk::ImageView image_view() const;
+        vk::ImageLayout layout() const;
+        vk::Format format() const;
+        vk::ComponentMapping swizzle() const;
+        Vector2D size() const;
+        uint_t layer_count() const;
+        MipMapLevel mipmap_count();
+        MipMapLevel base_mipmap();
+        vk::ImageAspectFlags aspect() const;
 
         VulkanTexture& create(const Texture* texture, const byte* data, size_t size);
         VulkanTexture& destroy();
 
         vk::ImageSubresourceRange subresource_range(MipMapLevel base);
-        vk::ImageAspectFlags aspect() const;
-        uint_t layer_count() const;
         vk::ImageViewType view_type() const;
         uint_t pixel_type_size() const;
 
@@ -34,8 +45,11 @@ namespace Engine
                                size_t data_size) override;
         bool can_use_color_as_color_attachment() const;
         bool is_depth_stencil_image() const;
+
         vk::Offset2D get_mip_size(MipMapLevel level) const;
-        vk::ImageView get_image_view(const vk::ImageSubresourceRange& range);
+        vk::ImageView create_image_view(const vk::ImageSubresourceRange& range);
+
+        vk::ImageLayout change_layout(vk::ImageLayout new_layout);
 
 
         ~VulkanTexture();

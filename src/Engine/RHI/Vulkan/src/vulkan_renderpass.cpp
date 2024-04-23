@@ -19,21 +19,19 @@ namespace Engine
 
             vk::AttachmentLoadOp clear_op =
                     color_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad;
-            vk::ImageLayout input_layout_op =
-                    color_attachment.clear_on_bind ? vk::ImageLayout::eUndefined : vk::ImageLayout::eShaderReadOnlyOptimal;
+            vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
 
             vk::AttachmentDescription description = vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
                     input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
 
-
             m_attachment_descriptions.push_back(description);
         }
 
         if (render_pass->has_depth_stancil)
         {
-            m_has_depth_attachment  = true;
+            m_has_depth_attachment   = true;
             vk::Format format        = parse_engine_format(render_pass->depth_stencil_attachment.format);
             ColorFormatAspect aspect = ColorFormatInfo::info_of(render_pass->depth_stencil_attachment.format).aspect();
             if (aspect != ColorFormatAspect::Depth && aspect != ColorFormatAspect::Stencil &&
@@ -44,10 +42,7 @@ namespace Engine
 
             vk::AttachmentLoadOp clear_op   = render_pass->depth_stencil_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear
                                                                                                   : vk::AttachmentLoadOp::eLoad;
-            vk::ImageLayout input_layout_op = render_pass->depth_stencil_attachment.clear_on_bind
-                                                      ? vk::ImageLayout::eUndefined
-                                                      : vk::ImageLayout::eShaderReadOnlyOptimal;
-
+            vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
             vk::AttachmentDescription description = vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
@@ -103,20 +98,26 @@ namespace Engine
     VulkanRenderPass& VulkanRenderPass::create()
     {
         m_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, {},
-                                            m_color_attachment_references, {},
-                                            m_has_depth_attachment ? &m_depth_attachment_renference : nullptr);
+                                           m_color_attachment_references, {},
+                                           m_has_depth_attachment ? &m_depth_attachment_renference : nullptr);
 
-        vk::PipelineStageFlags pipeline_flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        vk::AccessFlags access_flags          = vk::AccessFlagBits::eColorAttachmentWrite;
+
+        vk::PipelineStageFlags src_pipeline_flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        vk::PipelineStageFlags dst_pipeline_flags =
+                vk::PipelineStageFlagBits::eVertexShader | vk::PipelineStageFlagBits::eFragmentShader |
+                vk::PipelineStageFlagBits::eComputeShader | vk::PipelineStageFlagBits::eTransfer;
+
+        vk::AccessFlags src_access_flags = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eColorAttachmentRead;
+        vk::AccessFlags dst_access_flags = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eTransferRead;
 
         if (m_has_depth_attachment)
         {
-            pipeline_flags |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            access_flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            src_pipeline_flags |= vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            src_access_flags |= vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
 
-        m_dependency =
-                vk::SubpassDependency(0, 0, pipeline_flags, pipeline_flags, {}, access_flags, vk::DependencyFlagBits::eByRegion);
+        m_dependency = vk::SubpassDependency(0, VK_SUBPASS_EXTERNAL, src_pipeline_flags, dst_pipeline_flags, src_access_flags,
+                                             dst_access_flags, vk::DependencyFlagBits::eByRegion);
 
         m_render_pass = API->m_device.createRenderPass(
                 vk::RenderPassCreateInfo(vk::RenderPassCreateFlags(), m_attachment_descriptions, m_subpass, m_dependency));
@@ -159,7 +160,7 @@ namespace Engine
     {
         if (m_main_render_pass == nullptr)
         {
-            m_main_render_pass                          = new VulkanMainRenderPass();
+            m_main_render_pass                         = new VulkanMainRenderPass();
             m_main_render_pass->m_has_depth_attachment = false;
 
             m_main_render_pass->m_attachment_descriptions.push_back(vk::AttachmentDescription(

@@ -570,7 +570,7 @@ namespace Engine
             VulkanTexture*& current_texture = current_set->m_texture[location.binding];
             if (current_texture != texture)
             {
-                vk::DescriptorImageInfo image_info({}, texture->m_image_view, vk::ImageLayout::eShaderReadOnlyOptimal);
+                vk::DescriptorImageInfo image_info({}, texture->image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
                 vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
                                                         vk::DescriptorType::eSampledImage, image_info);
                 API->m_device.updateDescriptorSets(write_descriptor, {});
@@ -590,7 +590,7 @@ namespace Engine
 
             if (current_object.texture != texture || current_object.sampler != sampler)
             {
-                vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->m_image_view,
+                vk::DescriptorImageInfo image_info(sampler->m_sampler, texture->image_view(),
                                                    vk::ImageLayout::eShaderReadOnlyOptimal);
                 vk::WriteDescriptorSet write_descriptor(current_set->m_set, location.binding, 0,
                                                         vk::DescriptorType::eCombinedImageSampler, image_info);

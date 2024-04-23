@@ -3,20 +3,65 @@
 #include <Graphics/texture_2D.hpp>
 #include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
+#include <vulkan_barriers.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
-#include <vulkan_transition_image_layout.hpp>
 #include <vulkan_types.hpp>
 
 namespace Engine
 {
+
+    vk::DeviceMemory VulkanTexture::memory() const
+    {
+        return m_image_memory;
+    }
+
+    vk::Image VulkanTexture::image() const
+    {
+        return m_image;
+    }
+
+    vk::ImageView VulkanTexture::image_view() const
+    {
+        return m_image_view;
+    }
+
+    vk::ImageLayout VulkanTexture::layout() const
+    {
+        return m_layout;
+    }
+
+    vk::Format VulkanTexture::format() const
+    {
+        return m_vulkan_format;
+    }
+
+    vk::ComponentMapping VulkanTexture::swizzle() const
+    {
+        return m_swizzle;
+    }
+
+    Vector2D VulkanTexture::size() const
+    {
+        return m_engine_texture->size;
+    }
+
+    MipMapLevel VulkanTexture::mipmap_count()
+    {
+        return m_engine_texture->mipmap_count;
+    }
+
+    MipMapLevel VulkanTexture::base_mipmap()
+    {
+        return m_engine_texture->base_mip_level;
+    }
+
     VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data, size_t data_size)
     {
-        destroy();
-
+        m_layout         = vk::ImageLayout::eUndefined;
         m_engine_texture = texture;
         m_vulkan_format  = parse_engine_format(m_engine_texture->format);
 
@@ -62,26 +107,7 @@ namespace Engine
         vk::ImageViewCreateInfo view_info({}, m_image, view_type(), m_vulkan_format, m_swizzle,
                                           subresource_range(texture->base_mip_level));
         m_image_view = API->m_device.createImageView(view_info);
-
-
-        {
-            TransitionImageLayout transition;
-            transition.image        = &m_image;
-            transition.base_mip     = 0;
-            transition.mip_count    = m_engine_texture->mipmap_count;
-            transition.base_layer   = 0;
-            transition.layer_count  = layer_count();
-            transition.aspect_flags = aspect();
-
-            transition.old_layout = vk::ImageLayout::eUndefined;
-            transition.new_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-
-            transition.execute(vk::PipelineStageFlagBits::eTopOfPipe, vk::AccessFlagBits::eNone,
-                               vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
-                                       vk::PipelineStageFlagBits::eComputeShader,
-                               vk::AccessFlagBits::eShaderRead);
-        }
+        change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
         if (data)
         {
@@ -90,6 +116,9 @@ namespace Engine
                 update_texture_2D(texture->size, {0, 0}, 0, data, data_size);
             }
         }
+
+        if (m_engine_texture->mipmap_count > 1)
+            generate_mipmap();
         return *this;
     }
 
@@ -109,19 +138,16 @@ namespace Engine
         std::memcpy(vulkan_data, data, buffer_size);
         API->m_device.unmapMemory(staging_buffer_memory);
 
+        vk::ImageMemoryBarrier barrier;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.oldLayout           = m_layout;
+        barrier.newLayout           = vk::ImageLayout::eTransferDstOptimal;
+        barrier.image               = m_image;
+        barrier.subresourceRange    = vk::ImageSubresourceRange(aspect(), level, 1, layer, 1);
 
-        TransitionImageLayout transition;
-        transition.image       = &m_image;
-        transition.old_layout  = vk::ImageLayout::eShaderReadOnlyOptimal;
-        transition.new_layout  = vk::ImageLayout::eTransferDstOptimal;
-        transition.base_mip    = level;
-        transition.mip_count   = 1;
-        transition.base_layer  = layer;
-        transition.layer_count = 1;
 
-        transition.execute(vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead,
-                           vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferWrite);
-
+        Barrier::transition_image_layout(barrier);
         auto command_buffer = API->begin_single_time_command_buffer();
 
         vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1),
@@ -135,9 +161,10 @@ namespace Engine
         API->m_device.freeMemory(staging_buffer_memory, nullptr);
         API->m_device.destroyBuffer(staging_buffer);
 
-        std::swap(transition.old_layout, transition.new_layout);
-        transition.execute(vk::PipelineStageFlagBits::eTransfer, vk::AccessFlagBits::eTransferWrite,
-                           vk::PipelineStageFlagBits::eFragmentShader, vk::AccessFlagBits::eShaderRead);
+
+        barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+        barrier.newLayout = m_layout;
+        Barrier::transition_image_layout(barrier);
     }
 
     void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
@@ -310,10 +337,33 @@ namespace Engine
         return vk::Offset2D(width, height);
     }
 
-    vk::ImageView VulkanTexture::get_image_view(const vk::ImageSubresourceRange& range)
+    vk::ImageView VulkanTexture::create_image_view(const vk::ImageSubresourceRange& range)
     {
         vk::ImageViewCreateInfo view_info({}, m_image, view_type(), m_vulkan_format, m_swizzle, range);
         return API->m_device.createImageView(view_info);
+    }
+
+    vk::ImageLayout VulkanTexture::change_layout(vk::ImageLayout new_layout)
+    {
+        if (layout() != new_layout)
+        {
+            auto base_mip = base_mipmap();
+
+            vk::ImageMemoryBarrier barrier;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.oldLayout           = m_layout;
+            barrier.newLayout           = new_layout;
+            barrier.image               = m_image;
+
+            barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
+            m_layout                 = barrier.newLayout;
+
+            Barrier::transition_image_layout(barrier);
+
+            m_layout = new_layout;
+        }
+        return new_layout;
     }
 
 
@@ -355,5 +405,5 @@ namespace Engine
 
 VkImageView trinex_vulkan_image_view(Engine::Texture2D* texture)
 {
-    return (texture ? texture : Engine::DefaultResources::default_texture)->rhi_object<Engine::VulkanTexture>()->m_image_view;
+    return (texture ? texture : Engine::DefaultResources::default_texture)->rhi_object<Engine::VulkanTexture>()->image_view();
 }

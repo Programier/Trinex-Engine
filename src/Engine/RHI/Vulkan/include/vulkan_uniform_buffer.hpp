@@ -10,15 +10,14 @@ namespace Engine
             vk::Buffer buffer;
             vk::DeviceMemory memory;
             size_t size;
-            byte* mapped;
+
+            BufferEntry& update(const void* data, size_t size, size_t offset);
         };
 
         Vector<BufferEntry> buffers;
 
     protected:
         UniformBufferPoolBase& allocate_new(size_t size);
-        UniformBufferPoolBase& update(size_t index, const void* data, size_t size, size_t offset);
-
         ~UniformBufferPoolBase();
     };
 

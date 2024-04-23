@@ -423,10 +423,9 @@ namespace Engine
                                        vk::DeviceMemory& image_memory, uint32_t layers)
     {
 
-        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->m_vulkan_format,
-                                       vk::Extent3D(texture->m_engine_texture->size.x, texture->m_engine_texture->size.y, 1),
-                                       texture->m_engine_texture->mipmap_count, layers, vk::SampleCountFlagBits::e1, tiling,
-                                       usage, vk::SharingMode::eExclusive);
+        vk::ImageCreateInfo image_info(flags, vk::ImageType::e2D, texture->format(),
+                                       vk::Extent3D(texture->size().x, texture->size().y, 1), texture->mipmap_count(), layers,
+                                       vk::SampleCountFlagBits::e1, tiling, usage, vk::SharingMode::eExclusive);
 
         image                                      = API->m_device.createImage(image_info);
         vk::MemoryRequirements memory_requirements = API->m_device.getImageMemoryRequirements(image);
@@ -532,6 +531,7 @@ namespace Engine
     VulkanAPI& VulkanAPI::prepare_draw()
     {
         uniform_buffer()->bind();
+        m_state->m_pipeline;
         return *this;
     }
 

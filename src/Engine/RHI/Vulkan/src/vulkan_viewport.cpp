@@ -2,8 +2,8 @@
 #include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_barriers.hpp>
 #include <vulkan_render_target.hpp>
-#include <vulkan_transition_image_layout.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -25,8 +25,8 @@ namespace Engine
 
     void VulkanViewport::init()
     {
-        m_command_buffers = API->m_device.allocateCommandBuffers(vk::CommandBufferAllocateInfo(
-                API->m_command_pool, vk::CommandBufferLevel::ePrimary, API->m_framebuffers_count));
+        m_command_buffers = API->m_device.allocateCommandBuffers(
+                vk::CommandBufferAllocateInfo(API->m_command_pool, vk::CommandBufferLevel::ePrimary, API->m_framebuffers_count));
 
         m_sync_objects.resize(API->m_framebuffers_count);
     }
@@ -243,7 +243,7 @@ namespace Engine
     {
         if (m_need_recreate_swap_chain)
         {
-            m_need_recreate_swap_chain             = false;
+            m_need_recreate_swap_chain              = false;
             VulkanWindowRenderTarget* render_target = reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target);
             API->wait_idle();
 
@@ -320,24 +320,22 @@ namespace Engine
     {
         if (!API->m_state->m_is_image_rendered_to_swapchain)
         {
-            TransitionImageLayout transition;
-
-            transition.command_buffer = &m_command_buffers[API->m_current_buffer];
-            transition.old_layout     = vk::ImageLayout::eUndefined;
-            transition.new_layout     = vk::ImageLayout::ePresentSrcKHR;
-            transition.base_mip       = 0;
-            transition.mip_count      = 1;
-            transition.base_layer     = 0;
-            transition.layer_count    = 1;
-            transition.aspect_flags   = vk::ImageAspectFlagBits::eColor;
+            vk::ImageMemoryBarrier barrier;
+            barrier.oldLayout                       = vk::ImageLayout::eUndefined;
+            barrier.newLayout                       = vk::ImageLayout::ePresentSrcKHR;
+            barrier.subresourceRange.baseMipLevel   = 0;
+            barrier.subresourceRange.levelCount     = 1;
+            barrier.subresourceRange.baseArrayLayer = 0;
+            barrier.subresourceRange.layerCount     = 1;
 
             for (vk::Image image : m_images)
             {
-                transition.image = &image;
-                transition.execute(vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
-                                           vk::PipelineStageFlagBits::eComputeShader,
-                                   vk::AccessFlagBits::eShaderRead, vk::PipelineStageFlagBits::eTopOfPipe,
-                                   vk::AccessFlagBits::eNone);
+                barrier.image = image;
+                Barrier::transition_image_layout(API->current_command_buffer(), barrier);
+                //                transition.execute(vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
+                //                                           vk::PipelineStageFlagBits::eComputeShader,
+                //                                   vk::AccessFlagBits::eShaderRead, vk::PipelineStageFlagBits::eTopOfPipe,
+                //                                   vk::AccessFlagBits::eNone);
             }
         }
 

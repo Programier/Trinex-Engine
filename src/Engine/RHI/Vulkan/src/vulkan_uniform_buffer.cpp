@@ -5,6 +5,15 @@
 
 namespace Engine
 {
+    UniformBufferPoolBase::BufferEntry& UniformBufferPoolBase::BufferEntry::update(const void* data, size_t size, size_t offset)
+    {
+        byte* mapped = reinterpret_cast<byte*>(API->m_device.mapMemory(memory, 0, VK_WHOLE_SIZE));
+        std::memcpy(mapped + offset, data, size);
+        API->m_device.flushMappedMemoryRanges(vk::MappedMemoryRange(memory, 0, VK_WHOLE_SIZE));
+        API->m_device.unmapMemory(memory);
+        return *this;
+    }
+
     UniformBufferPoolBase& UniformBufferPoolBase::allocate_new(size_t size)
     {
         buffers.emplace_back();
@@ -12,23 +21,7 @@ namespace Engine
         API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eUniformBuffer,
                            vk::MemoryPropertyFlagBits::eHostVisible, buffer.buffer, buffer.memory);
 
-        buffer.size   = size;
-        buffer.mapped = reinterpret_cast<byte*>(API->m_device.mapMemory(buffer.memory, 0, size));
-        return *this;
-    }
-
-    UniformBufferPoolBase& UniformBufferPoolBase::update(size_t index, const void* data, size_t size, size_t offset)
-    {
-        if (index >= buffers.size())
-            return *this;
-
-        auto& buffer = buffers[index];
-        if (offset >= buffer.size)
-            return *this;
-
-        size = glm::min(size, buffer.size - offset);
-        std::memcpy(buffer.mapped + offset, data, size);
-
+        buffer.size = size;
         return *this;
     }
 
@@ -36,7 +29,6 @@ namespace Engine
     {
         for (BufferEntry& entry : buffers)
         {
-            API->m_device.unmapMemory(entry.memory);
             DESTROY_CALL(destroyBuffer, entry.buffer);
             DESTROY_CALL(freeMemory, entry.memory);
         }
@@ -49,7 +41,8 @@ namespace Engine
         ++index;
         if (index >= static_cast<int64_t>(buffers.size()))
             allocate_new();
-        UniformBufferPoolBase::update(index, params, sizeof(GlobalShaderParameters), 0);
+
+        buffers[index].update(params, sizeof(GlobalShaderParameters), 0);
     }
 
     void GlobalUniformBufferPool::pop()
@@ -105,7 +98,8 @@ namespace Engine
             }
 
             auto& current_buffer = buffers[index];
-            std::memcpy(current_buffer.mapped + used_data, shadow_data.data(), shadow_data_size);
+            current_buffer.update(shadow_data.data(), shadow_data_size, used_data);
+
             BindLocation local_params_location = {pipeline->m_local_parameters.bind_index(), 0};
             API->m_state->m_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
                                                           local_params_location);
