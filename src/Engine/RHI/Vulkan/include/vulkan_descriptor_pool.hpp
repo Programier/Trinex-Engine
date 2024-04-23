@@ -1,25 +1,42 @@
 #pragma once
-
 #include <vulkan_definitions.hpp>
+#include <vulkan_headers.hpp>
 
 namespace Engine
 {
     struct VulkanDescriptorSet;
+    using VulkanDescriptor = Vector<VulkanDescriptorSet>;
 
     struct VulkanDescriptorPool {
+
+    private:
         struct Entry {
             uint_t m_allocated_instances = 0;
             vk::DescriptorPool m_pool;
 
-            Entry(VulkanDescriptorPool* pool, BindingIndex set);
+            Entry(VulkanDescriptorPool* pool);
             ~Entry();
         };
 
-        Vector<List<Entry*>> m_entries;
-        Vector<Vector<vk::DescriptorPoolSize>> m_pool_sizes;
+        using Frame      = Vector<VulkanDescriptorSet>;
+        using FramesList = Vector<Frame>;
 
-        VulkanDescriptorSet* allocate_descriptor_set(vk::DescriptorSetLayout* layout, BindingIndex set);
-        VulkanDescriptorPool& pool_sizes(const Vector<Vector<vk::DescriptorPoolSize>>& sizes);
+        struct VulkanPipeline* m_pipeline;
+        List<Entry*> m_entries;
+        Vector<FramesList> m_frames_list;
+        Vector<vk::DescriptorPoolSize> m_pool_sizes;
+        size_t m_frame_index;
+        size_t m_object_index;
+
+        FramesList& frames_list();
+        VulkanDescriptorPool& allocate_new_object();
+
+    public:
+        VulkanDescriptorPool(Vector<vk::DescriptorPoolSize>&& sizes, struct VulkanPipeline* pipeline);
+        VulkanDescriptorPool& next();
+        VulkanDescriptorPool& reset();
+        VulkanDescriptorSet* get(BindingIndex set);
+        Vector<VulkanDescriptorSet>& get_sets_array();
 
         ~VulkanDescriptorPool();
     };

@@ -60,10 +60,10 @@ namespace Engine
     void GlobalUniformBufferPool::bind()
     {
         VulkanPipeline* pipeline = API->m_state->m_pipeline;
-        if (index >= 0 && pipeline && pipeline->m_global_parameters.has_parameters())
+        if (index >= 0 && pipeline && pipeline->global_parameters_info().has_parameters())
         {
             API->m_state->m_pipeline->bind_uniform_buffer(buffers[index].buffer, 0, sizeof(GlobalShaderParameters),
-                                                          BindLocation(pipeline->m_global_parameters.bind_index(), 0));
+                                                          BindLocation(pipeline->global_parameters_info().bind_index(), 0));
         }
     }
 
@@ -84,7 +84,7 @@ namespace Engine
 
         VulkanPipeline* pipeline = API->m_state->m_pipeline;
 
-        if (pipeline && pipeline->m_local_parameters.has_parameters())
+        if (pipeline && pipeline->local_parameters_info().has_parameters())
         {
             if (buffers[index].size < used_data + shadow_data_size)
             {
@@ -100,7 +100,7 @@ namespace Engine
             auto& current_buffer = buffers[index];
             current_buffer.update(shadow_data.data(), shadow_data_size, used_data);
 
-            BindLocation local_params_location = {pipeline->m_local_parameters.bind_index(), 0};
+            BindLocation local_params_location = {pipeline->local_parameters_info().bind_index(), 0};
             API->m_state->m_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
                                                           local_params_location);
             used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);

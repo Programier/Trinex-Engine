@@ -531,21 +531,19 @@ namespace Engine
     VulkanAPI& VulkanAPI::prepare_draw()
     {
         uniform_buffer()->bind();
-        m_state->m_pipeline;
+        m_state->m_pipeline->submit_descriptors();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
     {
         prepare_draw().current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
-        m_state->m_pipeline->increment_set_index();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count)
     {
         prepare_draw().current_command_buffer().draw(vertex_count, 1, 0, 0);
-        m_state->m_pipeline->increment_set_index();
         return *this;
     }
 
