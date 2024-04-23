@@ -1,22 +1,12 @@
 #include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
-
 
 namespace Engine
 {
     implement_engine_class_default_init(SceneComponent);
-
-    void SceneComponent::mark_transfrom_dirty() const
-    {
-        m_is_dirty = true;
-
-        for (SceneComponent* child : childs())
-        {
-            child->mark_transfrom_dirty();
-        }
-    }
 
     SceneComponent::SceneComponent()
     {}
@@ -74,44 +64,9 @@ namespace Engine
         return m_childs;
     }
 
-    class UpdateComponentTransform : public ExecutableObject
-    {
-        Transform transform;
-        Transform& dst_transform;
-
-    public:
-        UpdateComponentTransform(const Transform& src, Transform& dst) : transform(src), dst_transform(dst)
-        {}
-
-        int_t execute()
-        {
-            dst_transform = transform;
-            return sizeof(UpdateComponentTransform);
-        }
-    };
-
     SceneComponent& SceneComponent::on_transform_changed()
     {
-        if (is_dirty_transform())
-        {
-            SceneComponent* parent_component = parent();
-
-            m_local.matrix();
-            if (parent_component)
-            {
-                m_world = parent_component->world_transform() * m_local;
-            }
-            else
-            {
-                m_world = m_local;
-            }
-
-            render_thread()->insert_new_task<UpdateComponentTransform>(m_local, m_local_render_thread);
-            render_thread()->insert_new_task<UpdateComponentTransform>(m_world, m_world_render_thread);
-
-            m_is_dirty = false;
-        }
-
+        m_is_dirty = true;
         for (SceneComponent* child : m_childs)
         {
             child->on_transform_changed();
@@ -133,159 +88,121 @@ namespace Engine
         return *this;
     }
 
-    bool SceneComponent::is_dirty_transform() const
-    {
-        if (is_in_render_thread())
-        {
-            return false;
-        }
-        else
-        {
-            return m_is_dirty || m_local.is_dirty();
-        }
-    }
-
     const Transform& SceneComponent::local_transform() const
     {
-        if (is_dirty_transform())
-        {
-            const_cast<SceneComponent*>(this)->on_transform_changed();
-        }
-
-        if (is_in_render_thread())
-        {
-            return m_local_render_thread;
-        }
-        else
-        {
-            return m_local;
-        }
+        is_in_logic_thread_checked();
+        return m_local;
     }
 
     const Transform& SceneComponent::world_transform() const
     {
-        if (is_dirty_transform())
+        is_in_logic_thread_checked();
+
+        if (m_is_dirty)
         {
-            const_cast<SceneComponent*>(this)->on_transform_changed();
+            if (SceneComponent* parent_component = parent())
+            {
+                m_world = parent_component->world_transform() * m_local;
+            }
+            else
+            {
+                m_world = local_transform();
+            }
+            m_is_dirty = false;
         }
 
-        if (is_in_render_thread())
-        {
-            return m_world_render_thread;
-        }
-        else
-        {
-            return m_world;
-        }
+        return m_world;
     }
 
     SceneComponent& SceneComponent::local_transform(const Transform& transform)
     {
-        if (is_in_logic_thread())
-        {
-            m_local = transform;
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local = transform;
+        on_transform_changed();
         return *this;
     }
 
     SceneComponent& SceneComponent::add_local_transform(const Transform& transform)
     {
-        if (is_in_logic_thread())
-        {
-            m_local += transform;
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local += transform;
+        on_transform_changed();
+
         return *this;
     }
 
     SceneComponent& SceneComponent::remove_local_transform(const Transform& transform)
     {
-        if (is_in_logic_thread())
-        {
-            m_local -= transform;
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local -= transform;
+        on_transform_changed();
+
         return *this;
     }
 
     SceneComponent& SceneComponent::location(const Vector3D& new_location)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.location(new_location);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.location(new_location);
+        on_transform_changed();
+
         return *this;
     }
 
     SceneComponent& SceneComponent::rotation(const Quaternion& new_rotation)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.rotation(new_rotation);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.rotation(new_rotation);
+
+
         return *this;
     }
 
     SceneComponent& SceneComponent::rotation(const Vector3D& new_rotation)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.rotation(new_rotation);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.rotation(new_rotation);
+        on_transform_changed();
         return *this;
     }
 
     SceneComponent& SceneComponent::scale(const Vector3D& new_scale)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.scale(new_scale);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.scale(new_scale);
+        on_transform_changed();
         return *this;
     }
 
     SceneComponent& SceneComponent::add_location(const Vector3D& delta)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.add_location(delta);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.add_location(delta);
+        on_transform_changed();
         return *this;
     }
 
     SceneComponent& SceneComponent::add_rotation(const Vector3D& delta)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.add_rotation(delta);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.add_rotation(delta);
+        on_transform_changed();
         return *this;
     }
 
     SceneComponent& SceneComponent::add_rotation(const Quaternion& delta)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.add_rotation(delta);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.add_rotation(delta);
+        on_transform_changed();
         return *this;
     }
 
     SceneComponent& SceneComponent::add_scale(const Vector3D& delta)
     {
-        if (is_in_logic_thread())
-        {
-            m_local.add_scale(delta);
-            mark_transfrom_dirty();
-        }
+        is_in_logic_thread_checked();
+        m_local.add_scale(delta);
+        on_transform_changed();
         return *this;
     }
 

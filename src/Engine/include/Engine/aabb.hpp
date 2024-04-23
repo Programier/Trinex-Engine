@@ -19,6 +19,7 @@ namespace Engine
 
         const Vector3D& min() const;
         const Vector3D& max() const;
+        Vector3D extents() const;
         Vector3D center() const;
         AABB_3Df& center(const Vector3D& position);
 

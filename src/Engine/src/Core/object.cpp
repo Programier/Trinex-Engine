@@ -219,7 +219,7 @@ namespace Engine
 
     const Object& Object::remove_from_instances_array() const
     {
-        if (m_instance_index < get_instances_array().size())
+        if (engine_instance && m_instance_index < get_instances_array().size())
         {
             get_instances_array()[m_instance_index] = nullptr;
             if (!engine_instance->is_shuting_down())

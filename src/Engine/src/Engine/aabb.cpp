@@ -22,6 +22,11 @@ namespace Engine
         return m_max;
     }
 
+    Vector3D AABB_3Df::extents() const
+    {
+        return m_max - center();
+    }
+
     Vector3D AABB_3Df::center() const
     {
         return m_min + (m_max - m_min) / 2.0f;
@@ -60,20 +65,13 @@ namespace Engine
 
     AABB_3Df AABB_3Df::apply_transform(const Matrix4f& matrix) const
     {
-        Vector3D points[7] = {{m_min.x, m_min.y, m_max.z}, {m_max.x, m_min.y, m_max.z}, {m_max.x, m_min.y, m_min.z}, m_max,
-                              {m_max.x, m_max.y, m_min.z}, {m_min.x, m_max.y, m_min.z}, {m_min.x, m_max.y, m_max.z}};
+        auto box_center  = center();
+        auto box_extents = extents();
 
-        Vector3D r_min, r_max;
-        r_min = r_max = matrix * Vector4D(m_min, 1.f);
-
-        for (auto& ell : points)
-        {
-            ell   = matrix * Vector4D(ell, 1.f);
-            r_min = glm::min(r_min, ell);
-            r_max = glm::max(r_max, ell);
-        }
-
-        return AABB_3Df(r_min, r_max);
+        Vector3D t_center = Vector3D(matrix * Vector4D(box_center, 1.0));
+        Matrix3f abs_mat  = Matrix3f(glm::abs(Vector3D(matrix[0])), glm::abs(Vector3D(matrix[1])), glm::abs(Vector3D(matrix[2])));
+        Vector3D t_extents = abs_mat * box_extents;
+        return AABB_3Df(t_center - t_extents, t_center + t_extents);
     }
 
     const AABB_3Df& AABB_3Df::write_to_batcher(BatchedLines& batcher, const ByteColor& color) const

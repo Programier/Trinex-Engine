@@ -24,8 +24,9 @@ namespace Engine
                 if (actor_world->is_selected(self_actor))
                 {
                     reinterpret_cast<PrimitiveComponent*>(actor()->scene_component())
+                            ->proxy()
                             ->bounding_box()
-                            .write_to_batcher(scene->scene_output_layer()->lines, {255, 0, 0, 255});
+                            .write_to_batcher(scene->scene_output_layer()->lines, {255, 255, 0, 255});
                 }
             }
             return *this;
@@ -51,8 +52,8 @@ namespace Engine
                         static Name name_sprite = "SpriteComponent0";
                         if (component->name() == name_sprite)
                         {
-                            reinterpret_cast<PrimitiveComponent*>(component)->bounding_box().write_to_batcher(
-                                    scene->scene_output_layer()->lines, {255, 0, 0, 255});
+                            reinterpret_cast<PrimitiveComponent*>(component)->proxy()->bounding_box().write_to_batcher(
+                                    scene->scene_output_layer()->lines, {255, 255, 0, 255});
                             break;
                         }
                     }

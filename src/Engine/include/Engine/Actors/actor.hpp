@@ -12,6 +12,14 @@ namespace Engine
     {
         declare_class(Actor, Object);
 
+    public:
+        enum Flag
+        {
+            Selected = BIT(0),
+        };
+
+        Flags<Flag> actor_flags;
+
     private:
         Pointer<class SceneComponent> m_root_component;
         Vector<class ActorComponent*> m_owned_components;
@@ -40,11 +48,12 @@ namespace Engine
         virtual Actor& spawned();
         virtual Actor& destroyed();
         Actor& destroy();
+        Actor& update_drawing_data();
 
         bool is_playing() const;
         const Vector<class ActorComponent*>& owned_components() const;
         Actor& destroy_script_object(ScriptObject* object) override;
-        const Transform* transfrom() const;
+        const Transform& transfrom() const;
         SceneComponent* scene_component() const;
 
         class World* world() const;

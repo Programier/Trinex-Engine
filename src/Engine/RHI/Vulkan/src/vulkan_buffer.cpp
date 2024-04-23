@@ -11,8 +11,8 @@ namespace Engine
     VulkanBuffer& VulkanBuffer::create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type)
     {
         m_size = size;
-        API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible,
-                           m_buffer, m_memory);
+        API->create_buffer(size, vk::BufferUsageFlagBits::eTransferDst | type, vk::MemoryPropertyFlagBits::eHostVisible, m_buffer,
+                           m_memory);
         update(0, data, size);
         return *this;
     }
@@ -66,16 +66,15 @@ namespace Engine
         DESTROY_CALL(freeMemory, m_memory);
     }
 
-
-    VulkanVertexBuffer& VulkanVertexBuffer::create(const byte* data, size_t size)
+    VulkanStaticVertexBuffer& VulkanStaticVertexBuffer::create(const byte* data, size_t size)
     {
         m_buffer.create(size, data, vk::BufferUsageFlagBits::eVertexBuffer);
         return *this;
     }
 
-    void VulkanVertexBuffer::bind(byte stream_index, size_t offset)
+    void VulkanStaticVertexBuffer::bind(byte stream_index, size_t offset)
     {
-        VulkanVertexBuffer*& current = API->m_state->m_current_vertex_buffer[stream_index];
+        RHI_VertexBuffer*& current = API->m_state->m_current_vertex_buffer[stream_index];
         if (current != this)
         {
             API->current_command_buffer().bindVertexBuffers(stream_index, m_buffer.m_buffer, {offset});
@@ -83,10 +82,39 @@ namespace Engine
         }
     }
 
-
-    void VulkanVertexBuffer::update(size_t offset, size_t size, const byte* data)
+    void VulkanStaticVertexBuffer::update(size_t offset, size_t size, const byte* data)
     {
         m_buffer.update(offset, data, size);
+    }
+
+    VulkanDynamicVertexBuffer& VulkanDynamicVertexBuffer::create(const byte* data, size_t size)
+    {
+        m_buffers.resize(API->m_framebuffers_count);
+        for (auto& buffer : m_buffers)
+        {
+            buffer.create(size, data, vk::BufferUsageFlagBits::eVertexBuffer);
+        }
+        return *this;
+    }
+
+    void VulkanDynamicVertexBuffer::bind(byte stream_index, size_t offset)
+    {
+        RHI_VertexBuffer*& current_buffer = API->m_state->m_current_vertex_buffer[stream_index];
+        if (current_buffer != this)
+        {
+            API->current_command_buffer().bindVertexBuffers(stream_index, current().m_buffer, {offset});
+            current_buffer = this;
+        }
+    }
+
+    void VulkanDynamicVertexBuffer::update(size_t offset, size_t size, const byte* data)
+    {
+        current().update(offset, data, size);
+    }
+
+    VulkanBuffer& VulkanDynamicVertexBuffer::current()
+    {
+        return m_buffers[API->m_current_buffer];
     }
 
     VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size)
@@ -129,9 +157,11 @@ namespace Engine
         m_buffer.update(offset, data, size);
     }
 
-    RHI_VertexBuffer* VulkanAPI::create_vertex_buffer(size_t size, const byte* data)
+    RHI_VertexBuffer* VulkanAPI::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
     {
-        return &(new VulkanVertexBuffer())->create(data, size);
+        if (type == RHIBufferType::Static)
+            return &(new VulkanStaticVertexBuffer())->create(data, size);
+        return &(new VulkanDynamicVertexBuffer())->create(data, size);
     }
 
     RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data)

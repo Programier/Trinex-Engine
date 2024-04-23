@@ -12,11 +12,12 @@
 namespace Engine
 {
 
-    OpenGL_VertexBuffer::OpenGL_VertexBuffer(size_t size, const byte* data)
+    OpenGL_VertexBuffer::OpenGL_VertexBuffer(size_t size, const byte* data, RHIBufferType type)
     {
+        GLenum gl_type = type == RHIBufferType::Static ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW;
         glGenBuffers(1, &m_id);
         glBindBuffer(GL_ARRAY_BUFFER, m_id);
-        glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, size, data, gl_type);
     }
 
     void OpenGL_VertexBuffer::bind(byte stream_index, size_t offset)
@@ -44,9 +45,9 @@ namespace Engine
         glDeleteBuffers(1, &m_id);
     }
 
-    RHI_VertexBuffer* OpenGL::create_vertex_buffer(size_t size, const byte* data)
+    RHI_VertexBuffer* OpenGL::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
     {
-        return new OpenGL_VertexBuffer(size, data);
+        return new OpenGL_VertexBuffer(size, data, type);
     }
 
 

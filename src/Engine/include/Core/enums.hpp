@@ -365,4 +365,10 @@ namespace Engine
         Fragment            = BIT(4),
         Compute             = BIT(5),
     };
+
+    enum class RHIBufferType : EnumerateType
+    {
+        Static  = 0,
+        Dynamic = 1,
+    };
 }// namespace Engine

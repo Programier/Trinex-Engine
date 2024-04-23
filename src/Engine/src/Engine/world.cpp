@@ -104,6 +104,7 @@ namespace Engine
         }
 
         actor->m_world = this;
+        actor->spawned();
 
         {
             SceneComponent* root = actor->scene_component();
@@ -116,8 +117,6 @@ namespace Engine
                 actor->scene_component()->on_transform_changed();
             }
         }
-
-        actor->spawned();
 
         if (m_is_playing)
         {
@@ -169,6 +168,7 @@ namespace Engine
         if (actor->world() == this)
         {
             m_selected_actors.insert(actor);
+            actor->actor_flags(Actor::Selected, true);
         }
         return *this;
     }
@@ -176,6 +176,7 @@ namespace Engine
     World& World::unselect_actor(Actor* actor)
     {
         m_selected_actors.erase(actor);
+        actor->actor_flags(Actor::Selected, false);
         return *this;
     }
 
@@ -199,6 +200,10 @@ namespace Engine
 
     World& World::unselect_actors()
     {
+        for(auto& selected : m_selected_actors)
+        {
+            selected->actor_flags(Actor::Selected, false);
+        }
         m_selected_actors.clear();
         return *this;
     }
@@ -210,7 +215,7 @@ namespace Engine
 
     bool World::is_selected(Actor* actor) const
     {
-        return m_selected_actors.contains(actor);
+        return actor->actor_flags.has_all(Actor::Selected);
     }
 
 

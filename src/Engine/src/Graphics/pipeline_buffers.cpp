@@ -55,11 +55,14 @@ namespace Engine
         return *this;
     }
 
+    VertexBuffer::VertexBuffer() : type(RHIBufferType::Static)
+    {}
+
     VertexBuffer& VertexBuffer::rhi_create()
     {
         size_t buffer_size = size();
         if (buffer_size > 0)
-            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data()));
+            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data(), type));
         return *this;
     }
 

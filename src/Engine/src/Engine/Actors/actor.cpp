@@ -76,6 +76,12 @@ namespace Engine
     Actor& Actor::update(float dt)
     {
         m_script_object.update(dt);
+
+        // Update each component in actor
+        for(auto& component : m_owned_components)
+        {
+            component->update(dt);
+        }
         return *this;
     }
 
@@ -141,9 +147,9 @@ namespace Engine
         return *this;
     }
 
-    const Transform* Actor::transfrom() const
+    const Transform& Actor::transfrom() const
     {
-        return m_root_component ? &m_root_component->world_transform() : nullptr;
+        return m_root_component ? m_root_component->world_transform() : Transform::transform_zero;
     }
 
     SceneComponent* Actor::scene_component() const
@@ -176,11 +182,10 @@ namespace Engine
     implement_class(Actor, Engine, 0);
     implement_initialize_class(Actor)
     {
-        Class* self = This::static_class_instance();
-        auto components =
-                new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
-                                  new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none),
-                                  Name::none, Property::Flag::IsConst);
+        Class* self     = This::static_class_instance();
+        auto components = new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,
+                                            new ObjectProperty<This, ActorComponent>("", "", nullptr, Name::none), Name::none,
+                                            Property::Flag::IsConst);
         components->element_name_callback(default_array_object_element_name);
         self->add_property(components);
     }

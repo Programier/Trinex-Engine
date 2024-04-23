@@ -131,7 +131,7 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_VertexBuffer* NoApi::create_vertex_buffer(size_t size, const byte* data)
+    RHI_VertexBuffer* NoApi::create_vertex_buffer(size_t size, const byte* data, RHIBufferType)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

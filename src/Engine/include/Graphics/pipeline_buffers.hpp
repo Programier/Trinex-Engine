@@ -20,6 +20,10 @@ namespace Engine
         declare_class(VertexBuffer, PipelineBuffer);
 
     public:
+        RHIBufferType type;
+
+    public:
+        VertexBuffer();
         VertexBuffer& rhi_create() override;
         VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
         size_t elements_count() const;

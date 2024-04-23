@@ -293,7 +293,7 @@ namespace Engine
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
-        m_world->update(dt);
+        //m_world->update(dt);
 
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
@@ -385,7 +385,6 @@ namespace Engine
                     Transform new_transform = model;
                     new_transform /= component->parent()->world_transform();
                     component->local_transform(new_transform);
-                    component->on_transform_changed();
                 }
             }
         }

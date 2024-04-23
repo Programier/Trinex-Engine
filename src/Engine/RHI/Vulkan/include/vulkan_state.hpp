@@ -10,7 +10,7 @@ namespace Engine
             struct VulkanRenderPass* m_render_pass         = nullptr;
         } m_render_target;
         struct VulkanPipeline* m_pipeline = nullptr;
-        struct VulkanVertexBuffer* m_current_vertex_buffer[15];
+        struct RHI_VertexBuffer* m_current_vertex_buffer[15];
         struct VulkanIndexBuffer* m_current_index_buffer;
         struct VulkanViewport* m_current_viewport = nullptr;
         bool m_is_image_rendered_to_swapchain     = false;

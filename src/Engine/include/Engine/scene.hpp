@@ -46,6 +46,7 @@ namespace Engine
         Scene& build_views(SceneRenderer* renderer);
         Scene& add_primitive(PrimitiveComponent* primitive);
         Scene& remove_primitive(PrimitiveComponent* primitive);
+        Scene& update_primitive_transform(PrimitiveComponent* primitive);
         Scene& add_light(LightComponent* light);
         Scene& remove_light(LightComponent* light);
         SceneComponent* root_component() const;

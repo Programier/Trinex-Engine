@@ -20,13 +20,22 @@ namespace Engine
         ~VulkanBuffer();
     };
 
-    struct VulkanVertexBuffer : RHI_VertexBuffer {
+    struct VulkanStaticVertexBuffer : RHI_VertexBuffer {
         VulkanBuffer m_buffer;
 
-        VulkanVertexBuffer& create(const byte* data, size_t size);
-
+        VulkanStaticVertexBuffer& create(const byte* data, size_t size);
         void bind(byte stream_index, size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
+    };
+
+    struct VulkanDynamicVertexBuffer : RHI_VertexBuffer {
+        Vector<VulkanBuffer> m_buffers;
+        int_t m_current = 0;
+
+        VulkanDynamicVertexBuffer& create(const byte* data, size_t size);
+        void bind(byte stream_index, size_t offset) override;
+        void update(size_t offset, size_t size, const byte* data) override;
+        VulkanBuffer& current();
     };
 
     struct VulkanIndexBuffer : public RHI_IndexBuffer {

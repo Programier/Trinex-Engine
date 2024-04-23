@@ -10,6 +10,8 @@
 
 namespace Engine
 {
+    const Transform Transform::transform_zero;
+
     Transform::Transform(const Vector3D& location, const Vector3D& rotation, const Vector3D& scale)
         : m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)
     {}
@@ -33,7 +35,7 @@ namespace Engine
         static Vector4D perspective;
         glm::decompose(matrix, m_scale, quat, m_location, skew, perspective);
         rotation(quat);
-        m_matrix = matrix;
+        m_matrix   = matrix;
         m_is_dirty = false;
         return *this;
     }
@@ -178,7 +180,7 @@ namespace Engine
 
     Transform& Transform::operator/=(const Transform& other)
     {
-        return *(new(this) Transform(matrix() * glm::inverse(other.matrix())));
+        return *(new (this) Transform(matrix() * glm::inverse(other.matrix())));
     }
 
     Transform Transform::operator*(const Transform& other) const

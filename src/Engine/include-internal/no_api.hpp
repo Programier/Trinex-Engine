@@ -32,7 +32,7 @@ namespace Engine
         RHI_Shader* create_geometry_shader(const GeometryShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
-        RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data) override;
+        RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;

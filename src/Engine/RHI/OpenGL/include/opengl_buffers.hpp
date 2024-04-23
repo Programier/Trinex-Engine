@@ -8,7 +8,7 @@ namespace Engine
         GLuint m_id;
 
 
-        OpenGL_VertexBuffer(size_t size, const byte* data);
+        OpenGL_VertexBuffer(size_t size, const byte* data, RHIBufferType type);
         void bind(byte stream_index, size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
 

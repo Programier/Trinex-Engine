@@ -2,6 +2,7 @@
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
+#include <Engine/Actors/actor.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
@@ -18,6 +19,12 @@ namespace Engine
     {
         Class* self = This::static_class_instance();
         self->add_property(new ObjectReferenceProperty("Mesh", "Mesh of this component", &This::mesh));
+    }
+
+    StaticMeshComponent& StaticMeshComponent::update(float dt)
+    {
+        Super::update(dt);
+        return *this;
     }
 
     StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
@@ -50,7 +57,7 @@ namespace Engine
         if (mesh && mesh->material)
         {
             auto& camera_view  = renderer->scene_view().camera_view();
-            float inv_distance = 1.f / glm::min(glm::distance(world_transform().location(), camera_view.location),
+            float inv_distance = 1.f / glm::min(glm::distance(proxy()->world_transform().location(), camera_view.location),
                                                 camera_view.far_clip_plane);
             auto& lods         = mesh->lods;
             Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
@@ -89,11 +96,17 @@ namespace Engine
             {
                 rhi->draw(vertices);
             }
+
+
+            auto transform = proxy()->world_transform();
+            transform.add_location({4.0f, 0.0, 0.0});
+            proxy()->world_transform(transform);
         }
         else
         {
             Super::render(renderer, rt, layer);
         }
+
         return *this;
     }
 

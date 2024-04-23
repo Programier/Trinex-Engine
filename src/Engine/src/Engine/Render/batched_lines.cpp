@@ -15,6 +15,9 @@ namespace Engine
     {
         m_position_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
         m_color_buffer    = Object::new_instance<EngineResource<ColorVertexBuffer>>();
+
+        m_position_buffer->type = RHIBufferType::Dynamic;
+        m_color_buffer->type    = RHIBufferType::Dynamic;
     }
 
     BatchedLines& BatchedLines::add_line(const Vector3D& point1, const Vector3D& point2, ByteColor color1, ByteColor color2)
@@ -57,7 +60,7 @@ namespace Engine
             m_color_buffer->rhi_create();
             m_allocated_size = m_position_buffer->buffer.size();
         }
-        else if(m_position_buffer->buffer.size() > 0)
+        else if (m_position_buffer->buffer.size() > 0)
         {
             m_position_buffer->rhi_update(0, m_allocated_size * sizeof(PositionVertexBuffer::ElementType),
                                           reinterpret_cast<const byte*>(m_position_buffer->data()));

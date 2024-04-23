@@ -24,6 +24,7 @@ namespace Engine
         virtual ActorComponent& update(float dt);
         virtual ActorComponent& spawned();
         virtual ActorComponent& destroyed();
+
         class Actor* actor() const;
         class World* world() const;
         class Scene* scene() const;

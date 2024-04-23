@@ -32,7 +32,6 @@ namespace Engine
             barrier.setDstAccessMask(dst_access_mask);
         }
 
-
         API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barriers, {}, {});
     }
 

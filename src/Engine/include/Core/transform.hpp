@@ -10,6 +10,9 @@ namespace Engine
 
     class ENGINE_EXPORT Transform
     {
+    public:
+        static const Transform transform_zero;
+
     private:
         mutable Matrix4f m_matrix;
         Vector3D m_location;
