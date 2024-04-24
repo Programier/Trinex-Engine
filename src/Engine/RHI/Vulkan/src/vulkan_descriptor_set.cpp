@@ -13,9 +13,10 @@ namespace Engine
         return *this;
     }
 
-    VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, BindingIndex set)
+    VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, BindingIndex set, vk::PipelineBindPoint point,
+                                                   const vk::ArrayProxy<uint32_t>& dynamic_offsets)
     {
-        API->current_command_buffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, set, 1, &m_set, 0, nullptr);
+        API->current_command_buffer().bindDescriptorSets(point, layout, set, m_set, dynamic_offsets);
         return *this;
     }
 
@@ -32,11 +33,10 @@ namespace Engine
         return *this;
     }
 
-    VulkanDescriptorSet& VulkanDescriptorSet::bind_uniform_buffer(const vk::Buffer& buffer, size_t offset, size_t size,
-                                                                  BindingIndex index)
+    VulkanDescriptorSet& VulkanDescriptorSet::bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindingIndex index,
+                                                                  vk::DescriptorType type)
     {
-        vk::DescriptorBufferInfo buffer_info(buffer, offset, size);
-        vk::WriteDescriptorSet write_descriptor(m_set, index, 0, vk::DescriptorType::eUniformBuffer, {}, buffer_info);
+        vk::WriteDescriptorSet write_descriptor(m_set, index, 0, type, {}, info);
         API->m_device.updateDescriptorSets(write_descriptor, {});
         return *this;
     }

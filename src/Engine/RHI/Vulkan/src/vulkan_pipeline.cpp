@@ -391,6 +391,7 @@ namespace Engine
         uint_t combined_samplers = 0;
         uint_t textures          = 0;
         uint_t ubos              = 0;
+        uint_t dynamic_ubos      = 0;
         uint_t ssbos             = 0;
     };
 
@@ -437,23 +438,19 @@ namespace Engine
     {
         PoolSizeInfo info = calc_pool_sizes(pipeline);
         Vector<vk::DescriptorPoolSize> pool_size;
-        size_t frames = API->m_framebuffers_count;
 
         if (info.samplers)
-            pool_size.push_back(
-                    vk::DescriptorPoolSize(vk::DescriptorType::eSampler, MAX_BINDLESS_RESOURCES * info.samplers * frames));
+            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eSampler, info.samplers));
         if (info.combined_samplers)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler,
-                                                       MAX_BINDLESS_RESOURCES * info.combined_samplers * frames));
+            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, info.combined_samplers));
         if (info.textures)
-            pool_size.push_back(
-                    vk::DescriptorPoolSize(vk::DescriptorType::eSampledImage, MAX_BINDLESS_RESOURCES * info.textures * frames));
+            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eSampledImage, info.textures));
         if (info.ubos)
-            pool_size.push_back(
-                    vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, MAX_BINDLESS_RESOURCES * info.ubos * frames));
+            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, info.ubos));
+        if (info.dynamic_ubos)
+            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eUniformBufferDynamic, info.dynamic_ubos));
         if (info.ssbos)
-            pool_size.push_back(
-                    vk::DescriptorPoolSize(vk::DescriptorType::eStorageBuffer, MAX_BINDLESS_RESOURCES * info.ssbos * frames));
+            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eStorageBuffer, info.ssbos));
 
         return pool_size;
     }
@@ -470,6 +467,11 @@ namespace Engine
             API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
             API->m_state->m_pipeline = this;
         }
+
+        if (m_descriptor_pool)
+        {
+            m_descriptor_pool->reset();
+        }
     }
 
     VulkanPipeline& VulkanPipeline::submit_descriptors()
@@ -477,9 +479,10 @@ namespace Engine
         if (m_descriptor_pool)
         {
             uint_t set_index = 0;
+
             for (auto& set : m_descriptor_pool->get_sets_array())
             {
-                set.bind(m_pipeline_layout, set_index);
+                set.bind(m_pipeline_layout, set_index, vk::PipelineBindPoint::eGraphics);
                 ++set_index;
             }
 
@@ -498,13 +501,13 @@ namespace Engine
         return *this;
     }
 
-    VulkanPipeline& VulkanPipeline::bind_uniform_buffer(const vk::Buffer& buffer, size_t offset, size_t size,
-                                                        BindLocation location)
+    VulkanPipeline& VulkanPipeline::bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,
+                                                        vk::DescriptorType type)
     {
         if (!m_descriptor_set_layout.empty())
         {
             VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-            current_set->bind_uniform_buffer(buffer, offset, size, location.binding);
+            current_set->bind_uniform_buffer(info, location.binding, type);
         }
         return *this;
     }

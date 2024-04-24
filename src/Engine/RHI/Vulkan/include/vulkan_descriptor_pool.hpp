@@ -36,6 +36,7 @@ namespace Engine
         VulkanDescriptorPool& next();
         VulkanDescriptorPool& reset();
         VulkanDescriptorSet* get(BindingIndex set);
+        size_t descriptor_sets_per_frame() const;
         Vector<VulkanDescriptorSet>& get_sets_array();
 
         ~VulkanDescriptorPool();

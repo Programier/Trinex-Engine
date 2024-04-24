@@ -62,8 +62,9 @@ namespace Engine
         VulkanPipeline* pipeline = API->m_state->m_pipeline;
         if (index >= 0 && pipeline && pipeline->global_parameters_info().has_parameters())
         {
-            API->m_state->m_pipeline->bind_uniform_buffer(buffers[index].buffer, 0, sizeof(GlobalShaderParameters),
-                                                          BindLocation(pipeline->global_parameters_info().bind_index(), 0));
+            API->m_state->m_pipeline->bind_uniform_buffer(
+                    vk::DescriptorBufferInfo(buffers[index].buffer, 0, sizeof(GlobalShaderParameters)),
+                    BindLocation(pipeline->global_parameters_info().bind_index(), 0), vk::DescriptorType::eUniformBuffer);
         }
     }
 
@@ -101,8 +102,9 @@ namespace Engine
             current_buffer.update(shadow_data.data(), shadow_data_size, used_data);
 
             BindLocation local_params_location = {pipeline->local_parameters_info().bind_index(), 0};
-            API->m_state->m_pipeline->bind_uniform_buffer(current_buffer.buffer, used_data, shadow_data_size,
-                                                          local_params_location);
+            API->m_state->m_pipeline->bind_uniform_buffer(
+                    vk::DescriptorBufferInfo(current_buffer.buffer, used_data, shadow_data_size), local_params_location,
+                    vk::DescriptorType::eUniformBuffer);
             used_data = align_memory(used_data + shadow_data_size, API->m_properties.limits.minUniformBufferOffsetAlignment);
         }
 

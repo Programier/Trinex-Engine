@@ -7,7 +7,8 @@ namespace Engine
 {
     VulkanDescriptorPool::Entry::Entry(VulkanDescriptorPool* pool)
     {
-        vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, MAX_BINDLESS_RESOURCES,
+        size_t max_sets = MAX_BINDLESS_RESOURCES * API->m_framebuffers_count * pool->descriptor_sets_per_frame();
+        vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, max_sets,
                                                pool->m_pool_sizes);
         m_pool = API->m_device.createDescriptorPool(pool_info);
         pool->m_entries.push_back(this);
@@ -37,7 +38,9 @@ namespace Engine
             new Entry(this);
         }
 
-        auto& pool = m_entries.back()->m_pool;
+        Entry* entry = m_entries.back();
+        ++entry->m_allocated_instances;
+        auto& pool = entry->m_pool;
         for (auto& frame_list : m_frames_list)
         {
             frame_list.emplace_back();
@@ -55,18 +58,9 @@ namespace Engine
 
     VulkanDescriptorPool& VulkanDescriptorPool::next()
     {
-        auto& list = frames_list();
+        ++m_object_index;
 
-        if (m_frame_index != API->m_current_frame)
-        {
-            reset();
-        }
-        else if (!list.empty())
-        {
-            ++m_object_index;
-        }
-
-        if (list.size() <= m_object_index)
+        if (frames_list().size() <= m_object_index)
         {
             allocate_new_object();
         }
@@ -76,14 +70,22 @@ namespace Engine
 
     VulkanDescriptorPool& VulkanDescriptorPool::reset()
     {
-        m_frame_index  = API->m_current_frame;
-        m_object_index = 0;
+        if (m_frame_index != API->m_current_frame)
+        {
+            m_frame_index  = API->m_current_frame;
+            m_object_index = 0;
+        }
         return *this;
     }
 
     VulkanDescriptorSet* VulkanDescriptorPool::get(BindingIndex set)
     {
         return get_sets_array().data() + set;
+    }
+
+    size_t VulkanDescriptorPool::descriptor_sets_per_frame() const
+    {
+        return m_pipeline->descriptor_sets_count();
     }
 
     VulkanDescriptorPool::Frame& VulkanDescriptorPool::get_sets_array()
@@ -93,7 +95,7 @@ namespace Engine
 
     VulkanDescriptorPool::~VulkanDescriptorPool()
     {
-        for(auto& pool_entry : m_entries)
+        for (auto& pool_entry : m_entries)
         {
             delete pool_entry;
         }

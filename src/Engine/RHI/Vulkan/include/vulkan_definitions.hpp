@@ -3,7 +3,7 @@
 #include <Core/logger.hpp>
 
 
-#define MAX_BINDLESS_RESOURCES 512
+#define MAX_BINDLESS_RESOURCES 1024
 #define vulkan_error_log error_log
 #define vulkan_debug_log debug_log
 #define vulkan_info_log info_log
@@ -26,7 +26,7 @@
 #define DESTROY_CALL(func, instance)                                                                                             \
     {                                                                                                                            \
         if (instance)                                                                                                            \
-            API->m_device.func(instance);                                                                                       \
+            API->m_device.func(instance);                                                                                        \
         instance = nullptr;                                                                                                      \
     }
 

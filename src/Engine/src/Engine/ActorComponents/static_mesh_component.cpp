@@ -96,11 +96,6 @@ namespace Engine
             {
                 rhi->draw(vertices);
             }
-
-
-            auto transform = proxy()->world_transform();
-            transform.add_location({4.0f, 0.0, 0.0});
-            proxy()->world_transform(transform);
         }
         else
         {

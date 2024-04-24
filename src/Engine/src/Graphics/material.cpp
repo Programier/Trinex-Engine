@@ -136,7 +136,6 @@ namespace Engine
     {
         if (bind_model_matrix)
         {
-            auto vec = component->proxy()->world_transform().location();
             param = component ? component->proxy()->world_transform().matrix() : Matrix4f(1.f);
         }
         Super::apply(pipeline, component);
