@@ -13,47 +13,20 @@ namespace Engine
     implement_engine_class_default_init(PrimitiveComponent);
     static const AABB_3Df default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
-    PrimitiveProxy::PrimitiveProxy(class PrimitiveComponent* component) : m_component(component)
-    {}
-
-    PrimitiveProxy& PrimitiveProxy::world_transform(const Transform& transform)
-    {
-        m_world_transform = transform;
-        return *this;
-    }
-
-    PrimitiveProxy& PrimitiveProxy::local_transform(const Transform& transform)
-    {
-        m_local_transform = transform;
-        return *this;
-    }
-
-    PrimitiveProxy& PrimitiveProxy::bounding_box(const AABB_3Df& bounds)
+    PrimitiveComponentProxy& PrimitiveComponentProxy::bounding_box(const AABB_3Df& bounds)
     {
         m_bounds = bounds;
         return *this;
     }
 
-    const Transform& PrimitiveProxy::world_transform() const
-    {
-        return m_world_transform;
-    }
 
-    const Transform& PrimitiveProxy::local_transform() const
-    {
-        return m_local_transform;
-    }
-
-    const AABB_3Df& PrimitiveProxy::bounding_box() const
+    const AABB_3Df& PrimitiveComponentProxy::bounding_box() const
     {
         return m_bounds;
     }
 
-    PrimitiveProxy::~PrimitiveProxy()
-    {}
 
-
-    PrimitiveComponent::PrimitiveComponent() : m_proxy(nullptr), m_bounding_box(default_bounds)
+    PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds)
     {}
 
     bool PrimitiveComponent::is_visible() const
@@ -69,7 +42,6 @@ namespace Engine
     PrimitiveComponent& PrimitiveComponent::spawned()
     {
         Super::spawned();
-        m_proxy = create_proxy();
 
         if (Actor* owner_actor = actor())
         {
@@ -99,10 +71,12 @@ namespace Engine
             }
         }
 
-        delete m_proxy;
-        m_proxy = nullptr;
-
         return *this;
+    }
+
+    ActorComponentProxy* PrimitiveComponent::create_proxy()
+    {
+        return new PrimitiveComponentProxy();
     }
 
     PrimitiveComponent& PrimitiveComponent::on_transform_changed()
@@ -132,9 +106,9 @@ namespace Engine
         return *this;
     }
 
-    PrimitiveProxy* PrimitiveComponent::proxy() const
+    PrimitiveComponentProxy* PrimitiveComponent::proxy() const
     {
-        return m_proxy;
+        return typed_proxy<PrimitiveComponentProxy>();
     }
 
     PrimitiveComponent& PrimitiveComponent::update_bounding_box()
@@ -143,24 +117,7 @@ namespace Engine
         return *this;
     }
 
-    PrimitiveProxy* PrimitiveComponent::create_proxy()
-    {
-        return new PrimitiveProxy(this);
-    }
 
     PrimitiveComponent::~PrimitiveComponent()
-    {
-        if (m_proxy)
-            delete m_proxy;
-        m_proxy = nullptr;
-    }
-
-    //    PrimitiveComponent& PrimitiveComponent::update_drawing_data()
-    //    {
-    //        Super::update_drawing_data();
-    //        render_thread()->insert_new_task<UpdateVariableCommand<AABB_3Df>>(m_bounding_box, m_bounding_box_render_thread);
-
-
-    //        return *this;
-    //    }
+    {}
 }// namespace Engine

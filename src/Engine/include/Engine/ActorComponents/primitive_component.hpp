@@ -6,24 +6,15 @@ namespace Engine
 {
     class PrimitiveComponent;
 
-    class ENGINE_EXPORT PrimitiveProxy
+    class ENGINE_EXPORT PrimitiveComponentProxy : public SceneComponentProxy
     {
     protected:
-        PrimitiveComponent* m_component;
-        Transform m_world_transform;
-        Transform m_local_transform;
         AABB_3Df m_bounds;
 
     public:
-        PrimitiveProxy(class PrimitiveComponent* component);
-        PrimitiveProxy& world_transform(const Transform& transform);
-        PrimitiveProxy& local_transform(const Transform& transform);
-        PrimitiveProxy& bounding_box(const AABB_3Df& bounds);
-        const Transform& world_transform() const;
-        const Transform& local_transform() const;
+        PrimitiveComponentProxy& bounding_box(const AABB_3Df& bounds);
         const AABB_3Df& bounding_box() const;
-
-        virtual ~PrimitiveProxy();
+        friend class PrimitiveComponent;
     };
 
     class ENGINE_EXPORT PrimitiveComponent : public SceneComponent
@@ -31,7 +22,6 @@ namespace Engine
         declare_class(PrimitiveComponent, SceneComponent);
 
     protected:
-        PrimitiveProxy* m_proxy;
         bool m_is_visible;
         AABB_3Df m_bounding_box;
         class SceneLayer* m_layer = nullptr;
@@ -44,13 +34,13 @@ namespace Engine
         PrimitiveComponent& spawned() override;
         PrimitiveComponent& destroyed() override;
         PrimitiveComponent& on_transform_changed() override;
+        ActorComponentProxy* create_proxy() override;
 
         virtual PrimitiveComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer);
         virtual PrimitiveComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*);
         virtual PrimitiveComponent& update_bounding_box();
 
-        PrimitiveProxy* proxy() const;
-        virtual PrimitiveProxy* create_proxy();
+        PrimitiveComponentProxy* proxy() const;
         ~PrimitiveComponent();
         friend class SceneLayer;
     };

@@ -129,7 +129,7 @@ namespace Engine
         Transform local;
         Transform world;
         AABB_3Df bounds;
-        PrimitiveProxy* proxy;
+        PrimitiveComponentProxy* proxy;
 
     public:
         UpdatePrimitiveTransformCommand(PrimitiveComponent* component)
@@ -139,7 +139,7 @@ namespace Engine
 
         int_t execute() override
         {
-            proxy->local_transform(local).world_transform(world).bounding_box(bounds);
+            proxy->bounding_box(bounds).local_transform(local).world_transform(world);
             return sizeof(UpdatePrimitiveTransformCommand);
         }
     };

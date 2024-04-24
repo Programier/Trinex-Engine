@@ -8,6 +8,28 @@ namespace Engine
 {
     implement_engine_class_default_init(SceneComponent);
 
+    const Transform& SceneComponentProxy::world_transform() const
+    {
+        return m_world_transform;
+    }
+
+    const Transform& SceneComponentProxy::local_transform() const
+    {
+        return m_local_transform;
+    }
+
+    SceneComponentProxy& SceneComponentProxy::world_transform(const Transform& transform)
+    {
+        m_world_transform = transform;
+        return *this;
+    }
+
+    SceneComponentProxy& SceneComponentProxy::local_transform(const Transform& transform)
+    {
+        m_local_transform = transform;
+        return *this;
+    }
+
     SceneComponent::SceneComponent()
     {}
 
@@ -86,6 +108,16 @@ namespace Engine
         Super::destroyed();
 
         return *this;
+    }
+
+    ActorComponentProxy* SceneComponent::create_proxy()
+    {
+        return new SceneComponentProxy();
+    }
+
+    SceneComponentProxy* SceneComponent::proxy() const
+    {
+        return typed_proxy<SceneComponentProxy>();
     }
 
     const Transform& SceneComponent::local_transform() const

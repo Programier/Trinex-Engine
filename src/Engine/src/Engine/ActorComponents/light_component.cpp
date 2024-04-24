@@ -39,6 +39,7 @@ namespace Engine
 
     LightComponent& LightComponent::spawned()
     {
+        Super::spawned();
         Scene* world_scene = scene();
         if (world_scene)
         {
@@ -66,6 +67,7 @@ namespace Engine
             world_scene->remove_light(this);
         }
 
+        Super::destroyed();
         return *this;
     }
 

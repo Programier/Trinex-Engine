@@ -5,6 +5,19 @@
 
 namespace Engine
 {
+    class ENGINE_EXPORT SceneComponentProxy : public ActorComponentProxy
+    {
+        Transform m_world_transform;
+        Transform m_local_transform;
+
+    public:
+        const Transform& world_transform() const;
+        const Transform& local_transform() const;
+        SceneComponentProxy& world_transform(const Transform& transform);
+        SceneComponentProxy& local_transform(const Transform& transform);
+        friend class SceneComponent;
+    };
+
     class ENGINE_EXPORT SceneComponent : public ActorComponent
     {
         declare_class(SceneComponent, ActorComponent);
@@ -27,6 +40,8 @@ namespace Engine
         SceneComponent* parent() const;
         const Vector<Pointer<SceneComponent>>& childs() const;
         SceneComponent& destroyed() override;
+        ActorComponentProxy* create_proxy() override;
+        SceneComponentProxy* proxy() const;
 
         const Transform& local_transform() const;
         const Transform& world_transform() const;
