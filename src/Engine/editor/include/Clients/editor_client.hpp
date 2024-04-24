@@ -1,10 +1,10 @@
 #pragma once
 #include <Core/enum.hpp>
-#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Engine/scene.hpp>
 #include <Event/listener_id.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Render/editor_scene_renderer.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
@@ -27,7 +27,7 @@ namespace Engine
         declare_class(EditorClient, ViewportClient);
 
     private:
-        SceneRenderer m_renderer;
+        EditorSceneRenderer m_renderer;
         SceneView m_scene_view;
 
         RenderViewport* m_render_viewport = nullptr;

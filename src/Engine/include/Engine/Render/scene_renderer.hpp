@@ -11,12 +11,19 @@ namespace Engine
     class SceneRenderer;
     class RenderViewport;
     class SceneLayer;
+    class StaticMeshComponent;
+    class SpriteComponent;
+    class Scene;
+    class RenderTargetBase;
+    class PrimitiveComponent;
+    class LightComponent;
+    class PointLightComponent;
 
 
-    class ENGINE_EXPORT SceneRenderer final
+    class ENGINE_EXPORT SceneRenderer
     {
     private:
-        class Scene* m_scene;
+        Scene* m_scene;
 
         GlobalShaderParameters m_global_shader_params;
         SceneView m_scene_view;
@@ -34,9 +41,9 @@ namespace Engine
         Scene* scene() const;
         SceneRenderer& render(const SceneView& view, RenderTargetBase* render_target);
 
-        void clear_render_targets(RenderTargetBase*, SceneLayer*);
-
+        // Render targets manipulation
         SceneRenderer& begin_rendering_target(RenderTargetBase* render_target, class RenderPass* render_pass = nullptr);
+        void clear_render_targets(RenderTargetBase*, SceneLayer*);
         void begin_rendering_base_pass(RenderTargetBase*, SceneLayer*);
         void begin_deferred_lighting_pass(RenderTargetBase*, SceneLayer*);
         void begin_lighting_pass(RenderTargetBase*, SceneLayer*);
@@ -44,6 +51,21 @@ namespace Engine
         void begin_postprocess_pass(RenderTargetBase*, SceneLayer*);
         void end_rendering_target(RenderTargetBase*, SceneLayer*);
         SceneRenderer& end_rendering_target();
+
+
+        // Add components to scene layers
+        virtual SceneRenderer& add_component(PrimitiveComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(StaticMeshComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(SpriteComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(LightComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(PointLightComponent* component, Scene* scene);
+
+        // Components rendering
+        virtual SceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(StaticMeshComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
 
         FORCE_INLINE const GlobalShaderParameters& shader_params() const
         {
@@ -61,7 +83,7 @@ namespace Engine
         }
 
         SceneRenderer& view_mode(ViewMode new_mode);
-        ~SceneRenderer();
+        virtual ~SceneRenderer();
     };
 
 }// namespace Engine

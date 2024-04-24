@@ -90,12 +90,7 @@ namespace Engine
     {
         m_is_dirty = true;
 
-        if (SceneComponentProxy* component_proxy = proxy())
-        {
-            Thread* thread = render_thread();
-            thread->insert_new_task<UpdateVariableCommand<Transform>>(local_transform(), component_proxy->m_local_transform);
-            thread->insert_new_task<UpdateVariableCommand<Transform>>(world_transform(), component_proxy->m_world_transform);
-        }
+        submit_transform_to_render_thread();
 
         for (SceneComponent* child : m_childs)
         {
@@ -121,6 +116,23 @@ namespace Engine
     ActorComponentProxy* SceneComponent::create_proxy()
     {
         return new SceneComponentProxy();
+    }
+
+    void SceneComponent::submit_transform_to_render_thread()
+    {
+        if (SceneComponentProxy* component_proxy = proxy())
+        {
+            Thread* thread = render_thread();
+            thread->insert_new_task<UpdateVariableCommand<Transform>>(local_transform(), component_proxy->m_local_transform);
+            thread->insert_new_task<UpdateVariableCommand<Transform>>(world_transform(), component_proxy->m_world_transform);
+        }
+    }
+
+    SceneComponent& SceneComponent::start_play()
+    {
+        Super::start_play();
+        submit_transform_to_render_thread();
+        return *this;
     }
 
     SceneComponentProxy* SceneComponent::proxy() const

@@ -1,6 +1,8 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
+#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -27,8 +29,9 @@ namespace Engine
         return *this;
     }
 
-    StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
+    SceneRenderer& SceneRenderer::add_component(StaticMeshComponent* component, Scene* scene)
     {
+        StaticMesh* mesh = component->mesh;
         if (mesh && mesh->material && !mesh->lods.empty())
         {
             if (Pipeline* pipeline = mesh->material->material()->pipeline)
@@ -36,35 +39,45 @@ namespace Engine
                 RenderPassType type = pipeline->render_pass_type();
                 if (type == RenderPassType::OneAttachentOutput)
                 {
-                    scene->scene_output_layer()->add_component(this);
+                    scene->scene_output_layer()->add_component(component);
                 }
                 else if (type == RenderPassType::GBuffer)
                 {
-                    scene->base_pass_layer()->add_component(this);
+                    scene->base_pass_layer()->add_component(component);
                 }
             }
         }
         else if (engine_instance->is_editor())
         {
-            scene->scene_output_layer()->add_component(this);
+            scene->scene_output_layer()->add_component(component);
         }
         return *this;
     }
 
-    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt,
-                                                     class SceneLayer* layer)
+    StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
+        renderer->add_component(this, scene);
+        return *this;
+    }
+
+    SceneRenderer& SceneRenderer::render_component(StaticMeshComponent* component, class RenderTargetBase* rt,
+                                                   class SceneLayer* layer)
+    {
+        render_component(static_cast<StaticMeshComponent::Super*>(component), rt, layer);
+
+        StaticMesh* mesh = component->mesh;
         if (mesh && mesh->material)
         {
-            auto& camera_view  = renderer->scene_view().camera_view();
-            float inv_distance = 1.f / glm::min(glm::distance(proxy()->world_transform().location(), camera_view.location),
-                                                camera_view.far_clip_plane);
-            auto& lods         = mesh->lods;
-            Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
+            auto& camera_view = scene_view().camera_view();
+            float inv_distance =
+                    1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
+                                   camera_view.far_clip_plane);
+            auto& lods      = mesh->lods;
+            Index lod_index = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
 
             auto& lod = lods[lod_index];
 
-            mesh->material->apply(this);
+            mesh->material->apply(component);
             VertexShader* shader = mesh->material->material()->pipeline->vertex_shader();
 
             size_t vertices = Constants::max_size;
@@ -97,11 +110,13 @@ namespace Engine
                 rhi->draw(vertices);
             }
         }
-        else
-        {
-            Super::render(renderer, rt, layer);
-        }
+        return *this;
+    }
 
+    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt,
+                                                     class SceneLayer* layer)
+    {
+        renderer->render_component(this, rt, layer);
         return *this;
     }
 
@@ -110,6 +125,7 @@ namespace Engine
         if (mesh)
         {
             m_bounding_box = mesh->bounds.apply_transform(world_transform().matrix());
+            submit_bounds_to_render_thread();
         }
         else
         {

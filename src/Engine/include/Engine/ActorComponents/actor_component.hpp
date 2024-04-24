@@ -35,8 +35,8 @@ namespace Engine
         ActorComponent();
         ~ActorComponent();
 
-        virtual ActorComponent& begin_play();
-        virtual ActorComponent& end_play();
+        virtual ActorComponent& start_play();
+        virtual ActorComponent& stop_play();
         virtual ActorComponent& update(float dt);
         virtual ActorComponent& spawned();
         virtual ActorComponent& destroyed();

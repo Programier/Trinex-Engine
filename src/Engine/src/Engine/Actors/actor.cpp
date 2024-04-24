@@ -72,13 +72,12 @@ namespace Engine
         return *this;
     }
 
-
     Actor& Actor::update(float dt)
     {
         m_script_object.update(dt);
 
         // Update each component in actor
-        for(auto& component : m_owned_components)
+        for (auto& component : m_owned_components)
         {
             component->update(dt);
         }
@@ -87,19 +86,41 @@ namespace Engine
 
     Actor& Actor::start_play()
     {
-        m_is_playing = true;
+        if (m_is_playing == false)
+        {
+            m_is_playing = true;
+
+            for (auto& component : m_owned_components)
+            {
+                component->start_play();
+            }
+        }
         return *this;
     }
 
     Actor& Actor::stop_play()
     {
-        m_is_playing = false;
+        if (m_is_playing)
+        {
+            m_is_playing = false;
+
+            for (auto& component : m_owned_components)
+            {
+                component->stop_play();
+            }
+        }
+
         return *this;
     }
 
     bool Actor::is_playing() const
     {
         return m_is_playing;
+    }
+
+    bool Actor::is_selected() const
+    {
+        return actor_flags(Flag::Selected);
     }
 
     Actor& Actor::spawned()
@@ -123,10 +144,7 @@ namespace Engine
 
     Actor& Actor::destroyed()
     {
-        if (is_playing())
-        {
-            stop_play();
-        }
+        stop_play();
 
         // Call destroy for each component
         for (size_t index = 0, count = m_owned_components.size(); index < count; ++index)

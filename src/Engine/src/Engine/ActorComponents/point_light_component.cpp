@@ -27,15 +27,24 @@ namespace Engine
         return LightComponent::Type::Point;
     }
 
+
+    SceneRenderer& SceneRenderer::add_component(PointLightComponent* component, Scene* scene)
+    {
+        scene->deferred_lighting_layer()->add_light(component);
+        return *this;
+    }
+
     PointLightComponent& PointLightComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
-        scene->deferred_lighting_layer()->add_light(this);
+        renderer->add_component(this, scene);
         return *this;
     }
 
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(name_##param_name));
-    PointLightComponent& PointLightComponent::render(class SceneRenderer* renderer, class RenderTargetBase*, class SceneLayer*)
+    SceneRenderer& SceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
+        render_component(static_cast<PointLightComponent::Super*>(component), rt, layer);
+
         Material* material                 = DefaultResources::point_light_material;
         static Name name_light_color       = "light_color";
         static Name name_light_radius      = "light_radius";
@@ -51,32 +60,39 @@ namespace Engine
 
         if (color_parameter)
         {
-            color_parameter->param = light_color;
+            color_parameter->param = component->light_color;
         }
 
         if (location_parameter)
         {
-            location_parameter->param = proxy()->world_transform().location();
+            location_parameter->param = component->proxy()->world_transform().location();
         }
 
         if (radius_parameter)
         {
-            radius_parameter->param = radius;
+            radius_parameter->param = component->radius;
         }
 
         if (intensivity_parameter)
         {
-            intensivity_parameter->param = intensivity;
+            intensivity_parameter->param = component->intensivity;
         }
 
         if (ambient_color_parameter)
         {
-            ambient_color_parameter->param = renderer->scene()->environment.ambient_color;
+            ambient_color_parameter->param = scene()->environment.ambient_color;
         }
 
         material->apply();
         DefaultResources::screen_position_buffer->rhi_bind(0, 0);
         engine_instance->rhi()->draw(6);
+        return *this;
+    }
+
+    PointLightComponent& PointLightComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt,
+                                                     class SceneLayer* layer)
+    {
+        renderer->render_component(this, rt, layer);
         return *this;
     }
 }// namespace Engine

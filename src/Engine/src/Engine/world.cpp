@@ -33,18 +33,34 @@ namespace Engine
         if (!m_is_playing)
             return *this;
 
-        for (size_t index = 0, count = m_actors.size(); index < count; ++index)
-        {
-            m_actors[index]->update(dt);
-        }
-
         if (!m_actors_to_destroy.empty())
         {
-            for (size_t index = 0, count = m_actors_to_destroy.size(); index < count; ++index)
+            while (!m_actors_to_destroy.empty())
             {
-                destroy_actor(m_actors_to_destroy[index], true);
+                auto& front = m_actors_to_destroy.front();
+
+                if (front.skip_frames == 0)
+                {
+                    destroy_actor(front.actor, true);
+                    m_actors_to_destroy.pop_front();
+                }
+                else
+                    break;
             }
-            m_actors_to_destroy.clear();
+
+            for (auto& actor_info : m_actors_to_destroy)
+            {
+                --actor_info.skip_frames;
+            }
+        }
+
+        for (size_t index = 0, count = m_actors.size(); index < count; ++index)
+        {
+            Actor* actor = m_actors[index];
+            if (actor->is_playing())
+            {
+                m_actors[index]->update(dt);
+            }
         }
 
         return *this;
@@ -114,7 +130,6 @@ namespace Engine
                 root->rotation(rotation);
                 root->scale(scale);
                 m_scene->root_component()->attach(root);
-                actor->scene_component()->on_transform_changed();
             }
         }
 
@@ -134,7 +149,12 @@ namespace Engine
 
         if (!ignore_playing && actor->is_playing())
         {
-            m_actors_to_destroy.push_back(actor);
+            actor->stop_play();
+            // Perhaps the method will be called before World::update, so we skip one frame and only then delete the actor
+            DestroyActorInfo info;
+            info.actor       = actor;
+            info.skip_frames = 1;
+            m_actors_to_destroy.push_back(info);
             return *this;
         }
 
@@ -200,7 +220,7 @@ namespace Engine
 
     World& World::unselect_actors()
     {
-        for(auto& selected : m_selected_actors)
+        for (auto& selected : m_selected_actors)
         {
             selected->actor_flags(Actor::Selected, false);
         }

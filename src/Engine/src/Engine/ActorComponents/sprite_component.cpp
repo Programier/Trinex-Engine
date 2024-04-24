@@ -23,9 +23,15 @@ namespace Engine
         self->add_property(prop);
     }
 
+    SceneRenderer& SceneRenderer::add_component(SpriteComponent* component, Scene* scene)
+    {
+        scene->scene_output_layer()->add_component(component);
+        return *this;
+    }
+
     SpriteComponent& SpriteComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
-        scene->scene_output_layer()->add_component(this);
+        renderer->add_component(this, scene);
         return *this;
     }
 
@@ -53,37 +59,32 @@ namespace Engine
             const Vector3D& location = world_transform().location();
             m_bounding_box.minmax(location, location);
         }
+
+        submit_bounds_to_render_thread();
         return *this;
     }
 
 
-    static Matrix4f rotate_sprite(const Transform& input_transform, const SceneView& view)
+    static FORCE_INLINE Matrix4f rotate_sprite(Transform input_transform, const SceneView& view)
     {
-        Vector3D location;
-        Vector3D scale;
-        Quaternion quat;
-        Vector3D skew;
-        Vector4D perspective;
-        glm::decompose(input_transform.matrix(), scale, quat, location, skew, perspective);
-
-        Matrix4f transform = glm::inverse(glm::lookAt(location, view.camera_view().location, Constants::OY));
-        return glm::scale(transform, scale);
+        return input_transform.look_at(view.camera_view().location, Constants::OY).matrix();
     }
 
-    SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer, class RenderTargetBase*, class SceneLayer*)
+    SceneRenderer& SceneRenderer::render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
+        render_component(static_cast<SpriteComponent::Super*>(component), rt, layer);
         Material* material                 = DefaultResources::sprite_material;
         PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
         if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
         {
-            Matrix4f model   = rotate_sprite(proxy()->world_transform(), renderer->scene_view());
+            Matrix4f model   = rotate_sprite(component->proxy()->world_transform(), scene_view());
             parameter->param = model;
         }
 
         BindingMaterialParameter* texture_parameter =
                 reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
         Texture* tmp     = nullptr;
-        Texture* current = reinterpret_cast<Texture*>(texture());
+        Texture* current = reinterpret_cast<Texture*>(component->texture());
 
         if (texture_parameter && current)
         {
@@ -91,7 +92,7 @@ namespace Engine
             texture_parameter->texture_param(current);
         }
 
-        material->apply(this);
+        material->apply(component);
         vertex_bufer->rhi_bind(0, 0);
         engine_instance->rhi()->draw(6);
 
@@ -99,7 +100,12 @@ namespace Engine
         {
             texture_parameter->texture_param(tmp);
         }
+        return *this;
+    }
 
+    SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt, class SceneLayer* layer)
+    {
+        renderer->render_component(this, rt, layer);
         return *this;
     }
 

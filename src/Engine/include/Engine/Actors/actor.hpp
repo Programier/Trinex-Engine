@@ -51,6 +51,8 @@ namespace Engine
         Actor& update_drawing_data();
 
         bool is_playing() const;
+        bool is_selected() const;
+
         const Vector<class ActorComponent*>& owned_components() const;
         Actor& destroy_script_object(ScriptObject* object) override;
         const Transform& transfrom() const;

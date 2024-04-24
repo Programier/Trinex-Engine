@@ -718,7 +718,10 @@ namespace Engine
 
         view.screen_to_world(coords, origin, direction);
         Ray ray(origin, direction);
+
+        // Raycast primitives and lights
         auto component = raycast_primitive(m_world->scene()->primitive_octree().root_node(), ray);
+        component      = raycast_primitive(m_world->scene()->light_octree().root_node(), ray, component);
 
         if (component.first)
         {

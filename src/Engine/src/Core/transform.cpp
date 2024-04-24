@@ -137,6 +137,12 @@ namespace Engine
         return *this;
     }
 
+    Transform& Transform::look_at(const Vector3D& position, const Vector3D& up)
+    {
+        Transform::operator=(glm::inverse(glm::lookAt(location(), position, up)) * scale_matrix());
+        return *this;
+    }
+
     Transform Transform::operator+(const Transform& other) const
     {
         Transform new_transform = *this;

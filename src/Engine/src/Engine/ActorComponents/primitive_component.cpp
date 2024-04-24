@@ -5,6 +5,7 @@
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Engine/world.hpp>
 
@@ -39,10 +40,9 @@ namespace Engine
         return m_bounding_box;
     }
 
-    PrimitiveComponent& PrimitiveComponent::spawned()
+    PrimitiveComponent& PrimitiveComponent::start_play()
     {
-        Super::spawned();
-
+        Super::start_play();
         if (Actor* owner_actor = actor())
         {
             if (World* world = owner_actor->world())
@@ -56,9 +56,9 @@ namespace Engine
         return *this;
     }
 
-    PrimitiveComponent& PrimitiveComponent::destroyed()
+    PrimitiveComponent& PrimitiveComponent::stop_play()
     {
-        Super::destroyed();
+        Super::stop_play();
 
         if (Actor* owner_actor = actor())
         {
@@ -91,18 +91,25 @@ namespace Engine
         return *this;
     }
 
-    PrimitiveComponent& PrimitiveComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
+    SceneRenderer& SceneRenderer::add_component(PrimitiveComponent* component, Scene* scene)
     {
         return *this;
     }
 
-    PrimitiveComponent& PrimitiveComponent::render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer* layer)
+    PrimitiveComponent& PrimitiveComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
-        if (engine_instance->is_editor())
-        {
-            static const ByteColor red = {255, 0, 0, 255};
-            proxy()->bounding_box().write_to_batcher(layer->lines, red);
-        }
+        renderer->add_component(this, scene);
+        return *this;
+    }
+
+    SceneRenderer& SceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    {
+        return *this;
+    }
+
+    PrimitiveComponent& PrimitiveComponent::render(SceneRenderer* renderer, class RenderTargetBase* rt, class SceneLayer* layer)
+    {
+        renderer->render_component(this, rt, layer);
         return *this;
     }
 
@@ -111,9 +118,19 @@ namespace Engine
         return typed_proxy<PrimitiveComponentProxy>();
     }
 
+
+    void PrimitiveComponent::submit_bounds_to_render_thread()
+    {
+        if (PrimitiveComponentProxy* component_proxy = proxy())
+        {
+            render_thread()->insert_new_task<UpdateVariableCommand<AABB_3Df>>(m_bounding_box, component_proxy->m_bounds);
+        }
+    }
+
     PrimitiveComponent& PrimitiveComponent::update_bounding_box()
     {
         m_bounding_box = default_bounds.apply_transform(world_transform().matrix());
+        submit_bounds_to_render_thread();
         return *this;
     }
 

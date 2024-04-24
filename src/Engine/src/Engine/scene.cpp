@@ -126,28 +126,19 @@ namespace Engine
         return *this;
     }
 
-    struct UpdatePrimitiveTransformCommand : public ExecutableObject {
-        AABB_3Df bounds;
-        PrimitiveComponentProxy* proxy;
-
-    public:
-        UpdatePrimitiveTransformCommand(PrimitiveComponent* component)
-            : bounds(component->bounding_box()), proxy(component->proxy())
-        {}
-
-        int_t execute() override
-        {
-            proxy->bounding_box(bounds);
-            return sizeof(UpdatePrimitiveTransformCommand);
-        }
-    };
-
     Scene& Scene::update_primitive_transform(PrimitiveComponent* primitive)
     {
         remove_primitive(primitive);
         primitive->update_bounding_box();
         add_primitive(primitive);
-        render_thread()->insert_new_task<UpdatePrimitiveTransformCommand>(primitive);
+        return *this;
+    }
+
+    Scene& Scene::update_light_transform(LightComponent* light)
+    {
+        remove_light(light);
+        light->update_bounding_box();
+        add_light(light);
         return *this;
     }
 

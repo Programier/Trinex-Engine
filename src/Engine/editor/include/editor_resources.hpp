@@ -1,7 +1,6 @@
 #pragma once
 
 
-
 namespace Engine
 {
     class Sampler;
@@ -10,6 +9,7 @@ namespace Engine
 
     namespace EditorResources
     {
+        extern Texture2D* point_light_sprite;
         extern Sampler* default_sampler;
-    }
-}
+    }// namespace EditorResources
+}// namespace Engine

@@ -9,9 +9,14 @@ namespace Engine
     {
         declare_class(World, System);
 
+        struct ENGINE_EXPORT DestroyActorInfo {
+            class Actor* actor;
+            byte skip_frames;
+        };
+
     private:
         Vector<class Actor*> m_actors;
-        Vector<class Actor*> m_actors_to_destroy;
+        List<DestroyActorInfo> m_actors_to_destroy;
         TreeSet<class Actor*> m_selected_actors;
         bool m_is_playing;
 

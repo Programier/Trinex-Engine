@@ -26,13 +26,16 @@ namespace Engine
         AABB_3Df m_bounding_box;
         class SceneLayer* m_layer = nullptr;
 
+
+        void submit_bounds_to_render_thread();
+
     public:
         PrimitiveComponent();
         bool is_visible() const;
         const AABB_3Df& bounding_box() const;
 
-        PrimitiveComponent& spawned() override;
-        PrimitiveComponent& destroyed() override;
+        PrimitiveComponent& start_play() override;
+        PrimitiveComponent& stop_play() override;
         PrimitiveComponent& on_transform_changed() override;
         ActorComponentProxy* create_proxy() override;
 

@@ -31,6 +31,9 @@ namespace Engine
         Pointer<SceneComponent> m_parent = nullptr;
         Vector<Pointer<SceneComponent>> m_childs;
 
+    protected:
+        void submit_transform_to_render_thread();
+
     public:
         SceneComponent();
 
@@ -39,9 +42,11 @@ namespace Engine
         bool is_attached_to(SceneComponent* component) const;
         SceneComponent* parent() const;
         const Vector<Pointer<SceneComponent>>& childs() const;
+        SceneComponentProxy* proxy() const;
         SceneComponent& destroyed() override;
         ActorComponentProxy* create_proxy() override;
-        SceneComponentProxy* proxy() const;
+        SceneComponent& start_play() override;
+
 
         const Transform& local_transform() const;
         const Transform& world_transform() const;

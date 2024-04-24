@@ -12,8 +12,9 @@ namespace Engine
 
     namespace EditorResources
     {
-        Sampler* default_sampler = nullptr;
-    }
+        Texture2D* point_light_sprite = nullptr;
+        Sampler* default_sampler      = nullptr;
+    }// namespace EditorResources
 
     static void resource_loading()
     {
@@ -26,9 +27,9 @@ namespace Engine
         load_object_from_memory(ScaleIcon_data, ScaleIcon_len, "Editor::ScaleIcon");
         load_object_from_memory(SelectIcon_data, SelectIcon_len, "Editor::SelectIcon");
         load_object_from_memory(MoreIcon_data, MoreIcon_len, "Editor::MoreIcon");
-        load_object_from_memory(PointLightSprite_data, PointLightSprite_len, "Editor::PointLightSprite");
 
-        EditorResources::default_sampler = load_resource(DefaultSampler, Sampler);
+        EditorResources::point_light_sprite = load_resource(PointLightSprite, Texture2D);
+        EditorResources::default_sampler    = load_resource(DefaultSampler, Sampler);
         load_object_from_memory(AxisMaterial_data, AxisMaterial_len, "Editor::AxisMaterial");
         load_object_from_memory(GridMaterial_data, GridMaterial_len, "Editor::GridMaterial");
         Icons::on_editor_package_loaded();

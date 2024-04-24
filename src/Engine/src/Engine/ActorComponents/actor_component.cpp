@@ -29,12 +29,12 @@ namespace Engine
         }
     }
 
-    ActorComponent& ActorComponent::begin_play()
+    ActorComponent& ActorComponent::start_play()
     {
         return *this;
     }
 
-    ActorComponent& ActorComponent::end_play()
+    ActorComponent& ActorComponent::stop_play()
     {
         return *this;
     }

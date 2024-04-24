@@ -50,7 +50,7 @@ namespace Engine
         return type();
     }
 
-    MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline, class PrimitiveComponent* component)
+    MaterialParameter& MaterialParameter::apply(const Pipeline* pipeline, class SceneComponent* component)
     {
         if (MaterialParameterTypeLayout::from(static_cast<EnumerateType>(type())).is_scalar)
         {
@@ -132,7 +132,7 @@ namespace Engine
         return ar;
     }
 
-    Mat4MaterialParameter& Mat4MaterialParameter::apply(const Pipeline* pipeline, PrimitiveComponent* component)
+    Mat4MaterialParameter& Mat4MaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
         if (bind_model_matrix)
         {
@@ -215,7 +215,7 @@ namespace Engine
     }
 
 
-    MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline, PrimitiveComponent* component)
+    MaterialParameter& SamplerMaterialParameter::apply(const Pipeline* pipeline, SceneComponent* component)
     {
         bind_sampler(sampler, pipeline);
         return *this;
@@ -241,7 +241,7 @@ namespace Engine
         return *this;
     }
 
-    TextureMaterialParameterBase& TextureMaterialParameterBase::apply(const Pipeline* pipeline, PrimitiveComponent*)
+    TextureMaterialParameterBase& TextureMaterialParameterBase::apply(const Pipeline* pipeline, SceneComponent*)
     {
         if (Texture* texture = texture_param())
         {
@@ -251,7 +251,7 @@ namespace Engine
     }
 
     CombinedImageSamplerMaterialParameterBase& CombinedImageSamplerMaterialParameterBase::apply(const Pipeline* pipeline,
-                                                                                                PrimitiveComponent* component)
+                                                                                                SceneComponent* component)
     {
         auto texture = texture_param();
         auto sampler = sampler_param();
@@ -283,7 +283,7 @@ namespace Engine
         return nullptr;
     }
 
-    bool MaterialInterface::apply(PrimitiveComponent* component)
+    bool MaterialInterface::apply(SceneComponent* component)
     {
         return false;
     }
@@ -458,12 +458,12 @@ namespace Engine
         return m_material_parameters;
     }
 
-    bool Material::apply(PrimitiveComponent* component)
+    bool Material::apply(SceneComponent* component)
     {
         return apply(this, component);
     }
 
-    bool Material::apply(MaterialInterface* head, PrimitiveComponent* component)
+    bool Material::apply(MaterialInterface* head, SceneComponent* component)
     {
         trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
         pipeline->rhi_bind();
@@ -653,7 +653,7 @@ namespace Engine
         return parent_material;
     }
 
-    bool MaterialInstance::apply(PrimitiveComponent* component)
+    bool MaterialInstance::apply(SceneComponent* component)
     {
         Material* mat = material();
         if (!mat)

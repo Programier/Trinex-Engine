@@ -54,6 +54,7 @@ namespace Engine
         Transform& add_rotation(const Vector3D& delta);
         Transform& add_rotation(const Quaternion& delta);
         Transform& add_scale(const Vector3D& delta);
+        Transform& look_at(const Vector3D& position, const Vector3D& up = {0.0f, 1.0f, 0.f});
 
 
         Transform& operator+=(const Transform&);

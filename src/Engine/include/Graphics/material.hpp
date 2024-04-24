@@ -16,7 +16,7 @@ namespace Engine
     }// namespace ShaderCompiler
 
     class Pipeline;
-    class PrimitiveComponent;
+    class SceneComponent;
     class Texture2D;
     class Sampler;
 
@@ -34,7 +34,7 @@ namespace Engine
         virtual const byte* data() const;
         virtual MaterialParameterType type() const = 0;
         virtual MaterialParameterType binding_object_type() const;
-        virtual MaterialParameter& apply(const Pipeline* pipeline, PrimitiveComponent* component);
+        virtual MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component);
 
         template<typename T>
         T* get()
@@ -133,7 +133,7 @@ namespace Engine
 
         bool bind_model_matrix = false;
 
-        Mat4MaterialParameter& apply(const Pipeline* pipeline, PrimitiveComponent* component) override;
+        Mat4MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component) override;
         bool archive_process(Archive& archive) override;
     };
 
@@ -159,7 +159,7 @@ namespace Engine
 
         SamplerMaterialParameter();
         MaterialParameterType type() const override;
-        MaterialParameter& apply(const Pipeline* pipeline, PrimitiveComponent* component = nullptr) override;
+        MaterialParameter& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
         bool archive_process(Archive& ar) override;
         class Sampler* sampler_param() const override;
         SamplerMaterialParameter& sampler_param(class Sampler* sampler) override;
@@ -167,13 +167,12 @@ namespace Engine
 
     struct ENGINE_EXPORT TextureMaterialParameterBase : public BindingMaterialParameter {
     public:
-        TextureMaterialParameterBase& apply(const Pipeline* pipeline, PrimitiveComponent* component = nullptr) override;
+        TextureMaterialParameterBase& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
     struct ENGINE_EXPORT CombinedImageSamplerMaterialParameterBase : public BindingMaterialParameter {
     public:
-        CombinedImageSamplerMaterialParameterBase& apply(const Pipeline* pipeline,
-                                                         PrimitiveComponent* component = nullptr) override;
+        CombinedImageSamplerMaterialParameterBase& apply(const Pipeline* pipeline, SceneComponent* component = nullptr) override;
     };
 
     template<typename ClassType, MaterialParameterType parameter_type>
@@ -291,7 +290,7 @@ namespace Engine
         virtual MaterialParameter* find_parameter(const Name& name) const;
         virtual MaterialInterface* parent() const;
         virtual class Material* material();
-        virtual bool apply(PrimitiveComponent* component = nullptr);
+        virtual bool apply(SceneComponent* component = nullptr);
     };
 
     class ENGINE_EXPORT Material : public MaterialInterface
@@ -322,8 +321,8 @@ namespace Engine
         Material& clear_parameters();
         const ParametersMap& parameters() const;
 
-        bool apply(PrimitiveComponent* component = nullptr) override;
-        bool apply(MaterialInterface* head, PrimitiveComponent* component = nullptr);
+        bool apply(SceneComponent* component = nullptr) override;
+        bool apply(MaterialInterface* head, SceneComponent* component = nullptr);
         class Material* material() override;
         bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
         Material& apply_changes() override;
@@ -347,7 +346,7 @@ namespace Engine
         bool archive_process(Archive& archive) override;
         MaterialParameter* find_parameter(const Name& name) const override;
         MaterialInterface* parent() const override;
-        bool apply(PrimitiveComponent* component = nullptr) override;
+        bool apply(SceneComponent* component = nullptr) override;
         class Material* material() override;
     };
 }// namespace Engine
