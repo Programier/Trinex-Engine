@@ -4,24 +4,45 @@
   </p>
 </div>
 
-## Compile from source (command line)
+# Trinex Engine
+**Trinex Engine** A simple game engine targeting platforms such as Windows, Linux and Android. This project was developed with the am of studying the work of modern game engines and studying the graphics api such as OpenGL and Vulkan.
 
-### Linux
-1. Clone or download the repository in a directory
-2. Install libraries: ```assimp cmake g++```
-3. Open terminal in source forder and start compilation
-```cmd
-    ./build.sh
-```
-### Windows
-1. Clone or download the repository in a directory
-2. Install [CMake](https://cmake.org/download/)
-3. Install [MinGW](https://sourceforge.net/projects/mingw/)
-4. Open command line in source folder and start compilation
-```cmd
-    .\build.bat
-```
+## Requirements
+To use Trinex Engine, you need to have the following software installed:
+- CMake
+- G++
+- Make
 
-## Run
-1. Run executable file PROJECT_SOURCE/Exec/Engine3D_RUN
+## Getting Started
+Follow these steps to get started with Trinex Engine:
+1. **Install CMake, G++, and Make**: Ensure you have CMake, G++, and Make installed on your system. These tools are required to build the project.
+2. **Clone the repository**: Clone the Trinex Engine repository to your local machine using Git:
+```bash
+git clone https://github.com/Programier/Trinex-Engine.git
+```
+3. **Create a build directory**: Navigate to the root directory of the cloned repository and create a `build` directory. Open a terminal in the `build` directory.
+``` bash
+mkdir build
+cd build
+```
+4. **Generate build files**: Run CMake to generate the necessary build files. Execute the following command in the `build` directory:
+```bash
+cmake ..
+```
+5. **Build the project**: Once CMake has generated the build files, use Make to build the project. You can specify the number of threads to use for the build process by replacing `<num threads>` with the desired number.
+```bash
+make install -j<num threads>
+```
+6. **Find the built engine**: After the build process completes, the built engine will be located in the `build/Game/` directory.
+Now you're ready to explore the built engine and start developing your own projects with Trinex Engine!
+
+## Current Status
+- Not ready for any use
+
+## Support
+If you have any questions, issues, or suggestions regarding the development of Trinex Engine, please create a new Issue in this repository or contact us directly.
+
+## License
+
+Trinex Engine is distributed under the [MIT License](LICENSE).
 
