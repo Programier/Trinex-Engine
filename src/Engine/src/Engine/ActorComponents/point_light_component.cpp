@@ -56,7 +56,7 @@ namespace Engine
 
         if (location_parameter)
         {
-            location_parameter->param = world_transform().location();
+            location_parameter->param = proxy()->world_transform().location();
         }
 
         if (radius_parameter)

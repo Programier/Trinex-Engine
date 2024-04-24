@@ -298,15 +298,19 @@ namespace Engine
 
         if (value.has_value())
         {
-            object               = value.cast<Object*>();
-            Struct* struct_class = prop->struct_instance();
-            if (props_collapsing_header(prop->name().c_str()))
+            object = value.cast<Object*>();
+
+            if (object)
             {
-                push_props_id(object, prop);
-                ImGui::Indent(editor_config.collapsing_indent);
-                render_struct_properties(window, object, struct_class, can_edit, true);
-                ImGui::Unindent(editor_config.collapsing_indent);
-                pop_props_id();
+                Struct* struct_class = object->class_instance();
+                if (props_collapsing_header(prop->name().c_str()))
+                {
+                    push_props_id(object, prop);
+                    ImGui::Indent(editor_config.collapsing_indent);
+                    render_struct_properties(window, object, struct_class, can_edit, true);
+                    ImGui::Unindent(editor_config.collapsing_indent);
+                    pop_props_id();
+                }
             }
         }
     }

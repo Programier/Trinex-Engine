@@ -1,4 +1,5 @@
 #include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -126,20 +127,17 @@ namespace Engine
     }
 
     struct UpdatePrimitiveTransformCommand : public ExecutableObject {
-        Transform local;
-        Transform world;
         AABB_3Df bounds;
         PrimitiveComponentProxy* proxy;
 
     public:
         UpdatePrimitiveTransformCommand(PrimitiveComponent* component)
-            : local(component->local_transform()), world(component->world_transform()), bounds(component->bounding_box()),
-              proxy(component->proxy())
+            : bounds(component->bounding_box()), proxy(component->proxy())
         {}
 
         int_t execute() override
         {
-            proxy->bounding_box(bounds).local_transform(local).world_transform(world);
+            proxy->bounding_box(bounds);
             return sizeof(UpdatePrimitiveTransformCommand);
         }
     };

@@ -76,7 +76,7 @@ namespace Engine
         PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
         if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
         {
-            Matrix4f model   = rotate_sprite(world_transform(), renderer->scene_view());
+            Matrix4f model   = rotate_sprite(proxy()->world_transform(), renderer->scene_view());
             parameter->param = model;
         }
 
