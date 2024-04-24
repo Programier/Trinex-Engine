@@ -5,7 +5,7 @@
 </div>
 
 # Trinex Engine
-**Trinex Engine** A simple game engine targeting platforms such as Windows, Linux and Android. This project was developed with the am of studying the work of modern game engines and studying the graphics api such as OpenGL and Vulkan.
+**Trinex Engine** is a simple game engine targeting platforms such as Windows, Linux and Android. This project was developed with the aim of studying the work of modern game engines and studying the graphics api such as OpenGL and Vulkan.
 
 ## Requirements
 To use Trinex Engine, you need to have the following software installed:
