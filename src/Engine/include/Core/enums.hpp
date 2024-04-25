@@ -296,14 +296,6 @@ namespace Engine
         Failed,
     };
 
-    enum class GCFlag
-    {
-        None           = 0,
-        DetectGarbage  = 1,
-        DestroyGargabe = 2,
-        DestroyAll     = 3,
-    };
-
     enum class SerializationFlags : EnumerateType
     {
         None             = 0,

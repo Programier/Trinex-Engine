@@ -24,7 +24,7 @@
 namespace Engine
 {
 
-    static thread_local bool m_next_available_for_gc = false;
+    static thread_local bool m_is_valid_next_object = false;
 
     implement_class(Object, Engine, Class::IsScriptable);
 
@@ -108,9 +108,9 @@ namespace Engine
         static_class_instance()->set_script_registration_callback(register_object_to_script);
     }
 
-    void Object::prepare_next_object_for_gc()
+    void Object::prepare_next_object_allocation()
     {
-        m_next_available_for_gc = true;
+        m_is_valid_next_object = true;
     }
 
     static Vector<Index>& get_free_indexes_array()
@@ -132,7 +132,7 @@ namespace Engine
     {
         if (m_root_package == nullptr)
         {
-            m_root_package = new Package();
+            m_root_package = new_instance<Package>();
             m_root_package->name("Root Package");
             m_root_package->flags(IsSerializable, false);
             m_root_package->add_reference();
@@ -152,6 +152,11 @@ namespace Engine
 
     Object::Object() : m_package(nullptr), m_references(0), m_instance_index(Constants::index_none)
     {
+        if (!m_is_valid_next_object)
+        {
+            throw EngineException("Use Object::new_instance method or operator new for allocating objects");
+        }
+
         m_owner                    = nullptr;
         ObjectArray& objects_array = get_instances_array();
         m_instance_index           = objects_array.size();
@@ -170,8 +175,8 @@ namespace Engine
 
         flags(Flag::IsSerializable, true);
         flags(Flag::IsEditable, true);
-        flags(Flag::IsAvailableForGC, m_next_available_for_gc);
-        m_next_available_for_gc = false;
+        flags(Flag::IsAvailableForGC, true);
+        m_is_valid_next_object = false;
     }
 
     ENGINE_EXPORT HashIndex Object::hash_of_name(const StringView& name)
@@ -239,16 +244,12 @@ namespace Engine
 
     Object::~Object()
     {
-        if (flags(Flag::IsDestructed) == false)
+        if (m_package)
         {
-            if (m_package)
-            {
-                m_package->remove_object(this);
-                m_package = nullptr;
-            }
-            remove_from_instances_array();
-            flags(Flag::IsDestructed, true);
+            m_package->remove_object(this);
+            m_package = nullptr;
         }
+        remove_from_instances_array();
     }
 
     const String& Object::string_name() const
@@ -334,9 +335,6 @@ namespace Engine
 
     Object* Object::copy()
     {
-        if (flags(Flag::IsDestructed))
-            return nullptr;
-
         Object* object = nullptr;
 
         {

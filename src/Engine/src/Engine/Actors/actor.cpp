@@ -145,11 +145,12 @@ namespace Engine
     Actor& Actor::destroyed()
     {
         stop_play();
-
         // Call destroy for each component
         for (size_t index = 0, count = m_owned_components.size(); index < count; ++index)
         {
-            m_owned_components[index]->destroyed();
+            ActorComponent* component = m_owned_components[index];
+            component->destroyed();
+            component->owner(nullptr);
         }
 
         return *this;
@@ -182,12 +183,16 @@ namespace Engine
 
     class World* Actor::world() const
     {
-        return m_world;
+        return instance_cast<World>(owner());
     }
 
     class Scene* Actor::scene() const
     {
-        return m_world ? m_world->scene() : nullptr;
+        if(World* actor_world = world())
+        {
+            return actor_world->scene();
+        }
+        return nullptr;
     }
 
     bool Actor::archive_process(Archive& archive)

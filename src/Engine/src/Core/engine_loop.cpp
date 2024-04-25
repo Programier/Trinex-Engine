@@ -1,5 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
+#include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -66,7 +67,8 @@ namespace Engine
                 m_delta_time = glm::mix(m_delta_time, current_time - prev_time, smoothing_factor);
                 prev_time    = current_time;
 
-                m_current_gc_stage = Object::collect_garbage(m_current_gc_stage);
+                GarbageCollector::update(m_delta_time);
+
 
                 engine_system->update(m_delta_time);
                 engine_system->wait();

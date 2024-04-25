@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>
@@ -66,10 +67,29 @@ namespace Engine
         return *this;
     }
 
+    World& World::destroy_all_actors()
+    {
+        for (auto& info : m_actors_to_destroy)
+        {
+            destroy_actor(info.actor, true);
+        }
+
+        m_actors_to_destroy.clear();
+
+        while (!m_actors.empty())
+        {
+            destroy_actor(m_actors.front(), true);
+        }
+
+        return *this;
+    }
+
     World& World::shutdown()
     {
         Super::shutdown();
         stop_play();
+        destroy_all_actors();
+        render_thread()->wait_all();
         delete m_scene;
         return *this;
     }
@@ -119,7 +139,7 @@ namespace Engine
             actor->name(actor_name);
         }
 
-        actor->m_world = this;
+        actor->owner(this);
         actor->spawned();
 
         {
@@ -160,6 +180,7 @@ namespace Engine
 
         unselect_actor(actor);
         actor->destroyed();
+        actor->owner(nullptr);
 
         for (size_t index = 0, count = m_actors.size(); index < count; ++index)
         {

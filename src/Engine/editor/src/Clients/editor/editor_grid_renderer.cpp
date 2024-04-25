@@ -1,5 +1,6 @@
 #include <Core/engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/engine_resource.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
@@ -26,9 +27,9 @@ namespace Engine
     static void initialize_resources()
     {
         DefaultResourcesInitializeController().require("Load Editor Package");
-        x_axis_vertex_buffer = Object::new_instance<PositionVertexBuffer>();
-        y_axis_vertex_buffer = Object::new_instance<PositionVertexBuffer>();
-        grid_vertex_buffer   = Object::new_instance<PositionVertexBuffer>();
+        x_axis_vertex_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
+        y_axis_vertex_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
+        grid_vertex_buffer   = Object::new_instance<EngineResource<PositionVertexBuffer>>();
 
         x_axis_vertex_buffer->buffer = {{-lines_per_axis, 0, 0}, {lines_per_axis, 0, 0}};
         y_axis_vertex_buffer->buffer = {{0, 0, -lines_per_axis}, {0, 0, lines_per_axis}};
@@ -45,6 +46,7 @@ namespace Engine
         x_axis_vertex_buffer->init_resource();
         y_axis_vertex_buffer->init_resource();
         grid_vertex_buffer->init_resource();
+
 
         axis_material = Object::find_object_checked<Material>("Editor::AxisMaterial");
         grid_material = Object::find_object_checked<Material>("Editor::GridMaterial");
@@ -68,7 +70,7 @@ namespace Engine
 
         renderer->begin_rendering_target(GBuffer::instance());
 
-        auto rhi = engine_instance->rhi();
+        auto rhi               = engine_instance->rhi();
         const CameraView& view = renderer->scene_view().camera_view();
 
         float camera_height = glm::abs(view.location.y);

@@ -35,6 +35,7 @@ namespace Engine
         bool contains_object(const Object* object) const;
         bool contains_object(const StringView& name) const;
 
+        bool is_engine_resource() const override;
         bool save(BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {}) override;
 
         template<typename Type>

@@ -46,6 +46,7 @@ namespace Engine
 
     public:
         CallBacks<void(Object*)> on_create;
+        CallBacks<void(Object*)> on_destroy;
 
         Class(const Name& name, const Name& namespace_name, Object* (*) (), Class* parent = nullptr, BitMask flags = 0);
 

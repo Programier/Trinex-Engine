@@ -26,14 +26,12 @@ namespace Engine
 
         enum Flag : BitMask
         {
-            None                   = 0,
-            IsDestructed           = (1 << 0),
-            IsSerializable         = (1 << 1),
-            IsAvailableForGC       = (1 << 2),
-            IsPackage              = (1 << 3),
-            IsUnreachable          = (1 << 4),
-            IsDefinetlyUnreachable = (1 << 5),
-            IsEditable             = (1 << 6),
+            None             = 0,
+            IsSerializable   = BIT(0),
+            IsAvailableForGC = BIT(1),
+            IsPackage        = BIT(2),
+            IsUnreachable    = BIT(3),
+            IsEditable       = BIT(4),
         };
 
     private:
@@ -54,7 +52,7 @@ namespace Engine
     private:
         static void create_default_package();
         const Object& remove_from_instances_array() const;
-        static void prepare_next_object_for_gc();
+        static void prepare_next_object_allocation();
         bool serialize_object_properties(Archive& ar);
 
     protected:
@@ -81,7 +79,6 @@ namespace Engine
         ENGINE_EXPORT static Object* find_object(const StringView& object_name);
         ENGINE_EXPORT static Package* root_package();
 
-        ENGINE_EXPORT static GCFlag collect_garbage(GCFlag flag = GCFlag::None);
         ENGINE_EXPORT static const String& language();
         ENGINE_EXPORT static void language(const StringView& new_language);
         ENGINE_EXPORT static const String& localize(const StringView& line);

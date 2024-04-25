@@ -44,8 +44,7 @@ namespace Engine
         Array<Thread*, static_cast<size_t>(ThreadType::__COUNT__)> m_threads;
         RHI* m_rhi = nullptr;
         Flags<EngineInstance::Flag> m_flags;
-        Index m_frame_index       = 0;
-        GCFlag m_current_gc_stage = GCFlag::None;
+        Index m_frame_index = 0;
 
         float m_delta_time;
 
@@ -76,7 +75,6 @@ namespace Engine
         const Arguments& args() const;
         Arguments& args();
         const Flags<EngineInstance::Flag>& flags() const;
-        EngineInstance& start_garbage_collection();
 
         Thread* create_thread(ThreadType type);
         Thread* thread(ThreadType type) const;

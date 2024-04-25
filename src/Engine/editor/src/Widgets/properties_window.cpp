@@ -1,5 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/enum.hpp>
+#include <Core/garbage_collector.hpp>>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
@@ -568,30 +569,38 @@ namespace Engine
             end_prop_table();
     }
 
+    ImGuiObjectProperties::ImGuiObjectProperties()
+    {
+        m_destroy_id = GarbageCollector::on_destroy.push([this](Object* object) {
+            if (object == m_object)
+            {
+                m_object = nullptr;
+            }
+        });
+    }
+
+    ImGuiObjectProperties::~ImGuiObjectProperties()
+    {
+        GarbageCollector::on_destroy.remove(m_destroy_id);
+    }
+
     bool ImGuiObjectProperties::render(RenderViewport* viewport)
     {
         bool open = true;
         ImGui::Begin(name(), closable ? &open : nullptr);
 
-        on_begin_render.trigger(m_object, m_self);
+        on_begin_render.trigger(m_object);
 
-        if (m_instance && m_self)
+        if (m_object)
         {
-            if (m_self->is_class())
+            ImGui::Text("editor/Object: %s"_localized, m_object->name().to_string().c_str());
+            ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->name().c_str());
+            if (ImGui::Button("editor/Apply changes"_localized))
             {
-                ImGui::Text("editor/Object: %s"_localized, m_object->name().to_string().c_str());
-                ImGui::Text("editor/Class: %s"_localized, m_object->class_instance()->name().c_str());
-                if (ImGui::Button("editor/Apply changes"_localized))
-                {
-                    m_object->apply_changes();
-                }
-                ImGui::Separator();
-                ::Engine::render_struct_properties(this, m_object, m_object->class_instance(), true, false);
+                m_object->apply_changes();
             }
-            else
-            {
-                ::Engine::render_struct_properties(this, m_instance, m_self);
-            }
+            ImGui::Separator();
+            ::Engine::render_struct_properties(this, m_object, m_object->class_instance(), true, false);
         }
         ImGui::End();
 
@@ -600,17 +609,12 @@ namespace Engine
 
     Struct* ImGuiObjectProperties::struct_instance() const
     {
-        return m_self;
-    }
-
-    void* ImGuiObjectProperties::instance() const
-    {
-        return m_instance;
+        return m_object->class_instance();
     }
 
     Object* ImGuiObjectProperties::object() const
     {
-        return m_self && m_self->is_class() ? m_object : nullptr;
+        return m_object;
     }
 
 
@@ -630,26 +634,10 @@ namespace Engine
         return map;
     }
 
-    ImGuiObjectProperties& ImGuiObjectProperties::update(void* instance, Struct* self)
-    {
-        m_instance = instance;
-        m_self     = self;
-
-        m_properties.clear();
-        build_props_map(self);
-        return *this;
-    }
 
     ImGuiObjectProperties& ImGuiObjectProperties::update(Object* object)
     {
-        if (object)
-        {
-            update(object, reinterpret_cast<Struct*>(object->class_instance()));
-        }
-        else
-        {
-            update(nullptr, nullptr);
-        }
+        m_object = object;
         return *this;
     }
 

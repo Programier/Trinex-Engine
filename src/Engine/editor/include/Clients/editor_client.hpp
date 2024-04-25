@@ -45,7 +45,7 @@ namespace Engine
         bool m_viewport_is_hovered                       = false;
         bool m_guizmo_is_in_use                          = false;
 
-        class CameraComponent* camera;
+        Pointer<CameraComponent> camera;
         float m_camera_speed      = 10.f;
         Vector3D m_camera_move    = {0, 0, 0};
         Index m_target_view_index = 0;

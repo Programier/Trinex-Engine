@@ -4,7 +4,6 @@
 
 namespace Engine
 {
-
     template<typename Signature>
     using CallBack = Function<Signature>;
 

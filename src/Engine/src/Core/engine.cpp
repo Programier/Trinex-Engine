@@ -6,6 +6,7 @@
 #include <Core/executable_object.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/platform.hpp>
@@ -307,13 +308,6 @@ namespace Engine
         return m_flags;
     }
 
-    EngineInstance& EngineInstance::start_garbage_collection()
-    {
-        if (m_current_gc_stage == GCFlag::None)
-            m_current_gc_stage = GCFlag::DetectGarbage;
-        return *this;
-    }
-
     class DestroyRHI_Task : public ExecutableObject
     {
     private:
@@ -342,11 +336,7 @@ namespace Engine
             thread(ThreadType::RenderThread)->wait_all();
         }
 
-        EngineSystem* engine_system = EngineSystem::instance();
-        if (engine_system)
-            engine_system->shutdown();
-
-        Object::collect_garbage(GCFlag::DestroyAll);
+        GarbageCollector::destroy_all_objects();
         DestroyController().execute();
 
         for (Thread*& thread : m_threads)

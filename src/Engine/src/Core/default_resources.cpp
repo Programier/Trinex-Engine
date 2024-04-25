@@ -36,7 +36,9 @@ namespace Engine
 
 #define load_default_asset(name, object, class_name)                                                                             \
     DefaultResources::object =                                                                                                   \
-            reinterpret_cast<class_name*>(load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #name))
+            reinterpret_cast<class_name*>(load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #name));           \
+    reinterpret_cast<Object*>(DefaultResources::object)->add_reference()
+
 
     void EngineInstance::load_default_resources()
     {

@@ -77,6 +77,7 @@
 //  2016-10-18: Vulkan: Add location decorators & change to use structs as in/out in glsl, update embedded spv (produced with glslangValidator -x). Null the released resources.
 //  2016-08-27: Vulkan: Fix Vulkan example for use when a depth buffer is active.
 
+#include <Core/etl/engine_resource.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/sampler.hpp>
 #include <Core/package.hpp>
@@ -686,7 +687,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture()
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
     // We can do it, because logic thread waiting now
-    bd->FontTexture = Engine::Object::new_instance_named<Engine::Texture2D>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+    bd->FontTexture = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Texture2D>>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 
     bd->FontTexture.texture->flags(Engine::Object::IsAvailableForGC, false);
     bd->FontTexture.texture->size = {static_cast<float>(width), static_cast<float>(height)};
@@ -694,7 +695,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture()
     auto package = Engine::Package::find_package("Engine::ImGui", true);
     package->add_object(bd->FontTexture.texture);
 
-    bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::Sampler>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+    bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Sampler>>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
     bd->FontTexture.sampler->filter = Engine::SamplerFilter::Trilinear;
     bd->FontTexture.sampler->rhi_create();
     bd->FontTexture.sampler->flags(Engine::Object::IsAvailableForGC, false);

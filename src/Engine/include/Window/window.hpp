@@ -22,7 +22,7 @@ namespace Engine
 
     private:
         WindowInterface* m_interface            = nullptr;
-        class RenderViewport* m_render_viewport = nullptr;
+        Pointer<class RenderViewport> m_render_viewport;
         Size2D m_cached_size;
         Window* m_parent_window = nullptr;
         Vector<Window*> m_childs;
@@ -85,6 +85,7 @@ namespace Engine
         Window(WindowInterface* interface = nullptr, bool vsync = true);
         ~Window();
 
+        friend class Object;
         friend class WindowManager;
     };
 }// namespace Engine

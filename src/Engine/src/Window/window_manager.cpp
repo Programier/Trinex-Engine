@@ -12,9 +12,9 @@
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
 #include <Window/config.hpp>
+#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <Window/monitor.hpp>
 
 
 namespace Engine
@@ -116,7 +116,7 @@ namespace Engine
         if (window_interface == nullptr)
             return nullptr;
 
-        Window* window = new Window(window_interface, config.vsync);
+        Window* window = Object::new_instance<Window>(window_interface, config.vsync);
 
         parent = parent ? parent : m_main_window;
         if (parent)

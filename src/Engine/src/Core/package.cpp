@@ -327,6 +327,11 @@ namespace Engine
         return object ? object->package() == this : false;
     }
 
+    bool Package::is_engine_resource() const
+    {
+        return true;
+    }
+
     bool Package::contains_object(const StringView& name) const
     {
         return find_object(name, false) != nullptr;

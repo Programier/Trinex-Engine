@@ -23,6 +23,7 @@ namespace Engine
         Scene* m_scene = nullptr;
 
         World& destroy_actor(Actor* actor, bool ignore_playing);
+        World& destroy_all_actors();
 
     public:
         World& create() override;

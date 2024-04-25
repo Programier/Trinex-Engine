@@ -25,7 +25,6 @@ namespace Engine
         Vector<class ActorComponent*> m_owned_components;
         ScriptObject m_script_object;
 
-        class World* m_world      = nullptr;
         bool m_is_playing         = false;
         bool m_is_being_destroyed = false;
 

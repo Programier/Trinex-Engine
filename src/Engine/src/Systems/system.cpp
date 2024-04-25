@@ -103,11 +103,15 @@ namespace Engine
                 {
                     m_subsystems.erase(it);
                     system->m_parent_system = nullptr;
+                    system->owner(nullptr);
                     return *this;
                 }
                 ++it;
             }
+
+            system->owner(nullptr);
         }
+
         return *this;
     }
 
@@ -207,6 +211,7 @@ namespace Engine
     System& System::shutdown()
     {
         info_log("System", "Shutting down system %p", this);
+
         if (m_parent_system)
         {
             m_parent_system->remove_subsystem(this);
@@ -279,9 +284,22 @@ namespace Engine
                                 func_of<Class*(System*)>([](System* self) -> Class* { return self->depends_on(); }));
     }
 
+    static void on_system_destroy(Object* object)
+    {
+        if (System* system = object->instance_cast<System>())
+        {
+            if(!system->is_shutdowned())
+            {
+                system->shutdown();
+            }
+        }
+    }
+
     implement_class(System, Engine, Class::IsScriptable);
     implement_initialize_class(System)
     {
-        static_class_instance()->set_script_registration_callback(bind_to_script);
+        Class* self = static_class_instance();
+        self->set_script_registration_callback(bind_to_script);
+        self->on_destroy.push(on_system_destroy);
     }
 }// namespace Engine
