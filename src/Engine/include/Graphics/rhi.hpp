@@ -110,8 +110,10 @@ namespace Engine
 
         virtual RHI& destroy_object(RHI_Object* object) = 0;
 
-        virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset) = 0;
-        virtual RHI& draw(size_t vertex_count)                                 = 0;
+        virtual RHI& draw(size_t vertex_count)                                                             = 0;
+        virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset)                             = 0;
+        virtual RHI& draw_instanced(size_t vertex_count, size_t instances)                                 = 0;
+        virtual RHI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances) = 0;
 
         virtual RHI& begin_render()      = 0;
         virtual RHI& end_render()        = 0;

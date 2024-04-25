@@ -5,21 +5,11 @@
 #include <opengl_definitions.hpp>
 #include <opengl_headers.hpp>
 
-#if OPENGL_EXTENDS_FROM_NOAPI
-#include <no_api.hpp>
-#endif
-
 #define OPENGL_API Engine::OpenGL::m_instance
 
 namespace Engine
 {
-    struct OpenGL :
-#if OPENGL_EXTENDS_FROM_NOAPI
-        public NoApi
-#else
-        public RHI
-#endif
-    {
+    struct OpenGL : public RHI {
         static OpenGL* m_instance;
         void* m_context = nullptr;
         String m_renderer;
@@ -46,10 +36,11 @@ namespace Engine
         OpenGL& imgui_new_frame(ImGuiContext*) override;
         OpenGL& imgui_render(ImGuiContext*, ImDrawData*) override;
 
-        //        ///////////////// TEXTURE PART /////////////////
         OpenGL& prepare_render();
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset) override;
         OpenGL& draw(size_t vertex_count) override;
+        OpenGL& draw_instanced(size_t vertex_count, size_t instances) override;
+        OpenGL& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances) override;
 
         OpenGL& destroy_object(RHI_Object* object) override;
         OpenGL& begin_render() override;

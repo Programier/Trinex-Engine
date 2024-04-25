@@ -115,6 +115,16 @@ namespace Engine
         return *this;
     }
 
+    OpenGL& OpenGL::draw_instanced(size_t vertex_count, size_t instances)
+    {
+        return *this;
+    }
+
+    OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances)
+    {
+        return *this;
+    }
+
     OpenGL& OpenGL::destroy_object(RHI_Object* object)
     {
         delete object;
