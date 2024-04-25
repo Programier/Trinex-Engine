@@ -30,7 +30,6 @@ namespace Engine
             auto& info = pipeline->m_vertex_input[stream_index];
             glVertexAttribPointer(stream_index, info.count, info.type, info.normalize, info.size,
                                   reinterpret_cast<void*>(offset));
-            glEnableVertexAttribArray(stream_index);
         }
     }
 

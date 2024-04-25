@@ -203,6 +203,7 @@ namespace Engine
 
         glGenVertexArrays(1, &m_vao);
         glGenProgramPipelines(1, &m_pipeline);
+        glBindVertexArray(m_vao);
 
         auto vertex_shader   = pipeline->vertex_shader();
         auto fragment_shader = pipeline->fragment_shader();
@@ -213,8 +214,10 @@ namespace Engine
 
             m_vertex_input.reserve(vertex_shader->attributes.size());
 
+            GLuint index = 0;
             for (auto& attribute : vertex_shader->attributes)
             {
+                glEnableVertexAttribArray(index);
                 VertexInput input;
                 input.count = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).components();
                 input.size  = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).size();
@@ -224,11 +227,18 @@ namespace Engine
                 bool need_normalize = metadata == ColorFormatMetaData::Snorm || metadata == ColorFormatMetaData::Unorm;
                 input.normalize     = need_normalize ? GL_TRUE : GL_FALSE;
 
+                if (attribute.rate == VertexAttributeInputRate::Instance)
+                {
+                    glVertexAttribDivisor(index, 1);
+                }
+
                 m_vertex_input.push_back(input);
+                ++index;
             }
         }
 
 
+        glBindVertexArray(0);
         init_pipeline_shader(pipeline->tessellation_control_shader(), GL_TESS_CONTROL_SHADER_BIT);
         init_pipeline_shader(pipeline->tessellation_shader(), GL_TESS_EVALUATION_SHADER_BIT);
         init_pipeline_shader(pipeline->geometry_shader(), GL_GEOMETRY_SHADER_BIT);
