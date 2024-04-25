@@ -36,12 +36,13 @@ namespace Engine
         Color3          = 15,
         Color4          = 16,
         LastPrimitive   = Color4,
-        String          = 17,
-        Path            = 18,
-        Object          = 19,
-        ObjectReference = 20,
-        Struct          = 21,
-        Array           = 22,
+        Name            = 17,
+        String          = 18,
+        Path            = 19,
+        Object          = 20,
+        ObjectReference = 21,
+        Struct          = 22,
+        Array           = 23,
     };
 
     struct ENGINE_EXPORT ArrayPropertyValue final {
@@ -520,6 +521,18 @@ namespace Engine
         Color4Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
+        {}
+    };
+
+    template<typename InstanceType>
+    class NameProperty : public PrimitiveProperty<InstanceType, Name, Name, PropertyType::Name>
+    {
+    public:
+        using Super = PrimitiveProperty<InstanceType, Name, Name, PropertyType::Name>;
+
+        NameProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+                     const Name& group = Name::none, BitMask flags = 0)
+            : Super(name, description, prop, group, flags | Property::IsConst)
         {}
     };
 

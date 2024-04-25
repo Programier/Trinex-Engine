@@ -229,6 +229,15 @@ namespace Engine
                 });
     }
 
+    static void render_name_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
+    {
+        render_prop_internal<Name, PropertyType::Name>(
+                window, object, prop, can_edit, edit_f(Name) {
+                    ImGui::Text("%s", value.c_str());
+                    return false;
+                });
+    }
+
     static void render_string_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
     {
         render_prop_internal<String, PropertyType::String>(
@@ -285,11 +294,18 @@ namespace Engine
         render_prop_name(prop);
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::Combo("##ComboValue", &index, enum_element_name, enum_class, entries.size()) && can_edit)
+        if (can_edit)
         {
-            current_entry = &entries[index];
-            value         = PropertyValue(current_entry->value, PropertyType::Enum);
-            prop->property_value(object, value);
+            if (ImGui::Combo("##ComboValue", &index, enum_element_name, enum_class, entries.size()))
+            {
+                current_entry = &entries[index];
+                value         = PropertyValue(current_entry->value, PropertyType::Enum);
+                prop->property_value(object, value);
+            }
+        }
+        else
+        {
+            ImGui::Text("%s", current_entry->name.c_str());
         }
     }
 
@@ -493,6 +509,9 @@ namespace Engine
                 break;
             case PropertyType::Color4:
                 render_color4_prop(window, object, prop, can_edit);
+                break;
+            case PropertyType::Name:
+                render_name_property(window, object, prop, can_edit);
                 break;
             case PropertyType::String:
                 render_string_property(window, object, prop, can_edit);

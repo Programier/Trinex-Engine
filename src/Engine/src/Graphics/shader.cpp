@@ -4,9 +4,11 @@
 #include <Core/engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/name.hpp>
+#include <Core/property.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -17,11 +19,59 @@
 
 namespace Engine
 {
+    implement_struct(Attribute, Engine::VertexShader, ).push([]() {
+        Struct* self                      = Struct::static_find("Engine::VertexShader::Attribute", true);
+        Enum* color_format_enum           = Enum::find("Engine::ColorFormat", true);
+        Enum* vertex_attribute_rate_enum  = Enum::find("Engine::VertexAttributeInputRate", true);
+        Enum* vertex_buffer_semantic_enum = Enum::find("Engine::VertexBufferSemantic", true);
+
+        self->add_property(new NameProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
+                                            Property::IsConst | Property::IsNotSerializable));
+        self->add_property(new EnumProperty("Format", "Format of this attribute", &VertexShader::Attribute::format,
+                                            color_format_enum, Name::none, Property::IsConst | Property::IsNotSerializable));
+        self->add_property(new EnumProperty("Rate", "Rate of this attribute", &VertexShader::Attribute::rate,
+                                            vertex_attribute_rate_enum, Name::none, Property::IsNotSerializable));
+        self->add_property(new EnumProperty("Semantic", "Semantic of this attribute", &VertexShader::Attribute::semantic,
+                                            vertex_buffer_semantic_enum, Name::none,
+                                            Property::IsConst | Property::IsNotSerializable));
+        self->add_property(new ByteProperty("Count", "Count of elements for this attribute",
+                                            &VertexShader::Attribute::semantic_index, Name::none,
+                                            Property::IsConst | Property::IsNotSerializable));
+
+        self->add_property(new ByteProperty("Semantic Index", "Semantic index of this attribute",
+                                            &VertexShader::Attribute::semantic_index, Name::none,
+                                            Property::IsConst | Property::IsNotSerializable));
+    });
+
+
     implement_class(Shader, Engine, 0);
     implement_default_initialize_class(Shader);
 
+    static Name get_name_of_attribute(class ArrayPropertyInterface* interface, void* object, size_t index)
+    {
+        if (index >= interface->elements_count(object))
+        {
+            return Name::out_of_range;
+        }
+
+        VertexShader::Attribute* attribute = reinterpret_cast<VertexShader::Attribute*>(interface->at(object, index));
+        return attribute->name;
+    }
+
     implement_class(VertexShader, Engine, 0);
-    implement_default_initialize_class(VertexShader);
+    implement_initialize_class(VertexShader)
+    {
+        Class* self              = This::static_class_instance();
+        Struct* attribute_struct = Struct::static_find("Engine::VertexShader::Attribute", true);
+
+        auto attributes_prop =
+                new StructProperty<This, Attribute>("", "", nullptr, attribute_struct, Name::none, Property::IsNotSerializable);
+        auto attributes_array_prop =
+                new ArrayProperty("Vertex Attributes", "Vertex attributes of this pipeline", &This::attributes, attributes_prop,
+                                  Name::none, Property::IsConst | Property::IsNotSerializable);
+        attributes_array_prop->element_name_callback(get_name_of_attribute);
+        self->add_property(attributes_array_prop);
+    }
 
     implement_class(TessellationControlShader, Engine, 0);
     implement_default_initialize_class(TessellationControlShader);
