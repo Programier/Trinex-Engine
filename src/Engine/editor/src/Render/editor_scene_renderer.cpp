@@ -29,24 +29,7 @@ namespace Engine
         return *this;
     }
 
-    EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
-    {
-        SceneRenderer::render_component(component, rt, layer);
-
-        Actor* owner = component->actor();
-        if (owner == nullptr)
-            return *this;
-
-        if (owner->is_selected() && owner->scene_component() == component)
-        {
-            component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
-        }
-
-        return *this;
-    }
-
-
-    static void render_light_sprite(Texture2D* texture, PointLightComponent* component, const SceneView& view)
+    static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
     {
         Material* material                 = DefaultResources::sprite_material;
         PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
@@ -79,12 +62,35 @@ namespace Engine
         }
     }
 
+    EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    {
+        SceneRenderer::render_component(component, rt, layer);
+
+        Actor* owner = component->actor();
+        if (owner == nullptr)
+            return *this;
+
+        if (owner->is_selected() && owner->scene_component() == component)
+        {
+            component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
+        }
+
+        render_light_sprite(EditorResources::point_light_sprite, component, scene_view());
+
+        return *this;
+    }
+
+
     EditorSceneRenderer& EditorSceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt,
                                                                SceneLayer* layer)
     {
         SceneRenderer::render_component(component, rt, layer);
-        render_light_sprite(EditorResources::point_light_sprite, component, scene_view());
+        return *this;
+    }
 
+    EditorSceneRenderer& EditorSceneRenderer::render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    {
+        SceneRenderer::render_component(component, rt, layer);
         return *this;
     }
 }// namespace Engine

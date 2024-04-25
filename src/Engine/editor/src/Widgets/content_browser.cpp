@@ -20,8 +20,7 @@ namespace Engine
 
     bool ContentBrowser::render_package_popup(void* data)
     {
-        bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable() &&
-                            !m_show_popup_for->is_engine_resource());
+        bool is_editable = (m_show_popup_for && m_show_popup_for->is_editable() && m_show_popup_for->is_serializable());
 
 
         if (ImGui::Button("editor/Create Package"_localized))

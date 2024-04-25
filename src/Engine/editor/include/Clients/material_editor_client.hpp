@@ -21,9 +21,9 @@ namespace Engine
         class ImGuiMaterialPreview* m_preview_window     = nullptr;
         class ImGuiObjectProperties* m_properties_window = nullptr;
 
-        class RenderViewport* m_viewport     = nullptr;
-        class Material* m_material           = nullptr;
-        ShaderCompiler::Compiler* m_compiler = nullptr;
+        class RenderViewport* m_viewport             = nullptr;
+        class Material* m_material                   = nullptr;
+        Pointer<ShaderCompiler::Compiler> m_compiler = nullptr;
 
         uint_t m_definition_index = 0;
 

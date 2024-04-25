@@ -18,6 +18,7 @@ namespace Engine
     class PrimitiveComponent;
     class LightComponent;
     class PointLightComponent;
+    class SpotLightComponent;
 
 
     class ENGINE_EXPORT SceneRenderer
@@ -59,6 +60,7 @@ namespace Engine
         virtual SceneRenderer& add_component(SpriteComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(LightComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(PointLightComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(SpotLightComponent* component, Scene* scene);
 
         // Components rendering
         virtual SceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer);
@@ -66,6 +68,7 @@ namespace Engine
         virtual SceneRenderer& render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
 
         FORCE_INLINE const GlobalShaderParameters& shader_params() const
         {

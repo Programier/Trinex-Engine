@@ -10,5 +10,6 @@ namespace Engine
         EditorSceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
         EditorSceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
         EditorSceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
+        EditorSceneRenderer& render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
     };
 }// namespace Engine

@@ -16,8 +16,7 @@ uniform float3 ambient_color;
 
 float calc_attenuation(in float radius, in float dist)
 {
-    float value = clamp(1.0 - pow(dist / radius, 4.0), 0.0, 1.0);
-    return pow(value, 2.0) / (pow(dist, 2.0) + 1.0);
+    return pow(clamp(1.0 - pow(dist / radius, 4.0), 0.0, 1.0), 2.0) / (pow(dist, 2.0) + 1.0);
 }
 
 float distribution_ggx(in float3 normal, in float3 view_light_direction, float roughness)

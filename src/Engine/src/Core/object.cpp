@@ -553,7 +553,7 @@ namespace Engine
 
     bool Object::is_editable() const
     {
-        return flags(IsEditable) && !is_engine_resource();
+        return flags(IsEditable);
     }
 
     bool Object::is_engine_resource() const
@@ -780,7 +780,7 @@ namespace Engine
 
     bool Object::is_serializable() const
     {
-        return flags(IsSerializable) && !is_engine_resource();
+        return flags(IsSerializable);
     }
 
     Package* Object::root_package()

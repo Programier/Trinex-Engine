@@ -44,7 +44,13 @@ struct GBufferFragmentOutput
     float4 msra         : SV_TARGET4;
 };
 
-
+struct LightData
+{
+    float4      light_color     : COLOR0;
+    float       intensivity     : BLENDWEIGHT0;
+    float3      position        : POSITION1;
+    float       radius          : BLENDWEIGHT1;
+};
 
 /////////////////////////// MATH ///////////////////////////
 
