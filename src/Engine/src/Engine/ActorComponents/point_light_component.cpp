@@ -45,6 +45,9 @@ namespace Engine
     {
         render_component(static_cast<PointLightComponent::Super*>(component), rt, layer);
 
+        if(!component->is_enabled)
+            return *this;
+
         Material* material                 = DefaultResources::point_light_material;
         static Name name_light_color       = "light_color";
         static Name name_light_radius      = "light_radius";

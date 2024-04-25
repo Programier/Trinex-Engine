@@ -65,32 +65,28 @@ namespace Engine
         {
             auto& components = layer->light_components();
 
-            if (components.empty())
+            // Render only ambient light
+            static Name name_ambient_color = "ambient_color";
+            Material* material             = DefaultResources::ambient_light_material;
+
+            if (material)
             {
-                // Render only ambient light
-                static Name name_ambient_color = "ambient_color";
-                Material* material             = DefaultResources::ambient_light_material;
+                auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
 
-                if (material)
+                if (ambient_param)
                 {
-                    auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
-
-                    if (ambient_param)
-                    {
-                        ambient_param->param = m_scene->environment.ambient_color;
-                    }
-
-                    material->apply();
-                    DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-                    engine_instance->rhi()->draw(6);
+                    ambient_param->param = m_scene->environment.ambient_color;
                 }
+
+                material->apply();
+                DefaultResources::screen_position_buffer->rhi_bind(0, 0);
+                engine_instance->rhi()->draw(6);
             }
-            else
+
+
+            for (LightComponent* component : components)
             {
-                for (LightComponent* component : components)
-                {
-                    component->render(this, rt, layer);
-                }
+                component->render(this, rt, layer);
             }
         }
     }

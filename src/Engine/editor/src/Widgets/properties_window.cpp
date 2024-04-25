@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/enum.hpp>
-#include <Core/garbage_collector.hpp>>
+#include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/property.hpp>
@@ -569,7 +569,7 @@ namespace Engine
             end_prop_table();
     }
 
-    ImGuiObjectProperties::ImGuiObjectProperties()
+    ImGuiObjectProperties::ImGuiObjectProperties() : m_object(nullptr)
     {
         m_destroy_id = GarbageCollector::on_destroy.push([this](Object* object) {
             if (object == m_object)
@@ -609,7 +609,7 @@ namespace Engine
 
     Struct* ImGuiObjectProperties::struct_instance() const
     {
-        return m_object->class_instance();
+        return m_object ? m_object->class_instance() : nullptr;
     }
 
     Object* ImGuiObjectProperties::object() const
@@ -638,6 +638,7 @@ namespace Engine
     ImGuiObjectProperties& ImGuiObjectProperties::update(Object* object)
     {
         m_object = object;
+        build_props_map(struct_instance());
         return *this;
     }
 
