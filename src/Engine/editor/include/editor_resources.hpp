@@ -17,7 +17,7 @@ namespace Engine
         extern Texture2D* scale_icon;
         extern Texture2D* select_icon;
         extern Texture2D* more_icon;
-        extern Texture2D* point_light_sprite;
+        extern Texture2D* light_sprite;
         extern Sampler* default_sampler;
         extern Material* axis_material;
         extern Material* grid_material;

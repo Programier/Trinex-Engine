@@ -1,15 +1,15 @@
 #include "DefaultResources/editor.hpp"
+#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/package.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/class.hpp>
+#include <Core/package.hpp>
 
 namespace Engine
 {
     static void skip_destroy_assets(Object* object)
     {
-        if(object->class_instance()->is_asset())
+        if (object->class_instance()->is_asset())
         {
             object->flags(Object::Flag::IsUnreachable, false);
         }
@@ -22,18 +22,18 @@ namespace Engine
 
     namespace EditorResources
     {
-        Texture2D* default_icon       = nullptr;
-        Texture2D* add_icon           = nullptr;
-        Texture2D* move_icon          = nullptr;
-        Texture2D* remove_icon        = nullptr;
-        Texture2D* rotate_icon        = nullptr;
-        Texture2D* scale_icon         = nullptr;
-        Texture2D* select_icon        = nullptr;
-        Texture2D* more_icon          = nullptr;
-        Texture2D* point_light_sprite = nullptr;
-        Sampler* default_sampler      = nullptr;
-        Material* axis_material       = nullptr;
-        Material* grid_material       = nullptr;
+        Texture2D* default_icon  = nullptr;
+        Texture2D* add_icon      = nullptr;
+        Texture2D* move_icon     = nullptr;
+        Texture2D* remove_icon   = nullptr;
+        Texture2D* rotate_icon   = nullptr;
+        Texture2D* scale_icon    = nullptr;
+        Texture2D* select_icon   = nullptr;
+        Texture2D* more_icon     = nullptr;
+        Texture2D* light_sprite  = nullptr;
+        Sampler* default_sampler = nullptr;
+        Material* axis_material  = nullptr;
+        Material* grid_material  = nullptr;
     }// namespace EditorResources
 
     static void resource_loading()
@@ -50,7 +50,7 @@ namespace Engine
         load_resource(scale_icon, ScaleIcon, Texture2D);
         load_resource(select_icon, SelectIcon, Texture2D);
         load_resource(more_icon, MoreIcon, Texture2D);
-        load_resource(point_light_sprite, PointLightSprite, Texture2D);
+        load_resource(light_sprite, PointLightSprite, Texture2D);
         load_resource(default_sampler, DefaultSampler, Sampler);
         load_resource(axis_material, AxisMaterial, Material);
         load_resource(grid_material, GridMaterial, Material);

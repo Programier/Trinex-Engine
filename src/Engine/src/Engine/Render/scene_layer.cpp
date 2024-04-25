@@ -5,12 +5,12 @@
 
 namespace Engine
 {
-    const Name SceneLayer::name_clear_render_targets    = "Clear Render Targets";
-    const Name SceneLayer::name_base_pass               = "Base Pass";
-    const Name SceneLayer::name_deferred_light_pass     = "Deferred Lighting Pass";
-    const Name SceneLayer::name_light_pass              = "Light Pass";
-    const Name SceneLayer::name_scene_output_pass       = "Scene Output Pass";
-    const Name SceneLayer::name_post_process            = "Post Process";
+    const Name SceneLayer::name_clear_render_targets = "Clear Render Targets";
+    const Name SceneLayer::name_base_pass            = "Base Pass";
+    const Name SceneLayer::name_deferred_light_pass  = "Deferred Lighting Pass";
+    const Name SceneLayer::name_light_pass           = "Light Pass";
+    const Name SceneLayer::name_scene_output_pass    = "Scene Output Pass";
+    const Name SceneLayer::name_post_process         = "Post Process";
 
     SceneLayer::SceneLayer(const Name& name) : m_name(name)
     {}
@@ -189,7 +189,7 @@ namespace Engine
             component->m_layer->remove_light(component);
         }
 
-        m_light_components.insert(component);
+        m_light_components[component->class_instance()].insert(component);
         return *this;
     }
 
@@ -198,7 +198,7 @@ namespace Engine
         if (!component || component->m_layer != this)
             return *this;
 
-        m_light_components.erase(component);
+        m_light_components[component->class_instance()].erase(component);
         component->m_layer = nullptr;
         return *this;
     }
@@ -208,7 +208,7 @@ namespace Engine
         return m_components;
     }
 
-    const Set<LightComponent*>& SceneLayer::light_components() const
+    const TreeMap<class Class*, Set<LightComponent*>>& SceneLayer::light_components() const
     {
         return m_light_components;
     }

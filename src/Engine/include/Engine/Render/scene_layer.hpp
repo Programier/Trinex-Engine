@@ -32,7 +32,7 @@ namespace Engine
 
     private:
         Set<PrimitiveComponent*> m_components;
-        Set<LightComponent*> m_light_components;
+        TreeMap<class Class*, Set<LightComponent*>> m_light_components;
 
         SceneLayer* m_parent = nullptr;
         SceneLayer* m_next   = nullptr;
@@ -63,7 +63,7 @@ namespace Engine
         SceneLayer& remove_light(LightComponent* component);
 
         const Set<PrimitiveComponent*>& primitive_components() const;
-        const Set<LightComponent*>& light_components() const;
+        const TreeMap<class Class*, Set<LightComponent*>>& light_components() const;
 
         friend class Scene;
     };

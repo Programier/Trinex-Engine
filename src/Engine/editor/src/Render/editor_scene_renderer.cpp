@@ -75,8 +75,6 @@ namespace Engine
             component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
         }
 
-        render_light_sprite(EditorResources::point_light_sprite, component, scene_view());
-
         return *this;
     }
 
@@ -85,12 +83,15 @@ namespace Engine
                                                                SceneLayer* layer)
     {
         SceneRenderer::render_component(component, rt, layer);
+        render_light_sprite(EditorResources::light_sprite, component, scene_view());
         return *this;
     }
 
-    EditorSceneRenderer& EditorSceneRenderer::render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    EditorSceneRenderer& EditorSceneRenderer::render_component(SpotLightComponent* component, RenderTargetBase* rt,
+                                                               SceneLayer* layer)
     {
         SceneRenderer::render_component(component, rt, layer);
+        render_light_sprite(EditorResources::light_sprite, reinterpret_cast<LightComponent*>(component), scene_view());
         return *this;
     }
 }// namespace Engine

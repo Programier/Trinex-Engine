@@ -84,9 +84,12 @@ namespace Engine
             }
 
 
-            for (LightComponent* component : components)
+            for (auto& [light_class, light_set] : components)
             {
-                component->render(this, rt, layer);
+                for (auto& component : light_set)
+                {
+                    component->render(this, rt, layer);
+                }
             }
         }
     }
