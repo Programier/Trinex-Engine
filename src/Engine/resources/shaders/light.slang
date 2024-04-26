@@ -12,11 +12,21 @@ struct LightData
 {
     float4      color;
     float3      ambient_color;
+    float       intensivity;
+
 #if POINT_LIGHT
     float3      location;
     float       radius;
-    float       intensivity;
+#elif SPOT_LIGHT
+    float3      location;
+    float3      direction;
+    float       radius;
+    float       height;
+    float       cutoff;
+#else
+    float3      direction;
 #endif
+
 };
 
 uniform LightData light_data;
@@ -24,7 +34,9 @@ uniform LightData light_data;
 float calc_attenuation(in float dist)
 {
 #if POINT_LIGHT
-    return pow(clamp(1.0 - pow(dist / light_data.radius, 4.0), 0.0, 1.0), 2.0) / (pow(dist, 2.0) + 1.0);
+    return pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
+#elif SPOT_LIGHT
+    return pow(saturate(1.0 - pow(dist / light_data.height, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
 #else
     return 1.0;
 #endif
@@ -80,18 +92,21 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     }
     else
     {
-        float3 f0 = clamp(float3(0.04), base_color.rgb, float3(msra.r));
         float3 view_direction = normalize(globals.camera_location - position.xyz);
+        float3 surface_normal = normalize(normal.xyz) * normal.w;
+        float3 f0 = clamp(float3(0.04), base_color.rgb, float3(msra.r));
+
+#if POINT_LIGHT | SPOT_LIGHT
         float3 light_direction = light_data.location.rgb - position.rgb;
-        float light_distance = length(light_direction);
-        light_direction      = normalize(light_direction);
+        float attenuation = calc_attenuation(length(light_direction));
+        light_direction   = normalize(light_direction);
+#else
+        float3 light_direction = light_data.direction;
+        float attenuation = 1.0;
+#endif
 
         float3 view_light_direction = normalize(view_direction + light_direction);
-
-        float attenuation = calc_attenuation(light_distance);
         float3 radiance     = light_data.color.rgb * light_data.intensivity * attenuation;
-
-        float3 surface_normal = normalize(normal.xyz) * normal.w;
 
         float ggx      = distribution_ggx(surface_normal, view_light_direction, msra.b);
         float geometry = geometry_smith(surface_normal, view_light_direction, light_direction, msra.b);

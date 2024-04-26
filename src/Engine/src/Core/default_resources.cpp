@@ -19,6 +19,7 @@ namespace Engine
         ENGINE_EXPORT Material* gbuffer_lines_material             = nullptr;
         ENGINE_EXPORT Material* scene_output_lines_material        = nullptr;
         ENGINE_EXPORT Material* point_light_material               = nullptr;
+        ENGINE_EXPORT Material* spot_light_material               = nullptr;
         ENGINE_EXPORT Material* ambient_light_material             = nullptr;
     }// namespace DefaultResources
 
@@ -52,6 +53,7 @@ namespace Engine
         load_default_asset(GBufferLinesMat, gbuffer_lines_material, Material);
         load_default_asset(SceneOutputLinesMat, scene_output_lines_material, Material);
         load_default_asset(PointLightMaterial, point_light_material, Material);
+        load_default_asset(SpotLightMaterial, spot_light_material, Material);
         load_default_asset(AmbientLightMaterial, ambient_light_material, Material);
 
         DefaultResourcesInitializeController().execute();

@@ -120,6 +120,7 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpriteMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultTexture.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/PointLightMaterial.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpotLightMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/AmbientLightMaterial.tasset)
     add_custom_command(
         OUTPUT include-internal/DefaultResources/default.hpp

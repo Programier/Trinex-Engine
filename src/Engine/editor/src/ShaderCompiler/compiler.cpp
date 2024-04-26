@@ -469,16 +469,17 @@ namespace Engine::ShaderCompiler
 
             auto compile_result = spCompile(request);
 
-            if (auto diagnostics = spGetDiagnosticOutput(request))
-            {
-                if (strlen(diagnostics) > 0)
-                {
-                    print_error(diagnostics);
-                }
-            }
-
             if (SLANG_FAILED(compile_result))
             {
+                if (auto diagnostics = spGetDiagnosticOutput(request))
+                {
+                    spGetDiagnosticFlags(request);
+                    if (strlen(diagnostics) > 0)
+                    {
+                        print_error(diagnostics);
+                    }
+                }
+
                 return {};
             }
 
