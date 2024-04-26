@@ -8,15 +8,26 @@ uniform Sampler2D normal_texture;
 uniform Sampler2D emissive_texture;
 uniform Sampler2D msra_texture;
 
-uniform float3 light_color;
-uniform float light_radius;
-uniform float light_intensivity;
-uniform float3 light_location;
-uniform float3 ambient_color;
-
-float calc_attenuation(in float radius, in float dist)
+struct LightData
 {
-    return pow(clamp(1.0 - pow(dist / radius, 4.0), 0.0, 1.0), 2.0) / (pow(dist, 2.0) + 1.0);
+    float4      color;
+    float3      ambient_color;
+#if POINT_LIGHT
+    float3      location;
+    float       radius;
+    float       intensivity;
+#endif
+};
+
+uniform LightData light_data;
+
+float calc_attenuation(in float dist)
+{
+#if POINT_LIGHT
+    return pow(clamp(1.0 - pow(dist / light_data.radius, 4.0), 0.0, 1.0), 2.0) / (pow(dist, 2.0) + 1.0);
+#else
+    return 1.0;
+#endif
 }
 
 float distribution_ggx(in float3 normal, in float3 view_light_direction, float roughness)
@@ -65,20 +76,20 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     float3 light_out_color;
     if (length(normal.rgb) < 0.1)
     {
-        light_out_color = ambient_color * base_color.rgb * float3(msra.a); // Only ambient lighting
+        light_out_color = light_data.ambient_color * base_color.rgb * float3(msra.a); // Only ambient lighting
     }
     else
     {
         float3 f0 = clamp(float3(0.04), base_color.rgb, float3(msra.r));
         float3 view_direction = normalize(globals.camera_location - position.xyz);
-        float3 light_direction = light_location.rgb - position.rgb;
+        float3 light_direction = light_data.location.rgb - position.rgb;
         float light_distance = length(light_direction);
         light_direction      = normalize(light_direction);
 
         float3 view_light_direction = normalize(view_direction + light_direction);
 
-        float attenuation = calc_attenuation(light_radius, light_distance);
-        float3 radiance     = light_color.rgb * light_intensivity * attenuation;
+        float attenuation = calc_attenuation(light_distance);
+        float3 radiance     = light_data.color.rgb * light_data.intensivity * attenuation;
 
         float3 surface_normal = normalize(normal.xyz) * normal.w;
 
@@ -96,7 +107,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
         float normal_dot_l = max(dot(surface_normal, light_direction), 0.0);
         float3 reflectance = (k_d * base_color.xyz / M_PI + specular) * radiance * normal_dot_l;
 
-        float3 ambient = ambient_color * base_color.rgb * float3(msra.a);
+        float3 ambient = light_data.ambient_color * base_color.rgb * float3(msra.a);
         light_out_color = ambient + reflectance;
     }
 

@@ -45,21 +45,21 @@ namespace Engine
     {
         render_component(static_cast<PointLightComponent::Super*>(component), rt, layer);
 
-        if(!component->is_enabled)
+        if (!component->is_enabled)
             return *this;
 
-        Material* material                 = DefaultResources::point_light_material;
-        static Name name_light_color       = "light_color";
-        static Name name_light_radius      = "light_radius";
-        static Name name_light_intensivity = "light_intensivity";
-        static Name name_light_location    = "light_location";
-        static Name name_ambient_color     = "ambient_color";
+        Material* material             = DefaultResources::point_light_material;
+        static Name name_color         = "color";
+        static Name name_radius        = "radius";
+        static Name name_intensivity   = "intensivity";
+        static Name name_location      = "location";
+        static Name name_ambient_color = "ambient_color";
 
-        Vec3MaterialParameter* color_parameter         = get_param(light_color, Vec3MaterialParameter);
-        Vec3MaterialParameter* location_parameter      = get_param(light_location, Vec3MaterialParameter);
+        Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
+        Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
-        FloatMaterialParameter* radius_parameter       = get_param(light_radius, FloatMaterialParameter);
-        FloatMaterialParameter* intensivity_parameter  = get_param(light_intensivity, FloatMaterialParameter);
+        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
+        FloatMaterialParameter* intensivity_parameter  = get_param(intensivity, FloatMaterialParameter);
 
         if (color_parameter)
         {

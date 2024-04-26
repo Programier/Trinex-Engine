@@ -265,6 +265,78 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
+    static void parse_shader_parameter(ShaderReflection& out_reflection, const Function<void(const char*)>& print_error,
+                                       slang::VariableLayoutReflection* param, size_t offset = 0)
+    {
+        auto kind = param->getTypeLayout()->getKind();
+
+        if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector, slang::TypeReflection::Kind::Matrix>(
+                    kind))
+        {
+            auto name = param->getName();
+            trinex_always_check(name, "Failed to get parameter name!");
+            MaterialParameterInfo info;
+            info.type = find_scalar_parameter_type(param->getType());
+
+            if (info.type == MaterialParameterType::Undefined)
+            {
+                print_error("Failed to get parameter type!");
+                out_reflection.clear();
+                return;
+            }
+
+            info.name   = name;
+            info.offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
+
+            if (auto layout = param->getTypeLayout())
+            {
+                info.size = layout->getSize();
+            }
+            else
+            {
+                print_error("Failed to get parameter layout info!");
+                out_reflection.clear();
+                return;
+            }
+
+            out_reflection.uniform_member_infos.push_back(info);
+        }
+        else if (is_in<slang::TypeReflection::Kind::Resource>(kind))
+        {
+            if (auto type_layout = param->getTypeLayout())
+            {
+                SlangResourceShape shape = type_layout->getResourceShape();
+                if (shape == SLANG_TEXTURE_2D)
+                {
+                    auto binding_type = type_layout->getBindingRangeType(0);
+
+                    MaterialParameterInfo object;
+
+                    object.name             = param->getName();
+                    object.location.binding = param->getBindingIndex();
+                    object.location.set     = 0;
+                    object.type             = binding_type == slang::BindingType::CombinedTextureSampler
+                                                      ? MaterialParameterType::CombinedImageSampler2D
+                                                      : MaterialParameterType::Texture2D;
+                    out_reflection.uniform_member_infos.push_back(object);
+                }
+            }
+        }
+        else if (is_in<slang::TypeReflection::Kind::Struct>(kind))
+        {
+            auto layout = param->getTypeLayout();
+            auto fields = layout->getFieldCount();
+
+            auto struct_offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
+
+            for (decltype(fields) i = 0; i < fields; i++)
+            {
+                auto var = layout->getFieldByIndex(i);
+                parse_shader_parameter(out_reflection, print_error, var, offset + struct_offset);
+            }
+        }
+    }
+
     static void create_reflection(slang::ShaderReflection* reflection, ShaderReflection& out_reflection,
                                   const Function<void(const char*)>& print_error)
     {
@@ -301,60 +373,7 @@ namespace Engine::ShaderCompiler
         for (int i = 0; i < count; i++)
         {
             auto param = reflection->getParameterByIndex(i);
-            auto kind  = param->getTypeLayout()->getKind();
-
-            if (is_in<slang::TypeReflection::Kind::Scalar, slang::TypeReflection::Kind::Vector,
-                      slang::TypeReflection::Kind::Matrix>(kind))
-            {
-                auto name = param->getName();
-                trinex_always_check(name, "Failed to get parameter name!");
-                MaterialParameterInfo info;
-                info.type = find_scalar_parameter_type(param->getType());
-
-                if (info.type == MaterialParameterType::Undefined)
-                {
-                    print_error("Failed to get parameter type!");
-                    out_reflection.clear();
-                    return;
-                }
-
-                info.name   = name;
-                info.offset = param->getOffset(SLANG_PARAMETER_CATEGORY_UNIFORM);
-
-                if (auto layout = param->getTypeLayout())
-                {
-                    info.size = layout->getSize();
-                }
-                else
-                {
-                    print_error("Failed to get parameter layout info!");
-                    out_reflection.clear();
-                    return;
-                }
-
-                out_reflection.uniform_member_infos.push_back(info);
-            }
-            else if (is_in<slang::TypeReflection::Kind::Resource>(kind))
-            {
-                if (auto type_layout = param->getTypeLayout())
-                {
-                    SlangResourceShape shape = type_layout->getResourceShape();
-                    if (shape == SLANG_TEXTURE_2D)
-                    {
-                        auto binding_type = type_layout->getBindingRangeType(0);
-
-                        MaterialParameterInfo object;
-
-                        object.name             = param->getName();
-                        object.location.binding = param->getBindingIndex();
-                        object.location.set     = 0;
-                        object.type             = binding_type == slang::BindingType::CombinedTextureSampler
-                                                          ? MaterialParameterType::CombinedImageSampler2D
-                                                          : MaterialParameterType::Texture2D;
-                        out_reflection.uniform_member_infos.push_back(object);
-                    }
-                }
-            }
+            parse_shader_parameter(out_reflection, print_error, param, 0);
         }
     }
 
