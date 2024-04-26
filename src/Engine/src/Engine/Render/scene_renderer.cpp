@@ -52,6 +52,25 @@ namespace Engine
         }
     }
 
+    static void render_ambient_light_only(Scene* scene)
+    {
+        static Name name_ambient_color = "ambient_color";
+        Material* material             = DefaultResources::ambient_light_material;
+
+        if (material)
+        {
+            auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
+
+            if (ambient_param)
+            {
+                ambient_param->param = scene->environment.ambient_color;
+            }
+
+            material->apply();
+            DefaultResources::screen_position_buffer->rhi_bind(0, 0);
+            engine_instance->rhi()->draw(6);
+        }
+    }
 
     void SceneRenderer::begin_deferred_lighting_pass(RenderTargetBase* rt, SceneLayer* layer)
     {
@@ -63,33 +82,18 @@ namespace Engine
         }
         else if (m_view_mode == ViewMode::Lit)
         {
-            auto& components = layer->light_components();
+            render_ambient_light_only(m_scene);
 
-            // Render only ambient light
-            static Name name_ambient_color = "ambient_color";
-            Material* material             = DefaultResources::ambient_light_material;
+            if (layer->type() != SceneLayer::Type::Lighting)
+                return;
 
-            if (material)
+            LightingSceneLayer* lighting_layer = reinterpret_cast<LightingSceneLayer*>(layer);
+
+            auto& components = lighting_layer->light_components();
+
+            for (LightComponent* component : components)
             {
-                auto ambient_param = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(name_ambient_color));
-
-                if (ambient_param)
-                {
-                    ambient_param->param = m_scene->environment.ambient_color;
-                }
-
-                material->apply();
-                DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-                engine_instance->rhi()->draw(6);
-            }
-
-
-            for (auto& [light_class, light_set] : components)
-            {
-                for (auto& component : light_set)
-                {
-                    component->render(this, rt, layer);
-                }
+                component->render(this, rt, layer);
             }
         }
     }
@@ -192,7 +196,9 @@ namespace Engine
 #if TRINEX_DEBUG_BUILD
             rhi->push_debug_stage(layer->name().c_str());
 #endif
+            layer->begin_render(this, render_target);
             layer->render(this, render_target);
+            layer->end_render(this, render_target);
 
 #if TRINEX_DEBUG_BUILD
             rhi->pop_debug_stage();

@@ -28,6 +28,24 @@ namespace Engine
         }
     }
 
+    SceneLayer* SceneLayer::allocate_scene_layer(const Name& name, SceneLayer::Type type)
+    {
+        switch (type)
+        {
+            case Type::Default:
+                return new SceneLayer(name);
+            case Type::Lighting:
+                return new LightingSceneLayer(name);
+            default:
+                throw EngineException("Undefined type of scene layer");
+        }
+    }
+
+    SceneLayer::Type SceneLayer::type() const
+    {
+        return Type::Default;
+    }
+
     SceneLayer& SceneLayer::clear()
     {
         for (PrimitiveComponent* component : m_components)
@@ -35,12 +53,11 @@ namespace Engine
             component->m_layer = nullptr;
         }
         m_components.clear();
-        m_light_components.clear();
         lines.clear();
         return *this;
     }
 
-    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    SceneLayer& SceneLayer::begin_render(SceneRenderer* renderer, RenderTargetBase* render_target)
     {
         for (auto& method : begin_render_methods_callbacks)
         {
@@ -52,13 +69,11 @@ namespace Engine
             func(renderer, render_target, this);
         }
 
-        for (PrimitiveComponent* component : m_components)
-        {
-            component->render(renderer, render_target, this);
-        }
+        return *this;
+    }
 
-        lines.render(renderer->scene_view());
-
+    SceneLayer& SceneLayer::end_render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    {
         for (auto& func : end_render_function_callbacks)
         {
             func(renderer, render_target, this);
@@ -68,6 +83,18 @@ namespace Engine
         {
             (renderer->*method)(render_target, this);
         }
+
+        return *this;
+    }
+
+    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    {
+        for (PrimitiveComponent* component : m_components)
+        {
+            component->render(renderer, render_target, this);
+        }
+
+        lines.render(renderer->scene_view());
         return *this;
     }
 
@@ -124,21 +151,21 @@ namespace Engine
         return nullptr;
     }
 
-    SceneLayer* SceneLayer::create_next(const Name& name)
+    SceneLayer* SceneLayer::create_next(const Name& name, Type type)
     {
         SceneLayer* new_layer = find(name);
 
         if (new_layer)
             return new_layer;
 
-        new_layer           = new SceneLayer(name);
+        new_layer           = allocate_scene_layer(name, type);
         new_layer->m_parent = this;
         new_layer->m_next   = m_next;
         m_next              = new_layer;
         return new_layer;
     }
 
-    SceneLayer* SceneLayer::create_parent(const Name& name)
+    SceneLayer* SceneLayer::create_parent(const Name& name, Type type)
     {
         if (!m_can_create_parent)
             return nullptr;
@@ -148,7 +175,7 @@ namespace Engine
         if (new_layer)
             return new_layer;
 
-        new_layer           = new SceneLayer(name);
+        new_layer           = allocate_scene_layer(name, type);
         new_layer->m_parent = m_parent;
         new_layer->m_next   = this;
         m_parent            = new_layer;
@@ -181,25 +208,11 @@ namespace Engine
 
     SceneLayer& SceneLayer::add_light(LightComponent* component)
     {
-        if (!component || component->m_layer == this)
-            return *this;
-
-        if (component->m_layer != nullptr)
-        {
-            component->m_layer->remove_light(component);
-        }
-
-        m_light_components[component->class_instance()].insert(component);
         return *this;
     }
 
     SceneLayer& SceneLayer::remove_light(LightComponent* component)
     {
-        if (!component || component->m_layer != this)
-            return *this;
-
-        m_light_components[component->class_instance()].erase(component);
-        component->m_layer = nullptr;
         return *this;
     }
 
@@ -208,8 +221,59 @@ namespace Engine
         return m_components;
     }
 
-    const TreeMap<class Class*, Set<LightComponent*>>& SceneLayer::light_components() const
+
+    //// LIGHTING LAYER
+
+    LightingSceneLayer::LightingSceneLayer(const Name& name) : SceneLayer(name)
+    {}
+
+    SceneLayer::Type LightingSceneLayer::type() const
+    {
+        return Type::Lighting;
+    }
+
+    LightingSceneLayer& LightingSceneLayer::clear()
+    {
+        SceneLayer::clear();
+        m_light_components.clear();
+        return *this;
+    }
+
+    LightingSceneLayer& LightingSceneLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
+    {
+        SceneLayer::render(renderer, rt);
+        return *this;
+    }
+
+    LightingSceneLayer& LightingSceneLayer::add_light(LightComponent* component)
+    {
+        if (!component || component->m_layer == this)
+            return *this;
+
+        if (component->m_layer != nullptr)
+        {
+            component->m_layer->remove_light(component);
+        }
+
+        m_light_components.insert(component);
+        return *this;
+    }
+
+    LightingSceneLayer& LightingSceneLayer::remove_light(LightComponent* component)
+    {
+        if (!component || component->m_layer != this)
+            return *this;
+
+        m_light_components.erase(component);
+        component->m_layer = nullptr;
+        return *this;
+    }
+
+    const Set<LightComponent*>& LightingSceneLayer::light_components() const
     {
         return m_light_components;
     }
+
+    LightingSceneLayer::~LightingSceneLayer()
+    {}
 }// namespace Engine

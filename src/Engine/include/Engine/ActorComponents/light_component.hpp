@@ -38,9 +38,10 @@ namespace Engine
         void submit_bounds_to_render_thread();
 
     public:
-        bool is_enabled;
         Color3 light_color;
         float intensivity;
+        bool is_enabled;
+        bool enable_shadows;
 
         LightComponent();
         virtual Type light_type() const = 0;
@@ -57,6 +58,6 @@ namespace Engine
         SceneLayer* scene_layer() const;
         ~LightComponent();
 
-        friend class SceneLayer;
+        friend class LightingSceneLayer;
     };
 }// namespace Engine

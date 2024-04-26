@@ -61,11 +61,12 @@ namespace Engine
         m_base_pass_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_rendering_base_pass);
         m_base_pass_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
 
-        m_deferred_lighting_layer = m_base_pass_layer->create_next(SceneLayer::name_deferred_light_pass);
+        m_deferred_lighting_layer =
+                m_base_pass_layer->create_next(SceneLayer::name_deferred_light_pass, SceneLayer::Type::Lighting);
         m_deferred_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_deferred_lighting_pass);
         m_deferred_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
 
-        m_lighting_layer = m_deferred_lighting_layer->create_next(SceneLayer::name_light_pass);
+        m_lighting_layer = m_deferred_lighting_layer->create_next(SceneLayer::name_light_pass, SceneLayer::Type::Lighting);
         m_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_lighting_pass);
         m_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
 

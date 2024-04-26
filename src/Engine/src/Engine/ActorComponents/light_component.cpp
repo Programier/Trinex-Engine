@@ -31,12 +31,14 @@ namespace Engine
     implement_initialize_class(LightComponent)
     {
         Class* self = static_class_instance();
-        self->add_properties(new BoolProperty("Is Enabled", "Is light enabled", &This::is_enabled),
-                             new Color3Property("Color", "Color of this light", &This::light_color),
-                             new FloatProperty("Intensivity", "Intensivity of this light", &This::intensivity));
+        self->add_properties(
+                new BoolProperty("Is Enabled", "Is light enabled", &This::is_enabled),
+                new BoolProperty("Enable Shadows", "The light source can cast real-time shadows", &This::enable_shadows),
+                new Color3Property("Color", "Color of this light", &This::light_color),
+                new FloatProperty("Intensivity", "Intensivity of this light", &This::intensivity));
     }
 
-    LightComponent::LightComponent() : is_enabled(true), light_color({1.0, 1.0, 1.0}), intensivity(22400.f)
+    LightComponent::LightComponent() : light_color({1.0, 1.0, 1.0}), intensivity(22400.f), is_enabled(true), enable_shadows(false)
     {}
 
     LightComponent& LightComponent::on_transform_changed()
