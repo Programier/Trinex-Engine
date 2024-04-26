@@ -13,11 +13,8 @@ namespace Engine
 {
     BatchedLines::BatchedLines()
     {
-        m_position_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
-        m_color_buffer    = Object::new_instance<EngineResource<ColorVertexBuffer>>();
-
-        m_position_buffer->type = RHIBufferType::Dynamic;
-        m_color_buffer->type    = RHIBufferType::Dynamic;
+        m_position_buffer = Object::new_instance<EngineResource<PositionDynamicVertexBuffer>>();
+        m_color_buffer    = Object::new_instance<EngineResource<ColorDynamicVertexBuffer>>();
     }
 
     BatchedLines& BatchedLines::add_line(const Vector3D& point1, const Vector3D& point2, ByteColor color1, ByteColor color2)
@@ -54,22 +51,11 @@ namespace Engine
 
     BatchedLines& BatchedLines::render(const class SceneView& view)
     {
-        if (m_allocated_size < m_position_buffer->buffer.size())
-        {
-            m_position_buffer->rhi_create();
-            m_color_buffer->rhi_create();
-            m_allocated_size = m_position_buffer->buffer.size();
-        }
-        else if (m_position_buffer->buffer.size() > 0)
-        {
-            m_position_buffer->rhi_update(0, m_allocated_size * sizeof(PositionVertexBuffer::ElementType),
-                                          reinterpret_cast<const byte*>(m_position_buffer->data()));
-            m_color_buffer->rhi_update(0, m_allocated_size * sizeof(ColorVertexBuffer::ElementType),
-                                       reinterpret_cast<const byte*>(m_color_buffer->data()));
-        }
-
         if (m_position_buffer->buffer.size() == 0)
             return *this;
+
+        m_position_buffer->rhi_submit_changes();
+        m_color_buffer->rhi_submit_changes();
 
         auto pass          = RenderTargetBase::current_target()->render_pass->type();
         Material* material = nullptr;

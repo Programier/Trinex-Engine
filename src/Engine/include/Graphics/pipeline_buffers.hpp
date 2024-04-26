@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/archive.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/render_resource.hpp>
 
@@ -20,9 +21,6 @@ namespace Engine
         declare_class(VertexBuffer, PipelineBuffer);
 
     public:
-        RHIBufferType type;
-
-    public:
         VertexBuffer();
         VertexBuffer& rhi_create() override;
         VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
@@ -33,95 +31,147 @@ namespace Engine
         virtual size_t element_size() const = 0;
     };
 
+    template<typename Type>
+    class TypedVertexBuffer : public VertexBuffer
+    {
+    public:
+        using ElementType = Type;
+        using BufferType  = Vector<ElementType>;
 
-    class ENGINE_EXPORT PositionVertexBuffer : public VertexBuffer
+        BufferType buffer;
+
+    public:
+        const byte* data() const override
+        {
+            return reinterpret_cast<const byte*>(buffer.data());
+        }
+
+        size_t size() const override
+        {
+            return buffer.size() * sizeof(Type);
+        }
+
+        size_t element_size() const override
+        {
+            return sizeof(Type);
+        }
+
+        bool archive_process(Archive& ar) override
+        {
+            if (!Super::archive_process(ar))
+                return false;
+            ar & buffer;
+            return ar;
+        }
+    };
+
+    class ENGINE_EXPORT PositionVertexBuffer : public TypedVertexBuffer<Vector3D>
     {
         declare_class(PositionVertexBuffer, VertexBuffer);
-
-    public:
-        using ElementType = Vector3D;
-        using BufferType  = Vector<ElementType>;
-        BufferType buffer;
-
-        const byte* data() const override;
-        size_t size() const override;
-        size_t element_size() const override;
-        bool archive_process(Archive& ar) override;
     };
 
-    class ENGINE_EXPORT TexCoordVertexBuffer : public VertexBuffer
+    class ENGINE_EXPORT TexCoordVertexBuffer : public TypedVertexBuffer<Vector2D>
     {
         declare_class(TexCoordVertexBuffer, VertexBuffer);
-
-    public:
-        using ElementType = Vector2D;
-        using BufferType  = Vector<ElementType>;
-        BufferType buffer;
-
-        const byte* data() const override;
-        size_t size() const override;
-        size_t element_size() const override;
-        bool archive_process(Archive& ar) override;
     };
 
-    class ENGINE_EXPORT ColorVertexBuffer : public VertexBuffer
+    class ENGINE_EXPORT ColorVertexBuffer : public TypedVertexBuffer<ByteColor>
     {
         declare_class(ColorVertexBuffer, VertexBuffer);
-
-    public:
-        using ElementType = ByteColor;
-        using BufferType  = Vector<ElementType>;
-        BufferType buffer;
-
-        const byte* data() const override;
-        size_t size() const override;
-        size_t element_size() const override;
-        bool archive_process(Archive& ar) override;
     };
 
-    class ENGINE_EXPORT NormalVertexBuffer : public VertexBuffer
+    class ENGINE_EXPORT NormalVertexBuffer : public TypedVertexBuffer<Vector3D>
     {
         declare_class(NormalVertexBuffer, VertexBuffer);
-
-    public:
-        using ElementType = Vector3D;
-        using BufferType  = Vector<ElementType>;
-        BufferType buffer;
-
-        const byte* data() const override;
-        size_t size() const override;
-        size_t element_size() const override;
-        bool archive_process(Archive& ar) override;
     };
 
-    class ENGINE_EXPORT TangentVertexBuffer : public VertexBuffer
+    class ENGINE_EXPORT TangentVertexBuffer : public TypedVertexBuffer<Vector3D>
     {
         declare_class(TangentVertexBuffer, VertexBuffer);
-
-    public:
-        using ElementType = Vector3D;
-        using BufferType  = Vector<ElementType>;
-        BufferType buffer;
-
-        const byte* data() const override;
-        size_t size() const override;
-        size_t element_size() const override;
-        bool archive_process(Archive& ar) override;
     };
 
-    class ENGINE_EXPORT BinormalVertexBuffer : public VertexBuffer
+    class ENGINE_EXPORT BinormalVertexBuffer : public TypedVertexBuffer<Vector3D>
     {
         declare_class(BinormalVertexBuffer, VertexBuffer);
+    };
+
+
+    class ENGINE_EXPORT DynamicVertexBuffer : public VertexBuffer
+    {
+        declare_class(DynamicVertexBuffer, VertexBuffer);
+
+        size_t m_allocated_size;
 
     public:
-        using ElementType = Vector3D;
+        DynamicVertexBuffer();
+        DynamicVertexBuffer& rhi_create() override;
+        DynamicVertexBuffer& rhi_shrink_to_fit();
+        DynamicVertexBuffer& rhi_submit_changes(size_t offset = 0, size_t size = ~static_cast<size_t>(0));
+    };
+
+
+    template<typename Type>
+    class TypedDynamicVertexBuffer : public DynamicVertexBuffer
+    {
+    public:
+        using ElementType = Type;
         using BufferType  = Vector<ElementType>;
+
         BufferType buffer;
 
-        const byte* data() const override;
-        size_t size() const override;
-        size_t element_size() const override;
-        bool archive_process(Archive& ar) override;
+    public:
+        const byte* data() const override
+        {
+            return reinterpret_cast<const byte*>(buffer.data());
+        }
+
+        size_t size() const override
+        {
+            return buffer.size() * sizeof(Type);
+        }
+
+        size_t element_size() const override
+        {
+            return sizeof(Type);
+        }
+
+        bool archive_process(Archive& ar) override
+        {
+            if (!Super::archive_process(ar))
+                return false;
+            ar & buffer;
+            return ar;
+        }
+    };
+
+    class ENGINE_EXPORT PositionDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+    {
+        declare_class(PositionDynamicVertexBuffer, DynamicVertexBuffer);
+    };
+
+    class ENGINE_EXPORT TexCoordDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector2D>
+    {
+        declare_class(TexCoordDynamicVertexBuffer, DynamicVertexBuffer);
+    };
+
+    class ENGINE_EXPORT ColorDynamicVertexBuffer : public TypedDynamicVertexBuffer<ByteColor>
+    {
+        declare_class(ColorDynamicVertexBuffer, DynamicVertexBuffer);
+    };
+
+    class ENGINE_EXPORT NormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+    {
+        declare_class(NormalDynamicVertexBuffer, DynamicVertexBuffer);
+    };
+
+    class ENGINE_EXPORT TangentDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+    {
+        declare_class(TangentDynamicVertexBuffer, DynamicVertexBuffer);
+    };
+
+    class ENGINE_EXPORT BinormalDynamicVertexBuffer : public TypedDynamicVertexBuffer<Vector3D>
+    {
+        declare_class(BinormalDynamicVertexBuffer, DynamicVertexBuffer);
     };
 
 

@@ -17,34 +17,6 @@ namespace Engine
     implement_engine_class_default_init(VertexBuffer);
     implement_engine_class_default_init(SSBO);
 
-#define implement_vertex_buffer_class(name)                                                                                      \
-    implement_engine_class_default_init(name);                                                                                   \
-    const byte* name::data() const                                                                                               \
-    {                                                                                                                            \
-        return reinterpret_cast<const byte*>(buffer.data());                                                                     \
-    }                                                                                                                            \
-    size_t name::size() const                                                                                                    \
-    {                                                                                                                            \
-        return buffer.size() * sizeof(BufferType::value_type);                                                                   \
-    }                                                                                                                            \
-    size_t name::element_size() const                                                                                            \
-    {                                                                                                                            \
-        return sizeof(ElementType);                                                                                              \
-    }                                                                                                                            \
-    bool name::archive_process(Archive& ar)                                                                                      \
-    {                                                                                                                            \
-        if (!Super::archive_process(ar))                                                                                         \
-            return false;                                                                                                        \
-        ar & buffer;                                                                                                             \
-        return ar;                                                                                                               \
-    }
-
-    implement_vertex_buffer_class(PositionVertexBuffer);
-    implement_vertex_buffer_class(TexCoordVertexBuffer);
-    implement_vertex_buffer_class(ColorVertexBuffer);
-    implement_vertex_buffer_class(NormalVertexBuffer);
-    implement_vertex_buffer_class(TangentVertexBuffer);
-    implement_vertex_buffer_class(BinormalVertexBuffer);
 
     PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
     {
@@ -55,14 +27,14 @@ namespace Engine
         return *this;
     }
 
-    VertexBuffer::VertexBuffer() : type(RHIBufferType::Static)
+    VertexBuffer::VertexBuffer()
     {}
 
     VertexBuffer& VertexBuffer::rhi_create()
     {
         size_t buffer_size = size();
         if (buffer_size > 0)
-            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(size(), data(), type));
+            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(buffer_size, data(), RHIBufferType::Static));
         return *this;
     }
 
@@ -76,12 +48,61 @@ namespace Engine
         return *this;
     }
 
-
     size_t VertexBuffer::elements_count() const
     {
         return size() / element_size();
     }
 
+    implement_engine_class_default_init(PositionVertexBuffer);
+    implement_engine_class_default_init(TexCoordVertexBuffer);
+    implement_engine_class_default_init(ColorVertexBuffer);
+    implement_engine_class_default_init(NormalVertexBuffer);
+    implement_engine_class_default_init(TangentVertexBuffer);
+    implement_engine_class_default_init(BinormalVertexBuffer);
+
+    implement_engine_class_default_init(DynamicVertexBuffer);
+    DynamicVertexBuffer::DynamicVertexBuffer() : m_allocated_size(0)
+    {}
+
+    DynamicVertexBuffer& DynamicVertexBuffer::rhi_create()
+    {
+        Vector<int> test;
+        test.shrink_to_fit();
+        m_allocated_size = size();
+        if (m_allocated_size > 0)
+            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(m_allocated_size, data(), RHIBufferType::Dynamic));
+        return *this;
+    }
+
+    DynamicVertexBuffer& DynamicVertexBuffer::rhi_shrink_to_fit()
+    {
+        rhi_create();
+        return *this;
+    }
+
+    DynamicVertexBuffer& DynamicVertexBuffer::rhi_submit_changes(size_t submit_offset, size_t submit_size)
+    {
+        size_t buffer_size = size();
+
+        if (buffer_size > m_allocated_size)
+        {
+            rhi_create();
+        }
+        else
+        {
+            submit_offset = glm::min(submit_offset, buffer_size);
+            submit_size   = glm::min(submit_size, buffer_size - submit_offset);
+            rhi_update(submit_offset, submit_size, data() + submit_offset);
+        }
+        return *this;
+    }
+
+    implement_engine_class_default_init(PositionDynamicVertexBuffer);
+    implement_engine_class_default_init(TexCoordDynamicVertexBuffer);
+    implement_engine_class_default_init(ColorDynamicVertexBuffer);
+    implement_engine_class_default_init(NormalDynamicVertexBuffer);
+    implement_engine_class_default_init(TangentDynamicVertexBuffer);
+    implement_engine_class_default_init(BinormalDynamicVertexBuffer);
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
 

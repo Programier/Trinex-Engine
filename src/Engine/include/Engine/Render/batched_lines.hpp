@@ -4,15 +4,15 @@
 
 namespace Engine
 {
-    class PositionVertexBuffer;
-    class ColorVertexBuffer;
+    class PositionDynamicVertexBuffer;
+    class ColorDynamicVertexBuffer;
 
     class ENGINE_EXPORT BatchedLines final
     {
     private:
-        PositionVertexBuffer* m_position_buffer = nullptr;
-        ColorVertexBuffer* m_color_buffer       = nullptr;
-        size_t m_allocated_size                 = 0;
+        PositionDynamicVertexBuffer* m_position_buffer = nullptr;
+        ColorDynamicVertexBuffer* m_color_buffer       = nullptr;
+        size_t m_allocated_size                        = 0;
 
     public:
         BatchedLines();

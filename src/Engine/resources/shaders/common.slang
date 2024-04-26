@@ -47,9 +47,11 @@ struct GBufferFragmentOutput
 struct LightData
 {
     float4      light_color     : COLOR0;
+#if POINT_LIGHT
     float       intensivity     : BLENDWEIGHT0;
     float3      position        : POSITION1;
     float       radius          : BLENDWEIGHT1;
+#endif
 };
 
 /////////////////////////// MATH ///////////////////////////
