@@ -68,8 +68,6 @@ namespace Engine
             grid_material = Object::find_object_checked<Material>("Editor::GridMaterial");
         }
 
-        renderer->begin_rendering_target(GBuffer::instance());
-
         auto rhi               = engine_instance->rhi();
         const CameraView& view = renderer->scene_view().camera_view();
 
@@ -156,7 +154,5 @@ namespace Engine
             y_axis_vertex_buffer->rhi_bind(0);
             rhi->draw(x_axis_vertex_buffer->buffer.size());
         }
-
-        renderer->end_rendering_target();
     }
 }// namespace Engine

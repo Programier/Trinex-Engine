@@ -6,6 +6,7 @@ namespace Engine
     class Sampler;
     class Texture2D;
     class Material;
+    class PositionVertexBuffer;
 
     namespace EditorResources
     {
@@ -21,5 +22,7 @@ namespace Engine
         extern Sampler* default_sampler;
         extern Material* axis_material;
         extern Material* grid_material;
+        extern Material* spot_light_overlay_material;
+        extern PositionVertexBuffer* spot_light_overlay_positions;
     }// namespace EditorResources
 }// namespace Engine

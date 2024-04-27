@@ -2,8 +2,10 @@
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/package.hpp>
+#include <Graphics/pipeline_buffers.hpp>
 
 namespace Engine
 {
@@ -22,19 +24,56 @@ namespace Engine
 
     namespace EditorResources
     {
-        Texture2D* default_icon  = nullptr;
-        Texture2D* add_icon      = nullptr;
-        Texture2D* move_icon     = nullptr;
-        Texture2D* remove_icon   = nullptr;
-        Texture2D* rotate_icon   = nullptr;
-        Texture2D* scale_icon    = nullptr;
-        Texture2D* select_icon   = nullptr;
-        Texture2D* more_icon     = nullptr;
-        Texture2D* light_sprite  = nullptr;
-        Sampler* default_sampler = nullptr;
-        Material* axis_material  = nullptr;
-        Material* grid_material  = nullptr;
+        Texture2D* default_icon                            = nullptr;
+        Texture2D* add_icon                                = nullptr;
+        Texture2D* move_icon                               = nullptr;
+        Texture2D* remove_icon                             = nullptr;
+        Texture2D* rotate_icon                             = nullptr;
+        Texture2D* scale_icon                              = nullptr;
+        Texture2D* select_icon                             = nullptr;
+        Texture2D* more_icon                               = nullptr;
+        Texture2D* light_sprite                            = nullptr;
+        Sampler* default_sampler                           = nullptr;
+        Material* axis_material                            = nullptr;
+        Material* grid_material                            = nullptr;
+        Material* spot_light_overlay_material              = nullptr;
+        PositionVertexBuffer* spot_light_overlay_positions = nullptr;
     }// namespace EditorResources
+
+
+    static void create_spot_light_overlay_positions()
+    {
+        EditorResources::spot_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
+        auto buffer                                   = EditorResources::spot_light_overlay_positions;
+
+        static constexpr float circle_y = -1.f;
+
+        // Create circle
+        for (int i = 1; i <= 360; ++i)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                float angle = glm::two_pi<float>() * static_cast<float>(i + j) / 360.f;
+                float x     = glm::cos(angle);
+                float z     = glm::sin(angle);
+
+                buffer->buffer.push_back(Vector3D(x, circle_y, z));
+            }
+        }
+
+        buffer->buffer.push_back({0, 0, 0});
+        buffer->buffer.push_back({1, circle_y, 0});
+
+        buffer->buffer.push_back({0, 0, 0});
+        buffer->buffer.push_back({-1, circle_y, 0});
+
+        buffer->buffer.push_back({0, 0, 0});
+        buffer->buffer.push_back({0, circle_y, 1});
+
+        buffer->buffer.push_back({0, 0, 0});
+        buffer->buffer.push_back({0, circle_y, -1});
+        buffer->init_resource();
+    }
 
     static void resource_loading()
     {
@@ -54,9 +93,10 @@ namespace Engine
         load_resource(default_sampler, DefaultSampler, Sampler);
         load_resource(axis_material, AxisMaterial, Material);
         load_resource(grid_material, GridMaterial, Material);
+        load_resource(spot_light_overlay_material, SpotLightOverlay, Material);
+        create_spot_light_overlay_positions();
 
         Icons::on_editor_package_loaded();
-
         GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
     }
 

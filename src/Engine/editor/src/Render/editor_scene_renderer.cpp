@@ -13,10 +13,10 @@
 #include <Render/editor_scene_renderer.hpp>
 #include <editor_resources.hpp>
 
-#include <atomic>
 
 namespace Engine
 {
+    extern void render_editor_grid(SceneRenderer* renderer, RenderTargetBase*, SceneLayer* layer);
     static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
     {
         Material* material                 = DefaultResources::sprite_material;
@@ -50,6 +50,29 @@ namespace Engine
         }
     }
 
+    static void render_spot_light_overlay(SpotLightComponent* component)
+    {
+        auto proxy         = component->proxy();
+        Material* material = EditorResources::spot_light_overlay_material;
+
+        auto model_param   = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model));
+        model_param->param = proxy->world_transform().matrix();
+
+        auto height_param   = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::height));
+        height_param->param = proxy->height();
+
+        auto radius_param   = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::radius));
+        radius_param->param = proxy->radius();
+
+        auto color_param   = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
+        color_param->param = Vector4D(1.f);
+
+        material->apply();
+
+        EditorResources::spot_light_overlay_positions->rhi_bind(0);
+        engine_instance->rhi()->draw(EditorResources::spot_light_overlay_positions->buffer.size());
+    }
+
     class OverlaySceneLayer : public SceneLayer
     {
     public:
@@ -76,7 +99,17 @@ namespace Engine
             for (LightComponent* component : m_light_components)
             {
                 render_light_sprite(EditorResources::light_sprite, component, renderer->scene_view());
+
+                if (component->actor()->is_selected())
+                {
+                    if (SpotLightComponent* spot_light = component->instance_cast<SpotLightComponent>())
+                    {
+                        render_spot_light_overlay(spot_light);
+                    }
+                }
             }
+
+            render_editor_grid(renderer, rt, this);
 
             renderer->end_rendering_target();
             return *this;
@@ -120,7 +153,7 @@ namespace Engine
         if (owner == nullptr)
             return *this;
 
-        if (owner->is_selected() && owner->scene_component() == component)
+        if (owner->is_selected() && owner->scene_component() == component && !component->is_instance_of<SpotLightComponent>())
         {
             component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
         }

@@ -335,10 +335,6 @@ namespace Engine
         m_world      = World::new_system<World>();
         Scene* scene = m_world->scene();
         m_renderer.scene(scene);
-
-        extern void render_editor_grid(SceneRenderer * renderer, RenderTargetBase * render_target, SceneLayer * layer);
-        auto layer = m_renderer.clear_layer()->create_next("Grid Rendering");
-        layer->begin_render_function_callbacks.push_back(render_editor_grid);
         m_world->start_play();
         return *this;
     }
