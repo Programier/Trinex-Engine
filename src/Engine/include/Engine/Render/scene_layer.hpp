@@ -17,6 +17,7 @@ namespace Engine
         {
             Default  = 0,
             Lighting = 1,
+            Custom   = 2,
         };
 
         static ENGINE_EXPORT const Name name_clear_render_targets;
@@ -36,7 +37,16 @@ namespace Engine
         List<MethodCallback> end_render_methods_callbacks;
 
     private:
-        static SceneLayer* allocate_scene_layer(const Name& name, Type type);
+        SceneLayer* create_next_internal(const Name& name, SceneLayer* (*allocator)(const Name& name));
+        SceneLayer* create_parent_internal(const Name& name, SceneLayer* (*allocator)(const Name& name));
+
+        template<typename LayerType>
+        static SceneLayer* static_layer_allocator(const Name& name)
+        {
+            SceneLayer* layer = new LayerType();
+            layer->m_name     = name;
+            return layer;
+        }
 
     protected:
         Set<PrimitiveComponent*> m_components;
@@ -47,6 +57,7 @@ namespace Engine
         bool m_can_create_parent = true;
 
 
+        SceneLayer();
         SceneLayer(const Name& name);
         virtual ~SceneLayer();
 
@@ -59,8 +70,19 @@ namespace Engine
 
         void destroy();
         SceneLayer* find(const Name& name);
-        SceneLayer* create_next(const Name& name, Type type = Type::Default);
-        SceneLayer* create_parent(const Name& name, Type type = Type::Default);
+
+        template<typename Type = SceneLayer>
+        Type* create_next(const Name& name)
+        {
+            return reinterpret_cast<Type*>(create_next_internal(name, static_layer_allocator<Type>));
+        }
+
+        template<typename Type = SceneLayer>
+        Type* create_parent(const Name& name)
+        {
+            return reinterpret_cast<Type*>(create_parent_internal(name, static_layer_allocator<Type>));
+        }
+
         const Set<PrimitiveComponent*>& primitive_components() const;
 
         virtual Type type() const;
@@ -73,7 +95,7 @@ namespace Engine
         virtual SceneLayer& add_light(LightComponent* component);
         virtual SceneLayer& remove_light(LightComponent* component);
 
-        friend class Scene;
+        friend class SceneRenderer;
     };
 
     class ENGINE_EXPORT LightingSceneLayer : public SceneLayer
@@ -82,7 +104,6 @@ namespace Engine
         Set<LightComponent*> m_light_components;
 
     public:
-        LightingSceneLayer(const Name& name);
         SceneLayer::Type type() const override;
         LightingSceneLayer& clear() override;
         LightingSceneLayer& render(SceneRenderer*, RenderTargetBase*) override;

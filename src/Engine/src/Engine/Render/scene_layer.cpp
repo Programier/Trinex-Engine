@@ -12,6 +12,9 @@ namespace Engine
     const Name SceneLayer::name_scene_output_pass    = "Scene Output Pass";
     const Name SceneLayer::name_post_process         = "Post Process";
 
+    SceneLayer::SceneLayer()
+    {}
+
     SceneLayer::SceneLayer(const Name& name) : m_name(name)
     {}
 
@@ -25,19 +28,6 @@ namespace Engine
         {
             m_parent->m_next = nullptr;
             m_parent         = nullptr;
-        }
-    }
-
-    SceneLayer* SceneLayer::allocate_scene_layer(const Name& name, SceneLayer::Type type)
-    {
-        switch (type)
-        {
-            case Type::Default:
-                return new SceneLayer(name);
-            case Type::Lighting:
-                return new LightingSceneLayer(name);
-            default:
-                throw EngineException("Undefined type of scene layer");
         }
     }
 
@@ -151,21 +141,21 @@ namespace Engine
         return nullptr;
     }
 
-    SceneLayer* SceneLayer::create_next(const Name& name, Type type)
+    SceneLayer* SceneLayer::create_next_internal(const Name& name, SceneLayer* (*allocator)(const Name& name))
     {
         SceneLayer* new_layer = find(name);
 
         if (new_layer)
             return new_layer;
 
-        new_layer           = allocate_scene_layer(name, type);
+        new_layer           = allocator(name);
         new_layer->m_parent = this;
         new_layer->m_next   = m_next;
         m_next              = new_layer;
         return new_layer;
     }
 
-    SceneLayer* SceneLayer::create_parent(const Name& name, Type type)
+    SceneLayer* SceneLayer::create_parent_internal(const Name& name, SceneLayer* (*allocator)(const Name& name))
     {
         if (!m_can_create_parent)
             return nullptr;
@@ -175,7 +165,7 @@ namespace Engine
         if (new_layer)
             return new_layer;
 
-        new_layer           = allocate_scene_layer(name, type);
+        new_layer           = allocator(name);
         new_layer->m_parent = m_parent;
         new_layer->m_next   = this;
         m_parent            = new_layer;
@@ -223,10 +213,6 @@ namespace Engine
 
 
     //// LIGHTING LAYER
-
-    LightingSceneLayer::LightingSceneLayer(const Name& name) : SceneLayer(name)
-    {}
-
     SceneLayer::Type LightingSceneLayer::type() const
     {
         return Type::Lighting;

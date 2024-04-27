@@ -337,7 +337,7 @@ namespace Engine
         m_renderer.scene(scene);
 
         extern void render_editor_grid(SceneRenderer * renderer, RenderTargetBase * render_target, SceneLayer * layer);
-        auto layer = scene->clear_layer()->create_next("Grid Rendering");
+        auto layer = m_renderer.clear_layer()->create_next("Grid Rendering");
         layer->begin_render_function_callbacks.push_back(render_editor_grid);
         m_world->start_play();
         return *this;

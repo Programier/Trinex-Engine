@@ -39,17 +39,17 @@ namespace Engine
                 RenderPassType type = pipeline->render_pass_type();
                 if (type == RenderPassType::OneAttachentOutput)
                 {
-                    scene->scene_output_layer()->add_component(component);
+                    scene_output_layer()->add_component(component);
                 }
                 else if (type == RenderPassType::GBuffer)
                 {
-                    scene->base_pass_layer()->add_component(component);
+                    base_pass_layer()->add_component(component);
                 }
             }
         }
         else if (engine_instance->is_editor())
         {
-            scene->scene_output_layer()->add_component(component);
+            scene_output_layer()->add_component(component);
         }
         return *this;
     }

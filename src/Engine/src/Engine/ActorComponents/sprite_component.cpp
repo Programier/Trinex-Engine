@@ -25,7 +25,7 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::add_component(SpriteComponent* component, Scene* scene)
     {
-        scene->scene_output_layer()->add_component(component);
+        scene_output_layer()->add_component(component);
         return *this;
     }
 

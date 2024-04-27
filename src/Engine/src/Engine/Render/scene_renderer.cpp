@@ -18,7 +18,33 @@
 namespace Engine
 {
     SceneRenderer::SceneRenderer() : m_scene(nullptr), m_view_mode(ViewMode::Lit)
-    {}
+    {
+        m_root_layer                      = new SceneLayer("Root Layer");
+        m_root_layer->m_can_create_parent = false;
+
+        m_clear_layer = m_root_layer->create_next(SceneLayer::name_clear_render_targets);
+        m_clear_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::clear_render_targets);
+
+        m_base_pass_layer = m_clear_layer->create_next(SceneLayer::name_base_pass);
+        m_base_pass_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_rendering_base_pass);
+        m_base_pass_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
+
+        m_deferred_lighting_layer = m_base_pass_layer->create_next<LightingSceneLayer>(SceneLayer::name_deferred_light_pass);
+        m_deferred_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_deferred_lighting_pass);
+        m_deferred_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
+
+        m_lighting_layer = m_deferred_lighting_layer->create_next<LightingSceneLayer>(SceneLayer::name_light_pass);
+        m_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_lighting_pass);
+        m_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
+
+        m_scene_output = m_lighting_layer->create_next(SceneLayer::name_scene_output_pass);
+        m_scene_output->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_scene_output_pass);
+        m_scene_output->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
+
+        m_post_process_layer = m_scene_output->create_next(SceneLayer::name_post_process);
+        m_post_process_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_postprocess_pass);
+        m_post_process_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
+    }
 
     void SceneRenderer::clear_render_targets(RenderTargetBase*, SceneLayer*)
     {
@@ -188,10 +214,15 @@ namespace Engine
         m_scene_view = view;
         setup_parameters(nullptr, &m_scene_view);
 
+        for (auto layer = root_layer(); layer; layer = layer->next())
+        {
+            layer->clear();
+        }
+
         m_scene->build_views(this);
         auto rhi = engine_instance->rhi();
 
-        for (auto layer = m_scene->root_layer(); layer; layer = layer->next())
+        for (auto layer = root_layer(); layer; layer = layer->next())
         {
 #if TRINEX_DEBUG_BUILD
             rhi->push_debug_stage(layer->name().c_str());
@@ -209,5 +240,8 @@ namespace Engine
     }
 
     SceneRenderer::~SceneRenderer()
-    {}
+    {
+        delete m_root_layer;
+        m_root_layer = nullptr;
+    }
 }// namespace Engine

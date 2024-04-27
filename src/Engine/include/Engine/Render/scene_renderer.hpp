@@ -24,8 +24,18 @@ namespace Engine
     class ENGINE_EXPORT SceneRenderer
     {
     private:
-        Scene* m_scene;
+        // Layers
 
+        SceneLayer* m_root_layer              = nullptr;
+        SceneLayer* m_clear_layer             = nullptr;
+        SceneLayer* m_base_pass_layer         = nullptr;
+        SceneLayer* m_deferred_lighting_layer = nullptr;
+        SceneLayer* m_lighting_layer          = nullptr;
+        SceneLayer* m_scene_output            = nullptr;
+        SceneLayer* m_post_process_layer      = nullptr;
+
+
+        Scene* m_scene;
         GlobalShaderParameters m_global_shader_params;
         SceneView m_scene_view;
         ViewMode m_view_mode;
@@ -41,6 +51,43 @@ namespace Engine
         SceneRenderer& scene(Scene* scene);
         Scene* scene() const;
         SceneRenderer& render(const SceneView& view, RenderTargetBase* render_target);
+
+        // Layers getters
+
+        FORCE_INLINE SceneLayer* root_layer() const
+        {
+            return m_root_layer;
+        }
+
+        FORCE_INLINE SceneLayer* clear_layer() const
+        {
+            return m_clear_layer;
+        }
+
+        FORCE_INLINE SceneLayer* base_pass_layer() const
+        {
+            return m_base_pass_layer;
+        }
+
+        FORCE_INLINE SceneLayer* deferred_lighting_layer() const
+        {
+            return m_deferred_lighting_layer;
+        }
+
+        FORCE_INLINE SceneLayer* lighting_layer() const
+        {
+            return m_lighting_layer;
+        }
+
+        FORCE_INLINE SceneLayer* scene_output_layer() const
+        {
+            return m_scene_output;
+        }
+
+        FORCE_INLINE SceneLayer* post_process_layer() const
+        {
+            return m_post_process_layer;
+        }
 
         // Render targets manipulation
         SceneRenderer& begin_rendering_target(RenderTargetBase* render_target, class RenderPass* render_pass = nullptr);

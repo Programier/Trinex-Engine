@@ -30,7 +30,7 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::add_component(PointLightComponent* component, Scene* scene)
     {
-        scene->deferred_lighting_layer()->add_light(component);
+        deferred_lighting_layer()->add_light(component);
         return *this;
     }
 

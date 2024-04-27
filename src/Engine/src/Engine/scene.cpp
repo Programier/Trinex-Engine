@@ -50,33 +50,6 @@ namespace Engine
     Scene::Scene()
     {
         m_root_component = Object::new_instance_named<SceneComponent>("Root");
-
-        m_root_layer                      = new SceneLayer("Root Layer");
-        m_root_layer->m_can_create_parent = false;
-
-        m_clear_layer = m_root_layer->create_next(SceneLayer::name_clear_render_targets);
-        m_clear_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::clear_render_targets);
-
-        m_base_pass_layer = m_clear_layer->create_next(SceneLayer::name_base_pass);
-        m_base_pass_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_rendering_base_pass);
-        m_base_pass_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
-
-        m_deferred_lighting_layer =
-                m_base_pass_layer->create_next(SceneLayer::name_deferred_light_pass, SceneLayer::Type::Lighting);
-        m_deferred_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_deferred_lighting_pass);
-        m_deferred_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
-
-        m_lighting_layer = m_deferred_lighting_layer->create_next(SceneLayer::name_light_pass, SceneLayer::Type::Lighting);
-        m_lighting_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_lighting_pass);
-        m_lighting_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
-
-        m_scene_output = m_lighting_layer->create_next(SceneLayer::name_scene_output_pass);
-        m_scene_output->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_scene_output_pass);
-        m_scene_output->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
-
-        m_post_process_layer = m_scene_output->create_next(SceneLayer::name_post_process);
-        m_post_process_layer->begin_render_methods_callbacks.push_back(&SceneRenderer::begin_postprocess_pass);
-        m_post_process_layer->end_render_methods_callbacks.push_back(&SceneRenderer::end_rendering_target);
     }
 
 
@@ -101,11 +74,6 @@ namespace Engine
 
     Scene& Scene::build_views(SceneRenderer* renderer)
     {
-        for (auto layer = root_layer(); layer; layer = layer->next())
-        {
-            layer->clear();
-        }
-
         build_views_internal(this, renderer, m_octree_render_thread.root_node());
         build_views_internal(this, renderer, m_light_octree_render_thread.root_node());
         return *this;
@@ -189,8 +157,5 @@ namespace Engine
     }
 
     Scene::~Scene()
-    {
-        delete m_root_layer;
-        m_root_layer = nullptr;
-    }
+    {}
 }// namespace Engine

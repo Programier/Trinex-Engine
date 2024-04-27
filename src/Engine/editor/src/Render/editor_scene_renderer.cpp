@@ -8,27 +8,12 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <Render/editor_scene_renderer.hpp>
 #include <editor_resources.hpp>
 
 namespace Engine
 {
-    EditorSceneRenderer& EditorSceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt,
-                                                               SceneLayer* layer)
-    {
-        SceneRenderer::render_component(component, rt, layer);
-
-        Actor* owner = component->actor();
-        if (owner == nullptr)
-            return *this;
-
-        if (owner->is_selected() && owner->scene_component() == component)
-        {
-            component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
-        }
-        return *this;
-    }
-
     static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
     {
         Material* material                 = DefaultResources::sprite_material;
@@ -62,6 +47,61 @@ namespace Engine
         }
     }
 
+    class OverlaySceneLayer : public SceneLayer
+    {
+    public:
+        Set<LightComponent*> m_light_components;
+
+        SceneLayer::Type type() const override
+        {
+            return Type::Custom;
+        }
+
+        OverlaySceneLayer& clear() override
+        {
+            SceneLayer::clear();
+            m_light_components.clear();
+            return *this;
+        }
+
+        OverlaySceneLayer& render(SceneRenderer* renderer, RenderTargetBase* rt) override
+        {
+            renderer->begin_rendering_target(SceneColorOutput::current_target());
+
+            lines.render(renderer->scene_view());
+
+            for(LightComponent* component : m_light_components)
+            {
+                render_light_sprite(EditorResources::light_sprite, component, renderer->scene_view());
+            }
+
+            renderer->end_rendering_target();
+            return *this;
+        }
+    };
+
+    EditorSceneRenderer::EditorSceneRenderer()
+    {
+        m_overlay_layer = post_process_layer()->create_next<OverlaySceneLayer>("Overlay Layer");
+    }
+
+    EditorSceneRenderer& EditorSceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt,
+                                                               SceneLayer* layer)
+    {
+        SceneRenderer::render_component(component, rt, layer);
+
+        Actor* owner = component->actor();
+        if (owner == nullptr)
+            return *this;
+
+        if (owner->is_selected() && owner->scene_component() == component)
+        {
+            component->proxy()->bounding_box().write_to_batcher(m_overlay_layer->lines, {255, 0, 0, 255});
+        }
+
+        return *this;
+    }
+
     EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
         SceneRenderer::render_component(component, rt, layer);
@@ -75,23 +115,8 @@ namespace Engine
             component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
         }
 
-        return *this;
-    }
+        m_overlay_layer->m_light_components.insert(component);
 
-
-    EditorSceneRenderer& EditorSceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt,
-                                                               SceneLayer* layer)
-    {
-        SceneRenderer::render_component(component, rt, layer);
-        render_light_sprite(EditorResources::light_sprite, component, scene_view());
-        return *this;
-    }
-
-    EditorSceneRenderer& EditorSceneRenderer::render_component(SpotLightComponent* component, RenderTargetBase* rt,
-                                                               SceneLayer* layer)
-    {
-        SceneRenderer::render_component(component, rt, layer);
-        render_light_sprite(EditorResources::light_sprite, reinterpret_cast<LightComponent*>(component), scene_view());
         return *this;
     }
 }// namespace Engine

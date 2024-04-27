@@ -25,14 +25,6 @@ namespace Engine
         using LightOctree     = Octree<LightComponent*>;
 
     private:
-        SceneLayer* m_root_layer              = nullptr;
-        SceneLayer* m_clear_layer             = nullptr;
-        SceneLayer* m_base_pass_layer         = nullptr;
-        SceneLayer* m_deferred_lighting_layer = nullptr;
-        SceneLayer* m_lighting_layer          = nullptr;
-        SceneLayer* m_scene_output            = nullptr;
-        SceneLayer* m_post_process_layer      = nullptr;
-
         PrimitiveOctree m_octree_render_thread;
         PrimitiveOctree m_octree;
         LightOctree m_light_octree_render_thread;
@@ -54,41 +46,5 @@ namespace Engine
         const PrimitiveOctree& primitive_octree() const;
         const LightOctree& light_octree() const;
         ~Scene();
-
-
-        FORCE_INLINE SceneLayer* root_layer() const
-        {
-            return m_root_layer;
-        }
-
-        FORCE_INLINE SceneLayer* clear_layer() const
-        {
-            return m_clear_layer;
-        }
-
-        FORCE_INLINE SceneLayer* base_pass_layer() const
-        {
-            return m_base_pass_layer;
-        }
-
-        FORCE_INLINE SceneLayer* deferred_lighting_layer() const
-        {
-            return m_deferred_lighting_layer;
-        }
-
-        FORCE_INLINE SceneLayer* lighting_layer() const
-        {
-            return m_lighting_layer;
-        }
-
-        FORCE_INLINE SceneLayer* scene_output_layer() const
-        {
-            return m_scene_output;
-        }
-
-        FORCE_INLINE SceneLayer* post_process_layer() const
-        {
-            return m_post_process_layer;
-        }
     };
 }// namespace Engine
