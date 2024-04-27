@@ -102,6 +102,12 @@ namespace Engine
 
 
         // Add components to scene layers
+        template<typename ComponentType>
+        FORCE_INLINE SceneRenderer& add_base_component(ComponentType* component, Scene* scene)
+        {
+            return add_component(static_cast<ComponentType::Super*>(component), scene);
+        }
+
         virtual SceneRenderer& add_component(PrimitiveComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(StaticMeshComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(SpriteComponent* component, Scene* scene);
@@ -110,6 +116,12 @@ namespace Engine
         virtual SceneRenderer& add_component(SpotLightComponent* component, Scene* scene);
 
         // Components rendering
+        template<typename ComponentType>
+        FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component, RenderTargetBase* rt, SceneLayer* layer)
+        {
+            return render_component(static_cast<ComponentType::Super*>(component), rt, layer);
+        }
+
         virtual SceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(StaticMeshComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer);

@@ -2,7 +2,6 @@
 
 #include <Engine/ActorComponents/light_component.hpp>
 
-
 namespace Engine
 {
     class ENGINE_EXPORT SpotLightComponentProxy : public LightComponentProxy

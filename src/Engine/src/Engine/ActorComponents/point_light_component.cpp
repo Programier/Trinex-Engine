@@ -30,7 +30,12 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::add_component(PointLightComponent* component, Scene* scene)
     {
-        deferred_lighting_layer()->add_light(component);
+        add_base_component(component, scene);
+
+        if (component->leaf_class_is<PointLightComponent>())
+        {
+            deferred_lighting_layer()->add_light(component);
+        }
         return *this;
     }
 
@@ -43,12 +48,12 @@ namespace Engine
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
     SceneRenderer& SceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
-        render_component(static_cast<PointLightComponent::Super*>(component), rt, layer);
+        render_base_component(component, rt, layer);
 
         if (!component->is_enabled)
             return *this;
 
-        Material* material             = DefaultResources::point_light_material;
+        Material* material = DefaultResources::point_light_material;
 
         Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
         Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);

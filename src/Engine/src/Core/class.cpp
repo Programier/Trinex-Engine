@@ -33,7 +33,7 @@ namespace Engine
     {
         m_size = 0;
         info_log("Class", "Created class instance '%s'", this->name().c_str());
-        flags.flags           = _flags;
+        flags                = _flags;
         m_cast_to_this       = nullptr;
         m_static_constructor = constructor;
         m_singletone_object  = nullptr;
@@ -46,7 +46,7 @@ namespace Engine
 
     void Class::on_create_call(Object* object) const
     {
-        if(Class* parent_class = parent())
+        if (Class* parent_class = parent())
         {
             parent_class->on_create_call(object);
         }

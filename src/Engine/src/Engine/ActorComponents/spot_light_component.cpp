@@ -158,7 +158,12 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::add_component(SpotLightComponent* component, Scene* scene)
     {
-        deferred_lighting_layer()->add_light(component);
+        add_base_component(component, scene);
+
+        if (component->leaf_class_is<SpotLightComponent>())
+        {
+            deferred_lighting_layer()->add_light(component);
+        }
         return *this;
     }
 
@@ -178,7 +183,7 @@ namespace Engine
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
     SceneRenderer& SceneRenderer::render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
-        render_component(static_cast<SpotLightComponent::Super*>(component), rt, layer);
+        render_base_component(component, rt, layer);
 
         if (!component->is_enabled)
             return *this;

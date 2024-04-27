@@ -257,7 +257,7 @@ namespace Engine
 
     ImGuiOpenFile::ImGuiOpenFile(Flags<Flag> flags) : m_flags(flags)
     {
-        m_browser = new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags.flags));
+        m_browser = new ImGui::FileBrowser(static_cast<ImGuiFileBrowserFlags>(flags));
         m_browser->SetTitle(name());
         m_browser->Open();
     }

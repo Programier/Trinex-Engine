@@ -31,25 +31,30 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::add_component(StaticMeshComponent* component, Scene* scene)
     {
-        StaticMesh* mesh = component->mesh;
-        if (mesh && mesh->material && !mesh->lods.empty())
+        add_base_component(component, scene);
+
+        if (component->leaf_class_is<StaticMeshComponent>())
         {
-            if (Pipeline* pipeline = mesh->material->material()->pipeline)
+            StaticMesh* mesh = component->mesh;
+            if (mesh && mesh->material && !mesh->lods.empty())
             {
-                RenderPassType type = pipeline->render_pass_type();
-                if (type == RenderPassType::OneAttachentOutput)
+                if (Pipeline* pipeline = mesh->material->material()->pipeline)
                 {
-                    scene_output_layer()->add_component(component);
-                }
-                else if (type == RenderPassType::GBuffer)
-                {
-                    base_pass_layer()->add_component(component);
+                    RenderPassType type = pipeline->render_pass_type();
+                    if (type == RenderPassType::OneAttachentOutput)
+                    {
+                        scene_output_layer()->add_component(component);
+                    }
+                    else if (type == RenderPassType::GBuffer)
+                    {
+                        base_pass_layer()->add_component(component);
+                    }
                 }
             }
-        }
-        else if (engine_instance->is_editor())
-        {
-            scene_output_layer()->add_component(component);
+            else if (engine_instance->is_editor())
+            {
+                scene_output_layer()->add_component(component);
+            }
         }
         return *this;
     }
@@ -63,7 +68,7 @@ namespace Engine
     SceneRenderer& SceneRenderer::render_component(StaticMeshComponent* component, class RenderTargetBase* rt,
                                                    class SceneLayer* layer)
     {
-        render_component(static_cast<StaticMeshComponent::Super*>(component), rt, layer);
+        render_base_component(component, rt, layer);
 
         StaticMesh* mesh = component->mesh;
         if (mesh && mesh->material)

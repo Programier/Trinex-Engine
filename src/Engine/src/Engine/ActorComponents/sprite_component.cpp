@@ -25,6 +25,11 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::add_component(SpriteComponent* component, Scene* scene)
     {
+        add_base_component(component, scene);
+
+        if (!component->leaf_class_is<SpriteComponent>())
+            return *this;
+
         scene_output_layer()->add_component(component);
         return *this;
     }
@@ -72,7 +77,7 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
-        render_component(static_cast<SpriteComponent::Super*>(component), rt, layer);
+        render_base_component(component, rt, layer);
         Material* material                 = DefaultResources::sprite_material;
         PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
         if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))

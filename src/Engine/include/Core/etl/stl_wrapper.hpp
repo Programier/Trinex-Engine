@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <atomic>
 
 
 namespace Engine
@@ -85,6 +86,9 @@ namespace Engine
 
     template<typename Signature>
     using Function = std::function<Signature>;
+
+    template<typename Type>
+    using Atomic = std::atomic<Type>;
 
     template<typename Type>
     void fake_delete(Type*)

@@ -3,6 +3,7 @@
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Graphics/material.hpp>
@@ -11,6 +12,8 @@
 #include <Graphics/scene_render_targets.hpp>
 #include <Render/editor_scene_renderer.hpp>
 #include <editor_resources.hpp>
+
+#include <atomic>
 
 namespace Engine
 {
@@ -70,7 +73,7 @@ namespace Engine
 
             lines.render(renderer->scene_view());
 
-            for(LightComponent* component : m_light_components)
+            for (LightComponent* component : m_light_components)
             {
                 render_light_sprite(EditorResources::light_sprite, component, renderer->scene_view());
             }
@@ -83,6 +86,13 @@ namespace Engine
     EditorSceneRenderer::EditorSceneRenderer()
     {
         m_overlay_layer = post_process_layer()->create_next<OverlaySceneLayer>("Overlay Layer");
+    }
+
+    EditorSceneRenderer& EditorSceneRenderer::add_component(LightComponent* component, Scene* scene)
+    {
+        SceneRenderer::add_component(component, scene);
+        m_overlay_layer->m_light_components.insert(component);
+        return *this;
     }
 
     EditorSceneRenderer& EditorSceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt,
@@ -114,8 +124,6 @@ namespace Engine
         {
             component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
         }
-
-        m_overlay_layer->m_light_components.insert(component);
 
         return *this;
     }

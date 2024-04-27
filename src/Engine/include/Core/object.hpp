@@ -227,6 +227,15 @@ namespace Engine
             return object->instance_cast<Type>();
         }
 
+        template<typename Type>
+        bool leaf_class_is() const
+        {
+            const void* self = this;
+            if (self == nullptr)
+                return false;
+            return class_instance() == Type::static_class_instance();
+        }
+
         template<typename ObjectInstanceType>
         static ObjectInstanceType* find_object_checked(const StringView& object_name)
         {
