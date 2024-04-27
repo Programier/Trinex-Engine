@@ -40,7 +40,7 @@ namespace Engine
         return *this;
     }
 
-#define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(name_##param_name));
+#define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
     SceneRenderer& SceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
         render_component(static_cast<PointLightComponent::Super*>(component), rt, layer);
@@ -49,11 +49,6 @@ namespace Engine
             return *this;
 
         Material* material             = DefaultResources::point_light_material;
-        static Name name_color         = "color";
-        static Name name_radius        = "radius";
-        static Name name_intensivity   = "intensivity";
-        static Name name_location      = "location";
-        static Name name_ambient_color = "ambient_color";
 
         Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
         Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);

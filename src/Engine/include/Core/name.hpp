@@ -7,6 +7,14 @@ namespace Engine
     {
     public:
         static const Name undefined;
+        static const Name color;
+        static const Name ambient_color;
+        static const Name radius;
+        static const Name height;
+        static const Name cutoff;
+        static const Name intensivity;
+        static const Name location;
+        static const Name direction;
         static const Name out_of_range;
         static const Name model;
         static const Name texture;

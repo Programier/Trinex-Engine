@@ -92,18 +92,23 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     }
     else
     {
-        float3 view_direction = normalize(globals.camera_location - position.xyz);
+        float3 view_direction = normalize(globals.camera_location - position.xyz); // Using view direction from fragment location to camera location
         float3 surface_normal = normalize(normal.xyz) * normal.w;
         float3 f0 = clamp(float3(0.04), base_color.rgb, float3(msra.r));
 
 #if POINT_LIGHT | SPOT_LIGHT
-        float3 light_direction = light_data.location.rgb - position.rgb;
+        float3 light_direction = light_data.location.rgb - position.rgb;           // Using light direction from fragment location to light location
         float attenuation = calc_attenuation(length(light_direction));
         light_direction   = normalize(light_direction);
 #else
-        float3 light_direction = light_data.direction;
+        float3 light_direction = -light_data.direction;
         float attenuation = 1.0;
 #endif
+
+#if SPOT_LIGHT
+        float spot_factor = dot(light_direction, normalize(-light_data.direction));
+        attenuation *= clamp((spot_factor - light_data.cutoff) / (0.95 - light_data.cutoff), 0.0, 1.0);
+#endif // SPOT_LIGHT
 
         float3 view_light_direction = normalize(view_direction + light_direction);
         float3 radiance     = light_data.color.rgb * light_data.intensivity * attenuation;

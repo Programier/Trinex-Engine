@@ -13,6 +13,14 @@ namespace Engine
     declare_name(out_of_range);
     declare_name(model);
     declare_name(texture);
+    declare_name(color);
+    declare_name(ambient_color);
+    declare_name(radius);
+    declare_name(height);
+    declare_name(cutoff);
+    declare_name(intensivity);
+    declare_name(location);
+    declare_name(direction);
 
     static Vector<Name::Entry>& name_entries()
     {

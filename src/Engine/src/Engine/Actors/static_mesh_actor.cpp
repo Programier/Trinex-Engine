@@ -9,12 +9,12 @@ namespace Engine
     implement_initialize_class(StaticMeshActor)
     {
         Class* self = This::static_class_instance();
-        self->add_property(new ObjectProperty("StaticMeshComponent0", "StaticMeshComponent0", &This::m_mesh_component));
+        self->add_property(new ObjectProperty("StaticMeshComponent", "StaticMeshComponent", &This::m_mesh_component));
     }
 
     StaticMeshActor::StaticMeshActor()
     {
-        m_mesh_component = create_component<StaticMeshComponent>("StaticMeshComponent0");
+        m_mesh_component = create_component<StaticMeshComponent>("StaticMeshComponent");
     }
 
     StaticMeshComponent* StaticMeshActor::mesh_component() const
