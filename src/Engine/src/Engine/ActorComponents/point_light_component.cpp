@@ -2,6 +2,8 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
+#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -25,6 +27,11 @@ namespace Engine
     }
 
 
+    PointLightComponent& PointLightComponent::submit_point_light_data()
+    {
+        return *this;
+    }
+
     SceneRenderer& SceneRenderer::add_component(PointLightComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
@@ -33,6 +40,13 @@ namespace Engine
         {
             deferred_lighting_layer()->add_light(component);
         }
+        return *this;
+    }
+
+    PointLightComponent& PointLightComponent::start_play()
+    {
+        Super::start_play();
+        submit_point_light_data();
         return *this;
     }
 
@@ -47,7 +61,7 @@ namespace Engine
     {
         render_base_component(component, rt, layer);
 
-        if (!component->is_enabled)
+        if (!component->is_enabled || !component->leaf_class_is<PointLightComponent>())
             return *this;
 
         Material* material = DefaultResources::point_light_material;
@@ -56,6 +70,7 @@ namespace Engine
         Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
         FloatMaterialParameter* intensivity_parameter  = get_param(intensivity, FloatMaterialParameter);
+        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
 
         if (color_parameter)
         {
@@ -77,6 +92,12 @@ namespace Engine
             ambient_color_parameter->param = scene()->environment.ambient_color;
         }
 
+        if (radius_parameter)
+        {
+            radius_parameter->param = component->proxy()->attenuation_radius();
+        }
+
+
         material->apply();
         DefaultResources::screen_position_buffer->rhi_bind(0, 0);
         engine_instance->rhi()->draw(6);
@@ -88,5 +109,15 @@ namespace Engine
     {
         renderer->render_component(this, rt, layer);
         return *this;
+    }
+
+    ActorComponentProxy* PointLightComponent::create_proxy()
+    {
+        return new PointLightComponentProxy();
+    }
+
+    PointLightComponentProxy* PointLightComponent::proxy() const
+    {
+        return typed_proxy<PointLightComponentProxy>();
     }
 }// namespace Engine

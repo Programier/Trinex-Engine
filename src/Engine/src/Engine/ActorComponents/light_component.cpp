@@ -13,7 +13,7 @@
 
 namespace Engine
 {
-    static const AABB_3Df light_bounds({-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5});
+    static const AABB_3Df light_bounds({-1.f , -1.f, -1.f}, {1.f, 1.f, 1.f});
 
     LightComponentProxy& LightComponentProxy::bounding_box(const AABB_3Df& bounds)
     {
@@ -38,7 +38,7 @@ namespace Engine
                 new FloatProperty("Intensivity", "Intensivity of this light", &This::intensivity));
     }
 
-    LightComponent::LightComponent() : light_color({1.0, 1.0, 1.0}), intensivity(22400.f), is_enabled(true), enable_shadows(false)
+    LightComponent::LightComponent() : light_color({1.0, 1.0, 1.0}), intensivity(300.f), is_enabled(true), enable_shadows(false)
     {}
 
     LightComponent& LightComponent::on_transform_changed()

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Engine/ActorComponents/light_component.hpp>
+#include <Engine/ActorComponents/point_light_component.hpp>
 
 namespace Engine
 {
-    class ENGINE_EXPORT SpotLightComponentProxy : public LightComponentProxy
+    class ENGINE_EXPORT SpotLightComponentProxy : public PointLightComponentProxy
     {
         float m_angle;
         float m_cos_cutoff;
@@ -18,14 +18,14 @@ namespace Engine
         friend class SpotLightComponent;
     };
 
-    class ENGINE_EXPORT SpotLightComponent : public LightComponent
+    class ENGINE_EXPORT SpotLightComponent : public PointLightComponent
     {
-        declare_class(SpotLightComponent, LightComponent);
+        declare_class(SpotLightComponent, PointLightComponent);
 
     private:
         float m_angle;
 
-        void on_angle_changed();
+        SpotLightComponent& submit_spot_light_data();
 
     public:
         SpotLightComponent();

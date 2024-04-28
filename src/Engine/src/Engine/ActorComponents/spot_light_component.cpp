@@ -27,7 +27,7 @@ namespace Engine
         Class* self                 = static_class_instance();
         static auto on_data_changed = [](void* object) {
             SpotLightComponent* component = reinterpret_cast<SpotLightComponent*>(object);
-            component->on_angle_changed();
+            component->submit_spot_light_data();
         };
 
         auto angle_property = new FloatProperty("Angle", "Angle of this spot light", &This::m_angle);
@@ -61,27 +61,31 @@ namespace Engine
     SpotLightComponent::SpotLightComponent() : m_angle(60.f)
     {}
 
-    class UpdateSpotLightAngleCommand : public ExecutableObject
+    class UpdateSpotLightDataCommand : public ExecutableObject
     {
     private:
+        float m_attenuation_radius;
         float m_angle;
         SpotLightComponentProxy* m_proxy;
 
     public:
-        UpdateSpotLightAngleCommand(SpotLightComponent* component) : m_angle(component->angle()), m_proxy(component->proxy())
+        UpdateSpotLightDataCommand(SpotLightComponent* component)
+            : m_attenuation_radius(component->attenuation_radius()), m_angle(component->angle()), m_proxy(component->proxy())
         {}
 
         int_t execute() override
         {
             m_proxy->angle(m_angle);
-            return sizeof(UpdateSpotLightAngleCommand);
+            m_proxy->attenuation_radius(m_attenuation_radius);
+            return sizeof(UpdateSpotLightDataCommand);
         }
     };
 
-    void SpotLightComponent::on_angle_changed()
+    SpotLightComponent& SpotLightComponent::submit_spot_light_data()
     {
         m_angle = glm::clamp(m_angle, 0.f, 180.f);
-        render_thread()->insert_new_task<UpdateSpotLightAngleCommand>(this);
+        render_thread()->insert_new_task<UpdateSpotLightDataCommand>(this);
+        return *this;
     }
 
     float SpotLightComponent::angle() const
@@ -92,7 +96,7 @@ namespace Engine
     SpotLightComponent& SpotLightComponent::angle(float value)
     {
         m_angle = value;
-        return *this;
+        return submit_spot_light_data();
     }
 
     Vector3D SpotLightComponent::direction() const
@@ -124,7 +128,7 @@ namespace Engine
     SpotLightComponent& SpotLightComponent::spawned()
     {
         Super::spawned();
-        on_angle_changed();
+        submit_spot_light_data();
         return *this;
     }
 
@@ -139,7 +143,7 @@ namespace Engine
     {
         render_base_component(component, rt, layer);
 
-        if (!component->is_enabled)
+        if (!component->is_enabled || !component->leaf_class_is<SpotLightComponent>())
             return *this;
 
         Material* material = DefaultResources::spot_light_material;
@@ -150,6 +154,7 @@ namespace Engine
         FloatMaterialParameter* cutoff_parameter       = get_param(cutoff, FloatMaterialParameter);
         Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* direction_parameter     = get_param(direction, Vec3MaterialParameter);
+        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
 
         if (color_parameter)
         {
@@ -181,6 +186,11 @@ namespace Engine
         if (cutoff_parameter)
         {
             cutoff_parameter->param = proxy->cos_cutoff();
+        }
+
+        if (radius_parameter)
+        {
+            radius_parameter->param = proxy->attenuation_radius();
         }
 
         material->apply();

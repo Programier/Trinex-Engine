@@ -17,6 +17,7 @@ namespace Engine
     class RenderTargetBase;
     class PrimitiveComponent;
     class LightComponent;
+    class LocalLightComponent;
     class PointLightComponent;
     class SpotLightComponent;
 
@@ -112,6 +113,7 @@ namespace Engine
         virtual SceneRenderer& add_component(StaticMeshComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(SpriteComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(LightComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(LocalLightComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(PointLightComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(SpotLightComponent* component, Scene* scene);
 
@@ -126,6 +128,7 @@ namespace Engine
         virtual SceneRenderer& render_component(StaticMeshComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
 
