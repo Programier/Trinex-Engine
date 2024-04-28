@@ -30,12 +30,11 @@ uniform LightData light_data;
 
 float calc_attenuation(in float dist)
 {
-// #if POINT_LIGHT || SPOT_LIGHT
-//     return pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
-// #else
-//     return 1.0;
-// #endif
-    return 1.0 / (dist * dist);
+#if POINT_LIGHT || SPOT_LIGHT
+    return pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
+#else
+    return 1.0;
+#endif
 }
 
 float distribution_ggx(in float3 normal, in float3 view_light_direction, float roughness)
