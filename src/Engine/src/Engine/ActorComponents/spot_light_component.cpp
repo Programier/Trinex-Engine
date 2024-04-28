@@ -3,6 +3,7 @@
 #include <Core/engine.hpp>
 #include <Core/property.hpp>
 #include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -26,50 +27,29 @@ namespace Engine
         Class* self                 = static_class_instance();
         static auto on_data_changed = [](void* object) {
             SpotLightComponent* component = reinterpret_cast<SpotLightComponent*>(object);
-            component->on_data_changed();
+            component->on_angle_changed();
         };
 
-        auto radius_property = new FloatProperty("Radius", "Radius of this light", &This::m_radius);
-        auto height_property = new FloatProperty("Height", "Height of this light", &This::m_height);
+        auto angle_property = new FloatProperty("Angle", "Angle of this spot light", &This::m_angle);
+        angle_property->on_prop_changed.push(on_data_changed);
 
-        radius_property->on_prop_changed.push(on_data_changed);
-        height_property->on_prop_changed.push(on_data_changed);
-
-        self->add_properties(radius_property);
-        self->add_properties(height_property);
+        self->add_properties(angle_property);
     }
 
-
-    float SpotLightComponentProxy::radius() const
+    float SpotLightComponentProxy::angle() const
     {
-        return m_radius;
+        return m_angle;
     }
 
-    float SpotLightComponentProxy::height() const
+    float SpotLightComponentProxy::cos_cutoff() const
     {
-        return m_height;
+        return m_cos_cutoff;
     }
 
-    float SpotLightComponentProxy::cutoff() const
+    SpotLightComponentProxy& SpotLightComponentProxy::angle(float value)
     {
-        return m_cutoff;
-    }
-
-    SpotLightComponentProxy& SpotLightComponentProxy::radius(float value)
-    {
-        m_radius = value;
-        return *this;
-    }
-
-    SpotLightComponentProxy& SpotLightComponentProxy::height(float value)
-    {
-        m_height = value;
-        return *this;
-    }
-
-    SpotLightComponentProxy& SpotLightComponentProxy::cutoff(float value)
-    {
-        m_cutoff = value;
+        m_angle      = glm::radians(value);
+        m_cos_cutoff = glm::cos(m_angle / 2.f);
         return *this;
     }
 
@@ -78,68 +58,42 @@ namespace Engine
         return calc_spot_light_direction(world_transform());
     }
 
-    SpotLightComponent::SpotLightComponent() : m_radius(10.f), m_height(10.f), m_cutoff(0.f)
+    SpotLightComponent::SpotLightComponent() : m_angle(60.f)
     {}
 
-    class UpdateSpotLightDataCommand : public ExecutableObject
+    class UpdateSpotLightAngleCommand : public ExecutableObject
     {
     private:
-        float m_radius;
-        float m_height;
-        float m_cutoff;
+        float m_angle;
         SpotLightComponentProxy* m_proxy;
 
     public:
-        UpdateSpotLightDataCommand(SpotLightComponent* component)
-            : m_radius(component->radius()), m_height(component->height()), m_cutoff(component->cutoff()),
-              m_proxy(component->proxy())
+        UpdateSpotLightAngleCommand(SpotLightComponent* component) : m_angle(component->angle()), m_proxy(component->proxy())
         {}
 
         int_t execute() override
         {
-            m_proxy->radius(m_radius);
-            m_proxy->height(m_height);
-            m_proxy->cutoff(m_cutoff);
-            return sizeof(UpdateSpotLightDataCommand);
+            m_proxy->angle(m_angle);
+            return sizeof(UpdateSpotLightAngleCommand);
         }
     };
 
-    void SpotLightComponent::on_data_changed()
+    void SpotLightComponent::on_angle_changed()
     {
-        m_cutoff = m_height / glm::sqrt((m_height * m_height) + (m_radius * m_radius));
-        render_thread()->insert_new_task<UpdateSpotLightDataCommand>(this);
+        m_angle = glm::clamp(m_angle, 0.f, 180.f);
+        render_thread()->insert_new_task<UpdateSpotLightAngleCommand>(this);
     }
 
-    float SpotLightComponent::radius() const
+    float SpotLightComponent::angle() const
     {
-        return m_radius;
+        return m_angle;
     }
 
-    float SpotLightComponent::height() const
+    SpotLightComponent& SpotLightComponent::angle(float value)
     {
-        return m_height;
-    }
-
-    float SpotLightComponent::cutoff() const
-    {
-        return m_cutoff;
-    }
-
-
-    SpotLightComponent& SpotLightComponent::radius(float value)
-    {
-        m_radius = value;
-        on_data_changed();
+        m_angle = value;
         return *this;
     }
-
-    SpotLightComponent& SpotLightComponent::height(float value)
-    {
-        m_height = value;
-        on_data_changed();
-        return *this;
-    }
-
 
     Vector3D SpotLightComponent::direction() const
     {
@@ -170,7 +124,7 @@ namespace Engine
     SpotLightComponent& SpotLightComponent::spawned()
     {
         Super::spawned();
-        on_data_changed();
+        on_angle_changed();
         return *this;
     }
 
@@ -193,12 +147,9 @@ namespace Engine
         Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
         Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
         FloatMaterialParameter* intensivity_parameter  = get_param(intensivity, FloatMaterialParameter);
+        FloatMaterialParameter* cutoff_parameter       = get_param(cutoff, FloatMaterialParameter);
         Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* direction_parameter     = get_param(direction, Vec3MaterialParameter);
-        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
-        FloatMaterialParameter* height_parameter       = get_param(height, FloatMaterialParameter);
-        FloatMaterialParameter* cutoff_parameter       = get_param(cutoff, FloatMaterialParameter);
-
 
         if (color_parameter)
         {
@@ -227,19 +178,9 @@ namespace Engine
             direction_parameter->param = proxy->direction();
         }
 
-        if (radius_parameter)
-        {
-            radius_parameter->param = proxy->radius();
-        }
-
-        if (height_parameter)
-        {
-            height_parameter->param = proxy->height();
-        }
-
         if (cutoff_parameter)
         {
-            cutoff_parameter->param = proxy->cutoff();
+            cutoff_parameter->param = proxy->cos_cutoff();
         }
 
         material->apply();

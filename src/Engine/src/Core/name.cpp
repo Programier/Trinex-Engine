@@ -18,6 +18,8 @@ namespace Engine
     declare_name(radius);
     declare_name(height);
     declare_name(cutoff);
+    declare_name(inverse_rotation);
+    declare_name(scale);
     declare_name(intensivity);
     declare_name(location);
     declare_name(direction);

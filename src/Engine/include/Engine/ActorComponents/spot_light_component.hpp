@@ -6,18 +6,13 @@ namespace Engine
 {
     class ENGINE_EXPORT SpotLightComponentProxy : public LightComponentProxy
     {
-        float m_radius;
-        float m_height;
-        float m_cutoff;
+        float m_angle;
+        float m_cos_cutoff;
 
     public:
-        float radius() const;
-        float height() const;
-        float cutoff() const;
-
-        SpotLightComponentProxy& radius(float value);
-        SpotLightComponentProxy& height(float value);
-        SpotLightComponentProxy& cutoff(float value);
+        float angle() const;
+        float cos_cutoff() const;
+        SpotLightComponentProxy& angle(float value);
         Vector3D direction() const;
 
         friend class SpotLightComponent;
@@ -28,21 +23,15 @@ namespace Engine
         declare_class(SpotLightComponent, LightComponent);
 
     private:
-        float m_radius;
-        float m_height;
-        float m_cutoff;
+        float m_angle;
 
-        void on_data_changed();
+        void on_angle_changed();
 
     public:
         SpotLightComponent();
 
-        float radius() const;
-        float height() const;
-        float cutoff() const;
-
-        SpotLightComponent& radius(float value);
-        SpotLightComponent& height(float value);
+        float angle() const;
+        SpotLightComponent& angle(float value);
 
         Vector3D direction() const;
         SpotLightComponentProxy* proxy() const;

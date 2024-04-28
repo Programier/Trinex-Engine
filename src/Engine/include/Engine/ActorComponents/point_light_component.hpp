@@ -10,8 +10,6 @@ namespace Engine
         declare_class(PointLightComponent, LightComponent);
 
     public:
-        float radius;
-
         PointLightComponent();
         Type light_type() const override;
 

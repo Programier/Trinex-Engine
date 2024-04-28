@@ -13,15 +13,11 @@ struct LightData
     float4      color;
     float3      ambient_color;
     float       intensivity;
-
 #if POINT_LIGHT
     float3      location;
-    float       radius;
 #elif SPOT_LIGHT
     float3      location;
     float3      direction;
-    float       radius;
-    float       height;
     float       cutoff;
 #else
     float3      direction;
@@ -33,26 +29,26 @@ uniform LightData light_data;
 
 float calc_attenuation(in float dist)
 {
-#if POINT_LIGHT
-    return pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
-#elif SPOT_LIGHT
-    return pow(saturate(1.0 - pow(dist / light_data.height, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
+#if POINT_LIGHT || SPOT_LIGHT
+    return 1.0 / (dist * dist);
 #else
-    return 1.0;
+    return 1.0f;
 #endif
 }
 
 float distribution_ggx(in float3 normal, in float3 view_light_direction, float roughness)
 {
-    float roughness4    = pow(roughness, 4.0);
-    float normal_dot_h2 = pow(max(dot(normal, view_light_direction), 0.0), 2.0);
+    float roughness2    = roughness * roughness;
+    float roughness4    = roughness2 * roughness2;   
+    float normal_dot_h2 = max(dot(normal, view_light_direction), 0.0);
     float denom         = normal_dot_h2 * (roughness4 - 1.0) + 1.0;
-    return roughness4 / (M_PI * pow(denom, 2.0));
+    return roughness4 / (M_PI * (denom * denom));
 }
 
 float geometry_schlick_ggx(float normal_dot_v, float roughness)
 {
-    float coefficient = pow(roughness + 1.0, 2.0) / 8.0;
+    float r = (roughness + 1.0);
+    float coefficient = (r*r) / 8.0;
     return normal_dot_v / (normal_dot_v * (1.0 - coefficient) + coefficient);
 }
 
@@ -94,7 +90,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     {
         float3 view_direction = normalize(globals.camera_location - position.xyz); // Using view direction from fragment location to camera location
         float3 surface_normal = normalize(normal.xyz) * normal.w;
-        float3 f0 = clamp(float3(0.04), base_color.rgb, float3(msra.r));
+        float3 f0 = lerp(float3(0.04), base_color.rgb, float3(msra.r));
 
 #if POINT_LIGHT | SPOT_LIGHT
         float3 light_direction = light_data.location.rgb - position.rgb;           // Using light direction from fragment location to light location
@@ -105,9 +101,9 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
         float attenuation = 1.0;
 #endif
 
-#if SPOT_LIGHT
+#if SPOT_LIGHT 
         float spot_factor = dot(light_direction, normalize(-light_data.direction));
-        attenuation *= clamp((spot_factor - light_data.cutoff) / (0.95 - light_data.cutoff), 0.0, 1.0);
+        attenuation *= clamp((spot_factor - light_data.cutoff) / (1.0 - light_data.cutoff), 0.0, 1.0);
 #endif // SPOT_LIGHT
 
         float3 view_light_direction = normalize(view_direction + light_direction);
@@ -115,7 +111,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
 
         float ggx      = distribution_ggx(surface_normal, view_light_direction, msra.b);
         float geometry = geometry_smith(surface_normal, view_light_direction, light_direction, msra.b);
-        float3 fresnel   = fresnel_schlick(max(dot(view_light_direction, view_direction), 0.0), f0);
+        float3 fresnel = fresnel_schlick(max(dot(view_light_direction, view_direction), 0.0), f0);
         float3 specular =
                 (ggx * geometry * fresnel) /
                 (4.0 * max(dot(surface_normal, view_direction), 0.0) * max(dot(surface_normal, light_direction), 0.0) + 0.0001);

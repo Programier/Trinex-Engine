@@ -665,7 +665,17 @@ namespace Engine
     {
         auto& map = m_properties[self];
 
-        if (map.empty() && !self->properties().empty())
+        static auto has_props = [](Struct* self) -> bool {
+            while (self)
+            {
+                if (!self->properties().empty())
+                    return true;
+                self = self->parent();
+            }
+            return false;
+        };
+
+        if (map.empty() && has_props(self))
         {
             return build_props_map(self);
         }

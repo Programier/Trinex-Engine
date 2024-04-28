@@ -14,12 +14,9 @@ namespace Engine
 {
     implement_engine_class(PointLightComponent, 0);
     implement_initialize_class(PointLightComponent)
-    {
-        Class* self = static_class_instance();
-        self->add_properties(new FloatProperty("Radius", "Radius of this light", &This::radius));
-    }
+    {}
 
-    PointLightComponent::PointLightComponent() : radius(10.f)
+    PointLightComponent::PointLightComponent()
     {}
 
     LightComponent::Type PointLightComponent::light_type() const
@@ -58,7 +55,6 @@ namespace Engine
         Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
         Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
-        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
         FloatMaterialParameter* intensivity_parameter  = get_param(intensivity, FloatMaterialParameter);
 
         if (color_parameter)
@@ -69,11 +65,6 @@ namespace Engine
         if (location_parameter)
         {
             location_parameter->param = component->proxy()->world_transform().location();
-        }
-
-        if (radius_parameter)
-        {
-            radius_parameter->param = component->radius;
         }
 
         if (intensivity_parameter)

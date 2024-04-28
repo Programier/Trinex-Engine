@@ -32,12 +32,15 @@ namespace Engine
 
         BindingMaterialParameter* texture_parameter =
                 reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
-        Texture* tmp = nullptr;
+        Texture* tmp_texture = nullptr;
+        Sampler* tmp_sampler = nullptr;
 
         if (texture_parameter && texture)
         {
-            tmp = texture_parameter->texture_param();
+            tmp_texture = texture_parameter->texture_param();
+            tmp_sampler = texture_parameter->sampler_param();
             texture_parameter->texture_param(texture);
+            texture_parameter->sampler_param(EditorResources::default_sampler);
         }
 
         material->apply(component);
@@ -46,7 +49,8 @@ namespace Engine
 
         if (texture_parameter && texture)
         {
-            texture_parameter->texture_param(tmp);
+            texture_parameter->texture_param(tmp_texture);
+            texture_parameter->sampler_param(tmp_sampler);
         }
     }
 
@@ -55,14 +59,21 @@ namespace Engine
         auto proxy         = component->proxy();
         Material* material = EditorResources::spot_light_overlay_material;
 
-        auto model_param   = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model));
-        model_param->param = proxy->world_transform().matrix();
+        auto model_param = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model));
+        auto transform   = proxy->world_transform();
+        transform.scale({1, 1, 1});
+        model_param->param = transform.matrix();
 
-        auto height_param   = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::height));
-        height_param->param = proxy->height();
+        auto radius_param = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::radius));
+        auto height_param = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::height));
 
-        auto radius_param   = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::radius));
-        radius_param->param = proxy->radius();
+        static constexpr float sphere_radius = 4.f;
+        float angle                          = proxy->angle() / 2.f;
+        float radius                         = glm::sin(angle) * sphere_radius;
+        float height                         = glm::cos(angle) * sphere_radius;
+
+        radius_param->param = radius;
+        height_param->param = height;
 
         auto color_param   = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
         color_param->param = Vector4D(1.f);

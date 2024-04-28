@@ -15,6 +15,8 @@ namespace Engine
         static const Name intensivity;
         static const Name location;
         static const Name direction;
+        static const Name inverse_rotation;
+        static const Name scale;
         static const Name out_of_range;
         static const Name model;
         static const Name texture;
