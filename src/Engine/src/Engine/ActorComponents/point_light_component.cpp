@@ -66,11 +66,10 @@ namespace Engine
 
         Material* material = DefaultResources::point_light_material;
 
-        Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
-        Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
-        Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
-        FloatMaterialParameter* intensivity_parameter  = get_param(intensivity, FloatMaterialParameter);
-        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
+        Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
+        Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
+        FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
+        FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
 
         if (color_parameter)
         {
@@ -87,16 +86,10 @@ namespace Engine
             intensivity_parameter->param = component->intensivity;
         }
 
-        if (ambient_color_parameter)
-        {
-            ambient_color_parameter->param = scene()->environment.ambient_color;
-        }
-
         if (radius_parameter)
         {
             radius_parameter->param = component->proxy()->attenuation_radius();
         }
-
 
         material->apply();
         DefaultResources::screen_position_buffer->rhi_bind(0, 0);

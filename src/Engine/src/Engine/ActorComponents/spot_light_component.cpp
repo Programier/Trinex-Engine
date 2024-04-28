@@ -148,22 +148,16 @@ namespace Engine
 
         Material* material = DefaultResources::spot_light_material;
 
-        Vec3MaterialParameter* color_parameter         = get_param(color, Vec3MaterialParameter);
-        Vec3MaterialParameter* ambient_color_parameter = get_param(ambient_color, Vec3MaterialParameter);
-        FloatMaterialParameter* intensivity_parameter  = get_param(intensivity, FloatMaterialParameter);
-        FloatMaterialParameter* cutoff_parameter       = get_param(cutoff, FloatMaterialParameter);
-        Vec3MaterialParameter* location_parameter      = get_param(location, Vec3MaterialParameter);
-        Vec3MaterialParameter* direction_parameter     = get_param(direction, Vec3MaterialParameter);
-        FloatMaterialParameter* radius_parameter       = get_param(radius, FloatMaterialParameter);
+        Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
+        FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
+        FloatMaterialParameter* cutoff_parameter      = get_param(cutoff, FloatMaterialParameter);
+        Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
+        Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
+        FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
 
         if (color_parameter)
         {
             color_parameter->param = component->light_color;
-        }
-
-        if (ambient_color_parameter)
-        {
-            ambient_color_parameter->param = scene()->environment.ambient_color;
         }
 
         if (intensivity_parameter)

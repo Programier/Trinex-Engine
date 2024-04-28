@@ -85,7 +85,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     float3 light_out_color;
     if (length(normal.rgb) < 0.1)
     {
-        light_out_color = light_data.ambient_color * base_color.rgb * float3(msra.a); // Only ambient lighting
+        light_out_color = float3(0.0f);
     }
     else
     {
@@ -121,9 +121,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
 
         float normal_dot_l = max(dot(surface_normal, light_direction), 0.0);
         float3 reflectance = (k_d * base_color.xyz / M_PI + specular) * radiance * normal_dot_l;
-
-        float3 ambient = light_data.ambient_color * base_color.rgb * float3(msra.a);
-        light_out_color = ambient + reflectance;
+        light_out_color = reflectance;
     }
 
 
