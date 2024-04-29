@@ -151,6 +151,12 @@ namespace Engine
             on_object_select(nullptr);
             return false;
         }
+
+        if (is_editable_object && ImGui::Button("editor/Save"_localized))
+        {
+            selected_object->save();
+            return false;
+        }
         return true;
     }
 
@@ -228,8 +234,12 @@ namespace Engine
             else if (is_double_press)
             {
                 on_object_double_click(object);
-            }
 
+                if (Package* new_package = object->instance_cast<Package>())
+                {
+                    m_selected_package = new_package;
+                }
+            }
 
             if (ImGui::BeginDragDropSource())
             {
@@ -303,11 +313,31 @@ namespace Engine
         return true;
     }
 
+
+    static Package* render_package_path(Package* package)
+    {
+        if (package == nullptr)
+            return nullptr;
+
+        Package* result = render_package_path(package->package());
+        ImGui::Text("/");
+        bool is_pressed = ImGui::SmallButton(package->name().c_str());
+        return is_pressed ? package : result;
+    }
+
     void ContentBrowser::render_content_window()
     {
         const ImVec2 item_size = ImVec2(100, 100) * editor_scale_factor();
 
-        ImGui::Begin("##ContentBrowserItems");
+        ImGui::Begin("##ContentBrowserItems", nullptr, ImGuiWindowFlags_MenuBar);
+
+        ImGui::BeginMenuBar();
+        if(Package* new_package = render_package_path(m_selected_package))
+        {
+            m_selected_package = new_package;
+        }
+        ImGui::EndMenuBar();
+
         Package* package = m_selected_package;
 
         if (package == nullptr)

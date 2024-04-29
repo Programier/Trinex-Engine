@@ -1,12 +1,28 @@
 #include <Core/class.hpp>
 #include <Core/exception.hpp>
+#include <Core/property.hpp>
 #include <Core/render_thread.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 
 namespace Engine
 {
-    implement_engine_class_default_init(SceneComponent);
+    implement_engine_class(SceneComponent, 0);
+    implement_initialize_class(SceneComponent)
+    {
+        Class* self              = static_class_instance();
+        Struct* transform_struct = Struct::static_find("Engine::Transform", true);
+        auto transform_property  = new StructProperty<This, Transform>("Transform", "Transform of this component", &This::m_local,
+                                                                      transform_struct, Name::none, 0);
+        transform_property->on_prop_changed.push([](void* object) {
+            SceneComponent* component = reinterpret_cast<SceneComponent*>(object);
+            printf("%f\n", component->m_local.location().x);
+            component->m_is_dirty = true;
+            component->on_transform_changed();
+        });
+
+        self->add_property(transform_property);
+    }
 
     const Transform& SceneComponentProxy::world_transform() const
     {

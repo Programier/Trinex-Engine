@@ -75,6 +75,7 @@ namespace Engine
         bool is_dirty() const;
         const Transform& mark_dirty() const;
         friend bool operator&(Archive& ar, Transform& t);
+        static void initialize_transform_properties();
     };
 
     bool operator&(Archive& ar, Transform& t);

@@ -20,12 +20,10 @@ namespace Engine
         return *this;
     }
 
-
     const AABB_3Df& PrimitiveComponentProxy::bounding_box() const
     {
         return m_bounds;
     }
-
 
     PrimitiveComponent::PrimitiveComponent() : m_bounding_box(default_bounds)
     {}
