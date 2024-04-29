@@ -77,23 +77,23 @@ namespace Engine
 
     static void resource_loading()
     {
-#define load_resource(var, name, type)                                                                                           \
-    EditorResources::var = reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #name));          \
+#define load_resource(var, name, type, group_name)                                                                                           \
+        EditorResources::var = reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));          \
     reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
-        load_resource(default_icon, DefaultIcon, Texture2D);
-        load_resource(add_icon, AddIcon, Texture2D);
-        load_resource(move_icon, MoveIcon, Texture2D);
-        load_resource(remove_icon, RemoveIcon, Texture2D);
-        load_resource(rotate_icon, RotateIcon, Texture2D);
-        load_resource(scale_icon, ScaleIcon, Texture2D);
-        load_resource(select_icon, SelectIcon, Texture2D);
-        load_resource(more_icon, MoreIcon, Texture2D);
-        load_resource(light_sprite, PointLightSprite, Texture2D);
-        load_resource(default_sampler, DefaultSampler, Sampler);
-        load_resource(axis_material, AxisMaterial, Material);
-        load_resource(grid_material, GridMaterial, Material);
-        load_resource(spot_light_overlay_material, SpotLightOverlay, Material);
+        load_resource(default_icon, DefaultIcon, Texture2D, Textures);
+        load_resource(add_icon, AddIcon, Texture2D, Textures);
+        load_resource(move_icon, MoveIcon, Texture2D, Textures);
+        load_resource(remove_icon, RemoveIcon, Texture2D, Textures);
+        load_resource(rotate_icon, RotateIcon, Texture2D, Textures);
+        load_resource(scale_icon, ScaleIcon, Texture2D, Textures);
+        load_resource(select_icon, SelectIcon, Texture2D, Textures);
+        load_resource(more_icon, MoreIcon, Texture2D, Textures);
+        load_resource(light_sprite, PointLightSprite, Texture2D, Textures);
+        load_resource(default_sampler, DefaultSampler, Sampler, Samplers);
+        load_resource(axis_material, AxisMaterial, Material, Materials);
+        load_resource(grid_material, GridMaterial, Material, Materials);
+        load_resource(spot_light_overlay_material, SpotLightOverlay, Material, Materials);
         create_spot_light_overlay_positions();
 
         Icons::on_editor_package_loaded();

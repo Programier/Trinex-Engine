@@ -5,6 +5,7 @@
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <icons.hpp>
+#include <editor_resources.hpp>
 
 
 namespace Engine::Icons
@@ -41,19 +42,16 @@ namespace Engine::Icons
 
     void on_editor_package_loaded()
     {
-        auto editor = Package::find_package("Editor");
-        trinex_always_check(editor, "Editor package can't be null!");
-
-        m_default_sampler = editor->find_object_checked<Sampler>("DefaultSampler");
+        m_default_sampler = EditorResources::default_sampler;
         trinex_always_check(m_default_sampler, "Editor default sampler can't be null!");
-        m_icons[IconType::Default] = editor->find_object_checked<Texture2D>("DefaultIcon");
-        m_icons[IconType::Add]     = editor->find_object_checked<Texture2D>("AddIcon");
-        m_icons[IconType::Remove]  = editor->find_object_checked<Texture2D>("RemoveIcon");
-        m_icons[IconType::Select]  = editor->find_object_checked<Texture2D>("SelectIcon");
-        m_icons[IconType::Move]    = editor->find_object_checked<Texture2D>("MoveIcon");
-        m_icons[IconType::Rotate]  = editor->find_object_checked<Texture2D>("RotateIcon");
-        m_icons[IconType::Scale]   = editor->find_object_checked<Texture2D>("ScaleIcon");
-        m_icons[IconType::More]    = editor->find_object_checked<Texture2D>("MoreIcon");
+        m_icons[IconType::Default] = EditorResources::default_icon;
+        m_icons[IconType::Add]     = EditorResources::add_icon;
+        m_icons[IconType::Remove]  = EditorResources::remove_icon;
+        m_icons[IconType::Select]  = EditorResources::select_icon;
+        m_icons[IconType::Move]    = EditorResources::move_icon;
+        m_icons[IconType::Rotate]  = EditorResources::rotate_icon;
+        m_icons[IconType::Scale]   = EditorResources::scale_icon;
+        m_icons[IconType::More]    = EditorResources::more_icon;
 
         for (Texture2D* icon : m_icons)
         {

@@ -19,7 +19,7 @@ namespace Engine
         ENGINE_EXPORT Material* gbuffer_lines_material             = nullptr;
         ENGINE_EXPORT Material* scene_output_lines_material        = nullptr;
         ENGINE_EXPORT Material* point_light_material               = nullptr;
-        ENGINE_EXPORT Material* spot_light_material               = nullptr;
+        ENGINE_EXPORT Material* spot_light_material                = nullptr;
         ENGINE_EXPORT Material* ambient_light_material             = nullptr;
     }// namespace DefaultResources
 
@@ -35,26 +35,25 @@ namespace Engine
         return nullptr;
     }
 
-#define load_default_asset(name, object, class_name)                                                                             \
-    DefaultResources::object =                                                                                                   \
-            reinterpret_cast<class_name*>(load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #name));           \
+#define load_default_asset(name, object, class_name, group_name)                                                                 \
+    DefaultResources::object = reinterpret_cast<class_name*>(                                                                    \
+            load_object_from_memory(name##_data, name##_len, "DefaultPackage::" #group_name "::" #name));                        \
     reinterpret_cast<Object*>(DefaultResources::object)->add_reference()
 
 
     void EngineInstance::load_default_resources()
     {
-        load_default_asset(DefaultSampler, default_sampler, Sampler);
-        load_default_asset(DefaultTexture, default_texture, Texture2D);
-        load_default_asset(ScreenPositionBuffer, screen_position_buffer, PositionVertexBuffer);
-
-        load_default_asset(SpriteMaterial, sprite_material, Material);
-        load_default_asset(ScreenMaterial, screen_material, Material);
-        load_default_asset(DefaultMaterial, default_material, Material);
-        load_default_asset(GBufferLinesMat, gbuffer_lines_material, Material);
-        load_default_asset(SceneOutputLinesMat, scene_output_lines_material, Material);
-        load_default_asset(PointLightMaterial, point_light_material, Material);
-        load_default_asset(SpotLightMaterial, spot_light_material, Material);
-        load_default_asset(AmbientLightMaterial, ambient_light_material, Material);
+        load_default_asset(DefaultSampler, default_sampler, Sampler, Samplers);
+        load_default_asset(DefaultTexture, default_texture, Texture2D, Textures);
+        load_default_asset(ScreenPositionBuffer, screen_position_buffer, PositionVertexBuffer, Buffers);
+        load_default_asset(SpriteMaterial, sprite_material, Material, Materials);
+        load_default_asset(ScreenMaterial, screen_material, Material, Materials);
+        load_default_asset(DefaultMaterial, default_material, Material, Materials);
+        load_default_asset(GBufferLinesMat, gbuffer_lines_material, Material, Materials);
+        load_default_asset(SceneOutputLinesMat, scene_output_lines_material, Material, Materials);
+        load_default_asset(PointLightMaterial, point_light_material, Material, Materials);
+        load_default_asset(SpotLightMaterial, spot_light_material, Material, Materials);
+        load_default_asset(AmbientLightMaterial, ambient_light_material, Material, Materials);
 
         DefaultResourcesInitializeController().execute();
         m_flags(DefaultResourcesInitTriggered, true);

@@ -5,12 +5,12 @@
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/camera_types.hpp>
 #include <Graphics/material.hpp>
+#include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
-
-#include <Graphics/mesh.hpp>
+#include <editor_resources.hpp>
 
 namespace Engine
 {
@@ -21,8 +21,6 @@ namespace Engine
     static PositionVertexBuffer* y_axis_vertex_buffer = nullptr;
     static PositionVertexBuffer* grid_vertex_buffer   = nullptr;
 
-    static Material* axis_material = nullptr;
-    static Material* grid_material = nullptr;
 
     static void initialize_resources()
     {
@@ -46,10 +44,6 @@ namespace Engine
         x_axis_vertex_buffer->init_resource();
         y_axis_vertex_buffer->init_resource();
         grid_vertex_buffer->init_resource();
-
-
-        axis_material = Object::find_object_checked<Material>("Editor::AxisMaterial");
-        grid_material = Object::find_object_checked<Material>("Editor::GridMaterial");
     }
 
     static DefaultResourcesInitializeController on_init(initialize_resources);
@@ -60,13 +54,8 @@ namespace Engine
         static Name name_scale  = "scale";
         static Name name_offset = "offset";
 
-        if (axis_material == nullptr)
-            axis_material = Object::find_object_checked<Material>("Editor::AxisMaterial");
-
-        if (grid_material == nullptr)
-        {
-            grid_material = Object::find_object_checked<Material>("Editor::GridMaterial");
-        }
+        Material* axis_material = EditorResources::axis_material;
+        Material* grid_material = EditorResources::grid_material;
 
         auto rhi               = engine_instance->rhi();
         const CameraView& view = renderer->scene_view().camera_view();
