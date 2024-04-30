@@ -9,10 +9,23 @@ namespace Engine
     {
     protected:
         AABB_3Df m_bounds;
+        Color3 m_light_color;
+        float m_intensivity;
+        bool m_is_enabled;
+        bool m_is_shadows_enabled;
 
     public:
-        LightComponentProxy& bounding_box(const AABB_3Df& bounds);
         const AABB_3Df& bounding_box() const;
+        const Color3& light_color() const;
+        float intensivity() const;
+        bool is_enabled() const;
+        bool is_shadows_enabled() const;
+
+        LightComponentProxy& bounding_box(const AABB_3Df& bounds);
+        LightComponentProxy& light_color(const Color3& color);
+        LightComponentProxy& intensivity(float value);
+        LightComponentProxy& is_enabled(bool enabled);
+        LightComponentProxy& is_shadows_enabled(bool enabled);
         friend class LightComponent;
     };
 
@@ -20,9 +33,6 @@ namespace Engine
     {
         declare_class(LightComponent, SceneComponent);
 
-    private:
-        AABB_3Df m_bounds;
-        class SceneLayer* m_layer = nullptr;
 
     public:
         enum Type
@@ -34,16 +44,31 @@ namespace Engine
             Num         = 3
         };
 
-    protected:
-        void submit_bounds_to_render_thread();
+    private:
+        class SceneLayer* m_layer = nullptr;
+        AABB_3Df m_bounds;
+        Color3 m_light_color;
+        float m_intensivity;
+        bool m_is_enabled;
+        bool m_is_shadows_enabled;
+
+
+        LightComponent& submit_light_info_render_thread();
 
     public:
-        Color3 light_color;
-        float intensivity;
-        bool is_enabled;
-        bool enable_shadows;
-
         LightComponent();
+        const AABB_3Df& bounding_box() const;
+        const Color3& light_color() const;
+        float intensivity() const;
+        bool is_enabled() const;
+        bool is_shadows_enabled() const;
+
+        LightComponent& light_color(const Color3& color);
+        LightComponent& intensivity(float value);
+        LightComponent& is_enabled(bool enabled);
+        LightComponent& is_shadows_enabled(bool enabled);
+
+
         virtual Type light_type() const = 0;
         virtual LightComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer);
         virtual LightComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*);
@@ -53,7 +78,6 @@ namespace Engine
         LightComponent& on_transform_changed() override;
         LightComponent& start_play() override;
         LightComponent& stop_play() override;
-        const AABB_3Df& bounding_box() const;
         LightComponent& update_bounding_box();
         SceneLayer* scene_layer() const;
         ~LightComponent();

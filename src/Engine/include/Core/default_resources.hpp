@@ -21,6 +21,7 @@ namespace Engine
         ENGINE_EXPORT extern Material* scene_output_lines_material;
         ENGINE_EXPORT extern Material* point_light_material;
         ENGINE_EXPORT extern Material* spot_light_material;
+        ENGINE_EXPORT extern Material* directional_light_material;
         ENGINE_EXPORT extern Material* ambient_light_material;
     }// namespace DefaultResources
 

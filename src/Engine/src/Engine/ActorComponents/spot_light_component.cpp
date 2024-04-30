@@ -111,8 +111,8 @@ namespace Engine
 
     SpotLightComponent& SpotLightComponent::submit_spot_light_data()
     {
-        m_outer_cone_angle = glm::clamp(m_outer_cone_angle, 0.f, 180.f);
-        m_inner_cone_angle = glm::clamp(m_inner_cone_angle, 0.f, 180.f);
+        m_outer_cone_angle = glm::clamp(m_outer_cone_angle, 0.f, 89.f);
+        m_inner_cone_angle = glm::clamp(m_inner_cone_angle, 0.f, m_outer_cone_angle);
         render_thread()->insert_new_task<UpdateSpotLightDataCommand>(this);
         return *this;
     }
@@ -157,11 +157,6 @@ namespace Engine
     SceneRenderer& SceneRenderer::add_component(SpotLightComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
-
-        if (component->leaf_class_is<SpotLightComponent>())
-        {
-            deferred_lighting_layer()->add_light(component);
-        }
         return *this;
     }
 
@@ -183,7 +178,9 @@ namespace Engine
     {
         render_base_component(component, rt, layer);
 
-        if (!component->is_enabled || !component->leaf_class_is<SpotLightComponent>())
+        SpotLightComponentProxy* proxy = component->proxy();
+
+        if (!proxy->is_enabled() || !component->leaf_class_is<SpotLightComponent>())
             return *this;
 
         Material* material = DefaultResources::spot_light_material;
@@ -198,15 +195,13 @@ namespace Engine
 
         if (color_parameter)
         {
-            color_parameter->param = component->light_color;
+            color_parameter->param = proxy->light_color();
         }
 
         if (intensivity_parameter)
         {
-            intensivity_parameter->param = component->intensivity;
+            intensivity_parameter->param = proxy->intensivity();
         }
-
-        auto proxy = component->proxy();
 
         if (location_parameter)
         {

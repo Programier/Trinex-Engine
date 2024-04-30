@@ -70,11 +70,6 @@ namespace Engine
     SceneRenderer& SceneRenderer::add_component(PointLightComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
-
-        if (component->leaf_class_is<PointLightComponent>())
-        {
-            deferred_lighting_layer()->add_light(component);
-        }
         return *this;
     }
 
@@ -96,7 +91,9 @@ namespace Engine
     {
         render_base_component(component, rt, layer);
 
-        if (!component->is_enabled || !component->leaf_class_is<PointLightComponent>())
+        PointLightComponentProxy* proxy = component->proxy();
+
+        if (!proxy->is_enabled() || !component->leaf_class_is<PointLightComponent>())
             return *this;
 
         Material* material = DefaultResources::point_light_material;
@@ -109,27 +106,27 @@ namespace Engine
 
         if (color_parameter)
         {
-            color_parameter->param = component->light_color;
+            color_parameter->param = proxy->light_color();
         }
 
         if (location_parameter)
         {
-            location_parameter->param = component->proxy()->world_transform().location();
+            location_parameter->param = proxy->world_transform().location();
         }
 
         if (intensivity_parameter)
         {
-            intensivity_parameter->param = component->intensivity;
+            intensivity_parameter->param = proxy->intensivity();
         }
 
         if (radius_parameter)
         {
-            radius_parameter->param = component->proxy()->attenuation_radius();
+            radius_parameter->param = proxy->attenuation_radius();
         }
 
         if (fall_off_parameter)
         {
-            fall_off_parameter->param = component->proxy()->fall_off_exponent();
+            fall_off_parameter->param = proxy->fall_off_exponent();
         }
 
         material->apply();

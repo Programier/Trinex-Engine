@@ -20,6 +20,7 @@ namespace Engine
     class LocalLightComponent;
     class PointLightComponent;
     class SpotLightComponent;
+    class DirectionalLightComponent;
 
 
     class ENGINE_EXPORT SceneRenderer
@@ -116,6 +117,7 @@ namespace Engine
         virtual SceneRenderer& add_component(LocalLightComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(PointLightComponent* component, Scene* scene);
         virtual SceneRenderer& add_component(SpotLightComponent* component, Scene* scene);
+        virtual SceneRenderer& add_component(DirectionalLightComponent* component, Scene* scene);
 
         // Components rendering
         template<typename ComponentType>
@@ -131,6 +133,7 @@ namespace Engine
         virtual SceneRenderer& render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
         virtual SceneRenderer& render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(DirectionalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
 
         FORCE_INLINE const GlobalShaderParameters& shader_params() const
         {

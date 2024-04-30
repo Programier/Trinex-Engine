@@ -16,7 +16,6 @@ namespace Engine
                                                                       transform_struct, Name::none, 0);
         transform_property->on_prop_changed.push([](void* object) {
             SceneComponent* component = reinterpret_cast<SceneComponent*>(object);
-            printf("%f\n", component->m_local.location().x);
             component->m_is_dirty = true;
             component->on_transform_changed();
         });
