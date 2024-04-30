@@ -70,11 +70,11 @@ namespace Engine
 
         struct ALIGNED(4) ColorBlendingInfo {
             bool enable                   = false;
-            BlendFunc src_color_func      = BlendFunc::SrcColor;
-            BlendFunc dst_color_func      = BlendFunc::OneMinusSrcColor;
+            BlendFunc src_color_func      = BlendFunc::SrcAlpha;
+            BlendFunc dst_color_func      = BlendFunc::OneMinusSrcAlpha;
             BlendOp color_op              = BlendOp::Add;
-            BlendFunc src_alpha_func      = BlendFunc::SrcAlpha;
-            BlendFunc dst_alpha_func      = BlendFunc::OneMinusSrcAlpha;
+            BlendFunc src_alpha_func      = BlendFunc::One;
+            BlendFunc dst_alpha_func      = BlendFunc::Zero;
             BlendOp alpha_op              = BlendOp::Add;
             ColorComponentMask color_mask = ColorComponentMask::RGBA;
 

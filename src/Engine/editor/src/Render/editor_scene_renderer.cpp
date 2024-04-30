@@ -1,10 +1,12 @@
 #include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
+#include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/ActorComponents/spot_light_component.hpp>
 #include <Engine/Actors/actor.hpp>
+#include <Engine/Render/batched_primitives.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -12,7 +14,6 @@
 #include <Graphics/scene_render_targets.hpp>
 #include <Render/editor_scene_renderer.hpp>
 #include <editor_resources.hpp>
-
 
 namespace Engine
 {
@@ -90,9 +91,13 @@ namespace Engine
         render_spot_light_overlay_colored(component, proxy->inner_cone_angle(), {0.7, 0.7, 0.7, 1.0});
     }
 
+
     class OverlaySceneLayer : public SceneLayer
     {
     public:
+        BatchedLines lines;
+        BatchedTriangles triangles;
+
         Set<LightComponent*> m_light_components;
 
         SceneLayer::Type type() const override
@@ -104,6 +109,8 @@ namespace Engine
         {
             SceneLayer::clear();
             m_light_components.clear();
+            triangles.clear();
+            lines.clear();
             return *this;
         }
 
@@ -111,6 +118,7 @@ namespace Engine
         {
             renderer->begin_rendering_target(SceneColorOutput::current_target());
 
+            triangles.render(renderer->scene_view());
             lines.render(renderer->scene_view());
 
             for (LightComponent* component : m_light_components)
@@ -131,7 +139,54 @@ namespace Engine
             renderer->end_rendering_target();
             return *this;
         }
+
+        BatchedLines* batched_lines() override
+        {
+            return &lines;
+        }
+
+
+        BatchedTriangles* batched_triangles() override
+        {
+            return &triangles;
+        }
     };
+
+    static void create_directional_arrow(DirectionalLightComponent* component, OverlaySceneLayer* layer)
+    {
+        DirectionalLightComponentProxy* proxy = component->proxy();
+        auto& transform                       = proxy->world_transform();
+        auto location                         = transform.location();
+        auto direction                        = proxy->direction();
+
+        constexpr float offset        = 0.5f;
+        const Vector3D forward_vector = transform.forward_vector();
+        const Vector3D right_vector   = transform.right_vector();
+
+        Vector3D end_point        = location + direction * 3.f;
+        Vector3D arrow_base_point = end_point - direction * offset;
+
+
+        static const ByteColor white = {255, 150, 150, 255};
+        static const ByteColor red   = {255, 0, 0, 255};
+
+        Vector3D arrow_points[4] = {
+                arrow_base_point + forward_vector * offset / 2.f,
+                arrow_base_point + right_vector * offset / 2.f,
+                arrow_base_point + forward_vector * -offset / 2.f,
+                arrow_base_point + right_vector * -offset / 2.f,
+        };
+
+        layer->lines.add_line(location, end_point);
+        auto& triangles = layer->triangles;
+
+        triangles.add_triangle(arrow_points[0], end_point, arrow_points[1], white, red, white);
+        triangles.add_triangle(arrow_points[1], end_point, arrow_points[2], white, red, white);
+        triangles.add_triangle(arrow_points[2], end_point, arrow_points[3], white, red, white);
+        triangles.add_triangle(arrow_points[3], end_point, arrow_points[0], white, red, white);
+        triangles.add_triangle(arrow_points[0], arrow_points[1], arrow_points[2], white, white, white);
+        triangles.add_triangle(arrow_points[2], arrow_points[3], arrow_points[0], white, white, white);
+    }
 
     EditorSceneRenderer::EditorSceneRenderer()
     {
@@ -142,6 +197,15 @@ namespace Engine
     {
         SceneRenderer::add_component(component, scene);
         m_overlay_layer->m_light_components.insert(component);
+
+        if (component->actor()->is_selected())
+        {
+            if (DirectionalLightComponent* directional_light = component->instance_cast<DirectionalLightComponent>())
+            {
+                create_directional_arrow(directional_light, m_overlay_layer);
+            }
+        }
+
         return *this;
     }
 
@@ -165,16 +229,6 @@ namespace Engine
     EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
         SceneRenderer::render_component(component, rt, layer);
-
-        Actor* owner = component->actor();
-        if (owner == nullptr)
-            return *this;
-
-        if (owner->is_selected() && owner->scene_component() == component && !component->is_instance_of<SpotLightComponent>())
-        {
-            component->proxy()->bounding_box().write_to_batcher(layer->lines, {255, 0, 0, 255});
-        }
-
         return *this;
     }
 }// namespace Engine

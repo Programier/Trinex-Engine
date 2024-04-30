@@ -1,4 +1,4 @@
-#include <Engine/Render/batched_lines.hpp>
+#include <Engine/Render/batched_primitives.hpp>
 #include <Engine/aabb.hpp>
 #include <Engine/ray.hpp>
 

@@ -17,8 +17,8 @@ namespace Engine
         ENGINE_EXPORT extern PositionVertexBuffer* screen_position_buffer;
         ENGINE_EXPORT extern Material* screen_material;
         ENGINE_EXPORT extern Material* default_material;
-        ENGINE_EXPORT extern Material* gbuffer_lines_material;
-        ENGINE_EXPORT extern Material* scene_output_lines_material;
+        ENGINE_EXPORT extern Material* batched_lines_material;
+        ENGINE_EXPORT extern Material* batched_triangles_material;
         ENGINE_EXPORT extern Material* point_light_material;
         ENGINE_EXPORT extern Material* spot_light_material;
         ENGINE_EXPORT extern Material* directional_light_material;

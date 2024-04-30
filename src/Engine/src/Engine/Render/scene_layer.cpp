@@ -43,7 +43,6 @@ namespace Engine
             component->m_layer = nullptr;
         }
         m_components.clear();
-        lines.clear();
         return *this;
     }
 
@@ -83,8 +82,6 @@ namespace Engine
         {
             component->render(renderer, render_target, this);
         }
-
-        lines.render(renderer->scene_view());
         return *this;
     }
 
@@ -209,6 +206,16 @@ namespace Engine
     const Set<PrimitiveComponent*>& SceneLayer::primitive_components() const
     {
         return m_components;
+    }
+
+    BatchedLines* SceneLayer::batched_lines()
+    {
+        return nullptr;
+    }
+
+    BatchedTriangles* SceneLayer::batched_triangles()
+    {
+        return nullptr;
     }
 
 

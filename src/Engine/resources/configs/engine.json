@@ -1,7 +1,7 @@
 {
     "Engine": {
         "enable_jit": false,
-        "api": "OpenGL",
+        "api": "Vulkan",
         "lz4_compression_level": 0,
         "gc_max_object_per_tick": 200,
 

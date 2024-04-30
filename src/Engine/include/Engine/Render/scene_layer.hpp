@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/implement.hpp>
 #include <Core/name.hpp>
-#include <Engine/Render/batched_lines.hpp>
 
 namespace Engine
 {
@@ -9,6 +8,8 @@ namespace Engine
     class RenderTargetBase;
     class PrimitiveComponent;
     class LightComponent;
+    class BatchedLines;
+    class BatchedTriangles;
 
     class ENGINE_EXPORT SceneLayer
     {
@@ -30,7 +31,6 @@ namespace Engine
         using FunctionCallback = void (*)(SceneRenderer*, RenderTargetBase*, SceneLayer*);
         using MethodCallback   = void (SceneRenderer::*)(RenderTargetBase*, SceneLayer*);
 
-        BatchedLines lines;
         List<FunctionCallback> begin_render_function_callbacks;
         List<MethodCallback> begin_render_methods_callbacks;
         List<FunctionCallback> end_render_function_callbacks;
@@ -94,6 +94,9 @@ namespace Engine
         virtual SceneLayer& remove_component(PrimitiveComponent* component);
         virtual SceneLayer& add_light(LightComponent* component);
         virtual SceneLayer& remove_light(LightComponent* component);
+
+        virtual BatchedLines* batched_lines();
+        virtual BatchedTriangles* batched_triangles();
 
         friend class SceneRenderer;
     };
