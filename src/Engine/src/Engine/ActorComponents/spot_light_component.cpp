@@ -30,27 +30,54 @@ namespace Engine
             component->submit_spot_light_data();
         };
 
-        auto angle_property = new FloatProperty("Angle", "Angle of this spot light", &This::m_angle);
-        angle_property->on_prop_changed.push(on_data_changed);
+        auto outer_angle_property =
+                new FloatProperty("Outer Cone Angle", "Outer Cone Angle of this spot light", &This::m_outer_cone_angle);
+        auto inner_angle_property =
+                new FloatProperty("Inner Cone Angle", "Inner Cone Angle of this spot light", &This::m_inner_cone_angle);
+        outer_angle_property->on_prop_changed.push(on_data_changed);
+        inner_angle_property->on_prop_changed.push(on_data_changed);
 
-        self->add_properties(angle_property);
+        self->add_properties(outer_angle_property, inner_angle_property);
     }
 
-    float SpotLightComponentProxy::angle() const
+    SpotLightComponentProxy& SpotLightComponentProxy::update_spot_angles()
     {
-        return m_angle;
-    }
-
-    float SpotLightComponentProxy::cos_cutoff() const
-    {
-        return m_cos_cutoff;
-    }
-
-    SpotLightComponentProxy& SpotLightComponentProxy::angle(float value)
-    {
-        m_angle      = glm::radians(value);
-        m_cos_cutoff = glm::cos(m_angle / 2.f);
+        m_cos_outer_cone_angle    = glm::cos(m_outer_cone_angle);
+        float cos_inner_cone      = glm::cos(m_inner_cone_angle);
+        m_inv_cos_cone_difference = 1.0f / (cos_inner_cone - m_cos_outer_cone_angle);
         return *this;
+    }
+
+    float SpotLightComponentProxy::inner_cone_angle() const
+    {
+        return m_inner_cone_angle;
+    }
+
+    float SpotLightComponentProxy::outer_cone_angle() const
+    {
+        return m_outer_cone_angle;
+    }
+
+    float SpotLightComponentProxy::cos_outer_cone_angle() const
+    {
+        return m_cos_outer_cone_angle;
+    }
+
+    float SpotLightComponentProxy::inv_cos_cone_difference() const
+    {
+        return m_inv_cos_cone_difference;
+    }
+
+    SpotLightComponentProxy& SpotLightComponentProxy::inner_cone_angle(float value)
+    {
+        m_inner_cone_angle = value;
+        return update_spot_angles();
+    }
+
+    SpotLightComponentProxy& SpotLightComponentProxy::outer_cone_angle(float value)
+    {
+        m_outer_cone_angle = value;
+        return update_spot_angles();
     }
 
     Vector3D SpotLightComponentProxy::direction() const
@@ -58,44 +85,57 @@ namespace Engine
         return calc_spot_light_direction(world_transform());
     }
 
-    SpotLightComponent::SpotLightComponent() : m_angle(60.f)
+    SpotLightComponent::SpotLightComponent() : m_inner_cone_angle(10.f), m_outer_cone_angle(43.f)
     {}
 
     class UpdateSpotLightDataCommand : public ExecutableObject
     {
     private:
-        float m_attenuation_radius;
-        float m_angle;
+        float m_outer_cone_angle;
+        float m_inner_cone_angle;
         SpotLightComponentProxy* m_proxy;
 
     public:
         UpdateSpotLightDataCommand(SpotLightComponent* component)
-            : m_attenuation_radius(component->attenuation_radius()), m_angle(component->angle()), m_proxy(component->proxy())
+            : m_outer_cone_angle(glm::radians(component->outer_cone_angle())),
+              m_inner_cone_angle(glm::radians(component->inner_cone_angle())), m_proxy(component->proxy())
         {}
 
         int_t execute() override
         {
-            m_proxy->angle(m_angle);
-            m_proxy->attenuation_radius(m_attenuation_radius);
+            m_proxy->outer_cone_angle(m_outer_cone_angle);
+            m_proxy->inner_cone_angle(m_inner_cone_angle);
             return sizeof(UpdateSpotLightDataCommand);
         }
     };
 
     SpotLightComponent& SpotLightComponent::submit_spot_light_data()
     {
-        m_angle = glm::clamp(m_angle, 0.f, 180.f);
+        m_outer_cone_angle = glm::clamp(m_outer_cone_angle, 0.f, 180.f);
+        m_inner_cone_angle = glm::clamp(m_inner_cone_angle, 0.f, 180.f);
         render_thread()->insert_new_task<UpdateSpotLightDataCommand>(this);
         return *this;
     }
 
-    float SpotLightComponent::angle() const
+    float SpotLightComponent::inner_cone_angle() const
     {
-        return m_angle;
+        return m_inner_cone_angle;
     }
 
-    SpotLightComponent& SpotLightComponent::angle(float value)
+    float SpotLightComponent::outer_cone_angle() const
     {
-        m_angle = value;
+        return m_outer_cone_angle;
+    }
+
+    SpotLightComponent& SpotLightComponent::inner_cone_angle(float value)
+    {
+        m_inner_cone_angle = value;
+        return submit_spot_light_data();
+    }
+
+    SpotLightComponent& SpotLightComponent::outer_cone_angle(float value)
+    {
+        m_outer_cone_angle = value;
         return submit_spot_light_data();
     }
 
@@ -125,9 +165,9 @@ namespace Engine
         return *this;
     }
 
-    SpotLightComponent& SpotLightComponent::spawned()
+    SpotLightComponent& SpotLightComponent::start_play()
     {
-        Super::spawned();
+        Super::start_play();
         submit_spot_light_data();
         return *this;
     }
@@ -150,7 +190,7 @@ namespace Engine
 
         Vec3MaterialParameter* color_parameter        = get_param(color, Vec3MaterialParameter);
         FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
-        FloatMaterialParameter* cutoff_parameter      = get_param(cutoff, FloatMaterialParameter);
+        Vec2MaterialParameter* spot_angles_parameter  = get_param(spot_angles, Vec2MaterialParameter);
         Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
         FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
@@ -178,9 +218,9 @@ namespace Engine
             direction_parameter->param = proxy->direction();
         }
 
-        if (cutoff_parameter)
+        if (spot_angles_parameter)
         {
-            cutoff_parameter->param = proxy->cos_cutoff();
+            spot_angles_parameter->param = Vector2D(proxy->cos_outer_cone_angle(), proxy->inv_cos_cone_difference());
         }
 
         if (radius_parameter)
@@ -188,7 +228,7 @@ namespace Engine
             radius_parameter->param = proxy->attenuation_radius();
         }
 
-        if(fall_off_parameter)
+        if (fall_off_parameter)
         {
             fall_off_parameter->param = proxy->fall_off_exponent();
         }

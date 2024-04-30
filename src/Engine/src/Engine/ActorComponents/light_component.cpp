@@ -38,7 +38,7 @@ namespace Engine
                 new FloatProperty("Intensivity", "Intensivity of this light", &This::intensivity));
     }
 
-    LightComponent::LightComponent() : light_color({1.0, 1.0, 1.0}), intensivity(300.f), is_enabled(true), enable_shadows(false)
+    LightComponent::LightComponent() : light_color({1.0, 1.0, 1.0}), intensivity(30.f), is_enabled(true), enable_shadows(false)
     {}
 
     LightComponent& LightComponent::on_transform_changed()

@@ -6,13 +6,22 @@ namespace Engine
 {
     class ENGINE_EXPORT SpotLightComponentProxy : public PointLightComponentProxy
     {
-        float m_angle;
-        float m_cos_cutoff;
+        float m_inner_cone_angle;
+        float m_outer_cone_angle;
+        float m_cos_outer_cone_angle;
+        float m_inv_cos_cone_difference;
+
+    private:
+        SpotLightComponentProxy& update_spot_angles();
 
     public:
-        float angle() const;
-        float cos_cutoff() const;
-        SpotLightComponentProxy& angle(float value);
+        float inner_cone_angle() const;
+        float outer_cone_angle() const;
+        float cos_outer_cone_angle() const;
+        float inv_cos_cone_difference() const;
+
+        SpotLightComponentProxy& inner_cone_angle(float value);
+        SpotLightComponentProxy& outer_cone_angle(float value);
         Vector3D direction() const;
 
         friend class SpotLightComponent;
@@ -23,21 +32,24 @@ namespace Engine
         declare_class(SpotLightComponent, PointLightComponent);
 
     private:
-        float m_angle;
+        float m_inner_cone_angle;
+        float m_outer_cone_angle;
 
         SpotLightComponent& submit_spot_light_data();
 
     public:
         SpotLightComponent();
 
-        float angle() const;
-        SpotLightComponent& angle(float value);
+        float inner_cone_angle() const;
+        float outer_cone_angle() const;
+        SpotLightComponent& inner_cone_angle(float value);
+        SpotLightComponent& outer_cone_angle(float value);
 
         Vector3D direction() const;
         SpotLightComponentProxy* proxy() const;
 
         Type light_type() const override;
-        SpotLightComponent& spawned() override;
+        SpotLightComponent& start_play() override;
         SpotLightComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
         SpotLightComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
         ActorComponentProxy* create_proxy() override;

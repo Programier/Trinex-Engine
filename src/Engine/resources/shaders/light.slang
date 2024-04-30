@@ -11,7 +11,6 @@ uniform Sampler2D msra_texture;
 struct LightData
 {
     float4      color;
-    float3      ambient_color;
     float       intensivity;
 #if POINT_LIGHT || SPOT_LIGHT
     float3      location;
@@ -19,7 +18,7 @@ struct LightData
     float       fall_off_exponent;
 #if SPOT_LIGHT
     float3      direction;
-    float       cutoff;
+    float2      spot_angles; // {Cos outer cone, inv cos cone difference. }
 #endif
 #else
     float3      direction;
@@ -29,10 +28,25 @@ struct LightData
 
 uniform LightData light_data;
 
-float calc_attenuation(in float dist)
+float square(float x)
+{
+    return x * x;
+}
+
+float calc_attenuation(float3 world_light_vector)
 {
 #if POINT_LIGHT || SPOT_LIGHT
-    return pow(pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0), light_data.fall_off_exponent);
+    world_light_vector /= light_data.radius;
+    float len_sqr = dot(world_light_vector, world_light_vector);
+    float attenuation = pow(1.0f - saturate(len_sqr), light_data.fall_off_exponent);
+
+#if SPOT_LIGHT
+    float cos_outer_cone = light_data.spot_angles.x;
+    float inv_cos_cone_difference = light_data.spot_angles.y;
+    attenuation *= square(saturate((dot(normalize(world_light_vector), -light_data.direction) - cos_outer_cone) * inv_cos_cone_difference));
+#endif
+
+    return attenuation;
 #else
     return 1.0;
 #endif
@@ -96,18 +110,12 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
 
 #if POINT_LIGHT || SPOT_LIGHT
         float3 light_direction = light_data.location.rgb - position.rgb;           // Using light direction from fragment location to light location
-        float attenuation = calc_attenuation(length(light_direction));
+        float attenuation = calc_attenuation(light_direction);
         light_direction   = normalize(light_direction);
 #else
         float3 light_direction = -light_data.direction;
         float attenuation = 1.0;
 #endif
-
-#if SPOT_LIGHT 
-        float spot_factor = dot(light_direction, normalize(-light_data.direction));
-        attenuation *= clamp((spot_factor - light_data.cutoff) / (1.0 - light_data.cutoff), 0.0, 1.0);
-#endif // SPOT_LIGHT
-
         float3 view_light_direction = normalize(view_direction + light_direction);
         float3 radiance     = light_data.color.rgb * light_data.intensivity * attenuation;
 

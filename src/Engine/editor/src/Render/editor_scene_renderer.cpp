@@ -54,7 +54,7 @@ namespace Engine
         }
     }
 
-    static void render_spot_light_overlay(SpotLightComponent* component)
+    static void render_spot_light_overlay_colored(SpotLightComponent* component, float angle, Vector4D color)
     {
         auto proxy         = component->proxy();
         Material* material = EditorResources::spot_light_overlay_material;
@@ -68,7 +68,6 @@ namespace Engine
         auto height_param = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::height));
 
         static constexpr float sphere_radius = 4.f;
-        float angle                          = proxy->angle() / 2.f;
         float radius                         = glm::sin(angle) * sphere_radius;
         float height                         = glm::cos(angle) * sphere_radius;
 
@@ -76,12 +75,19 @@ namespace Engine
         height_param->param = height;
 
         auto color_param   = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
-        color_param->param = Vector4D(1.f);
+        color_param->param = color;
 
         material->apply();
 
         EditorResources::spot_light_overlay_positions->rhi_bind(0);
         engine_instance->rhi()->draw(EditorResources::spot_light_overlay_positions->buffer.size());
+    }
+
+    static void render_spot_light_overlay(SpotLightComponent* component)
+    {
+        auto proxy = component->proxy();
+        render_spot_light_overlay_colored(component, proxy->outer_cone_angle(), {1.0, 1.0, 1.0, 1.0});
+        render_spot_light_overlay_colored(component, proxy->inner_cone_angle(), {0.7, 0.7, 0.7, 1.0});
     }
 
     class OverlaySceneLayer : public SceneLayer

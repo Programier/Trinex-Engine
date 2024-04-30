@@ -30,7 +30,7 @@ namespace Engine
         self->add_property(fall_off_exponent_prop);
     }
 
-    PointLightComponent::PointLightComponent() : m_fall_off_exponent(1.f)
+    PointLightComponent::PointLightComponent() : m_fall_off_exponent(8.f)
     {}
 
     float PointLightComponent::fall_off_exponent() const
