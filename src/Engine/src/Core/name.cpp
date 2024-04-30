@@ -16,6 +16,7 @@ namespace Engine
     declare_name(color);
     declare_name(ambient_color);
     declare_name(radius);
+    declare_name(fall_off_exponent);
     declare_name(height);
     declare_name(cutoff);
     declare_name(inverse_rotation);

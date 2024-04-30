@@ -7,7 +7,12 @@ namespace Engine
 {
     class ENGINE_EXPORT PointLightComponentProxy : public LocalLightComponentProxy
     {
+    private:
+        float m_fall_off_exponent;
+
     public:
+        float fall_off_exponent() const;
+        PointLightComponentProxy& fall_off_exponent(float value);
         friend class PointLightComponent;
     };
 
@@ -15,11 +20,15 @@ namespace Engine
     {
         declare_class(PointLightComponent, LocalLightComponent);
 
+        float m_fall_off_exponent;
 
         PointLightComponent& submit_point_light_data();
 
     public:
         PointLightComponent();
+        float fall_off_exponent() const;
+        PointLightComponent& fall_off_exponent(float value);
+
         Type light_type() const override;
 
         PointLightComponent& start_play() override;

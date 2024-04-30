@@ -10,6 +10,7 @@ namespace Engine
         static const Name color;
         static const Name ambient_color;
         static const Name radius;
+        static const Name fall_off_exponent;
         static const Name height;
         static const Name cutoff;
         static const Name intensivity;

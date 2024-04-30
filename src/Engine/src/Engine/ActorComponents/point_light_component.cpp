@@ -16,19 +16,54 @@ namespace Engine
 {
     implement_engine_class(PointLightComponent, 0);
     implement_initialize_class(PointLightComponent)
+    {
+        Class* self = static_class_instance();
+
+        auto update_data = [](void* object) {
+            PointLightComponent* component = reinterpret_cast<PointLightComponent*>(object);
+            component->submit_point_light_data();
+        };
+
+        auto fall_off_exponent_prop =
+                new FloatProperty("Fall Off Exponent", "Fall Off Exponent of this light", &This::m_fall_off_exponent);
+        fall_off_exponent_prop->on_prop_changed.push(update_data);
+        self->add_property(fall_off_exponent_prop);
+    }
+
+    PointLightComponent::PointLightComponent() : m_fall_off_exponent(1.f)
     {}
 
-    PointLightComponent::PointLightComponent()
-    {}
+    float PointLightComponent::fall_off_exponent() const
+    {
+        return m_fall_off_exponent;
+    }
+
+    PointLightComponent& PointLightComponent::fall_off_exponent(float value)
+    {
+        m_fall_off_exponent = value;
+        submit_point_light_data();
+        return *this;
+    }
 
     LightComponent::Type PointLightComponent::light_type() const
     {
         return LightComponent::Type::Point;
     }
 
+    float PointLightComponentProxy::fall_off_exponent() const
+    {
+        return m_fall_off_exponent;
+    }
+
+    PointLightComponentProxy& PointLightComponentProxy::fall_off_exponent(float value)
+    {
+        m_fall_off_exponent = value;
+        return *this;
+    }
 
     PointLightComponent& PointLightComponent::submit_point_light_data()
     {
+        render_thread()->insert_new_task<UpdateVariableCommand<float>>(m_fall_off_exponent, proxy()->m_fall_off_exponent);
         return *this;
     }
 
@@ -70,6 +105,7 @@ namespace Engine
         Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
         FloatMaterialParameter* intensivity_parameter = get_param(intensivity, FloatMaterialParameter);
         FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
+        FloatMaterialParameter* fall_off_parameter    = get_param(fall_off_exponent, FloatMaterialParameter);
 
         if (color_parameter)
         {
@@ -89,6 +125,11 @@ namespace Engine
         if (radius_parameter)
         {
             radius_parameter->param = component->proxy()->attenuation_radius();
+        }
+
+        if (fall_off_parameter)
+        {
+            fall_off_parameter->param = component->proxy()->fall_off_exponent();
         }
 
         material->apply();

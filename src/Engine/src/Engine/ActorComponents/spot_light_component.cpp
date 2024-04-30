@@ -154,6 +154,7 @@ namespace Engine
         Vec3MaterialParameter* location_parameter     = get_param(location, Vec3MaterialParameter);
         Vec3MaterialParameter* direction_parameter    = get_param(direction, Vec3MaterialParameter);
         FloatMaterialParameter* radius_parameter      = get_param(radius, FloatMaterialParameter);
+        FloatMaterialParameter* fall_off_parameter    = get_param(fall_off_exponent, FloatMaterialParameter);
 
         if (color_parameter)
         {
@@ -185,6 +186,11 @@ namespace Engine
         if (radius_parameter)
         {
             radius_parameter->param = proxy->attenuation_radius();
+        }
+
+        if(fall_off_parameter)
+        {
+            fall_off_parameter->param = proxy->fall_off_exponent();
         }
 
         material->apply();

@@ -16,6 +16,7 @@ struct LightData
 #if POINT_LIGHT || SPOT_LIGHT
     float3      location;
     float       radius;
+    float       fall_off_exponent;
 #if SPOT_LIGHT
     float3      direction;
     float       cutoff;
@@ -31,7 +32,7 @@ uniform LightData light_data;
 float calc_attenuation(in float dist)
 {
 #if POINT_LIGHT || SPOT_LIGHT
-    return pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0);
+    return pow(pow(saturate(1.0 - pow(dist / light_data.radius, 4.0)), 2.0) / (pow(dist, 2.0) + 1.0), light_data.fall_off_exponent);
 #else
     return 1.0;
 #endif
@@ -93,7 +94,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
         float3 surface_normal = normalize(normal.xyz) * normal.w;
         float3 f0 = lerp(float3(0.04), base_color.rgb, float3(msra.r));
 
-#if POINT_LIGHT | SPOT_LIGHT
+#if POINT_LIGHT || SPOT_LIGHT
         float3 light_direction = light_data.location.rgb - position.rgb;           // Using light direction from fragment location to light location
         float attenuation = calc_attenuation(length(light_direction));
         light_direction   = normalize(light_direction);
@@ -113,7 +114,7 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
         float ggx      = distribution_ggx(surface_normal, view_light_direction, msra.b);
         float geometry = geometry_smith(surface_normal, view_light_direction, light_direction, msra.b);
         float3 fresnel = fresnel_schlick(max(dot(view_light_direction, view_direction), 0.0), f0);
-        float3 specular = (ggx * geometry * fresnel) / (4.0 * max(dot(surface_normal, view_direction), 0.0) * max(dot(surface_normal, light_direction), 0.0) + 0.0001);
+        float3 specular = msra.g * (ggx * geometry * fresnel) / (4.0 * max(dot(surface_normal, view_direction), 0.0) * max(dot(surface_normal, light_direction), 0.0) + 0.0001);
 
         float3 k_s = fresnel;
         float3 k_d = float3(1.0, 1.0, 1.0) - k_s;
@@ -124,6 +125,10 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
         light_out_color = reflectance;
     }
 
+     // HDR tonemapping
+    light_out_color = light_out_color / (light_out_color + float3(1.0));
 
+    // gamma correct
+    light_out_color = pow(light_out_color, float3(1.0 / 2.2)); 
     return float4(light_out_color.rgb, 1);
 }
