@@ -43,15 +43,6 @@ namespace Engine::ShaderCompiler
     }
 
 
-    ShaderReflection& ShaderReflection::clear()
-    {
-        global_parameters_info.remove_parameters();
-        local_parameters_info.remove_parameters();
-        uniform_member_infos.clear();
-        attributes.clear();
-        return *this;
-    }
-
     static bool find_semantic(String name, VertexBufferSemantic& out_semantic, const Function<void(const char*)>& print_error)
     {
         Strings::to_lower(name);
@@ -449,6 +440,7 @@ namespace Engine::ShaderCompiler
         int_t geometry_index             = -1;
         int_t fragment_entry_index       = -1;
 
+
         {
             ComPtr<SlangCompileRequest> request;
             session->createCompileRequest(request.writeRef());
@@ -650,6 +642,7 @@ namespace Engine::ShaderCompiler
                 submit_compiled_source(out_source.geometry_code, result_code->getBufferPointer(), result_code->getBufferSize());
             }
         }
+
 
         return out_source;
     }

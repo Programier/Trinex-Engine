@@ -25,7 +25,15 @@ namespace Engine
 
             MaterialScalarParametersInfo global_parameters_info;
             MaterialScalarParametersInfo local_parameters_info;
-            ShaderReflection& clear();
+
+            FORCE_INLINE ShaderReflection& clear()
+            {
+                global_parameters_info.remove_parameters();
+                local_parameters_info.remove_parameters();
+                uniform_member_infos.clear();
+                attributes.clear();
+                return *this;
+            }
         };
 
         struct ENGINE_EXPORT ShaderSource {

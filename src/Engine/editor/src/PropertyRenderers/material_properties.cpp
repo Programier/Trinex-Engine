@@ -191,10 +191,6 @@ namespace Engine
 
     static PreInitializeController initializer(on_init);
 
-    struct MaterialPropertiesUserData : public UserData::Entry {
-        uint definition_index = 0;
-    };
-
     static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
     {
         Material* material = reinterpret_cast<Material*>(object);
