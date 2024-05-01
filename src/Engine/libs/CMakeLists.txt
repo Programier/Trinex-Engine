@@ -40,3 +40,6 @@ add_subdirectory(zlib EXCLUDE_FROM_ALL)
 add_subdirectory(libzip EXCLUDE_FROM_ALL)
 
 set(TRINEX_EXTERNAL_SOURCES ${TRINEX_EXTERNAL_SOURCES} PARENT_SCOPE)
+
+add_subdirectory(fmt)
+set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")

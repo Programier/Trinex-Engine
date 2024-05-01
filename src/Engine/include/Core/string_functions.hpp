@@ -2,12 +2,12 @@
 
 #include <Core/build.hpp>
 #include <Core/engine_types.hpp>
-#include <format>
+#include <fmt/format.h>
 #include <sstream>
 
 namespace Engine::Strings
 {
-    using std::format;
+    using fmt::format;
 
     ENGINE_EXPORT String c_style_format(const char* text, ...);
     ENGINE_EXPORT std::wstring to_wstring(const String& str);

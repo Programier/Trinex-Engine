@@ -51,7 +51,7 @@ set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     zlib_library
                                     lz4_static)
 
-set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser zip)
+set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser zip fmt)
 
 if(ANDROID)
     set(PLATFORM_DEPENDED_LIBRARIES android log)
