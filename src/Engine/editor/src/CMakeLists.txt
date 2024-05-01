@@ -16,6 +16,7 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/ScaleIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/SelectIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/PointLightSprite.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/PointLightOverlay.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/SpotLightOverlay.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/MoreIcon.tasset)
     add_custom_command(

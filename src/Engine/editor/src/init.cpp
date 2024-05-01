@@ -24,22 +24,38 @@ namespace Engine
 
     namespace EditorResources
     {
-        Texture2D* default_icon                            = nullptr;
-        Texture2D* add_icon                                = nullptr;
-        Texture2D* move_icon                               = nullptr;
-        Texture2D* remove_icon                             = nullptr;
-        Texture2D* rotate_icon                             = nullptr;
-        Texture2D* scale_icon                              = nullptr;
-        Texture2D* select_icon                             = nullptr;
-        Texture2D* more_icon                               = nullptr;
-        Texture2D* light_sprite                            = nullptr;
-        Sampler* default_sampler                           = nullptr;
-        Material* axis_material                            = nullptr;
-        Material* grid_material                            = nullptr;
-        Material* spot_light_overlay_material              = nullptr;
-        PositionVertexBuffer* spot_light_overlay_positions = nullptr;
+        Texture2D* default_icon                             = nullptr;
+        Texture2D* add_icon                                 = nullptr;
+        Texture2D* move_icon                                = nullptr;
+        Texture2D* remove_icon                              = nullptr;
+        Texture2D* rotate_icon                              = nullptr;
+        Texture2D* scale_icon                               = nullptr;
+        Texture2D* select_icon                              = nullptr;
+        Texture2D* more_icon                                = nullptr;
+        Texture2D* light_sprite                             = nullptr;
+        Sampler* default_sampler                            = nullptr;
+        Material* axis_material                             = nullptr;
+        Material* grid_material                             = nullptr;
+        Material* point_light_overlay_material              = nullptr;
+        Material* spot_light_overlay_material               = nullptr;
+        PositionVertexBuffer* spot_light_overlay_positions  = nullptr;
+        PositionVertexBuffer* point_light_overlay_positions = nullptr;
     }// namespace EditorResources
 
+
+    static void create_circle(const Function<void(float, float)>& callback)
+    {
+        for (int i = 1; i <= 360; ++i)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                float angle = glm::two_pi<float>() * static_cast<float>(i + j) / 360.f;
+                float x     = glm::cos(angle);
+                float z     = glm::sin(angle);
+                callback(x, z);
+            }
+        }
+    }
 
     static void create_spot_light_overlay_positions()
     {
@@ -49,17 +65,7 @@ namespace Engine
         static constexpr float circle_y = -1.f;
 
         // Create circle
-        for (int i = 1; i <= 360; ++i)
-        {
-            for (int j = -1; j <= 1; j++)
-            {
-                float angle = glm::two_pi<float>() * static_cast<float>(i + j) / 360.f;
-                float x     = glm::cos(angle);
-                float z     = glm::sin(angle);
-
-                buffer->buffer.push_back(Vector3D(x, circle_y, z));
-            }
-        }
+        create_circle([buffer](float x, float z) { buffer->buffer.push_back(Vector3D(x, circle_y, z)); });
 
         buffer->buffer.push_back({0, 0, 0});
         buffer->buffer.push_back({1, circle_y, 0});
@@ -75,10 +81,22 @@ namespace Engine
         buffer->init_resource();
     }
 
+    static void create_point_light_overlay_positions()
+    {
+        EditorResources::point_light_overlay_positions = Object::new_instance<EngineResource<PositionVertexBuffer>>();
+        auto buffer                                    = EditorResources::point_light_overlay_positions;
+
+        create_circle([buffer](float y, float z) { buffer->buffer.push_back(Vector3D(0, y, z)); });
+        create_circle([buffer](float x, float z) { buffer->buffer.push_back(Vector3D(x, 0, z)); });
+        create_circle([buffer](float x, float y) { buffer->buffer.push_back(Vector3D(x, y, 0)); });
+        buffer->init_resource();
+    }
+
     static void resource_loading()
     {
-#define load_resource(var, name, type, group_name)                                                                                           \
-        EditorResources::var = reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));          \
+#define load_resource(var, name, type, group_name)                                                                               \
+    EditorResources::var =                                                                                                       \
+            reinterpret_cast<type*>(load_object_from_memory(name##_data, name##_len, "Editor::" #group_name "::" #name));        \
     reinterpret_cast<Object*>(EditorResources::var)->add_reference()
 
         load_resource(default_icon, DefaultIcon, Texture2D, Textures);
@@ -93,7 +111,10 @@ namespace Engine
         load_resource(default_sampler, DefaultSampler, Sampler, Samplers);
         load_resource(axis_material, AxisMaterial, Material, Materials);
         load_resource(grid_material, GridMaterial, Material, Materials);
+        load_resource(point_light_overlay_material, PointLightOverlay, Material, Materials);
         load_resource(spot_light_overlay_material, SpotLightOverlay, Material, Materials);
+
+        create_point_light_overlay_positions();
         create_spot_light_overlay_positions();
 
         Icons::on_editor_package_loaded();

@@ -91,6 +91,35 @@ namespace Engine
         render_spot_light_overlay_colored(component, proxy->inner_cone_angle(), {0.7, 0.7, 0.7, 1.0});
     }
 
+    static void render_point_light_overlay(PointLightComponent* component)
+    {
+        auto proxy         = component->proxy();
+        Material* material = EditorResources::point_light_overlay_material;
+
+        auto color_parameter  = reinterpret_cast<Vec4MaterialParameter*>(material->find_parameter(Name::color));
+        auto offset_parameter = reinterpret_cast<Vec3MaterialParameter*>(material->find_parameter(Name::offset));
+        auto radius_parameter = reinterpret_cast<FloatMaterialParameter*>(material->find_parameter(Name::radius));
+
+        if (color_parameter)
+        {
+            color_parameter->param = Colors::White;
+        }
+
+        if (offset_parameter)
+        {
+            offset_parameter->param = proxy->world_transform().location();
+        }
+
+        if (radius_parameter)
+        {
+            radius_parameter->param = proxy->attenuation_radius();
+        }
+
+        material->apply();
+        auto rhi = engine_instance->rhi();
+        EditorResources::point_light_overlay_positions->rhi_bind(0, 0);
+        rhi->draw(EditorResources::point_light_overlay_positions->buffer.size());
+    }
 
     class OverlaySceneLayer : public SceneLayer
     {
@@ -127,9 +156,13 @@ namespace Engine
 
                 if (component->actor()->is_selected())
                 {
-                    if (SpotLightComponent* spot_light = component->instance_cast<SpotLightComponent>())
+                    if (component->leaf_class_is<SpotLightComponent>())
                     {
-                        render_spot_light_overlay(spot_light);
+                        render_spot_light_overlay(reinterpret_cast<SpotLightComponent*>(component));
+                    }
+                    else if (component->leaf_class_is<PointLightComponent>())
+                    {
+                        render_point_light_overlay(reinterpret_cast<PointLightComponent*>(component));
                     }
                 }
             }

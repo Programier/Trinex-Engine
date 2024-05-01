@@ -22,7 +22,9 @@ namespace Engine
         extern Sampler* default_sampler;
         extern Material* axis_material;
         extern Material* grid_material;
+        extern Material* point_light_overlay_material;
         extern Material* spot_light_overlay_material;
         extern PositionVertexBuffer* spot_light_overlay_positions;
+        extern PositionVertexBuffer* point_light_overlay_positions;
     }// namespace EditorResources
 }// namespace Engine

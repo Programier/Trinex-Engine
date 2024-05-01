@@ -14,6 +14,7 @@ namespace Engine
     declare_name(model);
     declare_name(texture);
     declare_name(color);
+    declare_name(offset);
     declare_name(ambient_color);
     declare_name(radius);
     declare_name(fall_off_exponent);

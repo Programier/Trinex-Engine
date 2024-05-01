@@ -8,6 +8,7 @@ namespace Engine
     public:
         static const Name undefined;
         static const Name color;
+        static const Name offset;
         static const Name ambient_color;
         static const Name radius;
         static const Name fall_off_exponent;
