@@ -7,15 +7,9 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
-#include <SPIRV/GlslangToSpv.h>
 #include <ShaderCompiler/compiler.hpp>
 #include <cstring>
-#include <glslang/Public/ResourceLimits.h>
-#include <glslang/Public/ShaderLang.h>
-#include <slang-com-helper.h>
 #include <slang-com-ptr.h>
-#include <slang-file-system.h>
-#include <slang-list.h>
 #include <slang.h>
 
 #include <iostream>
@@ -26,7 +20,6 @@ namespace Engine::ShaderCompiler
     if (SLANG_FAILED(code))                                                                                                      \
         return                                                                                                                   \
         {}
-
 
     static slang::IGlobalSession* global_session()
     {
@@ -392,7 +385,6 @@ namespace Engine::ShaderCompiler
         std::destroy_at(&out_buffer);
         const byte* data = reinterpret_cast<const byte*>(_data);
         new (&out_buffer) Buffer(data, data + size);
-        out_buffer.push_back(0);
     }
 
     static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors,
@@ -427,7 +419,7 @@ namespace Engine::ShaderCompiler
 
         ComPtr<slang::ISession> session;
         RETURN_ON_FAIL(global_session()->createSession(session_desc, session.writeRef()));
-        Slang::List<slang::IComponentType*> component_types = {};
+        Vector<slang::IComponentType*> component_types = {};
 
         // Compile current module
         ComPtr<slang::IModule> slang_module;
@@ -476,7 +468,7 @@ namespace Engine::ShaderCompiler
             }
 
             spCompileRequest_getModule(request, unit, slang_module.writeRef());
-            component_types.add(slang_module);
+            component_types.push_back(slang_module);
         }
 
         ComPtr<slang::IEntryPoint> vertex_entry_point;
@@ -489,7 +481,7 @@ namespace Engine::ShaderCompiler
             }
             else
             {
-                component_types.add(vertex_entry_point);
+                component_types.push_back(vertex_entry_point);
                 vertex_entry_index = current_entry_index++;
             }
         }
@@ -506,7 +498,7 @@ namespace Engine::ShaderCompiler
             }
             else
             {
-                component_types.add(fragment_entry_point);
+                component_types.push_back(fragment_entry_point);
                 fragment_entry_index = current_entry_index++;
             }
         }
@@ -520,7 +512,7 @@ namespace Engine::ShaderCompiler
 
             if (tessellation_control_entry_point)
             {
-                component_types.add(tessellation_control_entry_point);
+                component_types.push_back(tessellation_control_entry_point);
                 tessellation_control_index = current_entry_index++;
             }
         }
@@ -531,7 +523,7 @@ namespace Engine::ShaderCompiler
 
             if (tessellation_entry_point)
             {
-                component_types.add(tessellation_entry_point);
+                component_types.push_back(tessellation_entry_point);
                 tessellation_index = current_entry_index++;
             }
         }
@@ -542,7 +534,7 @@ namespace Engine::ShaderCompiler
 
             if (geometry_entry_point)
             {
-                component_types.add(geometry_entry_point);
+                component_types.push_back(geometry_entry_point);
                 geometry_index = current_entry_index++;
             }
         }
@@ -551,7 +543,7 @@ namespace Engine::ShaderCompiler
         ComPtr<slang::IComponentType> program;
         {
             ComPtr<slang::IBlob> diagnostics_blob;
-            SlangResult result = session->createCompositeComponentType(component_types.getBuffer(), component_types.getCount(),
+            SlangResult result = session->createCompositeComponentType(component_types.data(), component_types.size(),
                                                                        program.writeRef(), diagnostics_blob.writeRef());
             diagnose_if_needed(diagnostics_blob);
             RETURN_ON_FAIL(result);
@@ -660,27 +652,27 @@ namespace Engine::ShaderCompiler
     static void setup_glsles_compile_request(SlangCompileRequest* request)
     {
         setup_glsl_base_compile_request(request);
-        auto profile = global_session()->findProfile("glsl_310_es");
+        auto profile = global_session()->findProfile("glsl_310");
         request->setTargetProfile(0, profile);
     }
 
     static void setup_glsl_compile_request(SlangCompileRequest* request)
     {
         setup_glsl_base_compile_request(request);
-        auto profile = global_session()->findProfile("glsl_440");
+        auto profile = global_session()->findProfile("glsl330");
         request->setTargetProfile(0, profile);
     }
 
     static void setup_spriv_compile_request(SlangCompileRequest* request)
     {
-        request->setCodeGenTarget(SLANG_GLSL);
+        request->setCodeGenTarget(SLANG_SPIRV);
         request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
         request->setTargetMatrixLayoutMode(0, SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
         request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
         request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
         request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
         request->setTargetFlags(0, SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY);
-        request->setTargetProfile(0, global_session()->findProfile("glsl_440"));
+        request->setTargetProfile(0, global_session()->findProfile("spirv_1_0"));
     }
 
 
@@ -702,12 +694,30 @@ namespace Engine::ShaderCompiler
         return {};
     }
 
+    static void validate_text_buffer(Buffer& buffer)
+    {
+        if(!buffer.empty() && buffer.back() != 0)
+            buffer.push_back(0);
+    }
+
+    static ShaderSource&& make_text_code_valid(ShaderSource&& source)
+    {
+        validate_text_buffer(source.vertex_code);
+        validate_text_buffer(source.tessellation_control_code);
+        validate_text_buffer(source.tessellation_code);
+        validate_text_buffer(source.geometry_code);
+        validate_text_buffer(source.fragment_code);
+        validate_text_buffer(source.compute_code);
+
+        return std::move(source);
+    }
+
     static ShaderSource create_opengles_shader(const String& source, const Vector<ShaderDefinition>& definitions,
                                                MessageList* errors)
     {
         auto new_definitions = definitions;
         new_definitions.push_back({"TRINEX_OPENGLES_API", "1"});
-        return compile_shader(source, new_definitions, errors, setup_glsles_compile_request);
+        return make_text_code_valid(compile_shader(source, new_definitions, errors, setup_glsles_compile_request));
     }
 
     static ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions,
@@ -715,7 +725,7 @@ namespace Engine::ShaderCompiler
     {
         auto new_definitions = definitions;
         new_definitions.push_back({"TRINEX_OPENGL_API", "1"});
-        return compile_shader(source, new_definitions, errors, setup_glsl_compile_request);
+        return make_text_code_valid(compile_shader(source, new_definitions, errors, setup_glsl_compile_request));
     }
 
     static ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions,
@@ -779,109 +789,16 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    static bool compile_shader_to_spirv(const char* compiler_type, const Buffer& text, Buffer& out, EShLanguage lang,
-                                        MessageList& errors)
-    {
-        if (text.empty())
-        {
-            out = {};
-            return false;
-        }
-
-        glslang::InitializeProcess();
-
-        glslang::TShader shader(lang);
-        const char* shader_strings[1];
-        shader_strings[0] = reinterpret_cast<const char*>(text.data());
-
-        shader.setStrings(shader_strings, sizeof(shader_strings) / sizeof(const char*));
-
-        // Set up shader options
-        int client_input_semantics_version               = 100;// default for Vulkan
-        glslang::EShTargetClientVersion client_version   = glslang::EShTargetVulkan_1_0;
-        glslang::EShTargetLanguageVersion target_version = glslang::EShTargetSpv_1_0;
-
-        // Set up shader environment
-        shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientVulkan, client_input_semantics_version);
-        shader.setEnvClient(glslang::EShClientVulkan, client_version);
-        shader.setEnvTarget(glslang::EShTargetSpv, target_version);
-
-
-        // Preprocess the shader
-        if (!shader.parse(GetDefaultResources(), client_input_semantics_version, false, EShMsgDefault))
-        {
-            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoLog()));
-            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoDebugLog()));
-            glslang::FinalizeProcess();
-            return false;
-        }
-
-        // Create and link shader program
-        glslang::TProgram program;
-        program.addShader(&shader);
-        if (!program.link(EShMsgDefault))
-        {
-            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoLog()));
-            errors.push_back(Strings::format("{}: {}", compiler_type, shader.getInfoDebugLog()));
-            glslang::FinalizeProcess();
-            return false;
-        }
-
-
-        // Translate to SPIR-V
-        glslang::SpvOptions spv_options;
-        spv_options.generateDebugInfo = false;
-        spv_options.disableOptimizer  = false;
-        spv_options.optimizeSize      = true;
-        spv_options.stripDebugInfo    = true;
-        spv_options.validate          = true;
-        std::vector<unsigned int> spirv;
-
-        glslang::GlslangToSpv(*program.getIntermediate(lang), spirv, &spv_options);
-
-
-        out.resize(spirv.size() * sizeof(unsigned int));
-        std::memcpy(out.data(), spirv.data(), out.size());
-
-        // Clean up
-        glslang::FinalizeProcess();
-        return true;
-    }
-
     bool Vulkan_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
     {
         auto source =
                 create_vulkan_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
 
-        if (!errors.empty())
-            return false;
-
-        ShaderSource tmp;
-        if (!compile_shader_to_spirv("Vertex Compiler", source.vertex_code, tmp.vertex_code, EShLangVertex, errors))
+        if (errors.empty())
         {
-            return false;
+            out_source = std::move(source);
+            return true;
         }
-
-        compile_shader_to_spirv("Tessellation Control Compiler", source.tessellation_control_code, tmp.tessellation_control_code,
-                                EShLangTessControl, errors);
-
-        compile_shader_to_spirv("Tessellation Compiler", source.tessellation_code, tmp.tessellation_code, EShLangTessEvaluation,
-                                errors);
-
-        compile_shader_to_spirv("Geometry Compiler", source.geometry_code, tmp.geometry_code, EShLangGeometry, errors);
-
-        if (!compile_shader_to_spirv("Fragment Compiler", source.fragment_code, tmp.fragment_code, EShLangFragment, errors))
-        {
-            return false;
-        }
-
-        out_source                           = std::move(source);
-        out_source.vertex_code               = std::move(tmp.vertex_code);
-        out_source.tessellation_control_code = std::move(tmp.tessellation_control_code);
-        out_source.tessellation_code         = std::move(tmp.tessellation_code);
-        out_source.geometry_code             = std::move(tmp.geometry_code);
-        out_source.fragment_code             = std::move(tmp.fragment_code);
-
-        return errors.empty();
+        return false;
     }
 }// namespace Engine::ShaderCompiler

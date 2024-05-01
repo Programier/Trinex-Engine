@@ -8,7 +8,7 @@
 
 struct VertexInput
 {
-    nointerpolation float3 position: POSITION0;
+    float3 position: POSITION0;
 };
 
 struct VertexOutput

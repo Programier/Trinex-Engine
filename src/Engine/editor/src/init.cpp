@@ -4,6 +4,8 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
+#include <Core/library.hpp>
+#include <Core/logger.hpp>
 #include <Core/package.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 
@@ -92,7 +94,7 @@ namespace Engine
         buffer->init_resource();
     }
 
-    static void resource_loading()
+    static void initialialize_editor()
     {
 #define load_resource(var, name, type, group_name)                                                                               \
     EditorResources::var =                                                                                                       \
@@ -121,5 +123,5 @@ namespace Engine
         GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
     }
 
-    static DefaultResourcesInitializeController on_init(resource_loading, "Load Editor Package");
+    static DefaultResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
 }// namespace Engine

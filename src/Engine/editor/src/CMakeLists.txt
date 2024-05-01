@@ -31,19 +31,10 @@ add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPIL
 
 target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
                                                                 imgui_guizmo
-                                                                core
-                                                                slang
-                                                                glslang
-                                                                SPIRV
-                                                                glslang-default-resource-limits)
+                                                                slang)
 
 set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
 set_property(TARGET imgui_guizmo PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
-set_property(TARGET slang PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os")
-set_property(TARGET glslang PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os")
-set_property(TARGET SPIRV PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os")
-set_property(TARGET glslang-default-resource-limits PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os")
-
 
 install(TARGETS TrinexEngineEditor DESTINATION ${TRINEX_INSTALL_DIR})
 
