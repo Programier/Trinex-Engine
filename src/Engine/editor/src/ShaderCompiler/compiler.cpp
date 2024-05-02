@@ -11,8 +11,8 @@
 #include <cstring>
 #include <slang-com-ptr.h>
 #include <slang.h>
+#include <spirv_glsl.hpp>
 
-#include <iostream>
 
 namespace Engine::ShaderCompiler
 {
@@ -387,8 +387,10 @@ namespace Engine::ShaderCompiler
         new (&out_buffer) Buffer(data, data + size);
     }
 
+    using SetupRequestFunction = void (*)(SlangCompileRequest*);
+
     static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors,
-                                       const Function<void(SlangCompileRequest*)>& setup_request)
+                                       const SetupRequestFunction& setup_request)
     {
         if (errors)
         {
@@ -639,28 +641,38 @@ namespace Engine::ShaderCompiler
         return out_source;
     }
 
-    static void setup_glsl_base_compile_request(SlangCompileRequest* request)
+    static Vector<uint32_t> to_spirv_buffer(const Buffer& spirv)
     {
-        request->setCodeGenTarget(SLANG_GLSL);
-        request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
-        request->setTargetMatrixLayoutMode(0, SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
-        request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
-        request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-        request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
+        const uint32_t* data = reinterpret_cast<const uint32_t*>(spirv.data());
+        const uint32_t size  = spirv.size() / 4;
+        return Vector<uint32_t>(data, data + size);
     }
 
-    static void setup_glsles_compile_request(SlangCompileRequest* request)
+    static void compile_spirv_to_glsl_es(Buffer& code)
     {
-        setup_glsl_base_compile_request(request);
-        auto profile = global_session()->findProfile("glsl_310");
-        request->setTargetProfile(0, profile);
-    }
+        if (code.empty())
+            return;
 
-    static void setup_glsl_compile_request(SlangCompileRequest* request)
-    {
-        setup_glsl_base_compile_request(request);
-        auto profile = global_session()->findProfile("glsl330");
-        request->setTargetProfile(0, profile);
+        Vector<uint32_t> spirv_binary = to_spirv_buffer(code);
+        spirv_cross::CompilerGLSL glsl(std::move(spirv_binary));
+        spirv_cross::ShaderResources resources = glsl.get_shader_resources();
+
+        for (auto& resource : resources.sampled_images)
+        {
+            unsigned set     = glsl.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            unsigned binding = glsl.get_decoration(resource.id, spv::DecorationBinding);
+            glsl.unset_decoration(resource.id, spv::DecorationDescriptorSet);
+            glsl.set_decoration(resource.id, spv::DecorationBinding, set * 16 + binding);
+        }
+
+        // Set some options.
+        spirv_cross::CompilerGLSL::Options options;
+        options.version = 310;
+        options.es      = true;
+        glsl.set_common_options(options);
+
+        String glsl_code = glsl.compile();
+        submit_compiled_source(code, glsl_code.data(), glsl_code.size() + 1);
     }
 
     static void setup_spriv_compile_request(SlangCompileRequest* request)
@@ -675,17 +687,14 @@ namespace Engine::ShaderCompiler
         request->setTargetProfile(0, global_session()->findProfile("spirv_1_0"));
     }
 
-
-    using CompileFunction = ShaderSource (*)(const String&, const Vector<ShaderDefinition>&, MessageList*);
-
     static ShaderSource compile_shader_source_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                        MessageList* errors, CompileFunction func)
+                                                        MessageList* errors, SetupRequestFunction func)
     {
         auto path = engine_config.shaders_dir / relative;
         FileReader file(path);
         if (file.is_open())
         {
-            return func(file.read_string(), definitions, errors);
+            return compile_shader(file.read_string(), definitions, errors, func);
         }
         else if (errors)
         {
@@ -694,65 +703,33 @@ namespace Engine::ShaderCompiler
         return {};
     }
 
-    static void validate_text_buffer(Buffer& buffer)
+    static ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
+                                                       MessageList* errors)
     {
-        if(!buffer.empty() && buffer.back() != 0)
-            buffer.push_back(0);
-    }
-
-    static ShaderSource&& make_text_code_valid(ShaderSource&& source)
-    {
-        validate_text_buffer(source.vertex_code);
-        validate_text_buffer(source.tessellation_control_code);
-        validate_text_buffer(source.tessellation_code);
-        validate_text_buffer(source.geometry_code);
-        validate_text_buffer(source.fragment_code);
-        validate_text_buffer(source.compute_code);
-
-        return std::move(source);
-    }
-
-    static ShaderSource create_opengles_shader(const String& source, const Vector<ShaderDefinition>& definitions,
-                                               MessageList* errors)
-    {
-        auto new_definitions = definitions;
-        new_definitions.push_back({"TRINEX_OPENGLES_API", "1"});
-        return make_text_code_valid(compile_shader(source, new_definitions, errors, setup_glsles_compile_request));
-    }
-
-    static ShaderSource create_opengl_shader(const String& source, const Vector<ShaderDefinition>& definitions,
-                                             MessageList* errors)
-    {
-        auto new_definitions = definitions;
-        new_definitions.push_back({"TRINEX_OPENGL_API", "1"});
-        return make_text_code_valid(compile_shader(source, new_definitions, errors, setup_glsl_compile_request));
-    }
-
-    static ShaderSource create_vulkan_shader(const String& source, const Vector<ShaderDefinition>& definitions,
-                                             MessageList* errors)
-    {
-        auto new_definitions = definitions;
-        new_definitions.push_back({"TRINEX_VULKAN_API", "1"});
-        return compile_shader(source, new_definitions, errors, setup_spriv_compile_request);
+        return compile_shader_source_from_file(relative, definitions, errors, setup_spriv_compile_request);
     }
 
     static ShaderSource create_opengles_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                                          MessageList* errors)
     {
-        return compile_shader_source_from_file(relative, definitions, errors, create_opengles_shader);
+        ShaderSource source = create_vulkan_shader_from_file(relative, definitions, errors);
+
+        compile_spirv_to_glsl_es(source.vertex_code);
+        compile_spirv_to_glsl_es(source.tessellation_control_code);
+        compile_spirv_to_glsl_es(source.tessellation_code);
+        compile_spirv_to_glsl_es(source.geometry_code);
+        compile_spirv_to_glsl_es(source.fragment_code);
+        compile_spirv_to_glsl_es(source.compute_code);
+
+        return source;
     }
 
     static ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
                                                        MessageList* errors)
     {
-        return compile_shader_source_from_file(relative, definitions, errors, create_opengl_shader);
+        return create_opengles_shader_from_file(relative, definitions, errors);
     }
 
-    static ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                       MessageList* errors)
-    {
-        return compile_shader_source_from_file(relative, definitions, errors, create_vulkan_shader);
-    }
 
     implement_class(OpenGLES_Compiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(OpenGLES_Compiler);

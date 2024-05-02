@@ -31,7 +31,9 @@ add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPIL
 
 target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
                                                                 imgui_guizmo
-                                                                slang)
+                                                                slang
+                                                                spirv-cross-glsl
+                                                                spirv-cross-core)
 
 set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
 set_property(TARGET imgui_guizmo PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
