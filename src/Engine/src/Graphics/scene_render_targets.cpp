@@ -88,49 +88,32 @@ namespace Engine
 
     static ColorFormat base_color_format()
     {
-        ColorFormat format = engine_instance->rhi()->base_color_format();
-        trinex_always_check(format != ColorFormat::Undefined, "Color format can't be undefined!");
-        return format;
+        return ColorFormat::FloatRGBA;
     }
 
     static ColorFormat position_format()
     {
-        ColorFormat format = engine_instance->rhi()->position_format();
-        trinex_always_check(format != ColorFormat::Undefined, "Position format can't be undefined!");
-        return format;
+        return ColorFormat::FloatRGBA;
     }
 
     static ColorFormat normal_format()
     {
-        ColorFormat format = engine_instance->rhi()->normal_format();
-        trinex_always_check(format != ColorFormat::Undefined, "Normal format can't be undefined!");
-        return format;
+        return ColorFormat::FloatRGBA;
     }
 
     static ColorFormat emissive_format()
     {
-        ColorFormat format = engine_instance->rhi()->emissive_format();
-        trinex_always_check(format != ColorFormat::Undefined, "Specular format can't be undefined!");
-        return format;
+        return ColorFormat::R8G8B8A8;
     }
 
     static ColorFormat msra_buffer_format()
     {
-        ColorFormat format = engine_instance->rhi()->msra_buffer_format();
-        trinex_always_check(format != ColorFormat::Undefined, "MSRA format can't be undefined!");
-        return format;
+        return ColorFormat::R8G8B8A8;
     }
 
     static ColorFormat depth_format()
     {
-#if TRINEX_WITH_STENCIL_BUFFER
-        ColorFormat format = engine_instance->rhi()->depth_stencil_format();
-#else
-
-        ColorFormat format = engine_instance->rhi()->depth_format();
-#endif
-        trinex_always_check(format != ColorFormat::Undefined, "Color format can't be undefined!");
-        return format;
+        return ColorFormat::DepthStencil;
     }
 
     struct AttachmentTextureInfo {

@@ -34,7 +34,6 @@ namespace Engine
 
         vk::ImageSubresourceRange subresource_range(MipMapLevel base);
         vk::ImageViewType view_type() const;
-        uint_t pixel_type_size() const;
 
         void generate_mipmap() override;
         void bind(BindLocation location) override;
@@ -43,8 +42,9 @@ namespace Engine
                             size_t data_size);
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
                                size_t data_size) override;
-        bool can_use_color_as_color_attachment() const;
+        bool is_color_image() const;
         bool is_depth_stencil_image() const;
+        static bool is_depth_stencil_image(ColorFormat);
 
         vk::Offset2D get_mip_size(MipMapLevel level) const;
         vk::ImageView create_image_view(const vk::ImageSubresourceRange& range);

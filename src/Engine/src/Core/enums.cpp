@@ -130,4 +130,12 @@ namespace Engine
                    {"Float3", VertexBufferElementType::Float3}, {"Float4", VertexBufferElementType::Float4},
                    {"UByte4", VertexBufferElementType::UByte4}, {"UByte4N", VertexBufferElementType::UByte4N},
                    {"Color", VertexBufferElementType::Color});
+
+    implement_enum(ColorFormat, Engine, {"Unknown", ColorFormat::Undefined}, {"FloatR", ColorFormat::FloatR},
+                   {"FloatRG", ColorFormat::FloatRG}, {"FloatRGB", ColorFormat::FloatRGB},
+                   {"FloatRGBA", ColorFormat::FloatRGBA}, {"R8", ColorFormat::R8}, {"R8G8", ColorFormat::R8G8},
+                   {"R8G8B8", ColorFormat::R8G8B8}, {"R8G8BA8", ColorFormat::R8G8B8A8},
+                   {"DepthStencil", ColorFormat::DepthStencil}, {"ShadowDepth", ColorFormat::ShadowDepth},
+                   {"FilteredShadowDepth", ColorFormat::FilteredShadowDepth}, {"D32F", ColorFormat::D32F},
+                   {"BC1", ColorFormat::BC1}, {"BC2", ColorFormat::BC2}, {"BC3", ColorFormat::BC3});
 }// namespace Engine

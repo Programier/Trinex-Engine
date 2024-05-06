@@ -11,12 +11,6 @@ namespace Engine
         for (const RenderPass::Attachment& color_attachment : render_pass->color_attachments)
         {
             vk::Format format = parse_engine_format(color_attachment.format);
-
-            if (ColorFormatInfo::info_of(color_attachment.format).aspect() != ColorFormatAspect::Color)
-            {
-                throw EngineException("Cannot use attachmet with non color format as color attachment");
-            }
-
             vk::AttachmentLoadOp clear_op =
                     color_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad;
             vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -31,15 +25,8 @@ namespace Engine
 
         if (render_pass->has_depth_stancil)
         {
-            m_has_depth_attachment   = true;
-            vk::Format format        = parse_engine_format(render_pass->depth_stencil_attachment.format);
-            ColorFormatAspect aspect = ColorFormatInfo::info_of(render_pass->depth_stencil_attachment.format).aspect();
-            if (aspect != ColorFormatAspect::Depth && aspect != ColorFormatAspect::Stencil &&
-                aspect != ColorFormatAspect::DepthStencil)
-            {
-                throw EngineException("Cannot use attachmet with non depth-/stencil format as depth-/stencil attachment");
-            }
-
+            m_has_depth_attachment          = true;
+            vk::Format format               = parse_engine_format(render_pass->depth_stencil_attachment.format);
             vk::AttachmentLoadOp clear_op   = render_pass->depth_stencil_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear
                                                                                                   : vk::AttachmentLoadOp::eLoad;
             vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -62,21 +49,17 @@ namespace Engine
 
         if (render_pass->has_depth_stancil)
         {
-            ColorFormatAspect aspect = ColorFormatInfo::info_of(render_pass->depth_stencil_attachment.format).aspect();
-
             vk::ImageLayout layout;
 
-            switch (aspect)
+            switch (render_pass->depth_stencil_attachment.format)
             {
-                case ColorFormatAspect::Depth:
+                case ColorFormat::ShadowDepth:
+                case ColorFormat::FilteredShadowDepth:
+                case ColorFormat::D32F:
                     layout = vk::ImageLayout::eDepthAttachmentOptimal;
                     break;
 
-                case ColorFormatAspect::Stencil:
-                    layout = vk::ImageLayout::eStencilAttachmentOptimal;
-                    break;
-
-                case ColorFormatAspect::DepthStencil:
+                case ColorFormat::DepthStencil:
                     layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
                     break;
 
@@ -181,8 +164,8 @@ namespace Engine
     {
         engine_render_pass->color_attachments.resize(1);
         engine_render_pass->color_attachments[0].clear_on_bind = true;
-        engine_render_pass->color_attachments[0].format =
-                to_engine_format(API->m_main_render_pass->m_attachment_descriptions[0].format);
+//        engine_render_pass->color_attachments[0].format =
+//                to_engine_format(API->m_main_render_pass->m_attachment_descriptions[0].format);
         return API->m_main_render_pass;
     }
 }// namespace Engine

@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/color_format.hpp>
 #include <Core/rhi_initializers.hpp>
 #include <stdexcept>
 #include <vulkan_headers.hpp>
@@ -53,7 +52,6 @@ namespace Engine
     DECLARE_GETTER(vk::PrimitiveTopology, PrimitiveTopology, m_primitive_topologies);
     DECLARE_GETTER(vk::PolygonMode, PolygonMode, m_poligon_modes);
     DECLARE_GETTER(vk::CullModeFlagBits, CullMode, m_cull_modes);
-    DECLARE_GETTER(vk::ImageAspectFlags, ColorFormatAspect, m_image_aspects);
 
 #undef DECLARE_GETTER
 }// namespace Engine

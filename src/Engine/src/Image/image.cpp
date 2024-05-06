@@ -313,33 +313,33 @@ namespace Engine
         {
             if (m_channels == 3)
             {
-                return ColorFormat::BC1Unorm;
+                return ColorFormat::BC1;
             }
 
             if (m_channels == 4)
             {
-                return ColorFormat::BC3Unorm;
+                return ColorFormat::BC3;
             }
         }
 
         if (m_channels == 1)
         {
-            return ColorFormat::R8Unorm;
+            return ColorFormat::R8;
         }
 
         if (m_channels == 2)
         {
-            return ColorFormat::R8G8Unorm;
+            return ColorFormat::R8G8;
         }
 
         if (m_channels == 3)
         {
-            return ColorFormat::R8G8B8Unorm;
+            return ColorFormat::R8G8B8;
         }
 
         if (m_channels == 4)
         {
-            return ColorFormat::R8G8B8A8Unorm;
+            return ColorFormat::R8G8B8A8;
         }
 
         return ColorFormat::Undefined;

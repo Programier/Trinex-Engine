@@ -173,12 +173,6 @@ namespace Engine
         return nullptr;
     }
 
-    ColorFormatFeatures NoApi::color_format_features(ColorFormat)
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return {};
-    }
-
     void NoApi::push_debug_stage(const char* stage, const Color& color)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
@@ -218,54 +212,4 @@ namespace Engine
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
     }
-
-    ColorFormat NoApi::base_color_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::position_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::normal_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::emissive_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::msra_buffer_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::depth_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::stencil_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-    ColorFormat NoApi::depth_stencil_format()
-    {
-        error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
-        return ColorFormat::Undefined;
-    }
-
-
 }// namespace Engine

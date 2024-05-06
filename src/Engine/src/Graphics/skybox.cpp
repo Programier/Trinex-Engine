@@ -38,7 +38,7 @@ namespace Engine
 
         if (!TextureCubeMap::has_object())
         {
-            format       = img.channels() == 4 ? ColorFormat::R8G8B8A8Uint : ColorFormat::R8G8B8Uint;
+            format       = img.format();
             mipmap_count = 8;
             size         = Size2D(block_width, block_height);
             rhi_create();

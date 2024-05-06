@@ -1,6 +1,6 @@
 #pragma once
-#include <Core/color_format.hpp>
 #include <opengl_headers.hpp>
+#include <Core/enums.hpp>
 
 namespace Engine
 {

@@ -85,20 +85,19 @@ namespace Engine
     });
 
 
-    const Array<vk::PrimitiveTopology, 11> m_primitive_topologies =
-            generate_array<vk::PrimitiveTopology, 11, PrimitiveTopology>({
-                    {PrimitiveTopology::TriangleList, vk::PrimitiveTopology::eTriangleList},
-                    {PrimitiveTopology::PointList, vk::PrimitiveTopology::ePointList},
-                    {PrimitiveTopology::LineList, vk::PrimitiveTopology::eLineList},
-                    {PrimitiveTopology::LineStrip, vk::PrimitiveTopology::eLineStrip},
-                    {PrimitiveTopology::TriangleStrip, vk::PrimitiveTopology::eTriangleStrip},
-                    {PrimitiveTopology::TriangleFan, vk::PrimitiveTopology::eTriangleFan},
-                    {PrimitiveTopology::LineListWithAdjacency, vk::PrimitiveTopology::eLineListWithAdjacency},
-                    {PrimitiveTopology::LineStripWithAdjacency, vk::PrimitiveTopology::eLineStripWithAdjacency},
-                    {PrimitiveTopology::TriangleListWithAdjacency, vk::PrimitiveTopology::eTriangleListWithAdjacency},
-                    {PrimitiveTopology::TriangleStripWithAdjacency, vk::PrimitiveTopology::eTriangleStripWithAdjacency},
-                    {PrimitiveTopology::PatchList, vk::PrimitiveTopology::ePatchList},
-            });
+    const Array<vk::PrimitiveTopology, 11> m_primitive_topologies = generate_array<vk::PrimitiveTopology, 11, PrimitiveTopology>({
+            {PrimitiveTopology::TriangleList, vk::PrimitiveTopology::eTriangleList},
+            {PrimitiveTopology::PointList, vk::PrimitiveTopology::ePointList},
+            {PrimitiveTopology::LineList, vk::PrimitiveTopology::eLineList},
+            {PrimitiveTopology::LineStrip, vk::PrimitiveTopology::eLineStrip},
+            {PrimitiveTopology::TriangleStrip, vk::PrimitiveTopology::eTriangleStrip},
+            {PrimitiveTopology::TriangleFan, vk::PrimitiveTopology::eTriangleFan},
+            {PrimitiveTopology::LineListWithAdjacency, vk::PrimitiveTopology::eLineListWithAdjacency},
+            {PrimitiveTopology::LineStripWithAdjacency, vk::PrimitiveTopology::eLineStripWithAdjacency},
+            {PrimitiveTopology::TriangleListWithAdjacency, vk::PrimitiveTopology::eTriangleListWithAdjacency},
+            {PrimitiveTopology::TriangleStripWithAdjacency, vk::PrimitiveTopology::eTriangleStripWithAdjacency},
+            {PrimitiveTopology::PatchList, vk::PrimitiveTopology::ePatchList},
+    });
 
     const Array<vk::PolygonMode, 3> m_poligon_modes = generate_array<vk::PolygonMode, 3, PolygonMode>({
             {PolygonMode::Fill, vk::PolygonMode::eFill},
@@ -136,12 +135,5 @@ namespace Engine
             {LogicOp::OrInverted, vk::LogicOp::eOrInverted},
             {LogicOp::Nand, vk::LogicOp::eNand},
             {LogicOp::Set, vk::LogicOp::eSet},
-    });
-
-    const Array<vk::ImageAspectFlags, 5> m_image_aspects = generate_array<vk::ImageAspectFlags, 5, ColorFormatAspect>({
-            {ColorFormatAspect::Color, vk::ImageAspectFlagBits::eColor},
-            {ColorFormatAspect::Depth, vk::ImageAspectFlagBits::eDepth},
-            {ColorFormatAspect::Stencil, vk::ImageAspectFlagBits::eStencil},
-            {ColorFormatAspect::DepthStencil, vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil},
     });
 }// namespace Engine

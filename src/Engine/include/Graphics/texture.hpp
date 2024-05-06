@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/color_format.hpp>
 #include <Core/render_resource.hpp>
 
 struct ImGuiContext;
@@ -16,7 +15,7 @@ namespace Engine
         Size2D size                = {1, 1};
         MipMapLevel base_mip_level = 0;
         MipMapLevel mipmap_count   = 1;
-        ColorFormat format         = ColorFormat::R8G8B8A8Unorm;
+        ColorFormat format         = ColorFormat::R8G8B8A8;
         Swizzle swizzle_r          = Swizzle::Identity;
         Swizzle swizzle_g          = Swizzle::Identity;
         Swizzle swizzle_b          = Swizzle::Identity;

@@ -1,5 +1,4 @@
 #pragma once
-#include <Core/color_format.hpp>
 #include <Core/object.hpp>
 #include <Core/structures.hpp>
 

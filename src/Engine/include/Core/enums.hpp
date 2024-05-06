@@ -375,4 +375,24 @@ namespace Engine
         Static  = 0,
         Dynamic = 1,
     };
+
+    enum class ColorFormat : EnumerateType
+    {
+        Undefined           = 0,
+        FloatR              = 1,
+        FloatRG             = 2,
+        FloatRGB            = 3,
+        FloatRGBA           = 4,
+        R8                  = 5,
+        R8G8                = 6,
+        R8G8B8              = 7,
+        R8G8B8A8            = 8,
+        DepthStencil        = 9,
+        ShadowDepth         = 10,
+        FilteredShadowDepth = 11,
+        D32F                = 12,
+        BC1                 = 13,
+        BC2                 = 14,
+        BC3                 = 15,
+    };
 }// namespace Engine

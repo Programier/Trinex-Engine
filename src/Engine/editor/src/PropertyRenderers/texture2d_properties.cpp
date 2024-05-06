@@ -1,29 +1,14 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <PropertyRenderers/special_renderers.hpp>
+#include <Core/enum.hpp>
 
 namespace Engine
 {
     static const char* format_to_string(const ColorFormat& format)
     {
-        switch (format)
-        {
-            case ColorFormat::R8Unorm:
-                return "R8 Unorm";
-            case ColorFormat::R8G8Unorm:
-                return "R8G8 Unorm";
-            case ColorFormat::R8G8B8Unorm:
-                return "R8G8B8 Unorm";
-            case ColorFormat::R8G8B8A8Unorm:
-                return "R8G8B8A8 Unorm";
-            case ColorFormat::BC1Unorm:
-                return "BC1 Unorm";
-            case ColorFormat::BC3Unorm:
-                return "BC3 Unorm";
-
-            default:
-                return "Internal format";
-        }
+        static Enum* format_enum = Enum::static_find("Engine::ColorFormat", true);
+        return format_enum->entry(static_cast<EnumerateType>(format))->name.c_str();
     }
 
     static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)

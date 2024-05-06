@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/arguments.hpp>
-#include <Core/color_format.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/etl/singletone.hpp>

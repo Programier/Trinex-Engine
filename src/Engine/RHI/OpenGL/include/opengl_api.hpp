@@ -64,7 +64,6 @@ namespace Engine
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
         RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
         RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;
-        ColorFormatFeatures color_format_features(ColorFormat format) override;
 
         RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
         RHI_Viewport* create_viewport(RenderTarget* render_target) override;
@@ -72,15 +71,6 @@ namespace Engine
         OpenGL& push_global_params(const GlobalShaderParameters& params) override;
         OpenGL& pop_global_params() override;
         OpenGL& update_local_parameter(const void* data, size_t size, size_t offset) override;
-
-        ColorFormat base_color_format() override;
-        ColorFormat position_format() override;
-        ColorFormat normal_format() override;
-        ColorFormat emissive_format() override;
-        ColorFormat msra_buffer_format() override;
-        ColorFormat depth_format() override;
-        ColorFormat stencil_format() override;
-        ColorFormat depth_stencil_format() override;
 
         void push_debug_stage(const char* stage, const Color& color = {}) override;
         void pop_debug_stage() override;

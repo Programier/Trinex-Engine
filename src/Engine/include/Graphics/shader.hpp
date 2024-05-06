@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Core/color_format.hpp>
 #include <Core/enums.hpp>
 #include <Core/implement.hpp>
 #include <Core/render_resource.hpp>

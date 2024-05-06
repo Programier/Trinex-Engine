@@ -10,6 +10,7 @@
 #include <Engine/Render/scene_layer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
+#include <Core/colors.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Render/editor_scene_renderer.hpp>

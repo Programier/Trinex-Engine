@@ -102,7 +102,7 @@ namespace Engine
             VulkanTexture* texture         = color_binding->rhi_object<VulkanTexture>();
 
             trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
-            bool usage_check = texture->can_use_color_as_color_attachment();
+            bool usage_check = texture->is_color_image();
             trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
 
             vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);

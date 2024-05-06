@@ -5,6 +5,7 @@
 #include <opengl_render_pass.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_texture.hpp>
+#include <Core/colors.hpp>
 
 namespace Engine
 {

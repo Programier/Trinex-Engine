@@ -359,8 +359,6 @@ namespace Engine
         {
             buffer = new VulkanUniformBuffer();
         }
-
-        initialize_color_formats();
     }
 
     void VulkanAPI::check_extentions()

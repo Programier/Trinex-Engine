@@ -1,8 +1,5 @@
 #pragma once
-
-
-#include <Core/color_format.hpp>
-#include <Core/colors.hpp>
+#include <Core/enums.hpp>
 #include <Core/rhi_initializers.hpp>
 
 
@@ -135,7 +132,6 @@ namespace Engine
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                      = 0;
         virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                         = 0;
         virtual RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass)                        = 0;
-        virtual ColorFormatFeatures color_format_features(ColorFormat format)                             = 0;
 
         virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
         virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;
@@ -143,15 +139,6 @@ namespace Engine
         virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
         virtual RHI& pop_global_params()                                                  = 0;
         virtual RHI& update_local_parameter(const void* data, size_t size, size_t offset) = 0;
-
-        virtual ColorFormat base_color_format()    = 0;
-        virtual ColorFormat position_format()      = 0;
-        virtual ColorFormat normal_format()        = 0;
-        virtual ColorFormat emissive_format()      = 0;
-        virtual ColorFormat msra_buffer_format()   = 0;
-        virtual ColorFormat depth_format()         = 0;
-        virtual ColorFormat stencil_format()       = 0;
-        virtual ColorFormat depth_stencil_format() = 0;
 
         virtual void push_debug_stage(const char* stage, const Color& color = {}) = 0;
         virtual void pop_debug_stage()                                            = 0;

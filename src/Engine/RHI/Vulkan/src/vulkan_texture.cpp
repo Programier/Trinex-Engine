@@ -67,30 +67,22 @@ namespace Engine
 
         static vk::ImageCreateFlagBits default_flags = {};
 
-        vk::ImageUsageFlags m_usage_flags;
-        vk::MemoryPropertyFlags m_memory_flags;
+        vk::ImageUsageFlags m_usage_flags =
+                vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
 
-        ColorFormatInfo format_info     = ColorFormatInfo::info_of(texture->format);
-        ColorFormatAspect format_aspect = format_info.aspect();
+        vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
 
-        if (format_aspect == ColorFormatAspect::Depth || format_aspect == ColorFormatAspect::Stencil ||
-            format_aspect == ColorFormatAspect::DepthStencil)
+
+        if (texture->is_render_target_texture())
         {
-            m_usage_flags = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc |
-                            vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-            m_memory_flags = vk::MemoryPropertyFlagBits::eDeviceLocal;
-        }
-        else
-        {
-            m_usage_flags = vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst |
-                            vk::ImageUsageFlagBits::eSampled;
-
-            if (texture->is_render_target_texture() && can_use_color_as_color_attachment())
+            if (is_depth_stencil_image())
+            {
+                m_usage_flags |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
+            }
+            else if (is_color_image())
             {
                 m_usage_flags |= vk::ImageUsageFlagBits::eColorAttachment;
             }
-
-            m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
         }
 
         vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
@@ -216,25 +208,32 @@ namespace Engine
 
     vk::ImageAspectFlags VulkanTexture::aspect() const
     {
-        return get_type(ColorFormatInfo::info_of(m_engine_texture->format).aspect());
+        if (is_color_image())
+        {
+            return vk::ImageAspectFlagBits::eColor;
+        }
+        else if (is_in<ColorFormat::DepthStencil>(m_engine_texture->format))
+        {
+            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+        }
+
+        return vk::ImageAspectFlagBits::eDepth;
     }
 
-    bool VulkanTexture::can_use_color_as_color_attachment() const
+    bool VulkanTexture::is_color_image() const
     {
-        return ColorFormatInfo::info_of(m_engine_texture->format).components() == 4;
-    }
-
-    uint_t VulkanTexture::pixel_type_size() const
-    {
-        ColorFormatInfo color_info = ColorFormatInfo::info_of(m_engine_texture->format);
-        return static_cast<uint_t>(color_info.component_size()) * static_cast<uint_t>(color_info.components());
+        return is_in<ColorFormat::R8G8B8A8, ColorFormat::FloatRGBA>(m_engine_texture->format);
     }
 
     bool VulkanTexture::is_depth_stencil_image() const
     {
-        ColorFormatAspect texture_aspect = ColorFormatInfo::info_of(m_engine_texture->format).aspect();
-        return texture_aspect == ColorFormatAspect::Depth || texture_aspect == ColorFormatAspect::Stencil ||
-               texture_aspect == ColorFormatAspect::DepthStencil;
+        return is_depth_stencil_image(m_engine_texture->format);
+    }
+
+    bool VulkanTexture::is_depth_stencil_image(ColorFormat format)
+    {
+        return is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
+                format);
     }
 
     void VulkanTexture::generate_mipmap()
@@ -375,31 +374,6 @@ namespace Engine
     RHI_Texture* VulkanAPI::create_texture(const Texture* texture, const byte* data, size_t size)
     {
         return &(new VulkanTexture())->create(texture, data, size);
-    }
-
-    ColorFormatFeatures VulkanAPI::color_format_features(ColorFormat format)
-    {
-        vk::Format vulkan_format        = parse_engine_format(format);
-        vk::FormatProperties properties = m_physical_device.getFormatProperties(vulkan_format);
-        ColorFormatFeatures out_features;
-
-        if (!properties.linearTilingFeatures && !properties.optimalTilingFeatures)
-        {
-            out_features.is_supported = false;
-            return out_features;
-        }
-
-        out_features.is_supported = true;
-
-        out_features.support_color_attachment =
-                (properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eColorAttachment) ==
-                vk::FormatFeatureFlagBits::eColorAttachment;
-
-        out_features.support_depth_stencil =
-                (properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment) ==
-                vk::FormatFeatureFlagBits::eDepthStencilAttachment;
-
-        return out_features;
     }
 }// namespace Engine
 
