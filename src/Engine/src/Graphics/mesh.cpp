@@ -1,24 +1,39 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
+#include <Core/enum.hpp>
 #include <Core/property.hpp>
+#include <Engine/Render/rendering_policy.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/mesh.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 
-
 namespace Engine
 {
+    implement_struct(MeshMaterials, Engine, 0).push([]() {
+        Struct* self      = Struct::static_find("Engine::MeshMaterials", true);
+        Enum* policy_enum = Enum::static_find("Engine::RenderingPolicy", true);
+
+        self->add_properties(new EnumProperty<MeshMaterial, EnumerateType>("Layer", "Layer type for this material",
+                                                                           &MeshMaterial::policy, policy_enum, Name::none, 0),
+                             new ByteProperty("Surface Index", "Surface Index", &MeshMaterial::surface_index),
+                             new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
+                                                         &MeshMaterial::material));
+    });
+
+
     implement_class(StaticMesh, Engine, Class::IsAsset);
     implement_class(DynamicMesh, Engine, 0);
 
     implement_initialize_class(StaticMesh)
     {
-        Class* self = StaticMesh::static_class_instance();
-        self->add_property(new ObjectReferenceProperty("Material", "Material which used for rendering this primitive",
-                                                       &StaticMesh::material));
+        Class* self                   = StaticMesh::static_class_instance();
+        Struct* mesh_materials_struct = Struct::static_find("Engine::MeshMaterials", true);
+        auto mesh_material_prop       = new StructProperty<This, MeshMaterial>("", "", nullptr, mesh_materials_struct);
+        self->add_property(new ArrayProperty<This, decltype(materials)>("Materials", "Array of materials for this primitive",
+                                                                        &This::materials, mesh_material_prop));
     }
 
     implement_default_initialize_class(DynamicMesh);
@@ -57,7 +72,10 @@ namespace Engine
 
     StaticMesh::StaticMesh()
     {
-        material = Object::find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
+        materials.resize(1);
+        auto& entry    = materials.back();
+        entry.policy   = policy_id(Name::color_scene_rendering);
+        entry.material = Object::find_object_checked<MaterialInterface>("DefaultPackage::DefaultMaterial");
     }
 
     StaticMesh& StaticMesh::init_resources()
@@ -157,6 +175,14 @@ namespace Engine
         }
     }
 
+    ENGINE_EXPORT bool operator&(Archive& ar, MeshSurface& surface)
+    {
+        ar & surface.base_vertex_index;
+        ar & surface.first_index;
+        ar & surface.vertices_count;
+        return ar;
+    }
+
     ENGINE_EXPORT bool operator&(Archive& ar, StaticMesh::LOD& lod)
     {
         serialize_buffers(ar, lod.positions);
@@ -166,8 +192,10 @@ namespace Engine
         serialize_buffers(ar, lod.tangents);
         serialize_buffers(ar, lod.binormals);
         serialize_buffer(ar, lod.indices);
+        ar & lod.surfaces;
         return ar;
     }
+
 
     bool StaticMesh::archive_process(Archive& ar)
     {

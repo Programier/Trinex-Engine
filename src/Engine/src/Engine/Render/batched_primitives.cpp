@@ -97,7 +97,7 @@ namespace Engine
             m_position_buffer->rhi_bind(0);
             m_color_buffer->rhi_bind(1);
 
-            rhi->draw(m_position_buffer->buffer.size());
+            rhi->draw(m_position_buffer->buffer.size(), 0);
 
 #if TRINEX_DEBUG_BUILD
             rhi->pop_debug_stage();
@@ -155,7 +155,7 @@ namespace Engine
             m_position_buffer->rhi_bind(0);
             m_color_buffer->rhi_bind(1);
 
-            rhi->draw(m_position_buffer->buffer.size());
+            rhi->draw(m_position_buffer->buffer.size(), 0);
 
 #if TRINEX_DEBUG_BUILD
             rhi->pop_debug_stage();

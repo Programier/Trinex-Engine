@@ -95,7 +95,7 @@ namespace Engine
 
                 grid_material->apply();
                 grid_vertex_buffer->rhi_bind(0);
-                rhi->draw(grid_vertex_buffer->buffer.size());
+                rhi->draw(grid_vertex_buffer->buffer.size(), 0);
 
                 alpha       = 1.f - alpha;
                 local_scale = next_scale;
@@ -127,7 +127,7 @@ namespace Engine
 
             axis_material->apply();
             x_axis_vertex_buffer->rhi_bind(0);
-            rhi->draw(x_axis_vertex_buffer->buffer.size());
+            rhi->draw(x_axis_vertex_buffer->buffer.size(), 0);
 
             if (color_param)
             {
@@ -141,7 +141,7 @@ namespace Engine
 
             axis_material->apply();
             y_axis_vertex_buffer->rhi_bind(0);
-            rhi->draw(x_axis_vertex_buffer->buffer.size());
+            rhi->draw(x_axis_vertex_buffer->buffer.size(), 0);
         }
     }
 }// namespace Engine

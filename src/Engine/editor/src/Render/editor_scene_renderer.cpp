@@ -46,7 +46,7 @@ namespace Engine
 
         material->apply(component);
         vertex_bufer->rhi_bind(0, 0);
-        engine_instance->rhi()->draw(6);
+        engine_instance->rhi()->draw(6, 0);
 
         if (texture_parameter && texture)
         {
@@ -81,7 +81,7 @@ namespace Engine
         material->apply();
 
         EditorResources::spot_light_overlay_positions->rhi_bind(0);
-        engine_instance->rhi()->draw(EditorResources::spot_light_overlay_positions->buffer.size());
+        engine_instance->rhi()->draw(EditorResources::spot_light_overlay_positions->buffer.size(), 0);
     }
 
     static void render_spot_light_overlay(SpotLightComponent* component)
@@ -118,7 +118,7 @@ namespace Engine
         material->apply();
         auto rhi = engine_instance->rhi();
         EditorResources::point_light_overlay_positions->rhi_bind(0, 0);
-        rhi->draw(EditorResources::point_light_overlay_positions->buffer.size());
+        rhi->draw(EditorResources::point_light_overlay_positions->buffer.size(), 0);
     }
 
     class OverlaySceneLayer : public SceneLayer
@@ -128,11 +128,6 @@ namespace Engine
         BatchedTriangles triangles;
 
         Set<LightComponent*> m_light_components;
-
-        SceneLayer::Type type() const override
-        {
-            return Type::Custom;
-        }
 
         OverlaySceneLayer& clear() override
         {
@@ -221,6 +216,7 @@ namespace Engine
         triangles.add_triangle(arrow_points[2], arrow_points[3], arrow_points[0], white, white, white);
     }
 
+
     EditorSceneRenderer::EditorSceneRenderer()
     {
         m_overlay_layer = post_process_layer()->create_next<OverlaySceneLayer>("Overlay Layer");
@@ -228,7 +224,7 @@ namespace Engine
 
     EditorSceneRenderer& EditorSceneRenderer::add_component(LightComponent* component, Scene* scene)
     {
-        SceneRenderer::add_component(component, scene);
+        ColorSceneRenderer::add_component(component, scene);
         m_overlay_layer->m_light_components.insert(component);
 
         if (component->actor()->is_selected())
@@ -245,7 +241,7 @@ namespace Engine
     EditorSceneRenderer& EditorSceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt,
                                                                SceneLayer* layer)
     {
-        SceneRenderer::render_component(component, rt, layer);
+        ColorSceneRenderer::render_component(component, rt, layer);
 
         Actor* owner = component->actor();
         if (owner == nullptr)
@@ -256,12 +252,6 @@ namespace Engine
             component->proxy()->bounding_box().write_to_batcher(m_overlay_layer->lines, {255, 0, 0, 255});
         }
 
-        return *this;
-    }
-
-    EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
-    {
-        SceneRenderer::render_component(component, rt, layer);
         return *this;
     }
 }// namespace Engine

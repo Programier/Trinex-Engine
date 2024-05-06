@@ -4,7 +4,7 @@
 namespace Engine
 {
     class OverlaySceneLayer;
-    class EditorSceneRenderer : public SceneRenderer
+    class EditorSceneRenderer : public ColorSceneRenderer
     {
     private:
         OverlaySceneLayer* m_overlay_layer;
@@ -17,6 +17,5 @@ namespace Engine
 
         // Components rendering
         EditorSceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        EditorSceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
     };
 }// namespace Engine

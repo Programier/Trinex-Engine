@@ -21,9 +21,9 @@ namespace Engine
 {
     implement_struct(Attribute, Engine::VertexShader, ).push([]() {
         Struct* self                      = Struct::static_find("Engine::VertexShader::Attribute", true);
-        Enum* color_format_enum           = Enum::find("Engine::ColorFormat", true);
-        Enum* vertex_attribute_rate_enum  = Enum::find("Engine::VertexAttributeInputRate", true);
-        Enum* vertex_buffer_semantic_enum = Enum::find("Engine::VertexBufferSemantic", true);
+        Enum* color_format_enum           = Enum::static_find("Engine::ColorFormat", true);
+        Enum* vertex_attribute_rate_enum  = Enum::static_find("Engine::VertexAttributeInputRate", true);
+        Enum* vertex_buffer_semantic_enum = Enum::static_find("Engine::VertexBufferSemantic", true);
 
         self->add_property(new NameProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
                                             Property::IsConst | Property::IsNotSerializable));

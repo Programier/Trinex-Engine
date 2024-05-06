@@ -44,14 +44,17 @@ namespace Engine
     }
 
 
-    SceneRenderer& SceneRenderer::add_component(DirectionalLightComponent* component, Scene* scene)
+    implement_empty_rendering_methods_for(DirectionalLightComponent);
+
+    ColorSceneRenderer& ColorSceneRenderer::add_component(DirectionalLightComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
         return *this;
     }
 
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
-    SceneRenderer& SceneRenderer::render_component(DirectionalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(DirectionalLightComponent* component, RenderTargetBase* rt,
+                                                             SceneLayer* layer)
     {
         render_base_component(component, rt, layer);
 
@@ -84,7 +87,7 @@ namespace Engine
 
         material->apply();
         DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-        engine_instance->rhi()->draw(6);
+        engine_instance->rhi()->draw(6, 0);
         return *this;
     }
 

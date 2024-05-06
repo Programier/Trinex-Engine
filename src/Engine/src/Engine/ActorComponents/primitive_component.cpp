@@ -89,7 +89,7 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::add_component(PrimitiveComponent* component, Scene* scene)
+    ColorSceneRenderer& ColorSceneRenderer::add_component(PrimitiveComponent* component, Scene* scene)
     {
         return *this;
     }
@@ -100,7 +100,7 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
         return *this;
     }

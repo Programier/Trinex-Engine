@@ -1,13 +1,14 @@
+#include "Core/default_resources.hpp"
+#include <Core/default_resources.hpp>
 #include <Core/logger.hpp>
 #include <Core/package.hpp>
+#include <Engine/Render/rendering_policy.hpp>
+#include <Graphics/mesh.hpp>
+#include <Graphics/pipeline_buffers.hpp>
 #include <Importer/importer.hpp>
-
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-
-#include <Graphics/mesh.hpp>
-#include <Graphics/pipeline_buffers.hpp>
 
 
 namespace Engine::Importer
@@ -180,6 +181,19 @@ namespace Engine::Importer
             index_buffer->buffer      = std::move(indices);
             lod.indices               = index_buffer;
         }
+
+        lod.surfaces.emplace_back();
+        auto& surface             = lod.surfaces.back();
+        surface.base_vertex_index = 0;
+        surface.first_index       = 0;
+        surface.vertices_count    = mesh->mNumFaces * 3;
+
+
+        static_mesh->materials.emplace_back();
+        auto& material         = static_mesh->materials.back();
+        material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::default_material);
+        material.policy        = policy_id(Name::color_scene_rendering);
+        material.surface_index = 0;
 
         static_mesh->bounds = AABB_3Df(vector_from_assimp_vec(mesh->mAABB.mMin), vector_from_assimp_vec(mesh->mAABB.mMax))
                                       .apply_transform(model);

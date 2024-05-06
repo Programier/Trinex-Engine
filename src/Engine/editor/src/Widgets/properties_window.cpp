@@ -1,4 +1,5 @@
 #include <Core/class.hpp>
+#include <Core/constants.hpp>
 #include <Core/enum.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
@@ -98,7 +99,7 @@ namespace Engine
     }
 
 
-#define input_text_flags() (editable ? 0 : ImGuiInputTextFlags_ReadOnly)
+#define input_text_flags() (ImGuiInputTextFlags_EnterReturnsTrue | (editable ? 0 : ImGuiInputTextFlags_ReadOnly))
 #define edit_f(type) [](ImGuiObjectProperties * window, void* object, Property* prop, type& value, bool editable) -> bool
 
 
@@ -267,10 +268,29 @@ namespace Engine
                 });
     }
 
+    struct EnumRenderingUserdata {
+        EnumerateType value;
+        const Enum::Entry* current_entry;
+        Enum* enum_class;
+    };
+
 
     static const char* enum_element_name(void* userdata, int index)
     {
-        return reinterpret_cast<Enum*>(userdata)->entries()[index].name.c_str();
+        EnumRenderingUserdata* data = reinterpret_cast<EnumRenderingUserdata*>(userdata);
+        if(index == -1){
+            static thread_local char buffer[255];
+            sprintf(buffer, "Undefined value <%d>", data->value);
+            return buffer;
+        }
+        return data->enum_class->entries()[index].name.c_str();
+    }
+
+    static FORCE_INLINE int convert_to_imgui_index(Index index)
+    {
+        if (index == Constants::index_none)
+            return -1;
+        return static_cast<int>(index);
     }
 
     static bool render_enum_property(ImGuiObjectProperties* window, void* object, Property* prop, bool can_edit)
@@ -279,37 +299,30 @@ namespace Engine
         if (!value.has_value())
             return false;
 
-        Enum* enum_class = prop->enum_instance();
-        if (!enum_class)
+        EnumRenderingUserdata userdata;
+        userdata.enum_class = prop->enum_instance();
+        if (!userdata.enum_class)
             return false;
+
 
         EnumerateType current            = value.cast<EnumerateType>();
-        const Enum::Entry* current_entry = enum_class->entry(current);
+        const Enum::Entry* current_entry = userdata.enum_class->entry(current);
 
-        if (!current_entry)
-            return false;
-
-
-        int index                          = static_cast<int>(current_entry->index);
-        const Vector<Enum::Entry>& entries = enum_class->entries();
+        int index                          = convert_to_imgui_index(userdata.enum_class->index_of(current));
+        const Vector<Enum::Entry>& entries = userdata.enum_class->entries();
 
         render_prop_name(prop);
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (can_edit)
+
+        if (ImGui::Combo("##ComboValue", &index, enum_element_name, &userdata, entries.size()) && can_edit)
         {
-            if (ImGui::Combo("##ComboValue", &index, enum_element_name, enum_class, entries.size()))
-            {
-                current_entry = &entries[index];
-                value         = PropertyValue(current_entry->value, PropertyType::Enum);
-                prop->property_value(object, value);
-                return true;
-            }
+            current_entry = &entries[index];
+            value         = PropertyValue(current_entry->value, PropertyType::Enum);
+            prop->property_value(object, value);
+            return true;
         }
-        else
-        {
-            ImGui::Text("%s", current_entry->name.c_str());
-        }
+
         return false;
     }
 
@@ -465,7 +478,7 @@ namespace Engine
 
                 void* array_object = interface->at(object, i);
                 element_property->name(interface->element_name(object, i));
-                if(render_property(window, array_object, element_property, true))
+                if (render_property(window, array_object, element_property, true))
                     is_changed = true;
                 ++i;
                 ImGui::PopID();
@@ -475,7 +488,7 @@ namespace Engine
             ImGui::Unindent(editor_config.collapsing_indent);
         }
 
-        if(is_changed)
+        if (is_changed)
         {
             prop->on_prop_changed(object);
         }
@@ -603,7 +616,7 @@ namespace Engine
                 for (auto& prop : props)
                 {
                     ImGui::TableNextRow();
-                    if(render_property(window, object, prop, editable))
+                    if (render_property(window, object, prop, editable))
                         has_changed_props = true;
                 }
             }

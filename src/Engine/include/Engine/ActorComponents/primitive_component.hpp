@@ -24,7 +24,6 @@ namespace Engine
     protected:
         bool m_is_visible;
         AABB_3Df m_bounding_box;
-        class SceneLayer* m_layer = nullptr;
 
         void submit_bounds_to_render_thread();
 

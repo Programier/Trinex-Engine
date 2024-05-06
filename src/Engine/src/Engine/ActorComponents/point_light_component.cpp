@@ -67,7 +67,9 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::add_component(PointLightComponent* component, Scene* scene)
+    implement_empty_rendering_methods_for(PointLightComponent);
+
+    ColorSceneRenderer& ColorSceneRenderer::add_component(PointLightComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
         return *this;
@@ -87,7 +89,8 @@ namespace Engine
     }
 
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
-    SceneRenderer& SceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt,
+                                                             SceneLayer* layer)
     {
         render_base_component(component, rt, layer);
 
@@ -131,7 +134,7 @@ namespace Engine
 
         material->apply();
         DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-        engine_instance->rhi()->draw(6);
+        engine_instance->rhi()->draw(6, 0);
         return *this;
     }
 

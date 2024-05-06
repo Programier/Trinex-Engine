@@ -121,20 +121,20 @@ namespace Engine
         return submit_light_info_render_thread();
     }
 
-    SceneRenderer& SceneRenderer::add_component(LightComponent* component, Scene* scene)
+    ColorSceneRenderer& ColorSceneRenderer::add_component(LightComponent* component, Scene* scene)
     {
         deferred_lighting_layer()->add_light(component);
+        return *this;
+    }
+
+    ColorSceneRenderer& ColorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    {
         return *this;
     }
 
     LightComponent& LightComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
     {
         renderer->add_component(this, scene);
-        return *this;
-    }
-
-    SceneRenderer& SceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
-    {
         return *this;
     }
 
@@ -254,11 +254,6 @@ namespace Engine
     {
         m_bounds = AABB_3Df(light_bounds).center(world_transform().location());
         return submit_light_info_render_thread();
-    }
-
-    SceneLayer* LightComponent::scene_layer() const
-    {
-        return m_layer;
     }
 
     LightComponent::~LightComponent()

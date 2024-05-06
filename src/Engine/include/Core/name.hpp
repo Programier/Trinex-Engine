@@ -23,6 +23,16 @@ namespace Engine
         static const Name model;
         static const Name texture;
 
+        static const Name clear_render_targets;
+        static const Name base_pass;
+        static const Name deferred_light_pass;
+        static const Name light_pass;
+        static const Name scene_output_pass;
+        static const Name post_process;
+
+        static const Name color_scene_rendering;
+        static const Name depth_scene_rendering;
+
 
     public:
         struct Entry {

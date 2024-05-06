@@ -115,6 +115,7 @@ namespace Engine
     using LodLevel      = float;
     using LodBias       = float;
     using EnumerateType = std::uint32_t;
+    using PolicyID      = EnumerateType;
 
     using short_t  = std::int16_t;
     using ushort_t = std::uint16_t;

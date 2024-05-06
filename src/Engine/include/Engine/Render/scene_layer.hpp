@@ -14,27 +14,10 @@ namespace Engine
     class ENGINE_EXPORT SceneLayer
     {
     public:
-        enum class Type
-        {
-            Default  = 0,
-            Lighting = 1,
-            Custom   = 2,
-        };
-
-        static ENGINE_EXPORT const Name name_clear_render_targets;
-        static ENGINE_EXPORT const Name name_base_pass;
-        static ENGINE_EXPORT const Name name_deferred_light_pass;
-        static ENGINE_EXPORT const Name name_light_pass;
-        static ENGINE_EXPORT const Name name_scene_output_pass;
-        static ENGINE_EXPORT const Name name_post_process;
-
         using FunctionCallback = void (*)(SceneRenderer*, RenderTargetBase*, SceneLayer*);
-        using MethodCallback   = void (SceneRenderer::*)(RenderTargetBase*, SceneLayer*);
 
-        List<FunctionCallback> begin_render_function_callbacks;
-        List<MethodCallback> begin_render_methods_callbacks;
-        List<FunctionCallback> end_render_function_callbacks;
-        List<MethodCallback> end_render_methods_callbacks;
+        List<FunctionCallback> on_begin_render;
+        List<FunctionCallback> on_end_render;
 
     private:
         SceneLayer* create_next_internal(const Name& name, SceneLayer* (*allocator)(const Name& name));
@@ -49,16 +32,14 @@ namespace Engine
         }
 
     protected:
-        Set<PrimitiveComponent*> m_components;
-
         SceneLayer* m_parent = nullptr;
         SceneLayer* m_next   = nullptr;
         Name m_name;
-        bool m_can_create_parent = true;
 
 
         SceneLayer();
         SceneLayer(const Name& name);
+        virtual bool can_create_parent_layer();
         virtual ~SceneLayer();
 
     public:
@@ -83,22 +64,45 @@ namespace Engine
             return reinterpret_cast<Type*>(create_parent_internal(name, static_layer_allocator<Type>));
         }
 
-        const Set<PrimitiveComponent*>& primitive_components() const;
-
-        virtual Type type() const;
         virtual SceneLayer& clear();
         virtual SceneLayer& begin_render(SceneRenderer* renderer, RenderTargetBase* render_target);
         virtual SceneLayer& render(SceneRenderer*, RenderTargetBase*);
         virtual SceneLayer& end_render(SceneRenderer* renderer, RenderTargetBase* render_target);
-        virtual SceneLayer& add_component(PrimitiveComponent* component);
-        virtual SceneLayer& remove_component(PrimitiveComponent* component);
-        virtual SceneLayer& add_light(LightComponent* component);
-        virtual SceneLayer& remove_light(LightComponent* component);
-
         virtual BatchedLines* batched_lines();
         virtual BatchedTriangles* batched_triangles();
 
         friend class SceneRenderer;
+    };
+
+    class ENGINE_EXPORT RootLayer : public SceneLayer
+    {
+    protected:
+        bool can_create_parent_layer() override;
+
+    public:
+        RootLayer();
+    };
+
+    class ENGINE_EXPORT BasePassSceneLayer : public SceneLayer
+    {
+    private:
+        Set<PrimitiveComponent*> m_components;
+
+    public:
+        BasePassSceneLayer& clear() override;
+        BasePassSceneLayer& begin_render(SceneRenderer* renderer, RenderTargetBase* render_target) override;
+        BasePassSceneLayer& render(SceneRenderer*, RenderTargetBase*) override;
+        BasePassSceneLayer& end_render(SceneRenderer* renderer, RenderTargetBase* render_target) override;
+        virtual SceneLayer& add_component(PrimitiveComponent* component);
+        virtual SceneLayer& remove_component(PrimitiveComponent* component);
+
+        const Set<PrimitiveComponent*>& primitive_components() const;
+    };
+
+    class ENGINE_EXPORT ShadowsLayer : public SceneLayer
+    {
+    public:
+        ShadowsLayer& render(SceneRenderer*, RenderTargetBase*) override;
     };
 
     class ENGINE_EXPORT LightingSceneLayer : public SceneLayer
@@ -107,14 +111,16 @@ namespace Engine
         Set<LightComponent*> m_light_components;
 
     public:
-        SceneLayer::Type type() const override;
         LightingSceneLayer& clear() override;
         LightingSceneLayer& render(SceneRenderer*, RenderTargetBase*) override;
-        LightingSceneLayer& add_light(LightComponent* component) override;
-        LightingSceneLayer& remove_light(LightComponent* component) override;
+        LightingSceneLayer& add_light(LightComponent* component);
+        LightingSceneLayer& remove_light(LightComponent* component);
         const Set<LightComponent*>& light_components() const;
         ~LightingSceneLayer();
-
         friend class SceneLayer;
+    };
+
+    class ENGINE_EXPORT DeferredLightingSceneLayer : public LightingSceneLayer
+    {
     };
 }// namespace Engine

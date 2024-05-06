@@ -535,15 +535,15 @@ namespace Engine
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::draw(size_t vertex_count)
+    VulkanAPI& VulkanAPI::draw(size_t vertex_count, size_t vertices_offset)
     {
-        prepare_draw().current_command_buffer().draw(vertex_count, 1, 0, 0);
+        prepare_draw().current_command_buffer().draw(vertex_count, 1, vertices_offset, 0);
         return *this;
     }
 
-    VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset)
+    VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset, size_t vertices_offset)
     {
-        prepare_draw().current_command_buffer().drawIndexed(indices, 1, offset, 0, 0);
+        prepare_draw().current_command_buffer().drawIndexed(indices, 1, offset, vertices_offset, 0);
         return *this;
     }
 

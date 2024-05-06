@@ -10,14 +10,24 @@ namespace Engine
     class VertexBuffer;
     class IndexBuffer;
 
+    struct ENGINE_EXPORT MeshMaterial {
+        MaterialInterface* material = nullptr;
+        PolicyID policy;
+        byte surface_index;
+    };
+
+
+    struct ENGINE_EXPORT MeshSurface {
+        uint32_t base_vertex_index;
+        uint32_t first_index;
+        uint32_t vertices_count;
+    };
+
     class ENGINE_EXPORT StaticMesh : public Object
     {
         declare_class(StaticMesh, Object);
 
-    private:
     public:
-        MaterialInterface* material = nullptr;
-
         struct ENGINE_EXPORT LOD {
             Vector<Pointer<class PositionVertexBuffer>> positions;
             Vector<Pointer<class TexCoordVertexBuffer>> tex_coords;
@@ -27,6 +37,7 @@ namespace Engine
             Vector<Pointer<class BinormalVertexBuffer>> binormals;
             Pointer<IndexBuffer> indices;
 
+            Vector<MeshSurface> surfaces;
 
         private:
             VertexBuffer* find_position_buffer(Index index) const;
@@ -40,6 +51,7 @@ namespace Engine
             VertexBuffer* find_vertex_buffer(VertexBufferSemantic semantic, Index index = 0) const;
         };
 
+        Vector<MeshMaterial> materials;
         AABB_3Df bounds;
         Vector<LOD> lods;
 
@@ -50,7 +62,8 @@ namespace Engine
         StaticMesh& postload() override;
     };
 
-    ENGINE_EXPORT bool operator& (Archive& ar, StaticMesh::LOD& lod);
+    ENGINE_EXPORT bool operator&(Archive& ar, StaticMesh::LOD& lod);
+    ENGINE_EXPORT bool operator&(Archive& ar, MeshSurface& surface);
 
     class ENGINE_EXPORT DynamicMesh : public Object
     {

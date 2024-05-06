@@ -18,10 +18,10 @@ namespace Engine
     implement_initialize_class(Texture)
     {
         Class* self        = static_class_instance();
-        Enum* swizzle_enum = Enum::find("Engine::Swizzle");
+        Enum* swizzle_enum = Enum::static_find("Engine::Swizzle");
         self->add_properties(new Vec2Property("Size", "Size of texture", &This::size, Name::none, Property::IsConst),
                              new EnumProperty("Format", "Color format of texture", &This::format,
-                                              Enum::find("Engine::ColorFormat"), Name::none, Property::IsConst),
+                                              Enum::static_find("Engine::ColorFormat"), Name::none, Property::IsConst),
 
                              new ByteProperty("Base mip level", "Base mip level of texture", &This::base_mip_level),
                              new ByteProperty("MipMap count", "MipMap Count of texture", &This::mipmap_count),

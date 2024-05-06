@@ -72,7 +72,9 @@ namespace Engine
         return typed_proxy<LocalLightComponentProxy>();
     }
 
-    SceneRenderer& SceneRenderer::add_component(LocalLightComponent* component, Scene* scene)
+    implement_empty_rendering_methods_for(LocalLightComponent);
+
+    ColorSceneRenderer& ColorSceneRenderer::add_component(LocalLightComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
         return *this;
@@ -84,7 +86,7 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
     {
         render_base_component(component, rt, layer);
         return *this;

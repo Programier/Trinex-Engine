@@ -29,63 +29,44 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::add_component(StaticMeshComponent* component, Scene* scene)
+    implement_empty_rendering_methods_for(StaticMeshComponent);
+
+    ColorSceneRenderer& ColorSceneRenderer::add_component(StaticMeshComponent* component, Scene* scene)
     {
         add_base_component(component, scene);
 
         if (component->leaf_class_is<StaticMeshComponent>())
         {
             StaticMesh* mesh = component->mesh;
-            if (mesh && mesh->material && !mesh->lods.empty())
+            if (mesh && !mesh->materials.empty() && !mesh->lods.empty())
             {
-                if (Pipeline* pipeline = mesh->material->material()->pipeline)
-                {
-                    RenderPassType type = pipeline->render_pass_type();
-                    if (type == RenderPassType::OneAttachentOutput)
-                    {
-                        scene_output_layer()->add_component(component);
-                    }
-                    else if (type == RenderPassType::GBuffer)
-                    {
-                        base_pass_layer()->add_component(component);
-                    }
-                }
-            }
-            else if (engine_instance->is_editor())
-            {
-                scene_output_layer()->add_component(component);
+                base_pass_layer()->add_component(component);
             }
         }
         return *this;
     }
 
-    StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
-    {
-        renderer->add_component(this, scene);
-        return *this;
-    }
 
-    SceneRenderer& SceneRenderer::render_component(StaticMeshComponent* component, class RenderTargetBase* rt,
-                                                   class SceneLayer* layer)
+    static void render_static_mesh_component(StaticMeshComponent* component, PolicyID policy, const SceneView& scene_view)
     {
-        render_base_component(component, rt, layer);
+        StaticMesh* mesh   = component->mesh;
+        auto& camera_view  = scene_view.camera_view();
+        float inv_distance = 1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
+                                            camera_view.far_clip_plane);
+        auto& lods         = mesh->lods;
+        Index lod_index    = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
+        auto& lod          = lods[lod_index];
 
-        StaticMesh* mesh = component->mesh;
-        if (mesh && mesh->material)
+        for (auto& material : mesh->materials)
         {
-            auto& camera_view = scene_view().camera_view();
-            float inv_distance =
-                    1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
-                                   camera_view.far_clip_plane);
-            auto& lods      = mesh->lods;
-            Index lod_index = glm::min(static_cast<Index>(static_cast<float>(lods.size()) * inv_distance), lods.size() - 1);
+            if (material.policy != policy || material.material == nullptr ||
+                static_cast<Index>(material.surface_index) > lod.surfaces.size())
+            {
+                continue;
+            }
 
-            auto& lod = lods[lod_index];
-
-            mesh->material->apply(component);
-            VertexShader* shader = mesh->material->material()->pipeline->vertex_shader();
-
-            size_t vertices = Constants::max_size;
+            material.material->apply(component);
+            VertexShader* shader = material.material->material()->pipeline->vertex_shader();
 
             for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
             {
@@ -95,26 +76,35 @@ namespace Engine
                 if (buffer)
                 {
                     buffer->rhi_bind(i, 0);
-
-                    if (attribute.rate == VertexAttributeInputRate::Vertex)
-                    {
-                        vertices = glm::min(buffer->elements_count(), vertices);
-                    }
                 }
             }
 
-            RHI* rhi = engine_instance->rhi();
+            auto& surface = lod.surfaces[material.surface_index];
+            RHI* rhi      = engine_instance->rhi();
 
             if (lod.indices->elements_count() > 0)
             {
-                lod.indices->rhi_bind(0);
-                rhi->draw_indexed(lod.indices->elements_count(), 0);
+                lod.indices->rhi_bind();
+                rhi->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
             }
-            else if (vertices != Constants::max_size)
+            else
             {
-                rhi->draw(vertices);
+                rhi->draw(surface.vertices_count, surface.base_vertex_index);
             }
         }
+    }
+
+    ColorSceneRenderer& ColorSceneRenderer::render_component(StaticMeshComponent* component, class RenderTargetBase* rt,
+                                                             class SceneLayer* layer)
+    {
+        render_base_component(component, rt, layer);
+        render_static_mesh_component(component, policy_id(), scene_view());
+        return *this;
+    }
+
+    StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
+    {
+        renderer->add_component(this, scene);
         return *this;
     }
 

@@ -8,7 +8,9 @@
 
 namespace Engine
 {
-#define declare_name(name) const Name Name::name = #name
+
+#define declare_custom_name(var_name, name) const Name Name::var_name = #name
+#define declare_name(name) declare_custom_name(name, name)
     declare_name(undefined);
     declare_name(out_of_range);
     declare_name(model);
@@ -25,6 +27,14 @@ namespace Engine
     declare_name(intensivity);
     declare_name(location);
     declare_name(direction);
+    declare_custom_name(clear_render_targets, Clear Render Targets);
+    declare_custom_name(base_pass, Base Pass);
+    declare_custom_name(deferred_light_pass, Deferred Light Pass);
+    declare_custom_name(light_pass, Light Pass);
+    declare_custom_name(scene_output_pass, Scene Output Pass);
+    declare_custom_name(post_process, Post Process);
+    declare_custom_name(color_scene_rendering, Color Scene Rendering);
+    declare_custom_name(depth_scene_rendering, Depth Scene Rendering);
 
     static Vector<Name::Entry>& name_entries()
     {

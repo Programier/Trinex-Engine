@@ -40,14 +40,13 @@ namespace Engine
 {
     EditorState::EditorState()
     {
-        viewport.view_mode_entry = Enum::find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
+        viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
     }
 
     implement_engine_class_default_init(EditorClient);
 
     EditorClient::EditorClient()
     {}
-
 
     void EditorClient::unbind_window(bool destroying)
     {
@@ -194,6 +193,7 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
+        m_renderer.reset();
         m_renderer.render(m_scene_view, SceneColorOutput::instance());
 
         viewport->window()->rhi_bind();
@@ -332,9 +332,9 @@ namespace Engine
 
     EditorClient& EditorClient::init_world()
     {
-        m_world      = World::new_system<World>();
-        Scene* scene = m_world->scene();
-        m_renderer.scene(scene);
+        m_world          = World::new_system<World>();
+        Scene* scene     = m_world->scene();
+        m_renderer.scene = scene;
         m_world->start_play();
         return *this;
     }
@@ -484,7 +484,7 @@ namespace Engine
             if (ImGui::BeginPopup("##addition_menu", ImGuiWindowFlags_NoMove))
             {
                 {
-                    static Enum* self = Enum::find("Engine::ViewMode", true);
+                    static Enum* self = Enum::static_find("Engine::ViewMode", true);
 
                     if (ImGui::BeginCombo("editor/View Mode"_localized, m_state.viewport.view_mode_entry->name.c_str()))
                     {

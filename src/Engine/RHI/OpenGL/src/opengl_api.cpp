@@ -99,18 +99,19 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset)
+    OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
     {
         prepare_render();
-        glDrawElements(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT, reinterpret_cast<void*>(indices_offset));
+        glDrawElementsBaseVertex(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
+                                 reinterpret_cast<void*>(indices_offset), vertices_offset);
         reset_samplers();
         return *this;
     }
 
-    OpenGL& OpenGL::draw(size_t vertex_count)
+    OpenGL& OpenGL::draw(size_t vertex_count, size_t vertices_offset)
     {
         prepare_render();
-        glDrawArrays(m_current_pipeline->m_topology, 0, vertex_count);
+        glDrawArrays(m_current_pipeline->m_topology, vertices_offset, vertex_count);
         reset_samplers();
         return *this;
     }

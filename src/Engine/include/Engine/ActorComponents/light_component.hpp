@@ -45,7 +45,6 @@ namespace Engine
         };
 
     private:
-        class SceneLayer* m_layer = nullptr;
         AABB_3Df m_bounds;
         Color3 m_light_color;
         float m_intensivity;
@@ -79,7 +78,6 @@ namespace Engine
         LightComponent& start_play() override;
         LightComponent& stop_play() override;
         LightComponent& update_bounding_box();
-        SceneLayer* scene_layer() const;
         ~LightComponent();
 
         friend class LightingSceneLayer;

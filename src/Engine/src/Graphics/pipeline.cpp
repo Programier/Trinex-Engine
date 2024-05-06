@@ -24,7 +24,7 @@ namespace Engine
         Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);
 
         self->add_properties(
-                new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::find("Engine::DepthFunc", true)),
+                new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::static_find("Engine::DepthFunc", true)),
                 new FloatProperty("Min depth bound", "Min depth bound", &DTI::min_depth_bound),
                 new FloatProperty("Max depth bound", "Max depth bound", &DTI::max_depth_bound),
                 new BoolProperty("Enable", "Enable depth test", &DTI::enable),
@@ -34,8 +34,8 @@ namespace Engine
 
     implement_struct(FaceInfo, Engine::Pipeline::StencilTestInfo, ).push([]() {
         using FI                = Pipeline::StencilTestInfo::FaceInfo;
-        Enum* stencil_op_enum   = Enum::find("Engine::StencilOp", true);
-        Enum* compare_func_enum = Enum::find("Engine::CompareFunc", true);
+        Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
+        Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
         Struct* self            = Struct::static_find("Engine::Pipeline::StencilTestInfo::FaceInfo", true);
 
         self->add_properties(new EnumProperty("Fail", "Operation on fail", &FI::fail, stencil_op_enum),
@@ -64,7 +64,7 @@ namespace Engine
         Struct* self = Struct::static_find("Engine::Pipeline::AssemblyInfo", true);
 
         self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-                                              &AI::primitive_topology, Enum::find("Engine::PrimitiveTopology", true)),
+                                              &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)),
                              new BoolProperty("Enable restart", "Enable primitive restart", &AI::primitive_restart_enable));
     });
 
@@ -83,31 +83,32 @@ namespace Engine
                 new BoolProperty("Enable discard", "If true then shaders can use discard keyword", &RI::discard_enable),
                 new BoolProperty("Enable depth clamp", "Enable depth clamp", &RI::depth_clamp_enable),
 
-                new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode, Enum::find("Engine::PolygonMode", true)),
-                new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::find("Engine::CullMode", true)),
-                new EnumProperty("Front face", "Front face", &RI::front_face, Enum::find("Engine::FrontFace", true)));
+                new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
+                                 Enum::static_find("Engine::PolygonMode", true)),
+                new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
+                new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)));
     });
 
     implement_struct(ColorBlendingInfo, Engine::Pipeline, ).push([]() {
         using CBI    = Pipeline::ColorBlendingInfo;
         Struct* self = Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true);
 
-        Enum* blend_func = Enum::find("Engine::BlendFunc", true);
-        Enum* blend_op   = Enum::find("Engine::BlendOp", true);
+        Enum* blend_func = Enum::static_find("Engine::BlendFunc", true);
+        Enum* blend_op   = Enum::static_find("Engine::BlendOp", true);
+
+        self->add_properties(new BoolProperty("Enable", "Enable blending", &CBI::enable),
+                             new EnumProperty("Src color func", "Src color func", &CBI::src_color_func, blend_func),
+                             new EnumProperty("Dst color func", "Dst color func", &CBI::dst_color_func, blend_func),
+                             new EnumProperty("Color operator", "Color operator", &CBI::color_op, blend_op),
+
+                             new EnumProperty("Src alpha func", "Src alpha func", &CBI::src_alpha_func, blend_func),
+                             new EnumProperty("Dst alpha func", "Dst alpha func", &CBI::dst_alpha_func, blend_func),
+                             new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
+                             new EnumProperty("Color mask", "Color mask", &CBI::color_mask,
+                                              Enum::static_find("Engine::ColorComponentMask", true)));
 
         self->add_properties(
-                new BoolProperty("Enable", "Enable blending", &CBI::enable),
-                new EnumProperty("Src color func", "Src color func", &CBI::src_color_func, blend_func),
-                new EnumProperty("Dst color func", "Dst color func", &CBI::dst_color_func, blend_func),
-                new EnumProperty("Color operator", "Color operator", &CBI::color_op, blend_op),
-
-                new EnumProperty("Src alpha func", "Src alpha func", &CBI::src_alpha_func, blend_func),
-                new EnumProperty("Dst alpha func", "Dst alpha func", &CBI::dst_alpha_func, blend_func),
-                new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
-                new EnumProperty("Color mask", "Color mask", &CBI::color_mask, Enum::find("Engine::ColorComponentMask", true)));
-
-        self->add_properties(
-                new EnumProperty("Logic operator", "Logic operator", &CBI::logic_op, Enum::find("Engine::LogicOp", true)),
+                new EnumProperty("Logic operator", "Logic operator", &CBI::logic_op, Enum::static_find("Engine::LogicOp", true)),
                 new Vec4Property("Blend constants", "Blend constant values", &CBI::blend_constants),
                 new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));
     });
@@ -654,7 +655,7 @@ namespace Engine
     {
         Class* self = static_class_instance();
 
-        Enum* material_usage_enum = Enum::find("Engine::MaterialUsage", true);
+        Enum* material_usage_enum = Enum::static_find("Engine::MaterialUsage", true);
 
         auto render_pass_prop =
                 new EnumProperty("Usage", "Type of usage of this pipeline", &Pipeline::usage, material_usage_enum);

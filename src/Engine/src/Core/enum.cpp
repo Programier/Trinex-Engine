@@ -27,7 +27,7 @@ namespace Engine
     ENGINE_EXPORT Enum* Enum::create(const String& namespace_name, const String& name, const Vector<Enum::Entry>& entries)
     {
         Name full_name = Name(namespace_name.empty() ? name : namespace_name + "::" + name);
-        Enum* _enum    = find(full_name);
+        Enum* _enum    = static_find(full_name);
 
         if (!_enum)
         {
@@ -39,40 +39,61 @@ namespace Engine
 
             if (!namespace_name.empty())
                 _enum->m_namespace_name = namespace_name;
-            _enum->m_entries = entries;
 
-            Index index = 0;
-
-            for (auto& entry : _enum->m_entries)
+            for (auto& entry : entries)
             {
-                entry.index = index;
-                ++index;
+                _enum->create_entry(entry.name, entry.value);
             }
         }
 
         return _enum;
     }
 
+    Index Enum::index_of(const Name& name) const
+    {
+        auto it = m_entries_by_name.find(name);
+        if (it == m_entries_by_name.end())
+            return Constants::index_none;
+        return it->second;
+    }
+
+    Index Enum::index_of(EnumerateType value) const
+    {
+        auto it = m_entries_by_value.find(value);
+        if (it == m_entries_by_value.end())
+            return Constants::index_none;
+        return it->second;
+    }
+
     const Enum::Entry* Enum::entry(EnumerateType value) const
     {
-        for (auto& ell : m_entries)
-        {
-            if (ell.value == value)
-                return &ell;
-        }
-
-        return nullptr;
+        Index index = index_of(value);
+        return index == Constants::index_none ? nullptr : &(m_entries[index]);
     }
 
     const Enum::Entry* Enum::entry(const Name& name) const
     {
-        for (auto& ell : m_entries)
-        {
-            if (ell.name == name)
-                return &ell;
-        }
+        Index index = index_of(name);
+        return index == Constants::index_none ? nullptr : &(m_entries[index]);
+    }
 
-        return nullptr;
+    const Enum::Entry* Enum::create_entry(const Name& name, EnumerateType value)
+    {
+        if (const Entry* e = entry(name))
+            return e;
+        if (const Entry* e = entry(value))
+            return e;
+
+        Entry new_entry;
+        new_entry.name  = name;
+        new_entry.value = value;
+
+        Index index = m_entries.size();
+
+        m_entries.push_back(new_entry);
+        m_entries_by_name.insert({name, index});
+        m_entries_by_value.insert({value, index});
+        return &(m_entries.back());
     }
 
     const Name& Enum::name() const
@@ -95,7 +116,7 @@ namespace Engine
         return m_entries;
     }
 
-    ENGINE_EXPORT Enum* Enum::find(const String& name, bool required)
+    ENGINE_EXPORT Enum* Enum::static_find(const String& name, bool required)
     {
         auto& map = enums_map();
         auto it   = map.find(name);
