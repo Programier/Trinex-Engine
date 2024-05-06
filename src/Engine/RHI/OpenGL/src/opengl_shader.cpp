@@ -200,44 +200,44 @@ namespace Engine
         switch (attribute.type)
         {
             case VertexBufferElementType::Float1:
-                out.size      = sizeof(float);
                 out.count     = 1;
+                out.size      = sizeof(float) * out.count;
                 out.type      = GL_FLOAT;
                 out.normalize = GL_FALSE;
                 break;
             case VertexBufferElementType::Float2:
-                out.size      = sizeof(float);
                 out.count     = 2;
+                out.size      = sizeof(float) * out.count;
                 out.type      = GL_FLOAT;
                 out.normalize = GL_FALSE;
                 break;
             case VertexBufferElementType::Float3:
-                out.size      = sizeof(float);
                 out.count     = 3;
+                out.size      = sizeof(float) * out.count;
                 out.type      = GL_FLOAT;
                 out.normalize = GL_FALSE;
                 break;
             case VertexBufferElementType::Float4:
-                out.size      = sizeof(float);
                 out.count     = 4;
+                out.size      = sizeof(float) * out.count;
                 out.type      = GL_FLOAT;
                 out.normalize = GL_FALSE;
                 break;
             case VertexBufferElementType::UByte4:
-                out.size      = sizeof(byte);
                 out.count     = 4;
+                out.size      = sizeof(byte) * out.count;
                 out.type      = GL_UNSIGNED_BYTE;
                 out.normalize = GL_FALSE;
                 break;
             case VertexBufferElementType::UByte4N:
-                out.size      = sizeof(byte);
-                out.count     = 1;
+                out.count     = 4;
+                out.size      = sizeof(byte) * out.count;
                 out.type      = GL_UNSIGNED_BYTE;
                 out.normalize = GL_TRUE;
                 break;
             case VertexBufferElementType::Color:
-                out.size      = sizeof(byte);
                 out.count     = 4;
+                out.size      = sizeof(byte) * out.count;
                 out.type      = GL_UNSIGNED_BYTE;
                 out.normalize = GL_FALSE;
                 break;
