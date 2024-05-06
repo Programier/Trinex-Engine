@@ -16,18 +16,9 @@ namespace Engine
         static RenderPass* load_gbuffer_render_pass();
         static RenderPass* load_depth_render_pass();
 
-        static RenderPass* load_clear_one_attachement_render_pass();
-        static RenderPass* load_clear_gbuffer_render_pass();
-
     public:
-        struct Attachment {
-            ColorFormat format;
-            bool clear_on_bind = true;
-        };
-
-        Vector<Attachment> color_attachments;
-        Attachment depth_stencil_attachment;
-        bool has_depth_stancil = false;
+        Vector<ColorFormat> color_attachments;
+        ColorFormat depth_stencil_attachment = ColorFormat::Undefined;
 
         RenderPass();
         RenderPass& rhi_create() override;

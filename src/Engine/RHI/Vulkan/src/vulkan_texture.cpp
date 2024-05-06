@@ -368,6 +368,29 @@ namespace Engine
         return new_layout;
     }
 
+    vk::ImageLayout VulkanTexture::change_layout(vk::ImageLayout new_layout, vk::CommandBuffer& cmd)
+    {
+        if (layout() != new_layout)
+        {
+            auto base_mip = base_mipmap();
+
+            vk::ImageMemoryBarrier barrier;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.oldLayout           = m_layout;
+            barrier.newLayout           = new_layout;
+            barrier.image               = m_image;
+
+            barrier.subresourceRange = vk::ImageSubresourceRange(aspect(), base_mip, mipmap_count() - base_mip, 0, layer_count());
+            m_layout                 = barrier.newLayout;
+
+            Barrier::transition_image_layout(cmd, barrier);
+
+            m_layout = new_layout;
+        }
+        return new_layout;
+    }
+
 
     VulkanTexture::~VulkanTexture()
     {

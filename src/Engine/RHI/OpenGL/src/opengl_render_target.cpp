@@ -1,3 +1,4 @@
+#include <Core/colors.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target.hpp>
 #include <Graphics/render_target_texture.hpp>
@@ -5,7 +6,6 @@
 #include <opengl_render_pass.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_texture.hpp>
-#include <Core/colors.hpp>
 
 namespace Engine
 {
@@ -24,20 +24,14 @@ namespace Engine
         }
     }
 
-    void OpenGL_RenderTarget::bind(RenderPass* render_pass)
+    void OpenGL_RenderTarget::bind()
     {
-        OpenGL_RenderPass* opengl_render_pass = render_pass->rhi_object<OpenGL_RenderPass>();
-
-        if (OPENGL_API->m_current_render_target != this || OPENGL_API->m_current_render_pass != opengl_render_pass)
+        if (OPENGL_API->m_current_render_target != this)
         {
             glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
             OPENGL_API->m_current_render_target = this;
-            OPENGL_API->m_current_render_pass   = opengl_render_pass;
-
             update_viewport();
             update_scissors();
-
-            opengl_render_pass->apply(this);
         }
     }
 
@@ -60,10 +54,34 @@ namespace Engine
     }
 
     void OpenGL_RenderTarget::clear_depth_stencil(const DepthStencilClearValue& value)
-    {}
+    {
+        auto current = OPENGL_API->m_current_render_target;
+
+        bind();
+
+        glDepthMask(GL_TRUE);
+        glStencilMask(0xFFFFFFFF);
+        glClearBufferfi(GL_DEPTH_STENCIL, 0, value.depth, value.stencil);
+
+        if (current)
+        {
+            current->bind();
+        }
+    }
 
     void OpenGL_RenderTarget::clear_color(const ColorClearValue& color, byte layout)
-    {}
+    {
+        auto current = OPENGL_API->m_current_render_target;
+
+        bind();
+
+        glClearBufferfv(GL_COLOR, static_cast<GLint>(layout), &color.x);
+
+        if (current)
+        {
+            current->bind();
+        }
+    }
 
     bool OpenGL_RenderTarget::is_active() const
     {
@@ -90,14 +108,8 @@ namespace Engine
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
-        size_t index = 0;
-
-        for (auto& attachment : render_target->color_attachments)
-        {
-            m_clear_color.push_back(attachment.color_clear);
-        }
-
-        m_depth_stencil_clear = render_target->depth_stencil_attachment.depth_stencil_clear;
+        size_t index               = 0;
+        m_has_depth_stencil_buffer = render_target->render_pass->depth_stencil_attachment != ColorFormat::Undefined;
 
         m_viewport.size      = render_target->size;
         m_viewport.pos       = {0.0f, 0.0f};
@@ -112,14 +124,14 @@ namespace Engine
 
         for (const auto& color_attachment : render_target->color_attachments)
         {
-            auto color_texture = color_attachment.texture.ptr();
+            auto color_texture = color_attachment.ptr();
             info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_texture, this);
             attach_texture(color_texture, GL_COLOR_ATTACHMENT0 + index);
             color_attachments.push_back(GL_COLOR_ATTACHMENT0 + index);
             index++;
         }
 
-        auto* depth_attachment = render_target->depth_stencil_attachment.texture.ptr();
+        auto* depth_attachment = render_target->depth_stencil_attachment.ptr();
 
         if (depth_attachment)
         {
@@ -181,9 +193,7 @@ namespace Engine
     }
 
     OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
-    {
-        m_clear_color.push_back(Colors::Black);
-    }
+    {}
 
     OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
     {}

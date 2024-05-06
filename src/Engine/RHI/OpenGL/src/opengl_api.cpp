@@ -26,7 +26,6 @@ namespace Engine
     {
         m_instance         = this;
         m_main_render_pass = new OpenGL_MainRenderPass();
-        m_main_render_pass->m_clear_color_attachmend_on_bind.push_back(true);
     }
 
     OpenGL& OpenGL::initialize()
@@ -145,7 +144,6 @@ namespace Engine
         m_current_render_target = nullptr;
         m_current_pipeline      = nullptr;
         m_current_index_buffer  = nullptr;
-        m_current_render_pass   = nullptr;
         return *this;
     }
 

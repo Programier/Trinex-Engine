@@ -5,17 +5,12 @@
 namespace Engine
 {
     struct OpenGL_RenderTarget : public RHI_RenderTarget {
-
-        Vector<ColorClearValue> m_clear_color;
-        DepthStencilClearValue m_depth_stencil_clear;
-
         ViewPort m_viewport;
         Scissor m_scissor;
-        GLuint m_framebuffer                    = 0;
-
+        GLuint m_framebuffer            = 0;
         bool m_has_depth_stencil_buffer = false;
 
-        void bind(RenderPass* render_pass) override;
+        void bind() override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;

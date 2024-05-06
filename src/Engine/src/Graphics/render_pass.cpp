@@ -42,13 +42,6 @@ namespace Engine
                 pass = load_gbuffer_render_pass();
                 break;
 
-            case RenderPassType::ClearGBuffer:
-                pass = load_clear_gbuffer_render_pass();
-                break;
-
-            case RenderPassType::ClearOneAttachentOutput:
-                pass = load_clear_one_attachement_render_pass();
-                break;
             case RenderPassType::Depth:
                 pass = load_depth_render_pass();
                 break;

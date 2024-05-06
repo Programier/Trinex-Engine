@@ -12,18 +12,8 @@ namespace Engine
         declare_class(RenderTarget, RenderTargetBase);
 
     public:
-        struct ENGINE_EXPORT ColorAttachemnt {
-            Pointer<RenderTargetTexture> texture;
-            ColorClearValue color_clear;
-        };
-
-        struct ENGINE_EXPORT DepthAttachemnt {
-            Pointer<RenderTargetTexture> texture;
-            DepthStencilClearValue depth_stencil_clear;
-        };
-
-        Vector<ColorAttachemnt> color_attachments;
-        DepthAttachemnt depth_stencil_attachment;
+        Vector<Pointer<RenderTargetTexture>> color_attachments;
+        Pointer<RenderTargetTexture> depth_stencil_attachment;
 
         Size2D size;
 

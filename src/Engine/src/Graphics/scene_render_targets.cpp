@@ -52,15 +52,15 @@ namespace Engine
         {
             for (auto& attachment : color_attachments)
             {
-                attachment.texture->size = size;
-                attachment.texture->init_resource();
+                attachment->size = size;
+                attachment->init_resource();
             }
         }
 
-        if (depth_stencil_attachment.texture && m_enable_depth_stencil_initialize)
+        if (depth_stencil_attachment && m_enable_depth_stencil_initialize)
         {
-            depth_stencil_attachment.texture->size = size;
-            depth_stencil_attachment.texture->init_resource();
+            depth_stencil_attachment->size = size;
+            depth_stencil_attachment->init_resource();
         }
 
         init_resource();
@@ -137,16 +137,12 @@ namespace Engine
     public:
         GBufferRenderPass()
         {
-            has_depth_stancil                      = true;
-            depth_stencil_attachment.clear_on_bind = true;
-            depth_stencil_attachment.format        = depth_format();
-
+            depth_stencil_attachment = depth_format();
             color_attachments.resize(gbuffer_color_attachments);
 
             for (size_t i = 0; i < gbuffer_color_attachments; i++)
             {
-                color_attachments[i].clear_on_bind = true;
-                color_attachments[i].format        = attachment_texture_info[i].required_format();
+                color_attachments[i] = attachment_texture_info[i].required_format();
             }
         }
 
@@ -160,26 +156,9 @@ namespace Engine
     RenderPass* RenderPass::load_gbuffer_render_pass()
     {
         RenderPass* pass = Object::new_non_serializable_instance<EngineResource<GBufferRenderPass>>();
-
-        for (auto& ell : pass->color_attachments)
-        {
-            ell.clear_on_bind = false;
-        }
-
-        pass->depth_stencil_attachment.clear_on_bind = false;
-
-        pass->init_resource(true);
-
-        return pass;
-    }
-
-    RenderPass* RenderPass::load_clear_gbuffer_render_pass()
-    {
-        RenderPass* pass = Object::new_non_serializable_instance<EngineResource<GBufferRenderPass>>();
         pass->init_resource(true);
         return pass;
     }
-
 
     GBuffer::GBuffer()
     {
@@ -188,21 +167,17 @@ namespace Engine
         render_pass = RenderPass::load_render_pass(RenderPassType::GBuffer);
         color_attachments.resize(gbuffer_color_attachments);
 
-        depth_stencil_attachment.depth_stencil_clear.depth   = 1.f;
-        depth_stencil_attachment.depth_stencil_clear.stencil = 0.0;
-
-        depth_stencil_attachment.texture =
+        depth_stencil_attachment =
                 Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>("Engine::GBuffer::Depth");
-        depth_stencil_attachment.texture->format = render_pass->depth_stencil_attachment.format;
+        depth_stencil_attachment->format = render_pass->depth_stencil_attachment;
 
         for (size_t i = 0; i < gbuffer_color_attachments; i++)
         {
             auto& info                   = attachment_texture_info[i];
             RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
                     Strings::format("Engine::GBuffer::{}", info.name));
-            texture->format                  = render_pass->color_attachments[i].format;
-            color_attachments[i].texture     = texture;
-            color_attachments[i].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
+            texture->format      = render_pass->color_attachments[i];
+            color_attachments[i] = texture;
         }
 
         init(WindowManager::instance()->calculate_gbuffer_size());
@@ -210,32 +185,32 @@ namespace Engine
 
     RenderTargetTexture* GBuffer::base_color() const
     {
-        return color_attachments[base_color_index].texture.ptr();
+        return color_attachments[base_color_index].ptr();
     }
 
     RenderTargetTexture* GBuffer::position() const
     {
-        return color_attachments[position_index].texture.ptr();
+        return color_attachments[position_index].ptr();
     }
 
     RenderTargetTexture* GBuffer::normal() const
     {
-        return color_attachments[normal_index].texture.ptr();
+        return color_attachments[normal_index].ptr();
     }
 
     RenderTargetTexture* GBuffer::emissive() const
     {
-        return color_attachments[emissive_index].texture.ptr();
+        return color_attachments[emissive_index].ptr();
     }
 
     RenderTargetTexture* GBuffer::msra_buffer() const
     {
-        return color_attachments[msra_buffer_index].texture.ptr();
+        return color_attachments[msra_buffer_index].ptr();
     }
 
     RenderTargetTexture* GBuffer::depth() const
     {
-        return depth_stencil_attachment.texture.ptr();
+        return depth_stencil_attachment.ptr();
     }
 
     GBuffer::~GBuffer()
@@ -255,17 +230,16 @@ namespace Engine
 
         render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
         color_attachments.resize(1);
-        color_attachments[0].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
-        color_attachments[0].texture     = GBuffer::instance()->base_color();
+        color_attachments[0] = GBuffer::instance()->base_color();
 
-        depth_stencil_attachment.texture = GBuffer::instance()->depth();
+        depth_stencil_attachment = GBuffer::instance()->depth();
 
         init(WindowManager::instance()->calculate_gbuffer_size());
     }
 
     RenderTargetTexture* GBufferBaseColorOutput::texture() const
     {
-        return color_attachments[0].texture.ptr();
+        return color_attachments[0].ptr();
     }
 
     GBufferBaseColorOutput::~GBufferBaseColorOutput()
@@ -280,15 +254,11 @@ namespace Engine
     public:
         OneAttachmentOutputRenderPass()
         {
-            has_depth_stancil = true;
-
             // Initialize color attachments
             color_attachments.resize(1);
-            color_attachments[0].clear_on_bind = true;
-            color_attachments[0].format        = base_color_format();
+            color_attachments[0] = base_color_format();
 
-            depth_stencil_attachment.format        = depth_format();
-            depth_stencil_attachment.clear_on_bind = false;
+            depth_stencil_attachment = depth_format();
         }
 
         RenderPassType type() const override
@@ -298,19 +268,6 @@ namespace Engine
     };
 
     RenderPass* RenderPass::load_one_attachement_render_pass()
-    {
-        RenderPass* pass = Object::new_non_serializable_instance<OneAttachmentOutputRenderPass>();
-
-        for (auto& ell : pass->color_attachments)
-        {
-            ell.clear_on_bind = false;
-        }
-
-        pass->init_resource(true);
-        return pass;
-    }
-
-    RenderPass* RenderPass::load_clear_one_attachement_render_pass()
     {
         RenderPass* pass = Object::new_non_serializable_instance<OneAttachmentOutputRenderPass>();
         pass->init_resource(true);
@@ -327,21 +284,19 @@ namespace Engine
         render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
         color_attachments.resize(1);
 
-        color_attachments[0].color_clear = ColorClearValue(0.0f, 0.0f, 0.0f, 1.0f);
-
         RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
                 "Engine::SceneColorOutput::Color");
-        texture->format = render_pass->color_attachments[0].format;
+        texture->format = render_pass->color_attachments[0];
 
-        color_attachments[0].texture     = texture;
-        depth_stencil_attachment.texture = GBuffer::instance()->depth();
+        color_attachments[0]     = texture;
+        depth_stencil_attachment = GBuffer::instance()->depth();
 
         init(WindowManager::instance()->calculate_gbuffer_size());
     }
 
     RenderTargetTexture* SceneColorOutput::texture() const
     {
-        return color_attachments[0].texture.ptr();
+        return color_attachments[0].ptr();
     }
 
     SceneColorOutput::~SceneColorOutput()

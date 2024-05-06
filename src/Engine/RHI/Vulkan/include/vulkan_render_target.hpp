@@ -12,7 +12,6 @@ namespace Engine
         vk::Extent2D m_size;
         vk::Rect2D m_scissor;
         vk::Viewport m_viewport;
-        Vector<vk::ClearValue> m_clear_values = {vk::ClearValue(vk::ClearColorValue(Array<float, 4>({0.0f, 0.0f, 0.0f, 1.0f})))};
 
         void init(const RenderTarget* render_target, VulkanRenderPass* render_pass);
         void post_init();
@@ -28,6 +27,7 @@ namespace Engine
     struct VulkanRenderTargetBase : RHI_RenderTarget {
         vk::Framebuffer m_framebuffer;
         Vector<vk::ImageView> m_attachments;
+        Vector<struct VulkanTexture*> m_images;
         VulkanRenderTargetState* m_state = nullptr;
 
         virtual VulkanRenderTargetBase& init(const RenderTarget* info, VulkanRenderPass* render_pass);
@@ -37,7 +37,7 @@ namespace Engine
         VulkanRenderTargetBase& post_init();
         VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
-        void bind(RenderPass* render_pass) override;
+        void bind() override;
         VulkanRenderTargetBase& unbind(VulkanRenderPass* next_render_pass = nullptr);
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
@@ -76,7 +76,7 @@ namespace Engine
         bool is_destroyable() const override;
         VulkanWindowRenderTargetFrame* frame();
 
-        void bind(RenderPass* render_pass) override;
+        void bind() override;
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         void clear_depth_stencil(const DepthStencilClearValue& value) override;

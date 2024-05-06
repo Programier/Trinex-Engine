@@ -12,24 +12,16 @@ namespace Engine
     implement_default_initialize_class(RenderTargetBase);
 
     RenderTargetBase* RenderTargetBase::m_current_target = nullptr;
-    RenderPass* RenderTargetBase::m_current_pass         = nullptr;
 
     RenderTargetBase::RenderTargetBase()
     {}
 
-    RenderTargetBase& RenderTargetBase::rhi_bind(RenderPass* new_render_pass)
+    RenderTargetBase& RenderTargetBase::rhi_bind()
     {
         if (m_rhi_object != nullptr)
         {
-            if (!new_render_pass)
-            {
-                new_render_pass = render_pass;
-            }
-            {
-                rhi_object<RHI_RenderTarget>()->bind(new_render_pass);
-                m_current_target = this;
-                m_current_pass   = new_render_pass;
-            }
+            rhi_object<RHI_RenderTarget>()->bind();
+            m_current_target = this;
         }
 
         return *this;
@@ -55,19 +47,11 @@ namespace Engine
         return *this;
     }
 
-    const RenderTargetBase& RenderTargetBase::clear_color(const ColorClearValue& color, byte layout) const
+    const RenderTargetBase& RenderTargetBase::rhi_clear_color(const ColorClearValue& color, byte layout) const
     {
         if (m_rhi_object)
         {
-            if (is_in_render_thread())
-            {
-                rhi_object<RHI_RenderTarget>()->clear_color(color, layout);
-            }
-            else
-            {
-                RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
-                call_in_render_thread([rt, color, layout]() { rt->clear_color(color, layout); });
-            }
+            rhi_object<RHI_RenderTarget>()->clear_color(color, layout);
         }
         return *this;
     }
@@ -92,19 +76,11 @@ namespace Engine
         return *this;
     }
 
-    const RenderTargetBase& RenderTargetBase::clear_depth_stencil(const DepthStencilClearValue& value) const
+    const RenderTargetBase& RenderTargetBase::rhi_clear_depth_stencil(const DepthStencilClearValue& value) const
     {
         if (m_rhi_object)
         {
-            if (is_in_render_thread())
-            {
-                rhi_object<RHI_RenderTarget>()->clear_depth_stencil(value);
-            }
-            else
-            {
-                RHI_RenderTarget* rt = rhi_object<RHI_RenderTarget>();
-                call_in_render_thread([rt, value]() { rt->clear_depth_stencil(value); });
-            }
+            rhi_object<RHI_RenderTarget>()->clear_depth_stencil(value);
         }
         return *this;
     }
@@ -122,11 +98,6 @@ namespace Engine
     void RenderTargetBase::reset_current_target()
     {
         m_current_target = nullptr;
-    }
-
-    RenderPass* RenderTargetBase::current_render_pass()
-    {
-        return m_current_pass;
     }
 
     RenderTargetBase::~RenderTargetBase()

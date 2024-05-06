@@ -17,7 +17,6 @@ namespace Engine
 
         // STATE
         struct OpenGL_RenderTarget* m_current_render_target = nullptr;
-        struct OpenGL_RenderPass* m_current_render_pass     = nullptr;
         struct OpenGL_Pipeline* m_current_pipeline          = nullptr;
         struct OpenGL_IndexBuffer* m_current_index_buffer   = nullptr;
         Vector<BindingIndex> m_sampler_units;

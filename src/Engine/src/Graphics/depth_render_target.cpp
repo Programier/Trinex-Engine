@@ -14,9 +14,7 @@ namespace Engine
     public:
         DepthRenderPass()
         {
-            has_depth_stancil                      = true;
-            depth_stencil_attachment.clear_on_bind = true;
-            depth_stencil_attachment.format        = ColorFormat::ShadowDepth;
+            depth_stencil_attachment = ColorFormat::ShadowDepth;
         }
 
         RenderPassType type() const override
@@ -37,18 +35,17 @@ namespace Engine
 
     DepthRenderTarget::DepthRenderTarget()
     {
-        size                                         = {512, 512};
-        depth_stencil_attachment.depth_stencil_clear = DepthStencilClearValue();
-        depth_stencil_attachment.texture             = Object::new_instance<RenderTargetTexture>();
-        depth_stencil_attachment.texture->size       = {512, 512};
-        depth_stencil_attachment.texture->format     = ColorFormat::ShadowDepth;
+        size                             = {512, 512};
+        depth_stencil_attachment         = Object::new_instance<RenderTargetTexture>();
+        depth_stencil_attachment->size   = {512, 512};
+        depth_stencil_attachment->format = ColorFormat::ShadowDepth;
     }
 
     DepthRenderTarget& DepthRenderTarget::rhi_create()
     {
-        Texture2D* texture = depth_stencil_attachment.texture;
+        Texture2D* texture = depth_stencil_attachment;
         size               = texture->size;
-        depth_stencil_attachment.texture->rhi_create();
+        depth_stencil_attachment->rhi_create();
         Super::rhi_create();
         return *this;
     }

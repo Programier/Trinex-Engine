@@ -338,10 +338,7 @@ namespace Engine
         OneAttachentOutput = 2,
         GBuffer            = 3,
         Depth              = 4,
-
-        ClearOneAttachentOutput = 5,
-        ClearGBuffer            = 6,
-        __COUNT__,
+        __COUNT__          = 4,
     };
 
     enum class MaterialUsage : EnumerateType

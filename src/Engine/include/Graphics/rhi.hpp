@@ -55,7 +55,7 @@ namespace Engine
     };
 
     struct RHI_RenderTarget : RHI_Object {
-        virtual void bind(RenderPass* render_pass)                            = 0;
+        virtual void bind()                                                   = 0;
         virtual void viewport(const ViewPort& viewport)                       = 0;
         virtual void scissor(const Scissor& scissor)                          = 0;
         virtual void clear_depth_stencil(const DepthStencilClearValue& value) = 0;

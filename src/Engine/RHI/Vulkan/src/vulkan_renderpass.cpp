@@ -8,11 +8,10 @@ namespace Engine
 {
     VulkanRenderPass& VulkanRenderPass::create_attachment_descriptions(const RenderPass* render_pass)
     {
-        for (const RenderPass::Attachment& color_attachment : render_pass->color_attachments)
+        for (const ColorFormat& color_attachment : render_pass->color_attachments)
         {
-            vk::Format format = parse_engine_format(color_attachment.format);
-            vk::AttachmentLoadOp clear_op =
-                    color_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad;
+            vk::Format format               = parse_engine_format(color_attachment);
+            vk::AttachmentLoadOp clear_op   = vk::AttachmentLoadOp::eLoad;
             vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
 
             vk::AttachmentDescription description = vk::AttachmentDescription(
@@ -23,13 +22,12 @@ namespace Engine
             m_attachment_descriptions.push_back(description);
         }
 
-        if (render_pass->has_depth_stancil)
+        if (render_pass->depth_stencil_attachment != ColorFormat::Undefined)
         {
-            m_has_depth_attachment          = true;
-            vk::Format format               = parse_engine_format(render_pass->depth_stencil_attachment.format);
-            vk::AttachmentLoadOp clear_op   = render_pass->depth_stencil_attachment.clear_on_bind ? vk::AttachmentLoadOp::eClear
-                                                                                                  : vk::AttachmentLoadOp::eLoad;
-            vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
+            m_has_depth_attachment                = true;
+            vk::Format format                     = parse_engine_format(render_pass->depth_stencil_attachment);
+            vk::AttachmentLoadOp clear_op         = vk::AttachmentLoadOp::eLoad;
+            vk::ImageLayout input_layout_op       = vk::ImageLayout::eShaderReadOnlyOptimal;
             vk::AttachmentDescription description = vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
@@ -47,11 +45,11 @@ namespace Engine
             m_color_attachment_references.push_back(vk::AttachmentReference(index, vk::ImageLayout::eColorAttachmentOptimal));
         }
 
-        if (render_pass->has_depth_stancil)
+        if (render_pass->depth_stencil_attachment != ColorFormat::Undefined)
         {
             vk::ImageLayout layout;
 
-            switch (render_pass->depth_stencil_attachment.format)
+            switch (render_pass->depth_stencil_attachment)
             {
                 case ColorFormat::ShadowDepth:
                 case ColorFormat::FilteredShadowDepth:
@@ -147,7 +145,7 @@ namespace Engine
             m_main_render_pass->m_has_depth_attachment = false;
 
             m_main_render_pass->m_attachment_descriptions.push_back(vk::AttachmentDescription(
-                    vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear,
+                    vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eDontCare,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
                     vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR));
 
@@ -163,8 +161,7 @@ namespace Engine
     RHI_RenderPass* VulkanAPI::window_render_pass(RenderPass* engine_render_pass)
     {
         engine_render_pass->color_attachments.resize(1);
-        engine_render_pass->color_attachments[0].clear_on_bind = true;
-        engine_render_pass->color_attachments[0].format        = ColorFormat::R8G8B8A8;
+        engine_render_pass->color_attachments[0] = ColorFormat::R8G8B8A8;
         return API->m_main_render_pass;
     }
 }// namespace Engine

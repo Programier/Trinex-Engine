@@ -49,6 +49,7 @@ namespace Engine
         vk::Offset2D get_mip_size(MipMapLevel level) const;
         vk::ImageView create_image_view(const vk::ImageSubresourceRange& range);
         vk::ImageLayout change_layout(vk::ImageLayout new_layout);
+        vk::ImageLayout change_layout(vk::ImageLayout new_layout, vk::CommandBuffer& cmd);
 
         ~VulkanTexture();
     };

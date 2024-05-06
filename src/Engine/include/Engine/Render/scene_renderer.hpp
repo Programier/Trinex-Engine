@@ -50,7 +50,7 @@ namespace Engine
 
         const GlobalShaderParameters& global_shader_parameters() const;
         const SceneView& scene_view() const;
-        SceneRenderer& begin_rendering_target(RenderTargetBase* render_target, class RenderPass* render_pass = nullptr);
+        SceneRenderer& begin_rendering_target(RenderTargetBase* render_target);
         SceneRenderer& end_rendering_target();
 
         virtual SceneRenderer& render(const SceneView& view, RenderTargetBase* render_target);

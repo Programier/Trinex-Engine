@@ -63,12 +63,12 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::begin_rendering_target(RenderTargetBase* render_target, RenderPass* render_pass)
+    SceneRenderer& SceneRenderer::begin_rendering_target(RenderTargetBase* render_target)
     {
         setup_parameters(render_target);
         RHI* rhi = engine_instance->rhi();
         rhi->push_global_params(global_shader_parameters());
-        render_target->rhi_bind(render_pass);
+        render_target->rhi_bind();
         return *this;
     }
 
@@ -198,8 +198,13 @@ namespace Engine
     {
         m_clear_layer = root_layer()->create_next(Name::clear_render_targets);
         m_clear_layer->on_begin_render.push_back(declare_rendering_function() {
-            GBuffer::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearGBuffer));
-            SceneColorOutput::instance()->rhi_bind(RenderPass::load_render_pass(RenderPassType::ClearOneAttachentOutput));
+            auto gbuffer = GBuffer::instance();
+            for (byte i = 0, count = static_cast<byte>(gbuffer->color_attachments.size()); i < count; ++i)
+            {
+                gbuffer->rhi_clear_color(ColorClearValue(0.0f, 0.f, 0.f, 1.f), i);
+            }
+            gbuffer->rhi_clear_depth_stencil(DepthStencilClearValue(1.0f, 0));
+            GBuffer::instance()->rhi_clear_color(ColorClearValue(0.f, 0.f, 0.f, 1.f));
         });
 
         static SceneLayer::FunctionCallback end_rendering = declare_rendering_function()
