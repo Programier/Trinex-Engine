@@ -69,7 +69,6 @@ namespace Engine
 
         vk::ImageUsageFlags m_usage_flags =
                 vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-
         vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
 
 
@@ -96,9 +95,10 @@ namespace Engine
         // Creating image view
         m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
                                          get_type(texture->swizzle_a));
-        vk::ImageViewCreateInfo view_info({}, m_image, view_type(), m_vulkan_format, m_swizzle,
-                                          subresource_range(texture->base_mip_level));
-        m_image_view = API->m_device.createImageView(view_info);
+        m_image_view = create_image_view(
+                vk::ImageSubresourceRange(aspect(true), m_engine_texture->base_mip_level,
+                                          m_engine_texture->mipmap_count - m_engine_texture->base_mip_level, 0, layer_count()));
+
         change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
         if (data)
@@ -191,11 +191,6 @@ namespace Engine
         return *this;
     }
 
-    vk::ImageSubresourceRange VulkanTexture::subresource_range(MipMapLevel base)
-    {
-        return vk::ImageSubresourceRange(aspect(), base, m_engine_texture->mipmap_count - base, 0, layer_count());
-    }
-
     uint_t VulkanTexture::layer_count() const
     {
         return m_engine_texture->type() == TextureType::Texture2D ? 1 : 6;
@@ -206,7 +201,7 @@ namespace Engine
         return m_engine_texture->type() == TextureType::Texture2D ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
     }
 
-    vk::ImageAspectFlags VulkanTexture::aspect() const
+    vk::ImageAspectFlags VulkanTexture::aspect(bool use_for_shader_attachment) const
     {
         if (is_color_image())
         {
@@ -214,7 +209,14 @@ namespace Engine
         }
         else if (is_in<ColorFormat::DepthStencil>(m_engine_texture->format))
         {
-            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+            if (use_for_shader_attachment)
+            {
+                return vk::ImageAspectFlagBits::eDepth;
+            }
+            else
+            {
+                return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+            }
         }
 
         return vk::ImageAspectFlagBits::eDepth;
@@ -255,7 +257,8 @@ namespace Engine
 
         vk::CommandBuffer command_buffer = API->begin_single_time_command_buffer();
 
-        auto subresource       = subresource_range(m_engine_texture->base_mip_level);
+        auto subresource = vk::ImageSubresourceRange(aspect(), base_mipmap(), m_engine_texture->mipmap_count - base_mipmap(), 0,
+                                                     layer_count());
         subresource.levelCount = 1;
         subresource.layerCount = 1;
 

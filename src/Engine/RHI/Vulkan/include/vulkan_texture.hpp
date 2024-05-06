@@ -27,12 +27,12 @@ namespace Engine
         uint_t layer_count() const;
         MipMapLevel mipmap_count();
         MipMapLevel base_mipmap();
-        vk::ImageAspectFlags aspect() const;
+        vk::ImageAspectFlags aspect(bool use_for_shader_attachment = false) const;
 
         VulkanTexture& create(const Texture* texture, const byte* data, size_t size);
         VulkanTexture& destroy();
 
-        vk::ImageSubresourceRange subresource_range(MipMapLevel base);
+
         vk::ImageViewType view_type() const;
 
         void generate_mipmap() override;
@@ -48,9 +48,7 @@ namespace Engine
 
         vk::Offset2D get_mip_size(MipMapLevel level) const;
         vk::ImageView create_image_view(const vk::ImageSubresourceRange& range);
-
         vk::ImageLayout change_layout(vk::ImageLayout new_layout);
-
 
         ~VulkanTexture();
     };

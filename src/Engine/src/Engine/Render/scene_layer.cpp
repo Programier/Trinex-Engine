@@ -217,9 +217,27 @@ namespace Engine
         return m_components;
     }
 
-    ShadowsLayer& ShadowsLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
+    DepthRenderingLayer& DepthRenderingLayer::clear()
     {
-        // auto base_pass_layer = renderer->base_pass_layer();
+        SceneLayer::clear();
+        m_light_components.clear();
+        return *this;
+    }
+
+    DepthRenderingLayer& DepthRenderingLayer::add_light(LightComponent* component)
+    {
+        m_light_components.insert(component);
+        return *this;
+    }
+
+    DepthRenderingLayer& DepthRenderingLayer::remove_light(LightComponent* component)
+    {
+        m_light_components.erase(component);
+        return *this;
+    }
+
+    DepthRenderingLayer& DepthRenderingLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
+    {
         return *this;
     }
 

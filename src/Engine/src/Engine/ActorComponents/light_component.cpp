@@ -124,6 +124,10 @@ namespace Engine
     ColorSceneRenderer& ColorSceneRenderer::add_component(LightComponent* component, Scene* scene)
     {
         deferred_lighting_layer()->add_light(component);
+        if(component->proxy()->is_shadows_enabled())
+        {
+            depth_layer()->add_light(component);
+        }
         return *this;
     }
 

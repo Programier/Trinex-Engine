@@ -10,6 +10,7 @@ namespace Engine
 {
     class SceneRenderer;
     class RenderViewport;
+    class DepthRenderingLayer;
     class SceneLayer;
     class LightingSceneLayer;
     class DeferredLightingSceneLayer;
@@ -56,7 +57,6 @@ namespace Engine
         SceneRenderer& begin_rendering_target(RenderTargetBase* render_target, class RenderPass* render_pass = nullptr);
         SceneRenderer& end_rendering_target();
 
-        virtual SceneRenderer& reset();
         virtual SceneRenderer& render(const SceneView& view, RenderTargetBase* render_target);
 
         // Add components to scene layers
@@ -108,8 +108,11 @@ namespace Engine
     class ENGINE_EXPORT ColorSceneRenderer : public SceneRenderer
     {
     private:
+        DepthSceneRenderer* m_depth_renderer = nullptr;
+
         // Layers
         SceneLayer* m_clear_layer                             = nullptr;
+        DepthRenderingLayer* m_depth_layer                    = nullptr;
         BasePassSceneLayer* m_base_pass_layer                 = nullptr;
         DeferredLightingSceneLayer* m_deferred_lighting_layer = nullptr;
         SceneLayer* m_scene_output                            = nullptr;
@@ -122,6 +125,7 @@ namespace Engine
 
     public:
         ColorSceneRenderer();
+        ~ColorSceneRenderer();
         delete_copy_constructors(ColorSceneRenderer);
 
         static PolicyID policy_id();
@@ -136,6 +140,11 @@ namespace Engine
         FORCE_INLINE SceneLayer* clear_layer() const
         {
             return m_clear_layer;
+        }
+
+        FORCE_INLINE DepthRenderingLayer* depth_layer() const
+        {
+            return m_depth_layer;
         }
 
         FORCE_INLINE BasePassSceneLayer* base_pass_layer() const
@@ -157,6 +166,8 @@ namespace Engine
         {
             return m_post_process_layer;
         }
+
+        virtual DepthSceneRenderer* create_depth_renderer();
 
         // Add components to scene layers
         ColorSceneRenderer& add_component(PrimitiveComponent* component, Scene* scene) override;

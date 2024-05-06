@@ -36,7 +36,7 @@ namespace Engine
         RenderTargetTexture* base_color() const;
         // [float3(position), w]
         RenderTargetTexture* position() const;
-        // [float3(normal), facing_sigh);
+        // [float3(normal), facing_sign);
         RenderTargetTexture* normal() const;
         // [float4(emissive));
         RenderTargetTexture* emissive() const;

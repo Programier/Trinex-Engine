@@ -337,9 +337,10 @@ namespace Engine
         Window             = 1,
         OneAttachentOutput = 2,
         GBuffer            = 3,
+        Depth              = 4,
 
-        ClearOneAttachentOutput = 4,
-        ClearGBuffer            = 5,
+        ClearOneAttachentOutput = 5,
+        ClearGBuffer            = 6,
         __COUNT__,
     };
 

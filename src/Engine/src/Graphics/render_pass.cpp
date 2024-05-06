@@ -49,6 +49,9 @@ namespace Engine
             case RenderPassType::ClearOneAttachentOutput:
                 pass = load_clear_one_attachement_render_pass();
                 break;
+            case RenderPassType::Depth:
+                pass = load_depth_render_pass();
+                break;
 
             default:
                 break;

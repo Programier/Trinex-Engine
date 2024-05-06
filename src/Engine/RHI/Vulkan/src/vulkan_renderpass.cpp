@@ -164,8 +164,7 @@ namespace Engine
     {
         engine_render_pass->color_attachments.resize(1);
         engine_render_pass->color_attachments[0].clear_on_bind = true;
-//        engine_render_pass->color_attachments[0].format =
-//                to_engine_format(API->m_main_render_pass->m_attachment_descriptions[0].format);
+        engine_render_pass->color_attachments[0].format        = ColorFormat::R8G8B8A8;
         return API->m_main_render_pass;
     }
 }// namespace Engine

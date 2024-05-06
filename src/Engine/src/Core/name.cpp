@@ -29,6 +29,7 @@ namespace Engine
     declare_name(direction);
     declare_custom_name(clear_render_targets, Clear Render Targets);
     declare_custom_name(base_pass, Base Pass);
+    declare_custom_name(depth_pass, Depth Pass);
     declare_custom_name(deferred_light_pass, Deferred Light Pass);
     declare_custom_name(light_pass, Light Pass);
     declare_custom_name(scene_output_pass, Scene Output Pass);

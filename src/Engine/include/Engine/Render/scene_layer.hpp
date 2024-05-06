@@ -99,10 +99,15 @@ namespace Engine
         const Set<PrimitiveComponent*>& primitive_components() const;
     };
 
-    class ENGINE_EXPORT ShadowsLayer : public SceneLayer
+    class ENGINE_EXPORT DepthRenderingLayer : public SceneLayer
     {
+        Set<LightComponent*> m_light_components;
+
     public:
-        ShadowsLayer& render(SceneRenderer*, RenderTargetBase*) override;
+        DepthRenderingLayer& clear() override;
+        DepthRenderingLayer& add_light(LightComponent* component);
+        DepthRenderingLayer& remove_light(LightComponent* component);
+        DepthRenderingLayer& render(SceneRenderer*, RenderTargetBase*) override;
     };
 
     class ENGINE_EXPORT LightingSceneLayer : public SceneLayer

@@ -193,7 +193,6 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        m_renderer.reset();
         m_renderer.render(m_scene_view, SceneColorOutput::instance());
 
         viewport->window()->rhi_bind();

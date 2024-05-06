@@ -77,27 +77,24 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::reset()
+    SceneRenderer& SceneRenderer::render(const SceneView& view, RenderTargetBase* render_target)
     {
+        if (scene == nullptr)
+            return *this;
+
+        m_global_shader_params.clear();
+        m_scene_views.clear();
+
+        m_scene_views.push_back(view);
+
+        auto rhi = engine_instance->rhi();
+
         for (auto layer = root_layer(); layer; layer = layer->next())
         {
             layer->clear();
         }
 
         scene->build_views(this);
-        m_global_shader_params.clear();
-        m_scene_views.clear();
-        return *this;
-    }
-
-    SceneRenderer& SceneRenderer::render(const SceneView& view, RenderTargetBase* render_target)
-    {
-        if (scene == nullptr)
-            return *this;
-
-        m_scene_views.push_back(view);
-
-        auto rhi = engine_instance->rhi();
 
         for (auto layer = root_layer(); layer; layer = layer->next())
         {
@@ -201,6 +198,11 @@ namespace Engine
         }
     }
 
+    static void begin_depth_pass(SceneRenderer* _self, RenderTargetBase* rt, SceneLayer* layer)
+    {
+        ColorSceneRenderer* self = reinterpret_cast<ColorSceneRenderer*>(_self);
+    }
+
     ColorSceneRenderer::ColorSceneRenderer() : m_view_mode(ViewMode::Lit)
     {
         m_clear_layer = root_layer()->create_next(Name::clear_render_targets);
@@ -214,7 +216,9 @@ namespace Engine
             self->end_rendering_target();
         };
 
-        m_base_pass_layer = m_clear_layer->create_next<BasePassSceneLayer>(Name::base_pass);
+        m_depth_layer     = m_clear_layer->create_next<DepthRenderingLayer>(Name::depth_pass);
+        m_depth_layer->on_begin_render.push_back(begin_depth_pass);
+        m_base_pass_layer = m_depth_layer->create_next<BasePassSceneLayer>(Name::base_pass);
 
         m_deferred_lighting_layer = m_base_pass_layer->create_next<DeferredLightingSceneLayer>(Name::deferred_light_pass);
         m_deferred_lighting_layer->on_begin_render.push_back(
@@ -224,6 +228,19 @@ namespace Engine
         m_scene_output       = m_deferred_lighting_layer->create_next(Name::scene_output_pass);
         m_post_process_layer = m_scene_output->create_next(Name::post_process);
         m_post_process_layer->on_end_render.push_back(end_rendering);
+    }
+
+    DepthSceneRenderer* ColorSceneRenderer::create_depth_renderer()
+    {
+        return new DepthSceneRenderer();
+    }
+
+    ColorSceneRenderer::~ColorSceneRenderer()
+    {
+        if (m_depth_renderer)
+        {
+            delete m_depth_renderer;
+        }
     }
 
     PolicyID ColorSceneRenderer::policy_id()
