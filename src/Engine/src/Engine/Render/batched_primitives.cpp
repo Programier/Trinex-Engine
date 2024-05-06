@@ -34,8 +34,8 @@ namespace Engine
 
         auto pass = rt->render_pass->type();
 
-        // Render pass always must be OneAttachmentOutput!
-        if (pass != RenderPassType::OneAttachentOutput)
+        // Render pass always must be SceneColor!
+        if (pass != RenderPassType::SceneColor)
             return false;
 
         if (m_position_buffer->buffer.size() == 0)

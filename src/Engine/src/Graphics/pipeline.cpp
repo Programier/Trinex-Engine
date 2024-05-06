@@ -158,31 +158,9 @@ namespace Engine
         return Object::instance_cast<Material>(owner());
     }
 
-    RenderPassType Pipeline::render_pass_type() const
-    {
-        Flags<MaterialUsage> flags = usage;
-
-        if ((flags & MaterialUsage::GBufferRendering) == Flags(MaterialUsage::GBufferRendering))
-        {
-            return RenderPassType::GBuffer;
-        }
-
-        if ((flags & MaterialUsage::WindowRendering) == Flags(MaterialUsage::WindowRendering))
-        {
-            return RenderPassType::Window;
-        }
-
-        if ((flags & MaterialUsage::SceneOutputRendering) == Flags(MaterialUsage::SceneOutputRendering))
-        {
-            return RenderPassType::OneAttachentOutput;
-        }
-
-        return RenderPassType::GBuffer;
-    }
-
     RenderPass* Pipeline::render_pass() const
     {
-        return RenderPass::load_render_pass(render_pass_type());
+        return RenderPass::load_render_pass(render_pass_type);
     }
 
     VertexShader* Pipeline::vertex_shader() const
@@ -654,10 +632,10 @@ namespace Engine
     {
         Class* self = static_class_instance();
 
-        Enum* material_usage_enum = Enum::static_find("Engine::MaterialUsage", true);
+        Enum* render_pass_type = Enum::static_find("Engine::RenderPassType", true);
 
-        auto render_pass_prop =
-                new EnumProperty("Usage", "Type of usage of this pipeline", &Pipeline::usage, material_usage_enum);
+        auto render_pass_prop = new EnumProperty("Render Pass", "Type of render pass for this pipeline",
+                                                 &Pipeline::render_pass_type, render_pass_type);
 
         auto path_prop = new PathProperty("Shader Path", "Path to slang file", &This::shader_path);
 

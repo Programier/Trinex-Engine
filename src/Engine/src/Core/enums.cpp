@@ -116,12 +116,7 @@ namespace Engine
                    {"A", ColorComponentMask::A});
 
     implement_enum(RenderPassType, Engine, {"Undefined", RenderPassType::Undefined}, {"Window", RenderPassType::Window},
-                   {"OneAttachentOutput", RenderPassType::OneAttachentOutput}, {"GBuffer", RenderPassType::GBuffer});
-
-    implement_enum(MaterialUsage, Engine, {"StaticMeshRendering", MaterialUsage::StaticMeshRendering},
-                   {"LightingRendering", MaterialUsage::LightingRendering}, {"InWindowRendering", MaterialUsage::WindowRendering},
-                   {"SceneOutputRendering", MaterialUsage::SceneOutputRendering},
-                   {"GBufferRendering", MaterialUsage::GBufferRendering});
+                   {"SceneColor", RenderPassType::SceneColor}, {"GBuffer", RenderPassType::GBuffer});
 
     implement_enum(ViewMode, Engine, {"Lit", ViewMode::Lit}, {"Unlit", ViewMode::Unlit});
 
@@ -132,10 +127,9 @@ namespace Engine
                    {"Color", VertexBufferElementType::Color});
 
     implement_enum(ColorFormat, Engine, {"Unknown", ColorFormat::Undefined}, {"FloatR", ColorFormat::FloatR},
-                   {"FloatRG", ColorFormat::FloatRG}, {"FloatRGB", ColorFormat::FloatRGB},
-                   {"FloatRGBA", ColorFormat::FloatRGBA}, {"R8", ColorFormat::R8}, {"R8G8", ColorFormat::R8G8},
-                   {"R8G8B8", ColorFormat::R8G8B8}, {"R8G8BA8", ColorFormat::R8G8B8A8},
-                   {"DepthStencil", ColorFormat::DepthStencil}, {"ShadowDepth", ColorFormat::ShadowDepth},
-                   {"FilteredShadowDepth", ColorFormat::FilteredShadowDepth}, {"D32F", ColorFormat::D32F},
-                   {"BC1", ColorFormat::BC1}, {"BC2", ColorFormat::BC2}, {"BC3", ColorFormat::BC3});
+                   {"FloatRG", ColorFormat::FloatRG}, {"FloatRGB", ColorFormat::FloatRGB}, {"FloatRGBA", ColorFormat::FloatRGBA},
+                   {"R8", ColorFormat::R8}, {"R8G8", ColorFormat::R8G8}, {"R8G8B8", ColorFormat::R8G8B8},
+                   {"R8G8BA8", ColorFormat::R8G8B8A8}, {"DepthStencil", ColorFormat::DepthStencil},
+                   {"ShadowDepth", ColorFormat::ShadowDepth}, {"FilteredShadowDepth", ColorFormat::FilteredShadowDepth},
+                   {"D32F", ColorFormat::D32F}, {"BC1", ColorFormat::BC1}, {"BC2", ColorFormat::BC2}, {"BC3", ColorFormat::BC3});
 }// namespace Engine

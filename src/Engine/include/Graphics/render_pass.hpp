@@ -12,7 +12,7 @@ namespace Engine
 
     private:
         static RenderPass* load_window_render_pass();
-        static RenderPass* load_one_attachement_render_pass();
+        static RenderPass* load_scene_color_render_pass();
         static RenderPass* load_gbuffer_render_pass();
         static RenderPass* load_depth_render_pass();
 

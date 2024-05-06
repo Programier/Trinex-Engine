@@ -109,7 +109,7 @@ namespace Engine
         }
 
     public:
-        MaterialUsage usage = MaterialUsage::StaticMeshRendering;
+        RenderPassType render_pass_type = RenderPassType::SceneColor;
 
 
         Pipeline();
@@ -118,7 +118,6 @@ namespace Engine
         Pipeline& postload() override;
         const Pipeline& rhi_bind() const;
         class Material* material() const;
-        RenderPassType render_pass_type() const;
         RenderPass* render_pass() const;
 
         VertexShader* vertex_shader() const;

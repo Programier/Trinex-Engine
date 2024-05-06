@@ -228,7 +228,7 @@ namespace Engine
         m_enable_color_initialize         = false;
         m_enable_depth_stencil_initialize = false;
 
-        render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
+        render_pass = RenderPass::load_render_pass(RenderPassType::SceneColor);
         color_attachments.resize(1);
         color_attachments[0] = GBuffer::instance()->base_color();
 
@@ -249,10 +249,10 @@ namespace Engine
 
     implement_engine_class_default_init(SceneColorOutput);
 
-    class OneAttachmentOutputRenderPass : public EngineResource<RenderPass>
+    class SceneColorRenderPass : public EngineResource<RenderPass>
     {
     public:
-        OneAttachmentOutputRenderPass()
+        SceneColorRenderPass()
         {
             // Initialize color attachments
             color_attachments.resize(1);
@@ -263,13 +263,13 @@ namespace Engine
 
         RenderPassType type() const override
         {
-            return RenderPassType::OneAttachentOutput;
+            return RenderPassType::SceneColor;
         }
     };
 
-    RenderPass* RenderPass::load_one_attachement_render_pass()
+    RenderPass* RenderPass::load_scene_color_render_pass()
     {
-        RenderPass* pass = Object::new_non_serializable_instance<OneAttachmentOutputRenderPass>();
+        RenderPass* pass = Object::new_non_serializable_instance<SceneColorRenderPass>();
         pass->init_resource(true);
         return pass;
     }
@@ -281,7 +281,7 @@ namespace Engine
         m_enable_color_initialize         = true;
         m_enable_depth_stencil_initialize = false;
 
-        render_pass = RenderPass::load_render_pass(RenderPassType::OneAttachentOutput);
+        render_pass = RenderPass::load_render_pass(RenderPassType::SceneColor);
         color_attachments.resize(1);
 
         RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(

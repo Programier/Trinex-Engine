@@ -35,8 +35,8 @@ namespace Engine
                 pass = load_window_render_pass();
                 break;
 
-            case RenderPassType::OneAttachentOutput:
-                pass = load_one_attachement_render_pass();
+            case RenderPassType::SceneColor:
+                pass = load_scene_color_render_pass();
                 break;
             case RenderPassType::GBuffer:
                 pass = load_gbuffer_render_pass();

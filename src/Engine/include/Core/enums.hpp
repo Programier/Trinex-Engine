@@ -333,22 +333,12 @@ namespace Engine
 
     enum class RenderPassType : EnumerateType
     {
-        Undefined          = 0,
-        Window             = 1,
-        OneAttachentOutput = 2,
-        GBuffer            = 3,
-        Depth              = 4,
-        __COUNT__          = 4,
-    };
-
-    enum class MaterialUsage : EnumerateType
-    {
-        WindowRendering      = BIT(0),
-        SceneOutputRendering = BIT(1),
-        GBufferRendering     = BIT(2),
-
-        StaticMeshRendering = 1 << 3,
-        LightingRendering   = (2 << 3) | SceneOutputRendering,
+        Undefined  = 0,
+        Window     = 1,
+        SceneColor = 2,
+        GBuffer    = 3,
+        Depth      = 4,
+        __COUNT__  = 4,
     };
 
     enum class ViewMode : EnumerateType
