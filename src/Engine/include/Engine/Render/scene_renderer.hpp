@@ -24,17 +24,13 @@ namespace Engine
     class PointLightComponent;
     class SpotLightComponent;
     class DirectionalLightComponent;
-    class BasePassSceneLayer;
+    class CommandBufferLayer;
 
 
 #define implement_empty_rendering_methods_for(type)                                                                              \
-    SceneRenderer& SceneRenderer::add_component(type* component, Scene* scene)                                                   \
+    SceneRenderer& SceneRenderer::render_component(type* component)                                                              \
     {                                                                                                                            \
-        return add_base_component(component, scene);                                                                             \
-    }                                                                                                                            \
-    SceneRenderer& SceneRenderer::render_component(type* component, RenderTargetBase* rt, SceneLayer* layer)                     \
-    {                                                                                                                            \
-        return render_base_component(component, rt, layer);                                                                      \
+        return render_base_component(component);                                                                                 \
     }
 
     class ENGINE_EXPORT SceneRenderer
@@ -59,37 +55,21 @@ namespace Engine
 
         virtual SceneRenderer& render(const SceneView& view, RenderTargetBase* render_target);
 
-        // Add components to scene layers
-        template<typename ComponentType>
-        FORCE_INLINE SceneRenderer& add_base_component(ComponentType* component, Scene* scene)
-        {
-            return add_component(static_cast<ComponentType::Super*>(component), scene);
-        }
-
-        virtual SceneRenderer& add_component(PrimitiveComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(StaticMeshComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(SpriteComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(LightComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(LocalLightComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(PointLightComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(SpotLightComponent* component, Scene* scene);
-        virtual SceneRenderer& add_component(DirectionalLightComponent* component, Scene* scene);
-
         // Components rendering
         template<typename ComponentType>
-        FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component, RenderTargetBase* rt, SceneLayer* layer)
+        FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component)
         {
-            return render_component(static_cast<ComponentType::Super*>(component), rt, layer);
+            return render_component(static_cast<ComponentType::Super*>(component));
         }
 
-        virtual SceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(StaticMeshComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
-        virtual SceneRenderer& render_component(DirectionalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer);
+        virtual SceneRenderer& render_component(PrimitiveComponent* component);
+        virtual SceneRenderer& render_component(StaticMeshComponent* component);
+        virtual SceneRenderer& render_component(SpriteComponent* component);
+        virtual SceneRenderer& render_component(LightComponent* component);
+        virtual SceneRenderer& render_component(LocalLightComponent* component);
+        virtual SceneRenderer& render_component(PointLightComponent* component);
+        virtual SceneRenderer& render_component(SpotLightComponent* component);
+        virtual SceneRenderer& render_component(DirectionalLightComponent* component);
 
 
         FORCE_INLINE SceneLayer* root_layer() const
@@ -111,12 +91,12 @@ namespace Engine
         DepthSceneRenderer* m_depth_renderer = nullptr;
 
         // Layers
-        SceneLayer* m_clear_layer                             = nullptr;
-        DepthRenderingLayer* m_depth_layer                    = nullptr;
-        BasePassSceneLayer* m_base_pass_layer                 = nullptr;
-        DeferredLightingSceneLayer* m_deferred_lighting_layer = nullptr;
-        SceneLayer* m_scene_output                            = nullptr;
-        SceneLayer* m_post_process_layer                      = nullptr;
+        SceneLayer* m_clear_layer                     = nullptr;
+        DepthRenderingLayer* m_depth_layer            = nullptr;
+        CommandBufferLayer* m_base_pass_layer         = nullptr;
+        CommandBufferLayer* m_deferred_lighting_layer = nullptr;
+        SceneLayer* m_scene_output                    = nullptr;
+        SceneLayer* m_post_process_layer              = nullptr;
 
 
         ViewMode m_view_mode;
@@ -147,12 +127,12 @@ namespace Engine
             return m_depth_layer;
         }
 
-        FORCE_INLINE BasePassSceneLayer* base_pass_layer() const
+        FORCE_INLINE CommandBufferLayer* base_pass_layer() const
         {
             return m_base_pass_layer;
         }
 
-        FORCE_INLINE DeferredLightingSceneLayer* deferred_lighting_layer() const
+        FORCE_INLINE CommandBufferLayer* deferred_lighting_layer() const
         {
             return m_deferred_lighting_layer;
         }
@@ -169,26 +149,13 @@ namespace Engine
 
         virtual DepthSceneRenderer* create_depth_renderer();
 
-        // Add components to scene layers
-        ColorSceneRenderer& add_component(PrimitiveComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(StaticMeshComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(SpriteComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(LightComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(LocalLightComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(PointLightComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(SpotLightComponent* component, Scene* scene) override;
-        ColorSceneRenderer& add_component(DirectionalLightComponent* component, Scene* scene) override;
-
         // Components rendering
-        ColorSceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(StaticMeshComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(PointLightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(SpotLightComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
-        ColorSceneRenderer& render_component(DirectionalLightComponent* component, RenderTargetBase* rt,
-                                             SceneLayer* layer) override;
+        using SceneRenderer::render_component;
+        ColorSceneRenderer& render_component(StaticMeshComponent* component) override;
+        ColorSceneRenderer& render_component(SpriteComponent* component) override;
+        ColorSceneRenderer& render_component(PointLightComponent* component) override;
+        ColorSceneRenderer& render_component(SpotLightComponent* component) override;
+        ColorSceneRenderer& render_component(DirectionalLightComponent* component) override;
 
         FORCE_INLINE ViewMode view_mode() const
         {

@@ -74,28 +74,9 @@ namespace Engine
 
     implement_empty_rendering_methods_for(LocalLightComponent);
 
-    ColorSceneRenderer& ColorSceneRenderer::add_component(LocalLightComponent* component, Scene* scene)
+    LocalLightComponent& LocalLightComponent::render(class SceneRenderer* renderer)
     {
-        add_base_component(component, scene);
-        return *this;
-    }
-
-    LocalLightComponent& LocalLightComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
-    {
-        renderer->add_component(this, scene);
-        return *this;
-    }
-
-    ColorSceneRenderer& ColorSceneRenderer::render_component(LocalLightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
-    {
-        render_base_component(component, rt, layer);
-        return *this;
-    }
-
-    LocalLightComponent& LocalLightComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt,
-                                                     class SceneLayer* layer)
-    {
-        renderer->render_component(this, rt, layer);
+        renderer->render_component(this);
         return *this;
     }
 }// namespace Engine

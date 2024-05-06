@@ -83,21 +83,6 @@ namespace Engine
         RootLayer();
     };
 
-    class ENGINE_EXPORT BasePassSceneLayer : public SceneLayer
-    {
-    private:
-        Set<PrimitiveComponent*> m_components;
-
-    public:
-        BasePassSceneLayer& clear() override;
-        BasePassSceneLayer& begin_render(SceneRenderer* renderer, RenderTargetBase* render_target) override;
-        BasePassSceneLayer& render(SceneRenderer*, RenderTargetBase*) override;
-        BasePassSceneLayer& end_render(SceneRenderer* renderer, RenderTargetBase* render_target) override;
-        virtual SceneLayer& add_component(PrimitiveComponent* component);
-        virtual SceneLayer& remove_component(PrimitiveComponent* component);
-
-        const Set<PrimitiveComponent*>& primitive_components() const;
-    };
 
     class ENGINE_EXPORT DepthRenderingLayer : public SceneLayer
     {
@@ -123,9 +108,5 @@ namespace Engine
         const Set<LightComponent*>& light_components() const;
         ~LightingSceneLayer();
         friend class SceneLayer;
-    };
-
-    class ENGINE_EXPORT DeferredLightingSceneLayer : public LightingSceneLayer
-    {
     };
 }// namespace Engine

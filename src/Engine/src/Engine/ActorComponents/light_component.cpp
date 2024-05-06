@@ -121,30 +121,9 @@ namespace Engine
         return submit_light_info_render_thread();
     }
 
-    ColorSceneRenderer& ColorSceneRenderer::add_component(LightComponent* component, Scene* scene)
+    LightComponent& LightComponent::render(SceneRenderer* renderer)
     {
-        deferred_lighting_layer()->add_light(component);
-        if(component->proxy()->is_shadows_enabled())
-        {
-            depth_layer()->add_light(component);
-        }
-        return *this;
-    }
-
-    ColorSceneRenderer& ColorSceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
-    {
-        return *this;
-    }
-
-    LightComponent& LightComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
-    {
-        renderer->add_component(this, scene);
-        return *this;
-    }
-
-    LightComponent& LightComponent::render(SceneRenderer* renderer, class RenderTargetBase* rt, class SceneLayer* layer)
-    {
-        renderer->render_component(this, rt, layer);
+        renderer->render_component(this);
         return *this;
     }
 

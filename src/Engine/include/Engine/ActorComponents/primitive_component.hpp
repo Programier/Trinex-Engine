@@ -37,8 +37,7 @@ namespace Engine
         PrimitiveComponent& on_transform_changed() override;
         ActorComponentProxy* create_proxy() override;
 
-        virtual PrimitiveComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer);
-        virtual PrimitiveComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*);
+        virtual PrimitiveComponent& render(class SceneRenderer* renderer);
         virtual PrimitiveComponent& update_bounding_box();
 
         PrimitiveComponentProxy* proxy() const;

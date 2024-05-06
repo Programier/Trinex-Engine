@@ -25,59 +25,42 @@ namespace Engine
 
     implement_empty_rendering_methods_for(SpriteComponent);
 
-    ColorSceneRenderer& ColorSceneRenderer::add_component(SpriteComponent* component, Scene* scene)
-    {
-//        add_base_component(component, scene);
-
-//        if (!component->leaf_class_is<SpriteComponent>())
-//            return *this;
-
-//        scene_output_layer()->add_component(component);
-        return *this;
-    }
 
     static FORCE_INLINE Matrix4f rotate_sprite(Transform input_transform, const SceneView& view)
     {
         return input_transform.look_at(view.camera_view().location, Constants::OY).matrix();
     }
 
-    ColorSceneRenderer& ColorSceneRenderer::render_component(SpriteComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(SpriteComponent* component)
     {
-        render_base_component(component, rt, layer);
-        Material* material                 = DefaultResources::sprite_material;
-        PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
-        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
-        {
-            Matrix4f model   = rotate_sprite(component->proxy()->world_transform(), scene_view());
-            parameter->param = model;
-        }
+        render_base_component(component);
+//        Material* material                 = DefaultResources::sprite_material;
+//        PositionVertexBuffer* vertex_bufer = DefaultResources::screen_position_buffer;
+//        if (Mat4MaterialParameter* parameter = reinterpret_cast<Mat4MaterialParameter*>(material->find_parameter(Name::model)))
+//        {
+//            Matrix4f model   = rotate_sprite(component->proxy()->world_transform(), scene_view());
+//            parameter->param = model;
+//        }
 
-        BindingMaterialParameter* texture_parameter =
-                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
-        Texture* tmp     = nullptr;
-        Texture* current = reinterpret_cast<Texture*>(component->texture());
+//        BindingMaterialParameter* texture_parameter =
+//                reinterpret_cast<BindingMaterialParameter*>(material->find_parameter(Name::texture));
+//        Texture* tmp     = nullptr;
+//        Texture* current = reinterpret_cast<Texture*>(component->texture());
 
-        if (texture_parameter && current)
-        {
-            tmp = texture_parameter->texture_param();
-            texture_parameter->texture_param(current);
-        }
+//        if (texture_parameter && current)
+//        {
+//            tmp = texture_parameter->texture_param();
+//            texture_parameter->texture_param(current);
+//        }
 
-        material->apply(component);
-        vertex_bufer->rhi_bind(0, 0);
-        engine_instance->rhi()->draw(6, 0);
+//        material->apply(component);
+//        vertex_bufer->rhi_bind(0, 0);
+//        engine_instance->rhi()->draw(6, 0);
 
-        if (texture_parameter && current)
-        {
-            texture_parameter->texture_param(tmp);
-        }
-        return *this;
-    }
-
-
-    SpriteComponent& SpriteComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
-    {
-        renderer->add_component(this, scene);
+//        if (texture_parameter && current)
+//        {
+//            texture_parameter->texture_param(tmp);
+//        }
         return *this;
     }
 
@@ -110,9 +93,9 @@ namespace Engine
         return *this;
     }
 
-    SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt, class SceneLayer* layer)
+    SpriteComponent& SpriteComponent::render(class SceneRenderer* renderer)
     {
-        renderer->render_component(this, rt, layer);
+        renderer->render_component(this);
         return *this;
     }
 

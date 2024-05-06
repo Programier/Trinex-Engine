@@ -30,7 +30,6 @@ namespace Engine
         LocalLightComponent& attenuation_radius(float value);
         LocalLightComponent& start_play() override;
         ActorComponentProxy* create_proxy() override;
-        LocalLightComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
-        LocalLightComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
+        LocalLightComponent& render(class SceneRenderer*) override;
     };
 }// namespace Engine

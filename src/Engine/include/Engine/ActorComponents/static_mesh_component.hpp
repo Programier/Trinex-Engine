@@ -15,8 +15,7 @@ namespace Engine
         class StaticMesh* mesh = nullptr;
 
         StaticMeshComponent& update(float dt) override;
-        StaticMeshComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
-        StaticMeshComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
+        StaticMeshComponent& render(class SceneRenderer*) override;
         StaticMeshComponent& update_bounding_box() override;
     };
 }// namespace Engine

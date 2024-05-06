@@ -165,58 +165,6 @@ namespace Engine
         return false;
     }
 
-    BasePassSceneLayer& BasePassSceneLayer::clear()
-    {
-        SceneLayer::clear();
-        m_components.clear();
-        return *this;
-    }
-
-    BasePassSceneLayer& BasePassSceneLayer::begin_render(SceneRenderer* renderer, RenderTargetBase* render_target)
-    {
-        renderer->begin_rendering_target(GBuffer::instance());
-        SceneLayer::begin_render(renderer, render_target);
-        return *this;
-    }
-
-    BasePassSceneLayer& BasePassSceneLayer::render(SceneRenderer* renderer, RenderTargetBase* render_target)
-    {
-        SceneLayer::render(renderer, render_target);
-
-        for (PrimitiveComponent* component : m_components)
-        {
-            component->render(renderer, render_target, this);
-        }
-        return *this;
-    }
-
-    BasePassSceneLayer& BasePassSceneLayer::end_render(SceneRenderer* renderer, RenderTargetBase* render_target)
-    {
-        SceneLayer::end_render(renderer, render_target);
-        renderer->end_rendering_target();
-        return *this;
-    }
-
-    SceneLayer& BasePassSceneLayer::add_component(PrimitiveComponent* component)
-    {
-        if (!component)
-            return *this;
-
-        m_components.insert(component);
-        return *this;
-    }
-
-    SceneLayer& BasePassSceneLayer::remove_component(PrimitiveComponent* component)
-    {
-        m_components.erase(component);
-        return *this;
-    }
-
-    const Set<PrimitiveComponent*>& BasePassSceneLayer::primitive_components() const
-    {
-        return m_components;
-    }
-
     DepthRenderingLayer& DepthRenderingLayer::clear()
     {
         SceneLayer::clear();
@@ -254,10 +202,10 @@ namespace Engine
         SceneLayer::render(renderer, rt);
         auto& components = light_components();
 
-        for (LightComponent* component : components)
-        {
-            component->render(renderer, rt, this);
-        }
+        //        for (LightComponent* component : components)
+        //        {
+        //            component->render(renderer, rt, this);
+        //        }
 
         return *this;
     }

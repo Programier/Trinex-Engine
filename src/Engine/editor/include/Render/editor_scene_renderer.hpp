@@ -12,10 +12,8 @@ namespace Engine
     public:
         EditorSceneRenderer();
 
-        // Add components to scene layers
-        EditorSceneRenderer& add_component(LightComponent* component, Scene* scene) override;
-
         // Components rendering
-        EditorSceneRenderer& render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer) override;
+        EditorSceneRenderer& render_component(LightComponent* component) override;
+        EditorSceneRenderer& render_component(PrimitiveComponent* component) override;
     };
 }// namespace Engine

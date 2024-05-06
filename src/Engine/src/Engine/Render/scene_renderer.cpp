@@ -3,6 +3,7 @@
 #include <Core/render_thread.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
+#include <Engine/Render/command_buffer.hpp>
 #include <Engine/Render/rendering_policy.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -115,22 +116,12 @@ namespace Engine
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::add_component(PrimitiveComponent* component, Scene* scene)
+    SceneRenderer& SceneRenderer::render_component(PrimitiveComponent* component)
     {
         return *this;
     }
 
-    SceneRenderer& SceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt, SceneLayer* layer)
-    {
-        return *this;
-    }
-
-    SceneRenderer& SceneRenderer::add_component(LightComponent* component, Scene* scene)
-    {
-        return *this;
-    }
-
-    SceneRenderer& SceneRenderer::render_component(LightComponent* component, RenderTargetBase* rt, SceneLayer* layer)
+    SceneRenderer& SceneRenderer::render_component(LightComponent* component)
     {
         return *this;
     }
@@ -216,11 +207,14 @@ namespace Engine
             self->end_rendering_target();
         };
 
-        m_depth_layer     = m_clear_layer->create_next<DepthRenderingLayer>(Name::depth_pass);
+        m_depth_layer = m_clear_layer->create_next<DepthRenderingLayer>(Name::depth_pass);
         m_depth_layer->on_begin_render.push_back(begin_depth_pass);
-        m_base_pass_layer = m_depth_layer->create_next<BasePassSceneLayer>(Name::base_pass);
+        m_base_pass_layer = m_depth_layer->create_next<CommandBufferLayer>(Name::base_pass);
+        m_base_pass_layer->on_begin_render.push_back(
+                declare_rendering_function() { self->begin_rendering_target(GBuffer::instance()); });
+        m_base_pass_layer->on_end_render.push_back(end_rendering);
 
-        m_deferred_lighting_layer = m_base_pass_layer->create_next<DeferredLightingSceneLayer>(Name::deferred_light_pass);
+        m_deferred_lighting_layer = m_base_pass_layer->create_next<CommandBufferLayer>(Name::deferred_light_pass);
         m_deferred_lighting_layer->on_begin_render.push_back(
                 declare_rendering_function() { self->begin_rendering_target(SceneColorOutput::instance()); });
         m_deferred_lighting_layer->on_begin_render.push_back(begin_deferred_lighting_pass);

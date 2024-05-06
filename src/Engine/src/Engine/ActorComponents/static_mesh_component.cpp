@@ -5,6 +5,7 @@
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
 #include <Engine/Actors/actor.hpp>
+#include <Engine/Render/command_buffer.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
@@ -31,26 +32,12 @@ namespace Engine
 
     implement_empty_rendering_methods_for(StaticMeshComponent);
 
-    ColorSceneRenderer& ColorSceneRenderer::add_component(StaticMeshComponent* component, Scene* scene)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(StaticMeshComponent* component)
     {
-        add_base_component(component, scene);
+        render_base_component(component);
 
-        if (component->leaf_class_is<StaticMeshComponent>())
-        {
-            StaticMesh* mesh = component->mesh;
-            if (mesh && !mesh->materials.empty() && !mesh->lods.empty())
-            {
-                base_pass_layer()->add_component(component);
-            }
-        }
-        return *this;
-    }
-
-
-    static void render_static_mesh_component(StaticMeshComponent* component, PolicyID policy, const SceneView& scene_view)
-    {
         StaticMesh* mesh   = component->mesh;
-        auto& camera_view  = scene_view.camera_view();
+        auto& camera_view  = scene_view().camera_view();
         float inv_distance = 1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),
                                             camera_view.far_clip_plane);
         auto& lods         = mesh->lods;
@@ -59,13 +46,17 @@ namespace Engine
 
         for (auto& material : mesh->materials)
         {
-            if (material.policy != policy || material.material == nullptr ||
+            if (material.policy != policy_id() || material.material == nullptr ||
                 static_cast<Index>(material.surface_index) > lod.surfaces.size())
             {
                 continue;
             }
 
+            auto layer = base_pass_layer();
+
             material.material->apply(component);
+            layer->bind_material(material.material, component);
+
             VertexShader* shader = material.material->material()->pipeline->vertex_shader();
 
             for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
@@ -75,43 +66,29 @@ namespace Engine
 
                 if (buffer)
                 {
-                    buffer->rhi_bind(i, 0);
+                    layer->bind_vertex_buffer(buffer, i, 0);
                 }
             }
 
             auto& surface = lod.surfaces[material.surface_index];
-            RHI* rhi      = engine_instance->rhi();
 
             if (lod.indices->elements_count() > 0)
             {
                 lod.indices->rhi_bind();
-                rhi->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
+                layer->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
             }
             else
             {
-                rhi->draw(surface.vertices_count, surface.base_vertex_index);
+                layer->draw(surface.vertices_count, surface.base_vertex_index);
             }
         }
-    }
 
-    ColorSceneRenderer& ColorSceneRenderer::render_component(StaticMeshComponent* component, class RenderTargetBase* rt,
-                                                             class SceneLayer* layer)
-    {
-        render_base_component(component, rt, layer);
-        render_static_mesh_component(component, policy_id(), scene_view());
         return *this;
     }
 
-    StaticMeshComponent& StaticMeshComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
+    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer)
     {
-        renderer->add_component(this, scene);
-        return *this;
-    }
-
-    StaticMeshComponent& StaticMeshComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt,
-                                                     class SceneLayer* layer)
-    {
-        renderer->render_component(this, rt, layer);
+        renderer->render_component(this);
         return *this;
     }
 

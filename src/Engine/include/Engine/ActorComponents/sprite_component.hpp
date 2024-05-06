@@ -15,7 +15,6 @@ namespace Engine
         SpriteComponent& texture(Texture2D* texture);
         SpriteComponent& update_bounding_box() override;
 
-        SpriteComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
-        SpriteComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
+        SpriteComponent& render(class SceneRenderer*) override;
     };
 }// namespace Engine

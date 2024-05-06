@@ -1,3 +1,4 @@
+#include <Core/colors.hpp>
 #include <Core/default_resources.hpp>
 #include <Core/engine.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
@@ -10,7 +11,6 @@
 #include <Engine/Render/scene_layer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
-#include <Core/colors.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Render/editor_scene_renderer.hpp>
@@ -223,9 +223,9 @@ namespace Engine
         m_overlay_layer = post_process_layer()->create_next<OverlaySceneLayer>("Overlay Layer");
     }
 
-    EditorSceneRenderer& EditorSceneRenderer::add_component(LightComponent* component, Scene* scene)
+    EditorSceneRenderer& EditorSceneRenderer::render_component(LightComponent* component)
     {
-        ColorSceneRenderer::add_component(component, scene);
+        ColorSceneRenderer::render_component(component);
         m_overlay_layer->m_light_components.insert(component);
 
         if (component->actor()->is_selected())
@@ -239,10 +239,9 @@ namespace Engine
         return *this;
     }
 
-    EditorSceneRenderer& EditorSceneRenderer::render_component(PrimitiveComponent* component, RenderTargetBase* rt,
-                                                               SceneLayer* layer)
+    EditorSceneRenderer& EditorSceneRenderer::render_component(PrimitiveComponent* component)
     {
-        ColorSceneRenderer::render_component(component, rt, layer);
+        ColorSceneRenderer::render_component(component);
 
         Actor* owner = component->actor();
         if (owner == nullptr)

@@ -1,5 +1,4 @@
 #include <Core/engine.hpp>
-#include <Core/executable_object.hpp>
 #include <Engine/Render/command_buffer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>

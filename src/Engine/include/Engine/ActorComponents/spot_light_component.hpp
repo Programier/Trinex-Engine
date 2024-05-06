@@ -50,8 +50,7 @@ namespace Engine
 
         Type light_type() const override;
         SpotLightComponent& start_play() override;
-        SpotLightComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer) override;
-        SpotLightComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*) override;
+        SpotLightComponent& render(class SceneRenderer*) override;
         ActorComponentProxy* create_proxy() override;
     };
 

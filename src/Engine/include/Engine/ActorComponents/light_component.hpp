@@ -33,7 +33,6 @@ namespace Engine
     {
         declare_class(LightComponent, SceneComponent);
 
-
     public:
         enum Type
         {
@@ -69,8 +68,7 @@ namespace Engine
 
 
         virtual Type light_type() const = 0;
-        virtual LightComponent& add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer);
-        virtual LightComponent& render(class SceneRenderer*, class RenderTargetBase*, class SceneLayer*);
+        virtual LightComponent& render(class SceneRenderer*);
         ActorComponentProxy* create_proxy() override;
         LightComponentProxy* proxy() const;
 

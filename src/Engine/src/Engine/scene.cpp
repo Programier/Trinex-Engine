@@ -54,11 +54,11 @@ namespace Engine
 
 
     template<typename Node>
-    static void build_views_internal(Scene* scene, SceneRenderer* renderer, Node* node)
+    static void build_views_internal(SceneRenderer* renderer, Node* node)
     {
         for (auto component : node->values)
         {
-            component->add_to_scene_layer(scene, renderer);
+            component->render(renderer);
         }
 
         for (byte i = 0; i < 8; i++)
@@ -67,15 +67,15 @@ namespace Engine
 
             if (child)
             {
-                build_views_internal(scene, renderer, child);
+                build_views_internal(renderer, child);
             }
         }
     }
 
     Scene& Scene::build_views(SceneRenderer* renderer)
     {
-        build_views_internal(this, renderer, m_octree_render_thread.root_node());
-        build_views_internal(this, renderer, m_light_octree_render_thread.root_node());
+        build_views_internal(renderer, m_octree_render_thread.root_node());
+        build_views_internal(renderer, m_light_octree_render_thread.root_node());
         return *this;
     }
 

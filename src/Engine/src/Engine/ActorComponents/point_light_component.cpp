@@ -5,6 +5,7 @@
 #include <Core/render_thread.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
+#include <Engine/Render/command_buffer.hpp>
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
@@ -69,12 +70,6 @@ namespace Engine
 
     implement_empty_rendering_methods_for(PointLightComponent);
 
-    ColorSceneRenderer& ColorSceneRenderer::add_component(PointLightComponent* component, Scene* scene)
-    {
-        add_base_component(component, scene);
-        return *this;
-    }
-
     PointLightComponent& PointLightComponent::start_play()
     {
         Super::start_play();
@@ -82,19 +77,13 @@ namespace Engine
         return *this;
     }
 
-    PointLightComponent& PointLightComponent::add_to_scene_layer(class Scene* scene, class SceneRenderer* renderer)
-    {
-        renderer->add_component(this, scene);
-        return *this;
-    }
-
 #define get_param(param_name, type) reinterpret_cast<type*>(material->find_parameter(Name::param_name));
-    ColorSceneRenderer& ColorSceneRenderer::render_component(PointLightComponent* component, RenderTargetBase* rt,
-                                                             SceneLayer* layer)
+    ColorSceneRenderer& ColorSceneRenderer::render_component(PointLightComponent* component)
     {
-        render_base_component(component, rt, layer);
+        render_base_component(component);
 
         PointLightComponentProxy* proxy = component->proxy();
+        auto layer                      = deferred_lighting_layer();
 
         if (!proxy->is_enabled() || !component->leaf_class_is<PointLightComponent>())
             return *this;
@@ -109,39 +98,38 @@ namespace Engine
 
         if (color_parameter)
         {
-            color_parameter->param = proxy->light_color();
+            layer->update_variable(color_parameter->param, proxy->light_color());
         }
 
         if (location_parameter)
         {
-            location_parameter->param = proxy->world_transform().location();
+            layer->update_variable(location_parameter->param, proxy->world_transform().location());
         }
 
         if (intensivity_parameter)
         {
-            intensivity_parameter->param = proxy->intensivity();
+            layer->update_variable(intensivity_parameter->param , proxy->intensivity());
         }
 
         if (radius_parameter)
         {
-            radius_parameter->param = proxy->attenuation_radius();
+            layer->update_variable(radius_parameter->param, proxy->attenuation_radius());
         }
 
         if (fall_off_parameter)
         {
-            fall_off_parameter->param = proxy->fall_off_exponent();
+            layer->update_variable(fall_off_parameter->param, proxy->fall_off_exponent());
         }
 
-        material->apply();
-        DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-        engine_instance->rhi()->draw(6, 0);
+        layer->bind_material(material);
+        layer->bind_vertex_buffer(DefaultResources::screen_position_buffer, 0, 0);
+        layer->draw(6, 0);
         return *this;
     }
 
-    PointLightComponent& PointLightComponent::render(class SceneRenderer* renderer, class RenderTargetBase* rt,
-                                                     class SceneLayer* layer)
+    PointLightComponent& PointLightComponent::render(class SceneRenderer* renderer)
     {
-        renderer->render_component(this, rt, layer);
+        renderer->render_component(this);
         return *this;
     }
 
