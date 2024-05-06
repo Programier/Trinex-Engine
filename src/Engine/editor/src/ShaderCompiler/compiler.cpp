@@ -64,28 +64,28 @@ namespace Engine::ShaderCompiler
         }
     }
 
-    static ColorFormat find_color_format_for_semantic(VertexBufferSemantic semantic)
+    static VertexBufferElementType find_vertex_element_type_for_semantic(VertexBufferSemantic semantic)
     {
         switch (semantic)
         {
             case Engine::VertexBufferSemantic::Position:
-                return ColorFormat::R32G32B32Sfloat;
+                return VertexBufferElementType::Float3;
             case Engine::VertexBufferSemantic::TexCoord:
-                return ColorFormat::R32G32Sfloat;
+                return VertexBufferElementType::Float2;
             case Engine::VertexBufferSemantic::Color:
-                return ColorFormat::R8G8B8A8Unorm;
+                return VertexBufferElementType::Color;
             case Engine::VertexBufferSemantic::Normal:
-                return ColorFormat::R32G32B32Sfloat;
+                return VertexBufferElementType::Float3;
             case Engine::VertexBufferSemantic::Tangent:
-                return ColorFormat::R32G32B32Sfloat;
+                return VertexBufferElementType::Float3;
             case Engine::VertexBufferSemantic::Binormal:
-                return ColorFormat::R32G32B32Sfloat;
+                return VertexBufferElementType::Float3;
             case Engine::VertexBufferSemantic::BlendWeight:
-                return ColorFormat::R32G32B32Sfloat;
+                return VertexBufferElementType::Float3;
             case Engine::VertexBufferSemantic::BlendIndices:
-                return ColorFormat::R8Sint;
+                return VertexBufferElementType::UByte4;
         }
-        return ColorFormat::Undefined;
+        return VertexBufferElementType::Undefined;
     }
 
     static byte find_components_count_for_semantic(VertexBufferSemantic semantic)
@@ -167,8 +167,7 @@ namespace Engine::ShaderCompiler
             attribute.semantic_index = var->getSemanticIndex();
             attribute.name           = var->getName();
             attribute.rate           = VertexAttributeInputRate::Vertex;
-            attribute.count          = 1;
-            attribute.format         = find_color_format_for_semantic(attribute.semantic);
+            attribute.type           = find_vertex_element_type_for_semantic(attribute.semantic);
 
             auto requred_elements_count = find_components_count_for_semantic(attribute.semantic);
 

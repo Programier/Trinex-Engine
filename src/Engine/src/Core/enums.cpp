@@ -124,4 +124,10 @@ namespace Engine
                    {"GBufferRendering", MaterialUsage::GBufferRendering});
 
     implement_enum(ViewMode, Engine, {"Lit", ViewMode::Lit}, {"Unlit", ViewMode::Unlit});
+
+    implement_enum(VertexBufferElementType, Engine, {"Undefined", VertexBufferElementType::Undefined},
+                   {"Float1", VertexBufferElementType::Float1}, {"Float2", VertexBufferElementType::Float2},
+                   {"Float3", VertexBufferElementType::Float3}, {"Float4", VertexBufferElementType::Float4},
+                   {"UByte4", VertexBufferElementType::UByte4}, {"UByte4N", VertexBufferElementType::UByte4N},
+                   {"Color", VertexBufferElementType::Color});
 }// namespace Engine

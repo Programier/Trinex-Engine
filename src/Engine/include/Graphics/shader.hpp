@@ -30,18 +30,18 @@ namespace Engine
     public:
         struct Attribute {
             Name name;
-            ColorFormat format;
+            VertexBufferElementType type;
             VertexAttributeInputRate rate;
             VertexBufferSemantic semantic;
             byte semantic_index;
-            byte count;
 
-            FORCE_INLINE Attribute(ColorFormat format            = ColorFormat::Undefined,
-                                   VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex,
+            FORCE_INLINE Attribute(VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex,
                                    VertexBufferSemantic semantic = VertexBufferSemantic::Position, byte semantic_index = 0,
-                                   byte count = 1, const Name& name = Name::none)
-                : name(name), format(format), rate(rate), semantic(semantic), semantic_index(semantic_index), count(count)
+                                   const Name& name = Name::none)
+                : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index)
             {}
+
+            VertexBufferElementType element_type() const;
         };
 
         Vector<Attribute> attributes;

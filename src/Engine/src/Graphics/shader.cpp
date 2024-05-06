@@ -21,14 +21,14 @@ namespace Engine
 {
     implement_struct(Attribute, Engine::VertexShader, ).push([]() {
         Struct* self                      = Struct::static_find("Engine::VertexShader::Attribute", true);
-        Enum* color_format_enum           = Enum::static_find("Engine::ColorFormat", true);
+        Enum* type_enum                   = Enum::static_find("Engine::VertexBufferElementType", true);
         Enum* vertex_attribute_rate_enum  = Enum::static_find("Engine::VertexAttributeInputRate", true);
         Enum* vertex_buffer_semantic_enum = Enum::static_find("Engine::VertexBufferSemantic", true);
 
         self->add_property(new NameProperty("Name", "Name of this attribute", &VertexShader::Attribute::name, Name::none,
                                             Property::IsConst | Property::IsNotSerializable));
-        self->add_property(new EnumProperty("Format", "Format of this attribute", &VertexShader::Attribute::format,
-                                            color_format_enum, Name::none, Property::IsConst | Property::IsNotSerializable));
+        self->add_property(new EnumProperty("Element Type", "Type of element of this attribute", &VertexShader::Attribute::type,
+                                            type_enum, Name::none, Property::IsNotSerializable));
         self->add_property(new EnumProperty("Rate", "Rate of this attribute", &VertexShader::Attribute::rate,
                                             vertex_attribute_rate_enum, Name::none, Property::IsNotSerializable));
         self->add_property(new EnumProperty("Semantic", "Semantic of this attribute", &VertexShader::Attribute::semantic,
@@ -42,7 +42,6 @@ namespace Engine
                                             &VertexShader::Attribute::semantic_index, Name::none,
                                             Property::IsConst | Property::IsNotSerializable));
     });
-
 
     implement_class(Shader, Engine, 0);
     implement_default_initialize_class(Shader);
@@ -164,8 +163,7 @@ namespace Engine
     ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
     {
         ar & attrib.name;
-        ar & attrib.count;
-        ar & attrib.format;
+        ar & attrib.type;
         ar & attrib.semantic;
         ar & attrib.semantic_index;
         ar & attrib.rate;

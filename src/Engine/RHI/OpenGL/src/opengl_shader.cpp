@@ -195,6 +195,57 @@ namespace Engine
         }
     }
 
+    static FORCE_INLINE void parse_vertex_input(OpenGL_Pipeline::VertexInput& out, const VertexShader::Attribute& attribute)
+    {
+        switch (attribute.type)
+        {
+            case VertexBufferElementType::Float1:
+                out.size      = sizeof(float);
+                out.count     = 1;
+                out.type      = GL_FLOAT;
+                out.normalize = GL_FALSE;
+                break;
+            case VertexBufferElementType::Float2:
+                out.size      = sizeof(float);
+                out.count     = 2;
+                out.type      = GL_FLOAT;
+                out.normalize = GL_FALSE;
+                break;
+            case VertexBufferElementType::Float3:
+                out.size      = sizeof(float);
+                out.count     = 3;
+                out.type      = GL_FLOAT;
+                out.normalize = GL_FALSE;
+                break;
+            case VertexBufferElementType::Float4:
+                out.size      = sizeof(float);
+                out.count     = 4;
+                out.type      = GL_FLOAT;
+                out.normalize = GL_FALSE;
+                break;
+            case VertexBufferElementType::UByte4:
+                out.size      = sizeof(byte);
+                out.count     = 4;
+                out.type      = GL_UNSIGNED_BYTE;
+                out.normalize = GL_FALSE;
+                break;
+            case VertexBufferElementType::UByte4N:
+                out.size      = sizeof(byte);
+                out.count     = 1;
+                out.type      = GL_UNSIGNED_BYTE;
+                out.normalize = GL_TRUE;
+                break;
+            case VertexBufferElementType::Color:
+                out.size      = sizeof(byte);
+                out.count     = 4;
+                out.type      = GL_UNSIGNED_BYTE;
+                out.normalize = GL_FALSE;
+                break;
+            default:
+                break;
+        }
+    }
+
     void OpenGL_Pipeline::init(const Pipeline* pipeline)
     {
         m_topology          = convert_topology(pipeline->input_assembly.primitive_topology);
@@ -219,13 +270,7 @@ namespace Engine
             {
                 glEnableVertexAttribArray(index);
                 VertexInput input;
-                input.count = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).components();
-                input.size  = static_cast<size_t>(attribute.count) * ColorFormatInfo::info_of(attribute.format).size();
-                input.type  = color_format_from_engine_format(attribute.format).m_type;
-
-                auto metadata       = ColorFormatInfo::info_of(attribute.format).metadata();
-                bool need_normalize = metadata == ColorFormatMetaData::Snorm || metadata == ColorFormatMetaData::Unorm;
-                input.normalize     = need_normalize ? GL_TRUE : GL_FALSE;
+                parse_vertex_input(input, attribute);
 
                 if (attribute.rate == VertexAttributeInputRate::Instance)
                 {

@@ -437,11 +437,10 @@ namespace Engine
             {
                 VertexShader::Attribute out_attribute;
                 out_attribute.name           = attribute.name;
-                out_attribute.format         = attribute.format;
+                out_attribute.type           = attribute.type;
                 out_attribute.rate           = attribute.rate;
                 out_attribute.semantic       = attribute.semantic;
                 out_attribute.semantic_index = attribute.semantic_index;
-                out_attribute.count          = attribute.count;
 
                 v_shader->attributes.push_back(out_attribute);
             }

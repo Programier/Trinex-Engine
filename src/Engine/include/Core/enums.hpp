@@ -64,6 +64,18 @@ namespace Engine
         BlendIndices = 7,
     };
 
+    enum class VertexBufferElementType : EnumerateType
+    {
+        Undefined = 0,
+        Float1    = 1,
+        Float2    = 2,
+        Float3    = 3,
+        Float4    = 4,
+        UByte4    = 5,
+        UByte4N   = 6,
+        Color     = 7,
+    };
+
     enum class Coord
     {
         X,

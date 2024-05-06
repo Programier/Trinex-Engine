@@ -31,7 +31,7 @@ namespace Engine
 
     bool VulkanShaderBase::create(const Shader* shader)
     {
-        if(shader->source_code.empty())
+        if (shader->source_code.empty())
             return false;
         vk::ShaderModuleCreateInfo info(vk::ShaderModuleCreateFlags(), shader->source_code.size(),
                                         reinterpret_cast<const uint32_t*>(shader->source_code.data()));
@@ -46,12 +46,46 @@ namespace Engine
         return *this;
     }
 
+    static vk::Format parse_vertex_format(VertexBufferElementType type, uint32_t& stride)
+    {
+        switch (type)
+        {
+            case VertexBufferElementType::Float1:
+                stride = sizeof(float);
+                return vk::Format::eR32Sfloat;
 
+            case VertexBufferElementType::Float2:
+                stride = sizeof(float) * 2;
+                return vk::Format::eR32G32Sfloat;
+
+            case VertexBufferElementType::Float3:
+                stride = sizeof(float) * 3;
+                return vk::Format::eR32G32B32Sfloat;
+
+            case VertexBufferElementType::Float4:
+                stride = sizeof(float) * 4;
+                return vk::Format::eR32G32B32A32Sfloat;
+
+            case VertexBufferElementType::UByte4:
+                stride = sizeof(byte) * 4;
+                return vk::Format::eR8G8B8A8Uint;
+
+            case VertexBufferElementType::UByte4N:
+                stride = sizeof(byte) * 4;
+                return vk::Format::eR8G8B8A8Unorm;
+
+            case VertexBufferElementType::Color:
+                stride = sizeof(byte) * 4;
+                return vk::Format::eR8G8B8A8Unorm;
+            default:
+                return vk::Format::eUndefined;
+        }
+    }
     bool VulkanVertexShader::create(const VertexShader* shader)
     {
         destroy();
         bool status = VulkanShaderBase::create(shader);
-        if(status == false)
+        if (status == false)
             return false;
 
         m_binding_description.reserve(shader->attributes.size());
@@ -61,28 +95,28 @@ namespace Engine
         Index index = 0;
         for (auto& attribute : shader->attributes)
         {
+
+            m_binding_description.emplace_back();
+            vk::VertexInputBindingDescription& description = m_binding_description.back();
+
+
+            description.binding = static_cast<decltype(description.binding)>(index);
+            vk::Format format   = parse_vertex_format(attribute.type, description.stride);
+
+            switch (attribute.rate)
             {
-                m_binding_description.emplace_back();
-                vk::VertexInputBindingDescription& description = m_binding_description.back();
-                ColorFormatInfo format_info                    = ColorFormatInfo::info_of(attribute.format);
+                case VertexAttributeInputRate::Instance:
+                    description.inputRate = vk::VertexInputRate::eInstance;
+                    break;
 
-                description.binding = static_cast<decltype(description.binding)>(index);
-                description.stride  = format_info.size() * static_cast<uint_t>(attribute.count);
+                case VertexAttributeInputRate::Vertex:
+                    description.inputRate = vk::VertexInputRate::eVertex;
+                    break;
 
-                switch (attribute.rate)
-                {
-                    case VertexAttributeInputRate::Instance:
-                        description.inputRate = vk::VertexInputRate::eInstance;
-                        break;
-
-                    case VertexAttributeInputRate::Vertex:
-                        description.inputRate = vk::VertexInputRate::eVertex;
-                        break;
-
-                    default:
-                        throw EngineException("Undefined vertex attribute input rate!");
-                }
+                default:
+                    throw EngineException("Undefined vertex attribute input rate!");
             }
+
 
             {
                 m_attribute_description.emplace_back();
@@ -90,7 +124,7 @@ namespace Engine
                 description.binding                              = static_cast<decltype(description.binding)>(index);
                 description.location                             = static_cast<decltype(description.location)>(index);
                 description.offset                               = 0;// Each attribute has its own buffer
-                description.format                               = parse_engine_format(attribute.format);
+                description.format                               = format;
             }
 
             ++index;
@@ -187,7 +221,7 @@ namespace Engine
     static Out* create_shader(In* in)
     {
         Out* out = new Out();
-        if(out->create(in))
+        if (out->create(in))
         {
             return out;
         }

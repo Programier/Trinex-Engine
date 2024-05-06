@@ -13,11 +13,10 @@ namespace Engine
 
             struct ENGINE_EXPORT VertexAttribute {
                 String name;
-                ColorFormat format;
+                VertexBufferElementType type;
                 VertexAttributeInputRate rate;
                 VertexBufferSemantic semantic;
                 byte semantic_index;
-                byte count;
             };
 
             Vector<VertexAttribute> attributes;
