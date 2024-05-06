@@ -39,8 +39,9 @@ namespace Engine
         OpenGL& prepare_render();
         OpenGL& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
         OpenGL& draw(size_t vertex_count, size_t vertices_offset) override;
-        OpenGL& draw_instanced(size_t vertex_count, size_t instances) override;
-        OpenGL& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances) override;
+        OpenGL& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
+        OpenGL& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+                                       size_t instances) override;
 
         OpenGL& destroy_object(RHI_Object* object) override;
         OpenGL& begin_render() override;

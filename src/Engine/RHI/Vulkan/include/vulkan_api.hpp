@@ -147,8 +147,9 @@ namespace Engine
         VulkanAPI& prepare_draw();
         VulkanAPI& draw(size_t vertex_count, size_t vertices_offset) override;
         VulkanAPI& draw_indexed(size_t indices, size_t offset, size_t vertices_offset) override;
-        VulkanAPI& draw_instanced(size_t vertex_count, size_t instances) override;
-        VulkanAPI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances) override;
+        VulkanAPI& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
+        VulkanAPI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+                                          size_t instances) override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture(const Texture*, const byte* data, size_t size) override;

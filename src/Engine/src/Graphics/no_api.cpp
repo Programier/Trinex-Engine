@@ -45,13 +45,13 @@ namespace Engine
         return *this;
     }
 
-    NoApi& NoApi::draw_instanced(size_t vertex_count, size_t instances)
+    NoApi& NoApi::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;
     }
 
-    NoApi& NoApi::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances)
+    NoApi& NoApi::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return *this;

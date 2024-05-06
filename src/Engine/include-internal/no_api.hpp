@@ -15,8 +15,9 @@ namespace Engine
 
         NoApi& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
         NoApi& draw(size_t vertex_count, size_t vertices_offset) override;
-        NoApi& draw_instanced(size_t vertex_count, size_t instances) override;
-        NoApi& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances) override;
+        NoApi& draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances) override;
+        NoApi& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+                                      size_t instances) override;
 
         NoApi& begin_render() override;
         NoApi& end_render() override;

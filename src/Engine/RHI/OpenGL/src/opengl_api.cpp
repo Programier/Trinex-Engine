@@ -116,19 +116,19 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::draw_instanced(size_t vertex_count, size_t instances)
+    OpenGL& OpenGL::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
     {
         prepare_render();
-        glDrawArraysInstanced(m_current_pipeline->m_pipeline, 0, vertex_count, instances);
+        glDrawArraysInstanced(m_current_pipeline->m_pipeline, vertices_offset, vertex_count, instances);
         reset_samplers();
         return *this;
     }
 
-    OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t instances)
+    OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
     {
         prepare_render();
-        glDrawElementsInstanced(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
-                                reinterpret_cast<void*>(indices_offset), instances);
+        glDrawElementsInstancedBaseVertex(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
+                                          reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
         reset_samplers();
         return *this;
     }
