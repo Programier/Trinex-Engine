@@ -200,46 +200,46 @@ namespace Engine
         switch (attribute.type)
         {
             case VertexBufferElementType::Float1:
-                out.count     = 1;
-                out.size      = sizeof(float) * out.count;
-                out.type      = GL_FLOAT;
-                out.normalize = GL_FALSE;
+                out.count      = 1;
+                out.size       = sizeof(float) * out.count;
+                out.type       = GL_FLOAT;
+                out.normalized = GL_FALSE;
                 break;
             case VertexBufferElementType::Float2:
-                out.count     = 2;
-                out.size      = sizeof(float) * out.count;
-                out.type      = GL_FLOAT;
-                out.normalize = GL_FALSE;
+                out.count      = 2;
+                out.size       = sizeof(float) * out.count;
+                out.type       = GL_FLOAT;
+                out.normalized = GL_FALSE;
                 break;
             case VertexBufferElementType::Float3:
-                out.count     = 3;
-                out.size      = sizeof(float) * out.count;
-                out.type      = GL_FLOAT;
-                out.normalize = GL_FALSE;
+                out.count      = 3;
+                out.size       = sizeof(float) * out.count;
+                out.type       = GL_FLOAT;
+                out.normalized = GL_FALSE;
                 break;
             case VertexBufferElementType::Float4:
-                out.count     = 4;
-                out.size      = sizeof(float) * out.count;
-                out.type      = GL_FLOAT;
-                out.normalize = GL_FALSE;
+                out.count      = 4;
+                out.size       = sizeof(float) * out.count;
+                out.type       = GL_FLOAT;
+                out.normalized = GL_FALSE;
                 break;
             case VertexBufferElementType::UByte4:
-                out.count     = 4;
-                out.size      = sizeof(byte) * out.count;
-                out.type      = GL_UNSIGNED_BYTE;
-                out.normalize = GL_FALSE;
+                out.count      = 4;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_FALSE;
                 break;
             case VertexBufferElementType::UByte4N:
-                out.count     = 4;
-                out.size      = sizeof(byte) * out.count;
-                out.type      = GL_UNSIGNED_BYTE;
-                out.normalize = GL_TRUE;
+                out.count      = 4;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_TRUE;
                 break;
             case VertexBufferElementType::Color:
-                out.count     = 4;
-                out.size      = sizeof(byte) * out.count;
-                out.type      = GL_UNSIGNED_BYTE;
-                out.normalize = GL_FALSE;
+                out.count      = 4;
+                out.size       = sizeof(byte) * out.count;
+                out.type       = GL_UNSIGNED_BYTE;
+                out.normalized = GL_TRUE;
                 break;
             default:
                 break;

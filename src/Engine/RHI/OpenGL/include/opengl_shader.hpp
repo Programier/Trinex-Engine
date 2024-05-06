@@ -54,7 +54,7 @@ namespace Engine
             size_t count;
             size_t size;
             GLuint type;
-            GLboolean normalize;
+            GLboolean normalized;
         };
 
         Vector<VertexInput> m_vertex_input;
