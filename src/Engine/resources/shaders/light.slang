@@ -134,9 +134,9 @@ float4 fs_main(in float2 uv : TEXCOORD0) : SV_Target
     }
 
      // HDR tonemapping
-    light_out_color = light_out_color / (light_out_color + float3(1.0));
+    //light_out_color = light_out_color / (light_out_color + float3(1.0));
 
     // gamma correct
-    light_out_color = pow(light_out_color, float3(1.0 / 2.2)); 
+    //light_out_color = pow(light_out_color, float3(1.0 / 2.2)); 
     return float4(light_out_color.rgb, 1);
 }

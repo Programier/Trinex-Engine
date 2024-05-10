@@ -348,7 +348,10 @@ namespace Engine
         const auto& selected = m_world->selected_actors();
 
         if (selected.empty())
+        {
+            m_guizmo_is_in_use = false;
             return *this;
+        }
 
         ImGuizmo::BeginFrame();
         ImGuizmo::AllowAxisFlip(false);
