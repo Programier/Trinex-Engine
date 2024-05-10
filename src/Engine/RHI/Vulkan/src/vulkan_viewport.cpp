@@ -280,7 +280,14 @@ namespace Engine
     vk::ResultValue<uint32_t> VulkanWindowViewport::swapchain_image_index()
     {
         SyncObject& sync = m_sync_objects[API->m_current_buffer];
-        return API->m_device.acquireNextImageKHR(m_swapchain->swapchain, UINT64_MAX, sync.m_image_present, nullptr);
+        try
+        {
+            return API->m_device.acquireNextImageKHR(m_swapchain->swapchain, UINT64_MAX, sync.m_image_present, nullptr);
+        }
+        catch (const std::exception& e)
+        {
+            return vk::ResultValue<uint32_t>(vk::Result::eErrorOutOfDateKHR, -1);
+        }
     }
 
     VulkanWindowViewport::~VulkanWindowViewport()
