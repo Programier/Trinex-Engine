@@ -58,6 +58,38 @@ namespace Engine
         return m_channels;
     }
 
+    void Image::resize_channels(int_t new_channels)
+    {
+        if (new_channels < 1 || new_channels > 4)
+            return;
+
+        int_t channels_diff = new_channels - m_channels;
+
+        if (channels_diff != 0)
+        {
+            int_t pixels = m_width * m_height;
+            Buffer new_data(m_data.size() + (pixels * channels_diff), 255);
+
+            int_t min_channels = glm::min(new_channels, m_channels);
+
+            byte* src_memory = m_data.data();
+            byte* dst_memory = new_data.data();
+
+            for (int_t pixel = 0; pixel < pixels; pixel++)
+            {
+                byte* src_pixel_data = src_memory + (pixel * m_channels);
+                byte* dst_pixel_data = dst_memory + (pixel * new_channels);
+
+                for (int_t channel = 0; channel < min_channels; channel++)
+                {
+                    dst_pixel_data[channel] = src_pixel_data[channel];
+                }
+            }
+
+            m_channels = new_channels;
+        }
+    }
+
 
     Image& Image::load(const Path& image, bool invert_horizontal)
     {
@@ -65,8 +97,15 @@ namespace Engine
         m_data.shrink_to_fit();
 
         Buffer buffer = FileReader(image).read_buffer();
-        return load_from_memory(buffer, invert_horizontal);
+        load_from_memory(buffer, invert_horizontal);
+
+        if (m_channels > 1)
+        {
+            resize_channels(4);
+        }
+        return *this;
     }
+
 
     Image& Image::load_from_memory(const byte* buffer, size_t size, bool invert)
     {
@@ -79,7 +118,6 @@ namespace Engine
         std::copy(image_data, image_data + m_data.size(), m_data.data());
         stbi_image_free(image_data);
         m_is_compressed = false;
-
         return *this;
     }
 
@@ -325,16 +363,6 @@ namespace Engine
         if (m_channels == 1)
         {
             return ColorFormat::R8;
-        }
-
-        if (m_channels == 2)
-        {
-            return ColorFormat::R8G8;
-        }
-
-        if (m_channels == 3)
-        {
-            return ColorFormat::R8G8B8;
         }
 
         if (m_channels == 4)

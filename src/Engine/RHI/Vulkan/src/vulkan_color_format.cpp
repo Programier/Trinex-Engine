@@ -8,21 +8,12 @@ namespace Engine
         {
             case ColorFormat::Undefined:
                 return vk::Format::eUndefined;
-
             case ColorFormat::FloatR:
                 return vk::Format::eR32Sfloat;
-            case ColorFormat::FloatRG:
-                return vk::Format::eR32G32Sfloat;
-            case ColorFormat::FloatRGB:
-                return vk::Format::eR32G32B32Sfloat;
             case ColorFormat::FloatRGBA:
                 return vk::Format::eR32G32B32A32Sfloat;
             case ColorFormat::R8:
                 return vk::Format::eR8Unorm;
-            case ColorFormat::R8G8:
-                return vk::Format::eR8G8Unorm;
-            case ColorFormat::R8G8B8:
-                return vk::Format::eR8G8B8Unorm;
             case ColorFormat::R8G8B8A8:
                 return vk::Format::eR8G8B8A8Unorm;
             case ColorFormat::DepthStencil:

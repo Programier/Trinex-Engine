@@ -9,19 +9,10 @@ namespace Engine
         {
             case ColorFormat::FloatR:
                 return OpenGL_ColorInfo(GL_R32F, GL_RED, GL_FLOAT);
-            case ColorFormat::FloatRG:
-                return OpenGL_ColorInfo(GL_RG32F, GL_RG, GL_FLOAT);
-            case ColorFormat::FloatRGB:
-                return OpenGL_ColorInfo(GL_RGB32F, GL_RGB, GL_FLOAT);
             case ColorFormat::FloatRGBA:
                 return OpenGL_ColorInfo(GL_RGBA32F, GL_RGBA, GL_FLOAT);
-
             case ColorFormat::R8:
                 return OpenGL_ColorInfo(GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-            case ColorFormat::R8G8:
-                return OpenGL_ColorInfo(GL_RG8, GL_RG, GL_UNSIGNED_BYTE);
-            case ColorFormat::R8G8B8:
-                return OpenGL_ColorInfo(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
             case ColorFormat::R8G8B8A8:
                 return OpenGL_ColorInfo(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
             case ColorFormat::DepthStencil:

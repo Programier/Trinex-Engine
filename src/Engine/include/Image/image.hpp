@@ -24,6 +24,8 @@ namespace Engine
         bool write_bmp(const Path& filename);
         bool write_tga(const Path& filename);
 
+        void resize_channels(int_t new_channels);
+
     public:
         Image();
         Image(const Path& path, const bool& invert_horizontal = false);

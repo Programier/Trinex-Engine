@@ -4,8 +4,8 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <icons.hpp>
 #include <editor_resources.hpp>
+#include <icons.hpp>
 
 
 namespace Engine::Icons
@@ -33,7 +33,10 @@ namespace Engine::Icons
         if (object)
         {
             if (Texture2D* texture = object->instance_cast<Texture2D>())
-                return texture;
+            {
+                if (texture->has_object())
+                    return texture;
+            }
         }
 
         return default_texture();

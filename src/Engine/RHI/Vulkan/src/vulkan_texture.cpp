@@ -67,8 +67,7 @@ namespace Engine
 
         static vk::ImageCreateFlagBits default_flags = {};
 
-        vk::ImageUsageFlags m_usage_flags =
-                vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+        vk::ImageUsageFlags m_usage_flags      = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
         vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
 
 
