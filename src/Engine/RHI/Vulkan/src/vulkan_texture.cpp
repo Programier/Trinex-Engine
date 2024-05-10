@@ -223,6 +223,12 @@ namespace Engine
 
     bool VulkanTexture::is_color_image() const
     {
+        return is_in<ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8, ColorFormat::R8G8B8A8, ColorFormat::BC1,
+                     ColorFormat::BC2, ColorFormat::BC3>(m_engine_texture->format);
+    }
+
+    bool VulkanTexture::is_render_target_color_image() const
+    {
         return is_in<ColorFormat::R8G8B8A8, ColorFormat::FloatRGBA>(m_engine_texture->format);
     }
 

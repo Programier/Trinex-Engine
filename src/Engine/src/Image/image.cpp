@@ -86,6 +86,7 @@ namespace Engine
                 }
             }
 
+            m_data = std::move(new_data);
             m_channels = new_channels;
         }
     }

@@ -43,6 +43,7 @@ namespace Engine
         void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
                                size_t data_size) override;
         bool is_color_image() const;
+        bool is_render_target_color_image() const;
         bool is_depth_stencil_image() const;
         static bool is_depth_stencil_image(ColorFormat);
 
