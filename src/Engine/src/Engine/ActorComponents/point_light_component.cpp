@@ -85,7 +85,8 @@ namespace Engine
         PointLightComponentProxy* proxy = component->proxy();
         auto layer                      = deferred_lighting_layer();
 
-        if (!proxy->is_enabled() || !component->leaf_class_is<PointLightComponent>())
+        if (!scene_view().show_flags().has_all(ShowFlags::PointLights) || !proxy->is_enabled() ||
+            !component->leaf_class_is<PointLightComponent>())
             return *this;
 
         Material* material = DefaultResources::point_light_material;
@@ -108,7 +109,7 @@ namespace Engine
 
         if (intensivity_parameter)
         {
-            layer->update_variable(intensivity_parameter->param , proxy->intensivity());
+            layer->update_variable(intensivity_parameter->param, proxy->intensivity());
         }
 
         if (radius_parameter)

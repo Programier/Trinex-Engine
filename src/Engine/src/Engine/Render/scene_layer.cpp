@@ -146,17 +146,6 @@ namespace Engine
         return new_layer;
     }
 
-    BatchedLines* SceneLayer::batched_lines()
-    {
-        return nullptr;
-    }
-
-    BatchedTriangles* SceneLayer::batched_triangles()
-    {
-        return nullptr;
-    }
-
-
     RootLayer::RootLayer() : SceneLayer("Root Layer")
     {}
 
@@ -189,47 +178,5 @@ namespace Engine
         return *this;
     }
 
-    //// LIGHTING LAYER
-    LightingSceneLayer& LightingSceneLayer::clear()
-    {
-        SceneLayer::clear();
-        m_light_components.clear();
-        return *this;
-    }
 
-    LightingSceneLayer& LightingSceneLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
-    {
-        SceneLayer::render(renderer, rt);
-        auto& components = light_components();
-
-        //        for (LightComponent* component : components)
-        //        {
-        //            component->render(renderer, rt, this);
-        //        }
-
-        return *this;
-    }
-
-    LightingSceneLayer& LightingSceneLayer::add_light(LightComponent* component)
-    {
-        if (!component)
-            return *this;
-
-        m_light_components.insert(component);
-        return *this;
-    }
-
-    LightingSceneLayer& LightingSceneLayer::remove_light(LightComponent* component)
-    {
-        m_light_components.erase(component);
-        return *this;
-    }
-
-    const Set<LightComponent*>& LightingSceneLayer::light_components() const
-    {
-        return m_light_components;
-    }
-
-    LightingSceneLayer::~LightingSceneLayer()
-    {}
 }// namespace Engine

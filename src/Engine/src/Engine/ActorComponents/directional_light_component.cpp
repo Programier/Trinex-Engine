@@ -55,7 +55,8 @@ namespace Engine
         CommandBufferLayer* layer             = deferred_lighting_layer();
         DirectionalLightComponentProxy* proxy = component->proxy();
 
-        if (!proxy->is_enabled() || !component->leaf_class_is<DirectionalLightComponent>())
+        if (!scene_view().show_flags().has_all(ShowFlags::DirectionalLights) || !proxy->is_enabled() ||
+            !component->leaf_class_is<DirectionalLightComponent>())
             return *this;
 
         Material* material = DefaultResources::directional_light_material;

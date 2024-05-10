@@ -8,23 +8,19 @@
 
 namespace Engine
 {
-    class SceneRenderer;
-    class RenderViewport;
-    class DepthRenderingLayer;
+    class Scene;
     class SceneLayer;
-    class LightingSceneLayer;
-    class DeferredLightingSceneLayer;
+    class DepthRenderingLayer;
+    class CommandBufferLayer;
+    class SceneOutputLayer;
+    class SpotLightComponent;
     class StaticMeshComponent;
     class SpriteComponent;
-    class Scene;
-    class RenderTargetBase;
     class PrimitiveComponent;
     class LightComponent;
     class LocalLightComponent;
     class PointLightComponent;
-    class SpotLightComponent;
     class DirectionalLightComponent;
-    class CommandBufferLayer;
 
 
 #define implement_empty_rendering_methods_for(type)                                                                              \
@@ -95,7 +91,7 @@ namespace Engine
         DepthRenderingLayer* m_depth_layer            = nullptr;
         CommandBufferLayer* m_base_pass_layer         = nullptr;
         CommandBufferLayer* m_deferred_lighting_layer = nullptr;
-        SceneLayer* m_scene_output                    = nullptr;
+        SceneOutputLayer* m_scene_output              = nullptr;
         SceneLayer* m_post_process_layer              = nullptr;
 
 
@@ -137,7 +133,7 @@ namespace Engine
             return m_deferred_lighting_layer;
         }
 
-        FORCE_INLINE SceneLayer* scene_output_layer() const
+        FORCE_INLINE SceneOutputLayer* scene_output_layer() const
         {
             return m_scene_output;
         }

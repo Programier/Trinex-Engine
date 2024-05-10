@@ -28,6 +28,7 @@ namespace Engine
 
     private:
         EditorSceneRenderer m_renderer;
+        Flags<ShowFlags, BitMask> m_show_flags;
         SceneView m_scene_view;
 
         RenderViewport* m_render_viewport = nullptr;

@@ -1,11 +1,11 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/enums.hpp>
+#include <Core/flags.hpp>
 #include <Core/implement.hpp>
 #include <Engine/camera_types.hpp>
 
 namespace Engine
 {
-
     class ENGINE_EXPORT SceneView
     {
     private:
@@ -15,15 +15,18 @@ namespace Engine
         Matrix4f m_projview;
         Matrix4f m_inv_projview;
         Size2D m_size;
+        Flags<ShowFlags, BitMask> m_show_flags;
 
     public:
-        SceneView();
-        SceneView(const CameraView& view, const Size2D& size);
+        SceneView(const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
+        SceneView(const CameraView& view, const Size2D& size,
+                  const Flags<ShowFlags, BitMask>& show_flags = ShowFlags::DefaultFlags);
         copy_constructors_hpp(SceneView);
 
     public:
         SceneView& camera_view(const CameraView& view);
         SceneView& view_size(const Size2D& size);
+        SceneView& show_flags(const Flags<ShowFlags, BitMask>& flags);
         const SceneView& screen_to_world(const Vector2D& screen_point, Vector3D& world_origin, Vector3D& world_direction) const;
         Vector4D world_to_screen(const Vector3D& world_point) const;
 
@@ -55,6 +58,11 @@ namespace Engine
         FORCE_INLINE const Size2D& view_size() const
         {
             return m_size;
+        }
+
+        FORCE_INLINE const Flags<ShowFlags, BitMask>& show_flags() const
+        {
+            return m_show_flags;
         }
     };
 }// namespace Engine

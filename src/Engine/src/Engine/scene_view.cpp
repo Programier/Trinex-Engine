@@ -3,10 +3,12 @@
 namespace Engine
 {
 
-    SceneView::SceneView() = default;
+    SceneView::SceneView(const Flags<ShowFlags, BitMask>& show_flags) : m_show_flags(show_flags)
+    {}
 
-    SceneView::SceneView(const CameraView& view, const Size2D& size)
-        : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_size(size)
+    SceneView::SceneView(const CameraView& view, const Size2D& size, const Flags<ShowFlags, BitMask>& show_flags)
+        : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_size(size),
+          m_show_flags(show_flags)
     {
         m_projview     = m_projection * m_view;
         m_inv_projview = glm::inverse(m_projview);
@@ -30,6 +32,11 @@ namespace Engine
         return *this;
     }
 
+    SceneView& SceneView::show_flags(const Flags<ShowFlags, BitMask>& flags)
+    {
+        m_show_flags = flags;
+        return *this;
+    }
 
     const SceneView& SceneView::screen_to_world(const Vector2D& screen_point, Vector3D& world_origin,
                                                 Vector3D& world_direction) const

@@ -168,17 +168,6 @@ namespace Engine
             renderer->end_rendering_target();
             return *this;
         }
-
-        BatchedLines* batched_lines() override
-        {
-            return &lines;
-        }
-
-
-        BatchedTriangles* batched_triangles() override
-        {
-            return &triangles;
-        }
     };
 
     static void create_directional_arrow(DirectionalLightComponent* component, OverlaySceneLayer* layer)

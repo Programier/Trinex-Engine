@@ -68,8 +68,6 @@ namespace Engine
         virtual SceneLayer& begin_render(SceneRenderer* renderer, RenderTargetBase* render_target);
         virtual SceneLayer& render(SceneRenderer*, RenderTargetBase*);
         virtual SceneLayer& end_render(SceneRenderer* renderer, RenderTargetBase* render_target);
-        virtual BatchedLines* batched_lines();
-        virtual BatchedTriangles* batched_triangles();
 
         friend class SceneRenderer;
     };
@@ -93,20 +91,5 @@ namespace Engine
         DepthRenderingLayer& add_light(LightComponent* component);
         DepthRenderingLayer& remove_light(LightComponent* component);
         DepthRenderingLayer& render(SceneRenderer*, RenderTargetBase*) override;
-    };
-
-    class ENGINE_EXPORT LightingSceneLayer : public SceneLayer
-    {
-    protected:
-        Set<LightComponent*> m_light_components;
-
-    public:
-        LightingSceneLayer& clear() override;
-        LightingSceneLayer& render(SceneRenderer*, RenderTargetBase*) override;
-        LightingSceneLayer& add_light(LightComponent* component);
-        LightingSceneLayer& remove_light(LightComponent* component);
-        const Set<LightComponent*>& light_components() const;
-        ~LightingSceneLayer();
-        friend class SceneLayer;
     };
 }// namespace Engine

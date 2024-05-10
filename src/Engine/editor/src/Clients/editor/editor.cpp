@@ -45,7 +45,7 @@ namespace Engine
 
     implement_engine_class_default_init(EditorClient);
 
-    EditorClient::EditorClient()
+    EditorClient::EditorClient() : m_show_flags(ShowFlags::DefaultFlags)
     {}
 
     void EditorClient::unbind_window(bool destroying)
@@ -392,6 +392,16 @@ namespace Engine
         return *this;
     }
 
+    static void render_show_flag(Flags<ShowFlags, BitMask>& flags, ShowFlags flag, const char* name)
+    {
+        int i_flags = static_cast<int>(flags);
+        if (ImGui::CheckboxFlags(name, &i_flags, static_cast<int>(flag)))
+        {
+            flags.clear_all();
+            flags.set(static_cast<BitMask>(i_flags));
+        }
+    }
+
     EditorClient& EditorClient::render_viewport_menu()
     {
         const float height           = 24.f * editor_scale_factor();
@@ -499,6 +509,21 @@ namespace Engine
                             }
                         }
                         ImGui::EndCombo();
+                    }
+
+                    if (ImGui::BeginMenu("editor/Show Flags"_localized))
+                    {
+                        render_show_flag(m_show_flags, ShowFlags::Sprite, "Sprite");
+                        render_show_flag(m_show_flags, ShowFlags::StaticMesh, "Static Mesh");
+                        render_show_flag(m_show_flags, ShowFlags::Wireframe, "Wireframe");
+                        render_show_flag(m_show_flags, ShowFlags::Gizmo, "Gizmo");
+                        render_show_flag(m_show_flags, ShowFlags::PointLights, "Point Lights");
+                        render_show_flag(m_show_flags, ShowFlags::SpotLights, "Spot Lights");
+                        render_show_flag(m_show_flags, ShowFlags::DirectionalLights, "Directional Lights");
+                        render_show_flag(m_show_flags, ShowFlags::PostProcess, "Post Process");
+                        render_show_flag(m_show_flags, ShowFlags::LightOctree, "Light Octree");
+                        render_show_flag(m_show_flags, ShowFlags::PrimitiveOctree, "Primitive Octree");
+                        ImGui::EndMenu();
                     }
                 }
 
@@ -649,19 +674,23 @@ namespace Engine
             CameraView view;
             SceneView& out;
             Size2D size;
+            const Flags<ShowFlags, BitMask>& show_flags;
 
-            UpdateView(const CameraView& in, SceneView& out, const Size2D& size) : view(in), out(out), size(size)
+            UpdateView(const CameraView& in, SceneView& out, const Size2D& size, const Flags<ShowFlags, BitMask>& show_flags)
+                : view(in), out(out), size(size), show_flags(show_flags)
             {}
 
             int_t execute() override
             {
                 out.view_size(size);
                 out.camera_view(view);
+                out.show_flags(show_flags);
                 return sizeof(UpdateView);
             }
         };
 
-        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, SceneColorOutput::instance()->size);
+        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, SceneColorOutput::instance()->size,
+                                                     m_show_flags);
         return *this;
     }
 

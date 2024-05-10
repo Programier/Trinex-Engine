@@ -379,4 +379,23 @@ namespace Engine
         BC2                 = 10,
         BC3                 = 11,
     };
+
+    enum class ShowFlags : EnumerateType
+    {
+        None              = 0,
+        Sprite            = BIT(0),
+        Wireframe         = BIT(1),
+        Gizmo             = BIT(2),
+        PointLights       = BIT(3),
+        SpotLights        = BIT(4),
+        DirectionalLights = BIT(5),
+        PostProcess       = BIT(6),
+
+        StaticMesh = BIT(7),
+
+        LightOctree     = BIT(8),
+        PrimitiveOctree = BIT(9),
+
+        DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess
+    };
 }// namespace Engine

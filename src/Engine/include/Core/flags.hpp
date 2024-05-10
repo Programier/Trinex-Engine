@@ -16,10 +16,10 @@ namespace Engine
         Xor,
     };
 
-    template<typename FlagsType = BitMask>
+    template<typename FlagsType = BitMask, typename ValueType = Atomic<BitMask>>
     struct Flags {
     private:
-        Atomic<BitMask> m_flags;
+        ValueType m_flags;
 
     public:
         FORCE_INLINE Flags(FlagsType flags) : m_flags(static_cast<BitMask>(flags))
@@ -47,14 +47,14 @@ namespace Engine
             }
         }
 
-        FORCE_INLINE Flags(const Flags& new_flags) : Flags(new_flags.m_flags.load())
+        FORCE_INLINE Flags(const Flags& new_flags) : Flags(static_cast<BitMask>(new_flags.m_flags))
         {}
 
         FORCE_INLINE Flags& operator=(const Flags& new_flags)
         {
             if (this != &new_flags)
             {
-                m_flags.store(new_flags.m_flags.load());
+                m_flags = static_cast<BitMask>(new_flags.m_flags);
             }
             return *this;
         }

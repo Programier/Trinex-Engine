@@ -36,6 +36,9 @@ namespace Engine
     {
         render_base_component(component);
 
+        if (!scene_view().show_flags().has_all(ShowFlags::StaticMesh))
+            return *this;
+
         StaticMesh* mesh   = component->mesh;
         auto& camera_view  = scene_view().camera_view();
         float inv_distance = 1.f / glm::min(glm::distance(component->proxy()->world_transform().location(), camera_view.location),

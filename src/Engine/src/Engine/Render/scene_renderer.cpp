@@ -6,6 +6,7 @@
 #include <Engine/Render/command_buffer.hpp>
 #include <Engine/Render/rendering_policy.hpp>
 #include <Engine/Render/scene_layer.hpp>
+#include <Engine/Render/scene_output_layer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
 #include <Engine/scene.hpp>
 #include <Graphics/material.hpp>
@@ -224,7 +225,7 @@ namespace Engine
                 declare_rendering_function() { self->begin_rendering_target(SceneColorOutput::instance()); });
         m_deferred_lighting_layer->on_begin_render.push_back(begin_deferred_lighting_pass);
 
-        m_scene_output       = m_deferred_lighting_layer->create_next(Name::scene_output_pass);
+        m_scene_output       = m_deferred_lighting_layer->create_next<SceneOutputLayer>(Name::scene_output_pass);
         m_post_process_layer = m_scene_output->create_next(Name::post_process);
         m_post_process_layer->on_end_render.push_back(end_rendering);
     }
