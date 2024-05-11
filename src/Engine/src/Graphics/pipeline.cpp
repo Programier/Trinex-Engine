@@ -408,8 +408,8 @@ namespace Engine
             auto v_shader = vertex_shader(true);
             auto f_shader = fragment_shader(true);
 
-            v_shader->attributes.clear();
-            v_shader->attributes.reserve(source.reflection.attributes.size());
+            v_shader->input_attributes.clear();
+            v_shader->input_attributes.reserve(source.reflection.attributes.size());
 
             for (auto& attribute : source.reflection.attributes)
             {
@@ -420,7 +420,7 @@ namespace Engine
                 out_attribute.semantic       = attribute.semantic;
                 out_attribute.semantic_index = attribute.semantic_index;
 
-                v_shader->attributes.push_back(out_attribute);
+                v_shader->input_attributes.push_back(out_attribute);
             }
 
             v_shader->source_code = source.vertex_code;

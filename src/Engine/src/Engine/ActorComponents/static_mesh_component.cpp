@@ -62,9 +62,9 @@ namespace Engine
 
             VertexShader* shader = material.material->material()->pipeline->vertex_shader();
 
-            for (Index i = 0, count = shader->attributes.size(); i < count; ++i)
+            for (Index i = 0, count = shader->input_attributes.size(); i < count; ++i)
             {
-                auto& attribute      = shader->attributes[i];
+                auto& attribute      = shader->input_attributes[i];
                 VertexBuffer* buffer = lod.find_vertex_buffer(attribute.semantic, attribute.semantic_index);
 
                 if (buffer)

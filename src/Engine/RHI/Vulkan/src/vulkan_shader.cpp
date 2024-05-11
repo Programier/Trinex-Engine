@@ -88,12 +88,12 @@ namespace Engine
         if (status == false)
             return false;
 
-        m_binding_description.reserve(shader->attributes.size());
-        m_attribute_description.reserve(shader->attributes.size());
+        m_binding_description.reserve(shader->input_attributes.size());
+        m_attribute_description.reserve(shader->input_attributes.size());
 
 
         Index index = 0;
-        for (auto& attribute : shader->attributes)
+        for (auto& attribute : shader->input_attributes)
         {
 
             m_binding_description.emplace_back();
