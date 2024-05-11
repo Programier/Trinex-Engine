@@ -14,6 +14,19 @@ namespace Engine
         declare_class(Shader, RenderResource);
 
     public:
+        Buffer source_code;
+
+        bool archive_process(Archive& ar) override;
+        bool archive_process_source_code(Archive& ar);
+        virtual ShaderType type() const = 0;
+    };
+
+
+    class ENGINE_EXPORT VertexShader : public Shader
+    {
+        declare_class(VertexShader, Shader);
+
+    public:
         struct Attribute {
             Name name;
             VertexBufferElementType type;
@@ -30,21 +43,7 @@ namespace Engine
             VertexBufferElementType element_type() const;
         };
 
-        Vector<Attribute> input_attributes;
-        Vector<Attribute> output_attributes;
-
-        Buffer source_code;
-        Path file_path;
-
-        bool archive_process(Archive& ar) override;
-        bool archive_process_source_code(Archive& ar);
-        virtual ShaderType type() const = 0;
-    };
-
-
-    class ENGINE_EXPORT VertexShader : public Shader
-    {
-        declare_class(VertexShader, Shader);
+        Vector<Attribute> attributes;
 
     public:
         VertexShader& rhi_create() override;
@@ -88,5 +87,5 @@ namespace Engine
         ShaderType type() const override;
     };
 
-    ENGINE_EXPORT bool operator&(Archive&, Shader::Attribute&);
+    ENGINE_EXPORT bool operator&(Archive&, VertexShader::Attribute&);
 }// namespace Engine

@@ -43,6 +43,9 @@ namespace Engine
                                             Property::IsConst | Property::IsNotSerializable));
     });
 
+    implement_class(Shader, Engine, 0);
+    implement_default_initialize_class(Shader);
+
     static Name get_name_of_attribute(class ArrayPropertyInterface* interface, void* object, size_t index)
     {
         if (index >= interface->elements_count(object))
@@ -54,57 +57,37 @@ namespace Engine
         return attribute->name;
     }
 
-    implement_class(Shader, Engine, 0);
-    implement_initialize_class(Shader)
+    implement_class(VertexShader, Engine, 0);
+    implement_initialize_class(VertexShader)
     {
-        Class* self = This::static_class_instance();
-
+        Class* self              = This::static_class_instance();
         Struct* attribute_struct = Struct::static_find("Engine::VertexShader::Attribute", true);
 
-        auto input_attributes_prop =
+        auto attributes_prop =
                 new StructProperty<This, Attribute>("", "", nullptr, attribute_struct, Name::none, Property::IsNotSerializable);
-        auto output_attributes_prop =
-                new StructProperty<This, Attribute>("", "", nullptr, attribute_struct, Name::none, Property::IsNotSerializable);
-
-        auto input_attributes_array_prop =
-                new ArrayProperty("Input Attributes", "Input attributes of this shader", &This::input_attributes,
-                                  input_attributes_prop, Name::none, Property::IsConst | Property::IsNotSerializable);
-        auto output_attributes_array_prop =
-                new ArrayProperty("Output Attributes", "Output attributes of this shader", &This::output_attributes,
-                                  output_attributes_prop, Name::none, Property::IsConst | Property::IsNotSerializable);
-
-        input_attributes_array_prop->element_name_callback(get_name_of_attribute);
-        output_attributes_array_prop->element_name_callback(get_name_of_attribute);
-
-        self->add_property(input_attributes_array_prop);
-        self->add_property(output_attributes_array_prop);
-
-        self->add_property(new PathProperty("Path", "Path to shader file", &This::file_path));
+        auto attributes_array_prop =
+                new ArrayProperty("Vertex Attributes", "Vertex attributes of this pipeline", &This::attributes, attributes_prop,
+                                  Name::none, Property::IsConst | Property::IsNotSerializable);
+        attributes_array_prop->element_name_callback(get_name_of_attribute);
+        self->add_property(attributes_array_prop);
     }
 
-    implement_class(VertexShader, Engine, Class::IsAsset);
-    implement_initialize_class(VertexShader)
-    {}
-
-    implement_class(TessellationControlShader, Engine, Class::IsAsset);
+    implement_class(TessellationControlShader, Engine, 0);
     implement_default_initialize_class(TessellationControlShader);
 
-    implement_class(TessellationShader, Engine, Class::IsAsset);
+    implement_class(TessellationShader, Engine, 0);
     implement_default_initialize_class(TessellationShader);
 
-    implement_class(GeometryShader, Engine, Class::IsAsset);
+    implement_class(GeometryShader, Engine, 0);
     implement_default_initialize_class(GeometryShader);
 
-    implement_class(FragmentShader, Engine, Class::IsAsset);
+    implement_class(FragmentShader, Engine, 0);
     implement_default_initialize_class(FragmentShader);
 
     bool Shader::archive_process(Archive& ar)
     {
         if (!Super::archive_process(ar))
             return false;
-
-        ar & input_attributes;
-        ar & output_attributes;
         return ar;
     }
 
@@ -123,6 +106,8 @@ namespace Engine
     {
         if (!Super::archive_process(ar))
             return false;
+
+        ar & attributes;
         return ar;
     }
 
@@ -175,7 +160,7 @@ namespace Engine
         return ShaderType::Geometry;
     }
 
-    ENGINE_EXPORT bool operator&(Archive& ar, Shader::Attribute& attrib)
+    ENGINE_EXPORT bool operator&(Archive& ar, VertexShader::Attribute& attrib)
     {
         ar & attrib.name;
         ar & attrib.type;

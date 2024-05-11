@@ -263,10 +263,10 @@ namespace Engine
         {
             glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, vertex_shader->rhi_object<OpenGL_Shader>()->m_id);
 
-            m_vertex_input.reserve(vertex_shader->input_attributes.size());
+            m_vertex_input.reserve(vertex_shader->attributes.size());
 
             GLuint index = 0;
-            for (auto& attribute : vertex_shader->input_attributes)
+            for (auto& attribute : vertex_shader->attributes)
             {
                 glEnableVertexAttribArray(index);
                 VertexInput input;
