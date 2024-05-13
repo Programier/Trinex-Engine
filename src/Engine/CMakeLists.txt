@@ -112,7 +112,7 @@ if(TRINEX_REBUILD_HEADERS)
     set(TRINEX_PRECOMPILED_HEADERS  include-internal/DefaultResources/default.hpp)
 
     set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenMaterial.tasset
-                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultMaterial.tasset
+                                ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BasePassMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultSampler.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BatchedLinesMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BatchedTrianglesMaterial.tasset

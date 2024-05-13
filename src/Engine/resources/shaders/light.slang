@@ -1,6 +1,5 @@
 #include "common.slang"
-
-#define M_PI 3.141592
+#include "math.slang"
 
 uniform Sampler2D base_color_texture;  
 uniform Sampler2D position_texture;

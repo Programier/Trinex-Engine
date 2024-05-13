@@ -363,7 +363,6 @@ namespace Engine::ShaderCompiler
 
     static void host_setup_request(SlangCompileRequest* request, const Vector<ShaderDefinition>& definitions)
     {
-
         Path shaders_dir = rootfs()->native_path(engine_config.shaders_dir);
         request->addSearchPath(shaders_dir.c_str());
 
@@ -371,6 +370,9 @@ namespace Engine::ShaderCompiler
         {
             request->addPreprocessorDefine(definition.key.c_str(), definition.value.c_str());
         }
+
+        request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
+        request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
     }
 
 #define check_compile_errors()                                                                                                   \
@@ -540,7 +542,6 @@ namespace Engine::ShaderCompiler
             }
         }
 
-
         ComPtr<slang::IComponentType> program;
         {
             ComPtr<slang::IBlob> diagnostics_blob;
@@ -637,6 +638,7 @@ namespace Engine::ShaderCompiler
         }
 
 
+
         return out_source;
     }
 
@@ -677,9 +679,7 @@ namespace Engine::ShaderCompiler
     static void setup_spriv_compile_request(SlangCompileRequest* request)
     {
         request->setCodeGenTarget(SLANG_SPIRV);
-        request->setMatrixLayoutMode(SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
         request->setTargetMatrixLayoutMode(0, SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
-        request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_MAXIMAL);
         request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
         request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
         request->setTargetFlags(0, SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY);

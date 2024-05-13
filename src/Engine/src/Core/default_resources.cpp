@@ -15,7 +15,7 @@ namespace Engine
         ENGINE_EXPORT Material* sprite_material                    = nullptr;
         ENGINE_EXPORT PositionVertexBuffer* screen_position_buffer = nullptr;
         ENGINE_EXPORT Material* screen_material                    = nullptr;
-        ENGINE_EXPORT Material* default_material                   = nullptr;
+        ENGINE_EXPORT Material* base_pass_material                 = nullptr;
         ENGINE_EXPORT Material* batched_lines_material             = nullptr;
         ENGINE_EXPORT Material* batched_triangles_material         = nullptr;
         ENGINE_EXPORT Material* point_light_material               = nullptr;
@@ -49,7 +49,7 @@ namespace Engine
         load_default_asset(ScreenPositionBuffer, screen_position_buffer, PositionVertexBuffer, Buffers);
         load_default_asset(SpriteMaterial, sprite_material, Material, Materials);
         load_default_asset(ScreenMaterial, screen_material, Material, Materials);
-        load_default_asset(DefaultMaterial, default_material, Material, Materials);
+        load_default_asset(BasePassMaterial, base_pass_material, Material, Materials);
         load_default_asset(BatchedLinesMaterial, batched_lines_material, Material, Materials);
         load_default_asset(BatchedTrianglesMaterial, batched_triangles_material, Material, Materials);
         load_default_asset(PointLightMaterial, point_light_material, Material, Materials);

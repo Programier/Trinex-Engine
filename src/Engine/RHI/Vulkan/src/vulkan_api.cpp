@@ -207,13 +207,28 @@ namespace Engine
 
     ///////////////////////////////// INITIALIZATION /////////////////////////////////
 #if ENABLE_VALIDATION_LAYERS
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                                         VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                                         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
+                                                         VkDebugUtilsMessageTypeFlagsEXT message_type,
+                                                         const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
                                                          void* pUserData)
     {
-        vulkan_error_log("Vulkan API", "%s", pCallbackData->pMessage);
+#define has_bit(bit) ((message_severity & bit) == bit)
+
+        if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) || has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT))
+        {
+            info_log("Vulkan API", "%s", callback_data->pMessage);
+        }
+        else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT))
+        {
+            warn_log("Vulkan API", "%s", callback_data->pMessage);
+        }
+        else if (has_bit(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT))
+        {
+            error_log("Vulkan API", "%s", callback_data->pMessage);
+        }
+
         return VK_FALSE;
+#undef has_bit
     }
 #endif
 

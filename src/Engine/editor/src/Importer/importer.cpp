@@ -188,10 +188,8 @@ namespace Engine::Importer
         surface.first_index       = 0;
         surface.vertices_count    = mesh->mNumFaces * 3;
 
-
-        static_mesh->materials.emplace_back();
         auto& material         = static_mesh->materials.back();
-        material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::default_material);
+        material.material      = reinterpret_cast<MaterialInterface*>(DefaultResources::base_pass_material);
         material.policy        = policy_id(Name::color_scene_rendering);
         material.surface_index = 0;
 
