@@ -224,12 +224,20 @@ namespace Engine
         {
             ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot rename internal object!");
         }
-        else if (new_object_name.find(Constants::name_separator) != String::npos)
+        else if (new_object_name.empty())
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot rename object! Name can't contain '%s'",
+            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't be empty!");
+        }
+        else if (new_object_name.starts_with(Constants::name_separator))
+        {
+            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't starts with '%s'!",
                                               Constants::name_separator.c_str());
         }
-        else
+        else if (new_object_name.ends_with(Constants::name_separator))
+        {
+            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't ends with '%s'!",
+                                              Constants::name_separator.c_str());
+        }
         {
             ImGui::Separator();
 

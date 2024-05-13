@@ -99,10 +99,10 @@ namespace Engine
         String as_string() const;
         Index instance_index() const;
         bool archive_process(Archive& archive) override;
-        bool is_valid() const;
         Path filepath() const;
         bool is_editable() const;
         bool is_serializable() const;
+        virtual bool is_valid() const;
         virtual bool is_engine_resource() const;
 
         virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});

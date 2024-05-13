@@ -530,8 +530,6 @@ namespace Engine
 
     bool Object::is_valid() const
     {
-        if (flags(IsUnreachable))
-            return false;
         return true;
     }
 
