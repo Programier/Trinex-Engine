@@ -2,6 +2,11 @@
 #include <Graphics/render_viewport.hpp>
 #include <Widgets/imgui_windows.hpp>
 
+namespace ax::NodeEditor
+{
+    class EditorContext;
+}
+
 namespace Engine
 {
     namespace ShaderCompiler
@@ -17,9 +22,10 @@ namespace Engine
     private:
         MessageList m_shader_compile_error_list;
 
-        class ContentBrowser* m_content_browser          = nullptr;
-        class ImGuiMaterialPreview* m_preview_window     = nullptr;
-        class ImGuiObjectProperties* m_properties_window = nullptr;
+        class ContentBrowser* m_content_browser               = nullptr;
+        class ImGuiMaterialPreview* m_preview_window          = nullptr;
+        class ImGuiObjectProperties* m_properties_window      = nullptr;
+        ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
 
         class RenderViewport* m_viewport             = nullptr;
         class Material* m_material                   = nullptr;
@@ -29,6 +35,10 @@ namespace Engine
         bool m_open_material_code_window = false;
 
     public:
+        MaterialEditorClient();
+        ~MaterialEditorClient();
+
+
         void on_content_browser_close();
         void on_preview_close();
 

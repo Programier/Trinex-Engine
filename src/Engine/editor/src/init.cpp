@@ -35,6 +35,7 @@ namespace Engine
         Texture2D* select_icon                              = nullptr;
         Texture2D* more_icon                                = nullptr;
         Texture2D* light_sprite                             = nullptr;
+        Texture2D* blueprint_texture                        = nullptr;
         Sampler* default_sampler                            = nullptr;
         Material* axis_material                             = nullptr;
         Material* grid_material                             = nullptr;
@@ -109,6 +110,7 @@ namespace Engine
         load_resource(scale_icon, ScaleIcon, Texture2D, Textures);
         load_resource(select_icon, SelectIcon, Texture2D, Textures);
         load_resource(more_icon, MoreIcon, Texture2D, Textures);
+        load_resource(blueprint_texture, BlueprintBackground, Texture2D, Textures);
         load_resource(light_sprite, PointLightSprite, Texture2D, Textures);
         load_resource(default_sampler, DefaultSampler, Sampler, Samplers);
         load_resource(axis_material, AxisMaterial, Material, Materials);
