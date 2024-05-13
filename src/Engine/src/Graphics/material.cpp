@@ -577,12 +577,22 @@ namespace Engine
             }
         }
 
-        ShaderCompiler::ShaderSource source;
-        auto status = compiler->compile(this, source, *errors);
+        String slang_source;
+        bool status = shader_source(slang_source);
 
-        if (status)
+        if (status == true)
         {
-            status = submit_compiled_source(source, *errors);
+            ShaderCompiler::ShaderSource source;
+            auto status = compiler->compile(this, slang_source, source, *errors);
+
+            if (status)
+            {
+                status = submit_compiled_source(source, *errors);
+            }
+        }
+        else
+        {
+            errors->push_back("Failed to get shader source");
         }
 
         if (need_delete_compiler)

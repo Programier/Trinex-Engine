@@ -202,7 +202,7 @@ namespace Engine
 
         ImGui::TableNextRow();
         ImGui::TableSetColumnIndex(0);
-        if (window->collapsing_header("editor/Parameters"_localized))
+        if (window->collapsing_header(reinterpret_cast<const void*>(&renderer), "%s", "editor/Parameters"_localized))
         {
             ImGui::Indent(editor_config.collapsing_indent);
 

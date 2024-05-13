@@ -12,7 +12,7 @@ namespace Engine
             declare_class(OpenGLES_Compiler, Compiler);
 
         public:
-            bool compile(Material* material, ShaderSource& out_source, MessageList& errors) override;
+            bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
         };
 
         class OpenGL_Compiler : public Compiler
@@ -20,7 +20,7 @@ namespace Engine
             declare_class(OpenGL_Compiler, Compiler);
 
         public:
-            bool compile(Material* material, ShaderSource& out_source, MessageList& errors) override;
+            bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
         };
 
         class Vulkan_Compiler : public Compiler
@@ -28,7 +28,7 @@ namespace Engine
             declare_class(Vulkan_Compiler, Compiler);
 
         public:
-            bool compile(Material* material, ShaderSource& out_source, MessageList& errors) override;
+            bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
         };
     }// namespace ShaderCompiler
 }// namespace Engine

@@ -29,7 +29,7 @@ namespace Engine
         ImGuiObjectProperties& update(Object* object);
         const PropertiesMap& properties_map(Struct* self);
         void render_struct_properties(void* object, class Struct* struct_class, bool editable = true);
-        static bool collapsing_header(const char* format, ...);
+        static bool collapsing_header(const void* id, const char* format, ...);
         static const char* name();
     };
 

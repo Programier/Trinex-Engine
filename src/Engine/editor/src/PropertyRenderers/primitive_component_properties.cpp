@@ -11,7 +11,7 @@ namespace Engine
         PrimitiveComponent* component = reinterpret_cast<PrimitiveComponent*>(object);
 
         ImGui::TableNextRow();
-        if (component && window->collapsing_header("editor/Bounds"_localized))
+        if (component && window->collapsing_header(reinterpret_cast<const void*>(&renderer), "editor/Bounds"_localized))
         {
             AABB_3Df bounds = component->bounding_box();
             ImGui::Indent(editor_config.collapsing_indent);

@@ -89,7 +89,8 @@ namespace Engine
             declare_class(Compiler, Object);
 
         public:
-            virtual bool compile(Material* material, ShaderSource& out_source, MessageList& errors) = 0;
+            virtual bool compile(Material* material, const String& slang_source, ShaderSource& out_source,
+                                 MessageList& errors) = 0;
         };
     }// namespace ShaderCompiler
 }// namespace Engine

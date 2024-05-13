@@ -376,7 +376,7 @@ namespace Engine::ShaderCompiler
     }
 
 #define check_compile_errors()                                                                                                   \
-    if (!errors->empty())                                                                                                        \
+    if (!errors.empty())                                                                                                         \
         return                                                                                                                   \
         {}
 
@@ -390,20 +390,14 @@ namespace Engine::ShaderCompiler
 
     using SetupRequestFunction = void (*)(SlangCompileRequest*);
 
-    static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList* errors,
+    static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList& errors,
                                        const SetupRequestFunction& setup_request)
     {
-        if (errors)
-        {
-            errors->clear();
-        }
+        errors.clear();
 
-        auto print_error = [errors](const char* msg) {
-            if (errors)
-            {
-                errors->push_back(Strings::format("{}", msg));
-            }
 
+        auto print_error = [&errors](const char* msg) {
+            errors.push_back(Strings::format("{}", msg));
             error_log("ShaderCompiler", "%s", msg);
         };
 
@@ -638,7 +632,6 @@ namespace Engine::ShaderCompiler
         }
 
 
-
         return out_source;
     }
 
@@ -686,32 +679,17 @@ namespace Engine::ShaderCompiler
         request->setTargetProfile(0, global_session()->findProfile("spirv_1_0"));
     }
 
-    static ShaderSource compile_shader_source_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                        MessageList* errors, SetupRequestFunction func)
+
+    static ShaderSource create_vulkan_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
+                                             MessageList& errors)
     {
-        auto path = engine_config.shaders_dir / relative;
-        FileReader file(path);
-        if (file.is_open())
-        {
-            return compile_shader(file.read_string(), definitions, errors, func);
-        }
-        else if (errors)
-        {
-            errors->push_back(Strings::format("Failed to open file '{}'", path.str()));
-        }
-        return {};
+        return compile_shader(slang_source, definitions, errors, setup_spriv_compile_request);
     }
 
-    static ShaderSource create_vulkan_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                       MessageList* errors)
+    static ShaderSource create_opengles_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
+                                               MessageList& errors)
     {
-        return compile_shader_source_from_file(relative, definitions, errors, setup_spriv_compile_request);
-    }
-
-    static ShaderSource create_opengles_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                         MessageList* errors)
-    {
-        ShaderSource source = create_vulkan_shader_from_file(relative, definitions, errors);
+        ShaderSource source = create_vulkan_shader(slang_source, definitions, errors);
 
         compile_spirv_to_glsl_es(source.vertex_code);
         compile_spirv_to_glsl_es(source.tessellation_control_code);
@@ -723,10 +701,10 @@ namespace Engine::ShaderCompiler
         return source;
     }
 
-    static ShaderSource create_opengl_shader_from_file(const StringView& relative, const Vector<ShaderDefinition>& definitions,
-                                                       MessageList* errors)
+    static ShaderSource create_opengl_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
+                                             MessageList& errors)
     {
-        return create_opengles_shader_from_file(relative, definitions, errors);
+        return create_opengles_shader(slang_source, definitions, errors);
     }
 
 
@@ -739,10 +717,9 @@ namespace Engine::ShaderCompiler
     implement_class(Vulkan_Compiler, Engine::ShaderCompiler, 0);
     implement_default_initialize_class(Vulkan_Compiler);
 
-    bool OpenGLES_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    bool OpenGLES_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
-        auto source =
-                create_opengles_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+        auto source = create_opengles_shader(slang_source, material->compile_definitions, errors);
 
         if (errors.empty())
         {
@@ -752,10 +729,9 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool OpenGL_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    bool OpenGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
-        auto source =
-                create_opengl_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+        auto source = create_opengl_shader(slang_source, material->compile_definitions, errors);
 
         if (errors.empty())
         {
@@ -765,10 +741,9 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool Vulkan_Compiler::compile(Material* material, ShaderSource& out_source, MessageList& errors)
+    bool Vulkan_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
-        auto source =
-                create_vulkan_shader_from_file(material->pipeline->shader_path.str(), material->compile_definitions, &errors);
+        auto source = create_vulkan_shader(slang_source, material->compile_definitions, errors);
 
         if (errors.empty())
         {

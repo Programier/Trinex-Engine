@@ -87,7 +87,6 @@ namespace Engine
         TreeMap<Name, MaterialParameterInfo> parameters;
         MaterialScalarParametersInfo global_parameters;
         MaterialScalarParametersInfo local_parameters;
-        Path shader_path;
 
     private:
         VertexShader* m_vertex_shader                            = nullptr;

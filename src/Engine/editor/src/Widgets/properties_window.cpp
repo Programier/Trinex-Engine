@@ -29,9 +29,9 @@ namespace Engine
         return column.WorkMaxX - column.WorkMinX;
     }
 
-    static inline bool props_collapsing_header(const char* header_text)
+    static inline bool props_collapsing_header(const void* id, const char* header_text)
     {
-        return ImGuiObjectProperties::collapsing_header("%s", header_text);
+        return ImGuiObjectProperties::collapsing_header(id, "%s", header_text);
     }
 
     static FORCE_INLINE void begin_prop_table()
@@ -278,7 +278,8 @@ namespace Engine
     static const char* enum_element_name(void* userdata, int index)
     {
         EnumRenderingUserdata* data = reinterpret_cast<EnumRenderingUserdata*>(userdata);
-        if(index == -1){
+        if (index == -1)
+        {
             static thread_local char buffer[255];
             sprintf(buffer, "Undefined value <%d>", data->value);
             return buffer;
@@ -337,7 +338,7 @@ namespace Engine
             if (object)
             {
                 Struct* struct_class = object->class_instance();
-                if (props_collapsing_header(prop->name().c_str()))
+                if (props_collapsing_header(prop, prop->name().c_str()))
                 {
                     push_props_id(object, prop);
                     ImGui::Indent(editor_config.collapsing_indent);
@@ -415,7 +416,7 @@ namespace Engine
         {
             void* struct_object  = value.cast<void*>();
             Struct* struct_class = prop->struct_instance();
-            if (props_collapsing_header(prop->name().c_str()))
+            if (props_collapsing_header(prop, prop->name().c_str()))
             {
                 push_props_id(object, prop);
                 ImGui::Indent(editor_config.collapsing_indent);
@@ -451,7 +452,7 @@ namespace Engine
             is_changed = true;
         }
 
-        if (props_collapsing_header(prop->name().c_str()))
+        if (props_collapsing_header(prop, prop->name().c_str()))
         {
             ImGui::Indent(editor_config.collapsing_indent);
             Property* element_property = interface->element_type();
@@ -588,7 +589,6 @@ namespace Engine
         if (!is_in_table)
             begin_prop_table();
 
-
         for (Struct* self = struct_class; self; self = self->parent())
         {
             auto it = special_class_properties_renderers.find(self);
@@ -607,7 +607,8 @@ namespace Engine
 
             if (group != Name::none)
             {
-                open = props_collapsing_header(group.c_str());
+                ImGui::TableNextRow();
+                open = props_collapsing_header(group.c_str(), group.c_str());
                 ImGui::Indent(editor_config.collapsing_indent);
             }
 
@@ -733,7 +734,7 @@ namespace Engine
         ::Engine::render_struct_properties(this, object, struct_class, editable, true);
     }
 
-    bool ImGuiObjectProperties::collapsing_header(const char* format, ...)
+    bool ImGuiObjectProperties::collapsing_header(const void* id, const char* format, ...)
     {
         ImGuiWindow* window = ImGui::GetCurrentWindow();
         ImGuiTable* table   = ImGui::GetCurrentContext()->CurrentTable;
@@ -760,8 +761,8 @@ namespace Engine
 
         va_list args;
         va_start(args, format);
-        bool result = ImGui::TreeNodeExV("##NodeId", ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader,
-                                         format, args);
+        bool result =
+                ImGui::TreeNodeExV(id, ImGuiTreeNodeFlags_SpanAllColumns | ImGuiTreeNodeFlags_CollapsingHeader, format, args);
         va_end(args);
 
         window->ClipRect       = clip_rect;
