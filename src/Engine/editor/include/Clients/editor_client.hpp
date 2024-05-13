@@ -4,7 +4,7 @@
 #include <Engine/scene.hpp>
 #include <Event/listener_id.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Render/editor_scene_renderer.hpp>
+#include <editor_scene_renderer.hpp>
 #include <ScriptEngine/script_object.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>

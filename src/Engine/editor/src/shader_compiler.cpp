@@ -7,7 +7,7 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
-#include <ShaderCompiler/compiler.hpp>
+#include <shader_compiler.hpp>
 #include <cstring>
 #include <slang-com-ptr.h>
 #include <slang.h>

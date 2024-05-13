@@ -1,4 +1,4 @@
-#include <ShaderCompiler/compiler.hpp>
+#include <shader_compiler.hpp>
 
 #include <Clients/material_editor_client.hpp>
 #include <Clients/open_client.hpp>

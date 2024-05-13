@@ -13,7 +13,7 @@
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
-#include <Render/editor_scene_renderer.hpp>
+#include <editor_scene_renderer.hpp>
 #include <editor_resources.hpp>
 
 namespace Engine
