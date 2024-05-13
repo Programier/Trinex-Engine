@@ -3887,6 +3887,12 @@ ImGuiWindow::~ImGuiWindow()
     IM_ASSERT(DrawList == &DrawListInst);
     IM_DELETE(Name);
     ColumnsStorage.clear_destruct();
+
+    for (int i = 0; i < DC.Layouts.Data.Size; i++)
+    {
+        ImGuiLayout* layout = (ImGuiLayout*)DC.Layouts.Data[i].val_p;
+        IM_DELETE(layout);
+    }
 }
 
 ImGuiID ImGuiWindow::GetID(const char* str, const char* str_end)
@@ -7508,6 +7514,13 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         else
             SetLastItemData(window->MoveId, g.CurrentItemFlags, IsMouseHoveringRect(title_bar_rect.Min, title_bar_rect.Max, false) ? ImGuiItemStatusFlags_HoveredRect : 0, title_bar_rect);
 
+        // Mark all layouts as dead. They may be revived in this frame.
+        for (int i = 0; i < window->DC.Layouts.Data.Size; i++)
+        {
+            ImGuiLayout* layout = (ImGuiLayout*)window->DC.Layouts.Data[i].val_p;
+            layout->Live = false;
+        }
+
         // [DEBUG]
 #ifndef IMGUI_DISABLE_DEBUG_TOOLS
         if (g.DebugLocateId != 0 && (window->ID == g.DebugLocateId || window->MoveId == g.DebugLocateId))
@@ -10263,6 +10276,8 @@ void ImGuiStackSizes::CompareWithContextState(ImGuiContext* ctx)
     // Window stacks
     // NOT checking: DC.ItemWidth, DC.TextWrapPos (per window) to allow user to conveniently push once and not pop (they are cleared on Begin)
     IM_ASSERT(SizeOfIDStack         == window->IDStack.Size     && "PushID/PopID or TreeNode/TreePop Mismatch!");
+    IM_ASSERT(0                     == window->DC.LayoutStack.Size && (!window->DC.LayoutStack.Size || window->DC.LayoutStack.back()->Type == ImGuiLayoutType_Horizontal) && "BeginHorizontal/EndHorizontal Mismatch!");
+    IM_ASSERT(0                     == window->DC.LayoutStack.Size && (!window->DC.LayoutStack.Size || window->DC.LayoutStack.back()->Type == ImGuiLayoutType_Vertical)   && "BeginVertical/EndVertical Mismatch!");
 
     // Global stacks
     // For color, style and font stacks there is an incentive to use Push/Begin/Pop/.../End patterns, so we relax our checks a little to allow them.
@@ -10319,6 +10334,36 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
     if (window->SkipItems)
         return;
 
+    ImGuiLayoutType layout_type = window->DC.LayoutType;
+    if (window->DC.CurrentLayout)
+        layout_type = window->DC.CurrentLayout->Type;
+
+    //if (g.IO.KeyAlt) window->DrawList->AddCircle(window->DC.CursorPos, 3.0f, IM_COL32(255,255,0,255), 4); // [DEBUG] Widget position
+
+    // Stack Layouts: Handle horizontal case first to simplify merge in case code handling vertical changes.
+    if (layout_type == ImGuiLayoutType_Horizontal)
+    {
+        const float line_width = ImMax(window->DC.CurrLineSize.x, size.x);
+
+        // Always align ourselves on pixel boundaries
+        //if (g.IO.KeyAlt) window->DrawList->AddRect(window->DC.CursorPos, window->DC.CursorPos + ImVec2(size.x, line_height), IM_COL32(255,0,0,200)); // [DEBUG]
+        window->DC.CursorPosPrevLine.x = window->DC.CursorPos.x;
+        window->DC.CursorPosPrevLine.y = window->DC.CursorPos.y + size.y;
+        window->DC.CursorPos.x = IM_TRUNC(window->DC.CursorPos.x + line_width + g.Style.ItemSpacing.x);
+        window->DC.CursorPos.y = IM_TRUNC(window->DC.CursorPosPrevLine.y - size.y);
+        window->DC.CursorMaxPos.x = ImMax(window->DC.CursorMaxPos.x, window->DC.CursorPos.x - g.Style.ItemSpacing.x);
+        window->DC.CursorMaxPos.y = ImMax(window->DC.CursorMaxPos.y, window->DC.CursorPosPrevLine.y);
+        //if (g.IO.KeyAlt) window->DrawList->AddCircle(window->DC.CursorMaxPos, 3.0f, IM_COL32(255,0,0,255), 4); // [DEBUG]
+
+        window->DC.PrevLineSize.x = line_width;
+        window->DC.PrevLineSize.y = 0.0f;
+        window->DC.CurrLineSize.x = 0.0f;
+        window->DC.PrevLineTextBaseOffset = ImMax(window->DC.CurrLineTextBaseOffset, text_baseline_y);
+        window->DC.CurrLineTextBaseOffset = window->DC.PrevLineTextBaseOffset;
+        window->DC.IsSameLine = window->DC.IsSetPos = false;
+        return;
+    }
+
     // We increase the height in this function to accommodate for baseline offset.
     // In theory we should be offsetting the starting position (window->DC.CursorPos), that will be the topic of a larger refactor,
     // but since ItemSize() is not yet an API that moves the cursor (to handle e.g. wrapping) enlarging the height has the same effect.
@@ -10337,6 +10382,7 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
     window->DC.CursorMaxPos.y = ImMax(window->DC.CursorMaxPos.y, window->DC.CursorPos.y - g.Style.ItemSpacing.y);
     //if (g.IO.KeyAlt) window->DrawList->AddCircle(window->DC.CursorMaxPos, 3.0f, IM_COL32(255,0,0,255), 4); // [DEBUG]
 
+    window->DC.PrevLineSize.x = 0.0f;
     window->DC.PrevLineSize.y = line_height;
     window->DC.CurrLineSize.y = 0.0f;
     window->DC.PrevLineTextBaseOffset = ImMax(window->DC.CurrLineTextBaseOffset, text_baseline_y);
@@ -10395,6 +10441,9 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg, ImGu
     }
     g.NextItemData.Flags = ImGuiNextItemDataFlags_None;
     g.NextItemData.ItemFlags = ImGuiItemFlags_None;
+
+    if (window->DC.CurrentLayoutItem)
+        window->DC.CurrentLayoutItem->MeasuredBounds.Max = ImMax(window->DC.CurrentLayoutItem->MeasuredBounds.Max, bb.Max);
 
 #ifdef IMGUI_ENABLE_TEST_ENGINE
     if (id != 0)
