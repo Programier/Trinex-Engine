@@ -2614,6 +2614,12 @@ struct IMGUI_API ImGuiWindowTempData
     ImGuiLayoutType         LayoutType;
     ImGuiLayoutType         ParentLayoutType;       // Layout type of parent window at the time of Begin()
 
+    // Stack Layout implementation
+    struct ImGuiLayout*            CurrentLayout;
+    struct ImGuiLayoutItem*        CurrentLayoutItem;
+    ImVector<struct ImGuiLayout*>  LayoutStack;
+    ImGuiStorage                   Layouts;
+
     // Local parameters stacks
     // We store the current settings outside of the vectors to increase memory locality (reduce cache misses). The vectors are rarely modified. Also it allows us to not heap allocate for short-lived windows which are not using those settings.
     float                   ItemWidth;              // Current item width (>0.0: width in pixels, <0.0: align xx pixels to the right of window).

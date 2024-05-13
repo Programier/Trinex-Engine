@@ -1222,6 +1222,7 @@ ImGuiStyle::ImGuiStyle()
     ScrollbarRounding       = 9.0f;             // Radius of grab corners rounding for scrollbar
     GrabMinSize             = 12.0f;            // Minimum width/height of a grab box for slider/scrollbar
     GrabRounding            = 0.0f;             // Radius of grabs corners rounding. Set to 0.0f to have rectangular slider grabs.
+    LayoutAlign             = 0.5f;             // Element alignment inside horizontal and vertical layouts (0.0f - left/top, 1.0f - right/bottom, 0.5f - center).
     LogSliderDeadzone       = 4.0f;             // The size in pixels of the dead-zone around zero on logarithmic sliders that cross zero.
     TabRounding             = 4.0f;             // Radius of upper corners of a tab. Set to 0.0f to have rectangular tabs.
     TabBorderSize           = 0.0f;             // Thickness of border around tabs.
@@ -3222,6 +3223,7 @@ static const ImGuiDataVarInfo GStyleVarInfo[] =
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, ScrollbarRounding) },     // ImGuiStyleVar_ScrollbarRounding
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, GrabMinSize) },           // ImGuiStyleVar_GrabMinSize
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, GrabRounding) },          // ImGuiStyleVar_GrabRounding
+    { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, LayoutAlign) },           // ImGuiStyleVar_LayoutAlign
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TabRounding) },           // ImGuiStyleVar_TabRounding
     { ImGuiDataType_Float, 1, (ImU32)offsetof(ImGuiStyle, TabBarBorderSize) },      // ImGuiStyleVar_TabBarBorderSize
     { ImGuiDataType_Float, 2, (ImU32)offsetof(ImGuiStyle, ButtonTextAlign) },       // ImGuiStyleVar_ButtonTextAlign

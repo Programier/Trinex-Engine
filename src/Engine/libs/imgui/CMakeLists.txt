@@ -11,7 +11,8 @@ set(TRINEX_EXTERNAL_SOURCES ${TRINEX_EXTERNAL_SOURCES}
                             ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_demo.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_draw.cpp
                             ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_tables.cpp
-                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_widgets.cpp PARENT_SCOPE)
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_widgets.cpp
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/imgui_stacklayout.cpp PARENT_SCOPE)
 
 add_library(imgui INTERFACE)
 target_include_directories(imgui INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
