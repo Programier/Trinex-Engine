@@ -190,6 +190,20 @@ namespace Engine
         }
     }
 
+    class DeferredLightingLayer : public CommandBufferLayer
+    {
+    public:
+        DeferredLightingLayer& render(SceneRenderer* renderer, RenderTargetBase* rt)
+        {
+            if (reinterpret_cast<ColorSceneRenderer*>(renderer)->view_mode() == ViewMode::Lit)
+            {
+                CommandBufferLayer::render(renderer, rt);
+            }
+
+            return *this;
+        }
+    };
+
     static void begin_depth_pass(SceneRenderer* _self, RenderTargetBase* rt, SceneLayer* layer)
     {
         ColorSceneRenderer* self = reinterpret_cast<ColorSceneRenderer*>(_self);
@@ -220,7 +234,7 @@ namespace Engine
                 declare_rendering_function() { self->begin_rendering_target(GBuffer::instance()); });
         m_base_pass_layer->on_end_render.push_back(end_rendering);
 
-        m_deferred_lighting_layer = m_base_pass_layer->create_next<CommandBufferLayer>(Name::deferred_light_pass);
+        m_deferred_lighting_layer = m_base_pass_layer->create_next<DeferredLightingLayer>(Name::deferred_light_pass);
         m_deferred_lighting_layer->on_begin_render.push_back(
                 declare_rendering_function() { self->begin_rendering_target(SceneColorOutput::instance()); });
         m_deferred_lighting_layer->on_begin_render.push_back(begin_deferred_lighting_pass);

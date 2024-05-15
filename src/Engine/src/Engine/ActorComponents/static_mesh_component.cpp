@@ -77,7 +77,7 @@ namespace Engine
 
             if (lod.indices->elements_count() > 0)
             {
-                lod.indices->rhi_bind();
+                layer->bind_index_buffer(lod.indices, 0);
                 layer->draw_indexed(surface.vertices_count, surface.first_index, surface.base_vertex_index);
             }
             else
