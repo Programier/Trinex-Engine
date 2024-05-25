@@ -267,8 +267,7 @@ private:
     ImVec2 m_ViewportWorkOffsetMaxBackup;
 # endif
 # endif
-
-    ImVec2 m_BeginWindowCursorBackup;
+    ImVec2  m_WindowOffset;
     ImGuiID m_beginWindowHook;
     ImGuiID m_endWindowHook;
 };

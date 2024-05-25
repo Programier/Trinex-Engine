@@ -131,4 +131,6 @@ namespace Engine
                    {"DepthStencil", ColorFormat::DepthStencil}, {"ShadowDepth", ColorFormat::ShadowDepth},
                    {"FilteredShadowDepth", ColorFormat::FilteredShadowDepth}, {"D32F", ColorFormat::D32F},
                    {"BC1", ColorFormat::BC1}, {"BC2", ColorFormat::BC2}, {"BC3", ColorFormat::BC3});
+
+    implement_enum(MaterialDomain, Engine, {"Surface", MaterialDomain::Surface});
 }// namespace Engine

@@ -32,6 +32,17 @@ namespace Engine::ImGuiHelpers
         out.y = in.y;
         return out;
     }
+
+    template<typename OutType, typename InType>
+    OutType construct_vec4(const InType& in)
+    {
+        OutType out;
+        out.x = in.x;
+        out.y = in.y;
+        out.z = in.z;
+        out.w = in.w;
+        return out;
+    }
 }// namespace Engine::ImGuiHelpers
 
 namespace Engine::ImGuiRenderer

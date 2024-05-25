@@ -5,10 +5,6 @@
 
 namespace Engine
 {
-    template<typename T, typename EnumType>
-    concept FlagsConcept = !std::is_enum_v<T> && std::is_integral_v<T>;
-
-
     enum class FlagsOperator
     {
         And,
@@ -16,18 +12,19 @@ namespace Engine
         Xor,
     };
 
-    template<typename FlagsType = BitMask, typename ValueType = Atomic<BitMask>>
+    template<typename FlagsType = BitMask, typename ValueType = BitMask>
     struct Flags {
     private:
         ValueType m_flags;
 
     public:
-        FORCE_INLINE Flags(FlagsType flags) : m_flags(static_cast<BitMask>(flags))
+        FORCE_INLINE Flags() : m_flags(0)
         {}
 
-        template<typename T = BitMask>
-            requires FlagsConcept<T, FlagsType>
-        FORCE_INLINE Flags(T mask = 0) : m_flags(static_cast<BitMask>(mask))
+        FORCE_INLINE Flags(BitMask flags) : m_flags(flags)
+        {}
+
+        FORCE_INLINE Flags(FlagsType flags) : m_flags(static_cast<BitMask>(flags))
         {}
 
         template<typename... Args>
@@ -61,7 +58,12 @@ namespace Engine
 
         FORCE_INLINE operator BitMask() const
         {
-            return static_cast<BitMask>(m_flags);
+            return m_flags;
+        }
+
+        FORCE_INLINE operator FlagsType() const
+        {
+            return static_cast<FlagsType>(m_flags);
         }
 
         FORCE_INLINE bool has_all(Flags mask) const

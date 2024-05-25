@@ -18,7 +18,7 @@ namespace Engine
             Selected = BIT(0),
         };
 
-        Flags<Flag> actor_flags;
+        Flags<Flag, Atomic<BitMask>> actor_flags;
 
     private:
         Pointer<class SceneComponent> m_root_component;

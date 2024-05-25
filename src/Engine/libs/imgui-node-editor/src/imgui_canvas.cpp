@@ -155,8 +155,6 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
     beginWindowHook.Type = ImGuiContextHookType_BeginWindow;
     beginWindowHook.Callback = []( ImGuiContext * context, ImGuiContextHook * hook )
     {
-        //ImGui::SetNextWindowViewport( ImGui::GetCurrentWindow()->Viewport->ID );
-
         auto canvas = reinterpret_cast< Canvas * >( hook->UserData );
         if ( canvas->m_SuspendCounter == 0 )
         {
@@ -169,19 +167,38 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
             if ( context->BeginPopupStack.size() )
             {
                 auto & popup = context->BeginPopupStack.back();
+                canvas->m_WindowOffset = popup.OpenPopupPos;
                 popup.OpenPopupPos = canvas->FromLocal( popup.OpenPopupPos );
                 popup.OpenMousePos = canvas->FromLocal( popup.OpenMousePos );
+                canvas->m_WindowOffset = canvas->m_WindowOffset - popup.OpenPopupPos;
             }
 
             if ( context->OpenPopupStack.size() )
             {
                 auto & popup = context->OpenPopupStack.back();
+                canvas->m_WindowOffset = popup.OpenPopupPos;
                 popup.OpenPopupPos = canvas->FromLocal( popup.OpenPopupPos );
                 popup.OpenMousePos = canvas->FromLocal( popup.OpenMousePos );
+                canvas->m_WindowOffset = canvas->m_WindowOffset - popup.OpenPopupPos;
+            }
+        }
+        else
+        {
+            if ( context->BeginPopupStack.size() )
+            {
+                auto & popup = context->BeginPopupStack.back();
+                popup.OpenPopupPos += canvas->m_WindowOffset;
+                popup.OpenMousePos += canvas->m_WindowOffset;
             }
 
+            if ( context->OpenPopupStack.size() )
+            {
+                auto & popup = context->OpenPopupStack.back();
+                popup.OpenPopupPos += canvas->m_WindowOffset;
+                popup.OpenMousePos += canvas->m_WindowOffset;
+            }
         }
-        canvas->m_BeginWindowCursorBackup = ImGui::GetCursorScreenPos();
+
         canvas->Suspend();
     };
 
@@ -194,8 +211,11 @@ bool ImGuiEx::Canvas::Begin(ImGuiID id, const ImVec2& size)
     {
         auto canvas = reinterpret_cast< Canvas * >( hook->UserData );
         canvas->Resume();
-        ImGui::SetCursorScreenPos( canvas->m_BeginWindowCursorBackup );
-        ImGui::GetCurrentWindow()->DC.IsSetPos = false;
+
+        if(canvas->m_SuspendCounter == 0)
+        {
+            canvas->m_WindowOffset = ImVec2(0, 0);
+        }
     };
 
     m_endWindowHook = ImGui::AddContextHook( ImGui::GetCurrentContext(), &endWindowHook );

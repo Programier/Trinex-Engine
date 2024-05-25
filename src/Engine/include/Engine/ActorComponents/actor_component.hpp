@@ -30,7 +30,7 @@ namespace Engine
             DisableRaycast = BIT(0),
         };
 
-        Flags<Flag> component_flags;
+        Flags<Flag, Atomic<BitMask>> component_flags;
 
         ActorComponent();
         ~ActorComponent();

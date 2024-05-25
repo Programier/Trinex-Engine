@@ -398,4 +398,9 @@ namespace Engine
 
         DefaultFlags = Sprite | PointLights | SpotLights | DirectionalLights | StaticMesh | PostProcess
     };
+
+    enum class MaterialDomain : EnumerateType
+    {
+        Surface = 0,
+    };
 }// namespace Engine

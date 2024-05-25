@@ -8,37 +8,35 @@ namespace Engine
 {
     using namespace ax::NodeEditor;
 
-    NodeBuilder::NodeBuilder() : m_node_id(0), m_stage(Stage::Invalid), m_has_header(false)
+    BlueprintBuilder::BlueprintBuilder() : m_stage(Stage::Invalid), m_has_header(false)
     {}
 
-    bool NodeBuilder::transition_to_stage(Stage stage)
+    void BlueprintBuilder::transition_to_stage(Stage new_stage)
     {
-        if (stage == m_stage)
-            return false;
+        if (m_stage == new_stage)
+            return;
 
-        auto old_stage = m_stage;
-        m_stage        = stage;
+        Stage old = m_stage;
+        m_stage   = new_stage;
 
-        switch (old_stage)
+        switch (old)
         {
+            case Stage::Invalid:
+                break;
             case Stage::Begin:
                 break;
-
+            case Stage::End:
+                break;
             case Stage::Header:
                 ImGui::EndHorizontal();
                 m_header_min = ImGui::GetItemRectMin();
                 m_header_max = ImGui::GetItemRectMax();
-                ImGui::Spring(0, ImGui::GetStyle().ItemSpacing.y * 2.0f);
-
                 break;
-
             case Stage::Content:
                 break;
 
             case Stage::Input:
                 ed::PopStyleVar(2);
-
-                ImGui::Spring(1, 0);
                 ImGui::EndVertical();
                 break;
 
@@ -48,70 +46,22 @@ namespace Engine
 
             case Stage::Output:
                 ed::PopStyleVar(2);
-                ImGui::Spring(1, 0);
                 ImGui::EndVertical();
                 break;
 
-            case Stage::End:
-                break;
-
-            case Stage::Invalid:
+            default:
                 break;
         }
 
-        switch (stage)
+        switch (new_stage)
         {
+            case Stage::Invalid:
+                break;
             case Stage::Begin:
-                ImGui::BeginVertical("node");
+                ImGui::BeginVertical("Node");
                 break;
-
-            case Stage::Header:
-                m_has_header = true;
-
-                ImGui::BeginHorizontal("header");
-                break;
-
-            case Stage::Content:
-                if (old_stage == Stage::Begin)
-                    ImGui::Spring(0);
-
-                ImGui::BeginHorizontal("content");
-                ImGui::Spring(0, 0);
-                break;
-
-            case Stage::Input:
-                ImGui::BeginVertical("inputs", ImVec2(0, 0), 0.0f);
-
-                ed::PushStyleVar(ed::StyleVar_PivotAlignment, ImVec2(0, 0.5f));
-                ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));
-
-                if (!m_has_header)
-                    ImGui::Spring(1, 0);
-                break;
-
-            case Stage::Middle:
-                ImGui::Spring(1);
-                ImGui::BeginVertical("middle", ImVec2(0, 0), 1.0f);
-                break;
-
-            case Stage::Output:
-                if (old_stage == Stage::Middle || old_stage == Stage::Input)
-                    ImGui::Spring(1);
-                else
-                    ImGui::Spring(1, 0);
-                ImGui::BeginVertical("outputs", ImVec2(0, 0), 1.0f);
-
-                ed::PushStyleVar(ed::StyleVar_PivotAlignment, ImVec2(1.0f, 0.5f));
-                ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));
-
-                if (!m_has_header)
-                    ImGui::Spring(1, 0);
-                break;
-
             case Stage::End:
-                if (old_stage == Stage::Input)
-                    ImGui::Spring(1, 0);
-                if (old_stage != Stage::Begin)
+                if (old != Stage::Begin)
                     ImGui::EndHorizontal();
                 m_content_min = ImGui::GetItemRectMin();
                 m_content_max = ImGui::GetItemRectMax();
@@ -120,37 +70,56 @@ namespace Engine
                 m_node_min = ImGui::GetItemRectMin();
                 m_node_max = ImGui::GetItemRectMax();
                 break;
+            case Stage::Header:
+                m_has_header = true;
+                ImGui::BeginHorizontal("Header");
+                break;
+            case Stage::Content:
+                ImGui::BeginHorizontal("Content");
+                break;
 
-            case Stage::Invalid:
+            case Stage::Input:
+                ImGui::BeginVertical("Inputs");
+                ed::PushStyleVar(ed::StyleVar_PivotAlignment, ImVec2(0, 0.5f));
+                ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));
+                break;
+
+            case Stage::Middle:
+                ImGui::BeginVertical("Middle");
+                break;
+
+            case Stage::Output:
+                ImGui::BeginVertical("Outputs");
+                ed::PushStyleVar(ed::StyleVar_PivotAlignment, ImVec2(0, 0.5f));
+                ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));
+                break;
+
+            default:
                 break;
         }
-
-        return true;
     }
 
-    void NodeBuilder::begin(ed::NodeId id)
+    void BlueprintBuilder::begin(Identifier id)
     {
-        m_has_header = false;
+        m_id         = id;
         m_header_min = m_header_max = ImVec2();
-
         ed::PushStyleVar(StyleVar_NodePadding, ImVec4(8, 4, 8, 8));
         ed::BeginNode(id);
-        ImGui::PushID(id.AsPointer());
-        m_node_id = id;
+        ImGui::PushID(id);
         transition_to_stage(Stage::Begin);
     }
 
-    void NodeBuilder::end()
+    void BlueprintBuilder::end()
     {
         transition_to_stage(Stage::End);
-
+        ImGui::PopID();
         ed::EndNode();
 
         if (ImGui::IsItemVisible())
         {
             auto alpha = static_cast<int>(255 * ImGui::GetStyle().Alpha);
 
-            auto draw_list = ed::GetNodeBackgroundDrawList(m_node_id);
+            auto draw_list = ed::GetNodeBackgroundDrawList(m_id);
 
             const auto half_border_width = ed::GetStyle().NodeBorderWidth * 0.5f;
 
@@ -176,47 +145,46 @@ namespace Engine
             }
         }
 
-        m_node_id = 0;
-        ImGui::PopID();
-        ed::PopStyleVar();
+        m_id = 0;
         transition_to_stage(Stage::Invalid);
     }
 
-    void NodeBuilder::begin_header(const ImVec4& color)
+    void BlueprintBuilder::begin_header(const ImVec4& color)
     {
         m_header_color = ImColor(color);
         transition_to_stage(Stage::Header);
     }
 
-    void NodeBuilder::end_header()
+    void BlueprintBuilder::end_header()
     {
         transition_to_stage(Stage::Content);
     }
 
-    void NodeBuilder::begin_input(ed::PinId id)
+    void BlueprintBuilder::begin_input(Identifier id)
     {
         if (m_stage == Stage::Begin)
             transition_to_stage(Stage::Content);
 
-        const auto applyPadding = (m_stage == Stage::Input);
-
         transition_to_stage(Stage::Input);
-
-        if (applyPadding)
-            ImGui::Spring(0);
-
-        begin_pin(id, PinKind::Input);
-
-        ImGui::BeginHorizontal(id.AsPointer());
+        ImGui::BeginHorizontal(id);
     }
 
-    void NodeBuilder::end_input()
+    void BlueprintBuilder::begin_input_pin(Identifier id)
+    {
+        ed::BeginPin(id, ed::PinKind::Input);
+    }
+
+    void BlueprintBuilder::end_input_pin()
+    {
+        ed::EndPin();
+    }
+
+    void BlueprintBuilder::end_input()
     {
         ImGui::EndHorizontal();
-        EndPin();
     }
 
-    void NodeBuilder::middle()
+    void BlueprintBuilder::begin_middle()
     {
         if (m_stage == Stage::Begin)
             transition_to_stage(Stage::Content);
@@ -224,42 +192,33 @@ namespace Engine
         transition_to_stage(Stage::Middle);
     }
 
-    void NodeBuilder::begin_output(ed::PinId id)
+    void BlueprintBuilder::begin_output(Identifier id)
     {
         if (m_stage == Stage::Begin)
             transition_to_stage(Stage::Content);
 
-        const auto apply_padding = (m_stage == Stage::Output);
-
         transition_to_stage(Stage::Output);
-
-        if (apply_padding)
-            ImGui::Spring(0);
-
-        begin_pin(id, PinKind::Output);
-        ImGui::BeginHorizontal(id.AsPointer());
+        ImGui::BeginHorizontal(id);
     }
 
-    void NodeBuilder::end_output()
+    void BlueprintBuilder::begin_output_pin(Identifier id)
     {
-        ImGui::EndHorizontal();
-        end_pin();
+        ed::BeginPin(id, ed::PinKind::Output);
     }
 
-
-    void NodeBuilder::begin_pin(ed::PinId id, ed::PinKind kind)
-    {
-        ed::BeginPin(id, kind);
-    }
-
-    void NodeBuilder::end_pin()
+    void BlueprintBuilder::end_output_pin()
     {
         ed::EndPin();
     }
 
+    void BlueprintBuilder::end_output()
+    {
+        ImGui::EndHorizontal();
+    }
 
-    static void draw_icon(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max, NodeBuilder::IconType type, bool filled,
-                          ImU32 color, ImU32 inner_color)
+
+    static void draw_icon(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max, BlueprintBuilder::IconType type,
+                          bool filled, ImU32 color, ImU32 inner_color)
     {
         auto rect                 = ImRect(min, max);
         auto rect_x               = rect.Min.x;
@@ -272,7 +231,7 @@ namespace Engine
         const auto outline_scale  = rect_w / 24.0f;
         const auto extra_segments = static_cast<int>(2 * outline_scale);// for full circle
 
-        if (type == NodeBuilder::IconType::Flow)
+        if (type == BlueprintBuilder::IconType::Flow)
         {
             const auto origin_scale = rect_w / 24.0f;
 
@@ -330,7 +289,7 @@ namespace Engine
             rect_center_x += rect_offset * 0.5f;
             rect_center.x += rect_offset * 0.5f;
 
-            if (type == NodeBuilder::IconType::Circle)
+            if (type == BlueprintBuilder::IconType::Circle)
             {
                 const auto c = rect_center;
 
@@ -348,7 +307,7 @@ namespace Engine
                 }
             }
 
-            if (type == NodeBuilder::IconType::Square)
+            if (type == BlueprintBuilder::IconType::Square)
             {
                 if (filled)
                 {
@@ -371,7 +330,7 @@ namespace Engine
                 }
             }
 
-            if (type == NodeBuilder::IconType::Grid)
+            if (type == BlueprintBuilder::IconType::Grid)
             {
                 const auto r = 0.5f * rect_w / 2.0f;
                 const auto w = ceilf(r / 3.0f);
@@ -401,7 +360,7 @@ namespace Engine
                 triangleStart = br.x + w + 1.0f / 24.0f * rect_w;
             }
 
-            if (type == NodeBuilder::IconType::RoundSquare)
+            if (type == BlueprintBuilder::IconType::RoundSquare)
             {
                 if (filled)
                 {
@@ -426,7 +385,7 @@ namespace Engine
                     draw_list->AddRect(p0, p1, color, cr, ImDrawFlags_RoundCornersAll, 2.0f * outline_scale);
                 }
             }
-            else if (type == NodeBuilder::IconType::Diamond)
+            else if (type == BlueprintBuilder::IconType::Diamond)
             {
                 if (filled)
                 {
@@ -466,7 +425,7 @@ namespace Engine
         }
     }
 
-    void NodeBuilder::icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color, const ImVec4& inner_color)
+    void BlueprintBuilder::icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color, const ImVec4& inner_color)
     {
         if (ImGui::IsRectVisible(size))
         {

@@ -34,6 +34,13 @@ namespace Engine
         bool m_open_select_node_window   = false;
         bool m_open_material_code_window = false;
 
+
+        // Graph editor state
+        bool m_is_open_create_node_popup = false;
+        void* m_create_node_from_pin     = nullptr;
+
+        String m_material_source;
+
     public:
         MaterialEditorClient();
         ~MaterialEditorClient();
@@ -56,6 +63,7 @@ namespace Engine
         MaterialEditorClient& on_object_dropped(Object* object);
         MaterialEditorClient& update_drag_and_drop();
         MaterialEditorClient& render_viewport(float dt);
+        MaterialEditorClient& render_visual_material_graph(class VisualMaterial* material);
         MaterialEditorClient& render(class RenderViewport* viewport) override;
     };
 }// namespace Engine
