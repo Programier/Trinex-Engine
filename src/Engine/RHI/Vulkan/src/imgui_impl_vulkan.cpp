@@ -86,7 +86,7 @@
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_vulkan.h"
 #include <stdio.h>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 
 // Visual Studio warnings
 #ifdef _MSC_VER

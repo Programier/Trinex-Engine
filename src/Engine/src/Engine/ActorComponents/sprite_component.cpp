@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/property.hpp>
 #include <Engine/ActorComponents/sprite_component.hpp>
 #include <Engine/Render/scene_layer.hpp>

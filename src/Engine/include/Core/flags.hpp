@@ -12,6 +12,7 @@ namespace Engine
         Xor,
     };
 
+
     template<typename FlagsType = BitMask, typename ValueType = BitMask>
     struct Flags {
     private:

@@ -3,7 +3,7 @@
 #include <Core/class.hpp>
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/file_flag.hpp>

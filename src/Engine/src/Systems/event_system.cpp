@@ -1,9 +1,9 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/render_viewport.hpp>

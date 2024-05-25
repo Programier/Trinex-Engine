@@ -1,7 +1,6 @@
 #include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/property.hpp>
-#include <Core/render_thread.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 

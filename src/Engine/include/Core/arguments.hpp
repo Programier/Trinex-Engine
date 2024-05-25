@@ -43,17 +43,17 @@ namespace Engine
         };
 
     private:
-        void push_argument(const char* name);
-        void push_array_argument(const String& name, const String& argument);
-        String parse_string_argument(const char* argument, size_t* out_pos = nullptr);
-        Map<String, Argument> m_arguments;
+        static void push_argument(const char* name);
+        static void push_array_argument(const String& name, const String& argument);
+        static String parse_string_argument(const char* argument, size_t* out_pos = nullptr);
+
+        static Map<String, Argument> m_arguments;
 
     public:
-        Arguments& init(int argc, char** argv);
-        Arguments& clear();
-        const Map<String, Argument>& args() const;
-        const Argument* find(const String& name) const;
-        Argument* find(const String& name);
-        Arguments& push_argument(const Argument& argument, bool override = false);
+        static void init(int argc, const char** argv);
+        static void clear();
+        static const Map<String, Argument>& args();
+        static Argument* find(const String& name);
+        static void push_argument(const Argument& argument, bool override = false);
     };
 }// namespace Engine

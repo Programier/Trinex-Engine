@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/base_engine.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
@@ -68,7 +68,6 @@ namespace Engine
 
     RenderViewport& RenderViewport::rhi_create()
     {
-        RHI* rhi = engine_instance->rhi();
         if (m_type == Type::Window)
         {
             m_rhi_object.reset(rhi->create_viewport(m_window->interface(), m_vsync));
@@ -191,9 +190,7 @@ namespace Engine
         RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
         if (viewport == nullptr)
             return *this;
-
-        engine_instance->thread(ThreadType::RenderThread)
-                ->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport);
+        render_thread()->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport);
         return *this;
     }
 

@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/logger.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -23,7 +23,7 @@ namespace Engine
 
         WindowRenderPass& rhi_create() override
         {
-            m_rhi_object.reset(engine_instance->rhi()->window_render_pass(this));
+            m_rhi_object.reset(rhi->window_render_pass(this));
             return *this;
         }
 
@@ -55,7 +55,7 @@ namespace Engine
         m_render_viewport->init_resource(true);
 
         m_rhi_object.reset(m_render_viewport->rhi_render_target());
-        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        render_thread()->wait_all();
 
         render_pass = RenderPass::load_render_pass(RenderPassType::Window);
 
@@ -289,9 +289,7 @@ namespace Engine
     {
         ImGuiContext* context = ImGui::CreateContext();
 
-        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
-        RHI* rhi              = engine_instance->rhi();
-
+        Thread* rt = render_thread();
         ImGui::SetCurrentContext(context);
 
         if (callback)
@@ -304,18 +302,16 @@ namespace Engine
 
         interface->initialize_imgui();
 
-        render_thread->insert_new_task<InitContext>(rhi, context);
-        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        rt->insert_new_task<InitContext>(rhi, context);
+        rt->wait_all();
         return context;
     }
 
     static void imgui_destroy_context(ImGuiContext* context, WindowInterface* interface)
     {
-        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
-        RHI* rhi              = engine_instance->rhi();
-
-        render_thread->insert_new_task<TerminateContext>(rhi, context);
-        render_thread->wait_all();
+        Thread* rt = render_thread();
+        rt->insert_new_task<TerminateContext>(rhi, context);
+        rt->wait_all();
 
         ImGui::SetCurrentContext(context);
         interface->terminate_imgui();
@@ -328,7 +324,7 @@ namespace Engine
         if (!m_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-            m_imgui_window               = new ImGuiRenderer::Window(this, imgui_create_context(m_interface, callback));
+            m_imgui_window                = new ImGuiRenderer::Window(this, imgui_create_context(m_interface, callback));
             ImGui::SetCurrentContext(current_context);
         }
 
@@ -363,7 +359,7 @@ namespace Engine
         imgui_terminate();
 
         delete m_render_viewport;
-        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        render_thread()->wait_all();
         delete m_interface;
 
         // The window cannot remove the render target because it is a viewport resource

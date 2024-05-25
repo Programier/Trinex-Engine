@@ -1,7 +1,7 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>

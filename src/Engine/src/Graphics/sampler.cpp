@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/enum.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
@@ -37,7 +37,7 @@ namespace Engine
 
     Sampler& Sampler::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_sampler(this));
+        m_rhi_object.reset(rhi->create_sampler(this));
         return *this;
     }
 

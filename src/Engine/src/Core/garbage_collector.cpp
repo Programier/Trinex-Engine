@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>

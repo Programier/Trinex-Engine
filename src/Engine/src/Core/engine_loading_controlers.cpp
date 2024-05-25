@@ -70,12 +70,13 @@ namespace Engine
     }
 
 
-    ControllerBase::ControllerBase(void* function_address, const char* name) : m_func_address(function_address), m_name(name)
+    LoadingControllerBase::LoadingControllerBase(void* function_address, const char* name)
+        : m_func_address(function_address), m_name(name)
     {}
 
 
-    ControllerBase& ControllerBase::push(const ControllerCallback& callback, const String& name,
-                                         const std::initializer_list<String>& require_initializers)
+    LoadingControllerBase& LoadingControllerBase::push(const ControllerCallback& callback, const String& name,
+                                                       const std::initializer_list<String>& require_initializers)
     {
         CallbackEntry entry;
         entry.function             = callback;
@@ -84,7 +85,7 @@ namespace Engine
         return *this;
     }
 
-    ControllerBase& ControllerBase::require(const String& name)
+    LoadingControllerBase& LoadingControllerBase::require(const String& name)
     {
         auto& initializers_list = convert_function_address(m_func_address)();
         auto it                 = initializers_list.find(name);
@@ -114,7 +115,7 @@ namespace Engine
     }
 
 
-    ControllerBase& ControllerBase::execute()
+    LoadingControllerBase& LoadingControllerBase::execute()
     {
         info_log(m_name, "Executing command list!");
 
@@ -130,12 +131,39 @@ namespace Engine
         return *this;
     }
 
-    ControllerBase::~ControllerBase()
+
+    enum class ControllerType
+    {
+        PreInit  = BIT(0),
+        Init     = BIT(1),
+        PostInit = BIT(2),
+
+        Destroy     = BIT(3),
+        PostDestroy = BIT(4),
+
+        ClassPreinit  = BIT(5),
+        ClassInit     = BIT(6),
+        ResourcesInit = BIT(7),
+    };
+
+    static Flags<ControllerType, BitMask> m_triggered;
+
+    bool LoadingControllerBase::is_triggered(BitMask type)
+    {
+        return m_triggered & static_cast<ControllerType>(type);
+    }
+
+    void LoadingControllerBase::mark_triggered(BitMask type)
+    {
+        m_triggered |= static_cast<ControllerType>(type);
+    }
+
+    LoadingControllerBase::~LoadingControllerBase()
     {}
 
 
-#define IMPLEMENT_CONTROLLER(ControllerName, func)                                                                               \
-    ControllerName::ControllerName() : ControllerBase(reinterpret_cast<void*>(func), #ControllerName)                            \
+#define IMPLEMENT_CONTROLLER(ControllerName, func, type)                                                                         \
+    ControllerName::ControllerName() : LoadingControllerBase(reinterpret_cast<void*>(func), #ControllerName)                     \
     {}                                                                                                                           \
                                                                                                                                  \
                                                                                                                                  \
@@ -148,27 +176,34 @@ namespace Engine
     ControllerName& ControllerName::push(const ControllerCallback& callback, const String& name,                                 \
                                          const std::initializer_list<String>& require_initializers)                              \
     {                                                                                                                            \
-        ControllerBase::push(callback, name, require_initializers);                                                              \
+        LoadingControllerBase::push(callback, name, require_initializers);                                                       \
         return *this;                                                                                                            \
     }                                                                                                                            \
     ControllerName& ControllerName::require(const String& name)                                                                  \
     {                                                                                                                            \
-        ControllerBase::require(name);                                                                                           \
+        LoadingControllerBase::require(name);                                                                                    \
         return *this;                                                                                                            \
     }                                                                                                                            \
     ControllerName& ControllerName::execute()                                                                                    \
     {                                                                                                                            \
-        ControllerBase::execute();                                                                                               \
+        LoadingControllerBase::execute();                                                                                        \
+        LoadingControllerBase::mark_triggered(static_cast<BitMask>(ControllerType::type));                                       \
         return *this;                                                                                                            \
+    }                                                                                                                            \
+    bool ControllerName::is_triggered()                                                                                          \
+    {                                                                                                                            \
+        return LoadingControllerBase::is_triggered(static_cast<BitMask>(ControllerType::type));                                  \
     }
 
-    IMPLEMENT_CONTROLLER(PostDestroyController, post_terminate_list);
-    IMPLEMENT_CONTROLLER(DestroyController, terminate_list);
-    IMPLEMENT_CONTROLLER(InitializeController, initialize_list);
-    IMPLEMENT_CONTROLLER(AfterRHIInitializeController, after_rhi_initialize_list);
-    IMPLEMENT_CONTROLLER(PreInitializeController, preinitialize_list);
-    IMPLEMENT_CONTROLLER(PostInitializeController, post_initialize_list);
-    IMPLEMENT_CONTROLLER(ClassInitializeController, class_initialize_list);
-    IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, default_resources_initialize_list);
+    IMPLEMENT_CONTROLLER(PreInitializeController, preinitialize_list, PreInit);
+    IMPLEMENT_CONTROLLER(InitializeController, initialize_list, Init);
+    IMPLEMENT_CONTROLLER(PostInitializeController, post_initialize_list, PostInit);
+
+    IMPLEMENT_CONTROLLER(DestroyController, terminate_list, Destroy);
+    IMPLEMENT_CONTROLLER(PostDestroyController, post_terminate_list, PostDestroy);
+
+
+    IMPLEMENT_CONTROLLER(ClassInitializeController, class_initialize_list, ClassInit);
+    IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, default_resources_initialize_list, ResourcesInit);
 
 }// namespace Engine

@@ -1,4 +1,4 @@
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
@@ -173,29 +173,27 @@ namespace Engine
         }
         else if (is_new_load)
         {
-            const Flags<EngineInstance::Flag>& flags = engine_instance->flags();
-
-            if (flags(EngineInstance::PreInitTriggered))
+            if (PreInitializeController::is_triggered())
             {
                 PreInitializeController().execute();
             }
 
-            if (flags(EngineInstance::InitTriggered))
+            if (InitializeController::is_triggered())
             {
                 InitializeController().execute();
             }
 
-            if (flags(EngineInstance::ClassInitTriggered))
+            if (ClassInitializeController::is_triggered())
             {
                 ClassInitializeController().execute();
             }
 
-            if (flags(EngineInstance::PostInitTriggered))
+            if (PostDestroyController::is_triggered())
             {
                 PostInitializeController().execute();
             }
 
-            if (flags(EngineInstance::DefaultResourcesInitTriggered))
+            if (DefaultResourcesInitializeController::is_triggered())
             {
                 DefaultResourcesInitializeController().execute();
             }

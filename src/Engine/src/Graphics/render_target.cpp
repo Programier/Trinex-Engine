@@ -1,6 +1,6 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/base_engine.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
 
@@ -16,7 +16,7 @@ namespace Engine
     RenderTarget& RenderTarget::rhi_create()
     {
         Super::rhi_create();
-        m_rhi_object.reset(EngineInstance::instance()->rhi()->create_render_target(this));
+        m_rhi_object.reset(rhi->create_render_target(this));
         return *this;
     }
 

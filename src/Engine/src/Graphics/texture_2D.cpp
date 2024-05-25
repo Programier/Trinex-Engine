@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/enum.hpp>
 #include <Core/implement.hpp>
@@ -32,7 +32,7 @@ namespace Engine
     Texture2D& Texture2D::rhi_create(const byte* data, size_t data_size)
     {
         if (size.x >= 1.0f && size.y >= 1.f)
-            m_rhi_object.reset(engine_instance->rhi()->create_texture(this, data, data_size));
+            m_rhi_object.reset(rhi->create_texture(this, data, data_size));
         return *this;
     }
 

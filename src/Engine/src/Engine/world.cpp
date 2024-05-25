@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/scene_component.hpp>
 #include <Engine/Actors/actor.hpp>
 #include <Engine/scene.hpp>

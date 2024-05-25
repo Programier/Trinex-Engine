@@ -1,4 +1,4 @@
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Engine/Render/scene_layer.hpp>
@@ -57,7 +57,6 @@ namespace Engine
         Material* axis_material = EditorResources::axis_material;
         Material* grid_material = EditorResources::grid_material;
 
-        auto rhi               = engine_instance->rhi();
         const CameraView& view = renderer->scene_view().camera_view();
 
         float camera_height = glm::abs(view.location.y);

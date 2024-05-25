@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/texture_cubemap.hpp>
 
@@ -17,7 +17,7 @@ namespace Engine
 
     TextureCubeMap& TextureCubeMap::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_texture(this, nullptr, 0));
+        m_rhi_object.reset(rhi->create_texture(this, nullptr, 0));
         return *this;
     }
 

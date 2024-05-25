@@ -1,6 +1,6 @@
 #include <Core/default_resources.hpp>
-#include <Core/engine.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/base_engine.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Engine/Render/command_buffer.hpp>
@@ -67,7 +67,6 @@ namespace Engine
     SceneRenderer& SceneRenderer::begin_rendering_target(RenderTargetBase* render_target)
     {
         setup_parameters(render_target);
-        RHI* rhi = engine_instance->rhi();
         rhi->push_global_params(global_shader_parameters());
         render_target->rhi_bind();
         return *this;
@@ -75,7 +74,7 @@ namespace Engine
 
     SceneRenderer& SceneRenderer::end_rendering_target()
     {
-        engine_instance->rhi()->pop_global_params();
+        rhi->pop_global_params();
         return *this;
     }
 
@@ -88,8 +87,6 @@ namespace Engine
         m_scene_views.clear();
 
         m_scene_views.push_back(view);
-
-        auto rhi = engine_instance->rhi();
 
         for (auto layer = root_layer(); layer; layer = layer->next())
         {
@@ -151,7 +148,7 @@ namespace Engine
                 texture->texture_param(base_color);
                 material->apply();
                 positions->rhi_bind(0, 0);
-                engine_instance->rhi()->draw(6, 0);
+                rhi->draw(6, 0);
             }
         }
     }
@@ -172,7 +169,7 @@ namespace Engine
 
             material->apply();
             DefaultResources::screen_position_buffer->rhi_bind(0, 0);
-            engine_instance->rhi()->draw(6, 0);
+            rhi->draw(6, 0);
         }
     }
 

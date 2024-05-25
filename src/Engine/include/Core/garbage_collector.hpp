@@ -12,7 +12,7 @@ namespace Engine
         ENGINE_EXPORT static void destroy(Object* object);
         ENGINE_EXPORT static void update(float dt);
 
-        friend class EngineInstance;
+        friend class EngineLoop;
 
     private:
         ENGINE_EXPORT static void submit_current_stage();

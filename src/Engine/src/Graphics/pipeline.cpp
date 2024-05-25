@@ -1,13 +1,14 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
+#include <Core/constants.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -132,7 +133,7 @@ namespace Engine
         init_shader(m_tessellation_shader);
         init_shader(m_geometry_shader);
         init_shader(m_fragment_shader);
-        m_rhi_object.reset(engine_instance->rhi()->create_pipeline(this));
+        m_rhi_object.reset(rhi->create_pipeline(this));
         return *this;
     }
 

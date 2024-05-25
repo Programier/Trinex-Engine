@@ -1,8 +1,9 @@
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/global_config.hpp>
 #include <Core/string_functions.hpp>
 #include <Window/config.hpp>
+#include <Core/arguments.hpp>
 
 namespace Engine
 {
@@ -68,14 +69,14 @@ namespace Engine
 
 
 #define new_param(name, convert_func)                                                                                            \
-    arg = args.find("w_" #name);                                                                                                 \
+    arg = Arguments::find("w_" #name);                                                                                           \
     if (arg && arg->type == Arguments::Type::String)                                                                             \
     {                                                                                                                            \
         name = convert_func(arg->get<const String&>());                                                                          \
     }
 
 #define new_param_nc(name)                                                                                                       \
-    arg = args.find("w_" #name);                                                                                                 \
+    arg = Arguments::find("w_" #name);                                                                                           \
     if (arg && arg->type == Arguments::Type::String)                                                                             \
     {                                                                                                                            \
         name = arg->get<const String&>();                                                                                        \
@@ -84,10 +85,8 @@ namespace Engine
 
     WindowConfig& WindowConfig::update_using_args()
     {
-        using Arg             = const Arguments::Argument*;
-        const Arguments& args = engine_instance->args();
-        Arg arg               = nullptr;
-
+        using Arg = const Arguments::Argument*;
+        Arg arg   = nullptr;
 
         new_param_nc(title);
         new_param_nc(client);

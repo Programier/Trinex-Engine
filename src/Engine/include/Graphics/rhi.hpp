@@ -146,4 +146,6 @@ namespace Engine
 
         virtual ~RHI(){};
     };
+
+    ENGINE_EXPORT extern RHI* rhi;
 }// namespace Engine

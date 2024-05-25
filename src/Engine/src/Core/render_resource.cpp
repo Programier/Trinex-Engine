@@ -1,8 +1,8 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/exception.hpp>
 #include <Core/render_resource.hpp>
-#include <Core/thread.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -14,9 +14,8 @@ namespace Engine
 
     struct DestroyRenderResourceTask : public ExecutableObject {
         RHI_Object* object;
-        RHI* rhi;
 
-        DestroyRenderResourceTask(RHI_Object* obj) : object(obj), rhi(engine_instance->rhi())
+        DestroyRenderResourceTask(RHI_Object* obj) : object(obj)
         {}
 
         int_t execute()
@@ -31,13 +30,13 @@ namespace Engine
     {
         if (object->is_destroyable())
         {
-            if (Thread::this_thread() == engine_instance->thread(ThreadType::RenderThread))
+            if (is_in_render_thread())
             {
-                engine_instance->rhi()->destroy_object(object);
+                rhi->destroy_object(object);
             }
             else
             {
-                engine_instance->thread(ThreadType::RenderThread)->insert_new_task<DestroyRenderResourceTask>(object);
+                render_thread()->insert_new_task<DestroyRenderResourceTask>(object);
             }
         }
     }
@@ -59,18 +58,17 @@ namespace Engine
 
     RenderResource& RenderResource::init_resource(bool wait_initialize)
     {
-        Thread* render_thread = engine_instance->thread(ThreadType::RenderThread);
-        if (Thread::this_thread() == render_thread)
+        if (is_in_render_thread())
         {
             rhi_create();
         }
         else
         {
-            render_thread->insert_new_task<InitRenderResourceTask>(this, m_rhi_object.get() != nullptr);
+            render_thread()->insert_new_task<InitRenderResourceTask>(this, m_rhi_object.get() != nullptr);
 
             if (wait_initialize)
             {
-                render_thread->wait_all();
+                render_thread()->wait_all();
             }
         }
 
@@ -120,7 +118,7 @@ namespace Engine
     {
         if (wait)
         {
-            engine_instance->rhi()->wait_idle();
+            rhi->wait_idle();
         }
         resource->rhi_create();
 

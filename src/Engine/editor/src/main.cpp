@@ -1,41 +1,38 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/global_config.hpp>
 #include <Core/package.hpp>
 #include <Engine/engine_start.hpp>
 #include <editor_config.hpp>
+#include <Core/engine.hpp>
+#include <Window/config.hpp>
 
-class Editor : public Engine::EngineBaseEntryPoint
+class EditorEngine : public Engine::EngineInstance
 {
-    declare_class(Editor, Engine::EngineBaseEntryPoint);
+    declare_class(EditorEngine, Engine::EngineInstance);
 
 public:
-    Engine::int_t execute(Engine::int_t argc, char** argv) override
-    {
-        Engine::engine_instance->enable_editor_mode();
-        Engine::engine_instance->launch();
-        return 0;
-    }
-
-    Editor& load_configs() override
+    Engine::int_t init() override
     {
         Engine::engine_config.config_dir = "resources/configs";
-        Super::load_configs();
+
         Engine::global_config.load(Engine::engine_config.config_dir / Engine::Path("editor.json"));
         Engine::editor_config.update().update_using_args();
+        Engine::engine_config.update();
+        Engine::global_window_config.update();
 
-        return *this;
+        return Super::init();
     }
 };
 
 
-implement_class_default_init(Editor, );
+implement_class_default_init(EditorEngine, );
 
 // If entry point is not set in engine arguments, we need to set it to Editor
 static void on_init()
 {
-    Engine::engine_instance->args().push_argument(Engine::Arguments::Argument("entry", "Editor"), false);
+    Engine::Arguments::push_argument(Engine::Arguments::Argument("engine_class", "EditorEngine"), false);
 }
 
-static Engine::InitializeController initializer(on_init);
+static Engine::PreInitializeController initializer(on_init);

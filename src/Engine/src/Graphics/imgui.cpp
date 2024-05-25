@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/render_resource.hpp>
@@ -171,7 +171,6 @@ namespace Engine::ImGuiRenderer
     ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
     {
         viewport->window()->rhi_bind();
-        RHI* rhi = engine_instance->rhi();
         rhi->imgui_render(m_window->context(), m_draw_data.draw_data());
         m_draw_data.swap_render_index();
         return *this;
@@ -228,8 +227,6 @@ namespace Engine::ImGuiRenderer
     {
         make_current(this);
         m_window->interface()->new_imgui_frame();
-
-        RHI* rhi = engine_instance->rhi();
         rhi->imgui_new_frame(m_context);
         ImGui::NewFrame();
         return *this;
@@ -257,7 +254,6 @@ namespace Engine::ImGuiRenderer
 
     Window& Window::render()
     {
-        RHI* rhi = engine_instance->rhi();
         rhi->imgui_render(m_context, draw_data());
         m_draw_data.swap_render_index();
         return *this;

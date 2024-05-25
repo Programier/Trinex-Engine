@@ -12,10 +12,10 @@ namespace Engine
         void* m_handle = nullptr;
         void* load_function(void* handle, const String& name);
 
-        static void close_all();
 
     public:
         Library(const String& libname);
+        static void close_all();
 
         copy_constructors_hpp(Library);
         constructor_hpp(Library);

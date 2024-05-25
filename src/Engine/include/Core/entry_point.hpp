@@ -10,7 +10,8 @@ namespace Engine
         declare_class(EntryPoint, Object);
 
     public:
-        virtual int_t execute(int_t argc, char** argv);
-        virtual EntryPoint& load_configs();
+        virtual void init(int_t argc, char** argv);
+        virtual void tick();
+        virtual void terminate();
     };
 }// namespace Engine

@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/package.hpp>
 #include <DefaultResources/default.hpp>
@@ -42,7 +42,7 @@ namespace Engine
     reinterpret_cast<Object*>(DefaultResources::object)->add_reference()
 
 
-    void EngineInstance::load_default_resources()
+    void load_default_resources()
     {
         load_default_asset(DefaultSampler, default_sampler, Sampler, Samplers);
         load_default_asset(DefaultTexture, default_texture, Texture2D, Textures);
@@ -58,6 +58,5 @@ namespace Engine
         load_default_asset(AmbientLightMaterial, ambient_light_material, Material, Materials);
 
         DefaultResourcesInitializeController().execute();
-        m_flags(DefaultResourcesInitTriggered, true);
     }
 }// namespace Engine

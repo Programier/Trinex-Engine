@@ -1,8 +1,8 @@
 #include <Core/default_resources.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -29,7 +29,7 @@ namespace Engine
     bool BatchedPrimitive::begin_render()
     {
         RenderTargetBase* rt = RenderTargetBase::current_target();
-        if(rt == nullptr)
+        if (rt == nullptr)
             return false;
 
         auto pass = rt->render_pass->type();
@@ -89,7 +89,6 @@ namespace Engine
 
         if (material)
         {
-            RHI* rhi = engine_instance->rhi();
 #if TRINEX_DEBUG_BUILD
             rhi->push_debug_stage("Lines Rendering");
 #endif
@@ -147,7 +146,6 @@ namespace Engine
 
         if (material)
         {
-            RHI* rhi = engine_instance->rhi();
 #if TRINEX_DEBUG_BUILD
             rhi->push_debug_stage("Triangles Rendering");
 #endif

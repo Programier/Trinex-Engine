@@ -1,11 +1,18 @@
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/global_config.hpp>
+#include <Core/arguments.hpp>
 
 namespace Engine
 {
     ENGINE_EXPORT EngineConfig engine_config;
 
+    EngineConfig& EngineConfig::init()
+    {
+        global_config.load("resources/configs/engine.json");
+        update();
+        return *this;
+    }
 
     EngineConfig& EngineConfig::update()
     {
@@ -52,7 +59,7 @@ namespace Engine
         enable_jit             = engine_json.checked_get_value<JSON::JsonBool>("enable_jit", true);
 
         {
-            Arguments::Argument* arg = engine_instance->args().find("config_dir");
+            Arguments::Argument* arg = Arguments::find("config_dir");
             if (arg && arg->type == Arguments::Type::String)
             {
                 config_dir = arg->get<String>();
@@ -60,6 +67,18 @@ namespace Engine
             else
             {
                 config_dir = "resources/configs";
+            }
+        }
+
+        {
+            Arguments::Argument* arg = Arguments::find("engine_class");
+            if (arg && arg->type == Arguments::Type::String)
+            {
+                engine_class = arg->get<String>();
+            }
+            else
+            {
+                engine_class = "Engine::EngineInstance";
             }
         }
         return *this;

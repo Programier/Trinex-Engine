@@ -4,6 +4,8 @@
 
 namespace Engine
 {
+    Map<String, Arguments::Argument> Arguments::m_arguments;
+
     Arguments::Argument::Argument() = default;
 
     Arguments::Argument::Argument(const String& name) : Argument()
@@ -26,7 +28,7 @@ namespace Engine
 
     default_copy_constructors_scoped_cpp(Arguments, Argument);
 
-    Arguments& Arguments::init(int argc, char** argv)
+    void Arguments::init(int argc, const char** argv)
     {
         for (int i = 0; i < argc; i++)
         {
@@ -35,8 +37,6 @@ namespace Engine
                 push_argument(argv[i] + 1);
             }
         }
-
-        return *this;
     }
 
     String Arguments::parse_string_argument(const char* argument, size_t* out_pos)
@@ -130,23 +130,14 @@ namespace Engine
         }
     }
 
-    Arguments& Arguments::clear()
+    void Arguments::clear()
     {
         m_arguments.clear();
-        return *this;
     }
 
-    const Map<String, Arguments::Argument>& Arguments::args() const
+    const Map<String, Arguments::Argument>& Arguments::args()
     {
         return m_arguments;
-    }
-
-    const Arguments::Argument* Arguments::find(const String& name) const
-    {
-        auto it = m_arguments.find(name);
-        if (it == m_arguments.end())
-            return nullptr;
-        return &it->second;
     }
 
     Arguments::Argument* Arguments::find(const String& name)
@@ -157,7 +148,7 @@ namespace Engine
         return &it->second;
     }
 
-    Arguments& Arguments::push_argument(const Argument& argument, bool override)
+    void Arguments::push_argument(const Argument& argument, bool override)
     {
         Argument* arg = find(argument.name);
         if (arg)
@@ -167,10 +158,10 @@ namespace Engine
                 arg->data = argument.data;
                 arg->type = argument.type;
             }
-            return *this;
+            return;
         }
 
         m_arguments[argument.name] = argument;
-        return *this;
+        return;
     }
 }// namespace Engine

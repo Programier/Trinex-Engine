@@ -136,6 +136,6 @@ namespace Engine
         friend class ScriptFunction;
         friend class ScriptClassRegistrar;
         friend class ScriptObject;
-        friend class EngineInstance;
+        friend class EngineLoop;
     };
 }// namespace Engine

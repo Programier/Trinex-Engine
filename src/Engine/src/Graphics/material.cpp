@@ -1,10 +1,10 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Core/string_functions.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Graphics/material.hpp>
@@ -58,7 +58,7 @@ namespace Engine
 
             if (info && info->offset != Constants::offset_none)
             {
-                engine_instance->rhi()->update_local_parameter(data(), size(), info->offset);
+                rhi->update_local_parameter(data(), size(), info->offset);
             }
         }
 

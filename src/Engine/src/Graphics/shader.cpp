@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/enum.hpp>
@@ -13,9 +13,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>
-#include <fstream>
 #include <glm/gtc/type_ptr.hpp>
-#include <sstream>
 
 namespace Engine
 {
@@ -98,7 +96,7 @@ namespace Engine
 
     VertexShader& VertexShader::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_vertex_shader(this));
+        m_rhi_object.reset(rhi->create_vertex_shader(this));
         return *this;
     }
 
@@ -118,7 +116,7 @@ namespace Engine
 
     FragmentShader& FragmentShader::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_fragment_shader(this));
+        m_rhi_object.reset(rhi->create_fragment_shader(this));
         return *this;
     }
 
@@ -129,7 +127,7 @@ namespace Engine
 
     TessellationControlShader& TessellationControlShader::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_tesselation_control_shader(this));
+        m_rhi_object.reset(rhi->create_tesselation_control_shader(this));
         return *this;
     }
 
@@ -140,7 +138,7 @@ namespace Engine
 
     TessellationShader& TessellationShader::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_tesselation_shader(this));
+        m_rhi_object.reset(rhi->create_tesselation_shader(this));
         return *this;
     }
 
@@ -151,7 +149,7 @@ namespace Engine
 
     GeometryShader& GeometryShader::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_geometry_shader(this));
+        m_rhi_object.reset(rhi->create_geometry_shader(this));
         return *this;
     }
 

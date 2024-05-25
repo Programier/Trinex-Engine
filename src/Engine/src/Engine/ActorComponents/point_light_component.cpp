@@ -1,8 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/property.hpp>
-#include <Core/render_thread.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
 #include <Engine/Render/command_buffer.hpp>

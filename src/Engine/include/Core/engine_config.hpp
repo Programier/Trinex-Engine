@@ -28,6 +28,7 @@ namespace Engine
         String default_language;
         String current_language;
         String shading_language;
+        String engine_class;
 
         uint_t lz4_compression_level;
         uint_t gc_max_object_per_tick;
@@ -36,6 +37,8 @@ namespace Engine
 
         float gamma;
         float gc_wait_time;
+
+        EngineConfig& init();
         virtual EngineConfig& update() override;
     };
 

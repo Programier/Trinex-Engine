@@ -1,6 +1,6 @@
 #include <Core/colors.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
@@ -13,8 +13,8 @@
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
-#include <editor_scene_renderer.hpp>
 #include <editor_resources.hpp>
+#include <editor_scene_renderer.hpp>
 
 namespace Engine
 {
@@ -47,7 +47,7 @@ namespace Engine
 
         material->apply(component);
         vertex_bufer->rhi_bind(0, 0);
-        engine_instance->rhi()->draw(6, 0);
+        rhi->draw(6, 0);
 
         if (texture_parameter && texture)
         {
@@ -82,7 +82,7 @@ namespace Engine
         material->apply();
 
         EditorResources::spot_light_overlay_positions->rhi_bind(0);
-        engine_instance->rhi()->draw(EditorResources::spot_light_overlay_positions->buffer.size(), 0);
+        rhi->draw(EditorResources::spot_light_overlay_positions->buffer.size(), 0);
     }
 
     static void render_spot_light_overlay(SpotLightComponent* component)
@@ -117,7 +117,6 @@ namespace Engine
         }
 
         material->apply();
-        auto rhi = engine_instance->rhi();
         EditorResources::point_light_overlay_positions->rhi_bind(0, 0);
         rhi->draw(EditorResources::point_light_overlay_positions->buffer.size(), 0);
     }

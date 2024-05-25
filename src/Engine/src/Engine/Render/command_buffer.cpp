@@ -1,4 +1,4 @@
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Engine/Render/command_buffer.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -6,12 +6,6 @@
 
 namespace Engine
 {
-    static RHI* rhi()
-    {
-        static RHI* instance = engine_instance->rhi();
-        return instance;
-    }
-
 #define declare_command_one_param(command_name, type1, name1, code)                                                              \
     class command_name##Command : public ExecutableObject                                                                        \
     {                                                                                                                            \
@@ -83,15 +77,14 @@ namespace Engine
         }                                                                                                                        \
     };
 
-    declare_command_two_param(Draw, size_t, vertices_count, size_t, vertices_offset,
-                              rhi()->draw(vertices_count, vertices_offset));
+    declare_command_two_param(Draw, size_t, vertices_count, size_t, vertices_offset, rhi->draw(vertices_count, vertices_offset));
     declare_command_three_param(DrawIndexed, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
-                                rhi()->draw_indexed(indices_count, indices_offset, vertices_offset));
+                                rhi->draw_indexed(indices_count, indices_offset, vertices_offset));
     declare_command_three_param(DrawInstanced, size_t, vertices_count, size_t, vertices_offset, size_t, instances,
-                                rhi()->draw_instanced(vertices_count, vertices_offset, instances));
+                                rhi->draw_instanced(vertices_count, vertices_offset, instances));
     declare_command_four_param(DrawIndexedInstanced, size_t, indices_count, size_t, indices_offset, size_t, vertices_offset,
                                size_t, instances,
-                               rhi()->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
+                               rhi->draw_indexed_instanced(indices_count, indices_offset, vertices_offset, instances));
     declare_command_two_param(BindMaterial, MaterialInterface*, interface, SceneComponent*, component,
                               interface->apply(component));
 

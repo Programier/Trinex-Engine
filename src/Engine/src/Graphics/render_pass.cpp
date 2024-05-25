@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/rhi.hpp>
 
@@ -16,7 +16,7 @@ namespace Engine
 
     RenderPass& RenderPass::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_render_pass(this));
+        m_rhi_object.reset(rhi->create_render_pass(this));
         return *this;
     }
 

@@ -1,23 +1,24 @@
 #include <Core/class.hpp>
-#include <Core/entry_point.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
+#include <Core/entry_point.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/global_config.hpp>
 #include <Core/logger.hpp>
 
 namespace Engine
 {
-    int_t EntryPoint::execute(int_t argc, char** argv)
+    void EntryPoint::init(int_t argc, char** argv)
+    {}
+
+    void EntryPoint::tick()
     {
-        info_log("EntryPoint",
-                 "You must override method 'int execute(int argc, char** argv)' for using your EntryPoint!");
-        return 0;
+        info_log("EntryPoint", "You must override method 'void tick()' for using your EntryPoint!");
+        engine_instance->request_exit();
     }
 
-    EntryPoint& EntryPoint::load_configs()
-    {
-        return *this;
-    }
+    void EntryPoint::terminate()
+    {}
 
     implement_class(EntryPoint, Engine, 0);
     implement_default_initialize_class(EntryPoint);

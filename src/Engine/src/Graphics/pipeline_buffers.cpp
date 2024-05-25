@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
@@ -34,7 +34,7 @@ namespace Engine
     {
         size_t buffer_size = size();
         if (buffer_size > 0)
-            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(buffer_size, data(), RHIBufferType::Static));
+            m_rhi_object.reset(rhi->create_vertex_buffer(buffer_size, data(), RHIBufferType::Static));
         return *this;
     }
 
@@ -70,7 +70,7 @@ namespace Engine
         test.shrink_to_fit();
         m_allocated_size = size();
         if (m_allocated_size > 0)
-            m_rhi_object.reset(engine_instance->rhi()->create_vertex_buffer(m_allocated_size, data(), RHIBufferType::Dynamic));
+            m_rhi_object.reset(rhi->create_vertex_buffer(m_allocated_size, data(), RHIBufferType::Dynamic));
         return *this;
     }
 
@@ -108,7 +108,7 @@ namespace Engine
 
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_index_buffer(size(), data()));
+        m_rhi_object.reset(rhi->create_index_buffer(size(), data()));
         return *this;
     }
 
@@ -154,7 +154,7 @@ namespace Engine
 
     SSBO& SSBO::rhi_create()
     {
-        m_rhi_object.reset(engine_instance->rhi()->create_ssbo(init_size, init_data));
+        m_rhi_object.reset(rhi->create_ssbo(init_size, init_data));
         return *this;
     }
 

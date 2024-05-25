@@ -1,11 +1,11 @@
 #include "logo.hpp"
 #include <Core/class.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/exception.hpp>
 #include <Core/library.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/render_viewport.hpp>
@@ -62,11 +62,10 @@ namespace Engine
     {
         if (window)
         {
-            RHI* rhi = engine_instance->rhi();
             if (rhi)
             {
-                call_in_render_thread([rhi]() { rhi->wait_idle(); });
-                engine_instance->thread(ThreadType::RenderThread)->wait_all();
+                call_in_render_thread([]() { rhi->wait_idle(); });
+                render_thread()->wait_all();
             }
 
             if (window == m_main_window)

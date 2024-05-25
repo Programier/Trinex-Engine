@@ -14,7 +14,7 @@ namespace Engine::Platform
         return "Linux";
     }
 
-    ENGINE_EXPORT Path find_root_directory(int_t argc, char** argv)
+    ENGINE_EXPORT Path find_root_directory(int_t argc, const char** argv)
     {
         if (argc == 0)// Usually it's impossible, but just in case, let it be
             return Path("./");

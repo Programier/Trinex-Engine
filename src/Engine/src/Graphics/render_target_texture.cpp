@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Graphics/render_target_texture.hpp>
 #include <Graphics/rhi.hpp>

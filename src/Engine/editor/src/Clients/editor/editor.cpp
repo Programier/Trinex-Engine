@@ -1,10 +1,10 @@
 #include <Clients/editor_client.hpp>
 #include <Clients/open_client.hpp>
 #include <Core/class.hpp>
-#include <Core/engine.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/localization.hpp>
-#include <Core/render_thread.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
@@ -121,9 +121,9 @@ namespace Engine
 
         window->imgui_initialize(initialize_theme);
 
-        String new_title = Strings::format("Trinex Editor [{} RHI]", engine_instance->rhi()->name().c_str());
+        String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->name().c_str());
         window->title(new_title);
-        engine_instance->thread(ThreadType::RenderThread)->wait_all();
+        render_thread()->wait_all();
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);
 
 

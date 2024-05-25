@@ -111,4 +111,10 @@ namespace Engine
 
     using String     = std::string;
     using StringView = std::string_view;
+
+    template<typename A, typename B>
+    concept is_same_concept = std::is_same_v<A, B>;
+
+    template<typename A, typename B>
+    concept is_not_same_concept = !std::is_same_v<A, B>;
 }// namespace Engine
