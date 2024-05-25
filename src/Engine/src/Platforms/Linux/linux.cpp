@@ -1,23 +1,24 @@
 #include <Core/definitions.hpp>
-#include <Core/platform.hpp>
+#include <Platform/platform.hpp>
 
-#if PLATFORM_ANDROID
 namespace Engine::Platform
 {
     ENGINE_EXPORT OperationSystemType system_type()
     {
-        return OperationSystemType::Android;
+        return OperationSystemType::Linux;
     }
+
 
     ENGINE_EXPORT const char* system_name()
     {
-        return "Android";
+        return "Linux";
     }
 
     ENGINE_EXPORT Path find_root_directory(int_t argc, char** argv)
     {
-        // TODO: It needs to be made more scalable
-        return Strings::format("/sdcard/TrinexGames/{}/", EngineInstance::project_name());
+        if (argc == 0)// Usually it's impossible, but just in case, let it be
+            return Path("./");
+        return Path(argv[0]).base_path();
     }
 
     ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()
@@ -25,4 +26,3 @@ namespace Engine::Platform
         return {{"/", "/"}};
     }
 }// namespace Engine::Platform
-#endif

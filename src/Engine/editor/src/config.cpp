@@ -1,5 +1,4 @@
 #include <Core/global_config.hpp>
-#include <Core/platform.hpp>
 #include <editor_config.hpp>
 #include <theme.hpp>
 

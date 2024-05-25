@@ -9,7 +9,7 @@
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
-#include <Core/platform.hpp>
+#include <Platform/platform.hpp>
 #include <Core/render_thread.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>

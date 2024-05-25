@@ -1,30 +1,28 @@
 #include <Core/definitions.hpp>
-#include <Core/platform.hpp>
+#include <Platform/platform.hpp>
+#include <Core/string_functions.hpp>
+#include <Core/engine.hpp>
 
-#if PLATFORM_WINDOWS
 namespace Engine::Platform
 {
     ENGINE_EXPORT OperationSystemType system_type()
     {
-        return OperationSystemType::Windows;
+        return OperationSystemType::Android;
     }
 
     ENGINE_EXPORT const char* system_name()
     {
-        return "Windows";
+        return "Android";
     }
 
     ENGINE_EXPORT Path find_root_directory(int_t argc, char** argv)
     {
-        if (argc == 0)// Usually it's impossible, but just in case, let it be
-            return Path(".\\");
-        return Path(argv[0]).base_path();
+        // TODO: It needs to be made more scalable
+        return Strings::format("/sdcard/TrinexGames/{}/", EngineInstance::project_name());
     }
 
     ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()
     {
-        return {};
+        return {{"/", "/"}};
     }
-
 }// namespace Engine::Platform
-#endif

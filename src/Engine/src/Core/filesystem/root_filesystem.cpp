@@ -3,7 +3,7 @@
 #include <Core/filesystem/path.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
-#include <Core/platform.hpp>
+#include <Platform/platform.hpp>
 #include <filesystem>
 
 namespace Engine

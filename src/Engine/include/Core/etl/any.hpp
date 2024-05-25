@@ -2,6 +2,8 @@
 #include <Core/export.hpp>
 #include <stdexcept>
 #include <type_traits>
+#include <typeinfo>
+#include <memory>
 
 namespace Engine
 {
