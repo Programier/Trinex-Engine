@@ -204,7 +204,7 @@ namespace Engine
                                    int_t* offset, bool* is_reference) const
     {
         const char* c_name = nullptr;
-        int_t res = m_info->GetProperty(index, &c_name, type_id, is_private, is_protected, offset, is_reference);
+        int_t res          = m_info->GetProperty(index, &c_name, type_id, is_private, is_protected, offset, is_reference);
         if (c_name)
         {
             name = c_name;
@@ -312,6 +312,11 @@ namespace Engine
     ScriptFunction ScriptTypeInfo::funcdef_signature() const
     {
         return ScriptFunction(m_info->GetFuncdefSignature()).bind();
+    }
+
+    bool ScriptTypeInfo::is_enum() const
+    {
+        return (m_info->GetFlags() & asOBJ_ENUM) == asOBJ_ENUM;
     }
 
     ScriptTypeInfo::~ScriptTypeInfo()

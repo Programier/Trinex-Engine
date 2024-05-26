@@ -3,6 +3,7 @@
 #include <Core/global_config.hpp>
 #include <Core/string_functions.hpp>
 #include <Window/config.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/arguments.hpp>
 
 namespace Engine
@@ -63,7 +64,7 @@ namespace Engine
             vsync = window_json.checked_get_value("vsync", true);
         }
 
-        api_name = engine_config.api;
+        api_name = ConfigManager::get_string("Engine::api");
         return *this;
     }
 

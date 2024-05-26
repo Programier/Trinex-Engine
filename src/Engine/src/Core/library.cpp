@@ -1,5 +1,5 @@
 #include <Core/base_engine.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/exception.hpp>
@@ -89,7 +89,7 @@ namespace Engine
 
         if (mode == Engine)
         {
-            Path new_path = engine_config.libraries_dir / path;
+            Path new_path = Path(ConfigManager::get_string("Engine::libraries_dir")) / path;
             auto entry    = rootfs()->find_filesystem(new_path);
             if (entry.first == nullptr || entry.first->type() != VFS::FileSystem::Type::Native)
                 return path.filename();
@@ -173,30 +173,7 @@ namespace Engine
         }
         else if (is_new_load)
         {
-            if (PreInitializeController::is_triggered())
-            {
-                PreInitializeController().execute();
-            }
-
-            if (InitializeController::is_triggered())
-            {
-                InitializeController().execute();
-            }
-
-            if (ClassInitializeController::is_triggered())
-            {
-                ClassInitializeController().execute();
-            }
-
-            if (PostDestroyController::is_triggered())
-            {
-                PostInitializeController().execute();
-            }
-
-            if (DefaultResourcesInitializeController::is_triggered())
-            {
-                DefaultResourcesInitializeController().execute();
-            }
+            LoadingControllerBase::exec_all_if_already_triggered();
         }
 
         return *this;

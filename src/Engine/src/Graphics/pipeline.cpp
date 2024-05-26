@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/class.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
@@ -601,9 +601,10 @@ namespace Engine
         // Loading shaders from shader cache
         String material_name = material_object->full_name(true);
 
-        Path path = Strings::format(
-                "{}{}{}{}{}{}", engine_config.shader_cache_dir.str(), Path::separator, engine_config.api, Path::separator,
-                Strings::replace_all(material_name, Constants::name_separator, Path::sv_separator), Constants::shader_extention);
+        Path path = Strings::format("{}{}{}{}{}{}", ConfigManager::get_string("Engine::shader_cache_dir"), Path::separator,
+                                    ConfigManager::get_string("Engine::api"), Path::separator,
+                                    Strings::replace_all(material_name, Constants::name_separator, Path::sv_separator),
+                                    Constants::shader_extention);
 
 
         bool status = serialize_shader_sources(path, this, archive.is_reading());

@@ -4,7 +4,6 @@
 #include <Core/memory.hpp>
 #include <Core/name.hpp>
 #include <ScriptEngine/registrar.hpp>
-#include <cstring>
 
 namespace Engine
 {
@@ -27,15 +26,15 @@ namespace Engine
     declare_name(intensivity);
     declare_name(location);
     declare_name(direction);
-    declare_custom_name(clear_render_targets, Clear Render Targets);
-    declare_custom_name(base_pass, Base Pass);
-    declare_custom_name(depth_pass, Depth Pass);
-    declare_custom_name(deferred_light_pass, Deferred Light Pass);
-    declare_custom_name(light_pass, Light Pass);
-    declare_custom_name(scene_output_pass, Scene Output Pass);
-    declare_custom_name(post_process, Post Process);
-    declare_custom_name(color_scene_rendering, Color Scene Rendering);
-    declare_custom_name(depth_scene_rendering, Depth Scene Rendering);
+    declare_custom_name(clear_render_targets, ClearRenderTargets);
+    declare_custom_name(base_pass, BasePass);
+    declare_custom_name(depth_pass, DepthPass);
+    declare_custom_name(deferred_light_pass, DeferredLightPass);
+    declare_custom_name(light_pass, LightPass);
+    declare_custom_name(scene_output_pass, SceneOutputPass);
+    declare_custom_name(post_process, PostProcess);
+    declare_custom_name(color_scene_rendering, ColorSceneRendering);
+    declare_custom_name(depth_scene_rendering, DepthSceneRendering);
 
     static Vector<Name::Entry>& name_entries()
     {

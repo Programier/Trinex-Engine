@@ -114,8 +114,8 @@ namespace Engine
 
 
     ScriptClassRegistrar::ScriptClassRegistrar(class Class* _class)
-        : m_class_base_name(_class->base_name()), m_class_namespace_name(_class->namespace_name()),
-          m_class_name(_class->name()), m_engine(ScriptEngine::instance()->as_engine())
+        : m_class_base_name(_class->base_name()), m_class_namespace_name(_class->namespace_name()), m_class_name(_class->name()),
+          m_engine(ScriptEngine::instance()->as_engine())
     {
         m_info      = {};
         m_info.size = _class->sizeof_class();
@@ -129,12 +129,17 @@ namespace Engine
         return a->instance_cast<B>();
     }
 
-    ScriptClassRegistrar::ScriptClassRegistrar(const String& full_name, const ClassInfo& info)
+    ScriptClassRegistrar::ScriptClassRegistrar(const String& full_name, const ClassInfo& info, const String& template_override)
         : m_class_base_name(Object::object_name_of(full_name)), m_class_namespace_name(Object::package_name_of(full_name)),
           m_class_name(full_name), m_engine(ScriptEngine::instance()->as_engine())
     {
         m_info = info;
         declare_as_class();
+        if (!template_override.empty() && (info.flags & Template) == Template)
+        {
+            m_class_base_name = template_override;
+            m_class_name = m_class_namespace_name.empty() ? m_class_base_name : m_class_namespace_name + "::" + m_class_base_name;
+        }
     }
 
     const String& ScriptClassRegistrar::namespace_name() const
@@ -210,7 +215,7 @@ namespace Engine
 
         prepare_namespace();
         assert(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, create_function(method, FuncType::Method),
-                                               create_call_conv(conv)) >= 0);
+                                              create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
@@ -219,7 +224,7 @@ namespace Engine
     {
         prepare_namespace();
         assert(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, create_function(method, FuncType::Func),
-                                               create_call_conv(conv)) >= 0);
+                                              create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
@@ -227,8 +232,7 @@ namespace Engine
                                                                                ScriptCallConv conv)
     {
         prepare_namespace(true);
-        assert(m_engine->RegisterGlobalFunction(declaration, create_function(func, FuncType::Func), create_call_conv(conv)) >=
-               0);
+        assert(m_engine->RegisterGlobalFunction(declaration, create_function(func, FuncType::Func), create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
@@ -259,7 +263,7 @@ namespace Engine
         prepare_namespace();
         asSFuncPtr ptr = create_function(method, is_method ? FuncType::Method : FuncType::Func);
         assert(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_bahaviour(behave), declaration, ptr,
-                                                  create_call_conv(conv)) >= 0);
+                                                 create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
@@ -291,14 +295,20 @@ namespace Engine
     }
 
 
-    ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name)
-        : m_enum_base_name(Object::object_name_of(full_name)), m_enum_namespace_name(Object::package_name_of(full_name)),
-          m_engine(ScriptEngine::instance()->as_engine())
+    ScriptEnumRegistrar::ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init)
+        : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name), m_engine(ScriptEngine::instance()->as_engine())
     {
-        prepare_namespace();
-        assert(m_engine->RegisterEnum(m_enum_base_name.c_str()) >= 0);
-        release_namespace();
+        if (init)
+        {
+            prepare_namespace();
+            assert(m_engine->RegisterEnum(m_enum_base_name.c_str()) >= 0);
+            release_namespace();
+        }
     }
+
+    ScriptEnumRegistrar::ScriptEnumRegistrar(const String& full_name, bool init)
+        : Engine::ScriptEnumRegistrar(Strings::namespace_of(full_name), Strings::class_name_of(full_name), init)
+    {}
 
 
     ScriptEnumRegistrar& ScriptEnumRegistrar::prepare_namespace()

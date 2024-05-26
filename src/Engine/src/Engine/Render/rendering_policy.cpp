@@ -7,7 +7,7 @@ namespace Engine
 
     implement_enum(RenderingPolicy, Engine);
 
-    static PreInitializeController on_init([]() {
+    static ClassInitializeController on_init([]() {
         Enum::Entry entry;
         rendering_policy_enum = Enum::static_find("Engine::RenderingPolicy", true);
         register_policy(Name::color_scene_rendering);

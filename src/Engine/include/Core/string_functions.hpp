@@ -3,6 +3,7 @@
 #include <Core/build.hpp>
 #include <Core/engine_types.hpp>
 #include <fmt/format.h>
+#include <numeric>
 #include <sstream>
 
 namespace Engine::Strings
@@ -54,5 +55,20 @@ namespace Engine::Strings
         T value;
         std::stringstream(line) >> value;
         return value;
+    }
+
+    ENGINE_EXPORT String namespace_of(const StringView& name);
+    ENGINE_EXPORT String class_name_of(const StringView& name);
+    ENGINE_EXPORT StringView namespace_sv_of(const StringView& name);
+    ENGINE_EXPORT StringView class_name_sv_of(const StringView& name);
+
+    template<typename Range, typename Value = typename Range::value_type>
+    inline String join(const Range& elements, const String& delimiter)
+    {
+        if (elements.empty())
+            return "";
+
+        return std::accumulate(std::next(elements.begin()), elements.end(), elements[0],
+                               [&delimiter](const std::string& a, const Value& b) { return a + delimiter + b; });
     }
 }// namespace Engine::Strings

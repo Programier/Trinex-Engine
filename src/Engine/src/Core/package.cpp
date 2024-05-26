@@ -337,38 +337,6 @@ namespace Engine
         return find_object(name, false) != nullptr;
     }
 
-
-    template<typename Type>
-    static Type* open_package_file(const Package* package, bool create_dir = false)
-    {
-        Path path = engine_config.packages_dir / package->filepath();
-
-        if (create_dir)
-        {
-            rootfs()->create_dir(path.base_path());
-        }
-
-        Type* value = new Type(path);
-        if (value->is_open())
-        {
-            return value;
-        }
-
-        delete value;
-
-        if constexpr (std::is_base_of_v<BufferReader, Type>)
-        {
-            error_log("Package", "Failed to load package '%s': File '%s' not found!", package->full_name().c_str(), path.c_str());
-        }
-        else
-        {
-            error_log("Package", "Failed to save package '%s': Failed to create file '%s'!", package->full_name().c_str(),
-                      path.c_str());
-        }
-
-        return nullptr;
-    }
-
     bool Package::save(BufferWriter* writer, Flags<SerializationFlags> serialization_flags)
     {
         if (!flags(Object::IsSerializable))

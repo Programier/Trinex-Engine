@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/group.hpp>
@@ -370,7 +370,7 @@ namespace Engine
         static Enum* domain_enum = Enum::static_find("Engine::MaterialDomain", true);
         Name name                = domain_enum->entry(static_cast<EnumerateType>(domain))->name;
 
-        Path file_path = engine_config.shaders_dir / "material_templates" / name.c_str() + ".slang";
+        Path file_path = ConfigManager::get_path("Engine::shaders_dir") / "material_templates" / name.c_str() + ".slang";
         FileReader reader(file_path);
 
         if (reader.is_open())

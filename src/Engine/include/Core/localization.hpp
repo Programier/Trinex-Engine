@@ -11,6 +11,7 @@ namespace Engine
         static Localization* m_instance;
         Map<HashIndex, String> m_translation_map;
         mutable Map<HashIndex, String> m_default_translation_map;
+        mutable String m_current_language;
 
     public:
         CallBacks<void()> on_language_changed;

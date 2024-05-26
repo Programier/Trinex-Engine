@@ -18,11 +18,20 @@ namespace Engine
         asIScriptModule* m_module;
 
     public:
+        enum ModuleFlags
+        {
+            OnlyIfExists      = 0,
+            CreateIfNotExists = 1,
+            AlwaysCreate      = 2,
+        };
+
         copy_constructors_hpp(ScriptModule);
         ScriptModule(asIScriptModule* module = nullptr);
+        ScriptModule(const String& name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
 
         static ScriptModule global();
 
+        asIScriptModule* as_module() const;
         bool is_valid() const;
         ScriptModule& name(const String& name);
         ScriptModule& name(const char* name);
@@ -35,8 +44,8 @@ namespace Engine
         int_t build();
 
         int_t compile_global_var(const char* section_name, const char* code, int line_offset);
-        ScriptModule& default_namespace(const char* name_space);
-        ScriptModule& default_namespace(const String& name_space);
+        int_t default_namespace(const char* name_space);
+        int_t default_namespace(const String& name_space);
         const char* default_namespace();
 
         //        // Functions
@@ -54,6 +63,8 @@ namespace Engine
         int_t global_var_index_by_decl(const char* decl) const;
         int_t global_var_index_by_name(const String& name) const;
         int_t global_var_index_by_decl(const String& decl) const;
+        int_t global_var(uint_t index, const char** name, const char** name_space = 0, int* type_id = 0,
+                         bool* is_const = 0) const;
         const char* global_var_declaration(uint_t index, bool include_namespace = false) const;
         void* address_of_global_var(uint_t index);
         int_t remove_global_var(uint_t index);

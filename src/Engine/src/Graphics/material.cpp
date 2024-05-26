@@ -1,11 +1,11 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/class.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
-#include <Core/threading.hpp>
 #include <Core/string_functions.hpp>
+#include <Core/threading.hpp>
 #include <Engine/ActorComponents/primitive_component.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
@@ -552,7 +552,8 @@ namespace Engine
 
         if (need_delete_compiler)
         {
-            Class* compiler_class = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_Compiler", engine_config.api));
+            Class* compiler_class = Class::static_find(
+                    Strings::format("Engine::ShaderCompiler::{}_Compiler", ConfigManager::get_string("Engine::api")));
             if (!compiler_class)
             {
                 error_log("Material", "Failed to find shader compiler!");

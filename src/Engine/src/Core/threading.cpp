@@ -63,11 +63,4 @@ namespace Engine
         destroy_thread(m_logic_thread);
         destroy_thread(m_render_thread);
     }
-
-    static PreInitializeController pre_init([]() {
-
-    });
-
-    static DestroyController destroy([]() {});
-
 }// namespace Engine

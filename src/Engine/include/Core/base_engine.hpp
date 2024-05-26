@@ -31,6 +31,7 @@ namespace Engine
         virtual int_t terminate();
         virtual StringView application_name() const;
         virtual float max_tick_rate() const;
+        virtual float gamma() const;
 
         virtual BaseEngine& request_exit();
 

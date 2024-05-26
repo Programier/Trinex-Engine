@@ -68,7 +68,7 @@ layout(binding = 0, std140) uniform _Global
 
         if (scene_view)
         {
-            auto& camera= scene_view->camera_view();
+            auto& camera    = scene_view->camera_view();
             camera_location = camera.location;
             camera_forward  = camera.forward_vector;
             camera_right    = camera.right_vector;
@@ -89,7 +89,7 @@ layout(binding = 0, std140) uniform _Global
             inv_projview = scene_view->inv_projview_matrix();
         }
 
-        gamma      = engine_config.gamma;
+        gamma      = engine_instance->gamma();
         time       = engine_instance->time_seconds();
         delta_time = engine_instance->delta_time();
         return *this;

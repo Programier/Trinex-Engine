@@ -71,7 +71,7 @@ namespace Engine
     };
 
 #define implement_struct(struct_name, namespace_name, parent_struct_name)                                                        \
-    Engine::InitializeController initialize_##struct_name =                                                                      \
-            Engine::InitializeController([]() { Engine::Struct::create(#struct_name, #namespace_name, #parent_struct_name); },   \
-                                         ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
+    Engine::ClassInitializeController initialize_##struct_name = Engine::ClassInitializeController(                              \
+            []() { Engine::Struct::create(#struct_name, #namespace_name, #parent_struct_name); },                                \
+            ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
 }// namespace Engine

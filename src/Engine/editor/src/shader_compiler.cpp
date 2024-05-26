@@ -1,5 +1,5 @@
 #include <Core/class.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/exception.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -7,8 +7,8 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/shader.hpp>
-#include <shader_compiler.hpp>
 #include <cstring>
+#include <shader_compiler.hpp>
 #include <slang-com-ptr.h>
 #include <slang.h>
 #include <spirv_glsl.hpp>
@@ -363,7 +363,7 @@ namespace Engine::ShaderCompiler
 
     static void host_setup_request(SlangCompileRequest* request, const Vector<ShaderDefinition>& definitions)
     {
-        Path shaders_dir = rootfs()->native_path(engine_config.shaders_dir);
+        Path shaders_dir = rootfs()->native_path(ConfigManager::get_path("Engine::shaders_dir"));
         request->addSearchPath(shaders_dir.c_str());
 
         for (const auto& definition : definitions)

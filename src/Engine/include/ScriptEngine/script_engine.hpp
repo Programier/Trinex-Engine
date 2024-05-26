@@ -17,8 +17,6 @@ namespace Engine
     class ENGINE_EXPORT ScriptEngine
     {
     private:
-        struct ScriptContextManager* m_context_manager;
-
         Vector<class Script*> m_scripts;
         static ScriptEngine* m_instance;
         asIScriptEngine* m_engine;
@@ -53,11 +51,9 @@ namespace Engine
             DetectGarbage  = 8
         };
 
-
         static ScriptEngine* instance();
         asIScriptEngine* as_engine() const;
         const ScriptEngine& release_context(asIScriptContext* context) const;
-        const ScriptEngine& cleanup_free_contexts() const;
 
         ScriptEngine& default_namespace(const String& name);
         ScriptEngine& default_namespace(const char* ns);
@@ -65,6 +61,7 @@ namespace Engine
         ScriptEngine& register_property(const char* declaration, void* data);
         ScriptEngine& register_property(const String& declaration, void* data);
         ScriptModule global_module() const;
+        ScriptModule create_module(const String& name, EnumerateType flags = 0) const;
         ScriptModule module(uint_t index);
         uint_t module_count() const;
 

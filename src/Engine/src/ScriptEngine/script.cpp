@@ -1,5 +1,5 @@
+#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -30,7 +30,7 @@ namespace Engine
 
     Script& Script::load()
     {
-        FileReader reader(engine_config.scripts_dir / m_path);
+        FileReader reader(Path(ConfigManager::get_string("Engine::scripts_dir")) / m_path);
         if (reader.is_open())
         {
             Buffer buffer(reader.size(), 0);
@@ -112,7 +112,7 @@ namespace Engine
         release_scripts();
         ScriptModule::global().discard();
 
-        Path path = engine_config.scripts_dir;
+        Path path = ConfigManager::get_string("Engine::scripts_dir");
         Set<Path> scripts;
         static_load_scripts(path, path, scripts);
 

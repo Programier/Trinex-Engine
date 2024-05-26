@@ -81,6 +81,9 @@ namespace Engine
         // Funcdef
         ScriptFunction funcdef_signature() const;
 
+        // Flags processing
+        bool is_enum() const;
+
         ~ScriptTypeInfo();
         friend class ScriptModule;
         friend class ScriptFunction;

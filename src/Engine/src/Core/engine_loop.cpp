@@ -1,5 +1,8 @@
-#include <Core/class.hpp>
+#include <Core/arguments.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
+#include <Core/config_manager.hpp>
+#include <Core/constants.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
@@ -8,12 +11,11 @@
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Core/arguments.hpp>
-#include <Core/constants.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Platform/platform.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_module.hpp>
 #include <Systems/engine_system.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/config.hpp>
@@ -70,10 +72,11 @@ namespace Engine
 
     static bool init_api()
     {
-        if (!engine_config.api.empty())
+        String api = ConfigManager::get_string("Engine::api");
+        if (!api.empty())
         {
-            Library api_library(engine_config.api.c_str());
-            info_log("Engine", "Using API: %s", engine_config.api.c_str());
+            Library api_library(api.c_str());
+            info_log("Engine", "Using API: %s", api.c_str());
 
             if (!api_library.has_lib())
             {
@@ -107,17 +110,30 @@ namespace Engine
     }
 
 
+    static void load_configs()
+    {
+        ConfigManager::load_from_file("engine.config");
+        ConfigsInitializeController().execute();
+    }
+
     int_t EngineLoop::preinit(int_t argc, const char** argv)
     {
         info_log("TrinexEngine", "Start engine!");
 
         Arguments arguments;
-
         arguments.init(argc, argv);
+
         PreInitializeController().execute();
 
+        // Initialize script engine and load reflections
+        ScriptEngine::initialize();
+
+        ClassInitializeController().execute();// Load reflections
+        ScriptEngineInitializeController().execute();
 
         VFS::RootFS::create_instance(Platform::find_root_directory(argc, argv));
+
+        load_configs();
         engine_config.init();
 
         // Load libraries
@@ -134,24 +150,21 @@ namespace Engine
 
         create_threads();
 
-
         InitializeController().execute();
 
         load_external_system_libraries();
-
-        Class* engine_class = Class::static_find(engine_config.engine_class, true);
+        Class* engine_class = Class::static_find(ConfigManager::get_string("Engine::engine"), true);
         Object* object      = engine_class->create_object();
 
         if (object)
         {
             engine_instance = object->instance_cast<BaseEngine>();
-            if(engine_instance)
+            if (engine_instance)
             {
                 engine_instance->flags(Object::IsAvailableForGC, false);
             }
         }
 
-        ScriptEngine::initialize();
         ClassInitializeController().execute();
         ScriptEngine::instance()->load_scripts();
 

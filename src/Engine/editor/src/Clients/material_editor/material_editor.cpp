@@ -1,7 +1,8 @@
 #include <Clients/material_editor_client.hpp>
 #include <Clients/open_client.hpp>
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/engine_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>
@@ -119,7 +120,8 @@ namespace Engine
         create_content_browser().create_preview_window().create_properties_window();
 
         ImGuiRenderer::Window::make_current(prev_window);
-        Class* instance = Class::static_find(Strings::format("Engine::ShaderCompiler::{}_Compiler", engine_config.api));
+        Class* instance = Class::static_find(
+                Strings::format("Engine::ShaderCompiler::{}_Compiler", ConfigManager::get_string("Engine::api")));
 
         if (instance)
         {
@@ -218,23 +220,23 @@ namespace Engine
                 if (ImGui::MenuItem("Update Source", nullptr, false, material != nullptr))
                 {
                     material->shader_source(m_material_source);
-//                    auto link = material->nodes()[0]->inputs()[0]->linked_to();
-//                    if (link)
-//                    {
-//                        material->reset_nodes_state();
-//                        VisualMaterial::CompilerState state;
+                    //                    auto link = material->nodes()[0]->inputs()[0]->linked_to();
+                    //                    if (link)
+                    //                    {
+                    //                        material->reset_nodes_state();
+                    //                        VisualMaterial::CompilerState state;
 
-//                        String pin_source = link->node()->compile(link, state).code;
+                    //                        String pin_source = link->node()->compile(link, state).code;
 
-//                        m_material_source.clear();
+                    //                        m_material_source.clear();
 
-//                        for (auto& local : state.locals)
-//                        {
-//                            m_material_source += local;
-//                            m_material_source.push_back('\n');
-//                        }
-//                        m_material_source += pin_source;
-//                    }
+                    //                        for (auto& local : state.locals)
+                    //                        {
+                    //                            m_material_source += local;
+                    //                            m_material_source.push_back('\n');
+                    //                        }
+                    //                        m_material_source += pin_source;
+                    //                    }
                 }
                 ImGui::EndMenu();
             }
@@ -843,8 +845,7 @@ namespace Engine
     }
 
 
-
-    static PostInitializeController controller([](){
+    static PostInitializeController controller([]() {
         Object::new_instance_named<VisualMaterial>("TestMaterial")->add_to_package(Object::root_package());
     });
 }// namespace Engine

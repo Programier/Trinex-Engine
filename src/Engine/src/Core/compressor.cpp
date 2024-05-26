@@ -1,5 +1,5 @@
 #include <Core/compressor.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/exception.hpp>
 #include <lz4hc.h>
 
@@ -16,7 +16,7 @@ namespace Engine::Compressor
 
         out_size =
                 LZ4_compress_HC(reinterpret_cast<const char*>(src.data()), reinterpret_cast<char*>(dst.data() + sizeof(size_t)),
-                                input_size, out_size, engine_config.lz4_compression_level);
+                                input_size, out_size, ConfigManager::get_int("Engine::lz4_compression_level"));
 
         dst.resize(out_size + sizeof(size_t));
         (*reinterpret_cast<size_t*>(dst.data())) = src.size();

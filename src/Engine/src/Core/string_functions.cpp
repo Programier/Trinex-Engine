@@ -213,4 +213,36 @@ namespace Engine::Strings
     {
         return internal_split<const StringView&>(line, delimiter);
     }
+
+    ENGINE_EXPORT String namespace_of(const StringView& name)
+    {
+        return String(namespace_sv_of(name));
+    }
+
+    ENGINE_EXPORT String class_name_of(const StringView& name)
+    {
+        return String(class_name_sv_of(name));
+    }
+
+    ENGINE_EXPORT StringView namespace_sv_of(const StringView& name)
+    {
+        auto index = name.find_last_of("::");
+        if (index == String::npos)
+            return StringView();
+
+        index -= 1;
+        return name.substr(0, index);
+    }
+
+    ENGINE_EXPORT  StringView class_name_sv_of(const StringView& name)
+    {
+        auto pos = name.find_last_of("::");
+        if (pos == String::npos)
+        {
+            return name;
+        }
+
+        return name.substr(pos + 1, name.length() - pos + 1);
+    }
+
 }// namespace Engine::Strings

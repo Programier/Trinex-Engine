@@ -1,5 +1,5 @@
+#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
@@ -7,7 +7,6 @@
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
-#include <cstring>
 #include <regex>
 #include <sstream>
 
@@ -48,17 +47,20 @@ namespace Engine
 
     const String& Localization::language() const
     {
-        return engine_config.current_language;
+        if (m_current_language.empty())
+        {
+            m_current_language = ConfigManager::get_string("Engine::current_language");
+        }
+        return m_current_language;
     }
 
     Localization& Localization::language(const StringView& lang)
     {
-        if (engine_config.current_language == lang)
+        if (language() == lang)
             return *this;
 
-        engine_config.current_language = lang;
+        ConfigManager::set("Engine::current_language", lang);
         reload();
-
         on_language_changed.trigger();
         return *this;
     }
@@ -105,8 +107,8 @@ namespace Engine
                     String key, value;
                     if (parse_string(line, key, value))
                     {
-                        String p = entry.relative(path);
-                        key = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
+                        String p       = entry.relative(path);
+                        key            = p.substr(0, p.length() - Constants::translation_config_extension.length()) + "/" + key;
                         HashIndex hash = memory_hash_fast(key.c_str(), key.length());
                         out[hash]      = value;
                     }
@@ -121,19 +123,22 @@ namespace Engine
 
     Localization& Localization::reload(bool clear, bool with_default)
     {
+        m_current_language    = ConfigManager::get_string("Engine::current_language");
+        Path localization_dir = ConfigManager::get_string("Engine::localization_dir");
+
         if (with_default)
         {
             if (clear)
                 m_default_translation_map.clear();
 
-            Path path = engine_config.localization_dir / engine_config.default_language;
+            Path path = localization_dir / ConfigManager::get_string("Engine::default_language");
             load_localization(m_default_translation_map, path);
         }
 
         if (clear)
             m_translation_map.clear();
 
-        Path path = engine_config.localization_dir / engine_config.current_language;
+        Path path = localization_dir / language();
         load_localization(m_translation_map, path);
 
 

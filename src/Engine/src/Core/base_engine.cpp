@@ -7,8 +7,8 @@
 #include <Systems/engine_system.hpp>
 #include <chrono>
 
-#include <Window/window_manager.hpp>
 #include <Window/config.hpp>
+#include <Window/window_manager.hpp>
 
 namespace Engine
 {
@@ -108,6 +108,11 @@ namespace Engine
     float BaseEngine::max_tick_rate() const
     {
         return 60.f;
+    }
+
+    float BaseEngine::gamma() const
+    {
+        return 1.f;
     }
 
     BaseEngine& BaseEngine::request_exit()

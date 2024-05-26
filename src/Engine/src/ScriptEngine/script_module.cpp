@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    ScriptModule::ScriptModule(const ScriptModule&)            = default;
+    ScriptModule::ScriptModule(const ScriptModule&) = default;
 
     ScriptModule::ScriptModule(ScriptModule&& other) : m_module(other.m_module)
     {
@@ -17,7 +17,7 @@ namespace Engine
 
     ScriptModule& ScriptModule::operator=(ScriptModule&& other)
     {
-        if(this != &other)
+        if (this != &other)
         {
             m_module = other.m_module;
         }
@@ -29,9 +29,19 @@ namespace Engine
     ScriptModule::ScriptModule(asIScriptModule* module) : m_module(module)
     {}
 
+    ScriptModule::ScriptModule(const String& name, ModuleFlags flags)
+    {
+        (*this) = ScriptEngine::instance()->create_module(name, flags);
+    }
+
     ScriptModule ScriptModule::global()
     {
         return ScriptEngine::instance()->global_module();
+    }
+
+    asIScriptModule* ScriptModule::as_module() const
+    {
+        return m_module;
     }
 
     bool ScriptModule::is_valid() const
@@ -82,13 +92,12 @@ namespace Engine
         return static_cast<int_t>(m_module->CompileGlobalVar(section_name, code, line_offset));
     }
 
-    ScriptModule& ScriptModule::default_namespace(const char* name_space)
+    int_t ScriptModule::default_namespace(const char* name_space)
     {
-        m_module->SetDefaultNamespace(name_space);
-        return *this;
+        return m_module->SetDefaultNamespace(name_space);
     }
 
-    ScriptModule& ScriptModule::default_namespace(const String& name_space)
+    int_t ScriptModule::default_namespace(const String& name_space)
     {
         return default_namespace(name_space.c_str());
     }
@@ -137,7 +146,7 @@ namespace Engine
             int_t result = static_cast<int_t>(m_module->RemoveFunction(function.m_function));
             if (result >= 0)
             {
-                const_cast<ScriptFunction&>(function).m_function      = nullptr;
+                const_cast<ScriptFunction&>(function).m_function       = nullptr;
                 const_cast<ScriptFunction&>(function).unbind_context() = nullptr;
             }
 
@@ -169,6 +178,11 @@ namespace Engine
     int_t ScriptModule::global_var_index_by_decl(const String& decl) const
     {
         return m_module->GetGlobalVarIndexByDecl(decl.c_str());
+    }
+
+    int_t ScriptModule::global_var(uint_t index, const char** name, const char** name_space, int* type_id, bool* is_const) const
+    {
+        return m_module->GetGlobalVar(index, name, name_space, type_id, is_const);
     }
 
     const char* ScriptModule::global_var_declaration(uint_t index, bool include_namespace) const

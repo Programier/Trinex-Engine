@@ -100,7 +100,7 @@ namespace Engine
 
     public:
         ScriptClassRegistrar(class Class* _class);
-        ScriptClassRegistrar(const String& full_name, const ClassInfo& info = {});
+        ScriptClassRegistrar(const String& full_name, const ClassInfo& info = {}, const String& template_override = "");
         const String& namespace_name() const;
         const String& class_base_name() const;
         const String& class_name() const;
@@ -287,7 +287,8 @@ namespace Engine
         asIScriptEngine* m_engine;
 
     public:
-        ScriptEnumRegistrar(const String& full_name);
+        ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init = true);
+        ScriptEnumRegistrar(const String& full_name,  bool init = true);
         ScriptEnumRegistrar& prepare_namespace();
         ScriptEnumRegistrar& release_namespace();
 

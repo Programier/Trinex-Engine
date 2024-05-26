@@ -304,14 +304,13 @@ private:
             m_static_class                = new Engine::Class(#class_name, #namespace_name, &This::static_constructor,           \
                                                has_base_class ? Super::static_class_instance() : nullptr, flags); \
             m_static_class->process_type<class_name>();                                                                          \
-            Engine::ClassInitializeController controller([]() {                                                                  \
-                class_name::static_initialize_class();                                                                           \
-                class_name::static_class_instance()->post_initialize();                                                          \
-            });                                                                                                                  \
+                                                                                                                                 \
+            class_name::static_initialize_class();                                                                               \
+            class_name::static_class_instance()->post_initialize();                                                              \
         }                                                                                                                        \
         return m_static_class;                                                                                                   \
     }                                                                                                                            \
-    static Engine::InitializeController initialize_##class_name = Engine::InitializeController(                                  \
+    static Engine::ClassInitializeController initialize_##class_name = Engine::ClassInitializeController(                        \
             []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name))
 
 

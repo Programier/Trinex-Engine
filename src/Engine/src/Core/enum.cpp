@@ -2,6 +2,8 @@
 #include <Core/enum.hpp>
 #include <Core/exception.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/registrar.hpp>
+#include <Core/logger.hpp>
 
 namespace Engine
 {
@@ -29,6 +31,8 @@ namespace Engine
         Name full_name = Name(namespace_name.empty() ? name : namespace_name + "::" + name);
         Enum* _enum    = static_find(full_name);
 
+        info_log("Enum", "Register enum '%s'", full_name.c_str());
+
         if (!_enum)
         {
             _enum                  = new Enum();
@@ -39,6 +43,9 @@ namespace Engine
 
             if (!namespace_name.empty())
                 _enum->m_namespace_name = namespace_name;
+
+            // Register this enum to script engine
+            ScriptEnumRegistrar registrar(namespace_name, name, true);
 
             for (auto& entry : entries)
             {
@@ -93,6 +100,10 @@ namespace Engine
         m_entries.push_back(new_entry);
         m_entries_by_name.insert({name, index});
         m_entries_by_value.insert({value, index});
+
+        ScriptEnumRegistrar registrar(m_namespace_name, m_base_name, false);
+        registrar.set(name.c_str(), static_cast<int_t>(value));
+
         return &(m_entries.back());
     }
 
@@ -124,7 +135,7 @@ namespace Engine
         if (it == map.end())
         {
             // Maybe initializer is not executed?
-            InitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.c_str()));
+            ClassInitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.c_str()));
             it = map.find(name);
 
             if (it != map.end())

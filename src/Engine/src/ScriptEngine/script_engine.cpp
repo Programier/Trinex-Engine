@@ -20,6 +20,9 @@ using PlatformJitCompiler = JIT::X86_64_Compiler;
 #endif
 
 
+static constexpr bool enable_jit = false;
+
+
 namespace Print
 {
     void asRegister(asIScriptEngine* engine);
@@ -50,68 +53,6 @@ namespace Engine
     }
 
 
-    struct ScriptContextManager {
-        Set<asIScriptContext*> m_context_array;
-        Vector<asIScriptContext*> m_free_context_array;
-
-        asIScriptContext* new_context()
-        {
-            if (m_free_context_array.empty())
-            {
-                asIScriptContext* context = ScriptEngine::instance()->as_engine()->CreateContext();
-                debug_log("ScriptContextManager", "Created context '%p'. Count of contexts: %zu", context,
-                          m_context_array.size() + 1);
-                m_context_array.insert(context);
-                return context;
-            }
-            asIScriptContext* context = m_free_context_array.back();
-            m_free_context_array.pop_back();
-            return context;
-        }
-
-        ScriptContextManager& free_context(asIScriptContext* context)
-        {
-            m_free_context_array.push_back(context);
-            return *this;
-        }
-
-        ScriptContextManager& release_context(asIScriptContext* context, bool full_remove)
-        {
-            if (full_remove)
-            {
-                m_context_array.erase(context);
-            }
-
-            debug_log("ScriptContextManager", "Released context '%p'", context);
-            context->Release();
-            return *this;
-        }
-
-        ScriptContextManager& cleanup()
-        {
-            for (asIScriptContext* context : m_free_context_array)
-            {
-                release_context(context, true);
-            }
-
-            m_free_context_array.clear();
-
-            return *this;
-        }
-
-        ~ScriptContextManager()
-        {
-            for (asIScriptContext* context : m_context_array)
-            {
-                release_context(context, false);
-            }
-
-            m_context_array.clear();
-            m_free_context_array.clear();
-        }
-    };
-
-
     ScriptEngine* ScriptEngine::m_instance = nullptr;
 
     ScriptEngine::ScriptEngine()
@@ -127,10 +68,10 @@ namespace Engine
         m_engine->SetMessageCallback(asFUNCTION(angel_script_callback), 0, asCALL_CDECL);
 
 #if ARCH_X86_64 || ARCH_ARM
-        if (engine_config.enable_jit)
+        if constexpr (enable_jit)
         {
             info_log("ScriptEngine", "Enable JIT compiler!");
-            auto compiler   = new PlatformJitCompiler();
+            auto compiler  = new PlatformJitCompiler();
             m_jit_compiler = compiler;
             m_engine->SetEngineProperty(asEP_INCLUDE_JIT_INSTRUCTIONS, true);
             m_engine->SetJITCompiler(m_jit_compiler);
@@ -148,8 +89,6 @@ namespace Engine
 #endif
 
         asInitializeAddons(m_engine);
-        m_context_manager = new ScriptContextManager();
-
 
         Print::asRegister(m_engine);
         Initializers::init_primitive_wrappers();
@@ -157,7 +96,6 @@ namespace Engine
 
     ScriptEngine::~ScriptEngine()
     {
-        delete m_context_manager;
         m_engine->Release();
         release_scripts();
         if (m_jit_compiler)
@@ -165,6 +103,7 @@ namespace Engine
             delete m_jit_compiler;
         }
     }
+
 
     void ScriptEngine::initialize()
     {
@@ -196,7 +135,7 @@ namespace Engine
 
     asIScriptContext* ScriptEngine::new_context() const
     {
-        return m_context_manager->new_context();
+        return m_engine->RequestContext();
     }
 
     static asDWORD create_call_conv(ScriptCallConv conv)
@@ -234,13 +173,7 @@ namespace Engine
 
     const ScriptEngine& ScriptEngine::release_context(asIScriptContext* context) const
     {
-        m_context_manager->free_context(context);
-        return *this;
-    }
-
-    const ScriptEngine& ScriptEngine::cleanup_free_contexts() const
-    {
-        m_context_manager->cleanup();
+        m_engine->ReturnContext(context);
         return *this;
     }
 
@@ -271,10 +204,27 @@ namespace Engine
         return register_property(declaration.c_str(), data);
     }
 
-
     ScriptModule ScriptEngine::global_module() const
     {
-        return m_engine->GetModule("Global", asGM_CREATE_IF_NOT_EXISTS);
+        return m_engine->GetModule("__TRINEX_GLOBAL_MODULE__", asGM_CREATE_IF_NOT_EXISTS);
+    }
+
+    ScriptModule ScriptEngine::create_module(const String& name, EnumerateType flags) const
+    {
+        using MFlags = ScriptModule::ModuleFlags;
+
+        MFlags module_flags = static_cast<MFlags>(flags);
+        switch (module_flags)
+        {
+            case MFlags::CreateIfNotExists:
+                return m_engine->GetModule(name.c_str(), asGM_CREATE_IF_NOT_EXISTS);
+            case MFlags::OnlyIfExists:
+                return m_engine->GetModule(name.c_str(), asGM_ONLY_IF_EXISTS);
+            case MFlags::AlwaysCreate:
+                return m_engine->GetModule(name.c_str(), asGM_ALWAYS_CREATE);
+            default:
+                return ScriptModule();
+        }
     }
 
     ScriptModule ScriptEngine::module(uint_t index)

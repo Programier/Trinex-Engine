@@ -1,13 +1,13 @@
 #include "logo.hpp"
-#include <Core/class.hpp>
-#include <Core/constants.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/class.hpp>
+#include <Core/config_manager.hpp>
+#include <Core/constants.hpp>
 #include <Core/exception.hpp>
 #include <Core/library.hpp>
-#include <Core/threading.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/thread.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
@@ -19,7 +19,6 @@
 
 namespace Engine
 {
-
     static const Image& load_image_icon()
     {
         static Image image;
@@ -36,7 +35,7 @@ namespace Engine
 
     WindowManager::WindowManager()
     {
-        String libname = Strings::format("WindowSystem{}", engine_config.window_system);
+        String libname = Strings::format("WindowSystem{}", ConfigManager::get_string("Engine::window_system"));
         Library library(libname);
 
         if (!library.has_lib())

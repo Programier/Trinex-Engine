@@ -7,19 +7,23 @@ namespace Engine
 {
 
     using ControllerCallback = Function<void()>;
+    using CallbacksList      = Map<String, List<struct CallbackEntry>>;
+
     class ENGINE_EXPORT LoadingControllerBase
     {
     private:
-        void* m_func_address = nullptr;
-        const char* m_name   = nullptr;
+        CallbacksList& m_list;
+        const char* m_name = nullptr;
 
     protected:
-        LoadingControllerBase(void* function_address, const char* name);
+        LoadingControllerBase(CallbacksList& list, const char* name);
 
         static bool is_triggered(BitMask type);
         static void mark_triggered(BitMask type);
 
     public:
+        static void exec_all_if_already_triggered();
+
         LoadingControllerBase& push(const ControllerCallback& callback, const String& name = "",
                                     const std::initializer_list<String>& require_initializers = {});
         LoadingControllerBase& require(const String& name);
@@ -52,7 +56,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController);
     IMPLEMENT_CONTROLLER(ClassInitializeController);
 
-    using ScriptEngineInitializeController = ClassInitializeController;
-
+    IMPLEMENT_CONTROLLER(ScriptEngineInitializeController);
+    IMPLEMENT_CONTROLLER(ConfigsInitializeController);
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine
