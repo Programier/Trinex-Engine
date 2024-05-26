@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2023 Andreas Jonsson
+   Copyright (c) 2003-2024 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -197,7 +197,6 @@ asCContext::asCContext(asCScriptEngine *engine, bool holdRef)
 	m_exceptionCallback         = false;
 	m_regs.doProcessSuspend     = false;
 	m_doSuspend                 = false;
-	m_userData                  = 0;
 	m_exceptionWillBeCaught     = false;
 	m_regs.ctx                  = this;
 	m_regs.objectRegister       = 0;
@@ -1907,6 +1906,14 @@ int asCContext::GetLineNumber(asUINT stackLevel, int *column, const char **secti
 		if( column ) *column = 0;
 		if( sectionName ) *sectionName = 0;
 		return 0;
+	}
+
+	if (bytePos == 0)
+	{
+		// If the context has been Prepared but Execute hasn't been called yet the 
+		// programPointer will be zero. In this case simply use the address of the 
+		// bytecode as starting point
+		bytePos = func->scriptData->byteCode.AddressOf();
 	}
 
 	int sectionIdx;
@@ -5128,10 +5135,27 @@ bool asCContext::IsVarInScope(asUINT varIndex, asUINT stackLevel)
 	// If the program position is after the variable declaration it is necessary
 	// determine if the program position is still inside the statement block where
 	// the variable was declared.
+	bool foundVarDecl = false;
+
+	// Temporary variables aren't explicitly declared, they are just reserved slots available throughout the function call.
+	// So we'll consider that the variable declaration is found at the very beginning
+	if (func->scriptData->variables[varIndex]->name.GetLength() == 0)
+		foundVarDecl = true;
+
 	for( int n = 0; n < (int)func->scriptData->objVariableInfo.GetLength(); n++ )
 	{
+		// Find the varDecl
 		if( func->scriptData->objVariableInfo[n].programPos >= declaredAt )
 		{
+			// skip instructions at the same program position, but before the varDecl. 
+			// Note, varDecl will only be in the objVariableInfo for object types
+			if (func->scriptData->objVariableInfo[n].programPos == declaredAt && 
+				!foundVarDecl && 
+				func->scriptData->objVariableInfo[n].option != asOBJ_VARDECL)
+				continue;
+
+			foundVarDecl = true;
+
 			// If the current block ends between the declaredAt and current
 			// program position, then we know the variable is no longer visible
 			int level = 0;
@@ -5378,6 +5402,9 @@ void asCContext::CleanArgsOnStack()
 
 		offset += func->parameterTypes[n].GetSizeOnStackDWords();
 	}
+
+	// Restore the stack pointer
+	m_regs.stackPointer += offset;
 
 	m_needToCleanupArgs = false;
 }
@@ -6301,7 +6328,7 @@ int asCContext::GetArgsOnStackCount(asUINT stackLevel)
 		// Determine the args already pushed on the stack
 		while (stackPos > 0)
 		{
-			if (param >= 0 && ++param < int(calledFunc->GetParamCount()))
+			if (++param < int(calledFunc->GetParamCount()))
 			{
 				int typeId;
 				asDWORD flags;

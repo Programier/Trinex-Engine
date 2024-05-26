@@ -9,8 +9,8 @@
 #include <string>
 #include <stdio.h>
 
-#include <scriptarray.h>
-#include <datetime.h>
+#include "scriptarray.h"
+#include "datetime.h"
 
 BEGIN_AS_NAMESPACE
 

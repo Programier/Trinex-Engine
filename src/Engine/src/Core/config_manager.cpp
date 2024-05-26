@@ -151,7 +151,7 @@ namespace Engine
     static String make_variable_code(const StringView& name, const T& value)
     {
         if constexpr (std::is_same_v<T, String>)
-            return Strings::format("::{} {} = \"{}\";", type_name<T>, name, value);
+            return Strings::format("{} {} = \"{}\";", type_name<T>, name, value);
         return Strings::format("{} {} = {};", type_name<T>, name, value);
     }
 

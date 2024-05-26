@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2023 Andreas Jonsson
+   Copyright (c) 2003-2024 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -47,7 +47,7 @@ template <class T> class asCArray
 public:
 	asCArray();
 	asCArray(const asCArray<T> &);
-	asCArray(asUINT reserve);
+	explicit asCArray(asUINT reserve);
 	~asCArray();
 
 	void   Allocate(asUINT numElements, bool keepData);
@@ -109,7 +109,7 @@ inline const T *asCArray<T>::AddressOf() const
 }
 
 template <class T>
-asCArray<T>::asCArray(void)
+asCArray<T>::asCArray(void) : buf()
 {
 	array     = 0;
 	length    = 0;
@@ -117,7 +117,7 @@ asCArray<T>::asCArray(void)
 }
 
 template <class T>
-asCArray<T>::asCArray(const asCArray<T> &copy)
+asCArray<T>::asCArray(const asCArray<T> &copy) : buf()
 {
 	array     = 0;
 	length    = 0;
@@ -127,7 +127,7 @@ asCArray<T>::asCArray(const asCArray<T> &copy)
 }
 
 template <class T>
-asCArray<T>::asCArray(asUINT reserve)
+asCArray<T>::asCArray(asUINT reserve) : buf()
 {
 	array     = 0;
 	length    = 0;

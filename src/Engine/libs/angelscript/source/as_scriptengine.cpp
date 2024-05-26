@@ -1,6 +1,6 @@
 /*
    AngelCode Scripting Library
-   Copyright (c) 2003-2023 Andreas Jonsson
+   Copyright (c) 2003-2024 Andreas Jonsson
 
    This software is provided 'as-is', without any express or implied
    warranty. In no event will the authors be held liable for any
@@ -222,6 +222,9 @@ AS_API const char * asGetLibraryOptions()
 #ifdef AS_ARM64
 		"AS_ARM64 "
 #endif
+#ifdef AS_RISCV64
+		"AS_RISCV64 "
+#endif
 	;
 
 	return string;
@@ -377,7 +380,9 @@ int asCScriptEngine::SetEngineProperty(asEEngineProp property, asPWORD value)
 		break;
 
 	case asEP_ALWAYS_IMPL_DEFAULT_CONSTRUCT:
-		ep.alwaysImplDefaultConstruct = value ? true : false;
+		if (value > 2)
+			return asINVALID_ARG;
+		ep.alwaysImplDefaultConstruct = (int)value;
 		break;
 
 	case asEP_COMPILER_WARNINGS:
@@ -459,6 +464,18 @@ int asCScriptEngine::SetEngineProperty(asEEngineProp property, asPWORD value)
 		if (value < 1 || value > 2)
 			return asINVALID_ARG;
 		ep.jitInterfaceVersion = (asUINT)value;
+		break;
+
+	case asEP_ALWAYS_IMPL_DEFAULT_COPY:
+		if (value > 2)
+			return asINVALID_ARG;
+		ep.alwaysImplDefaultCopy = (int)value;
+		break;
+
+	case asEP_ALWAYS_IMPL_DEFAULT_COPY_CONSTRUCT:
+		if (value > 2)
+			return asINVALID_ARG;
+		ep.alwaysImplDefaultCopyConstruct = (int)value;
 		break;
 
 	default:
@@ -578,6 +595,12 @@ asPWORD asCScriptEngine::GetEngineProperty(asEEngineProp property) const
 	case asEP_JIT_INTERFACE_VERSION:
 		return ep.jitInterfaceVersion;
 
+	case asEP_ALWAYS_IMPL_DEFAULT_COPY:
+		return ep.alwaysImplDefaultCopy;
+
+	case asEP_ALWAYS_IMPL_DEFAULT_COPY_CONSTRUCT:
+		return ep.alwaysImplDefaultCopyConstruct;
+
 	default:
 		return 0;
 	}
@@ -633,7 +656,7 @@ asCScriptEngine::asCScriptEngine()
 		ep.expandDefaultArrayToTemplate  = false;
 		ep.autoGarbageCollect            = true;
 		ep.disallowGlobalVars            = false;
-		ep.alwaysImplDefaultConstruct    = false;
+		ep.alwaysImplDefaultConstruct    = 0;         // 0 = as per language spec, 1 = always implement it, 2, never implement
 		ep.compilerWarnings              = 1;         // 0 = no warnings, 1 = warning, 2 = treat as error
 		// TODO: 3.0.0: disallowValueAssignForRefType should be true by default
 		ep.disallowValueAssignForRefType = false;
@@ -651,6 +674,8 @@ asCScriptEngine::asCScriptEngine()
 		ep.noDebugOutput                 = false;
 		ep.disableScriptClassGC          = false;
 		ep.jitInterfaceVersion           = 1;         // 1 = JIT compiler uses asJITCompiler, 2 = JIT compiler uses asJITCompilerV2
+		ep.alwaysImplDefaultCopy         = 0;         // 0 = as per language spec, 1 = always implement it, 2, never implement
+		ep.alwaysImplDefaultCopyConstruct = 0;        // 0 = as per language spec, 1 = always implement it, 2, never implement
 	}
 
 	gc.engine = this;
@@ -1692,7 +1717,7 @@ int asCScriptEngine::RegisterInterfaceMethod(const char *intf, const char *decla
 	return func->id;
 }
 
-int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asDWORD flags)
+int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asQWORD flags)
 {
 	int r;
 
@@ -1745,7 +1770,8 @@ int asCScriptEngine::RegisterObjectType(const char *name, int byteSize, asDWORD 
 						 asOBJ_APP_CLASS_ASSIGNMENT       |
 						 asOBJ_APP_CLASS_COPY_CONSTRUCTOR |
 						 asOBJ_APP_CLASS_ALLINTS          |
-						 asOBJ_APP_CLASS_ALLFLOATS) )
+						 asOBJ_APP_CLASS_ALLFLOATS        |
+						 asOBJ_APP_CLASS_UNION) )
 			{
 				return ConfigError(asINVALID_ARG, "RegisterObjectType", name, 0);
 			}
@@ -2341,7 +2367,7 @@ int asCScriptEngine::RegisterBehaviourToObjectType(asCObjectType *objectType, as
 
 				// If the parameter is object, and const reference for input,
 				// and same type as this class, then this is a copy constructor.
-				if( paramType.IsObject() && paramType.IsReference() && paramType.IsReadOnly() && func.inOutFlags[func.parameterTypes.GetLength()-1] == asTM_INREF && paramType.GetTypeInfo() == objectType )
+				if( paramType.IsObject() && paramType.IsReference() && paramType.IsReadOnly() && (func.inOutFlags[func.parameterTypes.GetLength()-1] & asTM_INREF) && paramType.GetTypeInfo() == objectType )
 					beh->copyfactory = func.id;
 			}
 		}
@@ -3792,11 +3818,6 @@ asCDataType asCScriptEngine::DetermineTypeForTemplate(const asCDataType &orig, a
 
 					dt.MakeReference(orig.IsReference());
 					dt.MakeReadOnly(ot->templateSubTypes[n].IsReadOnly() || orig.IsReadOnly());
-
-					// If the target is a @& then don't make the handle const, 
-					// as it is not possible to declare functions with @const &
-					if (orig.IsReference() && dt.IsObjectHandle())
-						dt.MakeReadOnly(false);
 				}
 				break;
 			}
@@ -4163,6 +4184,7 @@ void asCScriptEngine::CallObjectMethod(void *obj, asSSystemFunctionInterface *i,
 		void (*f)(asIScriptGeneric *) = (void (*)(asIScriptGeneric *))(i->func);
 		f(&gen);
 	}
+#ifndef AS_NO_CLASS_METHODS
 	else if( i->callConv == ICC_THISCALL || i->callConv == ICC_VIRTUAL_THISCALL )
 	{
 		// For virtual thiscalls we must call the method as a true class method
@@ -4186,6 +4208,7 @@ void asCScriptEngine::CallObjectMethod(void *obj, asSSystemFunctionInterface *i,
 		void (asCSimpleDummy::*f)() = p.mthd;
 		(((asCSimpleDummy*)obj)->*f)();
 	}
+#endif
 	else /*if( i->callConv == ICC_CDECL_OBJLAST || i->callConv == ICC_CDECL_OBJFIRST )*/
 	{
 		void (*f)(void *) = (void (*)(void *))(i->func);
@@ -4240,6 +4263,7 @@ bool asCScriptEngine::CallObjectMethodRetBool(void *obj, int func) const
 		f(&gen);
 		return *(bool*)gen.GetReturnPointer();
 	}
+#ifndef AS_NO_CLASS_METHODS
 	else if( i->callConv == ICC_THISCALL || i->callConv == ICC_VIRTUAL_THISCALL )
 	{
 		// For virtual thiscalls we must call the method as a true class method so that the compiler will lookup the function address in the vftable
@@ -4262,6 +4286,7 @@ bool asCScriptEngine::CallObjectMethodRetBool(void *obj, int func) const
 		bool (asCSimpleDummy::*f)() = (bool (asCSimpleDummy::*)())(p.mthd);
 		return (((asCSimpleDummy*)obj)->*f)();
 	}
+#endif
 	else /*if( i->callConv == ICC_CDECL_OBJLAST || i->callConv == ICC_CDECL_OBJFIRST )*/
 	{
 		bool (*f)(void *) = (bool (*)(void *))(i->func);
@@ -4317,6 +4342,7 @@ int asCScriptEngine::CallObjectMethodRetInt(void *obj, int func) const
 		f(&gen);
 		return *(int*)gen.GetReturnPointer();
 	}
+#ifndef AS_NO_CLASS_METHODS
 	else if( i->callConv == ICC_THISCALL || i->callConv == ICC_VIRTUAL_THISCALL )
 	{
 		// For virtual thiscalls we must call the method as a true class method so that the compiler will lookup the function address in the vftable
@@ -4339,6 +4365,7 @@ int asCScriptEngine::CallObjectMethodRetInt(void *obj, int func) const
 		int (asCSimpleDummy::*f)() = (int (asCSimpleDummy::*)())(p.mthd);
 		return (((asCSimpleDummy*)obj)->*f)();
 	}
+#endif
 	else /*if( i->callConv == ICC_CDECL_OBJLAST || i->callConv == ICC_CDECL_OBJFIRST )*/
 	{
 		int (*f)(void *) = (int (*)(void *))(i->func);
@@ -4394,6 +4421,7 @@ void *asCScriptEngine::CallObjectMethodRetPtr(void *obj, int func) const
 		f(&gen);
 		return *(void**)gen.GetReturnPointer();
 	}
+#ifndef AS_NO_CLASS_METHODS
 	else if( i->callConv == ICC_THISCALL || i->callConv == ICC_VIRTUAL_THISCALL )
 	{
 		// For virtual thiscalls we must call the method as a true class method so that the compiler will lookup the function address in the vftable
@@ -4416,6 +4444,7 @@ void *asCScriptEngine::CallObjectMethodRetPtr(void *obj, int func) const
 		void *(asCSimpleDummy::*f)() = (void *(asCSimpleDummy::*)())(p.mthd);
 		return (((asCSimpleDummy*)obj)->*f)();
 	}
+#endif
 	else /*if( i->callConv == ICC_CDECL_OBJLAST || i->callConv == ICC_CDECL_OBJFIRST )*/
 	{
 		void *(*f)(void *) = (void *(*)(void *))(i->func);
@@ -4603,6 +4632,7 @@ void asCScriptEngine::CallObjectMethod(void *obj, void *param, asSSystemFunction
 		void (*f)(asIScriptGeneric *) = (void (*)(asIScriptGeneric *))(i->func);
 		f(&gen);
 	}
+#ifndef AS_NO_CLASS_METHODS
 	else if( i->callConv == ICC_VIRTUAL_THISCALL || i->callConv == ICC_THISCALL )
 	{
 		// For virtual thiscalls we must call the method as a true class method
@@ -4626,6 +4656,7 @@ void asCScriptEngine::CallObjectMethod(void *obj, void *param, asSSystemFunction
 		void (asCSimpleDummy::*f)(void*) = (void (asCSimpleDummy::*)(void*))(p.mthd);
 		(((asCSimpleDummy*)obj)->*f)(param);
 	}
+#endif
 	else /*if( i->callConv == ICC_CDECL_OBJFIRST */
 	{
 		void (*f)(void *, void *) = (void (*)(void *, void *))(i->func);
@@ -4895,6 +4926,9 @@ int asCScriptEngine::GetTypeIdFromDataType(const asCDataType &dtIn) const
 
 asCDataType asCScriptEngine::GetDataTypeFromTypeId(int typeId) const
 {
+	if (typeId < 0)
+		return asCDataType();
+
 	int baseId = typeId & (asTYPEID_MASK_OBJECT | asTYPEID_MASK_SEQNBR);
 
 	if( typeId <= asTYPEID_DOUBLE )

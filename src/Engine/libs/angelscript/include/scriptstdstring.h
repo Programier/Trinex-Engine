@@ -29,7 +29,7 @@
 //  0 = off
 //  1 = on
 #ifndef AS_USE_STLNAMES
-#define AS_USE_STLNAMES 1
+#define AS_USE_STLNAMES 0
 #endif
 
 // Some prefer to use property accessors to get/set the length of the string
