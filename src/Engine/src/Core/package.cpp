@@ -2,7 +2,6 @@
 #include <Core/class.hpp>
 #include <Core/compressor.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/file_flag.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
@@ -10,7 +9,6 @@
 #include <Core/package.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
-#include <cstring>
 
 namespace Engine
 {

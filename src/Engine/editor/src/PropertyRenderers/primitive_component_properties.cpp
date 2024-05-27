@@ -43,5 +43,5 @@ namespace Engine
         special_class_properties_renderers[reinterpret_cast<Struct*>(PrimitiveComponent::static_class_instance())] = renderer;
     }
 
-    static PostInitializeController on_post_init(initialize_special_class_properties_renderers);
+    static InitializeController on_post_init(initialize_special_class_properties_renderers);
 }// namespace Engine

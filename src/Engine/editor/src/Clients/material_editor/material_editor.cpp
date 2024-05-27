@@ -3,7 +3,6 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/group.hpp>
 #include <Core/localization.hpp>
 #include <Core/threading.hpp>
@@ -188,7 +187,8 @@ namespace Engine
 
                 if (ImGui::BeginMenu("editor/Change language"_localized))
                 {
-                    for (const String& lang : engine_config.languages)
+                    Vector<String> languages = ConfigManager::get_string_array("Engine::languages");
+                    for (const String& lang : languages)
                     {
                         const char* localized = Object::localize("editor/" + lang).c_str();
                         if (ImGui::MenuItem(localized))
@@ -845,7 +845,7 @@ namespace Engine
     }
 
 
-    static PostInitializeController controller([]() {
+    static InitializeController controller([]() {
         Object::new_instance_named<VisualMaterial>("TestMaterial")->add_to_package(Object::root_package());
     });
 }// namespace Engine

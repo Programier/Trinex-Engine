@@ -319,6 +319,11 @@ namespace Engine
         return (m_info->GetFlags() & asOBJ_ENUM) == asOBJ_ENUM;
     }
 
+    bool ScriptTypeInfo::is_array() const
+    {
+        return std::strcmp("array", m_info->GetName()) == 0;
+    }
+
     ScriptTypeInfo::~ScriptTypeInfo()
     {
         unbind();

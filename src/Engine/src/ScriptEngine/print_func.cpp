@@ -29,7 +29,6 @@ SOFTWARE.
 #include <angelscript.h>
 #include <array>
 #include <cassert>
-#include <cinttypes>
 #include <cstring>
 #include <scriptarray.h>
 #include <scriptdictionary.h>
@@ -123,10 +122,7 @@ class CScriptDictionary;
 
 bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, int depth)
 {
-    auto ctx = asGetActiveContext();
-    if (!ctx)
-        return false;
-    auto engine = ctx->GetEngine();
+    auto engine = Engine::ScriptEngine::instance()->as_engine();
 
     int stringTypeId = engine->GetStringFactoryReturnTypeId();
 
@@ -159,15 +155,15 @@ bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, i
             array = reinterpret_cast<CScriptArray const*>(objPtr);
 
         if (array->GetSize() == 0)
-            dst << "[]";
+            dst << "{}";
         else
         {
-            dst << "[";
+            dst << "{";
 
             for (uint32_t i = 0; i < array->GetSize(); ++i)
             {
                 Print::PrintTemplate(dst, array->At(i), array->GetElementTypeId(), depth + 1);
-                dst << ((i + 1 == array->GetSize()) ? "]" : ", ");
+                dst << ((i + 1 == array->GetSize()) ? "}" : ", ");
             }
         }
 
@@ -256,10 +252,7 @@ void Print::PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int
             break;
     }
 
-    auto ctx = asGetActiveContext();
-    if (!ctx)
-        return;
-    auto engine = ctx->GetEngine();
+    auto engine = Engine::ScriptEngine::instance()->as_engine();
 
     auto typeInfo = engine->GetTypeInfoById(typeId);
 
@@ -419,3 +412,14 @@ void Print::asRegister(asIScriptEngine* engine)
                                        asCALL_CDECL);
     assert(r == asALREADY_REGISTERED || r >= 0);
 }
+
+
+namespace Engine
+{
+    String ScriptEngine::to_string(const void* object, int_t type_id) const
+    {
+        std::stringstream stream;
+        Print::PrintTemplate(stream, object, type_id);
+        return stream.str();
+    }
+}// namespace Engine

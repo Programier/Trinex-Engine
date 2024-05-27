@@ -48,7 +48,6 @@ namespace Engine
 
     IMPLEMENT_CONTROLLER(PreInitializeController);
     IMPLEMENT_CONTROLLER(InitializeController);
-    IMPLEMENT_CONTROLLER(PostInitializeController);
 
     IMPLEMENT_CONTROLLER(PostDestroyController);
     IMPLEMENT_CONTROLLER(DestroyController);
@@ -57,6 +56,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(ClassInitializeController);
 
     IMPLEMENT_CONTROLLER(ScriptEngineInitializeController);
+    IMPLEMENT_CONTROLLER(ConfigsPreInitializeController);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController);
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

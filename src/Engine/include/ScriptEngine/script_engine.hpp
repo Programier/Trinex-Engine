@@ -64,6 +64,7 @@ namespace Engine
         ScriptModule create_module(const String& name, EnumerateType flags = 0) const;
         ScriptModule module(uint_t index);
         uint_t module_count() const;
+        String to_string(const void* object, int_t type_id) const;
 
         class Script* new_script(const Path& path);
         const Vector<class Script*>& scripts() const;

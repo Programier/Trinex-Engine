@@ -39,12 +39,4 @@ namespace Engine
     const String Constants::script_byte_code_extension    = ".asbc";
     const String Constants::virtual_file_system_extension = ".tvfs";
     const String Constants::translation_config_extension  = ".lang";
-
-    static void on_init()
-    {
-        info_log("TODO", "Implement constants initializer!");
-    }
-
-
-    static InitializeController init(on_init);
 }// namespace Engine

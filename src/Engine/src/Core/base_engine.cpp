@@ -6,8 +6,7 @@
 #include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
 #include <chrono>
-
-#include <Window/config.hpp>
+#include <Core/config_manager.hpp>
 #include <Window/window_manager.hpp>
 
 namespace Engine
@@ -50,7 +49,7 @@ namespace Engine
 
         if (rhi)
         {
-            WindowManager::instance()->create_client(WindowManager::instance()->main_window(), global_window_config.client);
+            //WindowManager::instance()->create_client(WindowManager::instance()->main_window(), ConfigManager::get_string("Window::client"));
         }
         return 0;
     }

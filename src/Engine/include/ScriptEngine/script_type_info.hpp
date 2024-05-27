@@ -83,6 +83,7 @@ namespace Engine
 
         // Flags processing
         bool is_enum() const;
+        bool is_array() const;
 
         ~ScriptTypeInfo();
         friend class ScriptModule;

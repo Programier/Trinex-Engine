@@ -234,7 +234,7 @@ namespace Engine::Strings
         return name.substr(0, index);
     }
 
-    ENGINE_EXPORT  StringView class_name_sv_of(const StringView& name)
+    ENGINE_EXPORT StringView class_name_sv_of(const StringView& name)
     {
         auto pos = name.find_last_of("::");
         if (pos == String::npos)
@@ -243,6 +243,45 @@ namespace Engine::Strings
         }
 
         return name.substr(pos + 1, name.length() - pos + 1);
+    }
+
+    ENGINE_EXPORT bool boolean_of(const char* line, size_t len)
+    {
+        if (len == 0)
+        {
+            len = std::strlen(line);
+        }
+
+        if (len == 0)
+            return false;
+
+        if (len == 4)// 4 is lenght of "true"
+        {
+            bool is_true = true;
+
+            for (size_t i = 0; is_true && i < 4; i++)
+            {
+                is_true = std::tolower(line[i]) == "true"[i];
+            }
+
+            if (is_true)
+            {
+                return true;
+            }
+        }
+
+        float float_value = ::strtof(line, nullptr);
+        return glm::abs(float_value) >= 0.5f;
+    }
+
+    ENGINE_EXPORT int_t integer_of(const char* text)
+    {
+        return static_cast<int_t>(::strtol(text, nullptr, 10));
+    }
+
+    ENGINE_EXPORT float float_of(const char* text)
+    {
+        return static_cast<int_t>(::strtof(text, nullptr));
     }
 
 }// namespace Engine::Strings

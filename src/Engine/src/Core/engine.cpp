@@ -1,6 +1,5 @@
 #include <Core/class.hpp>
 #include <Core/engine.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/executable_object.hpp>

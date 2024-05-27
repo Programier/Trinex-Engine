@@ -1,9 +1,7 @@
 #include <Core/class.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/entry_point.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/global_config.hpp>
 #include <Core/logger.hpp>
 
 namespace Engine

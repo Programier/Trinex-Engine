@@ -1,23 +1,21 @@
 #pragma once
-#include <Core/config.hpp>
 #include <Window/window_interface.hpp>
 
 namespace Engine
 {
-    struct ENGINE_EXPORT WindowConfig : public Config {
+    struct ENGINE_EXPORT WindowConfig {
         Vector<WindowAttribute> attributes;
+        Vector<WindowOrientation> orientations;
 
         String title;
         String api_name;
         String client;
         Size2D size;
         Point2D position = {-1, -1};
-        Vector<WindowOrientation> orientations;
+
         bool vsync;
 
-        WindowConfig& update();
-        WindowConfig& update_using_args();
+        WindowConfig();
+        WindowConfig& initialize();
     };
-
-    extern ENGINE_EXPORT WindowConfig global_window_config;
 }// namespace Engine

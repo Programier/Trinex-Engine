@@ -1,4 +1,3 @@
-#include <Core/engine_config.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>

@@ -1,9 +1,0 @@
-{
-    "Window": {
-        "title": "Trinex Engine Editor",
-        "client": "Engine::EditorClient"
-    },
-    "Editor": {
-        "font size": 18.0
-    }
-}

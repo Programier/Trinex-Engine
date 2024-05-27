@@ -62,13 +62,39 @@ namespace Engine::Strings
     ENGINE_EXPORT StringView namespace_sv_of(const StringView& name);
     ENGINE_EXPORT StringView class_name_sv_of(const StringView& name);
 
-    template<typename Range, typename Value = typename Range::value_type>
-    inline String join(const Range& elements, const String& delimiter)
+
+    template<typename Range, typename Value = typename Range::value_type, typename FormatFunction>
+    inline String join(const Range& elements, const String& delimiter, const FormatFunction& function)
     {
         if (elements.empty())
             return "";
 
-        return std::accumulate(std::next(elements.begin()), elements.end(), elements[0],
-                               [&delimiter](const std::string& a, const Value& b) { return a + delimiter + b; });
+        return std::accumulate(std::next(elements.begin()), elements.end(), format("{}", function(elements[0])),
+                               [&delimiter, &function](const String& a, const Value& b) { return a + delimiter + function(b); });
     }
+
+    template<typename Range, typename Value = typename Range::value_type>
+    inline String join(const Range& elements, const String& delimiter)
+    {
+        static auto callback = [](const Value& value) {
+            if constexpr (std::is_same_v<String, Value>)
+            {
+                return value;
+            }
+            else if constexpr (std::is_same_v<StringView, Value>)
+            {
+                return String(value);
+            }
+            else
+            {
+                return format("{}", value);
+            }
+        };
+
+        return join(elements, delimiter, callback);
+    }
+
+    ENGINE_EXPORT bool boolean_of(const char* text, size_t len = 0);
+    ENGINE_EXPORT int_t integer_of(const char* text);
+    ENGINE_EXPORT float float_of(const char* text);
 }// namespace Engine::Strings

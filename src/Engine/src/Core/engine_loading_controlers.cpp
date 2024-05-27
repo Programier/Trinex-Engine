@@ -31,29 +31,34 @@ namespace Engine
             PreInitializeController().execute();
         }
 
-        if (ScriptEngineInitializeController::is_triggered())
-        {
-            ScriptEngineInitializeController().execute();
-        }
-
-        if (InitializeController::is_triggered())
-        {
-            InitializeController().execute();
-        }
-
         if (ClassInitializeController::is_triggered())
         {
             ClassInitializeController().execute();
         }
 
-        if (PostDestroyController::is_triggered())
+        if (ScriptEngineInitializeController::is_triggered())
         {
-            PostInitializeController().execute();
+            ScriptEngineInitializeController().execute();
+        }
+
+        if (ConfigsPreInitializeController::is_triggered())
+        {
+            ConfigsPreInitializeController().execute();
+        }
+
+        if (ConfigsInitializeController::is_triggered())
+        {
+            ConfigsInitializeController().execute();
         }
 
         if (DefaultResourcesInitializeController::is_triggered())
         {
             DefaultResourcesInitializeController().execute();
+        }
+
+        if (InitializeController::is_triggered())
+        {
+            InitializeController().execute();
         }
     }
 
@@ -115,13 +120,13 @@ namespace Engine
     {
         PreInit                = BIT(0),
         Init                   = BIT(1),
-        PostInit               = BIT(2),
-        Destroy                = BIT(3),
-        PostDestroy            = BIT(4),
-        ClassInit              = BIT(5),
-        ResourcesInit          = BIT(6),
-        ScriptEngineInitialize = BIT(7),
-        ConfigsInitialize      = BIT(8),
+        Destroy                = BIT(2),
+        PostDestroy            = BIT(3),
+        ClassInit              = BIT(4),
+        ResourcesInit          = BIT(5),
+        ScriptEngineInitialize = BIT(6),
+        ConfigsInitialize      = BIT(7),
+        ConfigsPreInitialize   = BIT(8),
     };
 
     static Flags<ControllerType, BitMask> m_triggered;
@@ -175,7 +180,7 @@ namespace Engine
 
     IMPLEMENT_CONTROLLER(PreInitializeController, PreInit);
     IMPLEMENT_CONTROLLER(InitializeController, Init);
-    IMPLEMENT_CONTROLLER(PostInitializeController, PostInit);
+    //IMPLEMENT_CONTROLLER(PostInitializeController, PostInit);
 
     IMPLEMENT_CONTROLLER(DestroyController, Destroy);
     IMPLEMENT_CONTROLLER(PostDestroyController, PostDestroy);
@@ -185,5 +190,6 @@ namespace Engine
     IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, ResourcesInit);
     IMPLEMENT_CONTROLLER(ScriptEngineInitializeController, ScriptEngineInitialize);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
+    IMPLEMENT_CONTROLLER(ConfigsPreInitializeController, ConfigsPreInitialize);
 
 }// namespace Engine

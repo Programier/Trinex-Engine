@@ -1,16 +1,14 @@
 #pragma once
-#include <Core/config.hpp>
+#include <Core/engine_types.hpp>
 
 namespace Engine
 {
-    struct EditorConfig : public Config {
-        String material_compiler;
+    struct EditorConfig {
         Path font_path;
         float font_size;
         float collapsing_indent;
 
-        virtual EditorConfig& update();
-        virtual EditorConfig& update_using_args();
+        EditorConfig& update();
     };
 
     extern EditorConfig editor_config;

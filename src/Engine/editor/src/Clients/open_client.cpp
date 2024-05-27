@@ -6,14 +6,14 @@ namespace Engine
 {
     void open_material_editor()
     {
-        WindowConfig new_config = global_window_config;
+        WindowConfig new_config;
         new_config.client       = "Engine::MaterialEditorClient";
         WindowManager::instance()->create_window(new_config);
     }
 
     void open_editor()
     {
-        WindowConfig new_config = global_window_config;
+        WindowConfig new_config;
         new_config.client       = "Engine::EditorClient";
         WindowManager::instance()->create_window(new_config);
     }

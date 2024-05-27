@@ -1,6 +1,6 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/engine_config.hpp>
+#include <Core/class.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/etl/singletone.hpp>
 #include <Core/thread.hpp>
@@ -24,7 +24,9 @@ namespace Engine
 
     EngineSystem& EngineSystem::create_systems_from_config()
     {
-        for (const String& system_name : engine_config.systems)
+        Vector<String> systems = ConfigManager::get_string_array("Engine::systems");
+
+        for (const String& system_name : systems)
         {
             System* system = System::new_system(system_name);
             if (system && system->parent_system() == nullptr)

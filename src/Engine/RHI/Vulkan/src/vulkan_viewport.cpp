@@ -323,26 +323,27 @@ namespace Engine
         m_buffer_index = current_buffer_index.value;
     }
 
+    static void transition_swapchain_image(vk::Image image)
+    {
+        vk::CommandBuffer execute_command_buffer = API->current_command_buffer();
+        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eNone,
+                                       vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, VK_QUEUE_FAMILY_IGNORED,
+                                       VK_QUEUE_FAMILY_IGNORED, image, range);
+        execute_command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader |
+                                                       vk::PipelineStageFlagBits::eVertexShader |
+                                                       vk::PipelineStageFlagBits::eComputeShader,
+                                               vk::PipelineStageFlagBits::eTopOfPipe, {}, {}, {}, barrier);
+    }
+
     void VulkanWindowViewport::end_render()
     {
         if (!API->m_state->m_is_image_rendered_to_swapchain)
         {
-            vk::ImageMemoryBarrier barrier;
-            barrier.oldLayout                       = vk::ImageLayout::eUndefined;
-            barrier.newLayout                       = vk::ImageLayout::ePresentSrcKHR;
-            barrier.subresourceRange.baseMipLevel   = 0;
-            barrier.subresourceRange.levelCount     = 1;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.layerCount     = 1;
-
             for (vk::Image image : m_images)
             {
-                barrier.image = image;
-                Barrier::transition_image_layout(API->current_command_buffer(), barrier);
-                //                transition.execute(vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
-                //                                           vk::PipelineStageFlagBits::eComputeShader,
-                //                                   vk::AccessFlagBits::eShaderRead, vk::PipelineStageFlagBits::eTopOfPipe,
-                //                                   vk::AccessFlagBits::eNone);
+                transition_swapchain_image(image);
             }
         }
 

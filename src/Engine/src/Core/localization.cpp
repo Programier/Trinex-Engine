@@ -165,6 +165,6 @@ namespace Engine
         return Localization::instance()->localize(StringView(line, len)).c_str();
     }
 
-    static PostInitializeController post_init([]() { Localization::create_instance()->reload(true, true); });
+    static InitializeController post_init([]() { Localization::create_instance()->reload(true, true); });
 
 }// namespace Engine

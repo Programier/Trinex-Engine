@@ -3,7 +3,6 @@
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
-#include <Core/engine_config.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
@@ -33,16 +32,6 @@ namespace Engine
     EngineLoop::~EngineLoop()
     {}
 
-
-    static void load_external_system_libraries()
-    {
-        for (const String& library : engine_config.external_system_libraries)
-        {
-            Library().load(library);
-        }
-    }
-
-
     static void create_window()
     {
         if (rhi == nullptr)
@@ -50,16 +39,11 @@ namespace Engine
             throw EngineException("Cannot create window without API!");
         }
 
-        global_window_config.update();
-        global_window_config.update_using_args();
-
+        WindowConfig config;
 
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();
-
-        String client = std::move(global_window_config.client);
-        WindowManager::instance()->create_window(global_window_config, nullptr);
-        global_window_config.client = std::move(client);
+        WindowManager::instance()->create_window(config, nullptr);
     }
 
     static void create_render_targets()
@@ -109,13 +93,6 @@ namespace Engine
         return false;
     }
 
-
-    static void load_configs()
-    {
-        ConfigManager::load_from_file("engine.config");
-        ConfigsInitializeController().execute();
-    }
-
     int_t EngineLoop::preinit(int_t argc, const char** argv)
     {
         info_log("TrinexEngine", "Start engine!");
@@ -130,11 +107,8 @@ namespace Engine
 
         ClassInitializeController().execute();// Load reflections
         ScriptEngineInitializeController().execute();
-
         VFS::RootFS::create_instance(Platform::find_root_directory(argc, argv));
-
-        load_configs();
-        engine_config.init();
+        ConfigManager::initialize();
 
         // Load libraries
         {
@@ -146,13 +120,17 @@ namespace Engine
                     Library().load(library);
                 }
             }
+
+            Vector<String> external_system_libraries = ConfigManager::get_string_array("Engine::external_system_libraries");
+
+            for (const String& library : external_system_libraries)
+            {
+                Library().load(library);
+            }
         }
 
         create_threads();
 
-        InitializeController().execute();
-
-        load_external_system_libraries();
         Class* engine_class = Class::static_find(ConfigManager::get_string("Engine::engine"), true);
         Object* object      = engine_class->create_object();
 
@@ -169,17 +147,17 @@ namespace Engine
         ScriptEngine::instance()->load_scripts();
 
         init_api();
-        extern void load_default_resources();
-        load_default_resources();
-
-        PostInitializeController().execute();
-
         return 0;
     }
 
     int_t EngineLoop::init()
     {
         engine_instance->init();
+
+        extern void load_default_resources();
+        load_default_resources();
+
+        InitializeController().execute();
         return 0;
     }
 
@@ -202,6 +180,8 @@ namespace Engine
     void EngineLoop::terminate()
     {
         info_log("EngineInstance", "Terminate Engine");
+        DestroyController().execute();
+
         engine_instance->terminate();
 
         if (rhi)
@@ -211,8 +191,6 @@ namespace Engine
         }
 
         GarbageCollector::destroy_all_objects();
-        DestroyController().execute();
-
         render_thread()->wait_all();
 
 
@@ -233,7 +211,6 @@ namespace Engine
 
         rhi = nullptr;
         Library::close_all();
-
         PostDestroyController().execute();
 
         GarbageCollector::destroy(engine_instance);
