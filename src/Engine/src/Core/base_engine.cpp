@@ -1,13 +1,13 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
+#include <Core/config_manager.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/engine_system.hpp>
-#include <chrono>
-#include <Core/config_manager.hpp>
 #include <Window/window_manager.hpp>
+#include <chrono>
 
 namespace Engine
 {
@@ -38,19 +38,15 @@ namespace Engine
     std::chrono::high_resolution_clock::time_point start_time;
 
     BaseEngine::BaseEngine()
-    {}
-
-    int_t BaseEngine::init()
     {
         start_time    = current_time_point();
         m_frame_index = 0;
         m_prev_time   = 0.f;
-        EngineSystem::new_system<EngineSystem>();
+    }
 
-        if (rhi)
-        {
-            //WindowManager::instance()->create_client(WindowManager::instance()->main_window(), ConfigManager::get_string("Window::client"));
-        }
+    int_t BaseEngine::init()
+    {
+        EngineSystem::new_system<EngineSystem>();
         return 0;
     }
 

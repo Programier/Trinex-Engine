@@ -29,6 +29,11 @@ namespace Engine
         virtual WindowManagerInterface& pool_events()                                                           = 0;
         virtual WindowManagerInterface& wait_for_events()                                                       = 0;
 
+        // Splash Screen
+        virtual bool show_splash_screen(const class Image& image, Size2D splash_size) = 0;
+        virtual WindowManagerInterface& update_splash_screen()                        = 0;
+        virtual WindowManagerInterface& hide_splash_screen()                          = 0;
+
         virtual ~WindowManagerInterface() = default;
     };
 }// namespace Engine

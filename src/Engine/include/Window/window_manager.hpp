@@ -45,6 +45,10 @@ namespace Engine
         Window* main_window() const;
         const TreeMap<Identifier, Window*>& windows() const;
 
+        bool show_splash_screen(const class Image& image, Size2D splash_size);
+        WindowManager& update_splash_screen();
+        WindowManager& hide_splash_screen();
+
         friend class Window;
         friend class Singletone<WindowManager, EmptyClass>;
     };

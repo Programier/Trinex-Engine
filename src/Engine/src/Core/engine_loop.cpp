@@ -40,10 +40,10 @@ namespace Engine
         }
 
         WindowConfig config;
-
+        config.attributes.push_back(WindowAttribute::Hidden);
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();
-        WindowManager::instance()->create_window(config, nullptr);
+        WindowManager::instance()->create_window(config, nullptr)->hide();
     }
 
     static void create_render_targets()
@@ -152,12 +152,26 @@ namespace Engine
 
     int_t EngineLoop::init()
     {
+        float wait_time = engine_instance->time_seconds();
         engine_instance->init();
 
         extern void load_default_resources();
         load_default_resources();
 
         InitializeController().execute();
+
+        wait_time = 1.0f - (engine_instance->time_seconds() - wait_time);
+
+        if(wait_time > 0.f)
+        {
+            Thread::sleep_for(wait_time);
+        }
+
+        if(Window* window = WindowManager::instance()->main_window())
+        {
+            window->show();
+        }
+
         return 0;
     }
 

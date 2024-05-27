@@ -275,7 +275,7 @@ namespace Engine
     }
 
 
-    SDL2_WindowManagerInterface& SDL2_WindowManagerInterface::pool_events_loop()
+    WindowManagerInterface& SDL2_WindowManagerInterface::pool_events_loop()
     {
         while (SDL_PollEvent(&m_event))
         {

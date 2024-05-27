@@ -44,6 +44,7 @@ namespace Engine
         ConfigManager::load_string_argument<String>("e_default_language", "Engine::default_language", "eng");
         ConfigManager::load_string_argument<String>("e_current_language", "Engine::current_language", "eng");
         ConfigManager::load_string_argument<String>("e_window_system", "Engine::window_system", "SDL2");
+        ConfigManager::load_string_argument<String>("e_splash_dir", "Engine::splash_dir", "resources/splash");
         ConfigManager::load_string_argument<int_t>("e_lz4_compression_level", "Engine::lz4_compression_level", 1);
         ConfigManager::load_string_argument<int_t>("e_gc_max_object_per_tick", "Engine::gc_max_object_per_tick", 10);
         ConfigManager::load_string_argument<int_t>("e_fps_limit", "Engine::fps_limit", 60);

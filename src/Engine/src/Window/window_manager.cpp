@@ -12,7 +12,6 @@
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
 #include <Window/config.hpp>
-#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 
@@ -25,7 +24,7 @@ namespace Engine
 
         if (image.empty())
         {
-            image.load_from_memory(logo_png, logo_png_len, false);
+            image.load_from_memory(logo_png, logo_png_len, true);
         }
 
         return image;
@@ -126,7 +125,6 @@ namespace Engine
         if (m_windows.empty())
         {
             m_main_window = window;
-            Monitor::update();
         }
 
         m_windows[window->window_id()] = window;
@@ -246,5 +244,22 @@ namespace Engine
     const TreeMap<Identifier, Window*>& WindowManager::windows() const
     {
         return m_windows;
+    }
+
+    bool WindowManager::show_splash_screen(const class Image& image, Size2D splash_size)
+    {
+        return m_interface->show_splash_screen(image, splash_size);
+    }
+
+    WindowManager& WindowManager::update_splash_screen()
+    {
+        m_interface->update_splash_screen();
+        return *this;
+    }
+
+    WindowManager& WindowManager::hide_splash_screen()
+    {
+        m_interface->hide_splash_screen();
+        return *this;
     }
 }// namespace Engine

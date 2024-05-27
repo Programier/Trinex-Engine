@@ -113,7 +113,7 @@ namespace Engine
         m_data.clear();
         m_data.shrink_to_fit();
 
-        stbi_set_flip_vertically_on_load(static_cast<int>(invert));
+        stbi_set_flip_vertically_on_load(static_cast<int>(!invert));
         stbi_uc* image_data = stbi_load_from_memory(buffer, static_cast<int>(size), &m_width, &m_height, &m_channels, 0);
         m_data.resize(m_width * m_height * m_channels);
         std::copy(image_data, image_data + m_data.size(), m_data.data());

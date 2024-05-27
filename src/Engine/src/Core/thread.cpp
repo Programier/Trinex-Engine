@@ -70,8 +70,7 @@ namespace Engine
     ThreadBase& ThreadBase::name(const String& thread_name)
     {
         std::unique_lock lock(m_edit_mutex);
-        m_name =
-                thread_name.substr(0, std::min<size_t>(max_thread_name_length, static_cast<int>(thread_name.length())));
+        m_name = thread_name.substr(0, std::min<size_t>(max_thread_name_length, static_cast<int>(thread_name.length())));
         pthread_setname_np(m_native_handle, m_name.c_str());
         return *this;
     }
@@ -191,12 +190,9 @@ namespace Engine
 
     Thread::~Thread()
     {
-        {
-            std::unique_lock lock(m_exec_mutex);
-            m_is_shuting_down.store(true);
-        }
-
+        m_is_shuting_down.store(true);
         m_exec_cv.notify_all();
+
         m_thread->join();
         delete m_thread;
     }

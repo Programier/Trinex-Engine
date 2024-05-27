@@ -1,13 +1,18 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/export.hpp>
+#include <Platform/platform.hpp>
+#include <Core/thread.hpp>
 
 FORCE_ENGINE_EXPORT int main(int argc, const char** argv)
 try
 {
     Engine::EngineLoop loop;
     loop.preinit(argc, argv);
+
+    Engine::Platform::show_splash_screen("splash.png");
     loop.init();
+    Engine::Platform::hide_splash_screen();
 
     auto engine = Engine::engine_instance;
 

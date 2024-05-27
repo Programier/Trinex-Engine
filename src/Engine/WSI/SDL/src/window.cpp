@@ -77,6 +77,12 @@ namespace Engine
     {
         //m_vsync_status = info->vsync;
         uint32_t attrib = to_sdl_attrib(info->attributes);
+
+        if ((attrib & SDL_WINDOW_SHOWN) != SDL_WINDOW_SHOWN && (attrib & SDL_WINDOW_HIDDEN) != SDL_WINDOW_HIDDEN)
+        {
+            attrib |= SDL_WINDOW_SHOWN;
+        }
+
 #if PLATFORM_LINUX
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 #endif
@@ -85,7 +91,7 @@ namespace Engine
 
         m_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
                                     static_cast<int>(info->size.x), static_cast<int>(info->size.y),
-                                    m_api | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
+                                    m_api | SDL_WINDOW_ALLOW_HIGHDPI | attrib);
 
         m_id = static_cast<Identifier>(SDL_GetWindowID(m_window));
 

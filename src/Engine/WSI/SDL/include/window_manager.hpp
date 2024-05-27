@@ -26,9 +26,13 @@ namespace Engine
         WindowManagerInterface& remove_all_callbacks(Identifier system_id) override;                             // +
         WindowManagerInterface& start_text_input() override;                                                     // +
         WindowManagerInterface& stop_text_input() override;                                                      // =
-        SDL2_WindowManagerInterface& pool_events_loop();
+        WindowManagerInterface& pool_events_loop();
         WindowManagerInterface& pool_events() override;
         WindowManagerInterface& wait_for_events() override;
+
+        bool show_splash_screen(const class Image& image, Size2D splash_size) override;
+        WindowManagerInterface& update_splash_screen() override;
+        WindowManagerInterface& hide_splash_screen() override;
 
         void process_event();
         void process_imgui_event();
