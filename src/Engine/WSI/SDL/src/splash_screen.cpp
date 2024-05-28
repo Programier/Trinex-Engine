@@ -1,6 +1,5 @@
 #include <Core/logger.hpp>
 #include <Image/image.hpp>
-#include <SDL_render.h>
 #include <window_manager.hpp>
 
 namespace Engine

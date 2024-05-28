@@ -23,8 +23,8 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-filebrowser/")
 # Compile JSON library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/json/")
 
-# Compile stb_image library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/stb_image")
+# Compile stb library
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/stb")
 
 # Compile tinygltf library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tinygltf")
