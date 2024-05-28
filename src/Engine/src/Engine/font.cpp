@@ -6,6 +6,7 @@
 #include <Image/image.hpp>
 #include <freetype/freetype.h>
 
+
 namespace Engine
 {
     static FT_Library m_library;
@@ -25,9 +26,7 @@ namespace Engine
     });
 
 
-    FontConfig::FontConfig()
-        : image_size(512, 512), color(255, 255, 255), font_size({0, 16}),
-          dynamic_size(false)
+    FontConfig::FontConfig() : image_size(512, 512), color(255, 255, 255), font_size({0, 16}), dynamic_size(false)
     {}
 
     static inline FT_Face& make_face(void*& m_face)
