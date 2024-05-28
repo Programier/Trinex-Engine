@@ -6,7 +6,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <iomanip>
-#include <typeindex>
 
 namespace Engine
 {

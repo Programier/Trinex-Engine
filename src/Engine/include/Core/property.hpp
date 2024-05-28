@@ -272,7 +272,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, byte, byte, PropertyType::Byte>;
 
-        ByteProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        ByteProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -284,7 +284,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, signed_byte, signed_byte, PropertyType::SignedByte>;
 
-        SignedByteProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        SignedByteProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                            const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -296,7 +296,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, int8_t, int8_t, PropertyType::Int8>;
 
-        Int8Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Int8Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -308,7 +308,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, uint8_t, uint8_t, PropertyType::UnsignedInt8>;
 
-        UInt8Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        UInt8Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                       const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -320,7 +320,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, int16_t, int16_t, PropertyType::Int16>;
 
-        Int16Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Int16Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                       const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -332,7 +332,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, uint16_t, uint16_t, PropertyType::UnsignedInt16>;
 
-        UInt16Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        UInt16Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -344,7 +344,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, int32_t, int32_t, PropertyType::Int>;
 
-        IntProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        IntProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                     const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -356,7 +356,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, uint32_t, uint32_t, PropertyType::UnsignedInt>;
 
-        UIntProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        UIntProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -368,7 +368,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, int32_t, int32_t, PropertyType::Int32>;
 
-        Int32Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Int32Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                       const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -380,7 +380,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, uint32_t, uint32_t, PropertyType::UnsignedInt32>;
 
-        UInt32Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        UInt32Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -392,7 +392,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, int64_t, int64_t, PropertyType::Int64>;
 
-        Int64Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Int64Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                       const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -404,7 +404,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, uint64_t, uint64_t, PropertyType::UnsignedInt64>;
 
-        UInt64Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        UInt64Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -416,7 +416,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, bool, bool, PropertyType::Bool>;
 
-        BoolProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        BoolProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -428,7 +428,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, float, float, PropertyType::Float>;
 
-        FloatProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        FloatProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                       const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -440,7 +440,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Vector2D, Vector2D, PropertyType::Vec2>;
 
-        Vec2Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Vec2Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -452,7 +452,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Vector3D, Vector3D, PropertyType::Vec3>;
 
-        Vec3Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Vec3Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -464,7 +464,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Vector4D, Vector4D, PropertyType::Vec4>;
 
-        Vec4Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Vec4Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -506,7 +506,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Color3, Color3, PropertyType::Color3>;
 
-        Color3Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Color3Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -518,7 +518,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Color4, Color4, PropertyType::Color4>;
 
-        Color4Property(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        Color4Property(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -530,7 +530,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Name, Name, PropertyType::Name>;
 
-        NameProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        NameProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags | Property::IsConst)
         {}
@@ -542,7 +542,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, String, String, PropertyType::String>;
 
-        StringProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        StringProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                        const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}
@@ -554,7 +554,7 @@ namespace Engine
     public:
         using Super = PrimitiveProperty<InstanceType, Path, Path, PropertyType::Path>;
 
-        PathProperty(const Name& name, const String& description, Super::ElementType InstanceType::*prop,
+        PathProperty(const Name& name, const String& description, typename Super::ElementType InstanceType::*prop,
                      const Name& group = Name::none, BitMask flags = 0)
             : Super(name, description, prop, group, flags)
         {}

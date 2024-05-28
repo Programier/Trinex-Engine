@@ -14,13 +14,13 @@ namespace Engine
     };
 
     template<typename Signature>
-    constexpr SignatureParser<Signature>::Type func_of(typename SignatureParser<Signature>::Type func)
+    constexpr typename SignatureParser<Signature>::Type func_of(typename SignatureParser<Signature>::Type func)
     {
         return func;
     }
 
     template<typename Signature, typename T>
-    constexpr SignatureParser<Signature>::Type func_of(T func)
+    constexpr typename SignatureParser<Signature>::Type func_of(T func)
     {
         return static_cast<typename SignatureParser<Signature>::Type>(func);
     }

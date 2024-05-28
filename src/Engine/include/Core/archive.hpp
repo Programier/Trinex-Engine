@@ -215,8 +215,8 @@ namespace Engine
                 {
                     for (const typename Type::value_type& ell : set)
                     {
-                        ar& const_cast<Type::value_type&>(ell);
-                        if (!on_item_processed(const_cast<Type::value_type&>(ell), userdata))
+                        ar& const_cast<typename Type::value_type&>(ell);
+                        if (!on_item_processed(const_cast<typename Type::value_type&>(ell), userdata))
                         {
                             return ar;
                         }
@@ -226,7 +226,7 @@ namespace Engine
                 {
                     for (const typename Type::value_type& ell : set)
                     {
-                        ar& const_cast<Type::value_type&>(ell);
+                        ar& const_cast<typename Type::value_type&>(ell);
                     }
                 }
             }
@@ -260,7 +260,7 @@ namespace Engine
             {
                 for (auto& [key, value] : map)
                 {
-                    ar& const_cast<Type::key_type&>(key);
+                    ar& const_cast<typename Type::key_type&>(key);
                     ar & value;
                 }
             }

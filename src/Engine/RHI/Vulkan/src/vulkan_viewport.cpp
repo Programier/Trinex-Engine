@@ -341,9 +341,9 @@ namespace Engine
     {
         if (!API->m_state->m_is_image_rendered_to_swapchain)
         {
-            for (vk::Image image : m_images)
+            for (VkImage image : m_images)
             {
-                transition_swapchain_image(image);
+                transition_swapchain_image(vk::Image(image));
             }
         }
 

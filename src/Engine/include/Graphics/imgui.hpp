@@ -222,14 +222,4 @@ namespace Engine::ImGuiRenderer
 
         return BeginPopup(name, flags, InternalFunction::execute, &data);
     }
-
-
-    template<typename... Args>
-    FORCE_INLINE void TextWrappedColored(const ImVec4& color, const char* fmt, Args... args)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Text, color);
-        ImGui::TextWrapped(fmt, args...);
-        ImGui::PopStyleColor();
-    }
-
 }// namespace Engine::ImGuiRenderer

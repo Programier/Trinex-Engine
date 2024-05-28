@@ -23,14 +23,15 @@ namespace Engine
         UserData::Entry* find_userdata(const Name& name) const;
 
         template<typename Type>
-        inline std::enable_if<std::is_base_of_v<UserData::Entry, Type>, Type*>::type find_typed_userdata(const Name& name) const
+        inline typename std::enable_if<std::is_base_of_v<UserData::Entry, Type>, Type*>::type
+        find_typed_userdata(const Name& name) const
         {
             return reinterpret_cast<Type*>(find_userdata(name));
         }
 
         template<typename Type, typename... Args>
-        inline std::enable_if<std::is_base_of_v<UserData::Entry, Type>, Type*>::type create_userdata(const Name& name,
-                                                                                                     Args&&... args)
+        inline typename std::enable_if<std::is_base_of_v<UserData::Entry, Type>, Type*>::type create_userdata(const Name& name,
+                                                                                                              Args&&... args)
         {
             if (find_userdata(name))
             {
@@ -44,7 +45,7 @@ namespace Engine
         }
 
         template<typename Type, typename... Args>
-        inline std::enable_if<std::is_base_of_v<UserData::Entry, Type>, Type*>::type find_or_create_userdata(const Name& name,
+        inline typename std::enable_if<std::is_base_of_v<UserData::Entry, Type>, Type*>::type find_or_create_userdata(const Name& name,
                                                                                                              Args&&... args)
         {
             if (Type* userdata = find_typed_userdata<Type>(name))

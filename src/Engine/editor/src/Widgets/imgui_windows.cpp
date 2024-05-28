@@ -16,6 +16,12 @@
 
 namespace Engine
 {
+#define text_wrapped_colored(color, format, ...)                                                                                 \
+    ImGui::PushStyleColor(ImGuiCol_Text, color);                                                                                 \
+    ImGui::TextWrapped(format __VA_OPT__(, ) __VA_ARGS__);                                                                       \
+    ImGui::PopStyleColor()
+
+
     ImGuiNotificationMessage::ImGuiNotificationMessage(const String& msg, Type type) : m_message(msg), m_type(type)
     {}
 
@@ -44,7 +50,8 @@ namespace Engine
                     break;
             }
 
-            ImGuiRenderer::TextWrappedColored(text_color, "%s", m_message.c_str());
+
+            text_wrapped_colored(text_color, "%s", m_message.c_str());
 
             static constexpr float button_width  = 80.0f;
             static constexpr float button_height = 25.0f;
@@ -86,14 +93,14 @@ namespace Engine
 
         if (!allow_rename && m_parent->contains_object(new_package_name))
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0),
-                                              "Cannot create package! Object with name '%s' already exists in package '%s'",
-                                              new_package_name.c_str(), m_parent->string_name().c_str());
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
+                                 "Cannot create package! Object with name '%s' already exists in package '%s'",
+                                 new_package_name.c_str(), m_parent->string_name().c_str());
         }
         else if (new_package_name.find(Constants::name_separator) != String::npos)
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot create package! Name can't contain '%s'",
-                                              Constants::name_separator.c_str());
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot create package! Name can't contain '%s'",
+                                 Constants::name_separator.c_str());
         }
         else
         {
@@ -166,14 +173,14 @@ namespace Engine
 
         if (!allow_rename && m_parent->contains_object(new_asset_name))
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0),
-                                              "Cannot create new Asset! Object with name '%s' already exists in package '%s'",
-                                              new_asset_name.c_str(), m_parent->string_name().c_str());
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0),
+                                 "Cannot create new Asset! Object with name '%s' already exists in package '%s'",
+                                 new_asset_name.c_str(), m_parent->string_name().c_str());
         }
         else if (new_asset_name.find(Constants::name_separator) != String::npos)
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot create asset! Name can't contain '%s'",
-                                              Constants::name_separator.c_str());
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot create asset! Name can't contain '%s'",
+                                 Constants::name_separator.c_str());
         }
         else
         {
@@ -222,21 +229,19 @@ namespace Engine
 
         if (!m_object->is_editable())
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot rename internal object!");
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Cannot rename internal object!");
         }
         else if (new_object_name.empty())
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't be empty!");
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't be empty!");
         }
         else if (new_object_name.starts_with(Constants::name_separator))
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't starts with '%s'!",
-                                              Constants::name_separator.c_str());
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't starts with '%s'!", Constants::name_separator.c_str());
         }
         else if (new_object_name.ends_with(Constants::name_separator))
         {
-            ImGuiRenderer::TextWrappedColored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't ends with '%s'!",
-                                              Constants::name_separator.c_str());
+            text_wrapped_colored(ImVec4(1.0, 0.0, 0.0, 1.0), "Name can't ends with '%s'!", Constants::name_separator.c_str());
         }
         {
             ImGui::Separator();

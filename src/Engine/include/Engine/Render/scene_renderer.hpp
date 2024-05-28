@@ -55,7 +55,7 @@ namespace Engine
         template<typename ComponentType>
         FORCE_INLINE SceneRenderer& render_base_component(ComponentType* component)
         {
-            return render_component(static_cast<ComponentType::Super*>(component));
+            return render_component(static_cast<typename ComponentType::Super*>(component));
         }
 
         virtual SceneRenderer& render_component(PrimitiveComponent* component);

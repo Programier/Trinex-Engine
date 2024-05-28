@@ -215,7 +215,7 @@ namespace Engine
             {
                 gbuffer->rhi_clear_color(ColorClearValue(0.0f, 0.f, 0.f, 1.f), i);
             }
-            gbuffer->rhi_clear_depth_stencil(DepthStencilClearValue(1.0f, 0));
+            gbuffer->rhi_clear_depth_stencil(DepthStencilClearValue({1.0f, 0}));
             GBuffer::instance()->rhi_clear_color(ColorClearValue(0.f, 0.f, 0.f, 1.f));
         });
 

@@ -103,7 +103,7 @@ namespace Engine
             m_mutex.lock();
             static char buffer[512];
 #if PLATFORM_ANDROID
-            sprintf(buffer, "%s[%s]", engine_instance->project_name().c_str(), tag);
+            sprintf(buffer, "Trinex Engine [%s]", tag);
             __android_log_vprint(prio_type, buffer, format, args);
 #else
             std::time_t now = std::time(nullptr);

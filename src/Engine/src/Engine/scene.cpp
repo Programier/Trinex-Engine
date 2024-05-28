@@ -12,11 +12,11 @@ namespace Engine
     class AddPrimitiveTask : public ExecutableObject
     {
         OctreeType* m_octree;
-        OctreeType::ValueType m_primitive;
+        typename OctreeType::ValueType m_primitive;
         AABB_3Df m_box;
 
     public:
-        AddPrimitiveTask(OctreeType* octree, OctreeType::ValueType primitive, const AABB_3Df& box)
+        AddPrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const AABB_3Df& box)
             : m_octree(octree), m_primitive(primitive), m_box(box)
         {}
 
@@ -31,11 +31,11 @@ namespace Engine
     class RemovePrimitiveTask : public ExecutableObject
     {
         OctreeType* m_octree;
-        OctreeType::ValueType m_primitive;
+        typename OctreeType::ValueType m_primitive;
         AABB_3Df m_box;
 
     public:
-        RemovePrimitiveTask(OctreeType* octree, OctreeType::ValueType primitive, const AABB_3Df& box)
+        RemovePrimitiveTask(OctreeType* octree, typename OctreeType::ValueType primitive, const AABB_3Df& box)
             : m_octree(octree), m_primitive(primitive), m_box(box)
         {}
 
