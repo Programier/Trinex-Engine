@@ -152,6 +152,10 @@ namespace Engine
 
     int_t EngineLoop::init()
     {
+        Engine::Platform::splash_screen_text(Engine::SplashTextType::GameName, ConfigManager::get_string("Engine::project_name"));
+        Engine::Platform::splash_screen_text(Engine::SplashTextType::VersionInfo, ConfigManager::get_string("Engine::version"));
+        Engine::Platform::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
+
         float wait_time = engine_instance->time_seconds();
         engine_instance->init();
 
@@ -160,7 +164,7 @@ namespace Engine
 
         InitializeController().execute();
 
-        wait_time = 1.0f - (engine_instance->time_seconds() - wait_time);
+        wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);
 
         if(wait_time > 0.f)
         {

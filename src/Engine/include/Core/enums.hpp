@@ -403,4 +403,13 @@ namespace Engine
     {
         Surface = 0,
     };
+
+    enum class SplashTextType : EnumerateType
+    {
+        StartupProgress = 0,
+        VersionInfo     = 1,
+        CopyrightInfo   = 2,
+        GameName        = 3,
+        Count           = 4
+    };
 }// namespace Engine

@@ -1,8 +1,8 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/export.hpp>
-#include <Platform/platform.hpp>
 #include <Core/thread.hpp>
+#include <Platform/platform.hpp>
 
 FORCE_ENGINE_EXPORT int main(int argc, const char** argv)
 try
@@ -10,7 +10,7 @@ try
     Engine::EngineLoop loop;
     loop.preinit(argc, argv);
 
-    Engine::Platform::show_splash_screen("splash.png");
+    Engine::Platform::show_splash_screen();
     loop.init();
     Engine::Platform::hide_splash_screen();
 

@@ -29,8 +29,11 @@ namespace Engine
     public:
         Image();
         Image(const Path& path, const bool& invert_horizontal = false);
-        Image(const Size2D& size, uint_t channels, const Buffer& buffer = {});
-        Image(const Size2D& size, uint_t channels, const byte* data = {});
+        Image(const Size2D& size, uint_t channels, const Buffer& buffer);
+        Image(const Size2D& size, uint_t channels, const byte* data);
+        Image(ByteColor color, const Size2D& size, uint_t channels = 4);
+        Image(const Size2D& size, uint_t channels = 4);
+
         Image(const Image&);
         Image& operator=(const Image&);
         Image(Image&&);
@@ -42,8 +45,8 @@ namespace Engine
         const Buffer& buffer() const;
 
         Size2D size() const;
-        Size1D width() const;
-        Size1D height() const;
+        uint_t width() const;
+        uint_t height() const;
         uint_t channels() const;
         bool resize(const Size2D& new_size);
         bool empty() const;
@@ -54,8 +57,15 @@ namespace Engine
         Image& load_from_memory(const Buffer& buffer, bool invert = false);
         bool save(Path path, ImageType type = ImageType::PNG, bool invert = false);
 
-        Image& create(const Size2D& size, uint_t channels, const Buffer& buffer = {});
-        Image& create(const Size2D& size, uint_t channels, const byte* buffer = nullptr);
+        Image& create(const Size2D& size, uint_t channels, Buffer&& buffer);
+        Image& create(const Size2D& size, uint_t channels, const Buffer& buffer);
+        Image& create(const Size2D& size, uint_t channels, const byte* buffer);
+        Image& create(ByteColor color, const Size2D& size, uint_t channels = 4);
+        Image& create(const Size2D& size, uint_t channels = 4);
+
+        byte* pixel_at(uint_t x, uint_t y);
+        const byte* pixel_at(uint_t x, uint_t y) const;
+
         bool is_compressed() const;
         void compress();
         ~Image();

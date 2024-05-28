@@ -36,14 +36,14 @@ namespace Engine
         return m_data;
     }
 
-    Size1D Image::width() const
+    uint_t Image::width() const
     {
-        return static_cast<Size1D>(m_width);
+        return static_cast<uint_t>(m_width);
     }
 
-    Size1D Image::height() const
+    uint_t Image::height() const
     {
-        return static_cast<Size1D>(m_height);
+        return static_cast<uint_t>(m_height);
     }
 
     Size2D Image::size() const
@@ -85,7 +85,7 @@ namespace Engine
                 }
             }
 
-            m_data = std::move(new_data);
+            m_data     = std::move(new_data);
             m_channels = new_channels;
         }
     }
@@ -141,6 +141,16 @@ namespace Engine
     Image::Image(const Size2D& size, uint_t channels, const byte* data)
     {
         create(size, channels, data);
+    }
+
+    Image::Image(ByteColor color, const Size2D& size, uint_t channels)
+    {
+        create(color, size, channels);
+    }
+
+    Image::Image(const Size2D& size, uint_t channels)
+    {
+        create(size, channels);
     }
 
     Image::Image(const Image& img)
@@ -251,15 +261,25 @@ namespace Engine
         return ((*this).*method)(path);
     }
 
-    Image& Image::create(const Size2D& size, uint_t channels, const Buffer& buffer)
+    Image& Image::create(const Size2D& size, uint_t channels, Buffer&& buffer)
     {
+        if (static_cast<int_t>(size.x) * static_cast<int_t>(size.y) * channels != static_cast<int_t>(buffer.size()))
+        {
+            throw EngineException("Image: Invalid buffer size");
+        }
+
         m_channels = channels;
         m_width    = static_cast<int_t>(size.x);
         m_height   = static_cast<int_t>(size.y);
+        m_data     = std::move(buffer);
 
-        m_data.resize(m_channels * m_width * m_height);
-        std::copy(buffer.begin(), buffer.end(), m_data.begin());
+        return *this;
+    }
 
+    Image& Image::create(const Size2D& size, uint_t channels, const Buffer& buffer)
+    {
+        Buffer copied_buffer = buffer;
+        create(size, channels, std::move(copied_buffer));
         return *this;
     }
 
@@ -276,6 +296,51 @@ namespace Engine
         else
             std::fill(m_data.begin(), m_data.end(), 0);
         return *this;
+    }
+
+    Image& Image::create(ByteColor color, const Size2D& size, uint_t channels)
+    {
+        create(size, channels);
+
+        for (int_t x = 0; x < m_width; ++x)
+        {
+            for (int_t y = 0; y < m_height; ++y)
+            {
+                byte* data = pixel_at(x, y);
+
+                for (int_t component = 0; component < m_channels; ++component)
+                {
+                    data[component] = color[component];
+                }
+            }
+        }
+        return *this;
+    }
+
+    Image& Image::create(const Size2D& size, uint_t channels)
+    {
+        m_channels = glm::min<uint_t>(channels, 4);
+        m_width    = static_cast<int_t>(glm::abs(size.x));
+        m_height   = static_cast<int_t>(glm::abs(size.y));
+
+        size_t count = m_width * m_height * m_channels;
+        m_data.clear();
+        m_data.resize(count);
+        return *this;
+    }
+
+    byte* Image::pixel_at(uint_t x, uint_t y)
+    {
+        if (x > static_cast<uint_t>(m_width) || y > static_cast<uint_t>(m_height))
+            throw EngineException("Image: Invalid UV");
+
+        uint_t index = y * (m_width * m_channels) + x * m_channels;
+        return m_data.data() + index;
+    }
+
+    const byte* Image::pixel_at(uint_t x, uint_t y) const
+    {
+        return const_cast<Image*>(this)->pixel_at(x, y);
     }
 
     bool Image::is_compressed() const

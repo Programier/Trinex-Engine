@@ -127,10 +127,14 @@ namespace Engine
                    {"Color", VertexBufferElementType::Color});
 
     implement_enum(ColorFormat, Engine, {"Unknown", ColorFormat::Undefined}, {"FloatR", ColorFormat::FloatR},
-                   {"FloatRGBA", ColorFormat::FloatRGBA}, {"R8", ColorFormat::R8}, {"R8G8BA8", ColorFormat::R8G8B8A8},
+                   {"FloatRGBA", ColorFormat::FloatRGBA}, {"R8", ColorFormat::R8}, {"R8G8B8A8", ColorFormat::R8G8B8A8},
                    {"DepthStencil", ColorFormat::DepthStencil}, {"ShadowDepth", ColorFormat::ShadowDepth},
                    {"FilteredShadowDepth", ColorFormat::FilteredShadowDepth}, {"D32F", ColorFormat::D32F},
                    {"BC1", ColorFormat::BC1}, {"BC2", ColorFormat::BC2}, {"BC3", ColorFormat::BC3});
 
     implement_enum(MaterialDomain, Engine, {"Surface", MaterialDomain::Surface});
+
+    implement_enum(SplashTextType, Engine, {"StartupProgress", SplashTextType::StartupProgress},
+                   {"VersionInfo", SplashTextType::VersionInfo}, {"CopyrightInfo", SplashTextType::CopyrightInfo},
+                   {"GameName", SplashTextType::GameName});
 }// namespace Engine

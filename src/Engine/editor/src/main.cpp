@@ -13,4 +13,9 @@ static void load_configs()
     Engine::editor_config.update();
 }
 
+static Engine::ConfigsPreInitializeController preinitialize_controller([]() {
+    Engine::Arguments::push_argument(
+            Engine::Arguments::Argument("e_splash_font", "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf"));
+});
+
 static Engine::ConfigsInitializeController configs_initializer(load_configs, "EditorConfig", {"EngineConfig"});

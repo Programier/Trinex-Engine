@@ -44,7 +44,7 @@ namespace Engine
         ConfigManager::load_string_argument<String>("e_default_language", "Engine::default_language", "eng");
         ConfigManager::load_string_argument<String>("e_current_language", "Engine::current_language", "eng");
         ConfigManager::load_string_argument<String>("e_window_system", "Engine::window_system", "SDL2");
-        ConfigManager::load_string_argument<String>("e_splash_dir", "Engine::splash_dir", "resources/splash");
+        ConfigManager::load_string_argument<String>("e_version", "Engine::version", "Trinex Engine 1.0");
         ConfigManager::load_string_argument<int_t>("e_lz4_compression_level", "Engine::lz4_compression_level", 1);
         ConfigManager::load_string_argument<int_t>("e_gc_max_object_per_tick", "Engine::gc_max_object_per_tick", 10);
         ConfigManager::load_string_argument<int_t>("e_fps_limit", "Engine::fps_limit", 60);
@@ -63,6 +63,14 @@ namespace Engine
         ConfigManager::load_string_argument<bool>("w_vsync", "Window::vsync", true);
         ConfigManager::load_string_argument<int_t>("w_attributes", "Window::attributes", {});
         ConfigManager::load_array_argument<int_t>("w_orientations", "Window::orientations", {});
+
+        //////////////////////////////// SPLASH PART ////////////////////////////////
+        ConfigManager::load_string_argument<String>("e_splash_image", "Engine::Splash::image", "resources/splash/splash.png");
+        ConfigManager::load_string_argument<String>("e_splash_font", "Engine::Splash::font_file", "");
+        ConfigManager::load_string_argument<int_t>("e_splash_startup_text_size", "Engine::Splash::startup_text_size", 14);
+        ConfigManager::load_string_argument<int_t>("e_splash_version_text_size", "Engine::Splash::version_text_size", 14);
+        ConfigManager::load_string_argument<int_t>("e_splash_copyright_text_size", "Engine::Splash::copyright_text_size", 14);
+        ConfigManager::load_string_argument<int_t>("e_splash_game_name_text_size", "Engine::Splash::game_name_text_size", 32);
     }
 
     // Initialize config
