@@ -65,6 +65,7 @@ namespace Engine
         ConfigManager::load_array_argument<int_t>("w_orientations", "Window::orientations", {});
 
         //////////////////////////////// SPLASH PART ////////////////////////////////
+        ConfigManager::load_string_argument<bool>("e_show_splash", "Engine::Splash::show", true);
         ConfigManager::load_string_argument<String>("e_splash_image", "Engine::Splash::image", "resources/splash/splash.png");
         ConfigManager::load_string_argument<String>("e_splash_font", "Engine::Splash::font_file", "");
         ConfigManager::load_string_argument<int_t>("e_splash_startup_text_size", "Engine::Splash::startup_text_size", 14);

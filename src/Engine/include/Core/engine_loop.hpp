@@ -4,13 +4,13 @@ namespace Engine
 {
     class ENGINE_EXPORT EngineLoop
     {
+        int_t preinit(int_t argc, const char** argv);
+
     public:
         EngineLoop();
         virtual ~EngineLoop();
-
-        virtual int_t preinit(int_t argc, const char** argv);
-        virtual int_t init();
-        virtual void update();
-        virtual void terminate();
+        int_t init(int_t argc, const char** argv);
+        void update();
+        void terminate();
     };
 }// namespace Engine

@@ -6,7 +6,6 @@
 #include <Platform/platform.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window_manager.hpp>
-
 #include <Graphics/texture_2D.hpp>
 
 namespace Engine::Platform

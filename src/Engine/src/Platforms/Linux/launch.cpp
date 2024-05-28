@@ -8,17 +8,16 @@ FORCE_ENGINE_EXPORT int main(int argc, const char** argv)
 try
 {
     Engine::EngineLoop loop;
-    loop.preinit(argc, argv);
 
-    Engine::Platform::show_splash_screen();
-    loop.init();
-    Engine::Platform::hide_splash_screen();
+    int init_status = loop.init(argc, argv);
+    auto engine     = Engine::engine_instance;
 
-    auto engine = Engine::engine_instance;
-
-    while (!engine->is_requesting_exit())
+    if (init_status == 0)
     {
-        loop.update();
+        while (!engine->is_requesting_exit())
+        {
+            loop.update();
+        }
     }
 
     loop.terminate();

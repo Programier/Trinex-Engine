@@ -18,6 +18,7 @@ namespace Engine
         {
             IsRequestExit  = BIT(0),
             IsShuttingDown = BIT(1),
+            IsInitied      = BIT(2),
         };
 
         Flags<Flag> m_flags;
@@ -40,6 +41,8 @@ namespace Engine
         float time_seconds() const;
         Index frame_index() const;
         bool is_shuting_down() const;
+        bool is_inited() const;
+        BaseEngine& make_inited();
     };
 
     ENGINE_EXPORT extern BaseEngine* engine_instance;

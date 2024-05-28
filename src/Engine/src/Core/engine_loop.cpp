@@ -150,11 +150,25 @@ namespace Engine
         return 0;
     }
 
-    int_t EngineLoop::init()
+    int_t EngineLoop::init(int_t argc, const char** argv)
     {
-        Engine::Platform::splash_screen_text(Engine::SplashTextType::GameName, ConfigManager::get_string("Engine::project_name"));
-        Engine::Platform::splash_screen_text(Engine::SplashTextType::VersionInfo, ConfigManager::get_string("Engine::version"));
-        Engine::Platform::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
+        {
+            int result = preinit(argc, argv);
+            if (result != 0)
+                return result;
+        }
+
+        bool show_splash = ConfigManager::get_bool("Engine::Splash::show");
+
+        if (show_splash)
+        {
+            Engine::Platform::show_splash_screen();
+            Engine::Platform::splash_screen_text(Engine::SplashTextType::GameName,
+                                                 ConfigManager::get_string("Engine::project_name"));
+            Engine::Platform::splash_screen_text(Engine::SplashTextType::VersionInfo,
+                                                 ConfigManager::get_string("Engine::version"));
+            Engine::Platform::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
+        }
 
         float wait_time = engine_instance->time_seconds();
         engine_instance->init();
@@ -166,12 +180,15 @@ namespace Engine
 
         wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);
 
-        if(wait_time > 0.f)
+        if (wait_time > 0.f)
         {
             Thread::sleep_for(wait_time);
         }
 
-        if(Window* window = WindowManager::instance()->main_window())
+        if (show_splash)
+            Engine::Platform::hide_splash_screen();
+
+        if (Window* window = WindowManager::instance()->main_window())
         {
             window->show();
         }

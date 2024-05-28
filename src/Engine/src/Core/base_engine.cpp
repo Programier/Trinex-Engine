@@ -126,6 +126,17 @@ namespace Engine
         return m_flags(Flag::IsShuttingDown);
     }
 
+    bool BaseEngine::is_inited() const
+    {
+        return m_flags(Flag::IsInitied);
+    }
+
+    BaseEngine& BaseEngine::make_inited()
+    {
+        m_flags(Flag::IsInitied);
+        return *this;
+    }
+
     float BaseEngine::delta_time() const
     {
         return m_delta_time;
