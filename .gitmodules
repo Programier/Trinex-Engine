@@ -1,9 +1,0 @@
-[submodule "src/Engine/libs/SDL"]
-	path = src/Engine/libs/SDL
-	url = https://github.com/libsdl-org/SDL.git
-[submodule "src/Engine/libs/freetype"]
-	path = src/Engine/libs/freetype
-	url = https://github.com/freetype/freetype.git
-[submodule "src/Engine/libs/lz4"]
-	path = src/Engine/libs/lz4
-	url = https://github.com/lz4/lz4.git
