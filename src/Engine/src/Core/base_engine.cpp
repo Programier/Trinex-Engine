@@ -75,18 +75,28 @@ namespace Engine
             viewport->update(m_delta_time);
         }
 
-        render_thread()->wait_all();
-
-        render_thread()->insert_new_task<BeginRenderCommand>();
+        begin_render();
 
         for (auto& viewport : viewports)
         {
             viewport->render();
         }
 
-        render_thread()->insert_new_task<EndRenderCommand>();
-
+        end_render();
         return 0;
+    }
+
+    BaseEngine& BaseEngine::begin_render()
+    {
+        render_thread()->wait_all();
+        render_thread()->insert_new_task<BeginRenderCommand>();
+        return *this;
+    }
+
+    BaseEngine& BaseEngine::end_render()
+    {
+        render_thread()->insert_new_task<EndRenderCommand>();
+        return *this;
     }
 
     int_t BaseEngine::terminate()

@@ -30,11 +30,6 @@ namespace Engine
         WindowManagerInterface& pool_events() override;
         WindowManagerInterface& wait_for_events() override;
 
-        bool show_splash_screen(const class Image& image, Size2D splash_size, const SplashConfig& config) override;
-        WindowManagerInterface& update_splash_screen() override;
-        WindowManagerInterface& update_splash_screen_text(SplashTextType type, const StringView& text) override;
-        WindowManagerInterface& hide_splash_screen() override;
-
         void process_event();
         void process_imgui_event();
         void send_event(const Event& event);

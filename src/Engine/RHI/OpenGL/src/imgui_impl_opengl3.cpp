@@ -620,6 +620,11 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                     next_texture = pcmd->TextureId;
                 }
 
+                if(next_texture.sampler == nullptr)
+                {
+                    next_texture.sampler = ImGui_ImplOpenGL3_GetBackendData()->FontTexture.sampler;
+                }
+
                 GL_CALL(glBindTexture(GL_TEXTURE_2D, get_opengl_texture_2d_id(next_texture.texture)));
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
                 if (bd->GlVersion >= 330 || bd->GlProfileIsES3)

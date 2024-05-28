@@ -9,6 +9,7 @@
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
+#include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -162,12 +163,12 @@ namespace Engine
 
         if (show_splash)
         {
-            Engine::Platform::show_splash_screen();
-            Engine::Platform::splash_screen_text(Engine::SplashTextType::GameName,
+            Engine::show_splash_screen();
+            Engine::splash_screen_text(Engine::SplashTextType::GameName,
                                                  ConfigManager::get_string("Engine::project_name"));
-            Engine::Platform::splash_screen_text(Engine::SplashTextType::VersionInfo,
+            Engine::splash_screen_text(Engine::SplashTextType::VersionInfo,
                                                  ConfigManager::get_string("Engine::version"));
-            Engine::Platform::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
+            Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
         }
 
         float wait_time = engine_instance->time_seconds();
@@ -186,7 +187,7 @@ namespace Engine
         }
 
         if (show_splash)
-            Engine::Platform::hide_splash_screen();
+            Engine::hide_splash_screen();
 
         if (Window* window = WindowManager::instance()->main_window())
         {

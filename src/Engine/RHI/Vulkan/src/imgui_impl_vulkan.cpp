@@ -630,6 +630,11 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
                     next_texture = pcmd->TextureId;
                 }
 
+                if(next_texture.sampler == nullptr)
+                {
+                    next_texture.sampler = ImGui_ImplVulkan_GetBackendData()->FontTexture.sampler;
+                }
+
                 VkSampler sampler = trinex_default_vulkan_sampler(next_texture.sampler);
                 VkImageView view = trinex_vulkan_image_view(next_texture.texture);
 

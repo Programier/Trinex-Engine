@@ -8,7 +8,7 @@ namespace Engine
     struct WindowInterface;
     struct MonitorInfo;
     class Event;
-    class SplashConfig;
+    struct SplashConfig;
 
     using EventCallback = Function<void(const Event&)>;
 
@@ -29,12 +29,6 @@ namespace Engine
         virtual WindowManagerInterface& stop_text_input()                                                       = 0;
         virtual WindowManagerInterface& pool_events()                                                           = 0;
         virtual WindowManagerInterface& wait_for_events()                                                       = 0;
-
-        // Splash Screen
-        virtual bool show_splash_screen(const class Image& image, Size2D splash_size, const SplashConfig& config) = 0;
-        virtual WindowManagerInterface& update_splash_screen()                                                    = 0;
-        virtual WindowManagerInterface& update_splash_screen_text(SplashTextType type, const StringView& text)    = 0;
-        virtual WindowManagerInterface& hide_splash_screen()                                                      = 0;
 
         virtual ~WindowManagerInterface() = default;
     };

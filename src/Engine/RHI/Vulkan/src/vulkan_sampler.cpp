@@ -86,5 +86,5 @@ namespace Engine
 
 VkSampler trinex_default_vulkan_sampler(Engine::Sampler* sampler)
 {
-    return (sampler ? sampler : Engine::DefaultResources::default_sampler)->rhi_object<Engine::VulkanSampler>()->m_sampler;
+    return sampler->rhi_object<Engine::VulkanSampler>()->m_sampler;
 }

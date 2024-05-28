@@ -44,12 +44,6 @@ namespace Engine
         Size2D calculate_gbuffer_size() const;
         Window* main_window() const;
         const TreeMap<Identifier, Window*>& windows() const;
-
-        bool show_splash_screen(const class Image& image, Size2D splash_size, const SplashConfig& config);
-        WindowManager& update_splash_screen_text(SplashTextType type, const StringView& text);
-        WindowManager& update_splash_screen();
-        WindowManager& hide_splash_screen();
-
         friend class Window;
         friend class Singletone<WindowManager, EmptyClass>;
     };

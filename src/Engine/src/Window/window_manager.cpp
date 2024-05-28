@@ -245,27 +245,4 @@ namespace Engine
     {
         return m_windows;
     }
-
-    bool WindowManager::show_splash_screen(const class Image& image, Size2D splash_size, const SplashConfig& config)
-    {
-        return m_interface->show_splash_screen(image, splash_size, config);
-    }
-
-    WindowManager& WindowManager::update_splash_screen()
-    {
-        m_interface->update_splash_screen();
-        return *this;
-    }
-
-    WindowManager& WindowManager::update_splash_screen_text(SplashTextType type, const StringView& text)
-    {
-        m_interface->update_splash_screen_text(type, text);
-        return *this;
-    }
-
-    WindowManager& WindowManager::hide_splash_screen()
-    {
-        m_interface->hide_splash_screen();
-        return *this;
-    }
 }// namespace Engine
