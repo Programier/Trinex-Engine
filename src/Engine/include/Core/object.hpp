@@ -310,7 +310,7 @@ private:
         }                                                                                                                        \
         return m_static_class;                                                                                                   \
     }                                                                                                                            \
-    static Engine::ClassInitializeController initialize_##class_name = Engine::ClassInitializeController(                        \
+    static Engine::ReflectionInitializeController initialize_##class_name = Engine::ReflectionInitializeController(                        \
             []() { class_name::static_class_instance(); }, ENTITY_INITIALIZER_NAME(class_name, namespace_name))
 
 

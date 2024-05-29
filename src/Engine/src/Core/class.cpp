@@ -98,7 +98,7 @@ namespace Engine
         return nullptr;
     }
 
-    bool Class::is_binded_to_script() const
+    bool Class::is_scriptable() const
     {
         return flags(IsScriptable);
     }
@@ -126,7 +126,7 @@ namespace Engine
 
     Class& Class::post_initialize()
     {
-        if (is_binded_to_script())
+        if (is_scriptable())
         {
             ScriptClassRegistrar registrar(this);
             List<Class*> stack;
@@ -196,9 +196,9 @@ namespace Engine
                 .static_function("Class@ static_find(const string& in)", Class::static_find)
                 .method("bool is_a(const Class@) const", method_of<bool, Class, const Struct*>(&Class::is_a))
                 .method("uint64 sizeof_class() const", &Class::sizeof_class)
-                .method("bool is_binded_to_script() const", &Class::is_binded_to_script)
+                .method("bool is_binded_to_script() const", &Class::is_scriptable)
                 .method("Object@ singletone_instance() const", &Class::singletone_instance);
     }
 
-    static ScriptEngineInitializeController initializer(on_init, "Bind Engine::Class");
+    static ReflectionInitializeController initializer(on_init, "Bind Engine::Class");
 }// namespace Engine

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(TrinexEngine LANGUAGES CXX)
+project(TrinexEngine LANGUAGES C CXX)
 
 
 option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
@@ -43,6 +43,15 @@ add_subdirectory("${TRINEX_ENGINE_ROOT}/WSI/")
 # Compile Third-Party libraries
 add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/")
 
+# If platform is Android, build android_native_app_glue library
+
+if(ANDROID)
+    set(NATIVE_APP_GLUE_SRC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+    include_directories(${ANDROID_NDK}/sources/android/native_app_glue/)
+    add_library(native_app_glue STATIC ${NATIVE_APP_GLUE_SRC})
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
+endif()
+
 # List of libraries, which TrinexEngine use
 set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
                                     tinygltf
@@ -53,7 +62,7 @@ set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
 set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser zip fmt stb_library)
 
 if(ANDROID)
-    set(PLATFORM_DEPENDED_LIBRARIES android log)
+    set(PLATFORM_DEPENDED_LIBRARIES android native_app_glue log EGL GLESv1_CM)
 endif()
 
 # Set source directories
@@ -176,10 +185,8 @@ endif()
 # Linking libraries and including directories
 target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>")
 
-
 target_link_libraries(TrinexEngine PRIVATE  ${PLATFORM_DEPENDED_LIBRARIES} ${PRIVATE_THIRD_PARTY_LIBRARIES})
 target_link_libraries(TrinexEngine PUBLIC  ${PUBLIC_THIRD_PARTY_LIBRARIES})
-
 
 install(TARGETS TrinexEngine DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 install(DIRECTORY resources DESTINATION ${TRINEX_INSTALL_DIR})

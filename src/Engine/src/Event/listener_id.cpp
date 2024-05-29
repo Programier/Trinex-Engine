@@ -15,7 +15,7 @@ namespace Engine
 
     static void bind_event_system_listener_id()
     {
-        ScriptEngineInitializeController().require("Bind Event");
+        ReflectionInitializeController().require("Bind Event");
 
         ScriptClassRegistrar::ClassInfo info = ScriptClassRegistrar::create_type_info<EventSystemListenerID>(
                 ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassAllInts | ScriptClassRegistrar::POD);
@@ -32,5 +32,5 @@ namespace Engine
                                  &EventSystemListenerID::operator=));
     }
 
-    static ScriptEngineInitializeController on_script_init(bind_event_system_listener_id, "Bind EventSystenListenerID");
+    static ReflectionInitializeController on_script_init(bind_event_system_listener_id, "Bind EventSystenListenerID");
 }// namespace Engine

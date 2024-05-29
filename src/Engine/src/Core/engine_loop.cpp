@@ -106,8 +106,9 @@ namespace Engine
         // Initialize script engine and load reflections
         ScriptEngine::initialize();
 
-        ClassInitializeController().execute();// Load reflections
-        ScriptEngineInitializeController().execute();
+        ReflectionInitializeController().execute();
+
+        ConfigsPreInitializeController().execute();
         VFS::RootFS::create_instance(Platform::find_root_directory(argc, argv));
         ConfigManager::initialize();
 
@@ -144,7 +145,7 @@ namespace Engine
             }
         }
 
-        ClassInitializeController().execute();
+        ReflectionInitializeController().execute();
         ScriptEngine::instance()->load_scripts();
 
         init_api();
@@ -164,10 +165,8 @@ namespace Engine
         if (show_splash)
         {
             Engine::show_splash_screen();
-            Engine::splash_screen_text(Engine::SplashTextType::GameName,
-                                                 ConfigManager::get_string("Engine::project_name"));
-            Engine::splash_screen_text(Engine::SplashTextType::VersionInfo,
-                                                 ConfigManager::get_string("Engine::version"));
+            Engine::splash_screen_text(Engine::SplashTextType::GameName, ConfigManager::get_string("Engine::project_name"));
+            Engine::splash_screen_text(Engine::SplashTextType::VersionInfo, ConfigManager::get_string("Engine::version"));
             Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
         }
 

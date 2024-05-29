@@ -54,7 +54,7 @@ namespace Engine
         void* create_struct() const override;
         Object* create_object() const;
         size_t sizeof_class() const;
-        bool is_binded_to_script() const;
+        bool is_scriptable() const;
         Object* (*cast_to_this() const)(Object*);
         Object* (*static_constructor() const)();
         Object* singletone_instance() const;

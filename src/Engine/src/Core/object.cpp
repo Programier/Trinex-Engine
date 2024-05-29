@@ -54,7 +54,7 @@ namespace Engine
     {
         String factory = Strings::format("{}@ f()", self->name().c_str());
 
-        ScriptEngineInitializeController().require("Initialize bindings");
+        ReflectionInitializeController().require("Initialize bindings");
 
         if (!self->flags(Class::IsSingletone))
         {

@@ -1,6 +1,7 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/enum.hpp>
 #include <Core/keyboard.hpp>
 #include <Core/logger.hpp>
 #include <Core/threading.hpp>
@@ -26,12 +27,12 @@ namespace Engine
 {
     // Basic callbacks
 
-    void EventSystem::on_window_close(const Event& event)
+    void EventSystem::on_window_close(const Event& event, bool is_quit)
     {
         WindowManager* manager = WindowManager::instance();
         Window* window         = manager->find(event.window_id());
 
-        if (manager->main_window() == window)
+        if (manager->main_window() == window || is_quit)
         {
             engine_instance->request_exit();
         }
@@ -107,8 +108,8 @@ namespace Engine
         Super::create();
 
         System::new_system<EngineSystem>()->register_subsystem(this);
-        add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1));
-        add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1));
+        add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
+        add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
 
         WindowManager::instance()->add_event_callback(id(), [this](const Event& e) { push_event(e); });
 
@@ -177,6 +178,19 @@ namespace Engine
         return *this;
     }
 
+    Name EventSystem::event_name(EventType type)
+    {
+        static Enum* event_type_enum = Enum::static_find("Engine::EventType", true);
+        auto entry                   = event_type_enum->entry(static_cast<EnumerateType>(type));
+
+        if (entry)
+        {
+            return entry->name;
+        }
+
+        return Name::undefined;
+    }
+
     EventSystem& EventSystem::wait_events()
     {
         WindowManager::instance()->wait_for_events();
@@ -216,7 +230,7 @@ namespace Engine
 
     static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
     {
-        ScriptEngineInitializeController().require("Bind Event").require("Bind EventSystenListenerID");
+        ReflectionInitializeController().require("Bind Event").require("Bind EventSystenListenerID");
 
         ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
         enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);

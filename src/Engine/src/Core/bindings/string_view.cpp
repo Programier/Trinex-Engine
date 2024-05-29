@@ -61,5 +61,5 @@ namespace Engine
                 method_of<StringView::size_type, StringView, StringView, StringView::size_type>(&StringView::find_last_of));
     }
 
-    static ScriptEngineInitializeController initialize(on_init, "Bind Engine::StringView");
+    static ReflectionInitializeController initialize(on_init, "Bind Engine::StringView");
 }// namespace Engine

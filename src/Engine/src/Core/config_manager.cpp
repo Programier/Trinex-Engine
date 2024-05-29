@@ -452,7 +452,6 @@ namespace Engine
             configs_module().discard();
         }
 
-        ConfigsPreInitializeController().execute();
         ConfigManager::load_from_file("engine.config");
         ConfigsInitializeController().execute();
 

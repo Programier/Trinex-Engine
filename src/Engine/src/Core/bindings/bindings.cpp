@@ -5,7 +5,7 @@ namespace Engine
 {
     static void on_init()
     {
-        ScriptEngineInitializeController()
+        ReflectionInitializeController()
                 .require("Bind Engine Types")
                 .require("Bind Engine::Matrix")
                 .require("Bind Engine::Quaternion")
@@ -22,5 +22,5 @@ namespace Engine
                 .require("Bind Engine::Class");
     }
 
-    static ScriptEngineInitializeController bindings(on_init, "Initialize bindings");
+    static ReflectionInitializeController bindings(on_init, "Initialize bindings");
 }// namespace Engine

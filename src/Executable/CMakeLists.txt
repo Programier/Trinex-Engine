@@ -19,10 +19,3 @@ link_libraries("/home/programier/Projects/Trinex-Engine/builds/build-Release-Lin
 target_link_libraries(TrinexEngineLauncher PRIVATE TrinexEngine)
 set_target_properties(TrinexEngineLauncher PROPERTIES LINK_FLAGS "-Wl,-rpath,./libs/")
 
-if(ANDROID)
-    add_library(TrinexEngineAndroidLauncher SHARED ${SOURCES})
-    target_link_libraries(TrinexEngineAndroidLauncher PUBLIC TrinexEngine)
-    target_include_directories(TrinexEngineAndroidLauncher PUBLIC "$<BUILD_INTERFACE:${GAME_PROJECT_ROOT}/include>")
-    install(TARGETS TrinexEngineAndroidLauncher DESTINATION "./")
-endif()
-

@@ -31,14 +31,9 @@ namespace Engine
             PreInitializeController().execute();
         }
 
-        if (ClassInitializeController::is_triggered())
+        if (ReflectionInitializeController::is_triggered())
         {
-            ClassInitializeController().execute();
-        }
-
-        if (ScriptEngineInitializeController::is_triggered())
-        {
-            ScriptEngineInitializeController().execute();
+            ReflectionInitializeController().execute();
         }
 
         if (ConfigsPreInitializeController::is_triggered())
@@ -122,7 +117,7 @@ namespace Engine
         Init                   = BIT(1),
         Destroy                = BIT(2),
         PostDestroy            = BIT(3),
-        ClassInit              = BIT(4),
+        ReflectionInit         = BIT(4),
         ResourcesInit          = BIT(5),
         ScriptEngineInitialize = BIT(6),
         ConfigsInitialize      = BIT(7),
@@ -180,15 +175,12 @@ namespace Engine
 
     IMPLEMENT_CONTROLLER(PreInitializeController, PreInit);
     IMPLEMENT_CONTROLLER(InitializeController, Init);
-    //IMPLEMENT_CONTROLLER(PostInitializeController, PostInit);
 
     IMPLEMENT_CONTROLLER(DestroyController, Destroy);
     IMPLEMENT_CONTROLLER(PostDestroyController, PostDestroy);
 
-
-    IMPLEMENT_CONTROLLER(ClassInitializeController, ClassInit);
+    IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInit);
     IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, ResourcesInit);
-    IMPLEMENT_CONTROLLER(ScriptEngineInitializeController, ScriptEngineInitialize);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
     IMPLEMENT_CONTROLLER(ConfigsPreInitializeController, ConfigsPreInitialize);
 

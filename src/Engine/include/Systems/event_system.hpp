@@ -33,7 +33,7 @@ namespace Engine
         EventSystem& pool_events();
         EventSystem();
 
-        void on_window_close(const Event& event);
+        void on_window_close(const Event& event, bool is_quit);
 
     public:
         const ListenerMap& listeners() const;
@@ -43,6 +43,7 @@ namespace Engine
         EventSystem& update(float dt) override;
         const EventSystem& push_event(const Event& event) const;
         EventSystem& shutdown() override;
+        static Name event_name(EventType type);
 
         EventSystem& process_event_method(ProcessEventMethod method);
 

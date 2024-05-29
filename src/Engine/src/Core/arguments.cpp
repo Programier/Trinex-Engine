@@ -14,11 +14,17 @@ namespace Engine
         type       = Type::Define;
     }
 
-    Arguments::Argument::Argument(const String& name, const String& value) : Argument(name)
+    Arguments::Argument::Argument(const String& name, const String& value) : Argument(name, StringView(value))
+    {}
+
+    Arguments::Argument::Argument(const String& name, const StringView& value) : Argument(name)
     {
-        data = value;
+        data = String(value);
         type = Type::String;
     }
+
+    Arguments::Argument::Argument(const String& name, const char* value) : Argument(name, StringView(value))
+    {}
 
     Arguments::Argument::Argument(const String& name, const ArrayType& value) : Argument(name)
     {

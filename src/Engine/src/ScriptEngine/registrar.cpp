@@ -113,7 +113,7 @@ namespace Engine
     }
 
 
-    ScriptClassRegistrar::ScriptClassRegistrar(class Class* _class)
+    ScriptClassRegistrar::ScriptClassRegistrar(const class Class* _class)
         : m_class_base_name(_class->base_name()), m_class_namespace_name(_class->namespace_name()), m_class_name(_class->name()),
           m_engine(ScriptEngine::instance()->as_engine())
     {
@@ -179,7 +179,7 @@ namespace Engine
     }
 
 
-    void ScriptClassRegistrar::declare_as_class(Class* _class)
+    void ScriptClassRegistrar::declare_as_class(const Class* _class)
     {
         ClassInfo info;
         info      = {};
@@ -187,7 +187,7 @@ namespace Engine
         declare_as_class(_class, info);
     }
 
-    void ScriptClassRegistrar::declare_as_class(Class* _class, const ClassInfo& info)
+    void ScriptClassRegistrar::declare_as_class(const Class* _class, const ClassInfo& info)
     {
         static_declare_new_class(_class->namespace_name(), _class->base_name(), info);
 
@@ -196,7 +196,7 @@ namespace Engine
         asIScriptEngine* engine = ScriptEngine::instance()->as_engine();
         for (Class* parent = _class->parent(); parent != nullptr; parent = parent->parent())
         {
-            if (parent->is_binded_to_script())
+            if (parent->is_scriptable())
             {
                 String op = Strings::format("{}@ opCast()", _class->name().c_str());
                 assert(engine->RegisterObjectMethod(parent->name().c_str(), op.c_str(), asFUNCTION(parent->cast_to_this()),

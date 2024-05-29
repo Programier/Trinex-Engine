@@ -18,8 +18,8 @@ namespace Engine::Platform
 
     ENGINE_EXPORT Path find_root_directory(int_t argc, const char** argv)
     {
-        // TODO: It needs to be made more scalable
-        return Strings::format("/sdcard/TrinexGames/{}/", ConfigManager::get_string("Engine::project_name"));
+        String path = Strings::format("/sdcard/TrinexGames/{}/", ConfigManager::get_string("Engine::project_name"));
+        return path;
     }
 
     ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()

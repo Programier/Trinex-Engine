@@ -15,6 +15,7 @@ namespace Engine
             Define,
             String,
             Array,
+            UserData,
         };
 
         struct ENGINE_EXPORT Argument {
@@ -25,7 +26,16 @@ namespace Engine
             Argument();
             Argument(const String& name);
             Argument(const String& name, const String& value);
+            Argument(const String& name, const StringView& value);
+            Argument(const String& name, const char* value);
             Argument(const String& name, const ArrayType& value);
+
+            template<typename T>
+            Argument(const String& name, const T& value) : Argument(name)
+            {
+                data = value;
+                type = Type::UserData;
+            }
 
             copy_constructors_hpp(Argument);
 

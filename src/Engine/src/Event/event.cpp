@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/enum.hpp>
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <ScriptEngine/registrar.hpp>
@@ -28,75 +29,46 @@ namespace Engine
         return m_any;
     }
 
+    implement_enum(EventType, Engine, {"Quit", EventType::Quit}, {"AppTerminating", EventType::AppTerminating},
+                   {"AppLowMemory", EventType::AppLowMemory}, {"AppWillEnterBackground", EventType::AppWillEnterBackground},
+                   {"AppDidEnterBackground", EventType::AppDidEnterBackground},
+                   {"AppWillEnterForeground", EventType::AppWillEnterForeground},
+                   {"AppDidEnterForeground", EventType::AppDidEnterForeground}, {"LocaleChanged", EventType::LocaleChanged},
+                   {"Display", EventType::Display}, {"WindowNone", EventType::WindowNone},
+                   {"WindowShown", EventType::WindowShown}, {"WindowHidden", EventType::WindowHidden},
+                   {"WindowExposed", EventType::WindowExposed}, {"WindowMoved", EventType::WindowMoved},
+                   {"WindowResized", EventType::WindowResized}, {"WindowSizeChanged", EventType::WindowSizeChanged},
+                   {"WindowMinimized", EventType::WindowMinimized}, {"WindowMaximized", EventType::WindowMaximized},
+                   {"WindowRestored", EventType::WindowRestored}, {"WindowEnter", EventType::WindowEnter},
+                   {"WindowLeave", EventType::WindowLeave}, {"WindowFocusGained", EventType::WindowFocusGained},
+                   {"WindowFocusLost", EventType::WindowFocusLost}, {"WindowClose", EventType::WindowClose},
+                   {"WindowTakeFocus", EventType::WindowTakeFocus}, {"WindowHitTest", EventType::WindowHitTest},
+                   {"WindowIccProfChanged", EventType::WindowIccProfChanged},
+                   {"WindowDisplayChanged", EventType::WindowDisplayChanged}, {"KeyDown", EventType::KeyDown},
+                   {"KeyUp", EventType::KeyUp}, {"TextEditing", EventType::TextEditing}, {"TextInput", EventType::TextInput},
+                   {"KeyMapChanged", EventType::KeyMapChanged}, {"TextEditingExt", EventType::TextEditingExt},
+                   {"MouseMotion", EventType::MouseMotion}, {"MouseButtonUp", EventType::MouseButtonUp},
+                   {"MouseButtonDown", EventType::MouseButtonDown}, {"MouseWheel", EventType::MouseWheel},
+                   {"ControllerAxisMotion", EventType::ControllerAxisMotion},
+                   {"ControllerButtonUp", EventType::ControllerButtonUp},
+                   {"ControllerButtonDown", EventType::ControllerButtonDown},
+                   {"ControllerDeviceAdded", EventType::ControllerDeviceAdded},
+                   {"ControllerDeviceRemoved", EventType::ControllerDeviceRemoved},
+                   {"ControllerDeviceRemapped", EventType::ControllerDeviceRemapped},
+                   {"ControllerTouchPadDown", EventType::ControllerTouchPadDown},
+                   {"ControllerTouchPadMotion", EventType::ControllerTouchPadMotion},
+                   {"ControllerTouchPadUp", EventType::ControllerTouchPadUp},
+                   {"ControllerSensorUpdate", EventType::ControllerSensorUpdate}, {"FingerDown", EventType::FingerDown},
+                   {"FingerUp", EventType::FingerUp}, {"FingerMotion", EventType::FingerMotion},
+                   {"DollarGesture", EventType::DollarGesture}, {"DollarRecord", EventType::DollarRecord},
+                   {"MultiGesture", EventType::MultiGesture}, {"ClipboardUpdate", EventType::ClipboardUpdate},
+                   {"DropFile", EventType::DropFile}, {"DropText", EventType::DropText}, {"DropBegin", EventType::DropBegin},
+                   {"DropComplete", EventType::DropComplete}, {"AudioDeviceAdded", EventType::AudioDeviceAdded},
+                   {"AudioDeviceRemoved", EventType::AudioDeviceRemoved}, {"SensorUpdat", EventType::SensorUpdate});
 
     static void on_init()
     {
-        {
-            ScriptEnumRegistrar registrar("Engine::EventType");
-            registrar.set("Quit", EventType::Quit);
-            registrar.set("AppTerminating", EventType::AppTerminating);
-            registrar.set("AppLowMemory", EventType::AppLowMemory);
-            registrar.set("AppWillEnterBackground", EventType::AppWillEnterBackground);
-            registrar.set("AppDidEnterBackground", EventType::AppDidEnterBackground);
-            registrar.set("AppWillEnterForeground", EventType::AppWillEnterForeground);
-            registrar.set("AppDidEnterForeground", EventType::AppDidEnterForeground);
-            registrar.set("LocaleChanged", EventType::LocaleChanged);
-            registrar.set("Display", EventType::Display);
-            registrar.set("WindowNone", EventType::WindowNone);
-            registrar.set("WindowShown", EventType::WindowShown);
-            registrar.set("WindowHidden", EventType::WindowHidden);
-            registrar.set("WindowExposed", EventType::WindowExposed);
-            registrar.set("WindowMoved", EventType::WindowMoved);
-            registrar.set("WindowResized", EventType::WindowResized);
-            registrar.set("WindowSizeChanged", EventType::WindowSizeChanged);
-            registrar.set("WindowMinimized", EventType::WindowMinimized);
-            registrar.set("WindowMaximized", EventType::WindowMaximized);
-            registrar.set("WindowRestored", EventType::WindowRestored);
-            registrar.set("WindowEnter", EventType::WindowEnter);
-            registrar.set("WindowLeave", EventType::WindowLeave);
-            registrar.set("WindowFocusGained", EventType::WindowFocusGained);
-            registrar.set("WindowFocusLost", EventType::WindowFocusLost);
-            registrar.set("WindowClose", EventType::WindowClose);
-            registrar.set("WindowTakeFocus", EventType::WindowTakeFocus);
-            registrar.set("WindowHitTest", EventType::WindowHitTest);
-            registrar.set("WindowIccProfChanged", EventType::WindowIccProfChanged);
-            registrar.set("WindowDisplayChanged", EventType::WindowDisplayChanged);
-            registrar.set("KeyDown", EventType::KeyDown);
-            registrar.set("KeyUp", EventType::KeyUp);
-            registrar.set("TextEditing", EventType::TextEditing);
-            registrar.set("TextInput", EventType::TextInput);
-            registrar.set("KeyMapChanged", EventType::KeyMapChanged);
-            registrar.set("TextEditingExt", EventType::TextEditingExt);
-            registrar.set("MouseMotion", EventType::MouseMotion);
-            registrar.set("MouseButtonUp", EventType::MouseButtonUp);
-            registrar.set("MouseButtonDown", EventType::MouseButtonDown);
-            registrar.set("MouseWheel", EventType::MouseWheel);
-            registrar.set("ControllerAxisMotion", EventType::ControllerAxisMotion);
-            registrar.set("ControllerButtonUp", EventType::ControllerButtonUp);
-            registrar.set("ControllerButtonDown", EventType::ControllerButtonDown);
-            registrar.set("ControllerDeviceAdded", EventType::ControllerDeviceAdded);
-            registrar.set("ControllerDeviceRemoved", EventType::ControllerDeviceRemoved);
-            registrar.set("ControllerDeviceRemapped", EventType::ControllerDeviceRemapped);
-            registrar.set("ControllerTouchPadDown", EventType::ControllerTouchPadDown);
-            registrar.set("ControllerTouchPadMotion", EventType::ControllerTouchPadMotion);
-            registrar.set("ControllerTouchPadUp", EventType::ControllerTouchPadUp);
-            registrar.set("ControllerSensorUpdate", EventType::ControllerSensorUpdate);
-            registrar.set("FingerDown", EventType::FingerDown);
-            registrar.set("FingerUp", EventType::FingerUp);
-            registrar.set("FingerMotion", EventType::FingerMotion);
-            registrar.set("DollarGesture", EventType::DollarGesture);
-            registrar.set("DollarRecord", EventType::DollarRecord);
-            registrar.set("MultiGesture", EventType::MultiGesture);
-            registrar.set("ClipboardUpdate", EventType::ClipboardUpdate);
-            registrar.set("DropFile", EventType::DropFile);
-            registrar.set("DropText", EventType::DropText);
-            registrar.set("DropBegin", EventType::DropBegin);
-            registrar.set("DropComplete", EventType::DropComplete);
-            registrar.set("AudioDeviceAdded", EventType::AudioDeviceAdded);
-            registrar.set("AudioDeviceRemoved", EventType::AudioDeviceRemoved);
-            registrar.set("SensorUpdat", EventType::SensorUpdate);
-        }
-
+        Enum::static_find("Engine::EventType", true);
         ScriptClassRegistrar registrar("Engine::Event",
                                        ScriptClassRegistrar::create_type_info<Event>(ScriptClassRegistrar::Value));
 
@@ -115,5 +87,5 @@ namespace Engine
         registrar.method("const any& any() const", &Event::any);
     }
 
-    static ScriptEngineInitializeController initializer(on_init, "Bind Event");
+    static ReflectionInitializeController initializer(on_init, "Bind Event");
 }// namespace Engine

@@ -337,7 +337,7 @@ namespace Engine
 
     static void on_init()
     {
-        ScriptEngineInitializeController()
+        ReflectionInitializeController()
                 .require("Bind Engine::Vector")
                 .require("Bind Engine::IntVector")
                 .require("Bind Engine::UIntVector");
@@ -1371,5 +1371,5 @@ namespace Engine
         engine->default_namespace("");
     }
 
-    static ScriptEngineInitializeController initializer(on_init, "Bind ImGui");
+    static ReflectionInitializeController initializer(on_init, "Bind ImGui");
 }// namespace Engine
