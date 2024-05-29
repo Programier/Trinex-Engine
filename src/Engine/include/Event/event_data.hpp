@@ -18,11 +18,20 @@ namespace Engine
     using AppDidEnterForegroundEvent  = EmptyEvent;
     using LocaleChangedEvent          = EmptyEvent;
 
-    struct DisplayEvent {
+    struct DisplayAddedEvent {
     };
 
+    struct DisplayRemovedEvent {
+    };
 
-    struct WindowEvent {
+    struct ENGINE_EXPORT DisplayOrientationChangedEvent {
+        WindowOrientation orientation;
+    };
+
+    using WindowShownEvent  = EmptyStruct;
+    using WindowHiddenEvent = EmptyEvent;
+
+    struct ENGINE_EXPORT WindowEvent {
         union
         {
             int_t x;
@@ -36,81 +45,85 @@ namespace Engine
         };
     };
 
-    struct KeyEvent {
+    using WindowMovedEvent       = WindowEvent;
+    using WindowResizedEvent     = WindowEvent;
+    using WindowMinimizedEvent   = EmptyEvent;
+    using WindowMaximizedEvent   = EmptyEvent;
+    using WindowRestoredEvent    = EmptyEvent;
+    using WindowFocusGainedEvent = EmptyEvent;
+    using WindowFocusLostEvent   = EmptyEvent;
+    using WindowCloseEvent       = EmptyEvent;
+    using WindowTakeFocusEvent   = EmptyEvent;
+
+
+    struct ENGINE_EXPORT KeyEvent {
         Keyboard::Key key;
         bool repeat = false;
     };
 
+    using KeyDownEvent = KeyEvent;
+    using KeyUpEvent   = KeyEvent;
 
-    struct MouseMotionEvent {
+    struct ENGINE_EXPORT MouseMotionEvent {
         int32_t x;
         int32_t y;
         int32_t xrel;
         int32_t yrel;
     };
 
-    struct MouseButtonEvent {
+    struct ENGINE_EXPORT MouseButtonEvent {
         Mouse::Button button;
         uint_t clicks;
         int_t x;
         int_t y;
     };
 
-    struct MouseWheelEvent {
+
+    using MouseButtonUpEvent   = MouseButtonEvent;
+    using MouseButtonDownEvent = MouseButtonEvent;
+
+    struct ENGINE_EXPORT MouseWheelEvent {
         Mouse::Direction direction;
         float x;
         float y;
     };
 
 
-    struct EventWithControllerId {
+    // Game controller events
+    struct ENGINE_EXPORT EventWithControllerId {
         Identifier id;
     };
 
-    using ControllerDeviceAddedEvent   = EventWithControllerId;
-    using ControllerDeviceRemovedEvent = EventWithControllerId;
-
-    struct ControllerAxisMotionEvent : EventWithControllerId {
+    struct ENGINE_EXPORT ControllerAxisMotionEvent : EventWithControllerId {
         GameController::Axis axis;
         short_t value;
     };
 
-    /*
-    // Display events
-    DisplayEvent,
+    // struct ENGINE_EXPORT ControllerButtonEvent : EventWithControllerId {
+    //     GameController::LeftX axis;
+    //     short_t value;
+    // };
 
-            // Window events
-            WindowEvent, SysWMEvent,
+    //         ControllerButtonUp,
+    //         ControllerButtonDown,
 
-            // Keyboard events
-            KeyDown, KeyUp, TextEditing, TextInput, KeyMapChanged, TextEditingExt,
+    //         using ControllerDeviceAddedEvent   = EventWithControllerId;
+    //         using ControllerDeviceRemovedEvent = EventWithControllerId;
+    //         ControllerDeviceRemapped,
+    //         ControllerTouchPadDown,
+    //         ControllerTouchPadMotion,
+    //         ControllerTouchPadUp,
+    //         ControllerSensorUpdate,
 
-            // Mouse events
-            MouseMotion, MouseButtonUp, MouseButtonDown, MouseWheel,
+    //         // Touch events
+    //         FingerDown,
+    //         FingerUp,
+    //         FingerMotion,
 
+    //         // Drag and drop events
+    //         DropFile,
+    //         DropText,
+    //         DropBegin,
+    //         DropComplete,
 
-
-            // Game controller events
-            ControllerAxisMotion, ControllerButtonUp, ControllerButtonDown, ControllerDeviceAdded,
-            ControllerDeviceRemoved, ControllerDeviceRemapped, ControllerTouchPadDown, ControllerTouchPadMotion,
-            ControllerTouchPadUp, ControllerSensorUpdate,
-
-            // Touch events
-            FingerDown, FingerUp, FingerMotion,
-
-            // Gesture events
-            DollarGesture, DollarRecord, MultiGesture,
-
-            // Clipboard events
-            ClipboardUpdate,
-
-            // Drag and drop events
-            DropFile, DropText, DropBegin, DropComplete,
-
-            // Audio hotplug events
-            AudioDeviceAdded, AudioDeviceRemoved,
-
-            // Sensor events
-            SensorUpdate* /
-*/
 }// namespace Engine

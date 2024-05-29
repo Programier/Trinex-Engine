@@ -31,6 +31,7 @@ namespace Engine
         WindowManagerInterface& wait_for_events() override;
 
         void process_event();
+        void process_window_event();
         void process_imgui_event();
         void send_event(const Event& event);
         void process_mouse_button();

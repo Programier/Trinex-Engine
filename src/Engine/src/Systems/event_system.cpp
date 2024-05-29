@@ -114,7 +114,6 @@ namespace Engine
         WindowManager::instance()->add_event_callback(id(), [this](const Event& e) { push_event(e); });
 
         add_listener(EventType::WindowResized, on_resize);
-        add_listener(EventType::WindowSizeChanged, on_resize);
 
         // Register subsystems
         new_system<KeyboardSystem>();

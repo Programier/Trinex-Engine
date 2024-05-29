@@ -16,39 +16,29 @@ namespace Engine
         AppDidEnterBackground,
         AppWillEnterForeground,
         AppDidEnterForeground,
-        LocaleChanged,
 
         // Display events
-        Display,
+        DisplayAdded,
+        DisplayRemoved,
+        DisplayOrientationChanged,
 
         // Window events
-        WindowNone,
-        WindowShown,
+        WindowShown,//
         WindowHidden,
-        WindowExposed,
         WindowMoved,
         WindowResized,
-        WindowSizeChanged,
         WindowMinimized,
         WindowMaximized,
+
         WindowRestored,
-        WindowEnter,
-        WindowLeave,
         WindowFocusGained,
         WindowFocusLost,
         WindowClose,
         WindowTakeFocus,
-        WindowHitTest,
-        WindowIccProfChanged,
-        WindowDisplayChanged,
 
         // Keyboard events
         KeyDown,
         KeyUp,
-        TextEditing,
-        TextInput,
-        KeyMapChanged,
-        TextEditingExt,
 
         // Mouse events
         MouseMotion,
@@ -73,26 +63,11 @@ namespace Engine
         FingerUp,
         FingerMotion,
 
-        // Gesture events
-        DollarGesture,
-        DollarRecord,
-        MultiGesture,
-
-        // Clipboard events
-        ClipboardUpdate,
-
         // Drag and drop events
         DropFile,
         DropText,
         DropBegin,
         DropComplete,
-
-        // Audio hotplug events
-        AudioDeviceAdded,
-        AudioDeviceRemoved,
-
-        // Sensor events
-        SensorUpdate
     };
 
 

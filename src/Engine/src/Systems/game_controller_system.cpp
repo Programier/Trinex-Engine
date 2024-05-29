@@ -14,15 +14,15 @@ namespace Engine
 
     void GameControllerSystem::on_controller_added(const Event& event)
     {
-        const ControllerDeviceAddedEvent& e = event.get<const ControllerDeviceAddedEvent&>();
-        m_controllers[e.id]                = new GameController(e.id);
+        //const ControllerDeviceAddedEvent& e = event.get<const ControllerDeviceAddedEvent&>();
+        //m_controllers[e.id]                = new GameController(e.id);
     }
 
     void GameControllerSystem::on_controller_removed(const Event& event)
     {
-        const ControllerDeviceRemovedEvent& e = event.get<const ControllerDeviceRemovedEvent&>();
-        delete m_controllers[e.id];
-        m_controllers.erase(e.id);
+        // const ControllerDeviceRemovedEvent& e = event.get<const ControllerDeviceRemovedEvent&>();
+        // delete m_controllers[e.id];
+        // m_controllers.erase(e.id);
     }
 
     void GameControllerSystem::on_axis_motion(const Event& event)

@@ -249,8 +249,8 @@ namespace Engine
         auto extentions = m_window->required_extensions();
         for (auto& extension : extentions)
         {
-            vulkan_info_log("VulkanAPI", "Enable extention %s", extension);
-            instance_builder.enable_extension(extension);
+            vulkan_info_log("VulkanAPI", "Enable extention %s", extension.c_str());
+            instance_builder.enable_extension(extension.c_str());
         }
 
 #if ENABLE_VALIDATION_LAYERS

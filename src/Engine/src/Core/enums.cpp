@@ -87,12 +87,11 @@ namespace Engine
                    {"OrInverted", LogicOp::OrInverted}, {"Nand", LogicOp::Nand}, {"Set", LogicOp::Set});
 
     implement_enum(WindowAttribute, Engine, {"None", WindowAttribute::None}, {"Resizable", WindowAttribute::Resizable},
-                   {"FullScreen", WindowAttribute::FullScreen}, {"FullScreenDesktop", WindowAttribute::FullScreenDesktop},
-                   {"Shown", WindowAttribute::Shown}, {"Hidden", WindowAttribute::Hidden},
-                   {"BorderLess", WindowAttribute::BorderLess}, {"MouseFocus", WindowAttribute::MouseFocus},
-                   {"InputFocus", WindowAttribute::InputFocus}, {"InputGrabbed", WindowAttribute::InputGrabbed},
-                   {"Minimized", WindowAttribute::Minimized}, {"Maximized", WindowAttribute::Maximized},
-                   {"TransparentFramebuffer", WindowAttribute::TransparentFramebuffer},
+                   {"FullScreen", WindowAttribute::FullScreen}, {"Shown", WindowAttribute::Shown},
+                   {"Hidden", WindowAttribute::Hidden}, {"BorderLess", WindowAttribute::BorderLess},
+                   {"MouseFocus", WindowAttribute::MouseFocus}, {"InputFocus", WindowAttribute::InputFocus},
+                   {"InputGrabbed", WindowAttribute::InputGrabbed}, {"Minimized", WindowAttribute::Minimized},
+                   {"Maximized", WindowAttribute::Maximized}, {"TransparentFramebuffer", WindowAttribute::TransparentFramebuffer},
                    {"MouseCapture", WindowAttribute::MouseCapture}, {"AllowHighDPI", WindowAttribute::AllowHighDPI},
                    {"MouseGrabbed", WindowAttribute::MouseGrabbed}, {"KeyboardGrabbed", WindowAttribute::KeyboardGrabbed});
 

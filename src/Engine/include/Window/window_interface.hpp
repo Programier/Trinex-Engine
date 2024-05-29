@@ -48,7 +48,7 @@ namespace Engine
         virtual CursorMode cursor_mode()                                                  = 0;
         virtual bool support_orientation(WindowOrientation orientation)                   = 0;
         virtual WindowInterface& present()                                                = 0;
-        virtual Vector<const char*> required_extensions()                                 = 0;
+        virtual Vector<String> required_extensions()                                      = 0;
         virtual WindowInterface& vsync(bool)                                              = 0;
         virtual bool vsync()                                                              = 0;
         virtual Identifier id()                                                           = 0;

@@ -33,28 +33,6 @@ namespace Engine
                                                     {SDL_BUTTON_X1, Mouse::Button::X1},
                                                     {SDL_BUTTON_X2, Mouse::Button::X2}};
 
-    static ValueMap<EventType> window_event_types = {
-            {SDL_WINDOWEVENT_NONE, EventType::WindowNone},
-            {SDL_WINDOWEVENT_SHOWN, EventType::WindowShown},
-            {SDL_WINDOWEVENT_HIDDEN, EventType::WindowHidden},
-            {SDL_WINDOWEVENT_EXPOSED, EventType::WindowExposed},
-            {SDL_WINDOWEVENT_MOVED, EventType::WindowMoved},
-            {SDL_WINDOWEVENT_RESIZED, EventType::WindowResized},
-            {SDL_WINDOWEVENT_SIZE_CHANGED, EventType::WindowSizeChanged},
-            {SDL_WINDOWEVENT_MINIMIZED, EventType::WindowMinimized},
-            {SDL_WINDOWEVENT_MAXIMIZED, EventType::WindowMaximized},
-            {SDL_WINDOWEVENT_RESTORED, EventType::WindowRestored},
-            {SDL_WINDOWEVENT_ENTER, EventType::WindowEnter},
-            {SDL_WINDOWEVENT_LEAVE, EventType::WindowLeave},
-            {SDL_WINDOWEVENT_FOCUS_GAINED, EventType::WindowFocusGained},
-            {SDL_WINDOWEVENT_FOCUS_LOST, EventType::WindowFocusLost},
-            {SDL_WINDOWEVENT_CLOSE, EventType::WindowClose},
-            {SDL_WINDOWEVENT_TAKE_FOCUS, EventType::WindowTakeFocus},
-            {SDL_WINDOWEVENT_HIT_TEST, EventType::WindowHitTest},
-            {SDL_WINDOWEVENT_ICCPROF_CHANGED, EventType::WindowIccProfChanged},
-            {SDL_WINDOWEVENT_DISPLAY_CHANGED, EventType::WindowDisplayChanged},
-    };
-
     static ValueMap<Keyboard::Key> keys = {
             {SDL_SCANCODE_UNKNOWN, Keyboard::Key::Unknown},
             {SDL_SCANCODE_SPACE, Keyboard::Key::Space},
@@ -370,6 +348,64 @@ namespace Engine
         }
     }
 
+    void SDL2_WindowManagerInterface::process_window_event()
+    {
+        int_t x = m_event.window.data1;
+        int_t y = m_event.window.data2;
+
+        switch (m_event.window.event)
+        {
+            case SDL_WINDOWEVENT_SHOWN:
+                new_event(WindowShown, WindowShownEvent());
+                break;
+            case SDL_WINDOWEVENT_HIDDEN:
+                new_event(WindowHidden, WindowHiddenEvent());
+                break;
+
+            case SDL_WINDOWEVENT_MOVED:
+            {
+                WindowMovedEvent e;
+                e.x = x;
+                e.y = y;
+                new_event(WindowMoved, e);
+                break;
+            }
+
+            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+            {
+                WindowResizedEvent e;
+                e.x = x;
+                e.y = y;
+                new_event(WindowResized, e);
+                break;
+            }
+
+            case SDL_WINDOWEVENT_MINIMIZED:
+                new_event(WindowMinimized, WindowMinimizedEvent());
+                break;
+            case SDL_WINDOWEVENT_MAXIMIZED:
+                new_event(WindowMaximized, WindowMaximizedEvent());
+                break;
+            case SDL_WINDOWEVENT_RESTORED:
+                new_event(WindowRestored, WindowResizedEvent());
+                break;
+
+            case SDL_WINDOWEVENT_TAKE_FOCUS:
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                new_event(WindowFocusGained, WindowFocusGainedEvent());
+                break;
+
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                new_event(WindowFocusLost, WindowFocusLostEvent());
+                break;
+
+            case SDL_WINDOWEVENT_CLOSE:
+                new_event(WindowClose, WindowCloseEvent());
+                break;
+        }
+    }
+
     void SDL2_WindowManagerInterface::process_event()
     {
         switch (m_event.type)
@@ -402,10 +438,6 @@ namespace Engine
                 new_event(AppDidEnterForeground, AppDidEnterForegroundEvent());
                 break;
 
-            case SDL_LOCALECHANGED:
-                new_event(LocaleChanged, LocaleChangedEvent());
-                break;
-
             case SDL_DISPLAYEVENT:
             {
                 break;
@@ -413,16 +445,7 @@ namespace Engine
 
             case SDL_WINDOWEVENT:
             {
-                auto it = window_event_types.find(m_event.window.event);
-                if (it != window_event_types.end())
-                {
-                    WindowEvent engine_event;
-
-                    engine_event.x = m_event.window.data1;
-                    engine_event.y = m_event.window.data2;
-
-                    new_event_typed(it->second, engine_event);
-                }
+                process_window_event();
                 break;
             }
 
@@ -493,93 +516,42 @@ namespace Engine
                 break;
             }
 
-            case SDL_CONTROLLERDEVICEADDED:
-            {
-                m_game_controllers[m_event.cdevice.which] = SDL_GameControllerOpen(m_event.cdevice.which);
-                ControllerDeviceAddedEvent c_event;
-                c_event.id = static_cast<Identifier>(m_event.cdevice.which) + 1;
-                new_event(ControllerDeviceAdded, c_event);
-                break;
-            }
+                // case SDL_CONTROLLERDEVICEADDED:
+                // {
+                //     m_game_controllers[m_event.cdevice.which] = SDL_GameControllerOpen(m_event.cdevice.which);
+                //      c_event;
+                //     c_event.id = static_cast<Identifier>(m_event.cdevice.which) + 1;
+                //     new_event(ControllerDeviceAdded, m_event);
+                //     break;
+                // }
 
-            case SDL_CONTROLLERDEVICEREMOVED:
-            {
-                SDL_GameControllerClose(m_game_controllers[m_event.cdevice.which]);
-                m_game_controllers.erase(m_event.cdevice.which);
-                ControllerDeviceAddedEvent c_event;
-                c_event.id = static_cast<Identifier>(m_event.cdevice.which) + 1;
-                new_event(ControllerDeviceRemoved, c_event);
-                break;
-            }
+                // case SDL_CONTROLLERDEVICEREMOVED:
+                // {
+                //     SDL_GameControllerClose(m_game_controllers[m_event.cdevice.which]);
+                //     m_game_controllers.erase(m_event.cdevice.which);
+                //     ControllerDeviceAddedEvent c_event;
+                //     c_event.id = static_cast<Identifier>(m_event.cdevice.which) + 1;
+                //     new_event(ControllerDeviceRemoved, c_event);
+                //     break;
+                // }
 
-            case SDL_CONTROLLERAXISMOTION:
-            {
-                ControllerAxisMotionEvent motion_event;
-                motion_event.id = static_cast<Identifier>(m_event.caxis.which) + 1;
-                try
-                {
-                    motion_event.axis = axis_type.at(m_event.caxis.axis);
-                }
-                catch (...)
-                {
-                    motion_event.axis = GameController::Axis::None;
-                }
+                // case SDL_CONTROLLERAXISMOTION:
+                // {
+                //     ControllerAxisMotionEvent motion_event;
+                //     motion_event.id = static_cast<Identifier>(m_event.caxis.which) + 1;
+                //     try
+                //     {
+                //         motion_event.axis = axis_type.at(m_event.caxis.axis);
+                //     }
+                //     catch (...)
+                //     {
+                //         motion_event.axis = GameController::Axis::None;
+                //     }
 
-                motion_event.value = m_event.caxis.value;
-                new_event(ControllerAxisMotion, motion_event);
-                break;
-            }
-
-#define kek(x)                                                                                                                   \
-    case x:                                                                                                                      \
-    {                                                                                                                            \
-        info_log("SDL", #x);                                                                                                     \
-        break;                                                                                                                   \
-    }
-
-                kek(SDL_CONTROLLERBUTTONDOWN);
-                kek(SDL_CONTROLLERBUTTONUP);
-                kek(SDL_CONTROLLERDEVICEREMAPPED);
-                kek(SDL_CONTROLLERTOUCHPADDOWN);
-                kek(SDL_CONTROLLERTOUCHPADMOTION);
-                kek(SDL_CONTROLLERTOUCHPADUP);
-                kek(SDL_CONTROLLERSENSORUPDATE);
-
-
-                //                    SDL_TEXTEDITING,
-                //                    SDL_TEXTINPUT,
-                //                    SDL_KEYMAPCHANGED,
-                //                    SDL_TEXTEDITING_EXT,
-
-
-                //                    SDL_FINGERDOWN,
-                //                    SDL_FINGERUP,
-                //                    SDL_FINGERMOTION,
-
-                //                    SDL_DOLLARGESTURE,
-                //                    SDL_DOLLARRECORD,
-                //                    SDL_MULTIGESTURE,
-
-                //                    SDL_CLIPBOARDUPDATE,
-
-                //                    SDL_DROPFILE,
-                //                    SDL_DROPTEXT,
-                //                    SDL_DROPBEGIN,
-                //                    SDL_DROPCOMPLETE,
-
-                //                    SDL_AUDIODEVICEADDED,
-                //                    SDL_AUDIODEVICEREMOVED,
-
-                //                    SDL_SENSORUPDATE,
-
-                //                    SDL_RENDER_TARGETS_RESET,
-                //                    SDL_RENDER_DEVICE_RESET,
-
-                //                    SDL_POLLSENTINEL,
-
-                //                    SDL_USEREVENT,
-
-                //                    SDL_LASTEVENT
+                //     motion_event.value = m_event.caxis.value;
+                //     new_event(ControllerAxisMotion, motion_event);
+                //     break;
+                // }
         }
 
 

@@ -17,7 +17,6 @@ namespace Engine
     static const Map<WindowAttribute, SDL_WindowFlags> window_attributes = {
             {WindowAttribute::Resizable, SDL_WINDOW_RESIZABLE},
             {WindowAttribute::FullScreen, SDL_WINDOW_FULLSCREEN},
-            {WindowAttribute::FullScreenDesktop, SDL_WINDOW_FULLSCREEN_DESKTOP},
             {WindowAttribute::Shown, SDL_WINDOW_SHOWN},
             {WindowAttribute::Hidden, SDL_WINDOW_HIDDEN},
             {WindowAttribute::BorderLess, SDL_WINDOW_BORDERLESS},
@@ -487,7 +486,6 @@ namespace Engine
             fullscreen_mode.m_fullscreen = false;
             fullscreen_mode.m_flag       = 0;
 
-
             switch (attrib)
             {
                 case WindowAttribute::Resizable:
@@ -496,11 +494,6 @@ namespace Engine
 
                 case WindowAttribute::FullScreen:
                     fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN : 0;
-                    fullscreen_mode.m_fullscreen = true;
-                    break;
-
-                case WindowAttribute::FullScreenDesktop:
-                    fullscreen_mode.m_flag       = value ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
                     fullscreen_mode.m_fullscreen = true;
                     break;
 
@@ -706,15 +699,18 @@ namespace Engine
         return *this;
     }
 
-    Vector<const char*> WindowSDL::required_extensions()
+    Vector<String> WindowSDL::required_extensions()
     {
         if (m_api == SDL_WINDOW_VULKAN)
         {
             uint32_t count = 0;
 
             SDL_Vulkan_GetInstanceExtensions(m_window, &count, nullptr);
-            Vector<const char*> extensions(count);
-            SDL_Vulkan_GetInstanceExtensions(m_window, &count, extensions.data());
+            Vector<String> extensions(count);
+            Vector<const char*> tmp(count);
+            SDL_Vulkan_GetInstanceExtensions(m_window, &count, tmp.data());
+            std::transform(tmp.begin(), tmp.end(), extensions.begin(), [](const char* line) -> String { return line; });
+
             return extensions;
         }
 

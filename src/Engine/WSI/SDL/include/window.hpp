@@ -68,7 +68,7 @@ namespace Engine
         CursorMode cursor_mode() override;
         bool support_orientation(WindowOrientation orientation) override;
         WindowInterface& present() override;
-        Vector<const char*> required_extensions() override;
+        Vector<String> required_extensions() override;
         Identifier id() override;
 
         void* create_api_context(const char* any_text, ...) override;
