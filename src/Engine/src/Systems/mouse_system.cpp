@@ -1,12 +1,11 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/mouse_system.hpp>
 #include <Window/window_manager.hpp>
-#include <cstring>
 
 
 namespace Engine
@@ -45,7 +44,7 @@ namespace Engine
         const MouseMotionEvent& motion = e.get<const MouseMotionEvent&>();
         if (Window* window = find_window(e.window_id()))
         {
-            auto& state                = state_of(window);
+            auto& state               = state_of(window);
             state.m_pos_info.x        = motion.x;
             state.m_pos_info.y        = motion.y;
             state.m_pos_info.x_offset = motion.xrel;
@@ -60,10 +59,8 @@ namespace Engine
         {
             ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(button_event.button)];
             info.status      = Mouse::JustPressed;
-
-            info.clicks = button_event.clicks;
-            info.x      = button_event.x;
-            info.y      = button_event.y;
+            info.x           = button_event.x;
+            info.y           = button_event.y;
         }
     }
 
@@ -75,9 +72,8 @@ namespace Engine
             ButtonInfo& info = state_of(window).m_button_status[static_cast<EnumerateType>(button_event.button)];
             info.status      = Mouse::JustReleased;
 
-            info.clicks = button_event.clicks;
-            info.x      = button_event.x;
-            info.y      = button_event.y;
+            info.x = button_event.x;
+            info.y = button_event.y;
         }
     }
 
@@ -93,9 +89,8 @@ namespace Engine
     {
         if (Window* window = find_window(e.window_id()))
         {
-            const MouseWheelEvent& wheel  = e.get<const MouseWheelEvent&>();
-            auto& state                   = state_of(window);
-            state.m_wheel_info.direction = wheel.direction;
+            const MouseWheelEvent& wheel = e.get<const MouseWheelEvent&>();
+            auto& state                  = state_of(window);
             state.m_wheel_info.x         = wheel.x;
             state.m_wheel_info.y         = wheel.y;
         }
@@ -114,9 +109,8 @@ namespace Engine
                 info.status = Mouse::Released;
             }
 
-            info.x      = -1;
-            info.y      = -1;
-            info.clicks = 0;
+            info.x = -1;
+            info.y = -1;
         }
         return *this;
     }
@@ -147,7 +141,6 @@ namespace Engine
             state.m_pos_info.y_offset = 0;
 
             state.m_wheel_info.x = state.m_wheel_info.y = 0.0f;
-            state.m_wheel_info.direction                 = Mouse::None;
             process_buttons(state);
         }
         return *this;
@@ -215,8 +208,6 @@ namespace Engine
     {
         return state_of(window).m_wheel_info;
     }
-
-#define member(x) set(#x, &MouseSystem::x)
 
     implement_class(MouseSystem, Engine, 0);
 

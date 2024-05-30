@@ -12,10 +12,8 @@ namespace Engine
         Quit,
         AppTerminating,
         AppLowMemory,
-        AppWillEnterBackground,
-        AppDidEnterBackground,
-        AppWillEnterForeground,
-        AppDidEnterForeground,
+        AppPause,
+        AppResume,
 
         // Display events
         DisplayAdded,
@@ -34,7 +32,6 @@ namespace Engine
         WindowFocusGained,
         WindowFocusLost,
         WindowClose,
-        WindowTakeFocus,
 
         // Keyboard events
         KeyDown,

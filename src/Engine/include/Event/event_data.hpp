@@ -9,14 +9,11 @@ namespace Engine
 {
     using EmptyEvent = EmptyStruct;
 
-    using QuitEvent                   = EmptyEvent;
-    using AppTerminatingEvent         = EmptyEvent;
-    using AppLowMemoryEvent           = EmptyEvent;
-    using AppWillEnterBackgroundEvent = EmptyEvent;
-    using AppDidEnterBackgroundEvent  = EmptyEvent;
-    using AppWillEnterForegroundEvent = EmptyEvent;
-    using AppDidEnterForegroundEvent  = EmptyEvent;
-    using LocaleChangedEvent          = EmptyEvent;
+    using QuitEvent           = EmptyEvent;
+    using AppTerminatingEvent = EmptyEvent;
+    using AppLowMemoryEvent   = EmptyEvent;
+    using AppPauseEvent       = EmptyEvent;
+    using AppResumeEvent      = EmptyEvent;
 
     struct DisplayAddedEvent {
     };
@@ -53,12 +50,10 @@ namespace Engine
     using WindowFocusGainedEvent = EmptyEvent;
     using WindowFocusLostEvent   = EmptyEvent;
     using WindowCloseEvent       = EmptyEvent;
-    using WindowTakeFocusEvent   = EmptyEvent;
 
 
     struct ENGINE_EXPORT KeyEvent {
         Keyboard::Key key;
-        bool repeat = false;
     };
 
     using KeyDownEvent = KeyEvent;
@@ -73,7 +68,6 @@ namespace Engine
 
     struct ENGINE_EXPORT MouseButtonEvent {
         Mouse::Button button;
-        uint_t clicks;
         int_t x;
         int_t y;
     };
@@ -83,7 +77,6 @@ namespace Engine
     using MouseButtonDownEvent = MouseButtonEvent;
 
     struct ENGINE_EXPORT MouseWheelEvent {
-        Mouse::Direction direction;
         float x;
         float y;
     };

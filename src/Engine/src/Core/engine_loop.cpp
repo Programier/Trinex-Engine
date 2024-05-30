@@ -41,7 +41,7 @@ namespace Engine
         }
 
         WindowConfig config;
-        config.attributes.push_back(WindowAttribute::Hidden);
+        config.attributes.insert(WindowAttribute::Hidden);
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();
         WindowManager::instance()->create_window(config, nullptr)->hide();

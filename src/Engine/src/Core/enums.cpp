@@ -91,8 +91,7 @@ namespace Engine
                    {"Hidden", WindowAttribute::Hidden}, {"BorderLess", WindowAttribute::BorderLess},
                    {"MouseFocus", WindowAttribute::MouseFocus}, {"InputFocus", WindowAttribute::InputFocus},
                    {"InputGrabbed", WindowAttribute::InputGrabbed}, {"Minimized", WindowAttribute::Minimized},
-                   {"Maximized", WindowAttribute::Maximized}, {"TransparentFramebuffer", WindowAttribute::TransparentFramebuffer},
-                   {"MouseCapture", WindowAttribute::MouseCapture}, {"AllowHighDPI", WindowAttribute::AllowHighDPI},
+                   {"Maximized", WindowAttribute::Maximized}, {"MouseCapture", WindowAttribute::MouseCapture},
                    {"MouseGrabbed", WindowAttribute::MouseGrabbed}, {"KeyboardGrabbed", WindowAttribute::KeyboardGrabbed});
 
     implement_enum(CursorMode, Engine, {"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden});

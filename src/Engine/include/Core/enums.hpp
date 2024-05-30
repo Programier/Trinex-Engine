@@ -236,22 +236,20 @@ namespace Engine
 
     enum class WindowAttribute : EnumerateType
     {
-        None                   = 0,
-        Resizable              = 1,
-        FullScreen             = 2,
-        Shown                  = 3,
-        Hidden                 = 4,
-        BorderLess             = 5,
-        MouseFocus             = 6,
-        InputFocus             = 7,
-        InputGrabbed           = 8,
-        Minimized              = 9,
-        Maximized              = 10,
-        TransparentFramebuffer = 11,
-        MouseCapture           = 12,
-        AllowHighDPI           = 13,
-        MouseGrabbed           = 14,
-        KeyboardGrabbed        = 15,
+        None            = 0,
+        Resizable       = 1,
+        FullScreen      = 2,
+        Shown           = 3,
+        Hidden          = 4,
+        BorderLess      = 5,
+        MouseFocus      = 6,
+        InputFocus      = 7,
+        InputGrabbed    = 8,
+        Minimized       = 9,
+        Maximized       = 10,
+        MouseCapture    = 12,
+        MouseGrabbed    = 14,
+        KeyboardGrabbed = 15,
     };
 
     enum class CursorMode : EnumerateType

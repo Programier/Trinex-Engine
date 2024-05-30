@@ -11,15 +11,8 @@ namespace Engine
     void KeyboardSystem::on_key_pressed(const Event& event)
     {
         const KeyEvent& key_event = event.get<const KeyEvent&>();
-        if (key_event.repeat)
-        {
-            set(key_event.key, Keyboard::Repeat);
-        }
-        else
-        {
-            m_last_pressed_keys.push_back(key_event.key);
-            set(key_event.key, Keyboard::JustPressed);
-        }
+        m_last_pressed_keys.push_back(key_event.key);
+        set(key_event.key, Keyboard::JustPressed);
     }
 
     void KeyboardSystem::on_key_released(const Event& event)
@@ -45,10 +38,10 @@ namespace Engine
         event_system->register_subsystem(this);
 
         m_key_press_id = event_system->add_listener(EventType::KeyDown,
-                                                     std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
+                                                    std::bind(&KeyboardSystem::on_key_pressed, this, std::placeholders::_1));
 
         m_key_release_id = event_system->add_listener(EventType::KeyUp,
-                                                       std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
+                                                      std::bind(&KeyboardSystem::on_key_released, this, std::placeholders::_1));
         return *this;
     }
 
@@ -99,11 +92,7 @@ namespace Engine
     bool KeyboardSystem::is_pressed(Keyboard::Key key) const
     {
         Keyboard::Status status = status_of(key);
-        bool result             = status == Keyboard::Pressed ||//
-                      status == Keyboard::JustPressed ||        //
-                      status == Keyboard::Repeat;
-
-        return result;
+        return status == Keyboard::Pressed || status == Keyboard::JustPressed;
     }
 
     bool KeyboardSystem::is_released(Keyboard::Key key) const
@@ -119,11 +108,6 @@ namespace Engine
     bool KeyboardSystem::is_just_released(Keyboard::Key key) const
     {
         return status_of(key) == Keyboard::JustReleased;
-    }
-
-    bool KeyboardSystem::is_repeated(Keyboard::Key key) const
-    {
-        return status_of(key) == Keyboard::Repeat;
     }
 
     implement_class(KeyboardSystem, Engine, 0);

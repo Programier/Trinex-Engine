@@ -23,11 +23,9 @@ namespace Engine
             Mouse::Status status = Mouse::Status::Released;
             int_t x              = 0;
             int_t y              = 0;
-            int_t clicks         = 0;
         };
 
         struct WheelInfo {
-            Mouse::Direction direction;
             float x;
             float y;
         };

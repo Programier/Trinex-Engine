@@ -4,8 +4,8 @@
 namespace Engine
 {
     struct ENGINE_EXPORT WindowConfig {
-        Vector<WindowAttribute> attributes;
-        Vector<WindowOrientation> orientations;
+        Set<WindowAttribute> attributes;
+        Set<WindowOrientation> orientations;
 
         String title;
         String api_name;
@@ -17,5 +17,6 @@ namespace Engine
 
         WindowConfig();
         WindowConfig& initialize();
+        bool contains_attribute(WindowAttribute attribute) const;
     };
 }// namespace Engine

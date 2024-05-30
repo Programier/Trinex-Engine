@@ -1,11 +1,10 @@
 #pragma once
-#include <Core/engine_types.hpp>
 #include <Core/etl/singletone.hpp>
-#include <Window/window_manager_interface.hpp>
+#include <Core/structures.hpp>
 
 namespace Engine
 {
-    class WindowManagerInterface;
+    struct WindowInterface;
     class Window;
     struct WindowConfig;
     struct MonitorInfo;
@@ -14,7 +13,6 @@ namespace Engine
     {
     private:
         static WindowManager* m_instance;
-        WindowManagerInterface* m_interface = nullptr;
         TreeMap<Identifier, Window*> m_windows;
         Window* m_main_window = nullptr;
 

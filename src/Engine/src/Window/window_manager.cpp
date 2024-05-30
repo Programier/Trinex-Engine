@@ -11,6 +11,7 @@
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
+#include <Platform/platform.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -34,26 +35,7 @@ namespace Engine
 
     WindowManager::WindowManager()
     {
-        String libname = Strings::format("WindowSystem{}", ConfigManager::get_string("Engine::window_system"));
-        Library library(libname);
-
-        if (!library.has_lib())
-        {
-            throw EngineException("Cannot load window system library!");
-        }
-
-        WindowManagerInterface* (*loader)() = library.get<WindowManagerInterface*>(Constants::library_load_function_name);
-        if (!loader)
-        {
-            throw EngineException("Cannot create window manager loader");
-        }
-
-        m_interface = loader();
-
-        if (m_interface == nullptr)
-        {
-            throw EngineException("Cannot create window manager");
-        }
+        Platform::WindowManager::initialize();
     }
 
     WindowManager& WindowManager::destroy_window(Window* window)
@@ -101,14 +83,14 @@ namespace Engine
             destroy_window(window);
         }
 
-        delete m_interface;
+        Platform::WindowManager::terminate();
     }
 
 
     Window* WindowManager::create_window(const WindowConfig& config, Window* parent, WindowInterface* window_interface)
     {
         if (window_interface == nullptr)
-            window_interface = m_interface->create_window(&config);
+            window_interface = Platform::WindowManager::create_window(&config);
 
         if (window_interface == nullptr)
             return nullptr;
@@ -138,30 +120,30 @@ namespace Engine
 
     bool WindowManager::mouse_relative_mode() const
     {
-        return m_interface->mouse_relative_mode();
+        return Platform::WindowManager::mouse_relative_mode();
     }
 
     WindowManager& WindowManager::mouse_relative_mode(bool flag)
     {
-        m_interface->mouse_relative_mode(flag);
+        Platform::WindowManager::mouse_relative_mode(flag);
         return *this;
     }
 
     WindowManager& WindowManager::update_monitor_info(MonitorInfo& info)
     {
-        m_interface->update_monitor_info(info);
+        Platform::WindowManager::update_monitor_info(info);
         return *this;
     }
 
     WindowManager& WindowManager::pool_events()
     {
-        m_interface->pool_events();
+        Platform::WindowManager::pool_events();
         return *this;
     }
 
     WindowManager& WindowManager::wait_for_events()
     {
-        m_interface->wait_for_events();
+        Platform::WindowManager::wait_for_events();
         return *this;
     }
 

@@ -102,7 +102,6 @@ namespace Engine
         return *this;
     }
 
-
     EventSystem& EventSystem::create()
     {
         Super::create();

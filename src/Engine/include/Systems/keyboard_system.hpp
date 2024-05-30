@@ -34,7 +34,6 @@ namespace Engine
         bool is_released(Keyboard::Key key) const;
         bool is_just_pressed(Keyboard::Key key) const;
         bool is_just_released(Keyboard::Key key) const;
-        bool is_repeated(Keyboard::Key key) const;
 
 
 #define implement_variadic_template(name)                                                                              \

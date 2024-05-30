@@ -13,7 +13,6 @@ namespace Engine::Keyboard
         status_registrar.set("JustReleased", JustReleased);
         status_registrar.set("JustPressed", JustPressed);
         status_registrar.set("Pressed", Pressed);
-        status_registrar.set("Repeat", Repeat);
 
         key_registrar.set("Unknown", Unknown);
         key_registrar.set("Space", Space);
@@ -64,7 +63,7 @@ namespace Engine::Keyboard
         key_registrar.set("Backslash", Backslash);
         key_registrar.set("RightBracket", RightBracket);
         key_registrar.set("GraveAccent", GraveAccent);
-        key_registrar.set("Www", Www);
+        key_registrar.set("Explorer", Explorer);
         key_registrar.set("Escape", Escape);
         key_registrar.set("Enter", Enter);
         key_registrar.set("Tab", Tab);
@@ -118,7 +117,7 @@ namespace Engine::Keyboard
         key_registrar.set("Kp7", Kp7);
         key_registrar.set("Kp8", Kp8);
         key_registrar.set("Kp9", Kp9);
-        key_registrar.set("KpDecimal", KpDecimal);
+        key_registrar.set("KpDot", KpDot);
         key_registrar.set("KpDivide", KpDivide);
         key_registrar.set("KpMultiply", KpMultiply);
         key_registrar.set("KpSubtract", KpSubtract);

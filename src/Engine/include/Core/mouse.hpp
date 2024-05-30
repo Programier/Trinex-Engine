@@ -16,15 +16,8 @@ namespace Engine::Mouse
         Left,
         Middle,
         Right,
-        X1,
-        X2,
+        Forward,
+        Back,
         __COUNT__
-    };
-
-    enum Direction : EnumerateType
-    {
-        None = 0,
-        Normal,
-        Flipped,
     };
 }// namespace Engine::Mouse

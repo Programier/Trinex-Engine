@@ -211,17 +211,6 @@ namespace Engine
         return m_interface->opacity();
     }
 
-    Window& Window::size_limits(const SizeLimits2D& limits)
-    {
-        m_interface->size_limits(limits);
-        return *this;
-    }
-
-    SizeLimits2D Window::size_limits()
-    {
-        return m_interface->size_limits();
-    }
-
     Window& Window::attribute(const WindowAttribute& attrib, bool value)
     {
         m_interface->attribute(attrib, value);

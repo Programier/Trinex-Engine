@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/engine_types.hpp>
-#include <ostream>
 
 namespace Engine::Keyboard
 {
@@ -10,7 +9,6 @@ namespace Engine::Keyboard
         JustReleased,
         JustPressed,
         Pressed,
-        Repeat
     };
 
     enum Key : EnumerateType
@@ -64,7 +62,7 @@ namespace Engine::Keyboard
         Backslash,
         RightBracket,
         GraveAccent,
-        Www,
+        Explorer,
         Escape,
         Enter,
         Tab,
@@ -118,7 +116,7 @@ namespace Engine::Keyboard
         Kp7,
         Kp8,
         Kp9,
-        KpDecimal,
+        KpDot,
         KpDivide,
         KpMultiply,
         KpSubtract,

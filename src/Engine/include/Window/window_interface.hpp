@@ -38,8 +38,6 @@ namespace Engine
         virtual WindowInterface& restore()                                                = 0;
         virtual WindowInterface& opacity(float value)                                     = 0;
         virtual float opacity()                                                           = 0;
-        virtual WindowInterface& size_limits(const SizeLimits2D& limits)                  = 0;
-        virtual SizeLimits2D size_limits()                                                = 0;
         virtual WindowInterface& window_icon(const Image& image)                          = 0;
         virtual WindowInterface& cursor(const Image& image, IntVector2D hotspot = {0, 0}) = 0;
         virtual WindowInterface& attribute(const WindowAttribute& attrib, bool value)     = 0;

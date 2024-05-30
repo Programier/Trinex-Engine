@@ -1,13 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES C CXX)
 
-
 option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
 option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
-option(TRINEX_WITH_SDL "Build SDL2 WindowSystem shared library" ON)
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
 option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" OFF)
-
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,33 +15,30 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
+# Setup install directory
 set(TRINEX_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+
 if(WIN32)
     set(TRINEX_LIBRARIES_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}")
 else()
     set(TRINEX_LIBRARIES_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/libs")
 endif()
+
 set(TRINEX_INCLUDES_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include/")
 
 if(UNIX)
     add_compile_options(-fvisibility=hidden)
 endif()
 
-# Global private include directories
-include_directories("${TRINEX_ENGINE_ROOT}/include-internal/"
-                    "${TRINEX_ENGINE_ROOT}/libs/angelscript/include/")
+
 
 # Compile RHI
 add_subdirectory("${TRINEX_ENGINE_ROOT}/RHI/")
-
-# Compile Window system interfaces
-add_subdirectory("${TRINEX_ENGINE_ROOT}/WSI/")
 
 # Compile Third-Party libraries
 add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/")
 
 # If platform is Android, build android_native_app_glue library
-
 if(ANDROID)
     set(NATIVE_APP_GLUE_SRC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
     include_directories(${ANDROID_NDK}/sources/android/native_app_glue/)
@@ -52,25 +46,25 @@ if(ANDROID)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 endif()
 
-# List of libraries, which TrinexEngine use
-set(PRIVATE_THIRD_PARTY_LIBRARIES   freetype
-                                    tinygltf
-                                    asmjit
-                                    zlib_library
-                                    lz4_static)
 
-set(PUBLIC_THIRD_PARTY_LIBRARIES imgui json imgui_node_editor angelscript imgui-filebrowser zip fmt stb_library)
+######################## ENGINE LIBRARY COMPILATION ########################
+
+# List of libraries, which TrinexEngine use
+set(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS "${TRINEX_ENGINE_ROOT}/include-internal/")
+set(TRINEX_ENGINE_PRIVATE_LIBRARIES freetype asmjit zlib_library lz4_static)
+set(TRINEX_ENGINE_PUBLIC_LIBRARIES imgui imgui_node_editor angelscript imgui-filebrowser zip fmt stb_library)
 
 if(ANDROID)
-    set(PLATFORM_DEPENDED_LIBRARIES android native_app_glue log EGL GLESv1_CM)
+    find_library(glesv3-lib GLESv3)
+    set(TRINEX_ENGINE_PUBLIC_LIBRARIES ${TRINEX_ENGINE_PUBLIC_LIBRARIES} android native_app_glue log EGL ${glesv3-lib})
 endif()
+
 
 # Set source directories
 set(TRINEX_SRC_WINDOW_DIR "${TRINEX_ENGINE_SRC}/Window/")
 set(TRINEX_SRC_EVENT_DIR "${TRINEX_ENGINE_SRC}/Event/")
 set(TRINEX_SRC_IMAGE_DIR "${TRINEX_ENGINE_SRC}/Image/")
 set(TRINEX_SRC_GRAPHICS_DIR "${TRINEX_ENGINE_SRC}/Graphics/")
-set(TRINEX_SRC_PHYSICS_DIR "${TRINEX_ENGINE_SRC}/Physics/")
 set(TRINEX_SRC_CORE_DIR "${TRINEX_ENGINE_SRC}/Core/")
 set(TRINEX_SRC_NET_DIR "${TRINEX_ENGINE_SRC}/net/")
 set(TRINEX_SRC_LIB_LOADER_DIR "${TRINEX_ENGINE_SRC}/LibLoader/")
@@ -82,12 +76,10 @@ set(TRINEX_SRC_ENGINE_DIR "${TRINEX_ENGINE_SRC}/Engine/")
 set(TRINEX_SRC_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platforms/")
 
 
-
 # Find sources
 file(GLOB_RECURSE TRINEX_SRC_WINDOW_SRC "${TRINEX_SRC_WINDOW_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_IMAGE_SRC "${TRINEX_SRC_IMAGE_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_GRAPHICS_SRC "${TRINEX_SRC_GRAPHICS_DIR}*.cpp")
-file(GLOB_RECURSE TRINEX_SRC_PHYSICS_SRC "${TRINEX_SRC_PHYSICS_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_CORE_SRC "${TRINEX_SRC_CORE_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_NET_SRC "${TRINEX_SRC_NET_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_EVENT_SRC "${TRINEX_SRC_EVENT_DIR}*.cpp")
@@ -97,19 +89,11 @@ file(GLOB_RECURSE TRINEX_SRC_SCRIPT_ENGINE_SRC "${TRINEX_SRC_SCRIPT_ENGINE_DIR}*
 file(GLOB_RECURSE TRINEX_SRC_SYSTEMS_SRC "${TRINEX_SRC_SYSTEMS_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_ENGINE_SRC "${TRINEX_SRC_ENGINE_DIR}*.cpp")
 
-if(WIN32)
-    file(GLOB_RECURSE TRINEX_SRC_PLATFORM_SRC "${TRINEX_SRC_PLATFORM_DIR}/Windows/*.cpp")
-elseif(LINUX)
-    file(GLOB_RECURSE TRINEX_SRC_PLATFORM_SRC "${TRINEX_SRC_PLATFORM_DIR}/Linux/*.cpp")
-elseif(ANDROID)
-    file(GLOB_RECURSE TRINEX_SRC_PLATFORM_SRC "${TRINEX_SRC_PLATFORM_DIR}/Android/*.cpp")
-endif()
-
 # Write all source files to one variable
-set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_SRC_WINDOW_SRC}
+set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES}
+                        ${TRINEX_SRC_WINDOW_SRC}
                         ${TRINEX_SRC_IMAGE_SRC}
                         ${TRINEX_SRC_GRAPHICS_SRC}
-                        ${TRINEX_SRC_PHYSICS_SRC}
                         ${TRINEX_SRC_CORE_SRC}
                         ${TRINEX_SRC_EVENT_SRC}
                         ${TRINEX_SRC_SENSORS_SRC}
@@ -119,11 +103,10 @@ set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_SRC_WINDOW_SRC}
                         ${TRINEX_SRC_ENGINE_SRC}
                         ${TRINEX_SRC_PLATFORM_SRC})
 
-set(TRINEX_TINYGLTF_DIR "${TRINEX_ENGINE_SRC}/tinygltf/")
-file(GLOB TRINEX_TINYGLTF_SRC "${TRINEX_TINYGLTF_DIR}*.cpp")
-set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_TINYGLTF_SRC})
+# Collect platform source files
+add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
 
-
+# Rebuild headers
 if(TRINEX_REBUILD_HEADERS)
     add_executable(header_generator header_generator/main.cpp)
 
@@ -149,8 +132,7 @@ if(TRINEX_REBUILD_HEADERS)
 endif()
 
 # Compile Trinex Engine library
-add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_EXTERNAL_SOURCES} ${TRINEX_PRECOMPILED_HEADERS})
-
+add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_PRECOMPILED_HEADERS})
 
 # Trinex Engine compile options
 target_compile_options(TrinexEngine PRIVATE "-Wall")
@@ -172,7 +154,6 @@ endif()
 target_compile_definitions(TrinexEngine PRIVATE -DENABLE_ENGINE_EXPORTS)
 target_compile_definitions(TrinexEngine PRIVATE -DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES)
 
-
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_DEBUG_BUILD=1)
     target_compile_definitions(TrinexEngine PRIVATE -DTRINEX_RELEASE_BUILD=0)
@@ -184,9 +165,10 @@ endif()
 
 # Linking libraries and including directories
 target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>")
+target_include_directories(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS})
 
-target_link_libraries(TrinexEngine PRIVATE  ${PLATFORM_DEPENDED_LIBRARIES} ${PRIVATE_THIRD_PARTY_LIBRARIES})
-target_link_libraries(TrinexEngine PUBLIC  ${PUBLIC_THIRD_PARTY_LIBRARIES})
+target_link_libraries(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_LIBRARIES})
+target_link_libraries(TrinexEngine PUBLIC  ${TRINEX_ENGINE_PUBLIC_LIBRARIES})
 
 install(TARGETS TrinexEngine DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 install(DIRECTORY resources DESTINATION ${TRINEX_INSTALL_DIR})

@@ -54,8 +54,6 @@ namespace Engine
         Window& restore();
         Window& opacity(float value);
         float opacity();
-        Window& size_limits(const SizeLimits2D& limits);
-        SizeLimits2D size_limits();
         Window& attribute(const WindowAttribute& attrib, bool value);
         bool attribute(const WindowAttribute& attrib);
         Window& cursor_mode(const CursorMode& mode);

@@ -7,10 +7,15 @@
 namespace Engine
 {
     template<typename T>
-    static Vector<T> to_vector(const Vector<int_t>& input)
+    static Set<T> to_set(const Vector<int_t>& input)
     {
-        Vector<T> result(input.size());
-        std::transform(input.begin(), input.end(), result.begin(), [](int_t value) { return static_cast<T>(value); });
+        Set<T> result;
+
+        for (auto ell : input)
+        {
+            result.insert(static_cast<T>(ell));
+        }
+
         return result;
     }
 
@@ -21,8 +26,8 @@ namespace Engine
 
     WindowConfig& WindowConfig::initialize()
     {
-        attributes   = to_vector<WindowAttribute>(ConfigManager::get_int_array("Window::attributes"));
-        orientations = to_vector<WindowOrientation>(ConfigManager::get_int_array("Window::orientations"));
+        attributes   = to_set<WindowAttribute>(ConfigManager::get_int_array("Window::attributes"));
+        orientations = to_set<WindowOrientation>(ConfigManager::get_int_array("Window::orientations"));
         title        = ConfigManager::get_string("Window::title");
         api_name     = ConfigManager::get_string("Engine::api");
         client       = ConfigManager::get_string("Window::client");
@@ -32,5 +37,13 @@ namespace Engine
         position.y   = ConfigManager::get_float("Window::pos_y");
         vsync        = ConfigManager::get_bool("Window::vsync");
         return *this;
+    }
+
+    bool WindowConfig::contains_attribute(WindowAttribute attribute) const
+    {
+        auto it = attributes.find(attribute);
+        if (it == attributes.end())
+            return false;
+        return true;
     }
 }// namespace Engine

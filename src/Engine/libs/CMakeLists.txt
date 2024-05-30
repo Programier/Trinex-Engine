@@ -20,14 +20,8 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-node-editor/")
 # Compile ImGUI FileBrowser
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/imgui-filebrowser/")
 
-# Compile JSON library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/json/")
-
 # Compile stb library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/stb")
-
-# Compile tinygltf library
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tinygltf")
 
 # Compile AsmJIT library
 set(ASMJIT_STATIC on)
@@ -39,7 +33,12 @@ add_subdirectory(zlib EXCLUDE_FROM_ALL)
 # Compile libzip library
 add_subdirectory(libzip EXCLUDE_FROM_ALL)
 
-set(TRINEX_EXTERNAL_SOURCES ${TRINEX_EXTERNAL_SOURCES} PARENT_SCOPE)
-
 add_subdirectory(fmt)
 set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
+
+if (WIN32 OR LINUX)
+    add_subdirectory(SDL)
+endif()
+
+
+set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} PARENT_SCOPE)

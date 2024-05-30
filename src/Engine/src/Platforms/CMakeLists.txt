@@ -1,0 +1,13 @@
+add_subdirectory(Common)
+
+if(WIN32)
+    add_subdirectory(Windows)
+elseif(LINUX)
+    add_subdirectory(Linux)
+elseif(ANDROID)
+    add_subdirectory(Android)
+endif()
+
+set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} PARENT_SCOPE)
+set(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS ${TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS} PARENT_SCOPE)
+set(TRINEX_ENGINE_PRIVATE_LIBRARIES ${TRINEX_ENGINE_PRIVATE_LIBRARIES} PARENT_SCOPE)
