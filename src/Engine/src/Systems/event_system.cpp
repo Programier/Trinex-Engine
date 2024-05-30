@@ -110,9 +110,6 @@ namespace Engine
         System::new_system<EngineSystem>()->register_subsystem(this);
         add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
         add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
-
-        WindowManager::instance()->add_event_callback(id(), [this](const Event& e) { push_event(e); });
-
         add_listener(EventType::WindowResized, on_resize);
 
         // Register subsystems

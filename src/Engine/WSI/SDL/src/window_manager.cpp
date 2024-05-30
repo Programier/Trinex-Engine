@@ -4,6 +4,7 @@
 #include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
+#include <Systems/event_system.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -187,37 +188,6 @@ namespace Engine
         return *this;
     }
 
-    void create_system_notify(const NotifyCreateInfo& info);
-
-    WindowManagerInterface& SDL2_WindowManagerInterface::create_notify(const NotifyCreateInfo& info)
-    {
-        create_system_notify(info);
-        return *this;
-    }
-
-    WindowManagerInterface& SDL2_WindowManagerInterface::start_text_input()
-    {
-        SDL_StartTextInput();
-        return *this;
-    }
-
-    WindowManagerInterface& SDL2_WindowManagerInterface::stop_text_input()
-    {
-        SDL_StopTextInput();
-        return *this;
-    }
-
-    String SDL2_WindowManagerInterface::error() const
-    {
-        return SDL_GetError();
-    }
-
-    bool SDL2_WindowManagerInterface::has_error() const
-    {
-        const char* msg = SDL_GetError();
-        return std::strcmp(msg, "") != 0;
-    }
-
     bool SDL2_WindowManagerInterface::mouse_relative_mode() const
     {
         return static_cast<bool>(SDL_GetRelativeMouseMode());
@@ -239,19 +209,6 @@ namespace Engine
         SDL_GetDisplayDPI(0, &info.dpi.ddpi, &info.dpi.hdpi, &info.dpi.vdpi);
         return *this;
     }
-
-    WindowManagerInterface& SDL2_WindowManagerInterface::add_event_callback(Identifier system_id, const EventCallback& callback)
-    {
-        m_event_callbacks[system_id].push_back(callback);
-        return *this;
-    }
-
-    WindowManagerInterface& SDL2_WindowManagerInterface::remove_all_callbacks(Identifier system_id)
-    {
-        m_event_callbacks.erase(system_id);
-        return *this;
-    }
-
 
     WindowManagerInterface& SDL2_WindowManagerInterface::pool_events_loop()
     {
@@ -288,13 +245,7 @@ namespace Engine
 
     void SDL2_WindowManagerInterface::send_event(const Event& event)
     {
-        for (auto& system_callbacks : m_event_callbacks)
-        {
-            for (auto& callback : system_callbacks.second)
-            {
-                callback(event);
-            }
-        }
+        EventSystem::instance()->push_event(event);
     }
 
     class RenderThreadImGuiEvent : public ExecutableObject

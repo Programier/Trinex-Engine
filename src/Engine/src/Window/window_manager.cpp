@@ -136,23 +136,6 @@ namespace Engine
         return window;
     }
 
-
-    WindowManager& WindowManager::create_notify(const NotifyCreateInfo& info)
-    {
-        m_interface->create_notify(info);
-        return *this;
-    }
-
-    String WindowManager::error() const
-    {
-        return m_interface->error();
-    }
-
-    bool WindowManager::has_error() const
-    {
-        return m_interface->has_error();
-    }
-
     bool WindowManager::mouse_relative_mode() const
     {
         return m_interface->mouse_relative_mode();
@@ -167,30 +150,6 @@ namespace Engine
     WindowManager& WindowManager::update_monitor_info(MonitorInfo& info)
     {
         m_interface->update_monitor_info(info);
-        return *this;
-    }
-
-    WindowManager& WindowManager::add_event_callback(Identifier system_id, const EventCallback& callback)
-    {
-        m_interface->add_event_callback(system_id, callback);
-        return *this;
-    }
-
-    WindowManager& WindowManager::remove_all_callbacks(Identifier system_id)
-    {
-        m_interface->remove_all_callbacks(system_id);
-        return *this;
-    }
-
-    WindowManager& WindowManager::start_text_input()
-    {
-        m_interface->start_text_input();
-        return *this;
-    }
-
-    WindowManager& WindowManager::stop_text_input()
-    {
-        m_interface->stop_text_input();
         return *this;
     }
 

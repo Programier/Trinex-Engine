@@ -21,7 +21,7 @@ namespace Engine
         using DestroyCallback = CallBack<void()>;
 
     private:
-        WindowInterface* m_interface            = nullptr;
+        WindowInterface* m_interface = nullptr;
         Pointer<class RenderViewport> m_render_viewport;
         Size2D m_cached_size;
         Window* m_parent_window = nullptr;
@@ -66,7 +66,6 @@ namespace Engine
         WindowInterface* interface() const;
         Window& icon(const Image& image);
         Window& cursor(const Image& image, IntVector2D hotspot = {0, 0});
-        int_t create_message_box(const MessageBoxCreateInfo& info);
         RenderViewport* render_viewport() const;
         Window* parent_window() const;
         const Vector<Window*>& child_windows() const;

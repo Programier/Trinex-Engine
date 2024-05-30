@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/logger.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
@@ -403,11 +403,6 @@ namespace Engine
     {
         m_interface->cursor(image, hotspot);
         return *this;
-    }
-
-    int_t Window::create_message_box(const MessageBoxCreateInfo& info)
-    {
-        return m_interface->create_message_box(info);
     }
 
     RenderViewport* Window::render_viewport() const

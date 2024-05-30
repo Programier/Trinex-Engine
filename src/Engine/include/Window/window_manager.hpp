@@ -18,7 +18,6 @@ namespace Engine
         TreeMap<Identifier, Window*> m_windows;
         Window* m_main_window = nullptr;
 
-
         WindowManager();
 
     public:
@@ -26,16 +25,9 @@ namespace Engine
         Window* create_window(const WindowConfig& config, Window* parent = nullptr, WindowInterface* interface = nullptr);
         WindowManager& destroy_window(Window* window);
 
-        WindowManager& create_notify(const NotifyCreateInfo& info);
-        String error() const;
-        bool has_error() const;
         bool mouse_relative_mode() const;
         WindowManager& mouse_relative_mode(bool flag);
         WindowManager& update_monitor_info(MonitorInfo& info);
-        WindowManager& add_event_callback(Identifier system_id, const EventCallback& callback);
-        WindowManager& remove_all_callbacks(Identifier system_id);
-        WindowManager& start_text_input();
-        WindowManager& stop_text_input();
         WindowManager& pool_events();
         WindowManager& wait_for_events();
         Window* find(Identifier id) const;

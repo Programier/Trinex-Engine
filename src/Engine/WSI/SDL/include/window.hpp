@@ -76,7 +76,7 @@ namespace Engine
         WindowInterface& make_current() override;
         WindowInterface& destroy_api_context() override;
 
-        int_t create_message_box(const MessageBoxCreateInfo& info) override;
+
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);
         void destroy_icon();
         void destroy_cursor();

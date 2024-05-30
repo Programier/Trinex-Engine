@@ -58,12 +58,9 @@ namespace Engine
         virtual WindowInterface& make_current()                     = 0;
         virtual WindowInterface& destroy_api_context()              = 0;
 
-        virtual int_t create_message_box(const MessageBoxCreateInfo& info) = 0;
-
         virtual WindowInterface& initialize_imgui() = 0;
         virtual WindowInterface& terminate_imgui()  = 0;
         virtual WindowInterface& new_imgui_frame()  = 0;
-
 
         virtual ~WindowInterface() = default;
     };
