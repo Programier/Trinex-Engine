@@ -14,9 +14,14 @@ namespace Engine
 {
     AndroidWindow::AndroidWindow(const WindowConfig* config) : m_name("Android Window")
     {
-        ANativeWindow_acquire(native_window());
+        ANativeWindow_release(native_window());
         m_is_resizable = config->contains_attribute(WindowAttribute::Resizable);
         m_init_vsync   = config->vsync;
+    }
+
+    AndroidWindow::~AndroidWindow()
+    {
+        ANativeWindow_release(native_window());
     }
 
     ANativeWindow* AndroidWindow::native_window()

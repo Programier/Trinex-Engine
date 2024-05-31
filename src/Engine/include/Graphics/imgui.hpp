@@ -97,6 +97,8 @@ namespace Engine::ImGuiRenderer
         ImGuiAdditionalWindowList& push(ImGuiAdditionalWindow* window, const void* id = nullptr);
         Node* destroy(Node* node);
 
+        Node* close_window_internal(Node* node);
+
     public:
         ImGuiAdditionalWindowList() = default;
         delete_copy_constructors(ImGuiAdditionalWindowList);
@@ -128,6 +130,8 @@ namespace Engine::ImGuiRenderer
             return instance;
         }
 
+        ImGuiAdditionalWindowList& close_window(class ImGuiAdditionalWindow* window);
+        ImGuiAdditionalWindowList& close_all_windows();
         ImGuiAdditionalWindowList& render(class RenderViewport* viewport);
         ~ImGuiAdditionalWindowList();
     };

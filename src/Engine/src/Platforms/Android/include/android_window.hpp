@@ -60,6 +60,8 @@ namespace Engine
         WindowInterface& terminate_imgui() override;
         WindowInterface& new_imgui_frame() override;
         int32_t process_imgui_event(AInputEvent* event);
+
+        ~AndroidWindow();
     };
 
 

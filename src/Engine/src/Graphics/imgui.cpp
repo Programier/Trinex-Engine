@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/render_resource.hpp>
@@ -79,6 +79,39 @@ namespace Engine::ImGuiRenderer
     ImGuiAdditionalWindow::ImGuiAdditionalWindow()
     {}
 
+    ImGuiAdditionalWindowList::Node* ImGuiAdditionalWindowList::close_window_internal(Node* node)
+    {
+        node->window->on_close();
+        return destroy(node);
+    }
+
+    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::close_window(class ImGuiAdditionalWindow* window)
+    {
+        Node* node = m_root;
+
+        while (node && node->window != window)
+        {
+            node = node->next;
+        }
+
+        if (node)
+        {
+            close_window_internal(node);
+        }
+        return *this;
+    }
+
+    ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::close_all_windows()
+    {
+        Node* node = m_root;
+        while (node)
+        {
+            node = close_window_internal(node);
+        }
+        m_root = nullptr;
+        return *this;
+    }
+
     ImGuiAdditionalWindowList& ImGuiAdditionalWindowList::render(class RenderViewport* viewport)
     {
         Node* node = m_root;
@@ -93,8 +126,7 @@ namespace Engine::ImGuiRenderer
             }
             else
             {
-                node->window->on_close();
-                node = destroy(node);
+                node = close_window_internal(node);
             }
         }
 

@@ -390,10 +390,12 @@ namespace Engine::Platform
 
             if (config->api_name == "Vulkan")
             {
-                return new AndroidVulkanWindow(config);
+                m_window = new AndroidVulkanWindow(config);
             }
-
-            m_window = new AndroidEGLWindow(config);
+            else
+            {
+                m_window = new AndroidEGLWindow(config);
+            }
             return m_window;
         }
 

@@ -10,7 +10,7 @@
 
 namespace Engine
 {
-    static void push_barriers(size_t count)
+    static FORCE_INLINE void push_barriers()
     {
         auto src_stage_mask  = vk::PipelineStageFlagBits::eLateFragmentTests | vk::PipelineStageFlagBits::eColorAttachmentOutput;
         auto dest_stage_mask = vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader |
@@ -74,55 +74,16 @@ namespace Engine
         return true;
     }
 
-    VulkanRenderTargetBase& VulkanRenderTargetBase::init(const RenderTarget* render_target, VulkanRenderPass* render_pass)
-    {
-        m_attachments.resize(render_pass->attachments_count());
-        m_images.resize(m_attachments.size());
-
-        Index index = 0;
-        for (auto& attachment : render_target->color_attachments)
-        {
-            const Texture2D* color_binding = attachment.ptr();
-            VulkanTexture* texture         = color_binding->rhi_object<VulkanTexture>();
-
-            trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
-            bool usage_check = texture->is_render_target_color_image();
-            trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
-
-            vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-            m_attachments[index] = texture->create_image_view(range);
-            m_images[index]      = texture;
-            ++index;
-        }
-
-        if (render_pass->m_has_depth_attachment)
-        {
-            const Texture2D* binding = render_target->depth_stencil_attachment.ptr();
-            VulkanTexture* texture   = binding->rhi_object<VulkanTexture>();
-            trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
-
-            bool check_status = texture->is_depth_stencil_image();
-            trinex_check(check_status, "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
-
-            vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
-            m_attachments[index] = texture->create_image_view(range);
-            m_images[index]      = texture;
-        }
-
-
-        return post_init();
-    }
-
-    VulkanRenderTargetBase& VulkanRenderTargetBase::post_init()
+    VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(const Vector<vk::ImageView>& image_views)
     {
         vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_state->m_render_pass->m_render_pass,
-                                                          m_attachments, m_state->m_size.width, m_state->m_size.height, 1);
+                                                          image_views, m_state->m_size.width, m_state->m_size.height, 1);
         m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
         return *this;
     }
 
-    VulkanRenderTargetBase& VulkanRenderTargetBase::destroy(bool)
+    VulkanRenderTargetBase& VulkanRenderTargetBase::destroy()
     {
         DESTROY_CALL(destroyFramebuffer, m_framebuffer);
         return *this;
@@ -185,9 +146,8 @@ namespace Engine
 
         if (API->m_state->m_render_target)
         {
-            size_t count = API->m_state->m_render_target->m_attachments.size();
             API->m_state->m_render_target->unbind();
-            push_barriers(count);
+            push_barriers();
         }
 
         API->m_state->m_render_target = this;
@@ -195,17 +155,11 @@ namespace Engine
         m_state->m_render_pass_info.setFramebuffer(m_framebuffer);
 
         API->current_command_buffer().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
-
-        if (m_state->m_render_pass == API->m_main_render_pass)
-        {
-            API->m_state->m_is_image_rendered_to_swapchain = true;
-        }
-
         update_viewport().update_scissors();
         return;
     }
 
-    VulkanRenderTargetBase& VulkanRenderTargetBase::unbind(VulkanRenderPass* next_render_pass)
+    VulkanRenderTargetBase& VulkanRenderTargetBase::unbind()
     {
         if (API->m_state->m_render_target == this)
         {
@@ -216,43 +170,10 @@ namespace Engine
     }
 
     void VulkanRenderTargetBase::clear_color(const ColorClearValue& color, byte layout)
-    {
-        if (m_images.empty())
-            return;
-
-        byte color_textures = static_cast<byte>(m_state->m_render_pass->m_color_attachment_references.size());
-        if (color_textures <= layout)
-            return;
-
-        VulkanTexture* texture = m_images[layout];
-        auto current_layout    = texture->layout();
-        auto& cmd              = API->current_command_buffer();
-
-        texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
-        cmd.clearColorImage(texture->image(), vk::ImageLayout::eTransferDstOptimal,
-                            vk::ClearColorValue(color.r, color.g, color.b, color.a),
-                            vk::ImageSubresourceRange(texture->aspect(), texture->base_mipmap(), 1, 0, 1));
-        texture->change_layout(current_layout, cmd);
-    }
+    {}
 
     void VulkanRenderTargetBase::clear_depth_stencil(const DepthStencilClearValue& value)
-    {
-        if (m_images.empty())
-            return;
-
-        if (!m_state->m_render_pass->m_has_depth_attachment)
-            return;
-
-        VulkanTexture* texture = m_images.back();
-        auto current_layout    = texture->layout();
-        auto& cmd              = API->current_command_buffer();
-
-        texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
-        cmd.clearDepthStencilImage(texture->image(), vk::ImageLayout::eTransferDstOptimal,
-                                   vk::ClearDepthStencilValue(value.depth, value.stencil),
-                                   vk::ImageSubresourceRange(texture->aspect(), texture->base_mipmap(), 1, 0, 1));
-        texture->change_layout(current_layout, cmd);
-    }
+    {}
 
     bool VulkanRenderTargetBase::is_main_render_target()
     {
@@ -268,7 +189,7 @@ namespace Engine
 
     VulkanRenderTargetBase::~VulkanRenderTargetBase()
     {
-        destroy(true);
+        DESTROY_CALL(destroyFramebuffer, m_framebuffer);
     }
 
     bool VulkanWindowRenderTargetFrame::is_main_render_target()
@@ -283,17 +204,67 @@ namespace Engine
 
     VulkanRenderTarget& VulkanRenderTarget::init(const RenderTarget* target, VulkanRenderPass* render_pass)
     {
+        m_color_textures.resize(render_pass->color_attachments_count());
         state.init(target, render_pass);
-        VulkanRenderTargetBase::init(target, render_pass);
+
+
+        m_attachments.resize(render_pass->attachments_count());
+
+        Index index = 0;
+        for (auto& attachment : target->color_attachments)
+        {
+            const Texture2D* color_binding = attachment.ptr();
+            VulkanTexture* texture         = color_binding->rhi_object<VulkanTexture>();
+
+            trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
+            bool usage_check = texture->is_render_target_color_image();
+            trinex_check(usage_check, "Vulkan API: Pixel type for color attachment must be RGBA");
+
+            vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+            m_attachments[index] = texture->create_image_view(range);
+            on_color_attachment(texture, index);
+            ++index;
+        }
+
+        if (render_pass->m_has_depth_attachment)
+        {
+            const Texture2D* binding = target->depth_stencil_attachment.ptr();
+            VulkanTexture* texture   = binding->rhi_object<VulkanTexture>();
+            trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
+
+            bool check_status = texture->is_depth_stencil_image();
+            trinex_check(check_status, "Vulkan API: Pixel type for depth attachment must be Depth* or Stencil*");
+
+            vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
+            m_attachments[index] = texture->create_image_view(range);
+            on_depth_stencil_attachment(texture, index);
+        }
+
+        post_init(m_attachments);
         return *this;
     }
 
-    VulkanRenderTarget& VulkanRenderTarget::destroy(bool called_by_destructor)
+
+    VulkanRenderTarget& VulkanRenderTarget::on_color_attachment(struct VulkanTexture* texture, Index index)
     {
-        if (!called_by_destructor)
+        if (index >= m_color_textures.size())
         {
-            VulkanRenderTargetBase::destroy();
+            m_color_textures.resize(index + 1);
         }
+
+        m_color_textures[index] = texture;
+        return *this;
+    }
+
+    VulkanRenderTarget& VulkanRenderTarget::on_depth_stencil_attachment(struct VulkanTexture* texture, Index index)
+    {
+        m_depth_texture = texture;
+        return *this;
+    }
+
+    VulkanRenderTarget& VulkanRenderTarget::destroy()
+    {
+        VulkanRenderTargetBase::destroy();
 
         for (auto& image_view : m_attachments)
         {
@@ -303,9 +274,69 @@ namespace Engine
         return *this;
     }
 
+    void VulkanRenderTarget::clear_color(const ColorClearValue& color, byte layout)
+    {
+        if (m_color_textures.empty() || m_color_textures.size() <= static_cast<size_t>(layout))
+            return;
+
+        bool is_binded = API->m_state->m_render_target == this;
+
+        if (is_binded)
+        {
+            unbind();
+        }
+
+        VulkanTexture* texture = m_color_textures[layout];
+        auto current_layout    = texture->layout();
+        auto& cmd              = API->current_command_buffer();
+
+        texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
+        cmd.clearColorImage(texture->image(), vk::ImageLayout::eTransferDstOptimal,
+                            vk::ClearColorValue(color.r, color.g, color.b, color.a),
+                            vk::ImageSubresourceRange(texture->aspect(), texture->base_mipmap(), 1, 0, 1));
+        texture->change_layout(current_layout, cmd);
+
+        if (is_binded)
+        {
+            bind();
+        }
+    }
+
+    void VulkanRenderTarget::clear_depth_stencil(const DepthStencilClearValue& value)
+    {
+        if (m_depth_texture == nullptr)
+            return;
+
+        bool is_binded = API->m_state->m_render_target == this;
+
+        if (is_binded)
+        {
+            unbind();
+        }
+
+        auto current_layout = m_depth_texture->layout();
+        auto& cmd           = API->current_command_buffer();
+
+
+        m_depth_texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
+        cmd.clearDepthStencilImage(m_depth_texture->image(), vk::ImageLayout::eTransferDstOptimal,
+                                   vk::ClearDepthStencilValue(value.depth, value.stencil),
+                                   vk::ImageSubresourceRange(m_depth_texture->aspect(), m_depth_texture->base_mipmap(), 1, 0, 1));
+        m_depth_texture->change_layout(current_layout, cmd);
+
+        if (is_binded)
+        {
+            bind();
+        }
+    }
+
+
     VulkanRenderTarget::~VulkanRenderTarget()
     {
-        destroy(true);
+        for (auto& image_view : m_attachments)
+        {
+            DESTROY_CALL(destroyImageView, image_view);
+        }
     }
 
 
@@ -328,12 +359,6 @@ namespace Engine
         }
     }
 
-    static void init_main_framebuffer(VulkanViewport* viewport, VulkanWindowRenderTargetFrame* frame, uint_t index)
-    {
-        frame->m_attachments.resize(1);
-        frame->m_attachments[0] = viewport->m_image_views[index];
-    }
-
     VulkanWindowRenderTarget& VulkanWindowRenderTarget::init(struct VulkanWindowViewport* viewport)
     {
         m_viewport = viewport;
@@ -347,8 +372,8 @@ namespace Engine
         for (VulkanWindowRenderTargetFrame* frame : m_frames)
         {
             frame->m_state = &state;
-            init_main_framebuffer(viewport, frame, index++);
-            frame->post_init();
+            frame->post_init({viewport->m_image_views[index]});
+            ++index;
         }
         return *this;
     }
@@ -383,12 +408,47 @@ namespace Engine
         frame()->clear_depth_stencil(value);
     }
 
+    static FORCE_INLINE void transition_swapchain_image_to_transfer_src(vk::Image image, vk::CommandBuffer& cmd)
+    {
+        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eNone, vk::AccessFlagBits::eTransferWrite,
+                                       vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal,
+                                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image, range);
+        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier);
+    }
+
+    static FORCE_INLINE void transition_swapchain_image_to_present_src(vk::Image image, vk::CommandBuffer& cmd)
+    {
+        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eNone,
+                                       vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR,
+                                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image, range);
+        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTopOfPipe, {}, {}, {}, barrier);
+    }
+
     void VulkanWindowRenderTarget::clear_color(const ColorClearValue& color, byte layout)
     {
         vk::Image img = m_viewport->m_images[m_viewport->m_buffer_index];
-        API->current_command_buffer().clearColorImage(img, vk::ImageLayout::eTransferDstOptimal,
-                                                      vk::ClearColorValue(color.r, color.g, color.b, color.a),
-                                                      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+
+        auto& cmd                                    = API->current_command_buffer();
+        VulkanWindowRenderTargetFrame* current_frame = frame();
+        bool is_binded                               = API->m_state->m_render_target == current_frame;
+
+        if (is_binded)
+        {
+            current_frame->unbind();
+        }
+
+        transition_swapchain_image_to_transfer_src(img, cmd);
+        cmd.clearColorImage(img, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
+                            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+        transition_swapchain_image_to_present_src(img, cmd);
+
+        if (is_binded)
+        {
+            current_frame->bind();
+        }
     }
 
     VulkanWindowRenderTarget::~VulkanWindowRenderTarget()

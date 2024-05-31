@@ -129,6 +129,12 @@ namespace Engine
         return *this;
     }
 
+    MaterialEditorClient& MaterialEditorClient::on_unbind_viewport(class RenderViewport* viewport)
+    {
+        viewport->window()->imgui_window()->window_list.close_all_windows();
+        return *this;
+    }
+
     MaterialEditorClient& MaterialEditorClient::render(class RenderViewport* viewport)
     {
         viewport->window()->rhi_bind();

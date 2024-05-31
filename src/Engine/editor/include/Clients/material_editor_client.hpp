@@ -55,6 +55,7 @@ namespace Engine
         void on_object_select(Object* object);
 
         MaterialEditorClient& on_bind_viewport(class RenderViewport* viewport) override;
+        MaterialEditorClient& on_unbind_viewport(class RenderViewport* viewport) override;
         MaterialEditorClient& update(class RenderViewport* viewport, float dt) override;
 
 

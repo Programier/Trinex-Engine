@@ -26,19 +26,17 @@ namespace Engine
 
     struct VulkanRenderTargetBase : RHI_RenderTarget {
         vk::Framebuffer m_framebuffer;
-        Vector<vk::ImageView> m_attachments;
-        Vector<struct VulkanTexture*> m_images;
         VulkanRenderTargetState* m_state = nullptr;
 
-        virtual VulkanRenderTargetBase& init(const RenderTarget* info, VulkanRenderPass* render_pass);
         virtual bool is_main_render_target();
-        virtual VulkanRenderTargetBase& destroy(bool called_by_destructor = false);
+        virtual VulkanRenderTargetBase& destroy();
 
-        VulkanRenderTargetBase& post_init();
+        VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
         VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
         void bind() override;
-        VulkanRenderTargetBase& unbind(VulkanRenderPass* next_render_pass = nullptr);
+        VulkanRenderTargetBase& unbind();
+
         void viewport(const ViewPort& viewport) override;
         void scissor(const Scissor& scissor) override;
         VulkanRenderTargetBase& update_viewport();
@@ -56,10 +54,19 @@ namespace Engine
 
     struct VulkanRenderTarget : VulkanRenderTargetBase {
         VulkanRenderTargetState state;
+        Vector<vk::ImageView> m_attachments;
+        Vector<struct VulkanTexture*> m_color_textures;
+        struct VulkanTexture* m_depth_texture = nullptr;
 
         VulkanRenderTarget();
-        VulkanRenderTarget& init(const RenderTarget* info, VulkanRenderPass* render_pass) override;
-        VulkanRenderTarget& destroy(bool called_by_destructor = false) override;
+        VulkanRenderTarget& init(const RenderTarget* info, VulkanRenderPass* render_pass);
+        VulkanRenderTarget& on_color_attachment(struct VulkanTexture* texture, Index index);
+        VulkanRenderTarget& on_depth_stencil_attachment(struct VulkanTexture* texture, Index index);
+        VulkanRenderTarget& destroy() override;
+
+        void clear_color(const ColorClearValue& color, byte layout) override;
+        void clear_depth_stencil(const DepthStencilClearValue& value) override;
+
         ~VulkanRenderTarget();
     };
 

@@ -21,6 +21,7 @@ namespace Engine
         VulkanRenderPass& create_attachment_references(const RenderPass* render_pass);
         VulkanRenderPass& create();
         uint_t attachments_count() const;
+        uint_t color_attachments_count() const;
 
         VulkanRenderPass& destroy();
         ~VulkanRenderPass();

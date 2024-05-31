@@ -185,6 +185,19 @@ namespace Engine
         m_need_recreate_swap_chain = true;
     }
 
+
+    static void transition_swapchain_image(vk::Image image, vk::CommandBuffer& cmd)
+    {
+        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eNone, vk::ImageLayout::eUndefined,
+                                       vk::ImageLayout::ePresentSrcKHR, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
+                                       range);
+        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
+                                    vk::PipelineStageFlagBits::eComputeShader,
+                            vk::PipelineStageFlagBits::eTopOfPipe, {}, {}, {}, barrier);
+    }
+
     void VulkanWindowViewport::create_swapchain()
     {
         // Creating swapchain
@@ -210,7 +223,7 @@ namespace Engine
         f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
         f.format     = VK_FORMAT_B8G8R8A8_UNORM;
         swapchain_builder.set_desired_format(f);
- 
+
         auto swap_ret = swapchain_builder.build();
 
         if (!swap_ret)
@@ -237,6 +250,14 @@ namespace Engine
         if (!image_views_result.has_value())
             throw EngineException(image_views_result.error().message());
         m_image_views = std::move(image_views_result.value());
+
+
+        auto cmd = API->begin_single_time_command_buffer();
+        for (VkImage image : m_images)
+        {
+            transition_swapchain_image(vk::Image(image), cmd);
+        }
+        API->end_single_time_command_buffer(cmd);
     }
 
     void VulkanWindowViewport::recreate_swapchain()
@@ -323,30 +344,9 @@ namespace Engine
         m_buffer_index = current_buffer_index.value;
     }
 
-    static void transition_swapchain_image(vk::Image image)
-    {
-        vk::CommandBuffer execute_command_buffer = API->current_command_buffer();
-        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eNone, vk::ImageLayout::eUndefined,
-                                       vk::ImageLayout::ePresentSrcKHR, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
-                                       range);
-        execute_command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader |
-                                                       vk::PipelineStageFlagBits::eVertexShader |
-                                                       vk::PipelineStageFlagBits::eComputeShader,
-                                               vk::PipelineStageFlagBits::eTopOfPipe, {}, {}, {}, barrier);
-    }
 
     void VulkanWindowViewport::end_render()
     {
-        if (!API->m_state->m_is_image_rendered_to_swapchain)
-        {
-            for (VkImage image : m_images)
-            {
-                transition_swapchain_image(vk::Image(image));
-            }
-        }
-
         VulkanViewport::end_render();
 
         SyncObject& sync = m_sync_objects[API->m_current_buffer];
@@ -370,7 +370,7 @@ namespace Engine
                 break;
 
             case vk::Result::eSuboptimalKHR:
-#if !SKIP_SUBOPTIMAL_KHR_ERROR
+#if SKIP_SUBOPTIMAL_KHR_ERROR
                 break;
 #endif
             case vk::Result::eErrorOutOfDateKHR:

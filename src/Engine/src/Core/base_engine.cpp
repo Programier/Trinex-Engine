@@ -67,7 +67,6 @@ namespace Engine
             instance->wait();
         }
 
-
         auto& viewports = RenderViewport::viewports();
 
         for (auto& viewport : viewports)

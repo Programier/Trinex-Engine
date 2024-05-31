@@ -111,6 +111,17 @@ namespace Engine
         return m_attachment_descriptions.size();
     }
 
+    uint_t VulkanRenderPass::color_attachments_count() const
+    {
+        uint_t attachments = attachments_count();
+
+        if (m_has_depth_attachment)
+        {
+            --attachments;
+        }
+        return attachments;
+    }
+
     VulkanRenderPass& VulkanRenderPass::destroy()
     {
         DESTROY_CALL(destroyRenderPass, m_render_pass);
@@ -147,7 +158,7 @@ namespace Engine
             m_main_render_pass->m_attachment_descriptions.push_back(vk::AttachmentDescription(
                     vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eDontCare,
                     vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR));
+                    vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::ePresentSrcKHR));
 
             m_main_render_pass->m_color_attachment_references = {
                     vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),

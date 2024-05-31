@@ -1,5 +1,4 @@
 ﻿#include <VkBootstrap.h>
-#include <fstream>
 
 #include <Graphics/texture.hpp>
 #include <Window/config.hpp>

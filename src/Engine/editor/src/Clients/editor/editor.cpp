@@ -1,7 +1,7 @@
 #include <Clients/editor_client.hpp>
 #include <Clients/open_client.hpp>
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/localization.hpp>
 #include <Core/threading.hpp>
@@ -162,6 +162,9 @@ namespace Engine
 
     ViewportClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
     {
+        auto& list = viewport->window()->imgui_window()->window_list;
+        list.close_all_windows();
+
         unbind_window(false);
         return *this;
     }
