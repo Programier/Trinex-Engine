@@ -26,6 +26,28 @@ namespace Engine
         update("e_project_name", "Engine::project_name", "TrinexEngine");
     }
 
+    static Vector<String> get_libs_from_args()
+    {
+        Arguments::Argument* arg = Arguments::find("e_libs");
+        if (arg && arg->type == Arguments::Type::Array)
+        {
+            return arg->get<Arguments::ArrayType>();
+        }
+
+        return {};
+    }
+
+    static Vector<String> get_libs_from_config()
+    {
+        return ConfigManager::get_string_array("Engine::libs");
+    }
+
+    static Vector<String> merge_array(Vector<String> a, const Vector<String>& b)
+    {
+        a.insert(a.end(), b.begin(), b.end());
+        return a;
+    }
+
     static void on_init()
     {
         // After loading configs we can override values by command line or set default value
@@ -50,7 +72,7 @@ namespace Engine
 
         ConfigManager::load_array_argument<String>("e_languages", "Engine::languages", {"eng"});
         ConfigManager::load_array_argument<String>("e_systems", "Engine::systems", {});
-        ConfigManager::load_array_argument<String>("e_external_system_libraries", "Engine::external_system_libraries", {});
+        ConfigManager::set("Engine::libs", merge_array(get_libs_from_config(), get_libs_from_args()));
 
         //////////////////////////////// WINDOWS PART ////////////////////////////////
         ConfigManager::load_string_argument<String>("w_title", "Window::title", "Trinex Engine");

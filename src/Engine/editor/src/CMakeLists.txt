@@ -28,7 +28,12 @@ if(TRINEX_REBUILD_HEADERS)
 endif()
 
 include_directories(../libs/slang/source/core/)
-add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
+
+if(ANDROID)
+    add_library(TrinexEngineEditor SHARED ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
+else()
+    add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
+endif()
 
 target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
                                                                 imgui_guizmo

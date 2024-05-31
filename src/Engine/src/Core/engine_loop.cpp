@@ -114,16 +114,7 @@ namespace Engine
 
         // Load libraries
         {
-            const Arguments::Argument* argument = arguments.find("libs");
-            if (argument && argument->type == Arguments::Type::Array)
-            {
-                for (const String& library : argument->data.cast<const Arguments::ArrayType&>())
-                {
-                    Library().load(library);
-                }
-            }
-
-            Vector<String> external_system_libraries = ConfigManager::get_string_array("Engine::external_system_libraries");
+            Vector<String> external_system_libraries = ConfigManager::get_string_array("Engine::libs");
 
             for (const String& library : external_system_libraries)
             {

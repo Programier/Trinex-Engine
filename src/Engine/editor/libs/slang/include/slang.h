@@ -612,6 +612,7 @@ extern "C"
         SLANG_METAL,                    ///< Metal shading language
         SLANG_METAL_LIB,                ///< Metal library
         SLANG_METAL_LIB_ASM,            ///< Metal library assembly
+        SLANG_HOST_SHARED_LIBRARY,      ///< A shared library/Dll for host code (for hosting CPU/OS)
         SLANG_TARGET_COUNT_OF,
     };
 
@@ -860,6 +861,9 @@ extern "C"
             SourceEmbedStyle,
             SourceEmbedName,
             SourceEmbedLanguage,
+            DisableShortCircuit,   // bool
+            MinimumSlangOptimization, // bool
+            DisableNonEssentialValidations, // bool
 
             // Target
 
@@ -943,6 +947,7 @@ extern "C"
             SaveStdLib,
             SaveStdLibBinSource,
             TrackLiveness,
+            LoopInversion,              // bool, enable loop inversion optimization
 
             // Deprecated
             ParameterBlocksUseRegisterSpaces,
@@ -1706,6 +1711,17 @@ extern "C"
         int targetIndex,
         bool forceScalarLayout);
 
+    /*! @see slang::ICompileRequest::setTargetUseMinimumSlangOptimization */
+    SLANG_API void spSetTargetUseMinimumSlangOptimization(
+        slang::ICompileRequest* request,
+        int targetIndex,
+        bool val);
+
+    /*! @see slang::ICompileRequest::setIngoreCapabilityCheck */
+    SLANG_API void spSetIgnoreCapabilityCheck(
+        slang::ICompileRequest* request,
+        bool val);
+
     /*! @see slang::ICompileRequest::setCodeGenTarget */
     SLANG_API void spSetCodeGenTarget(
         SlangCompileRequest*    request,
@@ -2261,6 +2277,9 @@ extern "C"
 
         // Metal resource binding points.
         SLANG_PARAMETER_CATEGORY_METAL_ARGUMENT_BUFFER_ELEMENT,
+
+        // Metal [[attribute]] inputs.
+        SLANG_PARAMETER_CATEGORY_METAL_ATTRIBUTE,
 
         //
         SLANG_PARAMETER_CATEGORY_COUNT,
@@ -2835,6 +2854,7 @@ namespace slang
         MetalBuffer = SLANG_PARAMETER_CATEGORY_CONSTANT_BUFFER,
         MetalTexture = SLANG_PARAMETER_CATEGORY_METAL_TEXTURE,
         MetalArgumentBufferElement = SLANG_PARAMETER_CATEGORY_METAL_ARGUMENT_BUFFER_ELEMENT,
+        MetalAttribute = SLANG_PARAMETER_CATEGORY_METAL_ATTRIBUTE,
 
         // DEPRECATED:
         VertexInput = SLANG_PARAMETER_CATEGORY_VERTEX_INPUT,
@@ -4395,6 +4415,10 @@ namespace slang
         virtual SLANG_NO_THROW void SLANG_MCALL setReportPerfBenchmark(bool value) = 0;
 
         virtual SLANG_NO_THROW void SLANG_MCALL setSkipSPIRVValidation(bool value) = 0;
+
+        virtual SLANG_NO_THROW void SLANG_MCALL setTargetUseMinimumSlangOptimization(int targetIndex, bool value) = 0;
+
+        virtual SLANG_NO_THROW void SLANG_MCALL setIgnoreCapabilityCheck(bool value) = 0;
 
     };
 
