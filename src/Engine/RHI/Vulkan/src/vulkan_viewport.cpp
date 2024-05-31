@@ -210,7 +210,7 @@ namespace Engine
         f.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
         f.format     = VK_FORMAT_B8G8R8A8_UNORM;
         swapchain_builder.set_desired_format(f);
-
+ 
         auto swap_ret = swapchain_builder.build();
 
         if (!swap_ret)
@@ -328,9 +328,9 @@ namespace Engine
         vk::CommandBuffer execute_command_buffer = API->current_command_buffer();
         static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
-        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eNone,
-                                       vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, VK_QUEUE_FAMILY_IGNORED,
-                                       VK_QUEUE_FAMILY_IGNORED, image, range);
+        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eNone, vk::ImageLayout::eUndefined,
+                                       vk::ImageLayout::ePresentSrcKHR, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
+                                       range);
         execute_command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader |
                                                        vk::PipelineStageFlagBits::eVertexShader |
                                                        vk::PipelineStageFlagBits::eComputeShader,
@@ -369,10 +369,11 @@ namespace Engine
             case vk::Result::eSuccess:
                 break;
 
-            case vk::Result::eErrorOutOfDateKHR:
-#if !SKIP_SUBOPTIMAL_KHR_ERROR
             case vk::Result::eSuboptimalKHR:
+#if !SKIP_SUBOPTIMAL_KHR_ERROR
+                break;
 #endif
+            case vk::Result::eErrorOutOfDateKHR:
                 m_need_recreate_swap_chain = true;
                 break;
 

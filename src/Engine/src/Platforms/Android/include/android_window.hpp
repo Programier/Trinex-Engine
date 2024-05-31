@@ -88,14 +88,14 @@ namespace Engine
     public:
         AndroidVulkanWindow(const WindowConfig* config);
 
-        virtual void* create_api_context(const char* any_text, ...) = 0;
-        virtual void bind_api_context(void* context)                = 0;
+        void* create_api_context(const char* any_text, ...) override;
+        void bind_api_context(void* context) override;
 
-        virtual WindowInterface& make_current()        = 0;
-        virtual WindowInterface& destroy_api_context() = 0;
-        virtual WindowInterface& vsync(bool)           = 0;
-        virtual WindowInterface& present()             = 0;
-        virtual bool vsync()                           = 0;
-        virtual Vector<String> required_extensions()   = 0;
+        WindowInterface& make_current() override;
+        WindowInterface& destroy_api_context() override;
+        WindowInterface& vsync(bool) override;
+        WindowInterface& present() override;
+        bool vsync() override;
+        Vector<String> required_extensions() override;
     };
 }// namespace Engine

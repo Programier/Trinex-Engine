@@ -7,8 +7,7 @@ namespace Engine
 {
     VulkanDescriptorPool::Entry::Entry(VulkanDescriptorPool* pool)
     {
-        size_t max_sets = MAX_BINDLESS_RESOURCES * API->m_framebuffers_count * pool->descriptor_sets_per_frame();
-        vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, max_sets,
+        vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, pool->max_sets_per_pool(),
                                                pool->m_pool_sizes);
         m_pool = API->m_device.createDescriptorPool(pool_info);
         pool->m_entries.push_back(this);
@@ -23,6 +22,14 @@ namespace Engine
         : m_pipeline(pipeline), m_pool_sizes(std::move(sizes)), m_frame_index(0), m_object_index(0)
     {
         m_frames_list.resize(API->m_framebuffers_count);
+
+        size_t max_sets = max_sets_per_pool();
+
+        for(auto& ell : m_pool_sizes)
+        {
+            ell.descriptorCount *= max_sets;
+        }
+
         allocate_new_object();
     }
 
@@ -54,6 +61,11 @@ namespace Engine
         }
 
         return *this;
+    }
+
+    size_t VulkanDescriptorPool::max_sets_per_pool()
+    {
+        return MAX_BINDLESS_RESOURCES * API->m_framebuffers_count * descriptor_sets_per_frame();
     }
 
     VulkanDescriptorPool& VulkanDescriptorPool::next()

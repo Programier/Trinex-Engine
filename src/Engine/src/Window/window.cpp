@@ -285,8 +285,9 @@ namespace Engine
         {
             callback(context);
         }
-
+#if !PLATFORM_ANDROID
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+#endif
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         interface->initialize_imgui();

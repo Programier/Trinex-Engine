@@ -56,7 +56,8 @@ set(TRINEX_ENGINE_PUBLIC_LIBRARIES imgui imgui_node_editor angelscript imgui-fil
 
 if(ANDROID)
     find_library(glesv3-lib GLESv3)
-    set(TRINEX_ENGINE_PUBLIC_LIBRARIES ${TRINEX_ENGINE_PUBLIC_LIBRARIES} android native_app_glue log EGL ${glesv3-lib})
+    find_library(vulkan-lib vulkan)
+    set(TRINEX_ENGINE_PUBLIC_LIBRARIES ${TRINEX_ENGINE_PUBLIC_LIBRARIES} android native_app_glue log EGL ${glesv3-lib} ${vulkan-lib})
 endif()
 
 

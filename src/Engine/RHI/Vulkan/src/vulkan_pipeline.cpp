@@ -398,7 +398,6 @@ namespace Engine
     static PoolSizeInfo calc_pool_sizes(const Pipeline* pipeline)
     {
         PoolSizeInfo out;
-        uint_t stages_count = pipeline->stages_count();
 
         for (auto& param : pipeline->parameters)
         {
@@ -417,7 +416,7 @@ namespace Engine
 
             if (value)
             {
-                (*value) += stages_count;
+                (*value) += 1;
             }
         }
 

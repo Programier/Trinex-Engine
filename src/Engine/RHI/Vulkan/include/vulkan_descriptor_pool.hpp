@@ -33,6 +33,7 @@ namespace Engine
 
     public:
         VulkanDescriptorPool(Vector<vk::DescriptorPoolSize>&& sizes, struct VulkanPipeline* pipeline);
+        size_t max_sets_per_pool();
         VulkanDescriptorPool& next();
         VulkanDescriptorPool& reset();
         VulkanDescriptorSet* get(BindingIndex set);

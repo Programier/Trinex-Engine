@@ -244,7 +244,7 @@ namespace Engine
         m_window = window;
 
         vkb::InstanceBuilder instance_builder;
-        instance_builder.require_api_version(VK_API_VERSION_1_3);
+        instance_builder.require_api_version(VK_API_VERSION_1_0);
 
         auto extentions = m_window->required_extensions();
         for (auto& extension : extentions)
@@ -264,7 +264,9 @@ namespace Engine
 
         if (!instance_ret)
         {
-            throw std::runtime_error(instance_ret.error().message());
+            auto message = instance_ret.error().message();
+            vulkan_error_log("Vulkan", "%s", message.c_str());
+            throw EngineException(message);
         }
 
         m_instance = instance_ret.value();
@@ -273,11 +275,14 @@ namespace Engine
 
         vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
         vk::PhysicalDeviceFeatures features;
+
+#if !PLATFORM_ANDROID
         features.samplerAnisotropy  = true;
         features.fillModeNonSolid   = true;
         features.wideLines          = true;
         features.tessellationShader = true;
         features.geometryShader     = true;
+#endif
 
         phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
 
@@ -290,18 +295,22 @@ namespace Engine
         }
 
 
+#if !PLATFORM_ANDROID
         phys_device_selector.allow_any_gpu_device_type(false);
 #if USE_INTEGRATED_GPU
         phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
 #else
         phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
 #endif
+#endif
         phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(m_surface));
 
         auto selected_device = phys_device_selector.select();
         if (!selected_device.has_value())
         {
-            throw std::runtime_error(selected_device.error().message());
+            auto msg = selected_device.error().message();
+            vulkan_error_log("Vulkan", "%s", msg.c_str());
+            throw std::runtime_error(msg);
         }
 
         m_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
@@ -311,6 +320,8 @@ namespace Engine
         m_features             = m_physical_device.getFeatures();
         m_surface_capabilities = m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
         m_renderer             = m_properties.deviceName.data();
+
+        info_log("Vulkan", "Selected GPU '%s'", m_renderer.c_str());
 
         vkb::DeviceBuilder device_builder(selected_device.value());
 
@@ -413,7 +424,7 @@ namespace Engine
     {
         void* _surface = interface->create_api_context("", static_cast<VkInstance>(m_instance));
         interface->bind_api_context(_surface);
-        return vk::SurfaceKHR(*reinterpret_cast<VkSurfaceKHR*>(_surface));
+        return vk::SurfaceKHR(reinterpret_cast<VkSurfaceKHR>(_surface));
     }
 
     vk::Extent2D VulkanAPI::surface_size() const

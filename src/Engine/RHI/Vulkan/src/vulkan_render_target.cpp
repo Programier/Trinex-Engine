@@ -178,7 +178,6 @@ namespace Engine
 
     void VulkanRenderTargetBase::bind()
     {
-
         if (API->m_state->m_render_target == this)
         {
             return;
@@ -250,8 +249,8 @@ namespace Engine
 
         texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
         cmd.clearDepthStencilImage(texture->image(), vk::ImageLayout::eTransferDstOptimal,
-                            vk::ClearDepthStencilValue(value.depth, value.stencil),
-                            vk::ImageSubresourceRange(texture->aspect(), texture->base_mipmap(), 1, 0, 1));
+                                   vk::ClearDepthStencilValue(value.depth, value.stencil),
+                                   vk::ImageSubresourceRange(texture->aspect(), texture->base_mipmap(), 1, 0, 1));
         texture->change_layout(current_layout, cmd);
     }
 
@@ -386,7 +385,10 @@ namespace Engine
 
     void VulkanWindowRenderTarget::clear_color(const ColorClearValue& color, byte layout)
     {
-        frame()->clear_color(color, layout);
+        vk::Image img = m_viewport->m_images[m_viewport->m_buffer_index];
+        API->current_command_buffer().clearColorImage(img, vk::ImageLayout::eTransferDstOptimal,
+                                                      vk::ClearColorValue(color.r, color.g, color.b, color.a),
+                                                      vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
     }
 
     VulkanWindowRenderTarget::~VulkanWindowRenderTarget()

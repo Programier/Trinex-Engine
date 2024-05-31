@@ -7,6 +7,9 @@
 #include <android_window.hpp>
 #include <imgui_impl_android.h>
 
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_android.h>
+
 namespace Engine
 {
     AndroidWindow::AndroidWindow(const WindowConfig* config) : m_name("Android Window")
@@ -298,6 +301,8 @@ namespace Engine
 
         egl_surface = eglCreateWindowSurface(egl_display, egl_config, native_window(), nullptr);
         eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
+
+        vsync(m_init_vsync);
         return egl_context;
     }
 
@@ -352,7 +357,68 @@ namespace Engine
     }
 
     Vector<String> AndroidEGLWindow::required_extensions()
-    {}
+    {
+        return {};
+    }
 
     // Vulkan Window
+
+    AndroidVulkanWindow::AndroidVulkanWindow(const WindowConfig* config) : AndroidWindow(config)
+    {}
+
+    void* AndroidVulkanWindow::create_api_context(const char* any_text, ...)
+    {
+        va_list args;
+        va_start(args, any_text);
+        VkInstance instance = va_arg(args, VkInstance);
+        va_end(args);
+
+        ANativeWindow* window = native_window();
+        VkSurfaceKHR surface;
+        VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
+        surfaceCreateInfo.sType                         = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+        surfaceCreateInfo.window                        = window;
+
+        if (vkCreateAndroidSurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw EngineException("Android: Failed to create Vulkan Surface");
+        }
+
+        return reinterpret_cast<void*>(surface);
+    }
+
+    void AndroidVulkanWindow::bind_api_context(void* context)
+    {
+        // Android can use only one window, so this method does not affect
+    }
+
+    WindowInterface& AndroidVulkanWindow::make_current()
+    {
+        return *this;// Must never call
+    }
+
+    WindowInterface& AndroidVulkanWindow::destroy_api_context()
+    {
+        return *this;// Must never call.
+    }
+
+    WindowInterface& AndroidVulkanWindow::vsync(bool)
+    {
+        return *this;// Must never call
+    }
+
+    WindowInterface& AndroidVulkanWindow::present()
+    {
+        return *this;// Must never call
+    }
+
+    bool AndroidVulkanWindow::vsync()
+    {
+        return false;// Must never call
+    }
+
+    Vector<String> AndroidVulkanWindow::required_extensions()
+    {
+        return {"VK_KHR_surface", "VK_KHR_android_surface"};
+    }
 }// namespace Engine

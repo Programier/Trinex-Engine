@@ -536,7 +536,7 @@ namespace Engine
                 SDL_Vulkan_CreateSurface(m_window, instance, &created_context.vulkan_surface);
             }
             binded_context.vulkan_surface = created_context.vulkan_surface;
-            return &created_context.vulkan_surface;
+            return reinterpret_cast<void*>(created_context.vulkan_surface);
         }
         else if (m_api == SDL_WINDOW_OPENGL)
         {
@@ -565,7 +565,7 @@ namespace Engine
         }
         else if (m_api == SDL_WINDOW_VULKAN)
         {
-            binded_context.vulkan_surface = *reinterpret_cast<VkSurfaceKHR*>(context);
+            binded_context.vulkan_surface = reinterpret_cast<VkSurfaceKHR>(context);
         }
     }
 
