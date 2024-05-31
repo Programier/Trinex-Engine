@@ -225,21 +225,23 @@ namespace Engine
 
     static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
     {
-        ReflectionInitializeController().require("Bind Event").require("Bind EventSystenListenerID");
+        ReflectionInitializeController().require("Engine::Event").require("Engine::EventSystenListenerID").require("Engine::EventType");
 
         ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
         enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);
         enum_regisrar.set("WaitingEvents", EventSystem::WaitingEvents);
 
 
-        ScriptEngine::instance()->funcdef("void Engine::EventCallback(const Engine::Event&)");
-        registrar->static_function("EventSystem@ instance()", EventSystem::new_system<EventSystem>);
-        registrar->func_as_method("uint64 add_listener(Engine::EventType, Engine::EventCallback@)", add_script_listener,
-                                  ScriptCallConv::CDECL_OBJFIRST);
-        registrar->method("EventSystem& remove_listener(const Engine::EventType, uint64 id)", &EventSystem::remove_listener);
-        registrar->method("const EventSystem& push_event(const Engine::Event& in) const", &EventSystem::push_event);
-        registrar->method("EventSystem& process_event_method(Engine::EventSystem::ProcessEventMethod)",
-                          &EventSystem::process_event_method);
+        // ScriptEngine::instance()->funcdef("void Engine::EventCallback(const Engine::Event&)");
+
+
+        // registrar->static_function("EventSystem@ instance()", EventSystem::new_system<EventSystem>);
+        // registrar->func_as_method("uint64 add_listener(Engine::EventType, Engine::EventCallback@)", add_script_listener,
+        //                           ScriptCallConv::CDECL_OBJFIRST);
+        // registrar->method("EventSystem& remove_listener(const Engine::EventType, uint64 id)", &EventSystem::remove_listener);
+        // registrar->method("const EventSystem& push_event(const Engine::Event& in) const", &EventSystem::push_event);
+        // registrar->method("EventSystem& process_event_method(Engine::EventSystem::ProcessEventMethod)",
+        //                   &EventSystem::process_event_method);
     }
 
     implement_class(EventSystem, Engine, Class::IsScriptable);

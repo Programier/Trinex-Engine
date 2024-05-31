@@ -7,16 +7,16 @@ namespace Engine
 {
 
     using ControllerCallback = Function<void()>;
-    using CallbacksList      = Map<String, List<struct CallbackEntry>>;
+
 
     class ENGINE_EXPORT LoadingControllerBase
     {
     private:
-        CallbacksList& m_list;
+        void* m_list;
         const char* m_name = nullptr;
 
     protected:
-        LoadingControllerBase(CallbacksList& list, const char* name);
+        LoadingControllerBase(void* list, const char* name);
 
         static bool is_triggered(BitMask type);
         static void mark_triggered(BitMask type);
@@ -28,6 +28,7 @@ namespace Engine
                                     const std::initializer_list<String>& require_initializers = {});
         LoadingControllerBase& require(const String& name);
         LoadingControllerBase& execute();
+        virtual Identifier id() const = 0;
 
         virtual ~LoadingControllerBase();
     };
@@ -43,6 +44,7 @@ namespace Engine
                              const std::initializer_list<String>& require_initializers = {});                                    \
         ControllerName& require(const String& name);                                                                             \
         ControllerName& execute();                                                                                               \
+        Identifier id() const override;                                                                                  \
         static bool is_triggered();                                                                                              \
     }
 

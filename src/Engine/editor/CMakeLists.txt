@@ -21,10 +21,6 @@ elseif(LINUX)
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/libs/slang/linux-x86_64/libslang-glslang.so" DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
     install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/libs/slang/linux-x86_64/libslang.so" DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
     set(SLANG_LIBRARIES slang slang-glslang)
-elseif(ANDROID)
-    link_directories("libs/slang/linux-aarch64")
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/libs/slang/linux-aarch64/libslang-glslang.so" DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
-    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/libs/slang/linux-aarch64/libslang.so" DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})
 endif()
 
 # END PREPARE SLANG

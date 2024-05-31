@@ -11,16 +11,19 @@ namespace Engine
         Vector<String> require_initializers;
     };
 
-    using CallbackListGetter = CallbacksList& (*) ();
+
+    using CallbacksList = TreeMap<String, List<CallbackEntry>>;
 
     template<typename T>
-    static CallbacksList& callbacks_list()
+    static CallbacksList* callbacks_list()
     {
         static CallbacksList list;
-        return list;
+        return &list;
     }
 
-    LoadingControllerBase::LoadingControllerBase(CallbacksList& list, const char* name) : m_list(list), m_name(name)
+#define list_of(ptr) (*reinterpret_cast<CallbacksList*>(ptr))
+
+    LoadingControllerBase::LoadingControllerBase(void* list, const char* name) : m_list(list), m_name(name)
     {}
 
 
@@ -63,14 +66,14 @@ namespace Engine
         CallbackEntry entry;
         entry.function             = callback;
         entry.require_initializers = require_initializers;
-        m_list[name].push_back(entry);
+        list_of(m_list)[name].push_back(entry);
         return *this;
     }
 
     LoadingControllerBase& LoadingControllerBase::require(const String& name)
     {
-        auto it = m_list.find(name);
-        if (it == m_list.end())
+        auto it = list_of(m_list).find(name);
+        if (it == list_of(m_list).end())
             return *this;
 
         auto& list = it->second;
@@ -85,9 +88,10 @@ namespace Engine
                 require(initializer);
             }
 
+
             if (!name.empty())
             {
-                debug_log(m_name, "Executing initializer '%s'", name.c_str());
+                info_log(m_name, "Executing initializer '%s'", name.c_str());
             }
             entry.function();
         }
@@ -100,11 +104,11 @@ namespace Engine
     {
         info_log(m_name, "Executing command list!");
 
-        while (!m_list.empty())
+        while (!list_of(m_list).empty())
         {
-            auto id = m_list.begin();
+            auto id = list_of(m_list).begin();
             require(id->first);
-            m_list.erase(id);
+            list_of(m_list).erase(id);
         }
 
         return *this;
@@ -171,6 +175,10 @@ namespace Engine
     bool ControllerName::is_triggered()                                                                                          \
     {                                                                                                                            \
         return LoadingControllerBase::is_triggered(static_cast<BitMask>(ControllerType::type));                                  \
+    }                                                                                                                            \
+    Identifier ControllerName::id() const                                                                                        \
+    {                                                                                                                            \
+        return static_cast<BitMask>(ControllerType::type);                                                                       \
     }
 
     IMPLEMENT_CONTROLLER(PreInitializeController, PreInit);

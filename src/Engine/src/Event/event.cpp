@@ -57,7 +57,6 @@ namespace Engine
 
     static void on_init()
     {
-        Enum::static_find("Engine::EventType", true);
         ScriptClassRegistrar registrar("Engine::Event",
                                        ScriptClassRegistrar::create_type_info<Event>(ScriptClassRegistrar::Value));
 
@@ -76,5 +75,5 @@ namespace Engine
         registrar.method("const any& any() const", &Event::any);
     }
 
-    static ReflectionInitializeController initializer(on_init, "Bind Event");
+    static ReflectionInitializeController initializer(on_init, "Engine::Event", {"Engine::EventType"});
 }// namespace Engine

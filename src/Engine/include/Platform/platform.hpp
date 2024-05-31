@@ -29,5 +29,12 @@ namespace Engine
             ENGINE_EXPORT void wait_for_events();
         }// namespace WindowManager
 
+        namespace LibraryLoader
+        {
+            ENGINE_EXPORT void* load_library(const String& name);
+            ENGINE_EXPORT void close_library(void* handle);
+            ENGINE_EXPORT void* find_function(void* handle, const String& name);
+        }// namespace LibraryLoader
+
     }// namespace Platform
 }// namespace Engine

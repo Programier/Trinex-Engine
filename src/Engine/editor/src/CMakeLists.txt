@@ -37,9 +37,13 @@ endif()
 
 target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
                                                                 imgui_guizmo
-                                                                slang
                                                                 spirv-cross-glsl
                                                                 spirv-cross-core)
+
+if(NOT ANDROID)
+    target_link_libraries(TrinexEngineEditor PRIVATE slang)
+endif()
+
 
 set_property(TARGET assimp PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")
 set_property(TARGET imgui_guizmo PROPERTY COMPILE_OPTIONS "-g0" "-O3" "-Os" "-finline-functions" "-funroll-loops" "-fomit-frame-pointer")

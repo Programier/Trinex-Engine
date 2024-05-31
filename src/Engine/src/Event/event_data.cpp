@@ -42,6 +42,6 @@ namespace Engine
     static void on_init()
     {}
 
-    static ReflectionInitializeController initializer(on_init, "Bind EventData",
-                                                      {"Bind Event", "Bind Keyboard", "Bind Mouse", "Bind GameController"});
+    static ReflectionInitializeController initializer(on_init, "Engine::EventData",
+                                                      {"Engine::Event", "Bind Keyboard", "Bind Mouse", "Bind GameController"});
 }// namespace Engine

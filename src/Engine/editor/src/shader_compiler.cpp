@@ -1,3 +1,6 @@
+#include <Core/definitions.hpp>
+
+#if !PLATFORM_ANDROID
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/exception.hpp>
@@ -753,3 +756,5 @@ namespace Engine::ShaderCompiler
         return false;
     }
 }// namespace Engine::ShaderCompiler
+
+#endif

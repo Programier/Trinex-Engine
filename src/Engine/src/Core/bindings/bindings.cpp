@@ -13,12 +13,12 @@ namespace Engine
                 .require("Bind Engine::Vector")
                 .require("Bind Engine::IntVector")
                 .require("Bind Engine::UIntVector")
-                .require("Bind Engine::StringView")
+                .require("Engine::StringView")
                 .require("Bind ImGui")
                 .require("Bind Engine::Name")
                 .require("Bind Engine::Transform")
-                .require("Bind Event")
-                .require("Bind EventData")
+                .require("Engine::Event")
+                .require("Engine::EventData")
                 .require("Bind Engine::Class");
     }
 

@@ -135,7 +135,7 @@ namespace Engine
         if (it == map.end())
         {
             // Maybe initializer is not executed?
-            ReflectionInitializeController().require(Strings::format("{}{}", INITIALIZER_NAME_PREFIX, name.c_str()));
+            ReflectionInitializeController().require(name);
             it = map.find(name);
 
             if (it != map.end())
