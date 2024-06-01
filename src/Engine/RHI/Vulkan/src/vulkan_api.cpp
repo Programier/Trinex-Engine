@@ -133,7 +133,7 @@ namespace Engine
         init_info.Instance       = m_instance;
         init_info.PhysicalDevice = m_physical_device;
         init_info.Device         = m_device;
-        init_info.QueueFamily    = m_graphics_and_present_index.graphics_family.value();
+        init_info.QueueFamily    = m_graphics_queue_index;
         init_info.Queue          = m_graphics_queue;
 
         if (!m_imgui_descriptor_pool)
@@ -238,6 +238,69 @@ namespace Engine
                m_surface_capabilities.minImageCount <= count;
     }
 
+    static vkb::PhysicalDevice initialize_physical_device()
+    {
+        vkb::PhysicalDeviceSelector phys_device_selector(API->m_instance);
+
+        for (VulkanExtention& extension : API->m_device_extensions)
+        {
+            if (extension.required)
+                phys_device_selector.add_required_extension(extension.name);
+        }
+
+
+#if !PLATFORM_ANDROID
+        phys_device_selector.allow_any_gpu_device_type(false);
+#if USE_INTEGRATED_GPU
+        phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
+#else
+        phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
+#endif
+#endif
+        phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(API->m_surface));
+
+        auto selected_device = phys_device_selector.select();
+        if (!selected_device.has_value())
+        {
+            auto msg = selected_device.error().message();
+            vulkan_error_log("Vulkan", "%s", msg.c_str());
+            throw std::runtime_error(msg);
+        }
+
+        return selected_device.value();
+    }
+
+
+    static vkb::Device build_device(vkb::PhysicalDevice& physical_device)
+    {
+        vkb::DeviceBuilder builder(physical_device);
+
+        vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
+        builder.add_pNext(&idx_byte_feature);
+
+        auto device_ret = builder.build();
+
+        if (!device_ret)
+        {
+            throw std::runtime_error(device_ret.error().message());
+        }
+
+        return device_ret.value();
+    }
+
+    static vk::PhysicalDeviceFeatures filter_features(const vk::PhysicalDeviceFeatures& features)
+    {
+        vk::PhysicalDeviceFeatures new_features;
+
+        new_features.samplerAnisotropy  = features.samplerAnisotropy;
+        new_features.fillModeNonSolid   = features.fillModeNonSolid;
+        new_features.wideLines          = features.wideLines;
+        new_features.tessellationShader = features.tessellationShader;
+        new_features.geometryShader     = features.geometryShader;
+
+        return new_features;
+    }
+
     void VulkanAPI::initialize(WindowInterface* window)
     {
         m_window = window;
@@ -272,73 +335,24 @@ namespace Engine
 
         m_surface = create_surface(window);
 
-        vkb::PhysicalDeviceSelector phys_device_selector(instance_ret.value());
-        vk::PhysicalDeviceFeatures features;
 
-#if !PLATFORM_ANDROID
-        features.samplerAnisotropy  = true;
-        features.fillModeNonSolid   = true;
-        features.wideLines          = true;
-        features.tessellationShader = true;
-        features.geometryShader     = true;
-#endif
-
-        phys_device_selector.set_required_features(static_cast<VkPhysicalDeviceFeatures>(features));
-
-        for (VulkanExtention& extension : m_device_extensions)
-        {
-            if (extension.required)
-                phys_device_selector.add_required_extension(extension.name);
-            else
-                phys_device_selector.add_desired_extension(extension.name);
-        }
-
-
-#if !PLATFORM_ANDROID
-        phys_device_selector.allow_any_gpu_device_type(false);
-#if USE_INTEGRATED_GPU
-        phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
-#else
-        phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
-#endif
-#endif
-        phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(m_surface));
-
-        auto selected_device = phys_device_selector.select();
-        if (!selected_device.has_value())
-        {
-            auto msg = selected_device.error().message();
-            vulkan_error_log("Vulkan", "%s", msg.c_str());
-            throw std::runtime_error(msg);
-        }
-
-        m_physical_device = vk::PhysicalDevice(selected_device.value().physical_device);
+        // Initialize physical device
+        auto selected_device = initialize_physical_device();
+        m_physical_device    = vk::PhysicalDevice(selected_device.physical_device);
         check_extentions();
 
         m_properties           = m_physical_device.getProperties();
-        m_features             = m_physical_device.getFeatures();
+        m_features             = filter_features(m_physical_device.getFeatures());
         m_surface_capabilities = m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
         m_renderer             = m_properties.deviceName.data();
+        selected_device.enable_features_if_present(m_features);
 
         info_log("Vulkan", "Selected GPU '%s'", m_renderer.c_str());
 
-        vkb::DeviceBuilder device_builder(selected_device.value());
 
-        /// FEATURES
-        vk::PhysicalDeviceIndexTypeUint8FeaturesEXT idx_byte_feature(VK_TRUE);
-        device_builder.add_pNext(&idx_byte_feature);
-        vk::PhysicalDeviceSeparateDepthStencilLayoutsFeatures separate_depth_stencil(VK_TRUE);
-        device_builder.add_pNext(&separate_depth_stencil);
-
-
-        auto device_ret = device_builder.build();
-        if (!device_ret)
-        {
-            throw std::runtime_error(device_ret.error().message());
-        }
-
-        m_bootstrap_device = device_ret.value();
-        m_device           = vk::Device(device_ret.value().device);
+        // Initialize device
+        m_bootstrap_device = build_device(selected_device);
+        m_device           = vk::Device(m_bootstrap_device.device);
 
         auto index_1        = m_bootstrap_device.get_queue_index(vkb::QueueType::graphics);
         auto index_2        = m_bootstrap_device.get_queue_index(vkb::QueueType::present);
@@ -350,8 +364,8 @@ namespace Engine
             throw std::runtime_error("Failed to init queues");
         }
 
-        m_graphics_and_present_index.graphics_family = index_1.value();
-        m_graphics_and_present_index.present_family  = index_2.value();
+        m_graphics_queue_index = index_1.value();
+        m_present_queue_index  = index_2.value();
 
         m_graphics_queue = vk::Queue(graphics_queue.value());
         m_present_queue  = vk::Queue(present_queue.value());
@@ -461,8 +475,8 @@ namespace Engine
 
     void VulkanAPI::create_command_pool()
     {
-        m_command_pool = m_device.createCommandPool(vk::CommandPoolCreateInfo(
-                vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_graphics_and_present_index.graphics_family.value()));
+        m_command_pool = m_device.createCommandPool(
+                vk::CommandPoolCreateInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, m_graphics_queue_index));
     }
 
 

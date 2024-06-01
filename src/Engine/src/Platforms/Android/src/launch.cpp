@@ -2,6 +2,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/export.hpp>
+#include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <android_native_app_glue.h>
 #include <android_platform.hpp>
@@ -29,7 +30,7 @@ try
 }
 catch (std::exception& e)
 {
-    printf("Exception: %s\n", e.what());
+    error_log("Engine", "Exception: %s\n", e.what());
     return 1;
 }
 

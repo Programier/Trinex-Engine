@@ -7,7 +7,6 @@
 #include <Core/logger.hpp>
 #include <Graphics/rhi.hpp>
 #include <VkBootstrap.h>
-#include <optional>
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
@@ -20,17 +19,6 @@ namespace Engine
     struct VulkanViewport;
     struct VulkanUniformBuffer;
 
-    struct QueueFamilyIndices {
-        std::optional<uint32_t> graphics_family;
-        std::optional<uint32_t> present_family;
-
-        bool is_complete()
-        {
-            return graphics_family.has_value() && present_family.has_value();
-        }
-    };
-
-
     struct Garbage {
         RHI_Object* object;
         size_t frame;
@@ -38,7 +26,6 @@ namespace Engine
         Garbage(RHI_Object* object, size_t frame) : object(object), frame(frame)
         {}
     };
-
 
     struct VulkanExtention {
         const char* name;
@@ -71,7 +58,9 @@ namespace Engine
         vk::PhysicalDevice m_physical_device;
         vk::Device m_device;
         vkb::Device m_bootstrap_device;
-        QueueFamilyIndices m_graphics_and_present_index;
+
+        uint32_t m_graphics_queue_index;
+        uint32_t m_present_queue_index;
         vk::Queue m_graphics_queue;
         vk::Queue m_present_queue;
 

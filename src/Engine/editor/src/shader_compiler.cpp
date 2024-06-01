@@ -391,10 +391,14 @@ namespace Engine::ShaderCompiler
         new (&out_buffer) Buffer(data, data + size);
     }
 
+    struct RequestSetupInterface {
+        virtual void setup(SlangCompileRequest*) const = 0;
+    };
+
     using SetupRequestFunction = void (*)(SlangCompileRequest*);
 
     static ShaderSource compile_shader(const String& source, const Vector<ShaderDefinition>& definitions, MessageList& errors,
-                                       const SetupRequestFunction& setup_request)
+                                       const RequestSetupInterface* setup_request)
     {
         errors.clear();
 
@@ -413,9 +417,11 @@ namespace Engine::ShaderCompiler
 
         ShaderSource out_source;
         using Slang::ComPtr;
+
         slang::SessionDesc session_desc      = {};
         session_desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
         session_desc.allowGLSLSyntax         = false;
+
 
         ComPtr<slang::ISession> session;
         RETURN_ON_FAIL(global_session()->createSession(session_desc, session.writeRef()));
@@ -446,7 +452,7 @@ namespace Engine::ShaderCompiler
             host_setup_request(request, definitions);
             if (setup_request)
             {
-                setup_request(request);
+                setup_request->setup(request);
             }
             auto unit = spAddTranslationUnit(request, SLANG_SOURCE_LANGUAGE_SLANG, "main_unit");
             spAddTranslationUnitSourceString(request, unit, "main_unit_source", source.c_str());
@@ -672,21 +678,44 @@ namespace Engine::ShaderCompiler
         submit_compiled_source(code, glsl_code.data(), glsl_code.size() + 1);
     }
 
-    static void setup_spriv_compile_request(SlangCompileRequest* request)
-    {
-        request->setCodeGenTarget(SLANG_SPIRV);
-        request->setTargetMatrixLayoutMode(0, SLANG_MATRIX_LAYOUT_COLUMN_MAJOR);
-        request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
-        request->setTargetFloatingPointMode(0, SLANG_FLOATING_POINT_MODE_FAST);
-        request->setTargetFlags(0, SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY);
-        request->setTargetProfile(0, global_session()->findProfile("spirv_1_0"));
-    }
 
+    struct VulkanRequestSetup : RequestSetupInterface {
+        void setup(SlangCompileRequest* request) const override
+        {
+            request->setCodeGenTarget(SLANG_SPIRV);
+            request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
+            request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_HIGH);
+
+            const char* arguments[] = {
+                    "-emit-spirv-via-glsl",
+            };
+
+            static constexpr int count = sizeof(arguments) / sizeof(const char*);
+            request->processCommandLineArguments(arguments, count);// TODO: Maybe it can be optimized to avoid parsing arguments?
+        }
+
+        static slang::CompilerOptionEntry create_entry(slang::CompilerOptionName name, bool value)
+        {
+            slang::CompilerOptionEntry entry;
+            entry.name            = name;
+            entry.value.intValue0 = value ? 1 : 0;
+            return entry;
+        }
+
+        static Vector<slang::CompilerOptionEntry>& compile_entries()
+        {
+            static Vector<slang::CompilerOptionEntry> entries = {
+                    create_entry(slang::CompilerOptionName::EmitSpirvDirectly, true),
+            };
+            return entries;
+        }
+    };
 
     static ShaderSource create_vulkan_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
                                              MessageList& errors)
     {
-        return compile_shader(slang_source, definitions, errors, setup_spriv_compile_request);
+        static VulkanRequestSetup setup;
+        return compile_shader(slang_source, definitions, errors, &setup);
     }
 
     static ShaderSource create_opengles_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,

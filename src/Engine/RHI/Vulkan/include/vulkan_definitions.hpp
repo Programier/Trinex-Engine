@@ -11,7 +11,7 @@
 #define API Engine::VulkanAPI::m_vulkan
 #define VIEW_PORT API->window_data.view_port
 
-#define ENABLE_VALIDATION_LAYERS (VULKAN_DEBUG_BUILD && !PLATFORM_ANDROID)
+#define ENABLE_VALIDATION_LAYERS (VULKAN_DEBUG_BUILD)
 #define MAX_BINDING_INDEX 15
 
 /*

@@ -52,7 +52,7 @@ endif()
 # List of libraries, which TrinexEngine use
 set(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS "${TRINEX_ENGINE_ROOT}/include-internal/")
 set(TRINEX_ENGINE_PRIVATE_LIBRARIES freetype asmjit zlib_library lz4_static)
-set(TRINEX_ENGINE_PUBLIC_LIBRARIES imgui imgui_node_editor angelscript imgui-filebrowser zip fmt stb_library)
+set(TRINEX_ENGINE_PUBLIC_LIBRARIES imgui imgui_node_editor angelscript imgui-filebrowser zip fmt-header-only stb_library)
 
 if(ANDROID)
     find_library(glesv3-lib GLESv3)

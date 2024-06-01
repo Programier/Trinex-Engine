@@ -1,3 +1,4 @@
+#include <Core/enum.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/render_pass.hpp>
 #include <Graphics/render_target_base.hpp>
@@ -34,16 +35,34 @@ namespace Engine
         input_assembly.primitiveRestartEnable = in_state.input_assembly.primitive_restart_enable;
         input_assembly.topology = m_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
 
+
+        if (API->m_features.fillModeNonSolid)
+        {
+            rasterizer.setPolygonMode(m_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)]);
+        }
+        else
+        {
+            if (in_state.rasterizer.polygon_mode != PolygonMode::Fill)
+            {
+                Name name = Enum::static_find("Engine::PolygoneMode", true)
+                                    ->entry(static_cast<EnumerateType>(in_state.rasterizer.polygon_mode))
+                                    ->name;
+                error_log("Vulkan", "Polygon mode '%s' is not supported on this device. Force set it to PoligoneMode::Fill",
+                          name.c_str());
+            }
+
+            rasterizer.setPolygonMode(vk::PolygonMode::eFill);
+        }
+
         rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
                 .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.front_face)])
-                .setPolygonMode(m_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)])
                 .setDepthBiasSlopeFactor(in_state.rasterizer.depth_bias_slope_factor)
                 .setDepthBiasClamp(in_state.rasterizer.depth_bias_clamp)
                 .setDepthBiasConstantFactor(in_state.rasterizer.depth_bias_const_factor)
                 .setDepthClampEnable(in_state.rasterizer.depth_clamp_enable)
                 .setRasterizerDiscardEnable(in_state.rasterizer.discard_enable)
                 .setDepthBiasEnable(in_state.rasterizer.depth_bias_enable)
-                .setLineWidth(in_state.rasterizer.line_width);
+                .setLineWidth(API->m_features.wideLines ? in_state.rasterizer.line_width : 1.f);
 
         multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1)
                 .setSampleShadingEnable(VK_FALSE)

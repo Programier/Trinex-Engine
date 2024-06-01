@@ -88,7 +88,7 @@ namespace Engine
 
     static ColorFormat base_color_format()
     {
-        return ColorFormat::FloatRGBA;
+        return ColorFormat::R8G8B8A8;
     }
 
     static ColorFormat position_format()
