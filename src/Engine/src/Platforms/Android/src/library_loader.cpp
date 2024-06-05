@@ -18,29 +18,9 @@ namespace Engine::Platform::LibraryLoader
     };
 
 
-    static String get_native_library_dir()
+    static const String& get_native_library_dir()
     {
-        String result = "";
-
-        android_app* app = android_application();
-        JNIEnv* env      = nullptr;
-        app->activity->vm->AttachCurrentThread(&env, nullptr);
-
-        jclass activity_class = env->FindClass("android/app/NativeActivity");
-        jmethodID get_Application_Info =
-                env->GetMethodID(activity_class, "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
-        jobject application_info       = env->CallObjectMethod(app->activity->clazz, get_Application_Info);
-        jclass application_info_class  = env->FindClass("android/content/pm/ApplicationInfo");
-        jfieldID native_library_dir_id = env->GetFieldID(application_info_class, "nativeLibraryDir", "Ljava/lang/String;");
-        jstring native_library_dir     = reinterpret_cast<jstring>(env->GetObjectField(application_info, native_library_dir_id));
-
-        const char* native_library_dir_str = env->GetStringUTFChars(native_library_dir, nullptr);
-        result                             = native_library_dir_str;
-        env->ReleaseStringUTFChars(native_library_dir, native_library_dir_str);
-
-        app->activity->vm->DetachCurrentThread();
-
-        return result;
+        return m_android_platform_info.libraries_path;
     }
 
     static Path get_app_lib_path()
