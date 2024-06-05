@@ -6,34 +6,33 @@
 
 namespace Engine
 {
+
+    static constexpr inline vk::AttachmentDescription create_attachment_desctiption(vk::Format format, vk::ImageLayout layout,
+                                                                                    bool has_stencil)
+    {
+        return vk::AttachmentDescription(vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1,
+                                         vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
+                                         has_stencil ? vk::AttachmentLoadOp::eLoad : vk::AttachmentLoadOp::eDontCare,   //
+                                         has_stencil ? vk::AttachmentStoreOp::eStore : vk::AttachmentStoreOp::eDontCare,//
+                                         layout, layout);
+    }
+
     VulkanRenderPass& VulkanRenderPass::create_attachment_descriptions(const RenderPass* render_pass)
     {
         for (const ColorFormat& color_attachment : render_pass->color_attachments)
         {
-            vk::Format format               = parse_engine_format(color_attachment);
-            vk::AttachmentLoadOp clear_op   = vk::AttachmentLoadOp::eLoad;
-            vk::ImageLayout input_layout_op = vk::ImageLayout::eShaderReadOnlyOptimal;
-
-            vk::AttachmentDescription description = vk::AttachmentDescription(
-                    vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
-                    vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
-
-            m_attachment_descriptions.push_back(description);
+            vk::Format format = parse_engine_format(color_attachment);
+            m_attachment_descriptions.push_back(
+                    create_attachment_desctiption(format, vk::ImageLayout::eShaderReadOnlyOptimal, false));
         }
 
         if (render_pass->depth_stencil_attachment != ColorFormat::Undefined)
         {
-            m_has_depth_attachment                = true;
-            vk::Format format                     = parse_engine_format(render_pass->depth_stencil_attachment);
-            vk::AttachmentLoadOp clear_op         = vk::AttachmentLoadOp::eLoad;
-            vk::ImageLayout input_layout_op       = vk::ImageLayout::eShaderReadOnlyOptimal;
-            vk::AttachmentDescription description = vk::AttachmentDescription(
-                    vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, clear_op,
-                    vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    input_layout_op, vk::ImageLayout::eShaderReadOnlyOptimal);
-
-            m_attachment_descriptions.push_back(description);
+            m_has_depth_attachment = true;
+            vk::Format format      = parse_engine_format(render_pass->depth_stencil_attachment);
+            m_attachment_descriptions.push_back(
+                    create_attachment_desctiption(format, vk::ImageLayout::eShaderReadOnlyOptimal,
+                                                  is_in<ColorFormat::DepthStencil>(render_pass->depth_stencil_attachment)));
         }
         return *this;
     }
@@ -154,11 +153,8 @@ namespace Engine
         {
             m_main_render_pass                         = new VulkanMainRenderPass();
             m_main_render_pass->m_has_depth_attachment = false;
-
-            m_main_render_pass->m_attachment_descriptions.push_back(vk::AttachmentDescription(
-                    vk::AttachmentDescriptionFlags(), format, vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eDontCare,
-                    vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare,
-                    vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::ePresentSrcKHR));
+            m_main_render_pass->m_attachment_descriptions.push_back(
+                    create_attachment_desctiption(format, vk::ImageLayout::ePresentSrcKHR, false));
 
             m_main_render_pass->m_color_attachment_references = {
                     vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),

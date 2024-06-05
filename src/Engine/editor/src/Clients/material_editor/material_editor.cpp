@@ -307,11 +307,11 @@ namespace Engine
 
         ImGui::End();
 
-        ImGui::SetNextWindowSize({500, 200}, ImGuiCond_Appearing);
-        ImGui::Begin("Graph Source Code");
-        ImGui::InputTextMultiline("##Text", m_material_source.data(), m_material_source.size(), ImGui::GetContentRegionAvail(),
-                                  ImGuiInputTextFlags_ReadOnly);
-        ImGui::End();
+        //ImGui::SetNextWindowSize({500, 200}, ImGuiCond_Appearing);
+        // ImGui::Begin("Graph Source Code");
+        // ImGui::InputTextMultiline("##Text", m_material_source.data(), m_material_source.size(), ImGui::GetContentRegionAvail(),
+        //                           ImGuiInputTextFlags_ReadOnly);
+        // ImGui::End();
         return *this;
     }
 
@@ -572,6 +572,8 @@ namespace Engine
             //                ImGui::TextUnformatted("Test");
             //            }
             //            ImGui::EndVertical();
+
+            ImGui::Spring();
 
 
             for (auto& output : node->outputs())
