@@ -32,6 +32,48 @@ endif()
 
 
 
+######################## ENGINE COMPILATION FUNCTIONS ########################
+set_property(GLOBAL PROPERTY trinex_private_libraries freetype asmjit zlib_library lz4_static)
+set_property(GLOBAL PROPERTY trinex_private_headers_dir "${TRINEX_ENGINE_ROOT}/include-internal/")
+set_property(GLOBAL PROPERTY trinex_public_libraries imgui imgui_node_editor angelscript imgui-filebrowser zip fmt-header-only stb_library)
+set_property(GLOBAL PROPERTY trinex_public_headers_dir ${TRINEX_ENGINE_ROOT}/include)
+set_property(GLOBAL PROPERTY trinex_link_directories)
+set_property(GLOBAL PROPERTY trinex_sources)
+
+function(add_trinex_sources sources)
+    get_property(local_sources GLOBAL PROPERTY trinex_sources)
+    set_property(GLOBAL PROPERTY trinex_sources ${local_sources} ${sources} ${ARGN})
+endfunction()
+
+function(add_trinex_link_directories directories)
+    get_property(local_directories GLOBAL PROPERTY trinex_link_directories)
+    set_property(GLOBAL PROPERTY trinex_link_directories ${local_directories} ${directories} ${ARGN})
+endfunction()
+
+function(add_trinex_public_include_directories headers)
+    get_property(local_headers GLOBAL PROPERTY trinex_public_headers_dir)
+    set_property(GLOBAL PROPERTY trinex_public_headers_dir ${local_headers} ${headers} ${ARGN})
+endfunction()
+
+function(add_trinex_public_libraries libraries)
+    get_property(local_libraries GLOBAL PROPERTY trinex_public_libraries)
+    set_property(GLOBAL PROPERTY trinex_public_libraries ${local_libraries} ${libraries} ${ARGN})
+endfunction()
+
+function(add_trinex_private_include_directories headers)
+    get_property(local_headers GLOBAL PROPERTY trinex_private_headers_dir)
+    set_property(GLOBAL PROPERTY trinex_private_headers_dir ${local_headers} ${headers} ${ARGN})
+endfunction()
+
+function(add_trinex_private_libraries libraries)
+    get_property(local_libraries GLOBAL PROPERTY trinex_private_libraries)
+    set_property(GLOBAL PROPERTY trinex_private_libraries ${local_libraries} ${libraries} ${ARGN})
+endfunction()
+
+
+
+######################## EXTERNAL LIBRARY COMPILATION ########################
+
 # Compile RHI
 add_subdirectory("${TRINEX_ENGINE_ROOT}/RHI/")
 
@@ -50,14 +92,10 @@ endif()
 ######################## ENGINE LIBRARY COMPILATION ########################
 
 # List of libraries, which TrinexEngine use
-set(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS "${TRINEX_ENGINE_ROOT}/include-internal/")
-set(TRINEX_ENGINE_PRIVATE_LIBRARIES freetype asmjit zlib_library lz4_static)
-set(TRINEX_ENGINE_PUBLIC_LIBRARIES imgui imgui_node_editor angelscript imgui-filebrowser zip fmt-header-only stb_library)
-
 if(ANDROID)
     find_library(glesv3-lib GLESv3)
     find_library(vulkan-lib vulkan)
-    set(TRINEX_ENGINE_PUBLIC_LIBRARIES ${TRINEX_ENGINE_PUBLIC_LIBRARIES} android native_app_glue log EGL ${glesv3-lib} ${vulkan-lib})
+    add_trinex_public_libraries(android native_app_glue log EGL ${glesv3-lib} ${vulkan-lib})
 endif()
 
 
@@ -91,18 +129,17 @@ file(GLOB_RECURSE TRINEX_SRC_SYSTEMS_SRC "${TRINEX_SRC_SYSTEMS_DIR}*.cpp")
 file(GLOB_RECURSE TRINEX_SRC_ENGINE_SRC "${TRINEX_SRC_ENGINE_DIR}*.cpp")
 
 # Write all source files to one variable
-set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES}
-                        ${TRINEX_SRC_WINDOW_SRC}
-                        ${TRINEX_SRC_IMAGE_SRC}
-                        ${TRINEX_SRC_GRAPHICS_SRC}
-                        ${TRINEX_SRC_CORE_SRC}
-                        ${TRINEX_SRC_EVENT_SRC}
-                        ${TRINEX_SRC_SENSORS_SRC}
-                        ${TRINEX_SRC_COMMANDLETS_SRC}
-                        ${TRINEX_SRC_SCRIPT_ENGINE_SRC}
-                        ${TRINEX_SRC_SYSTEMS_SRC}
-                        ${TRINEX_SRC_ENGINE_SRC}
-                        ${TRINEX_SRC_PLATFORM_SRC})
+add_trinex_sources( ${TRINEX_SRC_WINDOW_SRC}
+                    ${TRINEX_SRC_IMAGE_SRC}
+                    ${TRINEX_SRC_GRAPHICS_SRC}
+                    ${TRINEX_SRC_CORE_SRC}
+                    ${TRINEX_SRC_EVENT_SRC}
+                    ${TRINEX_SRC_SENSORS_SRC}
+                    ${TRINEX_SRC_COMMANDLETS_SRC}
+                    ${TRINEX_SRC_SCRIPT_ENGINE_SRC}
+                    ${TRINEX_SRC_SYSTEMS_SRC}
+                    ${TRINEX_SRC_ENGINE_SRC}
+                    ${TRINEX_SRC_PLATFORM_SRC})
 
 # Collect platform source files
 add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
@@ -110,9 +147,7 @@ add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
 # Rebuild headers
 if(TRINEX_REBUILD_HEADERS)
     add_executable(header_generator header_generator/main.cpp)
-
     set(TRINEX_PRECOMPILED_HEADERS  include-internal/DefaultResources/default.hpp)
-
     set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BasePassMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultSampler.tasset
@@ -133,6 +168,8 @@ if(TRINEX_REBUILD_HEADERS)
 endif()
 
 # Compile Trinex Engine library
+get_property(TRINEX_ENGINE_SOURCE_FILES GLOBAL PROPERTY trinex_sources)
+message("SOURCES ${TRINEX_ENGINE_SOURCE_FILES}")
 add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_PRECOMPILED_HEADERS})
 
 # Trinex Engine compile options
@@ -165,10 +202,18 @@ endif()
 
 
 # Linking libraries and including directories
-target_include_directories(TrinexEngine PUBLIC "$<BUILD_INTERFACE:${TRINEX_ENGINE_ROOT}/include>")
+get_property(TRINEX_ENGINE_PUBLIC_INCLUDE_DIRS GLOBAL PROPERTY trinex_public_headers_dir)
+target_include_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_PUBLIC_INCLUDE_DIRS})
+
+get_property(TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS GLOBAL PROPERTY trinex_private_headers_dir)
 target_include_directories(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_INCLUDE_DIRS})
 
+get_property(TRINEX_ENGINE_LINK_DIRECTORIES GLOBAL PROPERTY trinex_link_directories)
+target_link_directories(TrinexEngine PUBLIC ${TRINEX_ENGINE_LINK_DIRECTORIES})
+
+get_property(TRINEX_ENGINE_PRIVATE_LIBRARIES GLOBAL PROPERTY trinex_private_libraries)
 target_link_libraries(TrinexEngine PRIVATE ${TRINEX_ENGINE_PRIVATE_LIBRARIES})
+get_property(TRINEX_ENGINE_PUBLIC_LIBRARIES GLOBAL PROPERTY trinex_public_libraries)
 target_link_libraries(TrinexEngine PUBLIC  ${TRINEX_ENGINE_PUBLIC_LIBRARIES})
 
 install(TARGETS TrinexEngine DESTINATION ${TRINEX_LIBRARIES_INSTALL_DIR})

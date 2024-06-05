@@ -39,6 +39,3 @@ set_target_properties(fmt PROPERTIES COMPILE_OPTIONS "-fPIC")
 if (WIN32 OR LINUX)
     add_subdirectory(SDL)
 endif()
-
-
-set(TRINEX_ENGINE_SOURCE_FILES ${TRINEX_ENGINE_SOURCE_FILES} PARENT_SCOPE)
