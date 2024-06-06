@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(World);
+    implement_engine_class_default_init(World, 0);
 
     World& World::create()
     {

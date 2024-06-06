@@ -17,8 +17,7 @@ namespace Engine
         return *this;
     }
 
-    implement_engine_class(LocalLightComponent, 0);
-    implement_initialize_class(LocalLightComponent)
+    implement_engine_class(LocalLightComponent, 0)
     {
         Class* self = static_class_instance();
 

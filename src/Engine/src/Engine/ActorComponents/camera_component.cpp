@@ -40,9 +40,7 @@ namespace Engine
         return glm::lookAt(position, position + direction, up_vector);
     }
 
-    implement_class(CameraComponent, Engine, 0);
-    implement_initialize_class(CameraComponent)
-    {}
+    implement_engine_class_default_init(CameraComponent, 0);
 
     bool CameraComponent::archive_process(Archive& archive)
     {

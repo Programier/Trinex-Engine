@@ -10,7 +10,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(PrimitiveComponent);
+    implement_engine_class_default_init(PrimitiveComponent, 0);
     static const AABB_3Df default_bounds({-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f});
 
     PrimitiveComponentProxy& PrimitiveComponentProxy::bounding_box(const AABB_3Df& bounds)

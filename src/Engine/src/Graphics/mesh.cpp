@@ -1,6 +1,6 @@
 #include <Core/archive.hpp>
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/enum.hpp>
 #include <Core/property.hpp>
 #include <Engine/Render/rendering_policy.hpp>
@@ -24,10 +24,7 @@ namespace Engine
     });
 
 
-    implement_class(StaticMesh, Engine, Class::IsAsset);
-    implement_class(DynamicMesh, Engine, 0);
-
-    implement_initialize_class(StaticMesh)
+    implement_engine_class(StaticMesh, Class::IsAsset)
     {
         Class* self                   = StaticMesh::static_class_instance();
         Struct* mesh_materials_struct = Struct::static_find("Engine::MeshMaterials", true);
@@ -36,8 +33,7 @@ namespace Engine
                                                                         &This::materials, mesh_material_prop));
     }
 
-    implement_default_initialize_class(DynamicMesh);
-
+    implement_engine_class_default_init(DynamicMesh, 0);
 
     VertexBuffer* StaticMesh::LOD::find_position_buffer(Index index) const
     {

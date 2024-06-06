@@ -67,6 +67,11 @@ namespace Engine
             return *this;
         }
 
+
+        template<typename Type>
+        void setup_struct()
+        {}
+
         virtual ~Struct();
     };
 

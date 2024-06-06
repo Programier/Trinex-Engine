@@ -1,21 +1,20 @@
 #include <Core/archive.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/sampler.hpp>
 #include <Graphics/texture.hpp>
 #include <Image/image.hpp>
-#include <Graphics/sampler.hpp>
 
 namespace Engine
 {
-    implement_class(Texture, Engine, Class::IsAsset);
-    implement_initialize_class(Texture)
+    implement_engine_class(Texture, Class::IsAsset)
     {
         Class* self        = static_class_instance();
         Enum* swizzle_enum = Enum::static_find("Engine::Swizzle");

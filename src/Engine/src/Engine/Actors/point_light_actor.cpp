@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(PointLightActor);
+    implement_engine_class_default_init(PointLightActor, 0);
 
     PointLightActor::PointLightActor()
     {

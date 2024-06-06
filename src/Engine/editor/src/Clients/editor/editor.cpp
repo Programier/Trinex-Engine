@@ -43,7 +43,7 @@ namespace Engine
         viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
     }
 
-    implement_engine_class_default_init(EditorClient);
+    implement_engine_class_default_init(EditorClient, 0);
 
     EditorClient::EditorClient() : m_show_flags(ShowFlags::DefaultFlags)
     {}

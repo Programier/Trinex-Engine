@@ -6,9 +6,7 @@
 
 namespace Engine
 {
-    implement_class(GameControllerSystem, Engine, 0);
-    implement_initialize_class(GameControllerSystem)
-    {}
+    implement_engine_class_default_init(GameControllerSystem, 0);
 
 #define new_id(x) m_callbacks_id.push_back(x)
 
@@ -29,7 +27,7 @@ namespace Engine
     {
         try
         {
-            const ControllerAxisMotionEvent& e              = event.get<const ControllerAxisMotionEvent&>();
+            const ControllerAxisMotionEvent& e            = event.get<const ControllerAxisMotionEvent&>();
             m_controllers.at(e.id)->m_axis_values[e.axis] = e.value;
         }
         catch (...)
@@ -47,17 +45,14 @@ namespace Engine
         EventSystem* event_system = System::new_system<EventSystem>();
         event_system->register_subsystem(this);
 
-        new_id(event_system->add_listener(
-                EventType::ControllerDeviceAdded,
-                std::bind(&GameControllerSystem::on_controller_added, this, std::placeholders::_1)));
+        new_id(event_system->add_listener(EventType::ControllerDeviceAdded,
+                                          std::bind(&GameControllerSystem::on_controller_added, this, std::placeholders::_1)));
 
-        new_id(event_system->add_listener(
-                EventType::ControllerDeviceRemoved,
-                std::bind(&GameControllerSystem::on_controller_removed, this, std::placeholders::_1)));
+        new_id(event_system->add_listener(EventType::ControllerDeviceRemoved,
+                                          std::bind(&GameControllerSystem::on_controller_removed, this, std::placeholders::_1)));
 
-        new_id(event_system->add_listener(
-                EventType::ControllerAxisMotion,
-                std::bind(&GameControllerSystem::on_axis_motion, this, std::placeholders::_1)));
+        new_id(event_system->add_listener(EventType::ControllerAxisMotion,
+                                          std::bind(&GameControllerSystem::on_axis_motion, this, std::placeholders::_1)));
 
         return *this;
     }

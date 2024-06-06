@@ -18,6 +18,5 @@ namespace Engine
     void EntryPoint::terminate()
     {}
 
-    implement_class(EntryPoint, Engine, 0);
-    implement_default_initialize_class(EntryPoint);
+    implement_engine_class_default_init(EntryPoint, 0);
 }// namespace Engine

@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/enum.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
@@ -10,8 +10,7 @@
 
 namespace Engine
 {
-    implement_class(Sampler, Engine, Class::IsAsset);
-    implement_initialize_class(Sampler)
+    implement_engine_class(Sampler, Class::IsAsset)
     {
         Class* self     = static_class_instance();
         Enum* wrap_enum = Enum::static_find("Engine::WrapValue");

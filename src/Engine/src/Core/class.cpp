@@ -28,14 +28,13 @@ namespace Engine
         return nullptr;
     }
 
-    Class::Class(const Name& name, const Name& namespace_name, Object* (*constructor)(), Class* parent, BitMask _flags)
+    Class::Class(const Name& name, const Name& namespace_name, Class* parent, BitMask _flags)
         : Struct(name, namespace_name, parent)
     {
         m_size = 0;
         info_log("Class", "Created class instance '%s'", this->name().c_str());
         flags                = _flags;
         m_cast_to_this       = nullptr;
-        m_static_constructor = constructor;
         m_singletone_object  = nullptr;
 
         if (is_asset())

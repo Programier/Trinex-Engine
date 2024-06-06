@@ -14,8 +14,7 @@
 
 namespace Engine
 {
-    implement_engine_class(SpriteComponent, 0);
-    implement_initialize_class(SpriteComponent)
+    implement_engine_class(SpriteComponent, 0)
     {
         Class* self    = This::static_class_instance();
         Property* prop = new ObjectReferenceProperty("Texture", "Sprite texture", &This::m_texture);

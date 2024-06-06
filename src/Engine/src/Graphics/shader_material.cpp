@@ -8,8 +8,7 @@
 
 namespace Engine
 {
-    implement_engine_class(ShaderMaterial, Class::IsAsset);
-    implement_initialize_class(ShaderMaterial)
+    implement_engine_class(ShaderMaterial, Class::IsAsset)
     {
         Class* self    = This::static_class_instance();
         auto path_prop = new PathProperty("Shader Path", "Path to slang file", &This::shader_path, "Shader Material");

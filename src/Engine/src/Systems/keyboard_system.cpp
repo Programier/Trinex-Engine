@@ -110,7 +110,5 @@ namespace Engine
         return status_of(key) == Keyboard::JustReleased;
     }
 
-    implement_class(KeyboardSystem, Engine, 0);
-    implement_initialize_class(KeyboardSystem)
-    {}
+    implement_engine_class_default_init(KeyboardSystem, 0);
 }// namespace Engine

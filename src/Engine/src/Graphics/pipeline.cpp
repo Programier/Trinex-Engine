@@ -629,8 +629,7 @@ namespace Engine
         return archive && status;
     }
 
-    implement_class(Pipeline, Engine, 0);
-    implement_initialize_class(Pipeline)
+    implement_engine_class(Pipeline, 0)
     {
         Class* self = static_class_instance();
 

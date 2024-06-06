@@ -69,8 +69,7 @@ namespace Engine
         return *this;
     }
 
-    implement_engine_class(LightComponent, 0);
-    implement_initialize_class(LightComponent)
+    implement_engine_class(LightComponent, 0)
     {
         Class* self = static_class_instance();
 

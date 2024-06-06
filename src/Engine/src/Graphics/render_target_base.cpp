@@ -8,8 +8,7 @@
 
 namespace Engine
 {
-    implement_class(RenderTargetBase, Engine, 0);
-    implement_default_initialize_class(RenderTargetBase);
+    implement_engine_class_default_init(RenderTargetBase, 0);
 
     RenderTargetBase* RenderTargetBase::m_current_target = nullptr;
 

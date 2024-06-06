@@ -225,7 +225,10 @@ namespace Engine
 
     static void init_script_class(ScriptClassRegistrar* registrar, Class* self)
     {
-        ReflectionInitializeController().require("Engine::Event").require("Engine::EventSystenListenerID").require("Engine::EventType");
+        ReflectionInitializeController()
+                .require("Engine::Event")
+                .require("Engine::EventSystenListenerID")
+                .require("Engine::EventType");
 
         ScriptEnumRegistrar enum_regisrar("Engine::EventSystem::ProcessEventMethod");
         enum_regisrar.set("PoolEvents", EventSystem::PoolEvents);
@@ -244,8 +247,7 @@ namespace Engine
         //                   &EventSystem::process_event_method);
     }
 
-    implement_class(EventSystem, Engine, Class::IsScriptable);
-    implement_initialize_class(EventSystem)
+    implement_engine_class(EventSystem, Class::IsScriptable)
     {
         static_class_instance()->set_script_registration_callback(init_script_class);
     }

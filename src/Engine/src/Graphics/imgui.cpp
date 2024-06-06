@@ -215,7 +215,7 @@ namespace Engine::ImGuiRenderer
         return *this;
     }
 
-    implement_engine_class_default_init(ImGuiViewportClient);
+    implement_engine_class_default_init(ImGuiViewportClient, 0);
 
     static Window* m_current_window = nullptr;
 

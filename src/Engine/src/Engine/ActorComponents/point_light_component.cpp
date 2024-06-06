@@ -14,8 +14,7 @@
 
 namespace Engine
 {
-    implement_engine_class(PointLightComponent, 0);
-    implement_initialize_class(PointLightComponent)
+    implement_engine_class(PointLightComponent, 0)
     {
         Class* self = static_class_instance();
 

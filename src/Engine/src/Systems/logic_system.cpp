@@ -40,5 +40,5 @@ namespace Engine
         return EventSystem::static_class_instance();
     }
 
-    implement_engine_class_default_init(LogicSystem);
+    implement_engine_class_default_init(LogicSystem, 0);
 }// namespace Engine

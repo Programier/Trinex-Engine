@@ -6,8 +6,7 @@
 
 namespace Engine
 {
-    implement_engine_class(SceneComponent, 0);
-    implement_initialize_class(SceneComponent)
+    implement_engine_class(SceneComponent, 0)
     {
         Class* self              = static_class_instance();
         Struct* transform_struct = Struct::static_find("Engine::Transform", true);

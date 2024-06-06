@@ -5,8 +5,7 @@
 
 namespace Engine
 {
-    implement_class(StaticMeshActor, Engine, 0);
-    implement_initialize_class(StaticMeshActor)
+    implement_engine_class(StaticMeshActor, 0)
     {
         Class* self = This::static_class_instance();
         self->add_property(new ObjectProperty("StaticMeshComponent", "StaticMeshComponent", &This::m_mesh_component));

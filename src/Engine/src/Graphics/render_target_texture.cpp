@@ -7,7 +7,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(RenderTargetTexture);
+    implement_engine_class_default_init(RenderTargetTexture, 0);
 
     RenderTargetTexture::RenderTargetTexture()
     {

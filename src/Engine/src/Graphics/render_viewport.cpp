@@ -9,8 +9,8 @@
 namespace Engine
 {
 
-    implement_engine_class_default_init(RenderViewport);
-    implement_engine_class_default_init(ViewportClient);
+    implement_engine_class_default_init(RenderViewport, 0);
+    implement_engine_class_default_init(ViewportClient, 0);
 
     static RenderViewport* m_current_render_viewport = nullptr;
 

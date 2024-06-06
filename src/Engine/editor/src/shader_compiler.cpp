@@ -740,14 +740,9 @@ namespace Engine::ShaderCompiler
     }
 
 
-    implement_class(OpenGLES_Compiler, Engine::ShaderCompiler, 0);
-    implement_default_initialize_class(OpenGLES_Compiler);
-
-    implement_class(OpenGL_Compiler, Engine::ShaderCompiler, 0);
-    implement_default_initialize_class(OpenGL_Compiler);
-
-    implement_class(Vulkan_Compiler, Engine::ShaderCompiler, 0);
-    implement_default_initialize_class(Vulkan_Compiler);
+    implement_class_default_init(OpenGLES_Compiler, Engine::ShaderCompiler, 0);
+    implement_class_default_init(OpenGL_Compiler, Engine::ShaderCompiler, 0);
+    implement_class_default_init(Vulkan_Compiler, Engine::ShaderCompiler, 0);
 
     bool OpenGLES_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {

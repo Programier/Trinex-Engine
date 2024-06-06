@@ -24,11 +24,6 @@ namespace Engine
 
     static thread_local bool m_is_valid_next_object = false;
 
-    implement_class(Object, Engine, Class::IsScriptable);
-
-#define script_virtual_method(type, method)
-
-
     static FORCE_INLINE bool can_update_reference()
     {
         return engine_instance && !engine_instance->is_shuting_down();
@@ -96,7 +91,8 @@ namespace Engine
                                 func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
     }
 
-    implement_initialize_class(Object)
+
+    implement_engine_class(Object, Class::IsScriptable)
     {
         ScriptEnumRegistrar("Engine::ObjectRenameStatus")
                 .set("Skipped", static_cast<int_t>(ObjectRenameStatus::Skipped))

@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
@@ -14,7 +14,7 @@ namespace Engine
 {
 #define TRINEX_WITH_STENCIL_BUFFER 0
 
-    implement_engine_class_default_init(EngineRenderTarget);
+    implement_engine_class_default_init(EngineRenderTarget, 0);
 
 
     void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
@@ -129,8 +129,7 @@ namespace Engine
     };
 
 
-    implement_class(GBuffer, Engine, 0);
-    implement_default_initialize_class(GBuffer);
+    implement_engine_class_default_init(GBuffer, 0);
 
     class GBufferRenderPass : public EngineResource<RenderPass>
     {
@@ -218,7 +217,7 @@ namespace Engine
         info_log("GBuffer", "Destroy GBuffer");
     }
 
-    implement_engine_class_default_init(GBufferBaseColorOutput);
+    implement_engine_class_default_init(GBufferBaseColorOutput, 0);
 
 
     GBufferBaseColorOutput::GBufferBaseColorOutput()
@@ -247,7 +246,7 @@ namespace Engine
         debug_log("GBufferBaseColorOutput", "Destroy GBufferBaseColorOutput");
     }
 
-    implement_engine_class_default_init(SceneColorOutput);
+    implement_engine_class_default_init(SceneColorOutput, 0);
 
     class SceneColorRenderPass : public EngineResource<RenderPass>
     {

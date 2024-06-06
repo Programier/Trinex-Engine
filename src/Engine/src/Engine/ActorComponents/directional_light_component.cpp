@@ -10,9 +10,7 @@
 
 namespace Engine
 {
-    implement_engine_class(DirectionalLightComponent, 0);
-    implement_initialize_class(DirectionalLightComponent)
-    {}
+    implement_engine_class_default_init(DirectionalLightComponent, 0);
 
     static Vector3D get_direction(const Transform& world_transform)
     {

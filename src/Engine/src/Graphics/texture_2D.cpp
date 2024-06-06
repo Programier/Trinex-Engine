@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/enum.hpp>
 #include <Core/implement.hpp>
 #include <Core/logger.hpp>
@@ -12,9 +12,7 @@
 
 namespace Engine
 {
-    implement_class(Texture2D, Engine, 0);
-
-    implement_initialize_class(Texture2D)
+    implement_engine_class(Texture2D, 0)
     {
         Class* self_class = static_class_instance();
         self_class->add_properties(new PathProperty("Path", "Path to texture", &Texture2D::path));

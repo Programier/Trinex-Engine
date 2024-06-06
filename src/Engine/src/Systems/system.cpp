@@ -1,11 +1,11 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
+#include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Systems/system.hpp>
 #include <algorithm>
-#include <Core/constants.hpp>
 #include <cstring>
 
 
@@ -289,15 +289,14 @@ namespace Engine
     {
         if (System* system = object->instance_cast<System>())
         {
-            if(!system->is_shutdowned())
+            if (!system->is_shutdowned())
             {
                 system->shutdown();
             }
         }
     }
 
-    implement_class(System, Engine, Class::IsScriptable);
-    implement_initialize_class(System)
+    implement_engine_class(System, Class::IsScriptable)
     {
         Class* self = static_class_instance();
         self->set_script_registration_callback(bind_to_script);

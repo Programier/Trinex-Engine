@@ -48,7 +48,7 @@ namespace Engine
         CallBacks<void(Object*)> on_create;
         CallBacks<void(Object*)> on_destroy;
 
-        Class(const Name& name, const Name& namespace_name, Object* (*) (), Class* parent = nullptr, BitMask flags = 0);
+        Class(const Name& name, const Name& namespace_name, Class* parent = nullptr, BitMask flags = 0);
 
         Class* parent() const;
         void* create_struct() const override;
@@ -78,11 +78,12 @@ namespace Engine
 
 
         template<typename ObjectClass>
-        void process_type()
+        void setup_class()
         {
             if (m_size == 0)
             {
-                m_size = sizeof(ObjectClass);
+                m_size               = sizeof(ObjectClass);
+                m_static_constructor = &ObjectClass::static_constructor;
 
                 if constexpr (std::is_final_v<ObjectClass>)
                 {
@@ -101,6 +102,8 @@ namespace Engine
 
                 m_cast_to_this = private_cast_func<ObjectClass>;
             }
+
+            Struct::setup_struct<ObjectClass>();
         }
 
 

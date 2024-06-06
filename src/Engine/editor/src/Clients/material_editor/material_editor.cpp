@@ -30,7 +30,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(MaterialEditorClient);
+    implement_engine_class_default_init(MaterialEditorClient, 0);
 
 
     class ImGuiMaterialPreview : public ImGuiRenderer::ImGuiAdditionalWindow

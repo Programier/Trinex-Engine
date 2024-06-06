@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/engine_types.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
@@ -40,8 +40,7 @@ namespace Engine
                                             Property::IsConst | Property::IsNotSerializable));
     });
 
-    implement_class(Shader, Engine, 0);
-    implement_default_initialize_class(Shader);
+    implement_engine_class_default_init(Shader, 0);
 
     static Name get_name_of_attribute(class ArrayPropertyInterface* interface, void* object, size_t index)
     {
@@ -54,8 +53,7 @@ namespace Engine
         return attribute->name;
     }
 
-    implement_class(VertexShader, Engine, 0);
-    implement_initialize_class(VertexShader)
+    implement_engine_class(VertexShader, 0)
     {
         Class* self              = This::static_class_instance();
         Struct* attribute_struct = Struct::static_find("Engine::VertexShader::Attribute", true);
@@ -69,17 +67,10 @@ namespace Engine
         self->add_property(attributes_array_prop);
     }
 
-    implement_class(TessellationControlShader, Engine, 0);
-    implement_default_initialize_class(TessellationControlShader);
-
-    implement_class(TessellationShader, Engine, 0);
-    implement_default_initialize_class(TessellationShader);
-
-    implement_class(GeometryShader, Engine, 0);
-    implement_default_initialize_class(GeometryShader);
-
-    implement_class(FragmentShader, Engine, 0);
-    implement_default_initialize_class(FragmentShader);
+    implement_engine_class_default_init(TessellationControlShader, 0);
+    implement_engine_class_default_init(TessellationShader, 0);
+    implement_engine_class_default_init(GeometryShader, 0);
+    implement_engine_class_default_init(FragmentShader, 0);
 
     bool Shader::archive_process(Archive& ar)
     {

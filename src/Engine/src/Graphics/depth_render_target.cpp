@@ -30,8 +30,8 @@ namespace Engine
         return pass;
     }
 
-    implement_engine_class_default_init(DepthRenderPass);
-    implement_engine_class_default_init(DepthRenderTarget);
+    implement_engine_class_default_init(DepthRenderPass, 0);
+    implement_engine_class_default_init(DepthRenderTarget, 0);
 
     DepthRenderTarget::DepthRenderTarget()
     {

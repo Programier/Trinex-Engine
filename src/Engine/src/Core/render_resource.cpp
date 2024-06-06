@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/exception.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/threading.hpp>
@@ -7,10 +7,8 @@
 
 namespace Engine
 {
-    implement_class(RenderResource, Engine, 0);
-    implement_default_initialize_class(RenderResource);
-    implement_class(BindedRenderResource, Engine, 0);
-    implement_default_initialize_class(BindedRenderResource);
+    implement_engine_class_default_init(RenderResource, 0);
+    implement_engine_class_default_init(BindedRenderResource, 0);
 
     struct DestroyRenderResourceTask : public ExecutableObject {
         RHI_Object* object;

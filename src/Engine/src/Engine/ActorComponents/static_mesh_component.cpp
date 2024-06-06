@@ -1,5 +1,5 @@
-#include <Core/class.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/class.hpp>
 #include <Core/property.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/static_mesh_component.hpp>
@@ -16,12 +16,7 @@
 
 namespace Engine
 {
-    implement_class(StaticMeshComponent, Engine, 0);
-    implement_initialize_class(StaticMeshComponent)
-    {
-        Class* self = This::static_class_instance();
-        self->add_property(new ObjectReferenceProperty("Mesh", "Mesh of this component", &This::mesh));
-    }
+    implement_engine_class_default_init(StaticMeshComponent, 0);
 
     StaticMeshComponent& StaticMeshComponent::update(float dt)
     {

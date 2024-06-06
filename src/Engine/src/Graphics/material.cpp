@@ -65,10 +65,9 @@ namespace Engine
         return *this;
     }
 
-    implement_engine_class_default_init(MaterialInterface);
+    implement_engine_class_default_init(MaterialInterface, 0);
 
-    implement_engine_class(Material, Class::IsAsset);
-    implement_initialize_class(Material)
+    implement_engine_class(Material, Class::IsAsset)
     {
         Class* self               = static_class_instance();
         Struct* definition_struct = Struct::static_find("Engine::ShaderDefinition", true);
@@ -80,8 +79,7 @@ namespace Engine
                                                 Name::none, Property::IsNotSerializable));
     }
 
-    implement_engine_class(MaterialInstance, Class::IsAsset);
-    implement_initialize_class(MaterialInstance)
+    implement_engine_class(MaterialInstance, Class::IsAsset)
     {
         Class* self = MaterialInstance::static_class_instance();
         self->add_property(new ObjectReferenceProperty("Parent Material", "Parent Material of this instance",

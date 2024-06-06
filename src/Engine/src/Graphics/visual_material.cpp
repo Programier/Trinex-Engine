@@ -24,8 +24,7 @@ namespace Engine
 
     implement_struct(Name, Engine::VisualMaterial, );
 
-    implement_engine_class(VisualMaterial, Class::IsAsset);
-    implement_initialize_class(VisualMaterial)
+    implement_engine_class(VisualMaterial, Class::IsAsset)
     {
         Class* self       = This::static_class_instance();
         Enum* domain_enum = Enum::static_find("Engine::MaterialDomain", true);

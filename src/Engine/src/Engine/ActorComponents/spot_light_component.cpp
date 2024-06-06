@@ -21,8 +21,7 @@ namespace Engine
         return transform.up_vector() * -1.f;
     }
 
-    implement_engine_class(SpotLightComponent, 0);
-    implement_initialize_class(SpotLightComponent)
+    implement_engine_class(SpotLightComponent, 0)
     {
         Class* self                 = static_class_instance();
         static auto on_data_changed = [](void* object) {

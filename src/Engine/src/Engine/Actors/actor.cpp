@@ -202,8 +202,7 @@ namespace Engine
         return static_cast<bool>(archive);
     }
 
-    implement_class(Actor, Engine, 0);
-    implement_initialize_class(Actor)
+    implement_engine_class(Actor, 0)
     {
         Class* self     = This::static_class_instance();
         auto components = new ArrayProperty("Components", "Array of components of this actor", &This::m_owned_components,

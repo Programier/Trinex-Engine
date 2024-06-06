@@ -168,7 +168,7 @@ namespace Engine
         }
     };
 
-    implement_class_default_init(SplashClient, Engine);
+    implement_engine_class_default_init(SplashClient, 0);
 
     struct SplashUpdate : public ExecutableObject {
         int_t execute() override

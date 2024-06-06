@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(ActorComponent);
+    implement_engine_class_default_init(ActorComponent, 0);
 
     ActorComponentProxy::ActorComponentProxy()
     {}

@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -11,10 +11,10 @@
 namespace Engine
 {
 
-    implement_engine_class_default_init(PipelineBuffer);
-    implement_engine_class_default_init(IndexBuffer);
-    implement_engine_class_default_init(VertexBuffer);
-    implement_engine_class_default_init(SSBO);
+    implement_engine_class_default_init(PipelineBuffer, 0);
+    implement_engine_class_default_init(IndexBuffer, 0);
+    implement_engine_class_default_init(VertexBuffer, 0);
+    implement_engine_class_default_init(SSBO, 0);
 
 
     PipelineBuffer& PipelineBuffer::rhi_update(size_t offset, size_t size, const byte* data)
@@ -52,14 +52,14 @@ namespace Engine
         return size() / element_size();
     }
 
-    implement_engine_class_default_init(PositionVertexBuffer);
-    implement_engine_class_default_init(TexCoordVertexBuffer);
-    implement_engine_class_default_init(ColorVertexBuffer);
-    implement_engine_class_default_init(NormalVertexBuffer);
-    implement_engine_class_default_init(TangentVertexBuffer);
-    implement_engine_class_default_init(BinormalVertexBuffer);
+    implement_engine_class_default_init(PositionVertexBuffer, 0);
+    implement_engine_class_default_init(TexCoordVertexBuffer, 0);
+    implement_engine_class_default_init(ColorVertexBuffer, 0);
+    implement_engine_class_default_init(NormalVertexBuffer, 0);
+    implement_engine_class_default_init(TangentVertexBuffer, 0);
+    implement_engine_class_default_init(BinormalVertexBuffer, 0);
+    implement_engine_class_default_init(DynamicVertexBuffer, 0);
 
-    implement_engine_class_default_init(DynamicVertexBuffer);
     DynamicVertexBuffer::DynamicVertexBuffer() : m_allocated_size(0)
     {}
 
@@ -96,12 +96,12 @@ namespace Engine
         return *this;
     }
 
-    implement_engine_class_default_init(PositionDynamicVertexBuffer);
-    implement_engine_class_default_init(TexCoordDynamicVertexBuffer);
-    implement_engine_class_default_init(ColorDynamicVertexBuffer);
-    implement_engine_class_default_init(NormalDynamicVertexBuffer);
-    implement_engine_class_default_init(TangentDynamicVertexBuffer);
-    implement_engine_class_default_init(BinormalDynamicVertexBuffer);
+    implement_engine_class_default_init(PositionDynamicVertexBuffer, 0);
+    implement_engine_class_default_init(TexCoordDynamicVertexBuffer, 0);
+    implement_engine_class_default_init(ColorDynamicVertexBuffer, 0);
+    implement_engine_class_default_init(NormalDynamicVertexBuffer, 0);
+    implement_engine_class_default_init(TangentDynamicVertexBuffer, 0);
+    implement_engine_class_default_init(BinormalDynamicVertexBuffer, 0);
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
 

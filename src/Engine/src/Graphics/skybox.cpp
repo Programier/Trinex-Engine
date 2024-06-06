@@ -9,8 +9,7 @@ static void init_mesh()
 
 namespace Engine
 {
-    implement_class(Skybox, Engine, 0);
-    implement_default_initialize_class(Skybox);
+    implement_engine_class_default_init(Skybox, 0);
 
 
     Skybox::Skybox()

@@ -24,7 +24,7 @@
 
 namespace Engine
 {
-    implement_engine_class_default_init(EngineInstance);
+    implement_engine_class_default_init(EngineInstance, 0);
 
     ENGINE_EXPORT const String& EngineInstance::project_name()
     {

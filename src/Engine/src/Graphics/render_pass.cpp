@@ -5,8 +5,7 @@
 
 namespace Engine
 {
-    implement_class(RenderPass, Engine, 0);
-    implement_default_initialize_class(RenderPass);
+    implement_engine_class_default_init(RenderPass, 0);
 
 
     RenderPass::RenderPass()

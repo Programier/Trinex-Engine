@@ -4,9 +4,7 @@
 
 namespace Engine
 {
-    implement_engine_class(DirectionalLightActor, 0);
-    implement_initialize_class(DirectionalLightActor)
-    {}
+    implement_engine_class_default_init(DirectionalLightActor, 0);
 
     DirectionalLightActor::DirectionalLightActor()
     {

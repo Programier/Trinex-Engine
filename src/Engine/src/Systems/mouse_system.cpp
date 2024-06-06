@@ -209,8 +209,5 @@ namespace Engine
         return state_of(window).m_wheel_info;
     }
 
-    implement_class(MouseSystem, Engine, 0);
-
-    implement_initialize_class(MouseSystem)
-    {}
+    implement_engine_class_default_init(MouseSystem, 0);
 }// namespace Engine
