@@ -60,25 +60,8 @@ namespace Engine
         String api = ConfigManager::get_string("Engine::api");
         if (!api.empty())
         {
-            Library api_library(api.c_str());
-            info_log("Engine", "Using API: %s", api.c_str());
-
-            if (!api_library.has_lib())
-            {
-                throw EngineException("Failed to load API library!");
-            }
-
-            // Try to load api loader
-            RHI* (*loader)() = api_library.get<RHI*>(Constants::library_load_function_name);
-
-            if (!loader)
-            {
-                throw EngineException("Failed to get API loader!");
-            }
-
-            // Initialize API
-            rhi = loader();
-
+            rhi = reinterpret_cast<RHI*>(
+                    Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
             if (!rhi)
             {
                 throw EngineException("Failed to init API");
@@ -109,8 +92,9 @@ namespace Engine
         ReflectionInitializeController().execute();
 
         ConfigsPreInitializeController().execute();
-        VFS::RootFS::create_instance(Platform::find_root_directory(argc, argv));
+        VFS::RootFS::create_instance(Platform::find_root_directory());
         ConfigManager::initialize();
+
 
         // Load libraries
         {

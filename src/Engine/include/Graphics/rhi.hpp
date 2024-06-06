@@ -1,7 +1,5 @@
 #pragma once
-#include <Core/enums.hpp>
-#include <Core/rhi_initializers.hpp>
-
+#include <Core/structures.hpp>
 
 struct ImGuiContext;
 struct ImDrawData;

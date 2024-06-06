@@ -3,7 +3,6 @@
 #include <Core/enums.hpp>
 #include <Core/implement.hpp>
 #include <Core/render_resource.hpp>
-#include <Core/rhi_initializers.hpp>
 #include <Graphics/shader_parameters.hpp>
 
 

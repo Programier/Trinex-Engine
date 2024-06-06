@@ -1,5 +1,6 @@
 #include <Core/config_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
+#include <Core/logger.hpp>
 #include <Platform/platform.hpp>
 #include <dlfcn.h>
 
@@ -54,11 +55,31 @@ namespace Engine::Platform::LibraryLoader
         return Path(path.base_path()) / base;
     }
 
+    static void prepare_env()
+    {
+        static String ld_library_path;
+        if (!ld_library_path.empty())
+            return;
+
+        if (const char* path = getenv("LD_LIBRARY_PATH"))
+        {
+            ld_library_path = path;
+            ld_library_path.push_back(':');
+        }
+
+        Path result = Platform::find_root_directory() / ConfigManager::get_path("Engine::libraries_dir");
+        ld_library_path += result.path();
+
+        setenv("LD_LIBRARY_PATH", ld_library_path.c_str(), 1);
+    }
+
     ENGINE_EXPORT void* load_library(const String& name)
     {
+        prepare_env();
+
         Path name_path = validate_path(name);
 
-        Path paths[]   = {
+        Path paths[] = {
 #if TRINEX_DEBUG_BUILD
             get_libname(name_path, Global),
             get_libname(name_path, Engine),
@@ -76,6 +97,10 @@ namespace Engine::Platform::LibraryLoader
             if (handle)
             {
                 return handle;
+            }
+            else
+            {
+                error_log("LinuxLibraryLoader", "%s", dlerror());
             }
         }
 

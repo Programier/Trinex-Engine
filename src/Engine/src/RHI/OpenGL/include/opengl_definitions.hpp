@@ -1,7 +1,7 @@
 #pragma once
 #include <Core/definitions.hpp>
 
-#if PLATFORM_ANDROID || FORCE_USE_OPENGL_ES
+#if PLATFORM_ANDROID
 #define USING_OPENGL_ES 1
 #define USING_OPENGL_CORE 0
 #else

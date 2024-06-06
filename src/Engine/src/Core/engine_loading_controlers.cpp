@@ -76,7 +76,7 @@ namespace Engine
         if (it == list_of(m_list).end())
             return *this;
 
-        auto& list = it->second;
+        List<CallbackEntry>& list = it->second;
 
         while (!list.empty())
         {
@@ -88,11 +88,6 @@ namespace Engine
                 require(initializer);
             }
 
-
-            if (!name.empty())
-            {
-                info_log(m_name, "Executing initializer '%s'", name.c_str());
-            }
             entry.function();
         }
 

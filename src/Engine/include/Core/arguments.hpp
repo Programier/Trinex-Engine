@@ -58,9 +58,13 @@ namespace Engine
         static String parse_string_argument(const char* argument, size_t* out_pos = nullptr);
 
         static Map<String, Argument> m_arguments;
+        static int_t m_argc;
+        static const char** m_argv;
 
     public:
         static void init(int argc, const char** argv);
+        static int_t argc();
+        static const char** argv();
         static void clear();
         static const Map<String, Argument>& args();
         static Argument* find(const String& name);

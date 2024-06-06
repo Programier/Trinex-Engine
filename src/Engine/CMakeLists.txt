@@ -74,9 +74,6 @@ endfunction()
 
 ######################## EXTERNAL LIBRARY COMPILATION ########################
 
-# Compile RHI
-add_subdirectory("${TRINEX_ENGINE_ROOT}/RHI/")
-
 # Compile Third-Party libraries
 add_subdirectory("${TRINEX_ENGINE_ROOT}/libs/")
 
@@ -113,6 +110,7 @@ set(TRINEX_SRC_SCRIPT_ENGINE_DIR "${TRINEX_ENGINE_SRC}/ScriptEngine/")
 set(TRINEX_SRC_SYSTEMS_DIR "${TRINEX_ENGINE_SRC}/Systems/")
 set(TRINEX_SRC_ENGINE_DIR "${TRINEX_ENGINE_SRC}/Engine/")
 set(TRINEX_SRC_PLATFORM_DIR "${TRINEX_ENGINE_SRC}/Platforms/")
+set(TRINEX_SRC_RHI_DIR "${TRINEX_ENGINE_SRC}/RHI/")
 
 
 # Find sources
@@ -143,6 +141,7 @@ add_trinex_sources( ${TRINEX_SRC_WINDOW_SRC}
 
 # Collect platform source files
 add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
+add_subdirectory(${TRINEX_SRC_RHI_DIR})
 
 # Rebuild headers
 if(TRINEX_REBUILD_HEADERS)
@@ -169,7 +168,6 @@ endif()
 
 # Compile Trinex Engine library
 get_property(TRINEX_ENGINE_SOURCE_FILES GLOBAL PROPERTY trinex_sources)
-message("SOURCES ${TRINEX_ENGINE_SOURCE_FILES}")
 add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_PRECOMPILED_HEADERS})
 
 # Trinex Engine compile options

@@ -1,3 +1,4 @@
+#include <Core/arguments.hpp>
 #include <Core/definitions.hpp>
 #include <Platform/platform.hpp>
 
@@ -13,8 +14,11 @@ namespace Engine::Platform
         return "Linux";
     }
 
-    ENGINE_EXPORT Path find_root_directory(int_t argc, const char** argv)
+    ENGINE_EXPORT Path find_root_directory()
     {
+        int_t argc        = Arguments::argc();
+        const char** argv = Arguments::argv();
+
         if (argc == 0)// Usually it's impossible, but just in case, let it be
             return Path("./");
         return Path(argv[0]).base_path();

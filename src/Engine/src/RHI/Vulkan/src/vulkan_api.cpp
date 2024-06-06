@@ -1,13 +1,12 @@
 ﻿#include <VkBootstrap.h>
 
+#include <Core/struct.hpp>
 #include <Graphics/texture.hpp>
 #include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <imgui_impl_vulkan.h>
-#include <string>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
-#include <vulkan_export.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
@@ -30,13 +29,13 @@ namespace Engine
 
     VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
-    TRINEX_EXTERNAL_LIB_INIT_FUNC(RHI*)
-    {
-        if (VulkanAPI::m_vulkan == nullptr)
-            VulkanAPI::m_vulkan = new VulkanAPI();
-        return VulkanAPI::m_vulkan;
-    }
-
+    implement_struct(VULKAN, Engine::RHI, ).push([]() {
+        Struct::static_find("Engine::RHI::VULKAN", true)->struct_constructor([]() -> void* {
+            if (VulkanAPI::m_vulkan == nullptr)
+                VulkanAPI::m_vulkan = new VulkanAPI();
+            return VulkanAPI::m_vulkan;
+        });
+    });
 
     static constexpr inline size_t ext_maintenance1_index     = 0;
     static constexpr inline size_t ext_swapchain_index        = 1;

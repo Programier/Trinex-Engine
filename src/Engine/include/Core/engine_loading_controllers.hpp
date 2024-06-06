@@ -6,7 +6,7 @@
 namespace Engine
 {
 
-    using ControllerCallback = Function<void()>;
+    using ControllerCallback = void (*)();
 
 
     class ENGINE_EXPORT LoadingControllerBase
@@ -44,7 +44,7 @@ namespace Engine
                              const std::initializer_list<String>& require_initializers = {});                                    \
         ControllerName& require(const String& name);                                                                             \
         ControllerName& execute();                                                                                               \
-        Identifier id() const override;                                                                                  \
+        Identifier id() const override;                                                                                          \
         static bool is_triggered();                                                                                              \
     }
 

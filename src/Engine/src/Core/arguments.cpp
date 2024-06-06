@@ -5,6 +5,8 @@
 namespace Engine
 {
     Map<String, Arguments::Argument> Arguments::m_arguments;
+    int_t Arguments::m_argc        = 0;
+    const char** Arguments::m_argv = nullptr;
 
     Arguments::Argument::Argument() = default;
 
@@ -34,8 +36,12 @@ namespace Engine
 
     default_copy_constructors_scoped_cpp(Arguments, Argument);
 
+
     void Arguments::init(int argc, const char** argv)
     {
+        m_argc = argc;
+        m_argv = argv;
+
         for (int i = 0; i < argc; i++)
         {
             if (argv[i][0] == '-')
@@ -43,6 +49,16 @@ namespace Engine
                 push_argument(argv[i] + 1);
             }
         }
+    }
+
+    int_t Arguments::argc()
+    {
+        return m_argc;
+    }
+
+    const char** Arguments::argv()
+    {
+        return m_argv;
     }
 
     String Arguments::parse_string_argument(const char* argument, size_t* out_pos)

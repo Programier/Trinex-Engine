@@ -1,4 +1,5 @@
 #include <Core/definitions.hpp>
+#include <Core/struct.hpp>
 #include <Window/config.hpp>
 #include <Window/window_interface.hpp>
 #include <imgui_impl_opengl3.h>
@@ -10,6 +11,13 @@
 
 namespace Engine
 {
+    implement_struct(OPENGL, Engine::RHI, ).push([]() {
+        Struct::static_find("Engine::RHI::OPENGL", true)->struct_constructor([]() -> void* {
+            if (OpenGL::m_instance)
+                return OpenGL::m_instance;
+            return new OpenGL();
+        });
+    });
 
     OpenGL* OpenGL::m_instance = nullptr;
 

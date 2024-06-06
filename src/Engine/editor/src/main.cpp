@@ -7,6 +7,7 @@
 #include <Window/config.hpp>
 #include <editor_config.hpp>
 
+
 static void load_configs()
 {
     Engine::ConfigManager::load_from_file("editor.config");

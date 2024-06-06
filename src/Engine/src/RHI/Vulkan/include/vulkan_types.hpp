@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/rhi_initializers.hpp>
+#include <Core/enums.hpp>
 #include <stdexcept>
 #include <vulkan_headers.hpp>
 
