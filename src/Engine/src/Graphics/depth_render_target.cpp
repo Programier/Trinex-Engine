@@ -37,14 +37,13 @@ namespace Engine
     {
         size                             = {512, 512};
         depth_stencil_attachment         = Object::new_instance<RenderTargetTexture>();
-        depth_stencil_attachment->size   = {512, 512};
-        depth_stencil_attachment->format = ColorFormat::ShadowDepth;
+        depth_stencil_attachment->init(ColorFormat::ShadowDepth, size);
     }
 
     DepthRenderTarget& DepthRenderTarget::rhi_create()
     {
         Texture2D* texture = depth_stencil_attachment;
-        size               = texture->size;
+        size               = texture->size();
         depth_stencil_attachment->rhi_create();
         Super::rhi_create();
         return *this;

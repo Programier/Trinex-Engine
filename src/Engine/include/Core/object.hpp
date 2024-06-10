@@ -32,6 +32,7 @@ namespace Engine
             IsPackage        = BIT(2),
             IsUnreachable    = BIT(3),
             IsEditable       = BIT(4),
+            IsDirty          = BIT(5),
         };
 
     private:
@@ -104,6 +105,8 @@ namespace Engine
         bool is_serializable() const;
         virtual bool is_valid() const;
         virtual bool is_engine_resource() const;
+        virtual const Object& mark_dirty() const;
+        bool is_dirty() const;
 
         virtual bool save(class BufferWriter* writer = nullptr, Flags<SerializationFlags> flags = {});
         ENGINE_EXPORT static Object* load_object(const StringView& fullname, class BufferReader* reader,

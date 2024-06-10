@@ -28,32 +28,6 @@ namespace Engine
         }
     }
 
-    void OpenGL_Texture::generate_mipmap()
-    {
-        glBindTexture(m_type, m_id);
-        glGenerateMipmap(m_type);
-        glBindTexture(m_type, 0);
-    }
-
-    void OpenGL_Texture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
-                                           size_t data_size)
-    {
-        glBindTexture(m_type, m_id);
-        if (m_format.m_format == 0)
-        {
-            glCompressedTexSubImage2D(m_type, 0, static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
-                                      static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), m_format.m_internal_format,
-                                      data_size, data);
-        }
-        else
-        {
-            glTexSubImage2D(m_type, static_cast<GLint>(mipmap), static_cast<GLsizei>(offset.x), static_cast<GLsizei>(offset.y),
-                            static_cast<GLsizei>(size.x), static_cast<GLsizei>(size.y), m_format.m_format, m_format.m_type, data);
-        }
-        glBindTexture(m_type, 0);
-    }
-
-
     static GLuint texture_type(const Texture* texture)
     {
         switch (texture->type())
@@ -93,17 +67,18 @@ namespace Engine
         return _default;
     }
 
-    void OpenGL_Texture::init(const Texture* texture, const byte* data, size_t size)
+    void OpenGL_Texture::init(const Texture2D* texture)
     {
-        m_format = color_format_from_engine_format(texture->format);
+        trinex_always_check(texture->mipmap_count() > 0, "Cannot create texture with zero mips!");
+        m_format = color_format_from_engine_format(texture->format());
         m_type   = texture_type(texture);
-        m_size   = texture->size;
+        m_size   = texture->size(0);
 
         glGenTextures(1, &m_id);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glBindTexture(m_type, m_id);
-        glTexParameteri(m_type, GL_TEXTURE_BASE_LEVEL, texture->base_mip_level);
-        glTexParameteri(m_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(texture->mipmap_count - 1));
+        glTexParameteri(m_type, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(m_type, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(texture->mipmap_count() - 1));
         glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_R, swizzle_value(texture->swizzle_r, GL_RED));
         glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_G, swizzle_value(texture->swizzle_g, GL_GREEN));
         glTexParameteri(m_type, GL_TEXTURE_SWIZZLE_B, swizzle_value(texture->swizzle_b, GL_BLUE));
@@ -111,12 +86,34 @@ namespace Engine
 
         if (m_format.m_format == 0)
         {
-            glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, size, data);
+            for (MipMapLevel i = 0, count = texture->mipmap_count(); i < count; ++i)
+            {
+                if (auto mip = texture->mip(i))
+                {
+                    glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, mip->data.size(),
+                                           mip->data.data());
+                }
+                else
+                {
+                    glCompressedTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, 0, nullptr);
+                }
+            }
         }
         else
         {
-            glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format, m_format.m_type,
-                         data);
+            for (MipMapLevel i = 0, count = texture->mipmap_count(); i < count; ++i)
+            {
+                if (auto mip = texture->mip(i))
+                {
+                    glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
+                                 m_format.m_type, mip->data.data());
+                }
+                else
+                {
+                    glTexImage2D(m_type, 0, m_format.m_internal_format, m_size.x, m_size.y, GL_FALSE, m_format.m_format,
+                                 m_format.m_type, nullptr);
+                }
+            }
         }
 
         glBindTexture(m_type, 0);
@@ -130,10 +127,10 @@ namespace Engine
         }
     }
 
-    RHI_Texture* OpenGL::create_texture(const Texture* texture, const byte* data, size_t size)
+    RHI_Texture* OpenGL::create_texture_2d(const Texture2D* texture)
     {
         OpenGL_Texture* opengl_texture = new OpenGL_Texture();
-        opengl_texture->init(texture, data, size);
+        opengl_texture->init(texture);
         return opengl_texture;
     }
 }// namespace Engine

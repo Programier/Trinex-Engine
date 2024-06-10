@@ -127,8 +127,8 @@ namespace Engine
             if ((m_header_max.x > m_header_min.x) && (m_header_max.y > m_header_min.y))
             {
                 Texture2D* texture = EditorResources::blueprint_texture;
-                const auto uv      = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->size.x),
-                                            (m_header_max.y - m_header_min.y) / (4.0f * texture->size.y));
+                const auto uv      = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->width()),
+                                            (m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
 
                 draw_list->AddImageRounded(ImTextureID(texture, EditorResources::default_sampler),
                                            m_header_min - ImVec2(8 - half_border_width, 4 - half_border_width),

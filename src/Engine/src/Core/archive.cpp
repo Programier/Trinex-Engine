@@ -8,7 +8,7 @@ namespace Engine
     class Object* Archive::load_object(const StringView& name, class Class* self)
     {
         Object* object = Object::load_object(name);
-        if (object->class_instance()->is_a(self))
+        if (object && object->class_instance()->is_a(self))
             return object;
         return nullptr;
     }

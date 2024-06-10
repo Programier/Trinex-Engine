@@ -95,7 +95,7 @@ namespace Engine
         return nullptr;
     }
 
-    RHI_Texture* NoApi::create_texture(const Texture*, const byte*, size_t size)
+    RHI_Texture* NoApi::create_texture_2d(const Texture2D*)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

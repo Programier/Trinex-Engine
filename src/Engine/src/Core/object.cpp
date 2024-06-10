@@ -553,6 +553,17 @@ namespace Engine
         return false;
     }
 
+    const Object& Object::mark_dirty() const
+    {
+        flags(IsDirty, true);
+        return *this;
+    }
+
+    bool Object::is_dirty() const
+    {
+        return flags(IsDirty);
+    }
+
     template<typename Type>
     static Type* open_asset_file(const Object* object, bool create_dir = false)
     {

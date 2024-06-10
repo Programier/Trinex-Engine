@@ -30,6 +30,8 @@ namespace Engine
 
     struct OpenGL_MainRenderTarget : OpenGL_RenderTarget {
         OpenGL_MainRenderTarget();
+
+        void bind() override;
         ~OpenGL_MainRenderTarget();
     };
 }// namespace Engine

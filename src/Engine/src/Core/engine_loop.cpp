@@ -49,6 +49,7 @@ namespace Engine
 
     static void create_render_targets()
     {
+        EngineRenderTargets::create_instance()->initialize(WindowManager::instance()->calculate_gbuffer_size());
         GBuffer::create_instance();
         SceneColorOutput::create_instance();
         GBufferBaseColorOutput::create_instance();

@@ -695,8 +695,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture()
     bd->FontTexture = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Texture2D>>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 
     bd->FontTexture.texture->flags(Engine::Object::IsAvailableForGC, false);
-    bd->FontTexture.texture->size = {static_cast<float>(width), static_cast<float>(height)};
-    bd->FontTexture.texture->rhi_create(pixels, width * height * 4);
+    bd->FontTexture.texture->init(Engine::ColorFormat::R8G8B8A8, Engine::Size2D(static_cast<float>(width), static_cast<float>(height)), pixels, width * height * 4);
     auto package = Engine::Package::find_package("Engine::ImGui", true);
     package->add_object(bd->FontTexture.texture);
 

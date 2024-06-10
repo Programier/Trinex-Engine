@@ -20,7 +20,7 @@ namespace Engine
     class Sampler;
     class RenderTarget;
     class RenderPass;
-    class Texture;
+    class Texture2D;
     struct GlobalShaderParameters;
 
 
@@ -46,9 +46,6 @@ namespace Engine
     };
 
     struct RHI_Texture : RHI_BindingObject {
-        virtual void generate_mipmap()                                          = 0;
-        virtual void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
-                                       size_t data_size)                        = 0;
         virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
     };
 
@@ -118,7 +115,7 @@ namespace Engine
         virtual const String& name()     = 0;
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                               = 0;
-        virtual RHI_Texture* create_texture(const Texture*, const byte* data, size_t size)                = 0;
+        virtual RHI_Texture* create_texture_2d(const Texture2D*)                                          = 0;
         virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)                 = 0;
         virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                              = 0;
         virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)    = 0;

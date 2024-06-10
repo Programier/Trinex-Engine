@@ -19,7 +19,8 @@ namespace Engine
         for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
         {
             SceneRenderTargetTexture type = static_cast<SceneRenderTargetTexture>(texture_index);
-            m_textures[texture_index]     = Object::new_instance_named<RenderTargetTexture>(name_of(type));
+            m_textures[texture_index]     = Object::new_instance_named<RenderTargetTexture>(
+                    Strings::format("Engine::EngineRenderTargets::{}", name_of(type)));
         }
     }
 
@@ -42,6 +43,8 @@ namespace Engine
                 return "HitProxies";
             case SceneRenderTargetTexture::BaseColor:
                 return "BaseColor";
+            case SceneRenderTargetTexture::Position:
+                return "Position";
             case SceneRenderTargetTexture::Normal:
                 return "Normal";
             case SceneRenderTargetTexture::Emissive:
@@ -70,6 +73,8 @@ namespace Engine
                 return ColorFormat::R8G8B8A8;
             case SceneRenderTargetTexture::BaseColor:
                 return ColorFormat::R8G8B8A8;
+            case SceneRenderTargetTexture::Position:
+                return ColorFormat::FloatRGBA;
             case SceneRenderTargetTexture::Normal:
                 return ColorFormat::FloatRGBA;
             case SceneRenderTargetTexture::Emissive:
@@ -84,7 +89,7 @@ namespace Engine
         }
     }
 
-    void EngineRenderTargets::initialize(UIntVector2D new_size)
+    void EngineRenderTargets::initialize(Size2D new_size)
     {
         if (new_size == m_size || new_size.x == 0 || new_size.y == 0)
             return;
@@ -93,20 +98,21 @@ namespace Engine
 
         for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
         {
+            m_textures[texture_index]->init(format_of(static_cast<SceneRenderTargetTexture>(texture_index)), new_size);
         }
     }
 
-    const UIntVector2D& EngineRenderTargets::size() const
+    const Size2D& EngineRenderTargets::size() const
     {
         return m_size;
     }
 
-    uint_t EngineRenderTargets::width() const
+    float EngineRenderTargets::width() const
     {
         return m_size.x;
     }
 
-    uint_t EngineRenderTargets::height() const
+    float EngineRenderTargets::height() const
     {
         return m_size.y;
     }
@@ -146,21 +152,6 @@ namespace Engine
 
             m_scissor.pos  = {0, 0};
             m_scissor.size = size;
-        }
-
-        if (m_enable_color_initialize)
-        {
-            for (auto& attachment : color_attachments)
-            {
-                attachment->size = size;
-                attachment->init_resource();
-            }
-        }
-
-        if (depth_stencil_attachment && m_enable_depth_stencil_initialize)
-        {
-            depth_stencil_attachment->size = size;
-            depth_stencil_attachment->init_resource();
         }
 
         init_resource();
@@ -266,18 +257,12 @@ namespace Engine
         render_pass = RenderPass::load_render_pass(RenderPassType::GBuffer);
         color_attachments.resize(gbuffer_color_attachments);
 
-        depth_stencil_attachment =
-                Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>("Engine::GBuffer::Depth");
-        depth_stencil_attachment->format = render_pass->depth_stencil_attachment;
-
-        for (size_t i = 0; i < gbuffer_color_attachments; i++)
-        {
-            auto& info                   = attachment_texture_info[i];
-            RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
-                    Strings::format("Engine::GBuffer::{}", info.name));
-            texture->format      = render_pass->color_attachments[i];
-            color_attachments[i] = texture;
-        }
+        depth_stencil_attachment = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::SceneDepthZ);
+        color_attachments[0]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::BaseColor);
+        color_attachments[1]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::Position);
+        color_attachments[2]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::Normal);
+        color_attachments[3]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::Emissive);
+        color_attachments[4]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::MSRA);
 
         init(WindowManager::instance()->calculate_gbuffer_size());
     }
@@ -383,11 +368,7 @@ namespace Engine
         render_pass = RenderPass::load_render_pass(RenderPassType::SceneColor);
         color_attachments.resize(1);
 
-        RenderTargetTexture* texture = Object::new_non_serializable_instance_named<EngineResource<RenderTargetTexture>>(
-                "Engine::SceneColorOutput::Color");
-        texture->format = render_pass->color_attachments[0];
-
-        color_attachments[0]     = texture;
+        color_attachments[0]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::SceneColorLDR);
         depth_stencil_attachment = GBuffer::instance()->depth();
 
         init(WindowManager::instance()->calculate_gbuffer_size());
@@ -406,6 +387,7 @@ namespace Engine
     ENGINE_EXPORT void update_render_targets_size()
     {
         Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
+        EngineRenderTargets::instance()->initialize(new_size);
         GBuffer::instance()->resize(new_size);
         SceneColorOutput::instance()->resize(new_size);
         GBufferBaseColorOutput::instance()->resize(new_size);

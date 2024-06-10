@@ -195,6 +195,12 @@ namespace Engine
     OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
     {}
 
+    void OpenGL_MainRenderTarget::bind()
+    {
+        glDisable(GL_DEPTH_TEST);
+        OpenGL_RenderTarget::bind();
+    }
+
     OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
     {}
 

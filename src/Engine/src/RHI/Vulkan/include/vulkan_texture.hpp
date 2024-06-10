@@ -7,51 +7,61 @@ namespace Engine
 {
     struct VulkanTexture : RHI_Texture {
     private:
-        const Engine::Texture* m_engine_texture;
         vk::DeviceMemory m_image_memory;
 
         vk::Image m_image;
         vk::ImageView m_image_view;
         vk::ImageLayout m_layout;
-        vk::Format m_vulkan_format;
         vk::ComponentMapping m_swizzle;
 
     public:
+        virtual uint_t layer_count() const                   = 0;
+        virtual vk::ImageCreateFlagBits create_flags() const = 0;
+        virtual vk::ImageViewType view_type() const          = 0;
+        virtual Size2D size() const                          = 0;
+        virtual MipMapLevel mipmap_count() const             = 0;
+        virtual vk::Format format() const                    = 0;
+        virtual ColorFormat engine_format() const            = 0;
+
         vk::DeviceMemory memory() const;
         vk::Image image() const;
         vk::ImageView image_view() const;
         vk::ImageLayout layout() const;
-        vk::Format format() const;
         vk::ComponentMapping swizzle() const;
-        Vector2D size() const;
-        uint_t layer_count() const;
-        MipMapLevel mipmap_count();
         MipMapLevel base_mipmap();
         vk::ImageAspectFlags aspect(bool use_for_shader_attachment = false) const;
 
-        VulkanTexture& create(const Texture* texture, const byte* data, size_t size);
+        VulkanTexture& create(const class Texture* texture);
         VulkanTexture& destroy();
 
+        void update_texture(const Size2D& size, MipMapLevel level, uint_t layer, const byte* data, size_t data_size);
 
-        vk::ImageViewType view_type() const;
-
-        void generate_mipmap() override;
         void bind(BindLocation location) override;
         void bind_combined(RHI_Sampler* sampler, BindLocation location) override;
-        void update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, uint_t layer, const byte* data,
-                            size_t data_size);
-        void update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
-                               size_t data_size) override;
         bool is_color_image() const;
         bool is_render_target_color_image() const;
         bool is_depth_stencil_image() const;
         static bool is_depth_stencil_image(ColorFormat);
 
-        vk::Offset2D get_mip_size(MipMapLevel level) const;
         vk::ImageView create_image_view(const vk::ImageSubresourceRange& range);
         vk::ImageLayout change_layout(vk::ImageLayout new_layout);
         vk::ImageLayout change_layout(vk::ImageLayout new_layout, vk::CommandBuffer& cmd);
 
         ~VulkanTexture();
+    };
+
+    struct VulkanTexture2D : VulkanTexture {
+        const Texture2D* m_texture;
+
+    public:
+        VulkanTexture2D& create(const Texture2D* texture);
+
+        uint_t layer_count() const override;
+        vk::ImageCreateFlagBits create_flags() const override;
+        vk::ImageViewType view_type() const override;
+        Size2D size() const override;
+        MipMapLevel mipmap_count() const override;
+        vk::Format format() const override;
+        ColorFormat engine_format() const override;
     };
 }// namespace Engine

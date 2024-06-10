@@ -51,7 +51,7 @@ namespace Engine
         const String& name() override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
-        RHI_Texture* create_texture(const Texture*, const byte* data, size_t size) override;
+        RHI_Texture* create_texture_2d(const Texture2D*) override;
         RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;

@@ -34,36 +34,20 @@ namespace Engine
         return m_layout;
     }
 
-    vk::Format VulkanTexture::format() const
-    {
-        return m_vulkan_format;
-    }
 
     vk::ComponentMapping VulkanTexture::swizzle() const
     {
         return m_swizzle;
     }
 
-    Vector2D VulkanTexture::size() const
-    {
-        return m_engine_texture->size;
-    }
-
-    MipMapLevel VulkanTexture::mipmap_count()
-    {
-        return m_engine_texture->mipmap_count;
-    }
-
     MipMapLevel VulkanTexture::base_mipmap()
     {
-        return m_engine_texture->base_mip_level;
+        return 0;
     }
 
-    VulkanTexture& VulkanTexture::create(const Texture* texture, const byte* data, size_t data_size)
+    VulkanTexture& VulkanTexture::create(const Texture* texture)
     {
-        m_layout         = vk::ImageLayout::eUndefined;
-        m_engine_texture = texture;
-        m_vulkan_format  = parse_engine_format(m_engine_texture->format);
+        m_layout = vk::ImageLayout::eUndefined;
 
         static vk::ImageCreateFlagBits default_flags = {};
 
@@ -86,36 +70,23 @@ namespace Engine
         vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
 
         API->create_image(this, tiling,
-                          m_engine_texture->type() == TextureType::Texture2D ? default_flags
-                                                                             : vk::ImageCreateFlagBits::eCubeCompatible,
+                          texture->type() == TextureType::Texture2D ? default_flags : vk::ImageCreateFlagBits::eCubeCompatible,
                           m_usage_flags, m_memory_flags, m_image, m_image_memory, layer_count());
-
 
         // Creating image view
         m_swizzle = vk::ComponentMapping(get_type(texture->swizzle_r), get_type(texture->swizzle_g), get_type(texture->swizzle_b),
                                          get_type(texture->swizzle_a));
-        m_image_view = create_image_view(
-                vk::ImageSubresourceRange(aspect(true), m_engine_texture->base_mip_level,
-                                          m_engine_texture->mipmap_count - m_engine_texture->base_mip_level, 0, layer_count()));
-
+        m_image_view = create_image_view(vk::ImageSubresourceRange(aspect(true), 0, mipmap_count(), 0, layer_count()));
         change_layout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
-        if (data)
-        {
-            if (texture->type() == TextureType::Texture2D)
-            {
-                update_texture_2D(texture->size, {0, 0}, 0, data, data_size);
-            }
-        }
-
-        if (m_engine_texture->mipmap_count > 1)
-            generate_mipmap();
         return *this;
     }
 
-    void VulkanTexture::update_texture(const Size2D& size, const Offset2D& offset, MipMapLevel level, uint_t layer,
-                                       const byte* data, size_t data_size)
+    void VulkanTexture::update_texture(const Size2D& size, MipMapLevel level, uint_t layer, const byte* data, size_t data_size)
     {
+        if (data == nullptr || data_size == 0)
+            return;
+
         vk::Buffer staging_buffer;
         vk::DeviceMemory staging_buffer_memory;
 
@@ -141,8 +112,7 @@ namespace Engine
         Barrier::transition_image_layout(barrier);
         auto command_buffer = API->begin_single_time_command_buffer();
 
-        vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1),
-                                   vk::Offset3D(static_cast<uint_t>(offset.x), static_cast<uint_t>(offset.y), 0),
+        vk::BufferImageCopy region(0, 0, 0, vk::ImageSubresourceLayers(aspect(), level, layer, 1), vk::Offset3D(0, 0, 0),
                                    vk::Extent3D(static_cast<uint_t>(size.x), static_cast<uint_t>(size.y), 1));
 
         command_buffer.copyBufferToImage(staging_buffer, m_image, vk::ImageLayout::eTransferDstOptimal, region);
@@ -157,13 +127,6 @@ namespace Engine
         barrier.newLayout = m_layout;
         Barrier::transition_image_layout(barrier);
     }
-
-    void VulkanTexture::update_texture_2D(const Size2D& size, const Offset2D& offset, MipMapLevel mipmap, const byte* data,
-                                          size_t data_size)
-    {
-        update_texture(size, offset, mipmap, 0, data, data_size);
-    }
-
 
     void VulkanTexture::bind(BindLocation location)
     {
@@ -190,23 +153,13 @@ namespace Engine
         return *this;
     }
 
-    uint_t VulkanTexture::layer_count() const
-    {
-        return m_engine_texture->type() == TextureType::Texture2D ? 1 : 6;
-    }
-
-    vk::ImageViewType VulkanTexture::view_type() const
-    {
-        return m_engine_texture->type() == TextureType::Texture2D ? vk::ImageViewType::e2D : vk::ImageViewType::eCube;
-    }
-
     vk::ImageAspectFlags VulkanTexture::aspect(bool use_for_shader_attachment) const
     {
         if (is_color_image())
         {
             return vk::ImageAspectFlagBits::eColor;
         }
-        else if (is_in<ColorFormat::DepthStencil>(m_engine_texture->format))
+        else if (is_in<parse_engine_format(ColorFormat::DepthStencil)>(format()))
         {
             if (use_for_shader_attachment)
             {
@@ -224,17 +177,17 @@ namespace Engine
     bool VulkanTexture::is_color_image() const
     {
         return is_in<ColorFormat::FloatR, ColorFormat::FloatRGBA, ColorFormat::R8, ColorFormat::R8G8B8A8, ColorFormat::BC1,
-                     ColorFormat::BC2, ColorFormat::BC3>(m_engine_texture->format);
+                     ColorFormat::BC2, ColorFormat::BC3>(engine_format());
     }
 
     bool VulkanTexture::is_render_target_color_image() const
     {
-        return is_in<ColorFormat::R8G8B8A8, ColorFormat::FloatRGBA>(m_engine_texture->format);
+        return is_in<ColorFormat::R8G8B8A8, ColorFormat::FloatRGBA>(engine_format());
     }
 
     bool VulkanTexture::is_depth_stencil_image() const
     {
-        return is_depth_stencil_image(m_engine_texture->format);
+        return is_depth_stencil_image(engine_format());
     }
 
     bool VulkanTexture::is_depth_stencil_image(ColorFormat format)
@@ -243,110 +196,9 @@ namespace Engine
                 format);
     }
 
-    void VulkanTexture::generate_mipmap()
-    {
-        if (!m_image)
-            return;
-
-        vk::FormatProperties format_properties = API->m_physical_device.getFormatProperties(m_vulkan_format);
-
-        if (!(format_properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eSampledImageFilterLinear))
-        {
-            throw std::runtime_error("VulkanAPI: Texture image format does not support linear blitting!");
-        }
-
-        if (!(format_properties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst))
-        {
-            throw std::runtime_error("VulkanAPI: Texture image format does not support linear blitting!");
-        }
-
-        vk::CommandBuffer command_buffer = API->begin_single_time_command_buffer();
-
-        auto subresource = vk::ImageSubresourceRange(aspect(), base_mipmap(), m_engine_texture->mipmap_count - base_mipmap(), 0,
-                                                     layer_count());
-        subresource.levelCount = 1;
-        subresource.layerCount = 1;
-
-        for (uint_t layer = 0, count = layer_count(); layer < count; layer++)
-        {
-            subresource.baseArrayLayer = layer;
-
-            vk::ImageMemoryBarrier barrier({}, {}, {}, {}, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, m_image,
-                                           subresource);
-            vk::ImageMemoryBarrier barrier2 = barrier;
-
-            for (MipMapLevel i = 1; i < m_engine_texture->base_mip_level; i++)
-            {
-                if (i >= m_engine_texture->base_mip_level)
-                {
-                    barrier.subresourceRange.baseMipLevel = i == m_engine_texture->base_mip_level ? 0 : i - 1;
-                    barrier.oldLayout                     = vk::ImageLayout::eShaderReadOnlyOptimal;
-                    barrier.newLayout                     = vk::ImageLayout::eTransferSrcOptimal;
-                    barrier.srcAccessMask                 = vk::AccessFlagBits::eShaderRead;
-                    barrier.dstAccessMask                 = vk::AccessFlagBits::eTransferRead;
-
-                    command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader,
-                                                   vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier);
-
-                    barrier2.subresourceRange.baseMipLevel = i;
-                    barrier2.oldLayout                     = vk::ImageLayout::eShaderReadOnlyOptimal;
-                    barrier2.newLayout                     = vk::ImageLayout::eTransferDstOptimal;
-                    barrier2.srcAccessMask                 = vk::AccessFlagBits::eShaderRead;
-                    barrier2.dstAccessMask                 = vk::AccessFlagBits::eTransferWrite;
-
-                    command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader,
-                                                   vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier2);
-
-                    vk::ImageSubresourceLayers src_image_subresource_layers(
-                            aspect(), (i == m_engine_texture->base_mip_level ? 0 : i - 1), layer, 1);
-
-                    vk::ImageSubresourceLayers dst_image_subresource_layers(aspect(), i, layer, 1);
-
-                    auto base_mip_size    = get_mip_size(barrier.subresourceRange.baseMipLevel);
-                    auto current_mip_size = get_mip_size(i);
-
-                    const Array<vk::Offset3D, 2> src_offsets = {vk::Offset3D(0, 0, 0),
-                                                                vk::Offset3D(base_mip_size.x, base_mip_size.y, 1)};
-
-                    const Array<vk::Offset3D, 2> dst_offsets = {vk::Offset3D(0, 0, 0),
-                                                                vk::Offset3D(current_mip_size.x, current_mip_size.y, 1)};
-
-                    vk::ImageBlit blit(src_image_subresource_layers, src_offsets, dst_image_subresource_layers, dst_offsets);
-
-                    command_buffer.blitImage(m_image, vk::ImageLayout::eTransferSrcOptimal, m_image,
-                                             vk::ImageLayout::eTransferDstOptimal, blit, vk::Filter::eLinear);
-
-                    barrier2.oldLayout     = vk::ImageLayout::eTransferDstOptimal;
-                    barrier2.newLayout     = vk::ImageLayout::eShaderReadOnlyOptimal;
-                    barrier2.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-                    barrier2.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-                    command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                                   vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, barrier2);
-
-                    barrier.oldLayout     = vk::ImageLayout::eTransferSrcOptimal;
-                    barrier.newLayout     = vk::ImageLayout::eShaderReadOnlyOptimal;
-                    barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-                    barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-                    command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-                                                   vk::PipelineStageFlagBits::eFragmentShader, {}, {}, {}, barrier);
-                }
-            }
-        }
-        API->end_single_time_command_buffer(command_buffer);
-    }
-
-    vk::Offset2D VulkanTexture::get_mip_size(MipMapLevel level) const
-    {
-        uint_t width  = glm::max(static_cast<uint_t>(m_engine_texture->size.x) >> level, 1U);
-        uint_t height = glm::max(static_cast<uint_t>(m_engine_texture->size.y) >> level, 1U);
-        return vk::Offset2D(width, height);
-    }
-
     vk::ImageView VulkanTexture::create_image_view(const vk::ImageSubresourceRange& range)
     {
-        vk::ImageViewCreateInfo view_info({}, m_image, view_type(), m_vulkan_format, m_swizzle, range);
+        vk::ImageViewCreateInfo view_info({}, m_image, view_type(), format(), m_swizzle, range);
         return API->m_device.createImageView(view_info);
     }
 
@@ -402,9 +254,59 @@ namespace Engine
         destroy();
     }
 
-    RHI_Texture* VulkanAPI::create_texture(const Texture* texture, const byte* data, size_t size)
+    VulkanTexture2D& VulkanTexture2D::create(const Texture2D* texture)
     {
-        return &(new VulkanTexture())->create(texture, data, size);
+        m_texture = texture;
+        VulkanTexture::create(texture);
+
+        for (MipMapLevel i = 0, count = texture->mipmap_count(); i < count; ++i)
+        {
+            if (auto mip = texture->mip(i))
+            {
+                update_texture(mip->size, i, 0, mip->data.data(), mip->data.size());
+            }
+        }
+        return *this;
+    }
+
+    uint_t VulkanTexture2D::layer_count() const
+    {
+        return 1;
+    }
+
+    vk::ImageCreateFlagBits VulkanTexture2D::create_flags() const
+    {
+        return {};
+    }
+
+    vk::ImageViewType VulkanTexture2D::view_type() const
+    {
+        return vk::ImageViewType::e2D;
+    }
+
+    Size2D VulkanTexture2D::size() const
+    {
+        return m_texture->size();
+    }
+
+    MipMapLevel VulkanTexture2D::mipmap_count() const
+    {
+        return m_texture->mipmap_count();
+    }
+
+    vk::Format VulkanTexture2D::format() const
+    {
+        return parse_engine_format(engine_format());
+    }
+
+    ColorFormat VulkanTexture2D::engine_format() const
+    {
+        return m_texture->format();
+    }
+
+    RHI_Texture* VulkanAPI::create_texture_2d(const Texture2D* texture)
+    {
+        return &(new VulkanTexture2D())->create(texture);
     }
 }// namespace Engine
 

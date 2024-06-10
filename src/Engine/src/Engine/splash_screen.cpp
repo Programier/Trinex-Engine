@@ -210,9 +210,7 @@ namespace Engine
         }
 
         m_splash_data->texture        = Object::new_instance<EngineResource<Texture2D>>();
-        m_splash_data->texture->size  = image.size();
-        m_splash_data->texture->image = image;
-        m_splash_data->texture->init_resource();
+        m_splash_data->texture->init(image);
 
         WindowConfig window_config;
 
