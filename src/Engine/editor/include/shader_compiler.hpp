@@ -7,14 +7,6 @@ namespace Engine
 
     namespace ShaderCompiler
     {
-        class OpenGLES_Compiler : public Compiler
-        {
-            declare_class(OpenGLES_Compiler, Compiler);
-
-        public:
-            bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
-        };
-
         class OpenGL_Compiler : public Compiler
         {
             declare_class(OpenGL_Compiler, Compiler);

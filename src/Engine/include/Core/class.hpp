@@ -48,7 +48,7 @@ namespace Engine
         CallBacks<void(Object*)> on_create;
         CallBacks<void(Object*)> on_destroy;
 
-        Class(const Name& name, const Name& namespace_name, Class* parent = nullptr, BitMask flags = 0);
+        Class(const Name& full_name, Class* parent = nullptr, BitMask flags = 0);
 
         Class* parent() const;
         void* create_struct() const override;
@@ -102,8 +102,6 @@ namespace Engine
 
                 m_cast_to_this = private_cast_func<ObjectClass>;
             }
-
-            Struct::setup_struct<ObjectClass>();
         }
 
 

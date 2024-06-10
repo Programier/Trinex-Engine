@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/engine_types.hpp>
+#include <Core/etl/type_traits.hpp>
 #include <Core/name.hpp>
 
 namespace Engine
@@ -29,11 +30,11 @@ namespace Engine
         Vector<class Property*> m_properties;
         GroupedPropertiesMap m_grouped_properties;
 
-        Struct(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
-        Struct(const Name& name, const Name& namespace_name, Struct* parent);
+        Struct(const Name& name, const Name& parent = Name::none);
+        Struct(const Name& name, Struct* parent);
 
     public:
-        static ENGINE_EXPORT Struct* create(const Name& name, const Name& namespace_name, const Name& parent = Name::none);
+        static ENGINE_EXPORT Struct* create(const Name& name, const Name& parent = Name::none);
         static ENGINE_EXPORT Struct* static_find(const StringView& name, bool requred = false);
 
         const String& base_name_splitted() const;
@@ -69,14 +70,21 @@ namespace Engine
 
 
         template<typename Type>
-        void setup_struct()
-        {}
+        Struct& setup_struct_constuctor()
+        {
+            if (m_struct_constructor == nullptr && !is_class())
+            {
+                m_struct_constructor = static_void_constructor_of<Type>;
+            }
+
+            return *this;
+        }
 
         virtual ~Struct();
     };
 
-#define implement_struct(struct_name, namespace_name, parent_struct_name)                                                        \
+#define implement_struct(namespace_name, struct_name, parent_struct_name)                                                        \
     Engine::ReflectionInitializeController initialize_##struct_name = Engine::ReflectionInitializeController(                    \
-            []() { Engine::Struct::create(#struct_name, #namespace_name, #parent_struct_name); },                                \
+            []() { Engine::Struct::create(ENTITY_INITIALIZER_NAME(struct_name, namespace_name), #parent_struct_name); },         \
             ENTITY_INITIALIZER_NAME(struct_name, namespace_name))
 }// namespace Engine

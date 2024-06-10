@@ -25,10 +25,10 @@ namespace Engine
     static PostDestroyController destroy_struct_map(on_destroy);
 
 
-    Struct::Struct(const Name& name, const Name& namespace_name, const Name& _parent)
-        : m_struct_constructor(nullptr), m_namespace_name(namespace_name), m_base_name(name), m_parent(_parent)
+    Struct::Struct(const Name& name, const Name& _parent)
+        : m_struct_constructor(nullptr), m_full_name(name), m_namespace_name(Strings::namespace_sv_of(name)),
+          m_base_name(Strings::class_name_sv_of(name)), m_parent(_parent)
     {
-        m_full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
         m_base_name_splitted = Strings::make_sentence(m_base_name.to_string());
 
         if (m_parent.is_valid())
@@ -39,7 +39,7 @@ namespace Engine
         internal_struct_map()[Strings::hash_of(m_full_name)] = this;
     }
 
-    Struct::Struct(const Name& name, const Name& namespace_name, Struct* parent) : Struct(name, namespace_name)
+    Struct::Struct(const Name& name, Struct* parent) : Struct(name)
     {
         m_parent_struct = parent;
         if (m_parent_struct)
@@ -49,14 +49,13 @@ namespace Engine
         }
     }
 
-    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& namespace_name, const Name& parent)
+    ENGINE_EXPORT Struct* Struct::create(const Name& name, const Name& parent)
     {
-        Name full_name = namespace_name.is_valid() ? Name(Strings::format("{}::{}", namespace_name.c_str(), name.c_str())) : name;
-        Struct* self   = static_find(full_name);
+        Struct* self = static_find(name);
 
         if (!self)
         {
-            self = new Struct(name, namespace_name, parent);
+            self = new Struct(name, parent);
         }
 
         return self;

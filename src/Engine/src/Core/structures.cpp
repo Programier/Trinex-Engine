@@ -77,7 +77,7 @@ namespace Engine
           location(BindLocation(255, 255))
     {}
 
-    implement_struct(ShaderDefinition, Engine, ).push([]() {
+    implement_struct(Engine, ShaderDefinition, ).push([]() {
         Struct* self = Struct::static_find("Engine::ShaderDefinition", true);
         self->add_property(new StringProperty("Key", "Key of definition", &ShaderDefinition::key));
         self->add_property(new StringProperty("Value", "Value of definition", &ShaderDefinition::value));

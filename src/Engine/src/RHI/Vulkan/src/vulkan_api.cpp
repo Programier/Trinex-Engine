@@ -29,7 +29,7 @@ namespace Engine
 
     VulkanAPI* VulkanAPI::m_vulkan = nullptr;
 
-    implement_struct(VULKAN, Engine::RHI, ).push([]() {
+    implement_struct(Engine::RHI, VULKAN, ).push([]() {
         Struct::static_find("Engine::RHI::VULKAN", true)->struct_constructor([]() -> void* {
             if (VulkanAPI::m_vulkan == nullptr)
                 VulkanAPI::m_vulkan = new VulkanAPI();

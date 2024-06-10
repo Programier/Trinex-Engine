@@ -16,7 +16,7 @@
 
 namespace Engine
 {
-    implement_struct(Attribute, Engine::VertexShader, ).push([]() {
+    implement_struct(Engine::VertexShader, Attribute, ).push([]() {
         Struct* self                      = Struct::static_find("Engine::VertexShader::Attribute", true);
         Enum* type_enum                   = Enum::static_find("Engine::VertexBufferElementType", true);
         Enum* vertex_attribute_rate_enum  = Enum::static_find("Engine::VertexAttributeInputRate", true);

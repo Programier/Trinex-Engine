@@ -37,7 +37,7 @@ namespace Engine
         inited = true;
     }
 
-    implement_struct(Transform, Engine, ).push(Transform::initialize_transform_properties);
+    implement_struct(Engine, Transform, ).push(Transform::initialize_transform_properties);
 
     Transform::Transform(const Vector3D& location, const Vector3D& rotation, const Vector3D& scale)
         : m_location(location), m_rotation(rotation), m_scale(scale), m_is_dirty(true)

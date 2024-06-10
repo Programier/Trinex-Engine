@@ -3,5 +3,5 @@
 
 namespace Engine::ShaderCompiler
 {
-    implement_class_default_init(Compiler, Engine::ShaderCompiler, 0);
+    implement_class_default_init(Engine::ShaderCompiler, Compiler, 0);
 }// namespace Engine::ShaderCompiler

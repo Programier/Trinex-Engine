@@ -11,7 +11,7 @@
 
 namespace Engine
 {
-    implement_struct(OPENGL, Engine::RHI, ).push([]() {
+    implement_struct(Engine::RHI, OPENGL, ).push([]() {
         Struct::static_find("Engine::RHI::OPENGL", true)->struct_constructor([]() -> void* {
             if (OpenGL::m_instance)
                 return OpenGL::m_instance;

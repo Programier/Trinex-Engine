@@ -270,7 +270,7 @@ public:                                                                         
                                                                                                                                  \
 private:
 
-#define implement_class(class_name, namespace_name, flags)                                                                       \
+#define implement_class(namespace_name, class_name, flags)                                                                       \
     class Engine::Class* class_name::m_static_class = nullptr;                                                                   \
     Engine::Object* class_name::static_constructor()                                                                             \
     {                                                                                                                            \
@@ -295,7 +295,7 @@ private:
         if (!m_static_class)                                                                                                     \
         {                                                                                                                        \
             constexpr bool has_base_class = !std::is_same_v<class_name, Engine::Object>;                                         \
-            m_static_class                = new Engine::Class(#class_name, #namespace_name,                                      \
+            m_static_class                = new Engine::Class(ENTITY_INITIALIZER_NAME(class_name, namespace_name),               \
                                                has_base_class ? Super::static_class_instance() : nullptr, flags); \
             m_static_class->setup_class<class_name>();                                                                           \
                                                                                                                                  \
@@ -309,10 +309,10 @@ private:
     void class_name::static_initialize_class()
 
 
-#define implement_class_default_init(class_name, namespace_name, flags)                                                          \
-    implement_class(class_name, namespace_name, flags)                                                                           \
+#define implement_class_default_init(namespace_name, class_name, flags)                                                          \
+    implement_class(namespace_name, class_name, flags)                                                                           \
     {}
 
-#define implement_engine_class(class_name, flags) implement_class(class_name, Engine, flags)
-#define implement_engine_class_default_init(class_name, flags) implement_class_default_init(class_name, Engine, flags)
+#define implement_engine_class(class_name, flags) implement_class(Engine, class_name, flags)
+#define implement_engine_class_default_init(class_name, flags) implement_class_default_init(Engine, class_name, flags)
 }// namespace Engine

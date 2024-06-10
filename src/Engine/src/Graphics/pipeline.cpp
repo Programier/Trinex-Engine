@@ -20,7 +20,7 @@
 
 namespace Engine
 {
-    implement_struct(DepthTestInfo, Engine::Pipeline, ).push([]() {
+    implement_struct(Engine::Pipeline, DepthTestInfo, ).push([]() {
         using DTI    = Pipeline::DepthTestInfo;
         Struct* self = Struct::static_find("Engine::Pipeline::DepthTestInfo", true);
 
@@ -33,7 +33,7 @@ namespace Engine
                 new BoolProperty("Enable bound test", "Enable bound test", &DTI::bound_test_enable));
     });
 
-    implement_struct(FaceInfo, Engine::Pipeline::StencilTestInfo, ).push([]() {
+    implement_struct(Engine::Pipeline::StencilTestInfo, FaceInfo, ).push([]() {
         using FI                = Pipeline::StencilTestInfo::FaceInfo;
         Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
         Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
@@ -48,7 +48,7 @@ namespace Engine
                              new IntProperty("Reference", "Stencil reference", &FI::reference));
     });
 
-    implement_struct(StencilTestInfo, Engine::Pipeline, ).push([]() {
+    implement_struct(Engine::Pipeline, StencilTestInfo, ).push([]() {
         using STI = Pipeline::StencilTestInfo;
 
         Struct* self      = Struct::static_find("Engine::Pipeline::StencilTestInfo", true);
@@ -59,7 +59,7 @@ namespace Engine
                              new StructProperty("Back", "Stencil parameters for back face", &STI::back, face_info));
     });
 
-    implement_struct(AssemblyInfo, Engine::Pipeline, ).push([]() {
+    implement_struct(Engine::Pipeline, AssemblyInfo, ).push([]() {
         using AI = Pipeline::AssemblyInfo;
 
         Struct* self = Struct::static_find("Engine::Pipeline::AssemblyInfo", true);
@@ -69,7 +69,7 @@ namespace Engine
                              new BoolProperty("Enable restart", "Enable primitive restart", &AI::primitive_restart_enable));
     });
 
-    implement_struct(RasterizerInfo, Engine::Pipeline, ).push([]() {
+    implement_struct(Engine::Pipeline, RasterizerInfo, ).push([]() {
         using RI = Pipeline::RasterizerInfo;
 
         Struct* self = Struct::static_find("Engine::Pipeline::RasterizerInfo", true);
@@ -90,7 +90,7 @@ namespace Engine
                 new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)));
     });
 
-    implement_struct(ColorBlendingInfo, Engine::Pipeline, ).push([]() {
+    implement_struct(Engine::Pipeline, ColorBlendingInfo, ).push([]() {
         using CBI    = Pipeline::ColorBlendingInfo;
         Struct* self = Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true);
 

@@ -739,22 +739,8 @@ namespace Engine::ShaderCompiler
         return create_opengles_shader(slang_source, definitions, errors);
     }
 
-
-    implement_class_default_init(OpenGLES_Compiler, Engine::ShaderCompiler, 0);
-    implement_class_default_init(OpenGL_Compiler, Engine::ShaderCompiler, 0);
-    implement_class_default_init(Vulkan_Compiler, Engine::ShaderCompiler, 0);
-
-    bool OpenGLES_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
-    {
-        auto source = create_opengles_shader(slang_source, material->compile_definitions, errors);
-
-        if (errors.empty())
-        {
-            out_source = std::move(source);
-            return true;
-        }
-        return false;
-    }
+    implement_class_default_init(Engine::ShaderCompiler, OpenGL_Compiler, 0);
+    implement_class_default_init(Engine::ShaderCompiler, Vulkan_Compiler, 0);
 
     bool OpenGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {

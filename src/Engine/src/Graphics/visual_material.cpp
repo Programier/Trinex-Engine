@@ -22,7 +22,7 @@ namespace Engine
     static inline constexpr size_t normal_index          = 7;
     static inline constexpr size_t position_offset_index = 8;
 
-    implement_struct(Name, Engine::VisualMaterial, );
+    implement_struct(Engine::VisualMaterial, Node, );
 
     implement_engine_class(VisualMaterial, Class::IsAsset)
     {
@@ -655,9 +655,9 @@ namespace Engine
         using PinType       = VisualMaterial::PinType;
 
 #define implement_material_node(node_name, group_name)                                                                           \
-    implement_struct(node_name, Engine::VisualMaterial, Engine::VisualMaterial::Node).push([]() {                                \
+    implement_struct(Engine::VisualMaterial, node_name, Engine::VisualMaterial::Node).push([]() {                                \
         Struct::static_find(MAKE_ENTITY_FULL_NAME(node_name, Engine::VisualMaterial), true)                                      \
-                ->struct_constructor(static_void_constructor_of<node_name>)                                                      \
+                ->setup_struct_constuctor<node_name>()                                                                           \
                 .group(Group::find("Engine::VisualMaterialNodes::" #group_name, true));                                          \
     });
 
@@ -692,8 +692,8 @@ namespace Engine
             }
         };
 
-        implement_struct(Root, Engine::VisualMaterial, Engine::VisualMaterial::Node).push([]() {
-            Struct::static_find("Engine::VisualMaterial::Root", true)->struct_constructor(static_void_constructor_of<Root>);
+        implement_struct(Engine::VisualMaterial, Root, Engine::VisualMaterial::Node).push([]() {
+            Struct::static_find("Engine::VisualMaterial::Root", true)->setup_struct_constuctor<Root>();
         });
 
         //////////////////////// CONSTANTS NODES ////////////////////////
