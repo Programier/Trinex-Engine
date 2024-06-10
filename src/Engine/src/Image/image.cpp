@@ -319,13 +319,19 @@ namespace Engine
 
     Image& Image::create(const Size2D& size, uint_t channels)
     {
+        create_interface(size, channels);
+        size_t count = m_width * m_height * m_channels;
+        m_data.resize(count);
+        return *this;
+    }
+
+    Image& Image::create_interface(const Size2D& size, uint_t channels)
+    {
         m_channels = glm::min<uint_t>(channels, 4);
         m_width    = static_cast<int_t>(glm::abs(size.x));
         m_height   = static_cast<int_t>(glm::abs(size.y));
-
-        size_t count = m_width * m_height * m_channels;
         m_data.clear();
-        m_data.resize(count);
+
         return *this;
     }
 

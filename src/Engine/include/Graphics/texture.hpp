@@ -22,16 +22,12 @@ namespace Engine
         Swizzle swizzle_a          = Swizzle::Identity;
 
     public:
-        Texture();
-        delete_copy_constructors(Texture);
         Texture& generate_mipmap();
         Texture& rhi_bind_combined(Sampler* sampler, BindLocation location);
         virtual bool is_render_target_texture() const;
 
         Size2D mip_size(MipMapLevel level = 0) const;
-        bool archive_process(Archive& archive) override;
         virtual TextureType type() const = 0;
-        ~Texture();
     };
 
 }// namespace Engine

@@ -30,7 +30,6 @@ namespace Engine
                              new EnumProperty("Swizze A", "Swizze A of texture", &This::swizzle_a, swizzle_enum));
     }
 
-    Texture::Texture() = default;
 
     Texture& Texture::generate_mipmap()
     {
@@ -64,15 +63,4 @@ namespace Engine
         }
         return current_size;
     }
-
-
-    bool Texture::archive_process(Archive& archive)
-    {
-        if (!RenderResource::archive_process(archive))
-            return false;
-        return static_cast<bool>(archive);
-    }
-
-    Texture::~Texture()
-    {}
 }// namespace Engine

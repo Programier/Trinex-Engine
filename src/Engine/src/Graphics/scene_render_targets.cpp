@@ -12,6 +12,106 @@
 
 namespace Engine
 {
+    EngineRenderTargets* EngineRenderTargets::m_instance;
+
+    EngineRenderTargets::EngineRenderTargets()
+    {
+        for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
+        {
+            SceneRenderTargetTexture type = static_cast<SceneRenderTargetTexture>(texture_index);
+            m_textures[texture_index]     = Object::new_instance_named<RenderTargetTexture>(name_of(type));
+        }
+    }
+
+    RenderTargetTexture* EngineRenderTargets::texture_of(SceneRenderTargetTexture type)
+    {
+        return m_textures.at(static_cast<size_t>(type)).ptr();
+    }
+
+    StringView EngineRenderTargets::name_of(SceneRenderTargetTexture type)
+    {
+        switch (type)
+        {
+            case SceneRenderTargetTexture::SceneColorHDR:
+                return "SceneColorHDR";
+            case SceneRenderTargetTexture::SceneColorLDR:
+                return "SceneColorLDR";
+            case SceneRenderTargetTexture::SceneDepthZ:
+                return "SceneDepthZ";
+            case SceneRenderTargetTexture::HitProxies:
+                return "HitProxies";
+            case SceneRenderTargetTexture::BaseColor:
+                return "BaseColor";
+            case SceneRenderTargetTexture::Normal:
+                return "Normal";
+            case SceneRenderTargetTexture::Emissive:
+                return "Emissive";
+            case SceneRenderTargetTexture::MSRA:
+                return "MSRA";
+            case SceneRenderTargetTexture::LightPassDepthZ:
+                return "LightPassDepthZ";
+
+            default:
+                throw EngineException("Undefined name of render target texture");
+        }
+    }
+
+    ColorFormat EngineRenderTargets::format_of(SceneRenderTargetTexture type)
+    {
+        switch (type)
+        {
+            case SceneRenderTargetTexture::SceneColorHDR:
+                return ColorFormat::FloatRGBA;
+            case SceneRenderTargetTexture::SceneColorLDR:
+                return ColorFormat::R8G8B8A8;
+            case SceneRenderTargetTexture::SceneDepthZ:
+                return ColorFormat::DepthStencil;
+            case SceneRenderTargetTexture::HitProxies:
+                return ColorFormat::R8G8B8A8;
+            case SceneRenderTargetTexture::BaseColor:
+                return ColorFormat::R8G8B8A8;
+            case SceneRenderTargetTexture::Normal:
+                return ColorFormat::FloatRGBA;
+            case SceneRenderTargetTexture::Emissive:
+                return ColorFormat::R8G8B8A8;
+            case SceneRenderTargetTexture::MSRA:
+                return ColorFormat::R8G8B8A8;
+            case SceneRenderTargetTexture::LightPassDepthZ:
+                return ColorFormat::DepthStencil;
+
+            default:
+                throw EngineException("Undefined type of render target texture");
+        }
+    }
+
+    void EngineRenderTargets::initialize(UIntVector2D new_size)
+    {
+        if (new_size == m_size || new_size.x == 0 || new_size.y == 0)
+            return;
+
+        m_size = new_size;
+
+        for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
+        {
+        }
+    }
+
+    const UIntVector2D& EngineRenderTargets::size() const
+    {
+        return m_size;
+    }
+
+    uint_t EngineRenderTargets::width() const
+    {
+        return m_size.x;
+    }
+
+    uint_t EngineRenderTargets::height() const
+    {
+        return m_size.y;
+    }
+
+
 #define TRINEX_WITH_STENCIL_BUFFER 0
 
     implement_engine_class_default_init(EngineRenderTarget, 0);

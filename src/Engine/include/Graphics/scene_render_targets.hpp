@@ -8,6 +8,46 @@ namespace Engine
 {
     class RenderTargetTexture;
 
+    enum class SceneRenderTargetTexture
+    {
+        SceneColorHDR   = 0, /**< Render target for scene colors in HDR mode */
+        SceneColorLDR   = 1, /**< Render target for scene colors in LDR mode */
+        SceneDepthZ     = 2, /**< Render target for scene depths */
+        HitProxies      = 3, /**< Render target for hit proxies */
+        BaseColor       = 4, /**< Render target for base color */
+        Normal          = 5, /**< Render target for normal */
+        Emissive        = 6, /**< Render target for emissive */
+        MSRA            = 7, /**< Render target for MSRA */
+        LightPassDepthZ = 8, /**< Render target for light pass depths */
+        __COUNT__       = 9,
+    };
+
+
+    class ENGINE_EXPORT EngineRenderTargets : public Singletone<EngineRenderTargets, EmptyClass>
+    {
+    public:
+        static constexpr inline size_t textures_count = static_cast<size_t>(SceneRenderTargetTexture::__COUNT__);
+
+    private:
+        static EngineRenderTargets* m_instance;
+
+        Array<Pointer<RenderTargetTexture>, textures_count> m_textures;
+        UIntVector2D m_size;
+
+    public:
+        EngineRenderTargets();
+
+        RenderTargetTexture* texture_of(SceneRenderTargetTexture type);
+        ColorFormat format_of(SceneRenderTargetTexture type);
+        StringView name_of(SceneRenderTargetTexture type);
+        void initialize(UIntVector2D new_size);
+        const UIntVector2D& size() const;
+        uint_t width() const;
+        uint_t height() const;
+
+        friend class Singletone<EngineRenderTargets, EmptyClass>;
+    };
+
     class ENGINE_EXPORT EngineRenderTarget : public RenderTarget
     {
         declare_class(EngineRenderTarget, RenderTarget);

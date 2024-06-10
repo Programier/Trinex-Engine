@@ -464,6 +464,8 @@ namespace Engine
     bool Material::apply(MaterialInterface* head, SceneComponent* component)
     {
         trinex_check(is_in_render_thread(), "Material::apply method must be called in render thread!");
+
+        // TODO: We need to find pipeline here using current render pass as id?
         pipeline->rhi_bind();
 
         for (auto& [name, material_parameter] : m_material_parameters)

@@ -62,6 +62,7 @@ namespace Engine
         Image& create(const Size2D& size, uint_t channels, const byte* buffer);
         Image& create(ByteColor color, const Size2D& size, uint_t channels = 4);
         Image& create(const Size2D& size, uint_t channels = 4);
+        Image& create_interface(const Size2D& size, uint_t channels = 4);
 
         byte* pixel_at(uint_t x, uint_t y);
         const byte* pixel_at(uint_t x, uint_t y) const;

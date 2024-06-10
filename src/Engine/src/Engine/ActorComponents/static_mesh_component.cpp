@@ -50,8 +50,6 @@ namespace Engine
             }
 
             auto layer = base_pass_layer();
-
-            material.material->apply(component);
             layer->bind_material(material.material, component);
 
             VertexShader* shader = material.material->material()->pipeline->vertex_shader();
