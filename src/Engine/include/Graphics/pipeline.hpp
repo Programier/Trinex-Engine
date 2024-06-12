@@ -26,50 +26,36 @@ namespace Engine
         using ShadersArray = Array<class Shader*, 6>;
 
         struct ALIGNED(4) DepthTestInfo {
-            DepthFunc func         = DepthFunc::Less;
-            float min_depth_bound  = 0.0;
-            float max_depth_bound  = 0.0;
-            bool enable            = true;
-            bool write_enable      = true;
-            bool bound_test_enable = false;
+            DepthFunc func    = DepthFunc::Less;
+            bool enable       = true;
+            bool write_enable = true;
         } depth_test;
 
         struct ALIGNED(4) StencilTestInfo {
             bool enable = false;
 
-            struct FaceInfo {
-                StencilOp fail       = StencilOp::Decr;
-                StencilOp depth_pass = StencilOp::Decr;
-                StencilOp depth_fail = StencilOp::Decr;
-                CompareFunc compare  = CompareFunc::Less;
-                uint_t compare_mask  = 0;
-                uint_t write_mask    = 0;
-                int_t reference      = 0;
-            } front, back;
+            StencilOp fail       = StencilOp::Decr;
+            StencilOp depth_pass = StencilOp::Decr;
+            StencilOp depth_fail = StencilOp::Decr;
+            CompareFunc compare  = CompareFunc::Less;
+            byte compare_mask    = 0;
+            byte write_mask      = 0;
         } stencil_test;
 
         struct ALIGNED(4) AssemblyInfo {
             PrimitiveTopology primitive_topology = PrimitiveTopology::TriangleList;
-            bool primitive_restart_enable        = false;
         } input_assembly;
 
         struct ALIGNED(4) RasterizerInfo {
-            float depth_bias_const_factor = 0.0;
-            float depth_bias_clamp        = 0.0;
-            float depth_bias_slope_factor = 0.0;
-            float line_width              = 1.0;
-
-            bool depth_bias_enable  = false;
-            bool discard_enable     = false;
-            bool depth_clamp_enable = false;
-
             PolygonMode polygon_mode = PolygonMode::Fill;
             CullMode cull_mode       = CullMode::Back;
             FrontFace front_face     = FrontFace::ClockWise;
         } rasterizer;
 
         struct ALIGNED(4) ColorBlendingInfo {
-            bool enable                   = false;
+            bool enable          = false;
+            bool logic_op_enable = false;
+
             BlendFunc src_color_func      = BlendFunc::SrcAlpha;
             BlendFunc dst_color_func      = BlendFunc::OneMinusSrcAlpha;
             BlendOp color_op              = BlendOp::Add;
@@ -78,10 +64,7 @@ namespace Engine
             BlendOp alpha_op              = BlendOp::Add;
             ColorComponentMask color_mask = ColorComponentMask::RGBA;
 
-
-            LogicOp logic_op         = LogicOp::And;
-            Vector4D blend_constants = {0.f, 0.f, 0.f, 0.f};
-            bool logic_op_enable     = false;
+            LogicOp logic_op = LogicOp::Copy;
         } ALIGNED(4) color_blending;
 
         TreeMap<Name, MaterialParameterInfo> parameters;

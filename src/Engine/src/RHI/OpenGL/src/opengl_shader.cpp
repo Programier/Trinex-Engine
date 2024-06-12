@@ -161,20 +161,20 @@ namespace Engine
     }
 
 
-    static ExecutableObject* apply_stencil_face(GLuint face, const Pipeline::StencilTestInfo::FaceInfo& face_info)
+    static ExecutableObject* apply_stencil(const Pipeline::StencilTestInfo& face_info)
     {
         GLuint fail         = stencil_op(face_info.fail);
         GLuint depth_pass   = stencil_op(face_info.depth_pass);
         GLuint depth_fail   = stencil_op(face_info.depth_fail);
         GLuint compare      = compare_func(face_info.compare);
-        GLint ref           = face_info.reference;
+        GLint ref           = 0;
         GLuint compare_mask = face_info.compare_mask;
         GLuint write_mask   = face_info.write_mask;
 
         return new OpenGL_StateCommand([=]() {
-            glStencilMaskSeparate(face, write_mask);
-            glStencilFuncSeparate(face, compare, ref, compare_mask);
-            glStencilOpSeparate(face, fail, depth_fail, depth_pass);
+            glStencilMask(write_mask);
+            glStencilFunc(compare, ref, compare_mask);
+            glStencilOp(fail, depth_fail, depth_pass);
         });
     }
 
@@ -297,45 +297,12 @@ namespace Engine
         new_command(glDepthMask, static_cast<GLboolean>(pipeline->depth_test.write_enable));
         new_command(glDepthFunc, depth_func(pipeline->depth_test.func));
 
-#if USING_OPENGL_CORE
-        new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable), GL_PRIMITIVE_RESTART);
-#else
-        new_command((pipeline->input_assembly.primitive_restart_enable ? glEnable : glDisable), GL_PRIMITIVE_RESTART_FIXED_INDEX);
-#endif
-
 
         // Stencil test
         new_command((pipeline->stencil_test.enable ? glEnable : glDisable), GL_STENCIL_TEST);
-        new_command_nowrap(apply_stencil_face(GL_FRONT, pipeline->stencil_test.front));
-        new_command_nowrap(apply_stencil_face(GL_BACK, pipeline->stencil_test.back));
+        new_command_nowrap(apply_stencil(pipeline->stencil_test));
 
-
-        // Rasterization
-#if USING_OPENGL_CORE
-        if (pipeline->rasterizer.depth_clamp_enable)
-        {
-            new_command(glEnable, static_cast<GLenum>(GL_DEPTH_CLAMP));
-        }
-        else
-
-        {
-            new_command(glDisable, static_cast<GLenum>(GL_DEPTH_CLAMP));
-        }
-#endif
-
-
-        if (pipeline->rasterizer.depth_bias_enable)
-        {
-            new_command(glEnable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
-            new_command(glPolygonOffset, pipeline->rasterizer.depth_bias_const_factor,
-                        pipeline->rasterizer.depth_bias_slope_factor);
-        }
-        else
-        {
-            new_command(glDisable, static_cast<GLenum>(GL_POLYGON_OFFSET_FILL));
-        }
-
-        new_command(glLineWidth, pipeline->rasterizer.line_width);
+        new_command(glLineWidth, 1.f);
 
 #if USING_OPENGL_CORE
         new_command(glPolygonMode, GL_FRONT_AND_BACK, polygon_mode(pipeline->rasterizer.polygon_mode));
@@ -367,9 +334,6 @@ namespace Engine
             new_command(glDisable, GL_COLOR_LOGIC_OP);
         }
 #endif
-
-        new_command(glBlendColor, pipeline->color_blending.blend_constants.r, pipeline->color_blending.blend_constants.g,
-                    pipeline->color_blending.blend_constants.b, pipeline->color_blending.blend_constants.a);
 
         RenderPass* render_pass = pipeline->render_pass();
         trinex_always_check(render_pass, "Render pass can't be nullptr!");

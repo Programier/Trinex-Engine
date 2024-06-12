@@ -26,37 +26,24 @@ namespace Engine
 
         self->add_properties(
                 new EnumProperty("Func", "Depth compare function", &DTI::func, Enum::static_find("Engine::DepthFunc", true)),
-                new FloatProperty("Min depth bound", "Min depth bound", &DTI::min_depth_bound),
-                new FloatProperty("Max depth bound", "Max depth bound", &DTI::max_depth_bound),
                 new BoolProperty("Enable", "Enable depth test", &DTI::enable),
-                new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable),
-                new BoolProperty("Enable bound test", "Enable bound test", &DTI::bound_test_enable));
-    });
-
-    implement_struct(Engine::Pipeline::StencilTestInfo, FaceInfo, ).push([]() {
-        using FI                = Pipeline::StencilTestInfo::FaceInfo;
-        Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
-        Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
-        Struct* self            = Struct::static_find("Engine::Pipeline::StencilTestInfo::FaceInfo", true);
-
-        self->add_properties(new EnumProperty("Fail", "Operation on fail", &FI::fail, stencil_op_enum),
-                             new EnumProperty("Depth pass", "Operation on depth pass", &FI::depth_pass, stencil_op_enum),
-                             new EnumProperty("Depth Fail", "Operation on depth fail", &FI::depth_fail, stencil_op_enum),
-                             new EnumProperty("Compare func", "Stencil compare function", &FI::compare, compare_func_enum),
-                             new UIntProperty("Compare mask", "Stencil compare mask", &FI::compare_mask),
-                             new UIntProperty("Write mask", "Stencil write mask", &FI::write_mask),
-                             new IntProperty("Reference", "Stencil reference", &FI::reference));
+                new BoolProperty("Write Enable", "Enable write to depth buffer", &DTI::write_enable));
     });
 
     implement_struct(Engine::Pipeline, StencilTestInfo, ).push([]() {
         using STI = Pipeline::StencilTestInfo;
 
-        Struct* self      = Struct::static_find("Engine::Pipeline::StencilTestInfo", true);
-        Struct* face_info = Struct::static_find("Engine::Pipeline::StencilTestInfo::FaceInfo", true);
+        Struct* self            = Struct::static_find("Engine::Pipeline::StencilTestInfo", true);
+        Enum* stencil_op_enum   = Enum::static_find("Engine::StencilOp", true);
+        Enum* compare_func_enum = Enum::static_find("Engine::CompareFunc", true);
 
         self->add_properties(new BoolProperty("Enable", "Enable stencil test", &STI::enable),
-                             new StructProperty("Front", "Stencil parameters for front face", &STI::front, face_info),
-                             new StructProperty("Back", "Stencil parameters for back face", &STI::back, face_info));
+                             new EnumProperty("Fail", "Operation on fail", &STI::fail, stencil_op_enum),
+                             new EnumProperty("Depth pass", "Operation on depth pass", &STI::depth_pass, stencil_op_enum),
+                             new EnumProperty("Depth Fail", "Operation on depth fail", &STI::depth_fail, stencil_op_enum),
+                             new EnumProperty("Compare func", "Stencil compare function", &STI::compare, compare_func_enum),
+                             new ByteProperty("Compare mask", "Stencil compare mask", &STI::compare_mask),
+                             new ByteProperty("Write mask", "Stencil write mask", &STI::write_mask));
     });
 
     implement_struct(Engine::Pipeline, AssemblyInfo, ).push([]() {
@@ -65,8 +52,7 @@ namespace Engine
         Struct* self = Struct::static_find("Engine::Pipeline::AssemblyInfo", true);
 
         self->add_properties(new EnumProperty("Primitive Topology", "Primitive types which will be rendered by this pipeline",
-                                              &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)),
-                             new BoolProperty("Enable restart", "Enable primitive restart", &AI::primitive_restart_enable));
+                                              &AI::primitive_topology, Enum::static_find("Engine::PrimitiveTopology", true)));
     });
 
     implement_struct(Engine::Pipeline, RasterizerInfo, ).push([]() {
@@ -75,15 +61,6 @@ namespace Engine
         Struct* self = Struct::static_find("Engine::Pipeline::RasterizerInfo", true);
 
         self->add_properties(
-                new FloatProperty("Depth bias const factor", "Depth bias const factor", &RI::depth_bias_const_factor),
-                new FloatProperty("Depth bias clamp", "Depth bias clamp", &RI::depth_bias_clamp),
-                new FloatProperty("Depth bias slope factor", "Depth bias slope factor", &RI::depth_bias_slope_factor),
-                new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width),
-
-                new BoolProperty("Enable depth bias", "Enable depth bias", &RI::depth_bias_enable),
-                new BoolProperty("Enable discard", "If true then shaders can use discard keyword", &RI::discard_enable),
-                new BoolProperty("Enable depth clamp", "Enable depth clamp", &RI::depth_clamp_enable),
-
                 new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
                                  Enum::static_find("Engine::PolygonMode", true)),
                 new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
@@ -110,7 +87,6 @@ namespace Engine
 
         self->add_properties(
                 new EnumProperty("Logic operator", "Logic operator", &CBI::logic_op, Enum::static_find("Engine::LogicOp", true)),
-                new Vec4Property("Blend constants", "Blend constant values", &CBI::blend_constants),
                 new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));
     });
 

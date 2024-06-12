@@ -20,9 +20,9 @@ namespace Engine
 {
     VulkanPipeline::State::State(const Pipeline& in_state)
     {
-        static auto get_stencil_op_state = [](const Pipeline::StencilTestInfo::FaceInfo& in_state) {
+        static auto get_stencil_op_state = [](const Pipeline::StencilTestInfo& in_state) {
             vk::StencilOpState out_state;
-            out_state.setReference(in_state.reference)
+            out_state.setReference(0)
                     .setWriteMask(in_state.write_mask)
                     .setCompareMask(in_state.compare_mask)
                     .setCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.compare)])
@@ -32,7 +32,7 @@ namespace Engine
             return out_state;
         };
 
-        input_assembly.primitiveRestartEnable = in_state.input_assembly.primitive_restart_enable;
+        input_assembly.primitiveRestartEnable = vk::False;
         input_assembly.topology = m_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
 
 
@@ -55,14 +55,7 @@ namespace Engine
         }
 
         rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
-                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.front_face)])
-                .setDepthBiasSlopeFactor(in_state.rasterizer.depth_bias_slope_factor)
-                .setDepthBiasClamp(in_state.rasterizer.depth_bias_clamp)
-                .setDepthBiasConstantFactor(in_state.rasterizer.depth_bias_const_factor)
-                .setDepthClampEnable(in_state.rasterizer.depth_clamp_enable)
-                .setRasterizerDiscardEnable(in_state.rasterizer.discard_enable)
-                .setDepthBiasEnable(in_state.rasterizer.depth_bias_enable)
-                .setLineWidth(API->m_features.wideLines ? in_state.rasterizer.line_width : 1.f);
+                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.front_face)]);
 
         multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1)
                 .setSampleShadingEnable(VK_FALSE)
@@ -70,15 +63,17 @@ namespace Engine
                 .setAlphaToCoverageEnable(VK_FALSE)
                 .setAlphaToOneEnable(VK_FALSE);
 
+
+        auto stencil_state = get_stencil_op_state(in_state.stencil_test);
         depth_stencil.setDepthTestEnable(in_state.depth_test.enable)
                 .setDepthWriteEnable(in_state.depth_test.write_enable)
-                .setDepthBoundsTestEnable(in_state.depth_test.bound_test_enable)
+                .setDepthBoundsTestEnable(vk::False)
                 .setDepthCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.depth_test.func)])
-                .setMinDepthBounds(in_state.depth_test.min_depth_bound)
-                .setMaxDepthBounds(in_state.depth_test.max_depth_bound)
+                .setMinDepthBounds(0.f)
+                .setMaxDepthBounds(0.f)
                 .setStencilTestEnable(in_state.stencil_test.enable)
-                .setFront(get_stencil_op_state(in_state.stencil_test.front))
-                .setBack(get_stencil_op_state(in_state.stencil_test.back));
+                .setFront(stencil_state)
+                .setBack(stencil_state);
 
 
         RenderPass* render_pass = in_state.render_pass();
@@ -127,10 +122,7 @@ namespace Engine
             }
         }
 
-        color_blending
-                .setBlendConstants({in_state.color_blending.blend_constants.x, in_state.color_blending.blend_constants.y,
-                                    in_state.color_blending.blend_constants.z, in_state.color_blending.blend_constants.w})
-                .setAttachments(color_blend_attachment)
+        color_blending.setAttachments(color_blend_attachment)
                 .setLogicOpEnable(in_state.color_blending.logic_op_enable)
                 .setLogicOp(m_logic_ops[static_cast<EnumerateType>(in_state.color_blending.logic_op)]);
     }

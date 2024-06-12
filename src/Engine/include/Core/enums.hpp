@@ -225,13 +225,13 @@ namespace Engine
         Xor          = 6,
         Or           = 7,
         Nor          = 8,
-        Equivalent   = 10,
-        Invert       = 11,
-        OrReverse    = 12,
-        CopyInverted = 13,
-        OrInverted   = 14,
-        Nand         = 15,
-        Set          = 16,
+        Equivalent   = 9,
+        Invert       = 10,
+        OrReverse    = 11,
+        CopyInverted = 12,
+        OrInverted   = 13,
+        Nand         = 14,
+        Set          = 15,
     };
 
     enum class WindowAttribute : EnumerateType
