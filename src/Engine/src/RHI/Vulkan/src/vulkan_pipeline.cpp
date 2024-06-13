@@ -6,6 +6,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_definitions.hpp>
+#include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_pipeline.hpp>
@@ -18,7 +19,9 @@
 
 namespace Engine
 {
-    VulkanPipeline::State::State(const Pipeline& in_state)
+    /////////////////////// PIPELINE STATE PARSING ///////////////////////
+
+    VulkanPipeline::State& VulkanPipeline::State::init(const Pipeline* in_state)
     {
         static auto get_stencil_op_state = [](const Pipeline::StencilTestInfo& in_state) {
             vk::StencilOpState out_state;
@@ -33,19 +36,19 @@ namespace Engine
         };
 
         input_assembly.primitiveRestartEnable = vk::False;
-        input_assembly.topology = m_primitive_topologies[static_cast<EnumerateType>(in_state.input_assembly.primitive_topology)];
+        input_assembly.topology = m_primitive_topologies[static_cast<EnumerateType>(in_state->input_assembly.primitive_topology)];
 
 
         if (API->m_features.fillModeNonSolid)
         {
-            rasterizer.setPolygonMode(m_poligon_modes[static_cast<EnumerateType>(in_state.rasterizer.polygon_mode)]);
+            rasterizer.setPolygonMode(m_poligon_modes[static_cast<EnumerateType>(in_state->rasterizer.polygon_mode)]);
         }
         else
         {
-            if (in_state.rasterizer.polygon_mode != PolygonMode::Fill)
+            if (in_state->rasterizer.polygon_mode != PolygonMode::Fill)
             {
                 Name name = Enum::static_find("Engine::PolygoneMode", true)
-                                    ->entry(static_cast<EnumerateType>(in_state.rasterizer.polygon_mode))
+                                    ->entry(static_cast<EnumerateType>(in_state->rasterizer.polygon_mode))
                                     ->name;
                 error_log("Vulkan", "Polygon mode '%s' is not supported on this device. Force set it to PoligoneMode::Fill",
                           name.c_str());
@@ -54,8 +57,9 @@ namespace Engine
             rasterizer.setPolygonMode(vk::PolygonMode::eFill);
         }
 
-        rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state.rasterizer.cull_mode)])
-                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state.rasterizer.front_face)]);
+        rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state->rasterizer.cull_mode)])
+                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state->rasterizer.front_face)])
+                .setLineWidth(API->m_features.wideLines ? in_state->rasterizer.line_width : 1.f);
 
         multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1)
                 .setSampleShadingEnable(VK_FALSE)
@@ -64,32 +68,32 @@ namespace Engine
                 .setAlphaToOneEnable(VK_FALSE);
 
 
-        auto stencil_state = get_stencil_op_state(in_state.stencil_test);
-        depth_stencil.setDepthTestEnable(in_state.depth_test.enable)
-                .setDepthWriteEnable(in_state.depth_test.write_enable)
+        auto stencil_state = get_stencil_op_state(in_state->stencil_test);
+        depth_stencil.setDepthTestEnable(in_state->depth_test.enable)
+                .setDepthWriteEnable(in_state->depth_test.write_enable)
                 .setDepthBoundsTestEnable(vk::False)
-                .setDepthCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state.depth_test.func)])
+                .setDepthCompareOp(m_compare_funcs[static_cast<EnumerateType>(in_state->depth_test.func)])
                 .setMinDepthBounds(0.f)
                 .setMaxDepthBounds(0.f)
-                .setStencilTestEnable(in_state.stencil_test.enable)
+                .setStencilTestEnable(in_state->stencil_test.enable)
                 .setFront(stencil_state)
                 .setBack(stencil_state);
 
 
-        RenderPass* render_pass = in_state.render_pass();
+        RenderPass* render_pass = in_state->render_pass();
         trinex_always_check(render_pass, "Render pass can't be nullptr!");
         color_blend_attachment.resize(render_pass->color_attachments.size());
 
 
         for (auto& attachment : color_blend_attachment)
         {
-            attachment.setBlendEnable(in_state.color_blending.enable)
-                    .setSrcColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.src_color_func)])
-                    .setDstColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.dst_color_func)])
-                    .setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.color_op)])
-                    .setSrcAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.src_alpha_func)])
-                    .setDstAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state.color_blending.dst_alpha_func)])
-                    .setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state.color_blending.alpha_op)]);
+            attachment.setBlendEnable(in_state->color_blending.enable)
+                    .setSrcColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.src_color_func)])
+                    .setDstColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.dst_color_func)])
+                    .setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.color_op)])
+                    .setSrcAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.src_alpha_func)])
+                    .setDstAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.dst_alpha_func)])
+                    .setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.alpha_op)]);
 
             vk::ColorComponentFlags color_mask;
 
@@ -99,7 +103,7 @@ namespace Engine
                 EnumerateType B = enum_value_of(ColorComponent::B);
                 EnumerateType A = enum_value_of(ColorComponent::A);
 
-                auto mask = enum_value_of(in_state.color_blending.color_mask);
+                auto mask = enum_value_of(in_state->color_blending.color_mask);
 
                 if ((mask & R) == R)
                 {
@@ -123,15 +127,22 @@ namespace Engine
         }
 
         color_blending.setAttachments(color_blend_attachment)
-                .setLogicOpEnable(in_state.color_blending.logic_op_enable)
-                .setLogicOp(m_logic_ops[static_cast<EnumerateType>(in_state.color_blending.logic_op)]);
+                .setLogicOpEnable(in_state->color_blending.logic_op_enable)
+                .setLogicOp(m_logic_ops[static_cast<EnumerateType>(in_state->color_blending.logic_op)]);
+
+        dynamic_state_info.setDynamicStates(API->m_dynamic_states);
+        return *this;
     }
 
-    static void create_descriptor_layout_internal(const Pipeline* pipeline, Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
-                                                  vk::ShaderStageFlags stages)
+    /////////////////////// PIPELINE STATE PARSING END ///////////////////////
+
+    static FORCE_INLINE void create_descriptor_layout_internal(const Pipeline* pipeline,
+                                                               Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
+                                                               VulkanDescriptorSetLayout& descriptor_set_layout,
+                                                               vk::ShaderStageFlags stages)
     {
-        static auto push_layout_binding = [](Vector<Vector<vk::DescriptorSetLayoutBinding>>& out, vk::ShaderStageFlags stages,
-                                             BindLocation location, vk::DescriptorType type) {
+        auto push_layout_binding = [&out, &descriptor_set_layout, stages](BindLocation location, vk::DescriptorType type,
+                                                                          byte VulkanDescriptorSetLayout::*counter) {
             if (location.set >= out.size())
             {
                 out.resize(location.set + 1);
@@ -147,47 +158,44 @@ namespace Engine
             }
 
             out[location.set].push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stages, nullptr));
+            ++(descriptor_set_layout.*counter);
         };
 
-        if (!pipeline || stages == vk::ShaderStageFlags(0))
-            return;
 
         if (pipeline->global_parameters.has_parameters())
         {
-            push_layout_binding(out, stages, {pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding({pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer,
+                                &VulkanDescriptorSetLayout::uniform_buffers);
         }
 
         if (pipeline->local_parameters.has_parameters())
         {
-            push_layout_binding(out, stages, {pipeline->local_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer);
+            push_layout_binding({pipeline->local_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer,
+                                &VulkanDescriptorSetLayout::uniform_buffers);
         }
-
 
         for (auto& [name, param] : pipeline->parameters)
         {
             switch (param.type)
             {
                 case MaterialParameterType::Texture2D:
-                    push_layout_binding(out, stages, param.location, vk::DescriptorType::eSampledImage);
+                    push_layout_binding(param.location, vk::DescriptorType::eSampledImage, &VulkanDescriptorSetLayout::textures);
+                    break;
                 case MaterialParameterType::Sampler:
-                    push_layout_binding(out, stages, param.location, vk::DescriptorType::eSampler);
+                    push_layout_binding(param.location, vk::DescriptorType::eSampler, &VulkanDescriptorSetLayout::samplers);
+                    break;
                 case MaterialParameterType::CombinedImageSampler2D:
-                    push_layout_binding(out, stages, param.location, vk::DescriptorType::eCombinedImageSampler);
+                    push_layout_binding(param.location, vk::DescriptorType::eCombinedImageSampler,
+                                        &VulkanDescriptorSetLayout::combined_image_sampler);
                     break;
                 default:
                     break;
             }
         }
-
-        //        for (auto& shared_buffer : shader->ssbo)
-        //        {
-        //            push_layout_binding(out, stage, shared_buffer.location, vk::DescriptorType::eStorageBuffer);
-        //        }
     }
 
-    VulkanPipeline& VulkanPipeline::create_descriptor_layout(const Pipeline* pipeline)
+    static FORCE_INLINE vk::ShaderStageFlags parse_stages_flags(const Pipeline* pipeline)
     {
-        Vector<Vector<vk::DescriptorSetLayoutBinding>> layout_bindings;
         vk::ShaderStageFlags stages = vk::ShaderStageFlags(0);
 
         for (auto& shader : pipeline->shader_array())
@@ -225,18 +233,24 @@ namespace Engine
             }
         }
 
-        create_descriptor_layout_internal(pipeline, layout_bindings, stages);
+        return stages;
+    }
 
+    VulkanPipeline& VulkanPipeline::create_descriptor_set_layout()
+    {
+        Vector<Vector<vk::DescriptorSetLayoutBinding>> layout_bindings;
 
-        m_descriptor_set_layout.resize(layout_bindings.size());
+        auto stages = parse_stages_flags(m_engine_pipeline);
+        create_descriptor_layout_internal(m_engine_pipeline, layout_bindings, m_descriptor_set_layout, stages);
 
         Index set = 0;
+        m_descriptor_set_layout.layouts.resize(layout_bindings.size());
         for (auto& layout : layout_bindings)
         {
             if (!layout_bindings.empty())
             {
                 vk::DescriptorSetLayoutCreateInfo layout_info({}, layout);
-                m_descriptor_set_layout[set] = API->m_device.createDescriptorSetLayout(layout_info);
+                m_descriptor_set_layout.layouts[set] = API->m_device.createDescriptorSetLayout(layout_info);
             }
             ++set;
         }
@@ -244,9 +258,116 @@ namespace Engine
         return *this;
     }
 
-    VulkanDescriptorSet* VulkanPipeline::current_descriptor_set(BindingIndex set)
+#define check_shader(var, name)                                                                                                  \
+    if (!var->has_object())                                                                                                      \
+    {                                                                                                                            \
+        throw EngineException("Cannot init pipeline, because " #name " shader is not valid");                                    \
+    }
+
+
+    Vector<vk::PipelineShaderStageCreateInfo> VulkanPipeline::create_pipeline_stage_infos()
     {
-        return m_descriptor_pool->get(set);
+        Vector<vk::PipelineShaderStageCreateInfo> pipeline_stage_create_infos;
+
+        if (VertexShader* vertex_shader = m_engine_pipeline->vertex_shader())
+        {
+            check_shader(vertex_shader, vertex);
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
+                                                     vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
+        }
+
+        if (TessellationControlShader* tsc_shader = m_engine_pipeline->tessellation_control_shader())
+        {
+            check_shader(tsc_shader, tessellation control);
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
+                                                     vk::ShaderStageFlagBits::eTessellationControl,
+                                                     tsc_shader->rhi_object<VulkanTessellationControlShader>()->m_shader, "main");
+        }
+
+        if (TessellationShader* ts_shader = m_engine_pipeline->tessellation_shader())
+        {
+            check_shader(ts_shader, tessellation);
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
+                                                     vk::ShaderStageFlagBits::eTessellationEvaluation,
+                                                     ts_shader->rhi_object<VulkanTessellationShader>()->m_shader, "main");
+        }
+
+        if (GeometryShader* geo_shader = m_engine_pipeline->geometry_shader())
+        {
+            check_shader(geo_shader, geometry);
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eGeometry,
+                                                     geo_shader->rhi_object<VulkanGeometryShader>()->m_shader, "main");
+        }
+
+        if (FragmentShader* fragment_shader = m_engine_pipeline->fragment_shader())
+        {
+            check_shader(fragment_shader, fragment);
+            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
+                                                     fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader, "main");
+        }
+
+        if (pipeline_stage_create_infos.empty())
+        {
+            throw EngineException("Cannot to create pipeline without stages");
+        }
+
+        return pipeline_stage_create_infos;
+    }
+
+    vk::PipelineVertexInputStateCreateInfo VulkanPipeline::create_vertex_input_info()
+    {
+        if (VertexShader* vertex_shader = m_engine_pipeline->vertex_shader())
+        {
+            check_shader(vertex_shader, vertex);
+
+            vk::PipelineVertexInputStateCreateInfo vertex_input_info;
+            vertex_input_info.setVertexBindingDescriptions(
+                    vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
+            vertex_input_info.setVertexAttributeDescriptions(
+                    vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
+            return vertex_input_info;
+        }
+
+        return {};
+    }
+
+    bool VulkanPipeline::create_pipeline_layout()
+    {
+        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, m_descriptor_set_layout.layouts);
+        m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
+        return true;
+    }
+
+    vk::Pipeline VulkanPipeline::create_pipeline(vk::RenderPass render_pass)
+    {
+        static vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
+        static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+        static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
+
+        State& out_state = create_pipeline_state();
+
+        auto pipeline_stage_create_infos                         = create_pipeline_stage_infos();
+        vk::PipelineVertexInputStateCreateInfo vertex_input_info = create_vertex_input_info();
+
+        vk::GraphicsPipelineCreateInfo pipeline_info(
+                {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
+                &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
+                &out_state.dynamic_state_info, m_pipeline_layout, render_pass, 0, {});
+
+        auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
+
+        if (pipeline_result.result != vk::Result::eSuccess)
+        {
+            API->m_device.destroyPipeline(m_pipeline);
+            throw EngineException("Failed to create pipeline");
+        }
+
+        return pipeline_result.value;
+    }
+
+    VulkanDescriptorSet* VulkanPipeline::current_descriptor_set()
+    {
+        return m_descriptor_set_layout.has_layouts() ? m_descriptor_sets[API->m_current_buffer][m_descriptor_set_index] : nullptr;
     }
 
     const MaterialScalarParametersInfo& VulkanPipeline::global_parameters_info() const
@@ -269,200 +390,45 @@ namespace Engine
             throw EngineException("Cannot create Vulkan Pipeline without render_pass");
     }
 
-#define check_shader(var, name)                                                                                                  \
-    if (!var->has_object())                                                                                                      \
-    {                                                                                                                            \
-        error_log("VulkanAPI", "Cannot init pipeline, because " #name " shader is not valid");                                   \
-        return false;                                                                                                            \
+    VulkanPipeline::State& VulkanPipeline::create_pipeline_state()
+    {
+        static thread_local State state;
+        state.init(m_engine_pipeline);
+        return state;
     }
 
     bool VulkanPipeline::create(const Pipeline* pipeline)
     {
         check_pipeline(pipeline);
-        create_descriptor_layout(pipeline);
         m_engine_pipeline = pipeline;
 
-        static vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
-        static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
+        create_descriptor_set_layout();
+        create_pipeline_layout();
+        m_pipeline = create_pipeline(pipeline->render_pass()->rhi_object<VulkanRenderPass>()->m_render_pass);
 
-        vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
-        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, m_descriptor_set_layout);
-
-        Vector<vk::PipelineShaderStageCreateInfo> pipeline_stage_create_infos;
-        vk::PipelineVertexInputStateCreateInfo vertex_input_info;
-
-        if (VertexShader* vertex_shader = pipeline->vertex_shader())
+        if (m_descriptor_set_layout.has_layouts())
         {
-            check_shader(vertex_shader, vertex);
-            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-                                                     vertex_shader->rhi_object<VulkanVertexShader>()->m_shader, "main");
-            vertex_input_info.setVertexBindingDescriptions(
-                    vertex_shader->rhi_object<VulkanVertexShader>()->m_binding_description);
-            vertex_input_info.setVertexAttributeDescriptions(
-                    vertex_shader->rhi_object<VulkanVertexShader>()->m_attribute_description);
+            m_descriptor_sets.resize(API->m_framebuffers_count);
         }
-
-        if (TessellationControlShader* tsc_shader = pipeline->tessellation_control_shader())
-        {
-            check_shader(tsc_shader, tessellation control);
-            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
-                                                     vk::ShaderStageFlagBits::eTessellationControl,
-                                                     tsc_shader->rhi_object<VulkanTessellationControlShader>()->m_shader, "main");
-        }
-
-        if (TessellationShader* ts_shader = pipeline->tessellation_shader())
-        {
-            check_shader(ts_shader, tessellation);
-            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(),
-                                                     vk::ShaderStageFlagBits::eTessellationEvaluation,
-                                                     ts_shader->rhi_object<VulkanTessellationShader>()->m_shader, "main");
-        }
-
-        if (GeometryShader* geo_shader = pipeline->geometry_shader())
-        {
-            check_shader(geo_shader, geometry);
-            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eGeometry,
-                                                     geo_shader->rhi_object<VulkanGeometryShader>()->m_shader, "main");
-        }
-
-        if (FragmentShader* fragment_shader = pipeline->fragment_shader())
-        {
-            check_shader(fragment_shader, fragment);
-            pipeline_stage_create_infos.emplace_back(vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
-                                                     fragment_shader->rhi_object<VulkanFragmentShader>()->m_shader, "main");
-        }
-
-        if (pipeline_stage_create_infos.empty())
-        {
-            error_log("VulkanAPI", "Cannot to create pipeline without stages");
-            return false;
-        }
-
-
-        m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
-
-        State out_state(*pipeline);
-
-        vk::PipelineDynamicStateCreateInfo dynamic_state_info({}, API->m_dynamic_states);
-
-        RenderPass* render_pass = pipeline->render_pass();
-
-        vk::GraphicsPipelineCreateInfo pipeline_info(
-                {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
-                &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
-                &dynamic_state_info, m_pipeline_layout, render_pass->rhi_object<VulkanRenderPass>()->m_render_pass, 0, {});
-
-        auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
-
-        if (pipeline_result.result != vk::Result::eSuccess)
-        {
-            API->m_device.destroyPipeline(m_pipeline);
-            error_log("VulkanAPI", "Failed to create pipeline");
-            return false;
-        }
-
-        m_pipeline = pipeline_result.value;
-
-        if (!m_descriptor_set_layout.empty())
-        {
-            m_descriptor_pool = new VulkanDescriptorPool(calculate_pool_size(pipeline), this);
-        }
-
         return true;
     }
 
     VulkanPipeline& VulkanPipeline::destroy()
     {
         API->wait_idle();
+
+        for (auto& buffer : m_descriptor_sets)
+        {
+            for (auto& set : buffer)
+            {
+                VulkanDescriptorPoolManager::release_descriptor_set(set, &m_descriptor_set_layout);
+            }
+        }
+
         DESTROY_CALL(destroyPipeline, m_pipeline);
         DESTROY_CALL(destroyPipelineLayout, m_pipeline_layout);
-
-        for (auto& layout : m_descriptor_set_layout)
-        {
-            DESTROY_CALL(destroyDescriptorSetLayout, layout);
-        }
-
-        m_descriptor_set_layout.clear();
-
-        if (m_descriptor_pool)
-        {
-            delete m_descriptor_pool;
-            m_descriptor_pool = nullptr;
-        }
+        m_descriptor_set_layout.destroy();
         return *this;
-    }
-
-    size_t VulkanPipeline::descriptor_sets_count() const
-    {
-        return m_descriptor_set_layout.size();
-    }
-
-    struct PoolSizeInfo {
-        uint_t samplers          = 0;
-        uint_t combined_samplers = 0;
-        uint_t textures          = 0;
-        uint_t ubos              = 0;
-        uint_t dynamic_ubos      = 0;
-        uint_t ssbos             = 0;
-    };
-
-    static PoolSizeInfo calc_pool_sizes(const Pipeline* pipeline)
-    {
-        PoolSizeInfo out;
-
-        for (auto& param : pipeline->parameters)
-        {
-            uint_t* value = nullptr;
-            switch (param.second.type)
-            {
-                case MaterialParameterType::Texture2D:
-                    value = &(out.textures);
-                case MaterialParameterType::Sampler:
-                    value = &(out.samplers);
-                case MaterialParameterType::CombinedImageSampler2D:
-                    value = &(out.combined_samplers);
-                default:
-                    break;
-            }
-
-            if (value)
-            {
-                (*value) += 1;
-            }
-        }
-
-        if (pipeline->global_parameters.has_parameters())
-        {
-            ++(out.ubos);
-        }
-
-        if (pipeline->local_parameters.has_parameters())
-        {
-            ++(out.ubos);
-        }
-
-        return out;
-    }
-
-    Vector<vk::DescriptorPoolSize> VulkanPipeline::calculate_pool_size(const Pipeline* pipeline)
-    {
-        PoolSizeInfo info = calc_pool_sizes(pipeline);
-        Vector<vk::DescriptorPoolSize> pool_size;
-
-        if (info.samplers)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eSampler, info.samplers));
-        if (info.combined_samplers)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, info.combined_samplers));
-        if (info.textures)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eSampledImage, info.textures));
-        if (info.ubos)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, info.ubos));
-        if (info.dynamic_ubos)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eUniformBufferDynamic, info.dynamic_ubos));
-        if (info.ssbos)
-            pool_size.push_back(vk::DescriptorPoolSize(vk::DescriptorType::eStorageBuffer, info.ssbos));
-
-        return pool_size;
     }
 
     VulkanPipeline::~VulkanPipeline()
@@ -478,35 +444,33 @@ namespace Engine
             API->m_state->m_pipeline = this;
         }
 
-        if (m_descriptor_pool)
+        if (m_last_frame != API->m_current_frame)
         {
-            m_descriptor_pool->reset();
+            m_descriptor_set_index = 0;
+            m_last_frame           = API->m_current_frame;
         }
-    }
-
-    VulkanPipeline& VulkanPipeline::submit_descriptors()
-    {
-        if (m_descriptor_pool)
+        else
         {
-            uint_t set_index = 0;
+            ++m_descriptor_set_index;
+        }
 
-            for (auto& set : m_descriptor_pool->get_sets_array())
+        if (m_descriptor_set_layout.has_layouts())
+        {
+            auto& current_buffer = m_descriptor_sets[API->m_current_buffer];
+
+            if (current_buffer.size() <= m_descriptor_set_index)
             {
-                set.bind(m_pipeline_layout, set_index, vk::PipelineBindPoint::eGraphics);
-                ++set_index;
+                current_buffer.push_back(VulkanDescriptorPoolManager::allocate_descriptor_set(&m_descriptor_set_layout));
             }
-
-            m_descriptor_pool->next();
+            current_buffer[m_descriptor_set_index]->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
         }
-        return *this;
     }
 
     VulkanPipeline& VulkanPipeline::bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location)
     {
-        if (!m_descriptor_set_layout.empty())
+        if (auto current_set = current_descriptor_set())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-            current_set->bind_ssbo(ssbo, location.binding);
+            current_set->bind_ssbo(ssbo, location);
         }
         return *this;
     }
@@ -514,30 +478,27 @@ namespace Engine
     VulkanPipeline& VulkanPipeline::bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,
                                                         vk::DescriptorType type)
     {
-        if (!m_descriptor_set_layout.empty())
+        if (auto current_set = current_descriptor_set())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-            current_set->bind_uniform_buffer(info, location.binding, type);
+            current_set->bind_uniform_buffer(info, location, type);
         }
         return *this;
     }
 
     VulkanPipeline& VulkanPipeline::bind_sampler(VulkanSampler* sampler, BindLocation location)
     {
-        if (!m_descriptor_set_layout.empty())
+        if (auto current_set = current_descriptor_set())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-            current_set->bind_sampler(sampler, location.binding);
+            current_set->bind_sampler(sampler, location);
         }
         return *this;
     }
 
     VulkanPipeline& VulkanPipeline::bind_texture(VulkanTexture* texture, BindLocation location)
     {
-        if (!m_descriptor_set_layout.empty())
+        if (auto current_set = current_descriptor_set())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-            current_set->bind_texture(texture, location.binding);
+            current_set->bind_texture(texture, location);
         }
 
         return *this;
@@ -545,10 +506,9 @@ namespace Engine
 
     VulkanPipeline& VulkanPipeline::bind_texture_combined(VulkanTexture* texture, VulkanSampler* sampler, BindLocation location)
     {
-        if (!m_descriptor_set_layout.empty())
+        if (auto current_set = current_descriptor_set())
         {
-            VulkanDescriptorSet* current_set = current_descriptor_set(location.set);
-            current_set->bind_texture_combined(texture, sampler, location.binding);
+            current_set->bind_texture_combined(texture, sampler, location);
         }
         return *this;
     }

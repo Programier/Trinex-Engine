@@ -51,7 +51,6 @@ namespace Engine
 
         const WindowEvent& window_event = event.get<const WindowEvent&>();
 
-
         {
             auto x                          = window_event.x;
             auto y                          = window_event.y;

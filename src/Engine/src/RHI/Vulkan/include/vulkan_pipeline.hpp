@@ -1,5 +1,6 @@
 #pragma once
 #include <Graphics/rhi.hpp>
+#include <vulkan_descript_set_layout.hpp>
 #include <vulkan_headers.hpp>
 #include <vulkan_unique_per_frame.hpp>
 
@@ -9,6 +10,7 @@ namespace Engine
     struct VulkanDescriptorSet;
     struct VulkanSampler;
     struct VulkanTexture;
+    struct VulkanDescriptorSetLayout;
 
     struct VulkanPipeline : public RHI_Pipeline {
 
@@ -20,34 +22,37 @@ namespace Engine
             Vector<vk::PipelineColorBlendAttachmentState> color_blend_attachment;
             vk::PipelineColorBlendStateCreateInfo color_blending;
             vk::SampleMask sample_mask;
+            vk::PipelineDynamicStateCreateInfo dynamic_state_info;
 
-
-            State(const Pipeline& pipeline);
+            State& init(const Pipeline* m_engine_pipeline);
         };
 
         const Pipeline* m_engine_pipeline;
-
-        VulkanDescriptorPool* m_descriptor_pool;
-        Vector<vk::DescriptorSetLayout> m_descriptor_set_layout;
-
-        vk::Pipeline m_pipeline;
+        VulkanDescriptorSetLayout m_descriptor_set_layout;
         vk::PipelineLayout m_pipeline_layout;
+        vk::Pipeline m_pipeline;
 
-        size_t m_last_frame = 0;
+        Vector<Vector<VulkanDescriptorSet*>> m_descriptor_sets;
+        size_t m_descriptor_set_index = 0;
+        size_t m_last_frame           = 0;
 
+
+        State& create_pipeline_state();
+        VulkanPipeline& create_descriptor_set_layout();
+        Vector<vk::PipelineShaderStageCreateInfo> create_pipeline_stage_infos();
+        vk::PipelineVertexInputStateCreateInfo create_vertex_input_info();
+        bool create_pipeline_layout();
+        vk::Pipeline create_pipeline(vk::RenderPass render_pass);
 
         bool create(const Pipeline* pipeline);
         VulkanPipeline& destroy();
-        size_t descriptor_sets_count() const;
 
-        VulkanPipeline& create_descriptor_layout(const Pipeline* pipeline);
-        Vector<vk::DescriptorPoolSize> calculate_pool_size(const Pipeline* pipeline);
-        VulkanDescriptorSet* current_descriptor_set(BindingIndex set);
+        VulkanDescriptorSet* current_descriptor_set();
         const MaterialScalarParametersInfo& global_parameters_info() const;
         const MaterialScalarParametersInfo& local_parameters_info() const;
 
         void bind() override;
-        VulkanPipeline& submit_descriptors();
+
         VulkanPipeline& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
         VulkanPipeline& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location, vk::DescriptorType type);
         VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);

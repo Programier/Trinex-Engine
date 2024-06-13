@@ -91,7 +91,7 @@ namespace Engine
 
     void EngineRenderTargets::initialize(Size2D new_size)
     {
-        if (new_size == m_size || new_size.x == 0 || new_size.y == 0)
+        if (new_size == m_size || new_size.x == 0 || new_size.y == 0 || (m_size.x >= new_size.x && m_size.y >= new_size.y))
             return;
 
         m_size = new_size;

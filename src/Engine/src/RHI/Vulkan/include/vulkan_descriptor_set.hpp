@@ -1,5 +1,5 @@
 #pragma once
-#include <Core/engine_types.hpp>
+#include <Core/structures.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
 
@@ -8,20 +8,20 @@ namespace Engine
     struct VulkanSampler;
     struct VulkanTexture;
     struct VulkanSSBO;
+    struct VulkanDescriptorPool;
+    struct VulkanDescriptorSetLayout;
 
     struct VulkanDescriptorSet {
-        vk::DescriptorSet m_set;
+        VulkanDescriptorPool* pool     = nullptr;
+        Vector<vk::DescriptorSet> sets = {};
 
-        VulkanDescriptorSet& init(vk::DescriptorPool& pool, vk::DescriptorSetLayout* layout);
-        VulkanDescriptorSet& bind(vk::PipelineLayout& layout, BindingIndex set,
-                                  vk::PipelineBindPoint point                     = vk::PipelineBindPoint::eGraphics,
-                                  const vk::ArrayProxy<uint32_t>& dynamic_offsets = {});
+        VulkanDescriptorSet& bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point = vk::PipelineBindPoint::eGraphics);
 
-        VulkanDescriptorSet& bind_ssbo(struct VulkanSSBO* ssbo, BindingIndex index);
-        VulkanDescriptorSet& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindingIndex index,
+        VulkanDescriptorSet& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);
+        VulkanDescriptorSet& bind_uniform_buffer(const vk::DescriptorBufferInfo& info, BindLocation location,
                                                  vk::DescriptorType type);
-        VulkanDescriptorSet& bind_sampler(VulkanSampler* sampler, BindingIndex index);
-        VulkanDescriptorSet& bind_texture(VulkanTexture* texture, BindingIndex index);
-        VulkanDescriptorSet& bind_texture_combined(VulkanTexture*, VulkanSampler*, BindingIndex index);
+        VulkanDescriptorSet& bind_sampler(VulkanSampler* sampler, BindLocation location);
+        VulkanDescriptorSet& bind_texture(VulkanTexture* texture, BindLocation location);
+        VulkanDescriptorSet& bind_texture_combined(VulkanTexture*, VulkanSampler*, BindLocation location);
     };
 }// namespace Engine

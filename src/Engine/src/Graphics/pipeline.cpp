@@ -64,7 +64,8 @@ namespace Engine
                 new EnumProperty("Polygon mode", "Polygon Mode", &RI::polygon_mode,
                                  Enum::static_find("Engine::PolygonMode", true)),
                 new EnumProperty("Cull mode", "Cull Mode", &RI::cull_mode, Enum::static_find("Engine::CullMode", true)),
-                new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)));
+                new EnumProperty("Front face", "Front face", &RI::front_face, Enum::static_find("Engine::FrontFace", true)),
+                new FloatProperty("Line width", "Width of line which will be rendered by this material", &RI::line_width));
     });
 
     implement_struct(Engine::Pipeline, ColorBlendingInfo, ).push([]() {

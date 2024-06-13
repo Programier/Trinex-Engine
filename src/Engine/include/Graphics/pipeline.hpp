@@ -50,6 +50,7 @@ namespace Engine
             PolygonMode polygon_mode = PolygonMode::Fill;
             CullMode cull_mode       = CullMode::Back;
             FrontFace front_face     = FrontFace::ClockWise;
+            float line_width         = 1.f;
         } rasterizer;
 
         struct ALIGNED(4) ColorBlendingInfo {

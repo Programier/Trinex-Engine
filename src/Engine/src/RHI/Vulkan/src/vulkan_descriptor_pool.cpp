@@ -1,117 +1,116 @@
+#include <Core/exception.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_pipeline.hpp>
 
 namespace Engine
 {
-    VulkanDescriptorPool::Entry::Entry(VulkanDescriptorPool* pool)
+    static constexpr inline uint32_t max_sets = 49152;
+
+    void VulkanDescriptorPool::init()
     {
-        vk::DescriptorPoolCreateInfo pool_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, pool->max_sets_per_pool(),
-                                               pool->m_pool_sizes);
-        m_pool = API->m_device.createDescriptorPool(pool_info);
-        pool->m_entries.push_back(this);
+        info_log("Vulkan", "Allocate new descriptor pool!");
+        free_sets              = max_sets;
+        samplers               = max_sets;
+        textures               = max_sets / 2;
+        combined_image_sampler = max_sets / 4;
+        uniform_buffers        = max_sets * 2;
+
+        std::array<vk::DescriptorPoolSize, 4> pools = {{
+                {vk::DescriptorType::eSampler, samplers},
+                {vk::DescriptorType::eCombinedImageSampler, combined_image_sampler},
+                {vk::DescriptorType::eSampledImage, textures},
+                {vk::DescriptorType::eUniformBuffer, uniform_buffers},
+        }};
+
+        vk::DescriptorPoolCreateInfo info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, max_sets, pools);
+        pool = API->m_device.createDescriptorPool(info);
     }
 
-    VulkanDescriptorPool::Entry::~Entry()
+    bool VulkanDescriptorPool::can_allocate(VulkanDescriptorSetLayout* layout)
     {
-        API->m_device.destroyDescriptorPool(m_pool);
+        return free_sets >= layout->layouts.size() && samplers >= layout->samplers && textures >= layout->textures &&
+               combined_image_sampler >= layout->combined_image_sampler && uniform_buffers >= layout->uniform_buffers;
     }
 
-    VulkanDescriptorPool::VulkanDescriptorPool(Vector<vk::DescriptorPoolSize>&& sizes, struct VulkanPipeline* pipeline)
-        : m_pipeline(pipeline), m_pool_sizes(std::move(sizes)), m_frame_index(0), m_object_index(0)
+    VulkanDescriptorSet* VulkanDescriptorPool::allocate_descriptor_set(VulkanDescriptorSetLayout* layout)
     {
-        m_frames_list.resize(API->m_framebuffers_count);
+        if (!can_allocate(layout))
+            return nullptr;
 
-        size_t max_sets = max_sets_per_pool();
+        VulkanDescriptorSet* new_set = new VulkanDescriptorSet();
+        new_set->pool                = this;
+        vk::DescriptorSetAllocateInfo info(pool, layout->layouts);
+        new_set->sets = API->m_device.allocateDescriptorSets(info);
 
-        for(auto& ell : m_pool_sizes)
-        {
-            ell.descriptorCount *= max_sets;
-        }
+        free_sets -= layout->layouts.size();
+        samplers -= layout->samplers;
+        textures -= layout->textures;
+        combined_image_sampler -= layout->combined_image_sampler;
+        uniform_buffers -= layout->uniform_buffers;
 
-        allocate_new_object();
+        return new_set;
     }
 
-    VulkanDescriptorPool::FramesList& VulkanDescriptorPool::frames_list()
+    VulkanDescriptorPool& VulkanDescriptorPool::release_descriptor_set(VulkanDescriptorSet* descriptor_set,
+                                                                       VulkanDescriptorSetLayout* layout)
     {
-        return m_frames_list[API->m_current_buffer];
-    }
+        free_sets += layout->layouts.size();
+        samplers += layout->samplers;
+        textures += layout->textures;
+        combined_image_sampler += layout->combined_image_sampler;
+        uniform_buffers += layout->uniform_buffers;
 
-    VulkanDescriptorPool& VulkanDescriptorPool::allocate_new_object()
-    {
-        if (m_entries.empty() || m_entries.back()->m_allocated_instances >= MAX_BINDLESS_RESOURCES)
-        {
-            new Entry(this);
-        }
-
-        Entry* entry = m_entries.back();
-        ++entry->m_allocated_instances;
-        auto& pool = entry->m_pool;
-        for (auto& frame_list : m_frames_list)
-        {
-            frame_list.emplace_back();
-            uint_t set_index = 0;
-            frame_list.back().resize(m_pipeline->descriptor_sets_count());
-            for (auto& set : frame_list.back())
-            {
-                set.init(pool, &m_pipeline->m_descriptor_set_layout[set_index]);
-                ++set_index;
-            }
-        }
-
+        API->m_device.freeDescriptorSets(pool, descriptor_set->sets);
+        delete descriptor_set;
         return *this;
-    }
-
-    size_t VulkanDescriptorPool::max_sets_per_pool()
-    {
-        return MAX_BINDLESS_RESOURCES * API->m_framebuffers_count * descriptor_sets_per_frame();
-    }
-
-    VulkanDescriptorPool& VulkanDescriptorPool::next()
-    {
-        ++m_object_index;
-
-        if (frames_list().size() <= m_object_index)
-        {
-            allocate_new_object();
-        }
-
-        return *this;
-    }
-
-    VulkanDescriptorPool& VulkanDescriptorPool::reset()
-    {
-        if (m_frame_index != API->m_current_frame)
-        {
-            m_frame_index  = API->m_current_frame;
-            m_object_index = 0;
-        }
-        return *this;
-    }
-
-    VulkanDescriptorSet* VulkanDescriptorPool::get(BindingIndex set)
-    {
-        return get_sets_array().data() + set;
-    }
-
-    size_t VulkanDescriptorPool::descriptor_sets_per_frame() const
-    {
-        return m_pipeline->descriptor_sets_count();
-    }
-
-    VulkanDescriptorPool::Frame& VulkanDescriptorPool::get_sets_array()
-    {
-        return frames_list()[m_object_index];
     }
 
     VulkanDescriptorPool::~VulkanDescriptorPool()
     {
-        for (auto& pool_entry : m_entries)
+        DESTROY_CALL(destroyDescriptorPool, pool);
+    }
+
+    namespace VulkanDescriptorPoolManager
+    {
+        static Vector<VulkanDescriptorPool*> m_descriptor_pools;
+
+        VulkanDescriptorSet* allocate_descriptor_set(VulkanDescriptorSetLayout* layout)
         {
-            delete pool_entry;
+            for (auto& pool : m_descriptor_pools)
+            {
+                if (VulkanDescriptorSet* set = pool->allocate_descriptor_set(layout))
+                {
+                    return set;
+                }
+            }
+
+            VulkanDescriptorPool* new_pool = new VulkanDescriptorPool();
+            new_pool->init();
+            m_descriptor_pools.push_back(new_pool);
+
+            VulkanDescriptorSet* new_set = new_pool->allocate_descriptor_set(layout);
+            if (new_set == nullptr)
+                throw EngineException("Failed to allocate new descriptor set!");
+            return new_set;
         }
 
-        m_entries.clear();
-    }
+        void release_descriptor_set(VulkanDescriptorSet* set, VulkanDescriptorSetLayout* layout)
+        {
+            set->pool->release_descriptor_set(set, layout);
+        }
+
+        void release_all()
+        {
+            for (auto& pool : m_descriptor_pools)
+            {
+                trinex_always_check(pool->free_sets == max_sets,
+                                    "All descriptor sets must be released before destroying descriptor pool!");
+                delete pool;
+            }
+            m_descriptor_pools.clear();
+        }
+    }// namespace VulkanDescriptorPoolManager
 }// namespace Engine

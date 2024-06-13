@@ -7,6 +7,7 @@
 #include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_descriptor_pool.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
@@ -67,6 +68,8 @@ namespace Engine
 
         delete_garbage(true);
         delete m_main_render_pass;
+
+        VulkanDescriptorPoolManager::release_all();
 
         DESTROY_CALL(destroyDescriptorPool, m_imgui_descriptor_pool);
         m_device.destroyCommandPool(m_command_pool);
@@ -482,6 +485,9 @@ namespace Engine
     VulkanAPI& VulkanAPI::begin_render()
     {
         delete_garbage(false);
+        ++m_current_frame;
+        m_current_buffer = m_current_frame % m_framebuffers_count;
+
         uniform_buffer()->reset();
         return *this;
     }
@@ -492,8 +498,6 @@ namespace Engine
         {
             m_state->m_current_viewport->end_render();
         }
-        ++m_current_frame;
-        m_current_buffer = m_current_frame % m_framebuffers_count;
         return *this;
     }
 
@@ -567,7 +571,6 @@ namespace Engine
     VulkanAPI& VulkanAPI::prepare_draw()
     {
         uniform_buffer()->bind();
-        m_state->m_pipeline->submit_descriptors();
         return *this;
     }
 

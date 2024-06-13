@@ -320,6 +320,7 @@ namespace Engine
         }
 
         new_command(glFrontFace, front_face(pipeline->rasterizer.front_face));
+        new_command(glLineWidth, pipeline->rasterizer.line_width);
 
         // Blending
 
