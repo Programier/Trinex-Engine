@@ -19,7 +19,6 @@ namespace Engine
 
     public:
         Texture& rhi_bind_combined(Sampler* sampler, BindLocation location);
-        virtual bool is_render_target_texture() const;
         virtual TextureType type() const = 0;
     };
 

@@ -5,7 +5,7 @@
 namespace Engine
 {
     class SceneRenderer;
-    class RenderTargetBase;
+    class RenderViewport;
     class PrimitiveComponent;
     class LightComponent;
     class BatchedLines;
@@ -14,7 +14,7 @@ namespace Engine
     class ENGINE_EXPORT SceneLayer
     {
     public:
-        using FunctionCallback = void (*)(SceneRenderer*, RenderTargetBase*, SceneLayer*);
+        using FunctionCallback = void (*)(SceneRenderer*, RenderViewport*, SceneLayer*);
 
         List<FunctionCallback> on_begin_render;
         List<FunctionCallback> on_end_render;
@@ -65,9 +65,9 @@ namespace Engine
         }
 
         virtual SceneLayer& clear();
-        virtual SceneLayer& begin_render(SceneRenderer* renderer, RenderTargetBase* render_target);
-        virtual SceneLayer& render(SceneRenderer*, RenderTargetBase*);
-        virtual SceneLayer& end_render(SceneRenderer* renderer, RenderTargetBase* render_target);
+        virtual SceneLayer& begin_render(SceneRenderer* renderer, RenderViewport*);
+        virtual SceneLayer& render(SceneRenderer*, RenderViewport*);
+        virtual SceneLayer& end_render(SceneRenderer* renderer, RenderViewport* render_target);
 
         friend class SceneRenderer;
     };
@@ -90,6 +90,6 @@ namespace Engine
         DepthRenderingLayer& clear() override;
         DepthRenderingLayer& add_light(LightComponent* component);
         DepthRenderingLayer& remove_light(LightComponent* component);
-        DepthRenderingLayer& render(SceneRenderer*, RenderTargetBase*) override;
+        DepthRenderingLayer& render(SceneRenderer*, RenderViewport*) override;
     };
 }// namespace Engine

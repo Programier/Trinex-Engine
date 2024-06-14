@@ -7,7 +7,6 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Window/window.hpp>
-#include <Window/window_interface.hpp>
 #include <imgui.h>
 
 namespace Engine::ImGuiRenderer
@@ -202,7 +201,7 @@ namespace Engine::ImGuiRenderer
 
     ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
     {
-        viewport->window()->rhi_bind();
+        viewport->rhi_bind();
         rhi->imgui_render(m_window->context(), m_draw_data.draw_data());
         m_draw_data.swap_render_index();
         return *this;
@@ -216,6 +215,7 @@ namespace Engine::ImGuiRenderer
     }
 
     implement_engine_class_default_init(ImGuiViewportClient, 0);
+    implement_class_default_init(Engine::ImGuiRenderer, Window, 0);
 
     static Window* m_current_window = nullptr;
 
@@ -255,10 +255,11 @@ namespace Engine::ImGuiRenderer
         }
     }
 
+
     Window& Window::new_frame()
     {
         make_current(this);
-        m_window->interface()->new_imgui_frame();
+        m_window->imgui_new_frame();
         rhi->imgui_new_frame(m_context);
         ImGui::NewFrame();
         return *this;
@@ -302,8 +303,12 @@ namespace Engine::ImGuiRenderer
     }
 
     Window::~Window()
-    {}
-
+    {
+        if (m_window)
+        {
+            m_window->imgui_terminate();
+        }
+    }
 
     struct InputTextCallback {
         ImGuiInputTextCallback callback;

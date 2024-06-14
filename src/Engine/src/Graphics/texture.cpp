@@ -33,9 +33,4 @@ namespace Engine
         }
         return *this;
     }
-
-    bool Texture::is_render_target_texture() const
-    {
-        return false;
-    }
 }// namespace Engine

@@ -1,6 +1,6 @@
+#include <Core/base_engine.hpp>
 #include <Core/colors.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/base_engine.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/ActorComponents/light_component.hpp>
 #include <Engine/ActorComponents/point_light_component.hpp>
@@ -18,7 +18,7 @@
 
 namespace Engine
 {
-    extern void render_editor_grid(SceneRenderer* renderer, RenderTargetBase*, SceneLayer* layer);
+    extern void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer);
     static void render_light_sprite(Texture2D* texture, LightComponent* component, const SceneView& view)
     {
         Material* material                 = DefaultResources::sprite_material;
@@ -138,9 +138,9 @@ namespace Engine
             return *this;
         }
 
-        OverlaySceneLayer& render(SceneRenderer* renderer, RenderTargetBase* rt) override
+        OverlaySceneLayer& render(SceneRenderer* renderer, RenderViewport* rt) override
         {
-            renderer->begin_rendering_target(SceneColorOutput::current_target());
+            SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
 
             triangles.render(renderer->scene_view());
             lines.render(renderer->scene_view());
@@ -164,7 +164,7 @@ namespace Engine
 
             render_editor_grid(renderer, rt, this);
 
-            renderer->end_rendering_target();
+            SceneRenderTargets::instance()->end_rendering_scene_color_ldr();
             return *this;
         }
     };

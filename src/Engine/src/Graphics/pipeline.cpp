@@ -12,8 +12,6 @@
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
-#include <Graphics/render_pass.hpp>
-#include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_compiler.hpp>
@@ -134,11 +132,6 @@ namespace Engine
     class Material* Pipeline::material() const
     {
         return Object::instance_cast<Material>(owner());
-    }
-
-    RenderPass* Pipeline::render_pass() const
-    {
-        return RenderPass::load_render_pass(render_pass_type);
     }
 
     VertexShader* Pipeline::vertex_shader() const
@@ -609,12 +602,6 @@ namespace Engine
     implement_engine_class(Pipeline, 0)
     {
         Class* self = static_class_instance();
-
-        Enum* render_pass_type = Enum::static_find("Engine::RenderPassType", true);
-
-        auto render_pass_prop = new EnumProperty("Render Pass", "Type of render pass for this pipeline",
-                                                 &Pipeline::render_pass_type, render_pass_type);
-
         self->add_properties(new StructProperty("Depth Test", "Depth Test properties", &Pipeline::depth_test,
                                                 Struct::static_find("Engine::Pipeline::DepthTestInfo", true)),
                              new StructProperty("Stencil Test", "Stencil Test properties", &Pipeline::stencil_test,
@@ -624,7 +611,6 @@ namespace Engine
                              new StructProperty("Rasterizer", "Rasterizer properties", &Pipeline::rasterizer,
                                                 Struct::static_find("Engine::Pipeline::RasterizerInfo", true)),
                              new StructProperty("Color blending", "Blending properties", &Pipeline::color_blending,
-                                                Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)),
-                             render_pass_prop);
+                                                Struct::static_find("Engine::Pipeline::ColorBlendingInfo", true)));
     }
 }// namespace Engine

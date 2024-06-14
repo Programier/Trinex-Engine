@@ -21,6 +21,8 @@ namespace Engine
     class LocalLightComponent;
     class PointLightComponent;
     class DirectionalLightComponent;
+    class RenderSurface;
+    class RenderViewport;
 
 
 #define implement_empty_rendering_methods_for(type)                                                                              \
@@ -37,19 +39,18 @@ namespace Engine
         Vector<GlobalShaderParameters> m_global_shader_params;
         Vector<SceneView> m_scene_views;
 
-        SceneRenderer& setup_parameters(RenderTargetBase* render_target = nullptr);
 
     public:
         Scene* scene;
 
         SceneRenderer();
 
+        SceneRenderer& push_global_shader_parameters();
+        SceneRenderer& pop_global_shader_parameters();
         const GlobalShaderParameters& global_shader_parameters() const;
-        const SceneView& scene_view() const;
-        SceneRenderer& begin_rendering_target(RenderTargetBase* render_target);
-        SceneRenderer& end_rendering_target();
 
-        virtual SceneRenderer& render(const SceneView& view, RenderTargetBase* render_target);
+        const SceneView& scene_view() const;
+        virtual SceneRenderer& render(const SceneView& view, class RenderViewport* viewport);
 
         // Components rendering
         template<typename ComponentType>
@@ -66,7 +67,6 @@ namespace Engine
         virtual SceneRenderer& render_component(PointLightComponent* component);
         virtual SceneRenderer& render_component(SpotLightComponent* component);
         virtual SceneRenderer& render_component(DirectionalLightComponent* component);
-
 
         FORCE_INLINE SceneLayer* root_layer() const
         {

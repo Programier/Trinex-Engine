@@ -1,11 +1,9 @@
 #include <Core/definitions.hpp>
 #include <Core/struct.hpp>
 #include <Window/config.hpp>
-#include <Window/window_interface.hpp>
 #include <imgui_impl_opengl3.h>
 #include <opengl_api.hpp>
 #include <opengl_buffers.hpp>
-#include <opengl_render_pass.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_shader.hpp>
 
@@ -32,12 +30,24 @@ namespace Engine
 
     OpenGL::OpenGL()
     {
-        m_instance         = this;
-        m_main_render_pass = new OpenGL_MainRenderPass();
+        m_instance = this;
     }
 
-    OpenGL& OpenGL::initialize()
+    OpenGL::~OpenGL()
     {
+        OpenGL_RenderTarget::release_all();
+        delete m_global_ubo;
+        delete m_local_ubo;
+
+        extern void destroy_opengl_context(void* context);
+        destroy_opengl_context(m_context);
+    }
+
+    OpenGL& OpenGL::initialize_rhi()
+    {
+        extern void* create_opengl_context();
+        m_context = create_opengl_context();
+
 #if USING_OPENGL_CORE
         glewExperimental = GL_TRUE;
 
@@ -51,16 +61,14 @@ namespace Engine
         glDebugMessageCallback(debug_callback, nullptr);
 
         m_renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-        return initialize_ubo();
+        initialize_ubo();
+        return *this;
     }
 
-    OpenGL::~OpenGL()
+    void* OpenGL::context()
     {
-        delete m_global_ubo;
-        delete m_local_ubo;
-        delete m_main_render_pass;
+        return m_context;
     }
-
 
     OpenGL& OpenGL::imgui_init(ImGuiContext* ctx)
     {
@@ -146,12 +154,10 @@ namespace Engine
         return *this;
     }
 
-
     OpenGL& OpenGL::reset_state()
     {
-        m_current_render_target = nullptr;
-        m_current_pipeline      = nullptr;
-        m_current_index_buffer  = nullptr;
+        m_current_pipeline     = nullptr;
+        m_current_index_buffer = nullptr;
         return *this;
     }
 

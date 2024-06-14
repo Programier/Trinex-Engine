@@ -35,11 +35,6 @@ namespace Engine
 
     static void create_window()
     {
-        if (rhi == nullptr)
-        {
-            throw EngineException("Cannot create window without API!");
-        }
-
         WindowConfig config;
         config.attributes.insert(WindowAttribute::Hidden);
         WindowManager::create_instance();
@@ -49,15 +44,13 @@ namespace Engine
 
     static void create_render_targets()
     {
-        EngineRenderTargets::create_instance()->initialize(WindowManager::instance()->calculate_gbuffer_size());
-        GBuffer::create_instance();
-        SceneColorOutput::create_instance();
-        GBufferBaseColorOutput::create_instance();
+        SceneRenderTargets::create_instance()->initialize(WindowManager::instance()->calculate_gbuffer_size());
         render_thread()->wait_all();
     }
 
     static bool init_api()
     {
+
         String api = ConfigManager::get_string("Engine::api");
         if (!api.empty())
         {
@@ -204,10 +197,6 @@ namespace Engine
         GarbageCollector::destroy_all_objects();
         render_thread()->wait_all();
 
-
-        if (WindowManager::instance())
-            WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
-
         if (rhi)
         {
             // Cannot delete rhi in logic thread, becouse the gpu resources can be used now
@@ -216,6 +205,9 @@ namespace Engine
             render_thread()->wait_all();
             rhi = nullptr;
         }
+
+        if (WindowManager::instance())
+            WindowManager::instance()->destroy_window(WindowManager::instance()->main_window());
 
         if (WindowManager::instance())
             delete WindowManager::instance();

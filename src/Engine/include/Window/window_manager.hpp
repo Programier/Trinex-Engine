@@ -20,7 +20,7 @@ namespace Engine
 
     public:
         ~WindowManager();
-        Window* create_window(const WindowConfig& config, Window* parent = nullptr, WindowInterface* interface = nullptr);
+        Window* create_window(const WindowConfig& config, Window* parent = nullptr, Window* self = nullptr);
         WindowManager& destroy_window(Window* window);
 
         bool mouse_relative_mode() const;
@@ -29,7 +29,6 @@ namespace Engine
         WindowManager& pool_events();
         WindowManager& wait_for_events();
         Window* find(Identifier id) const;
-        WindowManager& create_client(Window* window, const StringView& client_name);
 
         Size2D calculate_gbuffer_size() const;
         Window* main_window() const;

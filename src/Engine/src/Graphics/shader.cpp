@@ -8,7 +8,6 @@
 #include <Core/logger.hpp>
 #include <Core/name.hpp>
 #include <Core/property.hpp>
-#include <Graphics/render_target_base.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Graphics/shader.hpp>

@@ -92,7 +92,6 @@ namespace Engine
         }
 
     public:
-        RenderPassType render_pass_type = RenderPassType::SceneColor;
 
 
         Pipeline();
@@ -101,7 +100,6 @@ namespace Engine
         Pipeline& postload() override;
         const Pipeline& rhi_bind() const;
         class Material* material() const;
-        RenderPass* render_pass() const;
 
         VertexShader* vertex_shader() const;
         FragmentShader* fragment_shader() const;

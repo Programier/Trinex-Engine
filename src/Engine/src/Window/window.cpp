@@ -1,247 +1,223 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
+#include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/render_pass.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
+#include <Window/config.hpp>
 #include <Window/window.hpp>
-#include <Window/window_interface.hpp>
+#include <Window/window_manager.hpp>
 #include <imgui.h>
 
 namespace Engine
 {
-    implement_engine_class_default_init(Window, 0);
-
-    class WindowRenderPass : public RenderPass
-    {
-    public:
-        WindowRenderPass()
-        {}
-
-        WindowRenderPass& rhi_create() override
-        {
-            m_rhi_object.reset(rhi->window_render_pass(this));
-            return *this;
-        }
-
-        RenderPassType type() const override
-        {
-            return RenderPassType::Window;
-        }
-
-        bool is_engine_resource() const override
-        {
-            return true;
-        }
-    };
-
-    RenderPass* RenderPass::load_window_render_pass()
-    {
-        RenderPass* render_pass = Object::new_instance<WindowRenderPass>();
-        render_pass->init_resource(true);
-        return render_pass;
-    }
-
-    Window::Window(WindowInterface* interface, bool vsync) : m_interface(interface)
-    {
-        flags(Object::IsAvailableForGC, false);
-
-        m_render_viewport = Object::new_instance<RenderViewport>();
-        m_render_viewport->flags(Object::Flag::IsAvailableForGC, false);
-        m_render_viewport->window(this, vsync);
-        m_render_viewport->init_resource(true);
-
-        m_rhi_object.reset(m_render_viewport->rhi_render_target());
-        render_thread()->wait_all();
-
-        render_pass = RenderPass::load_render_pass(RenderPassType::Window);
-
-        update_cached_size();
-
-        m_viewport.pos       = {0, 0};
-        m_viewport.size      = size();
-        m_viewport.min_depth = 0.0f;
-        m_viewport.max_depth = 1.0f;
-
-        m_scissor.pos  = {0, 0};
-        m_scissor.size = m_viewport.size;
-
-
-        // Need update viewport and scissor on rhi side
-        viewport(m_viewport);
-        scissor(m_scissor);
-
-
-        init_resource();
-    }
-
 
     Size1D Window::width()
     {
-        return m_interface->width();
+        return 0.f;
     }
 
     Window& Window::width(const Size1D& width)
     {
-        m_interface->width(width);
         return *this;
     }
 
     Size1D Window::height()
     {
-        return m_interface->height();
+        return 0.f;
     }
 
     Window& Window::height(const Size1D& height)
     {
-        m_interface->height(height);
         return *this;
     }
 
     Size2D Window::size()
     {
-        return m_interface->size();
-    }
-
-    Size2D Window::render_target_size() const
-    {
-        return m_interface->size();
+        return {width(), height()};
     }
 
     Window& Window::size(const Size2D& size)
     {
-        m_interface->size(size);
         return *this;
     }
 
     String Window::title()
     {
-        return m_interface->title();
+        return "Trinex Engine Window";
     }
 
     Window& Window::title(const String& title)
     {
-        m_interface->title(title);
         return *this;
     }
 
     Point2D Window::position()
     {
-        return m_interface->position();
+        return {0.f, 0.f};
     }
 
     Window& Window::position(const Point2D& position)
     {
-        m_interface->position(position);
         return *this;
     }
 
     bool Window::resizable()
     {
-        return m_interface->resizable();
+        return false;
     }
 
     Window& Window::resizable(bool value)
     {
-        m_interface->resizable(value);
         return *this;
     }
 
     Window& Window::focus()
     {
-        m_interface->focus();
         return *this;
     }
 
     bool Window::focused()
     {
-        return m_interface->focused();
+        return false;
     }
 
     Window& Window::show()
     {
-        m_interface->show();
         return *this;
     }
 
     Window& Window::hide()
     {
-        m_interface->hide();
         return *this;
     }
 
     bool Window::is_visible()
     {
-        return m_interface->is_visible();
+        return false;
     }
 
     bool Window::is_iconify()
     {
-        return m_interface->is_iconify();
+        return false;
     }
 
     Window& Window::iconify()
     {
-        m_interface->iconify();
         return *this;
     }
 
     bool Window::is_restored()
     {
-        return m_interface->is_restored();
+        return false;
     }
 
     Window& Window::restore()
     {
-        m_interface->restore();
         return *this;
     }
 
     Window& Window::opacity(float value)
     {
-        m_interface->opacity(value);
         return *this;
     }
 
     float Window::opacity()
     {
-        return m_interface->opacity();
+        return 1.f;
+    }
+
+    Window& Window::icon(const Image& image)
+    {
+        return *this;
+    }
+
+    Window& Window::cursor(const Image& image, IntVector2D hotspot)
+    {
+        return *this;
     }
 
     Window& Window::attribute(const WindowAttribute& attrib, bool value)
     {
-        m_interface->attribute(attrib, value);
         return *this;
     }
 
     bool Window::attribute(const WindowAttribute& attrib)
     {
-        return m_interface->attribute(attrib);
+        return false;
     }
 
     Window& Window::cursor_mode(const CursorMode& mode)
     {
-        m_interface->cursor_mode(mode);
         return *this;
     }
 
     CursorMode Window::cursor_mode()
     {
-        return m_interface->cursor_mode();
+        return CursorMode::Normal;
     }
 
     bool Window::support_orientation(WindowOrientation orientation)
     {
-        return m_interface->support_orientation(orientation);
+        return false;
+    }
+
+    Identifier Window::id()
+    {
+        return reinterpret_cast<Identifier>(this);
+    }
+
+    void* Window::native_window()
+    {
+        return nullptr;
+    }
+
+    Window& Window::imgui_initialize_internal()
+    {
+        return *this;
+    }
+
+    Window& Window::imgui_terminate_internal()
+    {
+        return *this;
+    }
+
+    Window& Window::imgui_new_frame()
+    {
+        return *this;
+    }
+
+    void Window::initialize(const WindowConfig& config)
+    {
+        m_render_viewport = Object::new_instance<RenderViewport>();
+        m_render_viewport->window(this, config.vsync);
+        m_render_viewport->init_resource(true);
+
+        update_cached_size();
+        create_client(config.client);
+    }
+
+    RenderViewport* Window::render_viewport() const
+    {
+        return m_render_viewport;
+    }
+
+    Window* Window::parent_window() const
+    {
+        return m_parent_window;
+    }
+
+    const Vector<Window*>& Window::child_windows() const
+    {
+        return m_childs;
     }
 
     ImGuiRenderer::Window* Window::imgui_window()
     {
         return m_imgui_window;
     }
-
 
     struct InitContext : public ExecutableObject {
         ImGuiContext* m_ctx;
@@ -273,7 +249,7 @@ namespace Engine
     };
 
 
-    static ImGuiContext* imgui_create_context(WindowInterface* interface, const Function<void(ImGuiContext*)>& callback)
+    ImGuiContext* Window::imgui_create_context(const Function<void(ImGuiContext*)>& callback)
     {
         ImGuiContext* context = ImGui::CreateContext();
 
@@ -289,21 +265,21 @@ namespace Engine
 #endif
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-        interface->initialize_imgui();
+        imgui_initialize_internal();
 
         rt->insert_new_task<InitContext>(rhi, context);
         rt->wait_all();
         return context;
     }
 
-    static void imgui_destroy_context(ImGuiContext* context, WindowInterface* interface)
+    void Window::imgui_destroy_context(ImGuiContext* context)
     {
         Thread* rt = render_thread();
         rt->insert_new_task<TerminateContext>(rhi, context);
         rt->wait_all();
 
         ImGui::SetCurrentContext(context);
-        interface->terminate_imgui();
+        imgui_terminate_internal();
 
         ImGui::DestroyContext(context);
     }
@@ -313,7 +289,7 @@ namespace Engine
         if (!m_imgui_window)
         {
             ImGuiContext* current_context = ImGui::GetCurrentContext();
-            m_imgui_window                = new ImGuiRenderer::Window(this, imgui_create_context(m_interface, callback));
+            m_imgui_window                = Object::new_instance<ImGuiRenderer::Window>(this, imgui_create_context(callback));
             ImGui::SetCurrentContext(current_context);
         }
 
@@ -325,14 +301,13 @@ namespace Engine
         if (m_imgui_window)
         {
             ImGuiRenderer::Window* current_window = ImGuiRenderer::Window::current();
-            if (m_imgui_window == current_window)
+            if (m_imgui_window.ptr() == current_window)
                 current_window = nullptr;
 
             m_imgui_window->free_resources();
 
-            imgui_destroy_context(m_imgui_window->context(), m_interface);
-
-            delete m_imgui_window;
+            imgui_destroy_context(m_imgui_window->context());
+            m_imgui_window->m_window = nullptr;
             m_imgui_window = nullptr;
 
             ImGuiRenderer::Window::make_current(current_window);
@@ -347,12 +322,12 @@ namespace Engine
         m_destroy_callback.trigger();
         imgui_terminate();
 
-        delete m_render_viewport;
-        render_thread()->wait_all();
-        delete m_interface;
-
-        // The window cannot remove the render target because it is a viewport resource
-        m_rhi_object.release();
+        if (m_render_viewport)
+        {
+            RenderViewport* viewport = m_render_viewport;
+            m_render_viewport        = nullptr;
+            GarbageCollector::destroy(viewport);
+        }
     }
 
     Identifier Window::register_destroy_callback(const DestroyCallback& callback)
@@ -366,56 +341,24 @@ namespace Engine
         return *this;
     }
 
+    Size2D Window::cached_size() const
+    {
+        return m_cached_size;
+    }
+
     Window& Window::update_cached_size()
     {
         m_cached_size = size();
         return *this;
     }
 
-    const Size2D& Window::cached_size() const
+    Window& Window::create_client(const StringView& client_name)
     {
-        return m_cached_size;
-    }
-
-    WindowInterface* Window::interface() const
-    {
-        return m_interface;
-    }
-
-    Window& Window::icon(const Image& image)
-    {
-        m_interface->window_icon(image);
+        ViewportClient* client = ViewportClient::create(client_name);
+        if (client)
+        {
+            render_viewport()->client(client);
+        }
         return *this;
-    }
-
-    Window& Window::cursor(const Image& image, IntVector2D hotspot)
-    {
-        m_interface->cursor(image, hotspot);
-        return *this;
-    }
-
-    RenderViewport* Window::render_viewport() const
-    {
-        return m_render_viewport;
-    }
-
-    Window* Window::parent_window() const
-    {
-        return m_parent_window;
-    }
-
-    const Vector<Window*>& Window::child_windows() const
-    {
-        return m_childs;
-    }
-
-    bool Window::is_engine_resource() const
-    {
-        return true;
-    }
-
-    Identifier Window::window_id() const
-    {
-        return m_interface->id();
     }
 }// namespace Engine

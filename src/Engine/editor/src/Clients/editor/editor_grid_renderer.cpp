@@ -48,7 +48,7 @@ namespace Engine
 
     static DefaultResourcesInitializeController on_init(initialize_resources);
 
-    void render_editor_grid(SceneRenderer* renderer, RenderTargetBase*, SceneLayer* layer)
+    void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer)
     {
         static Name name_color  = "color";
         static Name name_scale  = "scale";

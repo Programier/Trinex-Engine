@@ -10,12 +10,12 @@ namespace Engine
     template<typename NodeType>
     static void render_octree_bounding_box(NodeType* node, BatchedLines& lines)
     {
-        if(node == nullptr)
+        if (node == nullptr)
             return;
 
         node->box().write_to_batcher(lines);
 
-        for(byte i = 0; i < 8; i++)
+        for (byte i = 0; i < 8; i++)
         {
             render_octree_bounding_box(node->child_at(i), lines);
         }
@@ -41,16 +41,15 @@ namespace Engine
         return *this;
     }
 
-    SceneOutputLayer& SceneOutputLayer::begin_render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    SceneOutputLayer& SceneOutputLayer::begin_render(SceneRenderer* renderer, RenderViewport* viewport)
     {
-        CommandBufferLayer::begin_render(renderer, render_target);
-        renderer->begin_rendering_target(SceneColorOutput::instance());
+        CommandBufferLayer::begin_render(renderer, viewport);
         return *this;
     }
 
-    SceneOutputLayer& SceneOutputLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
+    SceneOutputLayer& SceneOutputLayer::render(SceneRenderer* renderer, RenderViewport* viewport)
     {
-        CommandBufferLayer::render(renderer, rt);
+        CommandBufferLayer::render(renderer, viewport);
 
         if (renderer->scene_view().show_flags().has_all(ShowFlags::LightOctree))
         {
@@ -68,10 +67,9 @@ namespace Engine
         return *this;
     }
 
-    SceneOutputLayer& SceneOutputLayer::end_render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    SceneOutputLayer& SceneOutputLayer::end_render(SceneRenderer* renderer, RenderViewport* viewport)
     {
-        CommandBufferLayer::end_render(renderer, render_target);
-        renderer->end_rendering_target();
+        CommandBufferLayer::end_render(renderer, viewport);
         return *this;
     }
 }// namespace Engine

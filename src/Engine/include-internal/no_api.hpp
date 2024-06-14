@@ -6,6 +6,7 @@ namespace Engine
     class NoApi : public RHI
     {
     public:
+        void* context() override;
         NoApi& imgui_init(ImGuiContext*) override;
         NoApi& imgui_terminate(ImGuiContext*) override;
         NoApi& imgui_new_frame(ImGuiContext*) override;
@@ -25,9 +26,12 @@ namespace Engine
         const String& renderer() override;
         const String& name() override;
 
+        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+        void viewport(const ViewPort& viewport) override;
+        ViewPort viewport() override;
+
         RHI_Sampler* create_sampler(const Sampler* sampler) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
-        RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
         RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
@@ -37,10 +41,7 @@ namespace Engine
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
-        RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
-        RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;
-        RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
-        RHI_Viewport* create_viewport(RenderTarget* render_target) override;
+        RHI_Viewport* create_viewport(RenderViewport* vp, bool vsync) override;
 
         NoApi& push_global_params(const GlobalShaderParameters& params) override;
         NoApi& pop_global_params() override;

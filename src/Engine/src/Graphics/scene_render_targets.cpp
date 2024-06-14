@@ -1,57 +1,61 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/etl/engine_resource.hpp>
+#include <Core/threading.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
-#include <Graphics/render_pass.hpp>
-#include <Graphics/render_target.hpp>
-#include <Graphics/render_target_texture.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Window/window_manager.hpp>
 
 namespace Engine
 {
-    EngineRenderTargets* EngineRenderTargets::m_instance;
+    SceneRenderTargets* SceneRenderTargets::m_instance;
 
-    EngineRenderTargets::EngineRenderTargets()
+    SceneRenderTargets::SceneRenderTargets()
     {
         for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
         {
-            SceneRenderTargetTexture type = static_cast<SceneRenderTargetTexture>(texture_index);
-            m_textures[texture_index]     = Object::new_instance_named<RenderTargetTexture>(
-                    Strings::format("Engine::EngineRenderTargets::{}", name_of(type)));
+            Surface type = static_cast<Surface>(texture_index);
+            m_surfaces[texture_index] =
+                    Object::new_instance_named<RenderSurface>(Strings::format("Engine::EngineRenderTargets::{}", name_of(type)));
         }
     }
 
-    RenderTargetTexture* EngineRenderTargets::texture_of(SceneRenderTargetTexture type)
+    const Array<Pointer<RenderSurface>, SceneRenderTargets::textures_count>& SceneRenderTargets::surfaces() const
     {
-        return m_textures.at(static_cast<size_t>(type)).ptr();
+        return m_surfaces;
     }
 
-    StringView EngineRenderTargets::name_of(SceneRenderTargetTexture type)
+    RenderSurface* SceneRenderTargets::surface_of(Surface type) const
+    {
+        return m_surfaces.at(static_cast<size_t>(type)).ptr();
+    }
+
+    StringView SceneRenderTargets::name_of(Surface type) const
     {
         switch (type)
         {
-            case SceneRenderTargetTexture::SceneColorHDR:
+            case Surface::SceneColorHDR:
                 return "SceneColorHDR";
-            case SceneRenderTargetTexture::SceneColorLDR:
+            case Surface::SceneColorLDR:
                 return "SceneColorLDR";
-            case SceneRenderTargetTexture::SceneDepthZ:
+            case Surface::SceneDepthZ:
                 return "SceneDepthZ";
-            case SceneRenderTargetTexture::HitProxies:
+            case Surface::HitProxies:
                 return "HitProxies";
-            case SceneRenderTargetTexture::BaseColor:
+            case Surface::BaseColor:
                 return "BaseColor";
-            case SceneRenderTargetTexture::Position:
+            case Surface::Position:
                 return "Position";
-            case SceneRenderTargetTexture::Normal:
+            case Surface::Normal:
                 return "Normal";
-            case SceneRenderTargetTexture::Emissive:
+            case Surface::Emissive:
                 return "Emissive";
-            case SceneRenderTargetTexture::MSRA:
+            case Surface::MSRA:
                 return "MSRA";
-            case SceneRenderTargetTexture::LightPassDepthZ:
+            case Surface::LightPassDepthZ:
                 return "LightPassDepthZ";
 
             default:
@@ -59,29 +63,29 @@ namespace Engine
         }
     }
 
-    ColorFormat EngineRenderTargets::format_of(SceneRenderTargetTexture type)
+    ColorFormat SceneRenderTargets::format_of(Surface type) const
     {
         switch (type)
         {
-            case SceneRenderTargetTexture::SceneColorHDR:
+            case Surface::SceneColorHDR:
                 return ColorFormat::FloatRGBA;
-            case SceneRenderTargetTexture::SceneColorLDR:
+            case Surface::SceneColorLDR:
                 return ColorFormat::R8G8B8A8;
-            case SceneRenderTargetTexture::SceneDepthZ:
+            case Surface::SceneDepthZ:
                 return ColorFormat::DepthStencil;
-            case SceneRenderTargetTexture::HitProxies:
+            case Surface::HitProxies:
                 return ColorFormat::R8G8B8A8;
-            case SceneRenderTargetTexture::BaseColor:
+            case Surface::BaseColor:
                 return ColorFormat::R8G8B8A8;
-            case SceneRenderTargetTexture::Position:
+            case Surface::Position:
                 return ColorFormat::FloatRGBA;
-            case SceneRenderTargetTexture::Normal:
+            case Surface::Normal:
                 return ColorFormat::FloatRGBA;
-            case SceneRenderTargetTexture::Emissive:
+            case Surface::Emissive:
                 return ColorFormat::R8G8B8A8;
-            case SceneRenderTargetTexture::MSRA:
+            case Surface::MSRA:
                 return ColorFormat::R8G8B8A8;
-            case SceneRenderTargetTexture::LightPassDepthZ:
+            case Surface::LightPassDepthZ:
                 return ColorFormat::DepthStencil;
 
             default:
@@ -89,7 +93,7 @@ namespace Engine
         }
     }
 
-    void EngineRenderTargets::initialize(Size2D new_size)
+    void SceneRenderTargets::initialize(Size2D new_size)
     {
         if (new_size == m_size || new_size.x == 0 || new_size.y == 0 || (m_size.x >= new_size.x && m_size.y >= new_size.y))
             return;
@@ -98,298 +102,81 @@ namespace Engine
 
         for (size_t texture_index = 0; texture_index < textures_count; ++texture_index)
         {
-            m_textures[texture_index]->init(format_of(static_cast<SceneRenderTargetTexture>(texture_index)), new_size);
+            m_surfaces[texture_index]->init(format_of(static_cast<Surface>(texture_index)), new_size);
         }
     }
 
-    const Size2D& EngineRenderTargets::size() const
+    const Size2D& SceneRenderTargets::size() const
     {
         return m_size;
     }
 
-    float EngineRenderTargets::width() const
+    float SceneRenderTargets::width() const
     {
         return m_size.x;
     }
 
-    float EngineRenderTargets::height() const
+    float SceneRenderTargets::height() const
     {
         return m_size.y;
     }
 
-
-#define TRINEX_WITH_STENCIL_BUFFER 0
-
-    implement_engine_class_default_init(EngineRenderTarget, 0);
-
-
-    void EngineRenderTarget::init(const Size2D& new_size, bool is_reinit)
+    const SceneRenderTargets& SceneRenderTargets::begin_rendering_scene_color_hdr() const
     {
-        if (size.x >= new_size.x && size.y >= new_size.y)
-            return;
-
-        info_log("EngineRenderTarget", "{%f, %f} -> {%f, %f}", size.x, size.y, new_size.x, new_size.y);
-
-        // Initilize/reinitialzie textures
-        if (is_reinit)
-        {
-            Size2D scale_factor = new_size / size;
-            m_viewport.size *= scale_factor;
-            m_viewport.pos *= scale_factor;
-
-            m_scissor.size *= scale_factor;
-            m_scissor.pos *= scale_factor;
-
-            size = new_size;
-        }
-        else
-        {
-            size                 = new_size;
-            m_viewport.size      = size;
-            m_viewport.pos       = {0, 0};
-            m_viewport.min_depth = 0.0f;
-            m_viewport.max_depth = 1.0f;
-
-            m_scissor.pos  = {0, 0};
-            m_scissor.size = size;
-        }
-
-        init_resource();
-    }
-
-    EngineRenderTarget& EngineRenderTarget::resize(const Size2D& new_size)
-    {
-        init(new_size, true);
+        RenderSurface* m_surface[] = {surface_of(Surface::SceneColorHDR)};
+        rhi->bind_render_target(m_surface, surface_of(Surface::SceneDepthZ));
         return *this;
     }
 
-    bool EngineRenderTarget::is_engine_resource() const
+    const SceneRenderTargets& SceneRenderTargets::end_rendering_scene_color_hdr() const
     {
-        return true;
+        return *this;
     }
 
-
-    static constexpr inline size_t base_color_index  = 0;
-    static constexpr inline size_t position_index    = 1;
-    static constexpr inline size_t normal_index      = 2;
-    static constexpr inline size_t emissive_index    = 3;
-    static constexpr inline size_t msra_buffer_index = 4;
-
-    static constexpr inline size_t gbuffer_color_attachments = 5;
-
-    static ColorFormat base_color_format()
+    const SceneRenderTargets& SceneRenderTargets::begin_rendering_scene_color_ldr() const
     {
-        return ColorFormat::R8G8B8A8;
+        RenderSurface* m_surface[] = {surface_of(Surface::SceneColorLDR)};
+        rhi->bind_render_target(m_surface, surface_of(Surface::SceneDepthZ));
+        return *this;
     }
 
-    static ColorFormat position_format()
+    const SceneRenderTargets& SceneRenderTargets::end_rendering_scene_color_ldr() const
     {
-        return ColorFormat::FloatRGBA;
+        return *this;
     }
 
-    static ColorFormat normal_format()
+    const SceneRenderTargets& SceneRenderTargets::begin_rendering_gbuffer() const
     {
-        return ColorFormat::FloatRGBA;
+        RenderSurface* m_surfaces[] = {surface_of(Surface::BaseColor), surface_of(Surface::Position), surface_of(Surface::Normal),
+                                       surface_of(Surface::Emissive), surface_of(Surface::MSRA)};
+
+        rhi->bind_render_target(m_surfaces, surface_of(Surface::SceneDepthZ));
+        return *this;
     }
 
-    static ColorFormat emissive_format()
+    const SceneRenderTargets& SceneRenderTargets::end_rendering_gbuffer() const
     {
-        return ColorFormat::R8G8B8A8;
+        return *this;
     }
 
-    static ColorFormat msra_buffer_format()
+    const SceneRenderTargets& SceneRenderTargets::clear() const
     {
-        return ColorFormat::R8G8B8A8;
-    }
-
-    static ColorFormat depth_format()
-    {
-        return ColorFormat::DepthStencil;
-    }
-
-    struct AttachmentTextureInfo {
-        ColorFormat (*required_format)() = nullptr;
-        const char* name                 = nullptr;
-    };
-
-
-    static AttachmentTextureInfo attachment_texture_info[gbuffer_color_attachments] = {
-            {base_color_format, "Base Color"}, {position_format, "Position"},        {normal_format, "Normal"},
-            {emissive_format, "Emissive"},     {msra_buffer_format, "MSRA Texture"},
-
-    };
-
-
-    implement_engine_class_default_init(GBuffer, 0);
-
-    class GBufferRenderPass : public EngineResource<RenderPass>
-    {
-    public:
-        GBufferRenderPass()
-        {
-            depth_stencil_attachment = depth_format();
-            color_attachments.resize(gbuffer_color_attachments);
-
-            for (size_t i = 0; i < gbuffer_color_attachments; i++)
-            {
-                color_attachments[i] = attachment_texture_info[i].required_format();
-            }
-        }
-
-        RenderPassType type() const override
-        {
-            return RenderPassType::GBuffer;
-        }
-    };
-
-
-    RenderPass* RenderPass::load_gbuffer_render_pass()
-    {
-        RenderPass* pass = Object::new_non_serializable_instance<EngineResource<GBufferRenderPass>>();
-        pass->init_resource(true);
-        return pass;
-    }
-
-    GBuffer::GBuffer()
-    {
-        info_log("GBuffer", "Creating GBuffer");
-
-        render_pass = RenderPass::load_render_pass(RenderPassType::GBuffer);
-        color_attachments.resize(gbuffer_color_attachments);
-
-        depth_stencil_attachment = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::SceneDepthZ);
-        color_attachments[0]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::BaseColor);
-        color_attachments[1]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::Position);
-        color_attachments[2]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::Normal);
-        color_attachments[3]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::Emissive);
-        color_attachments[4]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::MSRA);
-
-        init(WindowManager::instance()->calculate_gbuffer_size());
-    }
-
-    RenderTargetTexture* GBuffer::base_color() const
-    {
-        return color_attachments[base_color_index].ptr();
-    }
-
-    RenderTargetTexture* GBuffer::position() const
-    {
-        return color_attachments[position_index].ptr();
-    }
-
-    RenderTargetTexture* GBuffer::normal() const
-    {
-        return color_attachments[normal_index].ptr();
-    }
-
-    RenderTargetTexture* GBuffer::emissive() const
-    {
-        return color_attachments[emissive_index].ptr();
-    }
-
-    RenderTargetTexture* GBuffer::msra_buffer() const
-    {
-        return color_attachments[msra_buffer_index].ptr();
-    }
-
-    RenderTargetTexture* GBuffer::depth() const
-    {
-        return depth_stencil_attachment.ptr();
-    }
-
-    GBuffer::~GBuffer()
-    {
-        info_log("GBuffer", "Destroy GBuffer");
-    }
-
-    implement_engine_class_default_init(GBufferBaseColorOutput, 0);
-
-
-    GBufferBaseColorOutput::GBufferBaseColorOutput()
-    {
-        info_log("GBufferBaseColorOutput", "Creating GBufferBaseColorOutput");
-
-        m_enable_color_initialize         = false;
-        m_enable_depth_stencil_initialize = false;
-
-        render_pass = RenderPass::load_render_pass(RenderPassType::SceneColor);
-        color_attachments.resize(1);
-        color_attachments[0] = GBuffer::instance()->base_color();
-
-        depth_stencil_attachment = GBuffer::instance()->depth();
-
-        init(WindowManager::instance()->calculate_gbuffer_size());
-    }
-
-    RenderTargetTexture* GBufferBaseColorOutput::texture() const
-    {
-        return color_attachments[0].ptr();
-    }
-
-    GBufferBaseColorOutput::~GBufferBaseColorOutput()
-    {
-        debug_log("GBufferBaseColorOutput", "Destroy GBufferBaseColorOutput");
-    }
-
-    implement_engine_class_default_init(SceneColorOutput, 0);
-
-    class SceneColorRenderPass : public EngineResource<RenderPass>
-    {
-    public:
-        SceneColorRenderPass()
-        {
-            // Initialize color attachments
-            color_attachments.resize(1);
-            color_attachments[0] = base_color_format();
-
-            depth_stencil_attachment = depth_format();
-        }
-
-        RenderPassType type() const override
-        {
-            return RenderPassType::SceneColor;
-        }
-    };
-
-    RenderPass* RenderPass::load_scene_color_render_pass()
-    {
-        RenderPass* pass = Object::new_non_serializable_instance<SceneColorRenderPass>();
-        pass->init_resource(true);
-        return pass;
-    }
-
-    SceneColorOutput::SceneColorOutput()
-    {
-        info_log("SceneColorOutput", "Creating SceneColorOutput");
-
-        m_enable_color_initialize         = true;
-        m_enable_depth_stencil_initialize = false;
-
-        render_pass = RenderPass::load_render_pass(RenderPassType::SceneColor);
-        color_attachments.resize(1);
-
-        color_attachments[0]     = EngineRenderTargets::instance()->texture_of(SceneRenderTargetTexture::SceneColorLDR);
-        depth_stencil_attachment = GBuffer::instance()->depth();
-
-        init(WindowManager::instance()->calculate_gbuffer_size());
-    }
-
-    RenderTargetTexture* SceneColorOutput::texture() const
-    {
-        return color_attachments[0].ptr();
-    }
-
-    SceneColorOutput::~SceneColorOutput()
-    {
-        debug_log("SceneColorOutput", "Destroy SceneColorOutput");
+        surface_of(SceneColorHDR)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(SceneColorLDR)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(BaseColor)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(Position)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(Normal)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(Emissive)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(MSRA)->clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(SceneDepthZ)->clear_depth_stencil(1.f, 0.f);
+        surface_of(LightPassDepthZ)->clear_depth_stencil(1.f, 0.f);
+        return *this;
     }
 
     ENGINE_EXPORT void update_render_targets_size()
     {
         Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
-        EngineRenderTargets::instance()->initialize(new_size);
-        GBuffer::instance()->resize(new_size);
-        SceneColorOutput::instance()->resize(new_size);
-        GBufferBaseColorOutput::instance()->resize(new_size);
+        SceneRenderTargets::instance()->initialize(new_size);
+        render_thread()->wait_all();
     }
 }// namespace Engine

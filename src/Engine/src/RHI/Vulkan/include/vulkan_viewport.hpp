@@ -6,8 +6,8 @@
 
 namespace Engine
 {
-    struct VulkanViewport : public RHI_Viewport {
 
+    struct VulkanViewport : public RHI_Viewport {
         struct SyncObject {
             vk::Semaphore m_image_present;
             vk::Semaphore m_render_finished;
@@ -20,8 +20,7 @@ namespace Engine
         Vector<vk::CommandBuffer> m_command_buffers;
         Vector<SyncObject> m_sync_objects;
         std::vector<VkImageView> m_image_views;
-        struct RHI_RenderTarget* m_render_target = nullptr;
-        uint32_t m_buffer_index                  = 0;
+        uint32_t m_buffer_index = 0;
 
 
         void init();
@@ -37,28 +36,22 @@ namespace Engine
         Identifier internal_type() override;
         bool vsync() override;
         void vsync(bool flag) override;
-        RHI_RenderTarget* render_target() override;
+
+        virtual VulkanRenderTargetBase* render_target();
         ~VulkanViewport() override;
     };
 
-
-    struct VulkanRenderTargetViewport : VulkanViewport {
-        VulkanViewport* init(RenderTarget* render_target);
-
-        void begin_render() override;
-        void end_render() override;
-    };
-
+    class Window;
     struct VulkanWindowViewport : VulkanViewport {
-
         vk::PresentModeKHR m_present_mode;
-        WindowInterface* m_window   = nullptr;
+        Window* m_window            = nullptr;
         vkb::Swapchain* m_swapchain = nullptr;
         vk::SurfaceKHR m_surface;
         std::vector<VkImage> m_images;
-        bool m_need_recreate_swap_chain = false;
+        bool m_need_recreate_swap_chain                  = false;
+        struct VulkanWindowRenderTarget* m_render_target = nullptr;
 
-        VulkanViewport* init(WindowInterface* window, bool vsync, bool need_initialize);
+        VulkanViewport* init(Window* window, bool vsync, bool need_initialize);
 
         void create_main_render_target();
         void create_swapchain();
@@ -72,6 +65,8 @@ namespace Engine
         void on_resize(const Size2D& new_size) override;
         bool vsync() override;
         void vsync(bool flag) override;
+        void bind() override;
+        VulkanRenderTargetBase* render_target() override;
 
         ~VulkanWindowViewport();
     };

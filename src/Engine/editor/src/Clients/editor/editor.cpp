@@ -66,7 +66,7 @@ namespace Engine
 
     void EditorClient::on_window_close(const Event& event)
     {
-        if (event.window_id() == m_window->window_id())
+        if (event.window_id() == m_window->id())
         {
             unbind_window(false);
         }
@@ -196,9 +196,16 @@ namespace Engine
 
     ViewportClient& EditorClient::render(class RenderViewport* viewport)
     {
-        m_renderer.render(m_scene_view, SceneColorOutput::instance());
+        {
+            ViewPort viewport = rhi->viewport();
+            viewport.pos      = {0.f, 0.f};
+            viewport.size     = SceneRenderTargets::instance()->size();
+            rhi->viewport(viewport);
+        }
 
-        viewport->window()->rhi_bind();
+        m_renderer.render(m_scene_view, viewport);
+
+        viewport->rhi_bind();
         viewport->window()->imgui_window()->render();
         return *this;
     }
@@ -541,34 +548,7 @@ namespace Engine
 
     static FORCE_INLINE Texture2D* find_output_texture_by_index(Index index)
     {
-
-        if (index > 0)
-        {
-            auto* target = GBuffer::instance();
-
-            if (target)
-            {
-                switch (index)
-                {
-                    case 1:
-                        return reinterpret_cast<Texture2D*>(target->base_color());
-                    case 2:
-                        return reinterpret_cast<Texture2D*>(target->position());
-                    case 3:
-                        return reinterpret_cast<Texture2D*>(target->normal());
-                    case 4:
-                        return reinterpret_cast<Texture2D*>(target->emissive());
-                    case 5:
-                        return reinterpret_cast<Texture2D*>(target->msra_buffer());
-                    case 6:
-                        return reinterpret_cast<Texture2D*>(target->depth());
-                    default:
-                        break;
-                }
-            }
-        }
-
-        return reinterpret_cast<Texture2D*>(SceneColorOutput::instance()->texture());
+        return reinterpret_cast<Texture2D*>(SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR));
     }
 
     EditorClient& EditorClient::render_viewport_window(float dt)
@@ -597,7 +577,7 @@ namespace Engine
             };
 
             ImGui::GetWindowDrawList()->AddNextImageUpdateCallback(update_callback, reinterpret_cast<void*>(m_target_view_index));
-            ImGui::Image(reinterpret_cast<Texture2D*>(SceneColorOutput::instance()->texture()), size);
+            ImGui::Image(reinterpret_cast<Texture2D*>(find_output_texture_by_index(0)), size);
             m_viewport_is_hovered = ImGui::IsWindowHovered();
 
             ImGui::SetCursorPos(current_pos);
@@ -693,7 +673,7 @@ namespace Engine
             }
         };
 
-        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, SceneColorOutput::instance()->size,
+        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, SceneRenderTargets::instance()->size(),
                                                      m_show_flags);
         return *this;
     }
@@ -778,7 +758,7 @@ namespace Engine
 
     void EditorClient::on_key_press(const Event& event)
     {
-        if (event.window_id() != m_window->window_id())
+        if (event.window_id() != m_window->id())
             return;
 
         const KeyEvent& key_event = event.get<const KeyEvent&>();
@@ -800,7 +780,7 @@ namespace Engine
 
     void EditorClient::on_key_release(const Event& event)
     {
-        if (event.window_id() != m_window->window_id())
+        if (event.window_id() != m_window->id())
             return;
 
         //const KeyEvent& key_event = event.get<const KeyEvent&>();

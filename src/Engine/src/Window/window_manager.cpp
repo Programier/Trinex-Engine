@@ -50,7 +50,7 @@ namespace Engine
 
             if (window == m_main_window)
                 m_main_window = nullptr;
-            m_windows.erase(window->window_id());
+            m_windows.erase(window->id());
 
             while (!window->m_childs.empty())
             {
@@ -70,7 +70,7 @@ namespace Engine
                 }
             }
 
-            delete window;
+            Platform::WindowManager::destroy_window(window);
         }
         return *this;
     }
@@ -86,16 +86,13 @@ namespace Engine
         Platform::WindowManager::terminate();
     }
 
-
-    Window* WindowManager::create_window(const WindowConfig& config, Window* parent, WindowInterface* window_interface)
+    Window* WindowManager::create_window(const WindowConfig& config, Window* parent, Window* window)
     {
-        if (window_interface == nullptr)
-            window_interface = Platform::WindowManager::create_window(&config);
+        if (window == nullptr)
+            window = Platform::WindowManager::create_window(&config);
 
-        if (window_interface == nullptr)
+        if (window == nullptr)
             return nullptr;
-
-        Window* window = Object::new_instance<Window>(window_interface, config.vsync);
 
         parent = parent ? parent : m_main_window;
         if (parent)
@@ -109,12 +106,11 @@ namespace Engine
             m_main_window = window;
         }
 
-        m_windows[window->window_id()] = window;
+        m_windows[window->id()] = window;
 
         // Initialize client
-        create_client(window, config.client);
-
         window->icon(load_image_icon());
+        window->initialize(config);
         return window;
     }
 
@@ -155,23 +151,13 @@ namespace Engine
         return it->second;
     }
 
-    WindowManager& WindowManager::create_client(Window* window, const StringView& client_name)
-    {
-        ViewportClient* client = ViewportClient::create(client_name);
-        if (client)
-        {
-            window->render_viewport()->client(client);
-        }
-        return *this;
-    }
-
     Size2D WindowManager::calculate_gbuffer_size() const
     {
         Size2D size = {0, 0};
 
         for (auto& [id, window] : m_windows)
         {
-            size = glm::max(size, window->cached_size());
+            size = glm::max(size, window->size());
         }
 
         return size;
@@ -186,4 +172,16 @@ namespace Engine
     {
         return m_windows;
     }
+
+
+    static DestroyController on_destroy([]() {
+        // Destroy all imgui windows
+        if (auto instance = WindowManager::instance())
+        {
+            for (auto& window : instance->windows())
+            {
+              //  window.second->imgui_terminate();
+            }
+        }
+    });
 }// namespace Engine

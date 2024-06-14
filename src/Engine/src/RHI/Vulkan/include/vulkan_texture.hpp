@@ -23,6 +23,9 @@ namespace Engine
         virtual vk::Format format() const                    = 0;
         virtual ColorFormat engine_format() const            = 0;
 
+        void clear_color(const Color& color) override;
+        void clear_depth_stencil(float depth, byte stencil) override;
+
         vk::DeviceMemory memory() const;
         vk::Image image() const;
         vk::ImageView image_view() const;
@@ -63,5 +66,17 @@ namespace Engine
         MipMapLevel mipmap_count() const override;
         vk::Format format() const override;
         ColorFormat engine_format() const override;
+    };
+
+    struct VulkanSurface : public VulkanTexture2D {
+        Set<struct VulkanRenderTarget*> m_render_targets;
+        Size2D m_size;
+
+        VulkanSurface& create(const Texture2D* texture);
+        Size2D size() const override;
+        void clear_color(const Color& color) override;
+        void clear_depth_stencil(float depth, byte stencil) override;
+
+        ~VulkanSurface();
     };
 }// namespace Engine

@@ -143,7 +143,7 @@ namespace Engine
         return *this;
     }
 
-    CommandBufferLayer& CommandBufferLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
+    CommandBufferLayer& CommandBufferLayer::render(SceneRenderer* renderer, RenderViewport* rt)
     {
         size_t offset = 0;
         byte* data    = m_commands.data();

@@ -100,7 +100,7 @@ namespace Engine
 
         ViewportClient& render(class RenderViewport* viewport) override
         {
-            viewport->window()->rhi_bind();
+            viewport->rhi_bind();
             viewport->window()->imgui_window()->render();
             return *this;
         }

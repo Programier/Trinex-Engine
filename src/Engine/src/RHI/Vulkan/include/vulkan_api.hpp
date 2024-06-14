@@ -10,7 +10,6 @@
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
-#include <vulkan_render_target.hpp>
 #include <vulkan_swap_chain.hpp>
 
 namespace Engine
@@ -18,6 +17,7 @@ namespace Engine
     struct VulkanTexture;
     struct VulkanViewport;
     struct VulkanUniformBuffer;
+    class Window;
 
     struct Garbage {
         RHI_Object* object;
@@ -41,9 +41,8 @@ namespace Engine
         Vector<VulkanUniformBuffer*> m_uniform_buffer;
         List<Garbage> m_garbage;
 
-
-        WindowInterface* m_window = nullptr;
-        String m_renderer         = "";
+        Window* m_window  = nullptr;
+        String m_renderer = "";
 
         struct {
             PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -68,9 +67,7 @@ namespace Engine
         vk::PhysicalDeviceFeatures m_features;
         vk::SurfaceCapabilitiesKHR m_surface_capabilities;
 
-
         vk::DescriptorPool m_imgui_descriptor_pool;
-        struct VulkanRenderPass* m_main_render_pass = nullptr;
 
         vk::CommandPool m_command_pool;
         uint32_t m_framebuffers_count = 0;
@@ -83,9 +80,8 @@ namespace Engine
         // API METHODS
 
 
-        vk::SurfaceKHR create_surface(WindowInterface* interface);
+        vk::SurfaceKHR create_surface(Window* interface);
         void create_command_pool();
-        void create_render_pass(vk::Format);
 
         void check_extentions();
         void enable_dynamic_states();
@@ -113,12 +109,17 @@ namespace Engine
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
-        void initialize(WindowInterface* window);
+        void initialize(Window* window);
+        void* context() override;
 
         VulkanAPI& begin_render() override;
         VulkanAPI& end_render() override;
         VulkanAPI& wait_idle() override;
 
+        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+        void viewport_internal(const ViewPort& viewport, struct VulkanRenderTargetBase* rt);
+        void viewport(const ViewPort& viewport) override;
+        ViewPort viewport() override;
 
         VulkanAPI& delete_garbage(bool force);
         VulkanAPI& destroy_object(RHI_Object* object) override;
@@ -142,7 +143,6 @@ namespace Engine
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
-        RHI_RenderTarget* create_render_target(const RenderTarget*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
         RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
@@ -152,11 +152,7 @@ namespace Engine
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
-        RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
-        RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;
-
-        RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
-        RHI_Viewport* create_viewport(RenderTarget* render_target) override;
+        RHI_Viewport* create_viewport(RenderViewport* viewport, bool vsync) override;
 
         VulkanUniformBuffer* uniform_buffer() const;
 

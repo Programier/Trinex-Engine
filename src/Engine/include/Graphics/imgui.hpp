@@ -137,8 +137,10 @@ namespace Engine::ImGuiRenderer
     };
 
 
-    class ENGINE_EXPORT Window final
+    class ENGINE_EXPORT Window final : private Engine::Object
     {
+        declare_class(Window, Object);
+
     private:
         DrawData m_draw_data;
 
@@ -166,6 +168,7 @@ namespace Engine::ImGuiRenderer
         static void make_current(Window*);
 
         friend class Engine::Window;
+        friend class Engine::Object;
     };
 
     class ENGINE_EXPORT ImGuiViewportClient : public ViewportClient

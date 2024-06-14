@@ -10,3 +10,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND ANDROID)
     add_trinex_public_libraries(VkLayer_khronos_validation)
 endif()
 
+if(ANDROID)
+    add_trinex_sources("${CMAKE_CURRENT_SOURCE_DIR}/platforms/android.cpp")
+else()
+    add_trinex_sources("${CMAKE_CURRENT_SOURCE_DIR}/platforms/common.cpp")
+endif()
+

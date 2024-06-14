@@ -1,6 +1,6 @@
+#include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/base_engine.hpp>
 #include <Engine/ActorComponents/directional_light_component.hpp>
 #include <Engine/Render/command_buffer.hpp>
 #include <Engine/Render/scene_renderer.hpp>
@@ -83,7 +83,6 @@ namespace Engine
         layer->draw(6, 0);
         return *this;
     }
-
 
     DirectionalLightComponent& DirectionalLightComponent::render(class SceneRenderer* renderer)
     {

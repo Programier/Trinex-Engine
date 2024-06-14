@@ -1,8 +1,11 @@
+#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <imgui.h>
 #include <opengl_api.hpp>
+#include <opengl_render_target.hpp>
 #include <opengl_sampler.hpp>
 #include <opengl_texture.hpp>
 
@@ -117,6 +120,45 @@ namespace Engine
         }
 
         glBindTexture(m_type, 0);
+
+        if (texture->class_instance()->is_a<RenderSurface>())
+        {
+            m_surface_state = new OpenGL_SurfaceState();
+        }
+    }
+
+
+    void OpenGL_Texture::clear_color(const Color& color)
+    {
+        if (!is_in<GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL>(m_format.m_format))
+        {
+            OpenGL_Texture* texture[] = {this};
+            OPENGL_API->bind_render_target(texture, nullptr);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            glClearColor(color.r, color.g, color.b, color.a);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+    }
+
+    void OpenGL_Texture::clear_depth_stencil(float depth, byte stencil)
+    {
+        if (is_in<GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL>(m_format.m_format))
+        {
+            glDepthMask(GL_TRUE);
+            OPENGL_API->bind_render_target({}, this);
+
+            glClearDepth(depth);
+            GLbitfield field = GL_DEPTH_BUFFER_BIT;
+
+            if (m_format.m_format == GL_DEPTH_STENCIL)
+            {
+                glClearStencil(stencil);
+                glStencilMask(255);
+                field |= GL_STENCIL_BUFFER_BIT;
+            }
+
+            glClear(field);
+        }
     }
 
     OpenGL_Texture::~OpenGL_Texture()
@@ -124,6 +166,19 @@ namespace Engine
         if (m_id)
         {
             glDeleteTextures(1, &m_id);
+        }
+
+        if (m_surface_state)
+        {
+            auto& targets = m_surface_state->m_render_targets;
+            while (!targets.empty())
+            {
+                OpenGL_RenderTarget* target = *targets.begin();
+                delete target;
+            }
+
+            delete m_surface_state;
+            m_surface_state = nullptr;
         }
     }
 

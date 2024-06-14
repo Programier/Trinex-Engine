@@ -1,9 +1,11 @@
-#include <Graphics/render_target.hpp>
+#include <Core/exception.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>
-#include <Window/window_interface.hpp>
+#include <Window/window.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_render_target.hpp>
+#include <vulkan_renderpass.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -84,9 +86,9 @@ namespace Engine
     void VulkanViewport::vsync(bool flag)
     {}
 
-    RHI_RenderTarget* VulkanViewport::render_target()
+    VulkanRenderTargetBase* VulkanViewport::render_target()
     {
-        return m_render_target;
+        return nullptr;
     }
 
     void VulkanViewport::destroy_image_views()
@@ -122,32 +124,9 @@ namespace Engine
         return m_state->m_current_viewport->m_command_buffers[API->m_current_buffer];
     }
 
-
-    // Render Target Viewport
-
-    VulkanViewport* VulkanRenderTargetViewport::init(RenderTarget* render_target)
-    {
-        VulkanViewport::init();
-        m_render_target = render_target->rhi_object<VulkanRenderTarget>();
-
-        return this;
-    }
-
-    void VulkanRenderTargetViewport::begin_render()
-    {
-        before_begin_render();
-        m_buffer_index = (m_buffer_index + 1) % API->m_framebuffers_count;
-    }
-
-    void VulkanRenderTargetViewport::end_render()
-    {
-        VulkanViewport::end_render();
-        after_end_render();
-    }
-
     // Window Viewport
 
-    VulkanViewport* VulkanWindowViewport::init(WindowInterface* window, bool vsync, bool need_initialize)
+    VulkanViewport* VulkanWindowViewport::init(Window* window, bool vsync, bool need_initialize)
     {
         m_window  = window;
         m_surface = need_initialize ? API->m_surface : API->create_surface(window);
@@ -155,10 +134,12 @@ namespace Engine
         VulkanViewport::init();
         m_present_mode = API->present_mode_of(vsync);
         create_swapchain();
+
         if (need_initialize)
         {
-            API->create_render_pass(static_cast<vk::Format>(m_swapchain->image_format));
+            VulkanRenderPass::swapchain_render_pass(vk::Format(m_swapchain->image_format));
         }
+
         create_main_render_target();
         return this;
     }
@@ -185,6 +166,15 @@ namespace Engine
         m_need_recreate_swap_chain = true;
     }
 
+    void VulkanWindowViewport::bind()
+    {
+        m_render_target->bind();
+    }
+
+    VulkanRenderTargetBase* VulkanWindowViewport::render_target()
+    {
+        return m_render_target->frame();
+    }
 
     static void transition_swapchain_image(vk::Image image, vk::CommandBuffer& cmd)
     {
@@ -316,7 +306,6 @@ namespace Engine
         delete m_render_target;
         destroy_swapchain(true);
         vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);
-        m_window->destroy_api_context();
     }
 
 
@@ -342,6 +331,13 @@ namespace Engine
         }
 
         m_buffer_index = current_buffer_index.value;
+
+        ViewPort viewport;
+        viewport.pos       = {0.f, 0.f};
+        viewport.size      = {static_cast<float>(m_swapchain->extent.width), static_cast<float>(m_swapchain->extent.height)};
+        viewport.min_depth = 0.f;
+        viewport.min_depth = 1.f;
+        API->viewport(viewport);
     }
 
 
@@ -388,23 +384,16 @@ namespace Engine
 
     // Creating Viewports
 
-    RHI_Viewport* VulkanAPI::create_viewport(WindowInterface* interface, bool vsync)
+    RHI_Viewport* VulkanAPI::create_viewport(RenderViewport* viewport, bool vsync)
     {
         bool need_initialize = m_instance == nullptr;
         if (need_initialize)
         {
-            initialize(interface);
+            initialize(viewport->window());
         }
 
-        VulkanWindowViewport* viewport = new VulkanWindowViewport();
-        viewport->init(interface, vsync, need_initialize);
-        return viewport;
-    }
-
-    RHI_Viewport* VulkanAPI::create_viewport(RenderTarget* render_target)
-    {
-        VulkanRenderTargetViewport* viewport = new VulkanRenderTargetViewport();
-        viewport->init(render_target);
-        return viewport;
+        VulkanWindowViewport* vulkan_viewport = new VulkanWindowViewport();
+        vulkan_viewport->init(viewport->window(), vsync, need_initialize);
+        return vulkan_viewport;
     }
 }// namespace Engine

@@ -1,5 +1,4 @@
 #include <Graphics/pipeline.hpp>
-#include <Graphics/render_pass.hpp>
 #include <Graphics/shader.hpp>
 #include <opengl_api.hpp>
 #include <opengl_color_format.hpp>
@@ -336,15 +335,12 @@ namespace Engine
         }
 #endif
 
-        RenderPass* render_pass = pipeline->render_pass();
-        trinex_always_check(render_pass, "Render pass can't be nullptr!");
 
-        for (GLuint i = 0, size = static_cast<GLuint>(render_pass->color_attachments.size()); i < size; i++)
         {
             auto& attachment = pipeline->color_blending;
             if (attachment.enable)
             {
-                new_command(glEnablei, GL_BLEND, i);
+                new_command(glEnable, GL_BLEND);
                 GLenum src_color_func = blend_func(attachment.src_color_func);
                 GLenum dst_color_func = blend_func(attachment.dst_color_func);
                 GLenum src_alpha_func = blend_func(attachment.src_alpha_func);
@@ -352,8 +348,8 @@ namespace Engine
                 GLenum color_op       = blend_op(attachment.color_op);
                 GLenum alpha_op       = blend_op(attachment.alpha_op);
 
-                new_command(glBlendFuncSeparatei, i, src_color_func, dst_color_func, src_alpha_func, dst_alpha_func);
-                new_command(glBlendEquationSeparatei, i, color_op, alpha_op);
+                new_command(glBlendFuncSeparate, src_color_func, dst_color_func, src_alpha_func, dst_alpha_func);
+                new_command(glBlendEquationSeparate, color_op, alpha_op);
 
                 EnumerateType mask = enum_value_of(attachment.color_mask);
                 GLboolean r_mask   = (mask & enum_value_of(ColorComponent::R)) == enum_value_of(ColorComponent::R);
@@ -361,10 +357,10 @@ namespace Engine
                 GLboolean b_mask   = (mask & enum_value_of(ColorComponent::B)) == enum_value_of(ColorComponent::B);
                 GLboolean a_mask   = (mask & enum_value_of(ColorComponent::A)) == enum_value_of(ColorComponent::A);
 
-                new_command(glColorMaski, i, r_mask, g_mask, b_mask, a_mask);
+                new_command(glColorMask, r_mask, g_mask, b_mask, a_mask);
             }
             else
-                new_command(glDisablei, static_cast<GLenum>(GL_BLEND), static_cast<GLuint>(i));
+                new_command(glDisable, static_cast<GLenum>(GL_BLEND));
         }
 
         info_log("OpenGL", "Writed %zu commands for pipeline '%s'", m_apply_state.size(), pipeline->full_name().c_str());

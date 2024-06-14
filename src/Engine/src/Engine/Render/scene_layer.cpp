@@ -36,7 +36,7 @@ namespace Engine
         return *this;
     }
 
-    SceneLayer& SceneLayer::begin_render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    SceneLayer& SceneLayer::begin_render(SceneRenderer* renderer, RenderViewport* render_target)
     {
         for (auto& func : on_begin_render)
         {
@@ -46,7 +46,7 @@ namespace Engine
         return *this;
     }
 
-    SceneLayer& SceneLayer::end_render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    SceneLayer& SceneLayer::end_render(SceneRenderer* renderer, RenderViewport* render_target)
     {
         for (auto& func : on_end_render)
         {
@@ -56,7 +56,7 @@ namespace Engine
         return *this;
     }
 
-    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderTargetBase* render_target)
+    SceneLayer& SceneLayer::render(SceneRenderer* renderer, RenderViewport* render_target)
     {
 
         return *this;
@@ -173,7 +173,7 @@ namespace Engine
         return *this;
     }
 
-    DepthRenderingLayer& DepthRenderingLayer::render(SceneRenderer* renderer, RenderTargetBase* rt)
+    DepthRenderingLayer& DepthRenderingLayer::render(SceneRenderer* renderer, RenderViewport*)
     {
         return *this;
     }

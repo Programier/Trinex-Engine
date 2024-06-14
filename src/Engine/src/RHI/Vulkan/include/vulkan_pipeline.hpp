@@ -30,7 +30,7 @@ namespace Engine
         const Pipeline* m_engine_pipeline;
         VulkanDescriptorSetLayout m_descriptor_set_layout;
         vk::PipelineLayout m_pipeline_layout;
-        vk::Pipeline m_pipeline;
+        TreeMap<void*, vk::Pipeline> m_pipelines;
 
         Vector<Vector<VulkanDescriptorSet*>> m_descriptor_sets;
         size_t m_descriptor_set_index = 0;
@@ -42,7 +42,7 @@ namespace Engine
         Vector<vk::PipelineShaderStageCreateInfo> create_pipeline_stage_infos();
         vk::PipelineVertexInputStateCreateInfo create_vertex_input_info();
         bool create_pipeline_layout();
-        vk::Pipeline create_pipeline(vk::RenderPass render_pass);
+        vk::Pipeline find_or_create_pipeline();
 
         bool create(const Pipeline* pipeline);
         VulkanPipeline& destroy();

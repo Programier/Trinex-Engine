@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/structures.hpp>
 #include <cstring>
 
 namespace Engine
@@ -10,6 +11,7 @@ namespace Engine
         struct RHI_VertexBuffer* m_current_vertex_buffer[15];
         struct VulkanIndexBuffer* m_current_index_buffer;
         struct VulkanViewport* m_current_viewport = nullptr;
+        ViewPort m_viewport;
 
         inline void reset()
         {

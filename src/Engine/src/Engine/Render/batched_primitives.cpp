@@ -1,13 +1,11 @@
-#include <Core/default_resources.hpp>
 #include <Core/base_engine.hpp>
+#include <Core/default_resources.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/threading.hpp>
 #include <Engine/Render/batched_primitives.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline_buffers.hpp>
-#include <Graphics/render_pass.hpp>
-#include <Graphics/render_target.hpp>
 #include <Graphics/rhi.hpp>
 
 namespace Engine
@@ -28,16 +26,6 @@ namespace Engine
 
     bool BatchedPrimitive::begin_render()
     {
-        RenderTargetBase* rt = RenderTargetBase::current_target();
-        if (rt == nullptr)
-            return false;
-
-        auto pass = rt->render_pass->type();
-
-        // Render pass always must be SceneColor!
-        if (pass != RenderPassType::SceneColor)
-            return false;
-
         if (m_position_buffer->buffer.size() == 0)
             return false;
 

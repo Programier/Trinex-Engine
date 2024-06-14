@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    struct WindowInterface;
+    class Window;
     struct WindowConfig;
     struct MonitorInfo;
 
@@ -20,8 +20,8 @@ namespace Engine
             ENGINE_EXPORT void initialize();
             ENGINE_EXPORT void terminate();
 
-            ENGINE_EXPORT WindowInterface* create_window(const WindowConfig* config);
-            ENGINE_EXPORT void destroy_window(WindowInterface* interface);
+            ENGINE_EXPORT Window* create_window(const WindowConfig* config);
+            ENGINE_EXPORT void destroy_window(Window* interface);
             ENGINE_EXPORT bool mouse_relative_mode();
             ENGINE_EXPORT void mouse_relative_mode(bool flag);
             ENGINE_EXPORT void update_monitor_info(MonitorInfo& info);

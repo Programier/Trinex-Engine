@@ -9,7 +9,6 @@ struct GlobalParameters
     float4x4 inv_projview;
 
     float4 viewport;
-    float4 scissor;
 
     float3 camera_location;
     float3 camera_forward;

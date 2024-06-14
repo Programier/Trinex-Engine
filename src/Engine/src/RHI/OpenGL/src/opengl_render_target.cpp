@@ -1,9 +1,7 @@
 #include <Core/colors.hpp>
-#include <Graphics/render_pass.hpp>
-#include <Graphics/render_target.hpp>
-#include <Graphics/render_target_texture.hpp>
+#include <Core/memory.hpp>
+#include <Graphics/render_surface.hpp>
 #include <opengl_api.hpp>
-#include <opengl_render_pass.hpp>
 #include <opengl_render_target.hpp>
 #include <opengl_texture.hpp>
 
@@ -24,136 +22,116 @@ namespace Engine
         }
     }
 
+    TreeMap<HashIndex, OpenGL_RenderTarget*> OpenGL_RenderTarget::m_render_targets;
+
+    void OpenGL_RenderTarget::release_all()
+    {
+        for (auto& rt : m_render_targets)
+        {
+            rt.second->m_textures.clear();
+            delete rt.second;
+        }
+
+        m_render_targets.clear();
+    }
+
+    static OpenGL_RenderTarget* m_current = nullptr;
+
+    OpenGL_RenderTarget* OpenGL_RenderTarget::current()
+    {
+        return m_current;
+    }
+
+    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(HashIndex index, const Span<RenderSurface*>& color_attachments,
+                                                             RenderSurface* depth_stencil)
+    {
+        auto it = m_render_targets.find(index);
+        if (it != m_render_targets.end())
+        {
+            return it->second;
+        }
+        OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
+        rt->m_index             = index;
+        m_render_targets[index] = rt;
+
+        rt->init(color_attachments, depth_stencil);
+        return rt;
+    }
+
+    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(HashIndex index, const Span<OpenGL_Texture*>& color_attachments,
+                                                             OpenGL_Texture* depth_stencil)
+    {
+        auto it = m_render_targets.find(index);
+        if (it != m_render_targets.end())
+        {
+            return it->second;
+        }
+        OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
+        rt->m_index             = index;
+        m_render_targets[index] = rt;
+
+        rt->init(color_attachments, depth_stencil);
+        return rt;
+    }
+
     void OpenGL_RenderTarget::bind()
     {
-        if (OPENGL_API->m_current_render_target != this)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
-            OPENGL_API->m_current_render_target = this;
-            update_viewport();
-            update_scissors();
-        }
+        m_current = this;
+        glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     }
 
-    void OpenGL_RenderTarget::viewport(const ViewPort& viewport)
+    template<typename T>
+    static GLuint create_framebuffer(OpenGL_RenderTarget* self, const Span<T*>& color_attachments, T* depth_stencil,
+                                     OpenGL_Texture* (*callback)(T*) )
     {
-        m_viewport = viewport;
-        if (is_active())
-        {
-            update_viewport();
-        }
-    }
-
-    void OpenGL_RenderTarget::scissor(const Scissor& scissor)
-    {
-        m_scissor = scissor;
-        if (is_active())
-        {
-            update_scissors();
-        }
-    }
-
-    void OpenGL_RenderTarget::clear_depth_stencil(const DepthStencilClearValue& value)
-    {
-        auto current = OPENGL_API->m_current_render_target;
-
-        bind();
-
-        glDepthMask(GL_TRUE);
-        glStencilMask(0xFFFFFFFF);
-        glClearBufferfi(GL_DEPTH_STENCIL, 0, value.depth, value.stencil);
-
-        if (current)
-        {
-            current->bind();
-        }
-    }
-
-    void OpenGL_RenderTarget::clear_color(const ColorClearValue& color, byte layout)
-    {
-        auto current = OPENGL_API->m_current_render_target;
-
-        bind();
-
-        glClearBufferfv(GL_COLOR, static_cast<GLint>(layout), &color.x);
-
-        if (current)
-        {
-            current->bind();
-        }
-    }
-
-    bool OpenGL_RenderTarget::is_active() const
-    {
-        return OPENGL_API->m_current_render_target == this;
-    }
-
-    void OpenGL_RenderTarget::update_viewport()
-    {
-        glViewport(m_viewport.pos.x, m_viewport.pos.y, m_viewport.size.x, m_viewport.size.y);
-#if USING_OPENGL_CORE
-        glDepthRange(m_viewport.min_depth, m_viewport.max_depth);
-#else
-        glDepthRangef(m_viewport.min_depth, m_viewport.max_depth);
-#endif
-    }
-
-    void OpenGL_RenderTarget::update_scissors()
-    {
-        glScissor(m_scissor.pos.x, m_scissor.pos.y, m_scissor.size.x, m_scissor.size.y);
-    }
-
-    OpenGL_RenderTarget& OpenGL_RenderTarget::init(const RenderTarget* render_target)
-    {
+        GLuint m_framebuffer = 0;
         glGenFramebuffers(1, &m_framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
 
-        size_t index               = 0;
-        m_has_depth_stencil_buffer = render_target->render_pass->depth_stencil_attachment != ColorFormat::Undefined;
+        size_t index = 0;
 
-        m_viewport.size      = render_target->size;
-        m_viewport.pos       = {0.0f, 0.0f};
-        m_viewport.min_depth = 0.0f;
-        m_viewport.max_depth = 1.0f;
+        Vector<GLenum> color_attachment_indices;
+        color_attachment_indices.reserve(color_attachments.size());
 
-        m_scissor.size = render_target->size;
-        m_scissor.pos  = {0.0f, 0.0f};
-
-        Vector<GLenum> color_attachments;
-        color_attachments.reserve(render_target->color_attachments.size());
-
-        for (const auto& color_attachment : render_target->color_attachments)
+        for (const auto& color_attachment : color_attachments)
         {
-            auto color_texture = color_attachment.ptr();
-            info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_texture, this);
-            attach_texture(color_texture, GL_COLOR_ATTACHMENT0 + index);
-            color_attachments.push_back(GL_COLOR_ATTACHMENT0 + index);
+            auto color_texture = color_attachment;
+            info_log("Framebuffer", "Attaching texture[%p] to buffer %p", color_texture, self);
+            self->attach_texture(callback(color_texture), GL_COLOR_ATTACHMENT0 + index);
+            color_attachment_indices.push_back(GL_COLOR_ATTACHMENT0 + index);
             index++;
         }
 
-        auto* depth_attachment = render_target->depth_stencil_attachment.ptr();
-
-        if (depth_attachment)
+        if (depth_stencil)
         {
-            attach_texture(depth_attachment,
-                           get_attachment_type(depth_attachment->rhi_object<OpenGL_Texture>()->m_format.m_format));
+            self->attach_texture(callback(depth_stencil), get_attachment_type(callback(depth_stencil)->m_format.m_format));
         }
 
-        glDrawBuffers(color_attachments.size(), color_attachments.data());
-
-
-        if (OPENGL_API->m_current_render_target != nullptr)
+        if (color_attachment_indices.size() > 0)
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, OPENGL_API->m_current_render_target->m_framebuffer);
+            glDrawBuffers(color_attachment_indices.size(), color_attachment_indices.data());
         }
+        return m_framebuffer;
+    }
 
+    OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    {
+        m_framebuffer = create_framebuffer<RenderSurface>(
+                this, color_attachments, depth_stencil,
+                [](RenderSurface* texture) -> OpenGL_Texture* { return texture->rhi_object<OpenGL_Texture>(); });
         return *this;
     }
 
-    OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const Texture2D* texture_attachment, GLuint attachment)
+    OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<struct OpenGL_Texture*>& color_attachments,
+                                                   struct OpenGL_Texture* depth_stencil)
     {
-        OpenGL_Texture* texture = texture_attachment->rhi_object<OpenGL_Texture>();
+        m_framebuffer = create_framebuffer<OpenGL_Texture>(this, color_attachments, depth_stencil,
+                                                           [](OpenGL_Texture* texture) -> OpenGL_Texture* { return texture; });
+        return *this;
+    }
 
+    OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const OpenGL_Texture* texture, GLuint attachment)
+    {
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->m_type, texture->m_id, 0);
 
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -181,6 +159,9 @@ namespace Engine
         {
             info_log("Framebuffer", "Attach success!\n");
         }
+
+        m_textures.push_back(texture);
+        texture->m_surface_state->m_render_targets.insert(this);
         return *this;
     }
 
@@ -190,22 +171,93 @@ namespace Engine
         {
             glDeleteFramebuffers(1, &m_framebuffer);
         }
+
+        for (auto& surface : m_textures)
+        {
+            surface->m_surface_state->m_render_targets.erase(this);
+        }
+
+        m_render_targets.erase(m_index);
     }
 
-    OpenGL_MainRenderTarget::OpenGL_MainRenderTarget()
+
+    OpenGL_RenderTarget::Saver::Saver() : m_viewport(OPENGL_API->viewport()), m_rt(OpenGL_RenderTarget::current())
     {}
 
-    void OpenGL_MainRenderTarget::bind()
+    OpenGL_RenderTarget::Saver::~Saver()
     {
-        glDisable(GL_DEPTH_TEST);
-        OpenGL_RenderTarget::bind();
+        if (m_rt)
+        {
+            m_rt->bind();
+        }
+
+        OPENGL_API->viewport(m_viewport);
     }
 
-    OpenGL_MainRenderTarget::~OpenGL_MainRenderTarget()
-    {}
-
-    RHI_RenderTarget* OpenGL::create_render_target(const RenderTarget* target)
+    void OpenGL::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
-        return &((new OpenGL_RenderTarget())->init(target));
+        HashIndex hash = 0;
+
+        for (auto& texture : color_attachments)
+        {
+            RHI_Object* object = texture->rhi_object<RHI_Object>();
+            hash               = memory_hash_fast(&object, sizeof(object), hash);
+        }
+
+        if (depth_stencil)
+        {
+            RHI_Object* object = depth_stencil->rhi_object<RHI_Object>();
+            hash               = memory_hash_fast(&object, sizeof(object), hash);
+        }
+
+        auto rt = OpenGL_RenderTarget::find_or_create(hash, color_attachments, depth_stencil);
+        rt->bind();
+    }
+
+    void OpenGL::bind_render_target(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil)
+    {
+        HashIndex hash = 0;
+
+        for (RHI_Object* texture : color_attachments)
+        {
+            hash = memory_hash_fast(&texture, sizeof(texture), hash);
+        }
+
+        if (depth_stencil)
+        {
+            hash = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
+        }
+
+        auto rt = OpenGL_RenderTarget::find_or_create(hash, color_attachments, depth_stencil);
+        rt->bind();
+    }
+
+    void OpenGL::viewport(const ViewPort& viewport)
+    {
+        bool changed = false;
+
+        if (glm::any(glm::epsilonNotEqual(viewport.pos, m_viewport.pos, Point2D(0.001f, 0.001f))) ||
+            glm::any(glm::epsilonNotEqual(viewport.size, m_viewport.size, Size2D(0.001f, 0.001f))))
+        {
+            glViewport(viewport.pos.x, viewport.pos.y, viewport.size.x, viewport.size.y);
+            changed = true;
+        }
+
+        if (glm::epsilonNotEqual(viewport.min_depth, m_viewport.min_depth, 0.001f) ||
+            glm::epsilonNotEqual(viewport.max_depth, m_viewport.max_depth, 0.001f))
+        {
+            glDepthRange(viewport.min_depth, viewport.max_depth);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            m_viewport = viewport;
+        }
+    }
+
+    ViewPort OpenGL::viewport()
+    {
+        return m_viewport;
     }
 }// namespace Engine

@@ -6,7 +6,7 @@ struct ImDrawData;
 
 namespace Engine
 {
-    struct WindowInterface;
+    class RenderViewport;
     struct WindowConfig;
     struct SamplerCreateInfo;
 
@@ -18,8 +18,7 @@ namespace Engine
     class Shader;
     class Pipeline;
     class Sampler;
-    class RenderTarget;
-    class RenderPass;
+    class RenderSurface;
     class Texture2D;
     struct GlobalShaderParameters;
 
@@ -47,14 +46,10 @@ namespace Engine
 
     struct RHI_Texture : RHI_BindingObject {
         virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
-    };
 
-    struct RHI_RenderTarget : RHI_Object {
-        virtual void bind()                                                   = 0;
-        virtual void viewport(const ViewPort& viewport)                       = 0;
-        virtual void scissor(const Scissor& scissor)                          = 0;
-        virtual void clear_depth_stencil(const DepthStencilClearValue& value) = 0;
-        virtual void clear_color(const ColorClearValue& color, byte layout)   = 0;
+        // Valid only for RenderSurface!
+        virtual void clear_color(const Color& color)                = 0;
+        virtual void clear_depth_stencil(float depth, byte stencil) = 0;
     };
 
     struct RHI_Shader : RHI_Object {
@@ -80,9 +75,6 @@ namespace Engine
         virtual void bind(BindLocation location) = 0;
     };
 
-    struct RHI_RenderPass : RHI_Object {
-    };
-
     struct RHI_Viewport : RHI_Object {
 
         virtual void begin_render() = 0;
@@ -91,16 +83,20 @@ namespace Engine
         virtual bool vsync()                           = 0;
         virtual void vsync(bool flag)                  = 0;
         virtual void on_resize(const Size2D& new_size) = 0;
-        virtual RHI_RenderTarget* render_target()      = 0;
+        virtual void bind()                            = 0;
     };
 
     struct ENGINE_EXPORT RHI {
+        virtual void* context()                         = 0;
+        virtual RHI& destroy_object(RHI_Object* object) = 0;
+        virtual const String& renderer()                = 0;
+        virtual const String& name()                    = 0;
+
         virtual RHI& imgui_init(ImGuiContext*)                = 0;
         virtual RHI& imgui_terminate(ImGuiContext*)           = 0;
         virtual RHI& imgui_new_frame(ImGuiContext*)           = 0;
         virtual RHI& imgui_render(ImGuiContext*, ImDrawData*) = 0;
 
-        virtual RHI& destroy_object(RHI_Object* object) = 0;
 
         virtual RHI& draw(size_t vertex_count, size_t vertices_offset)                                 = 0;
         virtual RHI& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) = 0;
@@ -108,15 +104,16 @@ namespace Engine
         virtual RHI& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
                                             size_t instances)                                          = 0;
 
-        virtual RHI& begin_render()      = 0;
-        virtual RHI& end_render()        = 0;
-        virtual RHI& wait_idle()         = 0;
-        virtual const String& renderer() = 0;
-        virtual const String& name()     = 0;
+        virtual RHI& begin_render() = 0;
+        virtual RHI& end_render()   = 0;
+        virtual RHI& wait_idle()    = 0;
+
+        virtual void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) = 0;
+        virtual void viewport(const ViewPort& viewport)                                                              = 0;
+        virtual ViewPort viewport()                                                                                  = 0;
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                               = 0;
         virtual RHI_Texture* create_texture_2d(const Texture2D*)                                          = 0;
-        virtual RHI_RenderTarget* create_render_target(const RenderTarget* render_target)                 = 0;
         virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                              = 0;
         virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)    = 0;
         virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                   = 0;
@@ -126,11 +123,7 @@ namespace Engine
         virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) = 0;
         virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data)                            = 0;
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                      = 0;
-        virtual RHI_RenderPass* create_render_pass(const RenderPass* render_pass)                         = 0;
-        virtual RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass)                        = 0;
-
-        virtual RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) = 0;
-        virtual RHI_Viewport* create_viewport(RenderTarget* render_target)            = 0;
+        virtual RHI_Viewport* create_viewport(RenderViewport* viewport, bool vsync)                       = 0;
 
         virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
         virtual RHI& pop_global_params()                                                  = 0;

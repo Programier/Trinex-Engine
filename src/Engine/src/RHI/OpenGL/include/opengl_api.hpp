@@ -13,23 +13,22 @@ namespace Engine
         static OpenGL* m_instance;
         void* m_context = nullptr;
         String m_renderer;
-        struct OpenGL_RenderPass* m_main_render_pass = nullptr;
 
         // STATE
-        struct OpenGL_RenderTarget* m_current_render_target = nullptr;
-        struct OpenGL_Pipeline* m_current_pipeline          = nullptr;
-        struct OpenGL_IndexBuffer* m_current_index_buffer   = nullptr;
+        struct OpenGL_Pipeline* m_current_pipeline        = nullptr;
+        struct OpenGL_IndexBuffer* m_current_index_buffer = nullptr;
         Vector<BindingIndex> m_sampler_units;
 
         Vector<GlobalShaderParameters> m_global_parameters_stack;
         struct OpenGL_UniformBuffer* m_global_ubo     = nullptr;
         struct OpenGL_LocalUniformBuffer* m_local_ubo = nullptr;
+        ViewPort m_viewport;
 
 
         OpenGL();
-        OpenGL& initialize();
+        OpenGL& initialize_rhi();
         OpenGL& initialize_ubo();
-        ~OpenGL();
+        void* context() override;
         OpenGL& imgui_init(ImGuiContext*) override;
         OpenGL& imgui_terminate(ImGuiContext*) override;
         OpenGL& imgui_new_frame(ImGuiContext*) override;
@@ -50,9 +49,13 @@ namespace Engine
         const String& renderer() override;
         const String& name() override;
 
+        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+        void bind_render_target(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil);
+        void viewport(const ViewPort& viewport) override;
+        ViewPort viewport() override;
+
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
-        RHI_RenderTarget* create_render_target(const RenderTarget* render_target) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
         RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;
@@ -62,11 +65,7 @@ namespace Engine
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
-        RHI_RenderPass* create_render_pass(const RenderPass* render_pass) override;
-        RHI_RenderPass* window_render_pass(RenderPass* engine_render_pass) override;
-
-        RHI_Viewport* create_viewport(WindowInterface* interface, bool vsync) override;
-        RHI_Viewport* create_viewport(RenderTarget* render_target) override;
+        RHI_Viewport* create_viewport(RenderViewport* viewport, bool vsync) override;
 
         OpenGL& push_global_params(const GlobalShaderParameters& params) override;
         OpenGL& pop_global_params() override;
@@ -76,5 +75,7 @@ namespace Engine
         void pop_debug_stage() override;
 
         void reset_samplers();
+
+        ~OpenGL();
     };
 }// namespace Engine

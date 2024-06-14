@@ -50,6 +50,7 @@ namespace Engine
             return;
 
         const WindowEvent& window_event = event.get<const WindowEvent&>();
+        window->update_cached_size();
 
         {
             auto x                          = window_event.x;
@@ -61,23 +62,6 @@ namespace Engine
             }
         }
 
-        Size2D k = Size2D(window_event.width, window_event.height) / window->cached_size();
-
-        {
-            ViewPort viewport = window->viewport();
-            viewport.pos *= k;
-            viewport.size *= k;
-            window->viewport(viewport);
-        }
-
-        {
-            Scissor scissor = window->scissor();
-            scissor.pos *= k;
-            scissor.size *= k;
-            window->scissor(scissor);
-        }
-
-        window->update_cached_size();
         update_render_targets_size();
     }
 

@@ -1,10 +1,14 @@
+#include <Core/class.hpp>
 #include <Core/default_resources.hpp>
+#include <Core/memory.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_render_target.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
@@ -45,6 +49,12 @@ namespace Engine
         return 0;
     }
 
+    void VulkanTexture::clear_color(const Color& color)
+    {}
+
+    void VulkanTexture::clear_depth_stencil(float depth, byte stencil)
+    {}
+
     VulkanTexture& VulkanTexture::create(const Texture* texture)
     {
         m_layout = vk::ImageLayout::eUndefined;
@@ -55,7 +65,7 @@ namespace Engine
         vk::MemoryPropertyFlags m_memory_flags = vk::MemoryPropertyFlagBits::eHostCoherent;
 
 
-        if (texture->is_render_target_texture())
+        if (texture->class_instance()->is_a<RenderSurface>())
         {
             if (is_depth_stencil_image())
             {
@@ -304,8 +314,64 @@ namespace Engine
         return m_texture->format();
     }
 
+    VulkanSurface& VulkanSurface::create(const Texture2D* texture)
+    {
+        m_size = texture->size();
+        VulkanTexture2D::create(texture);
+        return *this;
+    }
+
+    Size2D VulkanSurface::size() const
+    {
+        return m_size;
+    }
+
+    void VulkanSurface::clear_color(const Color& color)
+    {
+        if (is_color_image())
+        {
+        }
+    }
+
+    void VulkanSurface::clear_depth_stencil(float depth, byte stencil)
+    {
+        if (is_depth_stencil_image())
+        {
+            auto current_layout = layout();
+            auto& cmd           = API->current_command_buffer();
+            change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
+
+            vk::ClearDepthStencilValue value;
+            value.setDepth(depth).setStencil(stencil);
+            vk::ImageSubresourceRange range;
+            range.setAspectMask(aspect(false))
+                    .setBaseArrayLayer(0)
+                    .setBaseMipLevel(0)
+                    .setLayerCount(layer_count())
+                    .setLevelCount(mipmap_count());
+
+
+            API->current_command_buffer().clearDepthStencilImage(image(), layout(), value, range);
+            change_layout(current_layout, cmd);
+        }
+    }
+
+    VulkanSurface::~VulkanSurface()
+    {
+        while (!m_render_targets.empty())
+        {
+            VulkanRenderTarget* rt = *m_render_targets.begin();
+            delete rt;
+        }
+    }
+
     RHI_Texture* VulkanAPI::create_texture_2d(const Texture2D* texture)
     {
+        if (texture->class_instance()->is_a<RenderSurface>())
+        {
+            return &(new VulkanSurface())->create(texture);
+        }
+
         return &(new VulkanTexture2D())->create(texture);
     }
 }// namespace Engine

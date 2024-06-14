@@ -1,5 +1,5 @@
 #pragma once
-#include <Window/window_interface.hpp>
+#include <Core/enums.hpp>
 
 namespace Engine
 {

@@ -13,7 +13,6 @@ namespace Engine
         alignas(16) Matrix4f inv_projview;
 
         alignas(16) Vector4D viewport;
-        alignas(16) Vector4D scissor;
 
         alignas(16) Vector3D camera_location;
         alignas(16) Vector3D camera_forward;
@@ -35,7 +34,6 @@ namespace Engine
         alignas(4) float aspect_ratio;
         alignas(4) int camera_projection_mode;
 
-        static StringView shader_code();
-        GlobalShaderParameters& update(const class RenderTargetBase* render_target, const class SceneView* scene_view);
+        GlobalShaderParameters& update(const class SceneView* scene_view);
     };
 }// namespace Engine

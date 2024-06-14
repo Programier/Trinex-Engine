@@ -1,7 +1,5 @@
 #include <Core/enum.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/render_pass.hpp>
-#include <Graphics/render_target_base.hpp>
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
@@ -10,6 +8,7 @@
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_shader.hpp>
@@ -80,9 +79,9 @@ namespace Engine
                 .setBack(stencil_state);
 
 
-        RenderPass* render_pass = in_state->render_pass();
-        trinex_always_check(render_pass, "Render pass can't be nullptr!");
-        color_blend_attachment.resize(render_pass->color_attachments.size());
+        auto color_attachments_count =
+                API->m_state->m_render_target->state()->m_render_pass->m_color_attachment_references.size();
+        color_blend_attachment.resize(color_attachments_count);
 
 
         for (auto& attachment : color_blend_attachment)
@@ -338,8 +337,15 @@ namespace Engine
         return true;
     }
 
-    vk::Pipeline VulkanPipeline::create_pipeline(vk::RenderPass render_pass)
+    vk::Pipeline VulkanPipeline::find_or_create_pipeline()
     {
+        auto& pipeline = m_pipelines[API->m_state->m_render_target->state()->m_render_pass];
+
+        if (pipeline)
+        {
+            return pipeline;
+        }
+
         static vk::Viewport viewport(0.f, 0.f, 1280.f, 720.f, 0.0f, 1.f);
         static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
         static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
@@ -349,20 +355,21 @@ namespace Engine
         auto pipeline_stage_create_infos                         = create_pipeline_stage_infos();
         vk::PipelineVertexInputStateCreateInfo vertex_input_info = create_vertex_input_info();
 
-        vk::GraphicsPipelineCreateInfo pipeline_info(
-                {}, pipeline_stage_create_infos, &vertex_input_info, &out_state.input_assembly, nullptr, &viewport_state,
-                &out_state.rasterizer, &out_state.multisampling, &out_state.depth_stencil, &out_state.color_blending,
-                &out_state.dynamic_state_info, m_pipeline_layout, render_pass, 0, {});
+        vk::GraphicsPipelineCreateInfo pipeline_info({}, pipeline_stage_create_infos, &vertex_input_info,
+                                                     &out_state.input_assembly, nullptr, &viewport_state, &out_state.rasterizer,
+                                                     &out_state.multisampling, &out_state.depth_stencil,
+                                                     &out_state.color_blending, &out_state.dynamic_state_info, m_pipeline_layout,
+                                                     API->m_state->m_render_target->state()->m_render_pass->m_render_pass, 0, {});
 
         auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 
         if (pipeline_result.result != vk::Result::eSuccess)
         {
-            API->m_device.destroyPipeline(m_pipeline);
             throw EngineException("Failed to create pipeline");
         }
 
-        return pipeline_result.value;
+        pipeline = pipeline_result.value;
+        return pipeline;
     }
 
     VulkanDescriptorSet* VulkanPipeline::current_descriptor_set()
@@ -385,9 +392,6 @@ namespace Engine
     {
         if (!pipeline)
             throw EngineException("Cannot create Vulkan Pipeline from nullptr engine pipeline");
-
-        if (pipeline->render_pass() == nullptr)
-            throw EngineException("Cannot create Vulkan Pipeline without render_pass");
     }
 
     VulkanPipeline::State& VulkanPipeline::create_pipeline_state()
@@ -404,7 +408,6 @@ namespace Engine
 
         create_descriptor_set_layout();
         create_pipeline_layout();
-        m_pipeline = create_pipeline(pipeline->render_pass()->rhi_object<VulkanRenderPass>()->m_render_pass);
 
         if (m_descriptor_set_layout.has_layouts())
         {
@@ -425,7 +428,10 @@ namespace Engine
             }
         }
 
-        DESTROY_CALL(destroyPipeline, m_pipeline);
+        for (auto& pipeline : m_pipelines)
+        {
+            DESTROY_CALL(destroyPipeline, pipeline.second);
+        }
         DESTROY_CALL(destroyPipelineLayout, m_pipeline_layout);
         m_descriptor_set_layout.destroy();
         return *this;
@@ -440,7 +446,7 @@ namespace Engine
     {
         if (API->m_state->m_pipeline != this)
         {
-            API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
+            API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, find_or_create_pipeline());
             API->m_state->m_pipeline = this;
         }
 

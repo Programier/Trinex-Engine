@@ -1,14 +1,16 @@
 ﻿#include <VkBootstrap.h>
 
 #include <Core/struct.hpp>
+#include <Graphics/render_viewport.hpp>
 #include <Graphics/texture.hpp>
 #include <Window/config.hpp>
-#include <Window/window_interface.hpp>
+#include <Window/window.hpp>
 #include <imgui_impl_vulkan.h>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_pipeline.hpp>
+#include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_shader.hpp>
 #include <vulkan_state.hpp>
@@ -42,8 +44,7 @@ namespace Engine
     static constexpr inline size_t ext_swapchain_index        = 1;
     static constexpr inline size_t ext_index_type_uint8_index = 2;
 
-
-    static constexpr inline size_t ext_count = 3;
+    static constexpr inline size_t ext_count                  = 3;
 
     VulkanAPI::VulkanAPI()
     {
@@ -59,6 +60,8 @@ namespace Engine
     VulkanAPI::~VulkanAPI()
     {
         wait_idle();
+        VulkanRenderPass::destroy_all();
+
         for (VulkanUniformBuffer* buffer : m_uniform_buffer)
         {
             delete buffer;
@@ -67,7 +70,6 @@ namespace Engine
         m_uniform_buffer.clear();
 
         delete_garbage(true);
-        delete m_main_render_pass;
 
         VulkanDescriptorPoolManager::release_all();
 
@@ -169,8 +171,11 @@ namespace Engine
         init_info.MinImageCount = m_framebuffers_count;
         init_info.ImageCount    = m_framebuffers_count;
 
-        ImGui_ImplVulkan_Init(&init_info, m_main_render_pass->m_render_pass);
 
+        auto renderpass = m_window->render_viewport()
+                                  ->rhi_object<VulkanWindowViewport>()
+                                  ->m_render_target->state.m_render_pass->m_render_pass;
+        ImGui_ImplVulkan_Init(&init_info, renderpass);
 
         ImGui_ImplVulkan_NewFrame();
 
@@ -303,15 +308,18 @@ namespace Engine
         return new_features;
     }
 
-    void VulkanAPI::initialize(WindowInterface* window)
+    void VulkanAPI::initialize(Window* window)
     {
         m_window = window;
 
         vkb::InstanceBuilder instance_builder;
         instance_builder.require_api_version(VK_API_VERSION_1_0);
 
-        auto extentions = m_window->required_extensions();
-        for (auto& extension : extentions)
+        Vector<String> required_extensions;
+        extern void load_required_extensions(void* native_window, Vector<String>& required_extensions);
+        load_required_extensions(window->native_window(), required_extensions);
+
+        for (auto& extension : required_extensions)
         {
             vulkan_info_log("VulkanAPI", "Enable extention %s", extension.c_str());
             instance_builder.enable_extension(extension.c_str());
@@ -361,7 +369,6 @@ namespace Engine
         auto graphics_queue = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
         auto present_queue  = m_bootstrap_device.get_queue(vkb::QueueType::present);
 
-        if (!index_1 || !index_2 || !graphics_queue || !present_queue)
         {
             throw std::runtime_error("Failed to init queues");
         }
@@ -402,6 +409,11 @@ namespace Engine
         }
     }
 
+    void* VulkanAPI::context()
+    {
+        return nullptr;
+    }
+
     void VulkanAPI::check_extentions()
     {
         auto properties = m_physical_device.enumerateDeviceExtensionProperties();
@@ -435,11 +447,10 @@ namespace Engine
     }
 
 
-    vk::SurfaceKHR VulkanAPI::create_surface(WindowInterface* interface)
+    vk::SurfaceKHR VulkanAPI::create_surface(Window* window)
     {
-        void* _surface = interface->create_api_context("", static_cast<VkInstance>(m_instance));
-        interface->bind_api_context(_surface);
-        return vk::SurfaceKHR(reinterpret_cast<VkSurfaceKHR>(_surface));
+        extern vk::SurfaceKHR create_vulkan_surface(void* native_window, vk::Instance instance);
+        return create_vulkan_surface(window->native_window(), m_instance.instance);
     }
 
     vk::Extent2D VulkanAPI::surface_size() const

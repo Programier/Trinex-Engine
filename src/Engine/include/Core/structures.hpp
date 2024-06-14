@@ -27,26 +27,10 @@ namespace Engine
         }
     };
 
-    struct Scissor {
-        Point2D pos = {0.0f, 0.0f};
-        Size2D size;
-
-        FORCE_INLINE bool operator==(const Scissor& s) const
-        {
-            return pos == s.pos && size == s.size;
-        }
-
-        FORCE_INLINE bool operator!=(const Scissor& s) const
-        {
-            return !((*this) == s);
-        }
-    };
-
     struct DepthStencilClearValue {
         float depth  = 1.0;
         byte stencil = 0.0;
     };
-
 
     struct ClassFieldInfo {
         const char* name;

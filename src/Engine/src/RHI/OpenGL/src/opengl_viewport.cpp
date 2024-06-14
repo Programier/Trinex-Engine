@@ -1,7 +1,6 @@
-#include <Graphics/render_target.hpp>
-#include <Window/window_interface.hpp>
+#include <Graphics/render_viewport.hpp>
+#include <Window/window.hpp>
 #include <opengl_api.hpp>
-#include <opengl_render_target.hpp>
 #include <opengl_viewport.hpp>
 
 namespace Engine
@@ -17,94 +16,92 @@ namespace Engine
     void OpenGL_Viewport::on_resize(const Size2D& new_size)
     {}
 
-    RHI_RenderTarget* OpenGL_Viewport::render_target()
-    {
-        return m_render_target;
-    }
-
-
-    // Render Target Viewport
-
-    void OpenGL_RenderTargetViewport::init(RenderTarget* render_target)
-    {
-        m_render_target = render_target->rhi_object<OpenGL_RenderTarget>();
-    }
-
-
-    void OpenGL_RenderTargetViewport::begin_render()
-    {
-        OPENGL_API->reset_state();
-    }
-
-    void OpenGL_RenderTargetViewport::end_render()
-    {}
-
     // Window Viewport
 
-    void OpenGL_WindowViewport::init(WindowInterface* window, bool vsync_value)
+    void make_window_current(void* native_window, void* context);
+    bool has_window_vsync(void* native_window, void* context);
+    void set_window_vsync(void* native_window, void* context, bool flag);
+    void swap_window_buffers(void* native_window, void* context);
+
+    void OpenGL_WindowViewport::init(RenderViewport* viewport, bool vsync_value)
     {
-        if (!(OPENGL_API->m_context))
-        {
-            m_context             = window->create_api_context("");
-            OPENGL_API->m_context = m_context;
-            window->bind_api_context(m_context);
-
-            OPENGL_API->initialize();
-        }
-        else
-        {
-            window->bind_api_context(OPENGL_API->m_context);
-        }
-
-        m_window        = window;
-        m_render_target = new OpenGL_MainRenderTarget();
-        m_window->make_current();
-        vsync(vsync_value);
+        m_vsync    = vsync_value;
+        m_viewport = viewport;
     }
 
+
+    static OpenGL_WindowViewport* m_current_viewport = nullptr;
+
+    void OpenGL_WindowViewport::make_current()
+    {
+        if (m_current_viewport != this)
+        {
+            m_current_viewport = this;
+            make_window_current(m_viewport->window()->native_window(), OPENGL_API->context());
+            vsync(m_vsync);
+        }
+    }
+
+    OpenGL_WindowViewport* OpenGL_WindowViewport::current()
+    {
+        return m_current_viewport;
+    }
 
     bool OpenGL_WindowViewport::vsync()
     {
-        return m_window->vsync();
+        bool status = has_window_vsync(m_viewport->window()->native_window(), OPENGL_API->context());
+        return status;
     }
 
     void OpenGL_WindowViewport::vsync(bool flag)
     {
-        m_window->vsync(flag);
+        static bool current = !flag;
+
+        if (current != flag)
+        {
+            set_window_vsync(m_viewport->window()->native_window(), OPENGL_API->context(), flag);
+            current = flag;
+        }
+
+        m_vsync = flag;
     }
 
     void OpenGL_WindowViewport::begin_render()
     {
         OPENGL_API->reset_state();
-        m_window->make_current();
+        make_current();
+
+        ViewPort viewport;
+        viewport.pos       = {0, 0};
+        viewport.size      = m_viewport->window()->cached_size();
+        viewport.min_depth = 0.f;
+        viewport.max_depth = 1.f;
+        OPENGL_API->viewport(viewport);
     }
 
     void OpenGL_WindowViewport::end_render()
     {
-        m_window->present();
+        swap_window_buffers(m_viewport->window()->native_window(), OPENGL_API->context());
+    }
+
+    void OpenGL_WindowViewport::bind()
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     OpenGL_WindowViewport::~OpenGL_WindowViewport()
+    {}
+
+
+    RHI_Viewport* OpenGL::create_viewport(RenderViewport* engine_viewport, bool vsync)
     {
-        if (m_context)
+        if (m_context == nullptr)
         {
-            m_window->destroy_api_context();
-            m_context = nullptr;
+            initialize_rhi();
         }
-        delete m_render_target;
-    }
 
-    RHI_Viewport* OpenGL::create_viewport(WindowInterface* interface, bool vsync)
-    {
         OpenGL_WindowViewport* viewport = new OpenGL_WindowViewport();
-        viewport->init(interface, vsync);
-        return viewport;
-    }
-
-    RHI_Viewport* OpenGL::create_viewport(RenderTarget* render_target)
-    {
-        OpenGL_RenderTargetViewport* viewport = new OpenGL_RenderTargetViewport();
-        viewport->init(render_target);
+        viewport->init(engine_viewport, vsync);
         return viewport;
     }
 }// namespace Engine

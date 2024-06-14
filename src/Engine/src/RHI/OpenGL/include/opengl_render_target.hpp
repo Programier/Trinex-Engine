@@ -4,34 +4,38 @@
 
 namespace Engine
 {
-    struct OpenGL_RenderTarget : public RHI_RenderTarget {
-        ViewPort m_viewport;
-        Scissor m_scissor;
-        GLuint m_framebuffer            = 0;
-        bool m_has_depth_stencil_buffer = false;
-
-        void bind() override;
-        void viewport(const ViewPort& viewport) override;
-        void scissor(const Scissor& scissor) override;
-        void clear_depth_stencil(const DepthStencilClearValue& value) override;
-        void clear_color(const ColorClearValue& color, byte layout) override;
 
 
-        bool is_active() const;
+    struct OpenGL_RenderTarget {
+        static TreeMap<HashIndex, OpenGL_RenderTarget*> m_render_targets;
 
-        void update_viewport();
-        void update_scissors();
+        Vector<const struct OpenGL_Texture*> m_textures;
+        GLuint m_framebuffer = 0;
+        size_t m_last_usage  = 0;
+        HashIndex m_index    = 0;
 
-        OpenGL_RenderTarget& init(const class RenderTarget* render_target);
-        OpenGL_RenderTarget& attach_texture(const class Texture2D* texture_attachmend, GLuint attachment);
+        static void release_all();
+        static OpenGL_RenderTarget* current();
+        static OpenGL_RenderTarget* find_or_create(HashIndex index, const Span<RenderSurface*>& color_attachments,
+                                                   RenderSurface* depth_stencil);
+        static OpenGL_RenderTarget* find_or_create(HashIndex index, const Span<struct OpenGL_Texture*>& color_attachments,
+                                                   struct OpenGL_Texture* depth_stencil);
+
+        void bind();
+        OpenGL_RenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+        OpenGL_RenderTarget& init(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil);
+        OpenGL_RenderTarget& attach_texture(const struct OpenGL_Texture* texture_attachmend, GLuint attachment);
 
         ~OpenGL_RenderTarget();
+
+        struct Saver {
+            ViewPort m_viewport;
+            OpenGL_RenderTarget* m_rt;
+
+            Saver();
+            ~Saver();
+        };
     };
 
-    struct OpenGL_MainRenderTarget : OpenGL_RenderTarget {
-        OpenGL_MainRenderTarget();
 
-        void bind() override;
-        ~OpenGL_MainRenderTarget();
-    };
 }// namespace Engine

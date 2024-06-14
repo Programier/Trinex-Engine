@@ -1,11 +1,47 @@
-#include <Graphics/render_pass.hpp>
-#include <Graphics/texture_2D.hpp>
+#include <Core/memory.hpp>
+#include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Engine
 {
+
+    TreeMap<VulkanRenderPass::Key, VulkanRenderPass*> VulkanRenderPass::m_render_passes;
+
+    void VulkanRenderPass::Key::init(vk::Format format)
+    {
+        m_color_attachments[RHI_MAX_RT_BINDED] = format;
+
+        for (size_t i = 0; i < RHI_MAX_RT_BINDED; ++i)
+        {
+            m_color_attachments[i] = vk::Format::eUndefined;
+        }
+
+        m_depth_stencil = vk::Format::eUndefined;
+    }
+
+    void VulkanRenderPass::Key::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    {
+        size_t index = 0;
+
+        for (size_t count = color_attachments.size(); index < count; ++index)
+        {
+            m_color_attachments[index] = color_attachments[index]->rhi_object<VulkanSurface>()->format();
+        }
+
+        for (; index <= RHI_MAX_RT_BINDED; ++index)
+        {
+            m_color_attachments[index] = vk::Format::eUndefined;
+        }
+
+        m_depth_stencil = depth_stencil ? depth_stencil->rhi_object<VulkanSurface>()->format() : vk::Format::eUndefined;
+    }
+
+    bool VulkanRenderPass::Key::operator<(const Key& key) const
+    {
+        return std::memcmp(this, &key, sizeof(*this)) < 0;
+    }
 
     static constexpr inline vk::AttachmentDescription create_attachment_desctiption(vk::Format format, vk::ImageLayout layout,
                                                                                     bool has_stencil)
@@ -17,38 +53,92 @@ namespace Engine
                                          layout, layout);
     }
 
-    VulkanRenderPass& VulkanRenderPass::create_attachment_descriptions(const RenderPass* render_pass)
+    VulkanRenderPass* VulkanRenderPass::find_or_create(const Span<RenderSurface*>& color_attachments,
+                                                       RenderSurface* depth_stencil)
     {
-        for (const ColorFormat& color_attachment : render_pass->color_attachments)
+        Key key;
+        key.init(color_attachments, depth_stencil);
+
+        VulkanRenderPass*& pass = m_render_passes[key];
+
+        if (pass != nullptr)
+            return pass;
+
+        pass = new VulkanRenderPass();
+        pass->init(color_attachments, depth_stencil);
+
+        return pass;
+    }
+
+    VulkanRenderPass* VulkanRenderPass::swapchain_render_pass(vk::Format format)
+    {
+        Key key;
+        key.init(format);
+
+        VulkanRenderPass*& pass = m_render_passes[key];
+
+        if (!pass)
         {
-            vk::Format format = parse_engine_format(color_attachment);
+            pass = new VulkanRenderPass();
+
+            pass->m_has_depth_attachment = false;
+            pass->m_attachment_descriptions.push_back(
+                    create_attachment_desctiption(format, vk::ImageLayout::ePresentSrcKHR, false));
+
+            pass->m_color_attachment_references = {
+                    vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),
+            };
+
+            pass->create();
+        }
+
+        return pass;
+    }
+
+    void VulkanRenderPass::destroy_all()
+    {
+        for (auto& render_pass : m_render_passes)
+        {
+            delete render_pass.second;
+        }
+
+        m_render_passes.clear();
+    }
+
+    VulkanRenderPass& VulkanRenderPass::create_attachment_descriptions(const Span<RenderSurface*>& color_attachments,
+                                                                       RenderSurface* depth_stencil)
+    {
+        for (const RenderSurface* surface : color_attachments)
+        {
+            vk::Format format = surface->rhi_object<VulkanTexture>()->format();
             m_attachment_descriptions.push_back(
                     create_attachment_desctiption(format, vk::ImageLayout::eShaderReadOnlyOptimal, false));
         }
 
-        if (render_pass->depth_stencil_attachment != ColorFormat::Undefined)
+        if (depth_stencil)
         {
             m_has_depth_attachment = true;
-            vk::Format format      = parse_engine_format(render_pass->depth_stencil_attachment);
-            m_attachment_descriptions.push_back(
-                    create_attachment_desctiption(format, vk::ImageLayout::eShaderReadOnlyOptimal,
-                                                  is_in<ColorFormat::DepthStencil>(render_pass->depth_stencil_attachment)));
+            vk::Format format      = depth_stencil->rhi_object<VulkanTexture>()->format();
+            m_attachment_descriptions.push_back(create_attachment_desctiption(
+                    format, vk::ImageLayout::eShaderReadOnlyOptimal, is_in<ColorFormat::DepthStencil>(depth_stencil->format())));
         }
+
         return *this;
     }
 
-    VulkanRenderPass& VulkanRenderPass::create_attachment_references(const RenderPass* render_pass)
+    VulkanRenderPass& VulkanRenderPass::create_attachment_references(const Span<RenderSurface*>& color_attachments,
+                                                                     RenderSurface* depth_stencil)
     {
-        for (int_t index = 0, count = render_pass->color_attachments.size(); index < count; ++index)
+        for (int_t index = 0, count = color_attachments.size(); index < count; ++index)
         {
             m_color_attachment_references.push_back(vk::AttachmentReference(index, vk::ImageLayout::eColorAttachmentOptimal));
         }
 
-        if (render_pass->depth_stencil_attachment != ColorFormat::Undefined)
+        if (depth_stencil)
         {
             vk::ImageLayout layout;
 
-            switch (render_pass->depth_stencil_attachment)
+            switch (depth_stencil->format())
             {
                 case ColorFormat::ShadowDepth:
                 case ColorFormat::FilteredShadowDepth:
@@ -65,18 +155,21 @@ namespace Engine
                     break;
             }
 
-            m_depth_attachment_renference = vk::AttachmentReference(render_pass->color_attachments.size(), layout);
+            m_depth_attachment_renference = vk::AttachmentReference(color_attachments.size(), layout);
         }
         return *this;
     }
 
-    VulkanRenderPass& VulkanRenderPass::init(const RenderPass* render_pass)
+    VulkanRenderPass& VulkanRenderPass::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
-        return create_attachment_descriptions(render_pass).create_attachment_references(render_pass).create();
+        create_attachment_descriptions(color_attachments, depth_stencil);
+        create_attachment_references(color_attachments, depth_stencil);
+        return create();
     }
 
     VulkanRenderPass& VulkanRenderPass::create()
     {
+        info_log("Vulkan", "New Render Pass");
         m_subpass = vk::SubpassDescription(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics, {},
                                            m_color_attachment_references, {},
                                            m_has_depth_attachment ? &m_depth_attachment_renference : nullptr);
@@ -134,41 +227,5 @@ namespace Engine
     VulkanRenderPass::~VulkanRenderPass()
     {
         destroy();
-    }
-
-    RHI_RenderPass* VulkanAPI::create_render_pass(const RenderPass* render_pass)
-    {
-        return &(new VulkanRenderPass())->init(render_pass);
-    }
-
-
-    bool VulkanMainRenderPass::is_destroyable() const
-    {
-        return false;
-    }
-
-    void VulkanAPI::create_render_pass(vk::Format format)
-    {
-        if (m_main_render_pass == nullptr)
-        {
-            m_main_render_pass                         = new VulkanMainRenderPass();
-            m_main_render_pass->m_has_depth_attachment = false;
-            m_main_render_pass->m_attachment_descriptions.push_back(
-                    create_attachment_desctiption(format, vk::ImageLayout::ePresentSrcKHR, false));
-
-            m_main_render_pass->m_color_attachment_references = {
-                    vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),
-            };
-
-            m_main_render_pass->create();
-        }
-    }
-
-
-    RHI_RenderPass* VulkanAPI::window_render_pass(RenderPass* engine_render_pass)
-    {
-        engine_render_pass->color_attachments.resize(1);
-        engine_render_pass->color_attachments[0] = ColorFormat::R8G8B8A8;
-        return API->m_main_render_pass;
     }
 }// namespace Engine

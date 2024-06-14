@@ -176,15 +176,14 @@ namespace Engine::Platform::WindowManager
         SDL_Quit();
     }
 
-    ENGINE_EXPORT WindowInterface* create_window(const WindowConfig* config)
+    ENGINE_EXPORT Window* create_window(const WindowConfig* config)
     {
-        return (new WindowSDL())->initialize(config);
+        return (new WindowSDL())->sdl_initialize(config);
     }
 
-
-    ENGINE_EXPORT void destroy_window(WindowInterface* interface)
+    ENGINE_EXPORT void destroy_window(Window* window)
     {
-        delete interface;
+        delete window;
     }
 
     ENGINE_EXPORT bool mouse_relative_mode()
@@ -252,7 +251,7 @@ namespace Engine::Platform::WindowManager
 
         if (imgui_context == nullptr)
         {
-            WindowSDL* sdl_window = reinterpret_cast<WindowSDL*>(window->interface());
+            WindowSDL* sdl_window = reinterpret_cast<WindowSDL*>(window);
             imgui_context = reinterpret_cast<ImGuiContext*>(SDL_GetWindowData(sdl_window->m_window, "trinex_imgui_context"));
         }
 

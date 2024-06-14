@@ -66,6 +66,6 @@ namespace Engine
 
 
         CommandBufferLayer& clear() override;
-        CommandBufferLayer& render(SceneRenderer* renderer, RenderTargetBase* rt) override;
+        CommandBufferLayer& render(SceneRenderer* renderer, RenderViewport* rt) override;
     };
 }// namespace Engine

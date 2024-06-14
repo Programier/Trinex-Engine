@@ -1,6 +1,4 @@
-#include <Graphics/render_pass.hpp>
-#include <Graphics/render_target.hpp>
-#include <Graphics/render_target_texture.hpp>
+#include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
@@ -31,37 +29,25 @@ namespace Engine
         API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barrier, {}, {});
     }
 
-    void VulkanRenderTargetState::init(const RenderTarget* render_target, VulkanRenderPass* render_pass)
+    void VulkanRenderTargetState::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
-        m_render_pass = render_pass;
-        m_size.width  = static_cast<uint32_t>(render_target->size.x);
-        m_size.height = static_cast<uint32_t>(render_target->size.y);
+        m_render_pass = VulkanRenderPass::find_or_create(color_attachments, depth_stencil);
+
+        RenderSurface* base_surface = color_attachments.empty() ? depth_stencil : color_attachments[0];
+
+        if (base_surface == nullptr)
+        {
+            throw EngineException("Vulkan: Cannot initialize vulkan render target! No targets found!");
+        }
+
+        m_size = base_surface->rhi_object<VulkanSurface>()->size();
         post_init();
     }
 
     void VulkanRenderTargetState::post_init()
     {
-        m_viewport.x     = 0;
-        m_viewport.width = static_cast<float>(m_size.width);
-
-        if (is_main_render_target_state())
-        {
-            m_viewport.y      = static_cast<float>(m_size.height);
-            m_viewport.height = -static_cast<float>(m_size.height);
-        }
-        else
-        {
-            m_viewport.y      = 0;
-            m_viewport.height = static_cast<float>(m_size.height);
-        }
-
-        m_viewport.minDepth = 0.0f;
-        m_viewport.maxDepth = 1.0f;
-
-        m_scissor = vk::Rect2D({0, 0}, vk::Extent2D(m_size.width, m_size.height));
-
         m_render_pass_info.setRenderPass(m_render_pass->m_render_pass);
-        m_render_pass_info.setRenderArea(vk::Rect2D({0, 0}, vk::Extent2D(m_size.width, m_size.height)));
+        m_render_pass_info.setRenderArea(vk::Rect2D({0, 0}, vk::Extent2D(m_size.x, m_size.y)));
     }
 
     bool VulkanRenderTargetState::is_main_render_target_state()
@@ -76,8 +62,9 @@ namespace Engine
 
     VulkanRenderTargetBase& VulkanRenderTargetBase::post_init(const Vector<vk::ImageView>& image_views)
     {
+        auto m_state = state();
         vk::FramebufferCreateInfo framebuffer_create_info(vk::FramebufferCreateFlagBits(), m_state->m_render_pass->m_render_pass,
-                                                          image_views, m_state->m_size.width, m_state->m_size.height, 1);
+                                                          image_views, m_state->m_size.x, m_state->m_size.y, 1);
         m_framebuffer = API->m_device.createFramebuffer(framebuffer_create_info);
 
         return *this;
@@ -89,53 +76,10 @@ namespace Engine
         return *this;
     }
 
-    void VulkanRenderTargetBase::viewport(const ViewPort& viewport)
+    VulkanRenderTargetState* VulkanRenderTargetBase::state()
     {
-        m_state->m_viewport.x        = viewport.pos.x;
-        m_state->m_viewport.width    = viewport.size.x;
-        m_state->m_viewport.minDepth = viewport.min_depth;
-        m_state->m_viewport.maxDepth = viewport.max_depth;
-
-        if (is_main_render_target())
-        {
-            // Revert Y
-            m_state->m_viewport.height = -viewport.size.y;
-            m_state->m_viewport.y      = m_state->m_size.height - viewport.pos.y;
-        }
-        else
-        {
-            m_state->m_viewport.y      = viewport.pos.y;
-            m_state->m_viewport.height = viewport.size.y;
-        }
-
-        if (API->m_state->m_render_target == this)
-            API->m_state->m_render_target->update_viewport();
+        return nullptr;
     }
-
-    void VulkanRenderTargetBase::scissor(const Scissor& scissor)
-    {
-        m_state->m_scissor.offset.x      = scissor.pos.x;
-        m_state->m_scissor.extent.width  = scissor.size.x;
-        m_state->m_scissor.extent.height = scissor.size.y;
-
-        m_state->m_scissor.offset.y = scissor.pos.y;
-
-        if (API->m_state->m_render_target == this)
-            API->m_state->m_render_target->update_scissors();
-    }
-
-    VulkanRenderTargetBase& VulkanRenderTargetBase::update_viewport()
-    {
-        API->current_command_buffer().setViewport(0, m_state->m_viewport);
-        return *this;
-    }
-
-    VulkanRenderTargetBase& VulkanRenderTargetBase::update_scissors()
-    {
-        API->current_command_buffer().setScissor(0, m_state->m_scissor);
-        return *this;
-    }
-
 
     void VulkanRenderTargetBase::bind()
     {
@@ -152,10 +96,10 @@ namespace Engine
 
         API->m_state->m_render_target = this;
 
+        auto m_state = state();
         m_state->m_render_pass_info.setFramebuffer(m_framebuffer);
 
         API->current_command_buffer().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
-        update_viewport().update_scissors();
         return;
     }
 
@@ -169,12 +113,6 @@ namespace Engine
         return *this;
     }
 
-    void VulkanRenderTargetBase::clear_color(const ColorClearValue& color, byte layout)
-    {}
-
-    void VulkanRenderTargetBase::clear_depth_stencil(const DepthStencilClearValue& value)
-    {}
-
     bool VulkanRenderTargetBase::is_main_render_target()
     {
         return false;
@@ -182,8 +120,9 @@ namespace Engine
 
     VulkanRenderTargetBase& VulkanRenderTargetBase::size(uint32_t width, uint32_t height)
     {
-        m_state->m_size.width  = width;
-        m_state->m_size.height = height;
+        auto m_state      = state();
+        m_state->m_size.x = static_cast<float>(width);
+        m_state->m_size.y = static_cast<float>(height);
         return *this;
     }
 
@@ -197,24 +136,66 @@ namespace Engine
         return true;
     }
 
-    VulkanRenderTarget::VulkanRenderTarget()
+    VulkanMainRenderTargetState* VulkanWindowRenderTargetFrame::state()
     {
-        m_state = &state;
+        return m_state;
     }
 
-    VulkanRenderTarget& VulkanRenderTarget::init(const RenderTarget* target, VulkanRenderPass* render_pass)
+    VulkanRenderTarget::VulkanRenderTarget()
+    {}
+
+    TreeMap<VulkanRenderTarget::Key, VulkanRenderTarget*> VulkanRenderTarget::m_render_targets;
+
+    void VulkanRenderTarget::Key::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
-        m_color_textures.resize(render_pass->color_attachments_count());
-        state.init(target, render_pass);
+        size_t index = 0;
 
+        for (size_t count = color_attachments.size(); index < count; ++index)
+        {
+            m_color_attachments[index] = color_attachments[index]->rhi_object<VulkanSurface>();
+        }
 
-        m_attachments.resize(render_pass->attachments_count());
+        for (; index < RHI_MAX_RT_BINDED; ++index)
+        {
+            m_color_attachments[index] = nullptr;
+        }
+
+        m_depth_stencil = depth_stencil ? depth_stencil->rhi_object<VulkanSurface>() : nullptr;
+    }
+
+    bool VulkanRenderTarget::Key::operator<(const Key& key) const
+    {
+        return std::memcmp(this, &key, sizeof(*this));
+    }
+
+    VulkanRenderTarget* VulkanRenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
+                                                           RenderSurface* depth_stencil)
+    {
+        Key key;
+        key.init(color_attachments, depth_stencil);
+        VulkanRenderTarget*& render_target = m_render_targets[key];
+
+        if (render_target != nullptr)
+            return render_target;
+
+        render_target = new VulkanRenderTarget();
+        render_target->init(color_attachments, depth_stencil);
+
+        return render_target;
+    }
+
+    VulkanRenderTarget& VulkanRenderTarget::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    {
+        m_state.init(color_attachments, depth_stencil);
+
+        m_attachments.resize(color_attachments.size() + (depth_stencil ? 1 : 0));
+        m_surfaces.resize(m_attachments.size());
 
         Index index = 0;
-        for (auto& attachment : target->color_attachments)
+        for (auto& attachment : color_attachments)
         {
-            const Texture2D* color_binding = attachment.ptr();
-            VulkanTexture* texture         = color_binding->rhi_object<VulkanTexture>();
+            const Texture2D* color_binding = attachment;
+            VulkanSurface* texture         = color_binding->rhi_object<VulkanSurface>();
 
             trinex_check(texture, "Vulkan API: Cannot attach color texture: Texture is NULL");
             bool usage_check = texture->is_render_target_color_image();
@@ -222,14 +203,15 @@ namespace Engine
 
             vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
             m_attachments[index] = texture->create_image_view(range);
-            on_color_attachment(texture, index);
+            m_surfaces[index]    = texture;
+            texture->m_render_targets.insert(this);
             ++index;
         }
 
-        if (render_pass->m_has_depth_attachment)
+        if (depth_stencil)
         {
-            const Texture2D* binding = target->depth_stencil_attachment.ptr();
-            VulkanTexture* texture   = binding->rhi_object<VulkanTexture>();
+            const Texture2D* binding = depth_stencil;
+            VulkanSurface* texture   = binding->rhi_object<VulkanSurface>();
             trinex_check(texture, "Vulkan API: Cannot depth attach texture: Texture is NULL");
 
             bool check_status = texture->is_depth_stencil_image();
@@ -237,28 +219,12 @@ namespace Engine
 
             vk::ImageSubresourceRange range(texture->aspect(), 0, 1, 0, 1);
             m_attachments[index] = texture->create_image_view(range);
-            on_depth_stencil_attachment(texture, index);
+            m_surfaces[index]    = texture;
+
+            texture->m_render_targets.insert(this);
         }
 
         post_init(m_attachments);
-        return *this;
-    }
-
-
-    VulkanRenderTarget& VulkanRenderTarget::on_color_attachment(struct VulkanTexture* texture, Index index)
-    {
-        if (index >= m_color_textures.size())
-        {
-            m_color_textures.resize(index + 1);
-        }
-
-        m_color_textures[index] = texture;
-        return *this;
-    }
-
-    VulkanRenderTarget& VulkanRenderTarget::on_depth_stencil_attachment(struct VulkanTexture* texture, Index index)
-    {
-        m_depth_texture = texture;
         return *this;
     }
 
@@ -274,62 +240,10 @@ namespace Engine
         return *this;
     }
 
-    void VulkanRenderTarget::clear_color(const ColorClearValue& color, byte layout)
+    VulkanRenderTargetState* VulkanRenderTarget::state()
     {
-        if (m_color_textures.empty() || m_color_textures.size() <= static_cast<size_t>(layout))
-            return;
-
-        bool is_binded = API->m_state->m_render_target == this;
-
-        if (is_binded)
-        {
-            unbind();
-        }
-
-        VulkanTexture* texture = m_color_textures[layout];
-        auto current_layout    = texture->layout();
-        auto& cmd              = API->current_command_buffer();
-
-        texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
-        cmd.clearColorImage(texture->image(), vk::ImageLayout::eTransferDstOptimal,
-                            vk::ClearColorValue(color.r, color.g, color.b, color.a),
-                            vk::ImageSubresourceRange(texture->aspect(), texture->base_mipmap(), 1, 0, 1));
-        texture->change_layout(current_layout, cmd);
-
-        if (is_binded)
-        {
-            bind();
-        }
+        return &m_state;
     }
-
-    void VulkanRenderTarget::clear_depth_stencil(const DepthStencilClearValue& value)
-    {
-        if (m_depth_texture == nullptr)
-            return;
-
-        bool is_binded = API->m_state->m_render_target == this;
-
-        if (is_binded)
-        {
-            unbind();
-        }
-
-        auto current_layout = m_depth_texture->layout();
-        auto& cmd           = API->current_command_buffer();
-
-
-        m_depth_texture->change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
-        cmd.clearDepthStencilImage(m_depth_texture->image(), vk::ImageLayout::eTransferDstOptimal,
-                                   vk::ClearDepthStencilValue(value.depth, value.stencil),
-                                   vk::ImageSubresourceRange(m_depth_texture->aspect(), m_depth_texture->base_mipmap(), 1, 0, 1));
-        m_depth_texture->change_layout(current_layout, cmd);
-
-        if (is_binded)
-        {
-            bind();
-        }
-    }
-
 
     VulkanRenderTarget::~VulkanRenderTarget()
     {
@@ -337,8 +251,12 @@ namespace Engine
         {
             DESTROY_CALL(destroyImageView, image_view);
         }
-    }
 
+        for (VulkanSurface* surface : m_surfaces)
+        {
+            surface->m_render_targets.erase(this);
+        }
+    }
 
     VulkanWindowRenderTarget& VulkanWindowRenderTarget::destroy()
     {
@@ -364,9 +282,9 @@ namespace Engine
         m_viewport = viewport;
 
         uint_t index        = 0;
-        state.m_size.height = viewport->m_swapchain->extent.height;
-        state.m_size.width  = viewport->m_swapchain->extent.width;
-        state.m_render_pass = API->m_main_render_pass;
+        state.m_size.x      = static_cast<float>(viewport->m_swapchain->extent.width);
+        state.m_size.y      = static_cast<float>(viewport->m_swapchain->extent.height);
+        state.m_render_pass = VulkanRenderPass::swapchain_render_pass(vk::Format(viewport->m_swapchain->image_format));
         state.post_init();
 
         for (VulkanWindowRenderTargetFrame* frame : m_frames)
@@ -376,11 +294,6 @@ namespace Engine
             ++index;
         }
         return *this;
-    }
-
-    bool VulkanWindowRenderTarget::is_destroyable() const
-    {
-        return false;
     }
 
     VulkanWindowRenderTargetFrame* VulkanWindowRenderTarget::frame()
@@ -393,64 +306,6 @@ namespace Engine
         frame()->bind();
     }
 
-    void VulkanWindowRenderTarget::viewport(const ViewPort& viewport)
-    {
-        frame()->viewport(viewport);
-    }
-
-    void VulkanWindowRenderTarget::scissor(const Scissor& scissor)
-    {
-        frame()->scissor(scissor);
-    }
-
-    void VulkanWindowRenderTarget::clear_depth_stencil(const DepthStencilClearValue& value)
-    {
-        frame()->clear_depth_stencil(value);
-    }
-
-    static FORCE_INLINE void transition_swapchain_image_to_transfer_src(vk::Image image, vk::CommandBuffer& cmd)
-    {
-        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eNone, vk::AccessFlagBits::eTransferWrite,
-                                       vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal,
-                                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image, range);
-        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, {}, {}, {}, barrier);
-    }
-
-    static FORCE_INLINE void transition_swapchain_image_to_present_src(vk::Image image, vk::CommandBuffer& cmd)
-    {
-        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eNone,
-                                       vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR,
-                                       VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image, range);
-        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTopOfPipe, {}, {}, {}, barrier);
-    }
-
-    void VulkanWindowRenderTarget::clear_color(const ColorClearValue& color, byte layout)
-    {
-        vk::Image img = m_viewport->m_images[m_viewport->m_buffer_index];
-
-        auto& cmd                                    = API->current_command_buffer();
-        VulkanWindowRenderTargetFrame* current_frame = frame();
-        bool is_binded                               = API->m_state->m_render_target == current_frame;
-
-        if (is_binded)
-        {
-            current_frame->unbind();
-        }
-
-        transition_swapchain_image_to_transfer_src(img, cmd);
-        cmd.clearColorImage(img, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
-                            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-        transition_swapchain_image_to_present_src(img, cmd);
-
-        if (is_binded)
-        {
-            current_frame->bind();
-        }
-    }
-
     VulkanWindowRenderTarget::~VulkanWindowRenderTarget()
     {
         for (VulkanWindowRenderTargetFrame* frame : m_frames)
@@ -460,9 +315,52 @@ namespace Engine
         m_frames.clear();
     }
 
-
-    RHI_RenderTarget* VulkanAPI::create_render_target(const RenderTarget* render_target)
+    void VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
-        return &(new VulkanRenderTarget())->init(render_target, render_target->render_pass->rhi_object<VulkanRenderPass>());
+        VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(color_attachments, depth_stencil);
+        rt->bind();
+    }
+
+    void VulkanAPI::viewport_internal(const ViewPort& viewport, struct VulkanRenderTargetBase* rt)
+    {
+        auto& m_viewport = m_state->m_viewport;
+
+        if (glm::any(glm::epsilonNotEqual(viewport.pos, m_viewport.pos, Point2D(0.001f, 0.001f))) ||
+            glm::any(glm::epsilonNotEqual(viewport.size, m_viewport.size, Size2D(0.001f, 0.001f))) ||
+            glm::epsilonNotEqual(viewport.min_depth, m_viewport.min_depth, 0.001f) ||
+            glm::epsilonNotEqual(viewport.max_depth, m_viewport.max_depth, 0.001f))
+        {
+            {
+                vk::Viewport vulkan_viewport;
+                vulkan_viewport.setWidth(viewport.size.x);
+                vulkan_viewport.setHeight(viewport.size.y);
+                vulkan_viewport.setX(viewport.pos.x);
+                vulkan_viewport.setY(viewport.pos.y);
+                vulkan_viewport.setMinDepth(viewport.min_depth);
+                vulkan_viewport.setMaxDepth(viewport.max_depth);
+                current_command_buffer().setViewport(0, vulkan_viewport);
+            }
+
+            {
+                vk::Rect2D vulkan_scissor;
+                vulkan_scissor.extent.setWidth(viewport.size.x);
+                vulkan_scissor.extent.setHeight(viewport.size.y);
+                vulkan_scissor.offset.setX(viewport.pos.x);
+                vulkan_scissor.offset.setY(viewport.pos.y);
+                current_command_buffer().setScissor(0, vulkan_scissor);
+            }
+
+            m_viewport = viewport;
+        }
+    }
+
+    void VulkanAPI::viewport(const ViewPort& viewport)
+    {
+        return viewport_internal(viewport, API->m_state->m_current_viewport->render_target());
+    }
+
+    ViewPort VulkanAPI::viewport()
+    {
+        return m_state->m_viewport;
     }
 }// namespace Engine

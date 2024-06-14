@@ -16,8 +16,8 @@ namespace Engine
         BatchedTriangles triangles;
 
         SceneOutputLayer& clear() override;
-        SceneOutputLayer& begin_render(SceneRenderer* renderer, RenderTargetBase* render_target) override;
-        SceneOutputLayer& render(SceneRenderer*, RenderTargetBase*) override;
-        SceneOutputLayer& end_render(SceneRenderer* renderer, RenderTargetBase* render_target) override;
+        SceneOutputLayer& begin_render(SceneRenderer* renderer, RenderViewport* viewport) override;
+        SceneOutputLayer& render(SceneRenderer*, RenderViewport* viewport) override;
+        SceneOutputLayer& end_render(SceneRenderer* renderer, RenderViewport* viewport) override;
     };
 }// namespace Engine
