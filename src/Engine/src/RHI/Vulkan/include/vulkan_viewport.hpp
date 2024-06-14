@@ -42,6 +42,7 @@ namespace Engine
 
     class Window;
     struct VulkanWindowViewport : VulkanViewport {
+        Vector<VkImage> m_images;
         RenderViewport* m_viewport                       = nullptr;
         struct VulkanWindowRenderTarget* m_render_target = nullptr;
         vkb::Swapchain* m_swapchain                      = nullptr;
@@ -63,6 +64,7 @@ namespace Engine
         void on_resize(const Size2D& new_size) override;
         void vsync(bool flag) override;
         void bind() override;
+        void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
         VulkanRenderTargetBase* render_target() override;
 
         ~VulkanWindowViewport();

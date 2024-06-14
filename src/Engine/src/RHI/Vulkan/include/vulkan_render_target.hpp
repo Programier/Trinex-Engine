@@ -31,8 +31,8 @@ namespace Engine
         VulkanRenderTargetBase& post_init(const Vector<vk::ImageView>& image_views);
         VulkanRenderTargetBase& size(uint32_t width, uint32_t height);
 
-        void bind();
-        VulkanRenderTargetBase& unbind();
+        virtual void bind();
+        virtual VulkanRenderTargetBase& unbind();
         virtual ~VulkanRenderTargetBase();
     };
 
@@ -64,6 +64,9 @@ namespace Engine
         VulkanRenderTarget& init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
         VulkanRenderTarget& destroy() override;
         VulkanRenderTargetState* state() override;
+
+        void bind() override;
+        VulkanRenderTargetBase& unbind() override;
 
         ~VulkanRenderTarget();
     };

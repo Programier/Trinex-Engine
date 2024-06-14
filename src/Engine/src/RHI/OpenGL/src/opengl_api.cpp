@@ -158,6 +158,7 @@ namespace Engine
     {
         m_current_pipeline     = nullptr;
         m_current_index_buffer = nullptr;
+        m_render_target        = nullptr;
         return *this;
     }
 

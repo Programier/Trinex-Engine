@@ -1,6 +1,8 @@
+#include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/window.hpp>
 #include <opengl_api.hpp>
+#include <opengl_render_target.hpp>
 #include <opengl_viewport.hpp>
 
 namespace Engine
@@ -72,7 +74,44 @@ namespace Engine
 
     void OpenGL_WindowViewport::bind()
     {
+        OPENGL_API->m_render_target = nullptr;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    static FORCE_INLINE GLenum filter_of(SamplerFilter filter)
+    {
+        switch (filter)
+        {
+            case SamplerFilter::Bilinear:
+            case SamplerFilter::Trilinear:
+                return GL_LINEAR;
+
+            default:
+                return GL_NEAREST;
+        }
+    }
+
+    void OpenGL_WindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+                                            SamplerFilter filter)
+    {
+        RenderSurface* surface_array[] = {surface};
+        auto render_target             = OpenGL_RenderTarget::find_or_create(surface_array, nullptr);
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, render_target->m_framebuffer);
+
+        auto src_start = src_rect.position;
+        auto src_end   = src_start + src_rect.size;
+        auto dst_start = dst_rect.position;
+        auto dst_end   = dst_start + dst_rect.size;
+
+        glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
+                          GL_COLOR_BUFFER_BIT, filter_of(filter));
+
+        if (OPENGL_API->m_render_target)
+        {
+            OPENGL_API->m_render_target->bind();
+        }
     }
 
     OpenGL_WindowViewport::~OpenGL_WindowViewport()

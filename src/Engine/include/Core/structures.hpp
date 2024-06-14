@@ -4,6 +4,11 @@
 
 namespace Engine
 {
+    struct Rect2D {
+        Point2D position = {0.f, 0.f};
+        Size2D size      = {0.f, 0.f};
+    };
+
     struct ViewPort {
         Point2D pos = {0.0f, 0.0f};
         Size2D size;

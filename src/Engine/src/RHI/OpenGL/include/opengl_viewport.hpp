@@ -20,6 +20,7 @@ namespace Engine
         void make_current();
         static OpenGL_WindowViewport* current();
         void bind() override;
+        void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
         ~OpenGL_WindowViewport();
     };
 

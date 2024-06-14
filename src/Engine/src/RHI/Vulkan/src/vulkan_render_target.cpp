@@ -245,6 +245,26 @@ namespace Engine
         return &m_state;
     }
 
+    void VulkanRenderTarget::bind()
+    {
+        VulkanRenderTargetBase::bind();
+
+        for (auto& surface : m_surfaces)
+        {
+            surface->layout(vk::ImageLayout::eColorAttachmentOptimal);
+        }
+    }
+
+    VulkanRenderTargetBase& VulkanRenderTarget::unbind()
+    {
+        VulkanRenderTargetBase::unbind();
+        for (auto& surface : m_surfaces)
+        {
+            surface->layout(vk::ImageLayout::eShaderReadOnlyOptimal);
+        }
+        return *this;
+    }
+
     VulkanRenderTarget::~VulkanRenderTarget()
     {
         for (auto& image_view : m_attachments)

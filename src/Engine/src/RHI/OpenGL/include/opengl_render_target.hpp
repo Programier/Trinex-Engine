@@ -16,9 +16,8 @@ namespace Engine
 
         static void release_all();
         static OpenGL_RenderTarget* current();
-        static OpenGL_RenderTarget* find_or_create(HashIndex index, const Span<RenderSurface*>& color_attachments,
-                                                   RenderSurface* depth_stencil);
-        static OpenGL_RenderTarget* find_or_create(HashIndex index, const Span<struct OpenGL_Texture*>& color_attachments,
+        static OpenGL_RenderTarget* find_or_create(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil);
+        static OpenGL_RenderTarget* find_or_create(const Span<struct OpenGL_Texture*>& color_attachments,
                                                    struct OpenGL_Texture* depth_stencil);
 
         void bind();

@@ -7,6 +7,7 @@ namespace Engine
 
     class Window;
     class RenderTarget;
+    class RenderSurface;
 
 
     class ENGINE_EXPORT ViewportClient : public Object
@@ -51,6 +52,8 @@ namespace Engine
         RenderViewport& client(ViewportClient* client);
         RenderViewport& update(float dt);
         RenderViewport& rhi_bind();
+        RenderViewport& rhi_blit_target(RenderSurface* surface, const Rect2D& src, const Rect2D& dst,
+                                        SamplerFilter filter = SamplerFilter::Trilinear);
 
         static RenderViewport* current();
         static const List<RenderViewport*>& viewports();

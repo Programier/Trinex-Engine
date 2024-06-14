@@ -75,6 +75,8 @@ namespace Engine
             {
                 m_usage_flags |= vk::ImageUsageFlagBits::eColorAttachment;
             }
+
+            m_usage_flags |= vk::ImageUsageFlagBits::eTransferSrc;
         }
 
         vk::ImageTiling tiling = vk::ImageTiling::eOptimal;
@@ -210,6 +212,13 @@ namespace Engine
     {
         vk::ImageViewCreateInfo view_info({}, m_image, view_type(), format(), m_swizzle, range);
         return API->m_device.createImageView(view_info);
+    }
+
+
+    VulkanTexture& VulkanTexture::layout(vk::ImageLayout layout)
+    {
+        m_layout = layout;
+        return *this;
     }
 
     vk::ImageLayout VulkanTexture::change_layout(vk::ImageLayout new_layout)

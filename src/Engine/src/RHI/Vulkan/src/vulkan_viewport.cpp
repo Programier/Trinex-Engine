@@ -1,4 +1,5 @@
 #include <Core/exception.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
@@ -6,6 +7,7 @@
 #include <vulkan_barriers.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
+#include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
 
 namespace Engine
@@ -159,21 +161,75 @@ namespace Engine
         m_render_target->bind();
     }
 
+    static vk::Filter filter_of(SamplerFilter filter)
+    {
+        switch (filter)
+        {
+            case SamplerFilter::Bilinear:
+            case SamplerFilter::Trilinear:
+                return vk::Filter::eLinear;
+
+            default:
+                return vk::Filter::eNearest;
+        }
+    }
+
+    static void transition_swapchain_image(vk::Image image, vk::ImageLayout current, vk::ImageLayout new_layout,
+                                           vk::CommandBuffer& cmd)
+    {
+        vk::ImageMemoryBarrier barrier;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.oldLayout           = current;
+        barrier.newLayout           = new_layout;
+        barrier.image               = image;
+        barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        Barrier::transition_image_layout(cmd, barrier);
+    }
+
+    void VulkanWindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+                                           SamplerFilter filter)
+    {
+        auto current = API->m_state->m_render_target;
+
+        if (current)
+        {
+            current->unbind();
+        }
+
+        auto& cmd = API->current_command_buffer();
+        auto src  = surface->rhi_object<VulkanSurface>();
+
+        auto src_layout = src->layout();
+        src->change_layout(vk::ImageLayout::eTransferSrcOptimal, cmd);
+
+        auto dst = vk::Image(m_images[m_buffer_index]);
+        transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
+
+        auto src_end = src_rect.position + src_rect.size;
+        auto dst_end = dst_rect.position + dst_rect.size;
+
+        vk::ImageBlit blit;
+        blit.setSrcOffsets({vk::Offset3D(src_rect.position.x, src_rect.position.y, 0), vk::Offset3D(src_end.x, src_end.y, 1)});
+        blit.setDstOffsets({vk::Offset3D(dst_rect.position.x, dst_end.y, 0), vk::Offset3D(dst_end.x, dst_rect.position.y, 1)});
+
+        blit.setSrcSubresource(vk::ImageSubresourceLayers(src->aspect(), 0, 0, src->layer_count()));
+        blit.setDstSubresource(vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1));
+        cmd.blitImage(src->image(), src->layout(), dst, vk::ImageLayout::eTransferDstOptimal, blit, filter_of(filter));
+
+        transition_swapchain_image(dst, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR, cmd);
+        src->change_layout(src_layout, cmd);
+
+        if (current)
+        {
+            current->bind();
+        }
+    }
+
     VulkanRenderTargetBase* VulkanWindowViewport::render_target()
     {
         return m_render_target->frame();
-    }
-
-    static void transition_swapchain_image(vk::Image image, vk::CommandBuffer& cmd)
-    {
-        static vk::ImageSubresourceRange range(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-        vk::ImageMemoryBarrier barrier(vk::AccessFlagBits::eShaderRead, vk::AccessFlagBits::eNone, vk::ImageLayout::eUndefined,
-                                       vk::ImageLayout::ePresentSrcKHR, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image,
-                                       range);
-        cmd.pipelineBarrier(vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader |
-                                    vk::PipelineStageFlagBits::eComputeShader,
-                            vk::PipelineStageFlagBits::eTopOfPipe, {}, {}, {}, barrier);
     }
 
     void VulkanWindowViewport::create_swapchain()
@@ -223,6 +279,8 @@ namespace Engine
         if (!images_result.has_value())
             throw EngineException(images_result.error().message());
 
+        m_images = std::move(images_result.value());
+
         auto image_views_result = m_swapchain->get_image_views();
         if (!image_views_result.has_value())
             throw EngineException(image_views_result.error().message());
@@ -230,9 +288,9 @@ namespace Engine
 
         auto cmd = API->begin_single_time_command_buffer();
 
-        for (VkImage image : images_result.value())
+        for (VkImage image : m_images)
         {
-            transition_swapchain_image(vk::Image(image), cmd);
+            transition_swapchain_image(vk::Image(image), vk::ImageLayout::eUndefined, vk::ImageLayout::ePresentSrcKHR, cmd);
         }
 
         API->end_single_time_command_buffer(cmd);
@@ -324,7 +382,7 @@ namespace Engine
         viewport.pos       = {0.f, 0.f};
         viewport.size      = m_viewport->size();
         viewport.min_depth = 0.f;
-        viewport.min_depth = 1.f;
+        viewport.max_depth = 1.f;
         API->viewport(viewport);
     }
 

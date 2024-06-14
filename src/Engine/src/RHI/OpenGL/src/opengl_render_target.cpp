@@ -35,40 +35,65 @@ namespace Engine
         m_render_targets.clear();
     }
 
-    static OpenGL_RenderTarget* m_current = nullptr;
-
     OpenGL_RenderTarget* OpenGL_RenderTarget::current()
     {
-        return m_current;
+        return OPENGL_API->m_render_target;
     }
 
-    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(HashIndex index, const Span<RenderSurface*>& color_attachments,
+    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
                                                              RenderSurface* depth_stencil)
     {
-        auto it = m_render_targets.find(index);
+        HashIndex hash = 0;
+
+        for (auto& texture : color_attachments)
+        {
+            RHI_Object* object = texture->rhi_object<RHI_Object>();
+            hash               = memory_hash_fast(&object, sizeof(object), hash);
+        }
+
+        if (depth_stencil)
+        {
+            RHI_Object* object = depth_stencil->rhi_object<RHI_Object>();
+            hash               = memory_hash_fast(&object, sizeof(object), hash);
+        }
+
+        auto it = m_render_targets.find(hash);
         if (it != m_render_targets.end())
         {
             return it->second;
         }
         OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
-        rt->m_index             = index;
-        m_render_targets[index] = rt;
+        rt->m_index             = hash;
+        m_render_targets[hash]  = rt;
 
         rt->init(color_attachments, depth_stencil);
         return rt;
     }
 
-    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(HashIndex index, const Span<OpenGL_Texture*>& color_attachments,
+    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<OpenGL_Texture*>& color_attachments,
                                                              OpenGL_Texture* depth_stencil)
     {
-        auto it = m_render_targets.find(index);
+
+        HashIndex hash = 0;
+        for (RHI_Object* texture : color_attachments)
+        {
+            hash = memory_hash_fast(&texture, sizeof(texture), hash);
+        }
+
+        if (depth_stencil)
+        {
+            hash = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
+        }
+
+
+        auto it = m_render_targets.find(hash);
         if (it != m_render_targets.end())
         {
             return it->second;
         }
         OpenGL_RenderTarget* rt = new OpenGL_RenderTarget();
-        rt->m_index             = index;
-        m_render_targets[index] = rt;
+        rt->m_index             = hash;
+        m_render_targets[hash]  = rt;
 
         rt->init(color_attachments, depth_stencil);
         return rt;
@@ -76,7 +101,7 @@ namespace Engine
 
     void OpenGL_RenderTarget::bind()
     {
-        m_current = this;
+        OPENGL_API->m_render_target = this;
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     }
 
@@ -196,39 +221,13 @@ namespace Engine
 
     void OpenGL::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
-        HashIndex hash = 0;
-
-        for (auto& texture : color_attachments)
-        {
-            RHI_Object* object = texture->rhi_object<RHI_Object>();
-            hash               = memory_hash_fast(&object, sizeof(object), hash);
-        }
-
-        if (depth_stencil)
-        {
-            RHI_Object* object = depth_stencil->rhi_object<RHI_Object>();
-            hash               = memory_hash_fast(&object, sizeof(object), hash);
-        }
-
-        auto rt = OpenGL_RenderTarget::find_or_create(hash, color_attachments, depth_stencil);
+        auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
         rt->bind();
     }
 
     void OpenGL::bind_render_target(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil)
     {
-        HashIndex hash = 0;
-
-        for (RHI_Object* texture : color_attachments)
-        {
-            hash = memory_hash_fast(&texture, sizeof(texture), hash);
-        }
-
-        if (depth_stencil)
-        {
-            hash = memory_hash_fast(&depth_stencil, sizeof(depth_stencil), hash);
-        }
-
-        auto rt = OpenGL_RenderTarget::find_or_create(hash, color_attachments, depth_stencil);
+        auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
         rt->bind();
     }
 

@@ -20,7 +20,7 @@ namespace Engine::Barrier
         vk::AccessFlags access;
         vk::PipelineStageFlags stage;
 
-        void setup(vk::ImageLayout layout);
+        void setup(vk::ImageLayout layout, bool is_swapchain_image = false);
     };
 
     struct ImageBarrierFlags {
@@ -28,6 +28,6 @@ namespace Engine::Barrier
         LayoutFlags dst;
     };
 
-    void transition_image_layout(vk::ImageMemoryBarrier& barrier);
-    void transition_image_layout(vk::CommandBuffer& cmd, vk::ImageMemoryBarrier& barrier);
+    void transition_image_layout(vk::ImageMemoryBarrier& barrier, bool is_swapchain_image = false);
+    void transition_image_layout(vk::CommandBuffer& cmd, vk::ImageMemoryBarrier& barrier, bool is_swapchain_image = false);
 }// namespace Engine::Barrier

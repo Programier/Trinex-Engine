@@ -83,6 +83,8 @@ namespace Engine
         virtual void vsync(bool flag)                  = 0;
         virtual void on_resize(const Size2D& new_size) = 0;
         virtual void bind()                            = 0;
+        virtual void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
+                                 SamplerFilter filter) = 0;
     };
 
     struct ENGINE_EXPORT RHI {

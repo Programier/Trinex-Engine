@@ -50,7 +50,7 @@ namespace Engine::Barrier
             vk::PipelineStageFlagBits::eTessellationEvaluationShader | vk::PipelineStageFlagBits::eFragmentShader |
             vk::PipelineStageFlagBits::eGeometryShader;
 
-    void LayoutFlags::setup(vk::ImageLayout layout)
+    void LayoutFlags::setup(vk::ImageLayout layout, bool is_swapchain_image)
     {
         switch (layout)
         {
@@ -110,27 +110,27 @@ namespace Engine::Barrier
         }
     }
 
-    static void submit_image_layout(vk::CommandBuffer& cmd, vk::ImageMemoryBarrier& barrier)
+    static void submit_image_layout(vk::CommandBuffer& cmd, vk::ImageMemoryBarrier& barrier, bool is_swapchain_image)
     {
         ImageBarrierFlags flags;
 
-        flags.src.setup(barrier.oldLayout);
-        flags.dst.setup(barrier.newLayout);
+        flags.src.setup(barrier.oldLayout, is_swapchain_image);
+        flags.dst.setup(barrier.newLayout, is_swapchain_image);
 
         barrier.srcAccessMask = flags.src.access;
         barrier.dstAccessMask = flags.dst.access;
         cmd.pipelineBarrier(flags.src.stage, flags.dst.stage, {}, {}, {}, barrier);
     }
 
-    void transition_image_layout(vk::ImageMemoryBarrier& barrier)
+    void transition_image_layout(vk::ImageMemoryBarrier& barrier, bool is_swapchain_image)
     {
         auto cmd = API->begin_single_time_command_buffer();
-        transition_image_layout(cmd, barrier);
+        transition_image_layout(cmd, barrier, is_swapchain_image);
         API->end_single_time_command_buffer(cmd);
     }
 
-    void transition_image_layout(vk::CommandBuffer& cmd, vk::ImageMemoryBarrier& barrier)
+    void transition_image_layout(vk::CommandBuffer& cmd, vk::ImageMemoryBarrier& barrier, bool is_swapchain_image)
     {
-        submit_image_layout(cmd, barrier);
+        submit_image_layout(cmd, barrier, is_swapchain_image);
     }
 }// namespace Engine::Barrier

@@ -47,6 +47,7 @@ namespace Engine
         static bool is_depth_stencil_image(ColorFormat);
 
         vk::ImageView create_image_view(const vk::ImageSubresourceRange& range);
+        VulkanTexture& layout(vk::ImageLayout layout);
         vk::ImageLayout change_layout(vk::ImageLayout new_layout);
         vk::ImageLayout change_layout(vk::ImageLayout new_layout, vk::CommandBuffer& cmd);
 

@@ -160,15 +160,4 @@ namespace Engine
     {
         return m_windows;
     }
-
-    static DestroyController on_destroy([]() {
-        // Destroy all imgui windows
-        if (auto instance = WindowManager::instance())
-        {
-            for (auto& window : instance->windows())
-            {
-                //  window.second->imgui_terminate();
-            }
-        }
-    });
 }// namespace Engine

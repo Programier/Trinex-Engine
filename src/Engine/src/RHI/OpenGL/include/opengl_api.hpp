@@ -22,6 +22,7 @@ namespace Engine
         Vector<GlobalShaderParameters> m_global_parameters_stack;
         struct OpenGL_UniformBuffer* m_global_ubo     = nullptr;
         struct OpenGL_LocalUniformBuffer* m_local_ubo = nullptr;
+        struct OpenGL_RenderTarget* m_render_target   = nullptr;
         ViewPort m_viewport;
 
 
