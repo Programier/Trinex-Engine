@@ -1,6 +1,7 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
+#include <Core/stacktrace.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
@@ -46,8 +47,7 @@ namespace Engine
         }
         else
         {
-            //throw EngineException(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
-            error_log("ScriptEngine", "%s (%d, %d): %s", msg->section, msg->row, msg->col, msg->message);
+            throw EngineException(Strings::format("{} ({}, {}): {}", msg->section, msg->row, msg->col, msg->message));
         }
     }
 

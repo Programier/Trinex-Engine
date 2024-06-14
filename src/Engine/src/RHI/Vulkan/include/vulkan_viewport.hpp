@@ -43,13 +43,15 @@ namespace Engine
 
     class Window;
     struct VulkanWindowViewport : VulkanViewport {
-        vk::PresentModeKHR m_present_mode;
-        Window* m_window            = nullptr;
-        vkb::Swapchain* m_swapchain = nullptr;
-        vk::SurfaceKHR m_surface;
         std::vector<VkImage> m_images;
-        bool m_need_recreate_swap_chain                  = false;
+
+        Window* m_window                                 = nullptr;
         struct VulkanWindowRenderTarget* m_render_target = nullptr;
+        vkb::Swapchain* m_swapchain                      = nullptr;
+
+        vk::SurfaceKHR m_surface;
+        vk::PresentModeKHR m_present_mode;
+        bool m_need_recreate_swap_chain = false;
 
         VulkanViewport* init(Window* window, bool vsync, bool need_initialize);
 

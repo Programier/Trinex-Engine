@@ -44,7 +44,7 @@ namespace Engine
     static constexpr inline size_t ext_swapchain_index        = 1;
     static constexpr inline size_t ext_index_type_uint8_index = 2;
 
-    static constexpr inline size_t ext_count                  = 3;
+    static constexpr inline size_t ext_count = 3;
 
     VulkanAPI::VulkanAPI()
     {
@@ -369,6 +369,7 @@ namespace Engine
         auto graphics_queue = m_bootstrap_device.get_queue(vkb::QueueType::graphics);
         auto present_queue  = m_bootstrap_device.get_queue(vkb::QueueType::present);
 
+        if (!index_1.has_value() || !index_2.has_value() || !graphics_queue.has_value() || !present_queue.has_value())
         {
             throw std::runtime_error("Failed to init queues");
         }
