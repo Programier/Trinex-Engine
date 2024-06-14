@@ -3,6 +3,7 @@
 #include <Core/threading.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
 #include <Window/window.hpp>
 
 namespace Engine
@@ -72,7 +73,7 @@ namespace Engine
 
     RenderViewport& RenderViewport::rhi_create()
     {
-        m_rhi_object.reset(rhi->create_viewport(this, m_vsync));
+        m_rhi_object.reset(rhi->create_viewport(this));
         return *this;
     }
 
@@ -90,20 +91,19 @@ namespace Engine
 
     bool RenderViewport::vsync()
     {
-        RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
-        if (viewport)
-        {
-            return viewport->vsync();
-        }
-        return false;
+        return m_vsync;
     }
 
     RenderViewport& RenderViewport::vsync(bool flag)
     {
-        RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
-        if (viewport)
+        if (flag != m_vsync)
         {
-            viewport->vsync(flag);
+            m_vsync                = flag;
+            RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
+            if (viewport)
+            {
+                call_in_render_thread([viewport, flag]() { viewport->vsync(flag); });
+            }
         }
         return *this;
     }
@@ -122,7 +122,7 @@ namespace Engine
 
     Size2D RenderViewport::size() const
     {
-        return window()->size();
+        return window()->cached_size();
     }
 
     class StartRenderingViewport : public ExecutableObject
@@ -152,6 +152,8 @@ namespace Engine
         RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
         if (viewport == nullptr)
             return *this;
+
+        SceneRenderTargets::instance()->initialize(size());
         render_thread()->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport);
         return *this;
     }

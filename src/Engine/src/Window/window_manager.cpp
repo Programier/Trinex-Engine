@@ -151,18 +151,6 @@ namespace Engine
         return it->second;
     }
 
-    Size2D WindowManager::calculate_gbuffer_size() const
-    {
-        Size2D size = {0, 0};
-
-        for (auto& [id, window] : m_windows)
-        {
-            size = glm::max(size, window->size());
-        }
-
-        return size;
-    }
-
     Window* WindowManager::main_window() const
     {
         return m_main_window;
@@ -173,14 +161,13 @@ namespace Engine
         return m_windows;
     }
 
-
     static DestroyController on_destroy([]() {
         // Destroy all imgui windows
         if (auto instance = WindowManager::instance())
         {
             for (auto& window : instance->windows())
             {
-              //  window.second->imgui_terminate();
+                //  window.second->imgui_terminate();
             }
         }
     });

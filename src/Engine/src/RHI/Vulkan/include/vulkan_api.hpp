@@ -152,7 +152,7 @@ namespace Engine
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
-        RHI_Viewport* create_viewport(RenderViewport* viewport, bool vsync) override;
+        RHI_Viewport* create_viewport(RenderViewport* viewport) override;
 
         VulkanUniformBuffer* uniform_buffer() const;
 

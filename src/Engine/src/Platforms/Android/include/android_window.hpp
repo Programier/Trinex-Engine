@@ -1,6 +1,6 @@
 #pragma once
 #include <EGL/egl.h>
-#include <Window/window_interface.hpp>
+#include <Window/window.hpp>
 
 struct ANativeWindow;
 struct AInputEvent;
@@ -8,10 +8,11 @@ struct ImGuiContext;
 
 namespace Engine
 {
-    class ENGINE_EXPORT AndroidWindow : public WindowInterface
+    class ENGINE_EXPORT AndroidWindow : public Window
     {
     protected:
         String m_name;
+        Size2D m_size;
         bool m_is_resizable : 1 = true;
         bool m_init_vsync : 1   = true;
 
@@ -20,84 +21,94 @@ namespace Engine
 
         AndroidWindow(const WindowConfig* config);
 
-        static ANativeWindow* native_window();
+        static ANativeWindow* static_native_window();
 
         String title() override;
-        WindowInterface& title(const String& title) override;
+        Window& title(const String& title) override;
         Point2D position() override;
-        WindowInterface& position(const Point2D& position) override;
+        Window& position(const Point2D& position) override;
         Size1D width() override;
-        WindowInterface& width(const Size1D& width) override;
+        Window& width(const Size1D& width) override;
         Size1D height() override;
-        WindowInterface& height(const Size1D& height) override;
+        Window& height(const Size1D& height) override;
         Size2D size() override;
-        WindowInterface& size(const Size2D& size) override;
+        Window& size(const Size2D& size) override;
         bool resizable() override;
-        WindowInterface& resizable(bool value) override;
+        Window& resizable(bool value) override;
         Identifier id() override;
 
-        WindowInterface& focus() override;
+        Window& focus() override;
         bool focused() override;
-        WindowInterface& show() override;
-        WindowInterface& hide() override;
+        Window& show() override;
+        Window& hide() override;
         bool is_visible() override;
         bool is_iconify() override;
-        WindowInterface& iconify() override;
+        Window& iconify() override;
         bool is_restored() override;
-        WindowInterface& restore() override;
-        WindowInterface& opacity(float value) override;
+        Window& restore() override;
+        Window& opacity(float value) override;
         float opacity() override;
+        void* native_window() override;
 
-        WindowInterface& window_icon(const Image& image) override;
-        WindowInterface& cursor(const Image& image, IntVector2D hotspot = {0, 0}) override;
-        WindowInterface& attribute(const WindowAttribute& attrib, bool value) override;
+        Window& icon(const Image& image) override;
+        Window& cursor(const Image& image, IntVector2D hotspot = {0, 0}) override;
+        Window& attribute(const WindowAttribute& attrib, bool value) override;
         bool attribute(const WindowAttribute& attrib) override;
-        WindowInterface& cursor_mode(const CursorMode& mode) override;
+        Window& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
         bool support_orientation(WindowOrientation orientation) override;
 
-        WindowInterface& initialize_imgui() override;
-        WindowInterface& terminate_imgui() override;
-        WindowInterface& new_imgui_frame() override;
+        Window& imgui_initialize_internal() override;
+        Window& imgui_terminate_internal() override;
+        Window& imgui_new_frame() override;
         int32_t process_imgui_event(AInputEvent* event);
 
         ~AndroidWindow();
     };
 
 
+    struct AndroidEGLSurface {
+        EGLSurface egl_surface            = EGL_NO_SURFACE;
+        struct AndroidEGLContext* context = nullptr;
+
+        void init(AndroidEGLContext* context, ANativeWindow* window);
+        void destroy();
+        ~AndroidEGLSurface();
+    };
+
+    struct ENGINE_EXPORT AndroidEGLContext {
+        EGLDisplay egl_display = EGL_NO_DISPLAY;
+        EGLContext egl_context = EGL_NO_CONTEXT;
+        EGLConfig egl_config   = nullptr;
+        EGLint egl_format      = 0;
+        Set<AndroidEGLSurface*> egl_surfaces;
+        bool m_vsync = false;
+
+
+        AndroidEGLContext();
+        bool vsync();
+        AndroidEGLContext& vsync(bool flag);
+        ~AndroidEGLContext();
+    };
+
     class ENGINE_EXPORT AndroidEGLWindow : public AndroidWindow
     {
+        AndroidEGLSurface m_surface;
+
     public:
-        EGLDisplay egl_display = EGL_NO_DISPLAY;
-        EGLSurface egl_surface = EGL_NO_SURFACE;
-        EGLContext egl_context = EGL_NO_CONTEXT;
-
         AndroidEGLWindow(const WindowConfig* config);
+        ~AndroidEGLWindow();
 
-        virtual void* create_api_context(const char* any_text, ...) override;
-        virtual void bind_api_context(void* context) override;
-
-        WindowInterface& make_current() override;
-        WindowInterface& destroy_api_context() override;
-        WindowInterface& vsync(bool) override;
-        WindowInterface& present() override;
-        bool vsync() override;
-        Vector<String> required_extensions() override;
+        void* create_context();
+        EGLSurface surface(AndroidEGLContext* context);
+        AndroidEGLWindow& make_current(void* context);
+        AndroidEGLWindow& swap_buffers(void* context);
+        AndroidEGLWindow& destroy_context(void* context);
     };
 
     class ENGINE_EXPORT AndroidVulkanWindow : public AndroidWindow
     {
     public:
         AndroidVulkanWindow(const WindowConfig* config);
-
-        void* create_api_context(const char* any_text, ...) override;
-        void bind_api_context(void* context) override;
-
-        WindowInterface& make_current() override;
-        WindowInterface& destroy_api_context() override;
-        WindowInterface& vsync(bool) override;
-        WindowInterface& present() override;
-        bool vsync() override;
-        Vector<String> required_extensions() override;
     };
 }// namespace Engine

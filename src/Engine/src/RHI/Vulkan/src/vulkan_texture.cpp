@@ -330,6 +330,23 @@ namespace Engine
     {
         if (is_color_image())
         {
+            auto current_layout = layout();
+            auto& cmd           = API->current_command_buffer();
+            change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
+
+            vk::ClearColorValue value;
+            value.setFloat32({color.r, color.g, color.b, color.a});
+
+            vk::ImageSubresourceRange range;
+            range.setAspectMask(aspect(false))
+                    .setBaseArrayLayer(0)
+                    .setBaseMipLevel(0)
+                    .setLayerCount(layer_count())
+                    .setLevelCount(mipmap_count());
+
+
+            API->current_command_buffer().clearColorImage(image(), layout(), value, range);
+            change_layout(current_layout, cmd);
         }
     }
 

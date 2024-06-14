@@ -41,7 +41,7 @@ namespace Engine
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data) override;
-        RHI_Viewport* create_viewport(RenderViewport* vp, bool vsync) override;
+        RHI_Viewport* create_viewport(RenderViewport* vp) override;
 
         NoApi& push_global_params(const GlobalShaderParameters& params) override;
         NoApi& pop_global_params() override;

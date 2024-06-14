@@ -246,7 +246,7 @@ namespace Engine
         if (glm::epsilonNotEqual(viewport.min_depth, m_viewport.min_depth, 0.001f) ||
             glm::epsilonNotEqual(viewport.max_depth, m_viewport.max_depth, 0.001f))
         {
-            glDepthRange(viewport.min_depth, viewport.max_depth);
+            glDepthRangef(viewport.min_depth, viewport.max_depth);
             changed = true;
         }
 

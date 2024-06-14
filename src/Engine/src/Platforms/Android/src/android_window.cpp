@@ -8,23 +8,22 @@
 #include <imgui_impl_android.h>
 
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_android.h>
 
 namespace Engine
 {
     AndroidWindow::AndroidWindow(const WindowConfig* config) : m_name("Android Window")
     {
-        ANativeWindow_release(native_window());
+        ANativeWindow_release(static_native_window());
         m_is_resizable = config->contains_attribute(WindowAttribute::Resizable);
         m_init_vsync   = config->vsync;
     }
 
     AndroidWindow::~AndroidWindow()
     {
-        ANativeWindow_release(native_window());
+        ANativeWindow_release(static_native_window());
     }
 
-    ANativeWindow* AndroidWindow::native_window()
+    ANativeWindow* AndroidWindow::static_native_window()
     {
         return Platform::android_application()->window;
     }
@@ -34,7 +33,7 @@ namespace Engine
         return m_name;
     }
 
-    WindowInterface& AndroidWindow::title(const String& title)
+    Window& AndroidWindow::title(const String& title)
     {
         m_name = title;
         return *this;
@@ -45,18 +44,18 @@ namespace Engine
         return {0.f, 0.f};
     }
 
-    WindowInterface& AndroidWindow::position(const Point2D& position)
+    Window& AndroidWindow::position(const Point2D& position)
     {
         return *this;
     }
 
     Size1D AndroidWindow::width()
     {
-        ANativeWindow* window = native_window();
+        ANativeWindow* window = static_native_window();
         return static_cast<Size1D>(ANativeWindow_getWidth(window));
     }
 
-    WindowInterface& AndroidWindow::width(const Size1D& value)
+    Window& AndroidWindow::width(const Size1D& value)
     {
         size(Size2D(value, height()));
         return *this;
@@ -64,11 +63,11 @@ namespace Engine
 
     Size1D AndroidWindow::height()
     {
-        ANativeWindow* window = native_window();
+        ANativeWindow* window = static_native_window();
         return static_cast<Size1D>(ANativeWindow_getHeight(window));
     }
 
-    WindowInterface& AndroidWindow::height(const Size1D& value)
+    Window& AndroidWindow::height(const Size1D& value)
     {
         size(Size2D(height(), value));
         return *this;
@@ -79,14 +78,14 @@ namespace Engine
         return Size2D(width(), height());
     }
 
-    WindowInterface& AndroidWindow::size(const Size2D& size)
+    Window& AndroidWindow::size(const Size2D& size)
     {
         if (resizable())
         {
             uint32_t x = static_cast<uint32_t>(size.x);
             uint32_t y = static_cast<uint32_t>(size.y);
 
-            ANativeWindow* window = native_window();
+            ANativeWindow* window = static_native_window();
             ANativeWindow_setBuffersGeometry(window, x, y, ANativeWindow_getFormat(window));
         }
         return *this;
@@ -97,7 +96,7 @@ namespace Engine
         return m_is_resizable;
     }
 
-    WindowInterface& AndroidWindow::resizable(bool value)
+    Window& AndroidWindow::resizable(bool value)
     {
         m_is_resizable = value;
         return *this;
@@ -109,7 +108,7 @@ namespace Engine
     }
 
 
-    WindowInterface& AndroidWindow::focus()
+    Window& AndroidWindow::focus()
     {
         return *this;
     }
@@ -119,12 +118,12 @@ namespace Engine
         return true;
     }
 
-    WindowInterface& AndroidWindow::show()
+    Window& AndroidWindow::show()
     {
         return *this;
     }
 
-    WindowInterface& AndroidWindow::hide()
+    Window& AndroidWindow::hide()
     {
         return *this;
     }
@@ -139,7 +138,7 @@ namespace Engine
         return false;
     }
 
-    WindowInterface& AndroidWindow::iconify()
+    Window& AndroidWindow::iconify()
     {
         return *this;
     }
@@ -149,12 +148,12 @@ namespace Engine
         return true;
     }
 
-    WindowInterface& AndroidWindow::restore()
+    Window& AndroidWindow::restore()
     {
         return *this;
     }
 
-    WindowInterface& AndroidWindow::opacity(float value)
+    Window& AndroidWindow::opacity(float value)
     {
         return *this;
     }
@@ -164,17 +163,22 @@ namespace Engine
         return 1.f;
     }
 
-    WindowInterface& AndroidWindow::window_icon(const Image& image)
+    void* AndroidWindow::native_window()
+    {
+        return static_native_window();
+    }
+
+    Window& AndroidWindow::icon(const Image& image)
     {
         return *this;
     }
 
-    WindowInterface& AndroidWindow::cursor(const Image& image, IntVector2D hotspot)
+    Window& AndroidWindow::cursor(const Image& image, IntVector2D hotspot)
     {
         return *this;
     }
 
-    WindowInterface& AndroidWindow::attribute(const WindowAttribute& attrib, bool value)
+    Window& AndroidWindow::attribute(const WindowAttribute& attrib, bool value)
     {
         return *this;
     }
@@ -184,7 +188,7 @@ namespace Engine
         return false;
     }
 
-    WindowInterface& AndroidWindow::cursor_mode(const CursorMode& mode)
+    Window& AndroidWindow::cursor_mode(const CursorMode& mode)
     {
         return *this;
     }
@@ -217,19 +221,19 @@ namespace Engine
         }
     };
 
-    WindowInterface& AndroidWindow::initialize_imgui()
+    Window& AndroidWindow::imgui_initialize_internal()
     {
         if (!imgui_context)
         {
             ImGuiContextSaver saver;
 
-            ImGui_ImplAndroid_Init(native_window());
+            ImGui_ImplAndroid_Init(static_native_window());
             imgui_context = ImGui::GetCurrentContext();
         }
         return *this;
     }
 
-    WindowInterface& AndroidWindow::terminate_imgui()
+    Window& AndroidWindow::imgui_terminate_internal()
     {
         if (imgui_context)
         {
@@ -239,7 +243,7 @@ namespace Engine
         return *this;
     }
 
-    WindowInterface& AndroidWindow::new_imgui_frame()
+    Window& AndroidWindow::imgui_new_frame()
     {
         if (imgui_context)
         {
@@ -260,7 +264,30 @@ namespace Engine
 
     //// EGL WINDOW
 
-    AndroidEGLWindow::AndroidEGLWindow(const WindowConfig* config) : AndroidWindow(config)
+    void AndroidEGLSurface::init(AndroidEGLContext* _context, ANativeWindow* window)
+    {
+        context     = _context;
+        egl_surface = eglCreateWindowSurface(context->egl_display, context->egl_config, window, nullptr);
+        context->egl_surfaces.insert(this);
+    }
+
+    void AndroidEGLSurface::destroy()
+    {
+        if (context && egl_surface != EGL_NO_SURFACE)
+        {
+            eglDestroySurface(context->egl_display, egl_surface);
+            context->egl_surfaces.erase(this);
+            context     = nullptr;
+            egl_surface = EGL_NO_SURFACE;
+        }
+    }
+
+    AndroidEGLSurface::~AndroidEGLSurface()
+    {
+        destroy();
+    }
+
+    AndroidEGLContext::AndroidEGLContext()
     {
         egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
@@ -273,97 +300,100 @@ namespace Engine
         {
             throw EngineException("eglInitialize() returned with an error");
         }
-    }
 
-    void* AndroidEGLWindow::create_api_context(const char* any_text, ...)
-    {
+
         const EGLint egl_attributes[] = {
                 EGL_BLUE_SIZE,  8,       EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_DEPTH_SIZE, 24, EGL_SURFACE_TYPE,
                 EGL_WINDOW_BIT, EGL_NONE};
-
         EGLint num_configs = 0;
-
         if (eglChooseConfig(egl_display, egl_attributes, nullptr, 0, &num_configs) != EGL_TRUE)
             throw EngineException("eglChooseConfig() returned with an error");
 
         if (num_configs == 0)
             throw EngineException("eglChooseConfig() returned 0 matching config");
 
-        // Get the first matching config
-
-        EGLConfig egl_config;
         eglChooseConfig(egl_display, egl_attributes, &egl_config, 1, &num_configs);
-        EGLint egl_format;
-
         eglGetConfigAttrib(egl_display, egl_config, EGL_NATIVE_VISUAL_ID, &egl_format);
-        ANativeWindow_setBuffersGeometry(native_window(), width(), height(), egl_format);
 
         const EGLint egl_context_attributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
         egl_context                           = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, egl_context_attributes);
 
         if (egl_context == EGL_NO_CONTEXT)
             throw EngineException("eglCreateContext() returned EGL_NO_CONTEXT");
-
-        egl_surface = eglCreateWindowSurface(egl_display, egl_config, native_window(), nullptr);
-        eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
-
-        vsync(m_init_vsync);
-        return egl_context;
     }
 
-    void AndroidEGLWindow::bind_api_context(void* context)
+    bool AndroidEGLContext::vsync()
     {
-        // Android can create only one window instance
+        return m_vsync;
     }
 
-    WindowInterface& AndroidEGLWindow::make_current()
+    AndroidEGLContext& AndroidEGLContext::vsync(bool flag)
     {
-        eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context);
+        eglSwapInterval(egl_display, flag ? 1 : 0);
         return *this;
     }
 
-    WindowInterface& AndroidEGLWindow::destroy_api_context()
+    AndroidEGLContext::~AndroidEGLContext()
     {
         if (egl_display != EGL_NO_DISPLAY)
         {
-            eglMakeCurrent(egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-
             if (egl_context != EGL_NO_CONTEXT)
                 eglDestroyContext(egl_display, egl_context);
 
-            if (egl_surface != EGL_NO_SURFACE)
-                eglDestroySurface(egl_display, egl_surface);
+            while (!egl_surfaces.empty())
+            {
+                AndroidEGLSurface* surface_ptr = *egl_surfaces.begin();
+                surface_ptr->destroy();
+            }
 
             eglTerminate(egl_display);
 
             egl_display = EGL_NO_DISPLAY;
-            egl_surface = EGL_NO_SURFACE;
             egl_context = EGL_NO_CONTEXT;
         }
+    }
+
+    AndroidEGLWindow::AndroidEGLWindow(const WindowConfig* config) : AndroidWindow(config)
+    {}
+
+    AndroidEGLWindow::~AndroidEGLWindow()
+    {}
+
+    EGLSurface AndroidEGLWindow::surface(AndroidEGLContext* context)
+    {
+        if (m_surface.context == EGL_NO_SURFACE)
+        {
+            ANativeWindow_setBuffersGeometry(static_native_window(), width(), height(), context->egl_format);
+            m_surface.init(context, reinterpret_cast<ANativeWindow*>(native_window()));
+        }
+
+        return m_surface.egl_surface;
+    }
+
+    AndroidEGLWindow& AndroidEGLWindow::make_current(void* _context)
+    {
+        AndroidEGLContext* context = reinterpret_cast<AndroidEGLContext*>(_context);
+        EGLSurface egl_surface     = surface(context);
+        eglMakeCurrent(context->egl_display, egl_surface, egl_surface, context->egl_context);
         return *this;
     }
 
-    WindowInterface& AndroidEGLWindow::vsync(bool vsync_value)
+    AndroidEGLWindow& AndroidEGLWindow::swap_buffers(void* _context)
     {
-        m_init_vsync = vsync_value;
-        eglSwapInterval(egl_display, vsync_value ? 1 : 0);
+        AndroidEGLContext* context = reinterpret_cast<AndroidEGLContext*>(_context);
+        eglSwapBuffers(context->egl_display, surface(context));
         return *this;
     }
 
-    WindowInterface& AndroidEGLWindow::present()
+    void* AndroidEGLWindow::create_context()
     {
-        eglSwapBuffers(egl_display, egl_surface);
+        return new AndroidEGLContext();
+    }
+
+    AndroidEGLWindow& AndroidEGLWindow::destroy_context(void* context)
+    {
+        delete reinterpret_cast<AndroidEGLContext*>(context);
         return *this;
-    }
-
-    bool AndroidEGLWindow::vsync()
-    {
-        return m_init_vsync;
-    }
-
-    Vector<String> AndroidEGLWindow::required_extensions()
-    {
-        return {};
     }
 
     // Vulkan Window
@@ -371,59 +401,24 @@ namespace Engine
     AndroidVulkanWindow::AndroidVulkanWindow(const WindowConfig* config) : AndroidWindow(config)
     {}
 
-    void* AndroidVulkanWindow::create_api_context(const char* any_text, ...)
-    {
-        va_list args;
-        va_start(args, any_text);
-        VkInstance instance = va_arg(args, VkInstance);
-        va_end(args);
+    // void* AndroidVulkanWindow::create_api_context(const char* any_text, ...)
+    // {
+    //     va_list args;
+    //     va_start(args, any_text);
+    //     VkInstance instance = va_arg(args, VkInstance);
+    //     va_end(args);
 
-        ANativeWindow* window = native_window();
-        VkSurfaceKHR surface;
-        VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
-        surfaceCreateInfo.sType                         = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
-        surfaceCreateInfo.window                        = window;
+    //     ANativeWindow* window = static_native_window();
+    //     VkSurfaceKHR surface;
+    //     VkAndroidSurfaceCreateInfoKHR surfaceCreateInfo = {};
+    //     surfaceCreateInfo.sType                         = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+    //     surfaceCreateInfo.window                        = window;
 
-        if (vkCreateAndroidSurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS)
-        {
-            throw EngineException("Android: Failed to create Vulkan Surface");
-        }
+    //     if (vkCreateAndroidSurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS)
+    //     {
+    //         throw EngineException("Android: Failed to create Vulkan Surface");
+    //     }
 
-        return reinterpret_cast<void*>(surface);
-    }
-
-    void AndroidVulkanWindow::bind_api_context(void* context)
-    {
-        // Android can use only one window, so this method does not affect
-    }
-
-    WindowInterface& AndroidVulkanWindow::make_current()
-    {
-        return *this;// Must never call
-    }
-
-    WindowInterface& AndroidVulkanWindow::destroy_api_context()
-    {
-        return *this;// Must never call.
-    }
-
-    WindowInterface& AndroidVulkanWindow::vsync(bool)
-    {
-        return *this;// Must never call
-    }
-
-    WindowInterface& AndroidVulkanWindow::present()
-    {
-        return *this;// Must never call
-    }
-
-    bool AndroidVulkanWindow::vsync()
-    {
-        return false;// Must never call
-    }
-
-    Vector<String> AndroidVulkanWindow::required_extensions()
-    {
-        return {"VK_KHR_surface", "VK_KHR_android_surface"};
-    }
+    //     return reinterpret_cast<void*>(surface);
+    // }
 }// namespace Engine

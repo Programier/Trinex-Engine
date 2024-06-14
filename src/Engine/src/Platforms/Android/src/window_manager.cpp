@@ -381,7 +381,7 @@ namespace Engine::Platform
             // Nothing ?
         }
 
-        ENGINE_EXPORT WindowInterface* create_window(const WindowConfig* config)
+        ENGINE_EXPORT Window* create_window(const WindowConfig* config)
         {
             if (m_window)
             {
@@ -399,10 +399,10 @@ namespace Engine::Platform
             return m_window;
         }
 
-        ENGINE_EXPORT void destroy_window(WindowInterface* interface)
+        ENGINE_EXPORT void destroy_window(Window* window)
         {
             m_window = nullptr;
-            delete interface;
+            delete window;
         }
 
         ENGINE_EXPORT bool mouse_relative_mode()

@@ -60,7 +60,4 @@ namespace Engine
 
         friend class Singletone<SceneRenderTargets, EmptyClass>;
     };
-
-
-    void ENGINE_EXPORT update_render_targets_size();
 }// namespace Engine

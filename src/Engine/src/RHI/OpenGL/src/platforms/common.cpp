@@ -12,26 +12,26 @@ namespace Engine
         return context;
     }
 
-    void make_window_current(void* native_window, void* context)
+    void make_window_current(Window* window, void* context)
     {
-        SDL_Window* window = reinterpret_cast<SDL_Window*>(native_window);
-        SDL_GL_MakeCurrent(window, context);
+        SDL_Window* sdl_window = reinterpret_cast<SDL_Window*>(window->native_window());
+        SDL_GL_MakeCurrent(sdl_window, context);
     }
 
-    bool has_window_vsync(void*, void*)
+    bool has_window_vsync(Window* window, void*)
     {
         return SDL_GL_GetSwapInterval();
     }
 
-    void set_window_vsync(void* native_window, void* context, bool flag)
+    void set_window_vsync(Window* window, void* context, bool flag)
     {
         SDL_GL_SetSwapInterval(flag ? 1 : 0);
     }
 
-    void swap_window_buffers(void* native_window, void* context)
+    void swap_window_buffers(Window* window, void* context)
     {
-        SDL_Window* window = reinterpret_cast<SDL_Window*>(native_window);
-        SDL_GL_SwapWindow(window);
+        SDL_Window* sdl_window = reinterpret_cast<SDL_Window*>(window->native_window());
+        SDL_GL_SwapWindow(sdl_window);
     }
 
     void destroy_opengl_context(void* context)

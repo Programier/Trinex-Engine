@@ -1,9 +1,9 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/etl/engine_resource.hpp>
-#include <Core/threading.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
+#include <Core/threading.hpp>
 #include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -171,12 +171,5 @@ namespace Engine
         surface_of(SceneDepthZ)->clear_depth_stencil(1.f, 0.f);
         surface_of(LightPassDepthZ)->clear_depth_stencil(1.f, 0.f);
         return *this;
-    }
-
-    ENGINE_EXPORT void update_render_targets_size()
-    {
-        Size2D new_size = WindowManager::instance()->calculate_gbuffer_size();
-        SceneRenderTargets::instance()->initialize(new_size);
-        render_thread()->wait_all();
     }
 }// namespace Engine

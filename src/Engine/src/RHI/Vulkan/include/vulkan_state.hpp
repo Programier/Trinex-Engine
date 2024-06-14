@@ -16,6 +16,7 @@ namespace Engine
         inline void reset()
         {
             std::memset(reinterpret_cast<void*>(this), 0, sizeof(VulkanState));
+            m_viewport.max_depth = 1.f;
         }
     };
 }// namespace Engine

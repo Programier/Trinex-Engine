@@ -42,12 +42,6 @@ namespace Engine
         WindowManager::instance()->create_window(config, nullptr)->hide();
     }
 
-    static void create_render_targets()
-    {
-        SceneRenderTargets::create_instance()->initialize(WindowManager::instance()->calculate_gbuffer_size());
-        render_thread()->wait_all();
-    }
-
     static bool init_api()
     {
 
@@ -62,7 +56,7 @@ namespace Engine
             }
 
             create_window();
-            create_render_targets();
+            SceneRenderTargets::create_instance();
             return true;
         }
 

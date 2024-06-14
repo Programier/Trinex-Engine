@@ -28,7 +28,7 @@ namespace Engine
 
     private:
         static List<RenderViewport*> m_viewports;
-        bool m_vsync = true;
+        Atomic<bool> m_vsync = true;
         class Window* m_window;
         Pointer<ViewportClient> m_client;
 

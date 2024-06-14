@@ -185,7 +185,7 @@ namespace Engine
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
     }
 
-    RHI_Viewport* NoApi::create_viewport(RenderViewport* vp, bool vsync)
+    RHI_Viewport* NoApi::create_viewport(RenderViewport* vp)
     {
         error_log("NoApi", "Function '%s' is no implemented!", __PRETTY_FUNCTION__);
         return nullptr;

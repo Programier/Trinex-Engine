@@ -30,7 +30,6 @@ namespace Engine
         WindowManager& wait_for_events();
         Window* find(Identifier id) const;
 
-        Size2D calculate_gbuffer_size() const;
         Window* main_window() const;
         const TreeMap<Identifier, Window*>& windows() const;
         friend class Window;

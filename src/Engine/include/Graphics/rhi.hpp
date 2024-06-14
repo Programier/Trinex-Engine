@@ -80,7 +80,6 @@ namespace Engine
         virtual void begin_render() = 0;
         virtual void end_render()   = 0;
 
-        virtual bool vsync()                           = 0;
         virtual void vsync(bool flag)                  = 0;
         virtual void on_resize(const Size2D& new_size) = 0;
         virtual void bind()                            = 0;
@@ -123,7 +122,7 @@ namespace Engine
         virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) = 0;
         virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data)                            = 0;
         virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                      = 0;
-        virtual RHI_Viewport* create_viewport(RenderViewport* viewport, bool vsync)                       = 0;
+        virtual RHI_Viewport* create_viewport(RenderViewport* viewport)                                   = 0;
 
         virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
         virtual RHI& pop_global_params()                                                  = 0;

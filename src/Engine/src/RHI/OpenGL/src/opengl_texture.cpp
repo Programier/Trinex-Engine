@@ -147,7 +147,7 @@ namespace Engine
             glDepthMask(GL_TRUE);
             OPENGL_API->bind_render_target({}, this);
 
-            glClearDepth(depth);
+            glClearDepthf(depth);
             GLbitfield field = GL_DEPTH_BUFFER_BIT;
 
             if (m_format.m_format == GL_DEPTH_STENCIL)

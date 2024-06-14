@@ -50,7 +50,7 @@ namespace Engine::Platform
         return "Android";
     }
 
-    ENGINE_EXPORT Path find_root_directory(int_t argc, const char** argv)
+    ENGINE_EXPORT Path find_root_directory()
     {
         String path = Strings::format("/sdcard/TrinexGames/{}/", ConfigManager::get_string("Engine::project_name"));
         return path;

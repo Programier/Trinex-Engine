@@ -78,11 +78,6 @@ namespace Engine
         return VULKAN_VIEWPORT_ID;
     }
 
-    bool VulkanViewport::vsync()
-    {
-        return false;
-    }
-
     void VulkanViewport::vsync(bool flag)
     {}
 
@@ -126,13 +121,12 @@ namespace Engine
 
     // Window Viewport
 
-    VulkanViewport* VulkanWindowViewport::init(Window* window, bool vsync, bool need_initialize)
+    VulkanViewport* VulkanWindowViewport::init(RenderViewport* viewport, bool need_initialize)
     {
-        m_window  = window;
-        m_surface = need_initialize ? API->m_surface : API->create_surface(window);
+        m_viewport = viewport;
+        m_surface  = need_initialize ? API->m_surface : API->create_surface(viewport->window());
 
         VulkanViewport::init();
-        m_present_mode = API->present_mode_of(vsync);
         create_swapchain();
 
         if (need_initialize)
@@ -155,14 +149,8 @@ namespace Engine
         }
     }
 
-    bool VulkanWindowViewport::vsync()
-    {
-        return API->vsync_from_present_mode(m_present_mode);
-    }
-
     void VulkanWindowViewport::vsync(bool flag)
     {
-        m_present_mode             = API->present_mode_of(flag);
         m_need_recreate_swap_chain = true;
     }
 
@@ -199,7 +187,7 @@ namespace Engine
             swapchain_builder.set_old_swapchain(m_swapchain->swapchain);
         }
 
-        swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(m_present_mode));
+        swapchain_builder.set_desired_present_mode(static_cast<VkPresentModeKHR>(API->present_mode_of(m_viewport->vsync())));
 
         size_t images_count = API->m_framebuffers_count;
         swapchain_builder.set_desired_min_image_count(images_count).set_required_min_image_count(images_count);
@@ -234,19 +222,19 @@ namespace Engine
         auto images_result = m_swapchain->get_images();
         if (!images_result.has_value())
             throw EngineException(images_result.error().message());
-        m_images = std::move(images_result.value());
 
         auto image_views_result = m_swapchain->get_image_views();
         if (!image_views_result.has_value())
             throw EngineException(image_views_result.error().message());
         m_image_views = std::move(image_views_result.value());
 
-
         auto cmd = API->begin_single_time_command_buffer();
-        for (VkImage image : m_images)
+
+        for (VkImage image : images_result.value())
         {
             transition_swapchain_image(vk::Image(image), cmd);
         }
+
         API->end_single_time_command_buffer(cmd);
     }
 
@@ -334,7 +322,7 @@ namespace Engine
 
         ViewPort viewport;
         viewport.pos       = {0.f, 0.f};
-        viewport.size      = {static_cast<float>(m_swapchain->extent.width), static_cast<float>(m_swapchain->extent.height)};
+        viewport.size      = m_viewport->size();
         viewport.min_depth = 0.f;
         viewport.min_depth = 1.f;
         API->viewport(viewport);
@@ -384,7 +372,7 @@ namespace Engine
 
     // Creating Viewports
 
-    RHI_Viewport* VulkanAPI::create_viewport(RenderViewport* viewport, bool vsync)
+    RHI_Viewport* VulkanAPI::create_viewport(RenderViewport* viewport)
     {
         bool need_initialize = m_instance == nullptr;
         if (need_initialize)
@@ -393,7 +381,7 @@ namespace Engine
         }
 
         VulkanWindowViewport* vulkan_viewport = new VulkanWindowViewport();
-        vulkan_viewport->init(viewport->window(), vsync, need_initialize);
+        vulkan_viewport->init(viewport, need_initialize);
         return vulkan_viewport;
     }
 }// namespace Engine

@@ -204,8 +204,9 @@ namespace Engine
         }
 
         m_renderer.render(m_scene_view, viewport);
-
         viewport->rhi_bind();
+        // RenderSurface* surfaces[] = {SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR)};
+        // rhi->bind_render_target(surfaces, nullptr);
         viewport->window()->imgui_window()->render();
         return *this;
     }
@@ -303,8 +304,6 @@ namespace Engine
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
-        //m_world->update(dt);
-
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
 

@@ -61,8 +61,6 @@ namespace Engine
                 render_viewport->on_resize({x, y});
             }
         }
-
-        update_render_targets_size();
     }
 
     EventSystem::EventSystem()

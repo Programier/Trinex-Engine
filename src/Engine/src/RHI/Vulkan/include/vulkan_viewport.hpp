@@ -34,7 +34,6 @@ namespace Engine
 
         void on_resize(const Size2D& new_size) override;
         Identifier internal_type() override;
-        bool vsync() override;
         void vsync(bool flag) override;
 
         virtual VulkanRenderTargetBase* render_target();
@@ -43,17 +42,14 @@ namespace Engine
 
     class Window;
     struct VulkanWindowViewport : VulkanViewport {
-        std::vector<VkImage> m_images;
-
-        Window* m_window                                 = nullptr;
+        RenderViewport* m_viewport                       = nullptr;
         struct VulkanWindowRenderTarget* m_render_target = nullptr;
         vkb::Swapchain* m_swapchain                      = nullptr;
 
         vk::SurfaceKHR m_surface;
-        vk::PresentModeKHR m_present_mode;
         bool m_need_recreate_swap_chain = false;
 
-        VulkanViewport* init(Window* window, bool vsync, bool need_initialize);
+        VulkanViewport* init(RenderViewport* viewport, bool need_initialize);
 
         void create_main_render_target();
         void create_swapchain();
@@ -65,7 +61,6 @@ namespace Engine
         void begin_render() override;
         void end_render() override;
         void on_resize(const Size2D& new_size) override;
-        bool vsync() override;
         void vsync(bool flag) override;
         void bind() override;
         VulkanRenderTargetBase* render_target() override;

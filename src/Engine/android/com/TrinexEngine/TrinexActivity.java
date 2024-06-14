@@ -34,7 +34,7 @@ public class TrinexActivity extends NativeActivity
         display.getRealSize(display_real_size);
         int screen_width       = display_real_size.x;
         int screen_height      = display_real_size.y;
-        String cache_dir       = getcache_dir().toString();
+        String cache_dir       = "None";
         String executable_path = getApplicationInfo().nativeLibraryDir + "/libTrinexEngine.so";
 
         initializePlatformInfo(app_package_name, device_manufacturer, device_model, device_build_number, system_version,
