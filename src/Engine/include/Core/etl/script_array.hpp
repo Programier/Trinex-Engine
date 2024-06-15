@@ -3,9 +3,10 @@
 #include <Core/etl/constexpr_string.hpp>
 #include <Core/exception.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/script_engine.hpp>
-#include <angelscript.h>
-#include <scriptarray.h>
+
+class CScriptArray;
+class asIScriptEngine;
+class asITypeInfo;
 
 namespace Engine
 {
@@ -19,8 +20,45 @@ namespace Engine
         fail_ret;                                                                                                                \
     }
 
+    class ENGINE_EXPORT ScriptArrayBase
+    {
+    public:
+        using size_type       = size_t;
+        using difference_type = ptrdiff_t;
+
+    protected:
+        CScriptArray* m_as_array;
+
+        virtual const String& full_declaration() = 0;
+
+    protected:
+        int find_object_type_id();
+        asITypeInfo* find_object_type();
+
+        void insert_last(const void* ptr);
+        void* element_at(size_type pos) const;
+
+        void do_copy(const ScriptArrayBase* from);
+        void do_move(ScriptArrayBase* from);
+
+    public:
+        ScriptArrayBase();
+
+        bool create(size_type init_size = 0);
+        bool attach(CScriptArray* array, bool add_reference = true);
+        ScriptArrayBase& release();
+        CScriptArray* ref(bool inc_ref_count = false);
+        size_type size() const;
+        ScriptArrayBase& resize(size_type n);
+        bool empty() const;
+        ScriptArrayBase& reserve(size_type n);
+
+
+        virtual ~ScriptArrayBase();
+    };
+
     template<class T, ConstexprString declaration>
-    class ScriptArray
+    class ScriptArray : public ScriptArrayBase
     {
     public:
         using value_type      = T;
@@ -28,37 +66,13 @@ namespace Engine
         using const_pointer   = const T*;
         using reference       = T&;
         using const_reference = const T&;
-        using size_type       = size_t;
-        using difference_type = ptrdiff_t;
 
 
-    private:
-        static asIScriptEngine* engine()
-        {
-            ScriptEngine* script_engine = ScriptEngine::instance();
-            if (script_engine)
-            {
-                return script_engine->as_engine();
-            }
-
-            return nullptr;
-        }
-
-        static const String& full_declaration()
+    protected:
+        const String& full_declaration() override
         {
             static String result = Strings::format("array<{}>", declaration.c_str());
             return result;
-        }
-
-        static int find_object_type_id()
-        {
-            return engine()->GetTypeIdByDecl(full_declaration().c_str());
-        }
-
-        static asITypeInfo* find_object_type()
-        {
-            auto id = find_object_type_id();
-            return engine()->GetTypeInfoById(id);
         }
 
     public:
@@ -181,91 +195,35 @@ namespace Engine
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        ScriptArray() : m_as_array(NULL)
-        {}
+        ScriptArray() = default;
 
-        ~ScriptArray()
+        ScriptArray(const ScriptArray& other)
         {
-            release();
+            do_copy(&other);
         }
 
-        bool create(size_type init_size = 0)
+        ScriptArray(ScriptArray&& other)
         {
-            asITypeInfo* info = find_object_type();
-            if (info == nullptr)
-                return false;
-            CScriptArray* array = CScriptArray::Create(info, init_size);
-            bool result         = attach(array, false);
-            if (!result)
-            {
-                array->Release();
-            }
-
-            return result;
+            do_move(&other);
         }
 
-        bool attach(CScriptArray* array, bool add_reference = true)
+        ScriptArray& operator=(const ScriptArray& other)
         {
-            if (array->GetArrayTypeId() != find_object_type_id())
-                return false;
-
-            release();
-
-            if (add_reference)
-            {
-                array->AddRef();
-            }
-
-            m_as_array = array;
-            return true;
+            if (this == &other)
+                return *this;
+            do_copy(&other);
+            return *this;
         }
 
-        void release()
+        ScriptArray& operator=(ScriptArray& other)
         {
-            if (m_as_array && engine())
-            {
-                m_as_array->Release();
-                m_as_array = nullptr;
-            }
+            if (this == &other)
+                return *this;
+            do_move(&other);
+            return *this;
         }
 
-        CScriptArray* ref(bool inc_ref_count = false)
-        {
-            if (m_as_array == nullptr)
-                return nullptr;
-
-            if (inc_ref_count)
-            {
-                m_as_array->AddRef();
-            }
-
-            return m_as_array;
-        }
-
-        size_type size() const
-        {
-            if (m_as_array == nullptr)
-                return 0;
-            return static_cast<size_type>(m_as_array->GetSize());
-        }
-
-        void resize(size_type n)
-        {
-            script_array_init_check();
-            m_as_array->Resize(n);
-        }
-
-        bool empty() const
-        {
-            script_array_init_check(true);
-            return m_as_array->IsEmpty();
-        }
-
-        void reserve(size_type n)
-        {
-            script_array_init_check();
-            m_as_array->Reserve(n);
-        }
+        using ScriptArrayBase::create;
 
         iterator begin()
         {
@@ -329,41 +287,22 @@ namespace Engine
 
         reference operator[](size_type index)
         {
-            script_array_init_check_noret(throw EngineException("Array is not initialized!"));
-            pointer element = reinterpret_cast<pointer>(m_as_array->At(index));
-            return (*element);
+            return at(index);
         }
 
         const_reference operator[](size_type index) const
         {
-            script_array_init_check_noret(throw EngineException("Array is not initialized!"));
-            pointer element = reinterpret_cast<pointer>(m_as_array->At(index));
-            return (*element);
+            return at(index);
         }
 
         reference at(size_type index)
         {
-
-            assert((m_as_array != NULL) && "InitArray() must be called before use.");
-
-            pointer element = (pointer) m_as_array->At(index);
-            if (element == NULL)
-            {
-                throw std::out_of_range("pos out of range");
-            }
-            return (*element);
+            return (*reinterpret_cast<pointer>(element_at(index)));
         }
 
         const_reference at(size_type index) const
         {
-            script_array_init_check_noret(throw EngineException("Array is not initialized!"));
-            const_pointer element = reinterpret_cast<const_pointer>(m_as_array->At(index));
-
-            if (element == nullptr)
-            {
-                throw EngineException("Index out of range");
-            }
-            return (*element);
+            return (*reinterpret_cast<const_pointer>(element_at(index)));
         }
 
         reference front()
@@ -386,15 +325,16 @@ namespace Engine
             return (*this)[size() - 1];
         }
 
-        void push_back(const value_type& val)
+        ScriptArray& push_back(const value_type& value)
         {
-            script_array_init_check();
-            m_as_array->InsertLast((void*) &val);
+            insert_last(&value);
+            return *this;
         }
 
-        void pop_back()
+        ScriptArray& pop_back()
         {
             resize(size() - 1);
+            return *this;
         }
 
         template<class InputIterator>
@@ -421,9 +361,6 @@ namespace Engine
         {
             resize(0);
         }
-
-    private:
-        CScriptArray* m_as_array;
     };
 
 #undef script_array_init_check

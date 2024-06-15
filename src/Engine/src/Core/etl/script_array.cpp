@@ -1,0 +1,163 @@
+#include <Core/etl/script_array.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <angelscript.h>
+#include <scriptarray.h>
+
+namespace Engine
+{
+#define script_array_init_check(fail_ret)                                                                                        \
+    if (m_as_array == nullptr)                                                                                                   \
+        return fail_ret;
+
+    static FORCE_INLINE asIScriptEngine* engine()
+    {
+        ScriptEngine* script_engine = ScriptEngine::instance();
+        if (script_engine)
+        {
+            return script_engine->as_engine();
+        }
+
+        return nullptr;
+    }
+
+    int ScriptArrayBase::find_object_type_id()
+    {
+        return engine()->GetTypeIdByDecl(full_declaration().c_str());
+    }
+
+    asITypeInfo* ScriptArrayBase::find_object_type()
+    {
+        auto id = find_object_type_id();
+        return engine()->GetTypeInfoById(id);
+    }
+
+    void ScriptArrayBase::insert_last(const void* ptr)
+    {
+        script_array_init_check();
+        m_as_array->InsertLast(const_cast<void*>(ptr));
+    }
+
+    void* ScriptArrayBase::element_at(size_type pos) const
+    {
+        script_array_init_check(nullptr);
+        void* result = m_as_array->At(static_cast<asUINT>(pos));
+        if (result == nullptr)
+        {
+            throw EngineException("Position out of range");
+        }
+        return result;
+    }
+
+    void ScriptArrayBase::do_copy(const ScriptArrayBase* from)
+    {
+        if (from->m_as_array == nullptr)
+        {
+            release();
+            return;
+        }
+
+        if (m_as_array == nullptr)
+        {
+            create();
+        }
+
+        if (m_as_array)
+        {
+            (*m_as_array) = (*(from->m_as_array));
+        }
+    }
+
+    void ScriptArrayBase::do_move(ScriptArrayBase* from)
+    {
+        m_as_array       = from->m_as_array;
+        from->m_as_array = nullptr;
+    }
+
+    ScriptArrayBase::ScriptArrayBase() : m_as_array(nullptr)
+    {}
+
+    bool ScriptArrayBase::create(size_type init_size)
+    {
+        asITypeInfo* info = find_object_type();
+        if (info == nullptr)
+            return false;
+        CScriptArray* array = CScriptArray::Create(info, init_size);
+        bool result         = attach(array, false);
+        if (!result)
+        {
+            array->Release();
+        }
+
+        return result;
+    }
+
+    bool ScriptArrayBase::attach(CScriptArray* array, bool add_reference)
+    {
+        if (array->GetArrayTypeId() != find_object_type_id())
+            return false;
+
+        release();
+
+        if (add_reference)
+        {
+            array->AddRef();
+        }
+
+        m_as_array = array;
+        return true;
+    }
+
+    ScriptArrayBase& ScriptArrayBase::release()
+    {
+        if (m_as_array && engine())
+        {
+            m_as_array->Release();
+            m_as_array = nullptr;
+        }
+        return *this;
+    }
+
+    CScriptArray* ScriptArrayBase::ref(bool inc_ref_count)
+    {
+        if (m_as_array == nullptr)
+            return nullptr;
+
+        if (inc_ref_count)
+        {
+            m_as_array->AddRef();
+        }
+
+        return m_as_array;
+    }
+
+    ScriptArrayBase::size_type ScriptArrayBase::size() const
+    {
+        script_array_init_check(0);
+        return static_cast<size_type>(m_as_array->GetSize());
+    }
+
+    ScriptArrayBase& ScriptArrayBase::resize(size_type new_size)
+    {
+        script_array_init_check(*this);
+        m_as_array->Resize(new_size);
+        return *this;
+    }
+
+    bool ScriptArrayBase::empty() const
+    {
+        script_array_init_check(true);
+        return m_as_array->IsEmpty();
+    }
+
+    ScriptArrayBase& ScriptArrayBase::reserve(size_type n)
+    {
+        script_array_init_check(*this);
+        m_as_array->Reserve(n);
+        return *this;
+    }
+
+    ScriptArrayBase::~ScriptArrayBase()
+    {
+        release();
+    }
+}// namespace Engine
