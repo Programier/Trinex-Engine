@@ -1,8 +1,8 @@
 #include <Core/archive.hpp>
 #include <Core/class.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/file_manager.hpp>
 #include <Core/property.hpp>
+#include <Engine/project.hpp>
 #include <Graphics/shader_material.hpp>
 
 
@@ -15,7 +15,7 @@ namespace Engine
 
         path_prop->on_prop_changed.push([](void* object) {
             ShaderMaterial* material = reinterpret_cast<ShaderMaterial*>(object);
-            material->shader_path    = material->shader_path.relative(ConfigManager::get_string("Engine::shaders_dir"));
+            material->shader_path    = material->shader_path.relative(Project::shaders_dir);
         });
 
         self->add_property(path_prop);
@@ -23,7 +23,7 @@ namespace Engine
 
     bool ShaderMaterial::shader_source(String& out_source)
     {
-        FileReader reader(Path(ConfigManager::get_string("Engine::shaders_dir")) / shader_path);
+        FileReader reader(Path(Project::shaders_dir) / shader_path);
         if (reader.is_open())
         {
             out_source = reader.read_string();

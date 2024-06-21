@@ -1,11 +1,11 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/logger.hpp>
 #include <Core/object.hpp>
 #include <Core/package.hpp>
 #include <Core/property.hpp>
+#include <Engine/settings.hpp>
 
 #define DISABLE_GC 1
 
@@ -51,17 +51,7 @@ namespace Engine
 
     static FORCE_INLINE uint32_t get_max_objects_per_tick()
     {
-        static uint32_t objects_count = 0;
-        static float last_update_time = -1.f;
-
-        float current_time = engine_instance->time_seconds();
-
-        if (last_update_time < 0.f || (current_time - last_update_time) > 5.f)
-        {
-            objects_count = glm::max<uint32_t>(1, ConfigManager::get_int("Engine::gc_max_object_per_tick"));
-        }
-
-        return objects_count;
+        return glm::max<uint32_t>(1, Settings::e_gc_max_object_per_tick);
     }
 
 

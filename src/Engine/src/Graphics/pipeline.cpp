@@ -1,7 +1,6 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/enum.hpp>
 #include <Core/file_manager.hpp>
@@ -9,6 +8,8 @@
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
 #include <Core/threading.hpp>
+#include <Engine/project.hpp>
+#include <Engine/settings.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
@@ -571,8 +572,7 @@ namespace Engine
         // Loading shaders from shader cache
         String material_name = material_object->full_name(true);
 
-        Path path = Strings::format("{}{}{}{}{}{}", ConfigManager::get_string("Engine::shader_cache_dir"), Path::separator,
-                                    ConfigManager::get_string("Engine::api"), Path::separator,
+        Path path = Strings::format("{}{}{}{}{}{}", Project::shader_cache_dir, Path::separator, Settings::e_api, Path::separator,
                                     Strings::replace_all(material_name, Constants::name_separator, Path::sv_separator),
                                     Constants::shader_extention);
 

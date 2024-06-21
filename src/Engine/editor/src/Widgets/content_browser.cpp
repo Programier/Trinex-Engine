@@ -1,9 +1,9 @@
 #include <Core/class.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/filesystem/directory_iterator.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/package.hpp>
+#include <Engine/project.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
@@ -112,11 +112,11 @@ namespace Engine
             Flags<ImGuiOpenFile::Flag> flags = Flags(ImGuiOpenFile::MultipleSelection);
             auto window = ImGuiRenderer::Window::current()->window_list.create_identified<ImGuiOpenFile>(this, flags);
             window->on_select.push([](const Path& path) {
-                Path relative = path.relative(ConfigManager::get_path("Engine::assets_dir"));
+                Path relative = path.relative(Project::assets_dir);
                 Object::load_object_from_file(relative);
             });
             window->type_filters({Constants::asset_extention});
-            window->pwd(ConfigManager::get_path("Engine::assets_dir"));
+            window->pwd(Project::assets_dir);
         }
 
         ImGui::SameLine();

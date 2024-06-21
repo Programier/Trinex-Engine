@@ -1,15 +1,9 @@
 #pragma once
 #include <Core/engine_types.hpp>
 
-namespace Engine
+namespace Engine::Settings
 {
-    struct EditorConfig {
-        Path font_path;
-        float font_size;
-        float collapsing_indent;
-
-        EditorConfig& update();
-    };
-
-    extern EditorConfig editor_config;
-}// namespace Engine
+    extern String ed_font_path;
+    extern float ed_font_size;
+    extern float ed_collapsing_indent;
+}// namespace Engine::Settings

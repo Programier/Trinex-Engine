@@ -58,10 +58,11 @@ namespace Engine
         ScriptEngine& default_namespace(const String& name);
         ScriptEngine& default_namespace(const char* ns);
         String default_namespace() const;
-        ScriptEngine& register_property(const char* declaration, void* data);
-        ScriptEngine& register_property(const String& declaration, void* data);
+        int_t register_property(const char* declaration, void* data);
+        int_t register_property(const String& declaration, void* data);
         ScriptModule global_module() const;
         ScriptModule create_module(const String& name, EnumerateType flags = 0) const;
+        ScriptModule create_module(const char* name, EnumerateType flags = 0) const;
         ScriptModule module(uint_t index);
         uint_t module_count() const;
         String to_string(const void* object, int_t type_id) const;
@@ -86,6 +87,9 @@ namespace Engine
 
         uint_t object_type_count() const;
         ScriptTypeInfo object_type_by_index(uint_t index) const;
+
+        bool exec_string(const String& line) const;
+        bool exec_string(const char* line) const;
 
         // Enums
         uint_t enum_count() const;

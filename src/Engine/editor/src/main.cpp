@@ -10,8 +10,8 @@
 
 static void load_configs()
 {
-    Engine::ConfigManager::load_from_file("editor.config");
-    Engine::editor_config.update();
+    // Engine::ConfigManager::load_from_file("editor.config");
+    // Engine::editor_config.update();
 }
 
 static Engine::ConfigsPreInitializeController preinitialize_controller([]() {

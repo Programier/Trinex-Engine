@@ -12,7 +12,7 @@
 
 namespace Engine
 {
-    implement_struct(Engine, MeshMaterial, 0).push([]() {
+    implement_struct(Engine, MeshMaterial, ).push([]() {
         Struct* self      = Struct::static_find("Engine::MeshMaterial", true);
         Enum* policy_enum = Enum::static_find("Engine::RenderingPolicy", true);
 

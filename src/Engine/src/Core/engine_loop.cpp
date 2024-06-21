@@ -3,12 +3,15 @@
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
+#include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/library.hpp>
 #include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Core/threading.hpp>
+#include <Engine/project.hpp>
+#include <Engine/settings.hpp>
 #include <Engine/splash_screen.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/rhi.hpp>
@@ -44,8 +47,7 @@ namespace Engine
 
     static bool init_api()
     {
-
-        String api = ConfigManager::get_string("Engine::api");
+        String api = Settings::e_api;
         if (!api.empty())
         {
             rhi = reinterpret_cast<RHI*>(
@@ -65,6 +67,17 @@ namespace Engine
         return false;
     }
 
+    static void initialize_filesystem()
+    {
+        auto vfs                       = VFS::RootFS::create_instance();
+        VFS::NativeFileSystem* exec_fs = new VFS::NativeFileSystem(Platform::find_exec_directory());
+
+        vfs->mount("[ExecDir]:", exec_fs, [](VFS::FileSystem* system) { delete system; });
+        vfs->mount("", exec_fs);// Temporary root directory is mounted to exec directory
+
+        Platform::bind_platform_mount_points();
+    }
+
     int_t EngineLoop::preinit(int_t argc, const char** argv)
     {
         info_log("TrinexEngine", "Start engine!");
@@ -73,22 +86,24 @@ namespace Engine
         arguments.init(argc, argv);
 
         PreInitializeController().execute();
+        initialize_filesystem();
 
-        // Initialize script engine and load reflections
         ScriptEngine::initialize();
+        Project::initialize();
 
         ReflectionInitializeController().execute();
 
         ConfigsPreInitializeController().execute();
-        VFS::RootFS::create_instance(Platform::find_root_directory());
         ConfigManager::initialize();
 
 
         // Load libraries
         {
-            Vector<String> external_system_libraries = ConfigManager::get_string_array("Engine::libs");
+            auto begin = Settings::e_libs.begin();
+            auto end = Settings::e_libs.end();
 
-            for (const String& library : external_system_libraries)
+            auto status = begin == end;
+            for (const String& library : Settings::e_libs)
             {
                 Library().load(library);
             }
@@ -96,7 +111,7 @@ namespace Engine
 
         create_threads();
 
-        Class* engine_class = Class::static_find(ConfigManager::get_string("Engine::engine"), true);
+        Class* engine_class = Class::static_find(Settings::e_engine, true);
         Object* object      = engine_class->create_object();
 
         if (object)
@@ -123,13 +138,13 @@ namespace Engine
                 return result;
         }
 
-        bool show_splash = ConfigManager::get_bool("Engine::Splash::show");
+        bool show_splash = Settings::e_show_splash;
 
         if (show_splash)
         {
             Engine::show_splash_screen();
-            Engine::splash_screen_text(Engine::SplashTextType::GameName, ConfigManager::get_string("Engine::project_name"));
-            Engine::splash_screen_text(Engine::SplashTextType::VersionInfo, ConfigManager::get_string("Engine::version"));
+            Engine::splash_screen_text(Engine::SplashTextType::GameName, Project::name);
+            Engine::splash_screen_text(Engine::SplashTextType::VersionInfo, Project::version);
             Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
         }
 
@@ -193,7 +208,7 @@ namespace Engine
 
         if (rhi)
         {
-            // Cannot delete rhi in logic thread, becouse the gpu resources can be used now
+            // Cannot delete rhi in logic thread, because the gpu resources can be used now
             // So, delete it on render thread
             render_thread()->insert_new_task<DestroyRHI_Task>();
             render_thread()->wait_all();

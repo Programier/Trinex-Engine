@@ -1,6 +1,7 @@
 #include <Core/base_engine.hpp>
 #include <Core/engine_loop.hpp>
 #include <Core/export.hpp>
+#include <Core/logger.hpp>
 #include <Core/thread.hpp>
 #include <Platform/platform.hpp>
 
@@ -27,6 +28,6 @@ try
 }
 catch (std::exception& e)
 {
-    printf("Exception: %s\n", e.what());
+    error_log("EXCEPTION", "%s", e.what());
     return 1;
 }

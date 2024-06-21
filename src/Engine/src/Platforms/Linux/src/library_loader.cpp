@@ -1,6 +1,7 @@
 #include <Core/config_manager.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
+#include <Engine/project.hpp>
 #include <Platform/platform.hpp>
 #include <dlfcn.h>
 
@@ -24,7 +25,7 @@ namespace Engine::Platform::LibraryLoader
 
         if (mode == Engine)
         {
-            Path new_path = Path(ConfigManager::get_string("Engine::libraries_dir")) / path;
+            Path new_path = Path(Project::libraries_dir) / path;
             auto entry    = rootfs()->find_filesystem(new_path);
             if (entry.first == nullptr || entry.first->type() != VFS::FileSystem::Type::Native)
                 return path.filename();
@@ -67,7 +68,7 @@ namespace Engine::Platform::LibraryLoader
             ld_library_path.push_back(':');
         }
 
-        Path result = Platform::find_root_directory() / ConfigManager::get_path("Engine::libraries_dir");
+        Path result = Platform::find_exec_directory() / Path(Project::libraries_dir);
         ld_library_path += result.path();
 
         setenv("LD_LIBRARY_PATH", ld_library_path.c_str(), 1);

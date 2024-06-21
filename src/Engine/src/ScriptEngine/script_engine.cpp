@@ -9,6 +9,7 @@
 #include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
+#include <scripthelper.h>
 
 #if ARCH_ARM
 #include "jit_compiler/arm64/compiler.hpp"
@@ -192,13 +193,12 @@ namespace Engine
         return m_engine->GetDefaultNamespace();
     }
 
-    ScriptEngine& ScriptEngine::register_property(const char* declaration, void* data)
+    int_t ScriptEngine::register_property(const char* declaration, void* data)
     {
-        m_engine->RegisterGlobalProperty(declaration, data);
-        return *this;
+        return m_engine->RegisterGlobalProperty(declaration, data);
     }
 
-    ScriptEngine& ScriptEngine::register_property(const String& declaration, void* data)
+    int_t ScriptEngine::register_property(const String& declaration, void* data)
     {
         return register_property(declaration.c_str(), data);
     }
@@ -210,17 +210,22 @@ namespace Engine
 
     ScriptModule ScriptEngine::create_module(const String& name, EnumerateType flags) const
     {
+        return create_module(name.c_str(), flags);
+    }
+
+    ScriptModule ScriptEngine::create_module(const char* name, EnumerateType flags) const
+    {
         using MFlags = ScriptModule::ModuleFlags;
 
         MFlags module_flags = static_cast<MFlags>(flags);
         switch (module_flags)
         {
             case MFlags::CreateIfNotExists:
-                return m_engine->GetModule(name.c_str(), asGM_CREATE_IF_NOT_EXISTS);
+                return m_engine->GetModule(name, asGM_CREATE_IF_NOT_EXISTS);
             case MFlags::OnlyIfExists:
-                return m_engine->GetModule(name.c_str(), asGM_ONLY_IF_EXISTS);
+                return m_engine->GetModule(name, asGM_ONLY_IF_EXISTS);
             case MFlags::AlwaysCreate:
-                return m_engine->GetModule(name.c_str(), asGM_ALWAYS_CREATE);
+                return m_engine->GetModule(name, asGM_ALWAYS_CREATE);
             default:
                 return ScriptModule();
         }
@@ -333,6 +338,16 @@ namespace Engine
     ScriptTypeInfo ScriptEngine::object_type_by_index(uint_t index) const
     {
         return ScriptTypeInfo(m_engine->GetObjectTypeByIndex(index)).bind();
+    }
+
+    bool ScriptEngine::exec_string(const String& line) const
+    {
+        return exec_string(line.c_str());
+    }
+
+    bool ScriptEngine::exec_string(const char* line) const
+    {
+        return ExecuteString(m_engine, line) >= 0;
     }
 
     // Enums

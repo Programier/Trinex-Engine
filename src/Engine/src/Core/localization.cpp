@@ -1,4 +1,3 @@
-#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/file_manager.hpp>
@@ -7,6 +6,8 @@
 #include <Core/logger.hpp>
 #include <Core/memory.hpp>
 #include <Core/object.hpp>
+#include <Engine/project.hpp>
+#include <Engine/settings.hpp>
 #include <regex>
 #include <sstream>
 
@@ -47,19 +48,14 @@ namespace Engine
 
     const String& Localization::language() const
     {
-        if (m_current_language.empty())
-        {
-            m_current_language = ConfigManager::get_string("Engine::current_language");
-        }
-        return m_current_language;
+        return Settings::e_current_language;
     }
 
     Localization& Localization::language(const StringView& lang)
     {
         if (language() == lang)
             return *this;
-
-        ConfigManager::set("Engine::current_language", lang);
+        Settings::e_current_language = lang;
         reload();
         on_language_changed.trigger();
         return *this;
@@ -123,15 +119,14 @@ namespace Engine
 
     Localization& Localization::reload(bool clear, bool with_default)
     {
-        m_current_language    = ConfigManager::get_string("Engine::current_language");
-        Path localization_dir = ConfigManager::get_string("Engine::localization_dir");
+        Path localization_dir = Project::localization_dir;
 
         if (with_default)
         {
             if (clear)
                 m_default_translation_map.clear();
 
-            Path path = localization_dir / ConfigManager::get_string("Engine::default_language");
+            Path path = localization_dir / Path(Settings::e_default_language);
             load_localization(m_default_translation_map, path);
         }
 

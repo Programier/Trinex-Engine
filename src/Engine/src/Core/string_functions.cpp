@@ -37,39 +37,32 @@ namespace Engine::Strings
         return buffer;
     }
 
-    ENGINE_EXPORT String lstrip(String line, const String& chars)
+    ENGINE_EXPORT StringView lstrip(const StringView& line, const StringView& chars)
     {
-        while (line.starts_with(chars))
-        {
-            line = line.substr(chars.length(), line.length() - chars.length());
-        }
-
+        StringView::size_type start = line.find_first_not_of(chars);
+        return (start == StringView::npos) ? "" : line.substr(start, line.size() - start);
         return line;
     }
 
-    ENGINE_EXPORT String rstrip(String line, const String& chars)
+    ENGINE_EXPORT StringView rstrip(const StringView& line, const StringView& chars)
     {
-        while (line.ends_with(chars))
-        {
-            line = line.substr(0, line.length() - chars.length());
-        }
-        return line;
+        StringView::size_type end = line.find_last_not_of(chars);
+        return end == StringView::npos ? "" : line.substr(0, end + 1);
     }
 
-    ENGINE_EXPORT String lstrip(String line, bool (*callback)(char ch))
+    ENGINE_EXPORT StringView lstrip(const StringView& line, bool (*callback)(char ch))
     {
-        String::size_type pos = 0;
+        StringView::size_type pos = 0;
         while (pos < line.size() && callback(line[pos])) pos++;
         return line.substr(pos, line.length() - pos);
     }
 
-    ENGINE_EXPORT String rstrip(String line, bool (*callback)(char ch))
+    ENGINE_EXPORT StringView rstrip(const StringView& line, bool (*callback)(char ch))
     {
-        String::size_type pos = line.size() - 1;
+        StringView::size_type pos = line.size() - 1;
         while (pos > 0 && callback(line[pos])) pos--;
         if (pos == 0 && callback(line[pos]))
             return "";
-
         return line.substr(0, pos + 1);
     }
 
@@ -284,4 +277,30 @@ namespace Engine::Strings
         return static_cast<int_t>(::strtof(text, nullptr));
     }
 
+    ENGINE_EXPORT bool read_line(StringView& stream, StringView& out)
+    {
+        if (stream.empty())
+            return false;
+
+        if (read_line(stream, out, '\n'))
+            return true;
+
+        out = stream;
+        stream.remove_prefix(stream.size());
+        return true;
+    }
+
+    ENGINE_EXPORT bool read_line(StringView& stream, StringView& out, char separator)
+    {
+        size_t pos = stream.find(separator);
+
+        if (pos == StringView::npos)
+        {
+            return false;
+        }
+
+        out = stream.substr(0, pos);
+        stream.remove_prefix(pos + 1);
+        return true;
+    }
 }// namespace Engine::Strings

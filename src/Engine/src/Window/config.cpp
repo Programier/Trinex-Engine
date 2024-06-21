@@ -1,7 +1,7 @@
 #include <Core/arguments.hpp>
 #include <Core/base_engine.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/string_functions.hpp>
+#include <Engine/settings.hpp>
 #include <Window/config.hpp>
 
 namespace Engine
@@ -26,16 +26,16 @@ namespace Engine
 
     WindowConfig& WindowConfig::initialize()
     {
-        attributes   = to_set<WindowAttribute>(ConfigManager::get_int_array("Window::attributes"));
-        orientations = to_set<WindowOrientation>(ConfigManager::get_int_array("Window::orientations"));
-        title        = ConfigManager::get_string("Window::title");
-        api_name     = ConfigManager::get_string("Engine::api");
-        client       = ConfigManager::get_string("Window::client");
-        size.x       = ConfigManager::get_float("Window::size_x");
-        size.y       = ConfigManager::get_float("Window::size_y");
-        position.x   = ConfigManager::get_float("Window::pos_x");
-        position.y   = ConfigManager::get_float("Window::pos_y");
-        vsync        = ConfigManager::get_bool("Window::vsync");
+        attributes   = Settings::w_attributes.to_set<decltype(attributes)>();
+        orientations = Settings::w_attributes.to_set<decltype(orientations)>();
+        title        = Settings::w_title;
+        api_name     = Settings::e_api;
+        client       = Settings::w_client;
+        size.x       = Settings::w_size_x;
+        size.y       = Settings::w_size_y;
+        position.x   = Settings::w_pos_x;
+        position.y   = Settings::w_pos_y;
+        vsync        = Settings::w_vsync;
         return *this;
     }
 

@@ -7,9 +7,9 @@
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
+#include <editor_config.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
-#include <editor_config.hpp>
 #include <editor_resources.hpp>
 #include <icons.hpp>
 #include <imfilebrowser.h>
@@ -341,9 +341,9 @@ namespace Engine
                 if (props_collapsing_header(prop, prop->name().c_str()))
                 {
                     push_props_id(object, prop);
-                    ImGui::Indent(editor_config.collapsing_indent);
+                    ImGui::Indent(Settings::ed_collapsing_indent);
                     render_struct_properties(window, object, struct_class, can_edit, true);
-                    ImGui::Unindent(editor_config.collapsing_indent);
+                    ImGui::Unindent(Settings::ed_collapsing_indent);
                     pop_props_id();
                 }
             }
@@ -419,9 +419,9 @@ namespace Engine
             if (props_collapsing_header(prop, prop->name().c_str()))
             {
                 push_props_id(object, prop);
-                ImGui::Indent(editor_config.collapsing_indent);
+                ImGui::Indent(Settings::ed_collapsing_indent);
                 is_changed = render_struct_properties(window, struct_object, struct_class, can_edit, true);
-                ImGui::Unindent(editor_config.collapsing_indent);
+                ImGui::Unindent(Settings::ed_collapsing_indent);
                 pop_props_id();
 
                 if (is_changed)
@@ -454,7 +454,7 @@ namespace Engine
 
         if (props_collapsing_header(prop, prop->name().c_str()))
         {
-            ImGui::Indent(editor_config.collapsing_indent);
+            ImGui::Indent(Settings::ed_collapsing_indent);
             Property* element_property = interface->element_type();
 
             size_t count = interface->elements_count(object);
@@ -486,7 +486,7 @@ namespace Engine
             }
 
             element_property->name(name);
-            ImGui::Unindent(editor_config.collapsing_indent);
+            ImGui::Unindent(Settings::ed_collapsing_indent);
         }
 
         if (is_changed)
@@ -609,7 +609,7 @@ namespace Engine
             {
                 ImGui::TableNextRow();
                 open = props_collapsing_header(group.c_str(), group.c_str());
-                ImGui::Indent(editor_config.collapsing_indent);
+                ImGui::Indent(Settings::ed_collapsing_indent);
             }
 
             if (open)
@@ -624,7 +624,7 @@ namespace Engine
 
             if (group != Name::none)
             {
-                ImGui::Unindent(editor_config.collapsing_indent);
+                ImGui::Unindent(Settings::ed_collapsing_indent);
             }
         }
 

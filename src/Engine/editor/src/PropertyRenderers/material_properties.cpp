@@ -204,7 +204,7 @@ namespace Engine
         ImGui::TableSetColumnIndex(0);
         if (window->collapsing_header(reinterpret_cast<const void*>(&renderer), "%s", "editor/Parameters"_localized))
         {
-            ImGui::Indent(editor_config.collapsing_indent);
+            ImGui::Indent(Settings::ed_collapsing_indent);
 
             for (auto& param : material->material()->parameters())
             {
@@ -222,7 +222,7 @@ namespace Engine
                 }
                 ImGui::PopID();
             }
-            ImGui::Unindent(editor_config.collapsing_indent);
+            ImGui::Unindent(Settings::ed_collapsing_indent);
         }
     }
 

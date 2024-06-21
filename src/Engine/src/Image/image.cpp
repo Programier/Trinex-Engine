@@ -263,7 +263,8 @@ namespace Engine
 
     Image& Image::create(const Size2D& size, uint_t channels, Buffer&& buffer)
     {
-        if (static_cast<int_t>(size.x) * static_cast<int_t>(size.y) * channels != static_cast<int_t>(buffer.size()))
+        if (static_cast<int_t>(size.x) * static_cast<int_t>(size.y) * static_cast<int_t>(channels) !=
+            static_cast<int_t>(buffer.size()))
         {
             throw EngineException("Image: Invalid buffer size");
         }

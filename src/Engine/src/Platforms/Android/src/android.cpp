@@ -50,11 +50,15 @@ namespace Engine::Platform
         return "Android";
     }
 
-    ENGINE_EXPORT Path find_root_directory()
+    ENGINE_EXPORT Path find_exec_directory()
     {
         String path = Strings::format("/sdcard/TrinexGames/{}/", ConfigManager::get_string("Engine::project_name"));
         return path;
     }
+
+    ENGINE_EXPORT void bind_platform_mount_points()
+    {}
+
 
     ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()
     {

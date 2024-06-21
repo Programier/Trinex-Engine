@@ -24,32 +24,8 @@ namespace Engine::VFS
 
     RootFS* RootFS::m_instance = nullptr;
 
-
-    static void destroy_fs(FileSystem* fs)
-    {
-        delete fs;
-    }
-
-    RootFS::RootFS(const Path& native_path)
-    {
-        if (!native_path.empty())
-        {
-            mount("", new NativeFileSystem(native_path), destroy_fs);
-            std::filesystem::current_path(native_path.str());
-        }
-        else
-        {
-            mount("", new NativeFileSystem("./"), destroy_fs);
-        }
-
-        // Mount platform hard drives
-        Vector<Pair<Path, Path>> hard_drives = Platform::hard_drives();
-
-        for (auto& pair : hard_drives)
-        {
-            mount(pair.first, new NativeFileSystem(pair.second));
-        }
-    }
+    RootFS::RootFS()
+    {}
 
     RootFS::~RootFS()
     {
@@ -83,7 +59,7 @@ namespace Engine::VFS
     {
         FileSystem* system = it->second;
         m_file_systems.erase(it);
-        system->m_mount_point   = {};
+        system->m_mount_point    = {};
         UnMountCallback callback = std::move(system->m_on_unmount);
 
         if (callback)
@@ -129,7 +105,7 @@ namespace Engine::VFS
     Pair<FileSystem*, Path> RootFS::find_filesystem(const Path& path) const
     {
         static auto next_symbol_of = [](const Path& path, const String& fs_path) -> char {
-            if(fs_path.back() == Path::separator)
+            if (fs_path.back() == Path::separator)
                 return Path::separator;
 
             if (path.length() <= fs_path.length())

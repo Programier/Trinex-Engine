@@ -1,556 +1,488 @@
 #include <Core/config_manager.hpp>
-#include <Core/exception.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <Core/file_manager.hpp>
-#include <Core/object.hpp>
+#include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
+#include <Engine/project.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <ScriptEngine/script_type_info.hpp>
-#include <scriptarray.h>
+#include <angelscript.h>
 
 namespace Engine
 {
-    static constexpr inline const char* section_name        = "__TRINEX_CONFIGS__";
-    static constexpr inline const char* namespace_name      = "__TRINEX_CONFIGS__";
-    static constexpr inline const char* namespace_name_part = "__TRINEX_CONFIGS__::";
-
-    template<typename T>
-    static constexpr inline const char* type_name = "Undefined Type";
-
-#define declare_typename(type, name)                                                                                             \
-    template<>                                                                                                                   \
-    constexpr inline const char* type_name<type> = #name
-
-    declare_typename(bool, bool);
-    declare_typename(int_t, int);
-    declare_typename(float, float);
-    declare_typename(String, string);
-    declare_typename(Vector<bool>, bool[]);
-    declare_typename(Vector<int_t>, int[]);
-    declare_typename(Vector<float>, floatol[]);
-    declare_typename(Vector<String>, string[]);
-
-
-    template<typename OutType, typename InType>
-    struct GetValueProxy {
-        static OutType get_value_of(const void* address, int_t type_id)
-        {
-            return OutType();
-        }
+    enum class ConfigValueType
+    {
+        Undefined         = 0,
+        ConfigBool        = 1,
+        ConfigInt         = 2,
+        ConfigFloat       = 3,
+        ConfigString      = 4,
+        ConfigBoolArray   = 5,
+        ConfigIntArray    = 6,
+        ConfigFloatArray  = 7,
+        ConfigStringArray = 8,
+        ConfigUserType    = 9,
     };
 
-
-#define get_value_of_func(OutType, InType, code)                                                                                 \
-    template<>                                                                                                                   \
-    struct GetValueProxy<OutType, InType> {                                                                                      \
-        static OutType get_value_of(const void* address, int_t type_id)                                                          \
-        {                                                                                                                        \
-            code;                                                                                                                \
-        }                                                                                                                        \
-    }
-
-    // Boolean properties
-    get_value_of_func(bool, bool, return *reinterpret_cast<const bool*>(address));
-    get_value_of_func(int_t, bool, return *reinterpret_cast<const bool*>(address) ? 1 : 0);
-    get_value_of_func(float, bool, return *reinterpret_cast<const bool*>(address) ? 1.f : 0.f);
-    get_value_of_func(String, bool, return *reinterpret_cast<const bool*>(address) ? "true" : "false");
-
-    // Integer properties
-    get_value_of_func(bool, int_t, return *reinterpret_cast<const int_t*>(address) == 0 ? false : true);
-    get_value_of_func(int_t, int_t, return *reinterpret_cast<const int_t*>(address));
-    get_value_of_func(float, int_t, return static_cast<float>(*reinterpret_cast<const int_t*>(address)));
-    get_value_of_func(String, int_t, return Strings::format("{}", *reinterpret_cast<const int_t*>(address)));
-
-    // Float properties
-    get_value_of_func(bool, float, return *reinterpret_cast<const float*>(address) == 0.f ? false : true);
-    get_value_of_func(int_t, float, return static_cast<int>(*reinterpret_cast<const float*>(address)));
-    get_value_of_func(float, float, return *reinterpret_cast<const float*>(address));
-    get_value_of_func(String, float, return Strings::format("{}", *reinterpret_cast<const float*>(address)));
-
-    // String properties
-    get_value_of_func(bool, String, {
-        const String* line = reinterpret_cast<const String*>(address);
-        return Strings::boolean_of(line->c_str(), line->length());
-    });
-
-    get_value_of_func(int_t, String, return Strings::integer_of(reinterpret_cast<const String*>(address)->c_str()));
-    get_value_of_func(float, String, return Strings::float_of(reinterpret_cast<const String*>(address)->c_str()));
-    get_value_of_func(String, String, return *reinterpret_cast<const String*>(address));
-
-
-    // Array properties
-
-    // Convert Any component to Array of any component
-
-    template<typename OutComponent, typename InComponent>
-    struct GetValueProxy<Vector<OutComponent>, InComponent> {
-        static Vector<OutComponent> get_value_of(const void* address, int_t type_id)
-        {
-            return Vector<OutComponent>({GetValueProxy<OutComponent, InComponent>::get_value_of(address, type_id)});
-        }
+    struct ConfigValueInfo {
+        void* address                           = nullptr;
+        String (*to_string_func)(void* address) = nullptr;
+        String group                            = "";
+        ConfigValueType type;
     };
 
-    // Convert any array to integral type
-    template<typename OutComponent, typename InComponentType>
-    struct GetValueProxy<OutComponent, Vector<InComponentType>> {
-        static OutComponent get_value_of(const void* address, int_t type_id)
-        {
-            return static_cast<OutComponent>(reinterpret_cast<const CScriptArray*>(address)->GetSize());
-        }
-    };
-
-    // Convert any array to String
-    template<typename ComponentType>
-    struct GetValueProxy<String, Vector<ComponentType>> {
-        static String get_value_of(const void* address, int_t type_id)
-        {
-            return ScriptEngine::instance()->to_string(address, type_id);
-        }
-    };
-
-    // Convert any array to any array
-
-    template<typename OutComponentType, typename InComponentType>
-    struct GetValueProxy<Vector<OutComponentType>, Vector<InComponentType>> {
-        static Vector<OutComponentType> get_value_of(const void* address, int_t type_id)
-        {
-            const CScriptArray* array = reinterpret_cast<const CScriptArray*>(address);
-            Vector<OutComponentType> result(array->GetSize());
-
-            int element_type = array->GetElementTypeId();
-
-            for (asUINT i = 0, count = array->GetSize(); i < count; i++)
-            {
-                result[i] = GetValueProxy<OutComponentType, InComponentType>::get_value_of(array->At(i), element_type);
-            }
-
-            return result;
-        }
-    };
-
-    static inline ScriptModule configs_module()
+    static Map<Name, ConfigValueInfo, Name::HashFunction>& variable_map()
     {
-        return ScriptModule("__TRINEX_ENGINE_CONFIGS_MODULE__");
+        static Map<Name, ConfigValueInfo, Name::HashFunction> map;
+        return map;
+    }
+
+    static Set<String>& config_groups()
+    {
+        static Set<String> groups;
+        return groups;
     }
 
     template<typename T>
-    static inline bool is_same_type(int type, const char* type_declaration)
+    static constexpr const char* typename_of()
     {
-        if (type < 0)
-            return false;
+        return "";
+    }
 
-        if constexpr (std::is_same_v<T, int>)
-        {
-            // Maybe this type is enum? Process this type as int
-            ScriptTypeInfo info = ScriptEngine::instance()->type_info_by_id(type);
+    template<>
+    constexpr const char* typename_of<ConfigBool>()
+    {
+        return "bool";
+    }
 
-            if (info.is_valid() && info.is_enum())
-            {
-                return true;
-            }
-        }
-        else if constexpr (std::is_same_v<T, Vector<int_t>>)
-        {
-            ScriptTypeInfo info = ScriptEngine::instance()->type_info_by_id(type);
+    template<>
+    constexpr const char* typename_of<ConfigInt>()
+    {
+        return "int";
+    }
 
-            if (info.is_valid() && info.is_array())
-            {
-                ScriptTypeInfo sub_type_info = info.sub_type(0);
+    template<>
+    constexpr const char* typename_of<ConfigFloat>()
+    {
+        return "float";
+    }
 
-                if (sub_type_info.is_valid())
-                {
-                    int_t sub_type              = sub_type_info.type_id();
-                    String sub_type_declaration = ScriptEngine::instance()->type_declaration(sub_type);
+    template<>
+    constexpr const char* typename_of<ConfigString>()
+    {
+        return "string";
+    }
 
-                    if (is_same_type<int_t>(sub_type, sub_type_declaration.c_str()))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
+    template<>
+    constexpr const char* typename_of<ConfigBoolArray>()
+    {
+        return "array<bool>";
+    }
 
-        return std::strcmp(type_declaration, type_name<T>) == 0;
+    template<>
+    constexpr const char* typename_of<ConfigIntArray>()
+    {
+        return "array<int>";
+    }
+
+    template<>
+    constexpr const char* typename_of<ConfigFloatArray>()
+    {
+        return "array<float>";
+    }
+
+    template<>
+    constexpr const char* typename_of<ConfigStringArray>()
+    {
+        return "array<string>";
     }
 
 
-    template<typename T>
-    static String make_variable_code(const StringView& name, const T& value)
+    template<typename InType>
+    static String convert_default_value(void* ptr)
     {
-        if constexpr (std::is_same_v<T, String>)
-            return Strings::format("{} {} = \"{}\";", type_name<T>, name, value);
-        return Strings::format("{} {} = {};", type_name<T>, name, value);
-    }
-
-    template<typename T>
-    static String make_array_code(const StringView& name, const Vector<T>& value)
-    {
-        if constexpr (std::is_same_v<T, String>)
-            return Strings::format("array<{}> {} = {{ {} }};", type_name<T>, name,
-                                   Strings::join(value, ", ", [](const T& value) { return Strings::format("\"{}\"", value); }));
-        return Strings::format("array<{}> {} = {{ {} }};", type_name<T>, name, Strings::join(value, ", "));
-    }
-
-    template<typename T>
-    static bool set_variable_internal(const StringView& name, const T& value)
-    {
-        ScriptModule module = configs_module();
-        String ns           = module.default_namespace();
-
-        // Try to find this property
-        {
-            auto variable_index = module.global_var_index_by_name(namespace_name_part + String(name));
-
-            if (variable_index >= 0)
-            {
-                int type      = 0;
-                bool is_const = false;
-                module.global_var(variable_index, nullptr, nullptr, &type, &is_const);
-                String type_declaration = ScriptEngine::instance()->type_declaration(type);
-
-                if (!is_const && is_same_type<T>(type, type_declaration.c_str()))
-                {
-                    T* address = reinterpret_cast<T*>(module.address_of_global_var(variable_index));
-
-                    if (address)
-                    {
-                        *address = value;
-                        return true;
-                    }
-                }
-
-                module.remove_global_var(variable_index);
-            }
-        }
-
-
-        String new_ns = Strings::namespace_of(name);
-        new_ns        = new_ns.empty() ? namespace_name : namespace_name_part + new_ns;
-        module.default_namespace(new_ns);
-        String code = make_variable_code(Strings::class_name_sv_of(name), value);
-        int result  = module.compile_global_var(section_name, code.c_str(), 0);
-        module.default_namespace(ns);
-
-        return result >= 0;
-    }
-
-    template<typename T>
-    static bool set_array_internal(const StringView& name, const Vector<T>& value)
-    {
-        ScriptModule module = configs_module();
-        String ns           = module.default_namespace();
-
-        // Try to find this property
-        {
-            auto variable_index = module.global_var_index_by_name(namespace_name_part + String(name));
-
-            if (variable_index >= 0)
-            {
-                int type      = 0;
-                bool is_const = false;
-                module.global_var(variable_index, nullptr, nullptr, &type, &is_const);
-                String type_declaration = ScriptEngine::instance()->type_declaration(type);
-
-                if (!is_const && is_same_type<Vector<T>>(type, type_declaration.c_str()))
-                {
-                    CScriptArray* array = reinterpret_cast<CScriptArray*>(module.address_of_global_var(variable_index));
-                    array->Resize(value.size());
-
-                    if (array)
-                    {
-                        asUINT count = array->GetSize();
-
-                        for (asUINT i = 0; i < count; i++)
-                        {
-                            const T& element = value[i];
-                            array->SetValue(i, const_cast<void*>(reinterpret_cast<const void*>(&element)));
-                        }
-                        return true;
-                    }
-                }
-
-                module.remove_global_var(variable_index);
-            }
-        }
-
-
-        String new_ns = Strings::namespace_of(name);
-        new_ns        = new_ns.empty() ? namespace_name : namespace_name_part + new_ns;
-        module.default_namespace(new_ns);
-        String code = make_array_code(Strings::class_name_sv_of(name), value);
-        int result  = module.compile_global_var(section_name, code.c_str(), 0);
-        module.default_namespace(ns);
-        return result >= 0;
-    }
-
-    template<typename T>
-    static T get_variable_internal(const StringView& name)
-    {
-        ScriptModule module = configs_module();
-        int variable_index  = module.global_var_index_by_name(namespace_name_part + String(name));
-        if (variable_index < 0)
-            return T();
-
-        int type = 0;
-        module.global_var(variable_index, nullptr, nullptr, &type);
-
-        if (type < 0)
-            return T();
-
-        const void* address = module.address_of_global_var(variable_index);
-        if (address == nullptr)
-            return T();
-
-        String type_declaration_str  = ScriptEngine::instance()->type_declaration(type);
-        const char* type_declaration = type_declaration_str.c_str();
-
-        if (is_same_type<bool>(type, type_declaration))
-        {
-            return GetValueProxy<T, bool>::get_value_of(address, type);
-        }
-
-        if (is_same_type<int>(type, type_declaration))
-        {
-            return GetValueProxy<T, int>::get_value_of(address, type);
-        }
-
-        if (is_same_type<float>(type, type_declaration))
-        {
-            return GetValueProxy<T, float>::get_value_of(address, type);
-        }
-
-        if (is_same_type<String>(type, type_declaration))
-        {
-            return GetValueProxy<T, String>::get_value_of(address, type);
-        }
-
-        if (is_same_type<Vector<bool>>(type, type_declaration))
-        {
-            return GetValueProxy<T, Vector<bool>>::get_value_of(address, type);
-        }
-
-        if (is_same_type<Vector<int>>(type, type_declaration))
-        {
-            return GetValueProxy<T, Vector<int>>::get_value_of(address, type);
-        }
-
-        if (is_same_type<Vector<float>>(type, type_declaration))
-        {
-            return GetValueProxy<T, Vector<float>>::get_value_of(address, type);
-        }
-
-        if (is_same_type<Vector<String>>(type, type_declaration))
-        {
-            return GetValueProxy<T, Vector<String>>::get_value_of(address, type);
-        }
-
-        return T();
+        InType* value = reinterpret_cast<InType*>(ptr);
+        return Strings::to_code_string(*value);
     }
 
     template<typename Type>
-    static void update_value_typed(const String& full_name, const void* address, int_t type)
+    static ConfigValueInfo* register_property_internal(const Name& name, const char* type_declaration, void* ptr,
+                                                       const StringView& group)
     {
-        ConfigManager::set(full_name, GetValueProxy<Type, Type>::get_value_of(address, type));
+        if (ConfigManager::is_exist(name))
+        {
+            error_log("ConfigManager", "Failed to register property with name '%s'. Property is exist!", name.c_str());
+            return nullptr;
+        }
+        ScriptEngine::NamespaceSaverScoped saver;
+        String ns = Strings::namespace_of(name);
+        ScriptEngine::instance()->default_namespace(ns);
+
+        String prop_name        = Strings::class_name_of(name);
+        String full_declaration = Strings::format("{} {}", type_declaration, prop_name.c_str());
+
+        if (ScriptEngine::instance()->register_property(full_declaration.c_str(), ptr) >= 0)
+        {
+            auto& info   = variable_map()[name];
+            info.address = ptr;// Need override for arrays!
+            info.group   = String(group);
+            config_groups().insert(info.group);
+            return &info;
+        }
+
+        return nullptr;
     }
 
-    static void update_value(const String& full_name, const void* address, int_t type, const char* type_declaration)
+    template<typename Type>
+    static ConfigValueInfo* register_property_internal(const Name& name, Type& value, const StringView& group)
     {
-        if (is_same_type<bool>(type, type_declaration))
+        void* prop = nullptr;
+
+        if constexpr (std::is_base_of_v<ScriptArrayBase, Type>)
         {
-            update_value_typed<bool>(full_name, address, type);
+            if (!value.has_array())
+            {
+                value.create();
+            }
+
+            prop = value.array();
         }
-        else if (is_same_type<int_t>(type, type_declaration))
+        else
         {
-            update_value_typed<int_t>(full_name, address, type);
+            prop = &value;
         }
-        else if (is_same_type<float>(type, type_declaration))
+
+        return register_property_internal<Type>(name, typename_of<Type>(), prop, group);
+    }
+
+    bool ConfigManager::is_exist(const Name& name)
+    {
+        return variable_map().contains(name);
+    }
+
+    const Set<String>& ConfigManager::groups()
+    {
+        return config_groups();
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigBool& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigBool>(name, property, group))
         {
-            update_value_typed<float>(full_name, address, type);
-        }
-        else if (is_same_type<String>(type, type_declaration))
-        {
-            update_value_typed<String>(full_name, address, type);
-        }
-        else if (is_same_type<Vector<bool>>(type, type_declaration))
-        {
-            update_value_typed<Vector<bool>>(full_name, address, type);
-        }
-        else if (is_same_type<Vector<int_t>>(type, type_declaration))
-        {
-            update_value_typed<Vector<int_t>>(full_name, address, type);
-        }
-        else if (is_same_type<Vector<float>>(type, type_declaration))
-        {
-            update_value_typed<Vector<float>>(full_name, address, type);
-        }
-        else if (is_same_type<Vector<String>>(type, type_declaration))
-        {
-            update_value_typed<Vector<String>>(full_name, address, type);
+            info->type           = ConfigValueType::ConfigBool;
+            info->to_string_func = convert_default_value<ConfigBool>;
         }
     }
 
-    bool ConfigManager::load_from_text(const String& code)
+    void ConfigManager::register_property(const Name& name, ConfigInt& property, const StringView& group)
     {
-        ScriptModule module("__TRINEX_TEMPORARY_MODULE__");
-        int_t result = module.add_script_section(section_name, code);
-        if (result >= 0)
-            result = module.build();
-
-        if (result < 0)
+        if (auto info = register_property_internal<ConfigInt>(name, property, group))
         {
-            module.discard();
-            return false;
+            info->type           = ConfigValueType::ConfigInt;
+            info->to_string_func = convert_default_value<ConfigInt>;
+        }
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigFloat& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigFloat>(name, property, group))
+        {
+            info->type           = ConfigValueType::ConfigFloat;
+            info->to_string_func = convert_default_value<ConfigFloat>;
+        }
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigString& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigString>(name, property, group))
+        {
+            info->type           = ConfigValueType::ConfigString;
+            info->to_string_func = convert_default_value<ConfigString>;
+        }
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigBoolArray& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigBoolArray>(name, property, group))
+        {
+            info->type           = ConfigValueType::ConfigBoolArray;
+            info->to_string_func = convert_default_value<ConfigBoolArray>;
+        }
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigIntArray& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigIntArray>(name, property, group))
+        {
+            info->type           = ConfigValueType::ConfigIntArray;
+            info->to_string_func = convert_default_value<ConfigIntArray>;
+        }
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigFloatArray& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigFloatArray>(name, property, group))
+        {
+            info->type           = ConfigValueType::ConfigFloatArray;
+            info->to_string_func = convert_default_value<ConfigFloatArray>;
+        }
+    }
+
+    void ConfigManager::register_property(const Name& name, ConfigStringArray& property, const StringView& group)
+    {
+        if (auto info = register_property_internal<ConfigStringArray>(name, property, group))
+        {
+            info->type           = ConfigValueType::ConfigStringArray;
+            info->to_string_func = convert_default_value<ConfigStringArray>;
+        }
+    }
+
+    void ConfigManager::register_custom_property(const Name& name, void* property, const char* script_type_declaration,
+                                                 const StringView& group)
+    {
+        if (auto info = register_property_internal<void>(name, script_type_declaration, property, group))
+        {
+            info->type = ConfigValueType::ConfigUserType;
+        }
+    }
+
+
+    template<typename T>
+    static void set_property_internal(const Name& name, const T& property)
+    {
+        T* prop = ConfigManager::property<T>(name);
+        if (prop)
+        {
+            (*prop) = property;
+        }
+    }
+
+    template<typename T>
+    static T* get_property_internal(const Name& name, ConfigValueType type)
+    {
+        auto& map = variable_map();
+        auto it   = map.find(name);
+
+        if (it == map.end())
+            return nullptr;
+        if (it->second.type == type)
+        {
+            return reinterpret_cast<T*>(it->second.address);
+        }
+        return nullptr;
+    }
+
+
+#define declare_setter_and_getter(type, func_prefix)                                                                             \
+    void ConfigManager::property(const Name& name, const type& property)                                                         \
+    {                                                                                                                            \
+        set_property_internal<type>(name, property);                                                                             \
+    }                                                                                                                            \
+    type* ConfigManager::func_prefix##_property(const Name& name)                                                                \
+    {                                                                                                                            \
+        return get_property_internal<type>(name, ConfigValueType::type);                                                         \
+    }
+
+    declare_setter_and_getter(ConfigBool, bool);
+    declare_setter_and_getter(ConfigInt, int);
+    declare_setter_and_getter(ConfigFloat, float);
+    declare_setter_and_getter(ConfigString, string);
+    declare_setter_and_getter(ConfigBoolArray, bool_array);
+    declare_setter_and_getter(ConfigIntArray, int_array);
+    declare_setter_and_getter(ConfigFloatArray, float_array);
+    declare_setter_and_getter(ConfigStringArray, string_array);
+
+    void* ConfigManager::custom_property(const Name& name)
+    {
+        return get_property_internal<void>(name, ConfigValueType::ConfigUserType);
+    }
+
+
+    // CONFIG LOADING
+
+    static StringView parse_token(asIScriptEngine* engine, const char*& c_source, size_t& source_size)
+    {
+        asUINT token_len;
+        engine->ParseToken(c_source, source_size, &token_len);
+        StringView result = StringView(c_source, token_len);
+        c_source += token_len;
+        source_size -= token_len;
+        return result;
+    }
+
+    static void return_token(const char*& c_source, size_t& source_size, StringView token)
+    {
+        c_source -= token.size();
+        source_size += token.size();
+    }
+
+    static String create_function(const Vector<String>& expressions, int_t depth = 0)
+    {
+        if (expressions.empty())
+            return "";
+
+        String depth_str(depth * 4, ' ');
+        String depth1_str((depth + 1) * 4, ' ');
+        String depth2_str((depth + 2) * 4, ' ');
+
+        String source =
+                Strings::format("{0}class TrinexEngineConfigInitializer\n{0}{{\n{1}TrinexEngineConfigInitializer()\n{1}{{\n",
+                                depth_str, depth1_str);
+
+        for (auto& expression : expressions)
+        {
+            source += depth2_str;
+            source += expression;
+            source.push_back('\n');
         }
 
-        int_t properties_count = module.global_var_count();
+        source += depth1_str + "}\n";
+        source += depth_str + "};\n";
+        source += depth_str + "TrinexEngineConfigInitializer initializer;\n";
+        return source;
+    }
 
-        for (int_t prop_idx = 0; prop_idx < properties_count; prop_idx++)
+    static String read_config_value(asIScriptEngine* engine, const char*& c_source, size_t& source_size)
+    {
+        String result = "";
+
+        while (source_size > 0)
         {
-            const char* name       = nullptr;
-            const char* name_space = nullptr;
-            int type               = 0;
+            StringView token_code = parse_token(engine, c_source, source_size);
+            result += token_code;
 
-            module.global_var(prop_idx, &name, &name_space, &type);
-
-            if (name == nullptr)
-                continue;
-
-            String full_name    = name_space ? String(name_space) + "::" + name : name;
-            const void* address = module.address_of_global_var(prop_idx);
-
-            if (address == nullptr)
-                continue;
-
-            String type_declaration = ScriptEngine::instance()->type_declaration(type);
-            update_value(full_name, address, type, type_declaration.c_str());
+            if (token_code == ";")
+            {
+                break;
+            }
         }
 
+        return result;
+    }
+
+    static void wait_end_scope(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out)
+    {
+        while (source_size > 0)
+        {
+            StringView token = parse_token(engine, c_source, source_size);
+            out += token;
+
+            if (token == "}")
+            {
+                break;
+            }
+        }
+    }
+
+    static void process_config_namespace(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out,
+                                         int_t depth);
+
+    static Vector<String> process_config_scope(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out,
+                                               int_t depth)
+    {
+        Vector<String> expressions;
+
+        while (source_size > 0)
+        {
+            StringView token_code = parse_token(engine, c_source, source_size);
+
+            if (token_code == "ConfigValue")
+            {
+                expressions.push_back(read_config_value(engine, c_source, source_size));
+                continue;
+            }
+            else if (token_code == "namespace")
+            {
+                out += token_code;
+                process_config_namespace(engine, c_source, source_size, out, depth);
+                continue;
+            }
+            else if (token_code == "{")
+            {
+                out += token_code;
+                process_config_scope(engine, c_source, source_size, out, depth + 1);
+                wait_end_scope(engine, c_source, source_size, out);
+                continue;
+            }
+            else if (token_code == "}")
+            {
+                return_token(c_source, source_size, token_code);
+                break;
+            }
+
+            out += token_code;
+        }
+
+        return expressions;
+    }
+
+    static void process_config_namespace(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out,
+                                         int_t depth)
+    {
+        while (source_size > 0)
+        {
+            StringView token = parse_token(engine, c_source, source_size);
+            out += token;
+
+            if (token == "{")
+            {
+                break;
+            }
+        }
+
+        depth += 1;
+
+        auto expressions = process_config_scope(engine, c_source, source_size, out, depth);
+        out += create_function(expressions, depth);
+        wait_end_scope(engine, c_source, source_size, out);
+    }
+
+    static String parse_config(asIScriptEngine* engine, const String& source)
+    {
+        String result;
+        const char* c_source = source.c_str();
+        size_t source_len    = source.size();
+        auto expressions     = process_config_scope(engine, c_source, source_len, result, 0);
+        result += create_function(expressions);
+
+        return result;
+    }
+
+
+    void ConfigManager::load_config_from_text(const String& config, const String& group)
+    {
+        if (!groups().contains(group))
+        {
+            error_log("ConfigManager", "Failed to find group '%s'", group.c_str());
+            return;
+        }
+        String result_source = parse_config(ScriptEngine::instance()->as_engine(), config);
+        ScriptModule module("TrinexEngineConfigs", ScriptModule::AlwaysCreate);
+        module.add_script_section("Config", result_source.c_str(), result_source.size());
+        module.build();
         module.discard();
-        return true;
     }
 
-    bool ConfigManager::load_from_file(const Path& filename)
+    void ConfigManager::load_config_from_file(const Path& file)
     {
-        Path config_file_path = Path(get_string("Engine::configs_dir")) / filename;
-        FileReader reader(config_file_path);
+        FileReader reader(Path(Project::configs_dir) / file);
         if (!reader.is_open())
-            return false;
-
-        String text = reader.read_string();
-        reader.close();
-        if (text.empty())
-            return false;
-        return load_from_text(text);
-    }
-
-    void ConfigManager::initialize(bool discard)
-    {
-        static bool is_inited = false;
-
-        if (is_inited && discard)
         {
-            configs_module().discard();
+            error_log("ConfigManager", "Failed to load config '%s'", file.c_str());
+            return;
         }
 
-        ConfigManager::load_from_file("engine.config");
-        ConfigsInitializeController().execute();
-
-        is_inited = true;
+        String config = reader.read_string();
+        load_config_from_text(config, String(file.stem()));
     }
 
-    bool ConfigManager::is_exist(const StringView& name)
+    void ConfigManager::initialize()
     {
-        return configs_module().global_var_index_by_name(namespace_name_part + String(name)) >= 0;
+        for (auto& group : groups())
+        {
+            Path filename = group + ".config";
+            load_config_from_file(filename);
+        }
     }
-
-    bool ConfigManager::set(const StringView& name, bool value)
-    {
-        return set_variable_internal(name, value);
-    }
-
-    bool ConfigManager::set(const StringView& name, int value)
-    {
-        return set_variable_internal(name, value);
-    }
-
-    bool ConfigManager::set(const StringView& name, float value)
-    {
-        return set_variable_internal(name, value);
-    }
-
-    bool ConfigManager::set(const StringView& name, const StringView& value)
-    {
-        return set_variable_internal(name, String(value));
-    }
-
-    bool ConfigManager::set(const StringView& name, const Vector<bool>& value)
-    {
-        return set_array_internal(name, value);
-    }
-
-    bool ConfigManager::set(const StringView& name, const Vector<int>& value)
-    {
-        return set_array_internal(name, value);
-    }
-
-    bool ConfigManager::set(const StringView& name, const Vector<float>& value)
-    {
-        return set_array_internal(name, value);
-    }
-
-    bool ConfigManager::set(const StringView& name, const Vector<String>& value)
-    {
-        return set_array_internal(name, value);
-    }
-
-    bool ConfigManager::get_bool(const StringView& name)
-    {
-        return get_variable_internal<bool>(name);
-    }
-
-    int ConfigManager::get_int(const StringView& name)
-    {
-        return get_variable_internal<int>(name);
-    }
-
-    float ConfigManager::get_float(const StringView& name)
-    {
-        return get_variable_internal<float>(name);
-    }
-
-    String ConfigManager::get_string(const StringView& name)
-    {
-        return get_variable_internal<String>(name);
-    }
-
-    Path ConfigManager::get_path(const StringView& name)
-    {
-        return get_string(name);
-    }
-
-    Vector<bool> ConfigManager::get_bool_array(const StringView& name)
-    {
-        return get_variable_internal<Vector<bool>>(name);
-    }
-
-    Vector<int> ConfigManager::get_int_array(const StringView& name)
-    {
-        return get_variable_internal<Vector<int>>(name);
-    }
-
-    Vector<float> ConfigManager::get_float_array(const StringView& name)
-    {
-        return get_variable_internal<Vector<float>>(name);
-    }
-
-    Vector<String> ConfigManager::get_string_array(const StringView& name)
-    {
-        return get_variable_internal<Vector<String>>(name);
-    }
-
-    Vector<Path> ConfigManager::get_path_array(const StringView& name)
-    {
-        return {};
-    }
-
 }// namespace Engine

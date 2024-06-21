@@ -2,7 +2,6 @@
 #include <Clients/open_client.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/localization.hpp>
 #include <Core/threading.hpp>
 #include <Engine/ActorComponents/camera_component.hpp>
@@ -12,6 +11,7 @@
 #include <Engine/Render/scene_layer.hpp>
 #include <Engine/ray.hpp>
 #include <Engine/scene.hpp>
+#include <Engine/settings.hpp>
 #include <Engine/world.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
@@ -249,8 +249,7 @@ namespace Engine
 
                 if (ImGui::BeginMenu("editor/Change language"_localized))
                 {
-                    Vector<String> languages = ConfigManager::get_string_array("Engine::languages");
-                    for (const String& lang : languages)
+                    for (const String& lang : Settings::e_languages)
                     {
                         const char* localized = Object::localize("editor/" + lang).c_str();
                         if (ImGui::MenuItem(localized))

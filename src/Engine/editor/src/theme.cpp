@@ -12,7 +12,7 @@ namespace Engine
 
     float editor_font_size()
     {
-        return editor_config.font_size;
+        return Settings::ed_font_size;
     }
 
     void initialize_theme(ImGuiContext* ctx)
@@ -20,7 +20,7 @@ namespace Engine
         // Initialize fonts
         auto& io = ImGui::GetIO();
 
-        FileReader reader(editor_config.font_path);
+        FileReader reader(Settings::ed_font_path);
 
         if (reader.is_open())
         {

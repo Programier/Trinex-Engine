@@ -29,7 +29,6 @@ namespace Engine
     protected:
         CScriptArray* m_as_array;
 
-        virtual const String& full_declaration() = 0;
 
     protected:
         int find_object_type_id();
@@ -45,13 +44,18 @@ namespace Engine
         ScriptArrayBase();
 
         bool create(size_type init_size = 0);
+        bool has_array() const;
         bool attach(CScriptArray* array, bool add_reference = true);
         ScriptArrayBase& release();
-        CScriptArray* ref(bool inc_ref_count = false);
+        CScriptArray* array(bool inc_ref_count = false);
         size_type size() const;
         ScriptArrayBase& resize(size_type n);
         bool empty() const;
         ScriptArrayBase& reserve(size_type n);
+        size_t add_reference() const;
+        size_t remove_reference() const;
+        size_t references() const;
+        virtual const String& full_declaration() const = 0;
 
 
         virtual ~ScriptArrayBase();
@@ -68,19 +72,11 @@ namespace Engine
         using const_reference = const T&;
 
 
-    protected:
-        const String& full_declaration() override
-        {
-            static String result = Strings::format("array<{}>", declaration.c_str());
-            return result;
-        }
-
-    public:
-        template<typename Type>
+        template<typename Type, typename ScriptArrayType>
         class Iterator
         {
         private:
-            ScriptArray* m_script_array;
+            ScriptArrayType* m_script_array;
             size_type m_position;
 
         public:
@@ -90,7 +86,7 @@ namespace Engine
             using reference       = Type&;
             using const_reference = const Type&;
 
-            Iterator(ScriptArray* array, size_type position) : m_script_array(array), m_position(position)
+            Iterator(ScriptArrayType* array, size_type position) : m_script_array(array), m_position(position)
             {}
 
             Iterator(const Iterator& other) : Iterator(other.m_script_array, other.m_position)
@@ -134,7 +130,7 @@ namespace Engine
 
             bool operator!=(const Iterator& other) const
             {
-                return (m_script_array != other.m_script_array) || (m_position == other.m_position);
+                return (m_script_array != other.m_script_array) || (m_position != other.m_position);
             }
 
             bool operator<(const Iterator& other) const
@@ -190,10 +186,12 @@ namespace Engine
             }
         };
 
-        using iterator               = Iterator<value_type>;
-        using const_iterator         = Iterator<const value_type>;
+    public:
+        using iterator               = Iterator<value_type, ScriptArray>;
+        using const_iterator         = Iterator<const value_type, const ScriptArray>;
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
 
         ScriptArray() = default;
 
@@ -223,6 +221,12 @@ namespace Engine
             return *this;
         }
 
+        const String& full_declaration() const override
+        {
+            static String result = Strings::format("array<{}>", declaration.c_str());
+            return result;
+        }
+
         using ScriptArrayBase::create;
 
         iterator begin()
@@ -245,12 +249,12 @@ namespace Engine
             return const_iterator(this, size());
         }
 
-        iterator begin() const
+        const_iterator begin() const
         {
             return cbegin();
         }
 
-        iterator end() const
+        const_iterator end() const
         {
             return cend();
         }
@@ -355,6 +359,33 @@ namespace Engine
             {
                 (*this)[i] = val;
             }
+        }
+
+        template<typename OutVector = Vector<value_type>>
+        OutVector to_vector() const
+        {
+            OutVector result;
+            result.reserve(size());
+
+            for (const value_type& value : (*this))
+            {
+                result.push_back(static_cast<typename OutVector::value_type>(value));
+            }
+
+            return result;
+        }
+
+        template<typename OutSet = Set<value_type>>
+        OutSet to_set() const
+        {
+            OutSet result;
+
+            for (const value_type& value : (*this))
+            {
+                result.insert(static_cast<typename OutSet::value_type>(value));
+            }
+
+            return result;
         }
 
         void clear()

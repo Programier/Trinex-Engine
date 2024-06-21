@@ -1,23 +1,16 @@
 #include <Core/config_manager.hpp>
+#include <Core/engine_loading_controllers.hpp>
 #include <editor_config.hpp>
-#include <theme.hpp>
 
-namespace Engine
+namespace Engine::Settings
 {
-    EditorConfig editor_config;
+    String ed_font_path        = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
+    float ed_font_size         = 18.f;
+    float ed_collapsing_indent = 5.f;
 
-    static const String editor_default_font = "resources/fonts/Source Code Pro/SourceCodePro-Bold.ttf";
-
-    EditorConfig& EditorConfig::update()
-    {
-        ConfigManager::load_string_argument<String>("ed_font_path", "Editor::font_path", editor_default_font);
-        ConfigManager::load_string_argument<float>("ed_font_size", "Editor::font_size", 18.f);
-        ConfigManager::load_string_argument<float>("ed_collapsing_indent", "Editor::collapsing_indent", 5.f);
-
-        font_path         = ConfigManager::get_path("Editor::font_path");
-        font_size         = ConfigManager::get_float("Editor::font_size");
-        collapsing_indent = ConfigManager::get_float("Editor::collapsing_indent");
-
-        return *this;
-    }
-}// namespace Engine
+    static ReflectionInitializeController initialize([]() {
+        ConfigManager::register_property("ed_font_path", ed_font_path, "editor");
+        ConfigManager::register_property("ed_font_size", ed_font_size, "editor");
+        ConfigManager::register_property("ed_collapsing_indent", ed_collapsing_indent, "editor");
+    });
+}// namespace Engine::Settings

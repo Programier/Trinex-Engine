@@ -18,7 +18,7 @@ namespace Engine::VFS
 
         static RootFS* m_instance;
 
-        RootFS(const Path& native_path = {});
+        RootFS();
         ~RootFS();
 
     protected:

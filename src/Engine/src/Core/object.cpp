@@ -3,7 +3,6 @@
 #include <Core/buffer_manager.hpp>
 #include <Core/class.hpp>
 #include <Core/compressor.hpp>
-#include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/file_flag.hpp>
@@ -15,8 +14,8 @@
 #include <Core/package.hpp>
 #include <Core/render_resource.hpp>
 #include <Core/string_functions.hpp>
+#include <Engine/project.hpp>
 #include <ScriptEngine/script_object.hpp>
-#include <angelscript.h>
 
 
 namespace Engine
@@ -567,7 +566,7 @@ namespace Engine
     template<typename Type>
     static Type* open_asset_file(const Object* object, bool create_dir = false)
     {
-        Path path = Path(ConfigManager::get_string("Engine::assets_dir")) / object->filepath();
+        Path path = Path(Project::assets_dir) / object->filepath();
 
         if (create_dir)
         {
@@ -761,7 +760,7 @@ namespace Engine
                 return object;
         }
 
-        Path path = ConfigManager::get_path("Engine::assets_dir") /
+        Path path = Path(Project::assets_dir) /
                     Path(Strings::replace_all(name, Constants::name_separator, Path::sv_separator) + Constants::asset_extention);
         return load_from_file_internal(path, name, flags | SerializationFlags::SkipObjectSearch);
     }
@@ -778,8 +777,7 @@ namespace Engine
                 return object;
         }
 
-        return load_from_file_internal(ConfigManager::get_path("Engine::assets_dir") / path, full_name,
-                                       flags | SerializationFlags::SkipObjectSearch);
+        return load_from_file_internal(Path(Project::assets_dir) / path, full_name, flags | SerializationFlags::SkipObjectSearch);
     }
 
     bool Object::is_serializable() const

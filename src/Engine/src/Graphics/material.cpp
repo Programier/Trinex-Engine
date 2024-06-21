@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
-#include <Core/config_manager.hpp>
+#include <Engine/settings.hpp>
 #include <Core/logger.hpp>
 #include <Core/property.hpp>
 #include <Core/string_functions.hpp>
@@ -553,7 +553,7 @@ namespace Engine
         if (need_delete_compiler)
         {
             Class* compiler_class = Class::static_find(
-                    Strings::format("Engine::ShaderCompiler::{}_Compiler", ConfigManager::get_string("Engine::api")));
+                    Strings::format("Engine::ShaderCompiler::{}_Compiler", Settings::e_api));
             if (!compiler_class)
             {
                 error_log("Material", "Failed to find shader compiler!");
