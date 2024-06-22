@@ -27,11 +27,10 @@ namespace Engine
         if (initialized)
             return;
 
-        ScriptEngine* engine = ScriptEngine::instance();
         ScriptEngine::NamespaceSaverScoped ns_saver;
 
-        engine->default_namespace("Engine::Project");
-#define register_var(name) engine->register_property("string " #name, &Project::name)
+        ScriptEngine::default_namespace("Engine::Project");
+#define register_var(name) ScriptEngine::register_property("string " #name, &Project::name)
 
         register_var(name);
         register_var(version);
@@ -65,7 +64,7 @@ namespace Engine
     {
         if (close_project() == false)
             return false;
-        return ScriptEngine::instance()->exec_string(config);
+        return ScriptEngine::exec_string(config);
     }
 
     bool Project::open_project(const Path& project_file)

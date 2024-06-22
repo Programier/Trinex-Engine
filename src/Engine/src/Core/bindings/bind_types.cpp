@@ -7,10 +7,9 @@ namespace Engine
 {
     static void on_init()
     {
-        static ScriptEngine* engine = ScriptEngine::instance();
         ScriptEngine::NamespaceSaverScoped save_namespace;
-        engine->default_namespace("Engine");
-#define s_typedef(a, b) engine->register_typedef(a, b)
+        ScriptEngine::default_namespace("Engine");
+#define s_typedef(a, b) ScriptEngine::register_typedef(a, b)
 
         s_typedef("byte", "uint8");
         s_typedef("signed_byte", "int8");

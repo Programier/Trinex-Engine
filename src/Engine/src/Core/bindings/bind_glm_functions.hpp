@@ -68,34 +68,28 @@ namespace Engine
         All       = ~size_t(0),
     };
 
-#define checked_bind(flag, code)                                                                                       \
-    if constexpr (((flags) & (flag)))                                                                                  \
-    {                                                                                                                  \
-        code;                                                                                                          \
+#define checked_bind(flag, code)                                                                                                 \
+    if constexpr (((flags) & (flag)))                                                                                            \
+    {                                                                                                                            \
+        code;                                                                                                                    \
     }
 
     template<typename T, typename GLM, size_t flags = All>
     void bind_wrapped_functions(const String& name, const String& vtype)
     {
         ScriptEngine::NamespaceSaverScoped saver;
-        ScriptEngine* engine = ScriptEngine::instance();
-        engine->default_namespace("glm");
-#define regf engine->register_function
+        ScriptEngine::default_namespace("glm");
+#define regf ScriptEngine::register_function
 
 
         checked_bind(Normalize, regf(Strings::format("{} normalize(const {}& in)", name, name), glm_normalize<T, GLM>));
         checked_bind(Length, regf(Strings::format("{} length(const {}& in)", vtype, name), glm_length<T, GLM>));
-        checked_bind(Dot,
-                     regf(Strings::format("{} dot(const {}& in, const {}& in)", vtype, name, name), glm_dot<T, GLM>));
-        checked_bind(Cross, regf(Strings::format("{} cross(const {}& in, const {}& in)", name, name, name),
-                                 glm_cross<T, GLM>));
-        checked_bind(Max,
-                     regf(Strings::format("{} max(const {}& in, const {}& in)", name, name, name), glm_max<T, GLM>));
-        checked_bind(Min,
-                     regf(Strings::format("{} min(const {}& in, const {}& in)", name, name, name), glm_min<T, GLM>));
-        checked_bind(Clamp,
-                     regf(Strings::format("{} clamp(const {}& in, const {}& in, const {}& in)", name, name, name, name),
-                          glm_clamp<T, GLM>));
+        checked_bind(Dot, regf(Strings::format("{} dot(const {}& in, const {}& in)", vtype, name, name), glm_dot<T, GLM>));
+        checked_bind(Cross, regf(Strings::format("{} cross(const {}& in, const {}& in)", name, name, name), glm_cross<T, GLM>));
+        checked_bind(Max, regf(Strings::format("{} max(const {}& in, const {}& in)", name, name, name), glm_max<T, GLM>));
+        checked_bind(Min, regf(Strings::format("{} min(const {}& in, const {}& in)", name, name, name), glm_min<T, GLM>));
+        checked_bind(Clamp, regf(Strings::format("{} clamp(const {}& in, const {}& in, const {}& in)", name, name, name, name),
+                                 glm_clamp<T, GLM>));
         checked_bind(Clamp, regf(Strings::format("{} clamp(const {}& in, {}, {})", name, name, vtype, vtype),
                                  glm_clamp<T, typename T::value_type, GLM>));
     }

@@ -22,8 +22,8 @@ namespace Engine
         if (m_object)
         {
             ScriptTypeInfo info = object_type();
-            m_update           = info.method_by_decl("void update(float dt)");
-            m_on_create        = info.method_by_decl("void on_create(Engine::Object@)");
+            m_update            = info.method_by_decl("void update(float dt)");
+            m_on_create         = info.method_by_decl("void on_create(Engine::Object@)");
         }
         else
         {
@@ -49,12 +49,7 @@ namespace Engine
     {
         if (m_object)
         {
-            ScriptEngine* engine = ScriptEngine::instance();
-            if (engine)
-            {
-                ScriptEngine::instance()->destroy_script_object(m_object, object_type());
-            }
-
+            ScriptEngine::destroy_script_object(m_object, object_type());
             m_object = nullptr;
             bind_script_functions();
         }

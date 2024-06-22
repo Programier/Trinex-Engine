@@ -12,14 +12,15 @@ namespace Engine
 
     ScriptModule::ScriptModule(ScriptModule&& other) : m_module(other.m_module)
     {
-        m_module = nullptr;
+        other.m_module = nullptr;
     }
 
     ScriptModule& ScriptModule::operator=(ScriptModule&& other)
     {
         if (this != &other)
         {
-            m_module = other.m_module;
+            m_module       = other.m_module;
+            other.m_module = nullptr;
         }
         return *this;
     }
@@ -31,12 +32,12 @@ namespace Engine
 
     ScriptModule::ScriptModule(const String& name, ModuleFlags flags)
     {
-        (*this) = ScriptEngine::instance()->create_module(name, flags);
+        (*this) = ScriptEngine::create_module(name, flags);
     }
 
     ScriptModule ScriptModule::global()
     {
-        return ScriptEngine::instance()->global_module();
+        return ScriptEngine::global_module();
     }
 
     asIScriptModule* ScriptModule::as_module() const
@@ -255,7 +256,7 @@ namespace Engine
 
     ScriptObject ScriptModule::create_script_object(const ScriptTypeInfo& type_info, bool uninited)
     {
-        return ScriptEngine::instance()->create_script_object(type_info, uninited);
+        return ScriptEngine::create_script_object(type_info, uninited);
     }
 
     ScriptObject ScriptModule::create_script_object(const char* class_name, bool uninited)

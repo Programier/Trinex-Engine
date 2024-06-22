@@ -87,8 +87,6 @@ namespace Engine
 
         PreInitializeController().execute();
         initialize_filesystem();
-
-        ScriptEngine::initialize();
         Project::initialize();
 
         ReflectionInitializeController().execute();
@@ -100,7 +98,7 @@ namespace Engine
         // Load libraries
         {
             auto begin = Settings::e_libs.begin();
-            auto end = Settings::e_libs.end();
+            auto end   = Settings::e_libs.end();
 
             auto status = begin == end;
             for (const String& library : Settings::e_libs)
@@ -124,7 +122,7 @@ namespace Engine
         }
 
         ReflectionInitializeController().execute();
-        ScriptEngine::instance()->load_scripts();
+        ScriptEngine::load_scripts();
 
         init_api();
         return 0;

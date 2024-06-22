@@ -122,7 +122,7 @@ class CScriptDictionary;
 
 bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, int depth)
 {
-    auto engine = Engine::ScriptEngine::instance()->as_engine();
+    auto engine = Engine::ScriptEngine::as_engine();
 
     int stringTypeId = engine->GetStringFactoryReturnTypeId();
 
@@ -252,7 +252,7 @@ void Print::PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int
             break;
     }
 
-    auto engine = Engine::ScriptEngine::instance()->as_engine();
+    auto engine = Engine::ScriptEngine::as_engine();
 
     auto typeInfo = engine->GetTypeInfoById(typeId);
 
@@ -416,7 +416,7 @@ void Print::asRegister(asIScriptEngine* engine)
 
 namespace Engine
 {
-    String ScriptEngine::to_string(const void* object, int_t type_id) const
+    String ScriptEngine::to_string(const void* object, int_t type_id)
     {
         std::stringstream stream;
         Print::PrintTemplate(stream, object, type_id);

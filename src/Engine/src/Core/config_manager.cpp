@@ -117,12 +117,12 @@ namespace Engine
         }
         ScriptEngine::NamespaceSaverScoped saver;
         String ns = Strings::namespace_of(name);
-        ScriptEngine::instance()->default_namespace(ns);
+        ScriptEngine::default_namespace(ns);
 
         String prop_name        = Strings::class_name_of(name);
         String full_declaration = Strings::format("{} {}", type_declaration, prop_name.c_str());
 
-        if (ScriptEngine::instance()->register_property(full_declaration.c_str(), ptr) >= 0)
+        if (ScriptEngine::register_property(full_declaration.c_str(), ptr) >= 0)
         {
             auto& info   = variable_map()[name];
             info.address = ptr;// Need override for arrays!
@@ -457,7 +457,7 @@ namespace Engine
             error_log("ConfigManager", "Failed to find group '%s'", group.c_str());
             return;
         }
-        String result_source = parse_config(ScriptEngine::instance()->as_engine(), config);
+        String result_source = parse_config(ScriptEngine::as_engine(), config);
         ScriptModule module("TrinexEngineConfigs", ScriptModule::AlwaysCreate);
         module.add_script_section("Config", result_source.c_str(), result_source.size());
         module.build();

@@ -59,7 +59,7 @@ namespace Engine
     ScriptFunction& ScriptFunction::prepare()
     {
         if (m_context == nullptr)
-            m_context = ScriptEngine::instance()->new_context();
+            m_context = ScriptEngine::new_context();
         m_context->Prepare(m_function);
         return *this;
     }
@@ -134,7 +134,7 @@ namespace Engine
     {
         if (m_context)
         {
-            ScriptEngine::instance()->release_context(m_context);
+            ScriptEngine::release_context(m_context);
             m_context = nullptr;
         }
         return *this;

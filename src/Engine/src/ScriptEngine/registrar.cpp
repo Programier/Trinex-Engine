@@ -117,7 +117,7 @@ namespace Engine
 
     ScriptClassRegistrar::ScriptClassRegistrar(const class Class* _class)
         : m_class_base_name(_class->base_name()), m_class_namespace_name(_class->namespace_name()), m_class_name(_class->name()),
-          m_engine(ScriptEngine::instance()->as_engine())
+          m_engine(ScriptEngine::as_engine())
     {
         m_info      = {};
         m_info.size = _class->sizeof_class();
@@ -133,7 +133,7 @@ namespace Engine
 
     ScriptClassRegistrar::ScriptClassRegistrar(const String& full_name, const ClassInfo& info, const String& template_override)
         : m_class_base_name(Object::object_name_of(full_name)), m_class_namespace_name(Object::package_name_of(full_name)),
-          m_class_name(full_name), m_engine(ScriptEngine::instance()->as_engine())
+          m_class_name(full_name), m_engine(ScriptEngine::as_engine())
     {
         m_info = info;
         declare_as_class();
@@ -161,7 +161,7 @@ namespace Engine
 
     ENGINE_EXPORT void ScriptClassRegistrar::global_namespace_name(const String& name)
     {
-        ScriptEngine::instance()->default_namespace(name);
+        ScriptEngine::default_namespace(name);
     }
 
     static void static_declare_new_class(const String& class_namespace, const String& base_name,
@@ -172,7 +172,7 @@ namespace Engine
 
         if (!registered.contains(fullname))
         {
-            asIScriptEngine* engine = ScriptEngine::instance()->as_engine();
+            asIScriptEngine* engine = ScriptEngine::as_engine();
             String ns               = engine->GetDefaultNamespace();
 
             SCRIPT_CALL(engine->SetDefaultNamespace(class_namespace.c_str()) >= 0);
@@ -197,7 +197,7 @@ namespace Engine
 
         // Register cast operators
 
-        asIScriptEngine* engine = ScriptEngine::instance()->as_engine();
+        asIScriptEngine* engine = ScriptEngine::as_engine();
         for (Class* parent = _class->parent(); parent != nullptr; parent = parent->parent())
         {
             if (parent->is_scriptable())
@@ -303,7 +303,7 @@ namespace Engine
 
 
     ScriptEnumRegistrar::ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init)
-        : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name), m_engine(ScriptEngine::instance()->as_engine())
+        : m_enum_base_name(base_name), m_enum_namespace_name(namespace_name), m_engine(ScriptEngine::as_engine())
     {
         if (init)
         {

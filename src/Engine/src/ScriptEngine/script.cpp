@@ -70,7 +70,7 @@ namespace Engine
         }
     }
 
-    const Vector<class Script*>& ScriptEngine::scripts() const
+    const Vector<class Script*>& ScriptEngine::scripts()
     {
         return m_scripts;
     }
@@ -87,7 +87,7 @@ namespace Engine
                 {
                     Path relative = entry.relative(base);
                     scripts.insert(relative);
-                    ScriptEngine::instance()->new_script(relative)->load();
+                    ScriptEngine::new_script(relative)->load();
                 }
             }
             else if (fs->is_dir(entry))
@@ -118,6 +118,6 @@ namespace Engine
 
         List<Script*> scripts_for_delete;
         ScriptModule::global().build();
-        return *this;
+        return instance();
     }
 }// namespace Engine

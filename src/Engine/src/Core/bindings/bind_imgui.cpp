@@ -330,10 +330,10 @@ namespace Engine
     }
 
 
-#define reg_func_nw_ns(a, b) engine->register_function(a, b)
-#define reg_func_nw(a, b) engine->register_function(a, ImGui::b)
-#define reg_func(a, b) engine->register_function(a, make_wrap<ImGui::b>())
-#define reg_func_no_ns(a, b) engine->register_function(a, make_wrap<b>())
+#define reg_func_nw_ns(a, b) ScriptEngine::register_function(a, b)
+#define reg_func_nw(a, b) ScriptEngine::register_function(a, ImGui::b)
+#define reg_func(a, b) ScriptEngine::register_function(a, make_wrap<ImGui::b>())
+#define reg_func_no_ns(a, b) ScriptEngine::register_function(a, make_wrap<b>())
 
     static void on_init()
     {
@@ -341,8 +341,6 @@ namespace Engine
                 .require("Bind Engine::Vector")
                 .require("Bind Engine::IntVector")
                 .require("Bind Engine::UIntVector");
-
-        ScriptEngine* engine = ScriptEngine::instance();
 
         register_vector_type<ImVec2, 2>("ImVec2");
         register_vector_type<ImVec4, 4>("ImVec4");
@@ -943,21 +941,21 @@ namespace Engine
             new_enum_v(ImGuiTableBgTarget, CellBg);
         }
 
-        engine->register_typedef("ImGuiID", "uint");
-        engine->default_namespace("ImGui");
+        ScriptEngine::register_typedef("ImGuiID", "uint");
+        ScriptEngine::default_namespace("ImGui");
 
         reg_func_nw_ns("bool Begin(const string& in, Boolean@ = null, int = 0)",
                        (result_wrapped_func<ImGui::Begin, bool, const String&, Boolean*, int>) );
 
-        engine->register_function("void End()", ImGui::End);
-        engine->register_function("void EndChild()", ImGui::EndChild);
-        engine->register_function("void EndCombo()", ImGui::EndCombo);
-        engine->register_function("void Text(const string& in)", wrapped_text);
-        engine->register_function("void TextColored(const ImVec4& in, const string& in)", wrapped_text_colored);
-        engine->register_function("void TextDisabled(const string& in)", wrapped_text_disabled);
-        engine->register_function("void TextWrapped(const string& in)", wrapped_text_wrapped);
-        engine->register_function("void IsWindowAppearing()", ImGui::IsWindowAppearing);
-        engine->register_function("void IsWindowCollapsed()", ImGui::IsWindowCollapsed);
+        ScriptEngine::register_function("void End()", ImGui::End);
+        ScriptEngine::register_function("void EndChild()", ImGui::EndChild);
+        ScriptEngine::register_function("void EndCombo()", ImGui::EndCombo);
+        ScriptEngine::register_function("void Text(const string& in)", wrapped_text);
+        ScriptEngine::register_function("void TextColored(const ImVec4& in, const string& in)", wrapped_text_colored);
+        ScriptEngine::register_function("void TextDisabled(const string& in)", wrapped_text_disabled);
+        ScriptEngine::register_function("void TextWrapped(const string& in)", wrapped_text_wrapped);
+        ScriptEngine::register_function("void IsWindowAppearing()", ImGui::IsWindowAppearing);
+        ScriptEngine::register_function("void IsWindowCollapsed()", ImGui::IsWindowCollapsed);
 
         reg_func("bool ArrowButton(const string& in, ImGuiDir)", ArrowButton);
 
@@ -1149,25 +1147,25 @@ namespace Engine
         //const char*   SaveIniSettingsToMemory(size_t* out_ini_size = NULL);
         reg_func("string TableGetColumnName(int column_n = -1)", TableGetColumnName);
         reg_func_nw("const ImVec4& GetStyleColorVec4(int)", GetStyleColorVec4);
-        engine->register_function("double GetTime()", make_wrap<ImGui::GetTime>());
-        engine->register_function("float CalcItemWidth()", make_wrap<ImGui::CalcItemWidth>());
-        engine->register_function("float GetColumnOffset(int = -1)", make_wrap<ImGui::GetColumnOffset>());
-        engine->register_function("float GetColumnWidth(int = -1)", make_wrap<ImGui::GetColumnWidth>());
-        engine->register_function("float GetCursorPosX()", make_wrap<ImGui::GetCursorPosX>());
-        engine->register_function("float GetCursorPosY()", make_wrap<ImGui::GetCursorPosY>());
-        engine->register_function("float GetFontSize()", make_wrap<ImGui::GetFontSize>());
-        engine->register_function("float GetFrameHeight()", make_wrap<ImGui::GetFrameHeight>());
-        engine->register_function("float GetFrameHeightWithSpacing()", make_wrap<ImGui::GetFrameHeightWithSpacing>());
-        engine->register_function("float GetScrollMaxX()", make_wrap<ImGui::GetScrollMaxX>());
-        engine->register_function("float GetScrollMaxY()", make_wrap<ImGui::GetScrollMaxY>());
-        engine->register_function("float GetScrollX()", make_wrap<ImGui::GetScrollX>());
-        engine->register_function("float GetScrollY()", make_wrap<ImGui::GetScrollY>());
-        engine->register_function("float GetTextLineHeight()", make_wrap<ImGui::GetTextLineHeight>());
-        engine->register_function("float GetTextLineHeightWithSpacing()", make_wrap<ImGui::GetTextLineHeightWithSpacing>());
-        engine->register_function("float GetTreeNodeToLabelSpacing()", make_wrap<ImGui::GetTreeNodeToLabelSpacing>());
-        engine->register_function("float GetWindowDpiScale()", make_wrap<ImGui::GetWindowDpiScale>());
-        engine->register_function("float GetWindowHeight()", make_wrap<ImGui::GetWindowHeight>());
-        engine->register_function("float GetWindowWidth()", make_wrap<ImGui::GetWindowWidth>());
+        ScriptEngine::register_function("double GetTime()", make_wrap<ImGui::GetTime>());
+        ScriptEngine::register_function("float CalcItemWidth()", make_wrap<ImGui::CalcItemWidth>());
+        ScriptEngine::register_function("float GetColumnOffset(int = -1)", make_wrap<ImGui::GetColumnOffset>());
+        ScriptEngine::register_function("float GetColumnWidth(int = -1)", make_wrap<ImGui::GetColumnWidth>());
+        ScriptEngine::register_function("float GetCursorPosX()", make_wrap<ImGui::GetCursorPosX>());
+        ScriptEngine::register_function("float GetCursorPosY()", make_wrap<ImGui::GetCursorPosY>());
+        ScriptEngine::register_function("float GetFontSize()", make_wrap<ImGui::GetFontSize>());
+        ScriptEngine::register_function("float GetFrameHeight()", make_wrap<ImGui::GetFrameHeight>());
+        ScriptEngine::register_function("float GetFrameHeightWithSpacing()", make_wrap<ImGui::GetFrameHeightWithSpacing>());
+        ScriptEngine::register_function("float GetScrollMaxX()", make_wrap<ImGui::GetScrollMaxX>());
+        ScriptEngine::register_function("float GetScrollMaxY()", make_wrap<ImGui::GetScrollMaxY>());
+        ScriptEngine::register_function("float GetScrollX()", make_wrap<ImGui::GetScrollX>());
+        ScriptEngine::register_function("float GetScrollY()", make_wrap<ImGui::GetScrollY>());
+        ScriptEngine::register_function("float GetTextLineHeight()", make_wrap<ImGui::GetTextLineHeight>());
+        ScriptEngine::register_function("float GetTextLineHeightWithSpacing()", make_wrap<ImGui::GetTextLineHeightWithSpacing>());
+        ScriptEngine::register_function("float GetTreeNodeToLabelSpacing()", make_wrap<ImGui::GetTreeNodeToLabelSpacing>());
+        ScriptEngine::register_function("float GetWindowDpiScale()", make_wrap<ImGui::GetWindowDpiScale>());
+        ScriptEngine::register_function("float GetWindowHeight()", make_wrap<ImGui::GetWindowHeight>());
+        ScriptEngine::register_function("float GetWindowWidth()", make_wrap<ImGui::GetWindowWidth>());
         //        ImGuiID       DockSpace(ImGuiID id, const ImVec2& size = ImVec2(0, 0), ImGuiDockNodeFlags flags = 0, const ImGuiWindowClass* window_class = NULL);
         //        ImGuiID       DockSpaceOverViewport(const ImGuiViewport* viewport = NULL, ImGuiDockNodeFlags flags = 0, const ImGuiWindowClass* window_class = NULL);
         reg_func_no_ns("ImGuiID GetID(const string& in)", func_of<ImGuiID(const char*)>(ImGui::GetID));
@@ -1357,18 +1355,18 @@ namespace Engine
         reg_func_nw("void TreePop()", TreePop);
 
         reg_func_no_ns("void TreePush(const string& in)", (func_of<void(const char*)>(ImGui::TreePush)));
-        engine->register_function("void Unindent(float = 0.0)", make_wrap<ImGui::Unindent>());
-        engine->register_function("void Value(const string& in, bool)",
-                                  make_wrap<func_of<void(const char*, bool)>(ImGui::Value)>());
+        ScriptEngine::register_function("void Unindent(float = 0.0)", make_wrap<ImGui::Unindent>());
+        ScriptEngine::register_function("void Value(const string& in, bool)",
+                                        make_wrap<func_of<void(const char*, bool)>(ImGui::Value)>());
 
-        engine->register_function("void Value(const string& in, float, const string& in)",
-                                  make_wrap<func_of<void(const char*, float, const char*)>(ImGui::Value)>());
+        ScriptEngine::register_function("void Value(const string& in, float, const string& in)",
+                                        make_wrap<func_of<void(const char*, float, const char*)>(ImGui::Value)>());
 
-        engine->register_function("void Value(const string& in, int)",
-                                  make_wrap<func_of<void(const char*, int)>(ImGui::Value)>());
-        engine->register_function("void Value(const string& in, uint)",
-                                  make_wrap<func_of<void(const char*, unsigned int)>(ImGui::Value)>());
-        engine->default_namespace("");
+        ScriptEngine::register_function("void Value(const string& in, int)",
+                                        make_wrap<func_of<void(const char*, int)>(ImGui::Value)>());
+        ScriptEngine::register_function("void Value(const string& in, uint)",
+                                        make_wrap<func_of<void(const char*, unsigned int)>(ImGui::Value)>());
+        ScriptEngine::default_namespace("");
     }
 
     static ReflectionInitializeController initializer(on_init, "Bind ImGui");
