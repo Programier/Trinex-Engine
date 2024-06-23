@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Event/listener_id.hpp>
 #include <ScriptEngine/registrar.hpp>
 

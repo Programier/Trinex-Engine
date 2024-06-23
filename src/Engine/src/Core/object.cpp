@@ -72,22 +72,19 @@ namespace Engine
                 .method("Object& remove_from_package()", &Object::remove_from_package)
                 .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
                 .method("string opConv() const", &Object::as_string)
-                .virtual_method("Object@ preload()",
-                                func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
-                                ScriptCallConv::CDECL_OBJFIRST)
-                .virtual_method("Object@ postload()",
-                                func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
-                                ScriptCallConv::CDECL_OBJFIRST)
-                .virtual_method("Object@ destroy_script_object(?& in)",
-                                func_of<Object&(Object * self, asIScriptObject * *obj)>(
-                                        [](Object* self, asIScriptObject** obj) -> Object& {
-                                            // Obj always must be descriptor!
-                                            ScriptObject object = *obj;
-                                            object.add_reference();
-                                            return self->destroy_script_object(&object);
-                                        }))
-                .virtual_method("Engine::Class@ class_instance() const",
-                                func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
+                .method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
+                        ScriptCallConv::CDECL_OBJFIRST)
+                .method("Object@ postload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
+                        ScriptCallConv::CDECL_OBJFIRST)
+                .method("Object@ destroy_script_object(?& in)", func_of<Object&(Object * self, asIScriptObject * *obj)>(
+                                                                        [](Object* self, asIScriptObject** obj) -> Object& {
+                                                                            // Obj always must be descriptor!
+                                                                            ScriptObject object = *obj;
+                                                                            object.add_reference();
+                                                                            return self->destroy_script_object(&object);
+                                                                        }))
+                .method("Engine::Class@ class_instance() const",
+                        func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
     }
 
 

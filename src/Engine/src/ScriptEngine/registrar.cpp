@@ -77,7 +77,7 @@ namespace Engine
         }
     }
 
-    static asEBehaviours create_bahaviour(ScriptClassBehave behave)
+    static asEBehaviours create_behaviour(ScriptClassBehave behave)
     {
         switch (behave)
         {
@@ -159,6 +159,7 @@ namespace Engine
         return m_class_name;
     }
 
+
     ENGINE_EXPORT void ScriptClassRegistrar::global_namespace_name(const String& name)
     {
         ScriptEngine::default_namespace(name);
@@ -214,39 +215,34 @@ namespace Engine
         }
     }
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_method(const char* declaration, void* method,
-                                                                        ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
     {
-
         prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-                                                   create_function(method, FuncType::Method), create_call_conv(conv)) >= 0);
+        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, *reinterpret_cast<asSFuncPtr*>(method),
+                                                   create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_virtual_method(const char* declaration, void* method,
-                                                                                ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::method(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
     {
         prepare_namespace();
         SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
-                                                   create_function(method, FuncType::Func), create_call_conv(conv)) >= 0);
+                                                   *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_static_method(const char* declaration, void* func,
-                                                                               ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::static_function(const char* declaration, ScriptFuncPtr* function,
+                                                                ScriptCallConv conv)
     {
         prepare_namespace(true);
-        SCRIPT_CALL(m_engine->RegisterGlobalFunction(declaration, create_function(func, FuncType::Func),
-                                                     create_call_conv(conv)) >= 0);
+        ScriptEngine::register_function(declaration, function, conv);
         return release_namespace();
     }
 
-    ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, void* prop)
+    ScriptClassRegistrar& ScriptClassRegistrar::property(const char* declaration, size_t offset)
     {
         prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectProperty(m_class_base_name.c_str(), declaration, reinterpret_cast<size_t>(prop)) >=
-                    0);
+        SCRIPT_CALL(m_engine->RegisterObjectProperty(m_class_base_name.c_str(), declaration, offset) >= 0);
         return release_namespace();
     }
 
@@ -264,13 +260,21 @@ namespace Engine
         return *this;
     }
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_behaviour(ScriptClassBehave behave, const char* declaration,
-                                                                           void* method, bool is_method, ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
+                                                       ScriptFuncPtr* function, ScriptCallConv conv)
     {
         prepare_namespace();
-        asSFuncPtr ptr = create_function(method, is_method ? FuncType::Method : FuncType::Func);
-        SCRIPT_CALL(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_bahaviour(behave), declaration, ptr,
-                                                      create_call_conv(conv)) >= 0);
+        SCRIPT_CALL(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+                                                      *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
+        return release_namespace();
+    }
+
+    ScriptClassRegistrar& ScriptClassRegistrar::behave(ScriptClassBehave behaviour, const char* declaration,
+                                                       ScriptMethodPtr* method, ScriptCallConv conv)
+    {
+        prepare_namespace();
+        SCRIPT_CALL(m_engine->RegisterObjectBehaviour(m_class_base_name.c_str(), create_behaviour(behaviour), declaration,
+                                                      *reinterpret_cast<asSFuncPtr*>(method), create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
@@ -339,13 +343,19 @@ namespace Engine
     }
 
 
-    ScriptClassRegistrar& ScriptClassRegistrar::private_register_operator(const char* declaration, void* method, bool is_method,
-                                                                          ScriptCallConv conv)
+    ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptMethodPtr* method, ScriptCallConv conv)
     {
-        asSFuncPtr ptr = create_function(method, is_method ? Method : Func);
         prepare_namespace();
-        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, ptr, create_call_conv(conv)) >= 0);
+        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration, *reinterpret_cast<asSFuncPtr*>(method),
+                                                   create_call_conv(conv)) >= 0);
         return release_namespace();
     }
 
+    ScriptClassRegistrar& ScriptClassRegistrar::opfunc(const char* declaration, ScriptFuncPtr* function, ScriptCallConv conv)
+    {
+        prepare_namespace();
+        SCRIPT_CALL(m_engine->RegisterObjectMethod(m_class_base_name.c_str(), declaration,
+                                                   *reinterpret_cast<asSFuncPtr*>(function), create_call_conv(conv)) >= 0);
+        return release_namespace();
+    }
 }// namespace Engine

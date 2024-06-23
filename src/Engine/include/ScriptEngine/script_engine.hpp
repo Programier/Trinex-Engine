@@ -1,10 +1,12 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <ScriptEngine/script_enums.hpp>
+#include <ScriptEngine/script_func_ptr.hpp>
 
 class asIScriptEngine;
 class asIScriptContext;
 class asIJITCompiler;
+class asIScriptGeneric;
 
 namespace Engine
 {
@@ -24,7 +26,6 @@ namespace Engine
         static void release_scripts();
         static void terminate();
         static asIScriptContext* new_context();
-        static ScriptEngine& private_register_function(const char* declaration, void* func, ScriptCallConv conv);
         static ScriptEngine& destroy_script_object(ScriptObjectAddress, const ScriptTypeInfo& info);
 
     public:
@@ -117,16 +118,29 @@ namespace Engine
         static ScriptTypeInfo type_info_by_name(const String& name);
         static ScriptTypeInfo type_info_by_decl(const String& decl);
 
-        template<typename T>
-        static ScriptEngine& register_function(const char* declaration, T func, ScriptCallConv conv = ScriptCallConv::CDECL)
+        // User funtions
+        static String variable_name(asIScriptGeneric* generic);
+
+
+        // Functions register
+
+        static ScriptEngine& register_function(const char* declaration, ScriptFuncPtr* func,
+                                               ScriptCallConv conv = ScriptCallConv::CDECL);
+        static ScriptEngine& register_function(const String& declaration, ScriptFuncPtr* func,
+                                               ScriptCallConv conv = ScriptCallConv::CDECL);
+
+        template<typename ReturnValue, typename... Args>
+        static ScriptEngine& register_function(const char* declaration, ReturnValue (*func)(Args...),
+                                        ScriptCallConv conv = ScriptCallConv::CDECL)
         {
-            return private_register_function(declaration, reinterpret_cast<void*>(func), conv);
+            return register_function(declaration, ScriptFuncPtr::function_ptr(func), conv);
         }
 
-        template<typename T>
-        static ScriptEngine& register_function(const String& declaration, T func)
+        template<typename ReturnValue, typename... Args>
+        static ScriptEngine& register_function(const String& declaration, ReturnValue (*func)(Args...),
+                                               ScriptCallConv conv = ScriptCallConv::CDECL)
         {
-            return register_function(declaration.c_str(), func);
+            return register_function(declaration.c_str(), func, conv);
         }
 
         friend class ScriptFunction;

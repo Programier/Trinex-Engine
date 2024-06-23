@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <ScriptEngine/script_enums.hpp>
+#include <ScriptEngine/script_func_ptr.hpp>
 
 class asIScriptEngine;
 
@@ -83,16 +84,6 @@ namespace Engine
 
         static void declare_as_class(const Class* _class);
         static void declare_as_class(const Class* _class, const ClassInfo& info);
-        ScriptClassRegistrar& private_register_method(const char* declaration, void* method, ScriptCallConv conv);
-        ScriptClassRegistrar& private_register_virtual_method(const char* declaration, void* method, ScriptCallConv conv);
-        ScriptClassRegistrar& private_register_static_method(const char* declaration, void* method, ScriptCallConv conv);
-
-        ScriptClassRegistrar& private_register_behaviour(ScriptClassBehave behave, const char* declaration, void* method,
-                                                         bool is_method, ScriptCallConv conv);
-        ScriptClassRegistrar& private_register_operator(const char* declaration, void* method, bool is_method,
-                                                        ScriptCallConv conv);
-
-        ScriptClassRegistrar& property(const char* declaration, void* prop);
 
         ScriptClassRegistrar& prepare_namespace(bool static_member = false);
         ScriptClassRegistrar& release_namespace();
@@ -108,46 +99,49 @@ namespace Engine
         static ENGINE_EXPORT void global_namespace_name(const String& name);
 
         // Method registration
+        ScriptClassRegistrar& method(const char* declaration, ScriptMethodPtr* method,
+                                     ScriptCallConv conv = ScriptCallConv::THISCALL);
+        ScriptClassRegistrar& method(const char* declaration, ScriptFuncPtr* function,
+                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST);
+
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
                                      ScriptCallConv conv = ScriptCallConv::THISCALL)
         {
-            return private_register_method(declaration, &method_address, conv);
+            return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& method(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
                                      ScriptCallConv conv = ScriptCallConv::THISCALL)
         {
-            return private_register_method(declaration, &method_address, conv);
+            return method(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& static_function(const char* declaration, ReturnType (*method_address)(Args...),
+        ScriptClassRegistrar& method(const char* declaration, ReturnType (*function_address)(Args...),
+                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
+        {
+            return method(declaration, ScriptFuncPtr::function_ptr(function_address), conv);
+        }
+
+        ScriptClassRegistrar& static_function(const char* declaration, ScriptFuncPtr* function,
+                                              ScriptCallConv conv = ScriptCallConv::CDECL);
+
+        template<typename ReturnType, typename... Args>
+        ScriptClassRegistrar& static_function(const char* declaration, ReturnType (*function)(Args...),
                                               ScriptCallConv conv = ScriptCallConv::CDECL)
         {
-            return private_register_static_method(declaration, reinterpret_cast<void*>(method_address), conv);
-        }
-
-        template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& virtual_method(const char* declaration, ReturnType (*func)(Args...),
-                                             ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
-        {
-            return private_register_virtual_method(declaration, reinterpret_cast<void*>(func), conv);
-        }
-
-        template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& func_as_method(const char* declaration, ReturnType (*func)(Args...),
-                                             ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
-        {
-            return virtual_method(declaration, func, conv);
+            return static_function(declaration, ScriptFuncPtr::function_ptr(function), conv);
         }
 
         // Property registration
+        ScriptClassRegistrar& property(const char* declaration, size_t offset);
+
         template<typename T, typename C>
         ScriptClassRegistrar& property(const char* declaration, T C::*prop)
         {
-            return property(declaration, reinterpret_cast<void*>(*reinterpret_cast<size_t*>(&prop)));
+            return property(declaration, offset_of(prop));
         }
 
         ScriptClassRegistrar& static_property(const char* declaration, void* prop);
@@ -161,50 +155,61 @@ namespace Engine
         }
 
         // Behaviour registration
+        ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptFuncPtr* function,
+                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST);
+        ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration, ScriptMethodPtr* method,
+                                     ScriptCallConv conv = ScriptCallConv::THISCALL);
 
         template<typename ReturnType, typename ClassType, typename... Args>
-        ScriptClassRegistrar& behave(ScriptClassBehave behave, const char* declaration,
+        ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
                                      ReturnType (ClassType::*method_address)(Args...),
                                      ScriptCallConv conv = ScriptCallConv::THISCALL)
         {
-            return private_register_behaviour(behave, declaration, &method_address, true, conv);
+            return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename ClassType, typename... Args>
-        ScriptClassRegistrar& behave(ScriptClassBehave behave, const char* declaration,
+        ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
                                      ReturnType (ClassType::*method_address)(Args...) const,
                                      ScriptCallConv conv = ScriptCallConv::THISCALL)
         {
-            return private_register_behaviour(behave, declaration, &method_address, true, conv);
+            return behave(behaviour, declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& behave(ScriptClassBehave behave, const char* declaration, ReturnType (*method_address)(Args...),
+        ScriptClassRegistrar& behave(ScriptClassBehave behaviour, const char* declaration,
+                                     ReturnType (*function_address)(Args...),
                                      ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
         {
-            return private_register_behaviour(behave, declaration, reinterpret_cast<void*>(method_address), false, conv);
+            return behave(behaviour, declaration, ScriptFuncPtr::function_ptr(function_address), conv);
         }
 
         // Operator registration
+
+        ScriptClassRegistrar& opfunc(const char* declaration, ScriptMethodPtr* method,
+                                     ScriptCallConv conv = ScriptCallConv::THISCALL);
+        ScriptClassRegistrar& opfunc(const char* declaration, ScriptFuncPtr* function,
+                                     ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST);
+
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...),
                                      ScriptCallConv conv = ScriptCallConv::THISCALL)
         {
-            return private_register_operator(declaration, &method_address, true, conv);
+            return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename ClassType, typename... Args>
         ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (ClassType::*method_address)(Args...) const,
                                      ScriptCallConv conv = ScriptCallConv::THISCALL)
         {
-            return private_register_operator(declaration, &method_address, true, conv);
+            return opfunc(declaration, ScriptMethodPtr::method_ptr(method_address), conv);
         }
 
         template<typename ReturnType, typename... Args>
-        ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (*method_address)(Args...),
+        ScriptClassRegistrar& opfunc(const char* declaration, ReturnType (*function)(Args...),
                                      ScriptCallConv conv = ScriptCallConv::CDECL_OBJFIRST)
         {
-            return private_register_operator(declaration, reinterpret_cast<void*>(method_address), false, conv);
+            return opfunc(declaration, ScriptFuncPtr::function_ptr(function), conv);
         }
 
 
@@ -288,7 +293,7 @@ namespace Engine
 
     public:
         ScriptEnumRegistrar(const String& namespace_name, const String& base_name, bool init = true);
-        ScriptEnumRegistrar(const String& full_name,  bool init = true);
+        ScriptEnumRegistrar(const String& full_name, bool init = true);
         ScriptEnumRegistrar& prepare_namespace();
         ScriptEnumRegistrar& release_namespace();
 

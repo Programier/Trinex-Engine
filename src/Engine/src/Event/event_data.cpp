@@ -31,10 +31,10 @@ namespace Engine
                          method_of<Type&, Type, const Type&>(&Type::operator=));
 
         ScriptClassRegistrar("Engine::Event")
-                .func_as_method(Strings::format("const {}& {}() const", name, func).c_str(),
-                                func_of<const Type&(const Event*)>(
-                                        [](const Event* event) -> const Type& { return event->get<const Type&>(); }),
-                                ScriptCallConv::CDECL_OBJFIRST);
+                .method(Strings::format("const {}& {}() const", name, func).c_str(),
+                        func_of<const Type&(const Event*)>(
+                                [](const Event* event) -> const Type& { return event->get<const Type&>(); }),
+                        ScriptCallConv::CDECL_OBJFIRST);
 
         register_event_data_props(registrar, args...);
     }

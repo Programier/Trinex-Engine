@@ -1,29 +1,29 @@
+#include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/primitive_wrappers.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
-#include <iostream>
 
-#define declare_primitive(name, type)                                                                                  \
-    name::name(type initial) : value(initial)                                                                          \
-    {}                                                                                                                 \
-    name::name(const name&)                  = default;                                                                \
-    name& name::operator=(const name& other) = default;                                                                \
-    void name::add_ref() const                                                                                         \
-    {                                                                                                                  \
-        ++m_refs;                                                                                                     \
-    }                                                                                                                  \
-    void name::release() const                                                                                         \
-    {                                                                                                                  \
-        --m_refs;                                                                                                     \
-        if (m_refs == 0)                                                                                              \
-        {                                                                                                              \
-            delete this;                                                                                               \
-        }                                                                                                              \
-    }                                                                                                                  \
-    type name::op_conv() const                                                                                         \
-    {                                                                                                                  \
-        return value;                                                                                                  \
+#define declare_primitive(name, type)                                                                                            \
+    name::name(type initial) : value(initial)                                                                                    \
+    {}                                                                                                                           \
+    name::name(const name&)                  = default;                                                                          \
+    name& name::operator=(const name& other) = default;                                                                          \
+    void name::add_ref() const                                                                                                   \
+    {                                                                                                                            \
+        ++m_refs;                                                                                                                \
+    }                                                                                                                            \
+    void name::release() const                                                                                                   \
+    {                                                                                                                            \
+        --m_refs;                                                                                                                \
+        if (m_refs == 0)                                                                                                         \
+        {                                                                                                                        \
+            delete this;                                                                                                         \
+        }                                                                                                                        \
+    }                                                                                                                            \
+    type name::op_conv() const                                                                                                   \
+    {                                                                                                                            \
+        return value;                                                                                                            \
     }
 
 
@@ -78,4 +78,4 @@ namespace Engine::Initializers
         register_base_type<UnsignedInteger, Engine::uint32_t>("UnsignedInteger", "uint32", "0");
         register_base_type<UnsignedInteger64, Engine::uint64_t>("UnsignedInteger64", "uint64", "0");
     }
-}// namespace Engine::PrimitiveWrappers
+}// namespace Engine::Initializers

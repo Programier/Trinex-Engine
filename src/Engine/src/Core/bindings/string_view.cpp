@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>

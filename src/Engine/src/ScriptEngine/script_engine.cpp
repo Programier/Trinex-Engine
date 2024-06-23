@@ -158,10 +158,15 @@ namespace Engine
         }
     }
 
-    ScriptEngine& ScriptEngine::private_register_function(const char* declaration, void* func, ScriptCallConv conv)
+    ScriptEngine& ScriptEngine::register_function(const char* declaration, ScriptFuncPtr* func, ScriptCallConv conv)
     {
-        m_engine->RegisterGlobalFunction(declaration, asFunctionPtr(func), create_call_conv(conv));
+        m_engine->RegisterGlobalFunction(declaration, *reinterpret_cast<asSFuncPtr*>(func), create_call_conv(conv));
         return instance();
+    }
+
+    ScriptEngine& ScriptEngine::register_function(const String& declaration, ScriptFuncPtr* func, ScriptCallConv conv)
+    {
+        return register_function(declaration.c_str(), func, conv);
     }
 
     const ScriptEngine& ScriptEngine::release_context(asIScriptContext* context)
@@ -446,6 +451,95 @@ namespace Engine
         return type_info_by_decl(decl.c_str());
     }
 
+    String ScriptEngine::variable_name(asIScriptGeneric* generic)
+    {
+        asUINT arg_type_id = generic->GetArgTypeId(0);
+        bool is_handle     = (arg_type_id & asTYPEID_MASK_OBJECT) && (arg_type_id & asTYPEID_OBJHANDLE);
 
-    static PreInitializeController on_preinit([]() { ScriptEngine::initialize(); }, "Engine::ScriptEngine");
+        void* object              = is_handle ? *reinterpret_cast<void**>(generic->GetArgAddress(0))
+                                              : reinterpret_cast<void*>(generic->GetArgAddress(0));
+        asIScriptContext* context = asGetActiveContext();
+
+        if (context == nullptr)
+        {
+            return "";
+        }
+
+        std::vector<asIScriptFunction*> functions;
+
+        for (asUINT level = 0, stack_size = context->GetCallstackSize(); level < stack_size; ++level)
+        {
+            for (asUINT current = 0, props = context->GetVarCount(level); current < props; ++current)
+            {
+                if (context->GetAddressOfVar(current, level) == object)
+                {
+                    const char* name = nullptr;
+                    context->GetVar(current, level, &name);
+
+                    if (name && !std::string_view(name).empty())
+                    {
+                        if (asIScriptFunction* function = context->GetFunction(level))
+                        {
+                            const char* namespace_name = function->GetNamespace();
+                            if (!std::string_view(namespace_name).empty())
+                            {
+                                return Strings::format("{}::{}", namespace_name, name);
+                            }
+                        }
+
+                        return name;
+                    }
+                }
+            }
+
+            functions.push_back(context->GetFunction(level));
+        }
+
+        for (auto& func : functions)
+        {
+            asIScriptModule* module = func->GetModule();
+            asUINT count            = module->GetGlobalVarCount();
+
+            for (asUINT prop = 0; prop < count; ++prop)
+            {
+                if (module->GetAddressOfGlobalVar(prop) == object)
+                {
+                    const char* name           = nullptr;
+                    const char* namespace_name = nullptr;
+                    module->GetGlobalVar(prop, &name, &namespace_name);
+
+                    if (name && StringView(name).length() != 0)
+                    {
+                        if (namespace_name && !std::string_view(namespace_name).empty())
+                        {
+                            return Strings::format("{}::{}", namespace_name, name);
+                        }
+
+                        return name;
+                    }
+                }
+            }
+        }
+
+        return "Undefined";
+    }
+
+
+    static void variable_name_generic(asIScriptGeneric* generic)
+    {
+        String name = ScriptEngine::variable_name(generic);
+        generic->SetReturnObject(&name);
+    }
+
+
+    static void on_init()
+    {
+        ScriptEngine::initialize();
+        ScriptEngine::default_namespace("Engine::ScriptEngine");
+        ScriptEngine::register_function("string variable_name(const ?& in variable)", variable_name_generic,
+                                        ScriptCallConv::GENERIC);
+        ScriptEngine::default_namespace("");
+    }
+
+    static PreInitializeController on_preinit([]() { on_init(); }, "Engine::ScriptEngine");
 }// namespace Engine

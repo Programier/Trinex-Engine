@@ -1,5 +1,5 @@
 #pragma once
-
+#include <Core/engine_types.hpp>
 
 namespace Engine
 {
@@ -89,5 +89,12 @@ namespace Engine
         }
 
         return static_cast<OutType>(result);
+    }
+
+    template<typename FieldType, typename ClassType>
+    inline size_t offset_of(FieldType ClassType::*field)
+    {
+        ClassType* instance = reinterpret_cast<ClassType*>(1024);
+        return reinterpret_cast<size_t>(&(instance->*field)) - reinterpret_cast<size_t>(instance);
     }
 }// namespace Engine

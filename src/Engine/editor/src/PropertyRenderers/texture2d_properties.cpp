@@ -5,11 +5,11 @@
 
 namespace Engine
 {
-    static const char* format_to_string(const ColorFormat& format)
-    {
-        static Enum* format_enum = Enum::static_find("Engine::ColorFormat", true);
-        return format_enum->entry(static_cast<EnumerateType>(format))->name.c_str();
-    }
+    // static const char* format_to_string(const ColorFormat& format)
+    // {
+    //     static Enum* format_enum = Enum::static_find("Engine::ColorFormat", true);
+    //     return format_enum->entry(static_cast<EnumerateType>(format))->name.c_str();
+    // }
 
     // static void renderer(class ImGuiObjectProperties* window, void* object, Struct* self, bool editable)
     // {

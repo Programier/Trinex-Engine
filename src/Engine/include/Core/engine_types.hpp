@@ -224,5 +224,4 @@ namespace glm
     }
 }// namespace glm
 
-#include <Core/etl/helpers.hpp>
 #include <Core/filesystem/path.hpp>

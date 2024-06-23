@@ -275,14 +275,12 @@ namespace Engine
                 .method("System@ remove_subsystem(System@)", &System::remove_subsystem)
                 .method("System@ parent_system() const", &System::parent_system)
                 .method("System@ sort_subsystems()", &System::sort_subsystems)
-                .virtual_method("System@ wait()", func_of<System&(System*)>([](System* self) -> System& { return self->wait(); }))
-                .virtual_method("System@ update(float)", func_of<System&(System*, float)>([](System* self, float dt) -> System& {
-                                    return self->update(dt);
-                                }))
-                .virtual_method("System@ shutdown()",
-                                func_of<System&(System*)>([](System* self) -> System& { return self->shutdown(); }))
-                .virtual_method("Class@ depends_on() const",
-                                func_of<Class*(System*)>([](System* self) -> Class* { return self->depends_on(); }));
+                .method("System@ wait()", func_of<System&(System*)>([](System* self) -> System& { return self->wait(); }))
+                .method("System@ update(float)",
+                        func_of<System&(System*, float)>([](System* self, float dt) -> System& { return self->update(dt); }))
+                .method("System@ shutdown()", func_of<System&(System*)>([](System* self) -> System& { return self->shutdown(); }))
+                .method("Class@ depends_on() const",
+                        func_of<Class*(System*)>([](System* self) -> Class* { return self->depends_on(); }));
     }
 
     static void on_system_destroy(Object* object)
