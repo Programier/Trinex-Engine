@@ -9,13 +9,15 @@ namespace Engine
 {
 
     ScriptTypeInfo::ScriptTypeInfo(asITypeInfo* info) : m_info(info)
-    {}
+    {
+        add_ref();
+    }
 
 
     ScriptTypeInfo::ScriptTypeInfo(const ScriptTypeInfo& obj)
     {
         m_info = obj.m_info;
-        bind();
+        add_ref();
     }
 
     ScriptTypeInfo::ScriptTypeInfo(ScriptTypeInfo&& obj)
@@ -28,7 +30,7 @@ namespace Engine
     {
         if (this != &obj)
         {
-            unbind();
+            release();
             m_info     = obj.m_info;
             obj.m_info = nullptr;
         }
@@ -40,14 +42,14 @@ namespace Engine
     {
         if (this != &obj)
         {
-            unbind();
+            release();
             m_info = obj.m_info;
-            bind();
+            add_ref();
         }
         return *this;
     }
 
-    ScriptTypeInfo& ScriptTypeInfo::bind()
+    const ScriptTypeInfo& ScriptTypeInfo::add_ref() const
     {
         if (m_info != nullptr)
         {
@@ -56,12 +58,17 @@ namespace Engine
         return *this;
     }
 
+    asITypeInfo* ScriptTypeInfo::info() const
+    {
+        return m_info;
+    }
+
     bool ScriptTypeInfo::is_valid() const
     {
         return m_info != nullptr;
     }
 
-    ScriptTypeInfo& ScriptTypeInfo::unbind()
+    const ScriptTypeInfo& ScriptTypeInfo::release() const
     {
         if (m_info)
         {
@@ -91,7 +98,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptTypeInfo::base_type() const
     {
-        return ScriptTypeInfo(m_info->GetBaseType()).bind();
+        return ScriptTypeInfo(m_info->GetBaseType());
     }
 
     bool ScriptTypeInfo::derives_from(const ScriptTypeInfo& info)
@@ -116,7 +123,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptTypeInfo::sub_type(uint_t index) const
     {
-        return ScriptTypeInfo(m_info->GetSubType(index)).bind();
+        return ScriptTypeInfo(m_info->GetSubType(index));
     }
 
     uint_t ScriptTypeInfo::sub_type_count() const
@@ -132,7 +139,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptTypeInfo::interface(uint_t index)
     {
-        return ScriptTypeInfo(m_info->GetInterface(index)).bind();
+        return ScriptTypeInfo(m_info->GetInterface(index));
     }
 
     bool ScriptTypeInfo::implements(const ScriptTypeInfo& obj_type) const
@@ -283,12 +290,12 @@ namespace Engine
 
     ScriptTypeInfo ScriptTypeInfo::child_funcdef(uint_t index) const
     {
-        return ScriptTypeInfo(m_info->GetChildFuncdef(index)).bind();
+        return ScriptTypeInfo(m_info->GetChildFuncdef(index));
     }
 
     ScriptTypeInfo ScriptTypeInfo::parent_type() const
     {
-        return ScriptTypeInfo(m_info->GetParentType()).bind();
+        return ScriptTypeInfo(m_info->GetParentType());
     }
 
     // Enums
@@ -326,6 +333,6 @@ namespace Engine
 
     ScriptTypeInfo::~ScriptTypeInfo()
     {
-        unbind();
+        release();
     }
 }// namespace Engine

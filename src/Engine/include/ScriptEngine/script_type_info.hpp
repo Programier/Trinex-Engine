@@ -13,15 +13,18 @@ namespace Engine
     class ENGINE_EXPORT ScriptTypeInfo
     {
     private:
-        asITypeInfo* m_info = nullptr;
+        mutable asITypeInfo* m_info = nullptr;
 
-        ScriptTypeInfo& bind();
+        const ScriptTypeInfo& add_ref() const;
+        const ScriptTypeInfo& release() const;
 
     public:
         ScriptTypeInfo(asITypeInfo* info = nullptr);
         copy_constructors_hpp(ScriptTypeInfo);
+
+        asITypeInfo* info() const;
+
         bool is_valid() const;
-        ScriptTypeInfo& unbind();
         // Miscellaneous
         ScriptModule module() const;
 
@@ -86,9 +89,5 @@ namespace Engine
         bool is_array() const;
 
         ~ScriptTypeInfo();
-        friend class ScriptModule;
-        friend class ScriptFunction;
-        friend class ScriptEngine;
-        friend class ScriptObject;
     };
 }// namespace Engine

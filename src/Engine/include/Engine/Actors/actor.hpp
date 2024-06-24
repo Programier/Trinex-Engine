@@ -2,7 +2,6 @@
 #include <Core/object.hpp>
 #include <Core/pointer.hpp>
 #include <Core/transform.hpp>
-#include <ScriptEngine/script_object.hpp>
 
 namespace Engine
 {
@@ -23,7 +22,6 @@ namespace Engine
     private:
         Pointer<class SceneComponent> m_root_component;
         Vector<class ActorComponent*> m_owned_components;
-        ScriptObject m_script_object;
 
         bool m_is_playing         = false;
         bool m_is_being_destroyed = false;
@@ -53,7 +51,6 @@ namespace Engine
         bool is_selected() const;
 
         const Vector<class ActorComponent*>& owned_components() const;
-        Actor& destroy_script_object(ScriptObject* object) override;
         const Transform& transfrom() const;
         SceneComponent* scene_component() const;
 

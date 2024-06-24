@@ -1,11 +1,13 @@
 #include <Core/arguments.hpp>
 #include <Core/class.hpp>
 #include <Core/entry_point.hpp>
+#include <Core/etl/script_array.hpp>
 #include <Core/logger.hpp>
-#include <ScriptEngine/script_module.hpp>
 #include <fstream>
+#include <scripthelper.h>
+#include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_function.hpp>
-
+#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine
 {
@@ -22,20 +24,20 @@ namespace Engine
         static int_t exec_script(const String& source)
         {
             ScriptModule module("__TRINEX_SCRIPT_EXEC_MODULE__", ScriptModule::AlwaysCreate);
-            if(module.add_script_section("Global", source.c_str(), source.length()) < 0)
+            if (module.add_script_section("Global", source.c_str(), source.length()) < 0)
             {
                 error_log("ScriptExec", "Failed to add script section!");
                 return -1;
             }
 
-            if(module.build() < 0)
+            if (module.build() < 0)
             {
                 error_log("ScriptExec", "Failed to build module!");
                 return -1;
             }
 
             ScriptFunction function = module.function_by_name("main");
-            if(!function.is_valid())
+            if (!function.is_valid())
             {
                 error_log("ScriptExec", "Failed to get main function from script");
                 return -1;
@@ -77,5 +79,22 @@ namespace Engine
         }
     };
 
+    class ScriptConfigDump : public EntryPoint
+    {
+        declare_class(ScriptConfigDump, EntryPoint);
+
+    public:
+        int_t execute() override
+        {
+            std::ofstream out_file("script_config.txt");
+            if (out_file.is_open())
+            {
+                WriteConfigToStream(ScriptEngine::as_engine(), out_file);
+            }
+            return 0;
+        }
+    };
+
     implement_engine_class_default_init(ScriptExec, 0);
+    implement_engine_class_default_init(ScriptConfigDump, 0);
 }// namespace Engine

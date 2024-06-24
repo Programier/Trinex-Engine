@@ -277,11 +277,11 @@ namespace Engine
         {
             if (uninited)
             {
-                return reinterpret_cast<asIScriptObject*>(m_engine->CreateUninitializedScriptObject(info.m_info));
+                return reinterpret_cast<asIScriptObject*>(m_engine->CreateUninitializedScriptObject(info.info()));
             }
             else
             {
-                return reinterpret_cast<asIScriptObject*>(m_engine->CreateScriptObject(info.m_info));
+                return reinterpret_cast<asIScriptObject*>(m_engine->CreateScriptObject(info.info()));
             }
         }
 
@@ -290,7 +290,7 @@ namespace Engine
 
     ScriptEngine& ScriptEngine::destroy_script_object(ScriptObjectAddress object, const ScriptTypeInfo& info)
     {
-        m_engine->ReleaseScriptObject(object, info.m_info);
+        m_engine->ReleaseScriptObject(object, info.info());
         return instance();
     }
 
@@ -336,7 +336,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptEngine::object_type_by_index(uint_t index)
     {
-        return ScriptTypeInfo(m_engine->GetObjectTypeByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetObjectTypeByIndex(index));
     }
 
     bool ScriptEngine::exec_string(const String& line)
@@ -357,7 +357,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptEngine::enum_by_index(uint_t index)
     {
-        return ScriptTypeInfo(m_engine->GetEnumByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetEnumByIndex(index));
     }
 
     // Funcdefs
@@ -368,7 +368,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptEngine::funcdef_by_index(uint_t index)
     {
-        return ScriptTypeInfo(m_engine->GetFuncdefByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetFuncdefByIndex(index));
     }
 
     // Typedefs
@@ -379,7 +379,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptEngine::typedef_by_index(uint_t index)
     {
-        return ScriptTypeInfo(m_engine->GetTypedefByIndex(index)).bind();
+        return ScriptTypeInfo(m_engine->GetTypedefByIndex(index));
     }
 
     // Script modules
@@ -428,17 +428,17 @@ namespace Engine
 
     ScriptTypeInfo ScriptEngine::type_info_by_id(int type_id)
     {
-        return ScriptTypeInfo(m_engine->GetTypeInfoById(type_id)).bind();
+        return ScriptTypeInfo(m_engine->GetTypeInfoById(type_id));
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_name(const char* name)
     {
-        return ScriptTypeInfo(m_engine->GetTypeInfoByName(name)).bind();
+        return ScriptTypeInfo(m_engine->GetTypeInfoByName(name));
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_decl(const char* decl)
     {
-        return ScriptTypeInfo(m_engine->GetTypeInfoByDecl(decl)).bind();
+        return ScriptTypeInfo(m_engine->GetTypeInfoByDecl(decl));
     }
 
     ScriptTypeInfo ScriptEngine::type_info_by_name(const String& name)

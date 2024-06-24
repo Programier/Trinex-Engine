@@ -117,7 +117,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptObject::object_type() const
     {
-        return ScriptTypeInfo(m_object->GetObjectType()).bind();
+        return ScriptTypeInfo(m_object->GetObjectType());
     }
 
     // Class properties
@@ -170,21 +170,5 @@ namespace Engine
     ScriptObject::~ScriptObject()
     {
         remove_reference();
-    }
-
-    void ScriptObject::update(float dt)
-    {
-        if (m_update.is_valid())
-        {
-            m_update.prepare().object(*this).arg_float(0, dt).call().unbind_context();
-        }
-    }
-
-    void ScriptObject::on_create(Object* owner)
-    {
-        if (m_on_create.is_valid())
-        {
-            m_on_create.prepare().object(*this).arg_object(0, owner).call().unbind_context();
-        }
     }
 }// namespace Engine

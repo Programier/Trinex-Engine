@@ -5,7 +5,7 @@
 
 namespace Engine::Settings
 {
-    ENGINE_EXPORT String e_engine;
+    ENGINE_EXPORT String e_engine = "Engine::EngineInstance";
     ENGINE_EXPORT String e_api;
     ENGINE_EXPORT String e_default_language;
     ENGINE_EXPORT String e_current_language;
@@ -68,6 +68,8 @@ namespace Engine::Settings
     static void destroy()
     {
         e_languages.release();
+        e_systems.release();
+        e_libs.release();
         w_attributes.release();
         w_orientations.release();
     }

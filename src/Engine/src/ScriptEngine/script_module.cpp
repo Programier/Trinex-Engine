@@ -220,7 +220,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptModule::object_type_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(m_module->GetObjectTypeByIndex(index)).bind();
+        return ScriptTypeInfo(m_module->GetObjectTypeByIndex(index));
     }
 
     int_t ScriptModule::type_id_by_decl(const char* decl) const
@@ -235,12 +235,12 @@ namespace Engine
 
     ScriptTypeInfo ScriptModule::type_info_by_name(const char* name) const
     {
-        return ScriptTypeInfo(m_module->GetTypeInfoByName(name)).bind();
+        return ScriptTypeInfo(m_module->GetTypeInfoByName(name));
     }
 
     ScriptTypeInfo ScriptModule::type_info_by_decl(const char* decl) const
     {
-        return ScriptTypeInfo(m_module->GetTypeInfoByDecl(decl)).bind();
+        return ScriptTypeInfo(m_module->GetTypeInfoByDecl(decl));
     }
 
     ScriptTypeInfo ScriptModule::type_info_by_name(const String& name) const
@@ -277,7 +277,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptModule::enum_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(m_module->GetEnumByIndex(index)).bind();
+        return ScriptTypeInfo(m_module->GetEnumByIndex(index));
     }
 
     //        // Typedefs
@@ -288,6 +288,6 @@ namespace Engine
 
     ScriptTypeInfo ScriptModule::typedef_by_index(uint_t index) const
     {
-        return ScriptTypeInfo(m_module->GetTypedefByIndex(index)).bind();
+        return ScriptTypeInfo(m_module->GetTypedefByIndex(index));
     }
 }// namespace Engine

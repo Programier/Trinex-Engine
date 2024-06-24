@@ -74,8 +74,6 @@ namespace Engine
 
     Actor& Actor::update(float dt)
     {
-        m_script_object.update(dt);
-
         // Update each component in actor
         for (auto& component : m_owned_components)
         {
@@ -151,16 +149,6 @@ namespace Engine
             ActorComponent* component = m_owned_components[index];
             component->destroyed();
             component->owner(nullptr);
-        }
-
-        return *this;
-    }
-
-    Actor& Actor::destroy_script_object(ScriptObject* object)
-    {
-        if (*object == m_script_object)
-        {
-            m_script_object.remove_reference();
         }
 
         return *this;

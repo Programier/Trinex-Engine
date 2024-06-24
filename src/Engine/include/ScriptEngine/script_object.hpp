@@ -57,10 +57,6 @@ namespace Engine
         int_t copy_from(const ScriptObject& other);
         ~ScriptObject();
 
-
-        // Class methods
-        void update(float dt);
-        void on_create(Object* owner);
         friend class ScriptFunction;
     };
 }// namespace Engine

@@ -228,7 +228,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptFunction::object_type() const
     {
-        return ScriptTypeInfo(m_function->GetObjectType()).bind();
+        return ScriptTypeInfo(m_function->GetObjectType());
     }
 
     const char* ScriptFunction::object_name() const
@@ -314,7 +314,7 @@ namespace Engine
 
     ScriptTypeInfo ScriptFunction::delegate_object_type() const
     {
-        return ScriptTypeInfo(m_function->GetDelegateObjectType()).bind();
+        return ScriptTypeInfo(m_function->GetDelegateObjectType());
     }
 
     ScriptFunction ScriptFunction::delegate_function() const
