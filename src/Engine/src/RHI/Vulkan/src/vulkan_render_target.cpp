@@ -165,7 +165,7 @@ namespace Engine
 
     bool VulkanRenderTarget::Key::operator<(const Key& key) const
     {
-        return std::memcmp(this, &key, sizeof(*this));
+        return std::memcmp(this, &key, sizeof(*this)) < 0;
     }
 
     VulkanRenderTarget* VulkanRenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
