@@ -3,6 +3,8 @@
 #include <Core/class.hpp>
 #include <Core/config_manager.hpp>
 #include <Core/constants.hpp>
+#include <Core/engine_loop.hpp>
+#include <Core/entry_point.hpp>
 #include <Core/filesystem/native_file_system.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/garbage_collector.hpp>
@@ -26,8 +28,6 @@
 #include <Window/window_manager.hpp>
 #include <no_api.hpp>
 
-#include <Core/engine_loop.hpp>
-
 namespace Engine
 {
     EngineLoop::EngineLoop()
@@ -36,19 +36,11 @@ namespace Engine
     EngineLoop::~EngineLoop()
     {}
 
-    static void create_window()
-    {
-        WindowConfig config;
-        config.attributes.insert(WindowAttribute::Hidden);
-        WindowManager::create_instance();
-        EventSystem::new_system<EventSystem>();
-        WindowManager::instance()->create_window(config, nullptr)->hide();
-    }
 
-    static bool init_api()
+    static void init_api(bool force_no_api = false)
     {
         String api = Settings::e_api;
-        if (!api.empty())
+        if (!api.empty() && !force_no_api)
         {
             rhi = reinterpret_cast<RHI*>(
                     Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
@@ -56,15 +48,21 @@ namespace Engine
             {
                 throw EngineException("Failed to init API");
             }
-
-            create_window();
-            SceneRenderTargets::create_instance();
-            return true;
+            return;
         }
 
+        rhi = Object::new_instance<NoApi>();
+    }
 
-        rhi = new NoApi();
-        return false;
+    static void create_main_window()
+    {
+        WindowConfig config;
+        config.attributes.insert(WindowAttribute::Hidden);
+        WindowManager::create_instance();
+        EventSystem::new_system<EventSystem>();
+        WindowManager::instance()->create_window(config, nullptr)->hide();
+
+        SceneRenderTargets::create_instance();
     }
 
     static void initialize_filesystem()
@@ -76,6 +74,30 @@ namespace Engine
         vfs->mount("", exec_fs);// Temporary root directory is mounted to exec directory
 
         Platform::bind_platform_mount_points();
+    }
+
+    static int_t execute_entry(const StringView& entry_name)
+    {
+        init_api(true);
+
+        int_t result = 0;
+        if (Object* entry_object = Class::static_find(entry_name, true)->create_object())
+        {
+            if (EntryPoint* entry = entry_object->instance_cast<EntryPoint>())
+            {
+                result = entry->execute();
+            }
+            else
+            {
+                throw EngineException("Failed to cast entry point!");
+            }
+        }
+        else
+        {
+            throw EngineException("Failed to create entry point!");
+        }
+        engine_instance->request_exit();
+        return result;
     }
 
     int_t EngineLoop::preinit(int_t argc, const char** argv)
@@ -90,17 +112,11 @@ namespace Engine
         Project::initialize();
 
         ReflectionInitializeController().execute();
-
         ConfigsPreInitializeController().execute();
         ConfigManager::initialize();
 
-
         // Load libraries
         {
-            auto begin = Settings::e_libs.begin();
-            auto end   = Settings::e_libs.end();
-
-            auto status = begin == end;
             for (const String& library : Settings::e_libs)
             {
                 Library().load(library);
@@ -124,7 +140,16 @@ namespace Engine
         ReflectionInitializeController().execute();
         ScriptEngine::load_scripts();
 
+
+        auto entry_param = Arguments::find("e_entry");
+        if (entry_param && entry_param->type == Arguments::Type::String)
+        {
+            return execute_entry(entry_param->get<const String&>());
+        }
+
         init_api();
+        create_main_window();
+
         return 0;
     }
 
@@ -132,7 +157,7 @@ namespace Engine
     {
         {
             int result = preinit(argc, argv);
-            if (result != 0)
+            if (result != 0 || engine_instance->is_requesting_exit())
                 return result;
         }
 

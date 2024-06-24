@@ -103,8 +103,8 @@ namespace Engine
     {
         if (m_engine)
         {
-            m_engine->Release();
             release_scripts();
+            m_engine->Release();
             m_engine = nullptr;
         }
 
