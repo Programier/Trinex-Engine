@@ -85,6 +85,13 @@ namespace Engine
         ScriptFunction funcdef_signature() const;
 
         // Flags processing
+        bool is_script_object() const;
+        bool is_shared() const;
+        bool is_noinherit() const;
+        bool is_funcdef() const;
+        bool is_template_subtype() const;
+        bool is_typedef() const;
+        bool is_abstract() const;
         bool is_enum() const;
         bool is_array() const;
 

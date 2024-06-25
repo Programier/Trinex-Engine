@@ -174,4 +174,29 @@ namespace Engine::Strings
         return container_to_code_string(container);
     }
 
+    static FORCE_INLINE String make_string(const StringView& view)
+    {
+        return String(view);
+    }
+
+    static FORCE_INLINE String make_string(const char* line)
+    {
+        if(line)
+            return line;
+        return "";
+    }
+
+    static FORCE_INLINE StringView make_string_view(const String& str)
+    {
+        return StringView(str);
+    }
+
+    static FORCE_INLINE StringView make_string_view(const char* line)
+    {
+        if(line)
+            return line;
+        return "";
+    }
+
+
 }// namespace Engine::Strings

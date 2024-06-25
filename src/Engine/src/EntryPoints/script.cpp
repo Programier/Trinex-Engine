@@ -9,9 +9,17 @@
 #include <ScriptEngine/script_module.hpp>
 #include <fstream>
 #include <scripthelper.h>
+#include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine
 {
+
+    void foo(asIScriptGeneric* generic)
+    {
+        int_t id = generic->GetArgTypeId(0);
+        auto info = ScriptEngine::type_info_by_id(id);
+    }
+
     class ScriptExec : public EntryPoint
     {
         declare_class(ScriptExec, EntryPoint);
@@ -24,6 +32,8 @@ namespace Engine
 
         static int_t exec_script(const String& source)
         {
+            ScriptEngine::register_function("void foo(const ?& in value)", foo, ScriptCallConv::GENERIC);
+
             ScriptModule module("__TRINEX_SCRIPT_EXEC_MODULE__", ScriptModule::AlwaysCreate);
             if (module.add_script_section("Global", source.c_str(), source.length()) < 0)
             {

@@ -321,6 +321,41 @@ namespace Engine
         return ScriptFunction(m_info->GetFuncdefSignature());
     }
 
+    bool ScriptTypeInfo::is_script_object() const
+    {
+        return (m_info->GetFlags() & asOBJ_SCRIPT_OBJECT) == asOBJ_SCRIPT_OBJECT;
+    }
+
+    bool ScriptTypeInfo::is_shared() const
+    {
+        return (m_info->GetFlags() & asOBJ_SHARED) == asOBJ_SHARED;
+    }
+
+    bool ScriptTypeInfo::is_noinherit() const
+    {
+        return (m_info->GetFlags() & asOBJ_NOINHERIT) == asOBJ_NOINHERIT;
+    }
+
+    bool ScriptTypeInfo::is_funcdef() const
+    {
+        return (m_info->GetFlags() & asOBJ_FUNCDEF) == asOBJ_FUNCDEF;
+    }
+
+    bool ScriptTypeInfo::is_template_subtype() const
+    {
+        return (m_info->GetFlags() & asOBJ_TEMPLATE_SUBTYPE) == asOBJ_TEMPLATE_SUBTYPE;
+    }
+
+    bool ScriptTypeInfo::is_typedef() const
+    {
+        return (m_info->GetFlags() & asOBJ_TYPEDEF) == asOBJ_TYPEDEF;
+    }
+
+    bool ScriptTypeInfo::is_abstract() const
+    {
+        return (m_info->GetFlags() & asOBJ_ABSTRACT) == asOBJ_ABSTRACT;
+    }
+
     bool ScriptTypeInfo::is_enum() const
     {
         return (m_info->GetFlags() & asOBJ_ENUM) == asOBJ_ENUM;

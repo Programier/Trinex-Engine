@@ -17,14 +17,14 @@ namespace Engine
     public:
         enum Type
         {
-            Dummy     = -1,
-            System    = 0,
-            Script    = 1,
-            Interface = 2,
-            Virtual   = 3,
-            Funcdef   = 4,
-            Imported  = 5,
-            Delegate  = 6
+            Dummy     = 0,
+            System    = 1,
+            Script    = 2,
+            Interface = 3,
+            Virtual   = 4,
+            Funcdef   = 5,
+            Imported  = 6,
+            Delegate  = 7
         };
 
     private:
@@ -44,18 +44,18 @@ namespace Engine
         const ScriptFunction& release() const;
 
         int_t id() const;
-        Type func_type() const;
-        const char* module_name() const;
+        Type type() const;
+        StringView module_name() const;
         ScriptModule module() const;
-        const char* script_section_name() const;
+        StringView script_section_name() const;
 
         // Function signature
         ScriptTypeInfo object_type() const;
-        const char* object_name() const;
-        const char* name() const;
-        const char* namespace_name() const;
-        const char* declaration(bool include_object_name = true, bool include_namespace = false,
-                                bool include_param_names = false) const;
+        StringView object_name() const;
+        StringView name() const;
+        StringView namespace_name() const;
+        String declaration(bool include_object_name = true, bool include_namespace = false,
+                           bool include_param_names = false) const;
         bool is_read_only() const;
         bool is_private() const;
         bool is_protected() const;

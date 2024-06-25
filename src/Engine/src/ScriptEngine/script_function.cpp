@@ -1,7 +1,11 @@
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
+#include <Core/logger.hpp>
+#include <Core/string_functions.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
-#include <ScriptEngine/script_object.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
@@ -64,7 +68,7 @@ namespace Engine
         return m_function->GetId();
     }
 
-    ScriptFunction::Type ScriptFunction::func_type() const
+    ScriptFunction::Type ScriptFunction::type() const
     {
         asEFuncType type = m_function->GetFuncType();
         switch (type)
@@ -90,9 +94,9 @@ namespace Engine
         }
     }
 
-    const char* ScriptFunction::module_name() const
+    StringView ScriptFunction::module_name() const
     {
-        return m_function->GetModuleName();
+        return Strings::make_string_view(m_function->GetModuleName());
     }
 
     ScriptModule ScriptFunction::module() const
@@ -100,9 +104,9 @@ namespace Engine
         return ScriptModule(m_function->GetModule());
     }
 
-    const char* ScriptFunction::script_section_name() const
+    StringView ScriptFunction::script_section_name() const
     {
-        return m_function->GetScriptSectionName();
+        return Strings::make_string_view(m_function->GetScriptSectionName());
     }
 
     ScriptTypeInfo ScriptFunction::object_type() const
@@ -110,24 +114,24 @@ namespace Engine
         return ScriptTypeInfo(m_function->GetObjectType());
     }
 
-    const char* ScriptFunction::object_name() const
+    StringView ScriptFunction::object_name() const
     {
-        return m_function->GetObjectName();
+        return Strings::make_string_view(m_function->GetObjectName());
     }
 
-    const char* ScriptFunction::name() const
+    StringView ScriptFunction::name() const
     {
-        return m_function->GetName();
+        return Strings::make_string_view(m_function->GetName());
     }
 
-    const char* ScriptFunction::namespace_name() const
+    StringView ScriptFunction::namespace_name() const
     {
-        return m_function->GetNamespace();
+        return Strings::make_string_view(m_function->GetNamespace());
     }
 
-    const char* ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const
+    String ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const
     {
-        return m_function->GetDeclaration(include_object_name, include_namespace, include_param_names);
+        return Strings::make_string(m_function->GetDeclaration(include_object_name, include_namespace, include_param_names));
     }
 
     bool ScriptFunction::is_read_only() const
@@ -229,4 +233,99 @@ namespace Engine
     {
         release();
     }
+
+
+    static void assign_script_function(asIScriptGeneric* generic)
+    {
+        ScriptFunction& function = *reinterpret_cast<ScriptFunction*>(generic->GetObject());
+        auto info                = ScriptEngine::type_info_by_id(generic->GetArgTypeId(0));
+
+        if (!info.is_valid())// Null ?
+        {
+            function = nullptr;
+            return;
+        }
+
+        if (!info.is_funcdef())
+        {
+            error_log("ScriptFunction", "Cannot set new value. New value is not function handle!");
+            return;
+        }
+
+        asIScriptFunction* script_function = *reinterpret_cast<asIScriptFunction**>(generic->GetArgAddress(0));
+
+        if (script_function != nullptr)
+        {
+            function = script_function;
+        }
+    }
+
+    static void construct_script_function(asIScriptGeneric* generic)
+    {
+        void* address = generic->GetObject();
+        new (address) ScriptFunction();
+        assign_script_function(generic);
+    }
+
+    static void on_init()
+    {
+        ScriptEnumRegistrar enum_registrar("Engine::ScriptFunction::Type");
+        enum_registrar.set("Dummy", ScriptFunction::Type::Dummy);
+        enum_registrar.set("System", ScriptFunction::Type::System);
+        enum_registrar.set("Script", ScriptFunction::Type::Script);
+        enum_registrar.set("Interface", ScriptFunction::Type::Interface);
+        enum_registrar.set("Virtual", ScriptFunction::Type::Virtual);
+        enum_registrar.set("Funcdef", ScriptFunction::Type::Funcdef);
+        enum_registrar.set("Imported", ScriptFunction::Type::Imported);
+        enum_registrar.set("Delegate", ScriptFunction::Type::Delegate);
+
+        ScriptClassRegistrar::ClassInfo info = ScriptClassRegistrar::create_type_info<ScriptFunction>(
+                ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassAllInts);
+
+        ScriptClassRegistrar registrar("Engine::ScriptFunction", info);
+
+        registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<ScriptFunction>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const ScriptFunction& in)",
+                         ScriptClassRegistrar::constructor<ScriptFunction, const ScriptFunction&>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const ?& in)", construct_script_function, ScriptCallConv::GENERIC);
+        registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ScriptFunction>,
+                         ScriptCallConv::CDECL_OBJFIRST);
+
+        registrar.opfunc("bool opEquals(const ScriptFunction& in) const",
+                         method_of<bool, ScriptFunction, const ScriptFunction&>(&ScriptFunction::operator==),
+                         ScriptCallConv::THISCALL);
+
+        registrar.opfunc("ScriptFunction& opAssign(const ScriptFunction& in)",
+                         method_of<ScriptFunction&, ScriptFunction, const ScriptFunction&>(&ScriptFunction::operator=),
+                         ScriptCallConv::THISCALL);
+        registrar.opfunc("ScriptFunction& opAssign(const ?& in)", assign_script_function, ScriptCallConv::GENERIC);
+
+        registrar.method("bool is_valid() const", &ScriptFunction::is_valid);
+        registrar.method("int32 id() const", &ScriptFunction::id);
+        registrar.method("ScriptFunction::Type type() const", &ScriptFunction::type);
+        registrar.method("StringView module_name() const", &ScriptFunction::module_name);
+        registrar.method("StringView script_section_name() const", &ScriptFunction::script_section_name);
+        registrar.method("StringView object_name() const", &ScriptFunction::object_name);
+        registrar.method("StringView name() const", &ScriptFunction::name);
+        registrar.method("StringView namespace_name() const", &ScriptFunction::namespace_name);
+        registrar.method("string declaration(bool include_object_name = true, bool include_namespace = false, bool "
+                         "include_param_names = false) const",
+                         &ScriptFunction::declaration);
+        registrar.method("bool is_read_only() const", &ScriptFunction::is_read_only);
+        registrar.method("bool is_private() const", &ScriptFunction::is_private);
+        registrar.method("bool is_protected() const", &ScriptFunction::is_protected);
+        registrar.method("bool is_final() const", &ScriptFunction::is_final);
+        registrar.method("bool is_override() const", &ScriptFunction::is_override);
+        registrar.method("bool is_shared() const", &ScriptFunction::is_shared);
+        registrar.method("bool is_explicit() const", &ScriptFunction::is_explicit);
+        registrar.method("bool is_property() const", &ScriptFunction::is_property);
+        registrar.method("uint32 param_count() const", &ScriptFunction::param_count);
+        registrar.method("int32 type_id() const", &ScriptFunction::type_id);
+        registrar.method("bool is_compatible_with_type_id(int32 type_id) const", &ScriptFunction::is_compatible_with_type_id);
+        registrar.method("ScriptFunction delegate_function() const", &ScriptFunction::delegate_function);
+    }
+
+    static ReflectionInitializeController initializer(on_init, "Engine::ScriptFunction", {"Engine::StringView"});
 }// namespace Engine
