@@ -78,7 +78,7 @@ namespace Engine
         return static_cast<int_t>(m_module->AddScriptSection(section_name, code, code_length, line_offset));
     }
 
-    int_t ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int line_offset)
+    int_t ScriptModule::add_script_section(const String& section_name, const String& code, size_t code_length, int_t line_offset)
     {
         return add_script_section(section_name.c_str(), code.c_str(), code_length, line_offset);
     }
@@ -88,7 +88,7 @@ namespace Engine
         return static_cast<int_t>(m_module->Build());
     }
 
-    int_t ScriptModule::compile_global_var(const char* section_name, const char* code, int line_offset)
+    int_t ScriptModule::compile_global_var(const char* section_name, const char* code, int_t line_offset)
     {
         return static_cast<int_t>(m_module->CompileGlobalVar(section_name, code, line_offset));
     }
@@ -116,17 +116,17 @@ namespace Engine
 
     ScriptFunction ScriptModule::function_by_index(Index index) const
     {
-        return ScriptFunction(m_module->GetFunctionByIndex(index)).bind();
+        return ScriptFunction(m_module->GetFunctionByIndex(index));
     }
 
     ScriptFunction ScriptModule::function_by_decl(const char* decl) const
     {
-        return ScriptFunction(m_module->GetFunctionByDecl(decl)).bind();
+        return ScriptFunction(m_module->GetFunctionByDecl(decl));
     }
 
     ScriptFunction ScriptModule::function_by_name(const char* func_name) const
     {
-        return ScriptFunction(m_module->GetFunctionByName(func_name)).bind();
+        return ScriptFunction(m_module->GetFunctionByName(func_name));
     }
 
     ScriptFunction ScriptModule::function_by_decl(const String& decl) const
@@ -144,13 +144,9 @@ namespace Engine
     {
         if (function.is_valid())
         {
-            int_t result = static_cast<int_t>(m_module->RemoveFunction(function.m_function));
-            if (result >= 0)
-            {
-                const_cast<ScriptFunction&>(function).m_function       = nullptr;
-                const_cast<ScriptFunction&>(function).unbind_context() = nullptr;
-            }
-
+            asIScriptFunction* func = function.function();
+            function.release();
+            int_t result = static_cast<int_t>(m_module->RemoveFunction(func));
             return result;
         }
         return -1;
@@ -181,7 +177,7 @@ namespace Engine
         return m_module->GetGlobalVarIndexByDecl(decl.c_str());
     }
 
-    int_t ScriptModule::global_var(uint_t index, const char** name, const char** name_space, int* type_id, bool* is_const) const
+    int_t ScriptModule::global_var(uint_t index, const char** name, const char** name_space, int_t* type_id, bool* is_const) const
     {
         return m_module->GetGlobalVar(index, name, name_space, type_id, is_const);
     }

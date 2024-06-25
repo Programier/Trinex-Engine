@@ -198,7 +198,7 @@ namespace Engine
         ScriptFunction function        = _function;
         EventSystem::Listener callback = [function](const Event& event) mutable {
             const void* address = &event;
-            function.prepare().arg_address(0, const_cast<void*>(address)).call().unbind_context();
+            //function.prepare().arg_address(0, const_cast<void*>(address)).call().unbind_context();
         };
         return system->add_listener(type, callback);
     }

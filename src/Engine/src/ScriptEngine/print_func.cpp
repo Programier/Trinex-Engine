@@ -122,7 +122,7 @@ class CScriptDictionary;
 
 bool Print::PrintAddonTypes(std::ostream& dst, void const* objPtr, int typeId, int depth)
 {
-    auto engine = Engine::ScriptEngine::as_engine();
+    auto engine = Engine::ScriptEngine::engine();
 
     int stringTypeId = engine->GetStringFactoryReturnTypeId();
 
@@ -252,7 +252,7 @@ void Print::PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int
             break;
     }
 
-    auto engine = Engine::ScriptEngine::as_engine();
+    auto engine = Engine::ScriptEngine::engine();
 
     auto typeInfo = engine->GetTypeInfoById(typeId);
 

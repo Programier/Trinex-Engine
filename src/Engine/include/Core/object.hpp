@@ -123,8 +123,6 @@ namespace Engine
         Object* owner() const;
         Object& owner(Object* new_owner);
 
-        virtual Object& destroy_script_object(class ScriptObject* object);
-
         // Override new and delete operators
         static ENGINE_EXPORT void* operator new(size_t size) noexcept;
         static ENGINE_EXPORT void operator delete(void* memory, size_t size) noexcept;

@@ -17,25 +17,8 @@ namespace Engine
         return reinterpret_cast<HashIndex>(object->m_object);
     }
 
-    void ScriptObject::bind_script_functions()
-    {
-        if (m_object)
-        {
-            ScriptTypeInfo info = object_type();
-            m_update            = info.method_by_decl("void update(float dt)");
-            m_on_create         = info.method_by_decl("void on_create(Engine::Object@)");
-        }
-        else
-        {
-            m_update.unbind();
-            m_on_create.unbind();
-        }
-    }
-
     ScriptObject::ScriptObject(asIScriptObject* object) : m_object(object)
-    {
-        bind_script_functions();
-    }
+    {}
 
     ScriptObject::ScriptObject(const char* name, bool uninited)
     {
@@ -45,18 +28,22 @@ namespace Engine
     ScriptObject::ScriptObject(const String& name, bool uninited) : ScriptObject(name.c_str(), uninited)
     {}
 
-    ScriptObject& ScriptObject::remove_reference()
+    asIScriptObject* ScriptObject::object() const
+    {
+        return m_object;
+    }
+
+    const ScriptObject& ScriptObject::release() const
     {
         if (m_object)
         {
             ScriptEngine::destroy_script_object(m_object, object_type());
             m_object = nullptr;
-            bind_script_functions();
         }
         return *this;
     }
 
-    ScriptObject& ScriptObject::add_reference()
+    const ScriptObject& ScriptObject::add_reference() const
     {
         if (m_object)
         {
@@ -69,24 +56,21 @@ namespace Engine
     {
         m_object = obj.m_object;
         add_reference();
-        bind_script_functions();
     }
 
     ScriptObject::ScriptObject(ScriptObject&& obj)
     {
         m_object     = obj.m_object;
         obj.m_object = nullptr;
-        bind_script_functions();
     }
 
     ScriptObject& ScriptObject::operator=(ScriptObject&& obj)
     {
         if (this != &obj)
         {
-            remove_reference();
+            release();
             m_object     = obj.m_object;
             obj.m_object = nullptr;
-            bind_script_functions();
         }
 
         return *this;
@@ -96,10 +80,9 @@ namespace Engine
     {
         if (this != &obj)
         {
-            remove_reference();
+            release();
             m_object = obj.m_object;
             add_reference();
-            bind_script_functions();
         }
 
         return *this;
@@ -169,6 +152,6 @@ namespace Engine
 
     ScriptObject::~ScriptObject()
     {
-        remove_reference();
+        release();
     }
 }// namespace Engine

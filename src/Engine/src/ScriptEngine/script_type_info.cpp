@@ -155,12 +155,12 @@ namespace Engine
 
     ScriptFunction ScriptTypeInfo::factory_by_index(uint_t index) const
     {
-        return ScriptFunction(m_info->GetFactoryByIndex(index)).bind();
+        return ScriptFunction(m_info->GetFactoryByIndex(index));
     }
 
     ScriptFunction ScriptTypeInfo::factory_by_decl(const char* decl) const
     {
-        return ScriptFunction(m_info->GetFactoryByDecl(decl)).bind();
+        return ScriptFunction(m_info->GetFactoryByDecl(decl));
     }
 
     ScriptFunction ScriptTypeInfo::factory_by_decl(const String& decl) const
@@ -177,17 +177,17 @@ namespace Engine
 
     ScriptFunction ScriptTypeInfo::method_by_index(uint_t index, bool get) const
     {
-        return ScriptFunction(m_info->GetMethodByIndex(index, get)).bind();
+        return ScriptFunction(m_info->GetMethodByIndex(index, get));
     }
 
     ScriptFunction ScriptTypeInfo::method_by_name(const char* name, bool get) const
     {
-        return ScriptFunction(m_info->GetMethodByName(name, get)).bind();
+        return ScriptFunction(m_info->GetMethodByName(name, get));
     }
 
     ScriptFunction ScriptTypeInfo::method_by_decl(const char* decl, bool get) const
     {
-        return ScriptFunction(m_info->GetMethodByDecl(decl, get)).bind();
+        return ScriptFunction(m_info->GetMethodByDecl(decl, get));
     }
 
     ScriptFunction ScriptTypeInfo::method_by_name(const String& name, bool get) const
@@ -279,7 +279,7 @@ namespace Engine
             (*behaviour) = convert_behaviour(behaviours);
         }
 
-        return ScriptFunction(func).bind();
+        return ScriptFunction(func);
     }
 
     // Child types
@@ -318,7 +318,7 @@ namespace Engine
     // Funcdef
     ScriptFunction ScriptTypeInfo::funcdef_signature() const
     {
-        return ScriptFunction(m_info->GetFuncdefSignature()).bind();
+        return ScriptFunction(m_info->GetFuncdefSignature());
     }
 
     bool ScriptTypeInfo::is_enum() const

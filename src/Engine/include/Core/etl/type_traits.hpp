@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/engine_types.hpp>
 #include <type_traits>
 
 namespace Engine
@@ -81,4 +82,26 @@ namespace Engine
 
     template<typename T>
     inline constexpr bool is_singletone_v = std::is_base_of_v<SingletoneBase, T>;
+
+
+    namespace Concepts
+    {
+        template<typename T>
+        concept is_byte = std::is_integral_v<T> && sizeof(T) == sizeof(byte);
+
+        template<typename T>
+        concept is_word = std::is_integral_v<T> && sizeof(T) == sizeof(word);
+
+        template<typename T>
+        concept is_dword = std::is_integral_v<T> && sizeof(T) == sizeof(dword);
+
+        template<typename T>
+        concept is_qword = std::is_integral_v<T> && sizeof(T) == sizeof(qword);
+
+        template<typename T>
+        concept is_float = std::is_same_v<T, float>;
+
+        template<typename T>
+        concept is_double = std::is_same_v<T, double> || std::is_same_v<T, long double>;
+    }// namespace Concepts
 }// namespace Engine

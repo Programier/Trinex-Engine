@@ -457,7 +457,7 @@ namespace Engine
             error_log("ConfigManager", "Failed to find group '%s'", group.c_str());
             return;
         }
-        String result_source = parse_config(ScriptEngine::as_engine(), config);
+        String result_source = parse_config(ScriptEngine::engine(), config);
         ScriptModule module("TrinexEngineConfigs", ScriptModule::AlwaysCreate);
         module.add_script_section("Config", result_source.c_str(), result_source.size());
         module.build();

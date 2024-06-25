@@ -21,12 +21,10 @@ namespace Engine
         };
 
     private:
-        asIScriptObject* m_object = nullptr;
-        ScriptFunction m_update;
-        ScriptFunction m_on_create;
+        mutable asIScriptObject* m_object = nullptr;
 
-
-        void bind_script_functions();
+        const ScriptObject& add_reference() const;
+        const ScriptObject& release() const;
 
     public:
         ScriptObject(asIScriptObject* object = nullptr);
@@ -34,8 +32,7 @@ namespace Engine
         ScriptObject(const String&, bool uninited = false);
         copy_constructors_hpp(ScriptObject);
 
-        ScriptObject& add_reference();
-        ScriptObject& remove_reference();
+        asIScriptObject* object() const;
 
         int_t type_id() const;
         ScriptTypeInfo object_type() const;

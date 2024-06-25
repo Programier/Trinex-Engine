@@ -40,10 +40,10 @@ namespace Engine
 
         // Compilation
         int_t add_script_section(const char* name, const char* code, size_t code_length = 0, int_t line_offset = 0);
-        int_t add_script_section(const String& name, const String& code, size_t code_length = 0, int line_offset = 0);
+        int_t add_script_section(const String& name, const String& code, size_t code_length = 0, int_t line_offset = 0);
         int_t build();
 
-        int_t compile_global_var(const char* section_name, const char* code, int line_offset);
+        int_t compile_global_var(const char* section_name, const char* code, int_t line_offset);
         int_t default_namespace(const char* name_space);
         int_t default_namespace(const String& name_space);
         const char* default_namespace();
@@ -63,7 +63,7 @@ namespace Engine
         int_t global_var_index_by_decl(const char* decl) const;
         int_t global_var_index_by_name(const String& name) const;
         int_t global_var_index_by_decl(const String& decl) const;
-        int_t global_var(uint_t index, const char** name, const char** name_space = 0, int* type_id = 0,
+        int_t global_var(uint_t index, const char** name, const char** name_space = 0, int_t* type_id = 0,
                          bool* is_const = 0) const;
         const char* global_var_declaration(uint_t index, bool include_namespace = false) const;
         void* address_of_global_var(uint_t index);

@@ -3,6 +3,7 @@
 #include <Core/logger.hpp>
 #include <Core/stacktrace.hpp>
 #include <Core/string_functions.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
@@ -96,6 +97,8 @@ namespace Engine
         Print::asRegister(m_engine);
         Initializers::init_primitive_wrappers();
         PostDestroyController controller(ScriptEngine::terminate);
+
+        ScriptContext::initialize();
         return instance();
     }
 
@@ -103,6 +106,7 @@ namespace Engine
     {
         if (m_engine)
         {
+            ScriptContext::terminate();
             release_scripts();
             m_engine->Release();
             m_engine = nullptr;
@@ -121,7 +125,7 @@ namespace Engine
         return engine;
     }
 
-    asIScriptEngine* ScriptEngine::as_engine()
+    asIScriptEngine* ScriptEngine::engine()
     {
         return m_engine;
     }
@@ -310,12 +314,12 @@ namespace Engine
 
     ScriptFunction ScriptEngine::global_function_by_index(uint_t index)
     {
-        return ScriptFunction(m_engine->GetGlobalFunctionByIndex(index)).bind();
+        return ScriptFunction(m_engine->GetGlobalFunctionByIndex(index));
     }
 
     ScriptFunction ScriptEngine::global_function_by_decl(const char* declaration)
     {
-        return ScriptFunction(m_engine->GetGlobalFunctionByDecl(declaration)).bind();
+        return ScriptFunction(m_engine->GetGlobalFunctionByDecl(declaration));
     }
 
     ScriptFunction ScriptEngine::global_function_by_decl(const String& declaration)
@@ -407,7 +411,7 @@ namespace Engine
 
     ScriptFunction ScriptEngine::function_by_id(int func_id)
     {
-        return ScriptFunction(m_engine->GetFunctionById(func_id)).bind();
+        return ScriptFunction(m_engine->GetFunctionById(func_id));
     }
 
     // Type identification

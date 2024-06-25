@@ -76,13 +76,6 @@ namespace Engine
                         ScriptCallConv::CDECL_OBJFIRST)
                 .method("Object@ postload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->postload(); }),
                         ScriptCallConv::CDECL_OBJFIRST)
-                .method("Object@ destroy_script_object(?& in)", func_of<Object&(Object * self, asIScriptObject * *obj)>(
-                                                                        [](Object* self, asIScriptObject** obj) -> Object& {
-                                                                            // Obj always must be descriptor!
-                                                                            ScriptObject object = *obj;
-                                                                            object.add_reference();
-                                                                            return self->destroy_script_object(&object);
-                                                                        }))
                 .method("Engine::Class@ class_instance() const",
                         func_of<Class*(Object*)>([](Object* object) -> Class* { return object->class_instance(); }));
     }
@@ -453,11 +446,6 @@ namespace Engine
     Object& Object::owner(Object* new_owner)
     {
         m_owner = new_owner;
-        return *this;
-    }
-
-    Object& Object::destroy_script_object(class ScriptObject* object)
-    {
         return *this;
     }
 

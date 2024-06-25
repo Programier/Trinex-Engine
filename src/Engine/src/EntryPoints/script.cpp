@@ -3,11 +3,12 @@
 #include <Core/entry_point.hpp>
 #include <Core/etl/script_array.hpp>
 #include <Core/logger.hpp>
+#include <ScriptEngine/script_context.hpp>
+#include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_module.hpp>
 #include <fstream>
 #include <scripthelper.h>
-#include <ScriptEngine/script_module.hpp>
-#include <ScriptEngine/script_function.hpp>
-#include <ScriptEngine/script_engine.hpp>
 
 namespace Engine
 {
@@ -37,16 +38,14 @@ namespace Engine
             }
 
             ScriptFunction function = module.function_by_name("main");
+
             if (!function.is_valid())
             {
                 error_log("ScriptExec", "Failed to get main function from script");
                 return -1;
             }
 
-            function.prepare();
-            function.call();
-            function.unbind_context();
-            return 0;
+            return ScriptContext::execute<int>(function);
         }
 
         int_t execute() override
@@ -89,7 +88,7 @@ namespace Engine
             std::ofstream out_file("script_config.txt");
             if (out_file.is_open())
             {
-                WriteConfigToStream(ScriptEngine::as_engine(), out_file);
+                WriteConfigToStream(ScriptEngine::engine(), out_file);
             }
             return 0;
         }

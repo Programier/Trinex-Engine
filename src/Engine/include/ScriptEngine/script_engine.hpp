@@ -48,7 +48,7 @@ namespace Engine
 
         static ScriptEngine& initialize();
         static ScriptEngine& instance();
-        static asIScriptEngine* as_engine();
+        static asIScriptEngine* engine();
         static const ScriptEngine& release_context(asIScriptContext* context);
 
         static ScriptEngine& default_namespace(const String& name);
@@ -131,7 +131,7 @@ namespace Engine
 
         template<typename ReturnValue, typename... Args>
         static ScriptEngine& register_function(const char* declaration, ReturnValue (*func)(Args...),
-                                        ScriptCallConv conv = ScriptCallConv::CDECL)
+                                               ScriptCallConv conv = ScriptCallConv::CDECL)
         {
             return register_function(declaration, ScriptFuncPtr::function_ptr(func), conv);
         }

@@ -9,7 +9,12 @@
 
 namespace Engine
 {
-    using byte        = std::uint8_t;
+    using byte  = std::uint8_t;
+    using word = std::uint16_t;
+    using dword = std::uint32_t;
+    using qword = std::uint64_t;
+
+
     using signed_byte = std::int8_t;
     using size_t      = std::uint64_t;
     using ptrdiff_t   = std::int64_t;

@@ -11,7 +11,7 @@ namespace Engine
 
     static FORCE_INLINE asIScriptEngine* engine()
     {
-        return ScriptEngine::as_engine();
+        return ScriptEngine::engine();
     }
 
     int ScriptArrayBase::find_object_type_id()

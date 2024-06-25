@@ -24,7 +24,7 @@ try
 
     loop.terminate();
 
-    return 0;
+    return init_status;
 }
 catch (std::exception& e)
 {

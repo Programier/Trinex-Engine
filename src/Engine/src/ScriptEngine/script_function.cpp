@@ -8,15 +8,13 @@
 namespace Engine
 {
 
-    ScriptFunction::ScriptFunction(asIScriptFunction* function) : m_context(nullptr), m_function(function)
-    {}
-
-
-    ScriptFunction::ScriptFunction(const ScriptFunction& obj)
+    ScriptFunction::ScriptFunction(asIScriptFunction* function) : m_function(function)
     {
-        m_function = obj.m_function;
-        bind();
+        add_ref();
     }
+
+    ScriptFunction::ScriptFunction(const ScriptFunction& obj) : Engine::ScriptFunction(obj.function())
+    {}
 
     ScriptFunction::ScriptFunction(ScriptFunction&& obj)
     {
@@ -24,11 +22,16 @@ namespace Engine
         obj.m_function = nullptr;
     }
 
+    asIScriptFunction* ScriptFunction::function() const
+    {
+        return m_function;
+    }
+
     ScriptFunction& ScriptFunction::operator=(ScriptFunction&& obj)
     {
         if (this != &obj)
         {
-            unbind();
+            release();
             m_function     = obj.m_function;
             obj.m_function = nullptr;
         }
@@ -39,9 +42,9 @@ namespace Engine
     {
         if (this != &obj)
         {
-            unbind();
+            release();
             m_function = obj.m_function;
-            bind();
+            add_ref();
         }
         return *this;
     }
@@ -54,130 +57,6 @@ namespace Engine
     bool ScriptFunction::operator!=(const ScriptFunction& func) const
     {
         return m_function != func.m_function;
-    }
-
-    ScriptFunction& ScriptFunction::prepare()
-    {
-        if (m_context == nullptr)
-            m_context = ScriptEngine::new_context();
-        m_context->Prepare(m_function);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_uint8(uint_t arg, uint8_t value)
-    {
-        m_context->SetArgByte(arg, value);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_uint16(uint_t arg, uint16_t value)
-    {
-        m_context->SetArgWord(arg, value);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_uint32(uint_t arg, uint32_t value)
-    {
-        m_context->SetArgDWord(arg, value);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_uint64(uint_t arg, uint64_t value)
-    {
-        m_context->SetArgQWord(arg, value);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_float(uint_t arg, float value)
-    {
-        m_context->SetArgFloat(arg, value);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_double(uint_t arg, double value)
-    {
-        m_context->SetArgDouble(arg, value);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_address(uint_t arg, void* addr)
-    {
-        m_context->SetArgAddress(arg, addr);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_object(uint_t arg, void* obj)
-    {
-        m_context->SetArgObject(arg, obj);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::arg_var_type(uint_t arg, void* ptr, int_t type_id)
-    {
-        m_context->SetArgVarType(arg, ptr, type_id);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::object(const ScriptObject& object)
-    {
-        m_context->SetObject(object.m_object);
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::call()
-    {
-        m_context->Execute();
-        return *this;
-    }
-
-    ScriptFunction& ScriptFunction::unbind_context()
-    {
-        if (m_context)
-        {
-            ScriptEngine::release_context(m_context);
-            m_context = nullptr;
-        }
-        return *this;
-    }
-
-    void* ScriptFunction::result_object_address()
-    {
-        return m_context->GetReturnObject();
-    }
-
-    uint8_t ScriptFunction::result_byte()
-    {
-        return m_context->GetReturnByte();
-    }
-
-    uint16_t ScriptFunction::result_word()
-    {
-        return m_context->GetReturnWord();
-    }
-
-    uint32_t ScriptFunction::result_dword()
-    {
-        return m_context->GetReturnDWord();
-    }
-
-    uint64_t ScriptFunction::result_qword()
-    {
-        return m_context->GetReturnQWord();
-    }
-
-    float ScriptFunction::result_float()
-    {
-        return m_context->GetReturnFloat();
-    }
-
-    double ScriptFunction::result_double()
-    {
-        return m_context->GetReturnDouble();
-    }
-
-    void* ScriptFunction::result_address()
-    {
-        return m_context->GetReturnAddress();
     }
 
     int_t ScriptFunction::id() const
@@ -319,10 +198,10 @@ namespace Engine
 
     ScriptFunction ScriptFunction::delegate_function() const
     {
-        return ScriptFunction(m_function->GetDelegateFunction()).bind();
+        return ScriptFunction(m_function->GetDelegateFunction());
     }
 
-    ScriptFunction& ScriptFunction::bind()
+    const ScriptFunction& ScriptFunction::add_ref() const
     {
         if (m_function)
         {
@@ -331,7 +210,7 @@ namespace Engine
         return *this;
     }
 
-    ScriptFunction& ScriptFunction::unbind()
+    const ScriptFunction& ScriptFunction::release() const
     {
         if (m_function)
         {
@@ -348,6 +227,6 @@ namespace Engine
 
     ScriptFunction::~ScriptFunction()
     {
-        unbind();
+        release();
     }
 }// namespace Engine
