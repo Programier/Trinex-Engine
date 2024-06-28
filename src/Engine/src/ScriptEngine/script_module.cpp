@@ -30,7 +30,7 @@ namespace Engine
     ScriptModule::ScriptModule(asIScriptModule* module) : m_module(module)
     {}
 
-    ScriptModule::ScriptModule(const String& name, ModuleFlags flags)
+    ScriptModule::ScriptModule(const char* name, ModuleFlags flags)
     {
         (*this) = ScriptEngine::create_module(name, flags);
     }
@@ -247,22 +247,6 @@ namespace Engine
     ScriptTypeInfo ScriptModule::type_info_by_decl(const String& decl) const
     {
         return type_info_by_decl(decl.c_str());
-    }
-
-
-    ScriptObject ScriptModule::create_script_object(const ScriptTypeInfo& type_info, bool uninited)
-    {
-        return ScriptEngine::create_script_object(type_info, uninited);
-    }
-
-    ScriptObject ScriptModule::create_script_object(const char* class_name, bool uninited)
-    {
-        return create_script_object(type_info_by_name(class_name), uninited);
-    }
-
-    ScriptObject ScriptModule::create_script_object(const String& name, bool uninited)
-    {
-        return create_script_object(name.c_str(), uninited);
     }
 
     //        // Enums

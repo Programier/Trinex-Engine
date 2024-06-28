@@ -1,6 +1,8 @@
 #pragma once
 #include <Core/engine_types.hpp>
+#include <Core/flags.hpp>
 #include <Core/implement.hpp>
+#include <ScriptEngine/script_enums.hpp>
 
 class asIScriptContext;
 class asIScriptFunction;
@@ -64,7 +66,11 @@ namespace Engine
         bool is_shared() const;
         bool is_explicit() const;
         bool is_property() const;
+
         uint_t param_count() const;
+        bool param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags = nullptr, StringView* name = nullptr,
+                   StringView* default_arg = nullptr) const;
+        int_t return_type_id(Flags<ScriptTypeModifiers>* flags = nullptr) const;
 
         // Type id for function pointers
         int_t type_id() const;

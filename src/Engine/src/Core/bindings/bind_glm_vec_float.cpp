@@ -70,5 +70,5 @@ namespace Engine
         bind_functions();
     }
 
-    static ReflectionInitializeController controller(on_init, "Bind Engine::Vector");
+    static ReflectionInitializeController controller(on_init, "Engine::Vector");
 }// namespace Engine

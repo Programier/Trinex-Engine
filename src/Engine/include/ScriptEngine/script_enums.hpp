@@ -1,8 +1,9 @@
 #pragma once
+#include <Core/engine_types.hpp>
 
 namespace Engine
 {
-    enum class ScriptCallConv : unsigned int
+    enum class ScriptCallConv : EnumerateType
     {
         CDECL             = 0,
         STDCALL           = 1,
@@ -16,7 +17,7 @@ namespace Engine
     };
 
 
-    enum class ScriptClassBehave
+    enum class ScriptClassBehave : EnumerateType
     {
         Construct,
         ListConstruct,
@@ -34,4 +35,13 @@ namespace Engine
         EnumRefs,
         ReleaseRefs,
     };
-}
+
+    enum class ScriptTypeModifiers : EnumerateType
+    {
+        None     = 0,
+        InRef    = 1,
+        OutRef   = 2,
+        InOutRef = 3,
+        Const    = 4
+    };
+}// namespace Engine

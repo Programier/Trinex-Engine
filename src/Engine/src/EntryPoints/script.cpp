@@ -7,18 +7,13 @@
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <ScriptEngine/script_object.hpp>
+#include <ScriptEngine/script_type_info.hpp>
 #include <fstream>
 #include <scripthelper.h>
-#include <ScriptEngine/script_type_info.hpp>
 
 namespace Engine
 {
-
-    void foo(asIScriptGeneric* generic)
-    {
-        int_t id = generic->GetArgTypeId(0);
-        auto info = ScriptEngine::type_info_by_id(id);
-    }
 
     class ScriptExec : public EntryPoint
     {
@@ -32,8 +27,6 @@ namespace Engine
 
         static int_t exec_script(const String& source)
         {
-            ScriptEngine::register_function("void foo(const ?& in value)", foo, ScriptCallConv::GENERIC);
-
             ScriptModule module("__TRINEX_SCRIPT_EXEC_MODULE__", ScriptModule::AlwaysCreate);
             if (module.add_script_section("Global", source.c_str(), source.length()) < 0)
             {
@@ -47,6 +40,7 @@ namespace Engine
                 return -1;
             }
 
+
             ScriptFunction function = module.function_by_name("main");
 
             if (!function.is_valid())
@@ -55,7 +49,7 @@ namespace Engine
                 return -1;
             }
 
-            return ScriptContext::execute<int>(function);
+            return ScriptContext::execute(function).int32_value();
         }
 
         int_t execute() override

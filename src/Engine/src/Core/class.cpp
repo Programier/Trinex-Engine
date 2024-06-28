@@ -198,5 +198,5 @@ namespace Engine
                 .method("Object@ singletone_instance() const", &Class::singletone_instance);
     }
 
-    static ReflectionInitializeController initializer(on_init, "Bind Engine::Class");
+    static ReflectionInitializeController initializer(on_init, "Engine::Class");
 }// namespace Engine

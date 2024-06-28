@@ -310,6 +310,6 @@ namespace Engine
         registrar.opfunc("Engine::Transform& opAssign(const Engine::Transform& in)", op_assign, ScriptCallConv::CDECL_OBJFIRST);
     }
 
-    static ReflectionInitializeController init(on_init, "Bind Engine::Transform",
-                                               {"Bind Engine::Matrix", "Bind Engine::Vector", "Bind Engine::Quaternion"});
+    static ReflectionInitializeController init(on_init, "Engine::Transform",
+                                               {"Engine::Matrix", "Engine::Vector", "Engine::Quaternion"});
 }// namespace Engine

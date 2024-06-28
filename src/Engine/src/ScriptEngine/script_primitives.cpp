@@ -1,8 +1,8 @@
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
-#include <ScriptEngine/primitive_wrappers.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
+#include <ScriptEngine/script_primitives.hpp>
 
 #define declare_primitive(name, type)                                                                                            \
     name::name(type initial) : value(initial)                                                                                    \
@@ -26,17 +26,17 @@
         return value;                                                                                                            \
     }
 
-
 declare_primitive(Boolean, bool);
 declare_primitive(Integer8, Engine::int8_t);
 declare_primitive(Integer16, Engine::int16_t);
-declare_primitive(Integer, Engine::int32_t);
+declare_primitive(Integer32, Engine::int32_t);
 declare_primitive(Integer64, Engine::int64_t);
 declare_primitive(UnsignedInteger8, Engine::uint8_t);
 declare_primitive(UnsignedInteger16, Engine::uint16_t);
-declare_primitive(UnsignedInteger, Engine::uint32_t);
+declare_primitive(UnsignedInteger32, Engine::uint32_t);
 declare_primitive(UnsignedInteger64, Engine::uint64_t);
 declare_primitive(Float, float);
+declare_primitive(Double, double);
 
 namespace Engine::Initializers
 {
@@ -68,14 +68,16 @@ namespace Engine::Initializers
 
     void init_primitive_wrappers()
     {
-        register_base_type<Boolean, bool>("Boolean", "bool", "false");
-        register_base_type<Integer8, Engine::int8_t>("Integer8", "int8", "0");
-        register_base_type<Integer16, Engine::int16_t>("Integer16", "int16", "0");
-        register_base_type<Integer, Engine::int32_t>("Integer", "int32", "0");
-        register_base_type<Integer64, Engine::int64_t>("Integer64", "int64", "0");
-        register_base_type<UnsignedInteger8, Engine::uint8_t>("UnsignedInteger8", "uint8", "0");
-        register_base_type<UnsignedInteger16, Engine::uint16_t>("UnsignedInteger16", "uint16", "0");
-        register_base_type<UnsignedInteger, Engine::uint32_t>("UnsignedInteger", "uint32", "0");
-        register_base_type<UnsignedInteger64, Engine::uint64_t>("UnsignedInteger64", "uint64", "0");
+        register_base_type<Boolean, bool>("Bool", "bool", "false");
+        register_base_type<Integer8, Engine::int8_t>("Int8", "int8", "0");
+        register_base_type<Integer16, Engine::int16_t>("Int16", "int16", "0");
+        register_base_type<Integer32, Engine::int32_t>("Int32", "int32", "0");
+        register_base_type<Integer64, Engine::int64_t>("Int64", "int64", "0");
+        register_base_type<UnsignedInteger8, Engine::uint8_t>("UInt8", "uint8", "0");
+        register_base_type<UnsignedInteger16, Engine::uint16_t>("UInt16", "uint16", "0");
+        register_base_type<UnsignedInteger32, Engine::uint32_t>("UInt32", "uint32", "0");
+        register_base_type<UnsignedInteger64, Engine::uint64_t>("UInt64", "uint64", "0");
+        register_base_type<Float, float>("Float", "float", "0.0");
+        register_base_type<Double, double>("Double", "double", "0.0");
     }
 }// namespace Engine::Initializers

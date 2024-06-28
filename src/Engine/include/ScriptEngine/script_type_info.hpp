@@ -39,7 +39,6 @@ namespace Engine
         ScriptTypeInfo sub_type(uint_t index) const;
         uint_t sub_type_count() const;
 
-
         // Interfaces
         uint_t interface_count() const;
         ScriptTypeInfo interface(uint_t index);

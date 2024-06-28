@@ -293,7 +293,7 @@ namespace Engine
 
     static void on_init()
     {
-        ReflectionInitializeController().require("Bind Engine::StringView");
+        ReflectionInitializeController().require("Engine::StringView");
 
         ScriptClassRegistrar registrar(
                 "Engine::Name", ScriptClassRegistrar::create_type_info<Name>(ScriptClassRegistrar::Value |
@@ -329,5 +329,5 @@ namespace Engine
         registrar.method("const string& opConv() const", &Name::operator const std::basic_string<char>&);
     }
 
-    static ReflectionInitializeController controller(on_init, "Bind Engine::Name");
+    static ReflectionInitializeController controller(on_init, "Engine::Name");
 }// namespace Engine

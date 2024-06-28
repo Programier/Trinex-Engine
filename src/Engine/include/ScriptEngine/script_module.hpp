@@ -27,7 +27,7 @@ namespace Engine
 
         copy_constructors_hpp(ScriptModule);
         ScriptModule(asIScriptModule* module = nullptr);
-        ScriptModule(const String& name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
+        ScriptModule(const char* name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
 
         static ScriptModule global();
 
@@ -81,10 +81,6 @@ namespace Engine
         ScriptTypeInfo type_info_by_decl(const char* decl) const;
         ScriptTypeInfo type_info_by_name(const String& name) const;
         ScriptTypeInfo type_info_by_decl(const String& decl) const;
-
-        ScriptObject create_script_object(const ScriptTypeInfo& type_info, bool uninited = false);
-        ScriptObject create_script_object(const char* class_name, bool uninited = false);
-        ScriptObject create_script_object(const String& class_name, bool uninited = false);
 
         //        // Enums
         uint_t enum_count() const;

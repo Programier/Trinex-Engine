@@ -93,12 +93,14 @@ namespace Engine
 #endif
 
         asInitializeAddons(m_engine);
-
         Print::asRegister(m_engine);
         Initializers::init_primitive_wrappers();
+
         PostDestroyController controller(ScriptEngine::terminate);
 
         ScriptContext::initialize();
+
+        ReflectionInitializeController().require("Engine::ScriptPointer");
         return instance();
     }
 
@@ -273,23 +275,6 @@ namespace Engine
     ScriptEngine& ScriptEngine::register_typedef(const String& type, const String& declaration)
     {
         return register_typedef(type.c_str(), declaration.c_str());
-    }
-
-    ScriptObject ScriptEngine::create_script_object(const ScriptTypeInfo& info, bool uninited)
-    {
-        if (info.is_valid())
-        {
-            if (uninited)
-            {
-                return reinterpret_cast<asIScriptObject*>(m_engine->CreateUninitializedScriptObject(info.info()));
-            }
-            else
-            {
-                return reinterpret_cast<asIScriptObject*>(m_engine->CreateScriptObject(info.info()));
-            }
-        }
-
-        return {};
     }
 
     ScriptEngine& ScriptEngine::destroy_script_object(ScriptObjectAddress object, const ScriptTypeInfo& info)

@@ -1,9 +1,15 @@
 #pragma once
+#include "angelscript.h"
 #include <Core/engine_types.hpp>
+#include <Core/etl/ref.hpp>
 #include <Core/etl/type_traits.hpp>
 #include <Core/exception.hpp>
+#include <Core/flags.hpp>
+#include <ScriptEngine/script_enums.hpp>
+#include <ScriptEngine/script_variable.hpp>
 
 class asIScriptContext;
+class asIScriptFunction;
 
 namespace Engine
 {
@@ -15,23 +21,6 @@ namespace Engine
     private:
         static void initialize();
         static void terminate();
-
-        static int_t begin_execute(const ScriptFunction& function);
-        static void end_execute(int_t begin_value, bool need_execute, void (*return_callback)(void* from, void* to) = nullptr,
-                                void* copy_to = nullptr);
-
-        template<typename T>
-        static void copy_value(void* from, void* to)
-        {
-            if (from)
-            {
-                new (to) T(*reinterpret_cast<T*>(from));
-            }
-            else
-            {
-                throw EngineException("Failed to get address of return value!");
-            }
-        }
 
         template<typename T>
         static inline byte validate_argument(const T& value)
@@ -76,6 +65,18 @@ namespace Engine
         }
 
         template<typename T>
+        static inline const RRef<T>& validate_argument(const RRef<T>& value)
+        {
+            return value;
+        }
+
+        template<typename T>
+        static inline const LRef<T>& validate_argument(const LRef<T>& value)
+        {
+            return value;
+        }
+
+        template<typename T>
         static inline void* validate_argument(T* value)
         {
             std::decay_t<T>* non_const = const_cast<std::decay_t<T>*>(value);
@@ -90,9 +91,10 @@ namespace Engine
             return validate_argument(&value);
         }
 
-        static inline const ScriptObject& validate_argument(const ScriptObject& object)
+        template<typename T>
+        static bool arg(uint_t index, const RRef<T>& value)
         {
-            return object;
+            return arg_reference(index, const_cast<T*>(value.address()));
         }
 
     public:
@@ -110,6 +112,10 @@ namespace Engine
             Deserealization = 9,
         };
 
+        static ScriptContext& instance();
+        static bool begin_execute(const ScriptFunction& function);
+        static ScriptVariable end_execute(bool need_execute);
+
         static asIScriptContext* context();
         static bool prepare(const ScriptFunction& func);
         static bool unprepare();
@@ -124,6 +130,7 @@ namespace Engine
         static bool object(const ScriptObject& object);
 
         // Arguments
+
         static bool arg(uint_t arg, byte value);
         static bool arg(uint_t arg, word value);
         static bool arg(uint_t arg, dword value);
@@ -131,9 +138,35 @@ namespace Engine
         static bool arg(uint_t arg, float value);
         static bool arg(uint_t arg, double value);
         static bool arg(uint_t arg, void* addr);
-        static bool arg(uint_t arg, const ScriptObject& object);
-        static bool arg(uint_t arg, void* ptr, int_t type_id);
+        static bool arg_reference(uint_t arg, void* addr);
 
+        template<typename T>
+        static bool arg(uint_t arg, RRef<T>& ref)
+        {
+            if constexpr (std::is_pointer_v<T>)
+            {
+                return arg_reference(arg, ref.get());
+            }
+            else
+            {
+                return arg_reference(arg, ref.address());
+            }
+        }
+
+        template<typename T>
+        static bool arg(uint_t arg, LRef<T> ref)
+        {
+            if constexpr (std::is_pointer_v<T>)
+            {
+                return arg_reference(arg, ref.get());
+            }
+            else
+            {
+                return arg_reference(arg, ref.address());
+            }
+        }
+
+        static bool arg(uint_t arg, void* ptr, int_t type_id);
         static void* address_of_arg(uint_t arg);
 
         // Return value
@@ -148,55 +181,67 @@ namespace Engine
         static void* address_of_return_value();
 
         // Function execution
-        template<typename Return = void, typename... Args>
-        static inline Return execute(const ScriptFunction& function, const Args&... args)
+        template<typename... Args>
+        static inline ScriptVariable execute(const ScriptFunction& function, const Args&... args)
         {
-            const int_t result         = begin_execute(function);
+            if (!begin_execute(function))
+                return {};
             uint_t argument            = 0;
             bool bind_arguments_status = (arg(argument++, validate_argument(args)) && ...);
 
             if (!bind_arguments_status)
             {
-                end_execute(result, false);
+                end_execute(false);
                 throw EngineException("Failed to bind arguments to script function!");
             }
 
-            if constexpr (std::is_same_v<void, Return>)
+            return end_execute(true);
+        }
+
+        template<typename... Args>
+        static inline ScriptVariable execute(const ScriptObject& self, const ScriptFunction& function, const Args&... args)
+        {
+            if (!begin_execute(function))
+                return {};
+            object(self);
+
+            uint_t argument            = 0;
+            bool bind_arguments_status = (arg(argument++, validate_argument(args)) && ...);
+
+            if (!bind_arguments_status)
             {
-                end_execute(result, true);
+                end_execute(false);
+                throw EngineException("Failed to bind arguments to script function!");
             }
-            else
-            {
-                byte data[sizeof(Return)];
-                end_execute(result, true, copy_value<Return>, data);
-                return *reinterpret_cast<Return*>(data);
-            }
+
+            return end_execute(true);
         }
 
         // Exception handling
         static bool exception(const char* info, bool allow_catch = true);
-        static int_t exception_line_number(int_t* column = 0, const char** section_name = 0);
+        static bool exception(const String& info, bool allow_catch = true);
+        static IntVector2D exception_line_position(StringView* section_name = nullptr);
         static ScriptFunction exception_function();
         static String exception_string();
         static bool will_exception_be_caught();
-        // static bool exception_callback(asSFuncPtr callback, void* obj, int callConv);
-        // static void clear_exception_callback();
 
-        //         // Debugging
-        //         virtual int SetLineCallback(asSFuncPtr callback, void* obj, int callConv)                            = 0;
-        //         virtual void ClearLineCallback()                                                                     = 0;
-        //         virtual asUINT GetCallstackSize() const                                                              = 0;
+        // Debugging
+        static bool line_callback(const Function<void(void*)>& function, void* userdata = nullptr);
+        static bool line_callback(const ScriptFunction& function);
+        static ScriptContext& clear_line_callback();
+
+        static uint_t callstack_size();
         static ScriptFunction function(uint_t stack_level = 0);
-        //         virtual int GetLineNumber(asUINT stackLevel = 0, int* column = 0, const char** sectionName = 0)      = 0;
-        //         virtual int GetVarCount(asUINT stackLevel = 0)                                                       = 0;
-        //         virtual int GetVar(asUINT varIndex, asUINT stackLevel, const char** name, int* typeId = 0,
-        //                            asETypeModifiers* typeModifiers = 0, bool* isVarOnHeap = 0, int* stackOffset = 0) = 0;
-        //         virtual const char* GetVarDeclaration(asUINT varIndex, asUINT stackLevel = 0, bool includeNamespace = false) = 0;
-        //         virtual void* GetAddressOfVar(asUINT varIndex, asUINT stackLevel = 0, bool dontDereference = false,
-        //                                       bool returnAddressOfUnitializedObjects = false) = 0;
-        //         virtual bool IsVarInScope(asUINT varIndex, asUINT stackLevel = 0)             = 0;
-        //         virtual int GetThisTypeId(asUINT stackLevel = 0)                              = 0;
-        //         virtual void* GetThisPointer(asUINT stackLevel = 0)                           = 0;
+        static IntVector2D line_position(uint_t stack_level = 0, StringView* section_name = nullptr);
+        static uint_t var_count(uint_t stack_level = 0);
+        static bool var(uint_t var_index, uint_t stack_level, StringView* name, int_t* type_id = 0,
+                        Flags<ScriptTypeModifiers>* modifiers = nullptr, bool* is_var_on_heap = 0, int_t* stack_offset = 0);
+        static String var_declaration(uint_t var_index, uint_t stack_level = 0, bool include_namespace = false);
+        static void* address_of_var(uint_t var_index, uint_t stack_level = 0, bool dont_dereference = false,
+                                    bool return_address_of_unitialized_objects = false);
+        static bool is_var_in_scope(uint_t var_index, uint_t stack_level = 0);
+        static int_t this_type_id(uint_t stack_level = 0);
+        static void* this_pointer(uint_t stack_level = 0);
         static ScriptFunction system_function();
         friend class ScriptEngine;
     };

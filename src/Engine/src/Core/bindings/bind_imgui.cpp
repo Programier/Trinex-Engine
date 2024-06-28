@@ -1,10 +1,10 @@
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/string_functions.hpp>
 #include <Graphics/imgui.hpp>
-#include <ScriptEngine/primitive_wrappers.hpp>
 #include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_enums.hpp>
+#include <ScriptEngine/script_primitives.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 #include <imgui.h>
@@ -337,11 +337,6 @@ namespace Engine
 
     static void on_init()
     {
-        ReflectionInitializeController()
-                .require("Bind Engine::Vector")
-                .require("Bind Engine::IntVector")
-                .require("Bind Engine::UIntVector");
-
         register_vector_type<ImVec2, 2>("ImVec2");
         register_vector_type<ImVec4, 4>("ImVec4");
 #define new_enum_v(a, b) new_enum.set(#b, a##_##b)
@@ -944,7 +939,7 @@ namespace Engine
         ScriptEngine::register_typedef("ImGuiID", "uint");
         ScriptEngine::default_namespace("ImGui");
 
-        reg_func_nw_ns("bool Begin(const string& in, Boolean@ = null, int = 0)",
+        reg_func_nw_ns("bool Begin(const string& in, Bool@ = null, int = 0)",
                        (result_wrapped_func<ImGui::Begin, bool, const String&, Boolean*, int>) );
 
         ScriptEngine::register_function("void End()", ImGui::End);
@@ -980,10 +975,10 @@ namespace Engine
         reg_func("bool BeginPopupContextItem(const string& in, int = 1)", BeginPopupContextItem);
         reg_func("bool BeginPopupContextVoid(const string& in, int = 1)", BeginPopupContextVoid);
         reg_func("bool BeginPopupContextWindow(const string& in, int = 1)", BeginPopupContextWindow);
-        reg_func_nw_ns("bool BeginPopupModal(const string& in name, Boolean@ = null, int = 0)",
+        reg_func_nw_ns("bool BeginPopupModal(const string& in name, Bool@ = null, int = 0)",
                        (result_wrapped_func<ImGui::BeginPopupModal, bool, const String&, Boolean*, int>) );
         reg_func("bool BeginTabBar(const string& in, int = 0)", BeginTabBar);
-        reg_func_nw_ns("bool BeginTabItem(const string& in, Boolean@ = null, int = 0)",
+        reg_func_nw_ns("bool BeginTabItem(const string& in, Bool@ = null, int = 0)",
                        (result_wrapped_func<ImGui::BeginTabItem, bool, const String&, Boolean*, int>) );
         reg_func("bool BeginTable(const string& in, int, int = 0, const ImVec2& = ImVec2(0.0f, 0.0f), float = 0.0f)", BeginTable);
         reg_func_nw("bool BeginTooltip()", BeginTooltip);
@@ -1331,15 +1326,14 @@ namespace Engine
         reg_func_no_ns("void SetWindowSize(const string& in, const ImVec2& , int = 0)",
                        (func_of<void(const char*, const ImVec2&, int)>(ImGui::SetWindowSize)));
         reg_func_nw_ns("void SetWindowSize(const ImVec2& , int = 0)", (func_of<void(const ImVec2&, int)>(ImGui::SetWindowSize)));
-        reg_func_nw_ns("void ShowAboutWindow(Boolean@ = null)", (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
-        reg_func_nw_ns("void ShowDebugLogWindow(Boolean@ = null)",
+        reg_func_nw_ns("void ShowAboutWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowAboutWindow, void, Boolean*>) );
+        reg_func_nw_ns("void ShowDebugLogWindow(Bool@ = null)",
                        (result_wrapped_func<ImGui::ShowDebugLogWindow, void, Boolean*>) );
-        reg_func_nw_ns("void ShowDemoWindow(Boolean@ = null)", (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
+        reg_func_nw_ns("void ShowDemoWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowDemoWindow, void, Boolean*>) );
         reg_func("void ShowFontSelector(const string& in)", ShowFontSelector);
-        reg_func_nw_ns("void ShowIDStackToolWindow(Boolean@ = null)",
+        reg_func_nw_ns("void ShowIDStackToolWindow(Bool@ = null)",
                        (result_wrapped_func<ImGui::ShowIDStackToolWindow, void, Boolean*>) );
-        reg_func_nw_ns("void ShowMetricsWindow(Boolean@ = null)",
-                       (result_wrapped_func<ImGui::ShowMetricsWindow, void, Boolean*>) );
+        reg_func_nw_ns("void ShowMetricsWindow(Bool@ = null)", (result_wrapped_func<ImGui::ShowMetricsWindow, void, Boolean*>) );
         reg_func_nw_ns("void ShowStyleEditor()", wrapped_show_style_editor);
         reg_func_nw("void ShowUserGuide()", ShowUserGuide);
         reg_func_nw("void Spacing()", Spacing);
@@ -1369,5 +1363,6 @@ namespace Engine
         ScriptEngine::default_namespace("");
     }
 
-    static ReflectionInitializeController initializer(on_init, "Bind ImGui");
+    static ReflectionInitializeController initializer(on_init, "ImGui",
+                                                      {"Engine::Vector", "Engine::IntVector", "Engine::UIntVector"});
 }// namespace Engine

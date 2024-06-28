@@ -7,6 +7,10 @@
 
 namespace Engine
 {
+#define check_info(return_value)                                                                                                 \
+    if (m_info == nullptr)                                                                                                       \
+    return return_value
+
 
     ScriptTypeInfo::ScriptTypeInfo(asITypeInfo* info) : m_info(info)
     {
@@ -82,121 +86,143 @@ namespace Engine
     // Miscellaneous
     ScriptModule ScriptTypeInfo::module() const
     {
+        check_info({});
         return m_info->GetModule();
     }
 
     // Type info
     const char* ScriptTypeInfo::name() const
     {
+        check_info(nullptr);
         return m_info->GetName();
     }
 
     const char* ScriptTypeInfo::namespace_name() const
     {
+        check_info(nullptr);
         return m_info->GetNamespace();
     }
 
     ScriptTypeInfo ScriptTypeInfo::base_type() const
     {
+        check_info({});
         return ScriptTypeInfo(m_info->GetBaseType());
     }
 
     bool ScriptTypeInfo::derives_from(const ScriptTypeInfo& info)
     {
+        check_info(false);
         return m_info->DerivesFrom(info.m_info);
     }
 
     int_t ScriptTypeInfo::type_id() const
     {
+        check_info(0);
         return m_info->GetTypeId();
     }
 
     int_t ScriptTypeInfo::sub_type_id(uint_t index) const
     {
+        check_info(0);
         return m_info->GetSubTypeId(index);
     }
 
     uint_t ScriptTypeInfo::size() const
     {
+        check_info(0);
         return m_info->GetSize();
     }
 
     ScriptTypeInfo ScriptTypeInfo::sub_type(uint_t index) const
     {
+        check_info({});
         return ScriptTypeInfo(m_info->GetSubType(index));
     }
 
     uint_t ScriptTypeInfo::sub_type_count() const
     {
+        check_info(0);
         return m_info->GetSubTypeCount();
     }
 
     // Interfaces
     uint_t ScriptTypeInfo::interface_count() const
     {
+        check_info(0);
         return m_info->GetInterfaceCount();
     }
 
     ScriptTypeInfo ScriptTypeInfo::interface(uint_t index)
     {
+        check_info({});
         return ScriptTypeInfo(m_info->GetInterface(index));
     }
 
     bool ScriptTypeInfo::implements(const ScriptTypeInfo& obj_type) const
     {
+        check_info(false);
         return m_info->Implements(obj_type.m_info);
     }
 
     // Factories
     uint_t ScriptTypeInfo::factory_count() const
     {
+        check_info(0);
         return m_info->GetFactoryCount();
     }
 
     ScriptFunction ScriptTypeInfo::factory_by_index(uint_t index) const
     {
+        check_info({});
         return ScriptFunction(m_info->GetFactoryByIndex(index));
     }
 
     ScriptFunction ScriptTypeInfo::factory_by_decl(const char* decl) const
     {
+        check_info({});
         return ScriptFunction(m_info->GetFactoryByDecl(decl));
     }
 
     ScriptFunction ScriptTypeInfo::factory_by_decl(const String& decl) const
     {
+        check_info({});
         return factory_by_decl(decl.c_str());
     }
-
 
     // Methods
     uint_t ScriptTypeInfo::method_count() const
     {
+        check_info({});
         return m_info->GetMethodCount();
     }
 
     ScriptFunction ScriptTypeInfo::method_by_index(uint_t index, bool get) const
     {
+        check_info({});
         return ScriptFunction(m_info->GetMethodByIndex(index, get));
     }
 
     ScriptFunction ScriptTypeInfo::method_by_name(const char* name, bool get) const
     {
+        check_info({});
         return ScriptFunction(m_info->GetMethodByName(name, get));
     }
 
     ScriptFunction ScriptTypeInfo::method_by_decl(const char* decl, bool get) const
     {
+        check_info({});
         return ScriptFunction(m_info->GetMethodByDecl(decl, get));
     }
 
     ScriptFunction ScriptTypeInfo::method_by_name(const String& name, bool get) const
     {
+        check_info({});
         return method_by_name(name.c_str(), get);
     }
 
     ScriptFunction ScriptTypeInfo::method_by_decl(const String& decl, bool get) const
     {
+        check_info({});
         return method_by_decl(decl.c_str(), get);
     }
 
@@ -204,12 +230,14 @@ namespace Engine
     // Properties
     uint_t ScriptTypeInfo::property_count() const
     {
+        check_info(0);
         return m_info->GetPropertyCount();
     }
 
     int_t ScriptTypeInfo::property(uint_t index, String& name, int_t* type_id, bool* is_private, bool* is_protected,
                                    int_t* offset, bool* is_reference) const
     {
+        check_info(-1);
         const char* c_name = nullptr;
         int_t res          = m_info->GetProperty(index, &c_name, type_id, is_private, is_protected, offset, is_reference);
         if (c_name)
@@ -222,12 +250,14 @@ namespace Engine
 
     const char* ScriptTypeInfo::property_declaration(uint_t index, bool include_bamespace) const
     {
+        check_info(nullptr);
         return m_info->GetPropertyDeclaration(index, include_bamespace);
     }
 
     // Behaviours
     uint_t ScriptTypeInfo::behaviour_count() const
     {
+        check_info(0);
         return m_info->GetBehaviourCount();
     }
 
@@ -272,6 +302,7 @@ namespace Engine
 
     ScriptFunction ScriptTypeInfo::behaviour_by_index(uint_t index, ScriptClassBehave* behaviour) const
     {
+        check_info({});
         asEBehaviours behaviours;
         asIScriptFunction* func = m_info->GetBehaviourByIndex(index, &behaviours);
         if (behaviour)
@@ -285,84 +316,100 @@ namespace Engine
     // Child types
     uint_t ScriptTypeInfo::child_funcdef_count()
     {
+        check_info(0);
         return m_info->GetChildFuncdefCount();
     }
 
     ScriptTypeInfo ScriptTypeInfo::child_funcdef(uint_t index) const
     {
+        check_info({});
         return ScriptTypeInfo(m_info->GetChildFuncdef(index));
     }
 
     ScriptTypeInfo ScriptTypeInfo::parent_type() const
     {
+        check_info({});
         return ScriptTypeInfo(m_info->GetParentType());
     }
 
     // Enums
     uint_t ScriptTypeInfo::enum_value_count() const
     {
+        check_info(0);
         return m_info->GetEnumValueCount();
     }
 
     const char* ScriptTypeInfo::enum_value_by_index(uint_t index, int_t* out_value) const
     {
+        check_info("");
         return m_info->GetEnumValueByIndex(index, reinterpret_cast<int*>(out_value));
     }
 
     // Typedef
     int_t ScriptTypeInfo::typedef_type_id() const
     {
+        check_info(0);
         return m_info->GetTypedefTypeId();
     }
 
     // Funcdef
     ScriptFunction ScriptTypeInfo::funcdef_signature() const
     {
+        check_info({});
         return ScriptFunction(m_info->GetFuncdefSignature());
     }
 
     bool ScriptTypeInfo::is_script_object() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_SCRIPT_OBJECT) == asOBJ_SCRIPT_OBJECT;
     }
 
     bool ScriptTypeInfo::is_shared() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_SHARED) == asOBJ_SHARED;
     }
 
     bool ScriptTypeInfo::is_noinherit() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_NOINHERIT) == asOBJ_NOINHERIT;
     }
 
     bool ScriptTypeInfo::is_funcdef() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_FUNCDEF) == asOBJ_FUNCDEF;
     }
 
     bool ScriptTypeInfo::is_template_subtype() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_TEMPLATE_SUBTYPE) == asOBJ_TEMPLATE_SUBTYPE;
     }
 
     bool ScriptTypeInfo::is_typedef() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_TYPEDEF) == asOBJ_TYPEDEF;
     }
 
     bool ScriptTypeInfo::is_abstract() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_ABSTRACT) == asOBJ_ABSTRACT;
     }
 
     bool ScriptTypeInfo::is_enum() const
     {
+        check_info(false);
         return (m_info->GetFlags() & asOBJ_ENUM) == asOBJ_ENUM;
     }
 
     bool ScriptTypeInfo::is_array() const
     {
+        check_info(false);
         return std::strcmp("array", m_info->GetName()) == 0;
     }
 

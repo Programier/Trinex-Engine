@@ -12,6 +12,10 @@
 namespace Engine
 {
 
+#define check_function(return_value)                                                                                             \
+    if (m_function == nullptr)                                                                                                   \
+    return return_value
+
     ScriptFunction::ScriptFunction(asIScriptFunction* function) : m_function(function)
     {
         add_ref();
@@ -65,11 +69,14 @@ namespace Engine
 
     int_t ScriptFunction::id() const
     {
+        check_function(0);
         return m_function->GetId();
     }
 
     ScriptFunction::Type ScriptFunction::type() const
     {
+        check_function(Type::Dummy);
+
         asEFuncType type = m_function->GetFuncType();
         switch (type)
         {
@@ -96,51 +103,60 @@ namespace Engine
 
     StringView ScriptFunction::module_name() const
     {
+        check_function("");
         return Strings::make_string_view(m_function->GetModuleName());
     }
 
     ScriptModule ScriptFunction::module() const
     {
+        check_function({});
         return ScriptModule(m_function->GetModule());
     }
 
     StringView ScriptFunction::script_section_name() const
     {
+        check_function("");
         return Strings::make_string_view(m_function->GetScriptSectionName());
     }
 
     ScriptTypeInfo ScriptFunction::object_type() const
     {
+        check_function({});
         return ScriptTypeInfo(m_function->GetObjectType());
     }
 
     StringView ScriptFunction::object_name() const
     {
+        check_function("");
         return Strings::make_string_view(m_function->GetObjectName());
     }
 
     StringView ScriptFunction::name() const
     {
+        check_function("");
         return Strings::make_string_view(m_function->GetName());
     }
 
     StringView ScriptFunction::namespace_name() const
     {
-        return Strings::make_string_view(m_function->GetNamespace());
+        check_function("";) return Strings::make_string_view(m_function->GetNamespace());
     }
 
     String ScriptFunction::declaration(bool include_object_name, bool include_namespace, bool include_param_names) const
     {
+        check_function("");
         return Strings::make_string(m_function->GetDeclaration(include_object_name, include_namespace, include_param_names));
     }
 
     bool ScriptFunction::is_read_only() const
     {
+        check_function(false);
         return m_function->IsReadOnly();
     }
 
     bool ScriptFunction::is_private() const
     {
+        check_function(false);
         return m_function->IsPrivate();
     }
 
@@ -151,32 +167,81 @@ namespace Engine
 
     bool ScriptFunction::is_final() const
     {
+        check_function(false);
         return m_function->IsFinal();
     }
 
     bool ScriptFunction::is_override() const
     {
+        check_function(false);
         return m_function->IsOverride();
     }
 
     bool ScriptFunction::is_shared() const
     {
+        check_function(false);
         return m_function->IsShared();
     }
 
     bool ScriptFunction::is_explicit() const
     {
+        check_function(false);
         return m_function->IsExplicit();
     }
 
     bool ScriptFunction::is_property() const
     {
+        check_function(false);
         return m_function->IsProperty();
     }
 
     uint_t ScriptFunction::param_count() const
     {
+        check_function(0);
         return m_function->GetParamCount();
+    }
+
+    bool ScriptFunction::param(uint_t index, int_t* type_id, Flags<ScriptTypeModifiers>* flags_ptr, StringView* name,
+                               StringView* default_arg) const
+    {
+        check_function(false);
+        const char* c_name        = nullptr;
+        const char* c_default_arg = nullptr;
+        asDWORD as_flags          = 0;
+        bool status               = m_function->GetParam(index, type_id, &as_flags, &c_name, &c_default_arg) >= 0;
+
+        if (status)
+        {
+            if (name && c_name)
+            {
+                (*name) = Strings::make_string_view(c_name);
+            }
+
+            if (default_arg && c_default_arg)
+            {
+                (*default_arg) = Strings::make_string_view(c_default_arg);
+            }
+
+            if (flags_ptr)
+            {
+                (*flags_ptr) = Flags<ScriptTypeModifiers>(as_flags);
+            }
+        }
+        return status;
+    }
+
+    int_t ScriptFunction::return_type_id(Flags<ScriptTypeModifiers>* flags) const
+    {
+        check_function(0);
+        asDWORD script_flags = 0;
+        const int_t result   = m_function->GetReturnTypeId(flags ? &script_flags : nullptr);
+
+        if (flags)
+        {
+            (*flags) = Flags<ScriptTypeModifiers>(script_flags);
+        }
+
+        return result;
     }
 
     int_t ScriptFunction::type_id() const
@@ -186,22 +251,26 @@ namespace Engine
 
     bool ScriptFunction::is_compatible_with_type_id(int_t type_id) const
     {
+        check_function(false);
         return m_function->IsCompatibleWithTypeId(type_id);
     }
 
     // Delegates
     void* ScriptFunction::delegate_object() const
     {
+        check_function(nullptr);
         return m_function->GetDelegateObject();
     }
 
     ScriptTypeInfo ScriptFunction::delegate_object_type() const
     {
+        check_function({});
         return ScriptTypeInfo(m_function->GetDelegateObjectType());
     }
 
     ScriptFunction ScriptFunction::delegate_function() const
     {
+        check_function({});
         return ScriptFunction(m_function->GetDelegateFunction());
     }
 
@@ -325,6 +394,9 @@ namespace Engine
         registrar.method("int32 type_id() const", &ScriptFunction::type_id);
         registrar.method("bool is_compatible_with_type_id(int32 type_id) const", &ScriptFunction::is_compatible_with_type_id);
         registrar.method("ScriptFunction delegate_function() const", &ScriptFunction::delegate_function);
+        registrar.method("int32 return_type_id() const",
+                         func_of<int_t(const ScriptFunction*)>(
+                                 [](const ScriptFunction* self) -> int_t { return self->return_type_id(); }));
     }
 
     static ReflectionInitializeController initializer(on_init, "Engine::ScriptFunction", {"Engine::StringView"});

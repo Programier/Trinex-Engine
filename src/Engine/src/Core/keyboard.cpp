@@ -137,5 +137,5 @@ namespace Engine::Keyboard
     };
 
 
-    static ReflectionInitializeController controller(on_init, "Bind Keyboard");
+    static ReflectionInitializeController controller(on_init, "Engine::Keyboard");
 }// namespace Engine::Keyboard

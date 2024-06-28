@@ -72,7 +72,6 @@ namespace Engine
         static ScriptEngine& funcdef(const String& declaration);
         static ScriptEngine& register_typedef(const char* new_type_name, const char* type);
         static ScriptEngine& register_typedef(const String& new_type_name, const String& type);
-        static ScriptObject create_script_object(const ScriptTypeInfo& info, bool uninited = false);
 
         static uint_t global_function_count();
         static ScriptFunction global_function_by_index(uint_t index);
@@ -118,7 +117,7 @@ namespace Engine
         static ScriptTypeInfo type_info_by_name(const String& name);
         static ScriptTypeInfo type_info_by_decl(const String& decl);
 
-        // User funtions
+        // User functions
         static String variable_name(asIScriptGeneric* generic);
 
 

@@ -163,7 +163,7 @@ namespace Engine
 
     static void on_init()
     {
-        ReflectionInitializeController().require("Bind Engine::Vector");
+        ReflectionInitializeController().require("Engine::Vector");
         String prop_type  = "float";
         String class_name = "Engine::Matrix";
 
@@ -193,5 +193,5 @@ namespace Engine
         }
     }
 
-    static ReflectionInitializeController controller(on_init, "Bind Engine::Matrix");
+    static ReflectionInitializeController controller(on_init, "Engine::Matrix");
 }// namespace Engine

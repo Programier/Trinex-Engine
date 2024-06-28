@@ -270,7 +270,7 @@ void Print::PrintTemplate(std::ostream& dst, void const* objPtr, int typeId, int
 
     if (typeInfo->GetFuncdefSignature())
     {
-        auto func = reinterpret_cast<asIScriptFunction const*>(objPtr);
+        auto func = *reinterpret_cast<asIScriptFunction* const*>(objPtr);
         dst << func->GetDeclaration(true, true, true);
         return;
     }

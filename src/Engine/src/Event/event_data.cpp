@@ -43,5 +43,5 @@ namespace Engine
     {}
 
     static ReflectionInitializeController initializer(on_init, "Engine::EventData",
-                                                      {"Engine::Event", "Bind Keyboard", "Bind Mouse", "Bind GameController"});
+                                                      {"Engine::Event", "Engine::Keyboard", "Engine::GameController"});
 }// namespace Engine

@@ -1,7 +1,10 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
+#include <ScriptEngine/script_context.hpp>
 #include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_type_info.hpp>
+#include <ScriptEngine/script_variable.hpp>
 
 
 class asIScriptObject;
@@ -12,48 +15,59 @@ namespace Engine
     class ScriptFunction;
 
 
-    class ENGINE_EXPORT ScriptObject
+    class ENGINE_EXPORT ScriptObject : public ScriptVariableBase
     {
-    public:
-        struct HashFunction {
-            HashIndex operator()(const ScriptObject& object) const;
-            HashIndex operator()(const ScriptObject* object) const;
-        };
-
-    private:
-        mutable asIScriptObject* m_object = nullptr;
-
-        const ScriptObject& add_reference() const;
-        const ScriptObject& release() const;
+        mutable ScriptTypeInfo m_info;
 
     public:
-        ScriptObject(asIScriptObject* object = nullptr);
-        ScriptObject(const char*, bool uninited = false);
-        ScriptObject(const String&, bool uninited = false);
-        copy_constructors_hpp(ScriptObject);
+        using ScriptVariableBase::ScriptVariableBase;
 
-        asIScriptObject* object() const;
+        ScriptObject(const ScriptObject& object);
+        ScriptObject& operator=(const ScriptObject&);
 
-        int_t type_id() const;
-        ScriptTypeInfo object_type() const;
-        bool is_valid() const;
+        ScriptObject(const ScriptVariableBase& variable);
+        ScriptObject(ScriptVariableBase&& variable);
+        ScriptObject& operator=(const ScriptVariableBase& variable);
+        ScriptObject& operator=(ScriptVariableBase&& variable);
 
+        // Factories
+        uint_t factory_count() const;
+        ScriptFunction factory_by_index(uint_t index) const;
+        ScriptFunction factory_by_decl(const char* decl) const;
+        ScriptFunction factory_by_decl(const String& decl) const;
 
-        // Class properties
+        // Methods
+        uint_t method_count() const;
+        ScriptFunction method_by_index(uint_t index, bool get_virtual = true) const;
+        ScriptFunction method_by_name(const char* name, bool get_virtual = true) const;
+        ScriptFunction method_by_decl(const char* decl, bool get_virtual = true) const;
+        ScriptFunction method_by_name(const String& name, bool get_virtual = true) const;
+        ScriptFunction method_by_decl(const String& decl, bool get_virtual = true) const;
+
+        // Method execution
+
+        template<typename... Args>
+        ScriptVariable execute(const ScriptFunction& function, const Args&... args) const
+        {
+            return ScriptContext::execute<Args...>(*this, function, args...);
+        }
+
+        template<typename... Args>
+        ScriptVariable execute(const char* method_name, const Args&... args) const
+        {
+            return execute(method_by_name(method_name), args...);
+        }
+
+        // Properties
         uint_t property_count() const;
-        int_t property_type_id(uint_t prop) const;
-        const char* property_name(uint_t prop) const;
-        void* get_address_of_property(uint_t prop);
+        int_t property(uint_t index, String& name, int_t* type_id = 0, bool* is_private = 0, bool* is_protected = 0,
+                       int_t* offset = 0, bool* is_reference = 0) const;
+        const char* property_declaration(uint_t index, bool include_bamespace = false) const;
 
-        bool operator==(const ScriptObject& other) const;
-        bool operator!=(const ScriptObject& other) const;
-        bool operator==(const asIScriptObject* other) const;
-        bool operator!=(const asIScriptObject* other) const;
+        // Behaviours
+        uint_t behaviour_count() const;
+        ScriptFunction behaviour_by_index(uint_t index, ScriptClassBehave* behaviour = nullptr) const;
 
-        // Miscellaneous
-        int_t copy_from(const ScriptObject& other);
-        ~ScriptObject();
-
-        friend class ScriptFunction;
+        virtual ScriptTypeInfo type_info() const;
     };
 }// namespace Engine
