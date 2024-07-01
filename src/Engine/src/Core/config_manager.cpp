@@ -11,6 +11,73 @@
 
 namespace Engine
 {
+    // Config value implementation
+    struct ScriptConfigValue {
+        mutable String m_cached_name;
+
+        const String& name() const
+        {
+            if (m_cached_name.empty())
+            {
+                m_cached_name = ScriptEngine::variable_name(this);
+
+                if (m_cached_name.starts_with("__TRINEX_ENGINE_CONFIGS_EXECUTE__::"))
+                {
+                    m_cached_name.erase(0, 35);
+                }
+            }
+            return m_cached_name;
+        }
+
+        template<typename T>
+        ScriptConfigValue& assign_primitive(T value)
+        {
+            const String& parameter_name = name();
+            if (!parameter_name.empty())
+            {
+                ConfigManager::property(parameter_name, value);
+            }
+            return *this;
+        }
+
+        template<typename T, ConstexprString decl>
+        ScriptConfigValue& assign_array(const CScriptArray* array_base)
+        {
+            ScriptArray<T, decl> array;
+            array.attach(const_cast<CScriptArray*>(array_base));
+            assign_primitive<const ScriptArray<T, decl>&>(array);
+
+            return *this;
+        }
+    };
+
+    static void reflection_init()
+    {
+        using T = ScriptConfigValue;
+        ScriptClassRegistrar::ClassInfo info =
+                ScriptClassRegistrar::create_type_info<ScriptConfigValue>(ScriptClassRegistrar::Value);
+        ScriptClassRegistrar registrar("ConfigValue", info);
+
+        registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const ConfigValue& in)",
+                         ScriptClassRegistrar::constructor<T, const T&>);
+        registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
+
+        registrar.method("const string& name() const", &T::name);
+        registrar.opfunc("ConfigValue& opAssign(bool value)", &T::assign_primitive<bool>);
+        registrar.opfunc("ConfigValue& opAssign(int value)", &T::assign_primitive<int_t>);
+        registrar.opfunc("ConfigValue& opAssign(float value)", &T::assign_primitive<float>);
+        registrar.opfunc("ConfigValue& opAssign(const string& in value)", &T::assign_primitive<const String&>);
+
+        registrar.opfunc("ConfigValue& opAssign(const array<bool>& in value)", &T::assign_array<bool, "bool">);
+        registrar.opfunc("ConfigValue& opAssign(const array<int>& in value)", &T::assign_array<int_t, "int">);
+        registrar.opfunc("ConfigValue& opAssign(const array<float>& in value)", &T::assign_array<float, "float">);
+        registrar.opfunc("ConfigValue& opAssign(const array<string>& in value)", &T::assign_array<String, "string">);
+    }
+
+    static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptConfigValue");
+
+
     enum class ConfigValueType
     {
         Undefined         = 0,
@@ -208,6 +275,7 @@ namespace Engine
         {
             info->type           = ConfigValueType::ConfigBoolArray;
             info->to_string_func = convert_default_value<ConfigBoolArray>;
+            info->address        = &property;
         }
     }
 
@@ -217,6 +285,7 @@ namespace Engine
         {
             info->type           = ConfigValueType::ConfigIntArray;
             info->to_string_func = convert_default_value<ConfigIntArray>;
+            info->address        = &property;
         }
     }
 
@@ -226,6 +295,7 @@ namespace Engine
         {
             info->type           = ConfigValueType::ConfigFloatArray;
             info->to_string_func = convert_default_value<ConfigFloatArray>;
+            info->address        = &property;
         }
     }
 
@@ -235,6 +305,7 @@ namespace Engine
         {
             info->type           = ConfigValueType::ConfigStringArray;
             info->to_string_func = convert_default_value<ConfigStringArray>;
+            info->address        = &property;
         }
     }
 
@@ -249,13 +320,20 @@ namespace Engine
 
 
     template<typename T>
-    static void set_property_internal(const Name& name, const T& property)
+    static bool set_property_internal(const Name& name, const T& property, const char* type_name)
     {
         T* prop = ConfigManager::property<T>(name);
         if (prop)
         {
             (*prop) = property;
+            return true;
         }
+        else
+        {
+            error_log("ConfigManager", "Cannot find property '%s' with type '%s'", name.c_str(), type_name);
+        }
+
+        return false;
     }
 
     template<typename T>
@@ -275,9 +353,9 @@ namespace Engine
 
 
 #define declare_setter_and_getter(type, func_prefix)                                                                             \
-    void ConfigManager::property(const Name& name, const type& property)                                                         \
+    bool ConfigManager::property(const Name& name, const type& property)                                                         \
     {                                                                                                                            \
-        set_property_internal<type>(name, property);                                                                             \
+        return set_property_internal<type>(name, property, #type);                                                               \
     }                                                                                                                            \
     type* ConfigManager::func_prefix##_property(const Name& name)                                                                \
     {                                                                                                                            \
@@ -298,157 +376,10 @@ namespace Engine
         return get_property_internal<void>(name, ConfigValueType::ConfigUserType);
     }
 
-
-    // CONFIG LOADING
-
-    static StringView parse_token(asIScriptEngine* engine, const char*& c_source, size_t& source_size)
+    static String move_to_internal_namespace(const String& code)
     {
-        asUINT token_len;
-        engine->ParseToken(c_source, source_size, &token_len);
-        StringView result = StringView(c_source, token_len);
-        c_source += token_len;
-        source_size -= token_len;
-        return result;
+        return Strings::format("namespace __TRINEX_ENGINE_CONFIGS_EXECUTE__ {{ {} }}", code);
     }
-
-    static void return_token(const char*& c_source, size_t& source_size, StringView token)
-    {
-        c_source -= token.size();
-        source_size += token.size();
-    }
-
-    static String create_function(const Vector<String>& expressions, int_t depth = 0)
-    {
-        if (expressions.empty())
-            return "";
-
-        String depth_str(depth * 4, ' ');
-        String depth1_str((depth + 1) * 4, ' ');
-        String depth2_str((depth + 2) * 4, ' ');
-
-        String source =
-                Strings::format("{0}class TrinexEngineConfigInitializer\n{0}{{\n{1}TrinexEngineConfigInitializer()\n{1}{{\n",
-                                depth_str, depth1_str);
-
-        for (auto& expression : expressions)
-        {
-            source += depth2_str;
-            source += expression;
-            source.push_back('\n');
-        }
-
-        source += depth1_str + "}\n";
-        source += depth_str + "};\n";
-        source += depth_str + "TrinexEngineConfigInitializer initializer;\n";
-        return source;
-    }
-
-    static String read_config_value(asIScriptEngine* engine, const char*& c_source, size_t& source_size)
-    {
-        String result = "";
-
-        while (source_size > 0)
-        {
-            StringView token_code = parse_token(engine, c_source, source_size);
-            result += token_code;
-
-            if (token_code == ";")
-            {
-                break;
-            }
-        }
-
-        return result;
-    }
-
-    static void wait_end_scope(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out)
-    {
-        while (source_size > 0)
-        {
-            StringView token = parse_token(engine, c_source, source_size);
-            out += token;
-
-            if (token == "}")
-            {
-                break;
-            }
-        }
-    }
-
-    static void process_config_namespace(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out,
-                                         int_t depth);
-
-    static Vector<String> process_config_scope(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out,
-                                               int_t depth)
-    {
-        Vector<String> expressions;
-
-        while (source_size > 0)
-        {
-            StringView token_code = parse_token(engine, c_source, source_size);
-
-            if (token_code == "ConfigValue")
-            {
-                expressions.push_back(read_config_value(engine, c_source, source_size));
-                continue;
-            }
-            else if (token_code == "namespace")
-            {
-                out += token_code;
-                process_config_namespace(engine, c_source, source_size, out, depth);
-                continue;
-            }
-            else if (token_code == "{")
-            {
-                out += token_code;
-                process_config_scope(engine, c_source, source_size, out, depth + 1);
-                wait_end_scope(engine, c_source, source_size, out);
-                continue;
-            }
-            else if (token_code == "}")
-            {
-                return_token(c_source, source_size, token_code);
-                break;
-            }
-
-            out += token_code;
-        }
-
-        return expressions;
-    }
-
-    static void process_config_namespace(asIScriptEngine* engine, const char*& c_source, size_t& source_size, String& out,
-                                         int_t depth)
-    {
-        while (source_size > 0)
-        {
-            StringView token = parse_token(engine, c_source, source_size);
-            out += token;
-
-            if (token == "{")
-            {
-                break;
-            }
-        }
-
-        depth += 1;
-
-        auto expressions = process_config_scope(engine, c_source, source_size, out, depth);
-        out += create_function(expressions, depth);
-        wait_end_scope(engine, c_source, source_size, out);
-    }
-
-    static String parse_config(asIScriptEngine* engine, const String& source)
-    {
-        String result;
-        const char* c_source = source.c_str();
-        size_t source_len    = source.size();
-        auto expressions     = process_config_scope(engine, c_source, source_len, result, 0);
-        result += create_function(expressions);
-
-        return result;
-    }
-
 
     void ConfigManager::load_config_from_text(const String& config, const String& group)
     {
@@ -457,7 +388,7 @@ namespace Engine
             error_log("ConfigManager", "Failed to find group '%s'", group.c_str());
             return;
         }
-        String result_source = parse_config(ScriptEngine::engine(), config);
+        String result_source = move_to_internal_namespace(config);
         ScriptModule module("TrinexEngineConfigs", ScriptModule::AlwaysCreate);
         module.add_script_section("Config", result_source.c_str(), result_source.size());
         module.build();

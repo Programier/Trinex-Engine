@@ -27,12 +27,12 @@ namespace Engine
         using difference_type = ptrdiff_t;
 
     protected:
-        CScriptArray* m_as_array;
+        mutable CScriptArray* m_as_array;
 
 
     protected:
-        int find_object_type_id();
-        asITypeInfo* find_object_type();
+        int find_object_type_id() const;
+        asITypeInfo* find_object_type() const;
 
         void insert_last(const void* ptr);
         void* element_at(size_type pos) const;
@@ -46,7 +46,7 @@ namespace Engine
         bool create(size_type init_size = 0);
         bool has_array() const;
         bool attach(CScriptArray* array, bool add_reference = true);
-        ScriptArrayBase& release();
+        const ScriptArrayBase& release() const;
         CScriptArray* array(bool inc_ref_count = false);
         size_type size() const;
         ScriptArrayBase& resize(size_type n);

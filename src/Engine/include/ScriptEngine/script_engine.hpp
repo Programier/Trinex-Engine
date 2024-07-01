@@ -118,7 +118,7 @@ namespace Engine
         static ScriptTypeInfo type_info_by_decl(const String& decl);
 
         // User functions
-        static String variable_name(asIScriptGeneric* generic);
+        static String variable_name(const void* object, bool include_namespace = true);
 
 
         // Functions register

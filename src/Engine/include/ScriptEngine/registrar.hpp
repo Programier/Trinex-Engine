@@ -73,6 +73,14 @@ namespace Engine
             memory->~T();
         }
 
+        template<typename T, typename B>
+        static T& assign(T* self, B other)
+        {
+            (*self) = other;
+            return *self;
+        }
+
+
     private:
         String m_class_base_name;
         String m_class_namespace_name;

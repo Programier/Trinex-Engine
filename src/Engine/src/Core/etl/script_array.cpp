@@ -14,12 +14,12 @@ namespace Engine
         return ScriptEngine::engine();
     }
 
-    int ScriptArrayBase::find_object_type_id()
+    int ScriptArrayBase::find_object_type_id() const
     {
         return engine()->GetTypeIdByDecl(full_declaration().c_str());
     }
 
-    asITypeInfo* ScriptArrayBase::find_object_type()
+    asITypeInfo* ScriptArrayBase::find_object_type() const
     {
         auto id = find_object_type_id();
         return engine()->GetTypeInfoById(id);
@@ -106,7 +106,7 @@ namespace Engine
         return true;
     }
 
-    ScriptArrayBase& ScriptArrayBase::release()
+    const ScriptArrayBase& ScriptArrayBase::release() const
     {
         if (m_as_array && engine())
         {

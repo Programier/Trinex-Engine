@@ -60,14 +60,14 @@ namespace Engine
         static void register_custom_property(const Name& name, void* property, const char* script_type_declaration,
                                              const StringView& group);
 
-        static void property(const Name& name, const ConfigBool& property);
-        static void property(const Name& name, const ConfigInt& property);
-        static void property(const Name& name, const ConfigFloat& property);
-        static void property(const Name& name, const ConfigString& property);
-        static void property(const Name& name, const ConfigBoolArray& property);
-        static void property(const Name& name, const ConfigIntArray& property);
-        static void property(const Name& name, const ConfigFloatArray& property);
-        static void property(const Name& name, const ConfigStringArray& property);
+        static bool property(const Name& name, const ConfigBool& property);
+        static bool property(const Name& name, const ConfigInt& property);
+        static bool property(const Name& name, const ConfigFloat& property);
+        static bool property(const Name& name, const ConfigString& property);
+        static bool property(const Name& name, const ConfigBoolArray& property);
+        static bool property(const Name& name, const ConfigIntArray& property);
+        static bool property(const Name& name, const ConfigFloatArray& property);
+        static bool property(const Name& name, const ConfigStringArray& property);
 
         static ConfigBool* bool_property(const Name& name);
         static ConfigInt* int_property(const Name& name);

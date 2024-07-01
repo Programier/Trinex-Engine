@@ -441,13 +441,8 @@ namespace Engine
         return type_info_by_decl(decl.c_str());
     }
 
-    String ScriptEngine::variable_name(asIScriptGeneric* generic)
+    String ScriptEngine::variable_name(const void* object, bool include_namespace)
     {
-        asUINT arg_type_id = generic->GetArgTypeId(0);
-        bool is_handle     = (arg_type_id & asTYPEID_MASK_OBJECT) && (arg_type_id & asTYPEID_OBJHANDLE);
-
-        void* object              = is_handle ? *reinterpret_cast<void**>(generic->GetArgAddress(0))
-                                              : reinterpret_cast<void*>(generic->GetArgAddress(0));
         asIScriptContext* context = asGetActiveContext();
 
         if (context == nullptr)
@@ -468,12 +463,15 @@ namespace Engine
 
                     if (name && !std::string_view(name).empty())
                     {
-                        if (asIScriptFunction* function = context->GetFunction(level))
+                        if (include_namespace)
                         {
-                            const char* namespace_name = function->GetNamespace();
-                            if (!std::string_view(namespace_name).empty())
+                            if (asIScriptFunction* function = context->GetFunction(level))
                             {
-                                return Strings::format("{}::{}", namespace_name, name);
+                                const char* namespace_name = function->GetNamespace();
+                                if (!std::string_view(namespace_name).empty())
+                                {
+                                    return Strings::format("{}::{}", namespace_name, name);
+                                }
                             }
                         }
 
@@ -500,7 +498,7 @@ namespace Engine
 
                     if (name && StringView(name).length() != 0)
                     {
-                        if (namespace_name && !std::string_view(namespace_name).empty())
+                        if (include_namespace && namespace_name && !StringView(namespace_name).empty())
                         {
                             return Strings::format("{}::{}", namespace_name, name);
                         }
@@ -517,7 +515,12 @@ namespace Engine
 
     static void variable_name_generic(asIScriptGeneric* generic)
     {
-        String name = ScriptEngine::variable_name(generic);
+        asUINT arg_type_id     = generic->GetArgTypeId(0);
+        bool is_handle         = (arg_type_id & asTYPEID_MASK_OBJECT) && (arg_type_id & asTYPEID_OBJHANDLE);
+        void* object           = is_handle ? *reinterpret_cast<void**>(generic->GetArgAddress(0))
+                                           : reinterpret_cast<void*>(generic->GetArgAddress(0));
+        bool include_namespace = static_cast<bool>(generic->GetArgByte(1));
+        String name            = ScriptEngine::variable_name(object, include_namespace);
         generic->SetReturnObject(&name);
     }
 
@@ -531,8 +534,8 @@ namespace Engine
     {
         using T = ScriptEngine;
         ScriptEngine::default_namespace("Engine::ScriptEngine");
-        ScriptEngine::register_function("string variable_name(const ?& in variable)", variable_name_generic,
-                                        ScriptCallConv::GENERIC);
+        ScriptEngine::register_function("string variable_name(const ?& in variable, bool include_namespace = true)",
+                                        variable_name_generic, ScriptCallConv::GENERIC);
         ScriptEngine::register_function("ScriptModule module_by_index(uint index)", T::module_by_index);
         ScriptEngine::register_function("uint module_count()", T::module_count);
         ScriptEngine::register_function("uint global_function_count()", T::global_function_count);
