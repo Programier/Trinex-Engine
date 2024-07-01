@@ -27,8 +27,7 @@ namespace Engine
         registrar.behave(ScriptClassBehave::Construct, "void f(const EventSystemListenerID& in)",
                          ScriptClassRegistrar::constructor<EventSystemListenerID, const EventSystemListenerID&>);
         registrar.method("EventSystemListenerID& opAssign(const EventSystemListenerID& in)",
-                         method_of<EventSystemListenerID&, EventSystemListenerID, const EventSystemListenerID&>(
-                                 &EventSystemListenerID::operator=));
+                         method_of<EventSystemListenerID&, const EventSystemListenerID&>(&EventSystemListenerID::operator=));
     }
 
     static ReflectionInitializeController on_script_init(bind_event_system_listener_id, "Engine::EventSystenListenerID",

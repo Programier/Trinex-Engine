@@ -69,7 +69,7 @@ namespace Engine
                          ScriptClassRegistrar::constructor<Event, const Event&>, ScriptCallConv::CDECL_OBJFIRST);
         registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<Event>,
                          ScriptCallConv::CDECL_OBJFIRST);
-        registrar.method("Event& opAssign(const Event&)", method_of<Event&, Event, const Event&>(&Event::operator=));
+        registrar.method("Event& opAssign(const Event&)", method_of<Event&, const Event&>(&Event::operator=));
         registrar.method("EventType type() const", &Event::type);
         registrar.method("uint64 window_id() const", &Event::window_id);
         registrar.method("const any& any() const", &Event::any);

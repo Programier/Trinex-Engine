@@ -28,6 +28,7 @@ namespace Engine
         copy_constructors_hpp(ScriptModule);
         ScriptModule(asIScriptModule* module = nullptr);
         ScriptModule(const char* name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
+        ScriptModule(const String& name, ModuleFlags flags = ModuleFlags::CreateIfNotExists);
 
         static ScriptModule global();
 
@@ -35,7 +36,7 @@ namespace Engine
         bool is_valid() const;
         ScriptModule& name(const String& name);
         ScriptModule& name(const char* name);
-        const char* name() const;
+        StringView name() const;
         ScriptModule& discard();
 
         // Compilation
@@ -48,7 +49,7 @@ namespace Engine
         int_t default_namespace(const String& name_space);
         const char* default_namespace();
 
-        //        // Functions
+        // Functions
         Counter functions_count() const;
         ScriptFunction function_by_index(Index index) const;
         ScriptFunction function_by_decl(const char* decl) const;
@@ -57,15 +58,15 @@ namespace Engine
         ScriptFunction function_by_name(const String& name) const;
         int_t remove_function(const ScriptFunction& function);
 
-        //        // Global variables
+        // Global variables
         Counter global_var_count() const;
         int_t global_var_index_by_name(const char* name) const;
         int_t global_var_index_by_decl(const char* decl) const;
         int_t global_var_index_by_name(const String& name) const;
         int_t global_var_index_by_decl(const String& decl) const;
-        int_t global_var(uint_t index, const char** name, const char** name_space = 0, int_t* type_id = 0,
-                         bool* is_const = 0) const;
-        const char* global_var_declaration(uint_t index, bool include_namespace = false) const;
+        bool global_var(uint_t index, StringView* name = nullptr, StringView* name_space = nullptr, int_t* type_id = nullptr,
+                        bool* is_const = nullptr) const;
+        String global_var_declaration(uint_t index, bool include_namespace = false) const;
         void* address_of_global_var(uint_t index);
         int_t remove_global_var(uint_t index);
 
@@ -82,11 +83,11 @@ namespace Engine
         ScriptTypeInfo type_info_by_name(const String& name) const;
         ScriptTypeInfo type_info_by_decl(const String& decl) const;
 
-        //        // Enums
+        // Enums
         uint_t enum_count() const;
         ScriptTypeInfo enum_by_index(uint_t index) const;
 
-        //        // Typedefs
+        // Typedefs
         uint_t typedef_count() const;
         ScriptTypeInfo typedef_by_index(uint_t index) const;
 

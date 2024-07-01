@@ -19,21 +19,20 @@ namespace Engine
 
     enum class ScriptClassBehave : EnumerateType
     {
-        Construct,
-        ListConstruct,
-        Destruct,
-
-        Factory,
-        ListFactory,
-        AddRef,
-        Release,
-        GetWeakRefFlag,
-        TemplateCallback,
-        GetRefCount,
-        GetGCFlag,
-        SetGCFlag,
-        EnumRefs,
-        ReleaseRefs,
+        Construct        = 0,
+        ListConstruct    = 1,
+        Destruct         = 2,
+        Factory          = 3,
+        ListFactory      = 4,
+        AddRef           = 5,
+        Release          = 6,
+        GetWeakRefFlag   = 7,
+        TemplateCallback = 8,
+        GetRefCount      = 9,
+        GetGCFlag        = 10,
+        SetGCFlag        = 11,
+        EnumRefs         = 12,
+        ReleaseRefs      = 13,
     };
 
     enum class ScriptTypeModifiers : EnumerateType

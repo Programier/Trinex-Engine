@@ -25,13 +25,13 @@ namespace Engine
         return static_cast<typename SignatureParser<Signature>::Type>(func);
     }
 
-    template<typename Return, typename Instance, typename... Args>
+    template<typename Return, typename... Args, typename Instance>
     constexpr Return (Instance::*method_of(Return (Instance::*function)(Args...)))(Args...)
     {
         return function;
     }
 
-    template<typename Return, typename Instance, typename... Args>
+    template<typename Return, typename... Args, typename Instance>
     constexpr Return (Instance::*method_of(Return (Instance::*function)(Args...) const))(Args...) const
     {
         return function;

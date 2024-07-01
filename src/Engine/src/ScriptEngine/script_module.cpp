@@ -1,7 +1,12 @@
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_handle.hpp>
 #include <ScriptEngine/script_module.hpp>
 #include <ScriptEngine/script_object.hpp>
+#include <ScriptEngine/script_primitives.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
@@ -35,6 +40,9 @@ namespace Engine
         (*this) = ScriptEngine::create_module(name, flags);
     }
 
+    ScriptModule::ScriptModule(const String& name, ModuleFlags flags) : ScriptModule(name.c_str(), flags)
+    {}
+
     ScriptModule ScriptModule::global()
     {
         return ScriptEngine::global_module();
@@ -61,9 +69,9 @@ namespace Engine
         return *this;
     }
 
-    const char* ScriptModule::name() const
+    StringView ScriptModule::name() const
     {
-        return m_module->GetName();
+        return Strings::make_string_view(m_module->GetName());
     }
 
     ScriptModule& ScriptModule::discard()
@@ -177,14 +185,32 @@ namespace Engine
         return m_module->GetGlobalVarIndexByDecl(decl.c_str());
     }
 
-    int_t ScriptModule::global_var(uint_t index, const char** name, const char** name_space, int_t* type_id, bool* is_const) const
+    bool ScriptModule::global_var(uint_t index, StringView* name, StringView* name_space, int_t* type_id, bool* is_const) const
     {
-        return m_module->GetGlobalVar(index, name, name_space, type_id, is_const);
+        const char* out_name      = nullptr;
+        const char* out_namespace = nullptr;
+        bool result = m_module->GetGlobalVar(index, name ? &out_name : nullptr, name_space ? &out_namespace : nullptr, type_id,
+                                             is_const) >= 0;
+
+        if (result)
+        {
+            if (name)
+            {
+                (*name) = Strings::make_string_view(out_name);
+            }
+
+            if (name_space)
+            {
+                (*name_space) = Strings::make_string_view(out_namespace);
+            }
+        }
+
+        return result;
     }
 
-    const char* ScriptModule::global_var_declaration(uint_t index, bool include_namespace) const
+    String ScriptModule::global_var_declaration(uint_t index, bool include_namespace) const
     {
-        return m_module->GetGlobalVarDeclaration(index, include_namespace);
+        return Strings::make_string(m_module->GetGlobalVarDeclaration(index, include_namespace));
     }
 
     void* ScriptModule::address_of_global_var(uint_t index)
@@ -249,7 +275,7 @@ namespace Engine
         return type_info_by_decl(decl.c_str());
     }
 
-    //        // Enums
+    // Enums
     uint_t ScriptModule::enum_count() const
     {
         return m_module->GetEnumCount();
@@ -260,7 +286,7 @@ namespace Engine
         return ScriptTypeInfo(m_module->GetEnumByIndex(index));
     }
 
-    //        // Typedefs
+    // Typedefs
     uint_t ScriptModule::typedef_count() const
     {
         return m_module->GetTypedefCount();
@@ -270,4 +296,82 @@ namespace Engine
     {
         return ScriptTypeInfo(m_module->GetTypedefByIndex(index));
     }
+
+
+    bool script_global_var(const ScriptModule* self, uint_t index, ScriptPointer* name, ScriptPointer* name_space,
+                           Integer32* type_id, Boolean* is_const)
+    {
+        StringView* out_name      = name ? name->as<StringView>() : nullptr;
+        StringView* out_namespace = name_space ? name_space->as<StringView>() : nullptr;
+        int_t* out_type_id        = type_id ? &type_id->value : nullptr;
+        bool* out_is_const        = is_const ? &is_const->value : nullptr;
+
+        return self->global_var(index, out_name, out_namespace, out_type_id, out_is_const);
+    }
+
+    static void on_init()
+    {
+        {
+            ScriptEnumRegistrar registrar("Engine::ScriptModule::ModuleFlags");
+            registrar.set("OnlyIfExists", ScriptModule::ModuleFlags::OnlyIfExists);
+            registrar.set("CreateIfNotExists", ScriptModule::ModuleFlags::CreateIfNotExists);
+            registrar.set("AlwaysCreate", ScriptModule::ModuleFlags::AlwaysCreate);
+        }
+
+        ScriptClassRegistrar::ClassInfo info = ScriptClassRegistrar::create_type_info<ScriptModule>(
+                ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassAllInts);
+
+        ScriptClassRegistrar registrar("Engine::ScriptModule", info);
+        ReflectionInitializeController().require("Engine::ScriptFunction").require("Engine::ScriptTypeInfo");
+
+        registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<ScriptModule>);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const ScriptModule& in)",
+                         ScriptClassRegistrar::constructor<ScriptModule, const ScriptModule&>);
+        registrar.behave(ScriptClassBehave::Construct,
+                         "void f(const string& in name, Engine::ScriptModule::ModuleFlags flags = "
+                         "Engine::ScriptModule::ModuleFlags::CreateIfNotExists)",
+                         ScriptClassRegistrar::constructor<ScriptModule, const String&, ScriptModule::ModuleFlags>);
+        registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<ScriptModule>);
+        registrar.opfunc("ScriptModule& opAssign(const ScriptModule& in)",
+                         method_of<ScriptModule&, const ScriptModule&>(&ScriptModule::operator=));
+
+
+        registrar.method("bool is_valid() const", &ScriptModule::is_valid);
+        registrar.method("ScriptModule& name(const string& in name)",
+                         method_of<ScriptModule&, const String&>(&ScriptModule::name));
+        registrar.method("StringView name() const", &ScriptModule::name);
+        registrar.method("uint64 functions_count() const", &ScriptModule::functions_count);
+        registrar.method("ScriptFunction function_by_index(uint64 index) const", &ScriptModule::function_by_index);
+        registrar.method("ScriptFunction function_by_decl(const string& in decl) const",
+                         method_of<ScriptFunction, const String&>(&ScriptModule::function_by_decl));
+        registrar.method("ScriptFunction function_by_name(const string& in name) const",
+                         method_of<ScriptFunction, const String&>(&ScriptModule::function_by_name));
+
+        registrar.method("uint64 global_var_count() const", &ScriptModule::global_var_count);
+        registrar.method("int global_var_index_by_name(const string& in) const",
+                         method_of<int_t, const String&>(&ScriptModule::global_var_index_by_name));
+        registrar.method("int global_var_index_by_decl(const string& in) const",
+                         method_of<int_t, const String&>(&ScriptModule::global_var_index_by_decl));
+        registrar.method("bool global_var(uint index, Ptr<StringView>@ name = null, Ptr<StringView>@ namespace_name = null, "
+                         "Int32@ type_id = null, Bool@ is_const = null) const",
+                         script_global_var);
+        registrar.method("string global_var_declaration(uint index, bool include_namespace = false) const",
+                         &ScriptModule::global_var_declaration);
+        registrar.method("uint object_type_count() const", &ScriptModule::object_type_count);
+        registrar.method("ScriptTypeInfo object_type_by_index(uint index) const", &ScriptModule::object_type_by_index);
+        registrar.method("int type_id_by_decl(const string& in decl) const",
+                         method_of<int_t, const String&>(&ScriptModule::type_id_by_decl));
+        registrar.method("ScriptTypeInfo type_info_by_name(const string& in name) const",
+                         method_of<ScriptTypeInfo, const String&>(&ScriptModule::type_info_by_name));
+        registrar.method("ScriptTypeInfo type_info_by_decl(const string& in decl) const",
+                         method_of<ScriptTypeInfo, const String&>(&ScriptModule::type_info_by_decl));
+
+        registrar.method("uint enum_count() const", &ScriptModule::enum_count);
+        registrar.method("ScriptTypeInfo enum_by_index(uint index) const", &ScriptModule::enum_by_index);
+        registrar.method("uint typedef_count() const", &ScriptModule::typedef_count);
+        registrar.method("ScriptTypeInfo typedef_by_index(uint index) const", &ScriptModule::typedef_by_index);
+    }
+
+    static ReflectionInitializeController initializer(on_init, "Engine::ScriptModule");
+
 }// namespace Engine

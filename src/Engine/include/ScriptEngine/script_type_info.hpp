@@ -29,10 +29,10 @@ namespace Engine
         ScriptModule module() const;
 
         // Type info
-        const char* name() const;
-        const char* namespace_name() const;
+        StringView name() const;
+        StringView namespace_name() const;
         ScriptTypeInfo base_type() const;
-        bool derives_from(const ScriptTypeInfo& info);
+        bool derives_from(const ScriptTypeInfo& info) const;
         int_t type_id() const;
         int_t sub_type_id(uint_t index) const;
         uint_t size() const;
@@ -60,9 +60,9 @@ namespace Engine
 
         // Properties
         uint_t property_count() const;
-        int_t property(uint_t index, String& name, int_t* type_id = 0, bool* is_private = 0, bool* is_protected = 0,
-                       int_t* offset = 0, bool* is_reference = 0) const;
-        const char* property_declaration(uint_t index, bool include_bamespace = false) const;
+        bool property(uint_t index, StringView* name = nullptr, int_t* type_id = nullptr, bool* is_private = nullptr,
+                      bool* is_protected = nullptr, int_t* offset = nullptr, bool* is_reference = nullptr) const;
+        String property_declaration(uint_t index, bool include_bamespace = false) const;
 
         // Behaviours
         uint_t behaviour_count() const;
@@ -75,7 +75,7 @@ namespace Engine
 
         // Enums
         uint_t enum_value_count() const;
-        const char* enum_value_by_index(uint_t index, int_t* out_value) const;
+        StringView enum_value_by_index(uint_t index, int_t* out_value = nullptr) const;
 
         // Typedef
         int_t typedef_type_id() const;

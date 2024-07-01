@@ -127,13 +127,13 @@ namespace Engine
         return type_info().property_count();
     }
 
-    int_t ScriptObject::property(uint_t index, String& name, int_t* type_id, bool* is_private, bool* is_protected, int_t* offset,
+    bool ScriptObject::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected, int_t* offset,
                                  bool* is_reference) const
     {
         return type_info().property(index, name, type_id, is_private, is_protected, offset, is_reference);
     }
 
-    const char* ScriptObject::property_declaration(uint_t index, bool include_bamespace) const
+    String ScriptObject::property_declaration(uint_t index, bool include_bamespace) const
     {
         return type_info().property_declaration(index, include_bamespace);
     }

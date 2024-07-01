@@ -352,6 +352,7 @@ namespace Engine
                 ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassAllInts);
 
         ScriptClassRegistrar registrar("Engine::ScriptFunction", info);
+        ReflectionInitializeController().require("Engine::ScriptTypeInfo").require("Engine::ScriptModule");
 
         registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<ScriptFunction>,
                          ScriptCallConv::CDECL_OBJFIRST);
@@ -363,20 +364,20 @@ namespace Engine
                          ScriptCallConv::CDECL_OBJFIRST);
 
         registrar.opfunc("bool opEquals(const ScriptFunction& in) const",
-                         method_of<bool, ScriptFunction, const ScriptFunction&>(&ScriptFunction::operator==),
-                         ScriptCallConv::THISCALL);
+                         method_of<bool, const ScriptFunction&>(&ScriptFunction::operator==), ScriptCallConv::THISCALL);
 
         registrar.opfunc("ScriptFunction& opAssign(const ScriptFunction& in)",
-                         method_of<ScriptFunction&, ScriptFunction, const ScriptFunction&>(&ScriptFunction::operator=),
-                         ScriptCallConv::THISCALL);
+                         method_of<ScriptFunction&, const ScriptFunction&>(&ScriptFunction::operator=), ScriptCallConv::THISCALL);
         registrar.opfunc("ScriptFunction& opAssign(const ?& in)", assign_script_function, ScriptCallConv::GENERIC);
 
         registrar.method("bool is_valid() const", &ScriptFunction::is_valid);
         registrar.method("int32 id() const", &ScriptFunction::id);
         registrar.method("ScriptFunction::Type type() const", &ScriptFunction::type);
         registrar.method("StringView module_name() const", &ScriptFunction::module_name);
+        registrar.method("ScriptModule module() const", &ScriptFunction::module);
         registrar.method("StringView script_section_name() const", &ScriptFunction::script_section_name);
         registrar.method("StringView object_name() const", &ScriptFunction::object_name);
+        registrar.method("ScriptTypeInfo object_type() const", &ScriptFunction::object_type);
         registrar.method("StringView name() const", &ScriptFunction::name);
         registrar.method("StringView namespace_name() const", &ScriptFunction::namespace_name);
         registrar.method("string declaration(bool include_object_name = true, bool include_namespace = false, bool "
@@ -393,6 +394,7 @@ namespace Engine
         registrar.method("uint32 param_count() const", &ScriptFunction::param_count);
         registrar.method("int32 type_id() const", &ScriptFunction::type_id);
         registrar.method("bool is_compatible_with_type_id(int32 type_id) const", &ScriptFunction::is_compatible_with_type_id);
+        registrar.method("ScriptTypeInfo delegate_object_type() const", &ScriptFunction::delegate_object_type);
         registrar.method("ScriptFunction delegate_function() const", &ScriptFunction::delegate_function);
         registrar.method("int32 return_type_id() const",
                          func_of<int_t(const ScriptFunction*)>(

@@ -1,7 +1,12 @@
+#include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
+#include <ScriptEngine/registrar.hpp>
 #include <ScriptEngine/script_engine.hpp>
 #include <ScriptEngine/script_function.hpp>
+#include <ScriptEngine/script_handle.hpp>
 #include <ScriptEngine/script_module.hpp>
+#include <ScriptEngine/script_primitives.hpp>
 #include <ScriptEngine/script_type_info.hpp>
 #include <angelscript.h>
 
@@ -91,16 +96,16 @@ namespace Engine
     }
 
     // Type info
-    const char* ScriptTypeInfo::name() const
+    StringView ScriptTypeInfo::name() const
     {
-        check_info(nullptr);
-        return m_info->GetName();
+        check_info("");
+        return Strings::make_string_view(m_info->GetName());
     }
 
-    const char* ScriptTypeInfo::namespace_name() const
+    StringView ScriptTypeInfo::namespace_name() const
     {
-        check_info(nullptr);
-        return m_info->GetNamespace();
+        check_info("");
+        return Strings::make_string_view(m_info->GetNamespace());
     }
 
     ScriptTypeInfo ScriptTypeInfo::base_type() const
@@ -109,7 +114,7 @@ namespace Engine
         return ScriptTypeInfo(m_info->GetBaseType());
     }
 
-    bool ScriptTypeInfo::derives_from(const ScriptTypeInfo& info)
+    bool ScriptTypeInfo::derives_from(const ScriptTypeInfo& info) const
     {
         check_info(false);
         return m_info->DerivesFrom(info.m_info);
@@ -234,24 +239,25 @@ namespace Engine
         return m_info->GetPropertyCount();
     }
 
-    int_t ScriptTypeInfo::property(uint_t index, String& name, int_t* type_id, bool* is_private, bool* is_protected,
-                                   int_t* offset, bool* is_reference) const
+    bool ScriptTypeInfo::property(uint_t index, StringView* name, int_t* type_id, bool* is_private, bool* is_protected,
+                                  int_t* offset, bool* is_reference) const
     {
-        check_info(-1);
+        check_info(false);
         const char* c_name = nullptr;
-        int_t res          = m_info->GetProperty(index, &c_name, type_id, is_private, is_protected, offset, is_reference);
-        if (c_name)
+        int_t res = m_info->GetProperty(index, name ? &c_name : nullptr, type_id, is_private, is_protected, offset, is_reference);
+
+        if (name)
         {
-            name = c_name;
-            delete c_name;
+            (*name) = Strings::make_string_view(c_name);
         }
-        return res;
+
+        return res >= 0;
     }
 
-    const char* ScriptTypeInfo::property_declaration(uint_t index, bool include_bamespace) const
+    String ScriptTypeInfo::property_declaration(uint_t index, bool include_bamespace) const
     {
-        check_info(nullptr);
-        return m_info->GetPropertyDeclaration(index, include_bamespace);
+        check_info("");
+        return Strings::make_string(m_info->GetPropertyDeclaration(index, include_bamespace));
     }
 
     // Behaviours
@@ -339,10 +345,10 @@ namespace Engine
         return m_info->GetEnumValueCount();
     }
 
-    const char* ScriptTypeInfo::enum_value_by_index(uint_t index, int_t* out_value) const
+    StringView ScriptTypeInfo::enum_value_by_index(uint_t index, int_t* out_value) const
     {
         check_info("");
-        return m_info->GetEnumValueByIndex(index, reinterpret_cast<int*>(out_value));
+        return Strings::make_string_view(m_info->GetEnumValueByIndex(index, reinterpret_cast<int*>(out_value)));
     }
 
     // Typedef
@@ -417,4 +423,106 @@ namespace Engine
     {
         release();
     }
+
+    template<typename T>
+    static decltype(T::value)* address_of_script_var(T* value)
+    {
+        if (value)
+        {
+            return &value->value;
+        }
+        return nullptr;
+    }
+
+
+    static bool script_property(const ScriptTypeInfo* self, uint_t index, ScriptPointer* name, Integer32* type_id = nullptr,
+                                Boolean* is_private = nullptr, Boolean* is_protected = nullptr, Integer32* offset = nullptr,
+                                Boolean* is_reference = nullptr)
+    {
+        StringView* out_name = name ? name->as<StringView>() : nullptr;
+        return self->property(index, out_name, address_of_script_var(type_id), address_of_script_var(is_private),
+                              address_of_script_var(is_protected), address_of_script_var(offset),
+                              address_of_script_var(is_reference));
+    }
+
+    static StringView script_enum_value_by_index(const ScriptTypeInfo* self, uint_t index, Integer32* out_value)
+    {
+        return self->enum_value_by_index(index, address_of_script_var(out_value));
+    }
+
+    static ScriptFunction script_behaviour_by_index(const ScriptTypeInfo* self, uint_t index, ScriptPointer* pointer)
+    {
+        ScriptClassBehave* behave = pointer ? pointer->as<ScriptClassBehave>() : nullptr;
+        return self->behaviour_by_index(index, behave);
+    }
+
+    static void on_init()
+    {
+        ScriptClassRegistrar::ClassInfo info = ScriptClassRegistrar::create_type_info<ScriptTypeInfo>(
+                ScriptClassRegistrar::Value | ScriptClassRegistrar::AppClassAllInts);
+
+        ScriptClassRegistrar registrar("Engine::ScriptTypeInfo", info);
+        ReflectionInitializeController().require("Engine::ScriptFunction").require("Engine::ScriptModule");
+
+        using T = ScriptTypeInfo;
+
+        registrar.behave(ScriptClassBehave::Construct, "void f()", ScriptClassRegistrar::constructor<T>);
+        registrar.behave(ScriptClassBehave::Construct, "void f(const ScriptTypeInfo)",
+                         ScriptClassRegistrar::constructor<T, const T&>);
+        registrar.behave(ScriptClassBehave::Destruct, "void f()", ScriptClassRegistrar::destructor<T>);
+        registrar.opfunc("ScriptTypeInfo& opAssign(const ScriptTypeInfo& in)",
+                         method_of<ScriptTypeInfo&, const T&>(&T::operator=));
+
+        registrar.method("bool is_valid() const", &T::is_valid);
+        registrar.method("ScriptModule module() const", &T::module);
+        registrar.method("StringView name() const", &T::name);
+        registrar.method("StringView namespace_name() const", &T::namespace_name);
+        registrar.method("ScriptTypeInfo base_type() const", &T::base_type);
+        registrar.method("bool derives_from(const ScriptTypeInfo& in) const", &T::derives_from);
+        registrar.method("int type_id() const", &T::type_id);
+        registrar.method("int sub_type_id(uint index) const", &T::sub_type);
+        registrar.method("int size() const", &T::size);
+        registrar.method("ScriptTypeInfo sub_type(uint index) const", &T::sub_type);
+        registrar.method("uint sub_type_count() const", &T::sub_type_count);
+        registrar.method("uint interface_count() const", &T::interface_count);
+        registrar.method("ScriptTypeInfo interface_by_index(uint index) const", &T::interface);
+        registrar.method("bool implements(const ScriptTypeInfo& in) const", &T::implements);
+        registrar.method("uint factory_count() const", &T::factory_count);
+        registrar.method("ScriptFunction factory_by_index(uint index) const", &T::factory_by_index);
+        registrar.method("ScriptFunction factory_by_decl(const string& decl) const",
+                         method_of<ScriptFunction, const String&>(&T::factory_by_decl));
+        registrar.method("uint behaviour_count() const", &T::behaviour_count);
+        registrar.method("ScriptFunction behaviour_by_index(uint index, Ptr<Engine::ScriptClassBehave>@ behave = null) const",
+                         script_behaviour_by_index);
+        registrar.method("uint method_count() const", &T::method_count);
+        registrar.method("ScriptFunction method_by_index(uint index, bool get_virtual = true) const", &T::method_by_index);
+        registrar.method("ScriptFunction method_by_name(const string& name, bool get_virtual = true) const",
+                         method_of<ScriptFunction, const String&, bool>(&T::method_by_name));
+        registrar.method("ScriptFunction method_by_decl(const string& decl, bool get_virtual = true) const",
+                         method_of<ScriptFunction, const String&, bool>(&T::method_by_decl));
+        registrar.method("uint property_count() const", &T::property_count);
+        registrar.method("bool property(uint index, Ptr<StringView>@ name = null, Int32@ type_id = null, Bool@ is_private = "
+                         "null, Bool@ is_protected = null, Int32@ offset = null, Bool@ is_reference = null)",
+                         script_property);
+        registrar.method("string property_declaration(uint index, bool include_namespace = false) const",
+                         &T::property_declaration);
+        registrar.method("uint child_funcdef_count()", &T::child_funcdef_count);
+        registrar.method("ScriptTypeInfo child_funcdef(uint index) const", &T::child_funcdef);
+        registrar.method("ScriptTypeInfo parent_type() const", &T::parent_type);
+        registrar.method("uint enum_value_count() const", &T::enum_value_count);
+        registrar.method("StringView enum_value_by_index() const", script_enum_value_by_index);
+        registrar.method("int typedef_type_id() const", &T::typedef_type_id);
+        registrar.method("ScriptFunction funcdef_signature() const", &T::funcdef_signature);
+        registrar.method("bool is_script_object() const", &T::is_script_object);
+        registrar.method("bool is_shared() const", &T::is_shared);
+        registrar.method("bool is_noinherit() const", &T::is_noinherit);
+        registrar.method("bool is_funcdef() const", &T::is_funcdef);
+        registrar.method("bool is_template_subtype() const", &T::is_template_subtype);
+        registrar.method("bool is_typedef() const", &T::is_typedef);
+        registrar.method("bool is_abstract() const", &T::is_abstract);
+        registrar.method("bool is_enum() const", &T::is_enum);
+        registrar.method("bool is_array() const", &T::is_array);
+    }
+
+    static ReflectionInitializeController initializer(on_init, "Engine::ScriptTypeInfo", {"Engine::ScriptEnums"});
 }// namespace Engine

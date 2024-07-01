@@ -61,7 +61,7 @@ namespace Engine
                 .behave(ScriptClassBehave::Release, "void f()", remove_object_reference, ScriptCallConv::CDECL_OBJFIRST)
                 .method("const string& string_name() const", &Object::string_name)
                 .method("Engine::ObjectRenameStatus name(StringView, bool = false)",
-                        method_of<ObjectRenameStatus, Object, StringView, bool>(&Object::name))
+                        method_of<ObjectRenameStatus, StringView, bool>(&Object::name))
                 .static_function("Package@ root_package()", &Object::root_package)
                 .method("string as_string() const", &Object::as_string)
                 .method("bool add_to_package(Package@, bool)", &Object::add_to_package)
@@ -70,7 +70,7 @@ namespace Engine
                 .static_function("Object@ static_find_object(const StringView&)",
                                  func_of<Object*(const StringView&)>(&Object::find_object))
                 .method("Object& remove_from_package()", &Object::remove_from_package)
-                .method("const Name& name() const", method_of<const Name&, Object>(&Object::name))
+                .method("const Name& name() const", method_of<const Name&>(&Object::name))
                 .method("string opConv() const", &Object::as_string)
                 .method("Object@ preload()", func_of<Object&(Object*)>([](Object* self) -> Object& { return self->preload(); }),
                         ScriptCallConv::CDECL_OBJFIRST)

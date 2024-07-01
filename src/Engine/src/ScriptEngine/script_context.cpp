@@ -632,6 +632,5 @@ namespace Engine
     }
 
     static ReflectionInitializeController initilizer(on_init, "Engine::ScriptContext",
-                                                     {"Engine::ScriptFunction", "Engine::IntVector",
-                                                      "Engine::ScriptTypeModifiers"});
+                                                     {"Engine::ScriptFunction", "Engine::IntVector", "Engine::ScriptEnums"});
 }// namespace Engine

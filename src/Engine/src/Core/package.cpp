@@ -366,7 +366,7 @@ namespace Engine
         registrar->method("bool add_object(Object@, bool = false)", &Package::add_object)
                 .method("Package@ remove_object(Object@)", &Package::remove_object)
                 .method("Object@ find_object(const StringView& in, bool=false) const",
-                        method_of<Object*, Package, const StringView&, bool>(&Package::find_object))
+                        method_of<Object*, const StringView&, bool>(&Package::find_object))
                 /* .method("bool contains_object(const Object@) const",
                         method_of<bool, Package, const Object*>(&Package::contains_object))
                 .method("bool contains_object(const string& in) const",

@@ -308,7 +308,7 @@ namespace Engine
         }
     }
 
-    ScriptVariable::ScriptVariable(const char* declaration) : ScriptVariable(ScriptEngine::typeid_by_decl(declaration))
+    ScriptVariable::ScriptVariable(const char* declaration) : ScriptVariable(ScriptEngine::type_id_by_decl(declaration))
     {}
 
     static int_t find_type_id_internal(const char* declaration, const char* module_name)
@@ -334,7 +334,7 @@ namespace Engine
     }
 
     ScriptVariable::ScriptVariable(void* address, const char* declaration, bool is_object_address_for_handle)
-        : ScriptVariable(address, ScriptEngine::typeid_by_decl(declaration), is_object_address_for_handle)
+        : ScriptVariable(address, ScriptEngine::type_id_by_decl(declaration), is_object_address_for_handle)
     {}
 
     ScriptVariable::ScriptVariable(void* address, const char* declaration, const char* module, bool is_object_address_for_handle)
@@ -423,7 +423,7 @@ namespace Engine
 
     bool ScriptVariable::create(void* src_address, const char* type_declaration, bool is_object_address_for_handle)
     {
-        int_t type_id = ScriptEngine::typeid_by_decl(type_declaration);
+        int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
         if (type_id < 0)
         {
             error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");
@@ -451,7 +451,7 @@ namespace Engine
 
     bool ScriptVariable::create(const char* type_declaration)
     {
-        int_t type_id = ScriptEngine::typeid_by_decl(type_declaration);
+        int_t type_id = ScriptEngine::type_id_by_decl(type_declaration);
         if (type_id < 0)
         {
             error_log("ScriptVariableBase", "Cannot create script variable, because type_id is invalid!");

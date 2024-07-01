@@ -59,7 +59,6 @@ namespace Engine
         static ScriptModule global_module();
         static ScriptModule create_module(const String& name, EnumerateType flags = 0);
         static ScriptModule create_module(const char* name, EnumerateType flags = 0);
-        static ScriptModule module(uint_t index);
         static uint_t module_count();
         static String to_string(const void* object, int_t type_id);
 
@@ -105,11 +104,12 @@ namespace Engine
 
         // Script functions
         static int_t last_function_id();
-        static ScriptFunction function_by_id(int func_id);
+        static ScriptFunction function_by_id(int_t func_id);
 
         // Type identification
-        static int_t typeid_by_decl(const char* decl);
-        static const char* type_declaration(int_t type_id, bool include_namespace = false);
+        static int_t type_id_by_decl(const char* decl);
+        static int_t type_id_by_decl(const String& decl);
+        static String type_declaration(int_t type_id, bool include_namespace = false);
         static int_t sizeof_primitive_type(int_t type_id);
         static ScriptTypeInfo type_info_by_id(int_t type_id);
         static ScriptTypeInfo type_info_by_name(const char* name);

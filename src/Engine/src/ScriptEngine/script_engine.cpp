@@ -1,4 +1,5 @@
 #include <Core/engine_loading_controllers.hpp>
+#include <Core/etl/templates.hpp>
 #include <Core/exception.hpp>
 #include <Core/logger.hpp>
 #include <Core/stacktrace.hpp>
@@ -236,11 +237,6 @@ namespace Engine
         }
     }
 
-    ScriptModule ScriptEngine::module(uint_t index)
-    {
-        return m_engine->GetModuleByIndex(index);
-    }
-
     uint_t ScriptEngine::module_count()
     {
         return m_engine->GetModuleCount();
@@ -394,20 +390,25 @@ namespace Engine
         return m_engine->GetLastFunctionId();
     }
 
-    ScriptFunction ScriptEngine::function_by_id(int func_id)
+    ScriptFunction ScriptEngine::function_by_id(int_t func_id)
     {
         return ScriptFunction(m_engine->GetFunctionById(func_id));
     }
 
     // Type identification
-    int_t ScriptEngine::typeid_by_decl(const char* decl)
+    int_t ScriptEngine::type_id_by_decl(const char* decl)
     {
         return m_engine->GetTypeIdByDecl(decl);
     }
 
-    const char* ScriptEngine::type_declaration(int type_id, bool include_namespace)
+    int_t ScriptEngine::type_id_by_decl(const String& decl)
     {
-        return m_engine->GetTypeDeclaration(type_id, include_namespace);
+        return type_id_by_decl(decl.c_str());
+    }
+
+    String ScriptEngine::type_declaration(int type_id, bool include_namespace)
+    {
+        return Strings::make_string(m_engine->GetTypeDeclaration(type_id, include_namespace));
     }
 
     int_t ScriptEngine::sizeof_primitive_type(int type_id)
@@ -524,11 +525,45 @@ namespace Engine
     static void on_init()
     {
         ScriptEngine::initialize();
+    }
+
+    static void reflection_init()
+    {
+        using T = ScriptEngine;
         ScriptEngine::default_namespace("Engine::ScriptEngine");
         ScriptEngine::register_function("string variable_name(const ?& in variable)", variable_name_generic,
                                         ScriptCallConv::GENERIC);
+        ScriptEngine::register_function("ScriptModule module_by_index(uint index)", T::module_by_index);
+        ScriptEngine::register_function("uint module_count()", T::module_count);
+        ScriptEngine::register_function("uint global_function_count()", T::global_function_count);
+        ScriptEngine::register_function("ScriptFunction global_function_by_index(uint index)", T::global_function_by_index);
+        ScriptEngine::register_function("ScriptFunction global_function_by_decl(const string& in)",
+                                        func_of<ScriptFunction(const String&)>(T::global_function_by_decl));
+        ScriptEngine::register_function("uint object_type_count()", T::object_type_count);
+        ScriptEngine::register_function("ScriptTypeInfo object_type_by_index()", T::object_type_by_index);
+        ScriptEngine::register_function("bool exec_string(const string& in)", func_of<bool(const String&)>(T::exec_string));
+
+        ScriptEngine::register_function("uint enum_count()", T::enum_count);
+        ScriptEngine::register_function("ScriptTypeInfo enum_by_index(uint index)", T::enum_by_index);
+
+        ScriptEngine::register_function("uint funcdef_count()", T::funcdef_count);
+        ScriptEngine::register_function("ScriptTypeInfo funcdef_by_index(uint index)", T::funcdef_by_index);
+
+        ScriptEngine::register_function("uint typedef_count()", T::typedef_count);
+        ScriptEngine::register_function("ScriptTypeInfo typedef_by_index(uint index)", T::typedef_by_index);
+
+        ScriptEngine::register_function("int typeid_by_decl(const string& in)", func_of<int(const String&)>(T::type_id_by_decl));
+        ScriptEngine::register_function("ScriptTypeInfo type_info_by_id(int type_id)", T::type_info_by_id);
+
+        ScriptEngine::register_function("ScriptTypeInfo type_info_by_name(const string& in name)",
+                                        func_of<ScriptTypeInfo(const String&)>(T::type_info_by_name));
+        ScriptEngine::register_function("ScriptTypeInfo type_info_by_decl(const string& in decl)",
+                                        func_of<ScriptTypeInfo(const String&)>(T::type_info_by_decl));
         ScriptEngine::default_namespace("");
     }
 
     static PreInitializeController on_preinit([]() { on_init(); }, "Engine::ScriptEngine");
+    static ReflectionInitializeController on_reflection_init(reflection_init, "Engine::ScriptEngine",
+                                                             {"Engine::ScriptModule", "Engine::ScriptFunction",
+                                                              "Engine::ScriptTypeInfo"});
 }// namespace Engine
