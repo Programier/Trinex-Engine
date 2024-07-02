@@ -122,6 +122,9 @@ namespace Engine::VFS
 
     File* NativeFileSystem::open(const Path& path, Flags<FileOpenMode> mode)
     {
+        if(is_dir(path))
+            return nullptr;
+
         Path full_path = m_path / path;
 
         std::ios_base::openmode open_mode = std::ios_base::binary;

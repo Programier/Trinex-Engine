@@ -50,7 +50,7 @@ namespace Engine
         vk::SurfaceKHR m_surface;
         bool m_need_recreate_swap_chain = false;
 
-        VulkanViewport* init(RenderViewport* viewport, bool need_initialize);
+        VulkanViewport* init(RenderViewport* viewport);
 
         void create_main_render_target();
         void create_swapchain();

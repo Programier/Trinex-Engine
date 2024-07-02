@@ -26,13 +26,13 @@ namespace Engine::Settings
     ENGINE_EXPORT ScriptArray<WindowAttribute, "Engine::WindowAttribute"> w_attributes;
     ENGINE_EXPORT ScriptArray<WindowOrientation, "Engine::WindowOrientation"> w_orientations;
 
-    ENGINE_EXPORT bool e_show_splash;
-    ENGINE_EXPORT String e_splash_image;
-    ENGINE_EXPORT String e_splash_font;
-    ENGINE_EXPORT int_t e_splash_startup_text_size;
-    ENGINE_EXPORT int_t e_splash_version_text_size;
-    ENGINE_EXPORT int_t e_splash_copyright_text_size;
-    ENGINE_EXPORT int_t e_splash_game_name_text_size;
+    ENGINE_EXPORT bool e_show_splash                 = true;
+    ENGINE_EXPORT String e_splash_image              = "resources/splash/splash.png";
+    ENGINE_EXPORT String e_splash_font               = "";
+    ENGINE_EXPORT int_t e_splash_startup_text_size   = 14;
+    ENGINE_EXPORT int_t e_splash_version_text_size   = 14;
+    ENGINE_EXPORT int_t e_splash_copyright_text_size = 14;
+    ENGINE_EXPORT int_t e_splash_game_name_text_size = 32;
 
     static void init()
     {

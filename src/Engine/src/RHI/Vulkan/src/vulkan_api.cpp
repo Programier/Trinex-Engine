@@ -308,7 +308,7 @@ namespace Engine
         return new_features;
     }
 
-    void VulkanAPI::initialize(Window* window)
+    VulkanAPI& VulkanAPI::initialize(Window* window)
     {
         m_window = window;
 
@@ -408,6 +408,7 @@ namespace Engine
         {
             buffer = new VulkanUniformBuffer();
         }
+        return *this;
     }
 
     void* VulkanAPI::context()

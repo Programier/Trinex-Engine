@@ -109,7 +109,7 @@ namespace Engine
         //////////////////////////////////////////////////////////////
 
         VulkanAPI();
-        void initialize(Window* window);
+        VulkanAPI& initialize(Window* window) override;
         void* context() override;
 
         VulkanAPI& begin_render() override;

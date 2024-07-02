@@ -6,6 +6,7 @@ namespace Engine
     class NoApi : public RHI
     {
     public:
+        NoApi& initialize(Window* window) override;
         void* context() override;
         NoApi& imgui_init(ImGuiContext*) override;
         NoApi& imgui_terminate(ImGuiContext*) override;

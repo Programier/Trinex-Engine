@@ -88,6 +88,7 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT RHI {
+        virtual RHI& initialize(class Window* window)   = 0;
         virtual void* context()                         = 0;
         virtual RHI& destroy_object(RHI_Object* object) = 0;
         virtual const String& renderer()                = 0;

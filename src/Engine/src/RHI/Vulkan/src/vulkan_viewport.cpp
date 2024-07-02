@@ -123,19 +123,13 @@ namespace Engine
 
     // Window Viewport
 
-    VulkanViewport* VulkanWindowViewport::init(RenderViewport* viewport, bool need_initialize)
+    VulkanViewport* VulkanWindowViewport::init(RenderViewport* viewport)
     {
         m_viewport = viewport;
-        m_surface  = need_initialize ? API->m_surface : API->create_surface(viewport->window());
+        m_surface  = API->m_window == viewport->window() ? API->m_surface : API->create_surface(viewport->window());
 
         VulkanViewport::init();
         create_swapchain();
-
-        if (need_initialize)
-        {
-            VulkanRenderPass::swapchain_render_pass(vk::Format(m_swapchain->image_format));
-        }
-
         create_main_render_target();
         return this;
     }
@@ -432,14 +426,8 @@ namespace Engine
 
     RHI_Viewport* VulkanAPI::create_viewport(RenderViewport* viewport)
     {
-        bool need_initialize = m_instance == nullptr;
-        if (need_initialize)
-        {
-            initialize(viewport->window());
-        }
-
         VulkanWindowViewport* vulkan_viewport = new VulkanWindowViewport();
-        vulkan_viewport->init(viewport, need_initialize);
+        vulkan_viewport->init(viewport);
         return vulkan_viewport;
     }
 }// namespace Engine

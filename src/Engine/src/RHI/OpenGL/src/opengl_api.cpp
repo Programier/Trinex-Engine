@@ -43,10 +43,10 @@ namespace Engine
         destroy_opengl_context(m_context);
     }
 
-    OpenGL& OpenGL::initialize_rhi()
+    OpenGL& OpenGL::initialize(Window* window)
     {
-        extern void* create_opengl_context();
-        m_context = create_opengl_context();
+        extern void* create_opengl_context(Window * window);
+        m_context = create_opengl_context(window);
 
 #if USING_OPENGL_CORE
         glewExperimental = GL_TRUE;

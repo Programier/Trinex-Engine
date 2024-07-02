@@ -27,7 +27,7 @@ namespace Engine
 
 
         OpenGL();
-        OpenGL& initialize_rhi();
+        OpenGL& initialize(Window* window) override;
         OpenGL& initialize_ubo();
         void* context() override;
         OpenGL& imgui_init(ImGuiContext*) override;

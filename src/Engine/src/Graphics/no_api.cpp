@@ -3,6 +3,11 @@
 
 namespace Engine
 {
+    NoApi& NoApi::initialize(Window* window)
+    {
+        return *this;
+    }
+
     void* NoApi::context()
     {
         return nullptr;

@@ -119,11 +119,6 @@ namespace Engine
 
     RHI_Viewport* OpenGL::create_viewport(RenderViewport* engine_viewport)
     {
-        if (m_context == nullptr)
-        {
-            initialize_rhi();
-        }
-
         OpenGL_WindowViewport* viewport = new OpenGL_WindowViewport();
         viewport->init(engine_viewport);
         return viewport;
