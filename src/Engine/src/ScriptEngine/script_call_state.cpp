@@ -14,8 +14,9 @@ namespace Engine
     {
         asIScriptContext* context   = ScriptContext::context();
         asIScriptFunction* function = nullptr;
-        context->GetCallStateRegisters(stack_level, &m_stack_frame_pointer, &function, &m_program_pointer, &m_stack_pointer,
-                                       &m_stack_index);
+        context->GetCallStateRegisters(stack_level, reinterpret_cast<asDWORD*>(&m_stack_frame_pointer), &function,
+                                       reinterpret_cast<asDWORD*>(&m_program_pointer),
+                                       reinterpret_cast<asDWORD*>(&m_stack_pointer), reinterpret_cast<asDWORD*>(&m_stack_index));
         m_function = function;
         m_object   = context->GetThisPointer();
 
