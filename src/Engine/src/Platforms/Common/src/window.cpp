@@ -1,4 +1,5 @@
 #include <Core/logger.hpp>
+#include <Core/struct.hpp>
 #include <Event/event_data.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
@@ -47,18 +48,19 @@ namespace Engine
         return value;
     }
 
-    SDL_WindowFlags sdl_api(const String& api_name)
+    static SDL_WindowFlags sdl_api()
     {
-        if (api_name == "OpenGL" || api_name == "OpenGLES")
+        const Name api_name = rhi->info.struct_instance->base_name();
+        if (api_name == "OPENGL")
         {
             return SDL_WINDOW_OPENGL;
         }
-        else if (api_name == "Vulkan")
+        else if (api_name == "VULKAN")
         {
             return SDL_WINDOW_VULKAN;
         }
 
-        throw std::runtime_error("Undefined API");
+        return {};
     }
 
     static void window_initialize_error(const String& msg)
@@ -86,7 +88,7 @@ namespace Engine
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 #endif
 
-        m_api = sdl_api(info->api_name);
+        m_api = sdl_api();
 
         m_window = SDL_CreateWindow(info->title.c_str(), validate_pos(info->position.x), validate_pos(info->position.y),
                                     static_cast<int>(info->size.x), static_cast<int>(info->size.y),
@@ -102,7 +104,7 @@ namespace Engine
             {
 
 #if !PLATFORM_ANDROID
-                if (!info->api_name.ends_with("GLES"))
+                if (rhi->info.name != "OpenGL ES")
                 {
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);

@@ -121,7 +121,7 @@ namespace Engine
 
         window->imgui_initialize(initialize_theme);
 
-        String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->name().c_str());
+        String new_title = Strings::format("Trinex Editor [{} RHI]", rhi->info.name.c_str());
         window->title(new_title);
         render_thread()->wait_all();
         EventSystem::new_system<EventSystem>()->process_event_method(EventSystem::PoolEvents);

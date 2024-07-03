@@ -26,7 +26,6 @@
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <no_api.hpp>
 
 namespace Engine
 {
@@ -39,19 +38,19 @@ namespace Engine
 
     static void init_api(bool force_no_api = false)
     {
-        String api = Settings::e_api;
-        if (!api.empty() && !force_no_api)
+        if (Settings::e_api.empty() || force_no_api)
         {
-            rhi = reinterpret_cast<RHI*>(
-                    Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
-            if (!rhi)
-            {
-                throw EngineException("Failed to init API");
-            }
-            return;
+            Settings::e_api         = "None";
+            Settings::e_show_splash = false;
         }
 
-        rhi = Object::new_instance<NoApi>();
+        String api = Settings::e_api;
+        rhi        = reinterpret_cast<RHI*>(
+                Struct::static_find(Strings::format("Engine::RHI::{}", Strings::to_upper(api)), true)->create_struct());
+        if (!rhi)
+        {
+            throw EngineException("Failed to init API");
+        }
     }
 
     static void create_main_window()

@@ -85,14 +85,19 @@ namespace Engine
         virtual void bind()                            = 0;
         virtual void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
                                  SamplerFilter filter) = 0;
+        virtual void clear_color(const Color& color)   = 0;
     };
 
     struct ENGINE_EXPORT RHI {
+        struct Info {
+            String name;
+            String renderer;
+            class Struct* struct_instance = nullptr;
+        } info;
+
         virtual RHI& initialize(class Window* window)   = 0;
         virtual void* context()                         = 0;
         virtual RHI& destroy_object(RHI_Object* object) = 0;
-        virtual const String& renderer()                = 0;
-        virtual const String& name()                    = 0;
 
         virtual RHI& imgui_init(ImGuiContext*)                = 0;
         virtual RHI& imgui_terminate(ImGuiContext*)           = 0;

@@ -63,6 +63,14 @@ namespace Engine::Settings
                                                 w_attributes.full_declaration().c_str(), "engine");
         ConfigManager::register_custom_property("Engine::Settings::w_orientations", w_orientations.array(),
                                                 w_orientations.full_declaration().c_str(), "engine");
+
+        bind_value(e_show_splash, engine);
+        bind_value(e_splash_image, engine);
+        bind_value(e_splash_font, engine);
+        bind_value(e_splash_startup_text_size, engine);
+        bind_value(e_splash_version_text_size, engine);
+        bind_value(e_splash_copyright_text_size, engine);
+        bind_value(e_splash_game_name_text_size, engine);
     }
 
     static void destroy()

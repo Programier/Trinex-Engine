@@ -22,5 +22,13 @@ namespace Engine
         public:
             bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
         };
+
+        class None_Compiler : public Compiler
+        {
+            declare_class(None_Compiler, Compiler);
+
+        public:
+            bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
+        };
     }// namespace ShaderCompiler
 }// namespace Engine

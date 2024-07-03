@@ -35,7 +35,11 @@ namespace Engine
     implement_struct(Engine::RHI, VULKAN, ).push([]() {
         Struct::static_find("Engine::RHI::VULKAN", true)->struct_constructor([]() -> void* {
             if (VulkanAPI::m_vulkan == nullptr)
-                VulkanAPI::m_vulkan = new VulkanAPI();
+            {
+                VulkanAPI::m_vulkan                       = new VulkanAPI();
+                VulkanAPI::m_vulkan->info.name            = "Vulkan";
+                VulkanAPI::m_vulkan->info.struct_instance = Struct::static_find("Engine::RHI::VULKAN", true);
+            }
             return VulkanAPI::m_vulkan;
         });
     });
@@ -354,10 +358,10 @@ namespace Engine
         m_properties           = m_physical_device.getProperties();
         m_features             = filter_features(m_physical_device.getFeatures());
         m_surface_capabilities = m_physical_device.getSurfaceCapabilitiesKHR(m_surface);
-        m_renderer             = m_properties.deviceName.data();
+        info.renderer          = m_properties.deviceName.data();
         selected_device.enable_features_if_present(m_features);
 
-        info_log("Vulkan", "Selected GPU '%s'", m_renderer.c_str());
+        info_log("Vulkan", "Selected GPU '%s'", info.renderer.c_str());
 
 
         // Initialize device
@@ -610,17 +614,6 @@ namespace Engine
     {
         prepare_draw().current_command_buffer().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
         return *this;
-    }
-
-    const String& VulkanAPI::renderer()
-    {
-        return m_renderer;
-    }
-
-    const String& VulkanAPI::name()
-    {
-        static String api_name = "Vulkan";
-        return api_name;
     }
 
     VulkanUniformBuffer* VulkanAPI::uniform_buffer() const

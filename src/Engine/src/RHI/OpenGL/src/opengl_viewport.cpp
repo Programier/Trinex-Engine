@@ -114,6 +114,19 @@ namespace Engine
         }
     }
 
+    void OpenGL_WindowViewport::clear_color(const Color& color)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glClearColor(color.r, color.g, color.b, color.a);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        if (OPENGL_API->m_render_target)
+        {
+            OPENGL_API->m_render_target->bind();
+        }
+    }
+
     OpenGL_WindowViewport::~OpenGL_WindowViewport()
     {}
 

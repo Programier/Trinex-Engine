@@ -21,6 +21,7 @@ namespace Engine
         static OpenGL_WindowViewport* current();
         void bind() override;
         void blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect, SamplerFilter filter) override;
+        void clear_color(const Color& color) override;
         ~OpenGL_WindowViewport();
     };
 

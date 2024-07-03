@@ -11,9 +11,12 @@ namespace Engine
 {
     implement_struct(Engine::RHI, OPENGL, ).push([]() {
         Struct::static_find("Engine::RHI::OPENGL", true)->struct_constructor([]() -> void* {
-            if (OpenGL::m_instance)
-                return OpenGL::m_instance;
-            return new OpenGL();
+            if (OpenGL::m_instance == nullptr)
+            {
+                OpenGL::m_instance                       = new OpenGL();
+                OpenGL::m_instance->info.struct_instance = Struct::static_find("Engine::RHI::OPENGL", true);
+            }
+            return OpenGL::m_instance;
         });
     });
 
@@ -30,7 +33,11 @@ namespace Engine
 
     OpenGL::OpenGL()
     {
-        m_instance = this;
+#if USING_OPENGL_ES
+        info.name = "OpenGL ES";
+#else
+        info.name = "OpenGL Core";
+#endif
     }
 
     OpenGL::~OpenGL()
@@ -60,7 +67,7 @@ namespace Engine
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(debug_callback, nullptr);
 
-        m_renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        info.renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
         initialize_ubo();
         return *this;
     }
@@ -177,24 +184,6 @@ namespace Engine
     {
         return *this;
     }
-
-    const String& OpenGL::renderer()
-    {
-        return m_renderer;
-    }
-
-    const String& OpenGL::name()
-    {
-        static String api_name =
-#if USING_OPENGL_ES
-                "OpenGL ES";
-#else
-                "OpenGL Core";
-#endif
-
-        return api_name;
-    }
-
 
     void OpenGL::push_debug_stage(const char* stage, const Color& color)
     {

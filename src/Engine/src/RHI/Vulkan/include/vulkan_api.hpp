@@ -42,7 +42,6 @@ namespace Engine
         List<Garbage> m_garbage;
 
         Window* m_window  = nullptr;
-        String m_renderer = "";
 
         struct {
             PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -130,9 +129,6 @@ namespace Engine
 
         vk::PresentModeKHR present_mode_of(bool vsync);
         bool vsync_from_present_mode(vk::PresentModeKHR);
-
-        const String& renderer() override;
-        const String& name() override;
 
         VulkanAPI& prepare_draw();
         VulkanAPI& draw(size_t vertex_count, size_t vertices_offset) override;

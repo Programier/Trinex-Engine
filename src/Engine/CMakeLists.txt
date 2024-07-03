@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
 project(TrinexEngine LANGUAGES C CXX)
 
-option(TRINEX_WITH_VULKAN "Build Vulkan API shared library" ON)
-option(TRINEX_WITH_OPENGL "Build OpenGL API shared library" ON)
+option(TRINEX_WITH_VULKAN "Build TrinexEngine with support Vulkan API" ON)
+option(TRINEX_WITH_OPENGL "Build TrinexEngine with support OpenGL API" ON)
+
+if(WIN32)
+    option(TRINEX_WITH_D3D11 "Build TrinexEngine with support DirectX 11 API" ON)
+endif()
+
 option(TRINEX_WITH_EDITOR "Build engine with editor" ON)
 option(TRINEX_REBUILD_HEADERS "Rebuild engine headers" OFF)
 

@@ -221,6 +221,29 @@ namespace Engine
         }
     }
 
+    void VulkanWindowViewport::clear_color(const Color& color)
+    {
+        auto current = API->m_state->m_render_target;
+
+        if (current)
+        {
+            current->unbind();
+        }
+
+        auto& cmd = API->current_command_buffer();
+        auto dst  = vk::Image(m_images[m_buffer_index]);
+        transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
+
+        cmd.clearColorImage(dst, vk::ImageLayout::eTransferDstOptimal, vk::ClearColorValue(color.r, color.g, color.b, color.a),
+                            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+        transition_swapchain_image(dst, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::ePresentSrcKHR, cmd);
+
+        if (current)
+        {
+            current->bind();
+        }
+    }
+
     VulkanRenderTargetBase* VulkanWindowViewport::render_target()
     {
         return m_render_target->frame();

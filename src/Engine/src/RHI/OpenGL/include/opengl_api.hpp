@@ -12,7 +12,6 @@ namespace Engine
     struct OpenGL : public RHI {
         static OpenGL* m_instance;
         void* m_context = nullptr;
-        String m_renderer;
 
         // STATE
         struct OpenGL_Pipeline* m_current_pipeline        = nullptr;
@@ -47,8 +46,6 @@ namespace Engine
         OpenGL& end_render() override;
         OpenGL& wait_idle() override;
         OpenGL& reset_state();
-        const String& renderer() override;
-        const String& name() override;
 
         void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
         void bind_render_target(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil);

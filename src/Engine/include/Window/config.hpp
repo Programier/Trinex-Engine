@@ -8,7 +8,6 @@ namespace Engine
         Set<WindowOrientation> orientations;
 
         String title;
-        String api_name;
         String client;
         Size2D size;
         Point2D position = {-1, -1};

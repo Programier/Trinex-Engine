@@ -741,6 +741,7 @@ namespace Engine::ShaderCompiler
 
     implement_class_default_init(Engine::ShaderCompiler, OpenGL_Compiler, 0);
     implement_class_default_init(Engine::ShaderCompiler, Vulkan_Compiler, 0);
+    implement_class_default_init(Engine::ShaderCompiler, None_Compiler, 0);
 
     bool OpenGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
@@ -765,6 +766,10 @@ namespace Engine::ShaderCompiler
         }
         return false;
     }
-}// namespace Engine::ShaderCompiler
+
+    bool None_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    {
+        return false;
+    }}// namespace Engine::ShaderCompiler
 
 #endif

@@ -213,6 +213,16 @@ namespace Engine
         return *this;
     }
 
+    RenderViewport& RenderViewport::rhi_clear_color(const Color& color)
+    {
+        RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
+        if (viewport)
+        {
+            viewport->clear_color(color);
+        }
+        return *this;
+    }
+
     RenderViewport* RenderViewport::current()
     {
         return m_current_render_viewport;
