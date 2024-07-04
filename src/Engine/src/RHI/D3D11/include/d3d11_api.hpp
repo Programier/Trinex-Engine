@@ -17,16 +17,17 @@ namespace Engine
         }
     }
 
-    struct State {
+    struct D3D11_State {
         ViewPort viewport;
-        Size2D render_target_size = {-1.f, -1.f};
+        Size2D render_target_size      = {-1.f, -1.f};
+        class D3D11_Pipeline* pipeline = nullptr;
     };
 
     class D3D11 : public NoneApi
     {
     public:
         static D3D11* m_instance;
-        State m_state;
+        D3D11_State m_state;
 
         Window* m_main_window = nullptr;
 
@@ -41,12 +42,20 @@ namespace Engine
         ID3D11RenderTargetView* create_render_target_view(ID3D11Texture2D* buffer);
 
         D3D11& initialize(Window* window) override;
+        void* context() override;
         RHI_Viewport* create_viewport(RenderViewport* viewport) override;
         void viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
 
+        D3D11& imgui_init(ImGuiContext*) override;
+        D3D11& imgui_terminate(ImGuiContext*) override;
+        D3D11& imgui_new_frame(ImGuiContext*) override;
+        D3D11& imgui_render(ImGuiContext*, ImDrawData*) override;
 
         D3D11& draw(size_t vertex_count, size_t vertices_offset) override;
+
+        RHI_Sampler* create_sampler(const Sampler*) override;
+        RHI_Texture* create_texture_2d(const Texture2D*) override;
 
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIBufferType type) override;

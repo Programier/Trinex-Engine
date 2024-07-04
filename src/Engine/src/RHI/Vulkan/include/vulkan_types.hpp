@@ -9,7 +9,7 @@ namespace Engine
     extern const Array<vk::PrimitiveTopology, 5> m_primitive_topologies;
     extern const Array<vk::Format, 19> m_shader_data_types;
     extern const Array<vk::ComponentSwizzle, 7> m_swizzle_components;
-    extern const Array<vk::SamplerAddressMode, 5> m_wrap_values;
+    extern const Array<vk::SamplerAddressMode, 5> m_address_modes;
     extern const Array<vk::CompareOp, 8> m_compare_funcs;
     extern const Array<vk::StencilOp, 8> m_stencil_ops;
     extern const Array<vk::BlendFactor, 14> m_blend_factors;
@@ -41,7 +41,7 @@ namespace Engine
 
     DECLARE_GETTER(vk::FrontFace, FrontFace, m_front_faces);
     DECLARE_GETTER(vk::ComponentSwizzle, Swizzle, m_swizzle_components);
-    DECLARE_GETTER(vk::SamplerAddressMode, WrapValue, m_wrap_values);
+    DECLARE_GETTER(vk::SamplerAddressMode, SamplerAddressMode, m_address_modes);
     DECLARE_GETTER(vk::CompareOp, CompareFunc, m_compare_funcs);
     DECLARE_GETTER(vk::StencilOp, StencilOp, m_stencil_ops);
     DECLARE_GETTER(vk::BlendOp, BlendOp, m_blend_ops);

@@ -11,7 +11,6 @@ namespace Engine
         Vector<String> require_initializers;
     };
 
-
     using CallbacksList = TreeMap<String, List<CallbackEntry>>;
 
     template<typename T>

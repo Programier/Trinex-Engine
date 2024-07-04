@@ -34,29 +34,29 @@ namespace Engine
         return GL_ALWAYS;
     }
 
-    GLuint wrap_from(WrapValue value)
+    GLuint wrap_from(SamplerAddressMode value)
     {
         switch (value)
         {
-            case WrapValue::Repeat:
+            case SamplerAddressMode::Repeat:
                 return GL_REPEAT;
 
-            case WrapValue::MirroredRepeat:
+            case SamplerAddressMode::MirroredRepeat:
                 return GL_MIRRORED_REPEAT;
 
-            case WrapValue::ClampToBorder:
+            case SamplerAddressMode::ClampToBorder:
                 return GL_CLAMP_TO_BORDER;
 
-            case WrapValue::ClampToEdge:
+            case SamplerAddressMode::ClampToEdge:
                 return GL_CLAMP_TO_EDGE;
 
 #if USING_OPENGL_CORE
-            case WrapValue::MirrorClampToEdge:
+            case SamplerAddressMode::MirrorClampToEdge:
                 return GL_MIRROR_CLAMP_TO_EDGE;
 #endif
 
             default:
-                throw EngineException("Unsupported wrap mode");
+                return GL_REPEAT;
         }
     }
 

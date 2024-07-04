@@ -120,6 +120,11 @@ namespace Engine
         {
             return binding < 255;
         }
+
+        FORCE_INLINE operator BindingIndex() const
+        {
+            return binding;
+        }
     };
 
     struct ENGINE_EXPORT ShaderDefinition {

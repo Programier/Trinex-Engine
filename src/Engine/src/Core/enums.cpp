@@ -10,9 +10,9 @@ namespace Engine
     implement_enum(Swizzle, Engine, {"Identity", Swizzle::Identity}, {"Zero", Swizzle::Zero}, {"One", Swizzle::One},
                    {"R", Swizzle::R}, {"G", Swizzle::G}, {"B", Swizzle::B}, {"A", Swizzle::A});
 
-    implement_enum(WrapValue, Engine, {"Repeat", WrapValue::Repeat}, {"ClampToEdge", WrapValue::ClampToEdge},
-                   {"ClampToBorder", WrapValue::ClampToBorder}, {"MirroredRepeat", WrapValue::MirroredRepeat},
-                   {"MirrorClampToEdge", WrapValue::MirrorClampToEdge});
+    implement_enum(SamplerAddressMode, Engine, {"Repeat", SamplerAddressMode::Repeat}, {"ClampToEdge", SamplerAddressMode::ClampToEdge},
+                   {"ClampToBorder", SamplerAddressMode::ClampToBorder}, {"MirroredRepeat", SamplerAddressMode::MirroredRepeat},
+                   {"MirrorClampToEdge", SamplerAddressMode::MirrorClampToEdge});
 
     implement_enum(TextureCubeMapFace, Engine, {"Front", TextureCubeMapFace::Front}, {"Back", TextureCubeMapFace::Back},
                    {"Up", TextureCubeMapFace::Up}, {"Down", TextureCubeMapFace::Down}, {"Left", TextureCubeMapFace::Left},

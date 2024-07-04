@@ -12,12 +12,11 @@ namespace Engine
 {
     implement_engine_class(Sampler, Class::IsAsset)
     {
-        Class* self     = static_class_instance();
-        Enum* wrap_enum = Enum::static_find("Engine::WrapValue");
+        Class* self             = static_class_instance();
+        Enum* address_mode_enum = Enum::static_find("Engine::SamplerAddressMode");
 
         self->add_properties(
-                new BoolProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
-                                 &This::unnormalized_coordinates),
+                new Vec4Property("Border color", "Border color", &This::border_color),
 
                 new FloatProperty("Mip lod bias", "Mip lod bias of sampler", &This::mip_lod_bias),
                 new FloatProperty("Anisotropy", "Anisotropy of sampler", &This::anisotropy),
@@ -25,13 +24,16 @@ namespace Engine
                 new FloatProperty("Max lod", "Max lod of sampler", &This::max_lod),
 
                 new EnumProperty("Filter", "Filter of sampler", &This::filter, Enum::static_find("Engine::SamplerFilter")),
-                new EnumProperty("Wrap S", "Wrap S of sampler", &This::wrap_s, wrap_enum),
-                new EnumProperty("Wrap T", "Wrap T of sampler", &This::wrap_t, wrap_enum),
-                new EnumProperty("Wrap R", "Wrap R of sampler", &This::wrap_r, wrap_enum),
+                new EnumProperty("Address U", "Address mode for U of sampler", &This::address_u, address_mode_enum),
+                new EnumProperty("Address V", "Address mode for V of sampler", &This::address_v, address_mode_enum),
+                new EnumProperty("Address W", "Address mode for W of sampler", &This::address_w, address_mode_enum),
                 new EnumProperty("Compare Mode", "Compare Mode of sampler", &This::compare_mode,
                                  Enum::static_find("Engine::CompareMode")),
                 new EnumProperty("Compare Func", "Compare Func of sampler", &This::compare_func,
-                                 Enum::static_find("Engine::CompareFunc")));
+                                 Enum::static_find("Engine::CompareFunc")),
+
+                new BoolProperty("Unnormalized Coordinates", "True if sampler used unnormalized coordinates",
+                                 &This::unnormalized_coordinates));
     }
 
     Sampler& Sampler::rhi_create()
@@ -48,9 +50,9 @@ namespace Engine
         }
 
         archive & filter;
-        archive & wrap_s;
-        archive & wrap_t;
-        archive & wrap_r;
+        archive & address_u;
+        archive & address_w;
+        archive & address_w;
         archive & mip_lod_bias;
         archive & anisotropy;
         archive & compare_mode;

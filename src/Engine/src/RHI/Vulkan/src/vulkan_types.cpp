@@ -26,7 +26,7 @@ namespace Engine
             vk::ComponentSwizzle::eA,       // A = 6
     };
 
-    const Array<vk::SamplerAddressMode, 5> m_wrap_values = {
+    const Array<vk::SamplerAddressMode, 5> m_address_modes = {
             vk::SamplerAddressMode::eRepeat,           // Repeat = 0
             vk::SamplerAddressMode::eClampToEdge,      // ClampToEdge = 1
             vk::SamplerAddressMode::eClampToBorder,    // ClampToBorder = 2

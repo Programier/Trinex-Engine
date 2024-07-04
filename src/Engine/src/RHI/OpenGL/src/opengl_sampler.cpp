@@ -34,9 +34,9 @@ namespace Engine
                 break;
         }
 
-        glSamplerParameteri(m_id, GL_TEXTURE_WRAP_S, wrap_from(sampler->wrap_s));
-        glSamplerParameteri(m_id, GL_TEXTURE_WRAP_T, wrap_from(sampler->wrap_t));
-        glSamplerParameteri(m_id, GL_TEXTURE_WRAP_R, wrap_from(sampler->wrap_r));
+        glSamplerParameteri(m_id, GL_TEXTURE_WRAP_S, wrap_from(sampler->address_u));
+        glSamplerParameteri(m_id, GL_TEXTURE_WRAP_T, wrap_from(sampler->address_v));
+        glSamplerParameteri(m_id, GL_TEXTURE_WRAP_R, wrap_from(sampler->address_w));
         glSamplerParameteri(m_id, GL_TEXTURE_COMPARE_MODE, compare_mode(sampler->compare_mode));
         glSamplerParameteri(m_id, GL_TEXTURE_COMPARE_FUNC, compare_func(sampler->compare_func));
 

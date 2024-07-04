@@ -10,9 +10,9 @@ namespace Engine
         vk::Filter min_filter;
         vk::SamplerMipmapMode mipmap_mode;
 
-        vk::SamplerAddressMode wrap_s;
-        vk::SamplerAddressMode wrap_t;
-        vk::SamplerAddressMode wrap_r;
+        vk::SamplerAddressMode address_u;
+        vk::SamplerAddressMode address_v;
+        vk::SamplerAddressMode address_w;
 
         vk::CompareOp compare_func;
 

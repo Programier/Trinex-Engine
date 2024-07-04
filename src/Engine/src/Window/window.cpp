@@ -196,7 +196,16 @@ namespace Engine
         m_render_viewport->init_resource(true);
 
         update_cached_size();
-        create_client(config.client);
+
+        if (!InitializeController().is_triggered())
+        {
+            // Default resources is not loaded now, so, using deferred initialization
+            InitializeController().push([this, client = config.client]() { create_client(client); });
+        }
+        else
+        {
+            create_client(config.client);
+        }
     }
 
     RenderViewport* Window::render_viewport() const
@@ -216,7 +225,7 @@ namespace Engine
 
     ImGuiRenderer::Window* Window::imgui_window()
     {
-        return m_imgui_window;
+        return m_imgui_window.ptr();
     }
 
     struct InitContext : public ExecutableObject {
@@ -308,7 +317,7 @@ namespace Engine
 
             imgui_destroy_context(m_imgui_window->context());
             m_imgui_window->m_window = nullptr;
-            m_imgui_window = nullptr;
+            m_imgui_window           = nullptr;
 
             ImGuiRenderer::Window::make_current(current_window);
             return *this;

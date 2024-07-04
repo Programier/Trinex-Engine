@@ -5,6 +5,7 @@
 
 #include <d3d11_1.h>
 #include <d3d11_api.hpp>
+#include <d3d11_enums.hpp>
 #include <d3d11_pipeline.hpp>
 #include <d3d11_shader.hpp>
 
@@ -25,74 +26,6 @@ namespace Engine
         ShaderType::bind(shader);
     }
 
-    static D3D11_COMPARISON_FUNC comparison_func_of(CompareFunc func)
-    {
-        switch (func)
-        {
-            case CompareFunc::Always:
-                return D3D11_COMPARISON_ALWAYS;
-            case CompareFunc::Lequal:
-                return D3D11_COMPARISON_LESS_EQUAL;
-            case CompareFunc::Gequal:
-                return D3D11_COMPARISON_GREATER_EQUAL;
-            case CompareFunc::Less:
-                return D3D11_COMPARISON_LESS;
-            case CompareFunc::Greater:
-                return D3D11_COMPARISON_GREATER;
-            case CompareFunc::Equal:
-                return D3D11_COMPARISON_EQUAL;
-            case CompareFunc::NotEqual:
-                return D3D11_COMPARISON_NOT_EQUAL;
-            case CompareFunc::Never:
-                return D3D11_COMPARISON_NEVER;
-            default:
-                return D3D11_COMPARISON_ALWAYS;
-        }
-    }
-
-    static D3D11_STENCIL_OP stencil_op_of(StencilOp op)
-    {
-        switch (op)
-        {
-            case StencilOp::Keep:
-                return D3D11_STENCIL_OP_KEEP;
-            case StencilOp::Zero:
-                return D3D11_STENCIL_OP_ZERO;
-            case StencilOp::Replace:
-                return D3D11_STENCIL_OP_REPLACE;
-            case StencilOp::Incr:
-                return D3D11_STENCIL_OP_INCR;
-            case StencilOp::IncrWrap:
-                return D3D11_STENCIL_OP_INCR_SAT;
-            case StencilOp::Decr:
-                return D3D11_STENCIL_OP_DECR;
-            case StencilOp::DecrWrap:
-                return D3D11_STENCIL_OP_DECR_SAT;
-            case StencilOp::Invert:
-                return D3D11_STENCIL_OP_INVERT;
-            default:
-                return D3D11_STENCIL_OP_KEEP;
-        }
-    }
-
-    static D3D11_PRIMITIVE_TOPOLOGY primitive_topology_of(PrimitiveTopology topology)
-    {
-        switch (topology)
-        {
-            case PrimitiveTopology::TriangleList:
-                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-            case PrimitiveTopology::PointList:
-                return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
-            case PrimitiveTopology::LineList:
-                return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-            case PrimitiveTopology::LineStrip:
-                return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
-            case PrimitiveTopology::TriangleStrip:
-                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-            default:
-                return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-        }
-    }
 
     static D3D11_DEPTH_STENCIL_DESC create_depth_stencil_description(const Pipeline* pipeline)
     {
@@ -116,88 +49,6 @@ namespace Engine
         return desc;
     }
 
-    static UINT8 create_render_target_write_mask(ColorComponentMask component_mask)
-    {
-        UINT8 value     = 0;
-        EnumerateType R = enum_value_of(ColorComponent::R);
-        EnumerateType G = enum_value_of(ColorComponent::G);
-        EnumerateType B = enum_value_of(ColorComponent::B);
-        EnumerateType A = enum_value_of(ColorComponent::A);
-
-        auto mask = enum_value_of(component_mask);
-
-        if ((mask & R) == R)
-        {
-            value |= D3D11_COLOR_WRITE_ENABLE_RED;
-        }
-        if ((mask & G) == G)
-        {
-            value |= D3D11_COLOR_WRITE_ENABLE_GREEN;
-        }
-        if ((mask & B) == B)
-        {
-            value |= D3D11_COLOR_WRITE_ENABLE_BLUE;
-        }
-        if ((mask & A) == A)
-        {
-            value |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
-        }
-
-        return value;
-    }
-
-    static D3D11_BLEND blend_func_of(BlendFunc func)
-    {
-        switch (func)
-        {
-            case BlendFunc::Zero:
-                return D3D11_BLEND_ZERO;
-            case BlendFunc::One:
-                return D3D11_BLEND_ONE;
-            case BlendFunc::SrcColor:
-                return D3D11_BLEND_SRC_COLOR;
-            case BlendFunc::OneMinusSrcColor:
-                return D3D11_BLEND_INV_SRC_COLOR;
-            case BlendFunc::DstColor:
-                return D3D11_BLEND_DEST_COLOR;
-            case BlendFunc::OneMinusDstColor:
-                return D3D11_BLEND_INV_DEST_COLOR;
-            case BlendFunc::SrcAlpha:
-                return D3D11_BLEND_SRC_ALPHA;
-            case BlendFunc::OneMinusSrcAlpha:
-                return D3D11_BLEND_INV_SRC_ALPHA;
-            case BlendFunc::DstAlpha:
-                return D3D11_BLEND_DEST_ALPHA;
-            case BlendFunc::OneMinusDstAlpha:
-                return D3D11_BLEND_INV_DEST_ALPHA;
-            case BlendFunc::BlendFactor:
-                return D3D11_BLEND_BLEND_FACTOR;
-            case BlendFunc::OneMinusBlendFactor:
-                return D3D11_BLEND_INV_BLEND_FACTOR;
-            default:
-                return D3D11_BLEND_ZERO;
-        }
-    }
-
-    static D3D11_BLEND_OP blend_op_of(BlendOp op)
-    {
-        switch (op)
-        {
-            case BlendOp::Add:
-                return D3D11_BLEND_OP_ADD;
-            case BlendOp::Subtract:
-                return D3D11_BLEND_OP_SUBTRACT;
-            case BlendOp::ReverseSubtract:
-                return D3D11_BLEND_OP_REV_SUBTRACT;
-            case BlendOp::Min:
-                return D3D11_BLEND_OP_MIN;
-            case BlendOp::Max:
-                return D3D11_BLEND_OP_MAX;
-            default:
-                return D3D11_BLEND_OP_ADD;
-        }
-    }
-
     static D3D11_BLEND_DESC create_blend_description(const Pipeline* pipeline)
     {
         D3D11_BLEND_DESC desc{};
@@ -214,7 +65,7 @@ namespace Engine
         desc.RenderTarget[0].BlendOp        = blend_op_of(blend.color_op);
         desc.RenderTarget[0].BlendOpAlpha   = blend_op_of(blend.alpha_op);
 
-        desc.RenderTarget[0].RenderTargetWriteMask = create_render_target_write_mask(blend.color_mask);
+        desc.RenderTarget[0].RenderTargetWriteMask = component_mask_of(blend.color_mask);
 
         constexpr size_t elements = ARRAY_SIZE(desc.RenderTarget);
 
@@ -224,32 +75,6 @@ namespace Engine
         }
 
         return desc;
-    }
-
-    static D3D11_FILL_MODE fill_mode_of(PolygonMode mode)
-    {
-        switch (mode)
-        {
-            case PolygonMode::Fill:
-                return D3D11_FILL_SOLID;
-            case PolygonMode::Line:
-                return D3D11_FILL_WIREFRAME;
-            default:
-                return D3D11_FILL_SOLID;
-        }
-    }
-
-    static D3D11_CULL_MODE cull_mode_of(CullMode mode)
-    {
-        switch (mode)
-        {
-            case CullMode::Back:
-                return D3D11_CULL_BACK;
-            case CullMode::Front:
-                return D3D11_CULL_FRONT;
-            default:
-                return D3D11_CULL_NONE;
-        }
     }
 
     static D3D11_RASTERIZER_DESC create_rasterizer_description(const Pipeline* pipeline)
@@ -321,6 +146,8 @@ namespace Engine
         DXAPI->m_context->OMSetDepthStencilState(m_depth_stencil_state, 0);
         DXAPI->m_context->OMSetBlendState(m_blend_state, nullptr, 0xFFFFFFFF);
         DXAPI->m_context->RSSetState(m_rasterizer_state);
+
+        DXAPI->m_state.pipeline = this;
     }
 
     D3D11_Pipeline::~D3D11_Pipeline()

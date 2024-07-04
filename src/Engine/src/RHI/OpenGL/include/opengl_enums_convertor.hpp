@@ -6,7 +6,7 @@ namespace Engine
 {
     GLuint compare_mode(CompareMode mode);
     GLuint compare_func(CompareFunc func);
-    GLuint wrap_from(WrapValue value);
+    GLuint wrap_from(SamplerAddressMode value);
     GLuint blend_func(BlendFunc func, bool for_alpha);
     GLuint blend_op(BlendOp op);
     GLuint depth_func(DepthFunc func);

@@ -6,6 +6,7 @@
 #include <SDL2/SDL_syswm.h>
 #include <d3d11_api.hpp>
 #include <d3d9.h>
+#include <imgui_impl_dx11.h>
 #include <tchar.h>
 
 namespace Engine
@@ -62,6 +63,11 @@ namespace Engine
         return *this;
     }
 
+    void* D3D11::context()
+    {
+        return m_context;
+    }
+
     ID3D11RenderTargetView* D3D11::create_render_target_view(ID3D11Texture2D* buffer)
     {
         ID3D11RenderTargetView* back_buffer_render_target_view = nullptr;
@@ -96,6 +102,35 @@ namespace Engine
     ViewPort D3D11::viewport()
     {
         return m_state.viewport;
+    }
+
+    D3D11& D3D11::imgui_init(ImGuiContext* context)
+    {
+        ImGui::SetCurrentContext(context);
+        ImGui_ImplDX11_Init(m_device, m_context);
+        ImGui_ImplDX11_NewFrame();// Initialize resources
+        return *this;
+    }
+
+    D3D11& D3D11::imgui_terminate(ImGuiContext* context)
+    {
+        ImGui::SetCurrentContext(context);
+        ImGui_ImplDX11_Shutdown();
+        return *this;
+    }
+
+    D3D11& D3D11::imgui_new_frame(ImGuiContext* context)
+    {
+        return *this;
+    }
+
+    D3D11& D3D11::imgui_render(ImGuiContext* context, ImDrawData* data)
+    {
+        ImGui::SetCurrentContext(context);
+        printf("BEGIN RENDER IMGUI!\n");
+        ImGui_ImplDX11_RenderDrawData(data);
+        printf("RENDER SUCCESS!\n");
+        return *this;
     }
 
     D3D11& D3D11::draw(size_t vertex_count, size_t vertices_offset)

@@ -5,9 +5,7 @@
 
 namespace Engine
 {
-
-    using ControllerCallback = void (*)();
-
+    using ControllerCallback = Function<void()>;
 
     class ENGINE_EXPORT LoadingControllerBase
     {

@@ -34,7 +34,7 @@ namespace Engine
         A        = 6
     };
 
-    enum class WrapValue : EnumerateType
+    enum class SamplerAddressMode : EnumerateType
     {
         Repeat            = 0,
         ClampToEdge       = 1,

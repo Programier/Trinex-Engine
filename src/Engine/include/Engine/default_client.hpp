@@ -15,6 +15,7 @@ namespace Engine
         Pointer<Material> m_material;
 
         DefaultClient();
+        DefaultClient& on_bind_viewport(class RenderViewport* viewport) override;
         DefaultClient& render(class RenderViewport* viewport) override;
         DefaultClient& update(class RenderViewport* viewport, float dt) override;
     };

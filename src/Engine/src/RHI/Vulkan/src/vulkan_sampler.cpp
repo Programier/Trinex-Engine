@@ -13,9 +13,10 @@ namespace Engine
     VulkanSamplerCreateInfo::VulkanSamplerCreateInfo() = default;
 
     VulkanSamplerCreateInfo::VulkanSamplerCreateInfo(const Sampler* sampler)
-        : wrap_s(get_type(sampler->wrap_s)), wrap_t(get_type(sampler->wrap_t)), wrap_r(get_type(sampler->wrap_r)),
-          compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy), mip_lod_bias(sampler->mip_lod_bias),
-          min_lod(sampler->min_lod), max_lod(sampler->max_lod), unnormalized_coordinates(sampler->unnormalized_coordinates),
+        : address_u(get_type(sampler->address_u)), address_v(get_type(sampler->address_v)),
+          address_w(get_type(sampler->address_w)), compare_func(get_type(sampler->compare_func)), anisotropy(sampler->anisotropy),
+          mip_lod_bias(sampler->mip_lod_bias), min_lod(sampler->min_lod), max_lod(sampler->max_lod),
+          unnormalized_coordinates(sampler->unnormalized_coordinates),
           compare_enable(sampler->compare_mode == CompareMode::RefToTexture)
     {
         switch (sampler->filter)
@@ -47,8 +48,8 @@ namespace Engine
 
     VulkanSampler& VulkanSampler::create(const VulkanSamplerCreateInfo& info)
     {
-        vk::SamplerCreateInfo sampler_info({}, info.mag_filter, info.min_filter, info.mipmap_mode, info.wrap_s, info.wrap_t,
-                                           info.wrap_r, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
+        vk::SamplerCreateInfo sampler_info({}, info.mag_filter, info.min_filter, info.mipmap_mode, info.address_u, info.address_v,
+                                           info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
                                            info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
                                            vk::BorderColor::eIntOpaqueBlack, info.unnormalized_coordinates);
 
