@@ -27,24 +27,25 @@ namespace Engine
         }
     }
 
-    bool D3D11_VertexBuffer::init(size_t size, const byte* data, RHIBufferType type)
+    static bool create_buffer(ID3D11Buffer*& out_buffer, size_t size, const byte* data, RHIBufferType type,
+                              BufferUpdateFunction& out_update_function, UINT bind_flags)
     {
         D3D11_BUFFER_DESC desc = {};
         if (type == RHIBufferType::Dynamic)
         {
             desc.Usage          = D3D11_USAGE_DYNAMIC;
             desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-            update_function     = &dynamic_update;
+            out_update_function = &dynamic_update;
         }
         else
         {
             desc.Usage          = D3D11_USAGE_DEFAULT;
             desc.CPUAccessFlags = 0;
-            update_function     = &static_update;
+            out_update_function = &static_update;
         }
 
         desc.ByteWidth           = size;
-        desc.BindFlags           = D3D11_BIND_VERTEX_BUFFER;
+        desc.BindFlags           = bind_flags;
         desc.MiscFlags           = 0;
         desc.StructureByteStride = 0;
 
@@ -59,12 +60,17 @@ namespace Engine
             p_init_data                = &init_data;
         }
 
-        return DXAPI->m_device->CreateBuffer(&desc, p_init_data, &m_buffer) == S_OK;
+        return DXAPI->m_device->CreateBuffer(&desc, p_init_data, &out_buffer) == S_OK;
+    }
+
+    bool D3D11_VertexBuffer::init(size_t size, const byte* data, RHIBufferType type)
+    {
+        return create_buffer(m_buffer, size, data, type, m_update_function, D3D11_BIND_VERTEX_BUFFER);
     }
 
     void D3D11_VertexBuffer::update(size_t offset, size_t size, const byte* data)
     {
-        update_function(m_buffer, offset, size, data);
+        m_update_function(m_buffer, offset, size, data);
     }
 
     void D3D11_VertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
@@ -79,6 +85,27 @@ namespace Engine
         d3d11_release(m_buffer);
     }
 
+
+    bool D3D11_IndexBuffer::init(size_t size, const byte* data, RHIBufferType type)
+    {
+        return create_buffer(m_buffer, size, data, type, m_update_function, D3D11_BIND_INDEX_BUFFER);
+    }
+
+    void D3D11_IndexBuffer::bind(size_t offset)
+    {
+        DXAPI->m_context->IASetIndexBuffer(m_buffer, m_format, offset);
+    }
+
+    void D3D11_IndexBuffer::update(size_t offset, size_t size, const byte* data)
+    {
+        m_update_function(m_buffer, offset, size, data);
+    }
+
+    D3D11_IndexBuffer::~D3D11_IndexBuffer()
+    {
+        d3d11_release(m_buffer);
+    }
+
     RHI_VertexBuffer* D3D11::create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)
     {
         D3D11_VertexBuffer* buffer = new D3D11_VertexBuffer();
@@ -87,6 +114,18 @@ namespace Engine
             delete buffer;
             buffer = nullptr;
         }
+        return buffer;
+    }
+
+    RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, RHIBufferType type)
+    {
+        D3D11_IndexBuffer* buffer = new D3D11_IndexBuffer();
+        if (!buffer->init(size, data, type))
+        {
+            delete buffer;
+            buffer = nullptr;
+        }
+
         return buffer;
     }
 }// namespace Engine

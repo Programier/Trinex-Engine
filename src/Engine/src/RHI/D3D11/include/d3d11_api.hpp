@@ -49,6 +49,7 @@ namespace Engine
         D3D11& draw(size_t vertex_count, size_t vertices_offset) override;
 
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
+        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIBufferType type) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;

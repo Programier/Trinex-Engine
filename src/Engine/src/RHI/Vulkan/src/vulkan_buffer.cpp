@@ -164,13 +164,13 @@ namespace Engine
         return &(new VulkanDynamicVertexBuffer())->create(data, size);
     }
 
-    RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data)
+    RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, RHIBufferType type)
     {
         return &(new VulkanIndexBuffer())->create(data, size);
     }
 
 
-    RHI_SSBO* VulkanAPI::create_ssbo(size_t size, const byte* data)
+    RHI_SSBO* VulkanAPI::create_ssbo(size_t size, const byte* data, RHIBufferType type)
     {
         return &(new VulkanSSBO())->create(data, size);
     }

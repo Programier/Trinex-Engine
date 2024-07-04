@@ -107,7 +107,7 @@ namespace Engine
 
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        m_rhi_object.reset(rhi->create_index_buffer(size(), data()));
+        m_rhi_object.reset(rhi->create_index_buffer(size(), data(), RHIBufferType::Static));
         return *this;
     }
 
@@ -153,7 +153,7 @@ namespace Engine
 
     SSBO& SSBO::rhi_create()
     {
-        m_rhi_object.reset(rhi->create_ssbo(init_size, init_data));
+        m_rhi_object.reset(rhi->create_ssbo(init_size, init_data, RHIBufferType::Static));
         return *this;
     }
 

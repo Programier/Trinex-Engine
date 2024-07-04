@@ -218,12 +218,12 @@ namespace Engine
         return new NoneVertexBuffer();
     }
 
-    RHI_IndexBuffer* NoneApi::create_index_buffer(size_t, const byte* data)
+    RHI_IndexBuffer* NoneApi::create_index_buffer(size_t, const byte* data, RHIBufferType type)
     {
         return new NoneIndexBuffer();
     }
 
-    RHI_SSBO* NoneApi::create_ssbo(size_t size, const byte* data)
+    RHI_SSBO* NoneApi::create_ssbo(size_t size, const byte* data, RHIBufferType type)
     {
         return new NoneSSBOBuffer();
     }

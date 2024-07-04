@@ -128,8 +128,8 @@ namespace Engine
         virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                          = 0;
         virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                   = 0;
         virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) = 0;
-        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data)                            = 0;
-        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data)                                      = 0;
+        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIBufferType type)        = 0;
+        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                  = 0;
         virtual RHI_Viewport* create_viewport(RenderViewport* viewport)                                   = 0;
 
         virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;

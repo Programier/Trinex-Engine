@@ -98,7 +98,7 @@ namespace Engine
         }
     }
 
-    RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data)
+    RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, RHIBufferType type)
     {
         return new OpenGL_IndexBuffer(size, data);
     }
@@ -205,7 +205,7 @@ namespace Engine
         glDeleteBuffers(1, &m_id);
     }
 
-    RHI_SSBO* OpenGL::create_ssbo(size_t size, const byte* data)
+    RHI_SSBO* OpenGL::create_ssbo(size_t size, const byte* data, RHIBufferType type)
     {
         return new OpenGL_SSBO(size, data);
     }

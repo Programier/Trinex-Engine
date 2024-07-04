@@ -18,11 +18,6 @@ namespace Engine
     DefaultClient& DefaultClient::render(class RenderViewport* viewport)
     {
         viewport->rhi_bind();
-        ViewPort rendering_viewport;
-        rendering_viewport.pos  = {0, 0};
-        rendering_viewport.size = {128, 72};
-        rhi->viewport(rendering_viewport);
-
         float x                 = (glm::sin(engine_instance->time_seconds()) + 1.f) / 2.f;
         float y                 = (glm::cos(engine_instance->time_seconds()) + 1.f) / 2.f;
         viewport->rhi_clear_color(Color(x, y, 0.f, 1.f));
