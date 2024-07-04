@@ -6,48 +6,7 @@
 
 namespace Engine
 {
-    const BindLocation BindLocation::undefined = BindLocation(255, 255);
-
-    BindLocation::BindLocation() : BindLocation(255, 255)
-    {}
-
-    BindLocation::BindLocation(BindingIndex in_binding, BindingIndex in_set) : binding(in_binding), set(in_set)
-    {}
-
-    bool BindLocation::operator==(const BindLocation& location) const
-    {
-        return location.id == id;
-    }
-
-    bool BindLocation::operator!=(const BindLocation& location) const
-    {
-        return location.id != id;
-    }
-
-    bool BindLocation::operator<(const BindLocation& location) const
-    {
-        return id < location.id;
-    }
-
-    bool BindLocation::operator<=(const BindLocation& location) const
-    {
-        return id <= location.id;
-    }
-
-    bool BindLocation::operator>(const BindLocation& location) const
-    {
-        return id > location.id;
-    }
-
-    bool BindLocation::operator>=(const BindLocation& location) const
-    {
-        return id >= location.id;
-    }
-
-    bool BindLocation::is_valid() const
-    {
-        return (*this) != undefined;
-    }
+    const BindLocation BindLocation::undefined = BindLocation();
 
     ENGINE_EXPORT bool operator&(class Archive& ar, ShaderDefinition& definition)
     {
@@ -73,8 +32,7 @@ namespace Engine
     }
 
     MaterialParameterInfo::MaterialParameterInfo()
-        : type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none),
-          location(BindLocation(255, 255))
+        : type(MaterialParameterType::Undefined), name(""), size(0), offset(Constants::offset_none), location(BindLocation())
     {}
 
     implement_struct(Engine, ShaderDefinition, ).push([]() {

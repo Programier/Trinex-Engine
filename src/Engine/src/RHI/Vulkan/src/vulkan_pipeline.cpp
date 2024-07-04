@@ -133,18 +133,13 @@ namespace Engine
     /////////////////////// PIPELINE STATE PARSING END ///////////////////////
 
     static FORCE_INLINE void create_descriptor_layout_internal(const Pipeline* pipeline,
-                                                               Vector<Vector<vk::DescriptorSetLayoutBinding>>& out,
+                                                               Vector<vk::DescriptorSetLayoutBinding>& out,
                                                                VulkanDescriptorSetLayout& descriptor_set_layout,
                                                                vk::ShaderStageFlags stages)
     {
         auto push_layout_binding = [&out, &descriptor_set_layout, stages](BindLocation location, vk::DescriptorType type,
                                                                           byte VulkanDescriptorSetLayout::*counter) {
-            if (location.set >= out.size())
-            {
-                out.resize(location.set + 1);
-            }
-
-            for (auto& entry : out[location.set])
+            for (auto& entry : out)
             {
                 if (entry.binding == location.binding && entry.descriptorType == type)
                 {
@@ -153,20 +148,20 @@ namespace Engine
                 }
             }
 
-            out[location.set].push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stages, nullptr));
+            out.push_back(vk::DescriptorSetLayoutBinding(location.binding, type, 1, stages, nullptr));
             ++(descriptor_set_layout.*counter);
         };
 
 
         if (pipeline->global_parameters.has_parameters())
         {
-            push_layout_binding({pipeline->global_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer,
+            push_layout_binding(pipeline->global_parameters.bind_index(), vk::DescriptorType::eUniformBuffer,
                                 &VulkanDescriptorSetLayout::uniform_buffers);
         }
 
         if (pipeline->local_parameters.has_parameters())
         {
-            push_layout_binding({pipeline->local_parameters.bind_index(), 0}, vk::DescriptorType::eUniformBuffer,
+            push_layout_binding(pipeline->local_parameters.bind_index(), vk::DescriptorType::eUniformBuffer,
                                 &VulkanDescriptorSetLayout::uniform_buffers);
         }
 
@@ -234,21 +229,15 @@ namespace Engine
 
     VulkanPipeline& VulkanPipeline::create_descriptor_set_layout()
     {
-        Vector<Vector<vk::DescriptorSetLayoutBinding>> layout_bindings;
+        Vector<vk::DescriptorSetLayoutBinding> layout_bindings;
 
         auto stages = parse_stages_flags(m_engine_pipeline);
         create_descriptor_layout_internal(m_engine_pipeline, layout_bindings, m_descriptor_set_layout, stages);
 
-        Index set = 0;
-        m_descriptor_set_layout.layouts.resize(layout_bindings.size());
-        for (auto& layout : layout_bindings)
+        if (!layout_bindings.empty())
         {
-            if (!layout_bindings.empty())
-            {
-                vk::DescriptorSetLayoutCreateInfo layout_info({}, layout);
-                m_descriptor_set_layout.layouts[set] = API->m_device.createDescriptorSetLayout(layout_info);
-            }
-            ++set;
+            vk::DescriptorSetLayoutCreateInfo layout_info({}, layout_bindings);
+            m_descriptor_set_layout.layout = API->m_device.createDescriptorSetLayout(layout_info);
         }
 
         return *this;
@@ -329,7 +318,7 @@ namespace Engine
 
     bool VulkanPipeline::create_pipeline_layout()
     {
-        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, m_descriptor_set_layout.layouts);
+        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, m_descriptor_set_layout.layout);
         m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
         return true;
     }

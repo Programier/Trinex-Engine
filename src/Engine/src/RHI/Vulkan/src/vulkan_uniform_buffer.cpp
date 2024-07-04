@@ -64,7 +64,7 @@ namespace Engine
         {
             API->m_state->m_pipeline->bind_uniform_buffer(
                     vk::DescriptorBufferInfo(buffers[index].buffer, 0, sizeof(GlobalShaderParameters)),
-                    BindLocation(pipeline->global_parameters_info().bind_index(), 0), vk::DescriptorType::eUniformBuffer);
+                    pipeline->global_parameters_info().bind_index(), vk::DescriptorType::eUniformBuffer);
         }
     }
 
@@ -101,7 +101,7 @@ namespace Engine
             auto& current_buffer = buffers[index];
             current_buffer.update(shadow_data.data(), shadow_data_size, used_data);
 
-            BindLocation local_params_location = {pipeline->local_parameters_info().bind_index(), 0};
+            BindLocation local_params_location = pipeline->local_parameters_info().bind_index();
             API->m_state->m_pipeline->bind_uniform_buffer(
                     vk::DescriptorBufferInfo(current_buffer.buffer, used_data, shadow_data_size), local_params_location,
                     vk::DescriptorType::eUniformBuffer);

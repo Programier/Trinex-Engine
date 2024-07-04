@@ -5,12 +5,7 @@ namespace Engine
 {
     void VulkanDescriptorSetLayout::destroy()
     {
-        for (auto& layout : layouts)
-        {
-            DESTROY_CALL(destroyDescriptorSetLayout, layout);
-        }
-
-        layouts.clear();
+        DESTROY_CALL(destroyDescriptorSetLayout, layout);
     }
 
     VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout()

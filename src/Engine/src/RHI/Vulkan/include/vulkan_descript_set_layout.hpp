@@ -5,7 +5,7 @@
 namespace Engine
 {
     struct VulkanDescriptorSetLayout {
-        Vector<vk::DescriptorSetLayout> layouts = {};
+        vk::DescriptorSetLayout layout = {};
 
         byte uniform_buffers        = 0;
         byte textures               = 0;
@@ -14,8 +14,9 @@ namespace Engine
 
         FORCE_INLINE bool has_layouts() const
         {
-            return !layouts.empty();
+            return layout != 0;
         }
+
         void destroy();
         ~VulkanDescriptorSetLayout();
     };

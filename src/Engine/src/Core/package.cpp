@@ -343,14 +343,24 @@ namespace Engine
             return false;
         }
 
+        bool result = true;
+
         for (auto& [name, object] : m_objects)
         {
-            if (!object->is_instance_of<Package>())
+            if (Package* sub_package = object->instance_cast<Package>())
             {
-                object->save(writer, serialization_flags);
+                result = sub_package->save(writer, serialization_flags);
+                continue;
+            }
+
+            object->save(writer, serialization_flags);
+
+            if (result == false)
+            {
+                return result;
             }
         }
-        return false;
+        return result;
     }
 
     Package::~Package()

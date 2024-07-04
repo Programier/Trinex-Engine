@@ -31,7 +31,7 @@ namespace Engine
 
     bool VulkanDescriptorPool::can_allocate(VulkanDescriptorSetLayout* layout)
     {
-        return free_sets >= layout->layouts.size() && samplers >= layout->samplers && textures >= layout->textures &&
+        return free_sets > 0 && samplers >= layout->samplers && textures >= layout->textures &&
                combined_image_sampler >= layout->combined_image_sampler && uniform_buffers >= layout->uniform_buffers;
     }
 
@@ -42,10 +42,10 @@ namespace Engine
 
         VulkanDescriptorSet* new_set = new VulkanDescriptorSet();
         new_set->pool                = this;
-        vk::DescriptorSetAllocateInfo info(pool, layout->layouts);
-        new_set->sets = API->m_device.allocateDescriptorSets(info);
+        vk::DescriptorSetAllocateInfo info(pool, layout->layout);
+        new_set->descriptor_set = API->m_device.allocateDescriptorSets(info)[0];
 
-        free_sets -= layout->layouts.size();
+        free_sets -= 1;
         samplers -= layout->samplers;
         textures -= layout->textures;
         combined_image_sampler -= layout->combined_image_sampler;
@@ -57,13 +57,13 @@ namespace Engine
     VulkanDescriptorPool& VulkanDescriptorPool::release_descriptor_set(VulkanDescriptorSet* descriptor_set,
                                                                        VulkanDescriptorSetLayout* layout)
     {
-        free_sets += layout->layouts.size();
+        free_sets += 1;
         samplers += layout->samplers;
         textures += layout->textures;
         combined_image_sampler += layout->combined_image_sampler;
         uniform_buffers += layout->uniform_buffers;
 
-        API->m_device.freeDescriptorSets(pool, descriptor_set->sets);
+        API->m_device.freeDescriptorSets(pool, descriptor_set->descriptor_set);
         delete descriptor_set;
         return *this;
     }

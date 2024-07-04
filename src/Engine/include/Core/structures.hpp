@@ -78,27 +78,48 @@ namespace Engine
 
 
     struct ENGINE_EXPORT BindLocation {
-        union
-        {
-            struct {
-                BindingIndex binding;
-                BindingIndex set;
-            };
-
-            uint16_t id = 0;
-        };
-
         static const BindLocation undefined;
 
-        BindLocation();
-        BindLocation(BindingIndex in_binding, BindingIndex in_set = 0);
-        bool operator==(const BindLocation& location) const;
-        bool operator!=(const BindLocation& location) const;
-        bool operator<(const BindLocation& location) const;
-        bool operator<=(const BindLocation& location) const;
-        bool operator>(const BindLocation& location) const;
-        bool operator>=(const BindLocation& location) const;
-        bool is_valid() const;
+        BindingIndex binding;
+
+        constexpr BindLocation(BindingIndex in_binding = 255) : binding(in_binding)
+        {}
+
+        FORCE_INLINE bool operator==(const BindLocation& location) const
+        {
+            return location.binding == binding;
+        }
+
+        FORCE_INLINE bool operator!=(const BindLocation& location) const
+        {
+            return location.binding != binding;
+        }
+
+        FORCE_INLINE bool operator<(const BindLocation& location) const
+        {
+            return binding < location.binding;
+        }
+
+        FORCE_INLINE bool operator<=(const BindLocation& location) const
+        {
+            return binding <= location.binding;
+        }
+
+        FORCE_INLINE bool operator>(const BindLocation& location) const
+        {
+            return binding > location.binding;
+        }
+
+        FORCE_INLINE bool operator>=(const BindLocation& location) const
+        {
+            return binding >= location.binding;
+        }
+
+
+        FORCE_INLINE bool is_valid() const
+        {
+            return binding < 255;
+        }
     };
 
     struct ENGINE_EXPORT ShaderDefinition {

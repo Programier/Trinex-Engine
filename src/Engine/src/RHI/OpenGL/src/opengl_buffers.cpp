@@ -157,7 +157,7 @@ namespace Engine
 
         OpenGL_UniformBuffer* buffer = m_buffers[index];
         buffer->update(0, shadow_data_size, shadow_data.data());
-        buffer->bind({binding_index, 0});
+        buffer->bind(binding_index);
 
         shadow_data_size = 0;
         index            = 0;

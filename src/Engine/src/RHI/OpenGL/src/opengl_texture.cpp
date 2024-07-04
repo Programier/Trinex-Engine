@@ -13,11 +13,6 @@ namespace Engine
 {
     void OpenGL_Texture::bind(BindLocation location)
     {
-        if (location.set > 0)
-        {
-            throw EngineException("Cannot bind texture to set > 0");
-        }
-
         glActiveTexture(GL_TEXTURE0 + location.binding);
         glBindTexture(m_type, m_id);
     }

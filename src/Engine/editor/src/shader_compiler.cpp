@@ -300,7 +300,6 @@ namespace Engine::ShaderCompiler
 
                     object.name             = param->getName();
                     object.location.binding = param->getBindingIndex();
-                    object.location.set     = 0;
                     object.type             = binding_type == slang::BindingType::CombinedTextureSampler
                                                       ? MaterialParameterType::CombinedImageSampler2D
                                                       : MaterialParameterType::Texture2D;
