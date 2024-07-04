@@ -113,9 +113,7 @@ namespace Engine
         RHI_Viewport* viewport = rhi_object<RHI_Viewport>();
         if (viewport)
         {
-            call_in_render_thread([viewport, new_size]() {//
-                viewport->on_resize(new_size);
-            });
+            call_in_render_thread([viewport, new_size]() { viewport->on_resize(new_size); });
         }
         return *this;
     }

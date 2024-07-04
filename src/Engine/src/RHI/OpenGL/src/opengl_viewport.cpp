@@ -74,7 +74,7 @@ namespace Engine
 
     void OpenGL_WindowViewport::bind()
     {
-        OPENGL_API->m_render_target = nullptr;
+        OPENGL_API->m_state.render_target = nullptr;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
@@ -108,9 +108,9 @@ namespace Engine
         glBlitFramebuffer(src_start.x, src_start.y, src_end.x, src_end.y, dst_start.x, dst_start.y, dst_end.x, dst_end.y,
                           GL_COLOR_BUFFER_BIT, filter_of(filter));
 
-        if (OPENGL_API->m_render_target)
+        if (OPENGL_API->m_state.render_target)
         {
-            OPENGL_API->m_render_target->bind();
+            OPENGL_API->m_state.render_target->bind();
         }
     }
 
@@ -121,9 +121,9 @@ namespace Engine
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (OPENGL_API->m_render_target)
+        if (OPENGL_API->m_state.render_target)
         {
-            OPENGL_API->m_render_target->bind();
+            OPENGL_API->m_state.render_target->bind();
         }
     }
 

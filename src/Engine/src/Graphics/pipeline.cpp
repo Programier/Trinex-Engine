@@ -84,10 +84,6 @@ namespace Engine
                              new EnumProperty("Alpha operator", "Alpha operator", &CBI::alpha_op, blend_op),
                              new EnumProperty("Color mask", "Color mask", &CBI::color_mask,
                                               Enum::static_find("Engine::ColorComponentMask", true)));
-
-        self->add_properties(
-                new EnumProperty("Logic operator", "Logic operator", &CBI::logic_op, Enum::static_find("Engine::LogicOp", true)),
-                new BoolProperty("Enable logic operator", "Enable logic operator", &CBI::logic_op_enable));
     });
 
     Pipeline::Pipeline()

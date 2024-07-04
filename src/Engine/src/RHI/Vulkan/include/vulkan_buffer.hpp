@@ -24,7 +24,7 @@ namespace Engine
         VulkanBuffer m_buffer;
 
         VulkanStaticVertexBuffer& create(const byte* data, size_t size);
-        void bind(byte stream_index, size_t offset) override;
+        void bind(byte stream_index, size_t stride, size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
     };
 
@@ -33,7 +33,7 @@ namespace Engine
         int_t m_current = 0;
 
         VulkanDynamicVertexBuffer& create(const byte* data, size_t size);
-        void bind(byte stream_index, size_t offset) override;
+        void bind(byte stream_index, size_t stride, size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
         VulkanBuffer& current();
     };

@@ -38,11 +38,11 @@ VertexOutput vs_main(VertexInput input)
 }
 
 [shader("fragment")]
-float4 fs_main(VertexOutput input)
+float4 fs_main(VertexOutput input) : SV_Target
 {
     float3 view_direction = normalize(globals.camera_location - input.world_position);
     float3 view_direction_xz = normalize(input.camera_xz - input.world_position);
 
-    float factor = 1.0 - pow(dot(view_direction, view_direction_xz), 18);
+    float factor = 1.0 - pow(abs(dot(view_direction, view_direction_xz)), 18);
     return float4(color.rgb * float3(factor GRID_AXIS_CODE(* color.w, )), 1.0);
 }

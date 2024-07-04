@@ -37,7 +37,7 @@ namespace Engine
 
     OpenGL_RenderTarget* OpenGL_RenderTarget::current()
     {
-        return OPENGL_API->m_render_target;
+        return OPENGL_API->m_state.render_target;
     }
 
     OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<RenderSurface*>& color_attachments,
@@ -101,7 +101,7 @@ namespace Engine
 
     void OpenGL_RenderTarget::bind()
     {
-        OPENGL_API->m_render_target = this;
+        OPENGL_API->m_state.render_target = this;
         glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     }
 
@@ -235,15 +235,15 @@ namespace Engine
     {
         bool changed = false;
 
-        if (glm::any(glm::epsilonNotEqual(viewport.pos, m_viewport.pos, Point2D(0.001f, 0.001f))) ||
-            glm::any(glm::epsilonNotEqual(viewport.size, m_viewport.size, Size2D(0.001f, 0.001f))))
+        if (glm::any(glm::epsilonNotEqual(viewport.pos, m_state.viewport.pos, Point2D(0.001f, 0.001f))) ||
+            glm::any(glm::epsilonNotEqual(viewport.size, m_state.viewport.size, Size2D(0.001f, 0.001f))))
         {
             glViewport(viewport.pos.x, viewport.pos.y, viewport.size.x, viewport.size.y);
             changed = true;
         }
 
-        if (glm::epsilonNotEqual(viewport.min_depth, m_viewport.min_depth, 0.001f) ||
-            glm::epsilonNotEqual(viewport.max_depth, m_viewport.max_depth, 0.001f))
+        if (glm::epsilonNotEqual(viewport.min_depth, m_state.viewport.min_depth, 0.001f) ||
+            glm::epsilonNotEqual(viewport.max_depth, m_state.viewport.max_depth, 0.001f))
         {
             glDepthRangef(viewport.min_depth, viewport.max_depth);
             changed = true;
@@ -251,12 +251,12 @@ namespace Engine
 
         if (changed)
         {
-            m_viewport = viewport;
+            m_state.viewport = viewport;
         }
     }
 
     ViewPort OpenGL::viewport()
     {
-        return m_viewport;
+        return m_state.viewport;
     }
 }// namespace Engine

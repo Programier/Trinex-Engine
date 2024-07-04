@@ -322,29 +322,15 @@ namespace Engine
         new_command(glLineWidth, pipeline->rasterizer.line_width);
 
         // Blending
-
-#if USING_OPENGL_CORE
-        if (pipeline->color_blending.logic_op_enable)
-        {
-            new_command(glEnable, GL_COLOR_LOGIC_OP);
-            new_command(glLogicOp, logic_op(pipeline->color_blending.logic_op));
-        }
-        else
-        {
-            new_command(glDisable, GL_COLOR_LOGIC_OP);
-        }
-#endif
-
-
         {
             auto& attachment = pipeline->color_blending;
             if (attachment.enable)
             {
                 new_command(glEnable, GL_BLEND);
-                GLenum src_color_func = blend_func(attachment.src_color_func);
-                GLenum dst_color_func = blend_func(attachment.dst_color_func);
-                GLenum src_alpha_func = blend_func(attachment.src_alpha_func);
-                GLenum dst_alpha_func = blend_func(attachment.dst_alpha_func);
+                GLenum src_color_func = blend_func(attachment.src_color_func, false);
+                GLenum dst_color_func = blend_func(attachment.dst_color_func, false);
+                GLenum src_alpha_func = blend_func(attachment.src_alpha_func, true);
+                GLenum dst_alpha_func = blend_func(attachment.dst_alpha_func, true);
                 GLenum color_op       = blend_op(attachment.color_op);
                 GLenum alpha_op       = blend_op(attachment.alpha_op);
 
@@ -368,9 +354,9 @@ namespace Engine
 
     void OpenGL_Pipeline::bind()
     {
-        if (OPENGL_API->m_current_pipeline != this)
+        if (OPENGL_API->m_state.pipeline != this)
         {
-            OPENGL_API->m_current_pipeline = this;
+            OPENGL_API->m_state.pipeline = this;
             glBindProgramPipeline(m_pipeline);
             glBindVertexArray(m_vao);
 

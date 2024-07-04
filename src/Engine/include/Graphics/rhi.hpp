@@ -64,7 +64,7 @@ namespace Engine
     };
 
     struct RHI_VertexBuffer : RHI_Buffer {
-        virtual void bind(byte stream_index, size_t offset) = 0;
+        virtual void bind(byte stream_index, size_t stride, size_t offset) = 0;
     };
 
     struct RHI_IndexBuffer : RHI_Buffer {

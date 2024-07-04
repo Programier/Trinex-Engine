@@ -49,9 +49,8 @@ namespace Engine
                    {"OneMinusSrcColor", BlendFunc::OneMinusSrcColor}, {"DstColor", BlendFunc::DstColor},
                    {"OneMinusDstColor", BlendFunc::OneMinusDstColor}, {"SrcAlpha", BlendFunc::SrcAlpha},
                    {"OneMinusSrcAlpha", BlendFunc::OneMinusSrcAlpha}, {"DstAlpha", BlendFunc::DstAlpha},
-                   {"OneMinusDstAlpha", BlendFunc::OneMinusDstAlpha}, {"ConstantColor", BlendFunc::ConstantColor},
-                   {"OneMinusConstantColor", BlendFunc::OneMinusConstantColor}, {"ConstantAlpha", BlendFunc::ConstantAlpha},
-                   {"OneMinusConstantAlpha", BlendFunc::OneMinusConstantAlpha});
+                   {"OneMinusDstAlpha", BlendFunc::OneMinusDstAlpha}, {"BlendFactor", BlendFunc::BlendFactor},
+                   {"OneMinusBlendFactor", BlendFunc::OneMinusBlendFactor});
 
     implement_enum(BlendOp, Engine, {"Add", BlendOp::Add}, {"Subtract", BlendOp::Subtract},
                    {"ReverseSubtract", BlendOp::ReverseSubtract}, {"Min", BlendOp::Min}, {"Max", BlendOp::Max});
@@ -64,27 +63,14 @@ namespace Engine
 
     implement_enum(PrimitiveTopology, Engine, {"TriangleList", PrimitiveTopology::TriangleList},
                    {"PointList", PrimitiveTopology::PointList}, {"LineList", PrimitiveTopology::LineList},
-                   {"LineStrip", PrimitiveTopology::LineStrip}, {"TriangleStrip", PrimitiveTopology::TriangleStrip},
-                   {"TriangleFan", PrimitiveTopology::TriangleFan},
-                   {"LineListWithAdjacency", PrimitiveTopology::LineListWithAdjacency},
-                   {"LineStripWithAdjacency", PrimitiveTopology::LineStripWithAdjacency},
-                   {"TriangleListWithAdjacency", PrimitiveTopology::TriangleListWithAdjacency},
-                   {"TriangleStripWithAdjacency", PrimitiveTopology::TriangleStripWithAdjacency},
-                   {"PatchList", PrimitiveTopology::PatchList});
+                   {"LineStrip", PrimitiveTopology::LineStrip}, {"TriangleStrip", PrimitiveTopology::TriangleStrip});
 
     implement_enum(PolygonMode, Engine, {"Fill", PolygonMode::Fill}, {"Line", PolygonMode::Line}, {"Point", PolygonMode::Point});
 
-    implement_enum(CullMode, Engine, {"None", CullMode::None}, {"Front", CullMode::Front}, {"Back", CullMode::Back},
-                   {"FrontAndBack", CullMode::FrontAndBack});
+    implement_enum(CullMode, Engine, {"None", CullMode::None}, {"Front", CullMode::Front}, {"Back", CullMode::Back});
 
 
     implement_enum(FrontFace, Engine, {"ClockWise", FrontFace::ClockWise}, {"CounterClockWise", FrontFace::CounterClockWise});
-
-    implement_enum(LogicOp, Engine, {"Clear", LogicOp::Clear}, {"And", LogicOp::And}, {"AndReverse", LogicOp::AndReverse},
-                   {"Copy", LogicOp::Copy}, {"AndInverted", LogicOp::AndInverted}, {"NoOp", LogicOp::NoOp}, {"Xor", LogicOp::Xor},
-                   {"Or", LogicOp::Or}, {"Nor", LogicOp::Nor}, {"Equivalent", LogicOp::Equivalent}, {"Invert", LogicOp::Invert},
-                   {"OrReverse", LogicOp::OrReverse}, {"CopyInverted", LogicOp::CopyInverted},
-                   {"OrInverted", LogicOp::OrInverted}, {"Nand", LogicOp::Nand}, {"Set", LogicOp::Set});
 
     implement_enum(WindowAttribute, Engine, {"None", WindowAttribute::None}, {"Resizable", WindowAttribute::Resizable},
                    {"FullScreen", WindowAttribute::FullScreen}, {"Shown", WindowAttribute::Shown},

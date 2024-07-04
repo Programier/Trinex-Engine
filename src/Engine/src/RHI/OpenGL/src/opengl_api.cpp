@@ -106,16 +106,26 @@ namespace Engine
 
     OpenGL& OpenGL::prepare_render()
     {
-        if (m_current_pipeline)
+        if (OPENGL_API->m_state.pipeline)
         {
-            if (m_current_pipeline->m_global_parameters.has_parameters())
+            if (OPENGL_API->m_state.pipeline->m_global_parameters.has_parameters())
             {
-                m_global_ubo->bind(m_current_pipeline->m_global_parameters.bind_index());
+                m_global_ubo->bind(OPENGL_API->m_state.pipeline->m_global_parameters.bind_index());
             }
 
-            if (m_current_pipeline->m_local_parameters.has_parameters())
+            if (OPENGL_API->m_state.pipeline->m_local_parameters.has_parameters())
             {
-                m_local_ubo->bind(m_current_pipeline->m_local_parameters.bind_index());
+                m_local_ubo->bind(OPENGL_API->m_state.pipeline->m_local_parameters.bind_index());
+            }
+
+            size_t stream_index = 0;
+            for (auto& buffer : m_state.vertex_buffers)
+            {
+                if (buffer.vertex_buffer && !buffer.is_binded)
+                {
+                    buffer.vertex_buffer->bind_internal(stream_index++, buffer.offset);
+                    buffer.is_binded = true;
+                }
             }
         }
         return *this;
@@ -124,7 +134,7 @@ namespace Engine
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
     {
         prepare_render();
-        glDrawElementsBaseVertex(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
+        glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
                                  reinterpret_cast<void*>(indices_offset), vertices_offset);
         reset_samplers();
         return *this;
@@ -133,7 +143,7 @@ namespace Engine
     OpenGL& OpenGL::draw(size_t vertex_count, size_t vertices_offset)
     {
         prepare_render();
-        glDrawArrays(m_current_pipeline->m_topology, vertices_offset, vertex_count);
+        glDrawArrays(OPENGL_API->m_state.pipeline->m_topology, vertices_offset, vertex_count);
         reset_samplers();
         return *this;
     }
@@ -141,7 +151,7 @@ namespace Engine
     OpenGL& OpenGL::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
     {
         prepare_render();
-        glDrawArraysInstanced(m_current_pipeline->m_pipeline, vertices_offset, vertex_count, instances);
+        glDrawArraysInstanced(OPENGL_API->m_state.pipeline->m_pipeline, vertices_offset, vertex_count, instances);
         reset_samplers();
         return *this;
     }
@@ -149,7 +159,7 @@ namespace Engine
     OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
     {
         prepare_render();
-        glDrawElementsInstancedBaseVertex(m_current_pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
+        glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
                                           reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
         reset_samplers();
         return *this;
@@ -163,9 +173,7 @@ namespace Engine
 
     OpenGL& OpenGL::reset_state()
     {
-        m_current_pipeline     = nullptr;
-        m_current_index_buffer = nullptr;
-        m_render_target        = nullptr;
+        new (&m_state) OpenGL_State();
         return *this;
     }
 

@@ -60,7 +60,7 @@ namespace Engine
         }
     }
 
-    GLuint blend_func(BlendFunc func)
+    GLuint blend_func(BlendFunc func, bool for_alpha)
     {
         switch (func)
         {
@@ -94,14 +94,10 @@ namespace Engine
             case BlendFunc::OneMinusDstAlpha:
                 return GL_ONE_MINUS_DST_ALPHA;
 
-            case BlendFunc::ConstantColor:
-                return GL_CONSTANT_COLOR;
-            case BlendFunc::OneMinusConstantColor:
-                return GL_ONE_MINUS_CONSTANT_COLOR;
-            case BlendFunc::ConstantAlpha:
-                return GL_CONSTANT_ALPHA;
-            case BlendFunc::OneMinusConstantAlpha:
-                return GL_ONE_MINUS_CONSTANT_ALPHA;
+            case BlendFunc::BlendFactor:
+                return for_alpha ? GL_CONSTANT_ALPHA : GL_CONSTANT_COLOR;
+            case BlendFunc::OneMinusBlendFactor:
+                return for_alpha ? GL_ONE_MINUS_CONSTANT_ALPHA : GL_ONE_MINUS_CONSTANT_COLOR;
 
             default:
                 throw EngineException("Undefined blend function!");
@@ -205,24 +201,6 @@ namespace Engine
             case PrimitiveTopology::TriangleStrip:
                 return GL_TRIANGLE_STRIP;
 
-            case PrimitiveTopology::TriangleFan:
-                return GL_TRIANGLE_FAN;
-
-            case PrimitiveTopology::LineListWithAdjacency:
-                return GL_LINES_ADJACENCY;
-
-            case PrimitiveTopology::LineStripWithAdjacency:
-                return GL_LINE_STRIP_ADJACENCY;
-
-            case PrimitiveTopology::TriangleListWithAdjacency:
-                return GL_TRIANGLES_ADJACENCY;
-
-            case PrimitiveTopology::TriangleStripWithAdjacency:
-                return GL_TRIANGLE_STRIP_ADJACENCY;
-
-            case PrimitiveTopology::PatchList:
-                return GL_PATCHES;
-
             default:
                 break;
         }
@@ -247,47 +225,6 @@ namespace Engine
             }
         }
     }
-
-    GLuint logic_op(LogicOp op)
-    {
-        switch (op)
-        {
-            case LogicOp::Clear:
-                return GL_CLEAR;
-            case LogicOp::And:
-                return GL_AND;
-            case LogicOp::AndReverse:
-                return GL_AND_REVERSE;
-            case LogicOp::Copy:
-                return GL_COPY;
-            case LogicOp::AndInverted:
-                return GL_AND_INVERTED;
-            case LogicOp::NoOp:
-                return GL_NOOP;
-            case LogicOp::Xor:
-                return GL_XOR;
-            case LogicOp::Or:
-                return GL_OR;
-            case LogicOp::Nor:
-                return GL_NOR;
-            case LogicOp::Equivalent:
-                return GL_EQUAL;
-            case LogicOp::Invert:
-                return GL_INVERT;
-            case LogicOp::OrReverse:
-                return GL_OR_REVERSE;
-            case LogicOp::CopyInverted:
-                return GL_COPY_INVERTED;
-            case LogicOp::OrInverted:
-                return GL_OR_INVERTED;
-            case LogicOp::Nand:
-                return GL_NAND;
-            case LogicOp::Set:
-                return GL_SET;
-            default:
-                return GL_CLEAR;
-        }
-    }
 #endif
 
     GLuint front_face(FrontFace face)
@@ -304,9 +241,6 @@ namespace Engine
 
             case CullMode::Front:
                 return GL_FRONT;
-
-            case CullMode::FrontAndBack:
-                return GL_FRONT_AND_BACK;
 
             case CullMode::None:
                 return GL_NONE;

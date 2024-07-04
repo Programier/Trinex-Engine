@@ -72,7 +72,7 @@ namespace Engine
         return *this;
     }
 
-    void VulkanStaticVertexBuffer::bind(byte stream_index, size_t offset)
+    void VulkanStaticVertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
     {
         RHI_VertexBuffer*& current = API->m_state->m_current_vertex_buffer[stream_index];
         if (current != this)
@@ -97,7 +97,7 @@ namespace Engine
         return *this;
     }
 
-    void VulkanDynamicVertexBuffer::bind(byte stream_index, size_t offset)
+    void VulkanDynamicVertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
     {
         RHI_VertexBuffer*& current_buffer = API->m_state->m_current_vertex_buffer[stream_index];
         if (current_buffer != this)

@@ -9,7 +9,8 @@ namespace Engine
 
 
         OpenGL_VertexBuffer(size_t size, const byte* data, RHIBufferType type);
-        void bind(byte stream_index, size_t offset) override;
+        void bind(byte stream_index, size_t stride, size_t offset) override;
+        void bind_internal(byte stream_index, size_t offset);
         void update(size_t offset, size_t size, const byte* data) override;
 
         ~OpenGL_VertexBuffer();

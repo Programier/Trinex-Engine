@@ -59,23 +59,6 @@ namespace Engine
             {StencilOp::Invert, vk::StencilOp::eInvert},
     });
 
-    const Array<vk::BlendFactor, 14> m_blend_factors = generate_array<vk::BlendFactor, 14, BlendFunc>({
-            {BlendFunc::Zero, vk::BlendFactor::eZero},
-            {BlendFunc::One, vk::BlendFactor::eOne},
-            {BlendFunc::SrcColor, vk::BlendFactor::eSrcColor},
-            {BlendFunc::OneMinusSrcColor, vk::BlendFactor::eOneMinusSrcColor},
-            {BlendFunc::DstColor, vk::BlendFactor::eDstColor},
-            {BlendFunc::OneMinusDstColor, vk::BlendFactor::eOneMinusDstColor},
-            {BlendFunc::SrcAlpha, vk::BlendFactor::eSrcAlpha},
-            {BlendFunc::OneMinusSrcAlpha, vk::BlendFactor::eOneMinusSrcAlpha},
-            {BlendFunc::DstAlpha, vk::BlendFactor::eDstAlpha},
-            {BlendFunc::OneMinusDstAlpha, vk::BlendFactor::eOneMinusDstAlpha},
-            {BlendFunc::ConstantColor, vk::BlendFactor::eConstantColor},
-            {BlendFunc::OneMinusConstantColor, vk::BlendFactor::eOneMinusConstantColor},
-            {BlendFunc::ConstantAlpha, vk::BlendFactor::eConstantAlpha},
-            {BlendFunc::OneMinusConstantAlpha, vk::BlendFactor::eOneMinusConstantAlpha},
-    });
-
     const Array<vk::BlendOp, 5> m_blend_ops = generate_array<vk::BlendOp, 5, BlendOp>({
             {BlendOp::Add, vk::BlendOp::eAdd},
             {BlendOp::Subtract, vk::BlendOp::eSubtract},
@@ -85,18 +68,12 @@ namespace Engine
     });
 
 
-    const Array<vk::PrimitiveTopology, 11> m_primitive_topologies = generate_array<vk::PrimitiveTopology, 11, PrimitiveTopology>({
+    const Array<vk::PrimitiveTopology, 5> m_primitive_topologies = generate_array<vk::PrimitiveTopology, 5, PrimitiveTopology>({
             {PrimitiveTopology::TriangleList, vk::PrimitiveTopology::eTriangleList},
             {PrimitiveTopology::PointList, vk::PrimitiveTopology::ePointList},
             {PrimitiveTopology::LineList, vk::PrimitiveTopology::eLineList},
             {PrimitiveTopology::LineStrip, vk::PrimitiveTopology::eLineStrip},
             {PrimitiveTopology::TriangleStrip, vk::PrimitiveTopology::eTriangleStrip},
-            {PrimitiveTopology::TriangleFan, vk::PrimitiveTopology::eTriangleFan},
-            {PrimitiveTopology::LineListWithAdjacency, vk::PrimitiveTopology::eLineListWithAdjacency},
-            {PrimitiveTopology::LineStripWithAdjacency, vk::PrimitiveTopology::eLineStripWithAdjacency},
-            {PrimitiveTopology::TriangleListWithAdjacency, vk::PrimitiveTopology::eTriangleListWithAdjacency},
-            {PrimitiveTopology::TriangleStripWithAdjacency, vk::PrimitiveTopology::eTriangleStripWithAdjacency},
-            {PrimitiveTopology::PatchList, vk::PrimitiveTopology::ePatchList},
     });
 
     const Array<vk::PolygonMode, 3> m_poligon_modes = generate_array<vk::PolygonMode, 3, PolygonMode>({
@@ -105,35 +82,15 @@ namespace Engine
             {PolygonMode::Point, vk::PolygonMode::ePoint},
     });
 
-    const Array<vk::CullModeFlagBits, 4> m_cull_modes = generate_array<vk::CullModeFlagBits, 4, CullMode>({
+    const Array<vk::CullModeFlagBits, 3> m_cull_modes = generate_array<vk::CullModeFlagBits, 3, CullMode>({
             {CullMode::None, vk::CullModeFlagBits::eNone},
             {CullMode::Back, vk::CullModeFlagBits::eBack},
             {CullMode::Front, vk::CullModeFlagBits::eFront},
-            {CullMode::FrontAndBack, vk::CullModeFlagBits::eFrontAndBack},
     });
 
     const Array<vk::FrontFace, 2> m_front_faces = generate_array<vk::FrontFace, 2, FrontFace>({
             // So as viewport is flipped, inverse FrontFace values
             {FrontFace::ClockWise, vk::FrontFace::eCounterClockwise},
             {FrontFace::CounterClockWise, vk::FrontFace::eClockwise},
-    });
-
-    const Array<vk::LogicOp, 17> m_logic_ops = generate_array<vk::LogicOp, 17, LogicOp>({
-            {LogicOp::Clear, vk::LogicOp::eClear},
-            {LogicOp::And, vk::LogicOp::eAnd},
-            {LogicOp::AndReverse, vk::LogicOp::eAndReverse},
-            {LogicOp::Copy, vk::LogicOp::eCopy},
-            {LogicOp::AndInverted, vk::LogicOp::eAndInverted},
-            {LogicOp::NoOp, vk::LogicOp::eNoOp},
-            {LogicOp::Xor, vk::LogicOp::eXor},
-            {LogicOp::Or, vk::LogicOp::eOr},
-            {LogicOp::Nor, vk::LogicOp::eNor},
-            {LogicOp::Equivalent, vk::LogicOp::eEquivalent},
-            {LogicOp::Invert, vk::LogicOp::eInvert},
-            {LogicOp::OrReverse, vk::LogicOp::eOrReverse},
-            {LogicOp::CopyInverted, vk::LogicOp::eCopyInverted},
-            {LogicOp::OrInverted, vk::LogicOp::eOrInverted},
-            {LogicOp::Nand, vk::LogicOp::eNand},
-            {LogicOp::Set, vk::LogicOp::eSet},
     });
 }// namespace Engine

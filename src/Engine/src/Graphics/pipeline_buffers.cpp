@@ -41,7 +41,7 @@ namespace Engine
     {
         if (m_rhi_object)
         {
-            rhi_object<RHI_VertexBuffer>()->bind(stream_index, offset);
+            rhi_object<RHI_VertexBuffer>()->bind(stream_index, element_size(), offset);
         }
 
         return *this;

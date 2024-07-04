@@ -7,14 +7,30 @@
 namespace Engine
 {
     DefaultClient::DefaultClient()
-    {}
+    {
+        m_vertex_buffer         = Object::new_instance<TexCoordVertexBuffer>();
+        m_vertex_buffer->buffer = {{-0.5, -0.5}, {0.0, 0.5}, {0.5, -0.5}};
+        m_vertex_buffer->init_resource();
+
+        m_material = Object::load_object("Test::Triangle")->instance_cast<Material>();
+    }
 
     DefaultClient& DefaultClient::render(class RenderViewport* viewport)
     {
         viewport->rhi_bind();
-        float x = (glm::sin(engine_instance->time_seconds()) + 1.f) / 2.f;
-        float y = (glm::cos(engine_instance->time_seconds()) + 1.f) / 2.f;
+        ViewPort rendering_viewport;
+        rendering_viewport.pos  = {0, 0};
+        rendering_viewport.size = {128, 72};
+        rhi->viewport(rendering_viewport);
+
+        float x                 = (glm::sin(engine_instance->time_seconds()) + 1.f) / 2.f;
+        float y                 = (glm::cos(engine_instance->time_seconds()) + 1.f) / 2.f;
         viewport->rhi_clear_color(Color(x, y, 0.f, 1.f));
+
+        m_vertex_buffer->rhi_bind(0);
+        m_material->apply();
+        rhi->draw(3, 0);
+
         return *this;
     }
 

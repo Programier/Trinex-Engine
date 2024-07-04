@@ -119,13 +119,7 @@ namespace Engine
         create_content_browser().create_preview_window().create_properties_window();
 
         ImGuiRenderer::Window::make_current(prev_window);
-        Class* instance = Class::static_find(
-                Strings::format("Engine::ShaderCompiler::{}_Compiler", Settings::e_api));
-
-        if (instance)
-        {
-            m_compiler = instance->create_object()->instance_cast<ShaderCompiler::Compiler>();
-        }
+        m_compiler = ShaderCompiler::Compiler::static_create_compiler();
         return *this;
     }
 

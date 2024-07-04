@@ -87,11 +87,11 @@ namespace Engine
         for (auto& attachment : color_blend_attachment)
         {
             attachment.setBlendEnable(in_state->color_blending.enable)
-                    .setSrcColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.src_color_func)])
-                    .setDstColorBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.dst_color_func)])
+                    .setSrcColorBlendFactor(get_type(in_state->color_blending.src_color_func, false))
+                    .setDstColorBlendFactor(get_type(in_state->color_blending.dst_color_func, false))
                     .setColorBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.color_op)])
-                    .setSrcAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.src_alpha_func)])
-                    .setDstAlphaBlendFactor(m_blend_factors[static_cast<EnumerateType>(in_state->color_blending.dst_alpha_func)])
+                    .setSrcAlphaBlendFactor(get_type(in_state->color_blending.src_alpha_func, true))
+                    .setDstAlphaBlendFactor(get_type(in_state->color_blending.dst_alpha_func, true))
                     .setAlphaBlendOp(m_blend_ops[static_cast<EnumerateType>(in_state->color_blending.alpha_op)]);
 
             vk::ColorComponentFlags color_mask;
@@ -125,10 +125,7 @@ namespace Engine
             }
         }
 
-        color_blending.setAttachments(color_blend_attachment)
-                .setLogicOpEnable(in_state->color_blending.logic_op_enable)
-                .setLogicOp(m_logic_ops[static_cast<EnumerateType>(in_state->color_blending.logic_op)]);
-
+        color_blending.setAttachments(color_blend_attachment).setLogicOpEnable(false);
         dynamic_state_info.setDynamicStates(API->m_dynamic_states);
         return *this;
     }

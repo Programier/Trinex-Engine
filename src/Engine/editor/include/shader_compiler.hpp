@@ -7,25 +7,33 @@ namespace Engine
 
     namespace ShaderCompiler
     {
-        class OpenGL_Compiler : public Compiler
+        class OPENGL_Compiler : public Compiler
         {
-            declare_class(OpenGL_Compiler, Compiler);
+            declare_class(OPENGL_Compiler, Compiler);
 
         public:
             bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
         };
 
-        class Vulkan_Compiler : public Compiler
+        class VULKAN_Compiler : public Compiler
         {
-            declare_class(Vulkan_Compiler, Compiler);
+            declare_class(VULKAN_Compiler, Compiler);
 
         public:
             bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
         };
 
-        class None_Compiler : public Compiler
+        class NONE_Compiler : public Compiler
         {
-            declare_class(None_Compiler, Compiler);
+            declare_class(NONE_Compiler, Compiler);
+
+        public:
+            bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;
+        };
+
+        class D3D11_Compiler : public Compiler
+        {
+            declare_class(D3D11_Compiler, Compiler);
 
         public:
             bool compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors) override;

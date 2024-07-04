@@ -145,20 +145,18 @@ namespace Engine
 
     enum class BlendFunc : EnumerateType
     {
-        Zero                  = 0,
-        One                   = 1,
-        SrcColor              = 2,
-        OneMinusSrcColor      = 3,
-        DstColor              = 4,
-        OneMinusDstColor      = 5,
-        SrcAlpha              = 6,
-        OneMinusSrcAlpha      = 7,
-        DstAlpha              = 8,
-        OneMinusDstAlpha      = 9,
-        ConstantColor         = 10,
-        OneMinusConstantColor = 11,
-        ConstantAlpha         = 12,
-        OneMinusConstantAlpha = 13,
+        Zero                = 0,
+        One                 = 1,
+        SrcColor            = 2,
+        OneMinusSrcColor    = 3,
+        DstColor            = 4,
+        OneMinusDstColor    = 5,
+        SrcAlpha            = 6,
+        OneMinusSrcAlpha    = 7,
+        DstAlpha            = 8,
+        OneMinusDstAlpha    = 9,
+        BlendFactor         = 10,
+        OneMinusBlendFactor = 11,
     };
 
     enum class BlendOp : EnumerateType
@@ -181,17 +179,11 @@ namespace Engine
 
     enum class PrimitiveTopology : EnumerateType
     {
-        TriangleList               = 0,
-        PointList                  = 1,
-        LineList                   = 2,
-        LineStrip                  = 3,
-        TriangleStrip              = 4,
-        TriangleFan                = 5,
-        LineListWithAdjacency      = 6,
-        LineStripWithAdjacency     = 7,
-        TriangleListWithAdjacency  = 8,
-        TriangleStripWithAdjacency = 9,
-        PatchList                  = 10,
+        TriangleList  = 0,
+        TriangleStrip = 1,
+        LineList      = 2,
+        LineStrip     = 3,
+        PointList     = 4,
     };
 
     enum class PolygonMode : EnumerateType
@@ -203,36 +195,15 @@ namespace Engine
 
     enum class CullMode : EnumerateType
     {
-        None         = 0,
-        Front        = 1,
-        Back         = 2,
-        FrontAndBack = 3,
+        None  = 0,
+        Front = 1,
+        Back  = 2,
     };
 
     enum class FrontFace : EnumerateType
     {
         ClockWise        = 0,
         CounterClockWise = 1,
-    };
-
-    enum class LogicOp : EnumerateType
-    {
-        Clear        = 0,
-        And          = 1,
-        AndReverse   = 2,
-        Copy         = 3,
-        AndInverted  = 4,
-        NoOp         = 5,
-        Xor          = 6,
-        Or           = 7,
-        Nor          = 8,
-        Equivalent   = 9,
-        Invert       = 10,
-        OrReverse    = 11,
-        CopyInverted = 12,
-        OrInverted   = 13,
-        Nand         = 14,
-        Set          = 15,
     };
 
     enum class WindowAttribute : EnumerateType

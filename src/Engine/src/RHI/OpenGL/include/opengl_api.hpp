@@ -9,21 +9,30 @@
 
 namespace Engine
 {
+    struct OpenGL_State {
+        struct VertexBufferSlot {
+            struct OpenGL_VertexBuffer* vertex_buffer = nullptr;
+            size_t offset                             = 0;
+            bool is_binded                            = false;
+        };
+
+        ViewPort viewport                         = {};
+        struct OpenGL_RenderTarget* render_target = nullptr;
+        struct OpenGL_Pipeline* pipeline          = nullptr;
+        VertexBufferSlot vertex_buffers[OPENGL_MAX_VERTEX_SLOTS]{};
+        struct OpenGL_IndexBuffer* index_buffer = nullptr;
+    };
+
     struct OpenGL : public RHI {
         static OpenGL* m_instance;
         void* m_context = nullptr;
 
-        // STATE
-        struct OpenGL_Pipeline* m_current_pipeline        = nullptr;
-        struct OpenGL_IndexBuffer* m_current_index_buffer = nullptr;
-        Vector<BindingIndex> m_sampler_units;
-
+        Vector<BindingIndex> m_sampler_units;// TODO: Maybe we can remove this variable?
         Vector<GlobalShaderParameters> m_global_parameters_stack;
         struct OpenGL_UniformBuffer* m_global_ubo     = nullptr;
         struct OpenGL_LocalUniformBuffer* m_local_ubo = nullptr;
-        struct OpenGL_RenderTarget* m_render_target   = nullptr;
-        ViewPort m_viewport;
 
+        OpenGL_State m_state;
 
         OpenGL();
         OpenGL& initialize(Window* window) override;

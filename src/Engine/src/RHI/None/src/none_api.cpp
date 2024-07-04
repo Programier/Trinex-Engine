@@ -57,7 +57,7 @@ namespace Engine
     };
 
     struct NoneVertexBuffer : public NoneBuffer<RHI_VertexBuffer> {
-        void bind(byte stream_index, size_t offset) override
+        void bind(byte stream_index, size_t stride, size_t offset) override
         {}
     };
 

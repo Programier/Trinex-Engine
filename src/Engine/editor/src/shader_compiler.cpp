@@ -693,22 +693,6 @@ namespace Engine::ShaderCompiler
             static constexpr int count = sizeof(arguments) / sizeof(const char*);
             request->processCommandLineArguments(arguments, count);// TODO: Maybe it can be optimized to avoid parsing arguments?
         }
-
-        static slang::CompilerOptionEntry create_entry(slang::CompilerOptionName name, bool value)
-        {
-            slang::CompilerOptionEntry entry;
-            entry.name            = name;
-            entry.value.intValue0 = value ? 1 : 0;
-            return entry;
-        }
-
-        static Vector<slang::CompilerOptionEntry>& compile_entries()
-        {
-            static Vector<slang::CompilerOptionEntry> entries = {
-                    create_entry(slang::CompilerOptionName::EmitSpirvDirectly, true),
-            };
-            return entries;
-        }
     };
 
     static ShaderSource create_vulkan_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
@@ -739,11 +723,28 @@ namespace Engine::ShaderCompiler
         return create_opengles_shader(slang_source, definitions, errors);
     }
 
-    implement_class_default_init(Engine::ShaderCompiler, OpenGL_Compiler, 0);
-    implement_class_default_init(Engine::ShaderCompiler, Vulkan_Compiler, 0);
-    implement_class_default_init(Engine::ShaderCompiler, None_Compiler, 0);
+    struct D3D11RequestSetup : RequestSetupInterface {
+        void setup(SlangCompileRequest* request) const override
+        {
+            request->setCodeGenTarget(SLANG_DXBC);
+            request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
+            request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_HIGH);
+        }
+    };
 
-    bool OpenGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    static ShaderSource create_d3d11_shader(const String& slang_source, const Vector<ShaderDefinition>& definitions,
+                                            MessageList& errors)
+    {
+        static D3D11RequestSetup setup;
+        return compile_shader(slang_source, definitions, errors, &setup);
+    }
+
+    implement_class_default_init(Engine::ShaderCompiler, OPENGL_Compiler, 0);
+    implement_class_default_init(Engine::ShaderCompiler, VULKAN_Compiler, 0);
+    implement_class_default_init(Engine::ShaderCompiler, NONE_Compiler, 0);
+    implement_class_default_init(Engine::ShaderCompiler, D3D11_Compiler, 0);
+
+    bool OPENGL_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
         auto source = create_opengl_shader(slang_source, material->compile_definitions, errors);
 
@@ -755,7 +756,7 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool Vulkan_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    bool VULKAN_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
         auto source = create_vulkan_shader(slang_source, material->compile_definitions, errors);
 
@@ -767,9 +768,22 @@ namespace Engine::ShaderCompiler
         return false;
     }
 
-    bool None_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    bool NONE_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
     {
         return false;
-    }}// namespace Engine::ShaderCompiler
+    }
+
+    bool D3D11_Compiler::compile(Material* material, const String& slang_source, ShaderSource& out_source, MessageList& errors)
+    {
+        auto source = create_d3d11_shader(slang_source, material->compile_definitions, errors);
+
+        if (errors.empty())
+        {
+            out_source = std::move(source);
+            return true;
+        }
+        return false;
+    }
+}// namespace Engine::ShaderCompiler
 
 #endif

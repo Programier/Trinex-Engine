@@ -20,11 +20,19 @@ namespace Engine
         glBufferData(GL_ARRAY_BUFFER, size, data, gl_type);
     }
 
-    void OpenGL_VertexBuffer::bind(byte stream_index, size_t offset)
+    void OpenGL_VertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
     {
-        OpenGL_Pipeline* pipeline = OPENGL_API->m_current_pipeline;
+        trinex_always_check(stream_index < OPENGL_MAX_VERTEX_SLOTS, "Invalid slot index");
+        OPENGL_API->m_state.vertex_buffers[stream_index].vertex_buffer = this;
+        OPENGL_API->m_state.vertex_buffers[stream_index].is_binded     = false;
+        OPENGL_API->m_state.vertex_buffers[stream_index].offset        = offset;
+    }
 
-        if (pipeline && static_cast<size_t>(stream_index) < pipeline->m_vertex_input.size())
+    void OpenGL_VertexBuffer::bind_internal(byte stream_index, size_t offset)
+    {
+        OpenGL_Pipeline* pipeline = OPENGL_API->m_state.pipeline;
+
+        if (static_cast<size_t>(stream_index) < pipeline->m_vertex_input.size())
         {
             glBindBuffer(GL_ARRAY_BUFFER, m_id);
             auto& info = pipeline->m_vertex_input[stream_index];
@@ -56,17 +64,17 @@ namespace Engine
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 
-        if (OPENGL_API->m_current_index_buffer)
+        if (OPENGL_API->m_state.index_buffer)
         {
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_current_index_buffer->m_id);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_state.index_buffer->m_id);
         }
     }
 
     void OpenGL_IndexBuffer::bind(size_t offset)
     {
-        if (OPENGL_API->m_current_index_buffer != this)
+        if (OPENGL_API->m_state.index_buffer != this)
         {
-            OPENGL_API->m_current_index_buffer = this;
+            OPENGL_API->m_state.index_buffer = this;
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
         }
     }
@@ -76,8 +84,8 @@ namespace Engine
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
         glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, reinterpret_cast<const void*>(data));
 
-        if (OPENGL_API->m_current_index_buffer != nullptr && OPENGL_API->m_current_index_buffer != this)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_current_index_buffer->m_id);
+        if (OPENGL_API->m_state.index_buffer != nullptr && OPENGL_API->m_state.index_buffer != this)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, OPENGL_API->m_state.index_buffer->m_id);
         else
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }

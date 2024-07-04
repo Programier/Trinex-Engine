@@ -55,7 +55,7 @@ namespace Engine
 
         struct ALIGNED(4) ColorBlendingInfo {
             bool enable          = false;
-            bool logic_op_enable = false;
+
 
             BlendFunc src_color_func      = BlendFunc::SrcAlpha;
             BlendFunc dst_color_func      = BlendFunc::OneMinusSrcAlpha;
@@ -64,8 +64,6 @@ namespace Engine
             BlendFunc dst_alpha_func      = BlendFunc::Zero;
             BlendOp alpha_op              = BlendOp::Add;
             ColorComponentMask color_mask = ColorComponentMask::RGBA;
-
-            LogicOp logic_op = LogicOp::Copy;
         } ALIGNED(4) color_blending;
 
         TreeMap<Name, MaterialParameterInfo> parameters;
@@ -92,8 +90,6 @@ namespace Engine
         }
 
     public:
-
-
         Pipeline();
         ~Pipeline();
         Pipeline& rhi_create() override;
