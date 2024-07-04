@@ -127,9 +127,7 @@ namespace Engine
     D3D11& D3D11::imgui_render(ImGuiContext* context, ImDrawData* data)
     {
         ImGui::SetCurrentContext(context);
-        printf("BEGIN RENDER IMGUI!\n");
         ImGui_ImplDX11_RenderDrawData(data);
-        printf("RENDER SUCCESS!\n");
         return *this;
     }
 

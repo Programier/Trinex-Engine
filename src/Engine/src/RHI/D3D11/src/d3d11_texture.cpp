@@ -72,8 +72,6 @@ namespace Engine
         desc.CPUAccessFlags     = 0;
         desc.MiscFlags          = 0;
 
-        printf("FUCKED IMAGE: %d -> %d\n", desc.Width, desc.Height);
-
         Vector<D3D11_SUBRESOURCE_DATA> sub_resource_data;
         sub_resource_data.resize(texture->mipmap_count());
 
