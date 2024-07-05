@@ -313,6 +313,8 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
                 ctx->PSSetShaderResources(0, 1, &texture_srv);
                 ctx->PSSetSamplers(0, 1, &sampler_state);
                 ctx->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
+
+                next_texture = nullptr;
             }
         }
         global_idx_offset += cmd_list->IdxBuffer.Size;

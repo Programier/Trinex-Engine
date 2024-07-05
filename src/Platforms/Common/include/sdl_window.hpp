@@ -68,6 +68,7 @@ namespace Engine
         WindowSDL& imgui_new_frame() override;
         void initialize_imgui_opengl();
         void initialize_imgui_vulkan();
+        void initialize_imgui_d3d();
 
         ~WindowSDL();
     };

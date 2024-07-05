@@ -19,7 +19,7 @@ namespace Engine
 
     DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
     {
-        //viewport->window()->imgui_initialize();
+        viewport->window()->imgui_initialize();
         return *this;
     }
 
@@ -34,19 +34,20 @@ namespace Engine
         m_vertex_buffer->rhi_bind(0);
         rhi->draw(6, 0);
 
-        //viewport->window()->imgui_window()->render();
+        viewport->window()->imgui_window()->render();
         return *this;
     }
 
     DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
     {
-        // auto* window = viewport->window()->imgui_window();
-        // window->new_frame();
-        // ImGui::Begin("Hello World");
-        // static Vector4D color = {1, 1, 1, 1};
-        // ImGui::ColorEdit4("Color", &color.x);
-        // ImGui::End();
-        // window->end_frame();
+        auto* window = viewport->window()->imgui_window();
+        window->new_frame();
+        ImGui::Begin("Hello World");
+        static Vector4D color = {1, 1, 1, 1};
+        ImGui::ColorEdit4("Color", &color.x);
+        ImGui::Image(DefaultResources::default_texture, {100, 100}),
+        ImGui::End();
+        window->end_frame();
 
         return *this;
     }

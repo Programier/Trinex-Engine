@@ -524,22 +524,28 @@ namespace Engine
         ImGui_ImplSDL2_InitForVulkan(m_window);
     }
 
+    void WindowSDL::initialize_imgui_d3d()
+    {
+        ImGui_ImplSDL2_InitForD3D(m_window);
+    }
+
     WindowSDL& WindowSDL::imgui_initialize_internal()
     {
         SDL_SetWindowData(m_window, "trinex_imgui_context", ImGui::GetCurrentContext());
 
-        switch (m_api)
+        const Name name = rhi->info.struct_instance->base_name();
+
+        if (name == "OPENGL")
         {
-            case SDL_WINDOW_OPENGL:
-                initialize_imgui_opengl();
-                break;
-
-            case SDL_WINDOW_VULKAN:
-                initialize_imgui_vulkan();
-                break;
-
-            default:
-                break;
+            initialize_imgui_opengl();
+        }
+        else if (name == "VULKAN")
+        {
+            initialize_imgui_vulkan();
+        }
+        else if (name == "D3D11")
+        {
+            initialize_imgui_d3d();
         }
         return *this;
     }
