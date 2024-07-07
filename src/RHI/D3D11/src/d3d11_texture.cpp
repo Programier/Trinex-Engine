@@ -66,7 +66,7 @@ namespace Engine
         desc.SampleDesc.Count   = 1;
         desc.SampleDesc.Quality = 0;
         desc.Usage              = D3D11_USAGE_DEFAULT;
-        desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
+        desc.BindFlags          = desc.Format != DXGI_FORMAT_D24_UNORM_S8_UINT ? D3D11_BIND_SHADER_RESOURCE : 0;
         desc.CPUAccessFlags     = 0;
         desc.MiscFlags          = 0;
 
@@ -91,6 +91,13 @@ namespace Engine
             D3D11_SUBRESOURCE_DATA& data = sub_resource_data[i];
             const auto& mip              = texture->mip(i);
             data.pSysMem                 = mip->data.data();
+
+            if(data.pSysMem == nullptr)
+            {
+                sub_resource_data.erase(sub_resource_data.begin() + i, sub_resource_data.end());
+                break;
+            }
+
             data.SysMemSlicePitch        = 0;
             data.SysMemPitch             = static_cast<UINT>(mip->size.x) * format_block_size(desc.Format);
         }
@@ -105,17 +112,20 @@ namespace Engine
         }
 
 
-        D3D11_SHADER_RESOURCE_VIEW_DESC view_desc{};
-        view_desc.Format                    = desc.Format;
-        view_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-        view_desc.Texture2D.MostDetailedMip = 0;
-        view_desc.Texture2D.MipLevels       = desc.MipLevels;
-
-        hr = DXAPI->m_device->CreateShaderResourceView(m_texture, &view_desc, &m_view);
-        if (hr != S_OK)
+        if(desc.Format != DXGI_FORMAT_D24_UNORM_S8_UINT)
         {
-            error_log("D3D11", "Failed to texture view!");
-            return false;
+            D3D11_SHADER_RESOURCE_VIEW_DESC view_desc{};
+            view_desc.Format                    = desc.Format;
+            view_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+            view_desc.Texture2D.MostDetailedMip = 0;
+            view_desc.Texture2D.MipLevels       = desc.MipLevels;
+
+            hr = DXAPI->m_device->CreateShaderResourceView(m_texture, &view_desc, &m_view);
+            if (hr != S_OK)
+            {
+                error_log("D3D11", "Failed to texture view!");
+                return false;
+            }
         }
 
         return true;

@@ -16,7 +16,7 @@ namespace Engine
         desc.Usage             = D3D11_USAGE_DYNAMIC;
         desc.ByteWidth         = size;
         desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-        desc.CPUAccessFlags    = 0;
+        desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
 
         HRESULT hr = DXAPI->m_device->CreateBuffer(&desc, nullptr, &m_buffer);
 

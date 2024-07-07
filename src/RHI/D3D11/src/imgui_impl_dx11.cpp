@@ -309,7 +309,7 @@ void ImGui_ImplDX11_RenderDrawData(ImDrawData* draw_data)
                 }
 
                 ID3D11ShaderResourceView* texture_srv = next_texture.texture->rhi_object<Engine::D3D11_Texture2D>()->m_view;
-                ID3D11SamplerState* sampler_state = next_texture.texture->rhi_object<Engine::D3D11_Sampler>()->m_sampler;
+                ID3D11SamplerState* sampler_state = next_texture.sampler->rhi_object<Engine::D3D11_Sampler>()->m_sampler;
                 ctx->PSSetShaderResources(0, 1, &texture_srv);
                 ctx->PSSetSamplers(0, 1, &sampler_state);
                 ctx->DrawIndexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
@@ -359,7 +359,12 @@ static void ImGui_ImplDX11_CreateFontsTexture()
     package->add_object(bd->FontTexture.texture);
 
     bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Sampler>>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+
     bd->FontTexture.sampler->filter = Engine::SamplerFilter::Trilinear;
+    bd->FontTexture.sampler->compare_func = Engine::CompareFunc::Always;
+    bd->FontTexture.sampler->min_lod = 0.f;
+    bd->FontTexture.sampler->max_lod = 0.f;
+    bd->FontTexture.sampler->mip_lod_bias = 0.f;
     bd->FontTexture.sampler->rhi_create();
     bd->FontTexture.sampler->flags(Engine::Object::IsAvailableForGC, false);
     package->add_object(bd->FontTexture.sampler);
@@ -456,8 +461,8 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
                     float4 col : COLOR0;\
                     float2 uv  : TEXCOORD0;\
         };\
-                sampler sampler0;\
-                Texture2D texture0;\
+                sampler sampler0 : register(s0);\
+                Texture2D texture0 : register(t0);\
             \
                 float4 main(PS_INPUT input) : SV_Target\
         {\
@@ -465,7 +470,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
                     return out_col; \
         }";
 
-                ID3DBlob* pixelShaderBlob;
+        ID3DBlob* pixelShaderBlob;
         if (FAILED(D3DCompile(pixelShader, strlen(pixelShader), nullptr, nullptr, nullptr, "main", "ps_4_0", 0, 0, &pixelShaderBlob, nullptr)))
             return false; // NB: Pass ID3DBlob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
         if (bd->pd3dDevice->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), nullptr, &bd->pPixelShader) != S_OK)

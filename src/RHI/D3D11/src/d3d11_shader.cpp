@@ -79,7 +79,7 @@ namespace Engine
             desc.AlignedByteOffset    = 0;
             desc.InputSlotClass       = attribute.rate == VertexAttributeInputRate::Vertex ? D3D11_INPUT_PER_VERTEX_DATA
                                                                                            : D3D11_INPUT_PER_INSTANCE_DATA;
-            desc.InstanceDataStepRate = attribute.rate == VertexAttributeInputRate::Vertex ? 1 : 0;
+            desc.InstanceDataStepRate = attribute.rate == VertexAttributeInputRate::Vertex ? 0 : 1;
             inputs.emplace_back(desc);
 
             ++slot_index;

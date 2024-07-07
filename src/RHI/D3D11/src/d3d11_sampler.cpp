@@ -7,11 +7,16 @@
 
 namespace Engine
 {
+    static FORCE_INLINE bool is_comparison_mode(CompareFunc func)
+    {
+        return func != CompareFunc::Never && func != CompareFunc::Always;
+    }
+
     bool D3D11_Sampler::init(const Sampler* sampler)
     {
         D3D11_SAMPLER_DESC desc{};
 
-        desc.Filter         = filter_of(sampler->filter, sampler->compare_func != CompareFunc::Never);
+        desc.Filter         = filter_of(sampler->filter, is_comparison_mode(sampler->compare_func));
         desc.AddressU       = address_mode_of(sampler->address_u);
         desc.AddressV       = address_mode_of(sampler->address_v);
         desc.AddressW       = address_mode_of(sampler->address_w);
@@ -23,6 +28,7 @@ namespace Engine
         desc.BorderColor[2] = sampler->border_color.b;
         desc.BorderColor[3] = sampler->border_color.a;
         desc.MinLOD         = sampler->min_lod;
+        desc.MaxLOD         = sampler->max_lod;
 
         return DXAPI->m_device->CreateSamplerState(&desc, &m_sampler) == S_OK;
     }

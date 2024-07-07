@@ -4,7 +4,7 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
-#include <SDL2/SDL_gamecontroller.h>
+#include <SDL_gamecontroller.h>
 #include <Window/config.hpp>
 #include <Window/monitor.hpp>
 #include <Window/window.hpp>

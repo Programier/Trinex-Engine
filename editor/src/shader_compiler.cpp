@@ -742,6 +742,8 @@ namespace Engine::ShaderCompiler
             request->setCodeGenTarget(SLANG_DXBC);
             request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
             request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_HIGH);
+            auto profile  = global_session()->findProfile("sm_5_0");
+            request->setTargetProfile(0, profile);
         }
     };
 

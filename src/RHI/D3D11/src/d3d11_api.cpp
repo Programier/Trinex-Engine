@@ -2,8 +2,8 @@
 #include <Core/logger.hpp>
 #include <Core/string_functions.hpp>
 #include <Core/struct.hpp>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
+#include <SDL.h>
+#include <SDL_syswm.h>
 #include <d3d11_api.hpp>
 #include <d3d9.h>
 #include <imgui_impl_dx11.h>
