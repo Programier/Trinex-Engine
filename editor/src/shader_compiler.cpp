@@ -237,18 +237,29 @@ namespace Engine::ShaderCompiler
         return MaterialParameterTypeLayout(scalar, rows, colums, elements, true, 0).as_value<MaterialParameterType>();
     }
 
-    static bool has_global_ubo(slang::ShaderReflection* reflection)
+    static BindLocation find_global_ubo_location(slang::ShaderReflection* reflection)
     {
         auto count = reflection->getParameterCount();
         for (uint_t i = 0; i < count; i++)
         {
-            auto ell = reflection->getParameterByIndex(i);
-            if (std::strcmp("globals", ell->getName()) == 0)
+            auto parameter = reflection->getParameterByIndex(i);
+
+            if (parameter == nullptr)
+                continue;
+
+            auto type = parameter->getType();
+            if (type->getKind() != slang::TypeReflection::Kind::ConstantBuffer)
+                continue;
+
+            StringView struct_name = Strings::make_string_view(type->getElementType()->getName());
+            StringView var_name    = Strings::make_string_view(parameter->getName());
+
+            if (var_name == "globals" && struct_name == "GlobalParameters")
             {
-                return true;
+                return parameter->getBindingIndex();
             }
         }
-        return false;
+        return {};
     }
 
     static void parse_shader_parameter(ShaderReflection& out_reflection, const Function<void(const char*)>& print_error,
@@ -327,11 +338,14 @@ namespace Engine::ShaderCompiler
     {
         out_reflection.clear();
 
-
-        if (has_global_ubo(reflection))
         {
-            out_reflection.global_parameters_info.bind_index(0);
+            BindLocation location = find_global_ubo_location(reflection);
+            if (location.is_valid())
+            {
+                out_reflection.global_parameters_info.bind_index(location.binding);
+            }
         }
+
 
         if (reflection->getGlobalConstantBufferSize() > 0)
         {

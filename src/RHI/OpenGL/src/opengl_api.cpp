@@ -188,11 +188,6 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::wait_idle()
-    {
-        return *this;
-    }
-
     void OpenGL::push_debug_stage(const char* stage, const Color& color)
     {
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, stage);

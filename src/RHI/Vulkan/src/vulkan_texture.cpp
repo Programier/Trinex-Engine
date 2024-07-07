@@ -393,12 +393,12 @@ namespace Engine
 
     RHI_Texture* VulkanAPI::create_texture_2d(const Texture2D* texture)
     {
-        if (texture->class_instance()->is_a<RenderSurface>())
-        {
-            return &(new VulkanSurface())->create(texture);
-        }
-
         return &(new VulkanTexture2D())->create(texture);
+    }
+
+    RHI_Texture* VulkanAPI::create_render_surface(const RenderSurface* surface)
+    {
+        return &(new VulkanSurface())->create(surface);
     }
 }// namespace Engine
 

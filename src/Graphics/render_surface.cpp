@@ -15,6 +15,12 @@ namespace Engine
         flags(IsEditable, false);
     }
 
+    RenderSurface& RenderSurface::rhi_create()
+    {
+        m_rhi_object.reset(rhi->create_render_surface(this));
+        return *this;
+    }
+
     RenderSurface& RenderSurface::clear_color(const Color& color)
     {
         if (has_object() &&

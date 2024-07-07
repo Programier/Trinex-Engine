@@ -38,7 +38,7 @@ namespace Engine
         hr = m_swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**) &m_back_buffer);
         trinex_always_check(hr == S_OK, "Failed to create backbuffer");
 
-        m_view = DXAPI->create_render_target_view(m_back_buffer);
+        m_view = DXAPI->create_render_target_view(m_back_buffer, DXGI_FORMAT_R8G8B8A8_UNORM);
         m_size = size;
     }
 
@@ -76,7 +76,7 @@ namespace Engine
             HRESULT result = m_swap_chain->ResizeBuffers(1, static_cast<uint_t>(new_size.x), static_cast<uint_t>(new_size.y),
                                                          DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
             trinex_always_check(result == S_OK, "Failed to resize swapchain");
-            m_view = DXAPI->create_render_target_view(m_back_buffer);
+            m_view = DXAPI->create_render_target_view(m_back_buffer, DXGI_FORMAT_R8G8B8A8_UNORM);
         }
     }
 

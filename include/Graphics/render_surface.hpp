@@ -11,6 +11,7 @@ namespace Engine
     public:
         RenderSurface();
 
+        RenderSurface& rhi_create() override;
         RenderSurface& clear_color(const Color& color);
         RenderSurface& clear_depth_stencil(float depth, byte stencil);
     };

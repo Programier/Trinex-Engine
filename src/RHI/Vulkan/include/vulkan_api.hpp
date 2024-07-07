@@ -41,7 +41,7 @@ namespace Engine
         Vector<VulkanUniformBuffer*> m_uniform_buffer;
         List<Garbage> m_garbage;
 
-        Window* m_window  = nullptr;
+        Window* m_window = nullptr;
 
         struct {
             PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT = nullptr;
@@ -113,7 +113,7 @@ namespace Engine
 
         VulkanAPI& begin_render() override;
         VulkanAPI& end_render() override;
-        VulkanAPI& wait_idle() override;
+        VulkanAPI& wait_idle();
 
         void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
         void viewport_internal(const ViewPort& viewport, struct VulkanRenderTargetBase* rt);
@@ -139,6 +139,7 @@ namespace Engine
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
+        RHI_Texture* create_render_surface(const RenderSurface*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
         RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;

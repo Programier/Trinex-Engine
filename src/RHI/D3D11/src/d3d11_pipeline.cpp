@@ -96,6 +96,7 @@ namespace Engine
 
     bool D3D11_Pipeline::init(const class Pipeline* pipeline)
     {
+        m_engine_pipeline = pipeline;
         m_vertex_shader   = extract_shader<D3D11_VertexShader>(pipeline->vertex_shader());
         m_tsc_shader      = extract_shader<D3D11_TesselationControlShader>(pipeline->tessellation_control_shader());
         m_ts_shader       = extract_shader<D3D11_TesselationShader>(pipeline->tessellation_shader());

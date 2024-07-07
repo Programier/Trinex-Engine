@@ -10,6 +10,9 @@ namespace Engine
     {
         declare_class(DefaultClient, ViewportClient);
 
+        Vector4D color = {1.f, 0, 0, 0.f};
+        float factor   = 0.5;
+
     public:
         Pointer<TexCoordVertexBuffer> m_vertex_buffer;
         Pointer<Material> m_material;

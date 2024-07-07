@@ -128,4 +128,9 @@ namespace Engine
 
         return buffer;
     }
+
+    RHI_SSBO* D3D11::create_ssbo(size_t size, const byte* data, RHIBufferType type)
+    {
+        return NoneApi::create_ssbo(size, data, type);
+    }
 }// namespace Engine

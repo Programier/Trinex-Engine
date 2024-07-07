@@ -215,6 +215,38 @@ namespace Engine
         }
     }
 
+    /*
+        switch (format)
+        {
+            case ColorFormat::Undefined:
+                return vk::Format::eUndefined;
+            case ColorFormat::FloatR:
+                return vk::Format::eR32Sfloat;
+            case ColorFormat::FloatRGBA:
+                return vk::Format::eR32G32B32A32Sfloat;
+            case ColorFormat::R8:
+                return vk::Format::eR8Unorm;
+            case ColorFormat::R8G8B8A8:
+                return vk::Format::eR8G8B8A8Unorm;
+            case ColorFormat::DepthStencil:
+                return vk::Format::eD32SfloatS8Uint;
+            case ColorFormat::ShadowDepth:
+                return vk::Format::eD32Sfloat;
+            case ColorFormat::FilteredShadowDepth:
+                return vk::Format::eD32Sfloat;
+            case ColorFormat::D32F:
+                return vk::Format::eD32Sfloat;
+            case ColorFormat::BC1:
+                return vk::Format::eBc1RgbaUnormBlock;
+            case ColorFormat::BC2:
+                return vk::Format::eBc2UnormBlock;
+            case ColorFormat::BC3:
+                return vk::Format::eBc3UnormBlock;
+
+            default:
+                return vk::Format::eUndefined;
+        }
+*/
     DXGI_FORMAT format_of(ColorFormat format)
     {
         switch (format)
@@ -222,19 +254,19 @@ namespace Engine
             case ColorFormat::FloatR:
                 return DXGI_FORMAT_R32_FLOAT;
             case ColorFormat::FloatRGBA:
-                return DXGI_FORMAT_R16G16B16A16_FLOAT;
+                return DXGI_FORMAT_R32G32B32A32_FLOAT;
             case ColorFormat::R8:
                 return DXGI_FORMAT_R8_UNORM;
             case ColorFormat::R8G8B8A8:
                 return DXGI_FORMAT_R8G8B8A8_UNORM;
             case ColorFormat::DepthStencil:
-                return DXGI_FORMAT_R32G8X24_TYPELESS;
+                return DXGI_FORMAT_D24_UNORM_S8_UINT;
             case ColorFormat::ShadowDepth:
-                return DXGI_FORMAT_R16_TYPELESS;
+                return DXGI_FORMAT_D32_FLOAT;
             case ColorFormat::FilteredShadowDepth:
                 return DXGI_FORMAT_D32_FLOAT;
             case ColorFormat::D32F:
-                return DXGI_FORMAT_R32_TYPELESS;
+                return DXGI_FORMAT_D32_FLOAT;
             case ColorFormat::BC1:
                 return DXGI_FORMAT_BC1_UNORM;
             case ColorFormat::BC2:

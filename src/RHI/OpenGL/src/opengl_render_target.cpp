@@ -70,8 +70,8 @@ namespace Engine
         return rt;
     }
 
-    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<OpenGL_Texture*>& color_attachments,
-                                                             OpenGL_Texture* depth_stencil)
+    OpenGL_RenderTarget* OpenGL_RenderTarget::find_or_create(const Span<OpenGL_RenderSurface*>& color_attachments,
+                                                             OpenGL_RenderSurface* depth_stencil)
     {
 
         HashIndex hash = 0;
@@ -107,7 +107,7 @@ namespace Engine
 
     template<typename T>
     static GLuint create_framebuffer(OpenGL_RenderTarget* self, const Span<T*>& color_attachments, T* depth_stencil,
-                                     OpenGL_Texture* (*callback)(T*) )
+                                     OpenGL_RenderSurface* (*callback)(T*) )
     {
         GLuint m_framebuffer = 0;
         glGenFramebuffers(1, &m_framebuffer);
@@ -143,19 +143,20 @@ namespace Engine
     {
         m_framebuffer = create_framebuffer<RenderSurface>(
                 this, color_attachments, depth_stencil,
-                [](RenderSurface* texture) -> OpenGL_Texture* { return texture->rhi_object<OpenGL_Texture>(); });
+                [](RenderSurface* texture) -> OpenGL_RenderSurface* { return texture->rhi_object<OpenGL_RenderSurface>(); });
         return *this;
     }
 
-    OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<struct OpenGL_Texture*>& color_attachments,
-                                                   struct OpenGL_Texture* depth_stencil)
+    OpenGL_RenderTarget& OpenGL_RenderTarget::init(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+                                                   struct OpenGL_RenderSurface* depth_stencil)
     {
-        m_framebuffer = create_framebuffer<OpenGL_Texture>(this, color_attachments, depth_stencil,
-                                                           [](OpenGL_Texture* texture) -> OpenGL_Texture* { return texture; });
+        m_framebuffer = create_framebuffer<OpenGL_RenderSurface>(
+                this, color_attachments, depth_stencil,
+                [](OpenGL_RenderSurface* texture) -> OpenGL_RenderSurface* { return texture; });
         return *this;
     }
 
-    OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const OpenGL_Texture* texture, GLuint attachment)
+    OpenGL_RenderTarget& OpenGL_RenderTarget::attach_texture(const OpenGL_RenderSurface* texture, GLuint attachment)
     {
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, texture->m_type, texture->m_id, 0);
 
@@ -186,7 +187,7 @@ namespace Engine
         }
 
         m_textures.push_back(texture);
-        texture->m_surface_state->m_render_targets.insert(this);
+        texture->m_render_targets.insert(this);
         return *this;
     }
 
@@ -199,7 +200,7 @@ namespace Engine
 
         for (auto& surface : m_textures)
         {
-            surface->m_surface_state->m_render_targets.erase(this);
+            surface->m_render_targets.erase(this);
         }
 
         m_render_targets.erase(m_index);
@@ -225,7 +226,7 @@ namespace Engine
         rt->bind();
     }
 
-    void OpenGL::bind_render_target(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil)
+    void OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments, struct OpenGL_RenderSurface* depth_stencil)
     {
         auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
         rt->bind();

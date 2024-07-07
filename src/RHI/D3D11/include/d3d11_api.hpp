@@ -1,8 +1,8 @@
 #pragma once
 
 #include <d3d11.h>
+#include <d3d11_uniform_buffer.hpp>
 #include <none_api.hpp>
-
 
 namespace Engine
 {
@@ -38,27 +38,49 @@ namespace Engine
 
         D3D_FEATURE_LEVEL m_feature_level = D3D_FEATURE_LEVEL_11_0;
 
+        D3D11_GlobalUniforms m_global_uniform_buffer;
+        D3D11_LocalUniforms m_local_unifor_buffer;
+
         D3D11();
-        ID3D11RenderTargetView* create_render_target_view(ID3D11Texture2D* buffer);
+
+        ID3D11RenderTargetView* create_render_target_view(ID3D11Texture2D* buffer, DXGI_FORMAT format);
+        ID3D11DepthStencilView* create_depth_stencil_view(ID3D11Texture2D* buffer, DXGI_FORMAT format);
+
+        D3D11& push_global_params(const GlobalShaderParameters& params) override;
+        D3D11& pop_global_params() override;
+        D3D11& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
         D3D11& initialize(Window* window) override;
         void* context() override;
+        D3D11& destroy_object(RHI_Object* object) override;
+        D3D11& begin_render() override;
+        D3D11& end_render() override;
+
         RHI_Viewport* create_viewport(RenderViewport* viewport) override;
         void viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
+
+        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 
         D3D11& imgui_init(ImGuiContext*) override;
         D3D11& imgui_terminate(ImGuiContext*) override;
         D3D11& imgui_new_frame(ImGuiContext*) override;
         D3D11& imgui_render(ImGuiContext*, ImDrawData*) override;
 
+        D3D11& prepare_draw();
         D3D11& draw(size_t vertex_count, size_t vertices_offset) override;
+        D3D11& draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset) override;
+        D3D11& draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances) override;
+        D3D11& draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
+                                      size_t instances) override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
+        RHI_Texture* create_render_surface(const RenderSurface* surface) override;
 
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
         RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIBufferType type) override;
+        RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;

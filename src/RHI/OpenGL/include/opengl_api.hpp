@@ -53,16 +53,16 @@ namespace Engine
         OpenGL& destroy_object(RHI_Object* object) override;
         OpenGL& begin_render() override;
         OpenGL& end_render() override;
-        OpenGL& wait_idle() override;
         OpenGL& reset_state();
 
         void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-        void bind_render_target(const Span<struct OpenGL_Texture*>& color_attachments, struct OpenGL_Texture* depth_stencil);
+        void bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments, struct OpenGL_RenderSurface* depth_stencil);
         void viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
+        RHI_Texture* create_render_surface(const RenderSurface*) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;
         RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader) override;
         RHI_Shader* create_tesselation_shader(const TessellationShader* shader) override;

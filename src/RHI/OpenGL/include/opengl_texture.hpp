@@ -6,17 +6,11 @@
 
 namespace Engine
 {
-
-    struct OpenGL_SurfaceState {
-        Set<struct OpenGL_RenderTarget*> m_render_targets;
-    };
-
     struct OpenGL_Texture : public RHI_Texture {
         OpenGL_ColorInfo m_format;
         GLuint m_type = 0;
         GLuint m_id   = 0;
         Size2D m_size;
-        OpenGL_SurfaceState* m_surface_state = nullptr;
 
         void bind(BindLocation location) override;
         void bind_combined(RHI_Sampler* sampler, BindLocation location) override;
@@ -26,5 +20,13 @@ namespace Engine
         void clear_depth_stencil(float depth, byte stencil) override;
 
         ~OpenGL_Texture();
+    };
+
+    struct OpenGL_RenderSurface : public OpenGL_Texture {
+        mutable Set<struct OpenGL_RenderTarget*> m_render_targets;
+
+        void clear_color(const Color& color) override;
+        void clear_depth_stencil(float depth, byte stencil) override;
+        ~OpenGL_RenderSurface();
     };
 }// namespace Engine

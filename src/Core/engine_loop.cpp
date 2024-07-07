@@ -221,7 +221,6 @@ namespace Engine
 
         if (rhi)
         {
-            call_in_render_thread([]() { rhi->wait_idle(); });
             render_thread()->wait_all();
         }
 

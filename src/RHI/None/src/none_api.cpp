@@ -156,11 +156,6 @@ namespace Engine
         return *this;
     }
 
-    NoneApi& NoneApi::wait_idle()
-    {
-        return *this;
-    }
-
     void NoneApi::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {}
 
@@ -181,6 +176,11 @@ namespace Engine
     RHI_Texture* NoneApi::create_texture_2d(const Texture2D*)
     {
         return new NoneTexture();
+    }
+
+    RHI_Texture* NoneApi::create_render_surface(const RenderSurface* surface)
+    {
+        return create_texture_2d(nullptr);
     }
 
     RHI_Shader* NoneApi::create_vertex_shader(const VertexShader* shader)

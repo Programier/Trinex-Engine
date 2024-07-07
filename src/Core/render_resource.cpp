@@ -62,7 +62,7 @@ namespace Engine
         }
         else
         {
-            render_thread()->insert_new_task<InitRenderResourceTask>(this, m_rhi_object.get() != nullptr);
+            render_thread()->insert_new_task<InitRenderResourceTask>(this);
 
             if (wait_initialize)
             {
@@ -104,7 +104,7 @@ namespace Engine
         return *this;
     }
 
-    InitRenderResourceTask::InitRenderResourceTask(RenderResource* object, bool wait) : resource(object), wait(wait)
+    InitRenderResourceTask::InitRenderResourceTask(RenderResource* object) : resource(object)
     {
         if (object == nullptr)
         {
@@ -114,12 +114,7 @@ namespace Engine
 
     int_t InitRenderResourceTask::execute()
     {
-        if (wait)
-        {
-            rhi->wait_idle();
-        }
         resource->rhi_create();
-
         return sizeof(InitRenderResourceTask);
     }
 }// namespace Engine

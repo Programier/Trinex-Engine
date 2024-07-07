@@ -13,6 +13,8 @@ namespace Engine
     class D3D11_Pipeline : public RHI_Pipeline
     {
     public:
+        const Pipeline* m_engine_pipeline = nullptr;
+
         D3D11_VertexShader* m_vertex_shader          = nullptr;
         D3D11_TesselationControlShader* m_tsc_shader = nullptr;
         D3D11_TesselationShader* m_ts_shader         = nullptr;

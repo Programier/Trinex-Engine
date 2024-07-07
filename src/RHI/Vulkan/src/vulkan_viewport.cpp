@@ -366,6 +366,7 @@ namespace Engine
 
     VulkanWindowViewport::~VulkanWindowViewport()
     {
+        API->wait_idle();
         delete m_render_target;
         destroy_swapchain(true);
         vk::Instance(API->m_instance.instance).destroySurfaceKHR(m_surface);

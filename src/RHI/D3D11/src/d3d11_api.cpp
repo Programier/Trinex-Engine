@@ -60,6 +60,9 @@ namespace Engine
         result = D3D11CreateDevice(m_dxgi_adapter, driver_type, nullptr, device_flags, &max_feature_level, 1, D3D11_SDK_VERSION,
                                    &m_device, &m_feature_level, &m_context);
         trinex_always_check(result == S_OK, "Failed to create D3D11 Device");
+
+        m_global_uniform_buffer.initialize();
+        m_local_unifor_buffer.initialize();
         return *this;
     }
 
@@ -68,18 +71,48 @@ namespace Engine
         return m_context;
     }
 
-    ID3D11RenderTargetView* D3D11::create_render_target_view(ID3D11Texture2D* buffer)
+    D3D11& D3D11::destroy_object(RHI_Object* object)
     {
-        ID3D11RenderTargetView* back_buffer_render_target_view = nullptr;
+        delete object;
+        return *this;
+    }
+
+    D3D11& D3D11::begin_render()
+    {
+        return *this;
+    }
+
+    D3D11& D3D11::end_render()
+    {
+        return *this;
+    }
+
+    ID3D11RenderTargetView* D3D11::create_render_target_view(ID3D11Texture2D* buffer, DXGI_FORMAT format)
+    {
+        ID3D11RenderTargetView* render_target_view = nullptr;
         D3D11_RENDER_TARGET_VIEW_DESC rtv_desc;
 
-        rtv_desc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+        rtv_desc.Format             = format;
         rtv_desc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
         rtv_desc.Texture2D.MipSlice = 0;
 
-        HRESULT result = m_device->CreateRenderTargetView(buffer, &rtv_desc, &back_buffer_render_target_view);
+        HRESULT result = m_device->CreateRenderTargetView(buffer, &rtv_desc, &render_target_view);
         trinex_always_check(result == S_OK, "Failed to create render target view");
-        return back_buffer_render_target_view;
+        return render_target_view;
+    }
+
+    ID3D11DepthStencilView* D3D11::create_depth_stencil_view(ID3D11Texture2D* buffer, DXGI_FORMAT format)
+    {
+        ID3D11DepthStencilView* depth_stencil_view = nullptr;
+        D3D11_DEPTH_STENCIL_VIEW_DESC desc;
+
+        desc.Format             = format;
+        desc.ViewDimension      = D3D11_DSV_DIMENSION_TEXTURE2D;
+        desc.Texture2D.MipSlice = 0;
+
+        HRESULT result = m_device->CreateDepthStencilView(buffer, &desc, &depth_stencil_view);
+        trinex_always_check(result == S_OK, "Failed to create depth stencil view");
+        return depth_stencil_view;
     }
 
     void D3D11::viewport(const ViewPort& viewport)
@@ -131,9 +164,38 @@ namespace Engine
         return *this;
     }
 
+    D3D11& D3D11::prepare_draw()
+    {
+        m_global_uniform_buffer.bind();
+        m_local_unifor_buffer.bind();
+        return *this;
+    }
+
     D3D11& D3D11::draw(size_t vertex_count, size_t vertices_offset)
     {
+        prepare_draw();
         m_context->Draw(vertex_count, vertices_offset);
+        return *this;
+    }
+
+    D3D11& D3D11::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
+    {
+        prepare_draw();
+        m_context->DrawIndexed(indices_count, indices_offset, vertices_offset);
+        return *this;
+    }
+
+    D3D11& D3D11::draw_instanced(size_t vertex_count, size_t vertex_offset, size_t instances)
+    {
+        prepare_draw();
+        m_context->DrawInstanced(vertex_count, instances, vertex_offset, 0);
+        return *this;
+    }
+
+    D3D11& D3D11::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
+    {
+        prepare_draw();
+        m_context->DrawIndexedInstanced(indices_count, instances, indices_offset, vertices_offset, 0);
         return *this;
     }
 
@@ -157,6 +219,9 @@ namespace Engine
 
     D3D11::~D3D11()
     {
+        m_global_uniform_buffer.release();
+        m_local_unifor_buffer.release();
+
         d3d11_release(m_dxgi_adapter);
         d3d11_release(m_dxgi_adapter);
         d3d11_release(m_device);

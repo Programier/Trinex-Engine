@@ -66,9 +66,8 @@ namespace Engine
     struct ENGINE_EXPORT InitRenderResourceTask : public ExecutableObject {
     public:
         RenderResource* resource = nullptr;
-        bool wait                = false;
 
-        InitRenderResourceTask(RenderResource* object = nullptr, bool wait = false);
+        InitRenderResourceTask(RenderResource* object = nullptr);
         int_t execute() override;
     };
 }// namespace Engine

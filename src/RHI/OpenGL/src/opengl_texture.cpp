@@ -115,19 +115,28 @@ namespace Engine
         }
 
         glBindTexture(m_type, 0);
-
-        if (texture->class_instance()->is_a<RenderSurface>())
-        {
-            m_surface_state = new OpenGL_SurfaceState();
-        }
     }
 
 
     void OpenGL_Texture::clear_color(const Color& color)
+    {}
+
+    void OpenGL_Texture::clear_depth_stencil(float depth, byte stencil)
+    {}
+
+    OpenGL_Texture::~OpenGL_Texture()
+    {
+        if (m_id)
+        {
+            glDeleteTextures(1, &m_id);
+        }
+    }
+
+    void OpenGL_RenderSurface::clear_color(const Color& color)
     {
         if (!is_in<GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL>(m_format.m_format))
         {
-            OpenGL_Texture* texture[] = {this};
+            OpenGL_RenderSurface* texture[] = {this};
             OPENGL_API->bind_render_target(texture, nullptr);
             glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
             glClearColor(color.r, color.g, color.b, color.a);
@@ -135,7 +144,7 @@ namespace Engine
         }
     }
 
-    void OpenGL_Texture::clear_depth_stencil(float depth, byte stencil)
+    void OpenGL_RenderSurface::clear_depth_stencil(float depth, byte stencil)
     {
         if (is_in<GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL>(m_format.m_format))
         {
@@ -156,24 +165,12 @@ namespace Engine
         }
     }
 
-    OpenGL_Texture::~OpenGL_Texture()
+    OpenGL_RenderSurface::~OpenGL_RenderSurface()
     {
-        if (m_id)
+        while (!m_render_targets.empty())
         {
-            glDeleteTextures(1, &m_id);
-        }
-
-        if (m_surface_state)
-        {
-            auto& targets = m_surface_state->m_render_targets;
-            while (!targets.empty())
-            {
-                OpenGL_RenderTarget* target = *targets.begin();
-                delete target;
-            }
-
-            delete m_surface_state;
-            m_surface_state = nullptr;
+            OpenGL_RenderTarget* target = *m_render_targets.begin();
+            delete target;
         }
     }
 
@@ -181,6 +178,13 @@ namespace Engine
     {
         OpenGL_Texture* opengl_texture = new OpenGL_Texture();
         opengl_texture->init(texture);
+        return opengl_texture;
+    }
+
+    RHI_Texture* OpenGL::create_render_surface(const RenderSurface* surface)
+    {
+        OpenGL_RenderSurface* opengl_texture = new OpenGL_RenderSurface();
+        opengl_texture->init(surface);
         return opengl_texture;
     }
 }// namespace Engine

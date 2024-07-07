@@ -1,4 +1,5 @@
 #include <Core/logger.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <d3d11.h>
 #include <d3d11_api.hpp>
@@ -22,8 +23,8 @@ namespace Engine
             case DXGI_FORMAT_R32_FLOAT:
                 return sizeof(float);
 
-            case DXGI_FORMAT_R16G16B16A16_FLOAT:
-                return sizeof(float) * 2;
+            case DXGI_FORMAT_R32G32B32A32_FLOAT:
+                return sizeof(float) * 4;
 
             case DXGI_FORMAT_R8_UNORM:
                 return sizeof(uint8_t);
@@ -31,11 +32,8 @@ namespace Engine
             case DXGI_FORMAT_R8G8B8A8_UNORM:
                 return sizeof(uint8_t) * 4;
 
-            case DXGI_FORMAT_R32G8X24_TYPELESS:
-                return sizeof(float) + sizeof(uint32_t);
-
-            case DXGI_FORMAT_R16_TYPELESS:
-                return sizeof(uint16_t);
+            case DXGI_FORMAT_D24_UNORM_S8_UINT:
+                return 4;
 
             case DXGI_FORMAT_D32_FLOAT:
                 return sizeof(float);
@@ -57,7 +55,7 @@ namespace Engine
         }
     }
 
-    bool D3D11_Texture2D::init(const Texture2D* texture)
+    bool D3D11_Texture2D::init(const Texture2D* texture, bool is_render_surface)
     {
         D3D11_TEXTURE2D_DESC desc{};
         desc.Width              = static_cast<UINT>(texture->width());
@@ -71,6 +69,19 @@ namespace Engine
         desc.BindFlags          = D3D11_BIND_SHADER_RESOURCE;
         desc.CPUAccessFlags     = 0;
         desc.MiscFlags          = 0;
+
+        if (is_render_surface)
+        {
+            if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
+                        texture->format()))
+            {
+                desc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
+            }
+            else
+            {
+                desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
+            }
+        }
 
         Vector<D3D11_SUBRESOURCE_DATA> sub_resource_data;
         sub_resource_data.resize(texture->mipmap_count());
@@ -99,19 +110,6 @@ namespace Engine
         view_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
         view_desc.Texture2D.MostDetailedMip = 0;
         view_desc.Texture2D.MipLevels       = desc.MipLevels;
-
-        if (view_desc.Format == DXGI_FORMAT_R32_TYPELESS)
-        {
-            view_desc.Format = DXGI_FORMAT_R32_FLOAT;
-        }
-        else if (view_desc.Format == DXGI_FORMAT_R16_TYPELESS)
-        {
-            view_desc.Format = DXGI_FORMAT_R16_UNORM;
-        }
-        else if (view_desc.Format == DXGI_FORMAT_R32G8X24_TYPELESS)
-        {
-            view_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-        }
 
         hr = DXAPI->m_device->CreateShaderResourceView(m_texture, &view_desc, &m_view);
         if (hr != S_OK)
@@ -145,13 +143,68 @@ namespace Engine
     void D3D11_Texture2D::bind_combined(RHI_Sampler* sampler, BindLocation location)
     {
         bind(location);
-        //reinterpret_cast<D3D11_Sampler*>(sampler)->bind(location);
+        reinterpret_cast<D3D11_Sampler*>(sampler)->bind(location);
     }
 
     D3D11_Texture2D::~D3D11_Texture2D()
     {
         d3d11_release(m_view);
         d3d11_release(m_texture);
+    }
+
+    bool D3D11_RenderSurface::init(const RenderSurface* surface)
+    {
+        if (!D3D11_Texture2D::init(surface, true))
+        {
+            return false;
+        }
+
+        if (is_in<ColorFormat::DepthStencil, ColorFormat::D32F, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
+                    surface->format()))
+        {
+            m_depth_stencil_view = DXAPI->create_depth_stencil_view(m_texture, format_of(surface->format()));
+
+            if (m_depth_stencil_view == nullptr)
+            {
+                error_log("D3D11 Render Surface", "Failed ot create depth stencil view");
+                return false;
+            }
+        }
+        else
+        {
+            m_render_target = DXAPI->create_render_target_view(m_texture, format_of(surface->format()));
+
+            if (m_render_target == nullptr)
+            {
+                error_log("D3D11 Render Surface", "Failed ot create render target view");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void D3D11_RenderSurface::clear_color(const Color& color)
+    {
+        if (m_render_target)
+        {
+            DXAPI->m_context->ClearRenderTargetView(m_render_target, &color.x);
+        }
+    }
+
+    void D3D11_RenderSurface::clear_depth_stencil(float depth, byte stencil)
+    {
+        if (m_depth_stencil_view)
+        {
+            DXAPI->m_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth,
+                                                    stencil);
+        }
+    }
+
+    D3D11_RenderSurface::~D3D11_RenderSurface()
+    {
+        d3d11_release(m_render_target);
+        d3d11_release(m_depth_stencil_view);
     }
 
     RHI_Texture* D3D11::create_texture_2d(const Texture2D* texture)
@@ -165,6 +218,36 @@ namespace Engine
         }
 
         return d3d11_texture;
+    }
+
+    RHI_Texture* D3D11::create_render_surface(const RenderSurface* surface)
+    {
+        D3D11_RenderSurface* d3d11_surface = new D3D11_RenderSurface();
+
+        if (!d3d11_surface->init(surface))
+        {
+            delete d3d11_surface;
+            d3d11_surface = nullptr;
+        }
+
+        return d3d11_surface;
+    }
+
+    void D3D11::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    {
+        static ID3D11RenderTargetView* render_target_views[RHI_MAX_RT_BINDED];
+
+        size_t size = 0;
+
+        for (auto& surface : color_attachments)
+        {
+            render_target_views[size] = surface->rhi_object<D3D11_RenderSurface>()->m_render_target;
+            ++size;
+        }
+
+        m_context->OMSetRenderTargets(size, render_target_views,
+                                      depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view
+                                                    : nullptr);
     }
 
 }// namespace Engine

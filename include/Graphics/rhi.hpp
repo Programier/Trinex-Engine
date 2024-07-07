@@ -113,7 +113,6 @@ namespace Engine
 
         virtual RHI& begin_render() = 0;
         virtual RHI& end_render()   = 0;
-        virtual RHI& wait_idle()    = 0;
 
         virtual void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) = 0;
         virtual void viewport(const ViewPort& viewport)                                                              = 0;
@@ -121,6 +120,7 @@ namespace Engine
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                               = 0;
         virtual RHI_Texture* create_texture_2d(const Texture2D*)                                          = 0;
+        virtual RHI_Texture* create_render_surface(const RenderSurface*)                                  = 0;
         virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                              = 0;
         virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)    = 0;
         virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                   = 0;
