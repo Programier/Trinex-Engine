@@ -19,6 +19,7 @@ namespace Engine
     class Texture;
     class Sampler;
     class RenderViewport;
+    class Pipeline;
 }// namespace Engine
 
 
@@ -47,6 +48,8 @@ namespace Engine::ImGuiHelpers
 
 namespace Engine::ImGuiRenderer
 {
+    ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x, float fonts_texture_y);
+
     class ENGINE_EXPORT DrawData final
     {
         ImDrawData m_draw_data[2];

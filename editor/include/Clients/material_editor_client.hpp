@@ -12,7 +12,7 @@ namespace Engine
     namespace ShaderCompiler
     {
         class Compiler;
-        class ShaderSource;
+        struct ShaderSource;
     };// namespace ShaderCompiler
 
     class MaterialEditorClient : public ViewportClient

@@ -39,6 +39,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <Core/etl/engine_resource.hpp>
 #include <Core/package.hpp>
+#include <Graphics/imgui.hpp>
 #include <d3d11_sampler.hpp>
 #include <d3d11_texture.hpp>
 
@@ -350,24 +351,7 @@ static void ImGui_ImplDX11_CreateFontsTexture()
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    // We can do it, because logic thread is waiting now
-    bd->FontTexture.texture = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Texture2D>>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-
-    bd->FontTexture.texture->flags(Engine::Object::IsAvailableForGC, false);
-    bd->FontTexture.texture->init(Engine::ColorFormat::R8G8B8A8, Engine::Size2D(static_cast<float>(width), static_cast<float>(height)),pixels, width * height * 4);
-    auto package = Engine::Package::find_package("Engine::ImGui", true);
-    package->add_object(bd->FontTexture.texture);
-
-    bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Sampler>>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-
-    bd->FontTexture.sampler->filter = Engine::SamplerFilter::Trilinear;
-    bd->FontTexture.sampler->compare_func = Engine::CompareFunc::Always;
-    bd->FontTexture.sampler->min_lod = 0.f;
-    bd->FontTexture.sampler->max_lod = 0.f;
-    bd->FontTexture.sampler->mip_lod_bias = 0.f;
-    bd->FontTexture.sampler->rhi_create();
-    bd->FontTexture.sampler->flags(Engine::Object::IsAvailableForGC, false);
-    package->add_object(bd->FontTexture.sampler);
+    bd->FontTexture = Engine::ImGuiRenderer::create_fonts_texture(pixels, width, height);
 
     // Store our identifier
     io.Fonts->SetTexID(bd->FontTexture);

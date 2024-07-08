@@ -81,6 +81,7 @@
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/sampler.hpp>
 #include <Core/package.hpp>
+#include <Graphics/imgui.hpp>
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
@@ -691,19 +692,7 @@ bool ImGui_ImplVulkan_CreateFontsTexture()
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    // We can do it, because logic thread waiting now
-    bd->FontTexture = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Texture2D>>(Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-
-    bd->FontTexture.texture->flags(Engine::Object::IsAvailableForGC, false);
-    bd->FontTexture.texture->init(Engine::ColorFormat::R8G8B8A8, Engine::Size2D(static_cast<float>(width), static_cast<float>(height)), pixels, width * height * 4);
-    auto package = Engine::Package::find_package("Engine::ImGui", true);
-    package->add_object(bd->FontTexture.texture);
-
-    bd->FontTexture.sampler = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Sampler>>(Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-    bd->FontTexture.sampler->filter = Engine::SamplerFilter::Trilinear;
-    bd->FontTexture.sampler->rhi_create();
-    bd->FontTexture.sampler->flags(Engine::Object::IsAvailableForGC, false);
-    package->add_object(bd->FontTexture.sampler);
+    bd->FontTexture = Engine::ImGuiRenderer::create_fonts_texture(pixels, width, height);
 
     io.Fonts->SetTexID(bd->FontTexture);
     return true;
