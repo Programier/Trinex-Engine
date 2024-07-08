@@ -114,6 +114,19 @@ Engine::Project::shader_cache_dir = "{}";
         return true;
     }
 
+    static void setup_default_project()
+    {
+        Engine::Project::name = "Trinex Engine Project";
+        Engine::Project::version = "1.0.0";
+        Engine::Project::configs_dir = "resources/configs";
+        Engine::Project::assets_dir = "resources/assets";
+        Engine::Project::scripts_dir = "resources/scripts";
+        Engine::Project::shaders_dir = "resources/shaders";
+        Engine::Project::localization_dir = "resources/localization";
+        Engine::Project::libraries_dir = "libs";
+        Engine::Project::shader_cache_dir = "ShaderCache";
+    }
+
     void Project::initialize()
     {
         bind_to_script_engine();
@@ -136,7 +149,8 @@ Engine::Project::shader_cache_dir = "{}";
 
         if (!open_project("TrinexProject.trinex") || !check_initialize(true))
         {
-            throw EngineException("Failed to initialize project!");
+            error_log("Project", "Failed to initialize project. Using default project settins!");
+            setup_default_project();
         }
     }
 }// namespace Engine

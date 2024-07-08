@@ -756,7 +756,7 @@ namespace Engine
 
     void EditorClient::on_key_press(const Event& event)
     {
-        if (event.window_id() != m_window->id())
+        if (m_window == nullptr || event.window_id() != m_window->id())
             return;
 
         const KeyEvent& key_event = event.get<const KeyEvent&>();
@@ -778,7 +778,7 @@ namespace Engine
 
     void EditorClient::on_key_release(const Event& event)
     {
-        if (event.window_id() != m_window->id())
+        if (m_window == nullptr || event.window_id() != m_window->id())
             return;
 
         //const KeyEvent& key_event = event.get<const KeyEvent&>();

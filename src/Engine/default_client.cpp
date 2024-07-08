@@ -23,7 +23,7 @@ namespace Engine
 
     DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
     {
-     //   viewport->window()->imgui_initialize();
+        viewport->window()->imgui_initialize();
         return *this;
     }
 
@@ -55,19 +55,19 @@ namespace Engine
 
         rhi->pop_global_params();
 
-        //viewport->window()->imgui_window()->render();
+        viewport->window()->imgui_window()->render();
         return *this;
     }
 
     DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
     {
-        // auto* window = viewport->window()->imgui_window();
-        // window->new_frame();
-        // ImGui::Begin("Hello World");
-        // ImGui::ColorEdit4("Color", &color.x);
-        // ImGui::SliderFloat("Factor", &factor, 0.f, 1.f);
-        // ImGui::End();
-        // window->end_frame();
+        auto* window = viewport->window()->imgui_window();
+        window->new_frame();
+        ImGui::Begin("Hello World");
+        ImGui::ColorEdit4("Color", &color.x);
+        ImGui::SliderFloat("Factor", &factor, 0.f, 1.f);
+        ImGui::End();
+        window->end_frame();
 
         return *this;
     }

@@ -76,13 +76,16 @@ namespace Engine
         if (object == nullptr)
             return;
 
-        if (!object->is_noname())
+        if(engine_instance && !engine_instance->is_shuting_down())
         {
-            debug_log("Garbage Collector", "Destroy object '%s'", object->string_name().c_str());
-        }
-        else
-        {
-            debug_log("Garbage Collector", "Destroy noname object with type '%s'", object->class_instance()->name().c_str());
+            if (!object->is_noname())
+            {
+                debug_log("Garbage Collector", "Destroy object '%s'", object->string_name().c_str());
+            }
+            else
+            {
+                debug_log("Garbage Collector", "Destroy noname object with type '%s'", object->class_instance()->name().c_str());
+            }
         }
 
         for (Class* self = object->class_instance(); self; self = self->parent())

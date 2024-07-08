@@ -244,9 +244,10 @@ namespace Engine
 
         rhi = nullptr;
         Library::close_all();
-        PostDestroyController().execute();
 
         GarbageCollector::destroy(engine_instance);
         engine_instance = nullptr;
+
+        PostDestroyController().execute();
     }
 }// namespace Engine
