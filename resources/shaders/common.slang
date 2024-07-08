@@ -31,7 +31,6 @@ struct GlobalParameters
     int camera_projection_mode;
 };
 
-[vk::binding(0, 0)]
 ConstantBuffer<GlobalParameters> globals; 
 
 struct GBufferFragmentOutput

@@ -43,6 +43,7 @@ set_property(GLOBAL PROPERTY trinex_public_libraries imgui imgui_node_editor ang
 set_property(GLOBAL PROPERTY trinex_public_headers_dir ${TRINEX_ENGINE_ROOT}/include)
 set_property(GLOBAL PROPERTY trinex_link_directories)
 set_property(GLOBAL PROPERTY trinex_sources)
+set_property(GLOBAL PROPERTY trinex_dependencies)
 
 function(add_trinex_sources sources)
     get_property(local_sources GLOBAL PROPERTY trinex_sources)
@@ -72,6 +73,11 @@ endfunction()
 function(add_trinex_private_libraries libraries)
     get_property(local_libraries GLOBAL PROPERTY trinex_private_libraries)
     set_property(GLOBAL PROPERTY trinex_private_libraries ${local_libraries} ${libraries} ${ARGN})
+endfunction()
+
+function(add_trinex_dependencies dependencies)
+    get_property(local_dependencies GLOBAL PROPERTY trinex_dependencies)
+    set_property(GLOBAL PROPERTY trinex_dependencies ${local_dependencies} ${dependencies} ${ARGN})
 endfunction()
 
 
@@ -150,15 +156,9 @@ add_trinex_sources( ${TRINEX_SRC_WINDOW_SRC}
 add_subdirectory(${TRINEX_SRC_PLATFORM_DIR})
 add_subdirectory(${TRINEX_SRC_RHI_DIR})
 
-# Collect sources of editor, if engine builds to executable file
-if (TRINEX_WITH_EDITOR AND TRINEX_AS_EXECUTABLE)
-    add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
-endif()
-
 # Rebuild headers
 if(TRINEX_REBUILD_HEADERS)
     add_executable(header_generator header_generator/main.cpp)
-    set(TRINEX_PRECOMPILED_HEADERS  include-internal/DefaultResources/default.hpp)
     set(TRINEX_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/ScreenMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/BasePassMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DefaultSampler.tasset
@@ -171,20 +171,31 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/SpotLightMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/DirectionalLightMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/resources_internal/AmbientLightMaterial.tasset)
-    add_custom_command(
-        OUTPUT include-internal/DefaultResources/default.hpp
+    add_custom_target(
+        TrinexEngineHeaders ALL
         COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/include-internal/DefaultResources/default.hpp" ${TRINEX_INTERNAL_ASSETS}
         COMMENT "Generating default package header"
     )
+    add_trinex_dependencies(TrinexEngineHeaders)
+endif()
+
+# Collect sources of editor, if engine builds to executable file
+if (TRINEX_WITH_EDITOR AND TRINEX_AS_EXECUTABLE)
+    add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
 endif()
 
 # Compile Trinex Engine
 get_property(TRINEX_ENGINE_SOURCE_FILES GLOBAL PROPERTY trinex_sources)
 
 if(TRINEX_AS_EXECUTABLE)
-    add_executable(TrinexEngine ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_PRECOMPILED_HEADERS})
+    add_executable(TrinexEngine ${TRINEX_ENGINE_SOURCE_FILES})
 else()
-    add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES} ${TRINEX_PRECOMPILED_HEADERS})
+    add_library(TrinexEngine SHARED ${TRINEX_ENGINE_SOURCE_FILES})
+endif()
+
+get_property(TRINEX_ENGINE_DEPENDENCIES GLOBAL PROPERTY trinex_dependencies)
+if(TRINEX_ENGINE_DEPENDENCIES)
+    add_dependencies(TrinexEngine ${TRINEX_ENGINE_DEPENDENCIES})
 endif()
 
 # Trinex Engine compile options
@@ -241,3 +252,4 @@ install(DIRECTORY resources DESTINATION ${TRINEX_INSTALL_DIR})
 if (TRINEX_WITH_EDITOR AND NOT TRINEX_AS_EXECUTABLE)
     add_subdirectory(${TRINEX_ENGINE_ROOT}/editor)
 endif()
+

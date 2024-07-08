@@ -2,7 +2,6 @@ set(TRINEX_ENGINE_EDITOR_SOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB_RECURSE TRINEX_ENGINE_EDITOR_SRC "${TRINEX_ENGINE_EDITOR_SOURCES_DIR}/*.cpp")
 
 if(TRINEX_REBUILD_HEADERS)
-    set(EDITOR_PRECOMPILED_HEADERS DefaultResources/editor.hpp)
     set(EDITOR_INTERNAL_ASSETS  ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AddIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/AxisMaterial.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/DefaultIcon.tasset
@@ -18,17 +17,19 @@ if(TRINEX_REBUILD_HEADERS)
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/SpotLightOverlay.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/MoreIcon.tasset
                                 ${CMAKE_CURRENT_SOURCE_DIR}/../resources_internal/BlueprintBackground.tasset)
-    add_custom_command(
-        OUTPUT DefaultResources/editor.hpp
+
+    add_custom_target(
+        TrinexEngineEditorHeaders ALL
         COMMAND header_generator "${CMAKE_CURRENT_SOURCE_DIR}/DefaultResources/editor.hpp" ${EDITOR_INTERNAL_ASSETS}
         COMMENT "Generating editor package header"
     )
+    add_trinex_dependencies(TrinexEngineEditorHeaders)
 endif()
 
 
 if(TRINEX_AS_EXECUTABLE)
     add_trinex_private_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../libs/slang/source/core/")
-    add_trinex_sources(${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
+    add_trinex_sources(${TRINEX_ENGINE_EDITOR_SRC})
     add_trinex_private_libraries(assimp spirv-cross-glsl spirv-cross-core)
 
     if(NOT ANDROID)
@@ -38,9 +39,9 @@ else()
     include_directories(../libs/slang/source/core/)
 
     if(ANDROID)
-        add_library(TrinexEngineEditor SHARED ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
+        add_library(TrinexEngineEditor SHARED ${TRINEX_ENGINE_EDITOR_SRC})
     else()
-        add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC} ${EDITOR_PRECOMPILED_HEADERS})
+        add_executable(TrinexEngineEditor ${TRINEX_ENGINE_EDITOR_SRC})
     endif()
 
     target_link_libraries(TrinexEngineEditor PRIVATE TrinexEngine   assimp
