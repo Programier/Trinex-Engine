@@ -10,6 +10,7 @@
 #include <vulkan_api.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
+#include <vulkan_state.hpp>
 #include <vulkan_swap_chain.hpp>
 
 namespace Engine
@@ -50,7 +51,7 @@ namespace Engine
 
 
         // API DATA
-        struct VulkanState* m_state = nullptr;
+        VulkanState m_state;
         vkb::Instance m_instance;
         vk::SurfaceKHR m_surface;
         vk::PhysicalDevice m_physical_device;
@@ -86,6 +87,7 @@ namespace Engine
         void enable_dynamic_states();
         void initialize_pfn();
 
+        VulkanViewportMode find_current_viewport_mode();
         vk::Extent2D surface_size() const;
         vk::Extent2D surface_size(const vk::SurfaceKHR& surface) const;
 
@@ -116,7 +118,6 @@ namespace Engine
         VulkanAPI& wait_idle();
 
         void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-        void viewport_internal(const ViewPort& viewport, struct VulkanRenderTargetBase* rt);
         void viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
 

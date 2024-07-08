@@ -57,9 +57,9 @@ namespace Engine
 
     void VulkanViewport::end_render()
     {
-        if (API->m_state->m_render_target)
+        if (API->m_state.m_render_target)
         {
-            API->m_state->m_render_target->unbind();
+            API->m_state.m_render_target->unbind();
         }
 
         API->current_command_buffer().end();
@@ -88,6 +88,11 @@ namespace Engine
         return nullptr;
     }
 
+    bool VulkanViewport::is_window_viewport()
+    {
+        return false;
+    }
+
     void VulkanViewport::destroy_image_views()
     {
         for (auto& view : m_image_views)
@@ -100,13 +105,13 @@ namespace Engine
 
     void VulkanViewport::before_begin_render()
     {
-        API->m_state->reset();
-        API->m_state->m_current_viewport = this;
+        API->m_state.reset();
+        API->m_state.m_current_viewport = this;
     }
 
     void VulkanViewport::after_end_render()
     {
-        API->m_state->m_current_viewport = nullptr;
+        API->m_state.m_current_viewport = nullptr;
     }
 
 
@@ -118,7 +123,7 @@ namespace Engine
 
     vk::CommandBuffer& VulkanAPI::current_command_buffer()
     {
-        return m_state->m_current_viewport->m_command_buffers[API->m_current_buffer];
+        return m_state.m_current_viewport->m_command_buffers[API->m_current_buffer];
     }
 
     // Window Viewport
@@ -185,7 +190,7 @@ namespace Engine
     void VulkanWindowViewport::blit_target(RenderSurface* surface, const Rect2D& src_rect, const Rect2D& dst_rect,
                                            SamplerFilter filter)
     {
-        auto current = API->m_state->m_render_target;
+        auto current = API->m_state.m_render_target;
 
         if (current)
         {
@@ -223,7 +228,7 @@ namespace Engine
 
     void VulkanWindowViewport::clear_color(const Color& color)
     {
-        auto current = API->m_state->m_render_target;
+        auto current = API->m_state.m_render_target;
 
         if (current)
         {
@@ -247,6 +252,11 @@ namespace Engine
     VulkanRenderTargetBase* VulkanWindowViewport::render_target()
     {
         return m_render_target->frame();
+    }
+
+    bool VulkanWindowViewport::is_window_viewport()
+    {
+        return true;
     }
 
     void VulkanWindowViewport::create_swapchain()

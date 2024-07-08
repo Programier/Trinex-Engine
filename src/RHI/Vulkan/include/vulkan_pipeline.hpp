@@ -24,20 +24,20 @@ namespace Engine
             vk::SampleMask sample_mask;
             vk::PipelineDynamicStateCreateInfo dynamic_state_info;
 
-            State& init(const Pipeline* m_engine_pipeline);
+            State& init(const Pipeline* m_engine_pipeline, bool with_flipped_viewport);
         };
 
         const Pipeline* m_engine_pipeline;
         VulkanDescriptorSetLayout m_descriptor_set_layout;
         vk::PipelineLayout m_pipeline_layout;
-        TreeMap<void*, vk::Pipeline> m_pipelines;
+        TreeMap<Identifier, vk::Pipeline> m_pipelines;
 
         Vector<Vector<VulkanDescriptorSet*>> m_descriptor_sets;
         size_t m_descriptor_set_index = 0;
         size_t m_last_frame           = 0;
 
 
-        State& create_pipeline_state();
+        State& create_pipeline_state(bool with_flipped_viewport);
         VulkanPipeline& create_descriptor_set_layout();
         Vector<vk::PipelineShaderStageCreateInfo> create_pipeline_stage_infos();
         vk::PipelineVertexInputStateCreateInfo create_vertex_input_info();

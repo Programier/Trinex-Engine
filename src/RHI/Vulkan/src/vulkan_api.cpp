@@ -57,8 +57,6 @@ namespace Engine
         m_device_extensions[ext_maintenance1_index]     = {VK_KHR_MAINTENANCE1_EXTENSION_NAME, true, false};
         m_device_extensions[ext_swapchain_index]        = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, true, false};
         m_device_extensions[ext_index_type_uint8_index] = {VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true, false};
-
-        m_state = new VulkanState();
     }
 
     VulkanAPI::~VulkanAPI()
@@ -81,7 +79,6 @@ namespace Engine
         m_device.destroyCommandPool(m_command_pool);
         m_device.destroy();
         vkb::destroy_instance(m_instance);
-        delete m_state;
     }
 
     vk::PresentModeKHR VulkanAPI::present_mode_of(bool vsync)
@@ -459,6 +456,20 @@ namespace Engine
         return create_vulkan_surface(window->native_window(), m_instance.instance);
     }
 
+    VulkanViewportMode VulkanAPI::find_current_viewport_mode()
+    {
+        auto vp = m_state.m_current_viewport;
+        auto rt = m_state.m_render_target;
+        if (vp == nullptr || rt == nullptr)
+        {
+            return VulkanViewportMode::Undefined;
+        }
+        if (vp->is_window_viewport() && vp->render_target() == rt)
+            return VulkanViewportMode::Flipped;
+        return VulkanViewportMode::Normal;
+    }
+
+
     vk::Extent2D VulkanAPI::surface_size() const
     {
         return surface_size(m_surface);
@@ -511,9 +522,9 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::end_render()
     {
-        if (m_state->m_current_viewport)
+        if (m_state.m_current_viewport)
         {
-            m_state->m_current_viewport->end_render();
+            m_state.m_current_viewport->end_render();
         }
         return *this;
     }

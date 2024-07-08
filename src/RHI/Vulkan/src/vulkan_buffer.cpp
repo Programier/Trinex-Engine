@@ -74,7 +74,7 @@ namespace Engine
 
     void VulkanStaticVertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
     {
-        RHI_VertexBuffer*& current = API->m_state->m_current_vertex_buffer[stream_index];
+        RHI_VertexBuffer*& current = API->m_state.m_current_vertex_buffer[stream_index];
         if (current != this)
         {
             API->current_command_buffer().bindVertexBuffers(stream_index, m_buffer.m_buffer, {offset});
@@ -99,7 +99,7 @@ namespace Engine
 
     void VulkanDynamicVertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
     {
-        RHI_VertexBuffer*& current_buffer = API->m_state->m_current_vertex_buffer[stream_index];
+        RHI_VertexBuffer*& current_buffer = API->m_state.m_current_vertex_buffer[stream_index];
         if (current_buffer != this)
         {
             API->current_command_buffer().bindVertexBuffers(stream_index, current().m_buffer, {offset});
@@ -125,7 +125,7 @@ namespace Engine
 
     void VulkanIndexBuffer::bind(size_t offset)
     {
-        VulkanIndexBuffer*& current = API->m_state->m_current_index_buffer;
+        VulkanIndexBuffer*& current = API->m_state.m_current_index_buffer;
         if (current != this)
         {
             API->current_command_buffer().bindIndexBuffer(m_buffer.m_buffer, offset, vk::IndexType::eUint32);
@@ -146,9 +146,9 @@ namespace Engine
 
     void VulkanSSBO::bind(BindLocation location)
     {
-        if (API->m_state->m_pipeline)
+        if (API->m_state.m_pipeline)
         {
-            API->m_state->m_pipeline->bind_ssbo(this, location);
+            API->m_state.m_pipeline->bind_ssbo(this, location);
         }
     }
 

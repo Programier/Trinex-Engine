@@ -1,21 +1,29 @@
 #pragma once
 #include <Core/structures.hpp>
-#include <cstring>
+#include <vulkan/vulkan.hpp>
 
 namespace Engine
 {
+    enum class VulkanViewportMode
+    {
+        Undefined = 0,
+        Normal    = 1,
+        Flipped   = 2
+    };
 
     struct VulkanState {
-        struct VulkanRenderTargetBase* m_render_target = nullptr;
-        struct VulkanPipeline* m_pipeline              = nullptr;
-        struct RHI_VertexBuffer* m_current_vertex_buffer[15];
-        struct VulkanIndexBuffer* m_current_index_buffer;
-        struct VulkanViewport* m_current_viewport = nullptr;
+        struct VulkanRenderTargetBase* m_render_target       = nullptr;
+        struct VulkanPipeline* m_pipeline                    = nullptr;
+        vk::Pipeline m_vk_pipeline                           = {};
+        struct RHI_VertexBuffer* m_current_vertex_buffer[15] = {};
+        struct VulkanIndexBuffer* m_current_index_buffer     = nullptr;
+        struct VulkanViewport* m_current_viewport            = nullptr;
+        VulkanViewportMode m_viewport_mode                   = VulkanViewportMode::Undefined;
         ViewPort m_viewport;
 
         inline void reset()
         {
-            std::memset(reinterpret_cast<void*>(this), 0, sizeof(VulkanState));
+            new (this) VulkanState();
             m_viewport.max_depth = 1.f;
         }
     };

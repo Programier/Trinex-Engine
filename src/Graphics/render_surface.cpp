@@ -21,7 +21,7 @@ namespace Engine
         return *this;
     }
 
-    RenderSurface& RenderSurface::clear_color(const Color& color)
+    RenderSurface& RenderSurface::rhi_clear_color(const Color& color)
     {
         if (has_object() &&
             !is_in<ColorFormat::D32F, ColorFormat::DepthStencil, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(
@@ -32,7 +32,7 @@ namespace Engine
         return *this;
     }
 
-    RenderSurface& RenderSurface::clear_depth_stencil(float depth, byte stencil)
+    RenderSurface& RenderSurface::rhi_clear_depth_stencil(float depth, byte stencil)
     {
         if (has_object() &&
             is_in<ColorFormat::D32F, ColorFormat::DepthStencil, ColorFormat::ShadowDepth, ColorFormat::FilteredShadowDepth>(

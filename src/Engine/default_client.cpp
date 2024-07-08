@@ -1,16 +1,21 @@
 #include <Core/base_engine.hpp>
 #include <Core/class.hpp>
 #include <Core/colors.hpp>
+#include <Core/logger.hpp>
 #include <Engine/default_client.hpp>
 #include <Graphics/imgui.hpp>
-#include <Graphics/rhi.hpp>
-#include <Window/window.hpp>
-#include <Graphics/shader_parameters.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Core/logger.hpp>
+#include <Graphics/render_surface.hpp>
+#include <Graphics/rhi.hpp>
+#include <Graphics/scene_render_targets.hpp>
+#include <Graphics/shader_parameters.hpp>
+#include <Window/window.hpp>
+#include <editor_resources.hpp>
 
 namespace Engine
 {
+    static Name screen_texture_name = "screen_texture";
+
     DefaultClient::DefaultClient()
     {
         m_vertex_buffer         = Object::new_instance<TexCoordVertexBuffer>();
@@ -23,52 +28,45 @@ namespace Engine
 
     DefaultClient& DefaultClient::on_bind_viewport(class RenderViewport* viewport)
     {
-        viewport->window()->imgui_initialize();
         return *this;
     }
 
     DefaultClient& DefaultClient::render(class RenderViewport* viewport)
     {
-        viewport->rhi_bind();
-        float x = (glm::sin(engine_instance->time_seconds()) + 1.f) / 2.f;
-        float y = (glm::cos(engine_instance->time_seconds()) + 1.f) / 2.f;
-        viewport->rhi_clear_color(Color(x, y, 0.f, 1.f));
+        RenderSurface* base_rt[1] = {SceneRenderTargets::instance()->surface_of(SceneRenderTargets::Surface::BaseColor)};
+        auto param                = m_material->find_parameter(screen_texture_name);
 
-
-        static Name factor_name = "factor";
-        auto factor_param = m_material->find_parameter(factor_name);
-
-
-        GlobalShaderParameters params {};
-
-        params.viewport = color;
-        rhi->push_global_params(params);
-
-        if(factor_param)
+        rhi->bind_render_target(base_rt, nullptr);
+        if (param)
         {
-            reinterpret_cast<FloatMaterialParameter*>(factor_param)->param = factor;
+            reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(param)->texture = EditorResources::light_sprite;
         }
+        // float x = (glm::sin(engine_instance->time_seconds()) + 1.f) / 2.f;
+        // float y = (glm::cos(engine_instance->time_seconds()) + 1.f) / 2.f;
+        // base_rt[0]->rhi_clear_color(Color(x, y, 0.f, 1.f));
 
         m_material->apply();
         m_vertex_buffer->rhi_bind(0);
         rhi->draw(6, 0);
 
-        rhi->pop_global_params();
+        Rect2D rect;
+        rect.position = {0, 0};
+        rect.size     = viewport->size();
+        viewport->rhi_bind();
 
-        viewport->window()->imgui_window()->render();
+        if (param)
+        {
+            reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(param)->texture = base_rt[0];
+        }
+
+        m_material->apply();
+        m_vertex_buffer->rhi_bind(0);
+        rhi->draw(6, 0);
         return *this;
     }
 
     DefaultClient& DefaultClient::update(class RenderViewport* viewport, float dt)
     {
-        auto* window = viewport->window()->imgui_window();
-        window->new_frame();
-        ImGui::Begin("Hello World");
-        ImGui::ColorEdit4("Color", &color.x);
-        ImGui::SliderFloat("Factor", &factor, 0.f, 1.f);
-        ImGui::End();
-        window->end_frame();
-
         return *this;
     }
 

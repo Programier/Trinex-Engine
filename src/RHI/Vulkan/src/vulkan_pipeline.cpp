@@ -20,7 +20,16 @@ namespace Engine
 {
     /////////////////////// PIPELINE STATE PARSING ///////////////////////
 
-    VulkanPipeline::State& VulkanPipeline::State::init(const Pipeline* in_state)
+    static FORCE_INLINE vk::FrontFace invert_face(vk::FrontFace face)
+    {
+        if (face == vk::FrontFace::eClockwise)
+        {
+            return vk::FrontFace::eCounterClockwise;
+        }
+        return vk::FrontFace::eClockwise;
+    }
+
+    VulkanPipeline::State& VulkanPipeline::State::init(const Pipeline* in_state, bool with_flipped_viewport)
     {
         static auto get_stencil_op_state = [](const Pipeline::StencilTestInfo& in_state) {
             vk::StencilOpState out_state;
@@ -57,8 +66,16 @@ namespace Engine
         }
 
         rasterizer.setCullMode(m_cull_modes[static_cast<EnumerateType>(in_state->rasterizer.cull_mode)])
-                .setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state->rasterizer.front_face)])
                 .setLineWidth(API->m_features.wideLines ? in_state->rasterizer.line_width : 1.f);
+
+        if (with_flipped_viewport)
+        {
+            rasterizer.setFrontFace(invert_face(m_front_faces[static_cast<EnumerateType>(in_state->rasterizer.front_face)]));
+        }
+        else
+        {
+            rasterizer.setFrontFace(m_front_faces[static_cast<EnumerateType>(in_state->rasterizer.front_face)]);
+        }
 
         multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e1)
                 .setSampleShadingEnable(VK_FALSE)
@@ -79,8 +96,7 @@ namespace Engine
                 .setBack(stencil_state);
 
 
-        auto color_attachments_count =
-                API->m_state->m_render_target->state()->m_render_pass->m_color_attachment_references.size();
+        auto color_attachments_count = API->m_state.m_render_target->state()->m_render_pass->m_color_attachment_references.size();
         color_blend_attachment.resize(color_attachments_count);
 
 
@@ -325,7 +341,15 @@ namespace Engine
 
     vk::Pipeline VulkanPipeline::find_or_create_pipeline()
     {
-        auto& pipeline = m_pipelines[API->m_state->m_render_target->state()->m_render_pass];
+        Identifier identifier            = reinterpret_cast<Identifier>(API->m_state.m_render_target->state()->m_render_pass);
+        VulkanViewportMode viewport_mode = API->find_current_viewport_mode();
+
+        if (viewport_mode == VulkanViewportMode::Flipped)
+        {
+            ++identifier;
+        }
+
+        auto& pipeline = m_pipelines[identifier];
 
         if (pipeline)
         {
@@ -336,7 +360,7 @@ namespace Engine
         static vk::Rect2D scissor({0, 0}, vk::Extent2D(1280, 720));
         static vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
 
-        State& out_state = create_pipeline_state();
+        State& out_state = create_pipeline_state(viewport_mode == VulkanViewportMode::Flipped);
 
         auto pipeline_stage_create_infos                         = create_pipeline_stage_infos();
         vk::PipelineVertexInputStateCreateInfo vertex_input_info = create_vertex_input_info();
@@ -345,7 +369,7 @@ namespace Engine
                                                      &out_state.input_assembly, nullptr, &viewport_state, &out_state.rasterizer,
                                                      &out_state.multisampling, &out_state.depth_stencil,
                                                      &out_state.color_blending, &out_state.dynamic_state_info, m_pipeline_layout,
-                                                     API->m_state->m_render_target->state()->m_render_pass->m_render_pass, 0, {});
+                                                     API->m_state.m_render_target->state()->m_render_pass->m_render_pass, 0, {});
 
         auto pipeline_result = API->m_device.createGraphicsPipeline({}, pipeline_info);
 
@@ -380,10 +404,10 @@ namespace Engine
             throw EngineException("Cannot create Vulkan Pipeline from nullptr engine pipeline");
     }
 
-    VulkanPipeline::State& VulkanPipeline::create_pipeline_state()
+    VulkanPipeline::State& VulkanPipeline::create_pipeline_state(bool with_flipped_viewport)
     {
         static thread_local State state;
-        state.init(m_engine_pipeline);
+        state.init(m_engine_pipeline, with_flipped_viewport);
         return state;
     }
 
@@ -430,10 +454,16 @@ namespace Engine
 
     void VulkanPipeline::bind()
     {
-        if (API->m_state->m_pipeline != this)
+
         {
-            API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, find_or_create_pipeline());
-            API->m_state->m_pipeline = this;
+            auto current_pipeline = find_or_create_pipeline();
+
+            if (API->m_state.m_vk_pipeline != current_pipeline)
+            {
+                API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
+                API->m_state.m_pipeline    = this;
+                API->m_state.m_vk_pipeline = current_pipeline;
+            }
         }
 
         if (m_last_frame != API->m_current_frame)

@@ -12,7 +12,7 @@ namespace Engine
         RenderSurface();
 
         RenderSurface& rhi_create() override;
-        RenderSurface& clear_color(const Color& color);
-        RenderSurface& clear_depth_stencil(float depth, byte stencil);
+        RenderSurface& rhi_clear_color(const Color& color);
+        RenderSurface& rhi_clear_depth_stencil(float depth, byte stencil);
     };
 }// namespace Engine

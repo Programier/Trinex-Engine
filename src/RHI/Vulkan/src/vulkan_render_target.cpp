@@ -2,7 +2,6 @@
 #include <vulkan_api.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
-#include <vulkan_state.hpp>
 #include <vulkan_texture.hpp>
 #include <vulkan_viewport.hpp>
 
@@ -83,21 +82,26 @@ namespace Engine
 
     void VulkanRenderTargetBase::bind()
     {
-        if (API->m_state->m_render_target == this)
+        if (API->m_state.m_render_target == this)
         {
             return;
         }
 
-        if (API->m_state->m_render_target)
+        if (API->m_state.m_render_target)
         {
-            API->m_state->m_render_target->unbind();
+            API->m_state.m_render_target->unbind();
             push_barriers();
         }
 
-        API->m_state->m_render_target = this;
+        API->m_state.m_render_target = this;
 
         auto m_state = state();
         m_state->m_render_pass_info.setFramebuffer(m_framebuffer);
+
+        if (API->find_current_viewport_mode() != API->m_state.m_viewport_mode)
+        {
+            API->viewport(API->m_state.m_viewport);
+        }
 
         API->current_command_buffer().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
         return;
@@ -105,10 +109,10 @@ namespace Engine
 
     VulkanRenderTargetBase& VulkanRenderTargetBase::unbind()
     {
-        if (API->m_state->m_render_target == this)
+        if (API->m_state.m_render_target == this)
         {
             API->current_command_buffer().endRenderPass();
-            API->m_state->m_render_target = nullptr;
+            API->m_state.m_render_target = nullptr;
         }
         return *this;
     }
@@ -341,46 +345,60 @@ namespace Engine
         rt->bind();
     }
 
-    void VulkanAPI::viewport_internal(const ViewPort& viewport, struct VulkanRenderTargetBase* rt)
+    void VulkanAPI::viewport(const ViewPort& viewport)
     {
-        auto& m_viewport = m_state->m_viewport;
+        auto& m_viewport = m_state.m_viewport;
+        auto new_mode    = find_current_viewport_mode();
 
-        if (glm::any(glm::epsilonNotEqual(viewport.pos, m_viewport.pos, Point2D(0.001f, 0.001f))) ||
+        if (new_mode != m_state.m_viewport_mode ||
+            glm::any(glm::epsilonNotEqual(viewport.pos, m_viewport.pos, Point2D(0.001f, 0.001f))) ||
             glm::any(glm::epsilonNotEqual(viewport.size, m_viewport.size, Size2D(0.001f, 0.001f))) ||
             glm::epsilonNotEqual(viewport.min_depth, m_viewport.min_depth, 0.001f) ||
             glm::epsilonNotEqual(viewport.max_depth, m_viewport.max_depth, 0.001f))
         {
+            if (new_mode != VulkanViewportMode::Undefined)
             {
-                vk::Viewport vulkan_viewport;
-                vulkan_viewport.setWidth(viewport.size.x);
-                vulkan_viewport.setHeight(viewport.size.y);
-                vulkan_viewport.setX(viewport.pos.x);
-                vulkan_viewport.setY(viewport.pos.y);
-                vulkan_viewport.setMinDepth(viewport.min_depth);
-                vulkan_viewport.setMaxDepth(viewport.max_depth);
-                current_command_buffer().setViewport(0, vulkan_viewport);
-            }
 
-            {
-                vk::Rect2D vulkan_scissor;
-                vulkan_scissor.extent.setWidth(viewport.size.x);
-                vulkan_scissor.extent.setHeight(viewport.size.y);
-                vulkan_scissor.offset.setX(viewport.pos.x);
-                vulkan_scissor.offset.setY(viewport.pos.y);
-                current_command_buffer().setScissor(0, vulkan_scissor);
+                float vp_height = viewport.size.y;
+                float vp_y      = viewport.pos.y;
+                float sc_height = viewport.size.y;
+                float sc_y      = viewport.pos.y;
+
+                if (new_mode == VulkanViewportMode::Flipped)
+                {
+                    vp_height               = -vp_height;
+                    auto render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
+                    vp_y                    = render_target_size.y - vp_y;
+                    sc_y                    = vp_y + vp_height;
+                }
+
+                {
+                    vk::Viewport vulkan_viewport;
+                    vulkan_viewport.setWidth(viewport.size.x);
+                    vulkan_viewport.setHeight(vp_height);
+                    vulkan_viewport.setX(viewport.pos.x);
+                    vulkan_viewport.setY(vp_y);
+                    vulkan_viewport.setMinDepth(viewport.min_depth);
+                    vulkan_viewport.setMaxDepth(viewport.max_depth);
+                    current_command_buffer().setViewport(0, vulkan_viewport);
+                }
+
+                {
+                    vk::Rect2D vulkan_scissor;
+                    vulkan_scissor.extent.setWidth(viewport.size.x);
+                    vulkan_scissor.extent.setHeight(sc_height);
+                    vulkan_scissor.offset.setX(viewport.pos.x);
+                    vulkan_scissor.offset.setY(sc_y);
+                    current_command_buffer().setScissor(0, vulkan_scissor);
+                }
             }
 
             m_viewport = viewport;
         }
     }
 
-    void VulkanAPI::viewport(const ViewPort& viewport)
-    {
-        return viewport_internal(viewport, API->m_state->m_current_viewport->render_target());
-    }
-
     ViewPort VulkanAPI::viewport()
     {
-        return m_state->m_viewport;
+        return m_state.m_viewport;
     }
 }// namespace Engine

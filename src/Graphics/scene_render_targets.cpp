@@ -161,15 +161,15 @@ namespace Engine
 
     const SceneRenderTargets& SceneRenderTargets::clear() const
     {
-        surface_of(SceneColorHDR)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(SceneColorLDR)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(BaseColor)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(Position)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(Normal)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(Emissive)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(MSRA)->clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(SceneDepthZ)->clear_depth_stencil(1.f, 0.f);
-        surface_of(LightPassDepthZ)->clear_depth_stencil(1.f, 0.f);
+        surface_of(SceneColorHDR)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(SceneColorLDR)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(BaseColor)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(Position)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(Normal)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(Emissive)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(MSRA)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
+        surface_of(SceneDepthZ)->rhi_clear_depth_stencil(1.f, 0.f);
+        surface_of(LightPassDepthZ)->rhi_clear_depth_stencil(1.f, 0.f);
         return *this;
     }
 }// namespace Engine
