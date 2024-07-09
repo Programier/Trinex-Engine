@@ -7,6 +7,7 @@
 #include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/pipeline.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -16,25 +17,24 @@
 namespace Engine::ImGuiRenderer
 {
 
-    ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x,
-                                                       float fonts_texture_y)
+    ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x, float fonts_texture_y)
     {
         ImTextureID texture = {};
 
-        texture.texture = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Texture2D>>(
-                Engine::Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+        texture.texture = Object::new_instance_named<EngineResource<Texture2D>>(
+                Strings::format("FontsTexture {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
 
-        texture.texture->flags(Engine::Object::IsAvailableForGC, false);
-        texture.texture->init(Engine::ColorFormat::R8G8B8A8, Engine::Size2D(fonts_texture_x, fonts_texture_y),
-                                      fonts_texture_data, static_cast<size_t>(fonts_texture_x * fonts_texture_y * 4.f));
-        auto package = Engine::Package::find_package("Engine::ImGui", true);
+        texture.texture->flags(Object::IsAvailableForGC, false);
+        texture.texture->init(ColorFormat::R8G8B8A8, Size2D(fonts_texture_x, fonts_texture_y), fonts_texture_data,
+                              static_cast<size_t>(fonts_texture_x * fonts_texture_y * 4.f));
+        auto package = Package::find_package("Engine::ImGui", true);
         package->add_object(texture.texture);
 
-        texture.sampler = Engine::Object::new_instance_named<Engine::EngineResource<Engine::Sampler>>(
-                Engine::Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
-        texture.sampler->filter = Engine::SamplerFilter::Trilinear;
+        texture.sampler = Object::new_instance_named<EngineResource<Sampler>>(
+                Strings::format("Sampler {}", reinterpret_cast<size_t>(ImGui::GetCurrentContext())));
+        texture.sampler->filter = SamplerFilter::Trilinear;
         texture.sampler->rhi_create();
-        texture.sampler->flags(Engine::Object::IsAvailableForGC, false);
+        texture.sampler->flags(Object::IsAvailableForGC, false);
         package->add_object(texture.sampler);
         return texture;
     }

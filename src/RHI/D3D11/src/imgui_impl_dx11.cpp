@@ -608,11 +608,6 @@ void ImGui_ImplDX11_NewFrame()
 // Helper structure we store in the void* RendererUserData field of each ImGuiViewport to easily retrieve our backend data.
 struct ImGui_ImplDX11_ViewportData
 {
-    // IDXGISwapChain*                 SwapChain;
-    // ID3D11RenderTargetView*         RTView;
-
-    // ImGui_ImplDX11_ViewportData()   { SwapChain = nullptr; RTView = nullptr; }
-    // ~ImGui_ImplDX11_ViewportData()  { IM_ASSERT(SwapChain == nullptr && RTView == nullptr); }
 };
 
 static void ImGui_ImplDX11_CreateWindow(ImGuiViewport* viewport)
@@ -620,38 +615,6 @@ static void ImGui_ImplDX11_CreateWindow(ImGuiViewport* viewport)
     //ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     ImGui_ImplDX11_ViewportData* vd = IM_NEW(ImGui_ImplDX11_ViewportData)();
     viewport->RendererUserData = vd;
-
-    // PlatformHandleRaw should always be a HWND, whereas PlatformHandle might be a higher-level handle (e.g. GLFWWindow*, SDL_Window*).
-    // Some backends will leave PlatformHandleRaw == 0, in which case we assume PlatformHandle will contain the HWND.
-    // HWND hwnd = viewport->PlatformHandleRaw ? (HWND)viewport->PlatformHandleRaw : (HWND)viewport->PlatformHandle;
-    // IM_ASSERT(hwnd != 0);
-
-    // // Create swap chain
-    // DXGI_SWAP_CHAIN_DESC sd;
-    // ZeroMemory(&sd, sizeof(sd));
-    // sd.BufferDesc.Width = (UINT)viewport->Size.x;
-    // sd.BufferDesc.Height = (UINT)viewport->Size.y;
-    // sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // sd.SampleDesc.Count = 1;
-    // sd.SampleDesc.Quality = 0;
-    // sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    // sd.BufferCount = 1;
-    // sd.OutputWindow = hwnd;
-    // sd.Windowed = TRUE;
-    // sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    // sd.Flags = 0;
-
-    // IM_ASSERT(vd->SwapChain == nullptr && vd->RTView == nullptr);
-    // bd->pFactory->CreateSwapChain(bd->pd3dDevice, &sd, &vd->SwapChain);
-
-    // // Create the render target
-    // if (vd->SwapChain)
-    // {
-    //     ID3D11Texture2D* pBackBuffer;
-    //     vd->SwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-    //     bd->pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &vd->RTView);
-    //     pBackBuffer->Release();
-    // }
 }
 
 static void ImGui_ImplDX11_DestroyWindow(ImGuiViewport* viewport)
@@ -659,12 +622,6 @@ static void ImGui_ImplDX11_DestroyWindow(ImGuiViewport* viewport)
     // The main viewport (owned by the application) will always have RendererUserData == nullptr since we didn't create the data for it.
     if (ImGui_ImplDX11_ViewportData* vd = (ImGui_ImplDX11_ViewportData*)viewport->RendererUserData)
     {
-        // if (vd->SwapChain)
-        //     vd->SwapChain->Release();
-        // vd->SwapChain = nullptr;
-        // if (vd->RTView)
-        //     vd->RTView->Release();
-        // vd->RTView = nullptr;
         IM_DELETE(vd);
     }
     viewport->RendererUserData = nullptr;

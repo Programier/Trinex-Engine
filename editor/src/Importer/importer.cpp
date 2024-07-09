@@ -177,9 +177,9 @@ namespace Engine::Importer
 
         if (indices.size() > 0)
         {
-            IndexBuffer* index_buffer = Object::new_instance<IndexBuffer>();
-            index_buffer->buffer      = std::move(indices);
-            lod.indices               = index_buffer;
+            BufferedIndexBuffer* index_buffer = Object::new_instance<BufferedIndexBuffer>();
+            index_buffer->buffer              = std::move(indices);
+            lod.indices                       = index_buffer;
         }
 
         lod.surfaces.emplace_back();

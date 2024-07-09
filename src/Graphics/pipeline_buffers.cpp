@@ -12,7 +12,6 @@ namespace Engine
 {
 
     implement_engine_class_default_init(PipelineBuffer, 0);
-    implement_engine_class_default_init(IndexBuffer, 0);
     implement_engine_class_default_init(VertexBuffer, 0);
     implement_engine_class_default_init(SSBO, 0);
 
@@ -26,6 +25,12 @@ namespace Engine
         return *this;
     }
 
+
+    size_t PipelineBuffer::elements_count() const
+    {
+        return size() / element_size();
+    }
+
     VertexBuffer::VertexBuffer()
     {}
 
@@ -33,7 +38,7 @@ namespace Engine
     {
         size_t buffer_size = size();
         if (buffer_size > 0)
-            m_rhi_object.reset(rhi->create_vertex_buffer(buffer_size, data(), RHIBufferType::Static));
+            m_rhi_object.reset(rhi->create_vertex_buffer(buffer_size, data(), buffer_type()));
         return *this;
     }
 
@@ -47,9 +52,10 @@ namespace Engine
         return *this;
     }
 
-    size_t VertexBuffer::elements_count() const
+
+    RHIBufferType VertexBuffer::buffer_type() const
     {
-        return size() / element_size();
+        return RHIBufferType::Static;
     }
 
     implement_engine_class_default_init(PositionVertexBuffer, 0);
@@ -65,11 +71,9 @@ namespace Engine
 
     DynamicVertexBuffer& DynamicVertexBuffer::rhi_create()
     {
-        Vector<int> test;
-        test.shrink_to_fit();
         m_allocated_size = size();
         if (m_allocated_size > 0)
-            m_rhi_object.reset(rhi->create_vertex_buffer(m_allocated_size, data(), RHIBufferType::Dynamic));
+            m_rhi_object.reset(rhi->create_vertex_buffer(m_allocated_size, data(), buffer_type()));
         return *this;
     }
 
@@ -96,6 +100,11 @@ namespace Engine
         return *this;
     }
 
+    RHIBufferType DynamicVertexBuffer::buffer_type() const
+    {
+        return RHIBufferType::Dynamic;
+    }
+
     implement_engine_class_default_init(PositionDynamicVertexBuffer, 0);
     implement_engine_class_default_init(TexCoordDynamicVertexBuffer, 0);
     implement_engine_class_default_init(ColorDynamicVertexBuffer, 0);
@@ -105,31 +114,15 @@ namespace Engine
 
     //////////////////////////// INDEX BUFFER ////////////////////////////
 
+    implement_engine_class_default_init(IndexBuffer, 0);
+    implement_engine_class_default_init(DynamicIndexBuffer, 0);
+    implement_engine_class_default_init(BufferedIndexBuffer, 0);
+    implement_engine_class_default_init(BufferedDynamicIndexBuffer, 0);
+
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        m_rhi_object.reset(rhi->create_index_buffer(size(), data(), RHIBufferType::Static));
+        m_rhi_object.reset(rhi->create_index_buffer(size(), data(), buffer_type()));
         return *this;
-    }
-
-    const byte* IndexBuffer::data() const
-    {
-        return reinterpret_cast<const byte*>(buffer.data());
-    }
-
-    size_t IndexBuffer::size() const
-    {
-        return buffer.size() * sizeof(uint32_t);
-    }
-
-    IndexBuffer::~IndexBuffer()
-    {}
-
-    bool IndexBuffer::archive_process(Archive& ar)
-    {
-        if (!Super::archive_process(ar))
-            return false;
-        ar & buffer;
-        return ar;
     }
 
     IndexBuffer& IndexBuffer::rhi_bind(size_t offset)
@@ -141,14 +134,56 @@ namespace Engine
         return *this;
     }
 
-    size_t IndexBuffer::component_size() const
+    RHIBufferType IndexBuffer::buffer_type() const
+    {
+        return RHIBufferType::Static;
+    }
+
+    size_t IndexBuffer::element_size() const
     {
         return sizeof(uint32_t);
     }
 
-    size_t IndexBuffer::elements_count() const
+
+    RHIBufferType DynamicIndexBuffer::buffer_type() const
     {
-        return buffer.size();
+        return RHIBufferType::Dynamic;
+    }
+
+    const byte* BufferedIndexBuffer::data() const
+    {
+        return reinterpret_cast<const byte*>(buffer.data());
+    }
+
+    size_t BufferedIndexBuffer::size() const
+    {
+        return buffer.size() * element_size();
+    }
+
+    bool BufferedIndexBuffer::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+        ar & buffer;
+        return ar;
+    }
+
+    const byte* BufferedDynamicIndexBuffer::data() const
+    {
+        return reinterpret_cast<const byte*>(buffer.data());
+    }
+
+    size_t BufferedDynamicIndexBuffer::size() const
+    {
+        return buffer.size() * element_size();
+    }
+
+    bool BufferedDynamicIndexBuffer::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+        ar & buffer;
+        return ar;
     }
 
     SSBO& SSBO::rhi_create()

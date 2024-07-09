@@ -11,6 +11,12 @@ namespace Engine
 
     public:
         virtual PipelineBuffer& rhi_update(size_t offset, size_t size, const byte* data);
+        size_t elements_count() const;
+
+        virtual RHIBufferType buffer_type() const = 0;
+        virtual const byte* data() const          = 0;
+        virtual size_t size() const               = 0;
+        virtual size_t element_size() const       = 0;
     };
 
 
@@ -24,11 +30,7 @@ namespace Engine
         VertexBuffer();
         VertexBuffer& rhi_create() override;
         VertexBuffer& rhi_bind(byte stream_index, size_t offset = 0);
-        size_t elements_count() const;
-
-        virtual const byte* data() const    = 0;
-        virtual size_t size() const         = 0;
-        virtual size_t element_size() const = 0;
+        RHIBufferType buffer_type() const override;
     };
 
     template<typename Type>
@@ -107,6 +109,7 @@ namespace Engine
         DynamicVertexBuffer& rhi_create() override;
         DynamicVertexBuffer& rhi_shrink_to_fit();
         DynamicVertexBuffer& rhi_submit_changes(size_t offset = 0, size_t size = ~static_cast<size_t>(0));
+        RHIBufferType buffer_type() const override;
     };
 
 
@@ -182,21 +185,47 @@ namespace Engine
         declare_class(IndexBuffer, PipelineBuffer);
 
     public:
+        IndexBuffer& rhi_create() override;
+        IndexBuffer& rhi_bind(size_t offset = 0);
+        RHIBufferType buffer_type() const override;
+        size_t element_size() const override;
+    };
+
+    class ENGINE_EXPORT DynamicIndexBuffer : public IndexBuffer
+    {
+        declare_class(DynamicIndexBuffer, IndexBuffer);
+
+    public:
+        RHIBufferType buffer_type() const override;
+    };
+
+    class ENGINE_EXPORT BufferedIndexBuffer : public IndexBuffer
+    {
+        declare_class(BufferedIndexBuffer, IndexBuffer);
+
+    public:
         using ElementType = uint32_t;
         using BufferType  = Vector<ElementType>;
 
-    public:
         BufferType buffer;
 
-        IndexBuffer& rhi_create() override;
-        IndexBuffer& rhi_bind(size_t offset = 0);
+        const byte* data() const override;
+        size_t size() const override;
+        bool archive_process(Archive& ar) override;
+    };
 
-        size_t component_size() const;
-        size_t elements_count() const;
-        const byte* data() const;
-        size_t size() const;
+    class ENGINE_EXPORT BufferedDynamicIndexBuffer : public DynamicIndexBuffer
+    {
+        declare_class(BufferedDynamicIndexBuffer, DynamicIndexBuffer);
 
-        ~IndexBuffer();
+    public:
+        using ElementType = uint32_t;
+        using BufferType  = Vector<ElementType>;
+
+        BufferType buffer;
+
+        const byte* data() const override;
+        size_t size() const override;
         bool archive_process(Archive& ar) override;
     };
 

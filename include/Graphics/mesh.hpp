@@ -8,7 +8,7 @@ namespace Engine
 {
     class MaterialInterface;
     class VertexBuffer;
-    class IndexBuffer;
+    class BufferedIndexBuffer;
 
     struct ENGINE_EXPORT MeshMaterial {
         MaterialInterface* material = nullptr;
@@ -35,7 +35,7 @@ namespace Engine
             Vector<Pointer<class NormalVertexBuffer>> normals;
             Vector<Pointer<class TangentVertexBuffer>> tangents;
             Vector<Pointer<class BinormalVertexBuffer>> binormals;
-            Pointer<IndexBuffer> indices;
+            Pointer<BufferedIndexBuffer> indices;
 
             Vector<MeshSurface> surfaces;
 

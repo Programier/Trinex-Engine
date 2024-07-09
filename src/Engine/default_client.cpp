@@ -21,10 +21,12 @@ namespace Engine
         m_vertex_buffer->buffer = {{Color(0, 0, 0, 1.f), {0.0, 0.0}},    //
                                    {Color(0, 1.0, 0, 1.f), {0.f, 1.f}},  //
                                    {Color(1.0, 1.f, 0, 1.f), {1.f, 1.f}},//
-                                   {Color(0, 0, 0, 1.f), {0.0, 0.0}},    //
-                                   {Color(1.f, 1.f, 0, 1.f), {1.f, 1.f}},//
                                    {Color(1.f, 0, 0, 1.f), {1.f, 0.f}}}; //
         m_vertex_buffer->init_resource();
+
+        m_index_buffer         = Object::new_instance<BufferedIndexBuffer>();
+        m_index_buffer->buffer = {0, 1, 2, 0, 2, 3};
+        m_index_buffer->init_resource();
 
         m_material = Object::load_object("Test::Test")->instance_cast<Material>();
         info_log("DefaultClient", "Binding index of globals is '%d'", int(m_material->pipeline->global_parameters.bind_index()));
@@ -41,7 +43,8 @@ namespace Engine
 
         m_material->apply();
         m_vertex_buffer->rhi_bind(0);
-        rhi->draw(6, 0);
+        m_index_buffer->rhi_bind(0);
+        rhi->draw_indexed(6, 0, 0);
 
         return *this;
     }
