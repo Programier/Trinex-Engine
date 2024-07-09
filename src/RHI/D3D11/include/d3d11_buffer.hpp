@@ -26,7 +26,7 @@ namespace Engine
         ID3D11Buffer* m_buffer                 = nullptr;
         DXGI_FORMAT m_format                   = DXGI_FORMAT_UNKNOWN;
 
-        bool init(size_t size, const byte* data, RHIBufferType type);
+        bool init(size_t size, const byte* data, RHIBufferType type, IndexBufferFormat format);
         void bind(size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
 

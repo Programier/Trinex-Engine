@@ -118,19 +118,19 @@ namespace Engine
         virtual void viewport(const ViewPort& viewport)                                                              = 0;
         virtual ViewPort viewport()                                                                                  = 0;
 
-        virtual RHI_Sampler* create_sampler(const Sampler*)                                               = 0;
-        virtual RHI_Texture* create_texture_2d(const Texture2D*)                                          = 0;
-        virtual RHI_Texture* create_render_surface(const RenderSurface*)                                  = 0;
-        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                              = 0;
-        virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)    = 0;
-        virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                   = 0;
-        virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                          = 0;
-        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                          = 0;
-        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                   = 0;
-        virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) = 0;
-        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIBufferType type)        = 0;
-        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                  = 0;
-        virtual RHI_Viewport* create_viewport(RenderViewport* viewport)                                   = 0;
+        virtual RHI_Sampler* create_sampler(const Sampler*)                                                                  = 0;
+        virtual RHI_Texture* create_texture_2d(const Texture2D*)                                                             = 0;
+        virtual RHI_Texture* create_render_surface(const RenderSurface*)                                                     = 0;
+        virtual RHI_Shader* create_vertex_shader(const VertexShader* shader)                                                 = 0;
+        virtual RHI_Shader* create_tesselation_control_shader(const TessellationControlShader* shader)                       = 0;
+        virtual RHI_Shader* create_tesselation_shader(const TessellationShader* shader)                                      = 0;
+        virtual RHI_Shader* create_geometry_shader(const GeometryShader* shader)                                             = 0;
+        virtual RHI_Shader* create_fragment_shader(const FragmentShader* shader)                                             = 0;
+        virtual RHI_Pipeline* create_pipeline(const Pipeline* pipeline)                                                      = 0;
+        virtual RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type)                    = 0;
+        virtual RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) = 0;
+        virtual RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type)                                     = 0;
+        virtual RHI_Viewport* create_viewport(RenderViewport* viewport)                                                      = 0;
 
         virtual RHI& push_global_params(const GlobalShaderParameters& params)             = 0;
         virtual RHI& pop_global_params()                                                  = 0;

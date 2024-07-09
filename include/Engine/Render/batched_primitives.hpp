@@ -12,6 +12,8 @@ namespace Engine
     protected:
         PositionDynamicVertexBuffer* m_position_buffer = nullptr;
         ColorDynamicVertexBuffer* m_color_buffer       = nullptr;
+        size_t m_position_buffer_size                  = 0;
+        size_t m_color_buffer_size                     = 0;
 
         bool begin_render();
 
@@ -19,7 +21,6 @@ namespace Engine
         BatchedPrimitive();
         delete_copy_constructors(BatchedPrimitive);
         BatchedPrimitive& clear();
-        BatchedPrimitive& render(const class SceneView& view);
         ~BatchedPrimitive();
     };
 

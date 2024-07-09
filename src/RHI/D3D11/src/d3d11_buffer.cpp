@@ -85,9 +85,9 @@ namespace Engine
         d3d11_release(m_buffer);
     }
 
-
-    bool D3D11_IndexBuffer::init(size_t size, const byte* data, RHIBufferType type)
+    bool D3D11_IndexBuffer::init(size_t size, const byte* data, RHIBufferType type, IndexBufferFormat format)
     {
+        m_format = format == IndexBufferFormat::UInt32 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16G16_UINT;
         return create_buffer(m_buffer, size, data, type, m_update_function, D3D11_BIND_INDEX_BUFFER);
     }
 
@@ -117,10 +117,10 @@ namespace Engine
         return buffer;
     }
 
-    RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, RHIBufferType type)
+    RHI_IndexBuffer* D3D11::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
     {
         D3D11_IndexBuffer* buffer = new D3D11_IndexBuffer();
-        if (!buffer->init(size, data, type))
+        if (!buffer->init(size, data, type, format))
         {
             delete buffer;
             buffer = nullptr;

@@ -381,4 +381,10 @@ namespace Engine
         GameName        = 3,
         Count           = 4
     };
+
+    enum class IndexBufferFormat
+    {
+        UInt32 = 0,
+        UInt16 = 1,
+    };
 }// namespace Engine

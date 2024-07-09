@@ -14,7 +14,7 @@ namespace Engine
 
     OpenGL_VertexBuffer::OpenGL_VertexBuffer(size_t size, const byte* data, RHIBufferType type)
     {
-        GLenum gl_type = type == RHIBufferType::Static ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW;
+        GLenum gl_type = type == RHIBufferType::Static ? GL_STATIC_DRAW : GL_STREAM_DRAW;
         glGenBuffers(1, &m_id);
         glBindBuffer(GL_ARRAY_BUFFER, m_id);
         glBufferData(GL_ARRAY_BUFFER, size, data, gl_type);
@@ -42,11 +42,14 @@ namespace Engine
     }
 
 
-    OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data)
+    OpenGL_IndexBuffer::OpenGL_IndexBuffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
     {
+        m_format = format == IndexBufferFormat::UInt32 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+
         glGenBuffers(1, &m_id);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+        GLenum gl_type = type == RHIBufferType::Static ? GL_STATIC_DRAW : GL_STREAM_DRAW;
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, gl_type);
 
         if (OPENGL_API->m_state.index_buffer)
         {
@@ -82,9 +85,9 @@ namespace Engine
         }
     }
 
-    RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, RHIBufferType type)
+    RHI_IndexBuffer* OpenGL::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
     {
-        return new OpenGL_IndexBuffer(size, data);
+        return new OpenGL_IndexBuffer(size, data, format, type);
     }
 
 

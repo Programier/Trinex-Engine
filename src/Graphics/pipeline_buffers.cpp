@@ -66,40 +66,6 @@ namespace Engine
     implement_engine_class_default_init(BinormalVertexBuffer, 0);
     implement_engine_class_default_init(DynamicVertexBuffer, 0);
 
-    DynamicVertexBuffer::DynamicVertexBuffer() : m_allocated_size(0)
-    {}
-
-    DynamicVertexBuffer& DynamicVertexBuffer::rhi_create()
-    {
-        m_allocated_size = size();
-        if (m_allocated_size > 0)
-            m_rhi_object.reset(rhi->create_vertex_buffer(m_allocated_size, data(), buffer_type()));
-        return *this;
-    }
-
-    DynamicVertexBuffer& DynamicVertexBuffer::rhi_shrink_to_fit()
-    {
-        rhi_create();
-        return *this;
-    }
-
-    DynamicVertexBuffer& DynamicVertexBuffer::rhi_submit_changes(size_t submit_offset, size_t submit_size)
-    {
-        size_t buffer_size = size();
-
-        if (buffer_size > m_allocated_size)
-        {
-            rhi_create();
-        }
-        else
-        {
-            submit_offset = glm::min(submit_offset, buffer_size);
-            submit_size   = glm::min(submit_size, buffer_size - submit_offset);
-            rhi_update(submit_offset, submit_size, data() + submit_offset);
-        }
-        return *this;
-    }
-
     RHIBufferType DynamicVertexBuffer::buffer_type() const
     {
         return RHIBufferType::Dynamic;
@@ -116,12 +82,17 @@ namespace Engine
 
     implement_engine_class_default_init(IndexBuffer, 0);
     implement_engine_class_default_init(DynamicIndexBuffer, 0);
-    implement_engine_class_default_init(BufferedIndexBuffer, 0);
-    implement_engine_class_default_init(BufferedDynamicIndexBuffer, 0);
+    implement_engine_class_default_init(UInt32IndexBuffer, 0);
+    implement_engine_class_default_init(UInt16IndexBuffer, 0);
+    implement_engine_class_default_init(UInt32DynamicIndexBuffer, 0);
+    implement_engine_class_default_init(UInt16DynamicIndexBuffer, 0);
 
     IndexBuffer& IndexBuffer::rhi_create()
     {
-        m_rhi_object.reset(rhi->create_index_buffer(size(), data(), buffer_type()));
+        size_t e_size = element_size();
+        trinex_always_check(e_size == 4 || e_size == 2, "Size of index buffer element must be equal 16 or 32 bytes");
+        m_rhi_object.reset(rhi->create_index_buffer(
+                size(), data(), e_size == 4 ? IndexBufferFormat::UInt32 : IndexBufferFormat::UInt16, buffer_type()));
         return *this;
     }
 
@@ -139,28 +110,27 @@ namespace Engine
         return RHIBufferType::Static;
     }
 
-    size_t IndexBuffer::element_size() const
-    {
-        return sizeof(uint32_t);
-    }
-
-
     RHIBufferType DynamicIndexBuffer::buffer_type() const
     {
         return RHIBufferType::Dynamic;
     }
 
-    const byte* BufferedIndexBuffer::data() const
+    const byte* UInt32IndexBuffer::data() const
     {
         return reinterpret_cast<const byte*>(buffer.data());
     }
 
-    size_t BufferedIndexBuffer::size() const
+    size_t UInt32IndexBuffer::size() const
     {
         return buffer.size() * element_size();
     }
 
-    bool BufferedIndexBuffer::archive_process(Archive& ar)
+    size_t UInt32IndexBuffer::element_size() const
+    {
+        return sizeof(uint32_t);
+    }
+
+    bool UInt32IndexBuffer::archive_process(Archive& ar)
     {
         if (!Super::archive_process(ar))
             return false;
@@ -168,17 +138,68 @@ namespace Engine
         return ar;
     }
 
-    const byte* BufferedDynamicIndexBuffer::data() const
+    const byte* UInt16IndexBuffer::data() const
     {
         return reinterpret_cast<const byte*>(buffer.data());
     }
 
-    size_t BufferedDynamicIndexBuffer::size() const
+    size_t UInt16IndexBuffer::size() const
     {
         return buffer.size() * element_size();
     }
 
-    bool BufferedDynamicIndexBuffer::archive_process(Archive& ar)
+    size_t UInt16IndexBuffer::element_size() const
+    {
+        return sizeof(uint16_t);
+    }
+
+    bool UInt16IndexBuffer::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+        ar & buffer;
+        return ar;
+    }
+
+    const byte* UInt32DynamicIndexBuffer::data() const
+    {
+        return reinterpret_cast<const byte*>(buffer.data());
+    }
+
+    size_t UInt32DynamicIndexBuffer::size() const
+    {
+        return buffer.size() * element_size();
+    }
+
+    size_t UInt32DynamicIndexBuffer::element_size() const
+    {
+        return sizeof(uint32_t);
+    }
+
+    bool UInt32DynamicIndexBuffer::archive_process(Archive& ar)
+    {
+        if (!Super::archive_process(ar))
+            return false;
+        ar & buffer;
+        return ar;
+    }
+
+    const byte* UInt16DynamicIndexBuffer::data() const
+    {
+        return reinterpret_cast<const byte*>(buffer.data());
+    }
+
+    size_t UInt16DynamicIndexBuffer::size() const
+    {
+        return buffer.size() * element_size();
+    }
+
+    size_t UInt16DynamicIndexBuffer::element_size() const
+    {
+        return sizeof(uint16_t);
+    }
+
+    bool UInt16DynamicIndexBuffer::archive_process(Archive& ar)
     {
         if (!Super::archive_process(ar))
             return false;

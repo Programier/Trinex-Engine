@@ -18,7 +18,7 @@ namespace Engine
 
     public:
         Pointer<TypedVertexBuffer<Vertex>> m_vertex_buffer;
-        Pointer<BufferedIndexBuffer> m_index_buffer;
+        Pointer<UInt32IndexBuffer> m_index_buffer;
         Pointer<Material> m_material;
 
         DefaultClient();

@@ -30,7 +30,6 @@ namespace Engine
 
     struct VulkanDynamicVertexBuffer : RHI_VertexBuffer {
         Vector<VulkanBuffer> m_buffers;
-        int_t m_current = 0;
 
         VulkanDynamicVertexBuffer& create(const byte* data, size_t size);
         void bind(byte stream_index, size_t stride, size_t offset) override;
@@ -40,11 +39,23 @@ namespace Engine
 
     struct VulkanIndexBuffer : public RHI_IndexBuffer {
         VulkanBuffer m_buffer;
+        vk::IndexType m_type;
 
-        VulkanIndexBuffer& create(const byte* data, size_t size);
+        VulkanIndexBuffer& create(const byte* data, size_t size, IndexBufferFormat format);
 
         void bind(size_t offset) override;
         void update(size_t offset, size_t size, const byte* data) override;
+    };
+
+    struct VulkanDynamicIndexBuffer : public RHI_IndexBuffer {
+        Vector<VulkanBuffer> m_buffers;
+        vk::IndexType m_type;
+
+        VulkanDynamicIndexBuffer& create(const byte* data, size_t size, IndexBufferFormat format);
+
+        void bind(size_t offset) override;
+        void update(size_t offset, size_t size, const byte* data) override;
+        VulkanBuffer& current();
     };
 
     struct VulkanSSBO : public RHI_SSBO {

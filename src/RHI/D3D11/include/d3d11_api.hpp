@@ -79,7 +79,7 @@ namespace Engine
         RHI_Texture* create_render_surface(const RenderSurface* surface) override;
 
         RHI_VertexBuffer* create_vertex_buffer(size_t size, const byte* data, RHIBufferType type) override;
-        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, RHIBufferType type) override;
+        RHI_IndexBuffer* create_index_buffer(size_t, const byte* data, IndexBufferFormat format, RHIBufferType type) override;
         RHI_SSBO* create_ssbo(size_t size, const byte* data, RHIBufferType type) override;
         RHI_Pipeline* create_pipeline(const Pipeline* pipeline) override;
         RHI_Shader* create_vertex_shader(const VertexShader* shader) override;

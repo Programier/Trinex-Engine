@@ -24,7 +24,7 @@ namespace Engine
                                    {Color(1.f, 0, 0, 1.f), {1.f, 0.f}}}; //
         m_vertex_buffer->init_resource();
 
-        m_index_buffer         = Object::new_instance<BufferedIndexBuffer>();
+        m_index_buffer         = Object::new_instance<UInt32IndexBuffer>();
         m_index_buffer->buffer = {0, 1, 2, 0, 2, 3};
         m_index_buffer->init_resource();
 

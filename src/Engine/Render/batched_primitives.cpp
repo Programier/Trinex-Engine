@@ -11,6 +11,20 @@
 namespace Engine
 {
 
+    template<typename T>
+    static void submit_vertex_buffer(T* buffer, size_t& current_size)
+    {
+        if (buffer->buffer.size() < current_size)
+        {
+            buffer->rhi_update(0, buffer->buffer.size(), buffer->data());
+        }
+        else
+        {
+            buffer->rhi_create();
+            current_size = buffer->buffer.size();
+        }
+    }
+
     BatchedPrimitive::BatchedPrimitive()
     {
         m_position_buffer = Object::new_instance<EngineResource<PositionDynamicVertexBuffer>>();
@@ -29,8 +43,9 @@ namespace Engine
         if (m_position_buffer->buffer.size() == 0)
             return false;
 
-        m_position_buffer->rhi_submit_changes();
-        m_color_buffer->rhi_submit_changes();
+
+        submit_vertex_buffer(m_position_buffer, m_position_buffer_size);
+        submit_vertex_buffer(m_color_buffer, m_color_buffer_size);
         return true;
     }
 

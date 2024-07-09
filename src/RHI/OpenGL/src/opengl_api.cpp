@@ -128,7 +128,7 @@ namespace Engine
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
     {
         prepare_render();
-        glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
+        glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
                                  reinterpret_cast<void*>(indices_offset), vertices_offset);
         reset_samplers();
         return *this;
@@ -153,7 +153,7 @@ namespace Engine
     OpenGL& OpenGL::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset, size_t instances)
     {
         prepare_render();
-        glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, GL_UNSIGNED_INT,
+        glDrawElementsInstancedBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
                                           reinterpret_cast<void*>(indices_offset), instances, vertices_offset);
         reset_samplers();
         return *this;

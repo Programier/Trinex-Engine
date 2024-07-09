@@ -117,18 +117,19 @@ namespace Engine
         return m_buffers[API->m_current_buffer];
     }
 
-    VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size)
+    VulkanIndexBuffer& VulkanIndexBuffer::create(const byte* data, size_t size, IndexBufferFormat format)
     {
+        m_type = format == IndexBufferFormat::UInt32 ? vk::IndexType::eUint32 : vk::IndexType::eUint16;
         m_buffer.create(size, data, vk::BufferUsageFlagBits::eIndexBuffer);
         return *this;
     }
 
     void VulkanIndexBuffer::bind(size_t offset)
     {
-        VulkanIndexBuffer*& current = API->m_state.m_current_index_buffer;
+        RHI_IndexBuffer*& current = API->m_state.m_current_index_buffer;
         if (current != this)
         {
-            API->current_command_buffer().bindIndexBuffer(m_buffer.m_buffer, offset, vk::IndexType::eUint32);
+            API->current_command_buffer().bindIndexBuffer(m_buffer.m_buffer, offset, m_type);
             current = this;
         }
     }
@@ -136,6 +137,38 @@ namespace Engine
     void VulkanIndexBuffer::update(size_t offset, size_t size, const byte* data)
     {
         m_buffer.update(offset, data, size);
+    }
+
+    VulkanDynamicIndexBuffer& VulkanDynamicIndexBuffer::create(const byte* data, size_t size, IndexBufferFormat format)
+    {
+        m_type = format == IndexBufferFormat::UInt32 ? vk::IndexType::eUint32 : vk::IndexType::eUint16;
+        m_buffers.resize(API->m_framebuffers_count);
+
+        for (auto& buffer : m_buffers)
+        {
+            buffer.create(size, data, vk::BufferUsageFlagBits::eIndexBuffer);
+        }
+
+        return *this;
+    }
+
+    void VulkanDynamicIndexBuffer::bind(size_t offset)
+    {
+        RHI_IndexBuffer*& current_buffer = API->m_state.m_current_index_buffer;
+        if (current_buffer != this)
+        {
+            API->current_command_buffer().bindIndexBuffer(current().m_buffer, offset, m_type);
+            current_buffer = this;
+        }
+    }
+    void VulkanDynamicIndexBuffer::update(size_t offset, size_t size, const byte* data)
+    {
+        current().update(offset, data, size);
+    }
+
+    VulkanBuffer& VulkanDynamicIndexBuffer::current()
+    {
+        return m_buffers[API->m_current_buffer];
     }
 
     VulkanSSBO& VulkanSSBO::create(const byte* data, size_t size)
@@ -164,9 +197,11 @@ namespace Engine
         return &(new VulkanDynamicVertexBuffer())->create(data, size);
     }
 
-    RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, RHIBufferType type)
+    RHI_IndexBuffer* VulkanAPI::create_index_buffer(size_t size, const byte* data, IndexBufferFormat format, RHIBufferType type)
     {
-        return &(new VulkanIndexBuffer())->create(data, size);
+        if (type == RHIBufferType::Static)
+            return &(new VulkanIndexBuffer())->create(data, size, format);
+        return &(new VulkanDynamicIndexBuffer())->create(data, size, format);
     }
 
 

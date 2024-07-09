@@ -177,7 +177,7 @@ namespace Engine::Importer
 
         if (indices.size() > 0)
         {
-            BufferedIndexBuffer* index_buffer = Object::new_instance<BufferedIndexBuffer>();
+            UInt32IndexBuffer* index_buffer = Object::new_instance<UInt32IndexBuffer>();
             index_buffer->buffer              = std::move(indices);
             lod.indices                       = index_buffer;
         }
