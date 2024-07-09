@@ -171,6 +171,9 @@ namespace Engine::ShaderCompiler
             attribute.name           = var->getName();
             attribute.rate           = VertexAttributeInputRate::Vertex;
             attribute.type           = find_vertex_element_type_for_semantic(attribute.semantic);
+            attribute.location       = var->getBindingIndex();
+            attribute.stream_index   = attribute.location;
+            attribute.offset         = 0;
 
             auto requred_elements_count = find_components_count_for_semantic(attribute.semantic);
 
@@ -743,7 +746,7 @@ namespace Engine::ShaderCompiler
             request->setTargetLineDirectiveMode(0, SLANG_LINE_DIRECTIVE_MODE_NONE);
             request->setOptimizationLevel(SLANG_OPTIMIZATION_LEVEL_HIGH);
             request->setDebugInfoLevel(SLANG_DEBUG_INFO_LEVEL_MAXIMAL);
-            auto profile  = global_session()->findProfile("sm_4_0");
+            auto profile = global_session()->findProfile("sm_4_0");
             request->setTargetProfile(0, profile);
         }
     };

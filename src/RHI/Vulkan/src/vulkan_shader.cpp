@@ -1,6 +1,4 @@
 #include <Graphics/shader.hpp>
-#include <iostream>
-#include <thread>
 #include <vulkan_api.hpp>
 #include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
@@ -81,6 +79,17 @@ namespace Engine
                 return vk::Format::eUndefined;
         }
     }
+
+    static vk::VertexInputRate rate_of(VertexAttributeInputRate rate)
+    {
+        return rate == VertexAttributeInputRate::Vertex ? vk::VertexInputRate::eVertex : vk::VertexInputRate::eInstance;
+    }
+
+    static const char* name_of_rate(vk::VertexInputRate rate)
+    {
+        return rate == vk::VertexInputRate::eVertex ? "Vertex" : "Instance";
+    }
+
     bool VulkanVertexShader::create(const VertexShader* shader)
     {
         destroy();
@@ -91,40 +100,51 @@ namespace Engine
         m_binding_description.reserve(shader->attributes.size());
         m_attribute_description.reserve(shader->attributes.size());
 
-
-        Index index = 0;
-        for (auto& attribute : shader->attributes)
+        for (Index index = 0; auto& attribute : shader->attributes)
         {
+            uint32_t stream   = static_cast<uint32_t>(attribute.stream_index);
+            uint32_t stride   = 0;
+            vk::Format format = parse_vertex_format(attribute.type, stride);
 
-            m_binding_description.emplace_back();
-            vk::VertexInputBindingDescription& description = m_binding_description.back();
-
-
-            description.binding = static_cast<decltype(description.binding)>(index);
-            vk::Format format   = parse_vertex_format(attribute.type, description.stride);
-
-            switch (attribute.rate)
             {
-                case VertexAttributeInputRate::Instance:
-                    description.inputRate = vk::VertexInputRate::eInstance;
-                    break;
+                // Find and setup binding description
+                bool found = false;
+                for (auto& desc : m_binding_description)
+                {
+                    if (desc.binding == stream)
+                    {
+                        vk::VertexInputRate rate = rate_of(attribute.rate);
 
-                case VertexAttributeInputRate::Vertex:
-                    description.inputRate = vk::VertexInputRate::eVertex;
-                    break;
+                        if (desc.inputRate != rate)
+                        {
+                            error_log("Vulkan", "Stream '%d' already used for '%s' rate, but attribute '%zu' has rate '%s'",
+                                      name_of_rate(rate), index, name_of_rate(desc.inputRate));
+                            return false;
+                        }
 
-                default:
-                    throw EngineException("Undefined vertex attribute input rate!");
+                        desc.stride = glm::max(desc.stride, stride + static_cast<uint32_t>(attribute.offset));
+                        found       = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    m_binding_description.emplace_back();
+                    auto& desc     = m_binding_description.back();
+                    desc.binding   = attribute.stream_index;
+                    desc.stride    = stride;
+                    desc.inputRate = rate_of(attribute.rate);
+                }
             }
-
 
             {
                 m_attribute_description.emplace_back();
                 vk::VertexInputAttributeDescription& description = m_attribute_description.back();
-                description.binding                              = static_cast<decltype(description.binding)>(index);
-                description.location                             = static_cast<decltype(description.location)>(index);
-                description.offset                               = 0;// Each attribute has its own buffer
-                description.format                               = format;
+                description.binding  = static_cast<decltype(description.binding)>(attribute.stream_index);
+                description.location = static_cast<decltype(description.location)>(attribute.location);
+                description.offset   = attribute.offset;
+                description.format   = format;
             }
 
             ++index;

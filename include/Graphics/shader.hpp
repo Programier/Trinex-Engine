@@ -32,14 +32,15 @@ namespace Engine
             VertexAttributeInputRate rate;
             VertexBufferSemantic semantic;
             byte semantic_index;
+            byte location;
+            byte stream_index;
+            uint16_t offset;
 
             FORCE_INLINE Attribute(VertexAttributeInputRate rate = VertexAttributeInputRate::Vertex,
                                    VertexBufferSemantic semantic = VertexBufferSemantic::Position, byte semantic_index = 0,
-                                   const Name& name = Name::none)
-                : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index)
+                                   byte location = 0, byte stream = 0, uint16_t offset = 0, const Name& name = Name::none)
+                : name(name), rate(rate), semantic(semantic), semantic_index(semantic_index), location(location), offset(offset)
             {}
-
-            VertexBufferElementType element_type() const;
         };
 
         Vector<Attribute> attributes;

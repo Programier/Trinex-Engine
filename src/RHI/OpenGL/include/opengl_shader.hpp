@@ -49,15 +49,6 @@ namespace Engine
     };
 
     struct OpenGL_Pipeline : public RHI_Pipeline {
-
-        struct VertexInput {
-            size_t count;
-            size_t size;
-            GLuint type;
-            GLboolean normalized;
-        };
-
-        Vector<VertexInput> m_vertex_input;
         Vector<ExecutableObject*> m_apply_state;
         MaterialScalarParametersInfo m_global_parameters;
         MaterialScalarParametersInfo m_local_parameters;

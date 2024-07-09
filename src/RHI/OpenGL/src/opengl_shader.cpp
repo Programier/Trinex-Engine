@@ -194,7 +194,14 @@ namespace Engine
         }
     }
 
-    static FORCE_INLINE void parse_vertex_input(OpenGL_Pipeline::VertexInput& out, const VertexShader::Attribute& attribute)
+    struct OpenGL_VertexInput {
+        size_t count;
+        size_t size;
+        GLuint type;
+        GLboolean normalized;
+    };
+
+    static FORCE_INLINE void parse_vertex_input(OpenGL_VertexInput& out, const VertexShader::Attribute& attribute)
     {
         switch (attribute.type)
         {
@@ -255,29 +262,29 @@ namespace Engine
         glGenProgramPipelines(1, &m_pipeline);
         glBindVertexArray(m_vao);
 
-        auto vertex_shader   = pipeline->vertex_shader();
-        auto fragment_shader = pipeline->fragment_shader();
+        auto vertex_shader = pipeline->vertex_shader();
 
         if (vertex_shader->rhi_object<OpenGL_Shader>())
         {
             glUseProgramStages(m_pipeline, GL_VERTEX_SHADER_BIT, vertex_shader->rhi_object<OpenGL_Shader>()->m_id);
 
-            m_vertex_input.reserve(vertex_shader->attributes.size());
-
-            GLuint index = 0;
             for (auto& attribute : vertex_shader->attributes)
             {
-                glEnableVertexAttribArray(index);
-                VertexInput input;
+                OpenGL_VertexInput input;
                 parse_vertex_input(input, attribute);
 
-                if (attribute.rate == VertexAttributeInputRate::Instance)
+                if (input.type == GL_UNSIGNED_BYTE)
                 {
-                    glVertexAttribDivisor(index, 1);
+                    glVertexAttribIFormat(attribute.location, input.count, input.type, attribute.offset);
+                }
+                else
+                {
+                    glVertexAttribFormat(attribute.location, input.count, input.type, input.normalized, attribute.offset);
                 }
 
-                m_vertex_input.push_back(input);
-                ++index;
+                glVertexAttribBinding(attribute.location, attribute.stream_index);
+                glVertexAttribDivisor(attribute.stream_index, attribute.rate == VertexAttributeInputRate::Instance ? 1 : 0);
+                glEnableVertexAttribArray(attribute.location);
             }
         }
 
@@ -286,7 +293,7 @@ namespace Engine
         init_pipeline_shader(pipeline->tessellation_control_shader(), GL_TESS_CONTROL_SHADER_BIT);
         init_pipeline_shader(pipeline->tessellation_shader(), GL_TESS_EVALUATION_SHADER_BIT);
         init_pipeline_shader(pipeline->geometry_shader(), GL_GEOMETRY_SHADER_BIT);
-        init_pipeline_shader(fragment_shader, GL_FRAGMENT_SHADER_BIT);
+        init_pipeline_shader(pipeline->fragment_shader(), GL_FRAGMENT_SHADER_BIT);
 
 
         /// Initialize pipeline state

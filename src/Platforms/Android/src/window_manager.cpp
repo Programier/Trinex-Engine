@@ -1,6 +1,8 @@
 #include <Core/logger.hpp>
+#include <Core/struct.hpp>
 #include <EGL/egl.h>
 #include <Event/event_data.hpp>
+#include <Graphics/rhi.hpp>
 #include <Systems/event_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
@@ -10,7 +12,6 @@
 #include <android_platform.hpp>
 #include <android_window.hpp>
 #include <imgui_impl_android.h>
-
 
 namespace Engine::Platform
 {
@@ -388,7 +389,7 @@ namespace Engine::Platform
                 throw EngineException("Cannot create two windows on android!");
             }
 
-            if (config->api_name == "Vulkan")
+            if (rhi->info.struct_instance->base_name() == "VULKAN")
             {
                 m_window = new AndroidVulkanWindow(config);
             }

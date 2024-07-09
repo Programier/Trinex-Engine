@@ -1,5 +1,6 @@
 #include "bind_glm.hpp"
 #include <Core/engine_loading_controllers.hpp>
+#include <sstream>
 
 
 namespace Engine

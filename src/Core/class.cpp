@@ -192,7 +192,7 @@ namespace Engine
                 .method("const string& base_name() const", &Class::base_name)
                 .method("Object@ create_object() const", &Class::create_object)
                 .static_function("Class@ static_find(const string& in)", Class::static_find)
-                .method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Class::is_a))
+                .method("bool is_a(const Class@) const", method_of<bool, const Struct*>(&Struct::is_a))
                 .method("uint64 sizeof_class() const", &Class::sizeof_class)
                 .method("bool is_binded_to_script() const", &Class::is_scriptable)
                 .method("Object@ singletone_instance() const", &Class::singletone_instance);

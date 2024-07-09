@@ -57,6 +57,7 @@ namespace Engine
     {
         WindowConfig config;
         config.attributes.insert(WindowAttribute::Hidden);
+        config.attributes.insert(WindowAttribute::Resizable); // TODO: REMOVE IT
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();
         WindowManager::instance()->create_window(config, nullptr)->hide();

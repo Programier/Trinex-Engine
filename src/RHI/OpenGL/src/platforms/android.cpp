@@ -11,9 +11,9 @@ namespace Engine
         bool m_vsync           = false;
     };
 
-    void* create_opengl_context()
+    void* create_opengl_context(Window* main_window)
     {
-        AndroidEGLWindow* window = reinterpret_cast<AndroidEGLWindow*>(WindowManager::instance()->main_window());
+        AndroidEGLWindow* window = reinterpret_cast<AndroidEGLWindow*>(main_window);
         void* context            = window->create_context();
         window->make_current(context);
         return context;

@@ -334,7 +334,10 @@ namespace Engine
 
     bool VulkanPipeline::create_pipeline_layout()
     {
-        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, m_descriptor_set_layout.layout);
+        vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout> layouts =
+                m_descriptor_set_layout.has_layouts() ? m_descriptor_set_layout.layout
+                                                      : vk::ArrayProxyNoTemporaries<vk::DescriptorSetLayout>{};
+        vk::PipelineLayoutCreateInfo pipeline_layout_info({}, layouts);
         m_pipeline_layout = API->m_device.createPipelineLayout(pipeline_layout_info);
         return true;
     }
@@ -342,7 +345,7 @@ namespace Engine
     vk::Pipeline VulkanPipeline::find_or_create_pipeline()
     {
         Identifier identifier            = reinterpret_cast<Identifier>(API->m_state.m_render_target->state()->m_render_pass);
-        VulkanViewportMode viewport_mode = API->find_current_viewport_mode();
+        VulkanViewportMode viewport_mode = API->m_state.m_viewport_mode;
 
         if (viewport_mode == VulkanViewportMode::Flipped)
         {

@@ -22,23 +22,7 @@ namespace Engine
 
     void OpenGL_VertexBuffer::bind(byte stream_index, size_t stride, size_t offset)
     {
-        trinex_always_check(stream_index < OPENGL_MAX_VERTEX_SLOTS, "Invalid slot index");
-        OPENGL_API->m_state.vertex_buffers[stream_index].vertex_buffer = this;
-        OPENGL_API->m_state.vertex_buffers[stream_index].is_binded     = false;
-        OPENGL_API->m_state.vertex_buffers[stream_index].offset        = offset;
-    }
-
-    void OpenGL_VertexBuffer::bind_internal(byte stream_index, size_t offset)
-    {
-        OpenGL_Pipeline* pipeline = OPENGL_API->m_state.pipeline;
-
-        if (static_cast<size_t>(stream_index) < pipeline->m_vertex_input.size())
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, m_id);
-            auto& info = pipeline->m_vertex_input[stream_index];
-            glVertexAttribPointer(stream_index, info.count, info.type, info.normalized, info.size,
-                                  reinterpret_cast<void*>(offset));
-        }
+        glBindVertexBuffer(stream_index, m_id, offset, stride);
     }
 
     void OpenGL_VertexBuffer::update(size_t offset, size_t size, const byte* data)

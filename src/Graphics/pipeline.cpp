@@ -387,6 +387,9 @@ namespace Engine
                 out_attribute.rate           = attribute.rate;
                 out_attribute.semantic       = attribute.semantic;
                 out_attribute.semantic_index = attribute.semantic_index;
+                out_attribute.location       = attribute.location;
+                out_attribute.stream_index   = attribute.stream_index;
+                out_attribute.offset         = attribute.offset;
 
                 v_shader->attributes.push_back(out_attribute);
             }

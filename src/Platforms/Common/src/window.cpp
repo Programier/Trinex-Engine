@@ -117,6 +117,9 @@ namespace Engine
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
                     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
                 }
+#if TRINEX_DEBUG_BUILD
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
             }
             else if (m_api == SDL_WINDOW_VULKAN)
             {

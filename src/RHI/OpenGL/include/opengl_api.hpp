@@ -10,17 +10,10 @@
 namespace Engine
 {
     struct OpenGL_State {
-        struct VertexBufferSlot {
-            struct OpenGL_VertexBuffer* vertex_buffer = nullptr;
-            size_t offset                             = 0;
-            bool is_binded                            = false;
-        };
-
         ViewPort viewport                         = {};
         struct OpenGL_RenderTarget* render_target = nullptr;
         struct OpenGL_Pipeline* pipeline          = nullptr;
-        VertexBufferSlot vertex_buffers[OPENGL_MAX_VERTEX_SLOTS]{};
-        struct OpenGL_IndexBuffer* index_buffer = nullptr;
+        struct OpenGL_IndexBuffer* index_buffer   = nullptr;
     };
 
     struct OpenGL : public RHI {
@@ -56,7 +49,8 @@ namespace Engine
         OpenGL& reset_state();
 
         void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-        void bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments, struct OpenGL_RenderSurface* depth_stencil);
+        void bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+                                struct OpenGL_RenderSurface* depth_stencil);
         void viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
 

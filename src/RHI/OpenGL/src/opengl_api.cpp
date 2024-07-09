@@ -64,8 +64,12 @@ namespace Engine
         }
 #endif
 
+#if TRINEX_DEBUG_BUILD
         glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(debug_callback, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+#endif
 
         info.renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
         initialize_ubo();
@@ -116,16 +120,6 @@ namespace Engine
             if (OPENGL_API->m_state.pipeline->m_local_parameters.has_parameters())
             {
                 m_local_ubo->bind(OPENGL_API->m_state.pipeline->m_local_parameters.bind_index());
-            }
-
-            size_t stream_index = 0;
-            for (auto& buffer : m_state.vertex_buffers)
-            {
-                if (buffer.vertex_buffer && !buffer.is_binded)
-                {
-                    buffer.vertex_buffer->bind_internal(stream_index++, buffer.offset);
-                    buffer.is_binded = true;
-                }
             }
         }
         return *this;

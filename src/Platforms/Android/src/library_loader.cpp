@@ -1,4 +1,4 @@
-#include <Core/config_manager.hpp>
+#include <Engine/project.hpp>
 #include <Core/filesystem/root_filesystem.hpp>
 #include <Core/logger.hpp>
 #include <android_native_app_glue.h>
@@ -40,7 +40,7 @@ namespace Engine::Platform::LibraryLoader
 
         if (mode == Engine)
         {
-            Path new_path = Path(ConfigManager::get_string("Engine::libraries_dir")) / path;
+            Path new_path = Path(Project::libraries_dir) / path;
             auto entry    = rootfs()->find_filesystem(new_path);
             if (entry.first == nullptr || entry.first->type() != VFS::FileSystem::Type::Native)
                 return path.filename();

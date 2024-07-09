@@ -2,6 +2,8 @@
 #include <Core/etl/templates.hpp>
 #include <Core/string_functions.hpp>
 #include <ScriptEngine/registrar.hpp>
+#include <sstream>
+
 
 namespace Engine
 {

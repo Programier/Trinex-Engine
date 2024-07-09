@@ -16,6 +16,9 @@ namespace Engine
                 VertexAttributeInputRate rate;
                 VertexBufferSemantic semantic;
                 byte semantic_index;
+                byte location;
+                byte stream_index;
+                uint16_t offset;
             };
 
             Vector<VertexAttribute> attributes;

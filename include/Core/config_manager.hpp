@@ -19,7 +19,7 @@ namespace Engine
         template<typename ScriptArrayType, typename ArrayType>
         static void copy_array(const ArrayType& in, ScriptArrayType& out)
         {
-            using ElementType = ScriptArrayType::value_type;
+            using ElementType = typename ScriptArrayType::value_type;
 
             out.create(in.size());
 

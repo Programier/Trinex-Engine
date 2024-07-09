@@ -5,13 +5,19 @@
 
 namespace Engine
 {
+
+    struct Vertex {
+        Color4 color;
+        Vector2D uv;
+    };
+
     // This viewport can be used for testing something
     class ENGINE_EXPORT DefaultClient : public ViewportClient
     {
         declare_class(DefaultClient, ViewportClient);
 
     public:
-        Pointer<TexCoordVertexBuffer> m_vertex_buffer;
+        Pointer<TypedVertexBuffer<Vertex>> m_vertex_buffer;
         Pointer<Material> m_material;
 
         DefaultClient();
