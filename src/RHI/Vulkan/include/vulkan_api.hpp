@@ -117,9 +117,11 @@ namespace Engine
         VulkanAPI& end_render() override;
         VulkanAPI& wait_idle();
 
-        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-        void viewport(const ViewPort& viewport) override;
+        VulkanAPI& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+        VulkanAPI& viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
+        VulkanAPI& scissor(const Scissor& scissor) override;
+        Scissor scissor() override;
 
         VulkanAPI& delete_garbage(bool force);
         VulkanAPI& destroy_object(RHI_Object* object) override;
@@ -158,8 +160,8 @@ namespace Engine
         VulkanAPI& pop_global_params() override;
         VulkanAPI& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
-        void push_debug_stage(const char* stage, const Color& color) override;
-        void pop_debug_stage() override;
+        VulkanAPI& push_debug_stage(const char* stage, const Color& color) override;
+        VulkanAPI& pop_debug_stage() override;
 
         ~VulkanAPI();
     };

@@ -220,44 +220,48 @@ namespace Engine
         OPENGL_API->viewport(m_viewport);
     }
 
-    void OpenGL::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    OpenGL& OpenGL::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
         auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
         rt->bind();
+        return *this;
     }
 
-    void OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments, struct OpenGL_RenderSurface* depth_stencil)
+    OpenGL& OpenGL::bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+                                       struct OpenGL_RenderSurface* depth_stencil)
     {
         auto rt = OpenGL_RenderTarget::find_or_create(color_attachments, depth_stencil);
         rt->bind();
+        return *this;
     }
 
-    void OpenGL::viewport(const ViewPort& viewport)
+    OpenGL& OpenGL::viewport(const ViewPort& viewport)
     {
-        bool changed = false;
-
-        if (glm::any(glm::epsilonNotEqual(viewport.pos, m_state.viewport.pos, Point2D(0.001f, 0.001f))) ||
-            glm::any(glm::epsilonNotEqual(viewport.size, m_state.viewport.size, Size2D(0.001f, 0.001f))))
+        if (viewport != m_state.viewport)
         {
             glViewport(viewport.pos.x, viewport.pos.y, viewport.size.x, viewport.size.y);
-            changed = true;
-        }
-
-        if (glm::epsilonNotEqual(viewport.min_depth, m_state.viewport.min_depth, 0.001f) ||
-            glm::epsilonNotEqual(viewport.max_depth, m_state.viewport.max_depth, 0.001f))
-        {
             glDepthRangef(viewport.min_depth, viewport.max_depth);
-            changed = true;
         }
 
-        if (changed)
-        {
-            m_state.viewport = viewport;
-        }
+        return *this;
     }
 
     ViewPort OpenGL::viewport()
     {
         return m_state.viewport;
+    }
+
+    OpenGL& OpenGL::scissor(const Scissor& scissor)
+    {
+        if(scissor != m_state.scissor)
+        {
+            glViewport(scissor.pos.x, scissor.pos.y, scissor.size.x, scissor.size.y);
+        }
+        return *this;
+    }
+
+    Scissor OpenGL::scissor()
+    {
+        return m_state.scissor;
     }
 }// namespace Engine

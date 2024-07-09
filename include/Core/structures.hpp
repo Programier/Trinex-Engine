@@ -23,10 +23,28 @@ namespace Engine
 
         FORCE_INLINE bool operator==(const ViewPort& v) const
         {
-            return pos == v.pos && size == v.size && min_depth == v.min_depth && max_depth == v.max_depth;
+            return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
+                   glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f})) &&
+                   glm::epsilonEqual(min_depth, v.min_depth, 0.0001f) && glm::epsilonEqual(max_depth, v.max_depth, 0.0001f);
         }
 
         FORCE_INLINE bool operator!=(const ViewPort& v) const
+        {
+            return !((*this) == v);
+        }
+    };
+
+    struct Scissor {
+        Point2D pos = {0.0f, 0.0f};
+        Size2D size = {0.f, 0.f};
+
+        FORCE_INLINE bool operator==(const Scissor& v) const
+        {
+            return glm::all(glm::epsilonEqual(pos, v.pos, Point2D{0.001f, 0.0001f})) &&
+                   glm::all(glm::epsilonEqual(size, v.size, Size2D{0.001f, 0.0001f}));
+        }
+
+        FORCE_INLINE bool operator!=(const Scissor& v) const
         {
             return !((*this) == v);
         }

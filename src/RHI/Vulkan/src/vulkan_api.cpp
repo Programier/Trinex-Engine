@@ -632,7 +632,7 @@ namespace Engine
         return m_uniform_buffer[m_current_buffer];
     }
 
-    void VulkanAPI::push_debug_stage(const char* stage, const Color& color)
+    VulkanAPI& VulkanAPI::push_debug_stage(const char* stage, const Color& color)
     {
         if (pfn.vkCmdBeginDebugUtilsLabelEXT)
         {
@@ -646,13 +646,16 @@ namespace Engine
 
             pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer(), &label_info);
         }
+
+        return *this;
     }
 
-    void VulkanAPI::pop_debug_stage()
+    VulkanAPI& VulkanAPI::pop_debug_stage()
     {
         if (pfn.vkCmdEndDebugUtilsLabelEXT)
         {
             pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer());
         }
+        return *this;
     }
 }// namespace Engine

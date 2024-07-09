@@ -182,14 +182,16 @@ namespace Engine
         return *this;
     }
 
-    void OpenGL::push_debug_stage(const char* stage, const Color& color)
+    OpenGL& OpenGL::push_debug_stage(const char* stage, const Color& color)
     {
         glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, stage);
+        return *this;
     }
 
-    void OpenGL::pop_debug_stage()
+    OpenGL& OpenGL::pop_debug_stage()
     {
         glPopDebugGroup();
+        return *this;
     }
 
     void OpenGL::reset_samplers()

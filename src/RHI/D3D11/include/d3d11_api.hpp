@@ -19,6 +19,7 @@ namespace Engine
 
     struct D3D11_State {
         ViewPort viewport;
+        Scissor scissor;
         Size2D render_target_size      = {-1.f, -1.f};
         class D3D11_Pipeline* pipeline = nullptr;
     };
@@ -57,10 +58,12 @@ namespace Engine
         D3D11& end_render() override;
 
         RHI_Viewport* create_viewport(RenderViewport* viewport) override;
-        void viewport(const ViewPort& viewport) override;
+        D3D11& viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
+        D3D11& scissor(const Scissor& scissor) override;
+        Scissor scissor() override;
 
-        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+        D3D11& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
 
         D3D11& imgui_init(ImGuiContext*) override;
         D3D11& imgui_terminate(ImGuiContext*) override;
@@ -88,8 +91,8 @@ namespace Engine
         RHI_Shader* create_geometry_shader(const GeometryShader* shader) override;
         RHI_Shader* create_fragment_shader(const FragmentShader* shader) override;
 
-        void push_debug_stage(const char* stage, const Color& color = {}) override;
-        void pop_debug_stage() override;
+        D3D11& push_debug_stage(const char* stage, const Color& color = {}) override;
+        D3D11& pop_debug_stage() override;
         ~D3D11();
     };
 }// namespace Engine

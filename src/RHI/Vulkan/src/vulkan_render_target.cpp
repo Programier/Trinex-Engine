@@ -339,37 +339,30 @@ namespace Engine
         m_frames.clear();
     }
 
-    void VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    VulkanAPI& VulkanAPI::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
         VulkanRenderTarget* rt = VulkanRenderTarget::find_or_create(color_attachments, depth_stencil);
         rt->bind();
+        return *this;
     }
 
-    void VulkanAPI::viewport(const ViewPort& viewport)
+    VulkanAPI& VulkanAPI::viewport(const ViewPort& viewport)
     {
         auto& m_viewport = m_state.m_viewport;
         auto new_mode    = find_current_viewport_mode();
 
-        if (new_mode != m_state.m_viewport_mode ||
-            glm::any(glm::epsilonNotEqual(viewport.pos, m_viewport.pos, Point2D(0.001f, 0.001f))) ||
-            glm::any(glm::epsilonNotEqual(viewport.size, m_viewport.size, Size2D(0.001f, 0.001f))) ||
-            glm::epsilonNotEqual(viewport.min_depth, m_viewport.min_depth, 0.001f) ||
-            glm::epsilonNotEqual(viewport.max_depth, m_viewport.max_depth, 0.001f))
+        if (new_mode != m_state.m_viewport_mode || m_viewport != viewport)
         {
             if (new_mode != VulkanViewportMode::Undefined)
             {
-
                 float vp_height = viewport.size.y;
                 float vp_y      = viewport.pos.y;
-                float sc_height = viewport.size.y;
-                float sc_y      = viewport.pos.y;
 
                 if (new_mode == VulkanViewportMode::Flipped)
                 {
                     vp_height               = -vp_height;
                     auto render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
                     vp_y                    = render_target_size.y - vp_y;
-                    sc_y                    = vp_y + vp_height;
                 }
 
                 {
@@ -382,23 +375,48 @@ namespace Engine
                     vulkan_viewport.setMaxDepth(viewport.max_depth);
                     current_command_buffer().setViewport(0, vulkan_viewport);
                 }
-
-                {
-                    vk::Rect2D vulkan_scissor;
-                    vulkan_scissor.extent.setWidth(viewport.size.x);
-                    vulkan_scissor.extent.setHeight(sc_height);
-                    vulkan_scissor.offset.setX(viewport.pos.x);
-                    vulkan_scissor.offset.setY(sc_y);
-                    current_command_buffer().setScissor(0, vulkan_scissor);
-                }
             }
 
             m_viewport = viewport;
         }
+        return *this;
     }
 
     ViewPort VulkanAPI::viewport()
     {
         return m_state.m_viewport;
+    }
+
+    VulkanAPI& VulkanAPI::scissor(const Scissor& scissor)
+    {
+        auto& m_scissor = m_state.m_scissor;
+        auto new_mode   = find_current_viewport_mode();
+
+        if (new_mode != m_state.m_viewport_mode || m_scissor != scissor)
+        {
+            if (new_mode != VulkanViewportMode::Undefined)
+            {
+                float sc_y = scissor.pos.y;
+
+                if (new_mode == VulkanViewportMode::Flipped)
+                {
+                    auto render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
+                    sc_y                    = render_target_size.y - sc_y - scissor.size.y;
+                }
+
+                vk::Rect2D vulkan_scissor;
+                vulkan_scissor.extent.setWidth(scissor.size.x);
+                vulkan_scissor.extent.setHeight(scissor.size.y);
+                vulkan_scissor.offset.setX(scissor.pos.x);
+                vulkan_scissor.offset.setY(sc_y);
+                current_command_buffer().setScissor(0, vulkan_scissor);
+            }
+        }
+        return *this;
+    }
+
+    Scissor VulkanAPI::scissor()
+    {
+        return m_state.m_scissor;
     }
 }// namespace Engine

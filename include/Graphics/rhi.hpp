@@ -114,9 +114,11 @@ namespace Engine
         virtual RHI& begin_render() = 0;
         virtual RHI& end_render()   = 0;
 
-        virtual void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) = 0;
-        virtual void viewport(const ViewPort& viewport)                                                              = 0;
+        virtual RHI& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) = 0;
+        virtual RHI& viewport(const ViewPort& viewport)                                                              = 0;
         virtual ViewPort viewport()                                                                                  = 0;
+        virtual RHI& scissor(const Scissor& scissor)                                                                 = 0;
+        virtual Scissor scissor()                                                                                    = 0;
 
         virtual RHI_Sampler* create_sampler(const Sampler*)                                                                  = 0;
         virtual RHI_Texture* create_texture_2d(const Texture2D*)                                                             = 0;
@@ -136,8 +138,8 @@ namespace Engine
         virtual RHI& pop_global_params()                                                  = 0;
         virtual RHI& update_local_parameter(const void* data, size_t size, size_t offset) = 0;
 
-        virtual void push_debug_stage(const char* stage, const Color& color = {}) = 0;
-        virtual void pop_debug_stage()                                            = 0;
+        virtual RHI& push_debug_stage(const char* stage, const Color& color = {}) = 0;
+        virtual RHI& pop_debug_stage()                                            = 0;
 
         virtual ~RHI(){};
     };

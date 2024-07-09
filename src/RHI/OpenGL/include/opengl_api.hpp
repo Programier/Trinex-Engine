@@ -11,6 +11,7 @@ namespace Engine
 {
     struct OpenGL_State {
         ViewPort viewport                         = {};
+        Scissor scissor                           = {};
         struct OpenGL_RenderTarget* render_target = nullptr;
         struct OpenGL_Pipeline* pipeline          = nullptr;
         struct OpenGL_IndexBuffer* index_buffer   = nullptr;
@@ -48,11 +49,13 @@ namespace Engine
         OpenGL& end_render() override;
         OpenGL& reset_state();
 
-        void bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
-        void bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
-                                struct OpenGL_RenderSurface* depth_stencil);
-        void viewport(const ViewPort& viewport) override;
+        OpenGL& bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil) override;
+        OpenGL& bind_render_target(const Span<struct OpenGL_RenderSurface*>& color_attachments,
+                                   struct OpenGL_RenderSurface* depth_stencil);
+        OpenGL& viewport(const ViewPort& viewport) override;
         ViewPort viewport() override;
+        OpenGL& scissor(const Scissor& scissor) override;
+        Scissor scissor() override;
 
         RHI_Sampler* create_sampler(const Sampler*) override;
         RHI_Texture* create_texture_2d(const Texture2D*) override;
@@ -72,8 +75,8 @@ namespace Engine
         OpenGL& pop_global_params() override;
         OpenGL& update_local_parameter(const void* data, size_t size, size_t offset) override;
 
-        void push_debug_stage(const char* stage, const Color& color = {}) override;
-        void pop_debug_stage() override;
+        OpenGL& push_debug_stage(const char* stage, const Color& color = {}) override;
+        OpenGL& pop_debug_stage() override;
 
         void reset_samplers();
 

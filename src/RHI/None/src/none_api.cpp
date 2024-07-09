@@ -156,17 +156,30 @@ namespace Engine
         return *this;
     }
 
-    void NoneApi::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
-    {}
+    NoneApi& NoneApi::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    {
+        return *this;
+    }
 
-    void NoneApi::viewport(const ViewPort& viewport)
-    {}
+    NoneApi& NoneApi::viewport(const ViewPort& viewport)
+    {
+        return *this;
+    }
 
     ViewPort NoneApi::viewport()
     {
         return {};
     }
 
+    NoneApi& NoneApi::scissor(const Scissor& scissor)
+    {
+        return *this;
+    }
+
+    Scissor NoneApi::scissor()
+    {
+        return {};
+    }
 
     RHI_Sampler* NoneApi::create_sampler(const Sampler*)
     {
@@ -248,9 +261,13 @@ namespace Engine
         return *this;
     }
 
-    void NoneApi::push_debug_stage(const char* stage, const Color& color)
-    {}
+    NoneApi& NoneApi::push_debug_stage(const char* stage, const Color& color)
+    {
+        return *this;
+    }
 
-    void NoneApi::pop_debug_stage()
-    {}
+    NoneApi& NoneApi::pop_debug_stage()
+    {
+        return *this;
+    }
 }// namespace Engine

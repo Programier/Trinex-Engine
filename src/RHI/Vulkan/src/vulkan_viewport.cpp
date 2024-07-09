@@ -412,6 +412,11 @@ namespace Engine
         viewport.min_depth = 0.f;
         viewport.max_depth = 1.f;
         API->viewport(viewport);
+
+        Scissor scissor;
+        scissor.pos  = {0.f, 0.f};
+        scissor.size = viewport.size;
+        API->scissor(scissor);
     }
 
 

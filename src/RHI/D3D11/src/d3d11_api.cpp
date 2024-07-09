@@ -115,7 +115,7 @@ namespace Engine
         return depth_stencil_view;
     }
 
-    void D3D11::viewport(const ViewPort& viewport)
+    D3D11& D3D11::viewport(const ViewPort& viewport)
     {
         m_state.viewport = viewport;
         if (m_state.render_target_size.y > 0.f)
@@ -130,11 +130,27 @@ namespace Engine
             vp.MaxDepth       = viewport.max_depth;
             m_context->RSSetViewports(1, &vp);
         }
+
+        return *this;
     }
 
     ViewPort D3D11::viewport()
     {
         return m_state.viewport;
+    }
+
+    D3D11& D3D11::scissor(const Scissor& scissor)
+    {
+        m_state.scissor = scissor;
+        if (m_state.render_target_size.y > 0.f)
+        {
+        }
+        return *this;
+    }
+
+    Scissor D3D11::scissor()
+    {
+        return m_state.scissor;
     }
 
     D3D11& D3D11::imgui_init(ImGuiContext* context)
@@ -199,7 +215,7 @@ namespace Engine
         return *this;
     }
 
-    void D3D11::push_debug_stage(const char* stage, const Color& color)
+    D3D11& D3D11::push_debug_stage(const char* stage, const Color& color)
     {
         byte r                = static_cast<byte>(color.r * 255.f);
         byte g                = static_cast<byte>(color.g * 255.f);
@@ -210,11 +226,13 @@ namespace Engine
         static thread_local WCHAR buffer[256]{};
         MultiByteToWideChar(CP_UTF8, 0, stage, -1, buffer, 256);
         D3DPERF_BeginEvent(marker_color, buffer);
+        return *this;
     }
 
-    void D3D11::pop_debug_stage()
+    D3D11& D3D11::pop_debug_stage()
     {
         D3DPERF_EndEvent();
+        return *this;
     }
 
     D3D11::~D3D11()

@@ -243,7 +243,7 @@ namespace Engine
         return d3d11_surface;
     }
 
-    void D3D11::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
+    D3D11& D3D11::bind_render_target(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
         static ID3D11RenderTargetView* render_target_views[RHI_MAX_RT_BINDED];
 
@@ -258,6 +258,7 @@ namespace Engine
         m_context->OMSetRenderTargets(size, render_target_views,
                                       depth_stencil ? depth_stencil->rhi_object<D3D11_RenderSurface>()->m_depth_stencil_view
                                                     : nullptr);
+        return *this;
     }
 
 }// namespace Engine

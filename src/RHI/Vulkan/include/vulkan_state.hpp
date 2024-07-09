@@ -20,6 +20,7 @@ namespace Engine
         struct VulkanViewport* m_current_viewport            = nullptr;
         VulkanViewportMode m_viewport_mode                   = VulkanViewportMode::Undefined;
         ViewPort m_viewport;
+        Scissor m_scissor;
 
         inline void reset()
         {
