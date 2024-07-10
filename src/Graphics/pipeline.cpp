@@ -350,6 +350,13 @@ namespace Engine
         return &it->second;
     }
 
+    static FORCE_INLINE bool is_equal_attribute(const VertexShader::Attribute& attr1,
+                                                const ShaderCompiler::ShaderReflection::VertexAttribute& attr2)
+    {
+        return attr1.type == attr2.type && attr1.semantic == attr2.semantic && attr1.semantic_index == attr2.semantic_index &&
+               attr1.location == attr2.location;
+    }
+
     bool Pipeline::submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors)
     {
         bool status = false;
@@ -357,8 +364,15 @@ namespace Engine
         bool has_valid_graphical_pipeline = source.has_valid_graphical_pipeline();
         bool has_valid_compute_pipiline   = source.has_valid_compute_pipeline();
 
+        Vector<VertexShader::Attribute> vertex_attributes;
+
         if (has_valid_graphical_pipeline || has_valid_compute_pipiline)
         {
+            if (auto shader = vertex_shader())
+            {
+                vertex_attributes = std::move(shader->attributes);
+            }
+
             remove_all_shaders();
             parameters.clear();
             global_parameters.remove_parameters();
@@ -376,11 +390,45 @@ namespace Engine
             auto v_shader = vertex_shader(true);
             auto f_shader = fragment_shader(true);
 
-            v_shader->attributes.clear();
-            v_shader->attributes.reserve(source.reflection.attributes.size());
+            v_shader->attributes = std::move(vertex_attributes);
+
+            TreeSet<Name> names_to_remove;
+
+            for (auto& entry : v_shader->attributes)
+            {
+                names_to_remove.insert(entry.name);
+            }
 
             for (auto& attribute : source.reflection.attributes)
             {
+                bool next = false;
+                for (auto& current_attribute : v_shader->attributes)
+                {
+                    if (current_attribute.name == attribute.name)
+                    {
+                        names_to_remove.erase(current_attribute.name);
+
+                        if (is_equal_attribute(current_attribute, attribute))
+                        {
+                            next = true;
+                            break;
+                        }
+
+                        current_attribute.type           = attribute.type;
+                        current_attribute.rate           = attribute.rate;
+                        current_attribute.semantic       = attribute.semantic;
+                        current_attribute.semantic_index = attribute.semantic_index;
+                        current_attribute.location       = attribute.location;
+                        current_attribute.stream_index   = attribute.stream_index;
+                        current_attribute.offset         = attribute.offset;
+
+                        break;
+                    }
+                }
+
+                if (next)
+                    continue;
+
                 VertexShader::Attribute out_attribute;
                 out_attribute.name           = attribute.name;
                 out_attribute.type           = attribute.type;
@@ -393,6 +441,13 @@ namespace Engine
 
                 v_shader->attributes.push_back(out_attribute);
             }
+
+            auto predicate = [&](const VertexShader::Attribute& attribute) -> bool {
+                return names_to_remove.contains(attribute.name);
+            };
+            auto erase_from = std::remove_if(v_shader->attributes.begin(), v_shader->attributes.end(), predicate);
+            v_shader->attributes.erase(erase_from, v_shader->attributes.end());
+
 
             v_shader->source_code = source.vertex_code;
             f_shader->source_code = source.fragment_code;
