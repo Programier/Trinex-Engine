@@ -119,9 +119,6 @@ namespace Engine::ImGuiBackend
 
     // Functions
 
-
-    static bool update_model   = true;
-    static bool update_buffers = true;
     static void imgui_trinex_setup_render_state(ImDrawData* draw_data)
     {
         ImGuiTrinexData* bd = imgui_trinex_backend_data();
@@ -130,13 +127,11 @@ namespace Engine::ImGuiBackend
         viewport.size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
         rhi->viewport(viewport);
 
-        float L = draw_data->DisplayPos.x;
-        float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-        float T = draw_data->DisplayPos.y;
-        float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-        if (update_model)
-            bd->model_parameter->param = glm::ortho(L, R, B, T);
-
+        float L                    = draw_data->DisplayPos.x;
+        float R                    = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+        float T                    = draw_data->DisplayPos.y;
+        float B                    = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+        bd->model_parameter->param = glm::ortho(L, R, B, T);
         bd->texture_parameter->texture = nullptr;
     }
 
@@ -178,7 +173,7 @@ namespace Engine::ImGuiBackend
         size_t vtx_offset = 0;
         size_t idx_offset = 0;
 
-        for (int n = 0; n < update_buffers && draw_data->CmdListsCount; n++)
+        for (int n = 0; n < draw_data->CmdListsCount; n++)
         {
             const ImDrawList* cmd_list = draw_data->CmdLists[n];
             size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);

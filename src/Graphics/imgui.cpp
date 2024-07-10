@@ -20,7 +20,6 @@ namespace Engine::ImGuiBackend
 
 namespace Engine::ImGuiRenderer
 {
-
     ENGINE_EXPORT ImTextureID create_fonts_texture(const byte* fonts_texture_data, float fonts_texture_x, float fonts_texture_y)
     {
         ImTextureID texture = {};
