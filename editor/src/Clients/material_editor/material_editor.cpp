@@ -132,7 +132,7 @@ namespace Engine
     MaterialEditorClient& MaterialEditorClient::render(class RenderViewport* viewport)
     {
         viewport->rhi_bind();
-        viewport->window()->imgui_window()->render();
+        viewport->window()->imgui_window()->rhi_render();
         return *this;
     }
 

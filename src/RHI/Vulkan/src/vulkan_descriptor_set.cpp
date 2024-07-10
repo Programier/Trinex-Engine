@@ -8,7 +8,9 @@ namespace Engine
 {
     VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point)
     {
-        API->current_command_buffer().bindDescriptorSets(point, layout, 0, descriptor_set, {});
+        m_command_buffer = &API->current_command_buffer();
+        m_command_buffer->bindDescriptorSets(point, layout, 0, descriptor_set, {});
+        m_last_frame = API->m_current_frame;
         return *this;
     }
 

@@ -1,7 +1,7 @@
 #include <Core/archive.hpp>
+#include <Core/base_engine.hpp>
 #include <Core/buffer_manager.hpp>
 #include <Core/default_resources.hpp>
-#include <Core/base_engine.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/package.hpp>
 #include <DefaultResources/default.hpp>
@@ -22,6 +22,7 @@ namespace Engine
         ENGINE_EXPORT Material* spot_light_material                = nullptr;
         ENGINE_EXPORT Material* directional_light_material         = nullptr;
         ENGINE_EXPORT Material* ambient_light_material             = nullptr;
+        ENGINE_EXPORT Material* imgui_material                     = nullptr;
     }// namespace DefaultResources
 
     ENGINE_EXPORT Object* load_object_from_memory(const byte* data, size_t size, const StringView& name)
@@ -56,6 +57,7 @@ namespace Engine
         load_default_asset(SpotLightMaterial, spot_light_material, Material, Materials);
         load_default_asset(DirectionalLightMaterial, directional_light_material, Material, Materials);
         load_default_asset(AmbientLightMaterial, ambient_light_material, Material, Materials);
+        load_default_asset(ImGuiMaterial, imgui_material, Material, Materials);
 
         DefaultResourcesInitializeController().execute();
     }

@@ -273,15 +273,7 @@ namespace Engine
                 OpenGL_VertexInput input;
                 parse_vertex_input(input, attribute);
 
-                if (input.type == GL_UNSIGNED_BYTE)
-                {
-                    glVertexAttribIFormat(attribute.location, input.count, input.type, attribute.offset);
-                }
-                else
-                {
-                    glVertexAttribFormat(attribute.location, input.count, input.type, input.normalized, attribute.offset);
-                }
-
+                glVertexAttribFormat(attribute.location, input.count, input.type, input.normalized, attribute.offset);
                 glVertexAttribBinding(attribute.location, attribute.stream_index);
                 glVertexAttribDivisor(attribute.stream_index, attribute.rate == VertexAttributeInputRate::Instance ? 1 : 0);
                 glEnableVertexAttribArray(attribute.location);

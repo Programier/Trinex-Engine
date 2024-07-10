@@ -255,7 +255,7 @@ namespace Engine
     {
         if(scissor != m_state.scissor)
         {
-            glViewport(scissor.pos.x, scissor.pos.y, scissor.size.x, scissor.size.y);
+            glScissor(scissor.pos.x, scissor.pos.y, scissor.size.x, scissor.size.y);
         }
         return *this;
     }

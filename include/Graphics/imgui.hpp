@@ -165,7 +165,7 @@ namespace Engine::ImGuiRenderer
         ImDrawData* draw_data();
         Window& new_frame();
         Window& end_frame();
-        Window& render();
+        Window& rhi_render();
         Engine::Window* window() const;
         static Window* current();
         static void make_current(Window*);

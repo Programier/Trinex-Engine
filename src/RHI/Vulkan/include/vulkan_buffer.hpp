@@ -14,7 +14,7 @@ namespace Engine
 
         VulkanBuffer& create(vk::DeviceSize size, const byte* data, vk::BufferUsageFlagBits type);
         VulkanBuffer& update(vk::DeviceSize offset, const byte* data, vk::DeviceSize size);
-        void* map_memory();
+        byte* map_memory();
         VulkanBuffer& unmap_memory();
         bool is_mapped() const;
         ~VulkanBuffer();

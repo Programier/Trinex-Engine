@@ -12,8 +12,10 @@ namespace Engine
     struct VulkanDescriptorSetLayout;
 
     struct VulkanDescriptorSet {
-        VulkanDescriptorPool* pool       = nullptr;
-        vk::DescriptorSet descriptor_set = {};
+        VulkanDescriptorPool* pool          = nullptr;
+        vk::DescriptorSet descriptor_set    = {};
+        vk::CommandBuffer* m_command_buffer = nullptr;
+        size_t m_last_frame                 = 0;
 
         VulkanDescriptorSet& bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point = vk::PipelineBindPoint::eGraphics);
 

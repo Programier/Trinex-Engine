@@ -5,7 +5,6 @@
 #include <Core/threading.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
-#include <Graphics/rhi.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -228,16 +227,21 @@ namespace Engine
         return m_imgui_window.ptr();
     }
 
+    namespace ImGuiBackend
+    {
+        extern bool imgui_trinex_init(ImGuiContext* ctx);
+        extern void imgui_trinex_shutdown(ImGuiContext* ctx);
+    }// namespace ImGuiBackend
+
     struct InitContext : public ExecutableObject {
         ImGuiContext* m_ctx;
-        RHI* m_rhi;
 
-        InitContext(RHI* rhi, ImGuiContext* ctx) : m_ctx(ctx), m_rhi(rhi)
+        InitContext(ImGuiContext* ctx) : m_ctx(ctx)
         {}
 
         int_t execute() override
         {
-            m_rhi->imgui_init(m_ctx);
+            ImGuiBackend::imgui_trinex_init(m_ctx);
             return sizeof(InitContext);
         }
     };
@@ -245,14 +249,13 @@ namespace Engine
 
     struct TerminateContext : public ExecutableObject {
         ImGuiContext* m_ctx;
-        RHI* m_rhi;
 
-        TerminateContext(RHI* rhi, ImGuiContext* ctx) : m_ctx(ctx), m_rhi(rhi)
+        TerminateContext(ImGuiContext* ctx) : m_ctx(ctx)
         {}
 
         int_t execute() override
         {
-            m_rhi->imgui_terminate(m_ctx);
+            ImGuiBackend::imgui_trinex_shutdown(m_ctx);
             return sizeof(TerminateContext);
         }
     };
@@ -276,7 +279,7 @@ namespace Engine
 
         imgui_initialize_internal();
 
-        rt->insert_new_task<InitContext>(rhi, context);
+        rt->insert_new_task<InitContext>(context);
         rt->wait_all();
         return context;
     }
@@ -284,7 +287,7 @@ namespace Engine
     void Window::imgui_destroy_context(ImGuiContext* context)
     {
         Thread* rt = render_thread();
-        rt->insert_new_task<TerminateContext>(rhi, context);
+        rt->insert_new_task<TerminateContext>(context);
         rt->wait_all();
 
         ImGui::SetCurrentContext(context);

@@ -207,7 +207,7 @@ namespace Engine
         viewport->rhi_bind();
         // RenderSurface* surfaces[] = {SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR)};
         // rhi->bind_render_target(surfaces, nullptr);
-        viewport->window()->imgui_window()->render();
+        viewport->window()->imgui_window()->rhi_render();
         return *this;
     }
 

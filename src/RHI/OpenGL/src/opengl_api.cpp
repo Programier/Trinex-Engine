@@ -128,6 +128,7 @@ namespace Engine
     OpenGL& OpenGL::draw_indexed(size_t indices_count, size_t indices_offset, size_t vertices_offset)
     {
         prepare_render();
+        indices_offset *= (m_state.index_buffer->m_format == GL_UNSIGNED_SHORT ? 2 : 4);
         glDrawElementsBaseVertex(OPENGL_API->m_state.pipeline->m_topology, indices_count, m_state.index_buffer->m_format,
                                  reinterpret_cast<void*>(indices_offset), vertices_offset);
         reset_samplers();

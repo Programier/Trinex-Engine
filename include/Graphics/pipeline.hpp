@@ -5,7 +5,6 @@
 
 namespace Engine
 {
-
     class VertexShader;
     class TessellationControlShader;
     class TessellationShader;

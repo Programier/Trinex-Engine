@@ -23,6 +23,7 @@ namespace Engine
         ENGINE_EXPORT extern Material* spot_light_material;
         ENGINE_EXPORT extern Material* directional_light_material;
         ENGINE_EXPORT extern Material* ambient_light_material;
+        ENGINE_EXPORT extern Material* imgui_material;
     }// namespace DefaultResources
 
     ENGINE_EXPORT class Object* load_object_from_memory(const byte* data, size_t size, const StringView& fullname);

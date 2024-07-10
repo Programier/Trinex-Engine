@@ -8,11 +8,15 @@
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/pipeline.hpp>
-#include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Window/window.hpp>
 #include <imgui.h>
+
+namespace Engine::ImGuiBackend
+{
+    extern void imgui_trinex_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
+}
 
 namespace Engine::ImGuiRenderer
 {
@@ -230,7 +234,7 @@ namespace Engine::ImGuiRenderer
     ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
     {
         viewport->rhi_bind();
-        rhi->imgui_render(m_window->context(), m_draw_data.draw_data());
+        ImGuiBackend::imgui_trinex_render_draw_data(m_window->context(), m_draw_data.draw_data());
         m_draw_data.swap_render_index();
         return *this;
     }
@@ -288,7 +292,6 @@ namespace Engine::ImGuiRenderer
     {
         make_current(this);
         m_window->imgui_new_frame();
-        rhi->imgui_new_frame(m_context);
         ImGui::NewFrame();
         return *this;
     }
@@ -313,9 +316,9 @@ namespace Engine::ImGuiRenderer
         return *this;
     }
 
-    Window& Window::render()
+    Window& Window::rhi_render()
     {
-        rhi->imgui_render(m_context, draw_data());
+        ImGuiBackend::imgui_trinex_render_draw_data(m_context, draw_data());
         m_draw_data.swap_render_index();
         return *this;
     }

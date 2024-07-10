@@ -457,7 +457,6 @@ namespace Engine
 
     void VulkanPipeline::bind()
     {
-
         {
             auto current_pipeline = find_or_create_pipeline();
 
@@ -482,12 +481,25 @@ namespace Engine
         if (m_descriptor_set_layout.has_layouts())
         {
             auto& current_buffer = m_descriptor_sets[API->m_current_buffer];
+            auto* cmd_buffer = &API->current_command_buffer();
 
-            if (current_buffer.size() <= m_descriptor_set_index)
+            while (true)
             {
-                current_buffer.push_back(VulkanDescriptorPoolManager::allocate_descriptor_set(&m_descriptor_set_layout));
+                if (current_buffer.size() <= m_descriptor_set_index)
+                {
+                    current_buffer.push_back(VulkanDescriptorPoolManager::allocate_descriptor_set(&m_descriptor_set_layout));
+                    current_buffer[m_descriptor_set_index]->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
+                    break;
+                }
+
+                auto set = current_buffer[m_descriptor_set_index];
+                if(set->m_command_buffer == cmd_buffer || (set->m_last_frame + API->m_framebuffers_count + 1) < API->m_current_frame)
+                {
+                    current_buffer[m_descriptor_set_index]->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
+                    break;
+                }
+                ++m_descriptor_set_index;
             }
-            current_buffer[m_descriptor_set_index]->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
         }
     }
 

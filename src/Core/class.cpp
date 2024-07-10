@@ -152,18 +152,7 @@ namespace Engine
 
     bool Class::is_asset() const
     {
-        const Class* self = this;
-        while (self)
-        {
-            if (self->flags(Class::IsAsset))
-            {
-                return true;
-            }
-
-            self = self->parent();
-        }
-
-        return false;
+        return flags(Class::IsAsset);
     }
 
     bool Class::is_class() const

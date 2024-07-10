@@ -28,12 +28,12 @@ namespace Engine
         }
 
         size         = std::min(size, m_size - offset);
-        void* memory = map_memory();
-        std::memcpy(memory, data, size);
+        byte* memory = map_memory();
+        std::memcpy(memory + offset, data, size);
         return *this;
     }
 
-    void* VulkanBuffer::map_memory()
+    byte* VulkanBuffer::map_memory()
     {
         if (!m_mapped_data)
         {
