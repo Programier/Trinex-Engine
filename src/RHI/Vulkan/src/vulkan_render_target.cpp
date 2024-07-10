@@ -101,6 +101,7 @@ namespace Engine
         if (API->find_current_viewport_mode() != API->m_state.m_viewport_mode)
         {
             API->viewport(API->m_state.m_viewport);
+            API->scissor(API->m_state.m_scissor);
         }
 
         API->current_command_buffer().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
@@ -411,6 +412,8 @@ namespace Engine
                 vulkan_scissor.offset.setY(sc_y);
                 current_command_buffer().setScissor(0, vulkan_scissor);
             }
+
+            m_scissor = scissor;
         }
         return *this;
     }
