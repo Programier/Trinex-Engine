@@ -15,6 +15,7 @@
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/shader.hpp>
+#include <Graphics/shader_cache.hpp>
 #include <Graphics/shader_compiler.hpp>
 
 namespace Engine
@@ -506,65 +507,6 @@ namespace Engine
         return count;
     }
 
-    static bool serialize_shader_sources(const Path& path, Pipeline* pipeline, bool is_reading)
-    {
-        union
-        {
-            BufferReader* reader = nullptr;
-            BufferWriter* writer;
-        };
-
-        bool status = true;
-
-        Archive archive;
-
-        if (is_reading)
-        {
-            reader = new FileReader(path);
-
-            if (!reader->is_open())
-            {
-                delete reader;
-                return false;
-            }
-
-            archive = reader;
-        }
-        else
-        {
-            rootfs()->create_dir(path.base_path());
-            writer = new FileWriter(path);
-
-            if (!writer->is_open())
-            {
-                delete writer;
-                return false;
-            }
-
-            archive = writer;
-        }
-
-        for (Shader* shader : pipeline->shader_array())
-        {
-            if (shader)
-            {
-                status = status && shader->archive_process_source_code(archive);
-            }
-        }
-
-        if (is_reading)
-        {
-            delete reader;
-        }
-        else
-        {
-            delete writer;
-        }
-
-
-        return status;
-    }
-
     bool Pipeline::archive_process(class Archive& archive)
     {
         static auto serialize_shader_internal = [](Shader* shader, Archive& archive) {
@@ -626,31 +568,43 @@ namespace Engine
         // Loading shaders from shader cache
         String material_name = material_object->full_name(true);
 
-        Path path = Strings::format("{}{}{}{}{}{}", Project::shader_cache_dir, Path::separator, Settings::e_api, Path::separator,
-                                    Strings::replace_all(material_name, Constants::name_separator, Path::sv_separator),
-                                    Constants::shader_extention);
+        ShaderCache cache;
+
+        bool cache_serialize_result = false;
+
+        if (archive.is_reading())
+        {
+            cache_serialize_result = cache.load(material_name);
+        }
+        else
+        {
+            cache.init_from(this);
+            cache_serialize_result = cache.store(material_name);
+        }
 
 
-        bool status = serialize_shader_sources(path, this, archive.is_reading());
-
-        if (!status && archive.is_reading())
+        if (!cache_serialize_result && archive.is_reading())
         {
             warn_log("Pipeline", "Missing shader cache for material '%s'. Recompiling...", material_name.c_str());
 
-            if ((status = material_object->compile()))
+            if ((cache_serialize_result = material_object->compile()))
             {
                 info_log("Pipeline", "Compile success!");
 
-                // If compile is success, serialize source to file
-                serialize_shader_sources(path, this, false);
+                cache.init_from(this);
+                cache.store(material_name);
             }
             else
             {
                 error_log("Pipeline", "Compile fail!");
             }
         }
+        else if (cache_serialize_result && archive.is_reading())
+        {
+            cache.apply_to(this);
+        }
 
-        return archive && status;
+        return archive && cache_serialize_result;
     }
 
     implement_engine_class(Pipeline, 0)
