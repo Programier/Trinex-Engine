@@ -127,6 +127,7 @@ namespace Engine
     {
         shadow_data_size = 0;
         index            = 0;
+        used_data        = 0;
     }
 
     void VulkanUniformBuffer::reset()
