@@ -60,6 +60,11 @@ namespace Engine
         static Vector4D test;
         ImGui::ColorEdit4("Test", &test.x);
         ImGui::End();
+
+        ImGui::Begin("Hello World2");
+        static Vector4D test2;
+        ImGui::ColorEdit4("Test2", &test2.x);
+        ImGui::End();
         window->end_frame();
         return *this;
     }

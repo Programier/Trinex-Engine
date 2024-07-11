@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/structures.hpp>
+#include <Graphics/rhi.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_headers.hpp>
 
@@ -11,12 +12,11 @@ namespace Engine
     struct VulkanDescriptorPool;
     struct VulkanDescriptorSetLayout;
 
-    struct VulkanDescriptorSet {
-        VulkanDescriptorPool* pool          = nullptr;
-        vk::DescriptorSet descriptor_set    = {};
-        vk::CommandBuffer* m_command_buffer = nullptr;
-        size_t m_last_frame                 = 0;
+    struct VulkanDescriptorSet : public RHI_DefaultDestroyable<RHI_Object> {
+        VulkanDescriptorPool* pool       = nullptr;
+        vk::DescriptorSet descriptor_set = {};
 
+        VulkanDescriptorSet();
         VulkanDescriptorSet& bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point = vk::PipelineBindPoint::eGraphics);
 
         VulkanDescriptorSet& bind_ssbo(struct VulkanSSBO* ssbo, BindLocation location);

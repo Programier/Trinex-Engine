@@ -5,7 +5,7 @@
 
 namespace Engine
 {
-    struct VulkanTexture : RHI_Texture {
+    struct VulkanTexture : RHI_DefaultDestroyable<RHI_Texture> {
     private:
         vk::DeviceMemory m_image_memory;
 
@@ -35,7 +35,6 @@ namespace Engine
         vk::ImageAspectFlags aspect(bool use_for_shader_attachment = false) const;
 
         VulkanTexture& create(const class Texture* texture);
-        VulkanTexture& destroy();
 
         void update_texture(const Size2D& size, MipMapLevel level, uint_t layer, const byte* data, size_t data_size);
 

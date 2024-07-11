@@ -5,6 +5,7 @@
 #include <Window/window.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_barriers.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_texture.hpp>
@@ -29,9 +30,7 @@ namespace Engine
 
     void VulkanViewport::init()
     {
-        m_command_buffers = API->m_device.allocateCommandBuffers(
-                vk::CommandBufferAllocateInfo(API->m_command_pool, vk::CommandBufferLevel::ePrimary, API->m_framebuffers_count));
-
+        m_command_buffers.resize(API->m_framebuffers_count);
         m_sync_objects.resize(API->m_framebuffers_count);
     }
 
@@ -51,9 +50,10 @@ namespace Engine
 
         API->m_device.resetFences(sync.m_fence);
 
-        API->current_command_buffer().reset();
-        API->current_command_buffer().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+        API->current_command_buffer()->reset();
+        API->current_command_buffer_handle().begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
     }
+
 
     void VulkanViewport::end_render()
     {
@@ -62,23 +62,19 @@ namespace Engine
             API->m_state.m_render_target->unbind();
         }
 
-        API->current_command_buffer().end();
+        API->current_command_buffer_handle().end();
 
         SyncObject& sync = m_sync_objects[API->m_current_buffer];
 
         static const vk::PipelineStageFlags wait_flags(vk::PipelineStageFlagBits::eColorAttachmentOutput);
-        vk::SubmitInfo submit_info(sync.m_image_present, wait_flags, API->current_command_buffer(), sync.m_render_finished);
+        vk::SubmitInfo submit_info(sync.m_image_present, wait_flags, API->current_command_buffer_handle(),
+                                   sync.m_render_finished);
 
         API->m_graphics_queue.submit(submit_info, sync.m_fence);
     }
 
     void VulkanViewport::on_resize(const Size2D& new_size)
     {}
-
-    Identifier VulkanViewport::internal_type()
-    {
-        return VULKAN_VIEWPORT_ID;
-    }
 
     void VulkanViewport::vsync(bool flag)
     {}
@@ -114,16 +110,20 @@ namespace Engine
         API->m_state.m_current_viewport = nullptr;
     }
 
-
     VulkanViewport::~VulkanViewport()
     {
-        API->m_device.freeCommandBuffers(API->m_command_pool, m_command_buffers);
+        m_command_buffers.clear();
         m_sync_objects.clear();
     }
 
-    vk::CommandBuffer& VulkanAPI::current_command_buffer()
+    VulkanCommandBuffer* VulkanAPI::current_command_buffer()
     {
-        return m_state.m_current_viewport->m_command_buffers[API->m_current_buffer];
+        return &m_state.m_current_viewport->m_command_buffers.at(API->m_current_buffer);
+    }
+
+    vk::CommandBuffer& VulkanAPI::current_command_buffer_handle()
+    {
+        return m_state.m_current_viewport->m_command_buffers[API->m_current_buffer].m_cmd;
     }
 
     // Window Viewport
@@ -141,13 +141,8 @@ namespace Engine
 
     void VulkanWindowViewport::on_resize(const Size2D& new_size)
     {
-        auto size = API->surface_size(m_surface);
-        if (size.width != static_cast<std::uint32_t>(m_swapchain->extent.width) ||
-            size.height != static_cast<uint32_t>(m_swapchain->extent.height))
-        {
-            m_need_recreate_swap_chain = true;
-            reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target)->frame()->size(size.width, size.height);
-        }
+        m_need_recreate_swap_chain = true;
+        reinterpret_cast<VulkanWindowRenderTarget*>(m_render_target)->frame()->size(new_size.x, new_size.y);
     }
 
     void VulkanWindowViewport::vsync(bool flag)
@@ -197,7 +192,7 @@ namespace Engine
             current->unbind();
         }
 
-        auto& cmd = API->current_command_buffer();
+        auto& cmd = API->current_command_buffer_handle();
         auto src  = surface->rhi_object<VulkanSurface>();
 
         auto src_layout = src->layout();
@@ -235,7 +230,7 @@ namespace Engine
             current->unbind();
         }
 
-        auto& cmd = API->current_command_buffer();
+        auto& cmd = API->current_command_buffer_handle();
         auto dst  = vk::Image(m_images[m_buffer_index]);
         transition_swapchain_image(dst, vk::ImageLayout::ePresentSrcKHR, vk::ImageLayout::eTransferDstOptimal, cmd);
 
@@ -406,16 +401,17 @@ namespace Engine
 
         m_buffer_index = current_buffer_index.value;
 
+        Size2D rt_size = render_target()->state()->m_size;
         ViewPort viewport;
         viewport.pos       = {0.f, 0.f};
-        viewport.size      = m_viewport->size();
+        viewport.size      = rt_size;
         viewport.min_depth = 0.f;
         viewport.max_depth = 1.f;
         API->viewport(viewport);
 
         Scissor scissor;
         scissor.pos  = {0.f, 0.f};
-        scissor.size = viewport.size;
+        scissor.size = rt_size;
         API->scissor(scissor);
     }
 

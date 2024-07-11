@@ -1,10 +1,10 @@
 #include <Graphics/shader_parameters.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_pipeline.hpp>
 #include <vulkan_state.hpp>
 #include <vulkan_types.hpp>
-
 
 namespace Engine
 {
@@ -77,7 +77,9 @@ namespace Engine
         RHI_VertexBuffer*& current = API->m_state.m_current_vertex_buffer[stream_index];
         if (current != this)
         {
-            API->current_command_buffer().bindVertexBuffers(stream_index, m_buffer.m_buffer, {offset});
+            auto cmd = API->current_command_buffer();
+            cmd->m_cmd.bindVertexBuffers(stream_index, m_buffer.m_buffer, {offset});
+            cmd->add_object(this);
             current = this;
         }
     }
@@ -102,7 +104,9 @@ namespace Engine
         RHI_VertexBuffer*& current_buffer = API->m_state.m_current_vertex_buffer[stream_index];
         if (current_buffer != this)
         {
-            API->current_command_buffer().bindVertexBuffers(stream_index, current().m_buffer, {offset});
+            auto cmd = API->current_command_buffer();
+            cmd->m_cmd.bindVertexBuffers(stream_index, current().m_buffer, {offset});
+            cmd->add_object(this);
             current_buffer = this;
         }
     }
@@ -129,7 +133,9 @@ namespace Engine
         RHI_IndexBuffer*& current = API->m_state.m_current_index_buffer;
         if (current != this)
         {
-            API->current_command_buffer().bindIndexBuffer(m_buffer.m_buffer, offset, m_type);
+            auto cmd = API->current_command_buffer();
+            cmd->m_cmd.bindIndexBuffer(m_buffer.m_buffer, offset, m_type);
+            cmd->add_object(this);
             current = this;
         }
     }
@@ -157,7 +163,9 @@ namespace Engine
         RHI_IndexBuffer*& current_buffer = API->m_state.m_current_index_buffer;
         if (current_buffer != this)
         {
-            API->current_command_buffer().bindIndexBuffer(current().m_buffer, offset, m_type);
+            auto cmd = API->current_command_buffer();
+            cmd->m_cmd.bindIndexBuffer(current().m_buffer, offset, m_type);
+            cmd->add_object(this);
             current_buffer = this;
         }
     }

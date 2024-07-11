@@ -12,7 +12,6 @@ namespace Engine
 
         NoneApi& initialize(class Window* window) override;
         void* context() override;
-        NoneApi& destroy_object(RHI_Object* object) override;
 
         NoneApi& imgui_init(ImGuiContext*) override;
         NoneApi& imgui_terminate(ImGuiContext*) override;

@@ -18,12 +18,12 @@ namespace Engine
         });
     });
 
-    struct NoneSampler : public RHI_Sampler {
+    struct NoneSampler : public RHI_DefaultDestroyable<RHI_Sampler> {
         void bind(BindLocation location) override
         {}
     };
 
-    struct NoneTexture : public RHI_Texture {
+    struct NoneTexture : public RHI_DefaultDestroyable<RHI_Texture> {
         void bind(BindLocation location) override
         {}
 
@@ -37,16 +37,16 @@ namespace Engine
         {}
     };
 
-    struct NoneShader : public RHI_Shader {
+    struct NoneShader : public RHI_DefaultDestroyable<RHI_Shader> {
     };
 
-    struct NonePipeline : public RHI_Pipeline {
+    struct NonePipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
         void bind() override
         {}
     };
 
     template<typename BufferType>
-    struct NoneBuffer : public BufferType {
+    struct NoneBuffer : public RHI_DefaultDestroyable<BufferType> {
         void update(size_t offset, size_t size, const byte* data) override
         {}
     };
@@ -66,7 +66,7 @@ namespace Engine
         {}
     };
 
-    struct NoneViewport : public RHI_Viewport {
+    struct NoneViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
         void begin_render() override
         {}
         void end_render() override
@@ -97,12 +97,6 @@ namespace Engine
     void* NoneApi::context()
     {
         return nullptr;
-    }
-
-    NoneApi& NoneApi::destroy_object(RHI_Object* object)
-    {
-        delete object;
-        return *this;
     }
 
     NoneApi& NoneApi::imgui_init(ImGuiContext*)

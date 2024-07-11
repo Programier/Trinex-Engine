@@ -70,9 +70,6 @@ namespace Engine
         }
 
         m_uniform_buffer.clear();
-
-        delete_garbage(true);
-
         VulkanDescriptorPoolManager::release_all();
 
         DESTROY_CALL(destroyDescriptorPool, m_imgui_descriptor_pool);
@@ -89,46 +86,6 @@ namespace Engine
     bool VulkanAPI::vsync_from_present_mode(vk::PresentModeKHR present_mode)
     {
         return present_mode == vk::PresentModeKHR::eFifo ? true : false;
-    }
-
-    VulkanAPI& VulkanAPI::delete_garbage(bool force)
-    {
-        if (force)
-        {
-            for (auto& ell : m_garbage)
-            {
-                delete ell.object;
-            }
-
-            m_garbage.clear();
-        }
-        else
-        {
-            while (!m_garbage.empty())
-            {
-                Garbage* garbage = &m_garbage.front();
-                if (garbage->frame != m_current_frame)
-                    break;
-
-                delete garbage->object;
-                m_garbage.pop_front();
-            }
-        }
-
-        return *this;
-    }
-
-    VulkanAPI& VulkanAPI::destroy_object(RHI_Object* object)
-    {
-        if (object->internal_type() > VULKAN_FORCED_DESTROY_TYPES)
-        {
-            delete object;
-        }
-        else
-        {
-            m_garbage.emplace_back(object, m_current_frame + m_framebuffers_count + 1);
-        }
-        return *this;
     }
 
     VulkanAPI& VulkanAPI::imgui_init(ImGuiContext* ctx)
@@ -198,7 +155,7 @@ namespace Engine
     VulkanAPI& VulkanAPI::imgui_render(ImGuiContext* ctx, ImDrawData* draw_data)
     {
         ImGui::SetCurrentContext(ctx);
-        ImGui_ImplVulkan_RenderDrawData(draw_data, current_command_buffer());
+        ImGui_ImplVulkan_RenderDrawData(draw_data, current_command_buffer_handle());
         return *this;
     }
 
@@ -512,7 +469,6 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::begin_render()
     {
-        delete_garbage(false);
         ++m_current_frame;
         m_current_buffer = m_current_frame % m_framebuffers_count;
 
@@ -598,32 +554,33 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::prepare_draw()
     {
+        m_state.m_pipeline->bind_descriptor_set();
         uniform_buffer()->bind();
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw(size_t vertex_count, size_t vertices_offset)
     {
-        prepare_draw().current_command_buffer().draw(vertex_count, 1, vertices_offset, 0);
+        prepare_draw().current_command_buffer_handle().draw(vertex_count, 1, vertices_offset, 0);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw_indexed(size_t indices, size_t offset, size_t vertices_offset)
     {
-        prepare_draw().current_command_buffer().drawIndexed(indices, 1, offset, vertices_offset, 0);
+        prepare_draw().current_command_buffer_handle().drawIndexed(indices, 1, offset, vertices_offset, 0);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw_instanced(size_t vertex_count, size_t vertices_offset, size_t instances)
     {
-        prepare_draw().current_command_buffer().draw(vertex_count, instances, vertices_offset, 0);
+        prepare_draw().current_command_buffer_handle().draw(vertex_count, instances, vertices_offset, 0);
         return *this;
     }
 
     VulkanAPI& VulkanAPI::draw_indexed_instanced(size_t indices_count, size_t indices_offset, size_t vertices_offset,
                                                  size_t instances)
     {
-        prepare_draw().current_command_buffer().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
+        prepare_draw().current_command_buffer_handle().drawIndexed(indices_count, instances, indices_offset, vertices_offset, 0);
         return *this;
     }
 
@@ -644,7 +601,7 @@ namespace Engine
             label_info.color[2]             = color.b;
             label_info.color[3]             = color.a;
 
-            pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer(), &label_info);
+            pfn.vkCmdBeginDebugUtilsLabelEXT(current_command_buffer_handle(), &label_info);
         }
 
         return *this;
@@ -654,7 +611,7 @@ namespace Engine
     {
         if (pfn.vkCmdEndDebugUtilsLabelEXT)
         {
-            pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer());
+            pfn.vkCmdEndDebugUtilsLabelEXT(current_command_buffer_handle());
         }
         return *this;
     }

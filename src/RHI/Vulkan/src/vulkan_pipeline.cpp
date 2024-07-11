@@ -3,6 +3,7 @@
 #include <Graphics/shader.hpp>
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
 #include <vulkan_definitions.hpp>
 #include <vulkan_descript_set_layout.hpp>
 #include <vulkan_descriptor_pool.hpp>
@@ -429,7 +430,8 @@ namespace Engine
         return true;
     }
 
-    VulkanPipeline& VulkanPipeline::destroy()
+
+    VulkanPipeline::~VulkanPipeline()
     {
         API->wait_idle();
 
@@ -447,12 +449,6 @@ namespace Engine
         }
         DESTROY_CALL(destroyPipelineLayout, m_pipeline_layout);
         m_descriptor_set_layout.destroy();
-        return *this;
-    }
-
-    VulkanPipeline::~VulkanPipeline()
-    {
-        destroy();
     }
 
     void VulkanPipeline::bind()
@@ -462,7 +458,9 @@ namespace Engine
 
             if (API->m_state.m_vk_pipeline != current_pipeline)
             {
-                API->current_command_buffer().bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
+                auto cmd = API->current_command_buffer();
+                cmd->m_cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, current_pipeline);
+                cmd->add_object(this);
                 API->m_state.m_pipeline    = this;
                 API->m_state.m_vk_pipeline = current_pipeline;
             }
@@ -481,23 +479,19 @@ namespace Engine
         if (m_descriptor_set_layout.has_layouts())
         {
             auto& current_buffer = m_descriptor_sets[API->m_current_buffer];
-            auto* cmd_buffer = &API->current_command_buffer();
 
             while (true)
             {
                 if (current_buffer.size() <= m_descriptor_set_index)
                 {
                     current_buffer.push_back(VulkanDescriptorPoolManager::allocate_descriptor_set(&m_descriptor_set_layout));
-                    current_buffer[m_descriptor_set_index]->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
                     break;
                 }
 
-                auto set = current_buffer[m_descriptor_set_index];
-                if(set->m_command_buffer == cmd_buffer || (set->m_last_frame + API->m_framebuffers_count + 1) < API->m_current_frame)
-                {
-                    current_buffer[m_descriptor_set_index]->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
+                if (current_buffer[m_descriptor_set_index]->references() <= 1)
                     break;
-                }
+
+                // Current descriptor is busy now, so, lets check next descriptor
                 ++m_descriptor_set_index;
             }
         }
@@ -546,6 +540,15 @@ namespace Engine
         if (auto current_set = current_descriptor_set())
         {
             current_set->bind_texture_combined(texture, sampler, location);
+        }
+        return *this;
+    }
+
+    VulkanPipeline& VulkanPipeline::bind_descriptor_set()
+    {
+        if (auto current_set = current_descriptor_set())
+        {
+            current_set->bind(m_pipeline_layout, vk::PipelineBindPoint::eGraphics);
         }
         return *this;
     }

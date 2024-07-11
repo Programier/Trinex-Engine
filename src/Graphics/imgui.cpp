@@ -7,6 +7,7 @@
 #include <Core/render_resource.hpp>
 #include <Core/thread.hpp>
 #include <Graphics/imgui.hpp>
+#include <Graphics/rhi.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/texture_2D.hpp>
@@ -233,8 +234,10 @@ namespace Engine::ImGuiRenderer
     ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
     {
         viewport->rhi_bind();
+        rhi->push_debug_stage("ImGuiViewportClient");
         ImGuiBackend::imgui_trinex_render_draw_data(m_window->context(), m_draw_data.draw_data());
         m_draw_data.swap_render_index();
+        rhi->pop_debug_stage();
         return *this;
     }
 

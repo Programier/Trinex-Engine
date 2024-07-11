@@ -1,16 +1,21 @@
 #include <vulkan_api.hpp>
 #include <vulkan_buffer.hpp>
+#include <vulkan_command_buffer.hpp>
+#include <vulkan_descriptor_pool.hpp>
 #include <vulkan_descriptor_set.hpp>
 #include <vulkan_sampler.hpp>
 #include <vulkan_texture.hpp>
 
 namespace Engine
 {
+    VulkanDescriptorSet::VulkanDescriptorSet()
+    {}
+
     VulkanDescriptorSet& VulkanDescriptorSet::bind(vk::PipelineLayout& layout, vk::PipelineBindPoint point)
     {
-        m_command_buffer = &API->current_command_buffer();
-        m_command_buffer->bindDescriptorSets(point, layout, 0, descriptor_set, {});
-        m_last_frame = API->m_current_frame;
+        auto cmd = API->current_command_buffer();
+        cmd->m_cmd.bindDescriptorSets(point, layout, 0, descriptor_set, {});
+        cmd->add_object(this);
         return *this;
     }
 
@@ -20,6 +25,7 @@ namespace Engine
         vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eStorageBuffer, {},
                                                 buffer_info);
         API->m_device.updateDescriptorSets(write_descriptor, {});
+        API->current_command_buffer()->add_object(ssbo);
         return *this;
     }
 
@@ -36,6 +42,7 @@ namespace Engine
         vk::DescriptorImageInfo image_info(sampler->m_sampler, {}, vk::ImageLayout::eShaderReadOnlyOptimal);
         vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampler, image_info);
         API->m_device.updateDescriptorSets(write_descriptor, {});
+        API->current_command_buffer()->add_object(sampler);
         return *this;
     }
 
@@ -45,6 +52,7 @@ namespace Engine
         vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eSampledImage,
                                                 image_info);
         API->m_device.updateDescriptorSets(write_descriptor, {});
+        API->current_command_buffer()->add_object(texture);
         return *this;
     }
 
@@ -55,6 +63,8 @@ namespace Engine
         vk::WriteDescriptorSet write_descriptor(descriptor_set, location.binding, 0, vk::DescriptorType::eCombinedImageSampler,
                                                 image_info);
         API->m_device.updateDescriptorSets(write_descriptor, {});
+        API->current_command_buffer()->add_object(texture);
+        API->current_command_buffer()->add_object(sampler);
         return *this;
     }
 }// namespace Engine

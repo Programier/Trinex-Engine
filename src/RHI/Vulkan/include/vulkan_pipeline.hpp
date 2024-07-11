@@ -12,7 +12,7 @@ namespace Engine
     struct VulkanTexture;
     struct VulkanDescriptorSetLayout;
 
-    struct VulkanPipeline : public RHI_Pipeline {
+    struct VulkanPipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
 
         struct State {
             vk::PipelineInputAssemblyStateCreateInfo input_assembly;
@@ -45,8 +45,6 @@ namespace Engine
         vk::Pipeline find_or_create_pipeline();
 
         bool create(const Pipeline* pipeline);
-        VulkanPipeline& destroy();
-
         VulkanDescriptorSet* current_descriptor_set();
         const MaterialScalarParametersInfo& global_parameters_info() const;
         const MaterialScalarParametersInfo& local_parameters_info() const;
@@ -58,6 +56,7 @@ namespace Engine
         VulkanPipeline& bind_sampler(VulkanSampler* sampler, BindLocation location);
         VulkanPipeline& bind_texture(VulkanTexture* texture, BindLocation location);
         VulkanPipeline& bind_texture_combined(VulkanTexture*, VulkanSampler*, BindLocation);
+        VulkanPipeline& bind_descriptor_set();
 
         ~VulkanPipeline();
     };

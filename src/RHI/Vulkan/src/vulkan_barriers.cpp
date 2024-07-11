@@ -7,7 +7,7 @@ namespace Engine::Barrier
 {
     void from_compute_to_compute()
     {
-        return from_compute_to_compute(API->current_command_buffer());
+        return from_compute_to_compute(API->current_command_buffer_handle());
     }
 
     void from_compute_to_compute(vk::CommandBuffer& cmd)
@@ -17,7 +17,7 @@ namespace Engine::Barrier
 
     void from_compute_to_graphics()
     {
-        return from_compute_to_graphics(API->current_command_buffer());
+        return from_compute_to_graphics(API->current_command_buffer_handle());
     }
 
     void from_compute_to_graphics(vk::CommandBuffer& cmd)
@@ -27,7 +27,7 @@ namespace Engine::Barrier
 
     void from_graphics_to_compute(VulkanTexture* texture)
     {
-        return from_graphics_to_compute(API->current_command_buffer(), texture);
+        return from_graphics_to_compute(API->current_command_buffer_handle(), texture);
     }
 
     void from_graphics_to_compute(vk::CommandBuffer& cmd, VulkanTexture* texture)
@@ -37,7 +37,7 @@ namespace Engine::Barrier
 
     void from_graphics_to_transfer(VulkanTexture* texture, vk::ImageLayout new_layout)
     {
-        return from_graphics_to_transfer(API->current_command_buffer(), texture);
+        return from_graphics_to_transfer(API->current_command_buffer_handle(), texture);
     }
 
     void from_graphics_to_transfer(vk::CommandBuffer& cmd, VulkanTexture* texture)

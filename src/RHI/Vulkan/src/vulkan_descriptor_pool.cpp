@@ -64,7 +64,7 @@ namespace Engine
         uniform_buffers += layout->uniform_buffers;
 
         API->m_device.freeDescriptorSets(pool, descriptor_set->descriptor_set);
-        delete descriptor_set;
+        descriptor_set->release();
         return *this;
     }
 

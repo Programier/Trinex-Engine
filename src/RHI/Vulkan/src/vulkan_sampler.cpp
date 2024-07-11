@@ -52,15 +52,7 @@ namespace Engine
                                            info.address_w, info.mip_lod_bias, static_cast<vk::Bool32>(info.anisotropy > 1.0),
                                            info.anisotropy, info.compare_enable, info.compare_func, info.min_lod, info.max_lod,
                                            vk::BorderColor::eIntOpaqueBlack, info.unnormalized_coordinates);
-
-        destroy();
         m_sampler = API->m_device.createSampler(sampler_info);
-        return *this;
-    }
-
-    VulkanSampler& VulkanSampler::destroy()
-    {
-        DESTROY_CALL(destroySampler, m_sampler);
         return *this;
     }
 
@@ -72,10 +64,9 @@ namespace Engine
         }
     }
 
-
     VulkanSampler::~VulkanSampler()
     {
-        destroy();
+        DESTROY_CALL(destroySampler, m_sampler);
     }
 
 

@@ -4,7 +4,7 @@
 namespace Engine
 {
     class Window;
-    struct OpenGL_Viewport : public RHI_Viewport {
+    struct OpenGL_Viewport : public RHI_DefaultDestroyable<RHI_Viewport> {
         void vsync(bool flag) override;
         void on_resize(const Size2D& new_size) override;
     };

@@ -28,13 +28,11 @@ namespace Engine
         VulkanSamplerCreateInfo(const Sampler* sampler);
     };
 
-
-    struct VulkanSampler : RHI_Sampler {
+    struct VulkanSampler : RHI_DefaultDestroyable<RHI_Sampler> {
         vk::Sampler m_sampler;
 
         VulkanSampler& create(const VulkanSamplerCreateInfo&);
         void bind(BindLocation location) override;
-        VulkanSampler& destroy();
         ~VulkanSampler();
     };
 }// namespace Engine

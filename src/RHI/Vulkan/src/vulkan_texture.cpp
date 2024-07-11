@@ -157,14 +157,6 @@ namespace Engine
         }
     }
 
-    VulkanTexture& VulkanTexture::destroy()
-    {
-        DESTROY_CALL(destroyImage, m_image);
-        DESTROY_CALL(freeMemory, m_image_memory);
-        DESTROY_CALL(destroyImageView, m_image_view);
-        return *this;
-    }
-
     vk::ImageAspectFlags VulkanTexture::aspect(bool use_for_shader_attachment) const
     {
         if (is_color_image())
@@ -270,7 +262,9 @@ namespace Engine
 
     VulkanTexture::~VulkanTexture()
     {
-        destroy();
+        DESTROY_CALL(destroyImage, m_image);
+        DESTROY_CALL(freeMemory, m_image_memory);
+        DESTROY_CALL(destroyImageView, m_image_view);
     }
 
     VulkanTexture2D& VulkanTexture2D::create(const Texture2D* texture)
@@ -340,7 +334,7 @@ namespace Engine
         if (is_color_image())
         {
             auto current_layout = layout();
-            auto& cmd           = API->current_command_buffer();
+            auto& cmd           = API->current_command_buffer_handle();
             change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
 
             vk::ClearColorValue value;
@@ -354,7 +348,7 @@ namespace Engine
                     .setLevelCount(mipmap_count());
 
 
-            API->current_command_buffer().clearColorImage(image(), layout(), value, range);
+            API->current_command_buffer_handle().clearColorImage(image(), layout(), value, range);
             change_layout(current_layout, cmd);
         }
     }
@@ -364,7 +358,7 @@ namespace Engine
         if (is_depth_stencil_image())
         {
             auto current_layout = layout();
-            auto& cmd           = API->current_command_buffer();
+            auto& cmd           = API->current_command_buffer_handle();
             change_layout(vk::ImageLayout::eTransferDstOptimal, cmd);
 
             vk::ClearDepthStencilValue value;
@@ -377,7 +371,7 @@ namespace Engine
                     .setLevelCount(mipmap_count());
 
 
-            API->current_command_buffer().clearDepthStencilImage(image(), layout(), value, range);
+            API->current_command_buffer_handle().clearDepthStencilImage(image(), layout(), value, range);
             change_layout(current_layout, cmd);
         }
     }

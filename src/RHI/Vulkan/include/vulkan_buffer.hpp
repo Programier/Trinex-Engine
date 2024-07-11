@@ -20,7 +20,7 @@ namespace Engine
         ~VulkanBuffer();
     };
 
-    struct VulkanStaticVertexBuffer : RHI_VertexBuffer {
+    struct VulkanStaticVertexBuffer : RHI_DefaultDestroyable<RHI_VertexBuffer> {
         VulkanBuffer m_buffer;
 
         VulkanStaticVertexBuffer& create(const byte* data, size_t size);
@@ -28,7 +28,7 @@ namespace Engine
         void update(size_t offset, size_t size, const byte* data) override;
     };
 
-    struct VulkanDynamicVertexBuffer : RHI_VertexBuffer {
+    struct VulkanDynamicVertexBuffer : RHI_DefaultDestroyable<RHI_VertexBuffer> {
         Vector<VulkanBuffer> m_buffers;
 
         VulkanDynamicVertexBuffer& create(const byte* data, size_t size);
@@ -37,7 +37,7 @@ namespace Engine
         VulkanBuffer& current();
     };
 
-    struct VulkanIndexBuffer : public RHI_IndexBuffer {
+    struct VulkanIndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer> {
         VulkanBuffer m_buffer;
         vk::IndexType m_type;
 
@@ -47,7 +47,7 @@ namespace Engine
         void update(size_t offset, size_t size, const byte* data) override;
     };
 
-    struct VulkanDynamicIndexBuffer : public RHI_IndexBuffer {
+    struct VulkanDynamicIndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer> {
         Vector<VulkanBuffer> m_buffers;
         vk::IndexType m_type;
 
@@ -58,7 +58,7 @@ namespace Engine
         VulkanBuffer& current();
     };
 
-    struct VulkanSSBO : public RHI_SSBO {
+    struct VulkanSSBO : public RHI_DefaultDestroyable<RHI_SSBO> {
         VulkanBuffer m_buffer;
 
         VulkanSSBO& create(const byte* data, size_t size);

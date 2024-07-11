@@ -25,7 +25,7 @@ namespace Engine
 
         barrier.setSrcAccessMask(src_access_mask);
         barrier.setDstAccessMask(dst_access_mask);
-        API->current_command_buffer().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barrier, {}, {});
+        API->current_command_buffer_handle().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barrier, {}, {});
     }
 
     void VulkanRenderTargetState::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
@@ -104,7 +104,7 @@ namespace Engine
             API->scissor(API->m_state.m_scissor);
         }
 
-        API->current_command_buffer().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
+        API->current_command_buffer_handle().beginRenderPass(m_state->m_render_pass_info, vk::SubpassContents::eInline);
         return;
     }
 
@@ -112,7 +112,7 @@ namespace Engine
     {
         if (API->m_state.m_render_target == this)
         {
-            API->current_command_buffer().endRenderPass();
+            API->current_command_buffer_handle().endRenderPass();
             API->m_state.m_render_target = nullptr;
         }
         return *this;
@@ -374,7 +374,7 @@ namespace Engine
                     vulkan_viewport.setY(vp_y);
                     vulkan_viewport.setMinDepth(viewport.min_depth);
                     vulkan_viewport.setMaxDepth(viewport.max_depth);
-                    current_command_buffer().setViewport(0, vulkan_viewport);
+                    current_command_buffer_handle().setViewport(0, vulkan_viewport);
                 }
             }
 
@@ -397,20 +397,20 @@ namespace Engine
         {
             if (new_mode != VulkanViewportMode::Undefined)
             {
+                const auto& render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
                 float sc_y = scissor.pos.y;
 
                 if (new_mode == VulkanViewportMode::Flipped)
                 {
-                    auto render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
-                    sc_y                    = render_target_size.y - sc_y - scissor.size.y;
+                    sc_y = render_target_size.y - sc_y - scissor.size.y;
                 }
 
                 vk::Rect2D vulkan_scissor;
-                vulkan_scissor.extent.setWidth(scissor.size.x);
-                vulkan_scissor.extent.setHeight(scissor.size.y);
-                vulkan_scissor.offset.setX(scissor.pos.x);
-                vulkan_scissor.offset.setY(sc_y);
-                current_command_buffer().setScissor(0, vulkan_scissor);
+                vulkan_scissor.offset.setX(glm::clamp(scissor.pos.x, 0.f, render_target_size.x));
+                vulkan_scissor.offset.setY(glm::clamp(sc_y, 0.f, render_target_size.y));
+                vulkan_scissor.extent.setWidth(glm::clamp(scissor.size.x, 0.f, render_target_size.x - vulkan_scissor.offset.x));
+                vulkan_scissor.extent.setHeight(glm::clamp(scissor.size.y, 0.f, render_target_size.y - vulkan_scissor.offset.y));
+                current_command_buffer_handle().setScissor(0, vulkan_scissor);
             }
 
             m_scissor = scissor;

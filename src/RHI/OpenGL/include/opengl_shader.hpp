@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    struct OpenGL_Shader : public RHI_Shader {
+    struct OpenGL_Shader : public RHI_DefaultDestroyable<RHI_Shader> {
         GLuint m_id = 0;
 
         ~OpenGL_Shader();
@@ -48,7 +48,7 @@ namespace Engine
         }
     };
 
-    struct OpenGL_Pipeline : public RHI_Pipeline {
+    struct OpenGL_Pipeline : public RHI_DefaultDestroyable<RHI_Pipeline> {
         Vector<ExecutableObject*> m_apply_state;
         MaterialScalarParametersInfo m_global_parameters;
         MaterialScalarParametersInfo m_local_parameters;

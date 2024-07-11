@@ -10,11 +10,11 @@ namespace Engine
     struct VulkanDescriptorPool;
     struct VulkanDescriptorSet;
 
-    struct VulkanShaderBase : public RHI_Shader {
+    struct VulkanShaderBase : public RHI_DefaultDestroyable<RHI_Shader> {
         vk::ShaderModule m_shader;
 
         bool create(const Shader* shader);
-        VulkanShaderBase& destroy();
+        ~VulkanShaderBase();
     };
 
 
@@ -23,36 +23,17 @@ namespace Engine
         Vector<vk::VertexInputAttributeDescription> m_attribute_description;
 
         bool create(const VertexShader* shader);
-        VulkanVertexShader& destroy();
-
-        ~VulkanVertexShader();
     };
 
     struct VulkanTessellationControlShader : public VulkanShaderBase {
-        bool create(const TessellationControlShader* shader);
-        VulkanTessellationControlShader& destroy();
-
-        ~VulkanTessellationControlShader();
     };
 
     struct VulkanTessellationShader : public VulkanShaderBase {
-        bool create(const TessellationShader* shader);
-        VulkanTessellationShader& destroy();
-
-        ~VulkanTessellationShader();
     };
 
     struct VulkanGeometryShader : public VulkanShaderBase {
-        bool create(const GeometryShader* shader);
-        VulkanGeometryShader& destroy();
-
-        ~VulkanGeometryShader();
     };
 
     struct VulkanFragmentShader : public VulkanShaderBase {
-        bool create(const FragmentShader* shader);
-        VulkanFragmentShader& destroy();
-
-        ~VulkanFragmentShader();
     };
 }// namespace Engine

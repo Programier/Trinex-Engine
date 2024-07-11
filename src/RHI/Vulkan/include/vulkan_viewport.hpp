@@ -7,7 +7,7 @@
 namespace Engine
 {
 
-    struct VulkanViewport : public RHI_Viewport {
+    struct VulkanViewport : public RHI_DefaultDestroyable<RHI_Viewport> {
         struct SyncObject {
             vk::Semaphore m_image_present;
             vk::Semaphore m_render_finished;
@@ -17,7 +17,7 @@ namespace Engine
             ~SyncObject();
         };
 
-        Vector<vk::CommandBuffer> m_command_buffers;
+        Vector<struct VulkanCommandBuffer> m_command_buffers;
         Vector<SyncObject> m_sync_objects;
         std::vector<VkImageView> m_image_views;
         uint32_t m_buffer_index = 0;
@@ -33,7 +33,6 @@ namespace Engine
         void end_render() override;
 
         void on_resize(const Size2D& new_size) override;
-        Identifier internal_type() override;
         void vsync(bool flag) override;
 
         virtual VulkanRenderTargetBase* render_target();

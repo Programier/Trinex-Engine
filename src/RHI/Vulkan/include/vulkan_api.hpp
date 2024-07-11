@@ -20,14 +20,6 @@ namespace Engine
     struct VulkanUniformBuffer;
     class Window;
 
-    struct Garbage {
-        RHI_Object* object;
-        size_t frame;
-
-        Garbage(RHI_Object* object, size_t frame) : object(object), frame(frame)
-        {}
-    };
-
     struct VulkanExtention {
         const char* name;
         bool required = false;
@@ -40,7 +32,6 @@ namespace Engine
         Vector<VulkanExtention> m_device_extensions;
         Vector<vk::DynamicState> m_dynamic_states;
         Vector<VulkanUniformBuffer*> m_uniform_buffer;
-        List<Garbage> m_garbage;
 
         Window* m_window = nullptr;
 
@@ -105,7 +96,8 @@ namespace Engine
                                 vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
                                 vk::DeviceMemory& image_memory, uint32_t layers);
 
-        vk::CommandBuffer& current_command_buffer();
+        struct VulkanCommandBuffer* current_command_buffer();
+        vk::CommandBuffer& current_command_buffer_handle();
 
         //////////////////////////////////////////////////////////////
 
@@ -123,8 +115,6 @@ namespace Engine
         VulkanAPI& scissor(const Scissor& scissor) override;
         Scissor scissor() override;
 
-        VulkanAPI& delete_garbage(bool force);
-        VulkanAPI& destroy_object(RHI_Object* object) override;
         VulkanAPI& imgui_init(ImGuiContext*) override;
         VulkanAPI& imgui_terminate(ImGuiContext*) override;
         VulkanAPI& imgui_new_frame(ImGuiContext*) override;

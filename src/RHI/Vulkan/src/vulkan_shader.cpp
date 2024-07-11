@@ -38,10 +38,9 @@ namespace Engine
         return true;
     }
 
-    VulkanShaderBase& VulkanShaderBase::destroy()
+    VulkanShaderBase::~VulkanShaderBase()
     {
         DESTROY_CALL(destroyShaderModule, m_shader)
-        return *this;
     }
 
     static vk::Format parse_vertex_format(VertexBufferElementType type, uint32_t& stride)
@@ -92,7 +91,6 @@ namespace Engine
 
     bool VulkanVertexShader::create(const VertexShader* shader)
     {
-        destroy();
         bool status = VulkanShaderBase::create(shader);
         if (status == false)
             return false;
@@ -151,89 +149,6 @@ namespace Engine
         }
 
         return status;
-    }
-
-    VulkanVertexShader& VulkanVertexShader::destroy()
-    {
-        VulkanShaderBase::destroy();
-        m_attribute_description.clear();
-        m_binding_description.clear();
-
-        return *this;
-    }
-
-    VulkanVertexShader::~VulkanVertexShader()
-    {
-        destroy();
-    }
-
-    bool VulkanFragmentShader::create(const FragmentShader* shader)
-    {
-        destroy();
-        return VulkanShaderBase::create(shader);
-    }
-
-    VulkanFragmentShader& VulkanFragmentShader::destroy()
-    {
-        VulkanShaderBase::destroy();
-        return *this;
-    }
-
-    VulkanFragmentShader::~VulkanFragmentShader()
-    {
-        destroy();
-    }
-
-
-    bool VulkanTessellationControlShader::create(const TessellationControlShader* shader)
-    {
-        destroy();
-        return VulkanShaderBase::create(shader);
-    }
-
-    VulkanTessellationControlShader& VulkanTessellationControlShader::destroy()
-    {
-        VulkanShaderBase::destroy();
-        return *this;
-    }
-
-    VulkanTessellationControlShader::~VulkanTessellationControlShader()
-    {
-        destroy();
-    }
-
-    bool VulkanTessellationShader::create(const TessellationShader* shader)
-    {
-        destroy();
-        return VulkanShaderBase::create(shader);
-    }
-
-    VulkanTessellationShader& VulkanTessellationShader::destroy()
-    {
-        VulkanShaderBase::destroy();
-        return *this;
-    }
-
-    VulkanTessellationShader::~VulkanTessellationShader()
-    {
-        destroy();
-    }
-
-    bool VulkanGeometryShader::create(const GeometryShader* shader)
-    {
-        destroy();
-        return VulkanShaderBase::create(shader);
-    }
-
-    VulkanGeometryShader& VulkanGeometryShader::destroy()
-    {
-        VulkanShaderBase::destroy();
-        return *this;
-    }
-
-    VulkanGeometryShader::~VulkanGeometryShader()
-    {
-        destroy();
     }
 
 

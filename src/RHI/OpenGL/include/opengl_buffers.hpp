@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    struct OpenGL_VertexBuffer : public RHI_VertexBuffer {
+    struct OpenGL_VertexBuffer : public RHI_DefaultDestroyable<RHI_VertexBuffer> {
         GLuint m_id;
 
 
@@ -15,7 +15,7 @@ namespace Engine
         ~OpenGL_VertexBuffer();
     };
 
-    struct OpenGL_IndexBuffer : public RHI_IndexBuffer {
+    struct OpenGL_IndexBuffer : public RHI_DefaultDestroyable<RHI_IndexBuffer> {
         GLuint m_id;
         GLuint m_format;
 
@@ -50,7 +50,7 @@ namespace Engine
         ~OpenGL_LocalUniformBuffer();
     };
 
-    struct OpenGL_SSBO : public RHI_SSBO {
+    struct OpenGL_SSBO : public RHI_DefaultDestroyable<RHI_SSBO> {
         GLuint m_id;
 
         OpenGL_SSBO(size_t size, const byte* data);

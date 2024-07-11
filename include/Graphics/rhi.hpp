@@ -23,28 +23,39 @@ namespace Engine
     struct GlobalShaderParameters;
 
 
-    struct RHI_Object {
-        FORCE_INLINE virtual Identifier internal_type()// For internal usage
-        {
-            return 0;
-        }
+    struct ENGINE_EXPORT RHI_Object {
+    private:
+        mutable size_t m_references;
 
-        FORCE_INLINE virtual bool is_destroyable() const
-        {
-            return true;
-        }
+    protected:
+        virtual void destroy() const = 0;
 
-        virtual ~RHI_Object() = default;
+    public:
+        RHI_Object(size_t init_ref_count = 1);
+        void add_reference() const;
+        void release() const;
+        size_t references() const;
+        virtual ~RHI_Object();
     };
 
-    struct RHI_BindingObject : RHI_Object {
+    template<typename Base>
+    struct RHI_DefaultDestroyable : public Base {
+    protected:
+        void destroy() const override
+        {
+            delete this;
+        }
+    };
+
+
+    struct ENGINE_EXPORT RHI_BindingObject : RHI_Object {
         virtual void bind(BindLocation location) = 0;
     };
 
-    struct RHI_Sampler : RHI_BindingObject {
+    struct ENGINE_EXPORT RHI_Sampler : RHI_BindingObject {
     };
 
-    struct RHI_Texture : RHI_BindingObject {
+    struct ENGINE_EXPORT RHI_Texture : RHI_BindingObject {
         virtual void bind_combined(RHI_Sampler* sampler, BindLocation location) = 0;
 
         // Valid only for RenderSurface!
@@ -52,30 +63,30 @@ namespace Engine
         virtual void clear_depth_stencil(float depth, byte stencil) = 0;
     };
 
-    struct RHI_Shader : RHI_Object {
+    struct ENGINE_EXPORT RHI_Shader : RHI_Object {
     };
 
-    struct RHI_Pipeline : RHI_Object {
+    struct ENGINE_EXPORT RHI_Pipeline : RHI_Object {
         virtual void bind() = 0;
     };
 
-    struct RHI_Buffer : RHI_Object {
+    struct ENGINE_EXPORT RHI_Buffer : RHI_Object {
         virtual void update(size_t offset, size_t size, const byte* data) = 0;
     };
 
-    struct RHI_VertexBuffer : RHI_Buffer {
+    struct ENGINE_EXPORT RHI_VertexBuffer : RHI_Buffer {
         virtual void bind(byte stream_index, size_t stride, size_t offset) = 0;
     };
 
-    struct RHI_IndexBuffer : RHI_Buffer {
+    struct ENGINE_EXPORT RHI_IndexBuffer : RHI_Buffer {
         virtual void bind(size_t offset) = 0;
     };
 
-    struct RHI_SSBO : RHI_Buffer {
+    struct ENGINE_EXPORT RHI_SSBO : RHI_Buffer {
         virtual void bind(BindLocation location) = 0;
     };
 
-    struct RHI_Viewport : RHI_Object {
+    struct ENGINE_EXPORT RHI_Viewport : RHI_Object {
 
         virtual void begin_render() = 0;
         virtual void end_render()   = 0;
@@ -95,9 +106,8 @@ namespace Engine
             class Struct* struct_instance = nullptr;
         } info;
 
-        virtual RHI& initialize(class Window* window)   = 0;
-        virtual void* context()                         = 0;
-        virtual RHI& destroy_object(RHI_Object* object) = 0;
+        virtual RHI& initialize(class Window* window) = 0;
+        virtual void* context()                       = 0;
 
         virtual RHI& imgui_init(ImGuiContext*)                = 0;
         virtual RHI& imgui_terminate(ImGuiContext*)           = 0;

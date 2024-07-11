@@ -18,7 +18,7 @@ namespace Engine
 
         int_t execute()
         {
-            rhi->destroy_object(object);
+            object->release();
             return sizeof(DestroyRenderResourceTask);
         }
     };
@@ -26,16 +26,13 @@ namespace Engine
 
     void RenderResource::DestroyRenderResource::operator()(RHI_Object* object) const
     {
-        if (object->is_destroyable())
+        if (is_in_render_thread())
         {
-            if (is_in_render_thread())
-            {
-                rhi->destroy_object(object);
-            }
-            else
-            {
-                render_thread()->insert_new_task<DestroyRenderResourceTask>(object);
-            }
+            object->release();
+        }
+        else
+        {
+            render_thread()->insert_new_task<DestroyRenderResourceTask>(object);
         }
     }
 

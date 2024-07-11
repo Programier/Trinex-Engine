@@ -103,12 +103,43 @@ namespace Engine::ImGuiBackend
         Material* material;
         CombinedImageSampler2DMaterialParameter* texture_parameter;
         Mat4MaterialParameter* model_parameter;
-        ImGuiVertexBuffer* vertex_buffer;
-        ImGuiIndexBuffer* index_buffer;
 
         ImGuiTrinexData()
         {
             memset((void*) this, 0, sizeof(*this));
+        }
+    };
+
+    struct ImGuiTrinexViewportData {
+        ImGuiVertexBuffer* vertex_buffer;
+        ImGuiIndexBuffer* index_buffer;
+
+        ImGuiTrinexViewportData()
+        {
+            vertex_buffer = Object::new_instance<EngineResource<ImGuiVertexBuffer>>();
+            index_buffer  = Object::new_instance<EngineResource<ImGuiIndexBuffer>>();
+        }
+
+        ~ImGuiTrinexViewportData()
+        {
+            bool call_garbage_collector = !engine_instance->is_shuting_down();
+            if (index_buffer)
+            {
+                if (call_garbage_collector)
+                {
+                    GarbageCollector::destroy(index_buffer);
+                }
+                index_buffer = nullptr;
+            }
+
+            if (vertex_buffer)
+            {
+                if (call_garbage_collector)
+                {
+                    GarbageCollector::destroy(vertex_buffer);
+                }
+                vertex_buffer = nullptr;
+            }
         }
     };
 
@@ -127,11 +158,11 @@ namespace Engine::ImGuiBackend
         viewport.size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
         rhi->viewport(viewport);
 
-        float L                    = draw_data->DisplayPos.x;
-        float R                    = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-        float T                    = draw_data->DisplayPos.y;
-        float B                    = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-        bd->model_parameter->param = glm::ortho(L, R, B, T);
+        float L                        = draw_data->DisplayPos.x;
+        float R                        = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+        float T                        = draw_data->DisplayPos.y;
+        float B                        = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+        bd->model_parameter->param     = glm::ortho(L, R, B, T);
         bd->texture_parameter->texture = nullptr;
     }
 
@@ -150,22 +181,27 @@ namespace Engine::ImGuiBackend
         if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
             return;
 
+        ImGuiTrinexData* bd         = imgui_trinex_backend_data();
+        ImGuiTrinexViewportData* vd = reinterpret_cast<ImGuiTrinexViewportData*>(draw_data->OwnerViewport->RendererUserData);
+
+        if (bd == nullptr || vd == nullptr)
+            return;
+
         rhi->push_debug_stage("ImGui Setup state");
         const float fb_height          = draw_data->DisplaySize.y * draw_data->FramebufferScale.y;
         const ViewPort backup_viewport = rhi->viewport();
         const Scissor backup_scissor   = rhi->scissor();
 
-        ImGuiTrinexData* bd = imgui_trinex_backend_data();
-        if (!bd->vertex_buffer || bd->vertex_buffer->m_size < draw_data->TotalVtxCount)
+        if (!vd->vertex_buffer || vd->vertex_buffer->m_size < draw_data->TotalVtxCount)
         {
-            bd->vertex_buffer->m_size = draw_data->TotalVtxCount + 5000;
-            bd->vertex_buffer->rhi_create();
+            vd->vertex_buffer->m_size = draw_data->TotalVtxCount + 5000;
+            vd->vertex_buffer->rhi_create();
         }
 
-        if (!bd->index_buffer || bd->index_buffer->m_size < draw_data->TotalIdxCount)
+        if (!vd->index_buffer || vd->index_buffer->m_size < draw_data->TotalIdxCount)
         {
-            bd->index_buffer->m_size = draw_data->TotalIdxCount + 10000;
-            bd->index_buffer->rhi_create();
+            vd->index_buffer->m_size = draw_data->TotalIdxCount + 10000;
+            vd->index_buffer->rhi_create();
         }
 
         // Upload vertex/index data into a single contiguous GPU buffer
@@ -179,8 +215,8 @@ namespace Engine::ImGuiBackend
             size_t vtx_size            = cmd_list->VtxBuffer.Size * sizeof(ImDrawVert);
             size_t idx_size            = cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx);
 
-            bd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
-            bd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
+            vd->vertex_buffer->rhi_update(vtx_offset, vtx_size, reinterpret_cast<const byte*>(cmd_list->VtxBuffer.Data));
+            vd->index_buffer->rhi_update(idx_offset, idx_size, reinterpret_cast<const byte*>(cmd_list->IdxBuffer.Data));
 
             vtx_offset += vtx_size;
             idx_offset += idx_size;
@@ -240,8 +276,8 @@ namespace Engine::ImGuiBackend
                     }
 
                     bd->material->apply();
-                    bd->vertex_buffer->rhi_bind(0);
-                    bd->index_buffer->rhi_bind();
+                    vd->vertex_buffer->rhi_bind(0);
+                    vd->index_buffer->rhi_bind();
 
                     rhi->draw_indexed(pcmd->ElemCount, pcmd->IdxOffset + global_idx_offset, pcmd->VtxOffset + global_vtx_offset);
 
@@ -307,24 +343,6 @@ namespace Engine::ImGuiBackend
             bd->font_texture = {};
         }
 
-        if (bd->index_buffer)
-        {
-            if (call_garbage_collector)
-            {
-                GarbageCollector::destroy(bd->index_buffer);
-            }
-            bd->index_buffer = nullptr;
-        }
-
-        if (bd->vertex_buffer)
-        {
-            if (call_garbage_collector)
-            {
-                GarbageCollector::destroy(bd->vertex_buffer);
-            }
-            bd->vertex_buffer = nullptr;
-        }
-
         if (bd->material)
         {
             bd->material          = nullptr;
@@ -339,10 +357,6 @@ namespace Engine::ImGuiBackend
         if (bd->font_texture)
             imgui_trinex_destroy_device_objects();
 
-        bd->vertex_buffer = Object::new_instance<EngineResource<ImGuiVertexBuffer>>();
-        bd->index_buffer  = Object::new_instance<EngineResource<ImGuiIndexBuffer>>();
-
-        // TODO: Initialize pipeline object
         bd->material = DefaultResources::imgui_material;
         bd->texture_parameter =
                 reinterpret_cast<CombinedImageSampler2DMaterialParameter*>(bd->material->find_parameter(Name::texture));
@@ -351,8 +365,6 @@ namespace Engine::ImGuiBackend
         imgui_trinex_create_fonts_texture();
     }
 
-    struct ImGuiTrinexViewportData {
-    };
 
     static void imgui_trinex_create_window(ImGuiViewport* viewport)
     {
@@ -403,6 +415,9 @@ namespace Engine::ImGuiBackend
             imgui_trinex_init_platform_interface();
 
         imgui_trinex_create_device_objects();
+
+        ImGuiViewport* main_viewport    = ImGui::GetMainViewport();
+        main_viewport->RendererUserData = IM_NEW(ImGuiTrinexViewportData)();
         return true;
 #endif
     }
@@ -416,6 +431,11 @@ namespace Engine::ImGuiBackend
         ImGuiTrinexData* bd = imgui_trinex_backend_data();
         IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
         ImGuiIO& io = ImGui::GetIO();
+
+        ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+        if (auto vd = reinterpret_cast<ImGuiTrinexViewportData*>(main_viewport->RendererUserData))
+            IM_DELETE(vd);
+        main_viewport->RendererUserData = nullptr;
 
         imgui_trinex_shutdown_platform_interface();
         imgui_trinex_destroy_device_objects();

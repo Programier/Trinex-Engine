@@ -160,12 +160,6 @@ namespace Engine
         return *this;
     }
 
-    OpenGL& OpenGL::destroy_object(RHI_Object* object)
-    {
-        delete object;
-        return *this;
-    }
-
     OpenGL& OpenGL::reset_state()
     {
         new (&m_state) OpenGL_State();

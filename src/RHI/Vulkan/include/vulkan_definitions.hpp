@@ -29,7 +29,3 @@
             API->m_device.func(instance);                                                                                        \
         instance = nullptr;                                                                                                      \
     }
-
-
-#define VULKAN_FORCED_DESTROY_TYPES 255
-#define VULKAN_VIEWPORT_ID (VULKAN_FORCED_DESTROY_TYPES + 1)
