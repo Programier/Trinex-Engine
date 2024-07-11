@@ -19,9 +19,10 @@ namespace Engine
         return result;
     }
 
-    WindowConfig::WindowConfig()
+    WindowConfig::WindowConfig(bool init)
     {
-        initialize();
+        if (init)
+            initialize();
     }
 
     WindowConfig& WindowConfig::initialize()

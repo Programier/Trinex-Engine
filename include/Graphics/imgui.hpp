@@ -174,20 +174,6 @@ namespace Engine::ImGuiRenderer
         friend class Engine::Object;
     };
 
-    class ENGINE_EXPORT ImGuiViewportClient : public ViewportClient
-    {
-        declare_class(ImGuiViewportClient, ViewportClient);
-
-        DrawData m_draw_data;
-        class Window* m_window;
-
-    public:
-        ImGuiViewport* viewport = nullptr;
-
-        ViewportClient& on_bind_viewport(class RenderViewport* viewport) override;
-        ViewportClient& render(class RenderViewport* viewport) override;
-        ViewportClient& update(class RenderViewport* viewport, float dt) override;
-    };
 
     bool ENGINE_EXPORT IsMouseDownNow(ImGuiMouseButton button);
 

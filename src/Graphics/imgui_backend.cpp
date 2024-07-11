@@ -390,7 +390,7 @@ namespace Engine::ImGuiBackend
 
     static void imgui_trinex_shutdown_platform_interface()
     {
-        ImGui::DestroyPlatformWindows();
+        // Do not destroy from render thread!
     }
 #endif
 

@@ -7,14 +7,23 @@ namespace Engine
     class Window;
     struct WindowConfig;
     struct MonitorInfo;
+    struct Rect2D;
 
     namespace Platform
     {
+        struct ENGINE_EXPORT MonitorInfo {
+            Size2D pos;
+            Size2D size;
+            float dpi;
+        };
+
         ENGINE_EXPORT OperationSystemType system_type();
         ENGINE_EXPORT const char* system_name();
         ENGINE_EXPORT Path find_exec_directory();
         ENGINE_EXPORT void bind_platform_mount_points();
         ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives();
+        ENGINE_EXPORT size_t monitors_count();
+        ENGINE_EXPORT MonitorInfo monitor_info(Index monitor_index = 0);
 
         namespace WindowManager
         {
@@ -25,7 +34,6 @@ namespace Engine
             ENGINE_EXPORT void destroy_window(Window* interface);
             ENGINE_EXPORT bool mouse_relative_mode();
             ENGINE_EXPORT void mouse_relative_mode(bool flag);
-            ENGINE_EXPORT void update_monitor_info(MonitorInfo& info);
             ENGINE_EXPORT void pool_events();
             ENGINE_EXPORT void wait_for_events();
         }// namespace WindowManager
@@ -36,6 +44,5 @@ namespace Engine
             ENGINE_EXPORT void close_library(void* handle);
             ENGINE_EXPORT void* find_function(void* handle, const String& name);
         }// namespace LibraryLoader
-
-    }// namespace Platform
+    }    // namespace Platform
 }// namespace Engine

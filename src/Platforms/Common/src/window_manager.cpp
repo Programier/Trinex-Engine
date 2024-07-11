@@ -6,11 +6,34 @@
 #include <Graphics/imgui.hpp>
 #include <Platform/platform.hpp>
 #include <Systems/event_system.hpp>
-#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <imgui_impl_sdl2.h>
 #include <sdl_window.hpp>
+
+namespace Engine::Platform
+{
+    ENGINE_EXPORT size_t monitors_count()
+    {
+        return static_cast<size_t>(SDL_GetNumVideoDisplays());
+    }
+
+    ENGINE_EXPORT MonitorInfo monitor_info(Index monitor_index)
+    {
+        MonitorInfo info;
+        SDL_Rect r;
+        SDL_GetDisplayBounds(monitor_index, &r);
+        info.pos  = {r.x, r.y};
+        info.size = {r.w, r.h};
+        SDL_GetDisplayDPI(monitor_index, &info.dpi, nullptr, nullptr);
+
+        if (monitor_index != 0)
+        {
+            MonitorInfo main_monitor_info = monitor_info(0);
+            info.pos.y                    = main_monitor_info.size.y - (info.pos.y + info.size.y);
+        }
+        return info;
+    }
+}// namespace Engine::Platform
 
 namespace Engine::Platform::WindowManager
 {
@@ -196,73 +219,10 @@ namespace Engine::Platform::WindowManager
         SDL_SetRelativeMouseMode(static_cast<SDL_bool>(flag));
     }
 
-    ENGINE_EXPORT void update_monitor_info(MonitorInfo& info)
-    {
-        SDL_DisplayMode mode;
-        SDL_GetCurrentDisplayMode(0, &mode);
-        info.height       = mode.h;
-        info.width        = mode.w;
-        info.refresh_rate = mode.refresh_rate;
-        SDL_GetDisplayDPI(0, &info.dpi.ddpi, &info.dpi.hdpi, &info.dpi.vdpi);
-    }
-
-
 #define new_event(a, b) EventSystem::instance()->push_event(Event(m_event.window.windowID, EventType::a, b))
 #define new_event_typed(a, b) EventSystem::instance()->push_event(Event(m_event.window.windowID, a, b))
 
-
-    class RenderThreadImGuiEvent : public ExecutableObject
-    {
-        SDL_Event m_event;
-        ImGuiContext* m_ctx;
-
-    public:
-        RenderThreadImGuiEvent(const SDL_Event& event, ImGuiContext* ctx) : m_event(event), m_ctx(ctx)
-        {}
-
-        int_t execute() override
-        {
-            ImGuiContext* current_ctx = ImGui::GetCurrentContext();
-            ImGui::SetCurrentContext(m_ctx);
-
-            ImGui_ImplSDL2_ProcessEvent(&m_event);
-            ImGui::SetCurrentContext(current_ctx);
-
-            return sizeof(RenderThreadImGuiEvent);
-        }
-    };
-
-
-    static void process_imgui_event()
-    {
-        Window* window = Engine::WindowManager::instance()->find(m_event.window.windowID);
-
-        if (!window)
-        {
-            return;
-        }
-
-        ImGuiContext* imgui_context = nullptr;
-        {
-            auto imgui_window = window->imgui_window();
-            if (imgui_window)
-                imgui_context = imgui_window->context();
-        }
-
-        if (imgui_context == nullptr)
-        {
-            WindowSDL* sdl_window = reinterpret_cast<WindowSDL*>(window);
-            imgui_context = reinterpret_cast<ImGuiContext*>(SDL_GetWindowData(sdl_window->m_window, "trinex_imgui_context"));
-        }
-
-        if (imgui_context)
-        {
-            ImGui::SetCurrentContext(imgui_context);
-            ImGui_ImplSDL2_ProcessEvent(&m_event);
-        }
-    }
-
-    void process_window_event()
+    static void process_window_event()
     {
         int_t x = m_event.window.data1;
         int_t y = m_event.window.data2;
@@ -279,9 +239,15 @@ namespace Engine::Platform::WindowManager
             case SDL_WINDOWEVENT_MOVED:
             {
                 WindowMovedEvent e;
-                e.x = x;
-                e.y = y;
-                new_event(WindowMoved, e);
+                e.x            = x;
+                Window* window = Engine::WindowManager::instance()->find(m_event.window.windowID);
+                if (window)
+                {
+                    size_t index = window->monitor_index();
+                    auto info    = Platform::monitor_info(index);
+                    e.y          = info.size.y - (y + window->cached_size().y);
+                    new_event(WindowMoved, e);
+                }
                 break;
             }
 
@@ -447,6 +413,14 @@ namespace Engine::Platform::WindowManager
                 break;
             }
 
+            case SDL_TEXTINPUT:
+            {
+                TextInputEvent text_event;
+                text_event.text = m_event.text.text;
+                new_event(TextInput, text_event);
+                break;
+            }
+
                 // case SDL_CONTROLLERDEVICEADDED:
                 // {
                 //     m_game_controllers[m_event.cdevice.which] = SDL_GameControllerOpen(m_event.cdevice.which);
@@ -484,12 +458,9 @@ namespace Engine::Platform::WindowManager
                 //     break;
                 // }
         }
-
-
-        process_imgui_event();
     }
 
-    ENGINE_EXPORT void pool_events_loop()
+    static void pool_events_loop()
     {
         while (SDL_PollEvent(&m_event))
         {
@@ -499,17 +470,13 @@ namespace Engine::Platform::WindowManager
 
     ENGINE_EXPORT void pool_events()
     {
-        ImGuiContext* ctx = ImGui::GetCurrentContext();
         pool_events_loop();
-        ImGui::SetCurrentContext(ctx);
     }
 
     ENGINE_EXPORT void wait_for_events()
     {
-        ImGuiContext* ctx = ImGui::GetCurrentContext();
         SDL_WaitEvent(&m_event);
         process_event();
         pool_events_loop();
-        ImGui::SetCurrentContext(ctx);
     }
 }// namespace Engine::Platform::WindowManager

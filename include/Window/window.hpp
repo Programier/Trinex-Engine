@@ -1,5 +1,6 @@
 #pragma once
 #include <Core/callback.hpp>
+#include <Core/flags.hpp>
 #include <Core/pointer.hpp>
 #include <Core/structures.hpp>
 
@@ -30,8 +31,8 @@ namespace Engine
         CallBacks<void()> m_destroy_callback;
 
     protected:
-        virtual Window& imgui_initialize_internal();
-        virtual Window& imgui_terminate_internal();
+        Window& imgui_initialize_internal();
+        Window& imgui_terminate_internal();
 
     private:
         ImGuiContext* imgui_create_context(const Function<void(ImGuiContext*)>& callback);
@@ -71,7 +72,8 @@ namespace Engine
         virtual bool support_orientation(WindowOrientation orientation);
         virtual Identifier id();
         virtual void* native_window();
-        virtual Window& imgui_new_frame();
+        virtual size_t monitor_index();
+        Window& imgui_new_frame();
 
 
         RenderViewport* render_viewport() const;

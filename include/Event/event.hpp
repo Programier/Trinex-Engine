@@ -15,6 +15,8 @@ namespace Engine
         AppPause,
         AppResume,
 
+        TextInput,
+
         // Display events
         DisplayAdded,
         DisplayRemoved,

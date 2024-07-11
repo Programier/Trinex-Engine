@@ -131,6 +131,7 @@ namespace Engine
         Node* m_selected = nullptr;
         ImGuiID m_dock_id;
 
+        Size2D m_monitor_size;
         Vector3D m_location = {0, 0, 0};
         Vector3D m_rotation = {0, 0, 0};
         Vector3D m_scale    = {1, 1, 1};

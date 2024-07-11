@@ -4,13 +4,11 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/rhi.hpp>
 #include <Image/image.hpp>
+#include <Platform/platform.hpp>
 #include <SDL_gamecontroller.h>
 #include <Window/config.hpp>
-#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-#include <imgui.h>
-#include <imgui_impl_sdl2.h>
 #include <sdl_window.hpp>
 
 
@@ -180,12 +178,17 @@ namespace Engine
     {
         int x, y;
         SDL_GetWindowPosition(m_window, &x, &y);
-        return {x, y};
+        size_t index = monitor_index();
+        auto info    = Platform::monitor_info(index);
+        return {x, info.size.y - (y + cached_size().y)};
     }
 
     WindowSDL& WindowSDL::position(const Point2D& position)
     {
-        SDL_SetWindowPosition(m_window, position.x, position.y);
+        size_t index = monitor_index();
+        auto info    = Platform::monitor_info(index);
+        float new_y  = -position.y + info.size.y - cached_size().y;
+        SDL_SetWindowPosition(m_window, position.x, new_y);
         return *this;
     }
 
@@ -517,53 +520,9 @@ namespace Engine
         return m_window;
     }
 
-    void WindowSDL::initialize_imgui_opengl()
+    size_t WindowSDL::monitor_index()
     {
-        ImGui_ImplSDL2_InitForOpenGL(m_window, rhi->context());
-    }
-
-    void WindowSDL::initialize_imgui_vulkan()
-    {
-        ImGui_ImplSDL2_InitForVulkan(m_window);
-    }
-
-    void WindowSDL::initialize_imgui_d3d()
-    {
-        ImGui_ImplSDL2_InitForD3D(m_window);
-    }
-
-    WindowSDL& WindowSDL::imgui_initialize_internal()
-    {
-        SDL_SetWindowData(m_window, "trinex_imgui_context", ImGui::GetCurrentContext());
-
-        const Name name = rhi->info.struct_instance->base_name();
-
-        if (name == "OPENGL")
-        {
-            initialize_imgui_opengl();
-        }
-        else if (name == "VULKAN")
-        {
-            initialize_imgui_vulkan();
-        }
-        else if (name == "D3D11")
-        {
-            initialize_imgui_d3d();
-        }
-        return *this;
-    }
-
-    WindowSDL& WindowSDL::imgui_terminate_internal()
-    {
-        SDL_SetWindowData(m_window, "trinex_imgui_context", nullptr);
-        ImGui_ImplSDL2_Shutdown();
-        return *this;
-    }
-
-    WindowSDL& WindowSDL::imgui_new_frame()
-    {
-        ImGui_ImplSDL2_NewFrame();
-        return *this;
+        return static_cast<size_t>(SDL_GetWindowDisplayIndex(m_window));
     }
 
     WindowSDL::~WindowSDL()
@@ -577,44 +536,3 @@ namespace Engine
         }
     }
 }// namespace Engine
-
-
-void* create_engine_window(SDL_Window* _main_window, SDL_Window* window, ImGuiViewport* viewport)
-{
-    Engine::WindowSDL* main_window     = nullptr;
-    Engine::Window* main_window_handle = nullptr;
-    {
-        main_window_handle = Engine::WindowManager::instance()->find(SDL_GetWindowID(_main_window));
-        if (!main_window_handle)
-            return nullptr;
-        main_window = reinterpret_cast<Engine::WindowSDL*>(main_window_handle);
-        if (!main_window)
-            return nullptr;
-    }
-
-    SDL_SetWindowData(window, "trinex_imgui_context", ImGui::GetCurrentContext());
-
-    Engine::WindowSDL* new_window = new Engine::WindowSDL();
-    new_window->m_window          = window;
-    new_window->m_id              = static_cast<Engine::Identifier>(SDL_GetWindowID(window));
-    new_window->m_api             = main_window->m_api;
-
-
-    Engine::WindowConfig config;
-    config.client = "Engine::ImGuiViewportClient";
-    config.vsync  = main_window_handle->render_viewport()->vsync();
-    auto* client  = reinterpret_cast<Engine::ImGuiRenderer::ImGuiViewportClient*>(
-            Engine::WindowManager::instance()->create_window(config, nullptr, new_window)->render_viewport()->client());
-    if (client)
-    {
-        client->viewport = viewport;
-    }
-
-    return Engine::rhi->context();
-}
-
-void destroy_engine_window(SDL_Window* window)
-{
-    Engine::Window* main_window_handle = Engine::WindowManager::instance()->find(SDL_GetWindowID(window));
-    Engine::WindowManager::instance()->destroy_window(main_window_handle);
-}

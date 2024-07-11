@@ -57,19 +57,11 @@ namespace Engine
         bool support_orientation(WindowOrientation orientation) override;
         Identifier id() override;
         void* native_window() override;
+        size_t monitor_index() override;
 
         SDL_Surface* create_surface(const Buffer& buffer, int_t width, int_t height, int_t channels);
         void destroy_icon();
         void destroy_cursor();
-
-        // IMGUI
-        WindowSDL& imgui_initialize_internal() override;
-        WindowSDL& imgui_terminate_internal() override;
-        WindowSDL& imgui_new_frame() override;
-        void initialize_imgui_opengl();
-        void initialize_imgui_vulkan();
-        void initialize_imgui_d3d();
-
         ~WindowSDL();
     };
 }// namespace Engine

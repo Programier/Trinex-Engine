@@ -38,7 +38,7 @@ namespace Engine
         }
         else if (window)
         {
-            m_windows_to_destroy.push_back(window);
+            m_windows_to_destroy.push_back(window->id());
         }
     }
 
@@ -89,7 +89,7 @@ namespace Engine
 
         System::new_system<EngineSystem>()->register_subsystem(this);
         add_listener(EventType::Quit, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
-        add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, true));
+        add_listener(EventType::WindowClose, std::bind(&EventSystem::on_window_close, this, std::placeholders::_1, false));
         add_listener(EventType::WindowResized, on_resize);
 
         // Register subsystems
@@ -115,7 +115,6 @@ namespace Engine
             m_listeners_to_remove.clear();
         }
 
-
         (this->*m_process_events)();
 
         if (!m_windows_to_destroy.empty())
@@ -124,21 +123,30 @@ namespace Engine
 
             if (manager)
             {
-                for (Window* window : m_windows_to_destroy)
+                for (Identifier id : m_windows_to_destroy)
                 {
-                    manager->destroy_window(window);
+                    if (auto window = manager->find(id))
+                    {
+                        manager->destroy_window(window);
+                    }
                 }
             }
 
             m_windows_to_destroy.clear();
         }
-
         return *this;
     }
 
     const EventSystem& EventSystem::push_event(const Event& event) const
     {
         auto it = m_listeners.find(static_cast<byte>(event.type()));
+        if (it != m_listeners.end())
+        {
+            it->second.trigger(event);
+        }
+
+        it = m_listeners.find(static_cast<byte>(EventType::Undefined));
+
         if (it != m_listeners.end())
         {
             it->second.trigger(event);

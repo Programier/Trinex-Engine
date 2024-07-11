@@ -10,8 +10,8 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
 #include <Graphics/texture_2D.hpp>
+#include <Platform/platform.hpp>
 #include <Window/config.hpp>
-#include <Window/monitor.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
 #include <imgui_stacklayout.h>
@@ -209,7 +209,7 @@ namespace Engine
             return;
         }
 
-        m_splash_data->texture        = Object::new_instance<EngineResource<Texture2D>>();
+        m_splash_data->texture = Object::new_instance<EngineResource<Texture2D>>();
         m_splash_data->texture->init(image);
 
         WindowConfig window_config;
@@ -218,9 +218,10 @@ namespace Engine
         window_config.title      = "Splash Screen";
         window_config.client     = "Engine::SplashClient";
         window_config.size       = image.size();
-        window_config.size       = (window_config.size / window_config.size.x) * static_cast<float>(Monitor::width()) / 3.f;
-        window_config.position   = {-1, -1};
-        window_config.vsync      = true;
+        window_config.size =
+                (window_config.size / window_config.size.x) * static_cast<float>(Platform::monitor_info().size.x) / 3.f;
+        window_config.position = {-1, -1};
+        window_config.vsync    = true;
 
         m_splash_data->window = WindowManager::instance()->create_window(window_config);
 

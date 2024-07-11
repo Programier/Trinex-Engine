@@ -14,7 +14,7 @@ namespace Engine
 
         bool vsync;
 
-        WindowConfig();
+        WindowConfig(bool init = true);
         WindowConfig& initialize();
         bool contains_attribute(WindowAttribute attribute) const;
     };

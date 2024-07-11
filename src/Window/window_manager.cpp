@@ -101,7 +101,7 @@ namespace Engine
         }
 
         const bool is_windows_empty = m_windows.empty();
-        m_windows[window->id()] = window;
+        m_windows[window->id()]     = window;
 
         if (is_windows_empty)
         {
@@ -129,12 +129,6 @@ namespace Engine
     WindowManager& WindowManager::mouse_relative_mode(bool flag)
     {
         Platform::WindowManager::mouse_relative_mode(flag);
-        return *this;
-    }
-
-    WindowManager& WindowManager::update_monitor_info(MonitorInfo& info)
-    {
-        Platform::WindowManager::update_monitor_info(info);
         return *this;
     }
 

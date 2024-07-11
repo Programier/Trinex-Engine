@@ -225,30 +225,6 @@ namespace Engine::ImGuiRenderer
         }
     }
 
-    ViewportClient& ImGuiViewportClient::on_bind_viewport(class RenderViewport* viewport)
-    {
-        m_window = Window::current();
-        return *this;
-    }
-
-    ViewportClient& ImGuiViewportClient::render(class RenderViewport* viewport)
-    {
-        viewport->rhi_bind();
-        rhi->push_debug_stage("ImGuiViewportClient");
-        ImGuiBackend::imgui_trinex_rhi_render_draw_data(m_window->context(), m_draw_data.draw_data());
-        m_draw_data.swap_render_index();
-        rhi->pop_debug_stage();
-        return *this;
-    }
-
-    ViewportClient& ImGuiViewportClient::update(class RenderViewport*, float dt)
-    {
-        m_draw_data.copy(viewport->DrawData);
-        m_draw_data.swap_logic_index();
-        return *this;
-    }
-
-    implement_engine_class_default_init(ImGuiViewportClient, 0);
     implement_class_default_init(Engine::ImGuiRenderer, Window, 0);
 
     static Window* m_current_window = nullptr;

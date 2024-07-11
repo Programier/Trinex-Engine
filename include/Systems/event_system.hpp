@@ -25,7 +25,7 @@ namespace Engine
     private:
         ListenerMap m_listeners;
         EventSystem& (EventSystem::*m_process_events)() = nullptr;
-        List<class Window*> m_windows_to_destroy;
+        List<Identifier> m_windows_to_destroy;
         List<EventSystemListenerID> m_listeners_to_remove;
 
 

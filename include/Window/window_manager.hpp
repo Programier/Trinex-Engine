@@ -7,7 +7,6 @@ namespace Engine
     struct WindowInterface;
     class Window;
     struct WindowConfig;
-    struct MonitorInfo;
 
     class ENGINE_EXPORT WindowManager final : public Singletone<WindowManager, EmptyClass>
     {
@@ -25,7 +24,6 @@ namespace Engine
 
         bool mouse_relative_mode() const;
         WindowManager& mouse_relative_mode(bool flag);
-        WindowManager& update_monitor_info(MonitorInfo& info);
         WindowManager& pool_events();
         WindowManager& wait_for_events();
         Window* find(Identifier id) const;

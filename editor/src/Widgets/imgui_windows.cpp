@@ -7,8 +7,8 @@
 #include <Engine/world.hpp>
 #include <Graphics/imgui.hpp>
 #include <Graphics/render_viewport.hpp>
+#include <Platform/platform.hpp>
 #include <Widgets/imgui_windows.hpp>
-#include <Window/monitor.hpp>
 #include <icons.hpp>
 #include <imfilebrowser.h>
 #include <imgui_internal.h>
@@ -399,6 +399,7 @@ namespace Engine
         Class* actor_class = Class::static_find("Engine::Actor", true);
         m_root             = new Node();
         build_tree(m_root, actor_class);
+        m_monitor_size = Platform::monitor_info().size;
     }
 
     ImGuiSpawnNewActor::~ImGuiSpawnNewActor()
@@ -466,7 +467,7 @@ namespace Engine
     bool ImGuiSpawnNewActor::render(RenderViewport* viewport)
     {
         m_is_open = true;
-        ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(Monitor::size() / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
+        ImGui::SetNextWindowPos(ImGuiHelpers::construct_vec2<ImVec2>(m_monitor_size / 2.f), ImGuiCond_Appearing, {0.5f, 0.5f});
         ImGui::SetNextWindowSize({900, 450}, ImGuiCond_Appearing);
         ImGui::Begin(name(), &m_is_open);
 

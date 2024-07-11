@@ -13,16 +13,16 @@ namespace Engine
 
     public:
         struct PosInfo {
-            int_t x;
-            int_t y;
-            int_t x_offset;
-            int_t y_offset;
+            float x;
+            float y;
+            float x_offset;
+            float y_offset;
         };
 
         struct ButtonInfo {
             Mouse::Status status = Mouse::Status::Released;
-            int_t x              = 0;
-            int_t y              = 0;
+            float x              = 0;
+            float y              = 0;
         };
 
         struct WheelInfo {

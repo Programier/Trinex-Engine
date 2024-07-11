@@ -31,14 +31,14 @@ namespace Engine
     struct ENGINE_EXPORT WindowEvent {
         union
         {
-            int_t x;
-            int_t width;
+            float x;
+            float width;
         };
 
         union
         {
-            int_t y;
-            int_t height;
+            float y;
+            float height;
         };
     };
 
@@ -51,6 +51,9 @@ namespace Engine
     using WindowFocusLostEvent   = EmptyEvent;
     using WindowCloseEvent       = EmptyEvent;
 
+    struct ENGINE_EXPORT TextInputEvent {
+        String text;
+    };
 
     struct ENGINE_EXPORT KeyEvent {
         Keyboard::Key key;
@@ -60,16 +63,16 @@ namespace Engine
     using KeyUpEvent   = KeyEvent;
 
     struct ENGINE_EXPORT MouseMotionEvent {
-        int32_t x;
-        int32_t y;
-        int32_t xrel;
-        int32_t yrel;
+        float x;
+        float y;
+        float xrel;
+        float yrel;
     };
 
     struct ENGINE_EXPORT MouseButtonEvent {
         Mouse::Button button;
-        int_t x;
-        int_t y;
+        float x;
+        float y;
     };
 
 

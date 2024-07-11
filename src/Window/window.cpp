@@ -173,19 +173,9 @@ namespace Engine
         return nullptr;
     }
 
-    Window& Window::imgui_initialize_internal()
+    size_t Window::monitor_index()
     {
-        return *this;
-    }
-
-    Window& Window::imgui_terminate_internal()
-    {
-        return *this;
-    }
-
-    Window& Window::imgui_new_frame()
-    {
-        return *this;
+        return 0;
     }
 
     void Window::initialize(const WindowConfig& config)
