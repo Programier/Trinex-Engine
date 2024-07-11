@@ -229,8 +229,8 @@ namespace Engine
 
     namespace ImGuiBackend
     {
-        extern bool imgui_trinex_init(ImGuiContext* ctx);
-        extern void imgui_trinex_shutdown(ImGuiContext* ctx);
+        extern bool imgui_trinex_rhi_init(ImGuiContext* ctx);
+        extern void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
     }// namespace ImGuiBackend
 
     struct InitContext : public ExecutableObject {
@@ -241,7 +241,7 @@ namespace Engine
 
         int_t execute() override
         {
-            ImGuiBackend::imgui_trinex_init(m_ctx);
+            ImGuiBackend::imgui_trinex_rhi_init(m_ctx);
             return sizeof(InitContext);
         }
     };
@@ -255,7 +255,7 @@ namespace Engine
 
         int_t execute() override
         {
-            ImGuiBackend::imgui_trinex_shutdown(m_ctx);
+            ImGuiBackend::imgui_trinex_rhi_shutdown(m_ctx);
             return sizeof(TerminateContext);
         }
     };

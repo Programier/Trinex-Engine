@@ -52,9 +52,9 @@ namespace Engine::ImGuiBackend
     implement_class_default_init(Engine::ImGuiBackend, ImGuiMaterial, Class::IsAsset);
 
 #if !USE_RHI_IMPLEMENTATION
-    bool imgui_trinex_init(ImGuiContext* ctx);
-    void imgui_trinex_shutdown(ImGuiContext* ctx);
-    void imgui_trinex_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
+    bool imgui_trinex_rhi_init(ImGuiContext* ctx);
+    void imgui_trinex_rhi_shutdown(ImGuiContext* ctx);
+    void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data);
 
     class ImGuiVertexBuffer : public DynamicVertexBuffer
     {
@@ -169,7 +169,7 @@ namespace Engine::ImGuiBackend
 #endif
 
     // Render function
-    void imgui_trinex_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
+    void imgui_trinex_rhi_render_draw_data(ImGuiContext* ctx, ImDrawData* draw_data)
     {
 #if USE_RHI_IMPLEMENTATION
         rhi->imgui_render(ctx, draw_data);
@@ -394,7 +394,7 @@ namespace Engine::ImGuiBackend
     }
 #endif
 
-    bool imgui_trinex_init(ImGuiContext* ctx)
+    bool imgui_trinex_rhi_init(ImGuiContext* ctx)
     {
 #if USE_RHI_IMPLEMENTATION
         rhi->imgui_init(ctx);
@@ -422,7 +422,7 @@ namespace Engine::ImGuiBackend
 #endif
     }
 
-    void imgui_trinex_shutdown(ImGuiContext* ctx)
+    void imgui_trinex_rhi_shutdown(ImGuiContext* ctx)
     {
 #if USE_RHI_IMPLEMENTATION
         rhi->imgui_terminate(ctx);
