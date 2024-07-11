@@ -38,11 +38,6 @@ namespace Engine
             ReflectionInitializeController().execute();
         }
 
-        if (ConfigsPreInitializeController::is_triggered())
-        {
-            ConfigsPreInitializeController().execute();
-        }
-
         if (ConfigsInitializeController::is_triggered())
         {
             ConfigsInitializeController().execute();
@@ -119,7 +114,6 @@ namespace Engine
         ResourcesInit          = BIT(5),
         ScriptEngineInitialize = BIT(6),
         ConfigsInitialize      = BIT(7),
-        ConfigsPreInitialize   = BIT(8),
     };
 
     static Flags<ControllerType, BitMask> m_triggered;
@@ -184,6 +178,5 @@ namespace Engine
     IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInit);
     IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, ResourcesInit);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
-    IMPLEMENT_CONTROLLER(ConfigsPreInitializeController, ConfigsPreInitialize);
 
 }// namespace Engine

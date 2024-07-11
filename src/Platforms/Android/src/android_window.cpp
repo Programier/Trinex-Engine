@@ -221,37 +221,6 @@ namespace Engine
         }
     };
 
-    Window& AndroidWindow::imgui_initialize_internal()
-    {
-        if (!imgui_context)
-        {
-            ImGuiContextSaver saver;
-
-            ImGui_ImplAndroid_Init(static_native_window());
-            imgui_context = ImGui::GetCurrentContext();
-        }
-        return *this;
-    }
-
-    Window& AndroidWindow::imgui_terminate_internal()
-    {
-        if (imgui_context)
-        {
-            ImGuiContextSaver saver(imgui_context);
-            ImGui_ImplAndroid_Shutdown();
-        }
-        return *this;
-    }
-
-    Window& AndroidWindow::imgui_new_frame()
-    {
-        if (imgui_context)
-        {
-            ImGui_ImplAndroid_NewFrame();
-        }
-        return *this;
-    }
-
     int32_t AndroidWindow::process_imgui_event(AInputEvent* event)
     {
         if (imgui_context)

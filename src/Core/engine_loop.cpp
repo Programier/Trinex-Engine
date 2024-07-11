@@ -112,7 +112,6 @@ namespace Engine
         Project::initialize();
 
         ReflectionInitializeController().execute();
-        ConfigsPreInitializeController().execute();
         ConfigManager::initialize();
 
         // Load libraries

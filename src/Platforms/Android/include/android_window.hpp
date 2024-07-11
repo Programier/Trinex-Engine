@@ -57,10 +57,6 @@ namespace Engine
         Window& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
         bool support_orientation(WindowOrientation orientation) override;
-
-        Window& imgui_initialize_internal() override;
-        Window& imgui_terminate_internal() override;
-        Window& imgui_new_frame() override;
         int32_t process_imgui_event(AInputEvent* event);
 
         ~AndroidWindow();

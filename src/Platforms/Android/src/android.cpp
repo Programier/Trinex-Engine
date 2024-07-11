@@ -52,7 +52,8 @@ namespace Engine::Platform
 
     ENGINE_EXPORT Path find_exec_directory()
     {
-        return m_android_platform_info.executable_path;
+        // TODO: Fix it
+        return "/sdcard/TrinexGames/TrinexEngine/";
     }
 
     ENGINE_EXPORT void bind_platform_mount_points()
@@ -62,5 +63,19 @@ namespace Engine::Platform
     ENGINE_EXPORT Vector<Pair<Path, Path>> hard_drives()
     {
         return {{"/", "/"}};
+    }
+
+    ENGINE_EXPORT size_t monitors_count()
+    {
+        return 1;
+    }
+
+    ENGINE_EXPORT MonitorInfo monitor_info(Index monitor_index)
+    {
+        MonitorInfo info;
+        info.pos  = {0, 0};
+        info.size = {m_android_platform_info.screen_width, m_android_platform_info.screen_height};
+        //info.dpi = m_android_platform_info.
+        return info;
     }
 }// namespace Engine::Platform

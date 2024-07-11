@@ -54,7 +54,6 @@ namespace Engine
 
     IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController);
     IMPLEMENT_CONTROLLER(ReflectionInitializeController);
-    IMPLEMENT_CONTROLLER(ConfigsPreInitializeController);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController);
 #undef IMPLEMENT_CONTROLLER
 }// namespace Engine

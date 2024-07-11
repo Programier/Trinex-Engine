@@ -410,10 +410,7 @@ namespace Engine
 
     void ConfigManager::initialize()
     {
-        for (auto& group : groups())
-        {
-            Path filename = group + ".config";
-            load_config_from_file(filename);
-        }
+        load_config_from_file("engine.config");
+        ConfigsInitializeController().execute();
     }
 }// namespace Engine
