@@ -120,6 +120,8 @@ namespace Engine
 
     struct ENGINE_EXPORT FingerUpEvent {
         Index finger_index;
+        float x;
+        float y;
     };
 
     struct ENGINE_EXPORT FingerMotionEvent {

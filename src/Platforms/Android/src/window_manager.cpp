@@ -374,6 +374,10 @@ namespace Engine::Platform
             if (event_pointer_index >= 0)
             {
                 event.finger_index = static_cast<Index>(event_pointer_index);
+                auto window        = Engine::WindowManager::instance()->main_window();
+                float h            = window->size().y;
+                event.x            = AMotionEvent_getX(input_event, event_pointer_index);
+                event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
                 EventSystem::instance()->push_event(Event(window_id(), EventType::FingerUp, event));
             }
 

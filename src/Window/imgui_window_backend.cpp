@@ -385,6 +385,21 @@ namespace Engine
     }                                                                                                                            \
     ImGuiContextSaver imgui_context_saver(context);
 
+        static void imgui_sent_mouse_position(Engine::Window* engine_window, float x, float y)
+        {
+            auto& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+            {
+                auto info = Platform::monitor_info(engine_window->monitor_index());
+                auto pos  = engine_window->position();
+                io.AddMousePosEvent(x + pos.x, info.size.y - (y + pos.y));
+            }
+            else
+            {
+                io.AddMousePosEvent(x, engine_window->cached_size().y - y);
+            }
+        }
+
         static void on_mouse_move(const Event& event)
         {
             IMGUI_EVENT_FUNC_HEADER();
@@ -393,16 +408,7 @@ namespace Engine
             auto& io   = ImGui::GetIO();
             io.AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 
-            if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-            {
-                auto info = Platform::monitor_info(engine_window->monitor_index());
-                auto pos  = engine_window->position();
-                io.AddMousePosEvent(data.x + pos.x, info.size.y - (data.y + pos.y));
-            }
-            else
-            {
-                io.AddMousePosEvent(data.x, engine_window->cached_size().y - data.y);
-            }
+            imgui_sent_mouse_position(engine_window, data.x, data.y);
         }
 
         static void on_mouse_button(const Event& event, bool is_pressed)
@@ -482,6 +488,46 @@ namespace Engine
             }
         }
 
+        static void on_finger_down(const Event& event)
+        {
+            IMGUI_EVENT_FUNC_HEADER();
+
+            const FingerDownEvent& data = event.get<const FingerDownEvent&>();
+            if (data.finger_index == 0)
+            {
+                auto& io = ImGui::GetIO();
+                io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+                imgui_sent_mouse_position(engine_window, data.x, data.y);
+                io.AddMouseButtonEvent(0, true);
+            }
+        }
+
+        static void on_finger_up(const Event& event)
+        {
+            IMGUI_EVENT_FUNC_HEADER();
+            const FingerUpEvent& data = event.get<const FingerUpEvent&>();
+            if (data.finger_index == 0)
+            {
+                auto& io = ImGui::GetIO();
+                io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+                imgui_sent_mouse_position(engine_window, data.x, data.y);
+                io.AddMouseButtonEvent(0, false);
+            }
+        }
+
+        static void on_finger_motion(const Event& event)
+        {
+            IMGUI_EVENT_FUNC_HEADER();
+
+            const FingerMotionEvent& data = event.get<const FingerMotionEvent&>();
+            if (data.finger_index == 0)
+            {
+                auto& io = ImGui::GetIO();
+                io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
+                imgui_sent_mouse_position(engine_window, data.x, data.y);
+            }
+        }
+
         static void register_listeners()
         {
             static bool initialized = false;
@@ -504,6 +550,10 @@ namespace Engine
             system->add_listener(EventType::WindowClose, on_window_close);
             system->add_listener(EventType::WindowMoved, on_window_move);
             system->add_listener(EventType::WindowResized, on_window_resize);
+
+            system->add_listener(EventType::FingerDown, on_finger_down);
+            system->add_listener(EventType::FingerUp, on_finger_up);
+            system->add_listener(EventType::FingerMotion, on_finger_motion);
         }
 
         static FORCE_INLINE Window* window_from(ImGuiViewport* vp)
