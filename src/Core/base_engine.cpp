@@ -67,21 +67,24 @@ namespace Engine
             instance->wait();
         }
 
-        auto& viewports = RenderViewport::viewports();
-
-        for (auto& viewport : viewports)
+        if (!is_requesting_exit())
         {
-            viewport->update(m_delta_time);
+            auto& viewports = RenderViewport::viewports();
+
+            for (auto& viewport : viewports)
+            {
+                viewport->update(m_delta_time);
+            }
+
+            begin_render();
+
+            for (auto& viewport : viewports)
+            {
+                viewport->render();
+            }
+
+            end_render();
         }
-
-        begin_render();
-
-        for (auto& viewport : viewports)
-        {
-            viewport->render();
-        }
-
-        end_render();
         return 0;
     }
 

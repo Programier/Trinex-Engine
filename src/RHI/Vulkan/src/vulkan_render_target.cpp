@@ -397,7 +397,7 @@ namespace Engine
         {
             if (new_mode != VulkanViewportMode::Undefined)
             {
-                const auto& render_target_size = m_state.m_current_viewport->render_target()->state()->m_size;
+                const auto& render_target_size = m_state.m_render_target->state()->m_size;
                 float sc_y = scissor.pos.y;
 
                 if (new_mode == VulkanViewportMode::Flipped)
