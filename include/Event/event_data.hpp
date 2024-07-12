@@ -112,9 +112,23 @@ namespace Engine
     //         ControllerSensorUpdate,
 
     //         // Touch events
-    //         FingerDown,
-    //         FingerUp,
-    //         FingerMotion,
+    struct ENGINE_EXPORT FingerDownEvent {
+        Index finger_index;
+        float x;
+        float y;
+    };
+
+    struct ENGINE_EXPORT FingerUpEvent {
+        Index finger_index;
+    };
+
+    struct ENGINE_EXPORT FingerMotionEvent {
+        Index finger_index;
+        float x;
+        float y;
+        float xrel;
+        float yrel;
+    };
 
     //         // Drag and drop events
     //         DropFile,

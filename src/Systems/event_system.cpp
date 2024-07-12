@@ -17,6 +17,7 @@
 #include <Systems/game_controller_system.hpp>
 #include <Systems/keyboard_system.hpp>
 #include <Systems/mouse_system.hpp>
+#include <Systems/touchscreen_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -95,6 +96,7 @@ namespace Engine
         // Register subsystems
         new_system<KeyboardSystem>();
         new_system<MouseSystem>();
+        new_system<TouchScreenSystem>();
         new_system<GameControllerSystem>();
 
         process_event_method(ProcessEventMethod::PoolEvents);

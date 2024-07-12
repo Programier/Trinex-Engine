@@ -4,6 +4,7 @@
 #include <Event/event_data.hpp>
 #include <Graphics/rhi.hpp>
 #include <Systems/event_system.hpp>
+#include <Systems/touchscreen_system.hpp>
 #include <Window/config.hpp>
 #include <Window/window.hpp>
 #include <Window/window_manager.hpp>
@@ -268,13 +269,11 @@ namespace Engine::Platform
         return 1;
     }
 
-
     static int32_t handle_mouse_event(AInputEvent* input_event, int32_t action, int32_t event_pointer_index)
     {
-        int32_t result          = 0;
-        int32_t filtered_action = action & AMOTION_EVENT_ACTION_MASK;
+        int32_t result = 0;
 
-        if (filtered_action == AMOTION_EVENT_ACTION_MOVE || filtered_action == AMOTION_EVENT_ACTION_HOVER_MOVE)
+        if (action == AMOTION_EVENT_ACTION_MOVE || action == AMOTION_EVENT_ACTION_HOVER_MOVE)
         {
             static MouseMotionEvent event;
 
@@ -298,7 +297,7 @@ namespace Engine::Platform
             EventSystem::instance()->push_event(Event(window_id(), EventType::MouseMotion, event));
             result = 1;
         }
-        else if (filtered_action == AMOTION_EVENT_ACTION_SCROLL)
+        else if (action == AMOTION_EVENT_ACTION_SCROLL)
         {
             MouseWheelEvent event;
             event.x = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, event_pointer_index);
@@ -310,16 +309,76 @@ namespace Engine::Platform
                 result = 1;
             }
         }
-        else if (filtered_action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
+        else if (action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
         {
             result =
                     handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown, event_pointer_index);
         }
-        else if (filtered_action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
+        else if (action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
         {
             result = handle_mouse_button_event<MouseButtonUpEvent>(input_event, EventType::MouseButtonUp, event_pointer_index);
         }
 
+        return result;
+    }
+
+    static int32_t handle_finger_event(AInputEvent* input_event, int32_t action, int32_t event_pointer_index)
+    {
+        int32_t result = 0;
+
+        if (action == AMOTION_EVENT_ACTION_MOVE)
+        {
+            static FingerMotionEvent event;
+
+            for (int32_t i = 0, count = AMotionEvent_getPointerCount(input_event); i < count; ++i)
+            {
+                event.finger_index = static_cast<Index>(i);
+                auto window        = Engine::WindowManager::instance()->main_window();
+                float h            = window->size().y;
+                event.x            = AMotionEvent_getX(input_event, i);
+                event.y            = h - AMotionEvent_getY(input_event, i);
+
+                Size2D prev_pos = TouchScreenSystem::instance()->finger_location(event.finger_index, window);
+                event.xrel      = event.x - prev_pos.x;
+                event.yrel      = event.y - prev_pos.y;
+
+                if (glm::epsilonNotEqual(event.xrel, 0.f, 0.001f) || glm::epsilonNotEqual(event.yrel, 0.f, 0.001f))
+                {
+                    EventSystem::instance()->push_event(Event(window_id(), EventType::FingerMotion, event));
+                }
+            }
+
+            result = 1;
+        }
+        else if (action == AMOTION_EVENT_ACTION_DOWN)
+        {
+            static FingerDownEvent event;
+
+            if (event_pointer_index >= 0)
+            {
+                event.finger_index = static_cast<Index>(event_pointer_index);
+                auto window        = Engine::WindowManager::instance()->main_window();
+                float h            = window->size().y;
+                event.x            = AMotionEvent_getX(input_event, event_pointer_index);
+                event.y            = h - AMotionEvent_getY(input_event, event_pointer_index);
+
+                EventSystem::instance()->push_event(Event(window_id(), EventType::FingerDown, event));
+            }
+
+            result = 1;
+        }
+        else if (action == AMOTION_EVENT_ACTION_UP)
+        {
+            static FingerUpEvent event;
+
+            if (event_pointer_index >= 0)
+            {
+                event.finger_index = static_cast<Index>(event_pointer_index);
+                EventSystem::instance()->push_event(Event(window_id(), EventType::FingerUp, event));
+            }
+
+            result = 1;
+        }
         return result;
     }
 
@@ -335,6 +394,7 @@ namespace Engine::Platform
             case AMOTION_EVENT_TOOL_TYPE_MOUSE:
                 return handle_mouse_event(input_event, action, event_pointer_index);
             case AMOTION_EVENT_TOOL_TYPE_FINGER:
+                return handle_finger_event(input_event, action, event_pointer_index);
             case AMOTION_EVENT_TOOL_TYPE_STYLUS:
             case AMOTION_EVENT_TOOL_TYPE_ERASER:
             case AMOTION_EVENT_TOOL_TYPE_PALM:
