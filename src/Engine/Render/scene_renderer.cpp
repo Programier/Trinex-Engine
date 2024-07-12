@@ -56,6 +56,11 @@ namespace Engine
         return *this;
     }
 
+    RenderSurface* SceneRenderer::output_surface() const
+    {
+        return SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR);
+    }
+
     SceneRenderer& SceneRenderer::render(const SceneView& view, RenderViewport* viewport)
     {
         if (scene == nullptr)
@@ -64,6 +69,10 @@ namespace Engine
         m_global_shader_params.clear();
         m_scene_views.clear();
         m_scene_views.push_back(view);
+
+        rhi->viewport(view.viewport());
+        rhi->scissor(view.scissor());
+
         push_global_shader_parameters();
 
         for (auto layer = root_layer(); layer; layer = layer->next())

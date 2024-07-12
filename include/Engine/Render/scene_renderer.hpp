@@ -44,13 +44,12 @@ namespace Engine
         Scene* scene;
 
         SceneRenderer();
-
         SceneRenderer& push_global_shader_parameters();
         SceneRenderer& pop_global_shader_parameters();
         const GlobalShaderParameters& global_shader_parameters() const;
-
         const SceneView& scene_view() const;
         virtual SceneRenderer& render(const SceneView& view, class RenderViewport* viewport);
+        virtual RenderSurface* output_surface() const;
 
         // Components rendering
         template<typename ComponentType>

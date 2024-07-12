@@ -11,6 +11,7 @@ namespace Engine::Settings
     extern ENGINE_EXPORT int_t e_lz4_compression_level;
     extern ENGINE_EXPORT int_t e_gc_max_object_per_tick;
     extern ENGINE_EXPORT int_t e_fps_limit;
+    extern ENGINE_EXPORT float e_screen_percentage;
     extern ENGINE_EXPORT ScriptArray<String, "string"> e_languages;
     extern ENGINE_EXPORT ScriptArray<String, "string"> e_systems;
     extern ENGINE_EXPORT ScriptArray<String, "string"> e_libs;

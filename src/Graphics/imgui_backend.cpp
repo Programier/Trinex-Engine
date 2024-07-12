@@ -6,6 +6,7 @@
 #include <Core/etl/engine_resource.hpp>
 #include <Core/garbage_collector.hpp>
 #include <Core/package.hpp>
+#include <Graphics/imgui.hpp>
 #include <Graphics/pipeline.hpp>
 #include <Graphics/pipeline_buffers.hpp>
 #include <Graphics/rhi.hpp>
@@ -13,7 +14,6 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/shader_material.hpp>
 #include <Graphics/texture_2D.hpp>
-#include <imgui.h>
 
 namespace Engine::ImGuiBackend
 {
@@ -155,7 +155,8 @@ namespace Engine::ImGuiBackend
         ImGuiTrinexData* bd = imgui_trinex_backend_data();
 
         ViewPort viewport;
-        viewport.size = {draw_data->DisplaySize.x, draw_data->DisplaySize.y};
+        viewport.size = {draw_data->DisplaySize.x * ImGuiRenderer::rhi_rendering_scale_factor,
+                         draw_data->DisplaySize.y * ImGuiRenderer::rhi_rendering_scale_factor};
         rhi->viewport(viewport);
 
         float L                        = draw_data->DisplayPos.x;
@@ -258,10 +259,11 @@ namespace Engine::ImGuiBackend
                         continue;
 
                     Scissor scissor;
-                    scissor.pos.x  = clip_min.x;
-                    scissor.pos.y  = (fb_height - clip_max.y);
-                    scissor.size.x = clip_max.x - clip_min.x;
-                    scissor.size.y = clip_max.y - clip_min.y;
+                    scissor.pos.x  = clip_min.x * ImGuiRenderer::rhi_rendering_scale_factor;
+                    scissor.pos.y  = (fb_height - clip_max.y) * ImGuiRenderer::rhi_rendering_scale_factor;
+                    scissor.size.x = (clip_max.x - clip_min.x) * ImGuiRenderer::rhi_rendering_scale_factor;
+                    scissor.size.y = (clip_max.y - clip_min.y) * ImGuiRenderer::rhi_rendering_scale_factor;
+
                     rhi->scissor(scissor);
 
                     if (!bd->texture_parameter->texture)

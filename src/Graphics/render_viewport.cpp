@@ -5,6 +5,7 @@
 #include <Graphics/rhi.hpp>
 #include <Graphics/scene_render_targets.hpp>
 #include <Window/window.hpp>
+#include <Engine/settings.hpp>
 
 namespace Engine
 {
@@ -151,7 +152,7 @@ namespace Engine
         if (viewport == nullptr)
             return *this;
 
-        SceneRenderTargets::instance()->initialize(size());
+        SceneRenderTargets::instance()->initialize(size() * Settings::e_screen_percentage);
         render_thread()->insert_new_task<StartRenderingViewport>(m_client.ptr(), this, viewport);
         return *this;
     }

@@ -12,6 +12,12 @@ namespace Engine::Settings
     ENGINE_EXPORT int_t e_lz4_compression_level;
     ENGINE_EXPORT int_t e_gc_max_object_per_tick;
     ENGINE_EXPORT int_t e_fps_limit;
+
+#if PLATFORM_ANDROID
+    ENGINE_EXPORT float e_screen_percentage = 1.f;
+#else
+    ENGINE_EXPORT float e_screen_percentage = 1.f;
+#endif
     ENGINE_EXPORT ScriptArray<String, "string"> e_languages;
     ENGINE_EXPORT ScriptArray<String, "string"> e_systems;
     ENGINE_EXPORT ScriptArray<String, "string"> e_libs;

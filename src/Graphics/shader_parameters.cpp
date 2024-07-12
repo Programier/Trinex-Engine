@@ -9,17 +9,19 @@
 
 namespace Engine
 {
-    GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view)
+    GlobalShaderParameters& GlobalShaderParameters::update(const SceneView* scene_view, Size2D render_target_size)
     {
-        {
-            ViewPort _viewport = rhi->viewport();
-            size               = SceneRenderTargets::instance()->size();
-            viewport           = {_viewport.pos.x, _viewport.pos.y, _viewport.size.x, _viewport.size.y};
-            depth_range        = {_viewport.min_depth, _viewport.max_depth};
-        }
+        size = render_target_size;
+        if (size.x < 0.f || size.y < 0.f)
+            size = SceneRenderTargets::instance()->size();
 
         if (scene_view)
         {
+            const ViewPort& _viewport = scene_view->viewport();
+            viewport                  = {_viewport.pos.x, _viewport.pos.y, _viewport.size.x, _viewport.size.y};
+            depth_range               = {_viewport.min_depth, _viewport.max_depth};
+
+
             auto& camera    = scene_view->camera_view();
             camera_location = camera.location;
             camera_forward  = camera.forward_vector;

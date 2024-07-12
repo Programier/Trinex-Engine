@@ -17,6 +17,7 @@
 #include <Graphics/imgui.hpp>
 #include <Graphics/material.hpp>
 #include <Graphics/pipeline.hpp>
+#include <Graphics/render_surface.hpp>
 #include <Graphics/rhi.hpp>
 #include <Graphics/sampler.hpp>
 #include <Graphics/scene_render_targets.hpp>
@@ -41,6 +42,13 @@ namespace Engine
     EditorState::EditorState()
     {
         viewport.view_mode_entry = Enum::static_find("Engine::ViewMode", true)->entry(static_cast<EnumerateType>(ViewMode::Lit));
+        imgui_output_surface     = Object::new_instance<RenderSurface>();
+    }
+
+    EditorState& EditorState::initialize_surface(const Size2D& size)
+    {
+        imgui_output_surface->init(ColorFormat::R8G8B8A8, size);
+        return *this;
     }
 
     implement_engine_class_default_init(EditorClient, 0);
@@ -71,7 +79,6 @@ namespace Engine
             unbind_window(false);
         }
     }
-
 
     EditorClient::~EditorClient()
     {
@@ -109,6 +116,7 @@ namespace Engine
         return *this;
     }
 
+
     ViewportClient& EditorClient::on_bind_viewport(class RenderViewport* viewport)
     {
         Window* window = viewport->window();
@@ -144,20 +152,23 @@ namespace Engine
         EventSystem* event_system = EventSystem::new_system<EventSystem>();
         m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::MouseMotion, std::bind(&EditorClient::on_mouse_move, this, std::placeholders::_1)));
+        m_event_system_listeners.push_back(event_system->add_listener(
+                EventType::FingerMotion, std::bind(&EditorClient::on_finger_move, this, std::placeholders::_1)));
 
         m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::MouseButtonDown, std::bind(&EditorClient::on_mouse_press, this, std::placeholders::_1)));
         m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::MouseButtonUp, std::bind(&EditorClient::on_mouse_release, this, std::placeholders::_1)));
-
-        m_event_system_listeners.push_back(event_system->add_listener(
-                EventType::KeyDown, std::bind(&EditorClient::on_key_press, this, std::placeholders::_1)));
-        m_event_system_listeners.push_back(event_system->add_listener(
-                EventType::KeyUp, std::bind(&EditorClient::on_key_release, this, std::placeholders::_1)));
         m_event_system_listeners.push_back(event_system->add_listener(
                 EventType::WindowClose, std::bind(&EditorClient::on_window_close, this, std::placeholders::_1)));
 
-        return init_world();
+
+        m_world          = World::new_system<World>();
+        m_renderer.scene = m_world->scene();
+        m_world->start_play();
+
+        m_state.initialize_surface(viewport->size() * Settings::e_screen_percentage);
+        return *this;
     }
 
     ViewportClient& EditorClient::on_unbind_viewport(class RenderViewport* viewport)
@@ -194,25 +205,37 @@ namespace Engine
         return *this;
     }
 
-    ViewportClient& EditorClient::render(class RenderViewport* viewport)
+    ViewportClient& EditorClient::render(class RenderViewport* render_viewport)
     {
-        {
-            ViewPort viewport = rhi->viewport();
-            viewport.pos      = {0.f, 0.f};
-            viewport.size     = SceneRenderTargets::instance()->size();
-            rhi->viewport(viewport);
-        }
+        const float backup_rhi_scale              = ImGuiRenderer::rhi_rendering_scale_factor;
+        ImGuiRenderer::rhi_rendering_scale_factor = Settings::e_screen_percentage;
 
-        m_renderer.render(m_scene_view, viewport);
-        viewport->rhi_bind();
-        // RenderSurface* surfaces[] = {SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR)};
-        // rhi->bind_render_target(surfaces, nullptr);
-        viewport->window()->imgui_window()->rhi_render();
+        ViewPort viewport = rhi->viewport();
+        viewport.pos      = {0.f, 0.f};
+        viewport.size     = render_viewport->size() * Settings::e_screen_percentage;
+
+        Scissor scissor;
+        scissor.pos  = {0.f, 0.f};
+        scissor.size = viewport.size;
+
+        m_scene_view.viewport(viewport);
+        m_scene_view.scissor(scissor);
+
+        m_renderer.render(m_scene_view, render_viewport);
+        RenderSurface* output[1] = {m_state.imgui_output_surface.ptr()};
+        rhi->bind_render_target(output, nullptr);
+        render_viewport->window()->imgui_window()->rhi_render();
+
+        Rect2D src_rect = {.position = {0.f, 0.f}, .size = viewport.size};
+        Rect2D dst_rect = {.position = {0.f, 0.f}, .size = render_viewport->size()};
+        render_viewport->rhi_blit_target(output[0], src_rect, dst_rect);
+
+        ImGuiRenderer::rhi_rendering_scale_factor = backup_rhi_scale;
         return *this;
     }
 
 
-    void EditorClient::render_dock_window(float dt)
+    EditorClient& EditorClient::render_dock_window(float dt)
     {
         auto dock_id                       = ImGui::GetID("EditorDock##Dock");
         ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -298,15 +321,29 @@ namespace Engine
 
             ImGui::DockBuilderFinish(dock_id);
         }
+
+        return *this;
     }
 
 
     ViewportClient& EditorClient::update(class RenderViewport* viewport, float dt)
     {
+        const Size2D viewport_size = viewport->size() * Settings::e_screen_percentage;
+        {
+            // Initialize imgui output surface
+            Size2D current_size = m_state.imgui_output_surface->size();
+
+            if (viewport_size.x > current_size.x || viewport_size.y > current_size.y)
+            {
+                m_state.initialize_surface(viewport_size);
+            }
+        }
+
         ImGuiRenderer::Window* window = viewport->window()->imgui_window();
         window->new_frame();
 
         ImGuiViewport* imgui_viewport = ImGui::GetMainViewport();
+
         ImGui::SetNextWindowPos(imgui_viewport->WorkPos);
         ImGui::SetNextWindowSize(imgui_viewport->WorkSize);
         ImGui::Begin("EditorDock", nullptr,
@@ -315,9 +352,7 @@ namespace Engine
                              ImGuiWindowFlags_MenuBar);
         render_dock_window(dt);
 
-        create_log_window(dt);
         update_camera(dt);
-        update_viewport(dt);
         render_viewport_window(dt);
 
         ImGui::End();
@@ -333,22 +368,7 @@ namespace Engine
             }
         }
 
-
         ++m_frame;
-        return *this;
-    }
-
-    EditorClient& EditorClient::init_world()
-    {
-        m_world          = World::new_system<World>();
-        Scene* scene     = m_world->scene();
-        m_renderer.scene = scene;
-        m_world->start_play();
-        return *this;
-    }
-
-    EditorClient& EditorClient::create_log_window(float dt)
-    {
         return *this;
     }
 
@@ -358,7 +378,7 @@ namespace Engine
 
         if (selected.empty())
         {
-            m_guizmo_is_in_use = false;
+            m_state.viewport.is_using_guizmo = false;
             return *this;
         }
 
@@ -366,7 +386,8 @@ namespace Engine
         ImGuizmo::AllowAxisFlip(false);
         ImGuizmo::SetImGuiContext(ImGui::GetCurrentContext());
         ImGuizmo::SetDrawlist();
-        ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_viewport_size.x, m_viewport_size.y);
+        ImGuizmo::SetRect(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y, m_state.viewport.size.x,
+                          m_state.viewport.size.y);
 
         auto view       = camera->view_matrix();
         auto projection = camera->projection_matrix();
@@ -396,8 +417,8 @@ namespace Engine
             }
         }
 
-
-        m_guizmo_is_in_use = ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
+        m_state.viewport.is_using_guizmo =
+                ImGuizmo::IsOver(static_cast<ImGuizmo::OPERATION>(m_guizmo_operation) | ImGuizmo::OPERATION::SCALE);
         return *this;
     }
 
@@ -458,7 +479,7 @@ namespace Engine
 
                 if (ImGui::IsItemHovered())
                 {
-                    m_viewport_is_hovered = false;
+                    m_state.viewport.is_hovered = false;
                 }
 
                 ImGui::SameLine();
@@ -543,12 +564,6 @@ namespace Engine
         return *this;
     }
 
-
-    static FORCE_INLINE Texture2D* find_output_texture_by_index(Index index)
-    {
-        return reinterpret_cast<Texture2D*>(SceneRenderTargets::instance()->surface_of(SceneRenderTargets::SceneColorLDR));
-    }
-
     EditorClient& EditorClient::render_viewport_window(float dt)
     {
         if (!ImGui::Begin(Object::localize("editor/Viewport Title").c_str(), nullptr))
@@ -557,26 +572,24 @@ namespace Engine
             return *this;
         };
 
-        if (!m_guizmo_is_in_use && m_viewport_is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        if (!m_state.viewport.is_using_guizmo && m_state.viewport.is_hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
             auto relative_mouse_pos = ImGui::GetMousePos() - (ImGui::GetWindowPos() + ImGui::GetCursorPos());
-            relative_mouse_pos.y    = m_viewport_size.y - relative_mouse_pos.y;
+            relative_mouse_pos.y    = m_state.viewport.size.y - relative_mouse_pos.y;
             raycast_objects(ImGuiHelpers::construct_vec2<Vector2D>(relative_mouse_pos));
         }
 
         {
-            auto current_pos     = ImGui::GetCursorPos();
-            auto size            = ImGui::GetContentRegionAvail();
-            m_viewport_size      = ImGuiHelpers::construct_vec2<Vector2D>(size);
-            camera->aspect_ratio = m_viewport_size.x / m_viewport_size.y;
+            auto current_pos = ImGui::GetCursorPos();
+            auto size        = ImGui::GetContentRegionAvail();
 
-            static auto update_callback = [](void* data) -> ImTextureID {
-                return {find_output_texture_by_index(reinterpret_cast<Index>(data)), EditorResources::default_sampler};
-            };
+            m_state.viewport.size = ImGuiHelpers::construct_vec2<Vector2D>(size);
+            camera->aspect_ratio  = m_state.viewport.size.x / m_state.viewport.size.y;
 
-            ImGui::GetWindowDrawList()->AddNextImageUpdateCallback(update_callback, reinterpret_cast<void*>(m_target_view_index));
-            ImGui::Image(reinterpret_cast<Texture2D*>(find_output_texture_by_index(0)), size);
-            m_viewport_is_hovered = ImGui::IsWindowHovered();
+            auto factor = (m_window->cached_size() * Settings::e_screen_percentage) / m_renderer.output_surface()->size();
+
+            ImGui::Image(reinterpret_cast<Texture2D*>(m_renderer.output_surface()), size, {0.f, factor.y}, {factor.x, 0.f});
+            m_state.viewport.is_hovered = ImGui::IsWindowHovered();
 
             ImGui::SetCursorPos(current_pos);
             render_guizmo(dt);
@@ -601,7 +614,7 @@ namespace Engine
     {
         const MouseButtonEvent& button = event.get<const MouseButtonEvent&>();
 
-        if (m_viewport_is_hovered && button.button == Mouse::Button::Right)
+        if (m_state.viewport.is_hovered && button.button == Mouse::Button::Right)
         {
             MouseSystem::instance()->relative_mode(true, m_window);
         }
@@ -624,8 +637,20 @@ namespace Engine
 
         if (MouseSystem::instance()->is_relative_mode(m_window))
         {
-            camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_viewport_size.y, camera->fov),
-                                  calculate_y_rotatation(static_cast<float>(motion.xrel), m_viewport_size.x, camera->fov), 0.f});
+            camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
+                                  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+                                  0.f});
+        }
+    }
+
+    void EditorClient::on_finger_move(const Event& event)
+    {
+        const FingerMotionEvent& motion = event.get<const FingerMotionEvent&>();
+        if (motion.finger_index == 0 && m_state.viewport.is_hovered)
+        {
+            camera->add_rotation({-calculate_y_rotatation(static_cast<float>(motion.yrel), m_state.viewport.size.y, camera->fov),
+                                  calculate_y_rotatation(static_cast<float>(motion.xrel), m_state.viewport.size.x, camera->fov),
+                                  0.f});
         }
     }
 
@@ -650,29 +675,26 @@ namespace Engine
 
         camera->add_location(Vector3D((camera->world_transform().rotation_matrix() * Vector4D(m_camera_move, 1.0))) * dt *
                              m_camera_speed);
-
         camera->on_transform_changed();
+
         struct UpdateView : ExecutableObject {
             CameraView view;
             SceneView& out;
-            Size2D size;
             const Flags<ShowFlags, BitMask>& show_flags;
 
-            UpdateView(const CameraView& in, SceneView& out, const Size2D& size, const Flags<ShowFlags, BitMask>& show_flags)
-                : view(in), out(out), size(size), show_flags(show_flags)
+            UpdateView(const CameraView& in, SceneView& out, const Flags<ShowFlags, BitMask>& show_flags)
+                : view(in), out(out), show_flags(show_flags)
             {}
 
             int_t execute() override
             {
-                out.view_size(size);
                 out.camera_view(view);
                 out.show_flags(show_flags);
                 return sizeof(UpdateView);
             }
         };
 
-        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, SceneRenderTargets::instance()->size(),
-                                                     m_show_flags);
+        render_thread()->insert_new_task<UpdateView>(camera->camera_view(), m_scene_view, m_show_flags);
         return *this;
     }
 
@@ -721,7 +743,7 @@ namespace Engine
 
     EditorClient& EditorClient::raycast_objects(const Vector2D& coords)
     {
-        SceneView view(camera->camera_view(), m_viewport_size);
+        SceneView view(camera->camera_view(), m_state.viewport.size);
         Vector3D origin;
         Vector3D direction;
 
@@ -747,40 +769,5 @@ namespace Engine
         }
 
         return *this;
-    }
-
-    EditorClient& EditorClient::update_viewport(float dt)
-    {
-        return *this;
-    }
-
-    void EditorClient::on_key_press(const Event& event)
-    {
-        if (m_window == nullptr || event.window_id() != m_window->id())
-            return;
-
-        const KeyEvent& key_event = event.get<const KeyEvent&>();
-
-        if (m_viewport_is_hovered)
-        {
-            if (static_cast<Identifier>(key_event.key) >= static_cast<Identifier>(Keyboard::Key::Num0) &&
-                static_cast<Identifier>(key_event.key) <= static_cast<Identifier>(Keyboard::Key::Num9))
-            {
-                Index new_index = static_cast<Identifier>(key_event.key) - static_cast<Identifier>(Keyboard::Key::Num0);
-                if (new_index <= 6)
-                {
-                    m_target_view_index = new_index;
-                }
-            }
-        }
-    }
-
-
-    void EditorClient::on_key_release(const Event& event)
-    {
-        if (m_window == nullptr || event.window_id() != m_window->id())
-            return;
-
-        //const KeyEvent& key_event = event.get<const KeyEvent&>();
     }
 }// namespace Engine

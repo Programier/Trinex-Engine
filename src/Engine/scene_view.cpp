@@ -6,9 +6,21 @@ namespace Engine
     SceneView::SceneView(const Flags<ShowFlags, BitMask>& show_flags) : m_show_flags(show_flags)
     {}
 
-    SceneView::SceneView(const CameraView& view, const Size2D& size, const Flags<ShowFlags, BitMask>& show_flags)
-        : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_size(size),
-          m_show_flags(show_flags)
+    SceneView::SceneView(const CameraView& view, const Size2D& view_size, const Flags<ShowFlags, BitMask>& show_flags)
+        : m_view(view.view_matrix()), m_show_flags(show_flags)
+    {
+        m_viewport.pos       = {0, 0};
+        m_viewport.size      = view_size;
+        m_viewport.min_depth = 0.f;
+        m_viewport.max_depth = 1.f;
+        m_scissor.pos        = {0, 0};
+        m_scissor.size       = view_size;
+    }
+
+    SceneView::SceneView(const CameraView& view, const ViewPort& viewport, const Scissor& scissor,
+                         const Flags<ShowFlags, BitMask>& show_flags)
+        : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_viewport(viewport),
+          m_scissor(scissor), m_show_flags(show_flags)
     {
         m_projview     = m_projection * m_view;
         m_inv_projview = glm::inverse(m_projview);
@@ -26,9 +38,15 @@ namespace Engine
         return *this;
     }
 
-    SceneView& SceneView::view_size(const Size2D& size)
+    SceneView& SceneView::viewport(const ViewPort& viewport)
     {
-        m_size = size;
+        m_viewport = viewport;
+        return *this;
+    }
+
+    SceneView& SceneView::scissor(const Scissor& scissor)
+    {
+        m_scissor = scissor;
         return *this;
     }
 
@@ -45,6 +63,8 @@ namespace Engine
 
         Matrix4f inverse_view       = glm::inverse(m_view);
         Matrix4f inverse_projection = glm::inverse(m_projection);
+
+        Size2D m_size = view_size();
 
         float screen_space_x                = (x - m_size.x / 2.f) / (m_size.x / 2.f);
         float screen_space_y                = (y - m_size.y / 2.f) / (m_size.y / 2.f);
