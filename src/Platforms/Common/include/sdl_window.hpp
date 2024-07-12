@@ -19,7 +19,6 @@ namespace Engine
         SDL_Cursor* m_cursor       = nullptr;
 
         SDL_WindowFlags m_api;
-        CursorMode m_c_mode;
         SDL_Event m_event;
 
         Identifier m_id;
@@ -54,7 +53,7 @@ namespace Engine
         bool attribute(const WindowAttribute& attrib) override;
         WindowSDL& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
-        bool support_orientation(WindowOrientation orientation) override;
+        bool support_orientation(Orientation orientation) override;
         Identifier id() override;
         void* native_window() override;
         size_t monitor_index() override;

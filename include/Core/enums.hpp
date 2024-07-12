@@ -230,12 +230,12 @@ namespace Engine
         Hidden
     };
 
-    enum class WindowOrientation : EnumerateType
+    enum class Orientation : EnumerateType
     {
-        Landscape        = 1,
-        LandscapeFlipped = 2,
-        Portrait         = 3,
-        PortraitFlipped  = 4
+        Landscape        = 0,
+        LandscapeFlipped = 1,
+        Portrait         = 2,
+        PortraitFlipped  = 3
     };
 
     enum class MessageBoxType

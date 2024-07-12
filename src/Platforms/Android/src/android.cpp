@@ -35,6 +35,14 @@ extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_initializ
     m_android_platform_info.screen_height       = screen_height;
 }
 
+extern "C" JNIEXPORT void JNICALL Java_com_TrinexEngine_TrinexActivity_updateOrientation(JNIEnv* env, jobject thiz,
+                                                                                         jint orientation)
+{
+    using namespace Engine::Platform;
+
+    m_android_platform_info.orientation = static_cast<Engine::Orientation>(orientation);
+}
+
 
 namespace Engine::Platform
 {

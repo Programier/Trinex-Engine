@@ -56,7 +56,8 @@ namespace Engine
         bool attribute(const WindowAttribute& attrib) override;
         Window& cursor_mode(const CursorMode& mode) override;
         CursorMode cursor_mode() override;
-        bool support_orientation(WindowOrientation orientation) override;
+        bool support_orientation(Orientation orientation) override;
+        Orientation orientation() override;
         int32_t process_imgui_event(AInputEvent* event);
 
         ~AndroidWindow();

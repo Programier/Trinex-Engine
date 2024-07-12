@@ -22,7 +22,6 @@ namespace Engine
         Window* create_window(const WindowConfig& config, Window* parent = nullptr, Window* self = nullptr);
         WindowManager& destroy_window(Window* window);
 
-        bool mouse_relative_mode() const;
         WindowManager& mouse_relative_mode(bool flag);
         WindowManager& pool_events();
         WindowManager& wait_for_events();

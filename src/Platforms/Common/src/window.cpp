@@ -456,20 +456,20 @@ namespace Engine
 
     WindowSDL& WindowSDL::cursor_mode(const CursorMode& mode)
     {
-        if (m_c_mode != mode)
-        {
-            SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE));
-            m_c_mode = mode;
-        }
+        SDL_ShowCursor((mode == CursorMode::Hidden ? SDL_DISABLE : SDL_ENABLE));
         return *this;
     }
 
     CursorMode WindowSDL::cursor_mode()
     {
-        return m_c_mode;
+        int result = SDL_ShowCursor(SDL_QUERY);
+
+        if (result == SDL_ENABLE)
+            return CursorMode::Normal;
+        return CursorMode::Hidden;
     }
 
-    bool WindowSDL::support_orientation(WindowOrientation orientations)
+    bool WindowSDL::support_orientation(Orientation orientations)
     {
         //        static Map<WindowOrientation, const char*> m_orientation_map = {
         //                {WindowOrientation::Landscape, "LandscapeRight"},
@@ -487,7 +487,7 @@ namespace Engine
         //        }
 
         //        SDL_SetHint(SDL_HINT_ORIENTATIONS, result.c_str());
-        return false;
+        return true;
     }
 
     template<typename Type>

@@ -209,11 +209,6 @@ namespace Engine::Platform::WindowManager
         delete window;
     }
 
-    ENGINE_EXPORT bool mouse_relative_mode()
-    {
-        return static_cast<bool>(SDL_GetRelativeMouseMode());
-    }
-
     ENGINE_EXPORT void mouse_relative_mode(bool flag)
     {
         SDL_SetRelativeMouseMode(static_cast<SDL_bool>(flag));

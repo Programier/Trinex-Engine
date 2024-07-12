@@ -36,6 +36,7 @@ namespace Engine
             PosInfo m_pos_info;
             WheelInfo m_wheel_info;
             ButtonInfo m_button_status[static_cast<EnumerateType>(Mouse::Button::__COUNT__)];
+            bool m_relative_mode = false;
         };
 
         mutable Map<Window*, MouseState> m_mouse_state;

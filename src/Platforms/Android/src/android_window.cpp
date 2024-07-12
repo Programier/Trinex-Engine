@@ -198,11 +198,15 @@ namespace Engine
         return CursorMode::Normal;
     }
 
-    bool AndroidWindow::support_orientation(WindowOrientation orientation)
+    bool AndroidWindow::support_orientation(Orientation orientation)
     {
         return true;
     }
 
+    Orientation AndroidWindow::orientation()
+    {
+        return Platform::m_android_platform_info.orientation;
+    }
 
     struct ImGuiContextSaver {
         ImGuiContext* context;

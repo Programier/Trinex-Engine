@@ -230,12 +230,12 @@ namespace Engine::Platform
     }
 
     template<typename EventDataType>
-    static int32_t handle_mouse_button_event(AInputEvent* input_event, EventType type)
+    static int32_t handle_mouse_button_event(AInputEvent* input_event, EventType type, int32_t event_pointer_index)
     {
         static int32_t pressed_buttons = 0;
         int_t buttons                  = AMotionEvent_getButtonState(input_event);
 
-        int_t button    = pressed_buttons ^ buttons;// Get changed button
+        int_t button    = pressed_buttons ^ buttons;
         pressed_buttons = buttons;
 
 
@@ -260,42 +260,49 @@ namespace Engine::Platform
                 break;
         }
 
-        event_data.x = static_cast<int32_t>(AMotionEvent_getX(input_event, 0));
-        event_data.y = static_cast<int32_t>(AMotionEvent_getY(input_event, 0));
+        float h      = Engine::WindowManager::instance()->main_window()->size().y;
+        event_data.x = AMotionEvent_getX(input_event, event_pointer_index);
+        event_data.y = h - AMotionEvent_getY(input_event, event_pointer_index);
 
         EventSystem::instance()->push_event(Event(window_id(), type, event_data));
         return 1;
     }
 
 
-    static int32_t handle_mouse_event(AInputEvent* input_event)
+    static int32_t handle_mouse_event(AInputEvent* input_event, int32_t action, int32_t event_pointer_index)
     {
-        int32_t result = 0;
-        int32_t action = AMotionEvent_getAction(input_event);
+        int32_t result          = 0;
+        int32_t filtered_action = action & AMOTION_EVENT_ACTION_MASK;
 
-
-        if (action == AMOTION_EVENT_ACTION_MOVE || action == AMOTION_EVENT_ACTION_HOVER_MOVE)
+        if (filtered_action == AMOTION_EVENT_ACTION_MOVE || filtered_action == AMOTION_EVENT_ACTION_HOVER_MOVE)
         {
-            MouseMotionEvent event;
+            static MouseMotionEvent event;
 
-            event.x = static_cast<int32_t>(AMotionEvent_getX(input_event, 0));
-            event.y = static_cast<int32_t>(AMotionEvent_getY(input_event, 0));
+            float h = Engine::WindowManager::instance()->main_window()->size().y;
+            float x = AMotionEvent_getX(input_event, event_pointer_index);
+            float y = h - AMotionEvent_getY(input_event, event_pointer_index);
 
-            event.xrel = event.x - static_cast<int32_t>(AMotionEvent_getHistoricalX(input_event, 0, 0));
-            event.yrel = event.y - static_cast<int32_t>(AMotionEvent_getHistoricalY(input_event, 0, 0));
-
-            if (event.xrel != 0 || event.yrel)
+            if (!Platform::m_android_platform_info.mouse_in_relative_mode)
             {
-                MouseMotionEvent event;
-                EventSystem::instance()->push_event(Event(window_id(), EventType::MouseMotion, event));
-                result = 1;
+                event.xrel = x - event.x;
+                event.yrel = y - event.y;
             }
+            else
+            {
+                event.xrel = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_RELATIVE_X, event_pointer_index);
+                event.yrel = -AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_RELATIVE_Y, event_pointer_index);
+            }
+
+            event.x = x;
+            event.y = y;
+            EventSystem::instance()->push_event(Event(window_id(), EventType::MouseMotion, event));
+            result = 1;
         }
-        else if (action == AMOTION_EVENT_ACTION_SCROLL)
+        else if (filtered_action == AMOTION_EVENT_ACTION_SCROLL)
         {
             MouseWheelEvent event;
-            event.x = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, 0);
-            event.y = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_VSCROLL, 0);
+            event.x = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_HSCROLL, event_pointer_index);
+            event.y = AMotionEvent_getAxisValue(input_event, AMOTION_EVENT_AXIS_VSCROLL, event_pointer_index);
 
             if (glm::epsilonNotEqual(event.x, 0.f, 0.01f) || glm::epsilonNotEqual(event.y, 0.f, 0.01f))
             {
@@ -303,13 +310,14 @@ namespace Engine::Platform
                 result = 1;
             }
         }
-        else if (action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
+        else if (filtered_action == AMOTION_EVENT_ACTION_BUTTON_PRESS)
         {
-            result = handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown);
+            result =
+                    handle_mouse_button_event<MouseButtonDownEvent>(input_event, EventType::MouseButtonDown, event_pointer_index);
         }
-        else if (action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
+        else if (filtered_action == AMOTION_EVENT_ACTION_BUTTON_RELEASE)
         {
-            result = handle_mouse_button_event<MouseButtonUpEvent>(input_event, EventType::MouseButtonUp);
+            result = handle_mouse_button_event<MouseButtonUpEvent>(input_event, EventType::MouseButtonUp, event_pointer_index);
         }
 
         return result;
@@ -317,11 +325,21 @@ namespace Engine::Platform
 
     static int32_t handle_motion_event(AInputEvent* input_event)
     {
-        int32_t source = AInputEvent_getSource(input_event);
+        int32_t action = AMotionEvent_getAction(input_event);
+        int32_t event_pointer_index =
+                (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+        action &= AMOTION_EVENT_ACTION_MASK;
 
-        if ((source & AINPUT_SOURCE_MOUSE) == AINPUT_SOURCE_MOUSE)
+        switch (AMotionEvent_getToolType(input_event, event_pointer_index))
         {
-            return handle_mouse_event(input_event);
+            case AMOTION_EVENT_TOOL_TYPE_MOUSE:
+                return handle_mouse_event(input_event, action, event_pointer_index);
+            case AMOTION_EVENT_TOOL_TYPE_FINGER:
+            case AMOTION_EVENT_TOOL_TYPE_STYLUS:
+            case AMOTION_EVENT_TOOL_TYPE_ERASER:
+            case AMOTION_EVENT_TOOL_TYPE_PALM:
+            default:
+                break;
         }
 
         return 0;
@@ -406,16 +424,11 @@ namespace Engine::Platform
             delete window;
         }
 
-        ENGINE_EXPORT bool mouse_relative_mode()
-        {
-            return false;
-        }
-
         ENGINE_EXPORT void mouse_relative_mode(bool flag)
-        {}
-
-        ENGINE_EXPORT void update_monitor_info(MonitorInfo& info)
-        {}
+        {
+            Platform::m_android_platform_info.mouse_in_relative_mode = flag;
+            Engine::WindowManager::instance()->main_window()->cursor_mode(flag ? CursorMode::Hidden : CursorMode::Normal);
+        }
 
         static void execute_pool_source(struct android_poll_source* source)
         {

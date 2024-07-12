@@ -5,7 +5,7 @@ namespace Engine
 {
     struct ENGINE_EXPORT WindowConfig {
         Set<WindowAttribute> attributes;
-        Set<WindowOrientation> orientations;
+        Set<Orientation> orientations;
 
         String title;
         String client;

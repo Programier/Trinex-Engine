@@ -10,8 +10,9 @@ namespace Engine
     implement_enum(Swizzle, Engine, {"Identity", Swizzle::Identity}, {"Zero", Swizzle::Zero}, {"One", Swizzle::One},
                    {"R", Swizzle::R}, {"G", Swizzle::G}, {"B", Swizzle::B}, {"A", Swizzle::A});
 
-    implement_enum(SamplerAddressMode, Engine, {"Repeat", SamplerAddressMode::Repeat}, {"ClampToEdge", SamplerAddressMode::ClampToEdge},
-                   {"ClampToBorder", SamplerAddressMode::ClampToBorder}, {"MirroredRepeat", SamplerAddressMode::MirroredRepeat},
+    implement_enum(SamplerAddressMode, Engine, {"Repeat", SamplerAddressMode::Repeat},
+                   {"ClampToEdge", SamplerAddressMode::ClampToEdge}, {"ClampToBorder", SamplerAddressMode::ClampToBorder},
+                   {"MirroredRepeat", SamplerAddressMode::MirroredRepeat},
                    {"MirrorClampToEdge", SamplerAddressMode::MirrorClampToEdge});
 
     implement_enum(TextureCubeMapFace, Engine, {"Front", TextureCubeMapFace::Front}, {"Back", TextureCubeMapFace::Back},
@@ -82,9 +83,9 @@ namespace Engine
 
     implement_enum(CursorMode, Engine, {"Normal", CursorMode::Normal}, {"Hidden", CursorMode::Hidden});
 
-    implement_enum(WindowOrientation, Engine, {"Landscape", WindowOrientation::Landscape},
-                   {"LandscapeFlipped", WindowOrientation::LandscapeFlipped}, {"Portrait", WindowOrientation::Portrait},
-                   {"PortraitFlipped", WindowOrientation::PortraitFlipped});
+    implement_enum(Orientation, Engine, {"Landscape", Orientation::Landscape},
+                   {"LandscapeFlipped", Orientation::LandscapeFlipped}, {"Portrait", Orientation::Portrait},
+                   {"PortraitFlipped", Orientation::PortraitFlipped});
 
     implement_enum(MessageBoxType, Engine, {"Error", MessageBoxType::Error}, {"Warning", MessageBoxType::Warning},
                    {"Info", MessageBoxType::Info});

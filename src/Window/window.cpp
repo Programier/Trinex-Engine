@@ -158,9 +158,14 @@ namespace Engine
         return CursorMode::Normal;
     }
 
-    bool Window::support_orientation(WindowOrientation orientation)
+    bool Window::support_orientation(Orientation orientation)
     {
         return false;
+    }
+
+    Orientation Window::orientation()
+    {
+        return Orientation::Landscape;
     }
 
     Identifier Window::id()

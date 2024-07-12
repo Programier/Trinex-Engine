@@ -121,11 +121,6 @@ namespace Engine
         return window;
     }
 
-    bool WindowManager::mouse_relative_mode() const
-    {
-        return Platform::WindowManager::mouse_relative_mode();
-    }
-
     WindowManager& WindowManager::mouse_relative_mode(bool flag)
     {
         Platform::WindowManager::mouse_relative_mode(flag);

@@ -69,7 +69,8 @@ namespace Engine
         virtual bool attribute(const WindowAttribute& attrib);
         virtual Window& cursor_mode(const CursorMode& mode);
         virtual CursorMode cursor_mode();
-        virtual bool support_orientation(WindowOrientation orientation);
+        virtual bool support_orientation(Orientation orientation);
+        virtual Orientation orientation();
         virtual Identifier id();
         virtual void* native_window();
         virtual size_t monitor_index();

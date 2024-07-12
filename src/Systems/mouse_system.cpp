@@ -2,11 +2,12 @@
 #include <Core/class.hpp>
 #include <Core/engine_loading_controllers.hpp>
 #include <Core/logger.hpp>
+#include <Event/event.hpp>
 #include <Event/event_data.hpp>
 #include <Systems/event_system.hpp>
 #include <Systems/mouse_system.hpp>
+#include <Window/window.hpp>
 #include <Window/window_manager.hpp>
-
 
 namespace Engine
 {
@@ -45,10 +46,10 @@ namespace Engine
         if (Window* window = find_window(e.window_id()))
         {
             auto& state               = state_of(window);
-            state.m_pos_info.x        = motion.x;
-            state.m_pos_info.y        = motion.y;
             state.m_pos_info.x_offset = motion.xrel;
             state.m_pos_info.y_offset = motion.yrel;
+            state.m_pos_info.x        = motion.x;
+            state.m_pos_info.y        = motion.y;
         }
     }
 
@@ -170,11 +171,12 @@ namespace Engine
 
     bool MouseSystem::is_relative_mode(Window* window) const
     {
-        return WindowManager::instance()->mouse_relative_mode();
+        return state_of(window).m_relative_mode;
     }
 
     MouseSystem& MouseSystem::relative_mode(bool flag, Window* window)
     {
+        state_of(window).m_relative_mode = flag;
         WindowManager::instance()->mouse_relative_mode(flag);
         return *this;
     }

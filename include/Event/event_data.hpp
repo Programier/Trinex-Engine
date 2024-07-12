@@ -22,7 +22,7 @@ namespace Engine
     };
 
     struct ENGINE_EXPORT DisplayOrientationChangedEvent {
-        WindowOrientation orientation;
+        Orientation orientation;
     };
 
     using WindowShownEvent  = EmptyStruct;

@@ -74,7 +74,7 @@ namespace Engine
 
     EventSystemListenerID EventSystem::add_listener(EventType type, const Listener& listener)
     {
-        return EventSystemListenerID(type, m_listeners[static_cast<byte>(type)].push(listener));
+        return EventSystemListenerID(type, m_listeners[static_cast<Identifier>(type)].push(listener));
     }
 
     EventSystem& EventSystem::remove_listener(const EventSystemListenerID& id)
@@ -110,7 +110,7 @@ namespace Engine
         {
             for (auto& id : m_listeners_to_remove)
             {
-                m_listeners[static_cast<byte>(id.m_type)].remove(id.m_id);
+                m_listeners[static_cast<EnumerateType>(id.m_type)].remove(id.m_id);
             }
             m_listeners_to_remove.clear();
         }
@@ -139,13 +139,13 @@ namespace Engine
 
     const EventSystem& EventSystem::push_event(const Event& event) const
     {
-        auto it = m_listeners.find(static_cast<byte>(event.type()));
+        auto it = m_listeners.find(static_cast<EnumerateType>(event.type()));
         if (it != m_listeners.end())
         {
             it->second.trigger(event);
         }
 
-        it = m_listeners.find(static_cast<byte>(EventType::Undefined));
+        it = m_listeners.find(static_cast<EnumerateType>(EventType::Undefined));
 
         if (it != m_listeners.end())
         {

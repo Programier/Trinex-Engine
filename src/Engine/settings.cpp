@@ -24,7 +24,7 @@ namespace Engine::Settings
     ENGINE_EXPORT int_t w_pos_y;
     ENGINE_EXPORT bool w_vsync;
     ENGINE_EXPORT ScriptArray<WindowAttribute, "Engine::WindowAttribute"> w_attributes;
-    ENGINE_EXPORT ScriptArray<WindowOrientation, "Engine::WindowOrientation"> w_orientations;
+    ENGINE_EXPORT ScriptArray<Orientation, "Engine::Orientation"> w_orientations;
 
     ENGINE_EXPORT bool e_show_splash                 = true;
     ENGINE_EXPORT String e_splash_image              = "resources/splash/splash.png";

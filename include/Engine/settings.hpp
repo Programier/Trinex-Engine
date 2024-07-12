@@ -23,7 +23,7 @@ namespace Engine::Settings
     extern ENGINE_EXPORT int_t w_pos_y;
     extern ENGINE_EXPORT bool w_vsync;
     extern ENGINE_EXPORT ScriptArray<WindowAttribute, "Engine::WindowAttribute"> w_attributes;
-    extern ENGINE_EXPORT ScriptArray<WindowOrientation, "Engine::WindowOrientation"> w_orientations;
+    extern ENGINE_EXPORT ScriptArray<Orientation, "Engine::Orientation"> w_orientations;
 
     extern ENGINE_EXPORT bool e_show_splash;
     extern ENGINE_EXPORT String e_splash_image;
