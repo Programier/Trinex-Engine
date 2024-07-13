@@ -118,8 +118,6 @@ struct ImGui_ImplVulkanH_FrameRenderBuffers
                                                 TextureDescriptorSets({}),
                                                 UsedDescritorSetsCount(0)
     {
-        int i = 0;
-        ++i;
     }
 };
 

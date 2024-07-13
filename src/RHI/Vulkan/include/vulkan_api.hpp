@@ -163,15 +163,15 @@ namespace Engine
             case ColorFormat::Undefined:
                 return vk::Format::eUndefined;
             case ColorFormat::FloatR:
-                return vk::Format::eR32Sfloat;
+                return vk::Format::eR16Sfloat;
             case ColorFormat::FloatRGBA:
-                return vk::Format::eR32G32B32A32Sfloat;
+                return vk::Format::eR16G16B16A16Sfloat;
             case ColorFormat::R8:
                 return vk::Format::eR8Unorm;
             case ColorFormat::R8G8B8A8:
                 return vk::Format::eR8G8B8A8Unorm;
             case ColorFormat::DepthStencil:
-                return vk::Format::eD32SfloatS8Uint;
+                return vk::Format::eD24UnormS8Uint;
             case ColorFormat::ShadowDepth:
                 return vk::Format::eD32Sfloat;
             case ColorFormat::FilteredShadowDepth:
@@ -196,15 +196,15 @@ namespace Engine
         {
             case vk::Format::eUndefined:
                 return ColorFormat::Undefined;
-            case vk::Format::eR32Sfloat:
+            case vk::Format::eR16Sfloat:
                 return ColorFormat::FloatR;
-            case vk::Format::eR32G32B32A32Sfloat:
+            case vk::Format::eR16G16B16A16Sfloat:
                 return ColorFormat::FloatRGBA;
             case vk::Format::eR8Unorm:
                 return ColorFormat::R8;
             case vk::Format::eR8G8B8A8Unorm:
                 return ColorFormat::R8G8B8A8;
-            case vk::Format::eD32SfloatS8Uint:
+            case vk::Format::eD24UnormS8Uint:
                 return ColorFormat::DepthStencil;
             case vk::Format::eD32Sfloat:
                 return ColorFormat::ShadowDepth;

@@ -213,15 +213,13 @@ namespace Engine
                 phys_device_selector.add_required_extension(extension.name);
         }
 
-
-#if !PLATFORM_ANDROID
         phys_device_selector.allow_any_gpu_device_type(false);
 #if USE_INTEGRATED_GPU
         phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::integrated);
 #else
         phys_device_selector.prefer_gpu_device_type(vkb::PreferredDeviceType::discrete);
 #endif
-#endif
+
         phys_device_selector.set_surface(static_cast<VkSurfaceKHR>(API->m_surface));
 
         auto selected_device = phys_device_selector.select();

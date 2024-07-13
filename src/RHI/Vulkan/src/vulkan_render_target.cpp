@@ -183,6 +183,10 @@ namespace Engine
         if (render_target != nullptr)
             return render_target;
 
+        if (API->m_properties.limits.maxColorAttachments < static_cast<int32_t>(color_attachments.size()))
+        {
+            throw EngineException(Strings::format("Max color attachments is {}", API->m_properties.limits.maxColorAttachments));
+        }
         render_target = new VulkanRenderTarget();
         render_target->init(color_attachments, depth_stencil);
 
@@ -398,7 +402,7 @@ namespace Engine
             if (new_mode != VulkanViewportMode::Undefined)
             {
                 const auto& render_target_size = m_state.m_render_target->state()->m_size;
-                float sc_y = scissor.pos.y;
+                float sc_y                     = scissor.pos.y;
 
                 if (new_mode == VulkanViewportMode::Flipped)
                 {
