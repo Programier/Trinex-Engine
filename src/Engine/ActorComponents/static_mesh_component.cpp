@@ -61,7 +61,7 @@ namespace Engine
 
                 if (buffer)
                 {
-                    layer->bind_vertex_buffer(buffer, i, 0);
+                    layer->bind_vertex_buffer(buffer, attribute.stream_index, 0);
                 }
             }
 

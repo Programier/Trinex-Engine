@@ -7,7 +7,7 @@ namespace Engine
     {}
 
     SceneView::SceneView(const CameraView& view, const Size2D& view_size, const Flags<ShowFlags, BitMask>& show_flags)
-        : m_view(view.view_matrix()), m_show_flags(show_flags)
+        : m_camera_view(view), m_projection(view.projection_matrix()), m_view(view.view_matrix()), m_show_flags(show_flags)
     {
         m_viewport.pos       = {0, 0};
         m_viewport.size      = view_size;
