@@ -408,10 +408,10 @@ namespace Engine
                     if (current_attribute.name == attribute.name)
                     {
                         names_to_remove.erase(current_attribute.name);
+                        next = true;
 
                         if (is_equal_attribute(current_attribute, attribute))
                         {
-                            next = true;
                             break;
                         }
 
@@ -422,7 +422,6 @@ namespace Engine
                         current_attribute.location       = attribute.location;
                         current_attribute.stream_index   = attribute.stream_index;
                         current_attribute.offset         = attribute.offset;
-
                         break;
                     }
                 }
