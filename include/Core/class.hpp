@@ -28,6 +28,7 @@ namespace Engine
 
         Object* (*m_static_constructor)();
         Object* (*m_cast_to_this)(Object* object);
+        Set<Class*> m_childs;
         size_t m_size;
 
 
@@ -51,6 +52,7 @@ namespace Engine
         Class(const Name& full_name, Class* parent = nullptr, BitMask flags = 0);
 
         Class* parent() const;
+        const Set<Class*>& childs_classes() const;
         void* create_struct() const override;
         Object* create_object() const;
         size_t sizeof_class() const;

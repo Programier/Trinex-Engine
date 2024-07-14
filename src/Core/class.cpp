@@ -57,6 +57,11 @@ namespace Engine
         return reinterpret_cast<Class*>(Struct::parent());
     }
 
+    const Set<Class*>& Class::childs_classes() const
+    {
+        return m_childs;
+    }
+
     void* Class::create_struct() const
     {
         return create_object();
@@ -166,7 +171,12 @@ namespace Engine
     }
 
     Class::~Class()
-    {}
+    {
+        if (Class* parent_class = parent())
+        {
+            parent_class->m_childs.erase(this);
+        }
+    }
 
     static void on_init()
     {

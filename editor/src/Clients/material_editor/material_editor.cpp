@@ -14,6 +14,7 @@
 #include <Graphics/shader.hpp>
 #include <Graphics/texture_2D.hpp>
 #include <Graphics/visual_material.hpp>
+#include <Graphics/visual_material_graph.hpp>
 #include <Widgets/content_browser.hpp>
 #include <Widgets/imgui_windows.hpp>
 #include <Widgets/properties_window.hpp>
@@ -53,6 +54,31 @@ namespace Engine
         }
     };
 
+
+    class ImGuiMaterialCode : public ImGuiRenderer::ImGuiAdditionalWindow
+    {
+    public:
+        String code;
+
+        void init(RenderViewport* viewport)
+        {}
+
+        bool render(RenderViewport* viewport)
+        {
+            bool is_open = true;
+            ImGui::SetNextWindowSize({300, 400}, ImGuiCond_Appearing);
+            ImGui::Begin(name(), &is_open);
+            ImGui::Text("%s", code.c_str());
+            ImGui::End();
+            return is_open;
+        }
+
+        static const char* name()
+        {
+            return "editor/Material Code"_localized;
+        }
+    };
+
     MaterialEditorClient::MaterialEditorClient()
     {
         m_graph_editor_context = ax::NodeEditor::CreateEditor();
@@ -63,20 +89,10 @@ namespace Engine
         ax::NodeEditor::DestroyEditor(m_graph_editor_context);
     }
 
-    void MaterialEditorClient::on_content_browser_close()
-    {
-        m_content_browser = nullptr;
-    }
-
-    void MaterialEditorClient::on_preview_close()
-    {
-        m_preview_window = nullptr;
-    }
-
     MaterialEditorClient& MaterialEditorClient::create_content_browser()
     {
         m_content_browser = ImGuiRenderer::Window::current()->window_list.create<ContentBrowser>();
-        m_content_browser->on_close.push(std::bind(&MaterialEditorClient::on_content_browser_close, this));
+        m_content_browser->on_close.push([this]() { m_content_browser = nullptr; });
         m_content_browser->on_object_double_click.push(
                 std::bind(&MaterialEditorClient::on_object_select, this, std::placeholders::_1));
         return *this;
@@ -89,10 +105,17 @@ namespace Engine
         return *this;
     }
 
+    MaterialEditorClient& MaterialEditorClient::create_material_code_window()
+    {
+        m_material_code = ImGuiRenderer::Window::current()->window_list.create<ImGuiMaterialCode>();
+        m_material_code->on_close.push([this]() { m_material_code = nullptr; });
+        return *this;
+    }
+
     MaterialEditorClient& MaterialEditorClient::create_properties_window()
     {
         m_properties_window = ImGuiRenderer::Window::current()->window_list.create<ImGuiObjectProperties>();
-        m_preview_window->on_close.push(std::bind(&MaterialEditorClient::on_preview_close, this));
+        m_properties_window->on_close.push([this]() { m_preview_window = nullptr; });
         return *this;
     }
 
@@ -174,7 +197,10 @@ namespace Engine
                     create_content_browser();
                 }
 
-                ImGui::Checkbox("editor/Open Material Code"_localized, &m_open_material_code_window);
+                if (ImGui::MenuItem("editor/Open Material Code"_localized, nullptr, nullptr, m_material_code == nullptr))
+                {
+                    create_material_code_window();
+                }
                 ImGui::EndMenu();
             }
 
@@ -215,27 +241,9 @@ namespace Engine
                     m_material->apply_changes();
                 }
 
-                VisualMaterial* material = Object::instance_cast<VisualMaterial>(m_material);
-                if (ImGui::MenuItem("Update Source", nullptr, false, material != nullptr))
+                if (ImGui::MenuItem("Update Source", nullptr, false, m_material != nullptr && m_material_code != nullptr))
                 {
-                    material->shader_source(m_material_source);
-                    //                    auto link = material->nodes()[0]->inputs()[0]->linked_to();
-                    //                    if (link)
-                    //                    {
-                    //                        material->reset_nodes_state();
-                    //                        VisualMaterial::CompilerState state;
-
-                    //                        String pin_source = link->node()->compile(link, state).code;
-
-                    //                        m_material_source.clear();
-
-                    //                        for (auto& local : state.locals)
-                    //                        {
-                    //                            m_material_source += local;
-                    //                            m_material_source.push_back('\n');
-                    //                        }
-                    //                        m_material_source += pin_source;
-                    //                    }
+                    m_material->shader_source(m_material_code->code);
                 }
                 ImGui::EndMenu();
             }
@@ -349,31 +357,31 @@ namespace Engine
         ImGui::TextUnformatted(label);
     };
 
-    static const TreeMap<VisualMaterial::PinType, ImVec4> pin_colors = {
-            {VisualMaterial::PinType::Undefined, ImVec4(0.0, 0.0, 1.0, 1.0)},
-            {VisualMaterial::PinType::Bool, ImVec4(0.0, 0.0, 1.0, 1.0)},
-            {VisualMaterial::PinType::Int, ImVec4(1.0, 0.0, 0.0, 1.0)},
-            {VisualMaterial::PinType::UInt, ImVec4(1.0, 0.647, 0.0, 1.0)},
-            {VisualMaterial::PinType::Float, ImVec4(0.0, 1.0, 0.0, 1.0)},
-            {VisualMaterial::PinType::BVec2, ImVec4(1.0, 0.753, 0.796, 1.0)},
-            {VisualMaterial::PinType::BVec3, ImVec4(1.0, 0.078, 0.576, 1.0)},
-            {VisualMaterial::PinType::BVec4, ImVec4(1.0, 0.412, 0.706, 1.0)},
-            {VisualMaterial::PinType::IVec2, ImVec4(1.0, 1.0, 0.0, 1.0)},
-            {VisualMaterial::PinType::IVec3, ImVec4(0.855, 0.647, 0.125, 1.0)},
-            {VisualMaterial::PinType::IVec4, ImVec4(1.0, 0.843, 0.0, 1.0)},
-            {VisualMaterial::PinType::UVec2, ImVec4(0.0, 1.0, 1.0, 1.0)},
-            {VisualMaterial::PinType::UVec3, ImVec4(0.255, 0.412, 0.882, 1.0)},
-            {VisualMaterial::PinType::UVec4, ImVec4(0.0, 0.749, 1.0, 1.0)},
-            {VisualMaterial::PinType::Vec2, ImVec4(1.0, 0.0, 1.0, 1.0)},
-            {VisualMaterial::PinType::Vec3, ImVec4(0.502, 0.0, 0.502, 1.0)},
-            {VisualMaterial::PinType::Color3, ImVec4(1.0, 0.078, 0.576, 1.0)},
-            {VisualMaterial::PinType::Vec4, ImVec4(0.502, 0.0, 0.0, 1.0)},
-            {VisualMaterial::PinType::Color4, ImVec4(1.0, 0.412, 0.706, 1.0)},
-            {VisualMaterial::PinType::Mat3, ImVec4(1.0, 0.843, 0.0, 1.0)},
-            {VisualMaterial::PinType::Mat4, ImVec4(0.855, 0.647, 0.125, 1.0)},
-            {VisualMaterial::PinType::Sampler, ImVec4(0.0, 0.502, 0.502, 1.0)},
-            {VisualMaterial::PinType::CombinedImageSampler2D, ImVec4(0.0, 1.0, 1.0, 1.0)},
-            {VisualMaterial::PinType::Texture2D, ImVec4(0.0, 0.502, 0.0, 1.0)},
+    static const TreeMap<VisualMaterialGraph::PinType, ImVec4> pin_colors = {
+            {VisualMaterialGraph::PinType::Undefined, ImVec4(0.0, 0.0, 1.0, 1.0)},
+            {VisualMaterialGraph::PinType::Bool, ImVec4(0.0, 0.0, 1.0, 1.0)},
+            {VisualMaterialGraph::PinType::Int, ImVec4(1.0, 0.0, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::UInt, ImVec4(1.0, 0.647, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::Float, ImVec4(0.0, 1.0, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::BVec2, ImVec4(1.0, 0.753, 0.796, 1.0)},
+            {VisualMaterialGraph::PinType::BVec3, ImVec4(1.0, 0.078, 0.576, 1.0)},
+            {VisualMaterialGraph::PinType::BVec4, ImVec4(1.0, 0.412, 0.706, 1.0)},
+            {VisualMaterialGraph::PinType::IVec2, ImVec4(1.0, 1.0, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::IVec3, ImVec4(0.855, 0.647, 0.125, 1.0)},
+            {VisualMaterialGraph::PinType::IVec4, ImVec4(1.0, 0.843, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::UVec2, ImVec4(0.0, 1.0, 1.0, 1.0)},
+            {VisualMaterialGraph::PinType::UVec3, ImVec4(0.255, 0.412, 0.882, 1.0)},
+            {VisualMaterialGraph::PinType::UVec4, ImVec4(0.0, 0.749, 1.0, 1.0)},
+            {VisualMaterialGraph::PinType::Vec2, ImVec4(1.0, 0.0, 1.0, 1.0)},
+            {VisualMaterialGraph::PinType::Vec3, ImVec4(0.502, 0.0, 0.502, 1.0)},
+            {VisualMaterialGraph::PinType::Color3, ImVec4(1.0, 0.078, 0.576, 1.0)},
+            {VisualMaterialGraph::PinType::Vec4, ImVec4(0.502, 0.0, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::Color4, ImVec4(1.0, 0.412, 0.706, 1.0)},
+            {VisualMaterialGraph::PinType::Mat3, ImVec4(1.0, 0.843, 0.0, 1.0)},
+            {VisualMaterialGraph::PinType::Mat4, ImVec4(0.855, 0.647, 0.125, 1.0)},
+            {VisualMaterialGraph::PinType::Sampler, ImVec4(0.0, 0.502, 0.502, 1.0)},
+            {VisualMaterialGraph::PinType::CombinedImageSampler2D, ImVec4(0.0, 1.0, 1.0, 1.0)},
+            {VisualMaterialGraph::PinType::Texture2D, ImVec4(0.0, 0.502, 0.0, 1.0)},
     };
 
     static FORCE_INLINE float input_item_width(int components)
@@ -381,7 +389,19 @@ namespace Engine
         return 75.f * static_cast<float>(components);
     }
 
-    static float render_default_value(void* data, VisualMaterial::PinType type)
+    static void render_bool_pin(bool* data, uint32_t count)
+    {
+        static const char* names[] = {"##Value1", "##Value2", "##Value3", "##Value4"};
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            ImGui::Checkbox(names[i], data + i);
+
+            if (i != count - 1)
+                ImGui::SameLine();
+        }
+    }
+
+    static float render_default_value(void* data, VisualMaterialGraph::PinType type)
     {
         if (data == nullptr)
             return 0;
@@ -400,92 +420,86 @@ namespace Engine
 
         switch (type)
         {
-            case VisualMaterial::PinType::Bool:
+            case VisualMaterialGraph::PinType::Bool:
                 ImGui::Checkbox("##Value", storage.bool_ptr);
                 break;
 
-            case VisualMaterial::PinType::Int:
+            case VisualMaterialGraph::PinType::Int:
                 ImGui::SetNextItemWidth(input_item_width(1));
                 ImGui::InputScalar("##Value", ImGuiDataType_S32, storage.ptr);
                 break;
 
-            case VisualMaterial::PinType::UInt:
+            case VisualMaterialGraph::PinType::UInt:
                 ImGui::SetNextItemWidth(input_item_width(1));
                 ImGui::InputScalar("##Value", ImGuiDataType_U32, storage.ptr);
                 break;
 
-            case VisualMaterial::PinType::Float:
+            case VisualMaterialGraph::PinType::Float:
                 ImGui::SetNextItemWidth(input_item_width(1));
                 ImGui::InputScalar("##Value", ImGuiDataType_Float, storage.ptr);
                 break;
 
-            case VisualMaterial::PinType::BVec2:
+            case VisualMaterialGraph::PinType::BVec2:
                 ImGui::SetNextItemWidth(input_item_width(2));
-                ImGui::Checkbox("##Value1", storage.bool_ptr);
-                ImGui::Checkbox("##Value2", storage.bool_ptr + 1);
+                render_bool_pin(storage.bool_ptr, 2);
                 break;
 
-            case VisualMaterial::PinType::BVec3:
+            case VisualMaterialGraph::PinType::BVec3:
                 ImGui::SetNextItemWidth(input_item_width(3));
-                ImGui::Checkbox("##Value1", storage.bool_ptr);
-                ImGui::Checkbox("##Value2", storage.bool_ptr + 1);
-                ImGui::Checkbox("##Value3", storage.bool_ptr + 2);
+                render_bool_pin(storage.bool_ptr, 3);
                 break;
 
-            case VisualMaterial::PinType::BVec4:
+            case VisualMaterialGraph::PinType::BVec4:
                 ImGui::SetNextItemWidth(input_item_width(4));
-                ImGui::Checkbox("##Value1", storage.bool_ptr);
-                ImGui::Checkbox("##Value2", storage.bool_ptr + 1);
-                ImGui::Checkbox("##Value3", storage.bool_ptr + 2);
-                ImGui::Checkbox("##Value4", storage.bool_ptr + 3);
+                render_bool_pin(storage.bool_ptr, 4);
                 break;
-            case VisualMaterial::PinType::IVec2:
+            case VisualMaterialGraph::PinType::IVec2:
                 ImGui::SetNextItemWidth(input_item_width(2));
                 ImGui::InputScalarN("##Value", ImGuiDataType_S32, storage.ptr, 2);
                 break;
-            case VisualMaterial::PinType::IVec3:
+            case VisualMaterialGraph::PinType::IVec3:
                 ImGui::SetNextItemWidth(input_item_width(3));
                 ImGui::InputScalarN("##Value", ImGuiDataType_S32, storage.ptr, 3);
                 break;
-            case VisualMaterial::PinType::IVec4:
+            case VisualMaterialGraph::PinType::IVec4:
                 ImGui::SetNextItemWidth(input_item_width(4));
                 ImGui::InputScalarN("##Value", ImGuiDataType_S32, storage.ptr, 4);
                 break;
-            case VisualMaterial::PinType::UVec2:
+            case VisualMaterialGraph::PinType::UVec2:
                 ImGui::SetNextItemWidth(input_item_width(2));
                 ImGui::InputScalarN("##Value", ImGuiDataType_U32, storage.ptr, 2);
                 break;
-            case VisualMaterial::PinType::UVec3:
+            case VisualMaterialGraph::PinType::UVec3:
                 ImGui::SetNextItemWidth(input_item_width(3));
                 ImGui::InputScalarN("##Value", ImGuiDataType_U32, storage.ptr, 3);
                 break;
-            case VisualMaterial::PinType::UVec4:
+            case VisualMaterialGraph::PinType::UVec4:
                 ImGui::SetNextItemWidth(input_item_width(4));
                 ImGui::InputScalarN("##Value", ImGuiDataType_U32, storage.ptr, 4);
                 break;
-            case VisualMaterial::PinType::Vec2:
+            case VisualMaterialGraph::PinType::Vec2:
                 ImGui::SetNextItemWidth(input_item_width(2));
                 ImGui::InputScalarN("##Value", ImGuiDataType_Float, storage.ptr, 2);
                 break;
-            case VisualMaterial::PinType::Vec3:
+            case VisualMaterialGraph::PinType::Vec3:
                 ImGui::SetNextItemWidth(input_item_width(3));
                 ImGui::InputScalarN("##Value", ImGuiDataType_Float, storage.ptr, 3);
                 break;
-            case VisualMaterial::PinType::Color3:
+            case VisualMaterialGraph::PinType::Color3:
                 ImGui::SetNextItemWidth(input_item_width(3));
                 ImGui::ColorEdit3("##Value", storage.float_ptr);
                 break;
-            case VisualMaterial::PinType::Vec4:
+            case VisualMaterialGraph::PinType::Vec4:
                 ImGui::SetNextItemWidth(input_item_width(4));
                 ImGui::InputScalarN("##Value", ImGuiDataType_Float, storage.ptr, 4);
                 break;
-            case VisualMaterial::PinType::Color4:
+            case VisualMaterialGraph::PinType::Color4:
                 ImGui::SetNextItemWidth(input_item_width(4));
                 ImGui::ColorEdit4("##Value", storage.float_ptr);
                 break;
-            case VisualMaterial::PinType::Mat3:
+            case VisualMaterialGraph::PinType::Mat3:
                 break;
-            case VisualMaterial::PinType::Mat4:
+            case VisualMaterialGraph::PinType::Mat4:
                 break;
             default:
                 break;
@@ -496,7 +510,7 @@ namespace Engine
     }
 
 
-    static void render_graph(const Vector<VisualMaterial::Node*>& nodes)
+    static void render_graph(const Vector<Pointer<VisualMaterialGraph::Node>>& nodes)
     {
         static BlueprintBuilder builder;
 
@@ -586,6 +600,7 @@ namespace Engine
                 ImGui::Spring(0.f, 0.f);
 
                 builder.begin_output_pin(output->id());
+                ed::PinRect(ImGui::GetCursorPos(), ImGui::GetCursorPos() + ImVec2{text_height, text_height});
                 BlueprintBuilder::icon({text_height, text_height}, BlueprintBuilder::IconType::Circle, output->has_links(),
                                        pin_colors.at(output->type()));
                 builder.end_output_pin();
@@ -597,7 +612,7 @@ namespace Engine
             builder.end();
         }
 
-        for (VisualMaterial::Node* node : nodes)
+        for (VisualMaterialGraph::Node* node : nodes)
         {
             for (auto* input : node->inputs())
             {
@@ -617,10 +632,10 @@ namespace Engine
             ed::PinId from, to;
             if (ed::QueryNewLink(&from, &to) && from && to)
             {
-                VisualMaterial::Pin* input_pin  = from.AsPointer<VisualMaterial::Pin>();
-                VisualMaterial::Pin* output_pin = to.AsPointer<VisualMaterial::Pin>();
+                VisualMaterialGraph::Pin* input_pin  = from.AsPointer<VisualMaterialGraph::Pin>();
+                VisualMaterialGraph::Pin* output_pin = to.AsPointer<VisualMaterialGraph::Pin>();
 
-                if (input_pin->kind() != VisualMaterial::PinKind::Input)
+                if (input_pin->kind() != VisualMaterialGraph::PinKind::Input)
                 {
                     std::swap(input_pin, output_pin);
                 }
@@ -639,15 +654,15 @@ namespace Engine
                     show_label("editor/Cannot create link between pins of the same node"_localized, ImColor(255, 0, 0));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
                 }
-                else if (!VisualMaterial::is_convertable(input_pin->type(), output_pin->type()))
+                else if (!VisualMaterialGraph::is_convertable(input_pin->type(), output_pin->type()))
                 {
                     show_label("editor/Incompatible Pin Type"_localized, ImColor(255, 0, 0));
                     ed::RejectNewItem(ImVec4(1.0f, 0.f, 0.f, 1.f), 3.f);
                 }
                 else if (ed::AcceptNewItem())
                 {
-                    VisualMaterial::InputPin* in   = reinterpret_cast<VisualMaterial::InputPin*>(input_pin);
-                    VisualMaterial::OutputPin* out = reinterpret_cast<VisualMaterial::OutputPin*>(output_pin);
+                    VisualMaterialGraph::InputPin* in   = reinterpret_cast<VisualMaterialGraph::InputPin*>(input_pin);
+                    VisualMaterialGraph::OutputPin* out = reinterpret_cast<VisualMaterialGraph::OutputPin*>(output_pin);
                     in->create_link(out);
                 }
             }
@@ -655,7 +670,7 @@ namespace Engine
 
             if (ed::QueryNewNode(&from))
             {
-                VisualMaterial::Pin* pin = from.AsPointer<VisualMaterial::Pin>();
+                VisualMaterialGraph::Pin* pin = from.AsPointer<VisualMaterialGraph::Pin>();
                 show_label("editor/+ Create Node"_localized, ImColor(32, 45, 32, 180));
 
                 if (ed::AcceptNewItem() && !ImGui::IsPopupOpen("Create New Node"))
@@ -672,22 +687,22 @@ namespace Engine
     }
 
 
-    static Struct* render_node_types(Group* group)
+    static Class* render_node_types(Group* group)
     {
         if (!group)
             return nullptr;
 
 
-        Struct* current = nullptr;
+        Class* current = nullptr;
 
         for (Group* child : group->childs())
         {
             if (ImGui::CollapsingHeader(child->name().c_str()))
             {
                 ImGui::Indent(10.f);
-                Struct* new_struct = render_node_types(child);
-                if (!current && new_struct)
-                    current = new_struct;
+                Class* new_class = render_node_types(child);
+                if (!current && new_class)
+                    current = new_class;
 
                 ImGui::Unindent(10.f);
             }
@@ -696,16 +711,19 @@ namespace Engine
 
         for (Struct* instance : group->structs())
         {
-            if (ImGui::MenuItem(instance->base_name().c_str()))
+            if (instance->is_class())
             {
-                current = instance;
+                if (ImGui::MenuItem(instance->base_name().c_str()))
+                {
+                    current = reinterpret_cast<Class*>(instance);
+                }
             }
         }
 
         return current;
     }
 
-    static bool show_new_node_popup(VisualMaterial* material, VisualMaterial::Pin* from)
+    static bool show_new_node_popup(VisualMaterial* material, VisualMaterialGraph::Pin* from)
     {
         bool status = false;
         ed::Suspend();
@@ -713,30 +731,30 @@ namespace Engine
         {
             ImGui::Dummy({200, 0});
 
-            static Group* root_group = Group::find("Engine::VisualMaterialNodes");
-            if (Struct* self = render_node_types(root_group))
+            static Group* root_group = Group::find("Engine::VisualMaterialGraphGroups");
+            if (Class* self = render_node_types(root_group))
             {
                 auto node      = material->create_node(self);
                 node->position = ImGuiHelpers::construct_vec2<Vector2D>(ed::ScreenToCanvas(ImGui::GetCursorScreenPos()));
 
                 if (from)
                 {
-                    if (from->kind() == VisualMaterial::PinKind::Input)
+                    if (from->kind() == VisualMaterialGraph::PinKind::Input)
                     {
                         for (auto& output : node->outputs())
                         {
                             if (output->type() == from->type())
                             {
-                                reinterpret_cast<VisualMaterial::InputPin*>(from)->create_link(output);
+                                reinterpret_cast<VisualMaterialGraph::InputPin*>(from)->create_link(output);
                                 break;
                             }
                         }
 
                         for (auto& output : node->outputs())
                         {
-                            if (VisualMaterial::is_convertable(output->type(), from->type()))
+                            if (VisualMaterialGraph::is_convertable(output->type(), from->type()))
                             {
-                                reinterpret_cast<VisualMaterial::InputPin*>(from)->create_link(output);
+                                reinterpret_cast<VisualMaterialGraph::InputPin*>(from)->create_link(output);
                                 break;
                             }
                         }
@@ -747,16 +765,16 @@ namespace Engine
                         {
                             if (input->type() == from->type())
                             {
-                                input->create_link(reinterpret_cast<VisualMaterial::OutputPin*>(from));
+                                input->create_link(reinterpret_cast<VisualMaterialGraph::OutputPin*>(from));
                                 break;
                             }
                         }
 
                         for (auto& input : node->inputs())
                         {
-                            if (VisualMaterial::is_convertable(input->type(), from->type()))
+                            if (VisualMaterialGraph::is_convertable(input->type(), from->type()))
                             {
-                                input->create_link(reinterpret_cast<VisualMaterial::OutputPin*>(from));
+                                input->create_link(reinterpret_cast<VisualMaterialGraph::OutputPin*>(from));
                                 break;
                             }
                         }
@@ -784,16 +802,16 @@ namespace Engine
             ed::NodeId* nodes = reinterpret_cast<ed::NodeId*>(_data);
             for (int i = 0, count = ed::GetSelectedNodes(nodes, objects); i < count; i++)
             {
-                VisualMaterial::Node* node = nodes[i].AsPointer<VisualMaterial::Node>();
+                VisualMaterialGraph::Node* node = nodes[i].AsPointer<VisualMaterialGraph::Node>();
 
                 if (node->is_destroyable())
                 {
-                    for (VisualMaterial::InputPin* in : node->inputs())
+                    for (VisualMaterialGraph::InputPin* in : node->inputs())
                     {
                         in->unlink();
                     }
 
-                    for (VisualMaterial::OutputPin* out : node->outputs())
+                    for (VisualMaterialGraph::OutputPin* out : node->outputs())
                     {
                         out->unlink();
                     }
@@ -808,7 +826,8 @@ namespace Engine
             ed::LinkId* links = reinterpret_cast<ed::LinkId*>(_data);
             for (int i = 0, count = ed::GetSelectedLinks(links, objects); i < count; i++)
             {
-                VisualMaterial::Pin* pin = reinterpret_cast<VisualMaterial::Pin*>(static_cast<Identifier>(links[i]) - 1);
+                VisualMaterialGraph::Pin* pin =
+                        reinterpret_cast<VisualMaterialGraph::Pin*>(static_cast<Identifier>(links[i]) - 1);
 
                 if (pin)
                 {
@@ -833,7 +852,7 @@ namespace Engine
 
         render_graph(material->nodes());
         check_creating(m_create_node_from_pin);
-        if (!show_new_node_popup(material, reinterpret_cast<VisualMaterial::Pin*>(m_create_node_from_pin)))
+        if (!show_new_node_popup(material, reinterpret_cast<VisualMaterialGraph::Pin*>(m_create_node_from_pin)))
         {
             m_create_node_from_pin = nullptr;
         }

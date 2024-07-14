@@ -383,14 +383,11 @@ namespace Engine
     {
         node->self = self;
 
-        for (Struct* child : self->childs())
+        for (Class* child : self->childs_classes())
         {
-            if (child->is_class())
-            {
-                Node* child_node = new Node();
-                build_tree(child_node, reinterpret_cast<Class*>(child));
-                node->childs.insert(child_node);
-            }
+            Node* child_node = new Node();
+            build_tree(child_node, child);
+            node->childs.insert(child_node);
         }
     }
 

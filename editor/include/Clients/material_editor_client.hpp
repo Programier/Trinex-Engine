@@ -22,35 +22,30 @@ namespace Engine
     private:
         MessageList m_shader_compile_error_list;
 
-        class ContentBrowser* m_content_browser               = nullptr;
-        class ImGuiMaterialPreview* m_preview_window          = nullptr;
-        class ImGuiObjectProperties* m_properties_window      = nullptr;
+        class ContentBrowser* m_content_browser          = nullptr;
+        class ImGuiMaterialPreview* m_preview_window     = nullptr;
+        class ImGuiObjectProperties* m_properties_window = nullptr;
+        class ImGuiMaterialCode* m_material_code         = nullptr;
+
         ax::NodeEditor::EditorContext* m_graph_editor_context = nullptr;
 
         class RenderViewport* m_viewport             = nullptr;
         class Material* m_material                   = nullptr;
         Pointer<ShaderCompiler::Compiler> m_compiler = nullptr;
 
-        bool m_open_select_node_window   = false;
-        bool m_open_material_code_window = false;
-
+        bool m_open_select_node_window = false;
 
         // Graph editor state
         bool m_is_open_create_node_popup = false;
         void* m_create_node_from_pin     = nullptr;
 
-        String m_material_source;
-
     public:
         MaterialEditorClient();
         ~MaterialEditorClient();
 
-
-        void on_content_browser_close();
-        void on_preview_close();
-
         MaterialEditorClient& create_content_browser();
         MaterialEditorClient& create_preview_window();
+        MaterialEditorClient& create_material_code_window();
         MaterialEditorClient& create_properties_window();
         void on_object_select(Object* object);
 

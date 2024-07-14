@@ -14,11 +14,13 @@ namespace Engine
 
     static void on_destroy()
     {
-        for (auto& [name, struct_entry] : internal_struct_map())
-        {
-            delete struct_entry;
-        }
+        auto& map = internal_struct_map();
 
+        while (!map.empty())
+        {
+            Struct* struct_instance = map.begin()->second;
+            delete struct_instance;
+        }
         internal_struct_map().clear();
     }
 
@@ -45,7 +47,7 @@ namespace Engine
         if (m_parent_struct)
         {
             m_parent = m_parent_struct->name();
-            m_parent_struct->m_childs.push_back(this);
+            m_parent_struct->m_childs.insert(this);
         }
     }
 
@@ -115,7 +117,7 @@ namespace Engine
             m_parent_struct = static_find(m_parent);
             if (m_parent_struct)
             {
-                m_parent_struct->m_childs.push_back(const_cast<Struct*>(this));
+                m_parent_struct->m_childs.insert(const_cast<Struct*>(this));
             }
         }
         return m_parent_struct;
@@ -194,7 +196,7 @@ namespace Engine
         return result;
     }
 
-    const Vector<Struct*>& Struct::childs() const
+    const Set<Struct*>& Struct::child_structs() const
     {
         return m_childs;
     }
@@ -279,5 +281,18 @@ namespace Engine
         }
 
         m_properties.clear();
+
+        while (!m_childs.empty())
+        {
+            Struct* child_struct = *m_childs.begin();
+            delete child_struct;
+        }
+
+        if (m_parent_struct)
+        {
+            m_parent_struct->m_childs.erase(this);
+        }
+
+        internal_struct_map().erase(Strings::hash_of(m_full_name));
     }
 }// namespace Engine
