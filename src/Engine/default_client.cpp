@@ -40,12 +40,15 @@ namespace Engine
 
     DefaultClient& DefaultClient::render(class RenderViewport* viewport)
     {
-        viewport->rhi_bind();
+        SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+        m_material->apply();
+        m_vertex_buffer->rhi_bind(0);
+        m_index_buffer->rhi_bind(0);
+        rhi->draw_indexed(6, 0, 0);
 
-        // m_material->apply();
-        // m_vertex_buffer->rhi_bind(0);
-        // m_index_buffer->rhi_bind(0);
-        // rhi->draw_indexed(6, 0, 0);
+        //viewport->rhi_bind();
+
+
 
         // /viewport->window()->imgui_window()->rhi_render();
 

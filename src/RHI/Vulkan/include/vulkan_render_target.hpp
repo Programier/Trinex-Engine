@@ -17,12 +17,15 @@ namespace Engine
     };
 
     struct VulkanMainRenderTargetState : public VulkanRenderTargetState {
+        struct VulkanWindowViewport* m_viewport = nullptr;
         bool is_main_render_target_state() override;
     };
 
 
     struct VulkanRenderTargetBase {
         vk::Framebuffer m_framebuffer;
+
+        bool prepare_bind();
 
         virtual bool is_main_render_target();
         virtual VulkanRenderTargetBase& destroy();
@@ -41,6 +44,9 @@ namespace Engine
         VulkanMainRenderTargetState* m_state;
         bool is_main_render_target() override;
         VulkanMainRenderTargetState* state() override;
+
+        void bind() override;
+        VulkanRenderTargetBase& unbind() override;
     };
 
     struct VulkanRenderTarget : VulkanRenderTargetBase {
@@ -75,7 +81,6 @@ namespace Engine
     struct VulkanWindowRenderTarget {
         VulkanMainRenderTargetState state;
         Vector<VulkanWindowRenderTargetFrame*> m_frames;
-        struct VulkanWindowViewport* m_viewport;
 
         VulkanWindowRenderTarget& init(struct VulkanWindowViewport* viewport);
         VulkanWindowRenderTarget& destroy();

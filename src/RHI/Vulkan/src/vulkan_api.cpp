@@ -282,7 +282,9 @@ namespace Engine
         }
 
 #if ENABLE_VALIDATION_LAYERS
-        instance_builder.set_debug_callback(debug_callback).request_validation_layers();
+        instance_builder.set_debug_callback(debug_callback)
+                .request_validation_layers()
+                .add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT);
 #else
         instance_builder.add_validation_disable(VK_VALIDATION_CHECK_ALL_EXT);
         instance_builder.add_validation_feature_disable(VK_VALIDATION_FEATURE_DISABLE_ALL_EXT);

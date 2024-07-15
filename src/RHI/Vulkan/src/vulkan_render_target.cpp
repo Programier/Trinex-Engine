@@ -1,5 +1,6 @@
 #include <Graphics/render_surface.hpp>
 #include <vulkan_api.hpp>
+#include <vulkan_barriers.hpp>
 #include <vulkan_render_target.hpp>
 #include <vulkan_renderpass.hpp>
 #include <vulkan_texture.hpp>
@@ -7,27 +8,6 @@
 
 namespace Engine
 {
-    static FORCE_INLINE void push_barriers()
-    {
-        auto src_stage_mask  = vk::PipelineStageFlagBits::eLateFragmentTests | vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        auto dest_stage_mask = vk::PipelineStageFlagBits::eVertexInput | vk::PipelineStageFlagBits::eVertexShader |
-                               vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eComputeShader |
-                               vk::PipelineStageFlagBits::eTransfer;
-
-
-        vk::MemoryBarrier barrier;
-
-        auto src_access_mask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        auto dst_access_mask = vk::AccessFlagBits::eIndexRead | vk::AccessFlagBits::eVertexAttributeRead |
-                               vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite |
-                               vk::AccessFlagBits::eTransferRead | vk::AccessFlagBits::eTransferWrite;
-
-
-        barrier.setSrcAccessMask(src_access_mask);
-        barrier.setDstAccessMask(dst_access_mask);
-        API->current_command_buffer_handle().pipelineBarrier(src_stage_mask, dest_stage_mask, {}, barrier, {}, {});
-    }
-
     void VulkanRenderTargetState::init(const Span<RenderSurface*>& color_attachments, RenderSurface* depth_stencil)
     {
         m_render_pass = VulkanRenderPass::find_or_create(color_attachments, depth_stencil);
@@ -82,17 +62,6 @@ namespace Engine
 
     void VulkanRenderTargetBase::bind()
     {
-        if (API->m_state.m_render_target == this)
-        {
-            return;
-        }
-
-        if (API->m_state.m_render_target)
-        {
-            API->m_state.m_render_target->unbind();
-            push_barriers();
-        }
-
         API->m_state.m_render_target = this;
 
         auto m_state = state();
@@ -116,6 +85,20 @@ namespace Engine
             API->m_state.m_render_target = nullptr;
         }
         return *this;
+    }
+
+    bool VulkanRenderTargetBase::prepare_bind()
+    {
+        if (API->m_state.m_render_target == this)
+        {
+            return false;
+        }
+
+        if (API->m_state.m_render_target)
+        {
+            API->m_state.m_render_target->unbind();
+        }
+        return true;
     }
 
     bool VulkanRenderTargetBase::is_main_render_target()
@@ -144,6 +127,40 @@ namespace Engine
     VulkanMainRenderTargetState* VulkanWindowRenderTargetFrame::state()
     {
         return m_state;
+    }
+
+    void VulkanWindowRenderTargetFrame::bind()
+    {
+        if (!prepare_bind())
+            return;
+
+        vk::ImageMemoryBarrier barrier;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.oldLayout           = vk::ImageLayout::ePresentSrcKHR;
+        barrier.newLayout           = vk::ImageLayout::eColorAttachmentOptimal;
+        barrier.image               = m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
+        barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
+
+        VulkanRenderTargetBase::bind();
+    }
+
+    VulkanRenderTargetBase& VulkanWindowRenderTargetFrame::unbind()
+    {
+        VulkanRenderTargetBase::unbind();
+
+        vk::ImageMemoryBarrier barrier;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.oldLayout           = vk::ImageLayout::eColorAttachmentOptimal;
+        barrier.newLayout           = vk::ImageLayout::ePresentSrcKHR;
+        barrier.image               = m_state->m_viewport->m_images[m_state->m_viewport->m_buffer_index];
+        barrier.subresourceRange    = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        Barrier::transition_image_layout(API->current_command_buffer_handle(), barrier);
+        return *this;
     }
 
     VulkanRenderTarget::VulkanRenderTarget()
@@ -256,21 +273,42 @@ namespace Engine
 
     void VulkanRenderTarget::bind()
     {
-        VulkanRenderTargetBase::bind();
+        if (!prepare_bind())
+            return;
 
+        auto& cmd = API->current_command_buffer_handle();
         for (auto& surface : m_surfaces)
         {
-            surface->layout(vk::ImageLayout::eColorAttachmentOptimal);
+            if (surface->is_depth_stencil_image())
+            {
+                if (is_in<ColorFormat::DepthStencil>(surface->engine_format()))
+                {
+                    surface->change_layout(vk::ImageLayout::eDepthStencilAttachmentOptimal, cmd);
+                }
+                else
+                {
+                    surface->change_layout(vk::ImageLayout::eDepthAttachmentOptimal, cmd);
+                }
+            }
+            else
+            {
+                surface->change_layout(vk::ImageLayout::eColorAttachmentOptimal, cmd);
+            }
         }
+
+        VulkanRenderTargetBase::bind();
     }
 
     VulkanRenderTargetBase& VulkanRenderTarget::unbind()
     {
         VulkanRenderTargetBase::unbind();
+
+        auto& cmd = API->current_command_buffer_handle();
         for (auto& surface : m_surfaces)
         {
-            surface->layout(vk::ImageLayout::eShaderReadOnlyOptimal);
+            surface->change_layout(vk::ImageLayout::eShaderReadOnlyOptimal, cmd);
         }
+
         return *this;
     }
 
@@ -308,7 +346,7 @@ namespace Engine
 
     VulkanWindowRenderTarget& VulkanWindowRenderTarget::init(struct VulkanWindowViewport* viewport)
     {
-        m_viewport = viewport;
+        state.m_viewport = viewport;
 
         uint_t index        = 0;
         state.m_size.x      = static_cast<float>(viewport->m_swapchain->extent.width);
@@ -327,7 +365,7 @@ namespace Engine
 
     VulkanWindowRenderTargetFrame* VulkanWindowRenderTarget::frame()
     {
-        return m_frames[m_viewport->m_buffer_index];
+        return m_frames[state.m_viewport->m_buffer_index];
     }
 
     void VulkanWindowRenderTarget::bind()

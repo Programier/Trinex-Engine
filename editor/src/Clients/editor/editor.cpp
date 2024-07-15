@@ -222,9 +222,9 @@ namespace Engine
         m_scene_view.scissor(scissor);
 
         m_renderer.render(m_scene_view, render_viewport);
-        RenderSurface* output[1] = {m_renderer.output_surface()};//{m_state.imgui_output_surface.ptr()};
-        // rhi->bind_render_target(output, nullptr);
-        // render_viewport->window()->imgui_window()->rhi_render();
+        RenderSurface* output[1] = {m_state.imgui_output_surface.ptr()};
+        rhi->bind_render_target(output, nullptr);
+        render_viewport->window()->imgui_window()->rhi_render();
 
         Rect2D src_rect = {.position = {0.f, 0.f}, .size = viewport.size};
         Rect2D dst_rect = {.position = {0.f, 0.f}, .size = render_viewport->size()};

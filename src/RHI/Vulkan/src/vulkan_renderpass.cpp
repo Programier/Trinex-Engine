@@ -83,7 +83,7 @@ namespace Engine
 
             pass->m_has_depth_attachment = false;
             pass->m_attachment_descriptions.push_back(
-                    create_attachment_desctiption(format, vk::ImageLayout::ePresentSrcKHR, false));
+                    create_attachment_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false));
 
             pass->m_color_attachment_references = {
                     vk::AttachmentReference(0, vk::ImageLayout::eColorAttachmentOptimal),
@@ -112,15 +112,18 @@ namespace Engine
         {
             vk::Format format = surface->rhi_object<VulkanTexture>()->format();
             m_attachment_descriptions.push_back(
-                    create_attachment_desctiption(format, vk::ImageLayout::eShaderReadOnlyOptimal, false));
+                    create_attachment_desctiption(format, vk::ImageLayout::eColorAttachmentOptimal, false));
         }
 
         if (depth_stencil)
         {
+            const bool has_stencil = is_in<ColorFormat::DepthStencil>(depth_stencil->format());
+            vk::ImageLayout layout =
+                    has_stencil ? vk::ImageLayout::eDepthStencilAttachmentOptimal : vk::ImageLayout::eDepthAttachmentOptimal;
+
             m_has_depth_attachment = true;
             vk::Format format      = depth_stencil->rhi_object<VulkanTexture>()->format();
-            m_attachment_descriptions.push_back(create_attachment_desctiption(
-                    format, vk::ImageLayout::eShaderReadOnlyOptimal, is_in<ColorFormat::DepthStencil>(depth_stencil->format())));
+            m_attachment_descriptions.push_back(create_attachment_desctiption(format, layout, has_stencil));
         }
 
         return *this;
