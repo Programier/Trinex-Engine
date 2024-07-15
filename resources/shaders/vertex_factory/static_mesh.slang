@@ -3,9 +3,8 @@
 #include "math.slang"
 
 #ifndef DISABLE_TANGENT_AND_BINORMAL
-#define DISABLE_TANGENT_AND_BINORMAL 0
+#define DISABLE_TANGENT_AND_BINORMAL 1
 #endif
-
 
 struct VertexFactory : IVertexFactory
 {
@@ -74,5 +73,10 @@ struct VertexFactory : IVertexFactory
 	float3 get_world_binormal()
 	{
 		return rotate_vector(get_binormal(), local_to_world);
+	}
+
+	uint	get_uv_count()
+	{
+		return 1;
 	}
 };

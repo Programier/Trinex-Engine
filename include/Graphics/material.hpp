@@ -325,7 +325,7 @@ namespace Engine
         bool apply(MaterialInterface* head, SceneComponent* component = nullptr);
 
         class Material* material() override;
-        bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
+        virtual bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr);
         Material& apply_changes() override;
 
         bool submit_compiled_source(const ShaderCompiler::ShaderSource& source, MessageList& errors);

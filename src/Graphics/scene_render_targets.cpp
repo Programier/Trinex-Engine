@@ -168,8 +168,8 @@ namespace Engine
         surface_of(Normal)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
         surface_of(Emissive)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
         surface_of(MSRA)->rhi_clear_color({0.f, 0.f, 0.f, 1.f});
-        surface_of(SceneDepthZ)->rhi_clear_depth_stencil(1.f, 0.f);
-        surface_of(LightPassDepthZ)->rhi_clear_depth_stencil(1.f, 0.f);
+        surface_of(SceneDepthZ)->rhi_clear_depth_stencil(1.f, 0);
+        surface_of(LightPassDepthZ)->rhi_clear_depth_stencil(1.f, 0);
         return *this;
     }
 }// namespace Engine

@@ -49,6 +49,12 @@ namespace Engine
                 ImGui::EndVertical();
                 break;
 
+            case Stage::Footer:
+                ImGui::EndHorizontal();
+                m_footer_min = ImGui::GetItemRectMin();
+                m_footer_max = ImGui::GetItemRectMax();
+                break;
+
             default:
                 break;
         }
@@ -61,7 +67,7 @@ namespace Engine
                 ImGui::BeginVertical("Node");
                 break;
             case Stage::End:
-                if (old != Stage::Begin)
+                if (old != Stage::Begin && old != Stage::Footer)
                     ImGui::EndHorizontal();
                 m_content_min = ImGui::GetItemRectMin();
                 m_content_max = ImGui::GetItemRectMax();
@@ -94,6 +100,13 @@ namespace Engine
                 ed::PushStyleVar(ed::StyleVar_PivotSize, ImVec2(0, 0));
                 break;
 
+            case Stage::Footer:
+                if (old != Stage::Begin)
+                    ImGui::EndHorizontal();
+                ImGui::BeginHorizontal("Footer");
+                m_has_footer = true;
+                break;
+
             default:
                 break;
         }
@@ -102,8 +115,12 @@ namespace Engine
     void BlueprintBuilder::begin(Identifier id)
     {
         m_id         = id;
-        m_header_min = m_header_max = ImVec2();
-        ed::PushStyleVar(StyleVar_NodePadding, ImVec4(8, 4, 8, 8));
+        m_footer_min = m_footer_max = m_header_min = m_header_max = ImVec2();
+
+        m_has_header = false;
+        m_has_footer = false;
+
+        //ed::PushStyleVar(StyleVar_NodePadding, ImVec4(8, 4, 8, 8));
         ed::BeginNode(id);
         ImGui::PushID(id);
         transition_to_stage(Stage::Begin);
@@ -117,30 +134,50 @@ namespace Engine
 
         if (ImGui::IsItemVisible())
         {
-            auto alpha = static_cast<int>(255 * ImGui::GetStyle().Alpha);
-
+            auto alpha     = static_cast<int>(255 * ImGui::GetStyle().Alpha);
             auto draw_list = ed::GetNodeBackgroundDrawList(m_id);
 
             const auto half_border_width = ed::GetStyle().NodeBorderWidth * 0.5f;
+            const auto node_padding      = ed::GetStyle().NodePadding;
 
-            auto header_color = IM_COL32(0, 0, 0, alpha) | (m_header_color & IM_COL32(255, 255, 255, 0));
-            if ((m_header_max.x > m_header_min.x) && (m_header_max.y > m_header_min.y))
+            if (m_has_header)
             {
-                Texture2D* texture = EditorResources::blueprint_texture;
-                const auto uv      = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->width()),
-                                            (m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
-
-                draw_list->AddImageRounded(ImTextureID(texture, EditorResources::default_sampler),
-                                           m_header_min - ImVec2(8 - half_border_width, 4 - half_border_width),
-                                           m_header_max + ImVec2(8 - half_border_width, 0), ImVec2(0.0f, 0.0f), uv, header_color,
-                                           GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
-
-
-                if (m_content_min.y > m_header_max.y)
+                auto header_color = IM_COL32(0, 0, 0, alpha) | (m_header_color & IM_COL32(255, 255, 255, 0));
+                if ((m_header_max.x > m_header_min.x) && (m_header_max.y > m_header_min.y))
                 {
-                    draw_list->AddLine(ImVec2(m_header_min.x - (8 - half_border_width), m_header_max.y - 0.5f),
-                                       ImVec2(m_header_max.x + (8 - half_border_width), m_header_max.y - 0.5f),
-                                       ImColor(255, 255, 255, 96 * alpha / (3 * 255)), 1.0f);
+                    Texture2D* texture = EditorResources::blueprint_texture;
+                    const auto uv      = ImVec2((m_header_max.x - m_header_min.x) / (4.0f * texture->width()),
+                                                (m_header_max.y - m_header_min.y) / (4.0f * texture->height()));
+
+                    draw_list->AddImageRounded(ImTextureID(texture, EditorResources::default_sampler),
+                                               m_header_min - ImVec2(node_padding.x - half_border_width, node_padding.y - half_border_width),
+                                               m_header_max + ImVec2(node_padding.z - half_border_width, 0), ImVec2(0.0f, 0.0f),
+                                               uv, header_color, GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop);
+
+
+                    if (m_content_min.y > m_header_max.y)
+                    {
+                        draw_list->AddLine(ImVec2(m_header_min.x - (8 - half_border_width), m_header_max.y - 0.5f),
+                                           ImVec2(m_header_max.x + (8 - half_border_width), m_header_max.y - 0.5f),
+                                           ImColor(255, 255, 255, 96 * alpha / (3 * 255)), 1.0f);
+                    }
+                }
+            }
+
+            if (m_has_footer)
+            {
+                auto footer_color = IM_COL32(0, 0, 0, alpha) | (m_footer_color & IM_COL32(255, 255, 255, 0));
+                if ((m_footer_max.x > m_footer_min.x) && (m_footer_max.y > m_footer_min.y))
+                {
+                    Texture2D* texture = EditorResources::blueprint_texture;
+                    const auto uv      = ImVec2((m_footer_max.x - m_footer_min.x) / (4.0f * texture->width()),
+                                                (m_footer_max.y - m_footer_min.y) / (4.0f * texture->height()));
+
+                    draw_list->AddImageRounded(ImTextureID(texture, EditorResources::default_sampler),
+                                               m_footer_min - ImVec2(node_padding.x - half_border_width, 0),
+                                               m_footer_max + ImVec2(node_padding.z - half_border_width, node_padding.w - half_border_width),
+                                               ImVec2(0.0f, 0.0f), uv, footer_color, GetStyle().NodeRounding,
+                                               ImDrawFlags_RoundCornersBottom);
                 }
             }
         }
@@ -217,11 +254,16 @@ namespace Engine
     }
 
 
+    void BlueprintBuilder::begin_footer(const ImVec4& color)
+    {
+        transition_to_stage(Stage::Footer);
+        m_footer_color = ImColor(color);
+    }
+
     static void draw_icon(ImDrawList* draw_list, const ImVec2& min, const ImVec2& max, BlueprintBuilder::IconType type,
                           bool filled, ImU32 color, ImU32 inner_color)
     {
         auto rect                 = ImRect(min, max);
-        auto rect_x               = rect.Min.x;
         auto rect_y               = rect.Min.y;
         auto rect_w               = rect.Max.x - rect.Min.x;
         auto rect_h               = rect.Max.y - rect.Min.y;
@@ -285,7 +327,6 @@ namespace Engine
 
             rect.Min.x += rect_offset;
             rect.Max.x += rect_offset;
-            rect_x += rect_offset;
             rect_center_x += rect_offset * 0.5f;
             rect_center.x += rect_offset * 0.5f;
 

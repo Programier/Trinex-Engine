@@ -73,6 +73,8 @@ namespace Engine
 
         info.renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
         initialize_ubo();
+
+        glEnable(GL_SCISSOR_TEST);
         return *this;
     }
 

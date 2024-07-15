@@ -36,9 +36,9 @@ float3x3 calc_tangent_basis_from_world_normal(float3 normal)
     return float3x3(tangent, bitangent, normal);
 }
 
-float3x3 calc_tangent_basis(float3 normal, float4 tangent)
+float3x3 calc_tangent_basis(float3 normal, float3 tangent)
 {
-    float3 bitangent = cross(normal, tangent.xyz) * tangent.w;
+    float3 bitangent = cross(normal, tangent);
     return float3x3(tangent.xyz, bitangent, normal);
 }
 

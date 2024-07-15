@@ -30,6 +30,7 @@ namespace Engine
             Input   = 5,
             Middle  = 6,
             Output  = 7,
+            Footer  = 8,
         };
 
         Identifier m_id = 0;
@@ -44,8 +45,13 @@ namespace Engine
         ImVec2 m_content_min;
         ImVec2 m_content_max;
 
+        ImVec2 m_footer_min;
+        ImVec2 m_footer_max;
+
         ImU32 m_header_color;
+        ImU32 m_footer_color;
         bool m_has_header;
+        bool m_has_footer;
 
         void transition_to_stage(Stage new_stage);
 
@@ -70,6 +76,7 @@ namespace Engine
         void end_output_pin();
         void end_output();
 
+        void begin_footer(const ImVec4& color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         static void icon(const ImVec2& size, IconType type, bool filled, const ImVec4& color = ImVec4(1, 1, 1, 1),
                          const ImVec4& inner_color = ImVec4(0, 0, 0, 0));
     };

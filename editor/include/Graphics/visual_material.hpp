@@ -22,6 +22,8 @@ namespace Engine
         VisualMaterial();
         const Vector<Pointer<VisualMaterialGraph::Node>>& nodes() const;
         VisualMaterialGraph::Node* create_node(class Class* node_class);
+        VisualMaterial& destroy_node(VisualMaterialGraph::Node* node);
         bool shader_source(String& out_source) override;
+        bool compile(ShaderCompiler::Compiler* compiler = nullptr, MessageList* errors = nullptr) override;
     };
 }// namespace Engine

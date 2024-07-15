@@ -241,6 +241,7 @@ namespace Engine
         {
             glViewport(viewport.pos.x, viewport.pos.y, viewport.size.x, viewport.size.y);
             glDepthRangef(viewport.min_depth, viewport.max_depth);
+            m_state.viewport = viewport;
         }
 
         return *this;
@@ -253,9 +254,10 @@ namespace Engine
 
     OpenGL& OpenGL::scissor(const Scissor& scissor)
     {
-        if(scissor != m_state.scissor)
+        if (scissor != m_state.scissor)
         {
             glScissor(scissor.pos.x, scissor.pos.y, scissor.size.x, scissor.size.y);
+            m_state.scissor = scissor;
         }
         return *this;
     }
