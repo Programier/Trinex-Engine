@@ -43,9 +43,9 @@ namespace Engine
             ConfigsInitializeController().execute();
         }
 
-        if (DefaultResourcesInitializeController::is_triggered())
+        if (StartupResourcesInitializeController::is_triggered())
         {
-            DefaultResourcesInitializeController().execute();
+            StartupResourcesInitializeController().execute();
         }
 
         if (InitializeController::is_triggered())
@@ -176,7 +176,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(PostDestroyController, PostDestroy);
 
     IMPLEMENT_CONTROLLER(ReflectionInitializeController, ReflectionInit);
-    IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController, ResourcesInit);
+    IMPLEMENT_CONTROLLER(StartupResourcesInitializeController, ResourcesInit);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController, ConfigsInitialize);
 
 }// namespace Engine

@@ -125,5 +125,5 @@ namespace Engine
         GarbageCollector::on_unreachable_check.push(skip_destroy_assets);
     }
 
-    static DefaultResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
+    static StartupResourcesInitializeController on_init(initialialize_editor, "Load Editor Package");
 }// namespace Engine

@@ -22,7 +22,7 @@ namespace Engine
 
     void (*Texture2D::generate_mips)(ColorFormat format, Vector<Texture2DMip>&) = nullptr;
 
-    implement_engine_class(Texture2D, 0)
+    implement_engine_class(Texture2D, Class::IsAsset)
     {
         Class* self_class = static_class_instance();
         self_class->add_properties(new PathProperty("Path", "Path to texture", &Texture2D::path));
@@ -146,11 +146,19 @@ namespace Engine
     Texture2D& Texture2D::apply_changes()
     {
         Super::apply_changes();
-        // image.load(path);
-        // //image.add_alpha_channel();
-        // format = image.format();
-        // size   = image.size();
-        // postload();
+        Image image(path);
+
+        if (!image.empty())
+        {
+            m_mips.clear();
+            m_mips.emplace_back();
+            auto& mip = m_mips.back();
+            mip.size  = image.size();
+            mip.data  = image.buffer();
+            m_format  = image.format();
+
+            init_resource();
+        }
         return *this;
     }
 }// namespace Engine

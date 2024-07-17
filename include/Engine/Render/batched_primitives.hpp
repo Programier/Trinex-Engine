@@ -1,6 +1,7 @@
 #pragma once
 #include <Core/engine_types.hpp>
 #include <Core/implement.hpp>
+#include <Core/pointer.hpp>
 
 namespace Engine
 {
@@ -10,10 +11,10 @@ namespace Engine
     class ENGINE_EXPORT BatchedPrimitive
     {
     protected:
-        PositionDynamicVertexBuffer* m_position_buffer = nullptr;
-        ColorDynamicVertexBuffer* m_color_buffer       = nullptr;
-        size_t m_position_buffer_size                  = 0;
-        size_t m_color_buffer_size                     = 0;
+        Pointer<PositionDynamicVertexBuffer> m_position_buffer = nullptr;
+        Pointer<ColorDynamicVertexBuffer> m_color_buffer       = nullptr;
+        size_t m_position_buffer_size                          = 0;
+        size_t m_color_buffer_size                             = 0;
 
         bool begin_render();
 

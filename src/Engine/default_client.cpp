@@ -40,17 +40,18 @@ namespace Engine
 
     DefaultClient& DefaultClient::render(class RenderViewport* viewport)
     {
-        SceneRenderTargets::instance()->begin_rendering_scene_color_ldr();
+        viewport->rhi_bind();
+        viewport->rhi_clear_color(Color(0, 0, 0, 1));
         m_material->apply();
+        auto param = reinterpret_cast<Vec4MaterialParameter*>(m_material->find_parameter(Name::color));
+
+        param->param = {1.0, 0.f, 0.f, 1.0};
+
         m_vertex_buffer->rhi_bind(0);
         m_index_buffer->rhi_bind(0);
         rhi->draw_indexed(6, 0, 0);
 
-        //viewport->rhi_bind();
-
-
-
-        // /viewport->window()->imgui_window()->rhi_render();
+        //viewport->window()->imgui_window()->rhi_render();
 
         return *this;
     }

@@ -187,7 +187,15 @@ namespace Engine
 
         for (auto& node : nodes)
         {
+            auto pos = ed::GetNodePosition(node->id());
+
             builder.begin(node->id());
+
+            if (pos.x == FLT_MAX || pos.y == FLT_MAX)
+            {
+                pos = ImGuiHelpers::construct_vec2<ImVec2>(node->position);
+                ed::SetNodePosition(node->id(), pos);
+            }
 
             builder.begin_header(ImGuiHelpers::construct_vec2<ImVec4>(node->header_color()));
             ImGui::Spring(1.f);

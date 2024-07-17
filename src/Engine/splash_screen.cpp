@@ -216,7 +216,7 @@ namespace Engine
 
         window_config.attributes = {WindowAttribute::BorderLess};
         window_config.title      = "Splash Screen";
-        window_config.client     = "Engine::SplashClient";
+        window_config.client     = "";
         window_config.size       = image.size();
         window_config.size =
                 (window_config.size / window_config.size.x) * static_cast<float>(Platform::monitor_info().size.x) / 3.f;
@@ -224,6 +224,7 @@ namespace Engine
         window_config.vsync    = true;
 
         m_splash_data->window = WindowManager::instance()->create_window(window_config);
+        m_splash_data->window->render_viewport()->client(Object::new_instance<SplashClient>());
 
         m_splash_data->thread      = new Thread("Splash");
         m_splash_data->exec_thread = new Thread("Splash Exec");

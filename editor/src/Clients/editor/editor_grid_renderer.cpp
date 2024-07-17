@@ -24,7 +24,7 @@ namespace Engine
 
     static void initialize_resources()
     {
-        DefaultResourcesInitializeController().require("Load Editor Package");
+        StartupResourcesInitializeController().require("Load Editor Package");
         x_axis_vertex_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
         y_axis_vertex_buffer = Object::new_instance<EngineResource<PositionVertexBuffer>>();
         grid_vertex_buffer   = Object::new_instance<EngineResource<PositionVertexBuffer>>();
@@ -46,7 +46,7 @@ namespace Engine
         grid_vertex_buffer->init_resource();
     }
 
-    static DefaultResourcesInitializeController on_init(initialize_resources);
+    static StartupResourcesInitializeController on_init(initialize_resources);
 
     void render_editor_grid(SceneRenderer* renderer, RenderViewport*, SceneLayer* layer)
     {

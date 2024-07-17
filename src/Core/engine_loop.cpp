@@ -57,7 +57,7 @@ namespace Engine
     {
         WindowConfig config;
         config.attributes.insert(WindowAttribute::Hidden);
-        config.attributes.insert(WindowAttribute::Resizable); // TODO: REMOVE IT
+        config.attributes.insert(WindowAttribute::Resizable);// TODO: REMOVE IT
         WindowManager::create_instance();
         EventSystem::new_system<EventSystem>();
         WindowManager::instance()->create_window(config, nullptr)->hide();
@@ -160,7 +160,13 @@ namespace Engine
                 return result;
         }
 
-        bool show_splash = Settings::e_show_splash;
+        const bool show_splash = Settings::e_show_splash;
+
+        float wait_time = engine_instance->time_seconds();
+        engine_instance->init();
+
+        extern void load_default_resources();
+        load_default_resources();
 
         if (show_splash)
         {
@@ -170,12 +176,7 @@ namespace Engine
             Engine::splash_screen_text(Engine::SplashTextType::StartupProgress, "Starting Engine");
         }
 
-        float wait_time = engine_instance->time_seconds();
-        engine_instance->init();
-
-        extern void load_default_resources();
-        load_default_resources();
-
+        StartupResourcesInitializeController().execute();
         InitializeController().execute();
 
         wait_time = 2.0f - (engine_instance->time_seconds() - wait_time);

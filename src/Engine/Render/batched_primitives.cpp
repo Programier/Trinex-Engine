@@ -27,8 +27,8 @@ namespace Engine
 
     BatchedPrimitive::BatchedPrimitive()
     {
-        m_position_buffer = Object::new_instance<EngineResource<PositionDynamicVertexBuffer>>();
-        m_color_buffer    = Object::new_instance<EngineResource<ColorDynamicVertexBuffer>>();
+        m_position_buffer = Object::new_instance<PositionDynamicVertexBuffer>();
+        m_color_buffer    = Object::new_instance<ColorDynamicVertexBuffer>();
     }
 
     BatchedPrimitive& BatchedPrimitive::clear()
@@ -44,17 +44,13 @@ namespace Engine
             return false;
 
 
-        submit_vertex_buffer(m_position_buffer, m_position_buffer_size);
-        submit_vertex_buffer(m_color_buffer, m_color_buffer_size);
+        submit_vertex_buffer(m_position_buffer.ptr(), m_position_buffer_size);
+        submit_vertex_buffer(m_color_buffer.ptr(), m_color_buffer_size);
         return true;
     }
 
     BatchedPrimitive::~BatchedPrimitive()
-    {
-        GarbageCollector::destroy(m_position_buffer);
-        GarbageCollector::destroy(m_color_buffer);
-    }
-
+    {}
 
     //// Lines
 

@@ -25,7 +25,9 @@ namespace Engine
                 {vk::DescriptorType::eUniformBuffer, uniform_buffers},
         }};
 
-        vk::DescriptorPoolCreateInfo info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, max_sets, pools);
+        vk::DescriptorPoolCreateInfo info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet |
+                                                  vk::DescriptorPoolCreateFlagBits::eUpdateAfterBind,
+                                          max_sets, pools);
         pool = API->m_device.createDescriptorPool(info);
     }
 

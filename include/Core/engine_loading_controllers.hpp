@@ -52,7 +52,7 @@ namespace Engine
     IMPLEMENT_CONTROLLER(PostDestroyController);
     IMPLEMENT_CONTROLLER(DestroyController);
 
-    IMPLEMENT_CONTROLLER(DefaultResourcesInitializeController);
+    IMPLEMENT_CONTROLLER(StartupResourcesInitializeController);
     IMPLEMENT_CONTROLLER(ReflectionInitializeController);
     IMPLEMENT_CONTROLLER(ConfigsInitializeController);
 #undef IMPLEMENT_CONTROLLER

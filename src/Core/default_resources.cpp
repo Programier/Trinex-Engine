@@ -58,7 +58,5 @@ namespace Engine
         load_default_asset(DirectionalLightMaterial, directional_light_material, Material, Materials);
         load_default_asset(AmbientLightMaterial, ambient_light_material, Material, Materials);
         load_default_asset(ImGuiMaterial, imgui_material, Material, Materials);
-
-        DefaultResourcesInitializeController().execute();
     }
 }// namespace Engine
