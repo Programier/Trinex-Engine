@@ -554,8 +554,8 @@ namespace Engine
 
     VulkanAPI& VulkanAPI::prepare_draw()
     {
-        m_state.m_pipeline->bind_descriptor_set();
         uniform_buffer()->bind();
+        m_state.m_pipeline->bind_descriptor_set();
         return *this;
     }
 
